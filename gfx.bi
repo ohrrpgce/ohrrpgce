@@ -40,6 +40,10 @@ type GamePadMap
 	R2 as integer
 end type
 
+extern wantpollingthread as bool
+extern as string gfxbackend, musicbackend
+extern as string gfxbackendinfo, musicbackendinfo, systeminfo
+
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
 '(unrelated to gfx_init)

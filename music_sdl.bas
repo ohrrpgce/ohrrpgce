@@ -5,6 +5,7 @@
 ''
 
 #include "music.bi"
+#include "gfx.bi"
 #include "util.bi"
 #include "common.bi"
 #include "file.bi"

@@ -1402,7 +1402,7 @@ end sub
 'Returns whether the file is a normal lump file in workingdir.
 'This is used to determine whether the file should be hooked
 'writable: whether attempting to *explicitly* open with write access
-function inworkingdir(filename as string, byval writable as bool) as bool
+function inworkingdir(filename as string, byval writable as boolint) as boolint
 	if RIGHT(filename, 10) = "_debug.txt" then return NO
 	'if RIGHT(filename, 12) = "_archive.txt" then return NO
 	'Uncomment this for OPEN tracing (or you could just use strace...)

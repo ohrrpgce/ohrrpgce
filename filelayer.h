@@ -8,6 +8,7 @@
 #include "fb/fb_stub.h"
 #include <string>
 #include "os.h"
+#include "common.h"
 
 using namespace std;
 
@@ -21,13 +22,13 @@ struct FileInfo {
 
 extern "C" {
 
-	typedef FBCALL int (*FnStringPredicate)(FBSTRING *filename);
-	typedef FBCALL int (*FnOpenCallback)(FBSTRING *filename, int writable);
+	typedef FBCALL boolint (*FnStringPredicate)(FBSTRING *filename);
+	typedef FBCALL boolint (*FnOpenCallback)(FBSTRING *filename, boolint writable);
 
 	void send_lump_modified_msg(const char *filename);
 	int copyfile(FBSTRING *source, FBSTRING *destination);
 
-	void set_OPEN_hook(FnOpenCallback lumpfile_filter, int lump_writes_allowed, IPCChannel *channel);
+	void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel);
 	void clear_OPEN_hook();
 
 }

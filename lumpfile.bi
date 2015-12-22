@@ -189,16 +189,16 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 '----------------------------------------------------------------------
 '                       filelayer.cpp stuff
 
-type FnStringPredicate as function (filename as string) as integer
-type FnOpenCallback as function (filename as string, byval writable as integer) as integer
+type FnStringPredicate as function (filename as string) as boolint
+type FnOpenCallback as function (filename as string, writable as boolint) as boolint
 
 extern "C"
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
-declare sub set_OPEN_hook(byval lumpfile_filter as FnOpenCallback, byval lump_writes_allowed as integer, byval channel as IPCChannel ptr)
+declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)
 declare sub clear_OPEN_hook()
 end extern
 
-declare function inworkingdir(filename as string, byval writable as bool) as bool
-declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer
+declare function inworkingdir(filename as string, writable as boolint) as boolint
+declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", timeout_ms as integer = 500) as integer
 
 #endif

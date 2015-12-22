@@ -3153,7 +3153,7 @@ type PrintStrState
 	as Font ptr thefont
 	as long fgcolor          'Used when resetting localpal. May be -1 for none
 	as long bgcolor          'Only used if not_transparent
-	as bool32 not_transparent  'Force non-transparency of layer 1
+	as bool not_transparent  'Force non-transparency of layer 1
 
 	'Internal members
 	as Font ptr initial_font    'Used when resetting thefont
@@ -3168,7 +3168,7 @@ type PrintStrState
 	as Palette16 localpal
 	as long initial_fgcolor  'Used when resetting fgcolor
 	as long initial_bgcolor  'Used when resetting bgcolor
-	as bool32 initial_not_trans 'Used when resetting bgcolor
+	as bool initial_not_trans 'Used when resetting bgcolor
 end type
 
 'Special signalling characters

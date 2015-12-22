@@ -167,7 +167,7 @@ int copyfile(FBSTRING *source, FBSTRING *destination) {
 	return fb_FileCopy(source->data, destination->data);
 }
 
-void set_OPEN_hook(FnOpenCallback lumpfile_filter, int lump_writes_allowed, IPCChannel *channel) {
+void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
 	pfnLumpfileFilter = lumpfile_filter;
 	__fb_ctx.pfnDevOpenHook = OPEN_hook;
 #ifndef _WIN32

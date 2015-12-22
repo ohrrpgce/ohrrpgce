@@ -101,13 +101,23 @@ NAMESPACE OHR
 #ENDIF
 
 ' TODO: FB 1.04+ has a boolean type, which we ignore for now
-TYPE bool as integer
+' (it's 1 bit in size and compatible with C/C++ bool)
+#IFDEF __FB_64BIT__
+  TYPE bool as long  '32 bit
+#ELSE
+  'Tip: Change this to 'long' to warnings for inconsistent usage of bool vs integer
+  TYPE bool as integer
+#ENDIF
 
-' Temporary, until we can declare bool as an int32
-TYPE bool32 as long
+' I will use boolint in declarations of C/C++ functions where we would like to use
+' bool (C/C++) or boolean (FB), but shouldn't, to support FB pre-1.04. So instead,
+' use boolint on both sides, to show intention but prevent accidental C/C++ bool usage.
+TYPE boolint as long  '32 bit
 
 'Even though long and integer are the same size on 32 bit platforms,
 'fbc considers them different types and throws warnings!
+'This is because they get mangled to C long and int types respectively.
+'Likewise, integer and longint could different on 64 bit. See crt/long.bi.
 #IFDEF __FB_64BIT__
   #IFNDEF int32
     TYPE int32 as long
@@ -115,6 +125,8 @@ TYPE bool32 as long
   #IFNDEF uint32
     TYPE uint32 as ulong
   #ENDIF
+  TYPE int64 as integer
+  TYPE uint64 as uinteger
 #ELSE
   #IFNDEF int32
     TYPE int32 as integer
@@ -122,6 +134,8 @@ TYPE bool32 as long
   #IFNDEF uint32
     TYPE uint32 as uinteger
   #ENDIF
+  TYPE int64 as longint
+  TYPE uint64 as ulongint
 #ENDIF
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
@@ -132,16 +146,43 @@ END NAMESPACE
 
 USING OHR
 
-EXTERN wantpollingthread as integer
-EXTERN as string gfxbackend, musicbackend
-EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
+TYPE fb_integer as integer
+TYPE fb_uinteger as uinteger
+
+' Use of the following two macros may be needed when including
+' certain external headers. Most FB headers have no or almost no
+' instances of 'integer'. Strangely there are a few random occurrences.
+' To be safe, put 'use_native_integer' before and 'use_32bit_integer'
+' after an 'unclean' include.
+
+#MACRO use_native_integer()
+# UNDEF integer
+# UNDEF uinteger
+  TYPE integer as fb_integer
+  TYPE uinteger as fb_uinteger
+#ENDMACRO
+
+#MACRO use_32bit_integer()
+# UNDEF integer
+# UNDEF uinteger
+  TYPE integer as int32
+  TYPE uinteger as uint32
+#ENDMACRO
 
 'included only for $inclib?
 #include once "crt.bi"
 #include once "crt/limits.bi"
 #undef rand
 #undef bound
+'Need to include these before redefining the size of 'integer'
+#include "crt/stddef.bi"
+#include "crt/sys/types.bi"
+#ifndef intptr_t
+ ' Old FB headers
+ TYPE intptr_t as size_t
+#endif
 
+use_32bit_integer()
 
 #macro include_windows_bi()
 # ifndef windows_bi_included
@@ -152,6 +193,7 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 #  undef rectangle
 #  undef ellipse
 #  define _X86_
+   use_native_integer()
 #  include once "windows.bi"
 ' Almost everywhere, the following two headers are enough
 ' #  include once "win/windef.bi"
@@ -159,6 +201,7 @@ EXTERN as string gfxbackendinfo, musicbackendinfo, systeminfo
 ' ' The following two .bi's are in order to undef iswindow so can include SDL.bi, which includes windows.bi
 ' #  include once "win/wingdi.bi"
 ' #  include once "win/winuser.bi"
+   use_32bit_integer()
 #  undef max
 #  undef min
 #  undef default_palette

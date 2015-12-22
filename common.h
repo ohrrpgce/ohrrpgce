@@ -15,6 +15,11 @@
 extern "C" {
 #endif
 
+/* I will use boolint in declarations of C/C++ functions where we would like to use
+   bool (C/C++) or boolean (FB), but shouldn't, to support FB pre-1.04. So instead,
+   use boolint on both sides, to show intention but prevent accidental C/C++ bool usage.
+*/
+typedef int boolint;
 
 #if defined(_WIN32) || defined(WIN32)
 # define SLASH '\\'
