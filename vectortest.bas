@@ -489,7 +489,7 @@ startTest(sortStringArray)
 	dim vec as string vector
 	array_to_vector vec, array1()
 	v_sort vec
-	vector_to_array array1(), vec
+	vector_to_array array2(), vec
 	if array2(0) <> "allegory" then fail
 	if array2(4) <> "soul" then fail
 endTest
