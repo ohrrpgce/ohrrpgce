@@ -459,8 +459,8 @@ for k in music:
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
     # winmm needed for MIDI, used by music backends but also by miditest
-    base_libraries += ['winmm']
-    common_libraries += [libfbgfx, 'psapi']
+    base_libraries += ['winmm', 'psapi']
+    common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
 elif mac:
