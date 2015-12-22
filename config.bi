@@ -127,6 +127,9 @@ TYPE boolint as long  '32 bit
   #ENDIF
   TYPE int64 as integer
   TYPE uint64 as uinteger
+  #IFNDEF ssize_t
+    TYPE ssize_t as integer
+  #ENDIF
 #ELSE
   #IFNDEF int32
     TYPE int32 as integer
@@ -136,7 +139,11 @@ TYPE boolint as long  '32 bit
   #ENDIF
   TYPE int64 as longint
   TYPE uint64 as ulongint
+  #IFNDEF ssize_t
+    TYPE ssize_t as integer
+  #ENDIF
 #ENDIF
+
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
 CONST YES = -1
