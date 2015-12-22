@@ -743,10 +743,13 @@ void kill_process (ProcessHandle process) {
 
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
+	// Early versions of the NDK don't have popen
+#ifndef __ANDROID__
 	if (*processp) {
 		pclose(*processp);
 		*processp = 0;
 	}
+#endif
 }
 
 int get_process_id () {
