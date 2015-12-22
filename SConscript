@@ -61,32 +61,6 @@ if android:
     FBFLAGS += ["-d", "__FB_ANDROID__=1"]
     arch = 'armeabi'
 
-if arch == 'armeabi':
-    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-R"]
-    #CFLAGS += -L$(SYSROOT)/usr/lib
-    # CC, CXX, AS must be set in environment to point to cross compiler
-elif arch == 'x86':
-    CFLAGS.append ('-m32')
-    CXXFLAGS.append ('-m32')
-    # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-    # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
-    CFLAGS.append ('-mpreferred-stack-boundary=2')
-    CXXFLAGS.append ('-mpreferred-stack-boundary=2')
-    # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
-    # except on Intel Macs, where it is both always present, and required by system headers
-    if not mac:
-        CFLAGS.append ('-mno-sse')
-        CXXFLAGS.append ('-mno-sse')
-    #FBFLAGS += ["-arch", "686"]
-elif arch == 'x86_64':
-    CFLAGS.append ('-m64')
-    CXXFLAGS.append ('-m64')
-    # This also causes FB to default to -gen gcc, as -gen gas not supported
-    # (therefore we don't need to pass -mpreferred-stack-boundary=2)
-    FBFLAGS += ['-arch', 'x86_64']
-else:
-    raise Exception('Unknown architecture %s' % arch)
-
 if int (ARGUMENTS.get ('asm', False)):
     FBFLAGS += ["-r", "-g"]
 
@@ -165,6 +139,10 @@ env = Environment (FBFLAGS = FBFLAGS,
                    CXXLINKFLAGS = [],
                    VAR_PREFIX = '',
                    **envextra)
+# These no longer do anything
+del CFLAGS
+del CXXFLAGS
+del FBFLAGS
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
@@ -184,38 +162,6 @@ if CXX:
 
 
 ################ OS-specific environment stuff
-
-if win32:
-    env['FBLINKFLAGS'] += ['-p', 'win32']
-    env['CXXLINKFLAGS'] += ['-L', 'win32']
-
-    # Create environment for compiling gfx_directx.dll
-    w32_env = Environment ()
-    w32_env['ENV']['PATH'] = os.environ['PATH']
-    if "Include" in os.environ:
-        w32_env.Append(CPPPATH = os.environ['Include'])
-    if "Lib" in os.environ:
-        w32_env.Append(LIBPATH = os.environ['Lib'])
-    if 'DXSDK_DIR' in os.environ:
-        w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
-        w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
-
-if mac:
-    macsdk = ARGUMENTS.get ('macsdk', '')
-    macSDKpath = ''
-    env['FBLINKFLAGS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH]
-    env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
-    if macsdk:
-        macSDKpath = 'MacOSX' + macsdk + '.sdk'
-        if macsdk == '10.4':
-            # 10.4 has a different naming scheme
-            macSDKpath = 'MacOSX10.4u.sdk'
-        macSDKpath = '/Developer/SDKs/' + macSDKpath
-        if not os.path.isdir(macSDKpath):
-            raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
-        env['FBLINKFLAGS'] += ['-Wl', '-mmacosx-version-min=' + macsdk]
-        env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
-        env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
 
 if android:
     # liblog for __android_log_print/write
@@ -295,6 +241,56 @@ if fbcversion >= 910:
     libfbgfx = 'fbgfxmt'
 else:
     libfbgfx = 'fbgfx'
+
+
+################ Mac SDKs
+
+if mac:
+    macsdk = ARGUMENTS.get ('macsdk', '')
+    macSDKpath = ''
+    env['FBLINKFLAGS'] += ['-Wl', '-F,' + FRAMEWORKS_PATH]
+    env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
+    if macsdk:
+        if macsdk == '10.4':
+            # 10.4 has a different naming scheme
+            macSDKpath = 'MacOSX10.4u.sdk'
+        else:
+            macSDKpath = 'MacOSX' + macsdk + '.sdk'
+        macSDKpath = '/Developer/SDKs/' + macSDKpath
+        if not os.path.isdir(macSDKpath):
+            raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
+        env['FBLINKFLAGS'] += ['-Wl', '-mmacosx-version-min=' + macsdk]
+        env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
+        env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
+
+
+################ Arch-specific stuff
+
+if arch == 'armeabi':
+    env['FBFLAGS'] += ["-gen", "gcc", "-arch", "arm", "-R"]
+    #env['CFLAGS'] += -L$(SYSROOT)/usr/lib
+    # CC, CXX, AS must be set in environment to point to cross compiler
+elif arch == 'x86':
+    env['CFLAGS'].append ('-m32')
+    env['CXXFLAGS'].append ('-m32')
+    # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
+    # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
+    env['CFLAGS'].append ('-mpreferred-stack-boundary=2')
+    env['CXXFLAGS'].append ('-mpreferred-stack-boundary=2')
+    # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
+    # except on Intel Macs, where it is both always present, and required by system headers
+    if not mac:
+        env['CFLAGS'].append ('-mno-sse')
+        env['CXXFLAGS'].append ('-mno-sse')
+    #env['FBFLAGS'] += ["-arch", "686"]
+elif arch == 'x86_64':
+    env['CFLAGS'].append ('-m64')
+    env['CXXFLAGS'].append ('-m64')
+    # This also causes FB to default to -gen gcc, as -gen gas not supported
+    # (therefore we don't need to pass -mpreferred-stack-boundary=2)
+    env['FBFLAGS'] += ['-arch', 'x86_64']
+else:
+    raise Exception('Unknown architecture %s' % arch)
 
 
 ################ A bunch of stuff for linking
@@ -491,12 +487,6 @@ commonenv['CXXLINKFLAGS'] += ['-L' + path for path in libpaths]
 commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in libpaths])
 
 
-################ Generate build & version info files, before anything else.
-
-builddir = Dir('.').abspath + os.path.sep
-rootdir = Dir('#').abspath + os.path.sep
-verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
-
 
 ################ Modules
 
@@ -572,6 +562,15 @@ if linkgcc:
 
 else:
     commonenv['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
+
+################ Generate build & version info files before compiling any modules
+
+builddir = Dir('.').abspath + os.path.sep
+rootdir = Dir('#').abspath + os.path.sep
+verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
+
+
+################ Generate object file Nodes
 
 # Note that base_objects are not built in commonenv!
 base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
@@ -667,6 +666,17 @@ if win32:
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
+
+    # Create environment for compiling gfx_directx.dll
+    w32_env = Environment ()
+    w32_env['ENV']['PATH'] = os.environ['PATH']
+    if "Include" in os.environ:
+        w32_env.Append(CPPPATH = os.environ['Include'])
+    if "Lib" in os.environ:
+        w32_env.Append(LIBPATH = os.environ['Lib'])
+    if 'DXSDK_DIR' in os.environ:
+        w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
+        w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
 
     RESFILE = w32_env.RES ('gfx_directx/gfx_directx.res', source = 'gfx_directx/gfx_directx.rc')
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
