@@ -34,18 +34,19 @@ Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
 Declare Function AddStringToTable (st as string, byval doc as DocPtr) as integer
 Declare Function FindStringInTable overload(st as string, byval doc as DocPtr) as integer
 
-Declare Function CreateHashTable(byval doc as Docptr, byval hashFunc as hashFunction, byval b as integer = 65) as Hashptr
+Declare Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer = 65) as Hashptr
 Declare Sub DestroyHashTable(byval h as HashPtr)
-Declare Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer = 1) as any ptr
-Declare Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
+Declare Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) as intptr_t
+Declare Sub AddItem(h as HashPtr, key as ZString ptr, item as intptr_t)
 Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
 
 
 'I am aware of the hash table implementation in util.bas. However, this is tuned
 'for this purpose. Plus, I want everything contained on the private heap (if applicable)
+'NOTE: This is actually a multimap
 Type ReloadHashItem
 	key as zstring ptr 
-	item as any ptr 'this doesn't have to be a pointer...
+	item as intptr_t  'Fits a pointer or an int
 	nxt as ReloadHashItem ptr
 End Type
 
@@ -166,7 +167,7 @@ Function CreateDocument() as DocPtr
 		ret->nameIndexTableLen = 0
 		
 		'add the blank string to the hash
-		AddItem(ret->stringHash, ret->strings[0].str, cast(any ptr, 0))
+		AddItem(ret->stringHash, ret->strings[0].str, 0)
 	end if
 	
 	return ret
@@ -462,7 +463,7 @@ Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
 			fread(zs, 1, size, f)
 		end if
 		
-		AddItem(doc->stringHash, doc->strings[i].str, cast(any ptr, i))
+		AddItem(doc->stringHash, doc->strings[i].str, i)
 	next
 end sub
 
@@ -558,7 +559,7 @@ Function FindStringInTable (st as string, byval doc as DocPtr) as integer
 	
 	if st = "" then return 0
 	
-	dim ret as integer = cint(FindItem(doc->stringhash, st))
+	dim ret as integer = FindItem(doc->stringhash, st)
 	
 	if ret = 0 then return -1
 	return ret
@@ -603,7 +604,7 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	doc->strings[doc->numStrings].str = RCallocate(len(st) + 1, doc)
 	*doc->strings[doc->numStrings].str = st
 	
-	AddItem(doc->stringHash, doc->strings[doc->numStrings].str, cast(any ptr, doc->numStrings))
+	AddItem(doc->stringHash, doc->strings[doc->numStrings].str, doc->numStrings)
 	
 	doc->numStrings += 1
 	
@@ -655,7 +656,7 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 			do while b
 				if *b->key = *.name then
 					doc->nameIndexTable[cast(integer, b->item)] = .nameindex
-					'debug "RB: mapping string " & *.name & ", namenum=" & cast(integer, b->item) & " nameidx=" & .nameindex
+					'debug "RB: mapping string " & *.name & ", namenum=" & b->item & " nameidx=" & .nameindex
 					continue for
 				end if
 				b = b->nxt
@@ -1319,7 +1320,7 @@ Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodeP
 	dim child as NodePtr = nod->children
 
 	if nod->numChildren >= 10 then  'cutoff chosen with reloadtest speed tests
-		dim namenum as integer = cast(integer, FindItem(nod->doc->stringhash, nam))
+		dim namenum as integer = FindItem(nod->doc->stringhash, nam)
 
 		while child <> null
 			if child->namenum = namenum then return child
@@ -2016,17 +2017,15 @@ function ReadVLI(byval f as FILE ptr) as longint
 	if neg then ret *= -1
 	
 	return ret
-	
 end function
 
 
-
-Function CreateHashTable(byval doc as Docptr, byval hashFunc as hashFunction, byval b as integer) as ReloadHash ptr
+Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer) as ReloadHash ptr
 	dim ret as HashPtr = RCallocate(sizeof(ReloadHash), doc)
 	
 	with *ret
-		.bucket = RCallocate(sizeof(ReloadHashItem ptr) * b, doc)
-		.numBuckets = b
+		.bucket = RCallocate(sizeof(ReloadHashItem ptr) * numbuckets, doc)
+		.numBuckets = numbuckets
 		.numItems = 0
 		.doc = doc
 		.hashFunc = hashFunc
@@ -2051,7 +2050,8 @@ Sub DestroyHashTable(byval h as HashPtr)
 	RDeallocate(h, h->doc)
 end sub
 
-Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer) as any ptr
+'copynumber: which copy of the item to return. 1 is first, etc,
+Function FindItem(h as HashPtr, key as ZString ptr, copynumber as integer = 1) as intptr_t
 	dim b as ReloadHashItem ptr
 	
 	dim hash as uinteger = h->hashFunc(key)
@@ -2060,8 +2060,8 @@ Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as int
 	
 	do while b
 		if *b->key = *key then
-			num -= 1
-			if num <= 0 then return b->item
+			copynumber -= 1
+			if copynumber <= 0 then return b->item
 		end if
 		b = b->nxt
 	loop
@@ -2069,7 +2069,7 @@ Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as int
 	return 0
 End Function
 
-Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
+Sub AddItem(h as HashPtr, key as ZString ptr, item as intptr_t)
 	dim hash as uinteger = h->hashFunc(key)
 	
 	dim as ReloadHashItem ptr b, newitem = RCallocate(sizeof(ReloadHashItem), h->doc)

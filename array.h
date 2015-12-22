@@ -8,7 +8,7 @@ typedef struct FBSTRING *(*FnStr)(const void *);
 
 typedef struct _typetable {
 	unsigned int element_len;
-	// Explains the default passing type
+	// Explains the default passing type (NOT USED)
 	// Note: strings are an exception
 	enum PassConvention { PASS_BYVAL, PASS_BYREF, PASS_ZSTRING } passtype;
 	FnCtor ctor;

@@ -498,7 +498,7 @@ function FileLump_read(byref this as FileLump, byval position as integer, byval 
 		debug "open FileLump before read"
 		return 0
 	end if
-	dim amnt as integer
+	dim amnt as size_t
 	fgetiob this.fhandle, position, bufr, size, @amnt
 	return amnt
 end function
@@ -564,7 +564,7 @@ sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, by
 end sub
 
 function LumpedLump_read(byref this as LumpedLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
-	dim amount as unsigned integer
+	dim amount as size_t
 	fgetiob(this.index->fhandle, this.offset + position, bufr, small(size, this.length - position), @amount)
 	return amount
 end function

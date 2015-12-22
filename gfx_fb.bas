@@ -16,7 +16,7 @@
 USING FB
 
 'a public rtlib function that they seem to have forgotten to expose to FB programs?
-declare function fb_KeyHit alias "fb_KeyHit" () as integer
+declare function fb_KeyHit alias "fb_KeyHit" () as long
 
 extern "C"
 
@@ -55,8 +55,8 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		gfx_fb_screenres
 		screenset 1, 0
 		init_gfx = 1
-		dim bpp as integer 'bits, not bytes. see, bits is b, bytes is B
-		dim refreshrate as integer
+		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
+		dim refreshrate as size_t
 		dim driver as string
 		screeninfo , , bpp, , , refreshrate, driver
 		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
@@ -189,7 +189,10 @@ function gfx_fb_getwindowstate() as WindowState ptr
 end function
 
 sub gfx_fb_get_screen_size(wide as integer ptr, high as integer ptr)
-	ScreenControl GET_DESKTOP_SIZE, *wide, *high
+	dim as ssize_t wide_, high_  'for 64 bit builds
+	ScreenControl GET_DESKTOP_SIZE, wide_, high_
+	*wide = wide_
+	*high = high_
 end sub
 
 
@@ -493,10 +496,12 @@ end sub
 
 function io_fb_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	dim as single xa, ya
-	if getjoystick(joynum, button, xa, ya) then 'returns 1 on failure
+	dim as size_t button_bits
+	if getjoystick(joynum, button_bits, xa, ya) then 'returns 1 on failure
 		return 0
 	end if
 
+	button = button_bits
 	x = int(xa * 100)
 	y = int(ya * 100)
 	'if abs(x) > 10 then debug "X = " + str(x)

@@ -74,7 +74,8 @@ END TYPE
 
 '==============================================================================
 
-REDIM SHARED editable_slice_types(8) as SliceTypes
+' 64 bit FB treats ENUM SliceTypes as a different type to any other, can't pass to int_array_find()...
+REDIM SHARED editable_slice_types(8) as integer 'SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
@@ -568,7 +569,7 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
   NEXT i
   IF NOT okay THEN RETURN YES
  END IF
- IF int_array_find(editable_slice_types(), sl->SliceType) < 0 THEN RETURN YES
+ IF int_array_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN RETURN YES
  IF slice_editor_forbidden_search(sl->FirstChild, specialcodes()) THEN RETURN YES
  RETURN slice_editor_forbidden_search(sl->NextSibling, specialcodes())
 END FUNCTION
@@ -1078,7 +1079,7 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as S
 
  DIM menu(UBOUND(editable_slice_types)) as string
  FOR i as integer = 0 TO UBOUND(menu)
-  menu(i) = SliceTypeName(editable_slice_types(i))
+  menu(i) = SliceTypeName(cast(SliceTypes, editable_slice_types(i)))
   IF editable_slice_types(i) = slice_type THEN state.pt = i
  NEXT i
 

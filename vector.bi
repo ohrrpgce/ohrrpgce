@@ -50,7 +50,7 @@ END ENUM
 
 TYPE TypeTable
   element_len as ulong
-  passtype as ulong  'Is a PassConvention (but FB Enums are 64 bit on AMD64)
+  passtype as ulong  'Is a PassConvention (but FB Enums are 64 bit on x86_64) (NOT USED)
   ctor as FnCtor
   copyctor as FnCopy
   dtor as FnCtor

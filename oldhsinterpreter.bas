@@ -639,7 +639,7 @@ SELECT CASE cmdptr->kind
   pushstack(scrst, si.ptr)
   pushstack(scrst, si.curargn)
   curcmd = cmdptr
-  si.ptr = (cast(integer, cmdptr) - cast(integer, dataptr)) shr 2
+  si.ptr = (cast(intptr_t, cmdptr) - cast(intptr_t, dataptr)) shr 2  ' \ sizeof(int32)
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 

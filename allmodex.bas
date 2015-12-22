@@ -3186,7 +3186,7 @@ end type
 'members greater than 4 bytes aren't supported
 #macro UPDATE_STATE(outbuf, member, value)
 	'Ugh! FB doesn't allow sizeof in #if conditions!
-	#if typeof(state.member) <> long
+	#if typeof(state.member) <> integer and typeof(state.member) <> long
 		#error "UPDATE_STATE: bad member type"
 	#endif
 	outbuf += CHR(tcmdState) & "      "
@@ -3326,7 +3326,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 								else
 									goto badtexttag
 								end if
-								APPEND_CMD1(outbuf, tcmdFont, intarg) '.thefont)
+								APPEND_CMD1(outbuf, tcmdFont, intarg)
 								line_height = large(line_height, .thefont->h)
 							else
 								goto badtexttag
@@ -3802,8 +3802,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 					MODIFY_STATE(state, parsed_line, ch)
 				elseif parsed_line[ch] = tcmdFont then
 					READ_CMD(parsed_line, ch, arg)
-					.thefont = cast(Font ptr, arg)
-					'.thefont = fonts(arg)
+					.thefont = fonts(arg)
 				elseif parsed_line[ch] = tcmdPalette then
 					READ_CMD(parsed_line, ch, arg)
 				else
@@ -5895,7 +5894,7 @@ function mxs_frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 end function
 
 function hexptr(p as any ptr) as string
-	return hex(cast(unsigned integer, p))
+	return hex(cast(intptr_t, p))
 end function
 
 function frame_describe(byval p as frame ptr) as string

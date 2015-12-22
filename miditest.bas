@@ -8,7 +8,9 @@
 '#include "crt/linux/fcntl.bi"
 '#include "crt/io.bi"
 
+#IFNDEF O_WRONLY
 #define O_WRONLY 01
+#ENDIF
 declare function _close cdecl alias "close" (byval as integer) as integer
 declare function _open cdecl alias "open" (byval as zstring ptr, byval as integer) as integer
 declare function _write cdecl alias "write" (byval as integer, byval as any ptr, byval as uinteger) as integer

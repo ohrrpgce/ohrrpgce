@@ -117,7 +117,7 @@ TYPE boolint as long  '32 bit
 'Even though long and integer are the same size on 32 bit platforms,
 'fbc considers them different types and throws warnings!
 'This is because they get mangled to C long and int types respectively.
-'Likewise, integer and longint could different on 64 bit. See crt/long.bi.
+'Likewise, integer and longint could be different on 64 bit. See crt/long.bi.
 #IFDEF __FB_64BIT__
   #IFNDEF int32
     TYPE int32 as long

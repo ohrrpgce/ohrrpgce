@@ -10,7 +10,7 @@
 #include "common_base.bi"
 
 'Note: has default FB calling convention (FBCALL)
-DECLARE FUNCTION fb_StrAssignEx alias "fb_StrAssignEx" (byval dst as any ptr, byval dst_size as integer, byval src as any ptr, byval src_size as integer, byval fill_rem as integer, byval is_init as integer) as any ptr
+DECLARE FUNCTION fb_StrAssignEx alias "fb_StrAssignEx" (byval dst as any ptr, byval dst_size as ssize_t, byval src as any ptr, byval src_size as ssize_t, byval fill_rem as long, byval is_init as long) as any ptr
 
 
 
@@ -58,7 +58,7 @@ FUNCTION integer_str CDECL (byval this as integer ptr) as string
 END FUNCTION
 
 FUNCTION ptr_str CDECL (byval this as any ptr ptr) as string
-  RETURN "0x" + HEX(cast(unsigned integer, *this))
+  RETURN "0x" + HEX(cast(intptr_t, *this))
 END FUNCTION
 
 FUNCTION double_str CDECL (byval this as double ptr) as string

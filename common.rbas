@@ -219,7 +219,7 @@ SUB start_new_debug
 
  DIM as ubyte ptr buf = ALLOCATE(buflen)
 
- DIM copyamount as integer = bound(buflen - LOF(dlog), 0, LOF(archive))
+ DIM copyamount as size_t = bound(buflen - LOF(dlog), 0, LOF(archive))
 
  IF copyamount THEN
   SEEK #archive, LOF(archive) - copyamount + 1

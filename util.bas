@@ -27,15 +27,15 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 Type FBSTRING as string
 'Resize a FB string
-Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as integer, byval preserve as integer) as FBSTRING ptr
+Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as ssize_t, byval preserve as long) as FBSTRING ptr
 'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
-Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
+Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as ssize_t) as FBSTRING ptr
 'Although unused, documenting this here: free a temporary FBstring which is returned (Normally would destroy it with fb_StrAssign)
 '(returns error code)
 
 #ifndef fb_hStrDelTemp
   'Already defined in FB 1.04 (or earlier)
-  Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as integer
+  Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
 #endif
 
 
@@ -713,7 +713,7 @@ SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
  array(UBOUND(array)).s = s
 END SUB
 
-FUNCTION int_array_find (array() as integer, byval value as integer) as integer
+FUNCTION int_array_find (array() as integer, value as integer) as integer
  FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF array(i) = value THEN RETURN i
  NEXT
@@ -944,7 +944,7 @@ FUNCTION hash_file(filename as string) as unsigned integer
   hash += hash SHL 8
   DIM buf(4095) as ubyte
   WHILE size > 0
-    DIM readamnt as uinteger
+    DIM readamnt as size_t
     fgetiob fh, , @buf(0), 4096, @readamnt
     IF readamnt < size AND readamnt <> 4096 THEN
       debug "hash_file: fgetiob failed!"

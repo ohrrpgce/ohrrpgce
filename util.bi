@@ -119,7 +119,7 @@ TYPE IntStrPair
 END TYPE
 
 declare function str_array_findcasei (array() as string, value as string) as integer
-declare function int_array_find (array() as integer, byval value as integer) as integer
+declare function int_array_find overload(array() as integer, value as integer) as integer
 declare sub array_shuffle_to_end overload(array() as integer, which as integer)
 declare sub array_shuffle_to_end overload(array() as string, which as integer)
 
@@ -308,9 +308,10 @@ declare sub lines_from_file (strarray() as string, filename as string)
 declare sub lines_to_file(strarray() as string, filename as string)
 declare sub set_tmpdir ()
 
-'slight hackery to get more versatile read function
-'(fbc internally defines these functions differently from their actual prototypes,
-' leading to conflicts with -gen gcc, so use the fbc prototype)
+'Slight hackery to get more versatile read function
+'Earlier versions of fbc like 0.90 internally defined these functions differently from their actual prototypes,
+'leading to conflicts with -gen gcc, so use the fbc prototype.
+'TODO: The only reason to support -gen gcc in FB 0.90 is because the android branch of our FB fork is currently based on it.
 
 #IF __FB_VERSION__ < "0.91"
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as uinteger = 0, byval dst as any ptr, byval bytes as integer ) as integer
