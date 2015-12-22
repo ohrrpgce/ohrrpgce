@@ -650,7 +650,7 @@ FUNCTION gfx_sdl_set_resizable(byval enable as bool, min_width as integer, min_h
   RETURN NO
 END FUNCTION
 
-FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as integer
+FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as bool
   IF resize_requested THEN
     ret = resize_request
     resize_requested = NO

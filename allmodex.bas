@@ -5953,7 +5953,7 @@ end sub
 
 'for a copy you intend to modify. Otherwise use frame_reference
 'note: does not copy frame arrays, only single frames
-function frame_duplicate(byval p as frame ptr, byval clr as bool = NO, byval addmask as bool = NO) as frame ptr
+function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 	dim ret as frame ptr, i as integer
 
 	if p = 0 then return 0

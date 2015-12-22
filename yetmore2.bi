@@ -19,7 +19,7 @@ DECLARE FUNCTION checkfordeath () as bool
 DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
-DECLARE FUNCTION titlescreen () as integer
+DECLARE FUNCTION titlescreen () as bool
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_npcl OVERLOAD (mapnum as integer, prefix as string)

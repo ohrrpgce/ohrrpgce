@@ -3072,7 +3072,7 @@ CONST GTSnumitems = 209
 TYPE GlobalTextStringsMenu
  index(-1 TO GTSnumitems) as integer
  description(-1 TO GTSnumitems) as string
- shaded(-1 TO GTSnumitems) as integer
+ shaded(-1 TO GTSnumitems) as bool
  text(-1 TO GTSnumitems) as string
  maxlen(GTSnumitems) as integer
  help(GTSnumitems) as string

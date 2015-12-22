@@ -1783,7 +1783,7 @@ SUB gendata ()
  DIM min(maxMenu) as integer
  DIM max(maxMenu) as integer
  DIM index(maxMenu) as integer
- DIM enabled(maxMenu) as integer
+ DIM enabled(maxMenu) as bool
 
  DIM selectst as SelectTypeState
  DIM state as MenuState

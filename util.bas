@@ -656,8 +656,8 @@ sub split(in as string, ret() as string, sep as string = chr(10))
   exit sub
  end if
  do
-  redim preserve ret(j) 
-  if i = 0 then 
+  redim preserve ret(j)
+  if i = 0 then
    ret(j) = mid(in, i2)
    exit do
   else

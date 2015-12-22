@@ -1143,7 +1143,7 @@ DIM damagepreview as string
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
-DIM selectable() as integer
+DIM selectable() as bool
 flexmenu_update_selectable workmenu(), menutype(), selectable()
 
 DIM menudepth as integer = 0
@@ -1958,7 +1958,7 @@ SUB atk_edit_pushptr(state as MenuState, laststate as MenuState, byref menudepth
  menudepth = 1
 END SUB
 
-SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, selectable() as integer)
+SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, selectable() as bool)
  REDIM selectable(UBOUND(workmenu))
  FOR i as integer = 0 TO UBOUND(workmenu)
   selectable(i) = menutype(workmenu(i)) <> 18  'skippable

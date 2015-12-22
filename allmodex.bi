@@ -211,7 +211,7 @@ declare sub frame_flip_horiz(byval spr as frame ptr)
 declare sub frame_flip_vert(byval spr as frame ptr)
 declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
-declare function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
+declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
 declare sub sprite_empty_cache(sprtype as SpriteType = -1)
@@ -260,7 +260,7 @@ extern modex_initialised as bool
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
-extern disable_native_text_input as integer
+extern disable_native_text_input as bool
 extern fonts() as Font ptr
 extern global_tog as integer
 

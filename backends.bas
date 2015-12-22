@@ -50,7 +50,7 @@ dim gfx_getwindowstate as function () as WindowState ptr
 dim gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
 dim gfx_supports_variable_resolution as function () as bool
-dim gfx_get_resize as function (byref ret as XYPair) as integer
+dim gfx_get_resize as function (byref ret as XYPair) as bool
 dim gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
 dim gfx_recenter_window_hint as sub ()
 dim gfx_vsync_supported as function () as bool
@@ -166,14 +166,14 @@ declare sub default_gfx_render_procs()
 
 dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
 dim shared queue_error as string  'queue up errors until it's possible to actually display them (TODO: not implemented)
-dim wantpollingthread as integer
+dim wantpollingthread as bool
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 dim as string systeminfo
 
 sub gfx_dummy_get_screen_size(wide as integer ptr, high as integer ptr) : *wide = 0 : *high = 0 : end sub
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
-function gfx_dummy_get_resize(byref ret as XYPair) as integer : return NO : end function
+function gfx_dummy_get_resize(byref ret as XYPair) as bool : return NO : end function
 function gfx_dummy_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool : return NO : end function
 sub gfx_dummy_recenter_window_hint() : end sub
 function gfx_dummy_vsync_supported_false() as bool : return NO : end function
