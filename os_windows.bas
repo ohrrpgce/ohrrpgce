@@ -16,6 +16,13 @@ include_windows_bi()
 #include "util.bi"
 #include "const.bi"
 
+' Missing from FB 0.23 headers
+#ifndef GetProcessImageFileNameA
+	extern "Windows"
+	declare function GetProcessImageFileNameA(byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
+	end extern
+#endif
+
 extern "C"
 'FormatMessage is such an awfully complex function
 function get_windows_error (byval errcode as integer) as string
