@@ -1,8 +1,14 @@
 WHAT IS NEW?
 
-??? ?? 2015 [Callipygous]
+December ?? 2015 [Callipygous]
 
   * New Features
+    * Ported to Android phones and tablets, as well as specific support
+      for the OUYA, Gamestick and FireTV Android-based consoles!
+      New "Platform-specific options" menu in General Game Data.
+      See http://rpg.hamsterrepublic.com/ohrrpgce/Making_Android_games
+      for information about how to port your game. You can't yet use
+      the Distribute Game menu for Android. [James, Ralph]
     * While placing doors in the map editor you can now specify door
       number, and jump to existing door locations [Ralph]
     * When buying equipment in a shop, show stat bonuses [James]
@@ -47,7 +53,7 @@ WHAT IS NEW?
       debugger is available in-battle with F4; instant-run moved to
       Ctrl+F4. [Ralph, James]
     * Added Shift+Tab debug key to speed up the game while held down
-      (alternative to Ctrl+Plus/Minus keys) [Ralph]
+      (an alternative to Ctrl+Plus/Minus debug keys) [Ralph]
     * New formation options: Victory tag to set a tag according to
       whether the battle was won, and an option to prevent game over
       on death. [MirceaKitsune, Ralph]
@@ -166,15 +172,14 @@ WHAT IS NEW?
       of menus were defined [Ralph]
     * HSpeak was extremely slow (potentially hours) at reading files
       with DOS/Windows line-endings on Linux/Mac [Ralph]
-    * The script intrepeter was running tight loops much (eg 2x) slower
+    * The script interpreter was running tight loops much (eg 2x) slower
       than it used to before Beelzebufo [Ralph]
     * Creating or reparenting thousands of slices was slow [Ralph]
 
   * Stuff Only Developers Will Notice
-    * Experimental support for Android phones and tablets
-    * Experimental support for the OUYA Console, Gamestick Console,
-      Fire TV Console
-    * Experimental support for the Raspberry Pi
+    * Experimental support for ARM and other non-x86 devices, such as
+      the Raspberry Pi, and for native 64-bit builds. All thanks to the
+      FreeBASIC developers! [Ralph]
 
 April 9 2013 [Beelzebufo]
 
