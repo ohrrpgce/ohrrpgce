@@ -8,6 +8,10 @@
 #include "config.bi"
 #include "os.bi"
 
+' Blind attempt to fix a compile error on OSX (TODO: remove later)
+#undef pid
+
+
 ' This may return either the name that the process was called with, which may have a full, relative, or no path,
 ' or just return the full path to the executable. Not necessarily equal to COMMAND(0).
 ' Returns "" if invalid or don't have permission.
