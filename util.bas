@@ -1288,7 +1288,7 @@ FUNCTION run_and_get_output(cmd as string, outdata as string) as integer
   DIM ret as integer
   DIM tempfile as string
   tempfile = tmpdir & "temp_outdata." & randint(1000000) & ".tmp"
-  ret = safe_shell(cmd & " > " & tempfile)
+  ret = safe_shell(cmd & " > " & escape_filename(tempfile))
   IF ret = -1 ORELSE NOT isfile(tempfile) THEN
     debug "Failed to run " & cmd
     outdata = ""

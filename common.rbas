@@ -2488,7 +2488,7 @@ FUNCTION find_helper_app (appname as string, try_install as integer=NO) as strin
   DIM where as string
   run_and_get_output("which " & appname, where)
   'where is empty on failure
-  RETURN TRIM(where)
+  RETURN RTRIM(where, !"\n")
  #ENDIF
  #IFDEF __FB_WIN32__
   RETURN find_windows_helper_app(appname, try_install)
