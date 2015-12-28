@@ -894,7 +894,7 @@ SUB gfx_sdl_process_events()
           debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
         END IF
         IF resizable THEN
-          waiting_for_resize = YES  'This is more of a sanity check
+          'waiting_for_resize = YES  'This is more of a sanity check
           resize_requested = YES
           resize_request.w = evnt.resize.w / zoom
           resize_request.h = evnt.resize.h / zoom
