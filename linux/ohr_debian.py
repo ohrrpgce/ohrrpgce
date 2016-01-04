@@ -81,12 +81,23 @@ def copy_file_or_dir(src, dest):
       destpath = os.path.join(dest, filename)
       copy_file_or_dir(srcpath, destpath)
 
-def build_tree(destdir, package_name, files, executables, prefix = "/usr"):
+def build_tree(destdir, package_name, files, executables, icons, prefix = "/usr"):
+  # Executables
   if len(executables):
     dest = destdir + prefix + "/games/"
     quiet_mkdir(dest)
     for exe in executables:
       shutil.copy(exe, dest + os.path.basename(exe))
+  # Icons
+  if len(icons):
+    # Icons should be either .png or .svg.
+    # My reading of the freedesktop.org standard is that it doesn't matter where you put the icon
+    # if you only have one resolution.
+    dest = destdir + prefix + "/share/icons/hicolor/32x32/apps/"
+    quiet_mkdir(dest)
+    for icon in icons:
+      shutil.copy(icon, dest + os.path.basename(icon))
+  # Data files
   dest = destdir + prefix + "/share/games/" + package_name +"/"
   quiet_mkdir(dest)
   for file in files:
@@ -101,7 +112,7 @@ def quiet_mkdir(dir):
 def run_dpkg(package, ver):
   os.system("fakeroot dpkg -b %s %s_%s_i386.deb" % (package, package, ver))
 
-def menu_entry(destdir, package_name, title, command, append=False, desktop_file_suffix="", prefix = "/usr"):
+def menu_entry(destdir, package_name, title, command, append=False, desktop_file_suffix="", prefix = "/usr", icon = None):
   mode = "w"
   if append: mode = "a"
   quiet_mkdir(destdir + prefix + "/share/menu/")
@@ -111,8 +122,15 @@ def menu_entry(destdir, package_name, title, command, append=False, desktop_file
   f.close()
   quiet_mkdir(destdir + prefix + "/share/applications/")
   f = open(destdir + prefix + "/share/applications/" + package_name + desktop_file_suffix + ".desktop", "w")
-  s = "[Desktop Entry]\nName=%s\nExec=%s\nTerminal=false\nType=Application\nCategories=Application;Game;\n" \
-       % (title, command)
+  s = """[Desktop Entry]
+Name=%s
+Exec=%s
+Terminal=false
+Type=Application
+Categories=Application;Game;
+""" % (title, command)
+  if icon:
+    s += "Icon=%s\n" % (icon,)
   f.write(s)
   f.close()
 

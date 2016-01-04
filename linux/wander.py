@@ -36,7 +36,7 @@ Description: A retro (SNES style) 2D Role Playing Game.
  to save the world? Bob!  
 """
 , (package_name, calculate_size(files, executables), maintainer, version, depends))
-build_tree(package_name, package_name, files, executables)
+build_tree(package_name, package_name, files, executables, [])
 rpg_menu_entry(package_name, package_name, "Wandering Hamster", "wander.rpg")
 run_dpkg(package_name, version)
 os.remove("wander.rpg")

@@ -40,7 +40,7 @@ Description: A retro (SNES style) 2D Role Playing Game.
  Featuring glorious pixelation artwork by Fenrir-Lunaris.
 """
 , (package_name, calculate_size(files, executables), maintainer, version, depends))
-build_tree(package_name, package_name, files, executables)
+build_tree(package_name, package_name, files, executables, [])
 rpg_menu_entry(package_name, package_name, "Vikings of Midgard", "vikings.rpg")
 run_dpkg(package_name, version)
 os.remove("vikings.rpg")

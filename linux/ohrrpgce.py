@@ -36,6 +36,9 @@ executables = [prefix + "ohrrpgce-game",
                prefix + "ohrrpgce-custom",
                prefix + "hspeak"]
 
+icons = [prefix + "ohrrpgce-game.png",
+         prefix + "ohrrpgce-custom.png"]
+
 depends = "libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
 recommends = "madplay, vorbis-tools"
 
@@ -64,17 +67,15 @@ def create_dpkg():
      people's games, visit http://HamsterRepublic.com/ohrrpgce/
     """
     , (package_name, calculate_size(files, executables), maintainer, version, depends, recommends))
-    build_tree(package_name, package_name, files, executables)
-    menu_entry(package_name, package_name, "OHRRPGCE Game Player", "/usr/games/ohrrpgce-game", desktop_file_suffix="-game")
-    menu_entry(package_name, package_name, "OHRRPGCE Custom Editor", "/usr/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom")
+    install(package_name)
     run_dpkg(package_name, version)
 
 def install(destdir = '', prefix = '/usr'):
     """Installs the OHRRPGCE on the local machine (not including Vikings of Midgard).
     Pass destdir to install into a staging area instead of writing to /"""
-    build_tree(destdir, package_name, files, executables, prefix = prefix)
-    menu_entry(destdir, package_name, "OHRRPGCE Game Player", prefix + "/games/ohrrpgce-game", desktop_file_suffix="-game", prefix = prefix)
-    menu_entry(destdir, package_name, "OHRRPGCE Custom Editor", prefix + "/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom", prefix = prefix) 
+    build_tree(destdir, package_name, files, executables, icons, prefix = prefix)
+    menu_entry(destdir, package_name, "OHRRPGCE Game Player", prefix + "/games/ohrrpgce-game", desktop_file_suffix="-game", icon="ohrrpgce-game.png", prefix=prefix)
+    menu_entry(destdir, package_name, "OHRRPGCE Custom Editor", prefix + "/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom", icon="ohrrpgce-custom.png", prefix=prefix)
 
 if __name__ == '__main__':
     create_dpkg()
