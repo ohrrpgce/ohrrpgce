@@ -46,6 +46,7 @@ global variable(5000, global 5000)
 #string 10 = error message arg
 #string 11 = asserts
 #string 95-96 = temp misc
+define constant(10, err arg string)
 define constant(11, assert expression string)
 
 ########################################################################
@@ -97,12 +98,13 @@ end
 script, crash, begin
   if(string length(10) >> 0) then(
     $0+"("
-    concatenate strings(0, 10)
+    concatenate strings(0, err arg string)
     $0+")"
   )
   show text box(1)
   trace(0)
   w(25)
+  # script error(0)
   game over
 end
 
@@ -482,18 +484,18 @@ script, hero caterpillar tests, begin
   variable(i)
   $0="hero caterpillar tests"
 
-  $10="leader, cater=ON"
+  $err arg string="leader, cater=ON"
   do hero cater tests(me)
   
   suspend caterpillar
   for(i, 0, 3) do(
-    $10="hero "
-    append number(10, i)
-    $10=", cater=OFF"
+    $err arg string="hero "
+    append number(err arg string, i)
+    $err arg string=", cater=OFF"
     do hero cater tests(i)
   )
   resume caterpillar
-  $10=""
+  $err arg string=""
 
 end
 
@@ -1225,7 +1227,7 @@ end
 
 script, npc movement tests, n, begin
   $0="npc movement tests"
-  $10="n=", append number(10, n)
+  $err arg string="n=", append number(err arg string, n)
   show string(0)
   
   # assert starting pos
@@ -1253,7 +1255,7 @@ script, npc movement tests, n, begin
   set npc position(n, 3, 5)
   
   show no value
-  $10=""
+  $err arg string=""
 end
 
 script, npc id tests, n, begin
@@ -1855,9 +1857,9 @@ script, menu scroll tests, begin
   # test menu item iteration
   mi := first menu item(main)
   while (mi) do (
-    get menuitemcaption(mi,10)
-    #trace(10)
-    appendnumber(10, numitems)
+    get menuitemcaption(mi, err arg string)
+    #trace(err arg string)
+    appendnumber(err arg string, numitems)
     assert (menu item slot(mi) == numitems)
     assert (menu item by slot(main, numitems, true) == mi)
     assert (menu item by slot(main, numitems, false) == mi)
@@ -1871,7 +1873,7 @@ script, menu scroll tests, begin
     mi := next
     numitems += 1
   )
-  $10=""
+  $err arg string=""
 
   # menu item iteration edge cases
   assert (previous menu item(first menu item(main)) == 0)
@@ -2172,11 +2174,11 @@ script, timer tests, begin
   set timer(31, 0, 1, @looping timer test, 1)
   w(11)
   
-  $10="random"
+  $err arg string="random"
   test timer and battle interactions(@force random battle)
-  $10="fight formation"
+  $err arg string="fight formation"
   test timer and battle interactions(@force non random battle)
-  $10=""
+  $err arg string=""
 
   
   $0="timer interactions with after battle", trace(0)
@@ -2527,6 +2529,9 @@ script, slice tests, begin
 
   # Extremely unfinished!
 
+  slice find tests
+  slice tree tests
+
   # Test rect transparency
   variable (sl)
   sl := create rect(100, 100), w
@@ -2558,6 +2563,182 @@ script, slice tests, begin
   $2=""
   $3=""
   free slice(sl)
+end
+
+########################################################################
+
+
+# Unfinished tests of findcollidingslice and sliceatpixel
+script, slice find tests, begin
+  $0="Slice find tests"
+
+  variable(parent, sl1, sl2, sl3, sl4, sl5, temp)
+
+  parent := create select
+  # f
+  put slice (parent, 100, 200)
+
+  sl1 := create container(0, 0)
+  set parent(sl1, parent)
+  assert(slice at pixel(parent, 0, 0) == 0)  # can't be hit
+  assert(slice at pixel(parent, 0, 0, get count) == 0)
+
+  sl2 := create container(10, 10)
+  set parent(sl2, parent)
+
+  sl3 := create container(1, 1)
+  set parent(sl3, parent)
+  put slice(sl3, 4, 5)
+
+  sl4 := create container(1, 1)
+  set parent(sl4, sl3)
+
+  wait(1)  # update select visibility
+
+  ### Testing slice at pixel
+  # Unfinished: no testing of slices with negative width/height.
+
+  # Only sl1 should be visible...
+  assert(get slice visible(sl1) == true)
+  assert(get slice visible(sl2) == false)
+  assert(get slice visible(sl3) == false)
+  assert(get slice visible(sl4) == true)
+
+  assert(slice at pixel(parent, 100, 200) == sl2)  # topleft corner
+  assert(slice at pixel(parent, 105, 205) == sl2) # inside
+  assert(slice at pixel(parent, 100, 210) == 0)  # on the edge of sl2
+  assert(slice at pixel(parent, 110, 200) == 0)  # on the edge of sl2
+  assert(slice at pixel(parent, 100, 200, get count) == 1)
+
+  # sliceatpixel and findcollidingslice must return slices from bottommost to topmost
+  assert(slice at pixel(parent, 104, 205, get count) == 3)
+  assert(slice at pixel(parent, 104, 205, 0) == sl2)
+  assert(slice at pixel(parent, 104, 205, 1) == sl3)
+  assert(slice at pixel(parent, 104, 205, 2) == sl4)
+  assert(slice at pixel(parent, 104, 205, 3) == 0)
+
+  # now without descending:
+  assert(slice at pixel(parent, 104, 205, get count, false) == 2)
+  assert(slice at pixel(parent, 104, 205, 0, false) == sl2)
+  assert(slice at pixel(parent, 104, 205, 1, false) == sl3)
+  assert(slice at pixel(parent, 104, 205, 2, false) == 0)
+
+  # test visibleonly
+  assert(slice at pixel(parent, 104, 205, get count, true, true) == 0)
+  # visibility of the 'parent' slice doesn't affect anything (sl3 is not visible)
+  assert(slice at pixel(sl3, 104, 205, get count, true, true) == 1)
+  # change visible slice to sl3
+  set select slice index(parent, 2)
+  wait(1)  # update select visibility
+  assert(get slice visible(sl3) == true)
+  # now sl3 and sl4 should be hit
+  assert(slice at pixel(parent, 104, 205, get count, true, true) == 2)
+  assert(slice at pixel(parent, 104, 205, 0, true, true) == sl3)
+  assert(slice at pixel(parent, 104, 205, 1, true, true) == sl4)
+
+  # ##Testing find colliding slice
+  # Unfinished: don't yet check all the cases of an AABB collision test.
+  # (Easier to test manually with collisiontest.rpg)
+  # Also, no testing of slices with negative width/height.
+
+  sl5 := load walkabout sprite(0)
+  assert(slice height(sl5) == 20)
+  put slice(sl5, 100, 190)
+
+  # sliceatpixel and findcollidingslice must return slices from bottommost to topmost
+  #tracevalue(parent, sl1, sl2, sl3, sl4, sl5)
+
+  assert(find colliding slice(parent, sl5, get count) == 3)
+  # Don't find sl1 which is zero size (FIXME: which I think probably isn't correct, since "slice contains" would say yes)
+  #assert(find colliding slice(parent, sl5, 0) == sl1)
+  assert(find colliding slice(parent, sl5, 0) == sl2)
+  assert(find colliding slice(parent, sl5, 1) == sl3)
+  assert(find colliding slice(parent, sl5, 2) == sl4)
+  assert(find colliding slice(parent, sl5, 3) == 0)
+
+  # Test non-overlap of adjacent slices
+  set parent(sl5, parent)
+  put slice(sl5, 0, 5 -- 20)  # positioned so sl3 on bottom edge
+  # Create another couple slices adjacent to sl5 on the top and left
+  temp := create container(1, 1)
+  set parent(temp, parent)
+  put slice(temp, -1, 0)  # 1 left of sl5
+  temp := create container(1, 1)
+  set parent(temp, parent)
+  put slice(temp, 0, 5 -- 20 -- 1)  # 1 up from sl5
+  assert(find colliding slice(parent, sl5, 0) == sl2)  # doesn't find sl1, zero size
+  assert(find colliding slice(parent, sl5, 1) == 0)  # should not find sl3, nor sl5, nor the temp slices
+
+  # Now overlap by one
+  put slice(sl5, 0, 5 -- 20 + 1)  # now sl3 overlaps
+  assert(find colliding slice(parent, sl5, 0) == sl2)   # doesn't find sl1, zero size
+  assert(find colliding slice(parent, sl5, 1) == sl3)
+  assert(find colliding slice(parent, sl5, 2) == sl4)
+  assert(find colliding slice(parent, sl5, 3) == 0)  # should not find sl5
+
+  # try using a 0x0 slice to search for overlaps - should find nothing.
+  # (FIXME: This is probably not correct; as an infinitesimal point it overlaps sl2 and sl5.
+  assert(find colliding slice(parent, sl1, 0) == 0)
+
+  # Test no descending
+  # Don't find sl1 which is zero size (FIXME: which I think probably isn't correct, since "slice contains" would say yes)
+  assert(find colliding slice(parent, sl5, 0, false) == sl2)
+  assert(find colliding slice(parent, sl5, 1, false) == sl3)
+  assert(find colliding slice(parent, sl5, 2, false) == 0)  # shouldn't find sl4
+  assert(find colliding slice(parent, sl5, get count, false) == 2)
+
+  # Test visible only (only sl3 is visible)
+  assert(find colliding slice(parent, sl5, get count, true, true) == 2)
+  assert(find colliding slice(parent, sl5, 0, true, true) == sl3)
+  assert(find colliding slice(parent, sl5, 1, true, true) == sl4)
+  assert(find colliding slice(parent, sl5, 2, true, true) == 0)
+
+  # Do two 0x0 slices at the same point overlap? (they shouldn't)
+  free slice children(parent)
+  temp := create container(0, 0)
+  set parent(temp, parent)
+  temp := create container(0, 0)
+  set parent(temp, parent)
+  assert(find colliding slice(parent, temp, get count) == 0)
+
+  free slice(parent)
+end
+
+########################################################################
+
+# Return index of a child of the root slice.
+script, root child index, lookup code, begin
+  variable(sl)
+  clear string(err arg string)
+  append number(err arg string, lookup code)
+  sl := lookup slice(lookup code)
+  assert(sl)
+  assert(parent slice(sl) == lookup slice(sl:root))
+  return(slice child indeX(sl))
+end
+
+# Unfinished, only inspects children of root.
+script, slice tree tests, begin
+  $0="Slice tree tests"
+
+  assert(sprite layer == lookup slice(sl:script layer))
+
+  # Ensure the major slice layers appear in a fixed order.
+  # Probably OK for new slices to get added between these (anyone making assumptions about the n-th
+  # child here may be too much pain to support)
+
+  variable (scr, map, textbox, backdrop, strings)
+
+  map := root child index(sl:map root)
+  backdrop := root child index(sl:backdrop)
+  scr := root child index(sl:script layer)
+  textbox := root child index(sl:textbox layer)
+  strings := root child index(sl:string layer)
+
+  assert(map < backdrop)
+  assert(backdrop < scr)
+  assert(scr < textbox)
+  assert(textbox < strings)
 end
 
 ########################################################################
@@ -2844,7 +3025,6 @@ end
 #fade screen out (red,green,blue)
 #fight formation (number)
 #fill parent (handle, true_or_false)
-#find colliding slice (parent, slice, number, check descendants)
 #find enemy in formation (formation, enemy id, copy number)
 #first child(handle)
 #first container child(handle)
@@ -3127,7 +3307,6 @@ end
 #show no value
 #show value (number)
 #sign (number)
-#slice at pixel (parent, x, y, number, check descendants)
 #slice child (handle, number)
 #slice collide (handle1, handle2)
 #slice collide point (handle, x, y)
