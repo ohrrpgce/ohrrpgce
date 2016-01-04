@@ -151,38 +151,40 @@ int hasmedia (FBSTRING *drive) {
 	return 0;
 }
 
-void setwriteable (FBSTRING *fname) {
-	//(FB's) filecopy on Unix does not copy file permissions, so this isn't needed
+boolint setwriteable (FBSTRING *fname) {
+	// Under Unix, FB's fb_FileCopy and copy_file_replacing do not copy file permissions, so this isn't needed;
+	// we assume that a reasonable umask which allows writable files is in effect.
+	return -1;
 }
 
 
 //(setq c-basic-offset 8)
 //(setq indent-tabs-mode t)
 
-#define COPYBUF_SIZE 4096
+#define COPYBUF_SIZE 16*1024
 char copybuf[COPYBUF_SIZE];
 
 //A file copy function which deals safely with the case where the file is open already. On Unix, unlink first.
 //
-//Based on FB's Unix FileCopy function.
-//No reason for this to exist rather than just call remove and fb_FileCopy...
+//Based on FB's Unix fb_FileCopy function.
+//It's not necessary for this to exist rather than just call remove and fb_FileCopy,
+//but the benefit is fine-grained error reporting.
 //Originally I was going to do file locking, but that's unneeded on Unix.
-//Well, at least it has lots of added error printing
 int copy_file_replacing(const char *source, const char *destination) {
-	FILE *src, *dst = NULL;
+	FILE *src = NULL, *dst = NULL;
 	long len;
 	size_t bytes_to_copy;
 	
 	if (remove(destination)) {
 		if (errno != ENOENT) {
-			debug(errError, "error while trying remove(%s): %s", destination, strerror(errno));
-			//Can try continuing...
+			debug(errError, "copy_file_replacing: remove(%s) error: %s", destination, strerror(errno));
+			goto err;
 		}
 	}
 	
 	if (!(src = fopen(source, "rb"))) {
 		debug(errError, "copy_file_replacing: could not fopen(%s, r): %s", source, strerror(errno));
-		return 0;
+		goto err;
 	}
 
 	fseek(src, 0, SEEK_END);
@@ -208,7 +210,7 @@ int copy_file_replacing(const char *source, const char *destination) {
 	}	
 	fclose(src);
 	fclose(dst);
-	return 1;
+	return -1;
  err:
 	if (src) fclose(src);
 	if (dst) fclose(dst);

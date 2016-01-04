@@ -1455,10 +1455,10 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
 #endif
 END SUB
 
-SUB writeablecopyfile(src as string, dest as string)
- copyfile src, dest
- setwriteable dest
-END SUB
+'Returns true on success
+FUNCTION writeablecopyfile(src as string, dest as string) as bool
+ RETURN copyfile(src, dest) ANDALSO setwriteable(dest)
+END FUNCTION
 
 'Copy files in one directory to another (ignores directories)
 SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)

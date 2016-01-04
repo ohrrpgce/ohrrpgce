@@ -287,7 +287,7 @@ declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
-declare sub writeablecopyfile (src as string, dest as string)
+declare function writeablecopyfile (src as string, dest as string) as bool
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
 declare function copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
 declare sub killdir (directory as string, recurse as integer=0)

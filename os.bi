@@ -25,7 +25,7 @@ declare function memory_usage() as integer
 declare function memory_usage_string() as string
 
 'Actually in filelayer.cpp
-declare function copyfile(source as string, destination as string) as integer
+declare function copyfile(source as string, destination as string) as boolint
 
 declare function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 declare function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool) as string vector
@@ -35,7 +35,7 @@ declare function drivelabel (drive as string) as string
 declare function isremovable (drive as string) as integer
 declare function hasmedia (drive as string) as integer
 
-declare sub setwriteable (fname as string)
+declare function setwriteable (fname as string) as bool
 
 'C FILE* type. Can be retrieved with FILEATTR from a FB filehandle
 type CFILE_ptr as any ptr

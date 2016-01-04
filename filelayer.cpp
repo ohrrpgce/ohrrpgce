@@ -157,7 +157,7 @@ FBCALL int OPEN_hook(FBSTRING *filename,
 
 // A replacement for FB's filecopy which sends modification messages and deals with open files
 // NOTE: return values are opposite to FileCopy (true for success)
-int copyfile(FBSTRING *source, FBSTRING *destination) {
+boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 	int ret = copy_file_replacing(source->data, destination->data);
 	if (ret && pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
 		send_lump_modified_msg(destination->data);

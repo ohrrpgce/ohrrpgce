@@ -26,7 +26,7 @@ extern "C" {
 	typedef FBCALL boolint (*FnOpenCallback)(FBSTRING *filename, boolint writable);
 
 	void send_lump_modified_msg(const char *filename);
-	int copyfile(FBSTRING *source, FBSTRING *destination);
+	boolint copyfile(FBSTRING *source, FBSTRING *destination);
 
 	void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel);
 	void clear_OPEN_hook();

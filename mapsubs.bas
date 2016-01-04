@@ -3346,7 +3346,7 @@ SUB mapedit_export_tilemaps(st as MapEditState)
  DIM outfile as string
  outfile = inputfilename("Export tilemap to which file?", ".tilemap", "", "input_file_export_tilemap")
  IF LEN(outfile) THEN
-  filecopy maplumpname(st.mapnum, "t"), outfile + ".tilemap"
+  copyfile maplumpname(st.mapnum, "t"), outfile + ".tilemap"
  END IF
 END SUB
 

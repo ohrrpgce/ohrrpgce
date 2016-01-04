@@ -382,10 +382,19 @@ END SUB
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
  'Copy a file, check to make sure it really was copied, and show an error message if not.
+ '(FIXME: The real error message is printed to debug by copy_file_replacing())
  ' Returns true if the copy was okay, false if it failed
- copyfile srcfile, destfile
+ IF NOT isfile(srcfile) THEN
+  visible_debug "ERROR: file " & destfile & " was missing"
+  RETURN NO
+ END IF
+ ' I really hope that checking isfile is redundant, but who knows.
+ IF NOT copyfile(srcfile, destfile) THEN
+  visible_debug "ERROR: couldn't copy file to " & destfile
+  RETURN NO
+ END IF
  IF NOT isfile(destfile) THEN
-  visible_debug "ERROR: failed copying " & destfile
+  visible_debug "BUG: couldn't copy file to " & destfile & ", although copyfile() succeeded"
   RETURN NO
  END IF
  RETURN YES

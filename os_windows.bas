@@ -157,25 +157,35 @@ function hasmedia (drive as string) as integer
 	hasmedia = GetVolumeInformation(drive, NULL, 0, NULL, NULL, NULL, NULL, 0)
 end function
 
-sub setwriteable (fname as string)
+'True on success
+function setwriteable (fname as string) as bool
 	dim attr as integer = GetFileAttributes(strptr(fname))
 	if attr = INVALID_FILE_ATTRIBUTES then
 		dim errstr as string = error_string
 		debug "GetFileAttributes(" & fname & ") failed: " & errstr
-		exit sub
+		return NO
 	end if
 	attr = attr and not FILE_ATTRIBUTE_READONLY
 	'attr = attr or FILE_ATTRIBUTE_TEMPORARY  'Try to avoid writing to harddisk
 	if SetFileAttributes(strptr(fname), attr) = 0 then
 		dim errstr as string = error_string
 		debug "SetFileAttributes(" & fname & ") failed: " & errstr
+		return NO
 	end if
-end sub
+	return YES
+end function
 
 'A file copy function which deals safely with the case where the file is open already.
-function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as integer
+'Returns true on success.
+function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as bool
 	'Haven't yet decided how to handle this on Windows...
-	return filecopy(source, destination) = 0
+
+	if CopyFile(source, destination, FALSE) then  'FALSE: overwrite existing files
+		dim errstr as string = error_string
+		debugc errError, "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
+		return NO
+	end if
+	return YES
 end function
 
 
