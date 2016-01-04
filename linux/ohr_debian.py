@@ -7,6 +7,7 @@ Routines both for installing packages on a Unix, and for creating .deb packages
 import os
 import re
 import shutil
+import pipes
 from datetime import date
 
 ############################################################################
@@ -64,6 +65,22 @@ def write_control_file(filename, template, values):
   f.write(template % values)
   f.close()
 
+def copy_file_or_dir(src, dest):
+  """Copy src to dest. If src is a directory acts recursively,
+  while preserving any existing files in dest.
+  Because shutil.copytree fails if a directory already exists.
+  """
+  if os.path.isfile(src):
+    shutil.copy2(src, dest)
+  else:
+    quiet_mkdir(dest)
+    for filename in os.listdir(src):
+      if filename == ".svn":
+        continue
+      srcpath = os.path.join(src, filename)
+      destpath = os.path.join(dest, filename)
+      copy_file_or_dir(srcpath, destpath)
+
 def build_tree(destdir, package_name, files, executables, prefix = "/usr"):
   if len(executables):
     dest = destdir + prefix + "/games/"
@@ -73,12 +90,7 @@ def build_tree(destdir, package_name, files, executables, prefix = "/usr"):
   dest = destdir + prefix + "/share/games/" + package_name +"/"
   quiet_mkdir(dest)
   for file in files:
-    if os.path.isdir(file):
-      # copy a folder
-      shutil.copytree(file, dest + os.path.basename(file), ignore=shutil.ignore_patterns(".svn"))
-    else:
-      # copy a file
-      shutil.copy(file, dest + os.path.basename(file))
+    copy_file_or_dir(file, dest + os.path.basename(file))
 
 def quiet_mkdir(dir):
   try:
