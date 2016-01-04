@@ -2868,8 +2868,12 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as intege
  return NO
 end function
 
-Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, byref num as integer, byval descend as integer) as Slice Ptr
+Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+ 'Find a slice which is not Special and is not sl which overlaps with sl.
+ 'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
+ 'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ 'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
  if parent = 0 or sl = 0 then debug "FindSliceCollision null ptr": return 0
  DIM as Slice Ptr s, temp
  s = parent->FirstChild
@@ -2878,14 +2882,17 @@ Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, by
    with *s
     parent->ChildRefresh(parent, s)
  
-    if .SliceType <> slSpecial and SliceCollide(s, sl) then  '--impossible to encounter the root
-     if num = 0 then return s
-     num -= 1
-    end if
- 
-    if descend then
-     temp = FindSliceCollision(s, sl, num, YES)
-     if temp then return temp
+    if .Visible or (visibleonly = NO) then
+
+     if .SliceType <> slSpecial and SliceCollide(s, sl) then  '--impossible to encounter the root
+      if num = 0 then return s
+      num -= 1
+     end if
+
+     if descend then
+      temp = FindSliceCollision(s, sl, num, YES, visibleonly)
+      if temp then return temp
+     end if
     end if
    end with
   end if
@@ -2894,8 +2901,12 @@ Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, by
  return NULL
 end function
 
-Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y as integer, byref num as integer, byval descend as integer) as Slice Ptr
+Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+ 'Find a slice which is not Special at a certain x,y screen position.
+ 'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
+ 'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ 'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
  if parent = 0 then debug "FindSliceAtPoint null ptr": return 0
  DIM as Slice Ptr s, temp
  s = parent->FirstChild
@@ -2903,14 +2914,16 @@ Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y
   with *s
    parent->ChildRefresh(parent, s)
 
-   if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
-    if num = 0 then return s
-    num -= 1
-   end if
+   if .Visible or (visibleonly = NO) then
+    if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
+     if num = 0 then return s
+     num -= 1
+    end if
 
-   if descend then
-    temp = FindSliceAtPoint(s, x, y, num, YES)
-    if temp then return temp
+    if descend then
+     temp = FindSliceAtPoint(s, x, y, num, YES, visibleonly)
+     if temp then return temp
+    end if
    end if
   end with
   s = s->NextSibling

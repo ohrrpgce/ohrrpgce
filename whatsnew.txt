@@ -166,6 +166,8 @@ December ?? 2015 [Callipygous]
       "input string with mouse keyboard" [James]
     * "unhide mouse cursor", "hide mouse cursor" [James]
     * "pixel focus camera" [James]
+    * Added 'visible only' argument to "slice at pixel" and
+      "find colliding slice" [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

@@ -450,8 +450,8 @@ define function, begin
 430,getoutline,1,0            #return true if text uses outline
 431,setoutline,2,0,1          #change text's outline mode
 432,usemenuitem,1,0           #given a menu item handle, activate it
-433,sliceatpixel,5,0,0,0,0,1  #find descendant or child slices containing a screen position
-434,findcollidingslice,4,0,0,0,1 #find descendant or child slices colliding with a slice
+433,sliceatpixel,6,0,0,0,0,1,0  #find descendant or child slices containing a screen position
+434,findcollidingslice,5,0,0,0,1,0 #find descendant or child slices colliding with a slice
 435,parentslice,1,0           #return a slice's parent
 436,childcount,1,0            #return number of children of a slice
 437,lookupslice,2,0,0         #find a slice using a lookup code constant

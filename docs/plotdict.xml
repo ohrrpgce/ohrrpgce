@@ -6219,7 +6219,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>grid is shown</shortname>
 			<description>This command takes a grid slice <p>handle</p> and returns true if the grid is showing its optional grid lines. If the grid is in its normal invisible state, this command returns false. Don't confuse this command with <ref>getslicevisible</ref>.</description>
 			<seealso>
-				<ref>gridisshown</ref>
+				<ref>showgrid</ref>
 			</seealso>
 		</command>
 		</section>		<!-- Grid Slices-->
@@ -6328,18 +6328,30 @@ The third argument is the total number of ticks that the animation should run. Y
 			</seealso>
 		</command>
 		<command id="sliceatpixel">
-			<canon>slice at pixel (parent, x, y, number, check descendants)</canon>
+			<canon>slice at pixel (parent, x, y, number, check descendants, visible only)</canon>
 			<shortname>slice at pixel</shortname>
 			<description>
 				Searches through all the descendants of <p>parent</p> for a slice containing the given <p>x</p>, <p>y</p> pixel screen position.
-				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>.
+				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>, since that is the default parent of new slices.
 				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
 				slice at pixel returns 0 if <p>number</p> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead of a slice handle.
 				<p>check descendants</p> is an optional argument defaulting to true.
 				If false, then only <p>parent</p>'s children will be checked, not all its descendants.
+				<p>visible only</p> is an optional argument defaulting to false.
+				If true, then only visible slices are counted or returned.
+				(That is, slices marked not-visible are ignored while searching for slices, but whether <p>parent</p> itself
+				is visible doesn't have any effect.)
+				Pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<lb/>
 				This command never returns Special slices, such as the <ref>spritelayer</ref> slice.
+				<note>
+					A point on the left or top edge of a slice counts as inside the slice,
+					while one on the bottom or right edges counts as outside.
+					If a slice has zero width or zero height, then there are no points inside it,
+					and slice at pixel will never return it!
+				</note>
 			</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
@@ -6347,17 +6359,21 @@ The third argument is the total number of ticks that the animation should run. Y
 			</seealso>
 		</command>
 		<command id="findcollidingslice">
-			<canon>find colliding slice (parent, slice, number, check descendants)</canon>
+			<canon>find colliding slice (parent, slice, number, check descendants, visible only)</canon>
 			<shortname>find colliding slice</shortname>
 			<description>
 				Searches through all the descendants of <p>parent</p> for a slice colliding (intersecting) with the given <p>slice</p> (by screen position).
-				To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>.
+				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>, since that is the default parent of new slices.
 				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
   				the bottom most one (returned by default) is number 0, next up is 1, etc.
 				0 is returned if <p>number</p> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <ref>getcount</ref> as <p>number</p> the number of overlapping slices is returned instead.
 				<p>check descendants</p> is an optional argument defaulting to true.
 				If false, then only <p>parent</p>'s children will be checked, not all its descendants.
+				(That is, slices marked not-visible are ignored while searching for slices, but whether <p>parent</p> itself
+				is visible doesn't have any effect.)
+				Pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<lb/>
 				This command never returns Special slices, such as the <ref>spritelayer</ref> slice, nor will it return <p>slice</p> or any of its descendants.
 			</description>
 			<seealso>
