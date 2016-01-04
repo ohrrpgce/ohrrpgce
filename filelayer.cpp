@@ -158,13 +158,11 @@ FBCALL int OPEN_hook(FBSTRING *filename,
 // A replacement for FB's filecopy which sends modification messages and deals with open files
 // NOTE: return values are opposite to FileCopy (true for success)
 int copyfile(FBSTRING *source, FBSTRING *destination) {
-	if (pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
-		int ret = copy_file_replacing(source->data, destination->data);
-		if (ret)
-			send_lump_modified_msg(destination->data);
-		return ret;
+	int ret = copy_file_replacing(source->data, destination->data);
+	if (ret && pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
+		send_lump_modified_msg(destination->data);
 	}
-	return fb_FileCopy(source->data, destination->data);
+	return ret;
 }
 
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
