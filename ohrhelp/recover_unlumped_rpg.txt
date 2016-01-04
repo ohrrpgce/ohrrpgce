@@ -1,0 +1,15 @@
+It appears that another copy of the Custom game editor was editing a game, but crashed. It has left behind some temporary files that appear to be a copy of the game.
+
+"Modified": This is the current last modification time of the mentioned .rpg file -- probably when it was last saved.
+
+"Loaded or last saved by Custom": This is the time when either you loaded and started editing the game, or saved the game using "Save and continue editing".
+
+"Last edit": This is when the final unsaved change was made to the temporary files. If this is equal or nearly equal to the last loaded/saved time, then you should be able to safely delete the temporary files, because it means you didn't have unsaved changes.
+
+Options:
+
+'DO NOTHING' quits.
+
+'RECOVER temp files as a .rpg' creates a new .rpg file out of the temporary copy. Your existing .rpg isn't overwritten. The new .rpg file might be corrupt, so never overwrite your old copy; keep it as a backup!
+
+'ERASE temp files' deletes the temporary files. Choose this if you think there aren't any unsaved changes worth saving.
