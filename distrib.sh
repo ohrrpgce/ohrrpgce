@@ -8,13 +8,13 @@ if [ ! -f distrib.sh ] ; then
 fi
 
 echo Building binaries
-scons debug=0 game custom hspeak unlump relump || exit 1
+scons -j2 debug=0 game custom hspeak unlump relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
   rm vikings.rpg
 fi
-./relump vikings/vikings.rpgdir ./vikings.rpg
+./relump vikings/vikings.rpgdir ./vikings.rpg || exit 1
 
 echo "Downloading import media"
 if [ -f import.zip ] ; then
@@ -26,59 +26,61 @@ fi
 if [ -d "import/Sound Effects" ] ; then
   rm -Rf "import/Sound Effects"
 fi
-wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
-unzip -q -d import/ import.zip
+wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip || exit 1
+unzip -q -d import/ import.zip || exit 1
 rm import.zip
 
 echo "Erasing contents of temporary directory"
+mkdir -p tmp
+mkdir -p distrib
 rm -Rf tmp/*
 
 echo Erasing old distribution files
-rm distrib/ohrrpgce-*.tar.bz2
-rm distrib/*.deb
+rm -f distrib/ohrrpgce-*.tar.bz2
+rm -f distrib/*.deb
 
 echo "Packaging binary distribution of CUSTOM"
 
 echo "  Including binaries"
-cp -p ohrrpgce-game tmp
-cp -p ohrrpgce-custom tmp
-cp -p unlump tmp
-cp -p relump tmp
+cp -p ohrrpgce-game tmp &&
+cp -p ohrrpgce-custom tmp &&
+cp -p unlump tmp &&
+cp -p relump tmp || exit 1
 
 echo "  Including hspeak"
-cp -p hspeak tmp
+cp -p hspeak tmp || exit 1
 
 echo "  Including support files"
-cp -p ohrrpgce.new tmp
-cp -p plotscr.hsd tmp
-cp -p scancode.hsi tmp
+cp -p ohrrpgce.new tmp &&
+cp -p plotscr.hsd tmp &&
+cp -p scancode.hsi tmp || exit 1
 
 echo "  Including readmes"
-cp -p README-game.txt tmp
-cp -p README-custom.txt tmp
-cp -p IMPORTANT-nightly.txt tmp
-cp -p LICENSE.txt tmp
-cp -p LICENSE-binary.txt tmp
-cp -p whatsnew.txt tmp
+cp -p README-game.txt tmp &&
+cp -p README-custom.txt tmp &&
+cp -p IMPORTANT-nightly.txt tmp &&
+cp -p LICENSE.txt tmp &&
+cp -p LICENSE-binary.txt tmp &&
+cp -p whatsnew.txt tmp || exit 1
 
 echo "  Including Vikings of Midgard"
-cp -p vikings.rpg tmp
-cp -pr "vikings/Vikings script files" tmp
-cp -p "vikings/README-vikings.txt" tmp
+cp -p vikings.rpg tmp &&
+cp -pr "vikings/Vikings script files" tmp &&
+cp -p "vikings/README-vikings.txt" tmp || exit 1
 
 echo "  Including import"
-mkdir tmp/import
-cp -pr import/* tmp/import
+mkdir -p tmp/import
+cp -pr import/* tmp/import || exit 1
 
 echo "  Including docs"
-mkdir tmp/docs
-cp -p docs/*.html tmp/docs
-cp -p docs/plotdict.xml tmp/docs
-cp -p docs/htmlplot.xsl tmp/docs
-cp -p docs/more-docs.txt tmp/docs
+mkdir -p tmp/docs
+cp -p docs/*.html tmp/docs &&
+cp -p docs/plotdict.xml tmp/docs &&
+cp -p docs/htmlplot.xsl tmp/docs &&
+cp -p docs/more-docs.txt tmp/docs || exit 1
 
 echo "  Including help files"
-cp -pr ohrhelp tmp
+cp -pr ohrhelp tmp || exit 1
 
 echo "tarring and bzip2ing distribution"
 mv tmp ohrrpgce
@@ -103,6 +105,6 @@ cd linux
 if [ -f *.deb ] ; then
   rm *.deb
 fi
-./all.sh
+./all.sh || exit 1
 cd ..
 mv linux/*.deb distrib
