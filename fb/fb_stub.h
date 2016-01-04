@@ -193,6 +193,7 @@ typedef struct _FB_LIST {
 } FB_LIST;
 
 
+#include "fb_error.h"
 #include "fb_array.h"
 #include "fb_string.h"
 #include "fb_file.h"
