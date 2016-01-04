@@ -61,6 +61,7 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
         tmp += '\n' + message
         print tmp
     def query_svn (*command):
+        # Note: this is reimplemented in linux/ohr_debian.py
         from subprocess import Popen, PIPE
         import re
         # Always use current date instead

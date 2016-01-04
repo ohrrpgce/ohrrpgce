@@ -4,6 +4,7 @@ Run "scons -h" to print help.
 
 cf. SConstruct, ohrbuild.py
 """
+import sys
 import os
 import platform
 import shutil
@@ -28,6 +29,8 @@ CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
+destdir = ARGUMENTS.get ('destdir', '')
+prefix =  ARGUMENTS.get ('prefix', '/usr')
 
 win32 = False
 unix = False
@@ -501,7 +504,7 @@ elif unix:  # Linux & BSD
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
-    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
+    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"' + prefix + '/share/games/ohrrpgce"\'']
 
 
 ################ Add the libraries to env and commonenv
@@ -669,7 +672,7 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
-env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
@@ -762,6 +765,16 @@ tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTES
 TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
+def install(target, source, env):
+    if mac or android or not unix:
+        print "The 'install' action is only implemented on Unix systems."
+        return 1
+    sys.path += ['linux']
+    import ohrrpgce
+    ohrrpgce.install(destdir, prefix)
+
+Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = install)
+
 Default (GAME)
 Default (CUSTOM)
 
@@ -796,7 +809,11 @@ Options:
   macsdk=version      Target a previous version of Mac OS X, eg. 10.4
                       You will need the relevant SDK installed, and need to use a
                       copy of FB built against that SDK.
+  prefix=PATH         For 'install' action. Default: '/usr'
+  destdir=PATH        For 'install' action. Use if you want to install into a staging
+                      area, for a package creation tool. Default: ''
   v=1                 Be verbose.
+
 
 Experimental options:
   gengcc=1            Compile using GCC emitter.
@@ -815,7 +832,7 @@ The following environmental variables are also important:
      Include          For compiling gfx_directx.dll
   EUDIR               Needed by Euphoria? (when compiling hspeak)
 
-Targets:
+Targets (executables to build):
   """ + gamename + """ (or game)
   """ + editname + """ (or custom)
   gfx_directx.dll
@@ -825,7 +842,7 @@ Targets:
   reloadtest
   xml2reload
   reload2xml
-  reloadutil
+  reloadutil          To compare two .reload documents, or time load time
   utiltest
   vectortest
   rbtest
@@ -834,6 +851,9 @@ Targets:
   dumpohrkey
   bam2mid
   miditest
+Other targets/actions:
+  install             (Unix only.) Install the OHRRPGCE. Uses prefix and destdir args
+                      Installs files into ${destdir}${prefix}/games and ${destdir}${prefix}/share
   reload              Compile all RELOAD utilities.
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
   interactivetest     Runs interactivetest.rpg with recorded input.

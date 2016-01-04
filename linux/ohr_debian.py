@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+Routines both for installing packages on a Unix, and for creating .deb packages
+"""
+
 import os
 import re
 import shutil
@@ -15,6 +19,7 @@ def calculate_size(files, executables):
     size += os.stat('%s' % file)[6]
   return size / 1000
 
+# Note: this is reimplemented in ohrbuild.py
 def read_version():
   year = date.today().year
   month = date.today().month
@@ -59,13 +64,13 @@ def write_control_file(filename, template, values):
   f.write(template % values)
   f.close()
 
-def build_tree(dir, files, executables):
+def build_tree(destdir, package_name, files, executables, prefix = "/usr"):
   if len(executables):
-    dest = dir + "/usr/games/"
+    dest = destdir + prefix + "/games/"
     quiet_mkdir(dest)
     for exe in executables:
       shutil.copy(exe, dest + os.path.basename(exe))
-  dest = dir + "/usr/share/games/" + dir +"/"
+  dest = destdir + prefix + "/share/games/" + package_name +"/"
   quiet_mkdir(dest)
   for file in files:
     if os.path.isdir(file):
@@ -84,24 +89,24 @@ def quiet_mkdir(dir):
 def run_dpkg(package, ver):
   os.system("fakeroot dpkg -b %s %s_%s_i386.deb" % (package, package, ver))
 
-def menu_entry(package_name, title, command, append=False, desktop_file_suffix=""):
+def menu_entry(destdir, package_name, title, command, append=False, desktop_file_suffix="", prefix = "/usr"):
   mode = "w"
   if append: mode = "a"
-  quiet_mkdir(package_name + "/usr/share/menu/")
-  f = open(package_name + "/usr/share/menu/" + package_name, mode)
+  quiet_mkdir(destdir + prefix + "/share/menu/")
+  f = open(destdir + prefix + "/share/menu/" + package_name, mode)
   s = '?package(%s): needs="X11" title="%s" command="%s" section="Games/RolePlaying"\n' % (package_name, title, command)
   f.write(s)
   f.close()
-  quiet_mkdir(package_name + "/usr/share/applications/")
-  f = open(package_name + "/usr/share/applications/" + package_name + desktop_file_suffix + ".desktop", "w")
+  quiet_mkdir(destdir + prefix + "/share/applications/")
+  f = open(destdir + prefix + "/share/applications/" + package_name + desktop_file_suffix + ".desktop", "w")
   s = "[Desktop Entry]\nName=%s\nExec=%s\nTerminal=false\nType=Application\nCategories=Application;Game;\n" \
        % (title, command)
   f.write(s)
   f.close()
 
-def rpg_menu_entry(package_name, title, rpg_file):
-  command = "/usr/games/ohrrpgce-game /usr/share/games/%s/%s" % (package_name, rpg_file)
-  menu_entry(package_name, title, command)
+def rpg_menu_entry(destdir, package_name, title, rpg_file, prefix = "/usr"):
+  command = "%s/games/ohrrpgce-game %s/share/games/%s/%s" % (prefix, prefix, package_name, rpg_file)
+  menu_entry(destdir, package_name, title, command, prefix = prefix)
 
 def relump(lumpdir, rpgfile):
   try:
