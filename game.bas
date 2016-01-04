@@ -78,10 +78,12 @@ app_dir = exepath
 #ENDIF
 
 start_new_debug
-debuginfo long_version & build_info & " " & systeminfo
+debuginfo long_version & build_info
+debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 debuginfo DATE & " " & TIME
 
-'DEBUG debug "randomize timer"
 mersenne_twister TIMER
 
 'Global variables which are affected by processcommandline (specifically, game_setoption)
@@ -473,6 +475,12 @@ ELSE
 END IF
 
 start_new_debug
+debuginfo long_version & build_info
+debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
+debuginfo DATE & " " & TIME
+debuginfo "Loading " & sourcerpg
 
 init_save_system
 gam.script_log.filename = log_dir & "script_log.txt"
@@ -511,7 +519,6 @@ IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
 END IF
 
-'---GAME SELECTED, PREPARING TO PLAY---
 IF usepreunlump = NO THEN
  unlump sourcerpg, workingdir
 ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
@@ -529,10 +536,7 @@ ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
  END IF
 END IF
 
-debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
-IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
+debuginfo "Name: " & getdisplayname("")
 
 REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 

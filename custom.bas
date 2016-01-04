@@ -173,7 +173,9 @@ END IF
 
 'Start debug file as soon as the directory is set
 start_new_debug
-debuginfo long_version & build_info & " " & systeminfo
+debuginfo long_version & build_info
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo DATE & " " & TIME
 
 'seed the random number generator
@@ -254,11 +256,13 @@ END IF
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+debuginfo DATE & " " & TIME
 
 'For getdisplayname
 copylump sourcerpg, "archinym.lmp", workingdir, YES
 
-debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ")"
 setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym

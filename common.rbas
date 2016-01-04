@@ -5200,6 +5200,7 @@ SUB set_settings_dir ()
  #IFDEF __FB_ANDROID__
   settings_dir = CURDIR & SLASH & "settings"
  #ELSEIF DEFINED(__UNIX__)
+  'FIXME: on OSX we should not use ~/.ohrrpgce
   settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
  #ELSE
   settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
