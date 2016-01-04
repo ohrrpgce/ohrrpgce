@@ -1612,8 +1612,10 @@ SUB distribute_game_as_linux_tarball ()
   DIM gameplayer as string
   gameplayer = get_linux_gameplayer()
   IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
+  debuginfo " exe: " & gameplayer
   DIM tarballdir_base as string = distinfo.pkgname & "-linux"
   DIM tarballdir as string = apptmp & SLASH & tarballdir_base
+  debuginfo " tarballdir: " & tarballdir
   makedir tarballdir
   DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
   IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
@@ -1624,7 +1626,8 @@ SUB distribute_game_as_linux_tarball ()
   debuginfo cmd
   SHELL cmd
 #ENDIF
-  IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
+  DIM license as string = finddatafile("LICENSE-binary.txt")
+  IF confirmed_copy(license, tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
   debuginfo "Copy rpg file"
   IF copy_or_relump(sourcerpg, tarballdir & SLASH & gameshortname & ".rpg") = NO THEN EXIT DO
