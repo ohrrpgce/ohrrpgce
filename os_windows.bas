@@ -16,12 +16,29 @@ include_windows_bi()
 #include "util.bi"
 #include "const.bi"
 
+'''''' Extra winapi defines
+
 ' Missing from FB 0.23 headers
-#ifndef GetProcessImageFileNameA
+#ifndef GetProcessImageFileName
 	extern "Windows"
-	declare function GetProcessImageFileNameA(byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
+	#ifdef UNICODE
+		declare function GetProcessImageFileName alias "GetProcessImageFileNameW" (byval hProcess as HANDLE, byval lpImageFileName as LPWSTR, byval nSize as DWORD) as DWORD
+	#else
+		declare function GetProcessImageFileName alias "GetProcessImageFileNameA" (byval hProcess as HANDLE, byval lpImageFileName as LPSTR, byval nSize as DWORD) as DWORD
+	#endif
 	end extern
 #endif
+
+#ifdef UNICODE
+	#define CopyFile_ CopyFileW
+#else
+	#define CopyFile_ CopyFileA
+#endif
+
+
+'==========================================================================================
+'                                Utility/general functions
+'==========================================================================================
 
 extern "C"
 'FormatMessage is such an awfully complex function
@@ -180,7 +197,7 @@ end function
 function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as bool
 	'Haven't yet decided how to handle this on Windows...
 
-	if CopyFile(source, destination, FALSE) then  'FALSE: overwrite existing files
+	if CopyFile_(source, destination, NO) then  'NO: overwrite existing files
 		dim errstr as string = error_string
 		debugc errError, "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
 		return NO
@@ -632,7 +649,7 @@ function get_process_path (pid as integer) as string
 	end if
 	dim ret as zstring * 256
 	'QueryFullProcessImageName, which returns a normal filename instead of device form, is Win Vista+.
-	if GetProcessImageFileNameA(proc, ret, 256) = 0 then
+	if GetProcessImageFileName(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
 		debug "get_process_path: query err " & errcode & " " & get_windows_error(errcode)
 	end if
