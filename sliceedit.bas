@@ -114,6 +114,7 @@ DECLARE SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as
 DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
+DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem) as Slice ptr
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string, show_root as bool)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
@@ -431,7 +432,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   DIM cur_sl as slice ptr = menu(state.pt).handle
   preview_SelectSlice_parents cur_sl
 
-  IF state.need_update = NO AND menu(state.pt).handle <> NULL THEN
+  IF state.need_update = NO ANDALSO menu(state.pt).handle <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
     #IFDEF IS_GAME
@@ -500,17 +501,24 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
    END IF
 
   END IF '--end IF state.need_update = NO AND menu(state.pt).handle
-  
+
+  ' Highlighting and selecting slices with the mouse
+  DIM topmost as Slice ptr = 0
+  IF state.need_update = NO THEN
+   topmost = slice_editor_mouse_over(edslice, menu())
+   DIM mouse as MouseInfo = readmouse()
+   IF topmost ANDALSO (mouse.clickstick AND mouseLeft) THEN
+    cursor_seek = topmost
+    state.need_update = YES
+   END IF
+  END IF
+
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
    state.size = vpages(dpage)->h / state.spacing - 4
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup(), show_root)
-   REDIM plainmenu(state.last) as string
-   FOR i as integer = 0 TO UBOUND(plainmenu)
-    plainmenu(i) = menu(i).s
-   NEXT i
    state.need_update = NO
   ELSE
    usemenu state
@@ -520,13 +528,25 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice edslice, dpage
   END IF
-  IF state.pt > 0 THEN
+  IF menu(state.pt).handle THEN
    DrawSliceAnts menu(state.pt).handle, dpage
+  END IF
+  IF topmost THEN
+   DrawSliceAnts topmost, dpage
   END IF
   IF ses.hide_mode <> hideMenu THEN
    IF state.last > state.size THEN
     draw_fullscreen_scrollbar state, , dpage
    END IF
+
+   REDIM plainmenu(state.last) as string
+   FOR i as integer = 0 TO UBOUND(plainmenu)
+    IF menu(i).handle THEN
+     plainmenu(i) = fgcol_text(menu(i).s, menu(i).handle->EditorColor)
+    ELSE
+     plainmenu(i) = menu(i).s
+    END IF
+   NEXT i
    standardmenu plainmenu(), state, 0, 0, dpage, menuopts
    edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   END IF
@@ -546,6 +566,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
 
 END SUB
 
+'Sets a slice and all of its ancestors as the selected child of their parent, if a Select slice.
 SUB preview_SelectSlice_parents (byval sl as Slice ptr)
  IF sl = 0 THEN EXIT SUB
  DIM par as Slice ptr = sl->parent
@@ -558,6 +579,45 @@ SUB preview_SelectSlice_parents (byval sl as Slice ptr)
   par = par->parent
  LOOP
 END SUB
+
+'Sets ->EditorColor for each slice in menu() to highlight the slices that the mouse is over.
+'Returns the topmost non-ignored slice that the mouse is over, or NULL if none.
+FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem) as Slice ptr
+ FOR idx as integer = 0 TO UBOUND(menu)
+  IF menu(idx).handle THEN
+   menu(idx).handle->EditorColor = uilook(uiMenuItem)
+  END IF
+ NEXT
+
+ DIM mouse as MouseInfo = readmouse()
+ DIM topmost as Slice ptr = NULL
+ DIM idx as integer = 0
+ DO
+  DIM temp as integer = idx
+  ' Search for visible slices
+  DIM sl as Slice ptr = FindSliceAtPoint(edslice, mouse.x, mouse.y, temp, YES, YES)
+  IF sl = 0 THEN EXIT DO
+
+  'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
+  'Ignore Map slices because it makes it impossible to click on things parented to map layers.
+  SELECT CASE sl->SliceType
+   CASE slRoot, slRectangle, slSprite, slText, slEllipse
+    topmost = sl
+   CASE slGrid
+    IF cptr(GridSliceData ptr, sl->SliceData)->show THEN
+     topmost = sl
+    END IF
+  END SELECT
+
+  sl->EditorColor = uilook(uiText)
+  idx += 1
+ LOOP
+
+ IF topmost THEN
+  topmost->EditorColor = uilook(uiDescription)
+ END IF
+ RETURN topmost
+END FUNCTION
 
 '--Returns whether one of the descendents is forbidden
 FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as integer
@@ -1145,6 +1205,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  DIM hidden_slice as Slice Ptr = edslice
  IF show_root THEN hidden_slice = NULL
  slice_editor_refresh_recurse index, menu(), indent, edslice, hidden_slice, slicelookup()
+ REDIM PRESERVE menu(index - 1)
 
  IF cursor_seek <> 0 THEN
   FOR i as integer = 0 TO index - 1
@@ -1168,6 +1229,7 @@ SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenu
  FOR i as integer = index + 1 TO UBOUND(menu)
   SWAP menu(i), menu(i - 1)
  NEXT i
+ REDIM PRESERVE menu(UBOUND(menu) - 1)
 END SUB
 
 SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)

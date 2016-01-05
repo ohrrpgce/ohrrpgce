@@ -6,7 +6,7 @@ Note that you can make some (but not all) changes to the slice tree here that yo
 
 Press + to add a new slice to the current collection.
 
-Press ENTER or SPACE to edit a slice's details.
+Press ENTER or SPACE to edit a slice's details, or click on a slice to edit the topmost slice that's visible. (Some slices, like containers, are also excluded from being clicked on because they're always invisible). The topmost slice under the mouse is outlined, and all slices under the mouse are highlighted in the slice listing, with the topmost in a different colour.
 
 Hold the SHIFT key and use the arrow keys to reorder the slice in the slice list. Moving it to the top of the list makes it draw first. Moving it to the bottom of the list makes it draw last, over the top of the other slices.
 

@@ -151,6 +151,8 @@ TYPE Slice
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
 
+  EditorColor as integer 'Not saved, used only by slice editor
+
   AutoSort as AutoSortModes
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
