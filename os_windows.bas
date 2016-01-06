@@ -29,10 +29,11 @@ include_windows_bi()
 	end extern
 #endif
 
+'We #undef'd copyfile
 #ifdef UNICODE
-	#define CopyFile_ CopyFileW
+	declare function CopyFile_ alias "CopyFileW" (byval as LPCWSTR, byval as LPCWSTR, byval as BOOL) as BOOL
 #else
-	#define CopyFile_ CopyFileA
+	declare function CopyFile_ alias "CopyFileA" (byval as LPCSTR, byval as LPCSTR, byval as BOOL) as BOOL
 #endif
 
 
@@ -192,12 +193,13 @@ function setwriteable (fname as string) as bool
 	return YES
 end function
 
-'A file copy function which deals safely with the case where the file is open already.
+'A file copy function which deals safely with the case where the file is open already (why do we need that?)
 'Returns true on success.
 function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as bool
-	'Haven't yet decided how to handle this on Windows...
+	'Replacing an open file does not work on Windows.
 
-	if CopyFile_(source, destination, NO) then  'NO: overwrite existing files
+	'Overwrites existing files
+	if CopyFile_(source, destination, 0) then
 		dim errstr as string = error_string
 		debugc errError, "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
 		return NO
