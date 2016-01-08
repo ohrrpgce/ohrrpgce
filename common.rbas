@@ -2469,15 +2469,19 @@ FUNCTION find_oggenc () as string
 END FUNCTION
 
 FUNCTION find_support_dir () as string
- 'Returns an empty string if the support dir is not found (which should never happen!)
- 'Returns the full path if it is found
- IF isdir(exepath & SLASH & "support") THEN RETURN exepath & SLASH & "support"
- #IFDEF __UNIX__
-  '--There is no support directory Linux package manager installation
-  DIM d as string = environ("HOME") & SLASH & ".ohrrpgce" & SLASH "support"
-  IF NOT isdir(d) THEN makedir d
-  IF isdir(d) THEN return d
- #ENDIF
+ 'Returns, creating if needed, the support directory path.
+ 'The support dir is only normally used on Windows and Mac (on Mac, hspeak lives there).
+ 'On GNU/Linux or Android it (currently) won't pre-exist unless the OHR is compiled from source,
+ 'and it is only used to hold utilities downloaded for distributing games (currently just rcedit.exe).
+ '(Downloaded versions of Game itself are stored in $settings_dir/_gameplayer instead)
+ DIM suppdir as string
+ suppdir = exepath & SLASH "support"
+ IF isdir(suppdir) THEN RETURN suppdir
+ IF makedir(suppdir) = 0 THEN RETURN suppdir
+ suppdir = settings_dir & SLASH "support"
+ IF isdir(suppdir) THEN RETURN suppdir
+ IF makedir(suppdir) = 0 THEN RETURN suppdir
+ showerror "Could not find or create a directory for support utilities"
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
