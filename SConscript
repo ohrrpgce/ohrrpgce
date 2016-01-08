@@ -634,6 +634,10 @@ for item in edit_modules:
 for item in shared_modules:
     editsrc.extend (editenv.VARIANT_BASO (item))
 
+# Sort RB modules to the front so they get built first, to avoid bottlenecks
+gamesrc.sort (key = lambda node: 0 if '.rbas' in node.path else 1)
+editsrc.sort (key = lambda node: 0 if '.rbas' in node.path else 1)
+
 # For reload utilities
 reload_objects = base_objects + Flatten ([env.Object(a) for a in reload_modules])
 
