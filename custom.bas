@@ -1149,18 +1149,15 @@ END SUB
 FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  IF newrpg = "" THEN RETURN NO
  textcolor uilook(uiSelectedDisabled), 0
- printstr "Please Wait...", 0, 40, vpage
- printstr "Creating RPG File", 0, 50, vpage
+ printstr "Please Wait...", 0, 100, vpage
+ printstr "Creating RPG File", 0, 110, vpage
  setvispage vpage
  IF NOT isfile(templatefile) THEN
-  printstr "Error: ohrrpgce.new not found", 0, 60, vpage
-  printstr "Press Enter to quit", 0, 70, vpage
-  setvispage vpage
-  waitforanykey
+  notification !"Error: ohrrpgce.new not found. The OHRRPGCE is apparently not installed properly.\nPress Enter to quit"
   RETURN NO
  END IF
  writeablecopyfile templatefile, newrpg
- printstr "Unlumping", 0, 60, vpage
+ printstr "Unlumping", 0, 120, vpage
  setvispage vpage 'refresh
  unlump newrpg, workingdir + SLASH
  '--create archinym information lump
@@ -1169,7 +1166,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  PRINT #fh, "ohrrpgce"
  PRINT #fh, version
  CLOSE #fh
- printstr "Finalumping", 0, 80, vpage
+ printstr "Finalumping", 0, 130, vpage
  setvispage vpage 'refresh
  '--re-lump files as NEW rpg file
  write_rpg_or_rpgdir workingdir, newrpg
