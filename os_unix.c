@@ -96,12 +96,13 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 	// whichtype is 0 for files and 1 for directories
 	DIR *dp;
 	dp = opendir(searchdir->data);
+	int save_errno = errno;
 
 	array_t ret = NULL;
 	array_new(&ret, 0, &type_table(string));
 
 	if (dp == NULL) {
-		debug(errError, "list_files: unable to open directory: %s", searchdir->data);
+		debug(errError, "list_files: unable to opendir(%s): %s", searchdir->data, strerror(save_errno));
 	} else {
 		int wcflags = FNM_PATHNAME | FNM_CASEFOLD;
 		if (!showhidden) {
@@ -110,8 +111,21 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 		}
 		struct dirent *ep;
 		while ((ep = readdir(dp)) != NULL) {
-			if (whichtype == 0 && ep->d_type == DT_DIR) continue;
-			if (whichtype == 1 && ep->d_type != DT_DIR) continue;
+			if (ep->d_type == DT_LNK) {
+				// Is it a symlink to a dir or a file?
+				char filename[512];
+				if (snprintf(filename, 512, "%s/%s", searchdir->data, ep->d_name) > 511)
+					continue;
+				struct stat finfo;
+				if (stat(filename, &finfo)) {
+					debug(errError, "Could not stat(%s): %s", filename, strerror(errno));
+					continue;
+				}
+				if (whichtype == 0 && !S_ISREG(finfo.st_mode)) continue;
+				if (whichtype == 1 && !S_ISDIR(finfo.st_mode)) continue;
+			}
+			else if (whichtype == 0 && ep->d_type != DT_REG) continue;
+			else if (whichtype == 1 && ep->d_type != DT_DIR) continue;
 			if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0) continue;
 			if (fnmatch(nmask->data, ep->d_name, wcflags) == 0) {
 				//fnmatch returns 0 on a successful match because it hates me :(
