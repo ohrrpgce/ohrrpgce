@@ -2224,6 +2224,9 @@ FUNCTION get_tmpdir () as string
  IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
  DIM as string d = DATE, t = TIME
  tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
+ IF NOT isdir(tmp) THEN
+  IF makedir(tmp) <> 0 THEN fatalerror "Unable to create temp directory " & tmp
+ END IF
  RETURN tmp
 END FUNCTION
 

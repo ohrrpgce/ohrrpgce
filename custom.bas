@@ -97,7 +97,9 @@ DECLARE SUB choose_rpg_to_open (rpg_browse_default as string)
 DECLARE SUB main_editor_menu()
 DECLARE SUB gfx_editor_menu()
 
-'Global variables
+
+'=================================== Globals ==================================
+
 REDIM gen(499)
 DIM gen_reld_doc as DocPtr
 REDIM buffer(16384)
@@ -114,7 +116,6 @@ DIM dpage as integer = 1
 DIM activepalette as integer = -1
 DIM fadestate as integer
 
-'FIXME: too many directory variables! Clean this nonsense up
 DIM game as string
 DIM sourcerpg as string
 DIM exename as string
@@ -128,25 +129,23 @@ DIM slave_process as ProcessHandle = 0
 EXTERN running_as_slave as integer
 DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 
-'Local variables (declaring these up here is often necessary due to gosubs)
-DIM scriptfile as string
-DIM archinym as string
+'''' Module-global variables
 DIM SHARED workingdir_needs_cleanup as bool = NO
-DIM rpg_browse_default as string = ""
 
-'--Startup
+
+'======================== Setup directories & debug log =======================
+' This is almost identical to startup code in Game; please don't unnecessarily diverge.
 
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
 
+orig_dir = CURDIR
+
 #IFDEF __FB_ANDROID__
- log_dir = CURDIR & SLASH
+ log_dir = orig_dir & SLASH
 #ENDIF
+'Else log_dir remains ""
 
-exename = trimextension(trimpath(COMMAND(0)))
-
-documents_dir = get_documents_dir()
-
-app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived from the above exename
+app_dir = EXEPATH  'FreeBasic builtin
 
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
@@ -154,41 +153,53 @@ app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived fr
   data_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
+ 'FIXME: why are we changing app_dir??
  IF app_dir = "/Applications/" THEN
+  'Equal to documents_dir (not set yet)
   app_dir = ENVIRON("HOME") & SLASH & "Documents"
   CHDIR app_dir
  END IF
 #ENDIF
 
 'temporarily set current directory, will be changed to game directory later if writable
-orig_dir = CURDIR()
+'(This is where new .rpg files go by default)
+'(This change in working directory is done only by Custom, not Game)
 IF diriswriteable(app_dir) THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
  CHDIR app_dir
 ELSE
  'If CUSTOM is installed read-only, use your Documents dir as the default
- CHDIR documents_dir
+ CHDIR get_documents_dir()
 END IF
 
-'Start debug file as soon as the directory is set
+'Once the initial current working dir is set, can create debug log.
 start_new_debug
 debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+' These strings can already contain info collected before backend initialisation
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo DATE & " " & TIME
 
-'seed the random number generator
-mersenne_twister TIMER
-
-'FIXME: why do we use different temp dirs in game and custom?
 settings_dir = get_settings_dir()
+documents_dir = get_documents_dir()  'may depend on app_dir
+debuginfo "documents_dir: " & documents_dir
+'FIXME: why do we use different temp dirs in game and custom?
+'Plus, tmpdir is shared between all running copies of Custom, which could cause problems.
 tmpdir = settings_dir & SLASH
-IF NOT isdir(tmpdir) THEN
- IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
-END IF
+IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
+
+
+
+'========================== Process commandline flags =========================
+
+exename = trimextension(trimpath(COMMAND(0)))
 
 REDIM cmdline_args() as string
+' This can modify log_dir and restart the debug log
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
+
+
+'======================= Initialise backends/graphics =========================
 
 load_default_master_palette master()
 DefaultUIColors uilook(), boxlook()
@@ -203,11 +214,22 @@ setpal master()
 setfont current_font()
 textcolor uilook(uiText), 0
 
+setupmusic
+
+'seed the random number generator
+mersenne_twister TIMER
+
 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
 check_for_crashed_workingdirs
 
 'This also calls write_session_info
 setup_workingdir
+
+
+'=============================== Select a game ================================
+
+DIM scriptfile as string
+DIM rpg_browse_default as string
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
@@ -250,7 +272,7 @@ end_debug
 IF dir_to_change_into <> "" ANDALSO diriswriteable(dir_to_change_into) THEN
  CHDIR dir_to_change_into
 END IF
-'otherwise, keep current directory as it was, net effect: it is the same as in Game
+'otherwise, keep current directory as it was (FIXME: ideally would now be the same as in Game)
 
 ' log_dir is almost always "", so CURDIR is the location of c_debug.txt
 start_new_debug
@@ -262,6 +284,9 @@ debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir
 debuginfo "settings_dir: " & settings_dir
 
+
+'============================= Unlump, Upgrade, Load ==========================
+
 'For getdisplayname
 copylump sourcerpg, "archinym.lmp", workingdir, YES
 
@@ -270,6 +295,7 @@ setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym
 copylump sourcerpg, "archinym.lmp", workingdir, YES
+DIM archinym as string
 archinym = readarchinym(workingdir, sourcerpg)
 game = workingdir + SLASH + archinym
 
@@ -319,8 +345,6 @@ load_special_tag_caches
 load_lookup1_bin lookup1_bin_cache()
 
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
-
-setupmusic
 
 'Reset start of session to after upgrades (to see which lumps are edited)
 write_session_info

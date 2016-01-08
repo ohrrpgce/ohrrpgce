@@ -53,17 +53,19 @@ DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
 
 
-'============================== Setup directories =============================
+'======================== Setup directories & debug log =======================
+' This is almost identical to startup code in Custom; please don't unnecessarily diverge.
 
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
 
-#IFDEF __FB_ANDROID__
- log_dir = CURDIR & SLASH
-#ENDIF
+orig_dir = CURDIR
 
-'FIXME: too many directory variables! Clean this nonsense up
-DIM app_dir as string  'global
-app_dir = exepath
+#IFDEF __FB_ANDROID__
+ log_dir = orig_dir & SLASH
+#ENDIF
+'Else log_dir remains ""
+
+app_dir = EXEPATH  'FreeBasic builtin
 
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
@@ -71,20 +73,30 @@ app_dir = exepath
   data_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
+ 'FIXME: why are we changing app_dir??
  IF app_dir = "/Applications/" THEN
+  'Equal to documents_dir (not set yet)
   app_dir = ENVIRON("HOME") & SLASH & "Documents"
   CHDIR app_dir
  END IF
 #ENDIF
 
+'Once the initial current working dir is set, can create debug log.
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
+' These strings can already contain info collected before backend initialisation
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 debuginfo DATE & " " & TIME
 
-mersenne_twister TIMER
+settings_dir = get_settings_dir()
+documents_dir = get_documents_dir()  'may depend on app_dir
+tmpdir = get_tmpdir()
+'As soon as we create the tmpdir, we want to put a keepalive file in it
+refresh_keepalive_file
+
+
+'========================== Process commandline flags =========================
 
 'Global variables which are affected by processcommandline (specifically, game_setoption)
 DIM autotestmode as bool = NO
@@ -98,19 +110,11 @@ DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
 DIM force_prefsdir_save as bool = NO
 
-orig_dir = CURDIR()
 REDIM cmdline_args() as string
-' This can modify log_dir
+' This can modify log_dir and restart the debug log
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
-'---get temp dir---
-documents_dir = get_documents_dir()
-tmpdir = get_tmpdir()
-IF NOT isdir(tmpdir) THEN
- IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
-END IF
-'As soon as we create the tmpdir, we want to put a keepalive file in it
-refresh_keepalive_file
+IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 
 
 '============================== Initialise backends ===========================
@@ -120,6 +124,9 @@ setmodex
 
 'DEBUG debug "init sound"
 setupmusic
+
+'seed the random number generator
+mersenne_twister TIMER
 
 
 '=================================== Globals ==================================
@@ -198,6 +205,7 @@ DIM savefile as string
 DIM workingdir as string
 DIM documents_dir as string
 DIM prefsdir as string
+DIM app_dir as string
 
 DIM lump_reloading as LumpReloadOptions
 lump_reloading.gmap.mode = loadmodeAlways
@@ -230,7 +238,7 @@ REDIM gotj(2) as integer
 DIM backcompat_sound_slot_mode as integer
 REDIM backcompat_sound_slots(7) as integer
 
-DIM nowscript as integer
+DIM nowscript as integer = -1
 DIM scriptret as integer
 DIM scriptctr as integer
 DIM numloadedscr as integer    'Number of loaded scripts
@@ -265,12 +273,6 @@ heapp = @heap(0)
 scratp = @scrat(0)
 scriptp = @script(0)
 retvalsp = @retvals(0)
-
-'End global variables
-
-'Module local variables
-DIM archinym as string
-
 
 
 '==============================================================================
@@ -338,14 +340,12 @@ IF overrode_default_zoom = NO THEN
 END IF
 
 
-'=============================== Find the game ================================
+'=============================== Select a game ================================
 
 gam.autorungame = NO
 usepreunlump = NO
 DIM rpg_browse_default as string = ""  'local variable
 
-'---get work dir and exe name---
-'DEBUG debug "setup directories"
 exename = trimextension(trimpath(COMMAND(0)))
 
 IF running_as_slave THEN
@@ -452,14 +452,13 @@ IF gam.autorungame = NO THEN
 END IF
 
 
-'======================== Setup game-specific directories =====================
+'================= Setup game-specific directories & debug log ================
 
 '-- set up prefs dir
-settings_dir = get_settings_dir()
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 
-'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to documents_dir
+'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to $HOME
 DIM newcwd as string = trimfilename(sourcerpg)
 IF newcwd <> "" ANDALSO diriswriteable(newcwd) THEN
  'first choice is game directory
@@ -504,6 +503,8 @@ cleanup_other_temp_files
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
+DIM archinym as string
+
 '--pre-extract (if needed) .gen and load it
 IF usepreunlump THEN
  archinym = readarchinym(workingdir, sourcerpg)
@@ -539,10 +540,6 @@ ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
  END IF
 END IF
 
-debuginfo "Name: " & getdisplayname("")
-
-REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
-
 '--set game
 game = workingdir + SLASH + archinym
 game_unique_id = STR(randint(INT_MAX))
@@ -550,6 +547,7 @@ game_unique_id = STR(randint(INT_MAX))
 
 '============================== Upgrade the game ==============================
 
+debuginfo "Name: " & getdisplayname("")
 DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
@@ -577,6 +575,8 @@ queue_fade_in
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings
 set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
+
+REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
 setfont current_font()
 loadglobalstrings
