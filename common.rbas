@@ -5210,6 +5210,7 @@ END FUNCTION
 
 SUB set_settings_dir ()
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
+'Also, Custom uses settings_dir as tmpdir (FIXME: no reason for these to be different)
  #IFDEF __FB_ANDROID__
   settings_dir = CURDIR & SLASH & "settings"
  #ELSEIF DEFINED(__UNIX__)

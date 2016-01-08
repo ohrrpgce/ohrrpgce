@@ -458,28 +458,32 @@ END IF
 set_settings_dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
-debuginfo "prefsdir=" & prefsdir
+
+'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
+DIM newcwd as string = trimfilename(sourcerpg)
+IF newcwd <> "" ANDALSO diriswriteable(newcwd) THEN
+ 'first choice is game directory
+ELSEIF diriswriteable(app_dir) THEN
+ newcwd = app_dir
+ELSE
+ 'should prefsdir be used instead?
+ newcwd = homedir
+END IF
 
 end_debug 'delete unimportant messages generated before this point, or from previous game
 
-'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
-DIM fol as string = trimfilename(sourcerpg)
-IF fol <> "" ANDALSO diriswriteable(fol) THEN
- 'first choice is game directory
- CHDIR fol
-ELSEIF diriswriteable(app_dir) THEN
- CHDIR app_dir
-ELSE
- 'should prefsdir be used instead?
- CHDIR homedir
-END IF
+CHDIR newcwd
 
+' log_dir is almost always "", so CURDIR is the location of g_debug.txt
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
 debuginfo DATE & " " & TIME
+debuginfo "curdir: " & CURDIR
+debuginfo "tmpdir: " & tmpdir
+debuginfo "settings_dir: " & settings_dir
 debuginfo "Loading " & sourcerpg
 
 init_save_system

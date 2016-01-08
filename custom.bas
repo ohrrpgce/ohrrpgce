@@ -181,7 +181,6 @@ debuginfo DATE & " " & TIME
 'seed the random number generator
 mersenne_twister TIMER
 
-'IF NOT isdir(settings_dir) THEN makedir settings_dir
 set_settings_dir
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN
@@ -253,11 +252,15 @@ IF dir_to_change_into <> "" ANDALSO diriswriteable(dir_to_change_into) THEN
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
 
+' log_dir is almost always "", so CURDIR is the location of c_debug.txt
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo DATE & " " & TIME
+debuginfo "curdir: " & CURDIR
+debuginfo "tmpdir: " & tmpdir
+debuginfo "settings_dir: " & settings_dir
 
 'For getdisplayname
 copylump sourcerpg, "archinym.lmp", workingdir, YES
