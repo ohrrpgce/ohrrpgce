@@ -2847,7 +2847,7 @@ FUNCTION finddatafile(filename as string) as string
  IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
  #IFDEF __UNIX__
   '~/.ohrrpgce/
-  IF isfile(tmpdir & filename) THEN RETURN tmpdir & filename
+  IF isfile(settings_dir & filename) THEN RETURN tmpdir & filename
   #IFDEF DATAFILES
    IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
   #ENDIF
@@ -2864,7 +2864,7 @@ FUNCTION finddatadir(dirname as string) as string
  IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
  #IFDEF __UNIX__
   '~/.ohrrpgce/
-  IF isdir(tmpdir & dirname) THEN RETURN tmpdir & dirname
+  IF isdir(settings_dir & dirname) THEN RETURN tmpdir & dirname
   #IFDEF DATAFILES
    IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
   #ENDIF
@@ -5215,15 +5215,25 @@ FUNCTION get_settings_dir () as string
  DIM settings_dir as string
  #IFDEF __FB_ANDROID__
   settings_dir = CURDIR & SLASH & "settings"
+ #ELSEIF defined(__FB_DARWIN__)
+  'FIXME: on OSX we should not use ~/.ohrrpgce, but instead ~/Library/Application Support/OHRRPGCE (settings and data),
+  'or ~/Library/Caches/OHRRPGCE (temp files). See
+  'https://developer.apple.com/library/mac/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW1
+  'However, we can't just switch away from using .ohrrpgce; have to move existing files over
+  settings_dir = ENVIRON("HOME") & "/.ohrrpgce"
+  IF isdir(settings_dir) = NO THEN
+   settings_dir = ENVIRON("HOME") & "/Library/Application Support/OHRRPGCE"
+  END IF
  #ELSEIF DEFINED(__UNIX__)
-  'FIXME: on OSX we should not use ~/.ohrrpgce
-  settings_dir = ENVIRON("HOME") & SLASH & ".ohrrpgce"
- #ELSE
+  settings_dir = ENVIRON("HOME") & "/.ohrrpgce"
+ #ELSEIF DEFINED(__FB_WIN32__)
   settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
   '--APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
   IF ENVIRON("APPDATA") = "" THEN
    settings_dir = exepath & SLASH & "OHRRPGCE-settings"
   END IF
+ #ELSE
+  #ERROR "Unknown OS"
  #ENDIF
  IF NOT isdir(settings_dir) THEN makedir(settings_dir)
  RETURN settings_dir
@@ -5242,16 +5252,34 @@ END FUNCTION
 'appropriate place available. Therefore it must be writable.
 FUNCTION get_documents_dir() as string
  DIM ret as string
-'FIXME: $HOME is (usually) empty on Android; there is no home directory
-#IFDEF __UNIX__
- ret = ENVIRON("HOME")
-#ELSE
- ret = ENVIRON("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
- IF NOT isdir(ret) THEN
-  'Windows Vista uses "Documents" instead of "My Documents"
-  ret = ENVIRON("USERPROFILE") & SLASH & "Documents"
+ #IF defined(__FB_ANDROID__)
+  'FIXME: $HOME is (usually) empty on Android; there is no home directory
+  'This should be set to the user documents directory:
+  'Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+ #ELSEIF defined(__FB_DARWIN__)
+  'OSX does not change the standard user directory paths depending on the language,
+  'instead it only changes the "display name" of these directories. We don't support this.
+  'See https://developer.apple.com/library/mac/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW10
+  ret = ENVIRON("HOME") & "/Documents"
+ #ELSEIF defined(__UNIX__)
+  ' I don't know how true this is
+  ret = ENVIRON("HOME") & "/Documents"
+ #ELSEIF defined(__FB_WIN32__)
+  'Localised and customisable; need to call winapi
+  ret = os_get_documents_dir()
+ #ELSE
+  #ERROR "Unknown OS"
+ #ENDIF
+ IF diriswriteable(ret) = NO THEN
+  ret = get_home_dir() & SLASH "Desktop"
+  IF diriswriteable(ret) = NO THEN
+   ret = CURDIR
+   IF diriswriteable(ret) = NO THEN
+    ret = app_dir
+    'Give up...
+   END IF
+  END IF
  END IF
-#ENDIF
  RETURN ret
 END FUNCTION
 
@@ -5265,10 +5293,8 @@ FUNCTION get_help_dir(helpfile as string="") as string
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(data_dir & SLASH & "ohrhelp", helpfile) THEN RETURN data_dir & SLASH & "ohrhelp"
- #IFDEF __UNIX__
  #IFDEF DATAFILES
   IF help_dir_helper(DATAFILES & SLASH & "ohrhelp", helpfile) THEN RETURN DATAFILES & SLASH & "ohrhelp"
- #ENDIF
  #ENDIF
  '-- if all else fails, use exepath even if invalid
  RETURN exepath & SLASH & "ohrhelp"

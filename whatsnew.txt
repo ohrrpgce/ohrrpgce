@@ -123,6 +123,7 @@ December ?? 2015 [Callipygous]
       or keys other than move, use and cancel, are held down [Ralph]
     * Fix general map data corruption that occured when loading certain
       very old games released before July 8 1999 [James]
+    * Fix a few problems when installed in a read-only location [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

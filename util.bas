@@ -2203,9 +2203,20 @@ FUNCTION get_tmpdir () as string
  #ELSEIF DEFINED(__FB_ANDROID__)
   'SDL sets initial directory to .../com.hamsterrepublic.ohrrpgce.game/files
   tmp = orig_dir
- #ELSE
-  'Unix only behavior
+ #ELSEIF DEFINED(__FB_DARWIN__)
+  'This matches fallback behaviour of get_settings_dir. See comments there.
+  '(TODO: We only care about using .ohrrpgce if is already exists so that we can delete
+  'crashed playing.tmp dirs)
+  'We use Caches instead of Application Support; looks like it only matters on iOS
+  '(where the OS is free to delete Caches).
+  tmp = ENVIRON("HOME") & "/.ohrrpgce"
+  IF isdir(tmp) = NO THEN
+   tmp = ENVIRON("HOME") & "/Library/Caches/OHRRPGCE"
+  END IF
+ #ELSEIF DEFINED(__UNIX__)
   tmp = environ("HOME") + SLASH + ".ohrrpgce"
+ #ELSE
+  #ERROR "Unknown OS"
  #ENDIF
  IF NOT isdir(tmp) THEN
   IF makedir(tmp) <> 0 THEN fatalerror "Temp directory " & tmp & " missing and unable to create it"

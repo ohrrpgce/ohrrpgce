@@ -6,6 +6,9 @@ include_windows_bi()
 #include once "win/psapi.bi"
 '#include "win/shellapi.bi"
 '#include "win/objbase.bi"
+#define MSG MSG_  'Workaround an #undef in include_windows_bi()
+#include "win/shlobj.bi"
+#undef this
 #include "os.bi"
 #include "crt/string.bi"
 #include "crt/limits.bi"
@@ -143,6 +146,36 @@ function list_subdirs (searchdir as string, nmask as string, byval showhidden as
 	dim ret as string vector
 	v_new ret
 	return v_ret(ret)
+end function
+
+function os_get_documents_dir() as string
+	dim buf as string * MAX_PATH
+	' This is a very deprecated function; SHGetFolderPath is slightly more modern but apparently Win 2000+ only.
+        ' Doesn't set an error code!
+	if SHGetSpecialFolderPath(0, strptr(buf), CSIDL_PERSONAL, 0) then  'Documents
+		if diriswriteable(buf) then
+			return buf
+		else
+			debug "Can't write to CSIDL_PERSONAL directory " & buf
+		end if
+	end if
+	if SHGetSpecialFolderPath(0, strptr(buf), CSIDL_DESKTOPDIRECTORY, 0) then  'Desktop
+		if diriswriteable(buf) then
+			return buf
+		else
+			debug "Can't write to CSIDL_DESKTOPDIRECTORY " & buf
+		end if
+	end if
+
+	' On older systems (if SHGetSpecialFolderPath is not available) the following fallback should be used,
+	' however the .exe would probably simple fail to load there.
+	' (Incorrect in non-english versions of Windows)
+	dim ret as string
+	ret = environ("USERPROFILE") & SLASH & "Documents"  ' Vista and later
+	if not isdir(ret) then
+		ret = environ("USERPROFILE") & SLASH & "My Documents"  ' XP and earlier
+	end if
+	return ret
 end function
 
 function drivelist (drives() as string) as integer

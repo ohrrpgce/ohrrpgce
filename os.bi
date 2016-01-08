@@ -30,6 +30,9 @@ declare function copyfile(source as string, destination as string) as boolint
 declare function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 declare function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 
+#ifdef __FB_WIN32__
+  declare function os_get_documents_dir() as string
+#endif
 declare function drivelist (d() as string) as integer
 declare function drivelabel (drive as string) as string
 declare function isremovable (drive as string) as integer

@@ -17,8 +17,7 @@ def get_command_output(cmd, args = ""):
 
 include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
-standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 'windows.bi', 'win/mmsystem.bi',
-               'win/shellapi.bi', 'win/objbase.bi', 'win/psapi.bi',
+standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 'windows.bi', 'win/', 'win\\',
                'file.bi', 'datetime.bi', 'allegro.bi', 'string.bi', 'curses.bi']
 
 def scrub_includes(includes):
