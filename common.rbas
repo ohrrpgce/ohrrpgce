@@ -963,7 +963,7 @@ END FUNCTION
 
 SUB fatal_error_shutdown
  #IFDEF IS_CUSTOM
-  IF cleanup_on_error THEN
+  IF cleanup_on_error AND LEN(workingdir) THEN
    touchfile workingdir & SLASH & "__danger.tmp"
    killdir workingdir
   END IF
