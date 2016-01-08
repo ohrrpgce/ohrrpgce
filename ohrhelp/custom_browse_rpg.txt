@@ -10,6 +10,6 @@ Press ESC to cancel and quit.
 
 You can type in part of the name of a game, or the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
 
-Press F5 to refresh the directory as well as poll the names of all removeable drives.
+Press F5 to refresh the directory as well as poll the names of all drives.
 
 Press CTRL+H to show hidden files and folders.

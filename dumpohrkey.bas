@@ -1,4 +1,5 @@
-'$lang: "fb"
+' This utility will print out an OHRRPGCE .ohrkeys input recording file for debugging
+
 #include "util.bi"
 
 DECLARE SUB start_replaying_input (filename as string)

@@ -356,9 +356,9 @@ SUB script_error_mode_menu ()
     menu(1) = "Script Error Display Mode: " & yesorno(gen(genDebugMode), "debug", "release")
     SELECT CASE gen(genDebugMode)
      CASE 0
-      ChangeTextSlice infosl, "Release mode hides script errors. It is reccomended for older games that have not been tested with the newer, better script error detection."
+      ChangeTextSlice infosl, "Release mode hides script errors. It is recommended for older games that have not been tested with the newer, better script error detection."
      CASE 1
-      ChangeTextSlice infosl, "Debug mode shows script errors. It is reccomended for new games. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu"
+      ChangeTextSlice infosl, "Debug mode shows script errors. It is recommended for new games. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu"
     END SELECT
    END IF    
    box->Height = infosl->height + box->PaddingTop + box->PaddingBottom

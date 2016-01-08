@@ -493,7 +493,7 @@ FUNCTION ee_prompt_for_widget_kind() as string
  w(12) = "maybe"
  w(13) = "exclusive"
  DIM choice as integer
- choice = multichoice("Inset which kind of widget?", w(), last_kind, , "ee_prompt_for_widget_kind")
+ choice = multichoice("Insert which kind of widget?", w(), last_kind, , "ee_prompt_for_widget_kind")
  IF choice = -1 THEN RETURN ""
  last_kind = choice
  RETURN w(choice)
