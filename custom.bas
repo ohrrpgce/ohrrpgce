@@ -118,7 +118,7 @@ DIM fadestate as integer
 DIM game as string
 DIM sourcerpg as string
 DIM exename as string
-DIM homedir as string
+DIM documents_dir as string
 DIM workingdir as string
 DIM app_dir as string
 
@@ -144,8 +144,7 @@ DIM rpg_browse_default as string = ""
 
 exename = trimextension(trimpath(COMMAND(0)))
 
-'why do we use different temp dirs in game and custom?
-set_homedir
+set_documents_dir
 
 app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived from the above exename
 
@@ -167,8 +166,8 @@ IF diriswriteable(app_dir) THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
  CHDIR app_dir
 ELSE
- 'If CUSTOM is installed read-only, use your home dir as the default
- CHDIR homedir
+ 'If CUSTOM is installed read-only, use your Documents dir as the default
+ CHDIR documents_dir
 END IF
 
 'Start debug file as soon as the directory is set
@@ -181,6 +180,7 @@ debuginfo DATE & " " & TIME
 'seed the random number generator
 mersenne_twister TIMER
 
+'FIXME: why do we use different temp dirs in game and custom?
 set_settings_dir
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN
@@ -1386,7 +1386,7 @@ FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string
   IF NOT diriswriteable(destdir) THEN destdir = ""
   destfile_basename = trimpath(trimextension(old_sourcerpg)) & " crash-recovered "
  END IF
- IF NOT diriswriteable(destdir) THEN destdir = homedir & SLASH
+ IF NOT diriswriteable(destdir) THEN destdir = documents_dir & SLASH
 
  DIM index as integer = 0
  DO

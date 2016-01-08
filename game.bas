@@ -104,7 +104,7 @@ REDIM cmdline_args() as string
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
 '---get temp dir---
-set_homedir
+set_documents_dir
 set_tmpdir
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
@@ -196,7 +196,7 @@ DIM game as string
 DIM sourcerpg as string
 DIM savefile as string
 DIM workingdir as string
-DIM homedir as string
+DIM documents_dir as string
 DIM prefsdir as string
 
 DIM lump_reloading as LumpReloadOptions
@@ -459,15 +459,14 @@ set_settings_dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 
-'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
+'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to documents_dir
 DIM newcwd as string = trimfilename(sourcerpg)
 IF newcwd <> "" ANDALSO diriswriteable(newcwd) THEN
  'first choice is game directory
 ELSEIF diriswriteable(app_dir) THEN
  newcwd = app_dir
 ELSE
- 'should prefsdir be used instead?
- newcwd = homedir
+ newcwd = prefsdir
 END IF
 
 end_debug 'delete unimportant messages generated before this point, or from previous game

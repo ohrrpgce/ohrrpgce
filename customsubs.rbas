@@ -4384,7 +4384,7 @@ END SUB
 
 SUB move_unwriteable_rpg (filetolump as string)
  clearpage vpage
- DIM newfile as string = homedir & SLASH & trimpath(filetolump)
+ DIM newfile as string = documents_dir & SLASH & trimpath(filetolump)
  basic_textbox filetolump + " is not writeable. Saving to " + newfile + !"\n[Press Any Key]", uilook(uiText), vpage
  setvispage vpage
  waitforanykey

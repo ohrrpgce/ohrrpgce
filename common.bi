@@ -220,7 +220,7 @@ DECLARE FUNCTION inputfilename (query as string, ext as string, directory as str
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
 DECLARE SUB set_settings_dir ()
-DECLARE SUB set_homedir()
+DECLARE SUB set_documents_dir()
 DECLARE FUNCTION get_help_dir(helpfile as string="") as string
 DECLARE FUNCTION load_help_file(helpkey as string) as string
 DECLARE SUB save_help_file(helpkey as string, text as string)
@@ -290,7 +290,7 @@ DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as st
 
 'Global variables
 EXTERN sourcerpg as string
-EXTERN as string game, exename, workingdir, homedir, app_dir
+EXTERN as string game, exename, workingdir, documents_dir, app_dir
 EXTERN game_unique_id as string
 EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle

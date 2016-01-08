@@ -1968,7 +1968,8 @@ SUB show_help(helpkey as string)
      dat->show_insert = YES
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
     ELSE
-     pop_warning "Your """ & get_help_dir() & """ folder is not writable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
+     ' It would be possible to just automatically makedir($documents_dir/ohrhelp), and warn the user that it happened
+     pop_warning "Your """ & get_help_dir() & """ folder is not writable. Try making a copy of it at """ & documents_dir & SLASH & "ohrhelp"""
     END IF
    END IF
    IF keyval(scF1) and helpkey <> "helphelp" THEN
@@ -5226,15 +5227,17 @@ SUB set_settings_dir ()
  IF NOT isdir(settings_dir) THEN makedir(settings_dir)
 END SUB
 
-SUB set_homedir()
+'Set documents_dir, which is the default directory for saving user files like new .rpg files
+'if there is no more appropriate place available. Therefore it must be writable.
+SUB set_documents_dir()
 'FIXME: $HOME is (usually) empty on Android; there is no home directory
 #IFDEF __UNIX__
- homedir = ENVIRON("HOME")
+ documents_dir = ENVIRON("HOME")
 #ELSE
- homedir = ENVIRON("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
- IF NOT isdir(homedir) THEN
+ documents_dir = ENVIRON("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+ IF NOT isdir(documents_dir) THEN
   'Windows Vista uses "Documents" instead of "My Documents"
-  homedir = ENVIRON("USERPROFILE") & SLASH & "Documents"
+  documents_dir = ENVIRON("USERPROFILE") & SLASH & "Documents"
  END IF
 #ENDIF
 END SUB
@@ -5245,7 +5248,7 @@ END FUNCTION
 
 FUNCTION get_help_dir(helpfile as string="") as string
  'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
- IF help_dir_helper(homedir & SLASH & "ohrhelp", helpfile) THEN RETURN homedir & SLASH & "ohrhelp"
+ IF help_dir_helper(documents_dir & SLASH & "ohrhelp", helpfile) THEN RETURN documents_dir & SLASH & "ohrhelp"
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(data_dir & SLASH & "ohrhelp", helpfile) THEN RETURN data_dir & SLASH & "ohrhelp"
