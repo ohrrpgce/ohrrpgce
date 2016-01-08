@@ -277,6 +277,7 @@ declare function trimfilename (filename as string) as string
 declare function trimextension (filename as string) as string
 declare function justextension (filename as string) as string
 declare function get_path_root (pathname as string) as string
+declare function trim_path_root (pathname as string) as string
 declare function is_absolute_path (sDir as string) as integer
 declare function absolute_path (pathname as string) as string
 declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as integer = NO) as string

@@ -1103,6 +1103,16 @@ FUNCTION get_path_root (pathname as string) as string
   RETURN ""
 END FUNCTION
 
+'Strip / or X:\ from path, if any
+FUNCTION trim_path_root (pathname as string) as string
+  DIM root as string = get_path_root(pathname)
+  IF LEN(root) THEN
+    RETURN MID(pathname, LEN(root) + 1)
+  ELSE
+    RETURN pathname
+  END IF
+END FUNCTION
+
 FUNCTION is_absolute_path (sDir as string) as integer
   RETURN LEN(get_path_root(sDir)) <> 0
 END FUNCTION

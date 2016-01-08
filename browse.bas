@@ -305,7 +305,7 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   CASE bkSubDir
    br.alert = "Subdirectory"
   CASE bkRoot
-   br.alert = "Root"
+   br.alert = "Root directory"
   CASE bkSelectable, bkUnselectable
    browse_hover_file tree(), br
  END SELECT
@@ -608,12 +608,11 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 
  IF br.nowdir = "" THEN
  ELSE
-  DIM a as string = br.nowdir
   DIM b as string
 
   '--Current drive
   br.mstate.last += 1
-  b = MID(a, 1, INSTR(a, SLASH))
+  b = MID(br.nowdir, 1, INSTR(br.nowdir, SLASH))
   tree(br.mstate.last).filename = b
   tree(br.mstate.last).kind = bkRoot
 #IFDEF __FB_WIN32__
@@ -636,28 +635,37 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    END IF
   NEXT
 #ENDIF
-  a = MID(a, INSTR(a, SLASH) + 1)
-  '--Directories
-  b = ""
-  DO UNTIL a = ""
-   b = b + LEFT(a, 1)
-   a = RIGHT(a, LEN(a) - 1)
-   IF RIGHT(b, 1) = SLASH THEN
+  '-- Add parent directory entries
+  DIM path_right as string
+  DIM path_left as string
+  ' Remove c:\ or root /
+  path_left = ""
+  path_right = trim_path_root(br.nowdir)
 #IFDEF __FB_WIN32__
-    'Special handling of My Documents in Windows
-    IF b = "My Documents\" OR b = "MYDOCU~1\" THEN
-     FOR i as integer = br.mstate.last TO br.drivesshown STEP -1
-      b = tree(i).filename + b
-     NEXT i
-     br.mstate.last = br.drivesshown - 1
-     tree(br.mstate.last + 1).caption = "My Documents\"
-    END IF
+  ' Special handling of user home dir (I think this is pretty pointless):
+  ' Show username\ as the topmost parent directory, rather than c:\, Users\, username\
+  ' This works on all OSes, only do this on Windows, because it's weird
+  DIM home_dir as string = ENVIRON("USERPROFILE")
+  IF RIGHT(home_dir, 1) <> SLASH THEN home_dir &= SLASH
+  IF LEN(home_dir) > 0 AND INSTR(br.nowdir, home_dir) = 1 THEN
+   br.mstate.last = br.mstate.last + 1
+   IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+   tree(br.mstate.last).filename = trim_path_root(home_dir)
+   tree(br.mstate.last).kind = bkParentDir
+   tree(br.mstate.last).caption = trimpath(home_dir) & SLASH
+   path_right = MID(br.nowdir, LEN(home_dir) + 1)
+  END IF
 #ENDIF
+  ' Add parent directories.
+  DO UNTIL path_right = ""
+   path_left &= LEFT(path_right, 1)
+   path_right = MID(path_right, 2)
+   IF RIGHT(path_left, 1) = SLASH THEN
     br.mstate.last = br.mstate.last + 1
     IF br.mstate.last = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-    tree(br.mstate.last).filename = b
+    tree(br.mstate.last).filename = path_left
     tree(br.mstate.last).kind = bkParentDir
-    b = ""
+    path_left = ""
    END IF
   LOOP
   '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
