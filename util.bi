@@ -271,6 +271,7 @@ declare function hash_file(filename as string) as unsigned integer
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
 declare function simplify_path_further (pathname as string, fromwhere as string) as string
+declare function paths_equal(path1 as string, path2 as string) as bool
 declare function trim_trailing_slashes (filename as string) as string
 declare function trimpath (filename as string) as string
 declare function trimfilename (filename as string) as string

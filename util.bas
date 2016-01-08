@@ -1195,6 +1195,10 @@ startTest(simplify_path)
 endTest
 #ENDIF
 
+FUNCTION paths_equal(path1 as string, path2 as string) as bool
+  RETURN simplify_path(path1) = simplify_path(path2)
+END FUNCTION
+
 'Make a path relative if it's below 'fromwhere' (which is a path, not a file)
 'It would be possible to also possibly return something starting with some ../'s, but it's more trouble
 FUNCTION simplify_path_further(pathname as string, fromwhere as string) as string

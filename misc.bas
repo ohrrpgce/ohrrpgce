@@ -90,7 +90,11 @@ function global_setoption(opt as string, arg as string) as integer
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then
-			log_dir = d
+                        if paths_equal(d, log_dir) = NO then
+                                end_debug
+                                log_dir = d
+                                start_new_debug
+                        end if
 			return 2
 		else
 			help = "log dir """ & d & """ is not valid." & LINE_END
