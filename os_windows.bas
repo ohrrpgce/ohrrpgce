@@ -84,23 +84,27 @@ function is_windows_9x () as bool
 	end if
 end function
 
+'Note: this returns Windows 8 on Windows 8.1 and 10, because GetVersionEx lies to preserve compatibility!
+'To fix that need to include a manifest: https://msdn.microsoft.com/en-us/library/windows/desktop/dn481241%28v=vs.85%29.aspx
 function get_windows_version () as string
 	dim ret as string
 	dim verinfo as OSVERSIONINFO
 	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO)
 	if GetVersionEx(@verinfo) then
 		ret = "Windows " & verinfo.dwMajorVersion & "." & verinfo.dwMinorVersion & "." & verinfo.dwBuildNumber
-		select case verinfo.dwPlatformId * 1000 + verinfo.dwMajorVersion * 100 + verinfo.dwMinorVersion
-			case 1400:  ret += " (95)"
-			case 1410:  ret += " (98)"
-			case 1490:  ret += " (ME)"
-			case 2000 to 2499:  ret += " (NT)"
-			case 2500:  ret += " (2000)"
-			case 2501:  ret += " (XP)"
-			case 2502:  ret += " (XP x64/Server 2003)"
-			case 2600:  ret += " (Vista/Server 2008)"
-			case 2601:  ret += " (7/Server 2008 R2)"
-			case 2602:  ret += " (8/Server 2012)"
+		select case verinfo.dwPlatformId * 10000 + verinfo.dwMajorVersion * 100 + verinfo.dwMinorVersion
+			case 10400:  ret += " (95)"
+			case 10410:  ret += " (98)"
+			case 10490:  ret += " (ME)"
+			case 20000 to 20499:  ret += " (NT)"
+			case 20500:  ret += " (2000)"
+			case 20501:  ret += " (XP)"
+			case 20502:  ret += " (XP x64/Server 2003)"
+			case 20600:  ret += " (Vista/Server 2008)"
+			case 20601:  ret += " (7/Server 2008 R2)"
+			case 20602:  ret += " (8/Server 2012 or later)"
+			'case 20603:  ret += " (8.1/Server 2012 R2)"
+			'case 21000:  ret += " (10/Server 2016)"
 		end select
 		ret += " " + verinfo.szCSDVersion
 	end if
@@ -199,7 +203,7 @@ function copy_file_replacing(byval source as zstring ptr, byval destination as z
 	'Replacing an open file does not work on Windows.
 
 	'Overwrites existing files
-	if CopyFile_(source, destination, 0) then
+	if CopyFile_(source, destination, 0) = 0 then
 		dim errstr as string = error_string
 		debugc errError, "copy_file_replacing(" & *source & "," & *destination & ") failed: " & errstr
 		return NO
