@@ -144,7 +144,7 @@ DIM rpg_browse_default as string = ""
 
 exename = trimextension(trimpath(COMMAND(0)))
 
-set_documents_dir
+documents_dir = get_documents_dir()
 
 app_dir = exepath  'Note that exepath is a FreeBasic builtin, and not derived from the above exename
 
@@ -181,7 +181,7 @@ debuginfo DATE & " " & TIME
 mersenne_twister TIMER
 
 'FIXME: why do we use different temp dirs in game and custom?
-set_settings_dir
+settings_dir = get_settings_dir()
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir

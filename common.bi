@@ -219,8 +219,9 @@ DECLARE FUNCTION sanitize_script_identifier (ident as string, byval allow_whites
 DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
-DECLARE SUB set_settings_dir ()
-DECLARE SUB set_documents_dir()
+DECLARE FUNCTION get_home_dir() as string
+DECLARE FUNCTION get_settings_dir () as string
+DECLARE FUNCTION get_documents_dir() as string
 DECLARE FUNCTION get_help_dir(helpfile as string="") as string
 DECLARE FUNCTION load_help_file(helpkey as string) as string
 DECLARE SUB save_help_file(helpkey as string, text as string)
@@ -290,7 +291,7 @@ DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as st
 
 'Global variables
 EXTERN sourcerpg as string
-EXTERN as string game, exename, workingdir, documents_dir, app_dir
+EXTERN as string game, exename
 EXTERN game_unique_id as string
 EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle
@@ -304,8 +305,11 @@ EXTERN gen_reld_doc as DocPtr
 EXTERN fmvol as integer
 EXTERN sprite_sizes() as SpriteSize
 EXTERN statnames() as string
+EXTERN workingdir as string
+EXTERN documents_dir as string
 EXTERN settings_dir as string
 EXTERN log_dir as string
+EXTERN app_dir as string
 EXTERN data_dir as string
 EXTERN negative_zero as integer
 EXTERN global_reload_doc as DocPtr

@@ -104,8 +104,8 @@ REDIM cmdline_args() as string
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
 '---get temp dir---
-set_documents_dir
-set_tmpdir
+documents_dir = get_documents_dir()
+tmpdir = get_tmpdir()
 IF NOT isdir(tmpdir) THEN
  IF makedir(tmpdir) <> 0 THEN fatalerror "Unable to create temp directory " & tmpdir
 END IF
@@ -455,7 +455,7 @@ END IF
 '======================== Setup game-specific directories =====================
 
 '-- set up prefs dir
-set_settings_dir
+settings_dir = get_settings_dir()
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 

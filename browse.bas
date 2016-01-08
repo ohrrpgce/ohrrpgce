@@ -645,7 +645,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   ' Special handling of user home dir (I think this is pretty pointless):
   ' Show username\ as the topmost parent directory, rather than c:\, Users\, username\
   ' This works on all OSes, only do this on Windows, because it's weird
-  DIM home_dir as string = ENVIRON("USERPROFILE")
+  DIM home_dir as string = get_home_dir()
   IF RIGHT(home_dir, 1) <> SLASH THEN home_dir &= SLASH
   IF LEN(home_dir) > 0 AND INSTR(br.nowdir, home_dir) = 1 THEN
    br.mstate.last = br.mstate.last + 1

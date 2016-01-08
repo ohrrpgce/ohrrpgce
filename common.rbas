@@ -5209,9 +5209,10 @@ FUNCTION readbadbinstring (array() as integer, byval offset as integer, byval ma
  RETURN result
 END FUNCTION
 
-SUB set_settings_dir ()
+FUNCTION get_settings_dir () as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 'Also, Custom uses settings_dir as tmpdir (FIXME: no reason for these to be different)
+ DIM settings_dir as string
  #IFDEF __FB_ANDROID__
   settings_dir = CURDIR & SLASH & "settings"
  #ELSEIF DEFINED(__UNIX__)
@@ -5225,22 +5226,34 @@ SUB set_settings_dir ()
   END IF
  #ENDIF
  IF NOT isdir(settings_dir) THEN makedir(settings_dir)
-END SUB
+ RETURN settings_dir
+END FUNCTION
 
-'Set documents_dir, which is the default directory for saving user files like new .rpg files
-'if there is no more appropriate place available. Therefore it must be writable.
-SUB set_documents_dir()
+FUNCTION get_home_dir() as string
+ #IFDEF __FB_WIN32__
+  RETURN ENVIRON("USERPROFILE")
+ #ELSE
+  RETURN ENVIRON("HOME")
+ #ENDIF
+END FUNCTION
+
+'Returns location of user's Documents dir or some fallback, which is the default
+'directory for saving user files like new .rpg files 'if there is no more
+'appropriate place available. Therefore it must be writable.
+FUNCTION get_documents_dir() as string
+ DIM ret as string
 'FIXME: $HOME is (usually) empty on Android; there is no home directory
 #IFDEF __UNIX__
- documents_dir = ENVIRON("HOME")
+ ret = ENVIRON("HOME")
 #ELSE
- documents_dir = ENVIRON("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
- IF NOT isdir(documents_dir) THEN
+ ret = ENVIRON("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+ IF NOT isdir(ret) THEN
   'Windows Vista uses "Documents" instead of "My Documents"
-  documents_dir = ENVIRON("USERPROFILE") & SLASH & "Documents"
+  ret = ENVIRON("USERPROFILE") & SLASH & "Documents"
  END IF
 #ENDIF
-END SUB
+ RETURN ret
+END FUNCTION
 
 PRIVATE FUNCTION help_dir_helper(dirname as string, fname as string) as integer
  IF LEN(fname) THEN RETURN isfile(dirname + SLASH + fname) ELSE RETURN isdir(dirname)

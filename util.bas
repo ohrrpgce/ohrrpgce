@@ -2191,7 +2191,7 @@ SUB lines_to_file(strarray() as string, filename as string)
 END SUB
 
 'Note: Custom doesn't use this function
-SUB set_tmpdir ()
+FUNCTION get_tmpdir () as string
  DIM tmp as string
  #IFDEF __FB_WIN32__
   'Windows only behavior
@@ -2213,8 +2213,8 @@ SUB set_tmpdir ()
  IF RIGHT(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
  DIM as string d = DATE, t = TIME
  tmp += "ohrrpgce" & MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & randint(1000) & ".tmp" & SLASH
- tmpdir = tmp
-END SUB
+ RETURN tmp
+END FUNCTION
 
 
 '----------------------------------------------------------------------
