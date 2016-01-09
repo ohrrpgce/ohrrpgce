@@ -462,12 +462,12 @@ declare sub processcommandline(cmdline_args() as string, opt_handler as FnSetOpt
 '----------------------------------------------------------------------
 '                        ini file read/write
 
-declare function read_ini_int overload (ini() as string, key as string, byval default as integer=0) as integer
-declare function read_ini_int overload (ini_filename as string, key as string, byval default as integer=0) as integer
+declare function read_ini_int overload (ini() as string, key as string, default as integer=0) as integer
+declare function read_ini_int overload (ini_filename as string, key as string, default as integer=0) as integer
 declare sub write_ini_value overload (ini() as string, key as string, value as integer)
 declare sub write_ini_value overload (ini_filename as string, key as string, value as integer)
 declare function ini_key_match(key as string, s as string) as bool
-declare function ini_value_int (s as string, byval default as integer=0) as integer
+declare function ini_value_int (s as string, default as integer=0) as integer
 
 
 '----------------------------------------------------------------------

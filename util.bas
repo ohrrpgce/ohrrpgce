@@ -2331,8 +2331,10 @@ end sub
 
 
 SUB write_ini_value (ini_filename as string, key as string, value as integer)
- REDIM ini(0) as string
- lines_from_file ini(), ini_filename
+ REDIM ini(-1 TO -1) as string
+ IF isfile(ini_filename) THEN
+  lines_from_file ini(), ini_filename
+ END IF
  write_ini_value ini(), key, value
  lines_to_file ini(), ini_filename
 END SUB
@@ -2352,18 +2354,20 @@ SUB write_ini_value (ini() as string, key as string, value as integer)
   END IF
  NEXT i
  IF NOT found THEN
-  REDIM ini(UBOUND(ini)+1) as string
-  ini(UBOUND(ini)) = key & " = " & value
+  str_array_append ini(), key & " = " & value
  END IF
 END SUB
 
-FUNCTION read_ini_int (ini_filename as string, key as string, byval default as integer=0) as integer
- REDIM ini(0) as string
- lines_from_file ini(), ini_filename
+FUNCTION read_ini_int (ini_filename as string, key as string, default as integer=0) as integer
+ REDIM ini(-1 TO -1) as string
+ IF isfile(ini_filename) THEN
+  lines_from_file ini(), ini_filename
+ END IF
  RETURN read_ini_int(ini(), key, default)
 END FUNCTION
 
-FUNCTION read_ini_int (ini() as string, key as string, byval default as integer=0) as integer
+'Given the content of an .ini as an array of lines, return the value of a line of form "key = value"
+FUNCTION read_ini_int (ini() as string, key as string, default as integer=0) as integer
  IF LEN(key) = 0 THEN
   debug "Can't read empty key from ini file"
   RETURN default
@@ -2376,6 +2380,7 @@ FUNCTION read_ini_int (ini() as string, key as string, byval default as integer=
  RETURN default
 END FUNCTION
 
+'A case insensitive match for regex "^key ?="
 FUNCTION ini_key_match(key as string, s as string) as bool
  DIM comp as string
  comp = LCASE(key & "=")
@@ -2385,7 +2390,7 @@ FUNCTION ini_key_match(key as string, s as string) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION ini_value_int (s as string, byval default as integer=0) as integer
+FUNCTION ini_value_int (s as string, default as integer=0) as integer
  'Extracts and returns an integer from the value portion of an ini line.
  'Does NOT check the key. You should use ini_key_match() before calling this
  'default is returned if there is an error parsing the line
@@ -2395,5 +2400,5 @@ FUNCTION ini_value_int (s as string, byval default as integer=0) as integer
   RETURN default
  END IF
  DIM tail as string = MID(s, eqpos + 1)
- RETURN str2int(tail, -1)
+ RETURN str2int(tail, default)
 END FUNCTION
