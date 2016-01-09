@@ -744,7 +744,6 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 		exit sub  'don't delete the data
 	end if
 	send_lump_modified_msg(file)
-	safekill file & ".tmp"
 	debug_if_slow(starttime, 0.1, file)
 end sub
 

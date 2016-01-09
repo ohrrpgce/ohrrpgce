@@ -1523,22 +1523,22 @@ FUNCTION copydirectory (src as string, dest as string, byval copyhidden as integ
  
 END FUNCTION
 
-SUB killdir(directory as string, recurse as integer=0)
-  DIM filelist() as string
-  findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
-  FOR i as integer = 0 TO UBOUND(filelist)
-    safekill directory + SLASH + filelist(i)
-  NEXT
+SUB killdir(directory as string, recurse as bool = NO)
 #ifdef DEBUG_FILE_IO
   debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
 #endif
+  DIM filelist() as string
+  findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
+  FOR i as integer = 0 TO UBOUND(filelist)
+    killfile directory + SLASH + filelist(i)
+  NEXT
   IF recurse THEN
    DIM dirlist() as string
    findfiles directory, ALLFILES, fileTypeDirectory, -1, dirlist()
    FOR i as integer = 0 TO UBOUND(dirlist)
     IF dirlist(i) = "." ORELSE dirlist(i) = ".." THEN CONTINUE FOR
     'debuginfo "recurse to " & directory & SLASH & dirlist(i)
-    killdir directory & SLASH & dirlist(i), -1
+    killdir directory & SLASH & dirlist(i), YES
    NEXT i
   END IF
   IF RMDIR(directory) THEN
@@ -1578,15 +1578,13 @@ FUNCTION makedir (directory as string) as integer
   RETURN 0
 END FUNCTION
 
-'True on success or didn't exist, false if couldn't delete
-FUNCTION safekill (filename as string) as bool
-  DIM exists as bool = isfile(filename)
+'True on successful deletion, false if couldn't or didn't exist
+FUNCTION killfile (filename as string) as bool
+  'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
 #ifdef DEBUG_FILE_IO
-  debuginfo "safekill(" & filename & ") exists = " & exists
+  debuginfo "killfile(" & filename & ")"
 #endif
-  IF exists THEN
-   'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
-   IF remove(strptr(filename)) THEN
+  IF remove(strptr(filename)) THEN
     DIM err_string as string = *get_sys_err_string()
     debug "Could not remove(" & filename & "): " & err_string
 
@@ -1594,8 +1592,18 @@ FUNCTION safekill (filename as string) as bool
     'to be deleted once everyone closes it. Also, it will no longer be possible to open it.
     'On Unix, you can unlink a file even when someone else has it open.
     RETURN NO
-   END IF
   END IF
+  RETURN YES
+END FUNCTION
+
+'True on success or didn't exist, false if couldn't delete.
+'Call this instead of killfile if you're not sure the file exists, it avoid error messages if it doesn't.
+FUNCTION safekill (filename as string) as bool
+  DIM exists as bool = isfile(filename)
+  IF exists THEN RETURN killfile(filename)
+#ifdef DEBUG_FILE_IO
+  debuginfo "safekill(" & filename & ") exists = NO"
+#endif
   RETURN YES
 END FUNCTION
 
@@ -1645,18 +1653,18 @@ FUNCTION fileiswriteable(filename as string) as integer
   return ret
 END FUNCTION
 
-FUNCTION diriswriteable(d as string) as integer
+FUNCTION diriswriteable(d as string) as bool
   if isfile(d + SLASH + "archinym.lmp") then
    'Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
    'able to mark a folder read-only, instead it makes the contents read-only.
-    if fileiswriteable(d + SLASH + "archinym.lmp") = 0 then return 0
+    if fileiswriteable(d + SLASH + "archinym.lmp") = 0 then return NO
   end if
   dim testfile as string = d & SLASH & "__testwrite_" & randint(100000) & ".tmp"
   if fileiswriteable(testfile) then
-    safekill testfile
-    return -1
+    killfile testfile
+    return YES
   end if
-  return 0
+  return NO
 END FUNCTION
 
 FUNCTION isfile (filename as string) as integer

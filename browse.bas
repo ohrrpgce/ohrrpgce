@@ -457,7 +457,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
   copylump filename, "browse.txt", br.tmp, YES
   tree(br.mstate.last).caption = load_gamename(br.tmp & "browse.txt")
   tree(br.mstate.last).about = load_aboutline(br.tmp & "browse.txt")
-  safekill br.tmp & "browse.txt"
+  killfile br.tmp & "browse.txt"
   IF tree(br.mstate.last).caption = "" THEN tree(br.mstate.last).caption = tree(br.mstate.last).filename
  END IF
  '--RELOAD files
