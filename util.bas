@@ -694,12 +694,19 @@ SUB str_array_append (array() as string, s as string)
  array(UBOUND(array)) = s
 END SUB
 
-FUNCTION str_array_findcasei (array() as string, value as string) as integer
- DIM valuei as string = LCASE(value)
+FUNCTION str_array_find(array() as string, value as string, notfound as integer=-1) as integer
  FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF LCASE(array(i)) = value THEN RETURN i
  NEXT
- RETURN -1
+ RETURN notfound
+END FUNCTION
+
+FUNCTION str_array_findcasei (array() as string, value as string, notfound as integer=-1) as integer
+ DIM valuei as string = LCASE(value)
+ FOR i as integer = LBOUND(array) TO UBOUND(array)
+  IF LCASE(array(i)) = valuei THEN RETURN i
+ NEXT
+ RETURN notfound
 END FUNCTION
 
 SUB int_array_append (array() as integer, byval k as integer)
@@ -2381,11 +2388,4 @@ FUNCTION ini_value_int (s as string, byval default as integer=0) as integer
  END IF
  DIM tail as string = MID(s, eqpos + 1)
  RETURN str2int(tail, -1)
-END FUNCTION
-
-FUNCTION string_index_in_array(s as string, a() as string, notfound as integer=-1) as integer
- FOR i as integer = 0 TO UBOUND(a)
-  IF a(i) = s THEN RETURN i
- NEXT i
- RETURN notfound
 END FUNCTION

@@ -118,7 +118,8 @@ TYPE IntStrPair
   s as string
 END TYPE
 
-declare function str_array_findcasei (array() as string, value as string) as integer
+declare function str_array_find (array() as string, value as string, notfound as integer=-1) as integer
+declare function str_array_findcasei (array() as string, value as string, notfound as integer=-1) as integer
 declare function int_array_find overload(array() as integer, value as integer) as integer
 declare sub array_shuffle_to_end overload(array() as integer, which as integer)
 declare sub array_shuffle_to_end overload(array() as string, which as integer)
@@ -485,8 +486,6 @@ declare sub invert_permutation overload (indices() as integer)
 declare function strhash (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
-
-declare function string_index_in_array(s as string, a() as string, notfound as integer=-1) as integer
 
 #macro debug_if_slow(starttime, seconds, extrainfo)
   IF TIMER > starttime + seconds THEN

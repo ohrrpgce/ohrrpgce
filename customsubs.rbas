@@ -5438,7 +5438,7 @@ END SUB
 FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
  DIM choice as integer
  DIM old as integer
- old = string_index_in_array(GetString(node), enumstr(), 0)
+ old = str_array_find(enumstr(), GetString(node), 0)
  choice = multichoice(caption, enumstr(), old, old, helpkey)
  IF choice <> old THEN
   SetContent(node, enumstr(choice))
@@ -5449,7 +5449,7 @@ END FUNCTION
 
 FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
  DIM choice as integer
- choice = string_index_in_array(GetString(node), enumstr(), 0)
+ choice = str_array_find(enumstr(), GetString(node), 0)
  IF intgrabber(choice, 0, UBOUND(enumstr)) THEN
   SetContent(node, enumstr(choice))
   RETURN YES
