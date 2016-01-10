@@ -272,7 +272,7 @@ END SUB
 
 SUB debug (s as string)
  importantdebug = -1
- debuginfo s
+ debuginfo "! " & s
 END SUB
 
 SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
