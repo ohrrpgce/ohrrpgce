@@ -327,6 +327,7 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
  '--this early draw ensures that all the slices are updated before the loop starts
  DrawSlice edslice, dpage
 
+ ensure_normal_palette
  setkeys
  DO
   setwait 55
@@ -564,6 +565,8 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
+ restore_previous_palette
+ setkeys
 END SUB
 
 'Sets a slice and all of its ancestors as the selected child of their parent, if a Select slice.
@@ -974,7 +977,7 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
    END IF
    str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
    sliceed_rule_none rules(), "scripthandle"
-  #ENDIF 
+  #ENDIF
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat as RectangleSliceData Ptr

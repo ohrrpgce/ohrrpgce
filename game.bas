@@ -812,7 +812,6 @@ DO
     END IF
    END IF
    IF keyval(scF4) > 1 THEN
-    IF fadestate = 0 THEN setpal master()
     slice_editor SliceTable.Root
    END IF
    IF keyval(scF5) > 1 THEN 'Toggle level-up bug
@@ -3248,6 +3247,7 @@ SUB misc_debug_menu()
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
  default = result
+ ensure_normal_palette
  SELECT CASE result
   CASE 0: battle_formation_testing_menu
   CASE 1: slice_editor SliceTable.Root
@@ -3255,6 +3255,7 @@ SUB misc_debug_menu()
   CASE 3: patcharray gmap(), "gmap"
   CASE 4: spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  END SELECT
+ restore_previous_palette
 END SUB
 
 SUB battle_formation_testing_menu()

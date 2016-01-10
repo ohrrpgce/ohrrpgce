@@ -1084,14 +1084,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  state.active = YES
  init_menu_state state, menu
 
- 'Modify master() because the script debugger or other menus may setpal 
- REDIM remember_master(255) as RGBcolor
- FOR i as integer = 0 TO 255
-  remember_master(i) = master(i)
- NEXT
- loadpalette master(), gam.current_master_palette
- setpal master()
-
+ ensure_normal_palette
  setkeys
  DO
   setwait 55
@@ -1170,12 +1163,9 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  LOOP
  ClearMenuData menu
  setkeys
+ restore_previous_palette
  recursivecall -= 1
 
- FOR i as integer = 0 TO 255
-  master(i) = remember_master(i)
- NEXT
- setpal master()
  next_interpreter_check_time = TIMER + scriptCheckDelay
 
  'Note: when we resume after a script error, the keyboard state changes, which might break a script

@@ -812,6 +812,8 @@ FUNCTION teleporttool () as integer
  DIM minisize as XYPair 'pixels
  DIM offset as XYPair
 
+ ensure_normal_palette
+
  'Notice that we initially use the real map's maptiles(), rather than reloading them into maptiles2(),
  'but we DO reload the tilesets (they are cached anyway)
  teleporttooltend mini, maptiles(), tilesets2(), zoom, -1, mapsize, minisize, offset
@@ -926,6 +928,7 @@ FUNCTION teleporttool () as integer
  frame_unload @mini
  unloadtilemaps maptiles2()
  unloadmaptilesets tilesets2()
+ restore_previous_palette
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)

@@ -1594,6 +1594,7 @@ SUB live_preview_menu ()
 
  REDIM tooltips() as string
 
+ ensure_normal_palette
  setkeys
  DO
   setwait 55
@@ -1674,4 +1675,6 @@ SUB live_preview_menu ()
   setvispage dpage
   dowait
  LOOP
+ setkeys
+ restore_previous_palette
 END SUB

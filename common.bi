@@ -26,6 +26,8 @@ DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
+DECLARE SUB ensure_normal_palette ()
+DECLARE SUB restore_previous_palette ()
 DECLARE SUB start_new_debug ()
 DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)

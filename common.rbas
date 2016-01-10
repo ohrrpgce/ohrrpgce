@@ -114,6 +114,10 @@ DIM SHARED lastlogfile as string
 '.stt lump read into memory
 DIM SHARED global_strings_buffer as string
 
+'Used by ensure_normal_palette & restore_previous_palette
+DIM SHARED remember_master(255) as RGBcolor
+DIM SHARED master_remembered as bool = NO
+
 'binsize.bin cache
 DIM SHARED binsize_cache(binLASTENTRY) as integer
 DIM SHARED binsize_cache_loaded as bool = NO
@@ -158,6 +162,38 @@ END SUB
 SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
 fadestate = 0
 fadeto red, green, blue
+END SUB
+
+'Call before showing debug screens and messages in Game, in case the screen is faded out or
+'the palette has been modified (e.g. for a scripted screen fade)
+'Call restore_previous_palette() before resuming (mandatory)
+SUB ensure_normal_palette ()
+#IFDEF IS_GAME
+ 'IF fadestate = 0 THEN setpal master()  'Simpler solution
+ IF master_remembered THEN EXIT SUB
+ master_remembered = YES
+ FOR i as integer = 0 TO 255
+  remember_master(i) = master(i)
+ NEXT
+ loadpalette master(), gam.current_master_palette
+ setpal master()
+#ENDIF
+END SUB
+
+SUB restore_previous_palette ()
+#IFDEF IS_GAME
+ master_remembered = NO
+ FOR i as integer = 0 TO 255
+  master(i) = remember_master(i)
+ NEXT
+ IF fadestate THEN
+  setpal master()
+ ELSE
+  ' It's possible the screen was faded out to some other colour, but unusual
+  REDIM black(255) as RGBcolor
+  setpal black()
+ END IF
+#ENDIF
 END SUB
 
 FUNCTION filesize (file as string) as string
@@ -362,16 +398,11 @@ SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
 END SUB
 
 SUB notification (msg as string)
- 'This is a kludge to fix showing notifications while faded out.
- 'I don't want to completely reset to the default palette like showerror does, because
- 'this is used for plenty of non-scary messages
- IF fadestate = 0 THEN
-  setpal master()
- END IF
-
+ ensure_normal_palette
  basic_textbox msg, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
+ restore_previous_palette
 END SUB
 
 SUB visible_debug (msg as string)
@@ -1913,6 +1944,7 @@ SUB show_help(helpkey as string)
  DIM searchstring as string
 
  '--Now loop displaying help
+ ensure_normal_palette
  setkeys YES
  DO
   setwait 17
@@ -2019,7 +2051,8 @@ SUB show_help(helpkey as string)
   setvispage vpage
   dowait
  LOOP
-  
+
+ restore_previous_palette
  freepage holdscreen
  DeleteSlice @help_root
 END SUB
@@ -2217,6 +2250,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  menu.offset.Y = -20 + 5 * UBOUND(captlines)
  menu.anchor.Y = -1
 
+ ensure_normal_palette
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer
  holdscreen = allocatepage
@@ -2266,6 +2300,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   dowait
  LOOP
  setkeys
+ restore_previous_palette
  freepage holdscreen
  ClearMenuData menu
 
