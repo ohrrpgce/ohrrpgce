@@ -717,7 +717,12 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
   #ENDIF
   channel_close(slave_channel)
  END IF
- IF slave_process <> 0 THEN cleanup_process @slave_process
+ IF slave_process <> 0 THEN
+  basic_textbox "Waiting for " & GAMEEXE & " to quit...", uilook(uiText), vpage
+  setvispage vpage
+  'Under GNU/Linux this calls pclose which will block until Game has quit.
+  cleanup_process @slave_process
+ END IF
  closemusic
  'catch sprite leaks
  sprite_empty_cache
