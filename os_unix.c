@@ -118,7 +118,8 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 					continue;
 				struct stat finfo;
 				if (stat(filename, &finfo)) {
-					debug(errError, "Could not stat(%s): %s", filename, strerror(errno));
+					// Only a minor error, a broken symlink is nothing to write home about,
+					debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
 					continue;
 				}
 				if (whichtype == 0 && !S_ISREG(finfo.st_mode)) continue;
