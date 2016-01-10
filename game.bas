@@ -3382,7 +3382,8 @@ SUB cleanup_other_temp_files ()
  DIM tmp_cur as string = trimpath(tmpdir)
  
  REDIM filelist() as string
- 'Modern tmp dirs would match the pattern "ohrrpgce*.tmp" but this would miss old tmp dirs.
+ 'Modern tmp dirs would match the pattern "ohrrpgce*.tmp" but this would miss old tmp dirs
+ '(which before 2013 had names like 20120308044737.800.tmp).
  'The pattern "*.tmp" is too broad because it could match a large number of non-ohrrpgce
  'tmp files on windows (even "*.*.tmp" is more broad than I would like for it to be)
  findfiles tmp_parent, "*.*.tmp", fileTypeDirectory, NO, filelist()
@@ -3402,8 +3403,9 @@ SUB cleanup_other_temp_files ()
   IF dirname = tmp_cur THEN
    debuginfo "Ignore " & dirname & " because we are using it"
    CONTINUE FOR
-  ELSEIF NOT isdir(dirname_full & SLASH & "playing.tmp") ANDALSO LEFT(dirname, 8) <> "ohrrpgce" THEN
-   debuginfo "Ignore " & dirname & " because it does not have playing.tmp and the name does not start with ""ohrrpgce"""
+  ELSEIF NOT isdir(dirname_full & SLASH & "playing.tmp") ANDALSO INSTR(dirname_full, "ohrrpgce") = 0 THEN
+   'If either .ohrrpgce is part of the path or the directory name is ohrrpgce*.*.tmp then we can delete.
+   debuginfo "Ignore " & dirname & " because it does not have playing.tmp and the name does not include ""ohrrpgce"""
   ELSE
    IF NOT isfile(keepalive_file) THEN
     'Yon tmpdir is olde beyond reckoning
