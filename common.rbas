@@ -5485,8 +5485,8 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
 END FUNCTION
 
 FUNCTION max_tag() as integer
- IF readbit(gen(), genBits2, 16) THEN
-  return 15999
+ IF readbit(gen(), genBits2, 16) THEN  'Don't limit maximum tags to 999
+  RETURN 15999
  ELSE
   RETURN 999
  END IF

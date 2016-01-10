@@ -12,7 +12,7 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 
 "Harm tiles harm non-caterpillar heroes" causes all heroes in the active party to be harmed when the leader walks over a harm tile if the caterpillar party isn't enabled. This defaults to off in old games.
 
-"Don't limit maxmimum tags to 999" is a bit you probably want to turn ON. It raises the available tags from 999 to 15999. The only reason this bit exists is for backwards compatibility with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit ON and enjoy access to the full range of tags.
+"Don't limit maximum tags to 999" is a bit you probably want to turn ON. It raises the available tags from 999 to 15999. The only reason this bit exists is for backwards compatibility with old games that use the "set tag" and "check tag" plotscripting commands to manipulate NPC onetime tags. If your game is not one of those, go ahead and turn this bit ON and enjoy access to the full range of tags.
 
 "Simulate Bug #430" reenables a bug in Voxhumana and older releases which caused script 'wait' commands to sometimes be skipped. Some games contained bugs in their scripts (usually involving screen fades and commands causing implicit waits like "teleport to map") which were hidden by this bug.
 
