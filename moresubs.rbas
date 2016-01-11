@@ -27,7 +27,7 @@
 #include "scripting.bi"
 
 '--Local subs and functions
-DECLARE SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
+DECLARE SUB teleporttool_load_map (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
 DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 DECLARE SUB hero_swap_menu_init(st as OrderTeamState)
 DECLARE SUB hero_swap_menu_display (st as OrderTeamState)
@@ -780,7 +780,6 @@ SUB minimap (byval x as integer, byval y as integer)
  MenuSound gen(genAcceptSFX)
 
  DIM tog as integer
- DIM i as integer
 
  show_virtual_gamepad()
 
@@ -801,22 +800,27 @@ SUB minimap (byval x as integer, byval y as integer)
  MenuSound gen(genCancelSFX)
 END SUB
 
-FUNCTION teleporttool () as integer
+'The map-teleport debug menu.
+'Sets gam.map.id and hero position and returns true if the player wants to teleport.
+FUNCTION teleporttool () as bool
  REDIM maptiles2(0) as TileMap
  DIM tilesets2(maplayerMax) as TilesetData ptr
  DIM mini as Frame Ptr
- DIM zoom as integer
- DIM i as integer
+ DIM zoom as integer    'pixels per tile
 
- DIM mapsize as XYPair
- DIM minisize as XYPair 'pixels
- DIM offset as XYPair
+ DIM mapsize as XYPair  'In tiles
+ DIM minisize as XYPair 'Minimap size in pixels
+ DIM offset as XYPair   'Top-left position where the on-screen map viewport starts
 
  ensure_normal_palette
 
- 'Notice that we initially use the real map's maptiles(), rather than reloading them into maptiles2(),
- 'but we DO reload the tilesets (they are cached anyway)
- teleporttooltend mini, maptiles(), tilesets2(), zoom, -1, mapsize, minisize, offset
+ 'Preserve background for display beneath
+ DIM holdscreen as integer
+ holdscreen = duplicatepage(vpage)
+
+ 'Initially use the real map's maptiles() and tilesets(), which has
+ 'the advantage of making the map look more correct.
+ teleporttool_load_map mini, maptiles(), tilesets(), zoom, -1, mapsize, minisize, offset
 
  DIM dest as XYPair
  dest.x = catx(0) \ 20
@@ -839,18 +843,12 @@ FUNCTION teleporttool () as integer
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- DIM preview_delay as integer = 0
- DIM pickpoint as integer = NO
+ DIM preview_delay as integer = 0  'Ticks before loading new map
+ DIM pickpoint as bool = NO
  DIM destmap as integer = gam.map.id
- DIM xrate as integer
- DIM yrate as integer
  DIM toggle as integer
 
-
- teleporttool = 0
-
- copypage vpage, 3
- GOSUB redraw
+ teleporttool = NO
 
  MenuSound gen(genAcceptSFX)
  setkeys
@@ -862,12 +860,11 @@ FUNCTION teleporttool () as integer
   IF preview_delay > 0 THEN
    preview_delay -= 1
    IF preview_delay = 0 THEN
-    teleporttooltend mini, maptiles2(), tilesets2(), zoom, destmap, mapsize, minisize, offset
+    teleporttool_load_map mini, maptiles2(), tilesets2(), zoom, destmap, mapsize, minisize, offset
     dest.x = small(dest.x, mapsize.x - 1)
     dest.y = small(dest.y, mapsize.y - 1)
     camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
     camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
-    GOSUB redraw
    END IF
   END IF
 
@@ -886,7 +883,7 @@ FUNCTION teleporttool () as integer
    IF enter_or_space() THEN pickpoint = YES
   ELSE
    IF carray(ccUse) > 1 THEN 'confirm and teleport
-    IF gam.map.id <> destmap THEN teleporttool = -1
+    IF gam.map.id <> destmap THEN teleporttool = YES
     gam.map.id = destmap
     catx(0) = dest.x * 20
     caty(0) = dest.y * 20
@@ -894,6 +891,8 @@ FUNCTION teleporttool () as integer
    END IF
    IF carray(ccMenu) > 1 THEN pickpoint = NO
    
+   DIM xrate as integer  'Movement rate
+   DIM yrate as integer
    IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
     xrate = 8
     yrate = 5
@@ -912,50 +911,46 @@ FUNCTION teleporttool () as integer
    camera.y = bound(camera.y, (dest.y + 1) * zoom + 30 - minisize.y, dest.y * zoom - 30)
    camera.x = bound(camera.x, 0, mapsize.x * zoom - minisize.x)  'bound to map edges
    camera.y = bound(camera.y, 0, mapsize.y * zoom - minisize.y)
-   IF temp.x <> camera.x OR temp.y <> camera.y THEN GOSUB redraw
 
    menu(1) = "Position X = " & dest.x & " Y = " & dest.y
   END IF
 
-  copypage vpage, dpage
-  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, dpage
-  'Don't highlight any menu items
+  ' Draw screen
+  copypage holdscreen, vpage
+  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
+  frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
+  'Hero cursor
+  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage
+  'Whether to highlight any menu items
   state.active = (pickpoint = NO)
-  standardmenu menu(), state, 0, vpages(dpage)->h - 18, dpage, menuopts
-  setvispage dpage
+  standardmenu menu(), state, 0, vpages(vpage)->h - 27, vpage, menuopts
+  DIM caption as string = iif_string(pickpoint, "Arrows/SHIFT move; ENTER to teleport", "Press ENTER to select position")
+  edgeprint caption, 0, vpages(vpage)->h - 9, uilook(uiText), vpage
+  setvispage vpage
   dowait
  LOOP
  frame_unload @mini
+ freepage holdscreen
  unloadtilemaps maptiles2()
  unloadmaptilesets tilesets2()
  restore_previous_palette
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
- EXIT FUNCTION
-
-redraw:
- 'reblit the minimap to a spare page
- copypage 3, vpage
- edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
- frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
- RETRACE
-
 END FUNCTION
 
-'map = -1 means don't load maptiles; already loaded (maptilesX() == maptiles() global)
-SUB teleporttooltend (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
+'Generate the minimap for a map and load or determine various data (e.g. zoom).
+'map = -1 means don't load maptiles and tilesets; they are already loaded.
+SUB teleporttool_load_map (byref mini as Frame Ptr, maptilesX() as TileMap, tilesets2() as TilesetData ptr, byref zoom as integer, byval map as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair)
  IF map > -1 THEN
   DIM gmap2(dimbinsize(binMAP)) as integer
   loadrecord gmap2(), game + ".map", getbinsize(binMAP) \ 2, map
   loadtilemaps maptilesX(), maplumpname(map, "t")
   loadmaptilesets tilesets2(), gmap2()
- ELSE
-  loadmaptilesets tilesets2(), gmap()
  END IF
  'minimum zoom level to make tiles easy to pick
- DIM screenw as integer = vpages(dpage)->w
- DIM screenh as integer = vpages(dpage)->h
+ DIM screenw as integer = vpages(vpage)->w
+ DIM screenh as integer = vpages(vpage)->h
  zoom = bound(small(screenw \ maptilesX(0).wide, screenh \ maptilesX(0).high), 5, 20)
  frame_unload @mini
  mini = createminimap(maptilesX(), tilesets2(), zoom)
