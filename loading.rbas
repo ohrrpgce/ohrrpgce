@@ -1716,7 +1716,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    hero.leader_tag = tags."is_leader".integer
    hero.active_tag = tags."is_active".integer
   END READNODE
-  '-- Ignore the following because the are kept as Nodes
+  '-- Ignore the following because they are kept as Nodes
   parent."battle_menus".ignore
   parent."stat_options".ignore
  END READNODE
@@ -1733,7 +1733,7 @@ SUB saveherodata (hero as herodef, byval index as integer)
  '--save the new way
  DIM filename as string = workingdir & SLASH & "heroes.reld"
  DIM doc as DocPtr
- doc = LoadDocument(filename, optNoDelay)
+ IF isfile(filename) THEN doc = LoadDocument(filename, optNoDelay)
  IF doc = 0 THEN
   debuginfo "heroes doc not found, create it"
   doc = CreateDocument()
