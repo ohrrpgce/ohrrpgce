@@ -361,14 +361,12 @@ ELSE  'NOT running_as_slave
  workingdir = tmpdir + "playing.tmp"
 
  'DEBUG debug "create playing.tmp"
- '---If workingdir does not already exist, it must be created---
  IF isdir(workingdir) THEN
-  'DEBUG debug workingdir+" already exists"
-  'DEBUG debug "erasing "+workingdir+"\"+ALLFILES
-  cleanuptemp
- ELSE
-  makedir workingdir
+  ' This should not happen, because tmpdir is unique and playing.tmp gets deleted after exiting a previous game!
+  debug workingdir + " already exists!"
+  killdir workingdir
  END IF
+ IF makedir(workingdir) THEN fatalerror "Couldn't create " & workingdir
 
  '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
  '---ALSO CHECKS FOR GAME.EXE RENAMING
@@ -940,8 +938,12 @@ SUB reset_game_final_cleanup()
  stopsong
  resetsfx
  cleanup_other_temp_files
- IF gam.autorungame THEN exitprogram (NOT abortg) 'exitprogram also calls cleanuptemp
- cleanuptemp
+ IF gam.autorungame THEN exitprogram (NOT abortg)
+ debuginfo "Recreating " & tmpdir
+ killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
+ makedir tmpdir
+ 'killdir and thus makedir would fail if some in-use file can't be deleted
+ IF NOT isdir(tmpdir) THEN fatalerror "Can't recreate temp directory " & tmpdir
  fadeout 0, 0, 0
  clearpage 0
  clearpage 1

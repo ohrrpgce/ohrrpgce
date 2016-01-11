@@ -14,7 +14,6 @@ DECLARE SUB showplotstrings
 DECLARE SUB makebackups
 DECLARE SUB make_map_backups
 DECLARE SUB update_backdrop_slice
-DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as bool
 DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 DECLARE SUB keyboardsetup

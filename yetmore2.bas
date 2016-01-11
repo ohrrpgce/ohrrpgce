@@ -229,40 +229,6 @@ SUB update_backdrop_slice
  ChangeSpriteSlice SliceTable.Backdrop, sprTypeBackdrop, backdrop, , , , , transparent
 END SUB
 
-SUB cleanuptemp
- REDIM filelist() as string
- debuginfo "cleaningup " & workingdir & " and " & tmpdir
-
- 'Delete contents of/clean up workingdir
- '(Length requirement is just a crappy sanity check)
- IF running_as_slave = NO ANDALSO LEN(workingdir) > 5 THEN
-  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
-  FOR i as integer = 0 TO UBOUND(filelist)
-   IF usepreunlump = 0 THEN
-    'normally delete everything
-    safekill workingdir + SLASH + filelist(i)
-   ELSE
-    'but for preunlumped games only delete specific files
-    'FIXME: aside from upgrade(), are any files actually created in workingdir? We definitely SHOULD NOT do that!
-    DIM file_ext as string = justextension(filelist(i))
-    IF file_ext = "tmp" THEN
-     safekill workingdir + SLASH + filelist(i)
-    END IF
-   END IF
-  NEXT
- END IF
-
- 'Delete contents of/clean up tmpdir without actually deleting the tmpdir itself
- 'FIXME: I am pretty sure there is no good reason not to call killdir with recursive=YES
- 'FIXME: harmless warning?, killdir claims it cannot delete tmpdir because it is not empty
- '       even though it clearly IS empty, and then seems to succeed in deleting it with no
- '       problem
- IF LEN(tmpdir) > 5 THEN
-  killdir tmpdir
-  MKDIR tmpdir
- END IF
-END SUB
-
 FUNCTION checkfordeath () as bool
  RETURN liveherocount = 0
 END FUNCTION
@@ -286,11 +252,8 @@ destroystack(scrst)
 '--reset audio
 closemusic
 
-'--working files
-'DEBUG debug "Kill working files"
-cleanuptemp
-IF NOT running_as_slave THEN killdir tmpdir + "playing.tmp"
-killdir tmpdir
+debuginfo "Deleting tmpdir " & tmpdir
+killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
 
 v_free modified_lumps
 
