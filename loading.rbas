@@ -3715,10 +3715,16 @@ SUB save_aboutline (s as string, filename as string="")
  storerecord tempbuf(), f, 40
 END SUB
 
-'Create the editor_version (general.reld) or game_client (RSAV) node
+'Create the editor_version (general.reld) or game_client (RSAV) node.
+'If if already exists, only modify it if the previous version wasn't newer.
 SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
  DIM ch as NodePtr
  ch = SetChildNode(parent, nodename, "OHRRPGCE")
+ IF version_branch_revision THEN
+  IF ch."branch_revision" > version_branch_revision THEN EXIT SUB
+  IF ch."branch_revision" = version_branch_revision AND ch."revision" > version_revision THEN EXIT SUB
+ END IF
+
  SetChildNode(ch, "long_version", long_version & " " & build_info)
  SetChildNode(ch, "branch_name", version_branch)
  SetChildNode(ch, "build_date", version_date)
@@ -3775,13 +3781,6 @@ FUNCTION get_general_reld() as NodePtr
  IF root_node = 0 THEN
   root_node = CreateNode(gen_reld_doc, "general_data")
   SetRootNode(gen_reld_doc, root_node)
-
-  '--This is a good place to create defaults for nodes that do not exist yet.
-  IF NOT root_node."buttonnames".exists THEN
-   general_reld_init_buttonnames root_node
-  END IF
-
-  write_general_reld()
  END IF
 
  return root_node
@@ -3819,13 +3818,10 @@ SUB general_reld_init_buttonnames(root_node as NodePtr)
 END SUB
 
 SUB write_general_reld()
-'Custom only, writes changes to the general.reld lump
-#ifdef IS_CUSTOM
  IF gen_reld_doc THEN
   DIM filename as string = workingdir & SLASH & "general.reld"
   SerializeBin filename, gen_reld_doc
  END IF
-#endif
 END SUB
 
 SUB close_general_reld()
@@ -3836,17 +3832,20 @@ SUB close_general_reld()
  END IF
 END SUB
 
-'Update the general_reld."editor_version" node
+'Perform upgrades on general.reld including updating "editor_version".
 SUB update_general_data ()
 
  DIM root_node as NodePtr
  root_node = get_general_reld()
 
+ '' Editor and automatic upgrader versions
+#IFDEF IS_CUSTOM
+ 'Don't update version info in Game in case we're running with usepreunlump = YES (upgrading an .rpgdir in-place)
  DIM vernode as NodePtr
  vernode = root_node."editor_version".ptr
  IF vernode THEN
   IF vernode."revision" <> version_revision OR vernode."branch_name".string <> version_branch THEN
-   'Archive previously used editor version (appending to end)
+   'Archive previously used editor version (appending to end), and then replace it.
    DIM prevvernode as NodePtr
    prevvernode = GetOrCreateChild(root_node, "prev_editor_versions")
    AddChild(prevvernode, vernode)
@@ -3856,6 +3855,16 @@ SUB update_general_data ()
 
  IF vernode = NULL THEN
   write_engine_version_node(root_node, "editor_version")
+ END IF
+#ELSE
+ 'However it's still useful to know if Game modified an .rpgdir, so record it separately
+ 'Don't keep a history, instead track the newest version to edit it (this only updates the info if newer)
+ write_engine_version_node(root_node, "automatic_upgrader_version")
+#ENDIF
+
+ '' Buttonnames
+ IF NOT root_node."buttonnames".exists THEN
+  general_reld_init_buttonnames root_node
  END IF
 
  write_general_reld()

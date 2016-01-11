@@ -3127,13 +3127,18 @@ ELSE
  debuginfo "Partial game data upgrade..."
 END IF
 
+DIM general_reld as Node ptr = get_general_reld()
 DIM last_editor_version as EngineVersion = read_last_editor_version()
+DIM auto_upgrader_version as EngineVersion = read_engine_version_node(general_reld."automatic_upgrader_version".ptr)
 
 ' Note that creating a new .rpg file updates the archinym creation info, but not immediately last_editor_version
 IF last_editor_version.recorded THEN
  debuginfo "Last edited by: " & last_editor_version.long_version
 ELSE
  debuginfo "No detailed editor version info."
+END IF
+IF auto_upgrader_version.recorded THEN
+ debuginfo "Upgraded by: " & auto_upgrader_version.long_version
 END IF
 debuginfo "archinym creation info: " & read_archinym_version()
 
@@ -3387,7 +3392,8 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  CLOSE #fh
 END IF
 
-'Update editor_version.
+'Initialise some data in general.reld and update either editor_version (Custom)
+'or automatic_upgrader_version (Game)
 update_general_data
 
 'This is corruption recovery, not upgrade, but Custom has always done this
