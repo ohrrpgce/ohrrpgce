@@ -4,6 +4,9 @@
 # write access to your automatic build machine. Don't do it unless you trust them all.
 # (which James fortunately does, and the build machine is reasonably sandboxed, so!)
 
+# This script checks out two copies of the OHRRPGCE svn repository: one for building
+# from, the other is kept clean and used for packaging the source.
+
 UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
@@ -32,7 +35,7 @@ echo removing old nightly source snapshot...
 rm ohrrpgce-source-nightly.zip
 
 echo zipping up new nightly snapshot
-zip -q -r ohrrpgce-source-nightly.zip wip
+zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*"
 ls -l ohrrpgce-source-nightly.zip
 
 echo uploading new nightly snapshot
