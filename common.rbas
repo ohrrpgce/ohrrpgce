@@ -4649,20 +4649,20 @@ SUB maptilesetsprint (tilesets() as TilesetData ptr)
  NEXT
 END SUB
 
-SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer, byval lockstep as integer = YES)
-'the tileset may already be loaded
-'note that tile animation data is NOT reset if the old tileset was the same	
+SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer)
+ 'Loads a tileset into tilesets(layer), and sets animation state appropriately
+ 'No effect if the tileset is already set.
+ IF tilesets(layer) <> NULL ANDALSO tilesets(layer)->num = tilesetnum THEN EXIT SUB
 
- IF tilesets(layer) = NULL ORELSE tilesets(layer)->num <> tilesetnum THEN
-  unloadtilesetdata tilesets(layer)
-  tilesets(layer) = NEW TilesetData
+ unloadtilesetdata tilesets(layer)
+ tilesets(layer) = NEW TilesetData
 
-  WITH *tilesets(layer)
-   .num = tilesetnum
-   .spr = frame_load(sprTypeTileset, tilesetnum)
-   load_tile_anims tilesetnum, .tastuf()
-  END WITH
- END IF
+ WITH *tilesets(layer)
+  .num = tilesetnum
+  .spr = frame_load(sprTypeTileset, tilesetnum)
+  load_tile_anims tilesetnum, .tastuf()
+ END WITH
+
  FOR i as integer = 0 TO 1
   WITH tilesets(layer)->anim(i)
    .cycle = 0
@@ -4670,7 +4670,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
    .skip = 0
   END WITH
  NEXT
- IF lockstep THEN lockstep_tile_animation tilesets(), layer
+ lockstep_tile_animation tilesets(), layer
 END SUB
 
 FUNCTION layer_tileset_index(byval layer as integer) as integer
@@ -4678,9 +4678,10 @@ FUNCTION layer_tileset_index(byval layer as integer) as integer
  IF layer <= 2 THEN RETURN 22 + layer ELSE RETURN 23 + layer
 END FUNCTION
 
-SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, byval resetanimations as integer = YES)
+SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanimations as bool = YES)
 'tilesets() may contain already loaded tilesets. In this case, we can reuse them
- DIM as integer i, j
+'(Actually, whether they get reused, and therefore whether the animation state is preserved, depends on
+'their order -- eww. But noone will ever notice)
  DIM tileset as integer
 
  FOR i as integer = 0 TO UBOUND(tilesets)

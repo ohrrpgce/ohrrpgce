@@ -99,11 +99,11 @@ DECLARE FUNCTION createminimap OVERLOAD (map() as TileMap, tilesets() as Tileset
 DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
 DECLARE SUB animatetilesets (tilesets() as TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
-DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer, byval lockstep as integer = YES)
+DECLARE SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byval tilesetnum as integer)
 DECLARE SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
 DECLARE SUB unloadtilesetdata (byref tileset as TilesetData ptr)
 DECLARE FUNCTION layer_tileset_index(byval layer as integer) as integer
-DECLARE SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, byval resetanimations as integer = YES)
+DECLARE SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanimations as bool = YES)
 DECLARE SUB unloadmaptilesets (tilesets() as TilesetData ptr)
 DECLARE FUNCTION finddatafile(filename as string) as string
 DECLARE FUNCTION finddatadir(dirname as string) as string

@@ -636,7 +636,7 @@ SUB sfunctions(byval cmdid as integer)
    IF retvals(1) < 0 OR curcmd->argc <= 1 THEN
     '0 or 1 args given
     IF retvals(0) < 0 THEN
-     'reload all defaults
+     'reload all defaults, try to preserve animation states
      loadmaptilesets tilesets(), gmap(), NO
     ELSE
      'change default
@@ -665,6 +665,7 @@ SUB sfunctions(byval cmdid as integer)
     'load tileset for an individual layer
     gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
    END IF
+   'load while trying to preserve animation states
    loadmaptilesets tilesets(), gmap(), NO
    refresh_map_slice_tilesets
   END IF
