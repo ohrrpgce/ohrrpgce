@@ -203,6 +203,7 @@ CD tmpdist
 CALL svnrepo.bat
 ECHO   Checkout...
 %SVN% co -q %REPOSITORY%
+%SVN% info %OHRVERCODE% > %OHRVERCODE%/svninfo.txt
 del svnrepo.bat
 ECHO   Zip...
 ..\support\zip -q -r ..\distrib\ohrrpgce-source.zip *.*

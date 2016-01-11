@@ -35,6 +35,7 @@ echo removing old nightly source snapshot...
 rm ohrrpgce-source-nightly.zip
 
 echo zipping up new nightly snapshot
+svn info wip > wip/svninfo.txt
 zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*"
 ls -l ohrrpgce-source-nightly.zip
 

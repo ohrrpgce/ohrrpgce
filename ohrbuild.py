@@ -29,7 +29,7 @@ def basfile_scan(node, env, path):
     #print str(node) + " includes", included
     return included
 
-def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
+def verprint (used_gfx, used_music, fbc, builddir, rootdir):
     """
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
 
@@ -73,10 +73,10 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
             f = Popen (command, stdout = PIPE, stderr = PIPE, cwd = rootdir)
             output = f.stdout.read()
         except WindowsError:
-            missing (command[0], 'version output may be wrong as a result.')
+            missing (command[0], '')
             output = ''
         except OSError:
-            missing (command[0], 'version output may be wrong as a result.')
+            missing (command[0], '')
             output = ''
         #if date_rex.search (output):
         #    date = date_rex.search (output).expand ('\\1\\2\\3')
@@ -90,10 +90,10 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
         try:
             f = Popen ([fbc,'-version'], stdout = PIPE)
         except WindowsError:
-            missing (fbc,'FBC is necessary to compile. Halting compilation.')
+            missing (fbc,'FB is necessary to compile. Halting compilation.')
             sys.exit (0)
         except OSError:
-            missing (fbc,'FBC is necessary to compile. Halting compilation.')
+            missing (fbc,'FB is necessary to compile. Halting compilation.')
             sys.exit (0)
 
         output = f.stdout.read()
@@ -101,15 +101,21 @@ def verprint (used_gfx, used_music, svn, git, fbc, builddir, rootdir):
             return rex.search (output).expand ('\\1')
         return '??.??.? (????-??-??)'
     name = 'OHRRPGCE'
-    date, rev = query_svn (svn,'info')
+    date, rev = query_svn ('svn','info')
     if rev == 0:
         # On Windows, "git svn info" seems to take longer than a human lifetime
         if platform.system () == 'Windows':
-            print "Not attempting to get SVN revision from git"
+            print "Not attempting to get SVN revision from git; takes forever"
         else:
-            date, rev = query_svn (git,'svn','info')
+            date, rev = query_svn ('git','svn','info')
     if rev == 0:
-        print "Could not determine SVN revision; this build will produce RPG files without full version info"
+        print "Falling back to reading svninfo.txt"
+        date, rev = query_svn ('cat','svninfo.txt')
+    if rev == 0:
+        print
+        print " WARNING!!"
+        print "Could not determine SVN revision, which will result in RPG files without full version info and could lead to mistakes when upgrading .rpg files. A file called svninfo.txt should have been included with the source code if you downloaded a .zip instead of using svn or git."
+        print
     if branch_rev <= 0:
         branch_rev = rev
     fbver = query_fb ()

@@ -161,6 +161,8 @@ mkdir tmpdist
 cd tmpdist
 echo "  Checkout..."
 svn co -q "${REPOSITORY}"
+[ ! -d $OHRVERCODE ] && echo "Directory $OHRVERCODE is missing. Maybe codename.txt wasn't updated?" && exit 1
+svn info $OHRVERCODE > $OHRVERCODE/svninfo.txt
 echo "  Zip..."
 zip -q -r ../distrib/ohrrpgce-source.zip *
 cd ..

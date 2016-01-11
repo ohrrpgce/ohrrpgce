@@ -604,7 +604,7 @@ common_modules += ['filelayer.cpp',
 
 builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
-verprint (gfx, music, 'svn', 'git', fbc, builddir, rootdir)
+verprint (gfx, music, fbc, builddir, rootdir)
 
 
 ################ Generate object file Nodes
