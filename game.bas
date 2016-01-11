@@ -1739,7 +1739,8 @@ SUB loadmap_zonemap(byval mapnum as integer)
  END IF
 END SUB
 
-SUB loadmaplumps (byval mapnum as integer, byval loadmask as integer)
+'This sub is only used by "reset map state" command
+SUB loadmap_bitmask (byval mapnum as integer, byval loadmask as integer)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
   loadmap_gmap mapnum

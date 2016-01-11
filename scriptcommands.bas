@@ -723,7 +723,7 @@ SUB sfunctions(byval cmdid as integer)
    loadmapstate_bitmask gam.map.id, retvals(0), "map"
   END IF
  CASE 247'--reset map state
-  loadmaplumps gam.map.id, retvals(0)
+  loadmap_bitmask gam.map.id, retvals(0)
  CASE 248'--delete map state
   deletemapstate gam.map.id, retvals(0), "map"
  CASE 253'--set tile animation offset
