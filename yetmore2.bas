@@ -421,14 +421,9 @@ SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool
  CLOSE #fh
  IF gmap(31) = 0 THEN gmap(31) = 2
 
+ 'It does not matter whether we load tilesets before or after loading tilemaps.
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
- SELECT CASE gmap(5) '--outer edge wrapping
-  CASE 0, 1'--crop edges or wrap
-   setoutside -1
-  CASE 2
-   setoutside gmap(6)
- END SELECT
 END SUB
 
 SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as bool = NO)
@@ -603,13 +598,11 @@ END FUNCTION
 
 #DEFINE debug_reloadmap(what)  debuginfo __FUNCTION__ " " #what ".dirty=" & lump_reloading.what.dirty & " " #what ".changed=" & lump_reloading.what.changed & " " #what ".mode=" & lump_reloading.what.mode
 
+'Called from reload_MAP_lump. See also reloadmap_tilemap_and_tilesets.
 SUB reloadmap_gmap_no_tilesets()
  debug_reloadmap(gmap)
  lump_reloading.gmap.dirty = NO
  lump_reloading.gmap.changed = NO
-
- 'Delete saved state to prevent regressions
- safekill mapstatetemp(gam.map.id, "map") + "_map.tmp" 
 
  REDIM gmaptmp(dimbinsize(binMAP)) as integer
  loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
@@ -619,12 +612,10 @@ SUB reloadmap_gmap_no_tilesets()
   IF gmap_index_affects_tiles(i) = NO THEN gmap(i) = gmaptmp(i)
  NEXT
 
- SELECT CASE gmap(5) '--outer edge wrapping
-  CASE 0, 1'--crop edges or wrap
-   setoutside -1
-  CASE 2
-   setoutside gmap(6)
- END SELECT
+ ' Behaviour specific to live-previewing
+
+ 'Delete saved gmap state to prevent regressions
+ safekill mapstatetemp(gam.map.id, "map") + "_map.tmp" 
 
  IF gmap(1) > 0 THEN
   wrappedsong gmap(1) - 1
@@ -786,6 +777,7 @@ SUB deletetemps
  NEXT
 END SUB
 
+'Print all NPCs to g_debug.txt
 SUB debug_npcs ()
  debug "NPC types:"
  FOR i as integer = 0 TO UBOUND(npcs)
@@ -1138,10 +1130,13 @@ SUB reload_gen()
  IF should_reset_window THEN apply_game_window_settings
 END SUB
 
+'Ignores changes to tilesets. That is handled by try_reload_map_lump and happens only when .T changes.
 SUB reload_MAP_lump()
  WITH lump_reloading
 
   'Only compare part of each MAP record... OK, this is getting really perfectionist
+  'Thank goodness this will be simpler when the map file format is replaced.
+
   REDIM compare_mask(dimbinsize(binMAP)) as integer
   FOR i as integer = 0 TO UBOUND(compare_mask)
    compare_mask(i) = (gmap_index_affects_tiles(i) = NO)
@@ -1171,8 +1166,7 @@ SUB reload_MAP_lump()
    ELSE
     IF .gmap.mode <> loadmodeNever THEN reloadmap_gmap_no_tilesets
    END IF
-  END IF      
-
+  END IF
  END WITH
 END SUB
 
@@ -1197,8 +1191,10 @@ END FUNCTION
 'Check whether a lump is a (supported) map lump, and if so return YES and reload it if needed.
 'Also updates lump_reloading flags and deletes mapstate data as required.
 'Currently supports: T, P, E, Z, N, L
-'Elsewhere: MAP, DOX
-'Not going to bother with: MN, D
+'Elsewhere: MAP (except tilesets), DOX
+'No need to reload: D
+'Not going to bother with: MN
+'Tilesets are reloaded only when .T changes. Which isn't perfect right now, but will make sense when tilemap format is replaced.
 FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
  DIM typecode as string
  DIM mapnum as integer = -1
@@ -1598,6 +1594,7 @@ SUB live_preview_menu ()
     st1.need_update OR= intgrabber(lump_reloading.hsp.mode, 0, 1)
    CASE 100  '--force gmap reload
     IF carray(ccUse) > 1 THEN
+     'User asked to reload general map data, not tilemaps, so don't load tilesets
      reloadmap_gmap_no_tilesets
     END IF
    CASE 101  '--force tile reload

@@ -1113,8 +1113,6 @@ SUB sfunctions(byval cmdid as integer)
    gmap(retvals(0)) = retvals(1)
    IF retvals(0) = 2 OR retvals(0) = 3 THEN check_menu_tags  'save and minimap menu options
    IF retvals(0) = 4 THEN gam.showtext_ticks = 0  'cancel map name display
-   IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper in plotscr.hsd
-   IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
    IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
    lump_reloading.gmap.dirty = YES
   END IF
