@@ -605,6 +605,8 @@ sub setvispage (byval page as integer)
 		end if
 		starttime2 = timer
 		gfx_showpage(.image, .w, .h)
+		' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
+		' although in gfx_fb it freezes readmouse instead)
 		debug_if_slow(starttime2, 0.1, "gfx_showpage")
 		mutexunlock keybdmutex
 	end with
@@ -1556,7 +1558,7 @@ function readmouse () as MouseInfo
 		end if
 	end if
 
-	debug_if_slow(starttime, 0.005, info.clicks)
+	debug_if_slow(starttime, 0.01, info.clicks)
 	return info
 end function
 
