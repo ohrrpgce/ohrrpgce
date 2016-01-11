@@ -1016,10 +1016,16 @@ SUB displayall()
  ' 
  ' Map layers edge handling.
  SELECT CASE gmap(5)
+  CASE 0 'Crop
+   IF readbit(gen(), genBits2, 21) THEN  'Wrap map layers over edge of Crop maps
+    setoutside -1
+   ELSE
+    'We set an edge tile on crop maps in case the map is smaller than the screen
+    setoutside gmap(6)
+   END IF
   CASE 1 'Wrap
    setoutside -1
-  CASE 0, 2 'Crop, use default edge tile
-   'We set an edge tile on crop maps in case the map is smaller than the screen
+  CASE 2 'Use default edge tile
    setoutside gmap(6)
  END SELECT
 

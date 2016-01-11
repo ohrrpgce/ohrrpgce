@@ -3858,6 +3858,15 @@ IF getfixbit(fixSetOldAttackPosBit) = 0 THEN
  setbit(gen(), genBits2, 20, 1)  ' "Old attack positioning at bottom-left of target"
 END IF
 
+IF getfixbit(fixWrapCroppedMapsBit) = 0 THEN
+ setfixbit(fixWrapCroppedMapsBit, 1)
+ 'Since r6473 'Crop' maps no longer wrap
+ IF last_editor_version.branch_revision < 6473 THEN
+  upgrade_message "Enabling 'Wrap map layers over edge of Crop maps' bit"
+  setbit gen(), genBits2, 21, 1  'Wrap map layers over edge of Crop maps
+ END IF
+END IF
+
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)

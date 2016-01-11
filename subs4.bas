@@ -1889,6 +1889,7 @@ SUB gendata ()
     bitname(33) = "Simulate Bug #430"
     bitname(34) = "showtextbox happens immediately"
     bitname(36) = "Old attack positioning at bottom-left of target"
+    bitname(37) = "Wrap map layers over edge of Crop maps"
     edit_global_bitsets bitname(), "general_game_backcompat_bitsets"
    END IF
    IF state.pt = 8 THEN battleoptionsmenu
