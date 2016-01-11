@@ -1042,6 +1042,18 @@ TYPE DistribState
   copyright_year as string
 END TYPE
 
+'Holds the contents of a RELOAD node like general_reld."editor_version" or rsav."client_version"
+'Normally you should test against .branch_revision instead of .revision.
+TYPE EngineVersion
+  recorded as bool           'False for old .rpg files without version info (before r5761, Apr 9 2013)
+  name as string             'Expected to be 'OHRRPGCE'
+  long_version as string     'Complete version and build string
+  branch_name as string      '"wip" or release name
+  revision as integer        'SVN revision, or 0 if unknown.
+                             'You should normally test against .branch_revision instead!
+  branch_revision as integer 'SVN revision at which the release was branched, equal to .revision for "wip"
+END TYPE
+
 '--Describes a set of OHR scancodes used for menu movement,
 '--including confirm and cancel. This is mainly intended for
 '--facilitating multiplayer gamepad support by allowing a

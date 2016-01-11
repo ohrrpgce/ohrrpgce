@@ -308,7 +308,7 @@ declare function byte_size_of_file(filename as string) as integer
 declare function string_from_first_line_of_file (filename as string) as string
 declare function string_from_file (filename as string) as string
 declare sub string_to_file (string_to_write as string, filename as string)
-declare sub lines_from_file (strarray() as string, filename as string)
+declare sub lines_from_file (strarray() as string, filename as string, expect_exists as bool = YES)
 declare sub lines_to_file(strarray() as string, filename as string)
 declare function get_tmpdir () as string
 

@@ -3127,6 +3127,17 @@ ELSE
  debuginfo "Partial game data upgrade..."
 END IF
 
+DIM last_editor_version as EngineVersion = read_last_editor_version()
+
+' Note that creating a new .rpg file updates the archinym creation info, but not immediately last_editor_version
+IF last_editor_version.recorded THEN
+ debuginfo "Last edited by: " & last_editor_version.long_version
+ELSE
+ debuginfo "No detailed editor version info."
+END IF
+debuginfo "archinym creation info: " & read_archinym_version()
+
+
 IF getfixbit(fixNumElements) = 0 THEN
  setfixbit(fixNumElements, 1)
  'This has to be set before we start loading and saving things

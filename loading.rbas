@@ -3727,6 +3727,35 @@ SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
  IF version_branch_revision <> 0 THEN SetChildNode(ch, "branch_revision", version_branch_revision)
 END SUB
 
+'vernode is a reload node holding version info like general_reld."editor_version" or rsav."client_version"
+FUNCTION read_engine_version_node(vernode as Node ptr) as EngineVersion
+ DIM ret as EngineVersion
+ IF vernode THEN
+  ret.recorded = YES
+  ret.name = GetString(vernode)
+  ret.long_version = vernode."long_version".string
+  ret.branch_name = vernode."branch_name".string
+  ret.revision = vernode."revision"
+  ret.branch_revision = vernode."branch_revision"
+ END IF
+ RETURN ret
+END FUNCTION
+
+'Get last version of Custom that the current game was edited with.
+FUNCTION read_last_editor_version() as EngineVersion
+ DIM root as Node ptr
+ root = get_general_reld()
+ RETURN read_engine_version_node(root."editor_version".ptr)
+END FUNCTION
+
+'Return the second line of archinym.lmp for the current game, which is the version
+'of Custom or the tool that first created it.
+FUNCTION read_archinym_version () as string
+ DIM lines() as string
+ lines_from_file lines(), workingdir & SLASH & "archinym.lmp", NO
+ IF UBOUND(lines) >= 1 THEN RETURN lines(1)
+END FUNCTION
+
 FUNCTION get_general_reld() as NodePtr
 'Returns the root node of the general.reld lump.
 'Opens it up if it is not already open.
@@ -3746,14 +3775,15 @@ FUNCTION get_general_reld() as NodePtr
  IF root_node = 0 THEN
   root_node = CreateNode(gen_reld_doc, "general_data")
   SetRootNode(gen_reld_doc, root_node)
- END IF
- 
- '--This is a good place to create defaults for nodes that do not exist yet.
- IF NOT root_node."buttonnames".exists THEN
-  general_reld_init_buttonnames root_node
+
+  '--This is a good place to create defaults for nodes that do not exist yet.
+  IF NOT root_node."buttonnames".exists THEN
+   general_reld_init_buttonnames root_node
+  END IF
+
+  write_general_reld()
  END IF
 
- write_general_reld()
  return root_node
 END FUNCTION
 
@@ -3806,7 +3836,7 @@ SUB close_general_reld()
  END IF
 END SUB
 
-'Write new data.
+'Update the general_reld."editor_version" node
 SUB update_general_data ()
 
  DIM root_node as NodePtr

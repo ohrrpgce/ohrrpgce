@@ -2174,12 +2174,12 @@ SUB string_to_file (string_to_write as string, filename as string)
 END SUB
 
 'Read each line of a file into a string array
-SUB lines_from_file(strarray() as string, filename as string)
+SUB lines_from_file(strarray() as string, filename as string, expect_exists as bool = YES)
  REDIM strarray(-1 TO -1)
  DIM as integer fh
  fh = FREEFILE
  IF OPEN(filename FOR INPUT as #fh) THEN
-  debug "Could not open " & filename
+  IF expect_exists THEN debug "Could not open " & filename
   EXIT SUB
  END IF
  DO UNTIL EOF(fh)
