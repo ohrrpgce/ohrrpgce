@@ -139,14 +139,14 @@ IF isfile(dest + SLASH + "archinym.lmp") THEN
  IF LEN(a) <= 8 THEN
   game = a
  END IF
- KILL dest + SLASH + "archinym.lmp"
+ killfile dest + SLASH + "archinym.lmp"
 END IF
 
 unlumpfile lumped, game + ".gen", dest + SLASH
 DIM SHARED gen(360) as integer
 xbload dest + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
-KILL dest + SLASH + game + ".gen"
+killfile dest + SLASH + game + ".gen"
 
 DIM passokay as integer = -1
 

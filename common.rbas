@@ -2958,7 +2958,7 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
 
    CLOSE inputf
    CLOSE outputf
-   KILL tempf
+   killfile tempf
   END IF
 
   'If we are repeating, we need to keep the old binsize intact
@@ -3306,7 +3306,7 @@ IF gen(genVersion) = 4 THEN
  DIM temppal16(8) as integer
  setpicstuf temppal16(), 16, -1
  xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
- KILL game + ".pal"
+ killfile game + ".pal"
  '--find last used palette
  DIM last as integer = 99
  DIM foundpal as integer = 0

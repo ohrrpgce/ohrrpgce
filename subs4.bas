@@ -630,7 +630,7 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
  'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
  copyfile sourcesong, songfile
 
- IF oggtemp <> "" THEN KILL oggtemp
+ IF oggtemp <> "" THEN killfile oggtemp
 
  importsong_save_song_data sname, snum
 END SUB
@@ -870,7 +870,7 @@ SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as in
  '--copy in the new lump
  copyfile sourcesfx, sfxfile
 
- IF oggtemp <> "" THEN KILL oggtemp
+ IF oggtemp <> "" THEN killfile oggtemp
 
  '--save and update
  importsfx_save_sfx_data sname, snum

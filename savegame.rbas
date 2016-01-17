@@ -104,7 +104,7 @@ SUB init_save_system()
   '--fallback location is prefsdir
   savedir = prefsdir & SLASH & "saves"
  END IF
- IF NOT isdir(savedir) THEN MKDIR savedir
+ IF NOT isdir(savedir) THEN makedir savedir
 
 END SUB
 

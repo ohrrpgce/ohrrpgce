@@ -772,7 +772,7 @@ SUB deletetemps
  FOR i as integer = 0 TO UBOUND(filelist)
   filename = LCASE(filelist(i))
   IF RIGHT(filename,4) = ".tmp" AND (LEFT(filename,3) = "map" OR LEFT(filename,5) = "state") THEN
-   KILL tmpdir + filelist(i)
+   killfile tmpdir + filelist(i)
   END IF
  NEXT
 END SUB

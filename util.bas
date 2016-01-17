@@ -1316,7 +1316,7 @@ FUNCTION run_and_get_output(cmd as string, outdata as string) as integer
     RETURN -1
   END IF
   outdata = string_from_file(tempfile)
-  KILL tempfile
+  killfile tempfile
   RETURN ret
 END FUNCTION
 

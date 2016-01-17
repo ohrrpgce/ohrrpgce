@@ -1037,19 +1037,19 @@ SUB distribute_game_as_debian_package ()
   
   debuginfo "Create menu file"
   DIM menudir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
-  MKDIR menudir
+  makedir menudir
   write_linux_menu_file distinfo.gamename, menudir & SLASH & basename, basename
 
   debuginfo "Create desktop file"
   DIM applicationsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "applications"
-  MKDIR applicationsdir
+  makedir applicationsdir
   write_linux_desktop_file distinfo.gamename, applicationsdir & SLASH & basename & ".desktop", basename
 
   debuginfo "Create docs"
   DIM docsdir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "doc"
-  MKDIR docsdir
+  makedir docsdir
   DIM gamedocsdir as string = docsdir & SLASH & basename
-  MKDIR gamedocsdir
+  makedir gamedocsdir
   write_readme_text_file gamedocsdir & SLASH & "README.txt", CHR(10)
   gzip_file gamedocsdir & SLASH & "README.txt"
   write_debian_copyright_file gamedocsdir & SLASH & "copyright"
