@@ -665,6 +665,7 @@ SUB sfunctions(byval cmdid as integer)
     'load tileset for an individual layer
     gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
    END IF
+   lump_reloading.gmap.dirty = YES
    'load while trying to preserve animation states
    loadmaptilesets tilesets(), gmap(), NO
    refresh_map_slice_tilesets
@@ -1105,15 +1106,19 @@ SUB sfunctions(byval cmdid as integer)
   END IF
   gam.mouse = readmouse
  CASE 178'--read gmap
+  'Don't support reading newer gmap indices
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    scriptret = gmap(retvals(0))
   END IF
  CASE 179'--write gmap
+  'Don't support changing newer gmap indices
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    gmap(retvals(0)) = retvals(1)
    IF retvals(0) = 2 OR retvals(0) = 3 THEN check_menu_tags  'save and minimap menu options
    IF retvals(0) = 4 THEN gam.showtext_ticks = 0  'cancel map name display
    IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
+   IF retvals(0) = 19 THEN refresh_map_slice() 'map layer visibility
+   'If changing gmap(31) were allowed (position of walkabout layer), would also need to call refresh_map_slice
    lump_reloading.gmap.dirty = YES
   END IF
  CASE 492'--mouse click

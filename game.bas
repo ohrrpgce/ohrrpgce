@@ -1713,14 +1713,23 @@ END SUB
 '==========================================================================================
 
 
+'Call after loading gmap()
+SUB gmap_updates
+ IF gmap(31) = 0 THEN gmap(31) = 2  'Number of layers beneath walkabouts.
+ refresh_map_slice  'Because map layer and walkabout sorting may have changed.
+
+ loadmaptilesets tilesets(), gmap()
+ refresh_map_slice_tilesets
+END SUB
+
+'The following functions can get called from "reset map state", so have to do
+'things like sice refreshing that are redundant from within preparemap().
+
 SUB loadmap_gmap(byval mapnum as integer)
  lump_reloading.gmap.dirty = NO
  lump_reloading.gmap.changed = NO
  loadrecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
- IF gmap(31) = 0 THEN gmap(31) = 2
-
- loadmaptilesets tilesets(), gmap()
- refresh_map_slice_tilesets
+ gmap_updates
 END SUB
 
 SUB loadmap_npcl(byval mapnum as integer)
@@ -1744,6 +1753,7 @@ SUB loadmap_npcd(byval mapnum as integer)
  reset_npc_graphics
 END SUB
 
+'Load all map layers
 SUB loadmap_tilemap(byval mapnum as integer)
  lump_reloading.maptiles.dirty = NO
  lump_reloading.maptiles.changed = NO
@@ -1751,7 +1761,7 @@ SUB loadmap_tilemap(byval mapnum as integer)
  LoadTileMaps maptiles(), maplumpname(mapnum, "t")
  mapsizetiles.w = maptiles(0).wide
  mapsizetiles.h = maptiles(0).high
- refresh_map_slice
+ update_map_slices_for_new_tilemap
 
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
  cropposition catx(0), caty(0), 20
@@ -2305,10 +2315,12 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  DIM i as integer
  'save data from old map
  IF gam.map.lastmap > -1 THEN
+  'NPC Data: Remember state when leaving
   IF gmap(17) = 1 THEN
    savemapstate_npcd gam.map.lastmap, "map"
    savemapstate_npcl gam.map.lastmap, "map"
   END IF
+  'Tile Data: Remember state when leaving
   IF gmap(18) = 1 THEN
    savemapstate_tilemap gam.map.lastmap, "map"
    savemapstate_passmap gam.map.lastmap, "map"
@@ -2336,10 +2348,12 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  gam.map.name = getmapname(gam.map.id)
 
  IF gmap(18) < 2 THEN
+  'Tile Data: Don't save state when leaving or Remember state when leaving
   loadmapstate_tilemap gam.map.id, "map"
   loadmapstate_passmap gam.map.id, "map"
   loadmapstate_zonemap gam.map.id, "map"
  ELSE
+  'Tile Data: Ignore saved state, load anew
   loadmap_tilemap gam.map.id
   loadmap_passmap gam.map.id
   loadmap_zonemap gam.map.id
@@ -2940,6 +2954,21 @@ END SUB
 '==========================================================================================
 
 
+''''Updating map slices:
+'*If changing map, call recreate_map_slices() to possibly recreate everything.
+'  This also calls refresh_map_slice() and refresh_map_slice_tilesets().
+'*If the tilemap changed then the number of map layers may have changed, so call
+'  update_map_slices_for_new_tilemap()
+'  This also calls refresh_map_slice().
+'  If the number of map layers is the same you can call refresh_map_slice() to update tilemap data.
+'*If the passmap changed no need to do anything, because 'pass' is a global so
+'  map layer slices already have the correct pointer.
+'*If gmap changed, call update_gmap().
+'  This calls refresh_map_slice() to change map and walkabout layer ordering and visibility,
+'  and handles the possible change to tilesets (see next item).
+'*If tilesets changed, call loadmaptilesets() and then refresh_map_slice_tilesets().
+'  Can be called before/after/separately from refresh_map_slice().
+
 SUB recreate_map_slices()
  'this destroys and re-creates the map slices. it should only happen when
  'moving from one map to another, but not when a battle ends. (same as when
@@ -2977,17 +3006,43 @@ SUB recreate_map_slices()
 
   'Reparent the hero slices to the new map
   reparent_hero_slices
-
-  refresh_map_slice_tilesets
-  visnpc
  END IF
+ refresh_map_slice_tilesets
+ 'Recreate all NPC slices
+ visnpc
+ 'Update everything else.
+ refresh_map_slice
+END SUB
+
+SUB update_map_slices_for_new_tilemap()
+ 'Call this if the number of map layers may have changed (by loading maptiles()) for a reason other
+ 'than a map change, so you don't want to destroy and recreate everything by calling recreate_map_slices
+
+ IF readbit(gen(), genBits2, 11) <> 0 THEN
+  'When "Recreate map slices when changing maps" = ON then number of map layer slices is variable.
+  FOR idx as integer = 0 TO mapLayerMax
+   IF idx > UBOUND(maptiles) THEN
+    DeleteSlice @SliceTable.MapLayer(idx)
+   ELSE
+    IF SliceTable.MapLayer(idx) = NULL THEN
+     SliceTable.MapLayer(idx) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - idx)
+     ChangeMapSlice SliceTable.MapLayer(idx), , , (idx > 0), 0   'maybe transparent, not overhead
+     ChangeMapSliceTileset SliceTable.MapLayer(idx), tilesets(idx)
+    END IF
+   END IF
+  NEXT
+ END IF
+
+ 'Set visibility, tilemaps, sort order
  refresh_map_slice
 END SUB
 
 SUB refresh_map_slice()
- 'This updates the size, tilesets, sort order, and visibility of the map slices
+ 'This updates the size, tilemaps, sort order, and visibility of the map slices
+ 'and the sorting of walkabout layers and slices,
+ 'but does NOT update tilesets or recreate map slices - that's done by recreate_map_slices.
 
- 'debug "refresh_map_slice() there are " & UBOUND(maptiles) + 1 & " map layers on map " & gam.map.id
+ 'debuginfo "refresh_map_slice() there are " & UBOUND(maptiles) + 1 & " map layers on map " & gam.map.id
 
  '--Store info about the map in the map slices
  WITH *(SliceTable.MapRoot)
@@ -3006,14 +3061,15 @@ SUB refresh_map_slice()
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   IF SliceTable.MapLayer(i) = 0 THEN
-   debug "NULL SliceTable.MapLayer(" & i & ") when reseting tilesets in refresh_map_slice()"
+   debug "NULL SliceTable.MapLayer(" & i & ") when resetting tilesets in refresh_map_slice()"
   ELSE
    ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
    SliceTable.MapLayer(i)->Visible = IIF(i = 0, YES, readbit(gmap(), 19, i - 1))
   END IF
  NEXT i
  FOR i as integer = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
-  '--if slices exist for the unused layers that this map doesn't have,
+  '--if slices exist for the unused layers that this map doesn't have
+  '--(which occurs when "recreate map slices" is off),
   '--we should make them display no tiles
   IF Slicetable.MapLayer(i) <> 0 THEN
    ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
@@ -3045,6 +3101,7 @@ SUB refresh_map_slice()
  SliceTable.ObsoleteOverhead->Sorter = UBOUND(maptiles) + 2
 
  CustomSortChildSlices SliceTable.MapRoot, YES
+ 'Delete/recreate walkabout layers if needed.
  refresh_walkabout_layer_sort()
 END SUB
 

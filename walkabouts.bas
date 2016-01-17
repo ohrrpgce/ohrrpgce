@@ -291,6 +291,7 @@ PRIVATE SUB update_walkabout_npc_slices()
  NEXT i
 END SUB
 
+'Does not create or delete NPC/hero slices (vishero/visnpc), but only updates their graphical state.
 SUB update_walkabout_slices()
  update_walkabout_hero_slices()
  update_walkabout_npc_slices()

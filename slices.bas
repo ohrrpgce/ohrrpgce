@@ -155,6 +155,11 @@ Sub SetupGameSlices
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  SliceTable.MapRoot->Protect = YES
  
+ 'If "recreate map slices" is off, then all possible map layer slices always exist,
+ 'but are hidden if there is no corresponding map layer.
+ 'If "recreate map slices" is on then these map layer slices will immediately be
+ 'deleted and replaced by a call to prepare_map.
+ 'Either way, the walkabout layer slices created here will immediately be replaced.
  SetupMapSlices maplayerMax
 
  SliceTable.Backdrop = NewSliceOfType(slSprite, SliceTable.Root, SL_BACKDROP)

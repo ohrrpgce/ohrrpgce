@@ -419,11 +419,8 @@ SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool
  OPEN filebase & "_map.tmp" FOR BINARY as #fh
  GET #fh, , gmap()
  CLOSE #fh
- IF gmap(31) = 0 THEN gmap(31) = 2
 
- 'It does not matter whether we load tilesets before or after loading tilemaps.
- loadmaptilesets tilesets(), gmap()
- refresh_map_slice_tilesets
+ gmap_updates
 END SUB
 
 SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as bool = NO)
@@ -465,13 +462,14 @@ SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as b
   GetTilemapInfo filebase + "_t.tmp", statesize
 
   IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+   'Changing number of map layers is OK, however
    lump_reloading.maptiles.dirty = NO  'Not correct, but too much trouble to do correctly
    lump_reloading.maptiles.changed = NO
 
    loadtilemaps maptiles(), filebase + "_t.tmp"
-   mapsizetiles.x = maptiles(0).wide
-   mapsizetiles.y = maptiles(0).high
-   refresh_map_slice
+   mapsizetiles.w = maptiles(0).wide
+   mapsizetiles.h = maptiles(0).high
+   update_map_slices_for_new_tilemap
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
    cropposition catx(0), caty(0), 20
@@ -606,11 +604,12 @@ SUB reloadmap_gmap_no_tilesets()
 
  REDIM gmaptmp(dimbinsize(binMAP)) as integer
  loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
- IF gmaptmp(31) = 0 THEN gmaptmp(31) = 2
 
  FOR i as integer = 0 TO UBOUND(gmap)
   IF gmap_index_affects_tiles(i) = NO THEN gmap(i) = gmaptmp(i)
  NEXT
+
+ gmap_updates  'does actually reload tilesets, using those in the old gmap()
 
  ' Behaviour specific to live-previewing
 
@@ -693,7 +692,6 @@ SUB reloadmap_tilemap_and_tilesets(merge as bool)
    LoadTileMaps maptiles(), filename
    writeablecopyfile filename, tmpdir + "mapbackup.t"
   END IF
-  refresh_map_slice
 
   'Now reload tileset and layering info
   REDIM gmaptmp(dimbinsize(binMAP)) as integer
@@ -704,7 +702,9 @@ SUB reloadmap_tilemap_and_tilesets(merge as bool)
   NEXT
 
   loadmaptilesets tilesets(), gmap()
-  refresh_map_slice_tilesets
+
+  'Also updates map slice tilesets
+  update_map_slices_for_new_tilemap
  END IF
 END SUB
 

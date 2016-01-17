@@ -11,6 +11,8 @@
 
 declare sub prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 declare sub displayall()
+
+declare sub gmap_updates()
 declare sub loadmap_gmap(byval mapnum as integer)
 declare sub loadmap_npcl(byval mapnum as integer)
 declare sub loadmap_npcd(byval mapnum as integer)
@@ -19,11 +21,13 @@ declare sub loadmap_passmap(byval mapnum as integer)
 declare sub loadmap_foemap(byval mapnum as integer)
 declare sub loadmap_zonemap(byval mapnum as integer)
 declare sub loadmap_bitmask (byval mapnum as integer, byval loadmask as integer)
+
 declare sub menusound(byval s as integer)
 declare sub usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
 declare sub dotimer(byval timercontext as integer)
 declare function dotimerbattle() as integer
 declare function count_sav(filename as string) as integer
+
 declare function add_menu (byval record as integer, byval allow_duplicate as integer=no) as integer
 declare sub remove_menu (byval slot as integer, byval run_on_close as integer=YES)
 declare sub bring_menu_forward (byval slot as integer)
@@ -48,15 +52,20 @@ DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
 DECLARE SUB refresh_walkabout_layer_sort()
+DECLARE SUB update_map_slices_for_new_tilemap()
+DECLARE SUB cleanup_game_slices ()
+
 DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
+
 DECLARE SUB forceparty ()
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
 DECLARE FUNCTION free_slots_in_party() as integer
-DECLARE SUB cleanup_game_slices ()
+
 DECLARE SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
 DECLARE SUB check_for_queued_fade_in ()
+
 DECLARE FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
 DECLARE FUNCTION find_doorlink (byval door_id as integer) as integer
 
