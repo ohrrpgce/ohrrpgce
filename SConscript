@@ -26,11 +26,14 @@ fbc = os.path.expanduser (fbc)  # expand ~
 # under MinGW. (See bug 951)
 CFLAGS = '-g -Wall --std=gnu99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
+CXXLINKFLAGS = []
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
+
+base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
 win32 = False
 unix = False
@@ -69,7 +72,7 @@ if android:
     arch = 'armeabi'
 
 if int (ARGUMENTS.get ('asm', False)):
-    FBFLAGS += ["-R", "-g"]
+    FBFLAGS += ["-R", "-RR", "-g"]
 
 if int (ARGUMENTS.get ('glibc', False)):
     # No need to bother automatically checking for glibc
@@ -86,6 +89,7 @@ FB_g = (debug >= 1)       # compile with -g?
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
 
+gengcc = int (ARGUMENTS.get ('gengcc', 0))
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
@@ -98,6 +102,18 @@ if int (ARGUMENTS.get ('valgrind', 0)):
     FB_exx = False
     # This changes memory layout of vectors to be friendlier to valgrind
     CFLAGS.append ('-DVALGRIND_ARRAYS')
+asan = int (ARGUMENTS.get ('asan', 0))
+if asan:
+    # AddressSanitizer is supported by both gcc & clang. They are responsible for linking runtime library
+    assert linkgcc, "linkgcc=0 asan=1 combination not supported."
+    CFLAGS.append ('-fsanitize=address')
+    CXXFLAGS.append ('-fsanitize=address')
+    CXXLINKFLAGS.append ('-fsanitize=address')
+    base_libraries.append ('dl')
+    # Also, compile FB to C by default, unless overridden with gengcc=0.
+    if int (ARGUMENTS.get ('gengcc', 1)):
+        gengcc = True
+        FB_exx = False  # Superceded by AddressSanitizer
 if FB_exx:
     FBFLAGS.append ('-exx')
 if FB_g:
@@ -107,7 +123,6 @@ if optimisations:
     CXXFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
-gengcc = int (ARGUMENTS.get ('gengcc', 0))
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
 
@@ -138,13 +153,14 @@ env = Environment (FBFLAGS = FBFLAGS,
                    CFLAGS = CFLAGS,
                    FBC = fbc,
                    CXXFLAGS = CXXFLAGS,
-                   CXXLINKFLAGS = [],
+                   CXXLINKFLAGS = CXXLINKFLAGS,
                    VAR_PREFIX = '',
                    **envextra)
 # These no longer do anything
 del CFLAGS
 del CXXFLAGS
 del FBFLAGS
+del CXXLINKFLAGS
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
@@ -307,6 +323,9 @@ if gengcc:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
         gcc_flags.append ('-fno-omit-frame-pointer')
+    if asan:
+        # Use AddressSanitizer in C files produced by fbc
+        gcc_flags.append ('-fsanitize=address')
     if len(gcc_flags):
         env['FBFLAGS'] += ["-Wc", ','.join (gcc_flags)]
 
@@ -431,7 +450,7 @@ commonenv = env.Clone ()
 
 # Added to env and commonenv
 base_modules = []   # modules (any language) shared by all executables (except bam2mid)
-base_libraries = []  # libraries shared by all utilities (except bam2mid)
+#base_libraries defined above
 
 # Added to gameenv and editenv
 shared_modules = []  # FB/RB modules shared by, but with separate builds, for Game and Custom
@@ -759,10 +778,10 @@ def Phony(name, source, action):
     return node
 
 AUTOTEST = Phony ('autotest_rpg', source = GAME, action =
-                  [GAME.abspath + tmp +  ' --log . --runfast testgame/autotest.rpg',
+                  [GAME.abspath + tmp +  ' --log . --runfast testgame/autotest.rpg -z 2',
                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 INTERTEST = Phony ('interactivetest', source = GAME, action =
-                   [GAME.abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg'
+                   [GAME.abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg -z 2'
                     ' --replayinput testgame/interactivetest.ohrkey',
                     'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 # This prevents more than one copy of Game from being run at once
@@ -812,6 +831,8 @@ Options:
                       -exx builds have array, pointer and file error checking
                       (they abort immediately on errors!), and are slow.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
+  asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
+                      disables -exx and uses GCC emitter.
   profile=1           Profiling build for gprof.
   scriptprofile=1     Script profiling build: track time in interpreter.
   asm=1               Produce .asm or .c files in build/ while compiling.
@@ -823,7 +844,6 @@ Options:
   destdir=PATH        For 'install' action. Use if you want to install into a staging
                       area, for a package creation tool. Default: ''
   v=1                 Be verbose.
-
 
 Experimental options:
   gengcc=1            Compile using GCC emitter.
