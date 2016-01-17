@@ -108,7 +108,7 @@ DIM custom_version as string  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
 DIM modified_lumps as string vector  'when running as slave
 v_new modified_lumps
-DIM force_prefsdir_save as bool = NO
+DIM force_prefsdir_save as bool = NO  'Whether to put save files in prefsdir rather than next to .rpg
 
 REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log
@@ -170,7 +170,7 @@ DIM pass as TileMap
 DIM foemap as TileMap
 DIM zmap as ZoneMap
 REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
-DIM mapsizetiles as XYPair  'for convienence
+DIM mapsizetiles as XYPair  'Size of the map in tiles
 
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColorLast) as integer
@@ -418,12 +418,10 @@ END IF
 #IFDEF __FB_DARWIN__
 IF gam.autorungame = NO THEN
  IF ends_with(exepath, ".app/Contents/MacOS") THEN
-  DIM appres as string
-  appres = exepath & "/../Resources"
-  IF isfile(appres & "/bundledgame") THEN
+  IF isfile(data_dir & "/bundledgame") THEN
    DIM bundledname as string
-   bundledname = TRIM(string_from_first_line_of_file(appres & "/bundledgame"), ANY !" \t\r\n")
-   IF seek_rpg_or_rpgdir_and_play_it(exepath & "/../Resources", bundledname) THEN
+   bundledname = TRIM(string_from_first_line_of_file(data_dir & "/bundledgame"), ANY !" \t\r\n")
+   IF seek_rpg_or_rpgdir_and_play_it(data_dir, bundledname) THEN
     force_prefsdir_save = YES
    END IF
   END IF
@@ -683,6 +681,7 @@ gam.walk_through_walls = NO
 
 
 '================================= Main loop ==================================
+'==============================================================================
 
 queue_fade_in
 'DEBUG debug "pre-call update_heroes"
@@ -917,13 +916,18 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 reset_game_final_cleanup
 LOOP ' This is the end of the DO that encloses the entire program.
 
+
+'==========================================================================================
+'==========================================================================================
+
+
 SUB reset_game_final_cleanup()
  'WARNING: It's a bug to call anything in here that causes something to be cached after
  'the cache has been emptied (such as anything that calls getbinsize after clear_binsize_cache)
  cleanup_text_box
  resetinterpreter 'unload scripts
  unloadmaptilesets tilesets()
- refresh_map_slice_tilesets '--zeroes them out
+ refresh_map_slice_tilesets '--zeroes out now-invalid pointers
  unloadtilemaps maptiles()
  unloadtilemap pass
  unloadtilemap foemap
@@ -950,6 +954,16 @@ SUB reset_game_final_cleanup()
  clearpage 2
  clearpage 3
  sourcerpg = ""
+END SUB
+
+SUB cleanup_game_slices ()
+ FOR i as integer = 0 TO UBOUND(herow)
+  DeleteSlice @herow(i).sl
+ NEXT i
+ FOR i as integer = 0 TO UBOUND(npc)
+  DeleteSlice @npc(i).sl
+ NEXT i
+ DestroyGameSlices
 END SUB
 
 SUB doloadgame(byval load_slot as integer)
@@ -986,6 +1000,8 @@ SUB doloadgame(byval load_slot as integer)
  refresh_purchases()
  
 END SUB
+
+'==========================================================================================
 
 SUB displayall()
  ' We need to update walkabout slice positions before calling
@@ -1068,6 +1084,12 @@ SUB displayall()
  IF gam.debug_showtags THEN tagdisplay
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
+
+
+'==========================================================================================
+'                                      Hero movement
+'==========================================================================================
+
 
 SUB interpolatecat
  'given the current positions of the caterpillar party, interpolate their inbetween frames
@@ -1318,6 +1340,12 @@ SUB update_heroes(byval force_step_check as integer=NO)
  END IF '--End of on-step triggers
 END SUB
 
+
+'==========================================================================================
+'                                       Zone triggers
+'==========================================================================================
+
+
 SUB process_zone_eachstep_triggers(who as string, byval zones as integer vector)
  FOR i as integer = 0 TO v_len(zones) - 1
   'debuginfo who & " step in zone " & zones[i]
@@ -1365,6 +1393,12 @@ SUB update_npc_zones(byval npcref as integer)
  process_zone_entry_triggers "npc" & npcref, npc(npcref).curzones, newzones
  v_move npc(npcref).curzones, newzones
 END SUB
+
+
+'==========================================================================================
+'                                      NPC movement
+'==========================================================================================
+
 
 'NPC movement
 'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
@@ -1568,6 +1602,12 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  END IF
 END SUB
 
+
+'==========================================================================================
+'                                         Scripts
+'==========================================================================================
+
+
 SUB execute_script_fibres
  WHILE nowscript >= 0
   WITH scriptinsts(nowscript)
@@ -1667,6 +1707,12 @@ SUB interpret()
  'ALSO gam.want.loadgame
 END SUB
 
+
+'==========================================================================================
+'                                   Loading map lumps
+'==========================================================================================
+
+
 SUB loadmap_gmap(byval mapnum as integer)
  lump_reloading.gmap.dirty = NO
  lump_reloading.gmap.changed = NO
@@ -1762,6 +1808,8 @@ SUB loadmap_bitmask (byval mapnum as integer, byval loadmask as integer)
  END IF
 END SUB
 
+'==========================================================================================
+
 SUB MenuSound(byval s as integer)
   IF s THEN
     stopsfx s-1
@@ -1775,6 +1823,12 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
     menusound gen(genCursorSFX)
   END IF
 END SUB
+
+
+'==========================================================================================
+'                                         Timers
+'==========================================================================================
+
 
 FUNCTION should_skip_this_timer(byval timercontext as integer, tmr as PlotTimer) as integer
  IF timercontext = TIMER_BATTLE THEN
@@ -1852,6 +1906,12 @@ function dotimerbattle() as integer
   next
   return 0
 end function
+
+
+'==========================================================================================
+'                                          Menus
+'==========================================================================================
+
 
 FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO) as integer
  IF record >= 0 AND allow_duplicate = NO THEN
@@ -2214,6 +2274,8 @@ FUNCTION allowed_to_open_main_menu () as integer
  RETURN YES
 END FUNCTION
 
+'==========================================================================================
+
 FUNCTION random_formation (byval set as integer) as integer
  DIM formset as FormationSet
  DIM as integer i, num
@@ -2234,6 +2296,8 @@ FUNCTION random_formation (byval set as integer) as integer
  NEXT
  RETURN formset.formations(foenext)
 END FUNCTION
+
+'==========================================================================================
 
 SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  'DEBUG debug "in preparemap"
@@ -2372,6 +2436,12 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  'DEBUG debug "end of preparemap"
 END SUB
+
+
+'==========================================================================================
+'                                          Doors
+'==========================================================================================
+
 
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)
@@ -2989,6 +3059,8 @@ END SUB
 
 
 '==========================================================================================
+'                                         usenpc
+'==========================================================================================
 
 
 '--Look in front of the leader for an activatable NPC.
@@ -3113,6 +3185,12 @@ FUNCTION want_to_check_for_walls(byval who as integer) as bool
  RETURN YES
 END FUNCTION
 
+
+'==========================================================================================
+'                                      Party slots
+'==========================================================================================
+
+
 SUB forceparty ()
  '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
  DIM fpi as integer = findhero(-1, 0, 40, 1)
@@ -3170,15 +3248,35 @@ FUNCTION free_slots_in_party() as integer
 
 END FUNCTION
 
-SUB cleanup_game_slices ()
- FOR i as integer = 0 TO UBOUND(herow)
-  DeleteSlice @herow(i).sl
- NEXT i
- FOR i as integer = 0 TO UBOUND(npc)
-  DeleteSlice @npc(i).sl
- NEXT i
- DestroyGameSlices
-END SUB
+FUNCTION last_active_party_slot() as integer
+ RETURN 3
+END FUNCTION
+
+FUNCTION is_active_party_slot(byval slot as integer) as integer
+ RETURN slot >=0 ANDALSO slot <= last_active_party_slot()
+END FUNCTION
+
+FUNCTION active_party_size() as integer
+ RETURN last_active_party_slot() + 1
+END FUNCTION
+
+FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
+ 'Given a slot number in the active party, return the next empty slot
+ IF direction <> 1 ANDALSO direction <> -1 THEN
+  RETURN slot
+ END IF
+ IF herocount() = 0 THEN
+  'If the party is somehow empty, return the original slot
+  RETURN slot
+ END IF
+ DO
+  slot = loopvar(slot, 0, last_active_party_slot(), direction)
+  IF gam.hero(slot).id >= 0 THEN RETURN slot
+ LOOP
+END FUNCTION
+
+
+'==========================================================================================
 
 SUB queue_music_change (byval song as integer)
  'Delay map ambient music to give scripts a chance to override it.
@@ -3221,6 +3319,8 @@ SUB check_for_queued_fade_in ()
  END IF
 END SUB
 
+'==========================================================================================
+
 FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
  '--Search to see if a rpg file or an rpgdir of a given name exists
  ' and if so, select it for playing (the browse screen will not appear)
@@ -3243,6 +3343,12 @@ FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as 
  END IF
  RETURN NO
 END FUNCTION
+
+
+'==========================================================================================
+'                                      Debug menus
+'==========================================================================================
+
 
 SUB misc_debug_menu()
  STATIC default as integer = 0
@@ -3349,6 +3455,12 @@ SUB battle_formation_testing_menu()
 
 END SUB
 
+
+'==========================================================================================
+'                                tmpdir setup & cleanup
+'==========================================================================================
+
+
 SUB refresh_keepalive_file ()
  DIM timestamp as string
  'build a timestamp string in the format YYYY-MM-DD hh:mm:ss
@@ -3444,6 +3556,12 @@ SUB cleanup_other_temp_files ()
  NEXT i
 END SUB
 
+
+'==========================================================================================
+'                                   Virtual gamepad
+'==========================================================================================
+
+
 SUB a_script_wants_keys()
  'After running a command that checks for keys, keep the virtual gamepad visible for about half a second
  gam.pad.script_wants_keys = ideal_ticks_per_second() / 2
@@ -3514,31 +3632,4 @@ FUNCTION top_menu_allows_controls() as bool
   END IF
  END IF
  RETURN NO
-END FUNCTION
-
-FUNCTION last_active_party_slot() as integer
- RETURN 3
-END FUNCTION
-
-FUNCTION is_active_party_slot(byval slot as integer) as integer
- RETURN slot >=0 ANDALSO slot <= last_active_party_slot()
-END FUNCTION
-
-FUNCTION active_party_size() as integer
- RETURN last_active_party_slot() + 1
-END FUNCTION
-
-FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
- 'Given a slot number in the active party, return the next empty slot
- IF direction <> 1 ANDALSO direction <> -1 THEN
-  RETURN slot
- END IF
- IF herocount() = 0 THEN
-  'If the party is somehow empty, return the original slot
-  RETURN slot
- END IF
- DO
-  slot = loopvar(slot, 0, last_active_party_slot(), direction)
-  IF gam.hero(slot).id >= 0 THEN RETURN slot
- LOOP
 END FUNCTION
