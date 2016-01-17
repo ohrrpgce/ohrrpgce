@@ -156,8 +156,12 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'AS', 'CC', 'CXX':
 AS = os.environ.get ('AS')
 CC = os.environ.get ('CC')
 CXX = os.environ.get ('CXX')
+clang = False
 if CC:
-    env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
+    clang = 'clang' in CC
+    if not clang:
+        # fbc does not support -gen gcc using clang
+        env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
     env.Replace (CC = CC)
 if CXX:
     env.Replace (CXX = CXX)
@@ -271,10 +275,12 @@ if arch == 'armeabi':
 elif arch == 'x86':
     env['CFLAGS'].append ('-m32')
     env['CXXFLAGS'].append ('-m32')
-    # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
-    # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
-    env['CFLAGS'].append ('-mpreferred-stack-boundary=2')
-    env['CXXFLAGS'].append ('-mpreferred-stack-boundary=2')
+    if not clang:
+        # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
+        # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
+        # I don't know what clang does, but it doesn't support this commandline option.
+        env['CFLAGS'].append ('-mpreferred-stack-boundary=2')
+        env['CXXFLAGS'].append ('-mpreferred-stack-boundary=2')
     # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
     # except on Intel Macs, where it is both always present, and required by system headers
     if not mac:
