@@ -752,15 +752,6 @@ FUNCTION istag (tagbits() as integer, byval num as integer, byval zero as intege
  RETURN 0
 END FUNCTION
 
-SUB loaddoor (byval map as integer)
-IF gen(genVersion) < 2 THEN
- '--obsolete doors
-ELSE
- '--THE RIGHT WAY--
- DeSerDoors(game + ".dox", gam.map.door(), map)
-END IF
-END SUB
-
 SUB minimap (byval x as integer, byval y as integer)
  DIM mini as Frame Ptr
  DIM zoom as integer = -1

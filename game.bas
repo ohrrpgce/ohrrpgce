@@ -2362,7 +2362,8 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   END IF
  END IF
 
- loaddoor gam.map.id
+ 'Load door locations
+ DeSerDoors(game + ".dox", gam.map.door(), gam.map.id)
 
  '--- Update/clean up various state
 
