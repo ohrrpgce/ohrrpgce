@@ -41,6 +41,15 @@ DIM SHARED waitfordepth as integer
 DIM SHARED stepmode as integer
 DIM SHARED lastscriptnum as integer
 
+'''' Global variables
+REDIM heap(maxScriptHeap) as integer
+REDIM scrat(maxScriptRunning) as OldScriptState
+REDIM scriptinsts(maxScriptRunning) as ScriptInst
+REDIM script(scriptTableSize - 1) as ScriptData Ptr
+DIM scrst as Stack
+DIM curcmd as ScriptCommand ptr
+
+
 #MACRO dumpandreturn()
  scrst.pos -= scrat(nowscript).curargn
  scriptret = 0

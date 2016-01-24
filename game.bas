@@ -53,6 +53,143 @@ DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
 
 
+'=================================== Globals ==================================
+
+'shared module variables
+DIM SHARED harmtileflash as integer = NO
+
+'global variables
+DIM gam as GameState
+DIM txt as TextBoxState
+REDIM gen(499) as integer
+DIM gen_reld_doc as DocPtr
+DIM persist_reld_doc as DocPtr
+REDIM tag(1000) as integer '16000 bitsets
+REDIM onetime(1000) as integer '16000 bitsets
+
+REDIM herotags(59) as HeroTagsCache
+REDIM itemtags(maxMaxItems) as ItemTagsCache
+REDIM statnames() as string
+
+'Party stuff
+REDIM spell(40, 3, 23) as integer
+REDIM lmp(40, 7) as integer
+REDIM eqstuf(40, 4) as integer
+REDIM inventory(inventoryMax) as InventSlot
+DIM gold as integer
+
+'Hero walkabout (caterpillar) data
+'Noninterpolated
+REDIM herow(3) as HeroWalkabout
+'Interpolated
+REDIM catx(15) as integer
+REDIM caty(15) as integer
+REDIM catz(15) as integer
+REDIM catd(15) as integer
+
+REDIM npcs(0) as NPCType
+REDIM npc(299) as NPCInst
+
+DIM vstate as VehicleState
+
+DIM mapx as integer
+DIM mapy as integer
+DIM mapsizetiles as XYPair  'Size of the map in tiles
+
+'Map
+REDIM gmap(0) as integer  'sized later
+REDIM maptiles(0) as TileMap
+DIM pass as TileMap
+DIM foemap as TileMap
+DIM zmap as ZoneMap
+REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+
+'Graphics
+DIM vpage as integer
+DIM dpage as integer
+REDIM master(255) as RGBcolor
+REDIM uilook(uiColorLast) as integer
+REDIM boxlook(uiBoxLast) as BoxStyle
+REDIM current_font(1023) as integer
+
+REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
+
+DIM fadestate as integer
+DIM presentsong as integer
+DIM backcompat_sound_slot_mode as integer
+REDIM backcompat_sound_slots(7) as integer
+
+DIM abortg as integer
+DIM resetg as integer
+DIM fatal as bool
+DIM checkfatal as bool
+DIM lastformation as integer
+DIM lastsaveslot as integer
+
+DIM usepreunlump as bool
+DIM exename as string
+DIM game as string
+DIM sourcerpg as string
+DIM savefile as string
+DIM workingdir as string
+DIM documents_dir as string
+DIM prefsdir as string
+DIM app_dir as string
+
+DIM lump_reloading as LumpReloadOptions
+lump_reloading.gmap.mode = loadmodeAlways
+lump_reloading.maptiles.mode = loadmodeAlways
+lump_reloading.passmap.mode = loadmodeAlways
+lump_reloading.foemap.mode = loadmodeAlways
+lump_reloading.zonemap.mode = loadmodeAlways
+lump_reloading.npcl.mode = loadmodeMerge
+lump_reloading.npcd.mode = loadmodeAlways
+lump_reloading.hsp.mode = loadmodeNever
+
+'Menu Data
+DIM menu_set as MenuSet
+REDIM menus(0) as MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
+REDIM mstates(0) as MenuState
+DIM topmenu as integer = -1
+
+REDIM csetup(12) as integer
+REDIM carray(13) as integer
+REDIM joy(14) as integer
+REDIM gotj(2) as integer
+
+'Script interpreter
+DIM nowscript as integer = -1
+DIM scriptret as integer
+REDIM retvals(32) as integer
+DIM scriptctr as integer
+DIM numloadedscr as integer    'Number of loaded scripts
+DIM totalscrmem as integer     'Total memory used by all loaded scripts, in WORDs
+DIM scriptcachemem as integer  'Memory used by script cache, WORDs
+DIM err_suppress_lvl as scriptErrEnum
+DIM scrwatch as integer
+DIM next_interpreter_check_time as double
+DIM interruption_grace_period as integer
+REDIM global(maxScriptGlobals) as integer
+REDIM plotstr(maxScriptStrings) as Plotstring
+REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
+DIM insideinterpreter as bool
+DIM wantimmediate as integer
+DIM last_queued_script as QueuedScript ptr
+
+'incredibly frustratingly fbc doesn't export global array debugging symbols
+DIM globalp as integer ptr
+DIM heapp as integer ptr
+DIM scratp as OldScriptState ptr
+DIM scriptp as ScriptData ptr ptr
+DIM retvalsp as integer ptr
+DIM plotslicesp as slice ptr ptr
+globalp = @global(0)
+heapp = @heap(0)
+scratp = @scrat(0)
+scriptp = @script(0)
+retvalsp = @retvals(0)
+
+
 '======================== Setup directories & debug log =======================
 ' This is almost identical to startup code in Custom; please don't unnecessarily diverge.
 
@@ -121,158 +258,13 @@ IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")
 
 'DEBUG debug "set mode-X"
 setmodex
+dpage = 1: vpage = 0
 
 'DEBUG debug "init sound"
 setupmusic
 
 'seed the random number generator
 mersenne_twister TIMER
-
-
-'=================================== Globals ==================================
-
-'DEBUG debug "dim (almost) everything"
-
-'shared module variables
-DIM SHARED harmtileflash as integer = NO
-
-'global variables
-DIM gam as GameState
-DIM txt as TextBoxState
-REDIM gen(499) as integer
-REDIM gmap(0) as integer  'sized later
-DIM gen_reld_doc as DocPtr
-DIM persist_reld_doc as DocPtr
-REDIM tag(1000) as integer '16000 bitsets
-REDIM onetime(1000) as integer '16000 bitsets
-
-REDIM herotags(59) as HeroTagsCache
-REDIM itemtags(maxMaxItems) as ItemTagsCache
-
-'Party stuff
-REDIM spell(40, 3, 23) as integer
-REDIM lmp(40, 7) as integer
-REDIM eqstuf(40, 4) as integer
-
-'Hero walkabout (caterpillar) data
-'Noninterpolated
-REDIM herow(3) as HeroWalkabout
-'Interpolated
-REDIM catx(15) as integer
-REDIM caty(15) as integer
-REDIM catz(15) as integer
-REDIM catd(15) as integer
-
-REDIM statnames() as string
-
-REDIM maptiles(0) as TileMap
-DIM pass as TileMap
-DIM foemap as TileMap
-DIM zmap as ZoneMap
-REDIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
-DIM mapsizetiles as XYPair  'Size of the map in tiles
-
-REDIM master(255) as RGBcolor
-REDIM uilook(uiColorLast) as integer
-REDIM boxlook(uiBoxLast) as BoxStyle
-REDIM current_font(1023) as integer
-
-REDIM pal16(448) as integer
-REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
-
-REDIM inventory(inventoryMax) as InventSlot
-DIM gold as integer
-
-REDIM npcs(0) as NPCType
-REDIM npc(299) as NPCInst
-
-DIM mapx as integer
-DIM mapy as integer
-DIM vpage as integer
-DIM dpage as integer
-DIM fadestate as integer
-DIM usepreunlump as integer
-DIM lastsaveslot as integer
-DIM abortg as integer
-DIM resetg as integer
-DIM presentsong as integer
-
-DIM err_suppress_lvl as scriptErrEnum
-DIM exename as string
-DIM game as string
-DIM sourcerpg as string
-DIM savefile as string
-DIM workingdir as string
-DIM documents_dir as string
-DIM prefsdir as string
-DIM app_dir as string
-
-DIM lump_reloading as LumpReloadOptions
-lump_reloading.gmap.mode = loadmodeAlways
-lump_reloading.maptiles.mode = loadmodeAlways
-lump_reloading.passmap.mode = loadmodeAlways
-lump_reloading.foemap.mode = loadmodeAlways
-lump_reloading.zonemap.mode = loadmodeAlways
-lump_reloading.npcl.mode = loadmodeMerge
-lump_reloading.npcd.mode = loadmodeAlways
-lump_reloading.hsp.mode = loadmodeNever
-
-'Menu Data
-DIM menu_set as MenuSet
-REDIM menus(0) as MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
-REDIM mstates(0) as MenuState
-DIM topmenu as integer = -1
-
-DIM fatal as bool
-DIM checkfatal as bool
-DIM lastformation as integer
-
-DIM vstate as VehicleState
-reset_vehicle vstate
-
-REDIM csetup(12) as integer
-REDIM carray(13) as integer
-REDIM joy(14) as integer
-REDIM gotj(2) as integer
-
-DIM backcompat_sound_slot_mode as integer
-REDIM backcompat_sound_slots(7) as integer
-
-DIM nowscript as integer = -1
-DIM scriptret as integer
-DIM scriptctr as integer
-DIM numloadedscr as integer    'Number of loaded scripts
-DIM totalscrmem as integer     'Total memory used by all loaded scripts, in WORDs
-DIM scriptcachemem as integer  'Memory used by script cache, WORDs
-DIM scrwatch as integer
-DIM next_interpreter_check_time as double
-DIM interruption_grace_period as integer
-REDIM heap(maxScriptHeap) as integer
-REDIM global(maxScriptGlobals) as integer
-REDIM retvals(32) as integer
-REDIM scrat(maxScriptRunning) as OldScriptState
-REDIM scriptinsts(maxScriptRunning) as ScriptInst
-REDIM script(scriptTableSize - 1) as ScriptData Ptr
-REDIM plotstr(maxScriptStrings) as Plotstring
-REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
-DIM scrst as Stack
-DIM curcmd as ScriptCommand ptr
-DIM insideinterpreter as integer
-DIM wantimmediate as integer
-DIM last_queued_script as QueuedScript ptr
-
-'incredibly frustratingly fbc doesn't export global array debugging symbols
-DIM globalp as integer ptr
-DIM heapp as integer ptr
-DIM scratp as OldScriptState ptr
-DIM scriptp as ScriptData ptr ptr
-DIM retvalsp as integer ptr
-DIM plotslicesp as slice ptr ptr
-globalp = @global(0)
-heapp = @heap(0)
-scratp = @scrat(0)
-scriptp = @script(0)
-retvalsp = @retvals(0)
 
 
 '==============================================================================
@@ -283,7 +275,6 @@ DO 'This is a big loop that encloses the entire program (more than it should). T
 
 '====================== (Re)initialise gfx/window/IO options ==================
 
-dpage = 1: vpage = 0
 presentsong = -1
 
 gam.current_master_palette = -1
@@ -591,7 +582,7 @@ setupstack
 
 SetupGameSlices
 'beginplay
-resetg = NO
+resetg = NO  'Don't skip titlescreen
 
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
@@ -631,6 +622,14 @@ txt.fully_shown = NO
 txt.show_lines = 0
 txt.sayer = -1
 txt.id = -1
+
+'--Reset some stuff related to debug keys
+gam.showtext_ticks = 0
+gam.debug_showtags = NO
+gam.debug_npc_info = NO
+gam.walk_through_walls = NO
+
+reset_vehicle vstate
 
 '========================== Title and loadgame menu ============================
 
@@ -672,12 +671,6 @@ END IF
 
 load_special_tag_caches
 evalherotags
-
-'--Reset some stuff related to debug keys
-gam.showtext_ticks = 0
-gam.debug_showtags = NO
-gam.debug_npc_info = NO
-gam.walk_through_walls = NO
 
 
 '================================= Main loop ==================================
