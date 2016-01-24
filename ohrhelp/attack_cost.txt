@@ -6,7 +6,10 @@ Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
-MP Cost: This is the number of magic points the attacker must spend to use the attack.
+Be aware that the player will only see the MP costs of an attack in a spell menu. Other costs of an attack aren't displayed.
+
+MP Cost: This is the number of magic points the attacker must spend to use the attack. The MP cost gets adjusted according to the `MP~' (spell cost %) stat. MP~ 0 makes no difference. An MP~ of 50 halves the MP cost; 100 makes the MP cost 0, and 200 negates the MP cost!
+Finally, if an attack is in a FF1-style level-MP spell list, it will also cost level-MP depending on the row it appears on. That's completely independent.
 
 HP Cost: This is how much self-damage the attacker does when using the attack. A positive number does damage, a negative number cures.
 
@@ -15,3 +18,4 @@ Gold Cost: If the attack is used by the hero, this is the amount of money the pa
 Item 1,2,3: Here you can specify up to 3 items that are required for this attack to be used. You can think of these items as "Ammunition" for the attack.
 
 Item Cost: For each item, specify a number of items required. This should be a positive number for ammunition. For example, you might make a "Crossbow" attack that requires 1 arrow for each time it is used. You can also use a negative number, and the attack will give that many items. For example, you could make a "Shotgun" attack that requires 2 "Shell" items for each attack, but gives back 2 "Casing" items each time it's used. The player can then sell the empty casings when he gets to a store.
+WARNING! Item costs act strangely on enemy attacks: they cost or give the PLAYER items, and the enemy can always use them regardless of whether the player has the necessary items!
