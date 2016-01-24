@@ -434,6 +434,7 @@ FUNCTION get_ouya_developer_id() as string
  RETURN ouya_node."developer_id".string
 END FUNCTION
 
+'Applies the benefit of a purchase; once purchased, this is called every newgame/loadgame
 SUB do_purchase_action (byval prod as NodePtr, byval new_purch as bool=YES)
  DIM buy_action as NodePtr = prod."buy_action".ptr
  IF buy_action = 0 THEN
@@ -582,7 +583,9 @@ SUB write_persist_reld()
 END SUB
 
 SUB close_persist_reld()
- write_general_reld()
+ 'There should be no need to call write_persist_reld() here, because all changes ought to be saved immediately
+ '(otherwise a crash could erase a purchase).
+ write_persist_reld()
  IF persist_reld_doc THEN
   FreeDocument persist_reld_doc
   persist_reld_doc = 0

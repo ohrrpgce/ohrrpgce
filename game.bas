@@ -282,7 +282,6 @@ load_default_master_palette master()
 DefaultUIColors uilook(), boxlook()
 getdefaultfont current_font()
 setfont current_font()
-close_general_reld()
 
 '-- Init joysticks
 FOR i as integer = 0 TO 1
@@ -533,6 +532,9 @@ game_unique_id = STR(randint(INT_MAX))
 
 
 '============================== Upgrade the game ==============================
+
+'Delete general.reld cache in case it was automatically created by something
+close_general_reld()
 
 debuginfo "Name: " & getdisplayname("")
 DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
@@ -931,6 +933,7 @@ SUB reset_game_final_cleanup()
  cleanup_game_slices
  SliceDebugDump YES
  cleanup_global_reload_doc
+ close_general_reld
  clear_binsize_cache
  stopsong
  resetsfx

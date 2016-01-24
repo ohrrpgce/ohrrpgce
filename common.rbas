@@ -70,6 +70,7 @@ DIM settings_dir as string
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
 
+'The global reload document acts as a parent to any misc reload data structures (e.g. hero data) kept in memory.
 DIM global_reload_doc as reload.DocPtr
 global_reload_doc = reload.CreateDocument()
 reload.SetRootNode(global_reload_doc, reload.CreateNode(global_reload_doc, ""))
