@@ -20,7 +20,7 @@ EXTERN presentsong as integer
 EXTERN lastsaveslot as integer
 EXTERN abortg as integer
 EXTERN resetg as integer
-EXTERN usepreunlump as integer
+EXTERN usepreunlump as bool
 EXTERN fatal as bool
 EXTERN checkfatal as bool
 EXTERN err_suppress_lvl as scriptErrEnum

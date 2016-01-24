@@ -721,8 +721,6 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 	dim of as integer
 	dim csize as integer
 
-	'debug "  -> " & destfile
-
 	of = freefile
 	if open(destfile for binary access write as #of) then
 		debug "unlumpfile(" + srcfile + "): " + destfile + " not writable, skipping"
@@ -923,6 +921,10 @@ end sub
 
 ' Unlump certain lumps, defined by fmask, to directory path
 sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)
+	#ifdef DEBUG_FILE_IO
+		debuginfo "unlumpfile(" & lumpfile & ", """ & fmask & """, " & path & ")"
+	#endif
+
 	dim errmsg as string
 	'Note: unlumpfile_internal can show errors if it can't write a lump. If so, the
 	'user can choose to skip over the lump, and unlumpfile_internal doesn't return an error!
@@ -1030,6 +1032,10 @@ end function
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
 	if isdir(package) then
+		#ifdef DEBUG_FILE_IO
+			debuginfo "copylump " & lump & " in " & package & " -> " & dest
+		#endif
+
 		'unlumped folder
 		if ignoremissing then
 			if not isfile(package + SLASH + lump) then exit sub
@@ -1046,6 +1052,10 @@ end sub
 
 'Return whether any lumps in a lumped file exist which match fmask.
 function islumpfile (lumpfile as string, fmask as string) as bool
+	#ifdef DEBUG_FILE_IO
+		debuginfo "islumpfile(" & lumpfile & ", " & fmask & ")"
+	#endif
+
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -1109,7 +1119,13 @@ function islumpfile (lumpfile as string, fmask as string) as bool
 	return ret
 end function
 
-sub lumpfiles (filelist() as string, lumpfile as string, path as string)
+'Returns an error string on error or "" if successful
+function lumpfiles (filelist() as string, lumpfile as string, path as string) as string
+	dim ret as string
+	#ifdef DEBUG_FILE_IO
+		debuginfo "lumpfiles " & lumpfile & " -> " & path
+	#endif
+
 	dim as integer lf, tl  'lumpfile, tolump
 
 	dim dat as ubyte
@@ -1117,11 +1133,13 @@ sub lumpfiles (filelist() as string, lumpfile as string, path as string)
 	dim lname as string 'name actually written
 	dim bufr as ubyte ptr
 	dim csize as integer
+	dim total_size as integer
 
 	lf = freefile
 	if open(lumpfile for binary access write as #lf) <> 0 then
-		debug "lumpfiles: Could not open file " + lumpfile
-		exit sub
+		ret = "Could not write to destination file " + lumpfile
+		debug "lumpfiles: " & ret
+		return ret
 	end if
 
 	bufr = callocate(16384)
@@ -1130,15 +1148,17 @@ sub lumpfiles (filelist() as string, lumpfile as string, path as string)
 	for i as integer = 0 to ubound(filelist)
 		lname = ucase(filelist(i))
 		if len(lname) > 50 orelse lname <> exclusive(lname, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") then
-			debug "lumpfiles: bad lump name '" & lname & "'"
+			'A bad lump name probably indicates some garbage file (e.g. text editor backup) not
+			'actually part of the game, so don't report failure
+			debug "lumpfiles: bad lump name '" & lname & "'. Ignoring and continuing"
 			continue for
 		end if
 
 		tl = freefile
 		open path + filelist(i) for binary access read as #tl
 		if err <> 0 then
-			debug "failed to open " + path + lname + " for lumping"
-			continue for
+			ret = "Failed to open " + path + lname + " for lumping"
+			exit for
 		end if
 
 		'write lump name
@@ -1148,6 +1168,7 @@ sub lumpfiles (filelist() as string, lumpfile as string, path as string)
 
 		'write lump size - PDP-endian byte order = 3,4,1,2
 		size = lof(tl)
+		total_size += size + 4 + len(lname) + 1
 		dat = (size and &hff0000) shr 16
 		put #lf, , dat
 		dat = (size and &hff000000) shr 24
@@ -1169,10 +1190,16 @@ sub lumpfiles (filelist() as string, lumpfile as string, path as string)
 		close #tl
 	next
 
+	'Double check everything was written
+	if seek(lf) <> total_size + 1 then
+		ret = "lumpfiles failed: Tried to write " & total_size & " bytes, but actually wrote " & (seek(lf) - 1)
+	end if
+
 	close #lf
 
 	deallocate bufr
-end sub
+	return ret
+end function
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer

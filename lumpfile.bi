@@ -154,7 +154,7 @@ declare function compare_files_by_record (differences() as integer, leftfile as 
 
 declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 declare function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr
-declare sub lumpfiles (filelist() as string, lump as string, path as string)
+declare function lumpfiles (filelist() as string, lumpfile as string, path as string) as string
 declare sub recover_lumped_file(lumpfile as string, destpath as string = "")
 declare sub unlump(lump as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO)
 declare sub unlumpfile(lump as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)

@@ -75,12 +75,6 @@ DIM global_reload_doc as reload.DocPtr
 global_reload_doc = reload.CreateDocument()
 reload.SetRootNode(global_reload_doc, reload.CreateNode(global_reload_doc, ""))
 
-#IFDEF IS_CUSTOM
- 'show/fatalerror option (Custom only): have we started editing?
- 'If not, we should cleanup working.tmp instead of preserving it
- DIM cleanup_on_error as integer = YES
-#ENDIF
-
 ''''' Module-local variables
 
 'a primitive system for printing messages that scroll
@@ -995,7 +989,7 @@ END FUNCTION
 
 SUB fatal_error_shutdown
  #IFDEF IS_CUSTOM
-  IF cleanup_on_error AND LEN(workingdir) THEN
+  IF cleanup_workingdir_on_error ANDALSO LEN(workingdir) ANDALSO isdir(workingdir) THEN
    touchfile workingdir & SLASH & "__danger.tmp"
    killdir workingdir
   END IF
@@ -1015,8 +1009,7 @@ SUB fatalerror (msg as string)
 END SUB
 
 'Ask the user if they want to continue (only if isfatal is false), otherwise quit.
-'cleanup_on_error: (Custom only) whether to delete working.tmp
-SUB showerror (msg as string, byval isfatal as integer = NO)
+SUB showerror (msg as string, byval isfatal as bool = NO)
  STATIC entered as integer = 0  'don't allow reentry
  IF entered THEN
   IF isfatal AND entered = 1 THEN
@@ -1045,7 +1038,7 @@ SUB showerror (msg as string, byval isfatal as integer = NO)
   quitmsg += " Press ESC to cleanly quit, or any other key to ignore the error and try to continue."
  END IF
  #IFDEF IS_CUSTOM
-  IF cleanup_on_error = NO THEN
+  IF cleanup_workingdir_on_error = NO THEN
    quitmsg += !"\nThe editing state of the game will be preserved"
    IF isfatal = NO THEN quitmsg += " if you quit immediately"
    quitmsg += "; run " + CUSTOMEXE + " again and you will be asked whether you want to recover it."

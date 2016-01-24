@@ -4283,7 +4283,8 @@ SUB spawn_game_menu
  END IF
 END SUB
 
-SUB save_current_game (byval genDebugMode_override as integer=-1)
+'Return true on success
+FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  clearpage 0
  setvispage 0
  textcolor uilook(uiText), 0
@@ -4301,10 +4302,12 @@ SUB save_current_game (byval genDebugMode_override as integer=-1)
  '--verify various stuff
  rpg_sanity_checks
  '--lump data to SAVE rpg file
- write_rpg_or_rpgdir workingdir, sourcerpg
- write_session_info  'Update sourcerpg mtime and reset editing start time
- automatic_backup sourcerpg
-END SUB
+ IF write_rpg_or_rpgdir(workingdir, sourcerpg) THEN
+  write_session_info  'Update sourcerpg mtime and reset editing start time
+  automatic_backup sourcerpg
+  RETURN YES
+ END IF
+END FUNCTION
 
 SUB automatic_backup (rpgfile as string)
  DIM keep_how_many as integer = 10 'FIXME: this could be customized per-game
@@ -4356,7 +4359,8 @@ SUB automatic_backup (rpgfile as string)
 END SUB
 
 ' Save all lumps in lumpsdir, except for *.tmp, as a lumped file or .rpgdir directory.
-SUB write_rpg_or_rpgdir (lumpsdir as string, filetolump as string)
+' Returns true on success.
+FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
  '--build the list of files to lump. We don't need hidden files
  DIM filelist() as string
  findfiles lumpsdir, ALLFILES, fileTypeFile, NO, filelist()
@@ -4370,17 +4374,30 @@ SUB write_rpg_or_rpgdir (lumpsdir as string, filetolump as string)
   END IF
   FOR i as integer = 0 TO UBOUND(filelist)
    safekill filetolump + SLASH + filelist(i)
-   copyfile lumpsdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
-   'FIXME: move file instead? (warning: can't move from different mounted filesystem)
+   IF copyfile(lumpsdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)) = NO THEN
+    pop_warning "Failed to save game to " & filetolump & LINE_END "Look in c_debug.txt for error messages."
+    RETURN NO
+   END IF
+   'Moving files instead would offer no failsafe if something goes wrong while moving
+   '(Plus can't move from different mounted filesystem)
   NEXT
  ELSE
   '---relump data into lumpfile package---
   IF NOT fileiswriteable(filetolump) THEN
    move_unwriteable_rpg filetolump
   END IF
-  lumpfiles filelist(), filetolump, lumpsdir + SLASH
+  DIM errmsg as string = lumpfiles(filelist(), filetolump, lumpsdir + SLASH)
+  IF lumpsdir = workingdir THEN
+   cleanup_workingdir_on_exit = (LEN(errmsg) = 0)  'Don't delete workingdir if it hasn't been saved
+  END IF
+  IF LEN(errmsg) THEN
+   'Show a warning instead of a fatal error: this isn't fatal
+   pop_warning "Failed to save game to " & filetolump & ": " & errmsg
+   RETURN NO
+  END IF
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 SUB move_unwriteable_rpg (filetolump as string)
  clearpage vpage

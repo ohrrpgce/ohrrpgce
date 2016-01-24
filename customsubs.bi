@@ -90,9 +90,9 @@ DECLARE SUB experience_chart ()
 DECLARE SUB stat_growth_chart ()
 DECLARE SUB spawn_game_menu ()
 
-DECLARE SUB write_rpg_or_rpgdir (lumpsdir as string, filetolump as string)
+DECLARE FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
-DECLARE SUB save_current_game(byval genDebugMode_override as integer=-1)
+DECLARE FUNCTION save_current_game(byval genDebugMode_override as integer=-1) as bool
 DECLARE SUB automatic_backup (rpgfile as string)
 
 DECLARE SUB check_used_onetime_npcs(bits() as integer)

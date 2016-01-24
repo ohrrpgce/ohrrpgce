@@ -66,4 +66,8 @@ REDIM filelist() as string
 findfiles src, ALLFILES, fileTypefile, NO, filelist()
 fixlumporder filelist()
 '---relump data into lumpfile package---
-lumpfiles filelist(), dest, src + SLASH
+DIM errmsg as string = lumpfiles(filelist(), dest, src + SLASH)
+IF LEN(errmsg) THEN
+ PRINT "FAILED to relump: " & errmsg
+ SYSTEM 1
+END IF

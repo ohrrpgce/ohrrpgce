@@ -20,10 +20,6 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "testing.bi"
 #endif
 
-'#ifdef __FB_ANDROID__
-'#define DEBUG_FILE_IO
-'#endif
-
 
 Type FBSTRING as string
 'Resize a FB string

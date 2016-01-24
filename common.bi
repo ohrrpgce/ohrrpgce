@@ -172,7 +172,7 @@ DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
 DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
 DECLARE SUB notification (msg as string)
 DECLARE SUB visible_debug (s as string)
-DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
+DECLARE SUB showerror (msg as string, byval isfatal as bool = NO)
 DECLARE SUB fatalerror (msg as string)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
 DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
@@ -315,9 +315,6 @@ EXTERN app_dir as string
 EXTERN data_dir as string
 EXTERN negative_zero as integer
 EXTERN global_reload_doc as DocPtr
-#ifdef IS_CUSTOM
- EXTERN cleanup_on_error as integer
-#endif
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemTagsCache
 EXTERN lookup1_bin_cache() as TriggerData

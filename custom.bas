@@ -129,8 +129,13 @@ DIM slave_process as ProcessHandle = 0
 EXTERN running_as_slave as integer
 DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
 
-'''' Module-global variables
-DIM SHARED workingdir_needs_cleanup as bool = NO
+'Should we delete workingdir when quitting normally?
+'False if relumping workingdir failed.
+DIM cleanup_workingdir_on_exit as bool = YES
+
+'Affects show/fatalerror: have we started editing (ie. finished upgrades and other startup)?
+'If not, we should cleanup working.tmp instead of preserving it
+DIM cleanup_workingdir_on_error as bool = YES
 
 
 '======================== Setup directories & debug log =======================
@@ -350,7 +355,7 @@ IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 write_session_info
 
 'From here on, preserve working.tmp if something goes wrong
-cleanup_on_error = NO
+cleanup_workingdir_on_error = NO
 
 'debuginfo "mem usage " & memory_usage_string()
 
@@ -650,6 +655,7 @@ SUB prompt_for_save_and_quit()
   quit_confirm(0) = "I changed my mind! Don't quit!"
   quit_confirm(1) = "I am sure I don't want to save."
   IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
+  cleanup_workingdir_on_exit = YES  'This only makes a difference if a previous attempt to save failed
  END IF
  setkeys YES
  IF quitnow > 1 THEN cleanup_and_terminate
@@ -699,6 +705,7 @@ SUB import_scripts_and_terminate (scriptfile as string)
  compile_andor_import_scripts absolute_with_orig_path(scriptfile)
  xbsave game & ".gen", gen(), 1000
  save_current_game
+ cleanup_workingdir_on_exit = YES  'Cleanup even if saving the .rpg failed: no loss
  cleanup_and_terminate NO
 END SUB
 
@@ -734,7 +741,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
   ' Don't let Spoonweaver's cat near your power cord!
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
  END IF
- IF workingdir_needs_cleanup THEN
+ IF cleanup_workingdir_on_exit THEN
   empty_workingdir workingdir
  END IF
  end_debug
@@ -1201,8 +1208,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  printstr "Finalumping", 0, 130, vpage
  setvispage vpage 'refresh
  '--re-lump files as NEW rpg file
- write_rpg_or_rpgdir workingdir, newrpg
- RETURN YES
+ RETURN write_rpg_or_rpgdir(workingdir, newrpg)
 END FUNCTION
 
 ' Argument is a timeserial
@@ -1328,7 +1334,6 @@ SUB setup_workingdir ()
  IF makedir(workingdir) <> 0 THEN
   fatalerror "Couldn't create " & workingdir & !"\nCheck c_debug.txt"
  END IF
- workingdir_needs_cleanup = YES
  write_session_info
 END SUB
 
@@ -1440,7 +1445,9 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
  setvispage vpage
  '--re-lump recovered files as RPG file
- write_rpg_or_rpgdir sessinfo.workingdir, destfile
+ IF write_rpg_or_rpgdir(sessinfo.workingdir, destfile) = NO THEN
+  RETURN NO
+ END IF
  clearpage vpage
 
  DIM msg as string
@@ -1457,6 +1464,7 @@ END FUNCTION
 'Called when a partial or complete copy of a game exists
 'Returns true if cleaned away, false if not cleaned up
 FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
+ clearpage vpage
 
  IF isfile(sessinfo.workingdir + SLASH + "__danger.tmp") THEN
   ' Don't provide option to recover, as this looks like garbage.

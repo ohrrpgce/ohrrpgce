@@ -10,6 +10,11 @@
 #include "crt/stddef.bi"
 
 
+'#ifdef __FB_ANDROID__
+'#define DEBUG_FILE_IO
+'#endif
+
+
 '----------------------------------------------------------------------
 '                           Macro utilities
 

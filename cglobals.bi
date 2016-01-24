@@ -9,3 +9,6 @@ EXTERN timing() as integer
 EXTERN activepalette as integer
 EXTERN slave_channel as IPCChannel
 EXTERN slave_process as ProcessHandle
+EXTERN cleanup_workingdir_on_exit as bool
+EXTERN cleanup_workingdir_on_error as bool
+

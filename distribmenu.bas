@@ -31,7 +31,7 @@ DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") a
 DECLARE SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
 DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
-DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
 DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
@@ -534,7 +534,7 @@ SUB distribute_game_as_zip ()
  
 END SUB
 
-FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as integer
+FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
  'Return true on success, false on fail
 
  DIM extension as string = LCASE(justextension(src_rpg_or_rpgdir))
@@ -542,10 +542,8 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as int
  IF extension = "rpgdir" THEN
   basic_textbox "LUMPING DATA: please wait...", uilook(uiText), vpage
   setvispage vpage
-  write_rpg_or_rpgdir src_rpg_or_rpgdir, dest_rpg
-  clearpage vpage
-  IF NOT isfile(dest_rpg) THEN
-   visible_debug "ERROR: failed relumping " & src_rpg_or_rpgdir
+  IF NOT write_rpg_or_rpgdir(src_rpg_or_rpgdir, dest_rpg) THEN
+   'Already showed error
    RETURN NO
   END IF
  ELSE 'simple case for regular .rpg files
