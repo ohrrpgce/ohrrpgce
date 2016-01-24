@@ -111,6 +111,7 @@ class RPGIterator(object):
         # Stats
         self.num_zips = 0
         self.num_badzips = 0
+        self.num_unsupported_zips = 0
         self.num_badrpgs = 0
         self.num_rpgs = 0
         self.num_uniquerpgs = 0
@@ -184,6 +185,15 @@ class RPGIterator(object):
         self.current_rpg = rpg
         return proxy(rpg)
 
+    def _try_get_rpg(self, fname, game_identifier):
+        try:
+            return self._get_rpg(fname)
+        except CorruptionError as e:
+            self._print("%s is corrupt, skipped: %s" % (game_identifier, e))
+            self.num_badrpgs += 1
+            # Clear last exception: it holds onto local variables in stack frames
+            sys.exc_clear()
+
     def _cleanup(self):
         self.current_rpg = None
         if self.cleanup_dir:
@@ -208,20 +218,16 @@ class RPGIterator(object):
                     gameinfo.mtime = os.stat(fname).st_mtime
                     gameinfo.size = os.stat(fname).st_size
                     self.bytes += gameinfo.size
-                    try:
-                        rpg = self._get_rpg(fname)
-                    except CorruptionError as e:
-                        self._print("%s is corrupt, skipped: %s" % (fname, e))
-                        self.num_badrpgs += 1
-                        # Clear last exception: it holds onto local variables in stack frames
-                        sys.exc_clear()
-                    gameinfo.loadname(rpg)
-                    yield rpg, gameinfo, None
+                    rpg = self._try_get_rpg(fname, fname)
+                    if rpg:
+                        gameinfo.loadname(rpg)
+                        yield rpg, gameinfo, None
                     self._cleanup()
 
             for f, src in self.zipfiles:
                 # ZipFile is a context manager only in python 2.7+
                 try:
+                    archive = None
                     try:
                         archive = zipfile.ZipFile(f, "r")
                     except IOError as e:
@@ -276,13 +282,10 @@ class RPGIterator(object):
                         gameinfo.size = size
                         if self._nonduplicate(extractto, gameinfo.id):
                             self.bytes += gameinfo.size
-                            try:
-                                yield self._get_rpg(extractto), gameinfo, zipinfo
-                            except CorruptionError as e:
-                                self._print("%s is corrupt, skipped: %s" % (gameinfo.id, e))
-                                self.num_badrpgs += 1
-                                # Clear last exception: it holds onto local variables in stack frames
-                                sys.exc_clear()
+                            rpg = self._try_get_rpg(extractto, gameinfo.id)
+                            if rpg:
+                                gameinfo.loadname(rpg)
+                                yield rpg, gameinfo, zipinfo
                             self._cleanup()
                         if path.isdir(extractto):
                             shutil.rmtree(extractto)
@@ -292,6 +295,9 @@ class RPGIterator(object):
                 except (zipfile.BadZipfile, zlib.error):
                     self._print("%s is corrupt, skipping" % f)
                     self.num_badzips += 1
+                except NotImplementedError as e:
+                    self._print("%s couldn't be read, skipping: NotImplementedError: %s" % (f, e))
+                    self.num_unsupported_zips += 1
                 finally:
                     if archive:
                         archive.close()
@@ -308,7 +314,7 @@ class RPGIterator(object):
 
     def print_summary(self):
         print '\n'.join(self.timings)
-        print "Scanned %d zips (%d bad)" % (self.num_zips, self.num_badzips)
+        print "Scanned %d zips (%d bad, %d unsupported)" % (self.num_zips, self.num_badzips, self.num_unsupported_zips)
         print "Found %d RPGS, %d corrupt, (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_badrpgs, self.num_uniquerpgs, self.bytes / 2.**20)
         print 
         for gameids in self.hashs.itervalues():
