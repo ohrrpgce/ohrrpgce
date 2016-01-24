@@ -1,11 +1,19 @@
 #!/usr/bin/env python
-#
-# Collects a random selection of data, saved to gamedata.bin
-
+"""
+An rpgbatch example.
+Collects a random selection of data and saves it to gamedata.bin:
+metadata and gen, mas, fnt and fixbits.bin lumps for each game.
+This can then be loaded by analyze.py or analyze_gen.py.
+Partially useful in itself (mainly for looking at GEN and fixbits.bin:
+you can download a gamedata.bin generated from a huge collection of .rpg
+files at http://tmc.castleparadox.com/ohr/gamelist/)
+but mainly this just an example.
+"""
 import os
 import sys
 import time
 import cPickle as pickle
+import StringIO
 import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
@@ -20,6 +28,7 @@ rpgidx = np.ndarray(shape = 0, dtype = RPGInfo)
 gen = np.ndarray(shape = 0, dtype = dt['gen'])
 mas = np.ndarray(shape = 0, dtype = dt['mas'])
 fnt = np.ndarray(shape = 0, dtype = dt['fnt'])
+fixbits = []
 
 data = []
 withscripts = 0
@@ -43,6 +52,13 @@ for rpg, gameinfo, zipinfo in rpgs:
     gen = np.append(gen, rpg.general)
     mas = np.append(mas, rpg.data('mas', shape = 1))  # Ignore overlong lumps
     fnt = np.append(fnt, rpg.data('fnt', shape = 1))
+    if rpg.has_lump('fixbits.bin'):
+        # Read into a buffer so it can be pickled.
+        # rpg.data() on fixbits doesn't work due to variable file length.
+        stringfile = StringIO.StringIO(file(rpg.lump_path('fixbits.bin')).read())
+        fixbits.append(fixBits(stringfile))
+    else:
+        fixbits.append(None)
 
     # This is just a dumb example
     print "Processing RPG ", gameinfo.id, "from", gameinfo.src
@@ -61,7 +77,7 @@ mas = mas.view(OhrData)
 fnt = fnt.view(OhrData)
 
 with open('gamedata.bin', 'wb') as f:
-    pickle.dump({'rpgidx':rpgidx, 'gen':gen, 'mas':mas, 'fnt':fnt}, f, protocol = 2)
+    pickle.dump({'rpgidx':rpgidx, 'gen':gen, 'mas':mas, 'fnt':fnt, 'fixbits': fixbits}, f, protocol = 2)
 
 
 # Continuing the dumb example
