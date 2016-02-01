@@ -1775,9 +1775,11 @@ SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprit
 END SUB
 
 SUB setup_enemy_sprite_and_name(byval slot as integer, bslot() as BattleSprite)
- '--Update sprite
+ '--Update sprite. If this BattleSprite was previously used by a now-dead enemy, then a sprite and pal will already be loaded.
  with bslot(4 + slot)
   .sprite_num = 1
+  frame_unload @.sprites
+  palette16_unload @.pal
   .sprites = frame_load(1 + .enemy.size, .enemy.pic)
   .pal = palette16_load(.enemy.pal, 1 + .enemy.size, .enemy.pic)
   .name = .enemy.name
