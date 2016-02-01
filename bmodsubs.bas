@@ -69,6 +69,9 @@ IF large(bslot(attacker).stat.cur.mp, 0) - focuscost(atk.mp_cost, bslot(attacker
  RETURN NO
 END IF
 
+'NOTE: hp_cost is not checked!
+'NOTE: money_cost is not checked!
+
 '--check for level-MP (heroes only)
 IF attacker <= 3 AND spclass = 1 THEN
  IF lmp(attacker, lmplev) - 1 < 0 THEN
@@ -83,7 +86,9 @@ FOR i as integer = 0 to 2
   itemid = atk.item(i).id
   itemcount = atk.item(i).number
   IF itemid > 0 THEN 'this slot is used
-    IF attacker <= 3 THEN ' Only hero items are checked right now
+    ' Only hero items are checked
+    ' However if an enemy uses this attack, it will add/subtract items from the player!
+    IF attacker <= 3 THEN
       IF countitem(itemid - 1) < itemcount THEN
         'yes, this still works for adding items.
         RETURN NO

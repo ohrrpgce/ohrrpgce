@@ -163,17 +163,13 @@ declare sub setstackposition (st as Stack, byval position as integer)
 #define readstack(stack, off)         stack.pos[(off) - 1]
 #define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
 
-'Old allmodex stack (FIXME: get rid of this)
+'Old allmodex stack (FIXME: get rid of this, can be directly replaced with the above)
 declare sub setupstack ()
-declare sub pushw (byval word as integer)
-declare function popw () as integer
 declare sub pushdw (byval word as integer)
 declare function popdw () as integer
 declare sub releasestack ()
 declare function stackpos () as integer
 declare function readstackdw (byval off as integer) as integer
-declare function readstackw (byval off as integer) as integer
-
 
 
 '------------ String Cache ------------

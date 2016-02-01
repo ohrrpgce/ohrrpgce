@@ -91,7 +91,6 @@ DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as Menu
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 
-'A value which is preserved after invertstack swaps the 16-bit words
 CONST ANIM_SKIP_SENTINEL = &hDEEFDEEF
 
 'these are the battle global variables
@@ -345,15 +344,15 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
  export_battle_hero_stats bslot()
 
  '--overflow checking for the battle stack
- IF (stackpos - bstackstart) \ 2 > 0 THEN
+ IF stackpos() - bstackstart > 0 THEN
   '--an overflow is not unusual. This happens if the battle terminates
   '--while an attack is still going on
   DIM dummy as integer
-  WHILE stackpos > bstackstart: dummy = popw: WEND
+  WHILE stackpos > bstackstart: dummy = popdw: WEND
  END IF
 
  '--underflow checking
- IF (stackpos - bstackstart) \ 2 < 0 THEN
+ IF stackpos() - bstackstart < 0 THEN
   '--an underflow is bad. It used to mean that whatever script was on
   '--the top of the stack has been corrupted, but now scripts don't use this stack
   '--but an underflow is still bad in principle.
@@ -408,7 +407,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
  DIM w2 as integer
  
  DO: 'INTERPRET THE ANIMATION SCRIPT
-  act = popw
+  act = popdw
   SELECT CASE act
    CASE 0 '--end()
     FOR i = 0 TO 3
@@ -431,37 +430,37 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     NEXT i
     bat.atk.id = -1
    CASE 2 'setmove(who,xm,ym,xstep,ystep)
-    ww = popw
-    bslot(ww).xmov = popw
-    bslot(ww).ymov = popw
-    bslot(ww).xspeed = popw
-    bslot(ww).yspeed = popw
+    ww = popdw
+    bslot(ww).xmov = popdw
+    bslot(ww).ymov = popdw
+    bslot(ww).xspeed = popdw
+    bslot(ww).yspeed = popdw
    CASE 3 'setpos(who,x,y,d)
-    ww = popw
-    bslot(ww).x = popw
-    bslot(ww).y = popw
-    bslot(ww).d = popw
+    ww = popdw
+    bslot(ww).x = popdw
+    bslot(ww).y = popdw
+    bslot(ww).d = popdw
    CASE 4 '???()
     '--undefined
    CASE 5 'appear(who)
-    ww = popw
+    ww = popdw
     bslot(ww).vis = 1
    CASE 6 'disappear(who)
-    ww = popw
+    ww = popdw
     bslot(ww).vis = 0
    CASE 7 'setframe(who,frame)
-    ww = popw
-    DIM fr as integer = popw
+    ww = popdw
+    DIM fr as integer = popdw
     bslot(ww).frame = fr
     IF is_hero(ww) THEN bslot(ww).walk = 0
    CASE 8 'absmove(who,n,n,n,n)
-    ww = popw
+    ww = popdw
     DIM destpos as XYPair
-    destpos.x = popw
-    destpos.y = popw
+    destpos.x = popdw
+    destpos.y = popdw
     DIM movestep as XYPair
-    movestep.x = popw
-    movestep.y = popw
+    movestep.x = popdw
+    movestep.y = popdw
     bslot(ww).xspeed = (destpos.x - bslot(ww).x) / movestep.x
     bslot(ww).yspeed = (destpos.y - bslot(ww).y) / movestep.y
     bslot(ww).xmov = movestep.x
@@ -469,69 +468,69 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    CASE 9 'waitforall()
     bat.wait_frames = -1
    CASE 10 'inflict(targ, target_count)
-    DIM targ as integer = popw
-    DIM tcount as integer = popw
+    DIM targ as integer = popdw
+    DIM tcount as integer = popdw
     battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata
    CASE 11 'setz(who,z)
-    ww = popw
-    bslot(ww).z = popw
+    ww = popdw
+    bslot(ww).z = popdw
    CASE 12 '???(n,n,n,n,n)
     'unimplemented
    CASE 13 'wait(ticks)
-    bat.wait_frames = popw
+    bat.wait_frames = popdw
    CASE 14 'walktoggle(who)
-    ww = popw
+    ww = popdw
     bslot(ww).frame = frameSTAND
     IF is_hero(ww) THEN bslot(ww).walk XOR= 1
    CASE 15 'zmove(who,zm,zstep)
-    ww = popw
-    bslot(ww).zmov = popw
-    bslot(ww).zspeed = popw
+    ww = popdw
+    bslot(ww).zmov = popdw
+    bslot(ww).zspeed = popdw
    CASE 16 'sound(which)
-    DIM soundnum as integer = popw
+    DIM soundnum as integer = popdw
     stopsfx(soundnum)  'Restart the sound effect
     playsfx(soundnum)
    CASE 17 'align(who, target, edge, offset)
-    w1 = popw
-    w2 = popw
-    select case popw 'which edge?
+    w1 = popdw
+    w2 = popdw
+    select case popdw 'which edge?
     case dirUp
-     bslot(w1).y = bslot(w2).y + popw
+     bslot(w1).y = bslot(w2).y + popdw
     case dirDown
-     bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+     bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popdw
     case dirLeft
-     bslot(w1).x = bslot(w2).x + popw
+     bslot(w1).x = bslot(w2).x + popdw
     case dirRight
-     bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+     bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popdw
     end select
    CASE 18 'setcenter(who, target, offx, offy)
-    w1 = popw
-    w2 = popw
-    bslot(w1).x = (bslot(w2).w - bslot(w1).w) / 2 + bslot(w2).x + popw
-    bslot(w1).y = (bslot(w2).h - bslot(w1).h) / 2 + bslot(w2).y + popw
+    w1 = popdw
+    w2 = popdw
+    bslot(w1).x = (bslot(w2).w - bslot(w1).w) / 2 + bslot(w2).x + popdw
+    bslot(w1).y = (bslot(w2).h - bslot(w1).h) / 2 + bslot(w2).y + popdw
   CASE 19 'align2(who, target, edgex, edgey, offx, offy)
-   w1 = popw
-   w2 = popw
-   DIM xd as integer = popw
-   DIM yd as integer = popw
+   w1 = popdw
+   w2 = popdw
+   DIM xd as integer = popdw
+   DIM yd as integer = popdw
    if xd then
-    bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+    bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popdw
    else
-    bslot(w1).x = bslot(w2).x + popw
+    bslot(w1).x = bslot(w2).x + popdw
    end if
    if yd then
-    bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+    bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popdw
    else
-    bslot(w1).y = bslot(w2).y + popw
+    bslot(w1).y = bslot(w2).y + popdw
    end if
   CASE 20 'relmove(who, x, y, sx, sy)
-   ww = popw  'who
+   ww = popdw  'who
    DIM movedist as XYPair
-   movedist.x = popw
-   movedist.y = popw
+   movedist.x = popdw
+   movedist.y = popdw
    DIM movestep as XYPair
-   movestep.x = popw
-   movestep.y = popw
+   movestep.x = popdw
+   movestep.y = popdw
    with bslot(ww)
     if movedist.y <> 0 then .xspeed = movedist.x / movestep.x
     if movestep.y <> 0 then .yspeed = movedist.y / movestep.y
@@ -539,8 +538,8 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     .ymov = movedist.y
    end with
   CASE 21 'setdir(who, d)
-   ww = popw
-   DIM newdir as integer = popw
+   ww = popdw
+   DIM newdir as integer = popdw
    bslot(ww).d = newdir
   CASE 22 'anim_skip_ahead_if_targetless
    'For multihit attacks, skip rest of hits if no targets left.
@@ -549,11 +548,11 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    IF check_has_remaining_targets(bat, bslot(), bat.anim_t()) THEN CONTINUE DO
    'Skip ahead, looking for command 23. We are looking for a 10 byte pattern
    DO
-    IF stackpos < 4 THEN
+    IF stackpos <= 0 THEN
      debugc errBug, "anim_skip_ahead_if_targetless: couldn't find point to skip to"
      EXIT DO
     END IF
-    DIM word as integer = popw
+    DIM word as integer = popdw
     IF word = 23 AND readstackdw(-1) = ANIM_SKIP_SENTINEL AND readstackdw(-2) = ANIM_SKIP_SENTINEL THEN
      popdw
      popdw
@@ -714,9 +713,9 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
  bat.atk.was_id = -1
 
  '--clean up animation stack
- 'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
+ 'DEBUG debug "discarding " & (stackpos - bstackstart) & " from stack"
  DIM dummy as integer
- WHILE stackpos > bstackstart: dummy = popw: WEND
+ WHILE stackpos > bstackstart: dummy = popdw: WEND
  
  '--spawn the next after-chained attack (if any)
  IF spawn_chained_attack(attack.chain, attack, bat, bslot()) = NO THEN
@@ -1940,14 +1939,14 @@ SUB invertstack
 DIM i as integer
 DIM stackdepth as integer
 
-stackdepth = (stackpos - bstackstart) \ 2
+stackdepth = stackpos() - bstackstart
 
 FOR i = 0 TO stackdepth - 1
- buffer(i) = popw
+ buffer(i) = popdw
 NEXT i
 
 FOR i = 0 TO stackdepth - 1
- pushw buffer(i)
+ pushdw buffer(i)
 NEXT i
 
 END SUB
@@ -1974,89 +1973,89 @@ SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as Battl
 END SUB
 
 SUB anim_end()
- pushw 0
+ pushdw 0
 END SUB
 
 SUB anim_inflict(byval who as integer, byval target_count as integer)
- pushw 10: pushw who: pushw target_count
+ pushdw 10: pushdw who: pushdw target_count
 END SUB
 
 SUB anim_disappear(byval who as integer)
- pushw 6: pushw who
+ pushdw 6: pushdw who
 END SUB
 
 SUB anim_setpos(byval who as integer, byval x as integer, byval y as integer, byval d as integer)
- pushw 3: pushw who: pushw x: pushw y: pushw d
+ pushdw 3: pushdw who: pushdw x: pushdw y: pushdw d
 END SUB
 
 SUB anim_setz(byval who as integer, byval z as integer)
- pushw 11: pushw who: pushw z
+ pushdw 11: pushdw who: pushdw z
 END SUB
 
 SUB anim_appear(byval who as integer)
- pushw 5: pushw who
+ pushdw 5: pushdw who
 END SUB
 
 ' For ABS(xmove_ticks) ticks, move xstep pixels in the direction SGN(xmove_ticks), and ditto for ymove_ticks/ystep.
 SUB anim_setmove(who as integer, xmove_ticks as integer, ymove_ticks as integer, xstep as integer, ystep as integer)
- pushw 2: pushw who: pushw xmove_ticks: pushw ymove_ticks: pushw xstep: pushw ystep
+ pushdw 2: pushdw who: pushdw xmove_ticks: pushdw ymove_ticks: pushdw xstep: pushdw ystep
 END SUB
 
 SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
- pushw 8: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
+ pushdw 8: pushdw who: pushdw tox: pushdw toy: pushdw xspeed: pushdw yspeed
 END SUB
 
 SUB anim_zmove(byval who as integer, byval zm as integer, byval zstep as integer)
- pushw 15: pushw who: pushw zm: pushw zstep
+ pushdw 15: pushdw who: pushdw zm: pushdw zstep
 END SUB
 
 SUB anim_wait(byval ticks as integer)
- pushw 13: pushw ticks
+ pushdw 13: pushdw ticks
 END SUB
 
 SUB anim_setframe(byval who as integer, byval frame as integer)
- pushw 7: pushw who: pushw frame
+ pushdw 7: pushdw who: pushdw frame
 END SUB
 
 SUB anim_waitforall()
- pushw 9
+ pushdw 9
 END SUB
 
 SUB anim_walktoggle(byval who as integer)
- pushw 14: pushw who
+ pushdw 14: pushdw who
 END SUB
 
 SUB anim_sound(byval which as integer)
- pushw 16: pushw which
+ pushdw 16: pushdw which
 END SUB
 
 SUB anim_align(byval who as integer, byval target as integer, byval dire as integer, byval offset as integer)
- pushw 17: pushw who: pushw target: pushw dire: pushw offset
+ pushdw 17: pushdw who: pushdw target: pushdw dire: pushdw offset
 END SUB
 
 SUB anim_setcenter(byval who as integer, byval target as integer, byval offx as integer, byval offy as integer)
- pushw 18: pushw who: pushw target: pushw offx: pushw offy
+ pushdw 18: pushdw who: pushdw target: pushdw offx: pushdw offy
 END SUB
 
 SUB anim_align2(byval who as integer, byval target as integer, byval edgex as integer, byval edgey as integer, byval offx as integer, byval offy as integer)
- pushw 19: pushw who: pushw target: pushw edgex: pushw edgey: pushw offx: pushw offy
+ pushdw 19: pushdw who: pushdw target: pushdw edgex: pushdw edgey: pushdw offx: pushdw offy
 END SUB
 
 SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
- pushw 20: pushw who: pushw tox: pushw toy: pushw xspeed: pushw yspeed
+ pushdw 20: pushdw who: pushdw tox: pushdw toy: pushdw xspeed: pushdw yspeed
 END SUB
 
 SUB anim_setdir(byval who as integer, byval d as integer)
- pushw 21: pushw who: pushw d
+ pushdw 21: pushdw who: pushdw d
 END SUB
 
 SUB anim_skip_ahead_if_targetless()
- pushw 22
+ pushdw 22
 END SUB
 
 SUB anim_skip_to_here()
  'Place markers to look for later
- pushw 23: pushdw ANIM_SKIP_SENTINEL: pushdw ANIM_SKIP_SENTINEL
+ pushdw 23: pushdw ANIM_SKIP_SENTINEL: pushdw ANIM_SKIP_SENTINEL
 END SUB
 
 SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
@@ -3243,7 +3242,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   END SELECT
  END IF
  
- 'DEBUG debug "stackpos = " & (stackpos - bstackstart) \ 2
+ 'DEBUG debug "stackpos = " & (stackpos - bstackstart)
  invertstack
  
  '--Remember the attack ID for later call to fulldeathcheck

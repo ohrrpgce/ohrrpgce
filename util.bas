@@ -454,76 +454,47 @@ END SUB
 
 '------------- Old allmodex stack  -------------
 
-dim shared stackbottom as ubyte ptr
-dim shared stackptr as ubyte ptr
-dim shared stacksize as integer = -1
+dim shared stackbottom as integer ptr
+dim shared stackptr as integer ptr    'Where to put the next pushed dword
+dim shared stacksize as integer = -1  'In dwords
 
 SUB setupstack ()
-	stackbottom = callocate(32768)
-	if (stackbottom = 0) then
+	stacksize = 8192
+	stackbottom = callocate(sizeof(integer) * stacksize)
+	if stackbottom = 0 then
 		'oh dear
 		debug "Not enough memory for stack"
+                stacksize = -1
 		exit sub
 	end if
 	stackptr = stackbottom
-	stacksize = 32768
 end SUB
-
-SUB pushw (byval word as integer)
-	if stackptr - stackbottom > stacksize - 2 then
-		dim newptr as ubyte ptr
-		newptr = reallocate(stackbottom, stacksize + 32768)
-		if newptr = 0 then
-			debug "stack: out of memory"
-			exit sub
-		end if
-		stacksize += 32768
-		stackptr += newptr - stackbottom
-		stackbottom = newptr
-	end if
-	*cast(short ptr, stackptr) = word
-	stackptr += 2
-end SUB
-
-FUNCTION popw () as integer
-	dim pw as short
-
-	if (stackptr >= stackbottom + 2) then
-		stackptr -= 2
-		pw = *cast(short ptr, stackptr)
-	else
-		pw = 0
-		debug "underflow"
-	end if
-
-	popw = pw
-end FUNCTION
 
 SUB pushdw (byval dword as integer)
-	if stackptr - stackbottom > stacksize - 4 then
-		dim newptr as ubyte ptr
-		newptr = reallocate(stackbottom, stacksize + 32768)
+	if stackptr - stackbottom >= stacksize then
+		dim newptr as integer ptr
+		stacksize += 8192
+		newptr = reallocate(stackbottom, sizeof(integer) * stacksize)
 		if newptr = 0 then
 			debug "stack: out of memory"
 			exit sub
 		end if
-		stacksize += 32768
 		stackptr += newptr - stackbottom
 		stackbottom = newptr
 	end if
-	*cast(integer ptr, stackptr) = dword
-	stackptr += 4
+	*stackptr = dword
+	stackptr += 1
 end SUB
 
 FUNCTION popdw () as integer
 	dim pdw as integer
 
-	if (stackptr >= stackbottom - 4) then
-		stackptr -= 4
-		pdw = *cast(integer ptr, stackptr)
+	if (stackptr >= stackbottom + 1) then
+		stackptr -= 1
+		pdw = *stackptr
 	else
 		pdw = 0
-		debug "underflow"
+		debugc errPromptBug, "Stack underflow"
 	end if
 
 	popdw = pdw
@@ -536,20 +507,15 @@ SUB releasestack ()
 	end if
 end SUB
 
+'Number of dwords that have been pushed to the stack
 FUNCTION stackpos () as integer
 	stackpos = stackptr - stackbottom
 end FUNCTION
 
 'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
 FUNCTION readstackdw (byval off as integer) as integer
-	if stackptr + off * 4 >= stackbottom then
-		return *cptr(integer ptr, stackptr + off * 4)
-	end if
-END FUNCTION
-
-FUNCTION readstackw (byval off as integer) as integer
-	if stackptr + off * 2 >= stackbottom then
-		return *cptr(short ptr, stackptr + off * 2)
+	if stackptr + off >= stackbottom then
+		return *(stackptr + off)
 	end if
 END FUNCTION
 
