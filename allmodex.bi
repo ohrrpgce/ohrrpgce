@@ -254,6 +254,8 @@ declare function get_safe_zone_margin () as integer
 declare sub set_safe_zone_margin (byval margin as integer)
 declare function supports_safe_zone_margin () as bool
 
+declare sub email_files(address as string, subject as string, message as string, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL)
+
 'globals
 extern keybdmutex as any ptr
 extern modex_initialised as bool

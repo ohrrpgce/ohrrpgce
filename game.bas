@@ -3403,15 +3403,18 @@ END FUNCTION
 '                                      Debug menus
 '==========================================================================================
 
-
 SUB misc_debug_menu()
  STATIC default as integer = 0
- DIM menu(4) as string
+ REDIM menu(4) as string
  menu(0) = "Test Battles"
  menu(1) = "View/Edit Slice Tree"
  menu(2) = "Manipulate gen() array"
  menu(3) = "Manipulate gmap() array"
  menu(4) = "Test Slicified Spell Screen"
+ #IFDEF __FB_ANDROID__
+  REDIM PRESERVE menu(5)
+  menu(5) = "Email the game developer"
+ #ENDIF
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
  IF result = -1 THEN EXIT SUB
@@ -3423,6 +3426,7 @@ SUB misc_debug_menu()
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
   CASE 4: spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+  CASE 5: email_save_to_developer
  END SELECT
  restore_previous_palette
 END SUB
@@ -3507,6 +3511,24 @@ SUB battle_formation_testing_menu()
  freepage holdscreen
  ClearMenuData menu
 
+END SUB
+
+'Save the game to a temporary slot, and email it to game author.
+'Currently only works on Android
+SUB email_save_to_developer
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+ savegame 33
+ DIM savefile as string = savedir & SLASH & "33.rsav"
+ DIM logfile as string = log_dir & "g_debug.txt"
+ DIM subject as string = getdisplayname(trimpath(sourcerpg)) & " saved game"
+ DIM message as string = "(Please include a helpful description of the problem here)"
+
+ ' Later on it would be *awesome* to always record an .ohrkeys file since the last time the player
+ ' loaded a save or started a game, and include that and the save too.
+ email_files(distinfo.email, subject, message, savefile, logfile)
+ debuginfo "Emailed savefile to " & distinfo.email
+ ' Is it safe to delete 33.rsav immediately?
 END SUB
 
 

@@ -21,6 +21,16 @@ using Reload
 declare sub exitprogram (byval need_fade_out as bool, byval errorout as integer = 0)
 #endif
 
+#ifdef __FB_ANDROID__
+'This is gfx_sdl specific, of course, but a lot of the stuff in our fork of the android fork
+'of SDL 1.2 would more make sense to live in totally separate java files, which is something we will
+'want to do to support SDL 2 on Android.
+extern "C"
+	'Return value is always 1
+	declare function SDL_ANDROID_EmailFiles(address as zstring ptr, subject as zstring ptr, message as zstring ptr, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL) as integer
+end extern
+#endif
+
 
 'Note: While non-refcounted frames work (at last check), it's not used anywhere, and you most probably do not need it
 'NOREFC is also used to indicate uncached Palette16's. Note Palette16's are NOT refcounted in the way as frames
@@ -210,6 +220,7 @@ dim shared mouse_grab_overridden as bool = NO
 dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 dim shared remember_title as string
+
 
 
 '==========================================================================================
@@ -7057,3 +7068,11 @@ function ouya_receipts_result () as string
 	'Always returns "" on other platforms
 	return gfx_ouya_receipts_result()
 end function
+
+sub email_files(address as string, subject as string, message as string, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL)
+	#ifdef __FB_ANDROID__
+		SDL_ANDROID_EmailFiles(address, subject, message, file1, file2, file3)
+	#else
+		debug "email_files only supported on Android"
+	#endif
+end sub

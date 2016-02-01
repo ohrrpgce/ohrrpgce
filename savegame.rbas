@@ -77,7 +77,7 @@ DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
 DECLARE FUNCTION old_count_used_save_slots() as integer
 
 DIM SHARED old_savefile as string
-DIM SHARED savedir as string
+DIM savedir as string  'Global
 
 DIM SHARED current_save_slot as integer '--used in rsav_warn
 

@@ -79,6 +79,8 @@ DECLARE SUB refresh_keepalive_file ()
 DECLARE FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
 DECLARE FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
 
+DECLARE SUB email_save_to_developer()
+
 DECLARE SUB update_virtual_gamepad_display()
 DECLARE FUNCTION calc_virtual_gamepad_state() as bool
 DECLARE SUB a_script_wants_keys()

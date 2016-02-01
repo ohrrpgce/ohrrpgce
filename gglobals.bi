@@ -12,6 +12,7 @@
 
 'Misc game globals
 EXTERN prefsdir as string ' currently only used by Linux
+EXTERN savedir as string
 EXTERN timing() as integer
 EXTERN speedcontrol as double
 EXTERN autotestmode as bool
