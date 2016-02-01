@@ -34,7 +34,8 @@ extern "C"
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
 'The decoder enum functions are only available in SDL_mixer > 1.2.8 which is the version shipped with
-'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
+'Debian 6.0 Squeeze and hence older Ubuntu. Squeeze was superceded by 7.0 Wheezy in May 2013.
+'We distribute our own copy of SDL_mixer for Windows and Mac,
 'so we don't have to worry there.
 #ifndef __FB_LINUX__
 	#define ENUMERATE_DECODERS
