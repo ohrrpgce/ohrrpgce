@@ -4150,6 +4150,8 @@ SUB sfunctions(byval cmdid as integer)
   gen(genCameraArg3) = ABS(retvals(2))
   gen(genCameraArg4) = ABS(retvals(2))
   limitcamera gen(genCameraArg1), gen(genCameraArg2)
+ CASE 604'--email saved game
+  email_save_to_developer
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
