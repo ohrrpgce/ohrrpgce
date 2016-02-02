@@ -7070,6 +7070,7 @@ function ouya_receipts_result () as string
 end function
 
 sub email_files(address as string, subject as string, message as string, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL)
+	debuginfo "Emailing " & *file1 & " " & *file2 & " " & *file3 & " to " & address
 	#ifdef __FB_ANDROID__
 		SDL_ANDROID_EmailFiles(address, subject, message, file1, file2, file3)
 	#else

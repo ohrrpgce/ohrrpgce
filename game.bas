@@ -3521,14 +3521,15 @@ SUB email_save_to_developer
  savegame 33
  DIM savefile as string = savedir & SLASH & "33.rsav"
  DIM logfile as string = log_dir & "g_debug.txt"
+ DIM logfile2 as string = log_dir & "g_debug_archive.txt"
+ IF isfile(logfile2) = NO THEN logfile2 = ""
  DIM subject as string = getdisplayname(trimpath(sourcerpg)) & " saved game"
  DIM message as string = "(Please include a helpful description of the problem here)"
 
  ' Later on it would be *awesome* to always record an .ohrkeys file since the last time the player
  ' loaded a save or started a game, and include that and the save too.
- email_files(distinfo.email, subject, message, savefile, logfile)
- debuginfo "Emailed savefile to " & distinfo.email
- ' Is it safe to delete 33.rsav immediately?
+ email_files(distinfo.email, subject, message, savefile, logfile, logfile2)
+ ' Not safe to delete 33.rsav immediately.
 END SUB
 
 
