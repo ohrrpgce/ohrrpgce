@@ -24,6 +24,11 @@
 '------------ Local functions -------------
 
 DECLARE SUB freescripts (byval mem as integer)
+DECLARE FUNCTION loadscript_open_script(n as integer) as integer
+DECLARE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer, id as integer) as bool
+DECLARE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
+DECLARE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
+DECLARE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
 
 '------------ Global variables ------------
 
@@ -512,7 +517,7 @@ WITH scriptinsts(index)
  nowscript += 1
  IF .scr->refcount = 1 THEN
   'Removed from unused scripts cache
-  scriptcachemem -= .scr->size
+  unused_script_cache_mem -= .scr->size
  END IF
 
  'debug "running " & .id & " " & scriptname(.id) & ", parent = " & .scr->parent & " totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
@@ -530,21 +535,8 @@ RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
- '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
-
- DIM as ScriptData Ptr scrnode = script(n MOD scriptTableSize)
- WHILE scrnode
-  IF scrnode->id = n THEN RETURN scrnode
-  scrnode = scrnode->next
- WEND
-
- 'debug "loadscript(" & n & " " & scriptname(n) & ")"
-
- DIM thisscr as ScriptData ptr
- DIM shortvar as short
-
- '--load the script from file
+'Returns an open file handle to an hsz lump, or 0 if not found (which isn't a valid handle).
+PRIVATE FUNCTION loadscript_open_script (n as integer) as integer
  DIM scriptfile as string = tmpdir & n & ".hsz"
  IF NOT isfile(scriptfile) THEN
   scriptfile = tmpdir & n & ".hsx"
@@ -553,84 +545,124 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
     scripterr "script " & n & " " & scriptname(n) & " does not exist", serrError
-    RETURN NULL
+    RETURN 0
    END IF
   END IF
  END IF
 
- DIM f as integer = FREEFILE
- OPEN scriptfile FOR BINARY as #f
+ DIM fh as integer = FREEFILE
+ OPEN scriptfile FOR BINARY as #fh
+ RETURN fh
+END FUNCTION
 
- 'minimum length of a valid 16-bit .hsx
- IF LOF(f) < 10 THEN
-  scripterr "script " & n & " corrupt (too short: " & LOF(f) & " bytes)", serrError
-  CLOSE #f
-  RETURN NULL
+'Loads a script or fetchs it from the cache. Returns NULL on failure.
+'Only loads the script header if loaddata is false.
+FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
+ debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
+
+ DIM fh as integer = 0  'file handle
+ DIM header as ScriptData ptr
+ header = scriptcache_find(id)
+
+ IF header = NULL THEN
+  'Header not loaded yet
+  fh = loadscript_open_script(id)
+  IF fh = 0 THEN RETURN NULL
+  header = callocate(sizeof(ScriptData))
+  IF loadscript_read_header(header, fh, id) = NO THEN
+   CLOSE #fh
+   deallocate header
+   RETURN NULL
+  END IF
+  scriptcache_add id, header
+  numloadedscr += 1
  END IF
 
- thisscr = callocate(sizeof(ScriptData))
- WITH *thisscr
+ IF loaddata ANDALSO header->ptr = NULL THEN
+  'Only the header is loaded; need to load data
+  IF fh = 0 THEN
+   fh = loadscript_open_script(id)
+   IF fh = 0 THEN RETURN NULL
+  END IF
+  IF loadscript_read_data(header, fh) = NO THEN
+   'The script is already in the cache. Maybe mark it as corrupt?
+   CLOSE #fh
+   RETURN NULL
+  END IF
+ END IF
+ IF fh THEN CLOSE #fh
+ RETURN header
+END FUNCTION
 
-  GET #f, 1, shortvar
+'Load a script header from a hsz into a ScriptData. id is the script id.
+'Returns true on success
+PRIVATE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer, id as integer) as bool
+ DIM shortvar as short
+
+ WITH *header
+  .id = id
+  'minimum length of a valid 16-bit .hsx
+  IF LOF(fh) < 10 THEN
+   scripterr "script " & id & " corrupt (too short: " & LOF(fh) & " bytes)", serrError
+   RETURN NO
+  END IF
+
+  GET #fh, 1, shortvar
   DIM skip as integer = shortvar
+  .headerlen = skip
 
   IF skip < 4 THEN
-   scripterr "script " & n & " is corrupt (header length " & skip & ")", serrError
-   CLOSE #f
-   deallocate(thisscr)
-   RETURN NULL
+   scripterr "script " & id & " is corrupt (header length " & skip & ")", serrError
+   RETURN NO
   END IF
 
   'Note that there is no check for the header being longer than expected. Optional
   'fields may be added to the end of the header; if they are mandatory the version number
   'should be incremented.
 
-  GET #f, 3, shortvar
+  GET #fh, 3, shortvar
   'some HSX files seem to have an illegal negative number of variables
   .vars = shortvar
   .vars = bound(.vars, 0, 256)
  
   IF skip >= 6 THEN
-   GET #f, 5, shortvar
+   GET #fh, 5, shortvar
    .args = bound(shortvar, 0, .vars)
   ELSE
    .args = 999
   END IF
 
-  DIM scrformat as integer
   IF skip >= 8 THEN
-   GET #f, 7, shortvar
-   scrformat = shortvar
+   GET #fh, 7, shortvar
+   .scrformat = shortvar
   ELSE
-   scrformat = 0
+   .scrformat = 0
   END IF
-  IF scrformat > CURRENT_HSZ_VERSION THEN
-   scripterr "script " & n & " is in an unsupported format", serrError
-   CLOSE #f
-   deallocate(thisscr)
-   RETURN NULL
+  IF .scrformat > CURRENT_HSZ_VERSION THEN
+   scripterr "script " & id & " is in an unsupported format", serrError
+   RETURN NO
   END IF
   DIM wordsize as integer
-  IF scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
+  IF .scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
 
   IF skip >= 12 THEN
-   GET #f, 9, .strtable
+   GET #fh, 9, .strtable
    IF .strtable THEN .strtable = (.strtable - skip) \ wordsize
   ELSEIF skip = 10 THEN
-   GET #f, 9, shortvar
+   GET #fh, 9, shortvar
    IF shortvar THEN .strtable = (shortvar - skip) \ wordsize
   ELSE
    .strtable = 0
   END IF
 
   IF skip >= 14 THEN
-   GET #f, 13, shortvar
+   GET #fh, 13, shortvar
    .parent = shortvar
   ELSE
    .parent = 0
   END IF
   IF skip >= 16 THEN
-   GET #f, 15, shortvar
+   GET #fh, 15, shortvar
    .nestdepth = shortvar
    IF .nestdepth > maxScriptNesting THEN
     scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrBug
@@ -639,67 +671,88 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
    .nestdepth = 0
   END IF
   IF skip >= 18 THEN
-   GET #f, 17, shortvar
+   GET #fh, 17, shortvar
    .nonlocals = shortvar
   ELSE
    .nonlocals = 0
   END IF
 
-
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
-  .size = (LOF(f) - skip) \ wordsize
+  .size = (LOF(fh) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " " & scriptname(n) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", serrError
-   CLOSE #f
-   deallocate(thisscr)
-   RETURN NULL
+   scripterr "Script " & id & " " & scriptname(id) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", serrError
+   RETURN NO
   END IF
 
   IF .strtable < 0 OR .strtable > .size THEN
-   scripterr "Script " & n & " corrupt; bad string table offset", serrError
-   CLOSE #f
-   deallocate(thisscr)
-   RETURN NULL
+   scripterr "Script " & id & " corrupt; bad string table offset", serrError
+   RETURN NO
   END IF
 
-  .ptr = allocate(.size * sizeof(integer))
-  IF .ptr = 0 THEN
-   scripterr "Could not allocate memory to load script", serrError
-   CLOSE #f
-   deallocate(thisscr)
-   RETURN NULL
-  END IF
-
-  IF wordsize = 2 THEN
-   FOR i as integer = skip TO LOF(f) - wordsize STEP wordsize
-    GET #f, 1 + i, shortvar
-    .ptr[(i - skip) \ 2] = shortvar
-   NEXT
-  ELSE
-   GET #f, skip + 1, *.ptr, .size
-  END IF
-  CLOSE #f
-
-  'Sanity check: root node is a do()
-  IF .size < 3 ORELSE (.ptr[0] <> 2 OR .ptr[1] <> 0 OR .ptr[2] < 0) THEN
-   scripterr "Script " & n & " corrupt; does no start with do()", serrError
-   deallocate(thisscr)
-   RETURN NULL
-  END IF
-
-  .id = n
   .refcount = 0
   .totaluse = 0
   .lastuse = 0
   .totaltime = 0.0
   .entered = 0
-  numloadedscr += 1
-  totalscrmem += .size
-  scriptcachemem += .size  'Has refcount 0, up to caller to remove from cache
+  .ptr = NULL
  END WITH
+ RETURN YES
+END FUNCTION
+
+'Load the data from a file into the .ptr field of a ScriptData.
+'Returns true on success.
+PRIVATE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
+ DIM shortvar as short
+
+ WITH *header
+  DIM wordsize as integer
+  IF .scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
+  .ptr = allocate(.size * sizeof(integer))
+  IF .ptr = 0 THEN
+   scripterr "Could not allocate memory to load script", serrError
+   RETURN NO
+  END IF
+
+  IF wordsize = 2 THEN
+   FOR i as integer = .headerlen TO LOF(fh) - wordsize STEP wordsize
+    GET #fh, 1 + i, shortvar
+    .ptr[(i - .headerlen) \ 2] = shortvar
+   NEXT
+  ELSE
+   GET #fh, .headerlen + 1, *.ptr, .size
+  END IF
+
+  'Sanity check: root node is a do()
+  IF .size < 3 ORELSE (.ptr[0] <> 2 OR .ptr[1] <> 0 OR .ptr[2] < 0) THEN
+   scripterr "Script " & .id & " corrupt; does not start with do()", serrError
+   RETURN NO
+  END IF
+ END WITH
+ RETURN YES
+END FUNCTION
+
+PRIVATE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
+ '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
+ DIM as ScriptData Ptr scrnode = script(id MOD scriptTableSize)
+ WHILE scrnode
+  IF scrnode->id = id THEN
+   RETURN scrnode
+  END IF
+  scrnode = scrnode->next
+ WEND
+ RETURN NULL
+END FUNCTION
+
+'Add a loaded ScriptData ptr to the cache.
+PRIVATE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
+ IF thisscr->ptr THEN
+  'Script data is loaded
+  totalscrmem += thisscr->size
+  unused_script_cache_mem += thisscr->size  'Has refcount 0, up to caller to remove from cache
+ END IF
 
  'append to front of doubly linked list
- DIM as ScriptData Ptr Ptr scrnodeptr = @script(n MOD scriptTableSize)
+ DIM as ScriptData Ptr Ptr scrnodeptr = @script(id MOD scriptTableSize)
  IF *scrnodeptr THEN
   'already a script there
   (*scrnodeptr)->backptr = @thisscr->next
@@ -707,10 +760,9 @@ FUNCTION loadscript (byval n as uinteger) as ScriptData ptr
  thisscr->backptr = scrnodeptr 'this is for convenience of easier deleting (in freescripts)
  thisscr->next = *scrnodeptr
  *scrnodeptr = thisscr
+END SUB
 
- RETURN thisscr
-END FUNCTION
-
+'Destruct a ScriptData and remove it from the cache.
 SUB delete_scriptdata (byval scriptd as ScriptData ptr)
  WITH *scriptd
   IF .refcount THEN
@@ -718,11 +770,13 @@ SUB delete_scriptdata (byval scriptd as ScriptData ptr)
    EXIT SUB
   END IF
 
-  'debug "deallocating " & .id & " " & scriptname(ABS(.id)) & " size " & .size
-  totalscrmem -= .size
-  scriptcachemem -= .size
+  IF .ptr THEN
+   'debug "deallocating " & .id & " " & scriptname(ABS(.id)) & " size " & .size
+   totalscrmem -= .size
+   unused_script_cache_mem -= .size
+   deallocate(.ptr)
+  END IF
   numloadedscr -= 1
-  deallocate(.ptr)
   IF .next THEN
    .next->backptr = .backptr
   END IF
@@ -736,8 +790,9 @@ END SUB
 SUB deref_script(script as ScriptData ptr)
  script->refcount -= 1
  IF script->refcount = 0 THEN
-  scriptcachemem += script->size
-  IF scriptcachemem > scriptmemMax THEN
+  'scriptcachemem
+  unused_script_cache_mem += script->size
+  IF unused_script_cache_mem > scriptmemMax THEN
    'Evicting stuff from the script cache is probably pointless, but we've already got it,
    'and it may be useful for the new script interpreter...
    freescripts(scriptmemMax * 0.75)
@@ -782,7 +837,7 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
  score = script.lastuse - scriptctr
  score = iif(score > -400, score, -400) _
        + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
-       - script.size \ (scriptmemMax \ 1024)
+       - iif(script.ptr, script.size, 0) \ (scriptmemMax \ 1024)
  IF script.id < 0 THEN
   'Stale script
   score = -1000000000
@@ -791,7 +846,7 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
 END FUNCTION
 
 'Two uses: freescripts(0) frees all scripts, otherwise
-'frees unused loaded scripts until at least scriptcachemem <= mem (measured in 4-byte ints) (probably a lot lower)
+'frees unused loaded scripts until at least unused_script_cache_mem <= mem (measured in 4-byte ints) (probably a lot lower)
 SUB freescripts (byval mem as integer)
  REDIM LRUlist() as ScriptListElmt
  DIM numscripts as integer
@@ -805,7 +860,7 @@ SUB freescripts (byval mem as integer)
    delete_scriptdata LRUlist(i).p
   ELSE
    IF LRUlist(i).p->refcount <> 0 THEN EXIT SUB
-   IF scriptcachemem <= mem THEN EXIT SUB
+   IF unused_script_cache_mem <= mem THEN EXIT SUB
    'debug "unloading script " & scriptname(ABS(LRUlist(i).p->id)) & " refcount " & LRUlist(i).p->refcount
    delete_scriptdata LRUlist(i).p
   END IF

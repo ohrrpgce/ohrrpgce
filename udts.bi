@@ -419,7 +419,9 @@ TYPE ScriptData
                         'The id number is negated if this is a stale unreloaded script and
                         'shouldn't be used for new scripts.
   ptr as integer ptr    'pointer to script commands
-  size as integer       'size of script data, in 4 byte words
+  scrformat as integer  'hsz file format version number
+  headerlen as integer  'header length in bytes
+  size as integer       'size of script data, in 4 byte words (in-memory size, not on-disk size)
   vars as integer       'local variable (including arguments) count, not including nonlocals
   nonlocals as integer  'number of nonlocal variables (sum of locals in ancestor scripts)
   args as integer       'number of arguments
