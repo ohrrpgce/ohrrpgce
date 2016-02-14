@@ -558,7 +558,7 @@ END FUNCTION
 'Loads a script or fetchs it from the cache. Returns NULL on failure.
 'Only loads the script header if loaddata is false.
 FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
- debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
+ 'debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
 
  DIM fh as integer = 0  'file handle
  DIM header as ScriptData ptr
