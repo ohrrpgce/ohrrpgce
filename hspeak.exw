@@ -4006,7 +4006,7 @@ function binary_compile(Script script)
   --output header
   --0..1: the zero-rooted byte-offset of the first executable code byte
   result=output_word(CODE_START_BYTE_OFFSET)
-  --2..3: the number of local variables (not including nonlocals)
+  --2..3: the number of local variables (including args but not nonlocals)
   result&=output_word(length(script[SCRIPT_VARIABLES]) - script[SCRIPT_NUM_NONLOCALS])
   --4..5: the number of arguments the script takes (also in SCRIPTS.TXT)
   result&=output_word(length(script[SCRIPT_ARG_TOKS]))

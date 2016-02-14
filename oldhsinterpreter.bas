@@ -1138,7 +1138,7 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
    ol -= 9
   ELSE
    scriptargs = .scr->args
-   numlocals = .scr->vars - .scr->nonlocals
+   numlocals = .scr->vars
    DIM temp as string
    FOR i as integer = small((numlocals - localsscroll - 1) \ 3, 2) TO 0 STEP -1
     FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
@@ -1330,7 +1330,7 @@ IF mode > 1 AND drawloop = 0 THEN
  END IF
  IF w = scPlus OR w = scNumpadPlus THEN
   IF selectedscript >= 0 AND selectedscript <= nowscript THEN
-   numlocals = scrat(selectedscript).scr->vars - scrat(selectedscript).scr->nonlocals
+   numlocals = scrat(selectedscript).scr->vars
   ELSE
    numlocals = 0
   END IF
