@@ -201,6 +201,8 @@ dim shared fpsframes as integer = 0
 dim shared fpstime as double = 0.0
 dim shared fpsstring as string
 dim shared showfps as bool = NO
+dim shared overlay_message as string
+dim shared overlay_ticks as integer
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
@@ -612,6 +614,11 @@ sub setvispage (byval page as integer)
 			edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
 		end if
 		'rectangle .w - 6, .h - 6, 6, 6, uilook(uiText), page
+
+		if overlay_ticks > 0 then
+			edgeprint overlay_message, xstring(overlay_message, vpages(page)->w / 2), vpages(page)->h - 20, uilook(uiText), page
+			overlay_ticks -= 1
+		end if
 
 		'the fb backend may freeze up if it collides with the polling thread
 		mutexlock keybdmutex
@@ -1806,12 +1813,15 @@ end sub
 sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 	if msg <> "" then
 		debugc errorlevel, msg
+		overlay_message = msg
+		overlay_ticks = 80
 	end if
 	if replay.active then
 		close #replay.file
 		replay.file = -1
 		replay.active = NO
 		debugc errorlevel, "STOP replaying input"
+		use_speed_control = YES
 	end if
 end sub
 
