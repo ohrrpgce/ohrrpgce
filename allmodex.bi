@@ -166,7 +166,7 @@ DECLARE SUB setquitflag ()
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
 
 DECLARE SUB start_recording_input (filename as string)
-DECLARE SUB stop_recording_input ()
+DECLARE SUB stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 DECLARE SUB start_replaying_input (filename as string)
 DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 

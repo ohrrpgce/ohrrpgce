@@ -326,6 +326,9 @@ end sub
 
 sub mersenne_twister (byval seed as double)
 	IF replay.active ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
+	'FIXME: reseeding the RNG from scripts needs be allowed.
+	'Either the seed should be recorded, or just don't allow any source of nondeterminism which could
+	'be used as a seed (e.g. record results of all nondeterministic script commands).
 	RANDOMIZE seed, 3
 	debuginfo "mersenne_twister seed=" & seed
 end sub
@@ -1236,7 +1239,10 @@ end function
 'Without changing the results of keyval or readmouse, check whether a key has been pressed,
 'mouse button clicked, or window close requested since the last call to setkeys.
 'NOTE: any such keypresses are lost! This is OK for the current purposes
+'NOTE: This checks the real keyboard state while replaying input.
 function interrupting_keypress () as bool
+	dim ret as bool = NO
+
 	io_pollkeyevents()
 
 	dim keybd_dummy(-1 to 127) as integer
@@ -1260,18 +1266,28 @@ function interrupting_keypress () as bool
 		'DestroyGameSlices YES
 		exitprogram NO
 #else
-		return YES
+		ret = YES
 #endif
 	end if
 
 	for i as integer = 0 to 127
 		'Check for new keypresses
-		if keybd_dummy(i) and 2 then return YES
+		if keybd_dummy(i) and 2 then ret = YES
 	next
 
-	if mouse.clicks then return YES
+	if mouse.clicks then ret = YES
 
-	return NO
+	if ret then
+		'Crap, this is going to desync the replay since the result of interrupting_keypress isn't recorded
+		if rec_input then
+			stop_recording_input "Recording ended by interrupting keypress"
+		end if
+		if replay.active then
+			stop_replaying_input "Replay ended by interrupting keypress"
+		end if
+	end if
+
+	return ret
 end function
 
 sub setkeys_update_keybd (keybd() as integer)
@@ -1766,7 +1782,12 @@ sub start_recording_input (filename as string)
 	next i
 end sub
 
-sub stop_recording_input ()
+sub stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
+	if msg <> "" then
+		debugc errorlevel, msg
+		overlay_message = msg
+		overlay_ticks = 80
+	end if
 	if rec_input then
 		close #rec_input_file
 		rec_input = NO
