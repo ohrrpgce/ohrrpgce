@@ -65,7 +65,7 @@ declare sub snapshot_check
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
 declare sub pollingthread(byval as any ptr)
-declare sub update_inputtext ()
+declare function read_inputtext () as string
 
 declare sub record_input_tick ()
 declare sub replay_input_tick ()
@@ -144,11 +144,17 @@ dim shared setkeys_elapsed_ms as integer       'Time since last setkeys call (us
 dim shared keybd(-1 to 127) as integer         'keyval array
 dim shared key_down_ms(-1 to 127) as integer   'ms each key has been down
 dim shared last_keybd(127) as integer          'used only for input recording
+dim shared inputtext as string
+' The following contain real state of keyboard while replaying input, otherwise they aren't used.
+dim shared shadow_setkeys_elapsed_ms as integer     'Real time since last setkeys call (used by keyval)
+dim shared shadow_keybd(-1 to 127) as integer       'While replaying input contains real keyboard state
+dim shared shadow_key_down_ms(-1 to 127) as integer 'ms each key has been down
+dim shared shadow_inputtext as string               'WARNING: May not work if inputtext is disabled!
+'
 dim shared keyrepeatwait as integer = 500
 dim shared keyrepeatrate as integer = 55
 dim shared diagonalhack as integer
 dim shared delayed_alt_keydown as bool = NO
-dim shared inputtext as string
 dim shared inputtext_enabled as bool = NO
 
 'Singleton type
@@ -258,6 +264,7 @@ sub setmodex()
 		keybd(i) = 0
 		keybdstate(i) = 0
 		key_down_ms(i) = 0
+		shadow_key_down_ms(i) = 0
 	next
 	endpollthread = NO
 	mouselastflags = 0
@@ -951,7 +958,11 @@ end function
 '                                      Keyboard input
 '==========================================================================================
 
-function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+function real_keyval(byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+	return keyval(a, repeat_wait, repeat_rate, YES)
+end function
+
+function keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0, real_keys as bool = NO) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
 'bit 0: key was down at the last setkeys call
@@ -962,7 +973,16 @@ function keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
-	dim result as integer = keybd(a)
+	dim result as integer
+	dim keypress_milliseconds as integer
+	if replay.active andalso real_keys then
+		result = shadow_keybd(a)
+		keypress_milliseconds = shadow_key_down_ms(a)
+	else
+		result = keybd(a)
+		keypress_milliseconds = key_down_ms(a)
+	end if
+
 	if a >= 0 then
 		if repeat_wait = 0 then repeat_wait = keyrepeatwait
 		if repeat_rate = 0 then repeat_rate = keyrepeatrate
@@ -973,7 +993,7 @@ function keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 		if a = scLeft or a = scRight or a = scUp or a = scDown then arrowkey = YES
 		if arrowkey and diagonalhack <> -1 then return (result and 5) or (diagonalhack and keybd(a) > 0)
 
-		if key_down_ms(a) >= repeat_wait then
+		if keypress_milliseconds >= repeat_wait then
 			dim check_repeat as bool = YES
 
 			'if a = scAlt then
@@ -990,7 +1010,7 @@ function keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 
 			if check_repeat then
 				'Keypress event at "wait + i * rate" ms after keydown
-				dim temp as integer = key_down_ms(a) - repeat_wait
+				dim temp as integer = keypress_milliseconds - repeat_wait
 				if temp \ repeat_rate > (temp - setkeys_elapsed_ms) \ repeat_rate then result or= 2
 			end if
 			if arrowkey then diagonalhack = result and 2
@@ -1006,39 +1026,40 @@ end sub
 
 ' Get text input by assuming a US keyboard layout and reading scancodes rather than using the io backend.
 ' Also supports alt- combinations for the high 128 characters
+' Always returns real input, even if replaying input.
 function get_ascii_inputtext () as string
 	dim shift as integer = 0
 	dim ret as string
 
-	if keyval(scCtrl) > 0 then return ""
+	if real_keyval(scCtrl) > 0 then return ""
 
-	if keyval(scShift) and 1 then shift += 1
-	if keyval(scAlt) and 1 then shift += 2   'for characters 128 and up
+	if real_keyval(scShift) and 1 then shift += 1
+	if real_keyval(scAlt) and 1 then shift += 2   'for characters 128 and up
 
 	for i as integer = 0 to 53
 		dim effective_shift as integer = shift
-		if shift <= 1 andalso keyval(scCapsLock) > 0 then
+		if shift <= 1 andalso real_keyval(scCapsLock) > 0 then
 			select case i
 				case scQ to scP, scA to scL, scZ to scM
 					effective_shift xor= 1
 			end select
 		end if
-		if keyval(i) > 1 then
+		if real_keyval(i) > 1 then
 			ret &= key2text(effective_shift, i)
 		end if
 	next i
 
 	'Space missing from key2text
-	if keyval(scSpace) > 1 then ret &= " "
+	if real_keyval(scSpace) > 1 then ret &= " "
 
 	return ret
 end function
 
-' Sets the inputtext module-global variable.
-private sub update_inputtext ()
+' Returns text input from the backend since the last call.
+' Always returns real input, even if replaying input.
+private function read_inputtext () as string
 	if disable_native_text_input then
-		inputtext = get_ascii_inputtext()
-		exit sub
+		return get_ascii_inputtext()
 	end if
 
 	dim w_in as wstring * 64
@@ -1055,10 +1076,9 @@ private sub update_inputtext ()
 		if w_in[i] > 127 then force_native_input = YES
 	next
 
-	if force_native_input = NO andalso keyval(scAlt) and 1 then
+	if force_native_input = NO andalso real_keyval(scAlt) and 1 then
 		'Throw away w_in
-		inputtext = get_ascii_inputtext()
-		exit sub
+		return get_ascii_inputtext()
 	end if
 
 
@@ -1074,8 +1094,8 @@ private sub update_inputtext ()
 	if io_textinput then
 		'if len(w_in) then print #fh, "input :" & w_in
 		' Now we need to convert from unicode to the game's character set (7-bit ascii or Latin-1)
-		inputtext = ""
-		DIM force_shift as bool = NO
+		dim ret as string = ""
+		dim force_shift as bool = NO
 		for i as integer = 0 to len(w_in) - 1
 			if w_in[i] > 255 then
 				select case w_in[i]
@@ -1095,9 +1115,9 @@ private sub update_inputtext ()
 						continue for
 				end select
 				'debug "unicode char " & w_in[i]
-				inputtext += "?"
+				ret += "?"
 			elseif w_in[i] >= icons_low and w_in[i] <= icons_high then
-				inputtext += "?"
+				ret += "?"
 			elseif w_in[i] < 32 then
 				'Control character. What a waste of 8-bit code-space!
 				'Note that we ignore newlines... because we've always done it that way
@@ -1132,13 +1152,14 @@ private sub update_inputtext ()
 						case "/": ch = "?"
 					end select
 				end if
-				inputtext += ch
+				ret += ch
 			end if
 		next
+		return ret
 	else
-		inputtext = get_ascii_inputtext()
+		return get_ascii_inputtext()
 	end if
-end sub
+end function
 
 'If using gfx_sdl and gfx_directx this is Latin-1, while gfx_fb doesn't currently support even that
 function getinputtext () as string
@@ -1246,7 +1267,7 @@ function interrupting_keypress () as bool
 	return NO
 end function
 
-sub setkeys_update_keybd
+sub setkeys_update_keybd (keybd() as integer)
 	dim winstate as WindowState ptr
 	winstate = gfx_getwindowstate()
 
@@ -1334,7 +1355,7 @@ sub setkeys_update_keybd
 
 end sub
 
-sub update_keydown_times ()
+sub update_keydown_times (keybd() as integer, key_down_ms() as integer)
 	for a as integer = 0 to &h7f
 		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
 			key_down_ms(a) = 0
@@ -1366,6 +1387,8 @@ sub setkeys (byval enable_inputtext as bool = NO)
 
 	dim starttime as double = timer
 
+	'TODO: while replaying input we should really ignore enable_inputtext, to let
+	'whichever code is watching the real keyboard state decide whether it wants inputtext.
 	if disable_native_text_input = NO then
 		if enable_inputtext then enable_inputtext = YES
 		if inputtext_enabled <> enable_inputtext then
@@ -1374,24 +1397,33 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		end if
 	end if
 
+	'While playing back a recording we still poll for keyboard
+	'input, but this goes in a special shadow_keybd array so it's
+	'invisible to the game.
+
+	setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
+	last_setkeys_time = TIMER
+
 	if replay.active then
-		'Updates keybd(), setkeys_elapsed_ms, inputtext
+		' Get real keyboard state
+		setkeys_update_keybd shadow_keybd()
+		update_keydown_times shadow_keybd(), shadow_key_down_ms()
+		shadow_setkeys_elapsed_ms = setkeys_elapsed_ms
+		shadow_inputtext = read_inputtext()
+
+		' Updates keybd(), setkeys_elapsed_ms, inputtext
 		replay_input_tick ()
 
-		update_keydown_times ()
+		update_keydown_times keybd(), key_down_ms()
 	else
-		setkeys_update_keybd ()
-
-		setkeys_elapsed_ms = bound(1000 * (TIMER - last_setkeys_time), 0, 255)
-		last_setkeys_time = TIMER
-
-		update_keydown_times ()
+		setkeys_update_keybd keybd()
+		update_keydown_times keybd(), key_down_ms()
 
 		'AFAIK, this is will still work on all platforms except X11 with SDL
 		'even if inputtext was not enabled; however you'll get a warning when
 		'getinputtext is called. So we call this just so that making that error
 		'isn't too annoying (you'll still notice it)
-		update_inputtext()
+		inputtext = read_inputtext()
 
 		if rec_input then
 			record_input_tick ()
@@ -1468,10 +1500,23 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	mouse_clicks_since_setkeys = 0
 end sub
 
+'Erase a keypress from the keyboard state.
 sub clearkey(byval k as integer)
 	keybd(k) = 0
 	if k >= 0 then
 		key_down_ms(k) = 0
+	end if
+end sub
+
+'Erase a keypress from the real keyboard state even if replaying recorded input.
+sub real_clearkey(byval k as integer)
+	if replay.active then
+		shadow_keybd(k) = 0
+		if k >= 0 then
+			shadow_key_down_ms(k) = 0
+		end if
+	else
+		clearkey(k)
 	end if
 end sub
 
@@ -1552,12 +1597,12 @@ function readmouse () as MouseInfo
 	mouse_lastpos = Type(info.x, info.y)
 	info.dragging = mouse_dragmask
 	info.clickstart = mouse_clickstart
-	
+
 	if mouse_moved_since_setkeys ORELSE info.moved then
 		mouse_moved_since_setkeys = YES
 		info.movedtick = YES
 	end if
-	
+
 	if mouse_clicks_since_setkeys ORELSE info.clicks then
 		mouse_clicks_since_setkeys OR= info.clicks
 		info.clickstick = mouse_clicks_since_setkeys

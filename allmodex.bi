@@ -152,13 +152,15 @@ DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integ
 
 DECLARE FUNCTION isawav(fi as string) as bool
 
-DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+DECLARE FUNCTION real_keyval(byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
+DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0, real_keys as bool = NO) as integer
 DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (byval checkjoystick as bool = YES, trigger_level as integer = 1) as integer
 DECLARE FUNCTION waitforanykey () as integer
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 DECLARE SUB setkeys (byval enable_inputtext as bool = NO)
+DECLARE SUB real_clearkey (byval k as integer)
 DECLARE SUB clearkey (byval k as integer)
 DECLARE SUB setquitflag ()
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
