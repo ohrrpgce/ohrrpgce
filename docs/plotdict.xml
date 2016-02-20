@@ -3140,7 +3140,16 @@ end
 			<shortname>keyval</shortname>
 			<description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
 			<danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
-			<note>The joystick scancodes described in <ref>keyispressed</ref> aren't fully supported for <p>keyval</p>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <ref>keyispressed</ref>.</note></description>
+			<note>The joystick scancodes described in <ref>keyispressed</ref> aren't fully supported for <p>keyval</p>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <ref>keyispressed</ref>.</note>
+			<danger>
+				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
+				The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
+				the game is running at.
+				Suppose you use key repeat (e.g. keyval(key:X)>1) to shoot bullets and your game runs at 36 fps,
+				then a bullet will be fired every other frame.
+				But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
+			</danger>
+			</description>
 			<seealso>
 				<ref>keyispressed</ref>
 			</seealso>
