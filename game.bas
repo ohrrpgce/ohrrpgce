@@ -684,11 +684,9 @@ update_heroes(YES)
 setkeys
 
 DIM tog as integer
-DIM speedcontrol_this_tick as double = speedcontrol
 DO
  'DEBUG debug "top of master loop"
- setwait speedcontrol_this_tick
- speedcontrol_this_tick = speedcontrol
+ setwait speedcontrol
  IF running_as_slave THEN try_to_reload_lumps_onmap
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
@@ -781,9 +779,6 @@ DO
    caty(0) = (caty(0) \ 20) * 20
    herow(0).xgo = 0
    herow(0).ygo = 0
-  END IF
-  IF keyval(scShift) > 0 AND keyval(scTab) > 0 THEN  'speed up while held down
-   speedcontrol_this_tick = speedcontrol / 5
   END IF
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN

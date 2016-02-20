@@ -138,6 +138,7 @@ dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim shared use_speed_control as bool = YES
+dim shared fps_multiplier as double = 1.0
 
 dim shared last_setkeys_time as double
 dim shared setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
@@ -770,6 +771,8 @@ end sub
 '        accessed as the return value from dowait.
 sub setwait (byval ms as double, byval flagms as double = 0)
 	if use_speed_control = NO then exit sub
+	ms /= fps_multiplier
+	flagms /= fps_multiplier
 	dim thetime as double = timer
 	waittime = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
 	if flagms <= 0 then
@@ -1494,6 +1497,12 @@ sub setkeys (byval enable_inputtext as bool = NO)
 
 	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
 		showfps xor= 1
+	end if
+
+	if real_keyval(scShift) > 0 and real_keyval(scTab) > 0 then  'speed up while held down
+		fps_multiplier = 6.
+	else
+		fps_multiplier = 1.
 	end if
 
 	'Some debug keys for working on resolution independence
