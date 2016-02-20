@@ -69,6 +69,7 @@ declare function read_inputtext () as string
 
 declare sub record_input_tick ()
 declare sub replay_input_tick ()
+declare sub read_replay_length ()
 
 declare function hexptr(p as any ptr) as string
 
@@ -165,7 +166,11 @@ type ReplayState
 	tick as integer = -1       'Counts number of ticks we've replayed
 	nexttick as integer = -1   'If we read the next tickcount from the file before it's needed
 	                           'it's stored here. Otherwise -1.
+	next_tick_ms as integer    'Next tick milliseconds read before it's needed.
 	debug as bool = NO         'Set to YES by editing this line; maybe add a commandline option
+	length_ticks as integer    'Length in ticks (max tick num)
+	length_ms as integer       'Approximate length of the replay, in milliseconds
+	play_position_ms as integer 'Approximate position in replay in ms (calculated in same way as length_ms)
 
 	declare sub reset_state ()
 end type
@@ -1812,6 +1817,8 @@ sub ReplayState.reset_state ()
 	file = -1
 	tick = -1
 	nexttick = -1
+	play_position_ms = 0
+	next_tick_ms = 55
 end sub
 
 sub start_replaying_input (filename as string)
@@ -1842,6 +1849,7 @@ sub start_replaying_input (filename as string)
 	for i as integer = 0 to ubound(keybd)
 		keybd(i) = 0
 	next i
+	read_replay_length()
 end sub
 
 sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
@@ -1886,6 +1894,48 @@ sub record_input_tick ()
 	PUT #rec_input_file,, inputtext
 end sub
 
+' Scan the replay file to find its length, setting replay.length_ms and replay.length_ticks
+' Assumes replay.file is at start of the data stream.
+private sub read_replay_length ()
+	dim as integer tick, nexttick
+	dim as ubyte tick_ms = 55, presses, input_len
+	dim initial_pos as integer = LOC(replay.file)
+	replay.length_ms = 0
+
+	do
+		get #replay.file,, nexttick
+		if eof(replay.file) then exit do
+		if nexttick < tick then
+			visible_debug "Replay corrupt: tick " & replay.nexttick & " occurs after " & tick
+			exit do
+		end if
+
+		' Assume any skipped ticks are the same length as the next one, seems to give a vastly better
+		' estimate than using the previous tick.
+		' (This could be way off, some ticks are 0ms or 255+ms)
+		get #replay.file,, tick_ms
+		replay.length_ms += tick_ms * (nexttick - tick)
+		' if (nexttick - tick) > 1 and (tick_ms < 50 or tick_ms > 60) then
+		' 	debug "dubious tick_ms estimate " & tick_ms & " at " & tick & " for " & (nexttick - tick) & " ticks"
+		' end if
+
+		tick = nexttick
+		get #replay.file,, presses
+		if presses > ubound(keybd) + 1 then
+			visible_debug "Replay corrupt: presses=" & presses
+			exit do
+		end if
+
+		seek #replay.file, 1 + loc(replay.file) + 2 * presses
+		GET #replay.file,, input_len
+		if input_len then
+			seek #replay.file, 1 + loc(replay.file) + input_len
+		end if
+	loop
+	replay.length_ticks = tick
+	seek #replay.file, 1 + initial_pos
+end sub
+
 sub replay_input_tick ()
 	replay.tick += 1
 	do
@@ -1895,10 +1945,14 @@ sub replay_input_tick ()
 		end if
 		dim fpos as integer = LOC(replay.file)
 
-		'Check whether it's time to play the next recorded tick in the replay file is
+		'Check whether it's time to play the next recorded tick in the replay file
 		'(ticks on which nothing happened aren't saved)
 		if replay.nexttick = -1 then
 			GET #replay.file,, replay.nexttick
+			' Grab the next tick_ms already, because for some reason it gives far more accurate .play_position_ms estimation
+			dim tick_ms as ubyte
+			GET #replay.file,, tick_ms
+			replay.next_tick_ms = tick_ms
 		end if
 		if replay.nexttick < replay.tick then
 			debug "input replay late for tick " & replay.nexttick & " (" & replay.nexttick - replay.tick & ")"
@@ -1914,16 +1968,18 @@ sub replay_input_tick ()
 			next
 			' Otherwise, this doesn't matter as it won't be used
 			setkeys_elapsed_ms = 1
+			' Increment how much we've played so far - not actual play time but at same rate as the .length_ms estimate
+			replay.play_position_ms += replay.next_tick_ms
 			inputtext = ""
 			exit sub
 		end if
 
-		dim tick_ms as ubyte
-		GET #replay.file,, tick_ms
-		setkeys_elapsed_ms = tick_ms
+		setkeys_elapsed_ms = replay.next_tick_ms
+		replay.play_position_ms += replay.next_tick_ms
+
 		dim presses as ubyte
 		GET #replay.file,, presses
-		if presses < 0 orelse presses > ubound(keybd) + 1 then
+		if presses > ubound(keybd) + 1 then
 			stop_replaying_input "input replay tick " & replay.nexttick & " has invalid number of keypresses " & presses
 			exit sub
 		end if
@@ -2649,7 +2705,7 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 	'skip to index
 	seek #fh, (record*64000) + 1
 
-        dim quarter_row(79) as ubyte
+	dim quarter_row(79) as ubyte
 
 	'modex format, 4 planes
 	for plane = 0 to 3
@@ -2657,9 +2713,9 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 			sptr = dest->image + dest->pitch * y + plane
 
 			'1/4 of a row
-                        get #fh, , quarter_row()
+			get #fh, , quarter_row()
 			for x = 0 to 80 - 1
-                                sptr[x * 4] = quarter_row(x)
+				sptr[x * 4] = quarter_row(x)
 			next
 		next
 	next
