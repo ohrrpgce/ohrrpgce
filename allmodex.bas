@@ -1447,10 +1447,6 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		'getinputtext is called. So we call this just so that making that error
 		'isn't too annoying (you'll still notice it)
 		inputtext = read_inputtext()
-
-		if rec_input then
-			record_input_tick ()
-		end if
 	end if
 
 	'reset arrow key fire state
@@ -1459,6 +1455,8 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	'Check to see if the backend has received a request
 	'to close the window (eg. clicking the X), set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
+	'keybd(-1) isn't directly recorded in replay files, so don't bother with shadow_keybd(),
+	'but EITHER a real or recorded quit request will work to quit Custom.
 	if closerequest then
 		closerequest = NO
 		keybd(-1) = 1
@@ -1466,18 +1464,24 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
 
 #ifdef IS_CUSTOM
+	'Fire ESC keypresses to exit every menu
 	if keybd(-1) then keybd(scEsc) = 7
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
-	if keyval(-1) then
+	if keybd(-1) then
 		'uncomment for slice debugging
 		'DestroyGameSlices YES
 		exitprogram NO
 	end if
 #endif
 
+	' Record input. This is here so we can record the effect of keybd(scEsc) = 7 above.
+	if rec_input then
+		record_input_tick ()
+	end if
+
 	' Crash the program! For testing
-	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scF4) > 1 then
+	if keyval(scPageup) > 0 and keyval(scPagedown) > 0 and keyval(scF4) > 1 then
 		dim invalid as integer ptr
 		*invalid = 0
 	end if
@@ -1488,7 +1492,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	'F12 for screenshots handled here
 	snapshot_check
 
-	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
+	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
 		showfps xor= 1
 	end if
 
@@ -5233,7 +5237,7 @@ private sub snapshot_check
 
 	dim as integer n, i
 
-	if keyval(scF12) = 0 then
+	if real_keyval(scF12) = 0 then
 		'delete the backlog
 		for n = 1 to ubound(backlog)
 			'debug "killing " & backlog(n)
@@ -5258,7 +5262,7 @@ private sub snapshot_check
 		next
 		backlog_num = n + 1
 
-		if keyval(scF12) = 1 then
+		if real_keyval(scF12) = 1 then
 			shot = tmpdir + shot
 			screenshot shot
 			for i = 0 to ubound(image_exts)
