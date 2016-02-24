@@ -1109,7 +1109,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  IF errorlevel >= serrBug THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
  e = e + CHR(10) + CHR(10) + script_call_chain
- split(wordwrap(e, 38), errtext())
+ split(wordwrap(e, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
  DIM state as MenuState
  state.pt = 0
@@ -1184,16 +1184,17 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   clearpage vpage
 
-  centerbox 160, 12, 310, 15, 3, vpage
+  DIM wid as integer = vpages(vpage)->w
+  centerbox wid\2, 12, wid - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
   IF errorlevel >= serrBug THEN
-   printstr "Impossible error/engine bug!", 160 - 28*4, 7, vpage
+   printstr "Impossible error/engine bug!", wid\2 - 28*4, 7, vpage
   ELSEIF errorlevel >= serrBound THEN
-   printstr "Script Error!", 160 - 13*4, 7, vpage
+   printstr "Script Error!", wid\2 - 13*4, 7, vpage
   ELSEIF errorlevel >= serrWarn THEN
-   printstr "Script Warning", 160 - 14*4, 7, vpage
+   printstr "Script Warning", wid\2 - 14*4, 7, vpage
   ELSEIF errorlevel = serrInfo THEN
-   printstr "Script Diagnostic", 160 - 17*4, 7, vpage
+   printstr "Script Diagnostic", wid\2 - 17*4, 7, vpage
   END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)
@@ -1227,6 +1228,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  'Not worth worrying about this.
 END SUB
 
+'TODO: there's a lot of code duplicated between this and scripterr
 FUNCTION script_interrupt () as integer
  DIM as integer ret = NO
  DIM as string errtext()
@@ -1234,7 +1236,7 @@ FUNCTION script_interrupt () as integer
 
  msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10) + script_call_chain
  debug script_call_chain(NO)
- split(wordwrap(msg, 38), errtext())
+ split(wordwrap(msg, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
  DIM state as MenuState
  state.pt = 0
@@ -1305,9 +1307,10 @@ FUNCTION script_interrupt () as integer
 
   clearpage vpage
 
-  centerbox 160, 12, 310, 15, 3, vpage
+  DIM wid as integer = vpages(vpage)->w
+  centerbox wid\2, 12, wid - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
-  printstr "A script is stuck", 160 - 17*4, 7, vpage
+  printstr "A script is stuck", wid\2 - 17*4, 7, vpage
 
   FOR i as integer = 0 TO UBOUND(errtext)
    printstr errtext(i), 8, 25 + 10 * i, vpage
@@ -1317,8 +1320,8 @@ FUNCTION script_interrupt () as integer
 
   IF state.pt = 4 THEN
    textcolor uilook(uiSelectedItem), 0 
-   printstr "The debugger is a usability train-wreck!", 0, 184, vpage
-   printstr "Press F1 inside the debugger to see help", 0, 192, vpage
+   printstr "The debugger is a usability train-wreck!", 0, vpages(vpage)->h - 16, vpage
+   printstr "Press F1 inside the debugger to see help", 0, vpages(vpage)->h - 8, vpage
   END IF
   setvispage vpage
 

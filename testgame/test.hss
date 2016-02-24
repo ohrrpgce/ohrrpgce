@@ -546,6 +546,7 @@ end
 
 #-----------------------------------------------------------------------
 
+# In 'Testing scripts' menu
 plotscript, dump stats, begin
   variable (hero, stat)
   for (hero, 0, 40) do (
@@ -557,10 +558,22 @@ end
 
 #-----------------------------------------------------------------------
 
+# In 'Testing scripts' menu
+plotscript, show script error, begin
+  script error($0="Scripterror called.")
+end
+
+# In 'Testing scripts' menu
+plotscript, infinite loop, begin
+  while(true) do ()
+end
+
+# In 'Testing scripts' menu
 plotscript, remote vehicle, begin
   use NPC(2)
 end
 
+# In 'Testing scripts' menu
 plotscript, kill leader with map cure, begin
   map cure(atk:KillAlly, leader)
 end
@@ -569,6 +582,7 @@ plotscript, dummy death script, begin
 
 end
 
+# In 'Testing scripts' menu
 plotscript, fight formation test, begin
   set death script(@dummy death script)
   variable (ret)
@@ -579,10 +593,12 @@ plotscript, fight formation test, begin
   set death script()
 end
 
+# In 'Testing scripts' menu
 plotscript, suspend obstruction test, begin
   suspend obstruction
 end
 
+# In 'Testing scripts' menu
 plotscript, resume obstruction test, begin
   resume obstruction
 end
