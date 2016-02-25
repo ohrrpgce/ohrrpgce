@@ -587,10 +587,9 @@ Type Font
 	w(255) as integer	'width of each character
 	h as integer		'height of a line
 	offset as XYPair	'added to coordinates when printing
-	cols as integer		'number of used colours, not including colour 0 (transparency), so at most <s>255</s> 15
+	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 15
 	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
-	pal_id as integer       'id of pal. Not used by render_text
-	outline_col as integer  'palette entry which should be filled with uiOutline, or -1 for none
+	outline_col as integer  'palette entry (1 to .cols) which should be filled with uiOutline, or 0 for none.
 End Type
 
 'text_layout_dimensions returns this struct

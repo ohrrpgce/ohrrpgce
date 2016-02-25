@@ -3631,7 +3631,7 @@ sub build_text_palette(byref state as PrintStrState, byval srcpal as Palette16 p
 		end if
 'debug "build_text_palette: bg = " & .bgcolor & " fg = "& .fgcolor & " outline = " & .thefont->outline_col
 		'Outline colours are a hack, hopefully temp.
-		if .thefont->outline_col > -1 then
+		if .thefont->outline_col > 0 then
 			.localpal.col(.thefont->outline_col) = uilook(uiOutline)
 		end if
 	end with
@@ -4147,8 +4147,14 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 
 	newfont->h = basefont->h  '+ 2
 	newfont->offset = basefont->offset
-	newfont->cols = basefont->cols + 1
-	newfont->outline_col = newfont->cols
+	newfont->cols = basefont->cols
+	if basefont->outline_col = 0 then
+		'Doesn't already have an outline colour
+		newfont->cols += 1
+		newfont->outline_col = newfont->cols
+	else
+		newfont->outline_col = basefont->outline_col
+	end if
 	newfont->initialised = YES
 
 	'Stuff currently hardcoded to keep edged font working as before
@@ -4206,8 +4212,11 @@ function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop
 	'Share layer 1 with the base font
 	newfont->layers(1)->refcount += 1
 
-	newfont->cols += 1
-	newfont->outline_col = newfont->cols
+	if newfont->outline_col = 0 then
+		'Doesn't already have an outline colour
+		newfont->cols += 1
+		newfont->outline_col = newfont->cols
+	end if
 	newfont->initialised = YES
 
 	for ch as integer = 0 to 255
@@ -4237,6 +4246,7 @@ function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
 	newfont->offset.x = 0
 	newfont->offset.y = 0
 	newfont->cols = 1
+	newfont->outline_col = 0  'None
 	newfont->initialised = YES
 
 	'dim as ubyte ptr maskp = newfont->layers(1)->spr->mask
@@ -4293,6 +4303,7 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 	'Hacky: start by allocating 4096 pixels, expand as needed
 	newfont->layers(1)->spr = frame_new(1, 4096)
 	newfont->cols = 1  'hardcoded
+	newfont->outline_col = 0  'None
 	newfont->initialised = YES
 
 	dim maxheight as integer
@@ -4383,6 +4394,7 @@ function font_loadbmp_16x16 (filename as string) as Font ptr
 	newfont->h = charh
 	newfont->offset.x = 0
 	newfont->offset.y = 0
+	newfont->outline_col = 0  'None
 	newfont->initialised = YES
 	newfont->layers(0) = null
 	newfont->layers(1) = fontlayer_new()
