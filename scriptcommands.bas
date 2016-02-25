@@ -273,23 +273,23 @@ FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as in
 
  DIM ret as integer = 0
 
- IF key >= 0 AND key <= 127 THEN
+ IF key >= 0 AND key <= scLAST THEN
   ret = keyval(key)
- ELSEIF key >= 128 AND key <= 147 THEN
+ ELSEIF key >= scJoyButton1 AND key <= scJoyLAST THEN
   'This is just partial joystick support! We don't support keyrepeat, instead both bits have
   'same value.
   'For real joystick support, it needs to be handled in allmodex.bas.
   DIM b as integer, xaxis as integer, yaxis as integer '0 >= {xaxis, yaxis} >= 100
   IF readjoy(joynum, b, xaxis, yaxis) THEN
-   IF key >= 128 AND key <= 143 THEN
-    ret = (b SHR (key - 128)) AND 1
-   ELSEIF key = 144 THEN 'x left
+   IF key >= scJoyButton1 AND key <= scJoyButton16 THEN
+    ret = (b SHR (key - scJoyButton1)) AND 1
+   ELSEIF key = scJoyLeft THEN
     ret = abs(xaxis <= -50) 'true = -1...
-   ELSEIF key = 145 THEN 'x right
+   ELSEIF key = scJoyRight THEN
     ret = abs(xaxis >= 50)
-   ELSEIF key = 146 THEN 'y up
+   ELSEIF key = scJoyUp THEN
     ret = abs(yaxis <= -50)
-   ELSEIF key = 147 THEN 'y down
+   ELSEIF key = scJoyDown THEN
     ret = abs(yaxis >= 50)
    END IF
   ELSE

@@ -185,7 +185,7 @@ dim keybdmutex as any ptr                '(Global) Controls access to keybdstate
                                          'and generally used to halt the polling thread.
 dim shared keybdthread as any ptr        'id of the polling thread
 dim shared endpollthread as bool         'signal the polling thread to quit
-dim shared keybdstate(127) as integer    '"real"time keyboard array
+dim shared keybdstate(scLAST) as integer '"real"time keyboard array (only used internally by pollingthread)
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
 dim shared cursorvisible as bool = YES
@@ -268,7 +268,7 @@ sub setmodex()
 	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 
 	'init vars
-	for i as integer = 0 to 127
+	for i as integer = 0 to scLAST
 		keybd(i) = 0
 		keybdstate(i) = 0
 		key_down_ms(i) = 0
@@ -1016,7 +1016,7 @@ function keyval (byval a as integer, byval repeat_wait as integer = 0, byval rep
 
 			'if a = scAlt then
 				'alt can repeat (probably a bad idea not to), but only if nothing else has been pressed
-				'for i as integer = 1 to &h7f
+				'for i as integer = 1 to scLAST
 				'	if keybd(i) > 1 then check_repeat = NO
 				'next
 				'if delayed_alt_keydown = NO then check_repeat = NO
@@ -1203,7 +1203,7 @@ end function
 function anykeypressed (byval checkjoystick as bool = YES, trigger_level as integer = 1) as integer
 	dim as integer joybutton, joyx, joyy
 
-	for i as integer = 0 to &h7f
+	for i as integer = 0 to scLAST
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
 		' Ignore capslock because it always appears pressed when on,
@@ -1218,7 +1218,7 @@ function anykeypressed (byval checkjoystick as bool = YES, trigger_level as inte
 	if checkjoystick then
 		if io_readjoysane(0, joybutton, joyx, joyy) then
 			for i as integer = 16 to 1 step -1
-				if joybutton and (i ^ 2) then return 127 + i
+				if joybutton and (i ^ 2) then return (scJoyButton1 - 1) + i
 			next i
 		end if
 	end if
@@ -1253,7 +1253,7 @@ function interrupting_keypress () as bool
 
 	io_pollkeyevents()
 
-	dim keybd_dummy(-1 to 127) as integer
+	dim keybd_dummy(-1 to scLAST) as integer
 	dim mouse as MouseInfo
 
 	mutexlock keybdmutex
@@ -1278,7 +1278,7 @@ function interrupting_keypress () as bool
 #endif
 	end if
 
-	for i as integer = 0 to 127
+	for i as integer = 0 to scLAST
 		'Check for new keypresses
 		if keybd_dummy(i) and 2 then ret = YES
 	next
@@ -1306,7 +1306,7 @@ sub setkeys_update_keybd (keybd() as integer)
 	io_keybits(@keybd(0))
 	mutexunlock keybdmutex
 
-	'State of keybd(0 to 127) at this point:
+	'State of keybd(0 to scLAST) at this point:
 	'bit 0: key currently down
 	'bit 1: key down since last io_keybits call
 	'bit 2: zero
@@ -1341,7 +1341,7 @@ sub setkeys_update_keybd (keybd() as integer)
 	end if
 
 	'Calculate new "new keypress" bit (bit 2)
-	for a as integer = 0 to &h7f
+	for a as integer = 0 to scLAST
 		keybd(a) and= 3
 		if a = scAlt then
 			'Special behaviour for alt, to ignore pesky WM shortcuts like alt+tab, alt+enter:
@@ -1361,7 +1361,7 @@ sub setkeys_update_keybd (keybd() as integer)
 			end if
 
 			/'
-			for scancode as integer = 0 to &h7f
+			for scancode as integer = 0 to scLAST
 				if scancode <> scUnfilteredAlt and scancode <> scAlt and scancode <> scLeftAlt and scancode <> scRightAlt and (keybd(scancode) and 1) then
 					delayed_alt_keydown = NO
 				end if
@@ -1387,7 +1387,7 @@ sub setkeys_update_keybd (keybd() as integer)
 end sub
 
 sub update_keydown_times (keybd() as integer, key_down_ms() as integer)
-	for a as integer = 0 to &h7f
+	for a as integer = 0 to scLAST
 		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then
 			key_down_ms(a) = 0
 		end if
@@ -1722,7 +1722,7 @@ end function
 
 'these are wrappers provided by the polling thread
 sub io_amx_keybits cdecl (byval keybdarray as integer ptr)
-	for a as integer = 0 to &h7f
+	for a as integer = 0 to scLAST
 		keybdarray[a] = keybdstate(a)
 		keybdstate(a) = keybdstate(a) and 1
 	next
@@ -1746,7 +1746,7 @@ private sub pollingthread(byval unused as any ptr)
 		io_updatekeys(@keybdstate(0))
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
-		for a = 0 to &h7f
+		for a = 0 to scLAST
 			if keybdstate(a) and 8 then
 				'decide whether to set the 'new key' bit, otherwise the keystate is preserved
 				if (keybdstate(a) and 1) = 0 then
@@ -1958,7 +1958,7 @@ sub replay_input_tick ()
 			debug "input replay late for tick " & replay.nexttick & " (" & replay.nexttick - replay.tick & ")"
 		elseif replay.nexttick > replay.tick then
 			'debug "saving replay input tick " & replay.nexttick & " until its time has come (+" & replay.nexttick - replay.tick & ")"
-			for i as integer = 0 to 127
+			for i as integer = 0 to scLAST
 				'Check for a corrupt file
 				if keybd(i) then
 					' There ought to be a tick in the input file so that we can set setkeys_elapsed_ms correctly
