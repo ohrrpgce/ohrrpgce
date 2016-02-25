@@ -508,7 +508,6 @@ FUNCTION findhero (byval who as integer, byval first as integer, byval last as i
 END FUNCTION
 
 SUB hero_swap_menu (byval reserve_too as bool)
-'--Preserve background for display beneath the hero swapper
 
 DIM st as OrderTeamState
 st.show_reserve = reserve_too
@@ -517,8 +516,9 @@ st.reserve.last = -1
 st.swapme = -1
 st.party.need_update = YES
 
+'--Preserve background for display beneath the hero swapper
 DIM holdscreen as integer
-st.page = compatpage
+st.page = vpage
 holdscreen = allocatepage
 copypage st.page, holdscreen
 
@@ -637,13 +637,12 @@ DO
 
  copypage holdscreen, st.page
  hero_swap_menu_display st
- setvispage vpage
+ setvispage st.page
  dowait
 LOOP
 carray(4) = 0
 carray(5) = 0
 MenuSound gen(genCancelSFX)
-freepage st.page
 freepage holdscreen
 
 party_change_updates
@@ -652,19 +651,23 @@ END SUB
 
 SUB hero_swap_menu_display (st as OrderTeamState)
  '--DRAWS SWAP MENU AND CURRENT SELECTION
- centerbox 160, 66, 130, 38, 1, st.page
+ DIM centerx as integer = vpages(st.page)->w \ 2
+ DIM centery as integer = vpages(st.page)->h \ 2
+ centerbox centerx, centery - 34, 130, 38, 1, st.page
  DIM cater_slot as integer = 0
  FOR i as integer = 0 TO 3
-  IF i = st.swapme OR gam.hero(i).id >= 0 THEN rectangle 105 + (30 * i), 60, 20, 20, boxlook(0).bgcol, st.page
+  DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 40
+  IF i = st.swapme OR gam.hero(i).id >= 0 THEN rectangle xpos, ypos, 20, 20, boxlook(0).bgcol, st.page
   IF gam.hero(i).id >= 0 THEN
    set_walkabout_frame herow(cater_slot).sl, dirDown, 0
-   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), 105 + i * 30, 60 + (i = st.swapme) * 6, 20, 20, st.page, YES
+   IF i = st.swapme THEN ypos -= 6
+   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(cater_slot).sl), xpos, ypos, 20, 20, st.page, YES
    cater_slot += 1
   END IF
  NEXT i
- IF st.reserve.pt < 0 THEN edgeprint CHR(24), 111 + 30 * st.party.pt, 52, uilook(uiSelectedItem + st.party.tog), st.page
+ IF st.reserve.pt < 0 THEN edgeprint CHR(24), centerx - 49 + 30 * st.party.pt, centery - 48, uilook(uiSelectedItem + st.party.tog), st.page
  IF st.show_reserve THEN
-  centerbox 160, 100 + small(st.size.x, 8) * 5, st.size.y * 8 + 16, small(st.size.x, 8) * 10 + 10, 1, st.page
+  centerbox centerx, centery + small(st.size.x, 8) * 5, st.size.y * 8 + 16, small(st.size.x, 8) * 10 + 10, 1, st.page
   FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
    'Some of the colours are a bit bizarre, here, especially the time bar stuff below
    DIM menu_color as integer = uilook(uiMenuItem)
@@ -678,12 +681,12 @@ SUB hero_swap_menu_display (st as OrderTeamState)
      menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog))
     END IF
    END IF
-   edgeprint st.swname(i), xstring(st.swname(i), 160), 100 + (i - st.reserve.top) * 10, menu_color, st.page
+   edgeprint st.swname(i), xstring(st.swname(i), centerx), centery + (i - st.reserve.top) * 10, menu_color, st.page
   NEXT i
  END IF
  IF LEN(st.info) THEN
-  centerbox 160, 44, (LEN(st.info) + 2) * 8, 14, 1, st.page
-  edgeprint st.info, xstring(st.info, 160), 39, uilook(uiText), st.page
+  centerbox centerx, centery - 56, (LEN(st.info) + 2) * 8, 14, 1, st.page
+  edgeprint st.info, xstring(st.info, centerx), centery - 61, uilook(uiText), st.page
  END IF
 END SUB
 
@@ -1090,7 +1093,7 @@ DIM limit as integer = her.max_name_len
 IF limit = 0 THEN limit = 16
 
 DIM prompt as string = readglobalstring(137, "Name the Hero", 20)
-DIM spacer as string = STRING(large(limit, LEN(gam.hero(who).name)), " ")
+DIM entry_box_width as integer = large(limit, LEN(gam.hero(who).name)) * 8
 DIM remember as string = gam.hero(who).name
 
 DIM need_fade_out as integer
@@ -1100,11 +1103,9 @@ IF fadestate = 0 THEN
  need_fade_out = YES
 END IF
 
-DIM page as integer
 DIM holdscreen as integer
-page = compatpage
 holdscreen = allocatepage
-copypage page, holdscreen
+copypage vpage, holdscreen
 
 IF running_on_console() THEN
  'native virtual keyboard does not work on OUYA right now, so do this instead.
@@ -1127,19 +1128,20 @@ ELSE
   setkeys YES
   playtimer
   control
-  centerbox 160, 100, 168, 32, 1, page
   IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
   IF carray(ccMenu) > 1 THEN
    gam.hero(who).name = remember
    IF escapable THEN EXIT DO
   END IF
   strgrabber gam.hero(who).name, limit
-  
-  copypage holdscreen, page
-  edgeprint prompt, xstring(prompt, 160), 90, uilook(uiText), page
-  textcolor uilook(uiHighlight), uiLook(uiHighlight)
-  printstr spacer, xstring(spacer, 161), 101, page
-  edgeprint gam.hero(who).name, xstring(gam.hero(who).name, 160), 100, uilook(uiMenuItem), page
+
+  DIM centerx as integer = vpages(vpage)->w \ 2
+  DIM centery as integer = vpages(vpage)->h \ 2
+  copypage holdscreen, vpage
+  centerbox centerx, centery, 168, 32, 1, vpage
+  edgeprint prompt, xstring(prompt, centerx), centery - 10, uilook(uiText), vpage
+  rectangle centerx - entry_box_width \ 2, centery + 1, entry_box_width, 10, uilook(uiHighlight), vpage
+  edgeprint gam.hero(who).name, xstring(gam.hero(who).name, centerx), centery, uilook(uiMenuItem), vpage
  
   setvispage vpage
   dowait
@@ -1152,7 +1154,6 @@ END IF
 IF need_fade_out THEN
  fadeout 0, 0, 0
 END IF
-freepage page
 freepage holdscreen
 
 END SUB

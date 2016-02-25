@@ -297,16 +297,18 @@ SUB verify_quit
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
 
-  centerbox 160, 95, 200, 42, 15, page
+  DIM centerx as integer = vpages(vpage)->w \ 2
+  DIM centery as integer = vpages(vpage)->h \ 2
+  centerbox centerx, centery - 5, 200, 42, 15, vpage
   set_walkabout_frame herow(0).sl, direction, wtog \ 2
-  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), 150 + ptr2, 90, 20, 20, page, YES
-  edgeprint quitprompt, xstring(quitprompt, 160), 80, uilook(uiText), page
+  DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), centerx - 10 + ptr2, centery - 10, 20, 20, vpage, YES
+  edgeprint quitprompt, xstring(quitprompt, centerx), centery - 20, uilook(uiText), vpage
   col = uilook(uiMenuItem)
   IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quityes, 70, 96, col, page
+  edgeprint quityes, centerx - 90, centery - 4, col, vpage
   col = uilook(uiMenuItem)
   IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quitno, 256 - LEN(quitno) * 8, 96, col, page
+  edgeprint quitno, centerx + 90 - LEN(quitno) * 8, centery - 4, col, vpage
   setvispage vpage
   dowait
  LOOP
