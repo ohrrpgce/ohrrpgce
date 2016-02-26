@@ -959,6 +959,7 @@ SUB apply_game_window_settings ()
    scale = automatic_scale_factor(0.1 * gen(genWindowSize))
   END IF
   set_scale_factor scale
+  gfx_recenter_window_hint()
  END IF
 END SUB
 
