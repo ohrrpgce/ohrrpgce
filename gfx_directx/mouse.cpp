@@ -310,7 +310,7 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 	ns.visibility = CV_SHOW;
 	ns.mode = VM_WINDOWED;
 	m_state = ns;
-	m_inputState.push(IS_DEAD);
+	m_inputState.push(IS_LIVE);
 }
 
 bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

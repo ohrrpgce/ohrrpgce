@@ -541,7 +541,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)
 {
 	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_SHOW);
-	g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
+	//g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_HideCursor)
