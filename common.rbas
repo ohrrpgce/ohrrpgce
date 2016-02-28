@@ -2002,7 +2002,7 @@ SUB show_help(helpkey as string)
      pop_warning "Your """ & get_help_dir() & """ folder is not writable. Try making a copy of it at """ & documents_dir & SLASH & "ohrhelp"""
     END IF
    END IF
-   IF keyval(scF1) and helpkey <> "helphelp" THEN
+   IF keyval(scF1) and helpkey <> "share_helphelp" THEN
     show_help "share_helphelp"
    END IF
    IF editing THEN
