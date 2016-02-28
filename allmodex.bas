@@ -543,7 +543,7 @@ sub unlock_resolution (byval min_w as integer, byval min_h as integer)
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
-	screen_size_update
+	screen_size_update  'Update page size
 end sub
 
 'Disable window resizing.
@@ -560,7 +560,13 @@ sub set_resolution (byval w as integer, byval h as integer)
 	debuginfo "set_resolution " & w & "*" & h
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
+	'Update page size
 	screen_size_update
+	'Tell the gfx backend about the new page size. If we delayed this then a following
+	'call to set_scale_factor would change scale and recenter window using wrong window size,
+	'requiring manual recenter.
+	'TODO: not ideal, should tell backend about size and scale at same time.
+	setvispage vpage
 end sub
 
 'The current internal window size in pixels (actual window updated at next setvispage)

@@ -944,8 +944,11 @@ SUB apply_game_window_settings ()
   IF gfx_supports_variable_resolution() = NO THEN
    notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. The game will probably be unplayable!"
   ELSE
+   'Changes video page size, but not window size immediately
    set_resolution(gen(genResolutionX), gen(genResolutionY))
+   'Always recenter (need to call setvispage immediately, or the hint may be lost by calling e.g. set_safe_zone_margin)
    gfx_recenter_window_hint()
+   setvispage vpage
    'Calling this is only needed when live-previewing
    UpdateScreenSlice()
   END IF
@@ -961,8 +964,8 @@ SUB apply_game_window_settings ()
   ELSE
    scale = automatic_scale_factor(0.1 * gen(genWindowSize))
   END IF
+  'This should cause backend to automatically recenter window if necessary.
   set_scale_factor scale
-  gfx_recenter_window_hint()
  END IF
 END SUB
 

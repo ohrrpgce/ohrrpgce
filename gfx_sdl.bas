@@ -665,6 +665,8 @@ FUNCTION gfx_sdl_get_resize(byref ret as XYPair) as bool
   RETURN NO
 END FUNCTION
 
+'Interesting behaviour: under X11+KDE, if the window doesn't go over the screen edges and is resized
+'larger (SDL_SetVideoMode), then it will automatically be moved to fit onscreen (if you DON'T ask for recenter).
 SUB gfx_sdl_recenter_window_hint()
   'Takes effect at the next SDL_SetVideoMode call, and it's then removed
   debuginfo "recenter_window_hint()"
@@ -682,6 +684,7 @@ SUB gfx_sdl_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
     zoom_has_been_changed = YES
+    gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
       gfx_sdl_set_screen_mode()
     END IF

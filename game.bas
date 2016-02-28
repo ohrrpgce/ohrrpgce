@@ -322,6 +322,7 @@ remap_touchscreen_button 5, 0
 setwindowtitle "O.H.R.RPG.C.E"
 unhidemousecursor  'init mouse state
 
+debuginfo "Setting default window settings..."
 set_safe_zone_margin default_margin()
 set_resolution 320, 200
 IF overrode_default_zoom = NO THEN
