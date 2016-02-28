@@ -71,6 +71,10 @@ declare sub record_input_tick ()
 declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
+declare sub draw_allmodex_overlays (page as integer)
+declare sub show_overlay_message(msg as string)
+declare sub allmodex_controls ()
+
 declare function hexptr(p as any ptr) as string
 
 
@@ -210,8 +214,8 @@ dim shared fpsframes as integer = 0
 dim shared fpstime as double = 0.0
 dim shared fpsstring as string
 dim shared showfps as bool = NO
-dim shared overlay_message as string
-dim shared overlay_ticks as integer
+dim shared overlay_message as string      'Message to display on screen
+dim shared overlay_hide_time as double    'Time at which to hide it
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
@@ -610,24 +614,10 @@ sub setvispage (byval page as integer)
 		end if
 	end if
 
+	'Modifies page. This is bad if displaying a page other than vpage/dpage!
+	draw_allmodex_overlays page
+
 	with *vpages(page)
-		fpsframes += 1
-		if timer > fpstime + 1 then
-			fpsstring = "fps:" & INT(10 * fpsframes / (timer - fpstime)) / 10
-			fpstime = timer
-			fpsframes = 0
-		end if
-		if showfps then
-			'NOTE: this is bad if displaying a page other than vpage/dpage!
-			edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
-		end if
-		'rectangle .w - 6, .h - 6, 6, 6, uilook(uiText), page
-
-		if overlay_ticks > 0 then
-			edgeprint overlay_message, xstring(overlay_message, vpages(page)->w / 2), vpages(page)->h - 20, uilook(uiText), page
-			overlay_ticks -= 1
-		end if
-
 		'the fb backend may freeze up if it collides with the polling thread
 		mutexlock keybdmutex
 		if updatepal then
@@ -1409,9 +1399,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 'Updates the keyboard state to reflect new keypresses
 'since the last call, also clears all keypress events (except key-is-down)
 '
-'Also the place for low-level key hooks that work everywhere
-'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-
-'specific stuff)
+'Also calls allmodex_controls() to handle key hooks which work everywhere.
 '
 'enable_inputtext needs to be true for getinputtext to work;
 'however there is a one tick delay before coming into effect.
@@ -1453,89 +1441,15 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		update_keydown_times replay_kb
 	end if
 
-	'Check to see if the backend has received a request
-	'to close the window (eg. clicking the window frame's X).
-	'This form of input isn't recorded, but the ESCs fired in Custom will be recorded,
-	'so there's no need to check the recorded key state for pageup+pagedown+esc
-	if real_keyval(scPageup) > 0 and real_keyval(scPagedown) > 0 and real_keyval(scEsc) > 1 then closerequest = YES
-
-#ifdef IS_CUSTOM
-	'Fire ESC keypresses to exit every menu
-	if closerequest then
-		if replay.active or replay.paused then
-			stop_replaying_input "Replay ended by quit request"
-		end if
-		real_kb.keybd(scEsc) = 7
-	end if
-#elseif defined(IS_GAME)
-	'Quick abort (could probably do better, just moving this here for now)
-	if closerequest then
-		exitprogram NO
-	end if
-#endif
-
-	' Crash the program! For testing
-	if keyval(scPageup) > 0 and keyval(scPagedown) > 0 and keyval(scF4) > 1 then
-		dim invalid as integer ptr
-		*invalid = 0
-	end if
-
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
 	debug_if_slow(starttime, 0.005, replay.active)
 
-	'F12 for screenshots handled here (uses real_keyval)
-	snapshot_check
+	'Handle special keys, possibly clear or add keypresses. Might recursively call setkeys.
+	allmodex_controls()
 
-	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
-		showfps xor= 1
-	end if
-
-	if real_keyval(scShift) > 0 and real_keyval(scTab) > 0 then  'speed up while held down
-		fps_multiplier = 6.
-	else
-		fps_multiplier = 1.
-	end if
-
-	'This is a pause that doesn't show up in recorded input
-	if (replay.active or record.active) and real_keyval(scPause) > 1 then
-		real_clearkey(scPause)
-                if replay.active then pause_replaying_input
-                if record.active then pause_recording_input
-		notification "Replaying/recording is PAUSED"
-                if replay.paused then resume_replaying_input
-                if record.paused then resume_recording_input
-	end if
-
-	' Record input. This is here so we can record the effect of keybd(scEsc) = 7 above, and any clearkey calls.
+	' Record input, after filtering of keys by allmodex_controls.
 	if record.active then
 		record_input_tick ()
-	end if
-
-	'Some debug keys for working on resolution independence
-	if keyval(scShift) > 0 and keyval(sc1) > 0 then
-		if keyval(scRightBrace) > 1 then
-			set_resolution windowsize.w + 10, windowsize.h + 10
-		end if
-		if keyval(scLeftBrace) > 1 then
-			set_resolution windowsize.w - 10, windowsize.h - 10
-		end if
-		if keyval(scR) > 1 then
-			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
-		end if
-	end if
-
-	if mouse_grab_requested then
-#IFDEF __FB_DARWIN__
-		if keyval(scF14) > 1 then
-			clearkey(scF14)
-#ELSE
-		if keyval(scScrollLock) > 1 then
-			clearkey(scScrollLock)
-#endIF
-			mouserect -1, -1, -1, -1
-			mouse_grab_requested = YES
-			mouse_grab_overridden = YES
-		end if
 	end if
 
 	mouse_moved_since_setkeys = NO
@@ -1772,6 +1686,113 @@ end sub
 
 
 '==========================================================================================
+'                              Special overlays and controls
+'==========================================================================================
+
+
+'Called from setkeys. This handles keypresses which are global throughout the engine.
+'(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-specific stuff)
+private sub allmodex_controls()
+	'Check to see if the backend has received a request
+	'to close the window (eg. clicking the window frame's X).
+	'This form of input isn't recorded, but the ESCs fired in Custom will be recorded,
+	'so there's no need to check the recorded key state for pageup+pagedown+esc
+	if real_keyval(scPageup) > 0 and real_keyval(scPagedown) > 0 and real_keyval(scEsc) > 1 then closerequest = YES
+
+#ifdef IS_CUSTOM
+	'Fire ESC keypresses to exit every menu
+	if closerequest then
+		if replay.active or replay.paused then
+			stop_replaying_input "Replay ended by quit request"
+		end if
+		real_kb.keybd(scEsc) = 7
+	end if
+#elseif defined(IS_GAME)
+	'Quick abort (could probably do better, just moving this here for now)
+	if closerequest then
+		exitprogram NO
+	end if
+#endif
+
+	' Crash the program! For testing
+	if keyval(scPageup) > 0 and keyval(scPagedown) > 0 and keyval(scF4) > 1 then
+		dim invalid as integer ptr
+		*invalid = 0
+	end if
+
+	'F12 for screenshots handled here (uses real_keyval)
+	snapshot_check
+
+	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
+		showfps xor= 1
+	end if
+
+	fps_multiplier = base_fps_multiplier
+	if real_keyval(scShift) > 0 and real_keyval(scTab) > 0 then  'speed up while held down
+		fps_multiplier *= 6.
+	end if
+
+	'This is a pause that doesn't show up in recorded input
+	if (replay.active or record.active) and real_keyval(scPause) > 1 then
+		real_clearkey(scPause)
+		if replay.active then pause_replaying_input
+		if record.active then pause_recording_input
+		notification "Replaying/recording is PAUSED"
+		if replay.paused then resume_replaying_input
+		if record.paused then resume_recording_input
+	end if
+
+	'Some debug keys for working on resolution independence
+	if keyval(scShift) > 0 and keyval(sc1) > 0 then
+		if keyval(scRightBrace) > 1 then
+			set_resolution windowsize.w + 10, windowsize.h + 10
+		end if
+		if keyval(scLeftBrace) > 1 then
+			set_resolution windowsize.w - 10, windowsize.h - 10
+		end if
+		if keyval(scR) > 1 then
+			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
+		end if
+	end if
+
+	if mouse_grab_requested then
+#IFDEF __FB_DARWIN__
+		if keyval(scF14) > 1 then
+			clearkey(scF14)
+#ELSE
+		if keyval(scScrollLock) > 1 then
+			clearkey(scScrollLock)
+#ENDIF
+			mouserect -1, -1, -1, -1
+			mouse_grab_requested = YES
+			mouse_grab_overridden = YES
+		end if
+	end if
+end sub
+
+private sub show_overlay_message (msg as string)
+	overlay_message = msg
+	overlay_hide_time = timer + 3.
+end sub
+
+'Draw stuff on top of the video page about to be shown.
+private sub draw_allmodex_overlays (page as integer)
+	fpsframes += 1
+	if timer > fpstime + 1 then
+		fpsstring = "FPS:" & INT(10 * fpsframes / (timer - fpstime)) / 10
+		fpstime = timer
+		fpsframes = 0
+	end if
+	if showfps then
+		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
+	end if
+	if overlay_hide_time > timer then
+                edgeprint overlay_message, xstring(overlay_message, vpages(page)->w / 2), vpages(page)->h - 20, uilook(uiText), page
+	end if
+end sub
+
+
+'==========================================================================================
 '                                  Recording and replay
 '==========================================================================================
 
@@ -1802,8 +1823,7 @@ end sub
 sub stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 	if msg <> "" then
 		debugc errorlevel, msg
-		overlay_message = msg
-		overlay_ticks = 80
+		show_overlay_message msg
 	end if
 	if record.active or record.paused then
 		close #record.file
@@ -1860,8 +1880,7 @@ end sub
 sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 	if msg <> "" then
 		debugc errorlevel, msg
-		overlay_message = msg
-		overlay_ticks = 80
+		show_overlay_message msg
 	end if
 	if replay.active or replay.paused then
 		close #replay.file
