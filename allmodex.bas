@@ -155,7 +155,6 @@ end type
 dim shared real_kb as KeyboardState         'Always contains real keyboard state even if replaying
 dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard while replaying, else unused
 dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
-dim shared last_keybd(scLAST) as integer    'Used only for input recording
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
 'Singleton type
@@ -165,18 +164,21 @@ type ReplayState
 	tick as integer = -1       'Counts number of ticks we've replayed
 	nexttick as integer = -1   'If we read the next tickcount from the file before it's needed
 	                           'it's stored here. Otherwise -1.
-	next_tick_ms as integer    'Next tick milliseconds read before it's needed.
+	next_tick_ms as integer = 55 'Next tick milliseconds read before it's needed.
 	debug as bool = NO         'Set to YES by editing this line; maybe add a commandline option
 	length_ticks as integer    'Length in ticks (max tick num)
 	length_ms as integer       'Approximate length of the replay, in milliseconds
 	play_position_ms as integer 'Approximate position in replay in ms (calculated in same way as length_ms)
-
-	declare sub reset_state ()
 end type
 
-dim shared rec_input as bool = NO
-dim shared rec_input_file as integer     'file handle
+type RecordState
+	file as integer = -1       'File handle
+	active as bool             'Currently recording input
+	last_keybd(scLAST) as integer 'Keyboard state during previous recorded tick
+end type
+
 dim shared replay as ReplayState
+dim shared record as RecordState
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -324,7 +326,7 @@ sub restoremode()
 end sub
 
 sub mersenne_twister (byval seed as double)
-	IF replay.active ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
+	if replay.active orelse record.active then exit sub 'Seeding not allowed in play/record modes
 	'FIXME: reseeding the RNG from scripts needs be allowed.
 	'Either the seed should be recorded, or just don't allow any source of nondeterminism which could
 	'be used as a seed (e.g. record results of all nondeterministic script commands).
@@ -1283,7 +1285,7 @@ function interrupting_keypress () as bool
 
 	if ret then
 		'Crap, this is going to desync the replay since the result of interrupting_keypress isn't recorded
-		if rec_input then
+		if record.active then
 			stop_recording_input "Recording ended by interrupting keypress"
 		end if
 		if replay.active then
@@ -1468,7 +1470,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 #endif
 
 	' Record input. This is here so we can record the effect of keybd(scEsc) = 7 above.
-	if rec_input then
+	if record.active then
 		record_input_tick ()
 	end if
 
@@ -1768,20 +1770,18 @@ sub start_recording_input (filename as string)
 		debug "Replacing the input recording that already existed at """ & filename & """"
 		safekill filename
 	end if
-	rec_input_file = FREEFILE
-	open filename for binary access write as #rec_input_file
+	record.constructor()  'Clear data
+	record.file = FREEFILE
+	open filename for binary access write as #record.file
 	dim header as string = "OHRRPGCEkeys"
-	PUT #rec_input_file,, header
+	put #record.file,, header
 	dim ohrkey_ver as integer = 4
-	PUT #rec_input_file,, ohrkey_ver
+	put #record.file,, ohrkey_ver
 	dim seed as double = TIMER
 	RANDOMIZE seed, 3
-	PUT #rec_input_file,, seed
-	rec_input = YES
+	put #record.file,, seed
+	record.active = YES
 	debuginfo "Recording keyboard input to: """ & filename & """"
-	for i as integer = 0 to scLAST
-		last_keybd(i) = 0
-	next i
 end sub
 
 sub stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
@@ -1790,27 +1790,20 @@ sub stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		overlay_message = msg
 		overlay_ticks = 80
 	end if
-	if rec_input then
-		close #rec_input_file
-		rec_input = NO
+	if record.active then
+		close #record.file
+		record.active = NO
 		debuginfo "STOP recording input"
 	end if
 end sub
 
-sub ReplayState.reset_state ()
-	file = -1
-	tick = -1
-	nexttick = -1
-	play_position_ms = 0
-	next_tick_ms = 55
-end sub
-
 sub start_replaying_input (filename as string)
-	if rec_input then
+	if record.active then
 		debug "Can't replay input because already recording input!"
 		exit sub
 	end if
-	replay.reset_state()
+	replay.constructor()     'Reset
+	replay_kb.constructor()  'Reset
 	replay.file = FREEFILE
 	open filename for binary access read as #replay.file
 	replay.active = YES
@@ -1830,7 +1823,6 @@ sub start_replaying_input (filename as string)
 	GET #replay.file,, seed
 	RANDOMIZE seed, 3
 	debuginfo "Replaying keyboard input from: """ & filename & """"
-	replay_kb.constructor()  'Reset replay_kb
 	read_replay_length()
 end sub
 
@@ -1855,25 +1847,25 @@ sub record_input_tick ()
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
 	for i as integer = 0 to scLAST
-		if real_kb.keybd(i) <> last_keybd(i) then
+		if real_kb.keybd(i) <> record.last_keybd(i) then
 			presses += 1
 		end if
 		if real_kb.keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
 	next i
 	if presses = 0 and keys_down = 0 and len(real_kb.inputtext) = 0 then exit sub
-	PUT #rec_input_file,, tick
-	PUT #rec_input_file,, cubyte(real_kb.setkeys_elapsed_ms)
-	PUT #rec_input_file,, presses
+	put #record.file,, tick
+	put #record.file,, cubyte(real_kb.setkeys_elapsed_ms)
+	put #record.file,, presses
 	for i as ubyte = 0 to scLAST
-		if real_kb.keybd(i) <> last_keybd(i) then
-			PUT #rec_input_file,, i
-			PUT #rec_input_file,, cubyte(real_kb.keybd(i))
-			last_keybd(i) = real_kb.keybd(i)
+		if real_kb.keybd(i) <> record.last_keybd(i) then
+			PUT #record.file,, i
+			PUT #record.file,, cubyte(real_kb.keybd(i))
+			record.last_keybd(i) = real_kb.keybd(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
-	PUT #rec_input_file,, cubyte(len(real_kb.inputtext))
-	PUT #rec_input_file,, real_kb.inputtext
+	put #record.file,, cubyte(len(real_kb.inputtext))
+	put #record.file,, real_kb.inputtext
 end sub
 
 ' Scan the replay file to find its length, setting replay.length_ms and replay.length_ticks
