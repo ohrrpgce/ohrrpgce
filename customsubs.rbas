@@ -317,7 +317,11 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
      END IF
 
      IF newtype = -1 THEN
-      DIM tempcomp as string = statetable(charnum - 1, .type)
+      'This _temp variable is to work around a FB bug, https://sourceforge.net/p/fbc/bugs/816/
+      'It only occurs when compiling with debug=0 (without -exx. Whether adding/removing -exx causes
+      'the bug to occur depends on the surrounding context in the function).
+      DIM _temp as integer = charnum - 1
+      DIM tempcomp as string = statetable(_temp, .type)
       newtype = str_array_findcasei(comp_strings(), tempcomp)
      END IF
     END IF
