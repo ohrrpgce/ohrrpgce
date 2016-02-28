@@ -394,9 +394,12 @@ END SUB
 
 SUB notification (msg as string)
  ensure_normal_palette
- basic_textbox msg, uilook(uiText), vpage
- setvispage vpage
- waitforanykey
+ dim holdpage as integer = allocatepage
+ copypage vpage, holdpage
+ basic_textbox msg, uilook(uiText), holdpage
+ setvispage holdpage
+ clearkey(waitforanykey())
+ freepage holdpage
  restore_previous_palette
 END SUB
 

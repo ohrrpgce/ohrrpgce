@@ -159,7 +159,8 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext,
 
 'Singleton type
 type ReplayState
-	active as bool             'Currently replaying input
+	active as bool             'Currently replaying input and not paused
+	paused as bool             'While paused, keyval, etc, act on real_kb.
 	file as integer = -1       'File handle
 	tick as integer = -1       'Counts number of ticks we've replayed
 	nexttick as integer = -1   'If we read the next tickcount from the file before it's needed
@@ -173,8 +174,9 @@ end type
 
 type RecordState
 	file as integer = -1       'File handle
-	active as bool             'Currently recording input
-	last_keybd(scLAST) as integer 'Keyboard state during previous recorded tick
+	active as bool             'Currently recording input and not paused.
+	paused as bool             'While paused, calls to setkeys don't affect recording.
+	last_kb as KeyboardState   'Keyboard state during previous recorded tick
 end type
 
 dim shared replay as ReplayState
@@ -326,7 +328,9 @@ sub restoremode()
 end sub
 
 sub mersenne_twister (byval seed as double)
-	if replay.active orelse record.active then exit sub 'Seeding not allowed in play/record modes
+	if replay.active orelse replay.paused orelse record.active orelse record.paused then
+		exit sub 'Seeding not allowed in play/record modes
+	end if
 	'FIXME: reseeding the RNG from scripts needs be allowed.
 	'Either the seed should be recorded, or just don't allow any source of nondeterminism which could
 	'be used as a seed (e.g. record results of all nondeterministic script commands).
@@ -1285,6 +1289,7 @@ function interrupting_keypress () as bool
 
 	if ret then
 		'Crap, this is going to desync the replay since the result of interrupting_keypress isn't recorded
+		'(No problem if paused)
 		if record.active then
 			stop_recording_input "Recording ended by interrupting keypress"
 		end if
@@ -1457,7 +1462,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 #ifdef IS_CUSTOM
 	'Fire ESC keypresses to exit every menu
 	if closerequest then
-		if replay.active then
+		if replay.active or replay.paused then
 			stop_replaying_input "Replay ended by quit request"
 		end if
 		real_kb.keybd(scEsc) = 7
@@ -1469,11 +1474,6 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	end if
 #endif
 
-	' Record input. This is here so we can record the effect of keybd(scEsc) = 7 above.
-	if record.active then
-		record_input_tick ()
-	end if
-
 	' Crash the program! For testing
 	if keyval(scPageup) > 0 and keyval(scPagedown) > 0 and keyval(scF4) > 1 then
 		dim invalid as integer ptr
@@ -1483,7 +1483,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
 	debug_if_slow(starttime, 0.005, replay.active)
 
-	'F12 for screenshots handled here
+	'F12 for screenshots handled here (uses real_keyval)
 	snapshot_check
 
 	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
@@ -1494,6 +1494,21 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		fps_multiplier = 6.
 	else
 		fps_multiplier = 1.
+	end if
+
+	'This is a pause that doesn't show up in recorded input
+	if (replay.active or record.active) and real_keyval(scPause) > 1 then
+		real_clearkey(scPause)
+                if replay.active then pause_replaying_input
+                if record.active then pause_recording_input
+		notification "Replaying/recording is PAUSED"
+                if replay.paused then resume_replaying_input
+                if record.paused then resume_recording_input
+	end if
+
+	' Record input. This is here so we can record the effect of keybd(scEsc) = 7 above, and any clearkey calls.
+	if record.active then
+		record_input_tick ()
 	end if
 
 	'Some debug keys for working on resolution independence
@@ -1762,7 +1777,7 @@ end sub
 
 
 sub start_recording_input (filename as string)
-	if replay.active then
+	if replay.active or replay.paused then
 		debug "Can't record input because already replaying input!"
 		exit sub
 	end if
@@ -1790,15 +1805,31 @@ sub stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		overlay_message = msg
 		overlay_ticks = 80
 	end if
-	if record.active then
+	if record.active or record.paused then
 		close #record.file
 		record.active = NO
+		record.paused = NO
 		debuginfo "STOP recording input"
 	end if
 end sub
 
+' While recording is paused you can call setkeys without updating the recorded state.
+' The keyboard state before pausing is restored when resuming, so it's safe to pause
+' and resume recording anywhere.
+sub pause_recording_input
+	record.active = NO
+	record.paused = YES
+	record.last_kb = real_kb
+end sub
+
+sub resume_recording_input
+	record.active = YES
+	record.paused = NO
+	real_kb = record.last_kb
+end sub
+
 sub start_replaying_input (filename as string)
-	if record.active then
+	if record.active or record.paused then
 		debug "Can't replay input because already recording input!"
 		exit sub
 	end if
@@ -1832,13 +1863,27 @@ sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		overlay_message = msg
 		overlay_ticks = 80
 	end if
-	if replay.active then
+	if replay.active or replay.paused then
 		close #replay.file
 		replay.file = -1
 		replay.active = NO
+		replay.paused = NO
 		debugc errorlevel, "STOP replaying input"
 		use_speed_control = YES
 	end if
+end sub
+
+' While replay is paused you can call setkeys without changing the replay state,
+' and keyval, etc, return the real state of the keyboard.
+sub pause_replaying_input
+        ' The replay state is preserved in replay_kb, so pausing and resuming is easy.
+	replay.active = NO
+	replay.paused = YES
+end sub
+
+sub resume_replaying_input
+	replay.active = YES
+	replay.paused = NO
 end sub
 
 sub record_input_tick ()
@@ -1847,7 +1892,7 @@ sub record_input_tick ()
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
 	for i as integer = 0 to scLAST
-		if real_kb.keybd(i) <> record.last_keybd(i) then
+		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
 			presses += 1
 		end if
 		if real_kb.keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
@@ -1857,15 +1902,15 @@ sub record_input_tick ()
 	put #record.file,, cubyte(real_kb.setkeys_elapsed_ms)
 	put #record.file,, presses
 	for i as ubyte = 0 to scLAST
-		if real_kb.keybd(i) <> record.last_keybd(i) then
+		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
 			PUT #record.file,, i
 			PUT #record.file,, cubyte(real_kb.keybd(i))
-			record.last_keybd(i) = real_kb.keybd(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
 	put #record.file,, cubyte(len(real_kb.inputtext))
 	put #record.file,, real_kb.inputtext
+	record.last_kb = real_kb
 end sub
 
 ' Scan the replay file to find its length, setting replay.length_ms and replay.length_ticks
