@@ -1,0 +1,20 @@
+You're replaying recorded keyboard input to Game or Custom. All normal controls are disabled.
+
+NOTE: It's hard to tell if the playback has desynchronised (meaning the rest of the playback is different from what it should be). There are many things that can cause it (see below), and if it happens playback will just continue! Suspect something if the hero starts walking into walls a lot.
+
+Press SPACE to hide/show the playback display.
+
+Press LEFT to halve the frame rate, and RIGHT to double it. The maximum framerate will be limited by your computer's speed (there is no frame skipping yet). There is no way to rewind the playback.
+
+Press PAUSE to pause playback; you can also press PAUSE while recording, and the pause won't be recorded.
+
+Press ESC to stop playback.
+
+Recording input is incomplete. The following are some of the things that aren't recorded:
+-Joystick/gamepad input
+-Mouse input
+-Saved games. You need to make a copy of your .saves folder BEFORE starting to record, and need to restore that copy before replaying.
+-The presence of files in the file browser. If you select the 3rd .rpg file in a directory to play, the replay will require the same .rpg in the 3rd position.
+-Any non-deterministic script commands, such as to read the time (milliseconds, system hour, hours of play, etc), "sound is playing"/"wait for sound", "running on mobile" etc. "random" is OK though.
+-Possibly any bugs in record/replay!
+-The "seed random" command doesn't work while recording/replaying.

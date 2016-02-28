@@ -73,7 +73,9 @@ declare sub read_replay_length ()
 
 declare sub draw_allmodex_overlays (page as integer)
 declare sub show_overlay_message(msg as string)
+declare sub show_replay_overlay()
 declare sub allmodex_controls ()
+declare sub replay_controls ()
 
 declare function hexptr(p as any ptr) as string
 
@@ -143,6 +145,7 @@ dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim shared use_speed_control as bool = YES
+dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0
 
 type KeyboardState
@@ -216,6 +219,7 @@ dim shared fpsstring as string
 dim shared showfps as bool = NO
 dim shared overlay_message as string      'Message to display on screen
 dim shared overlay_hide_time as double    'Time at which to hide it
+dim shared overlay_replay_display as bool
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
@@ -1732,6 +1736,8 @@ private sub allmodex_controls()
 		fps_multiplier *= 6.
 	end if
 
+	if replay.active then replay_controls()
+
 	'This is a pause that doesn't show up in recorded input
 	if (replay.active or record.active) and real_keyval(scPause) > 1 then
 		real_clearkey(scPause)
@@ -1770,10 +1776,78 @@ private sub allmodex_controls()
 	end if
 end sub
 
+'Show the menu that comes up when pressing ESC while replaying
+private sub replay_menu ()
+	dim menu(...) as string = {"Resume Replay", "End Replay"}
+	dim choice as integer
+	pause_replaying_input
+	ensure_normal_palette
+	dim previous_speed as double = base_fps_multiplier
+	base_fps_multiplier = 1.
+	choice = multichoice("Stop replaying?", menu(), 0, 0)
+	if choice = 0 then
+		base_fps_multiplier = previous_speed
+                resume_replaying_input
+	elseif choice = 1 then
+		stop_replaying_input "Playback cancelled."
+	end if
+	restore_previous_palette
+end sub
+
+'Controls available while replaying input.
+'Called from inside setkeys; but it's OK to call setkeys from here if
+'pause_replaying_input is called first. If FB had co-routines, this would be implemented as one.
+private sub replay_controls ()
+	'We call show_help which calls setkeys which calls us.
+	static reentering as bool = NO
+	if reentering then showerror "Reentry of replay_controls shouldn't occur"
+	reentering = YES
+
+	if real_keyval(scF1) > 1 then
+		pause_replaying_input()
+		overlay_replay_display = NO
+		base_fps_multiplier = 1.
+		show_help("share_replay")
+		setkeys
+		clearkey(scEsc)
+		resume_replaying_input()
+	end if
+	if real_keyval(scSpace) > 1 then
+		overlay_replay_display xor= YES
+	end if
+	if real_keyval(scEsc) > 1 then
+		replay_menu
+	end if
+	'Also scPause, handled in setkeys because it affects record too.
+
+	if real_keyval(scLeft) > 1 then
+		base_fps_multiplier *= 0.5
+		show_replay_overlay()
+	end if
+	if real_keyval(scRight) > 1 then
+		base_fps_multiplier *= 2
+		show_replay_overlay()
+	end if
+	base_fps_multiplier = bound(base_fps_multiplier, 0.5^3, 2.^7)
+
+	reentering = NO
+end sub
+
 private sub show_overlay_message (msg as string)
 	overlay_message = msg
 	overlay_hide_time = timer + 3.
+	overlay_replay_display = NO
 end sub
+
+'Show the overlay for replaying input
+private sub show_replay_overlay ()
+'	overlay_hide_time = timer + 3.
+	overlay_replay_display = YES
+end sub
+
+private function ms_to_string (ms as integer) as string
+	return seconds2str(cint(ms * 0.001), "%h:%M:%S")
+end function
 
 'Draw stuff on top of the video page about to be shown.
 private sub draw_allmodex_overlays (page as integer)
@@ -1786,8 +1860,14 @@ private sub draw_allmodex_overlays (page as integer)
 	if showfps then
 		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
 	end if
-	if overlay_hide_time > timer then
-                edgeprint overlay_message, xstring(overlay_message, vpages(page)->w / 2), vpages(page)->h - 20, uilook(uiText), page
+
+	if overlay_replay_display then
+		overlay_message = "Pos: " & ms_to_string(replay.play_position_ms) & "/" & ms_to_string(replay.length_ms) & _
+		     "  " & replay.tick & "/" & replay.length_ticks & _
+		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 7) & rpad(fpsstring, " ", 10) & "[F1 for help]"
+	end if
+	if overlay_replay_display or overlay_hide_time > timer then
+		basic_textbox overlay_message, uilook(uiText), page, vpages(page)->h / 2 - 16
 	end if
 end sub
 
@@ -1875,6 +1955,7 @@ sub start_replaying_input (filename as string)
 	RANDOMIZE seed, 3
 	debuginfo "Replaying keyboard input from: """ & filename & """"
 	read_replay_length()
+	show_replay_overlay()
 end sub
 
 sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)

@@ -380,12 +380,13 @@ FUNCTION hilite(what as string, col as integer = -1) as string
 END FUNCTION
 
 'Draw a wrapped string in the middle of the page, in a box
-SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
+'yoffset: offset from centre of screen
+SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
  WITH *vpages(page)
   DIM captlines() as string
   split(wordwrap(msg, (.w - 20) \ 8), captlines())
-  centerbox .w \ 2, .h \ 2, .w - 10, 26 + 10 * UBOUND(captlines), 3, page
-  DIM y as integer = .h \ 2 - (UBOUND(captlines) + 1) * 5
+  centerbox .w \ 2, .h \ 2 + yoffset, .w - 10, 26 + 10 * UBOUND(captlines), 3, page
+  DIM y as integer = .h \ 2 + yoffset - (UBOUND(captlines) + 1) * 5
   FOR i as integer = 0 TO UBOUND(captlines)
    edgeprint captlines(i), 10, y + i * 10, col, page, YES
   NEXT
@@ -720,7 +721,7 @@ Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
   dim as integer s, m, h
   s = sec mod 60
   m = (sec \ 60) mod 60
-  h = (sec \ 3600) mod 60
+  h = (sec \ 3600)
 
   dim as integer i
   FOR i as integer = 0 to len(f) - 1
@@ -738,7 +739,7 @@ Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
           if m < 10 then ret = ret & "0"
           ret = ret & m
         case asc("h")
-          ret = ret & (sec \ 3600)
+          ret = ret & h
         case asc("H")
           if h < 10 then ret = ret & "0"
           ret = ret & h
