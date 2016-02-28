@@ -489,6 +489,7 @@ END SUB
 '                                      Script Commands
 '==========================================================================================
 
+'DIM SHARED used_script_commands(maxScriptCmdID) as bool
 
 ' This entry point is called from the script interpreter.
 SUB sfunctions(byval cmdid as integer)
@@ -497,6 +498,11 @@ SUB sfunctions(byval cmdid as integer)
  DIM npcref as integer = ANY
  DIM i as integer = ANY
  scriptret = 0
+
+ 'IF cmdid <= maxScriptCmdID ANDALSO used_script_commands(cmdid) = NO THEN
+ ' debug "Used command " & cmdid & " " & commandname(cmdid)
+ ' used_script_commands(cmdid) = YES
+ 'END IF
 
  SELECT CASE as CONST cmdid
 

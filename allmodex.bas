@@ -170,6 +170,7 @@ type ReplayState
 	paused as bool             'While paused, keyval, etc, act on real_kb.
 	file as integer = -1       'File handle
 	tick as integer = -1       'Counts number of ticks we've replayed
+	fpos as integer            'Debugging only: File offset of the tick chunk
 	nexttick as integer = -1   'If we read the next tickcount from the file before it's needed
 	                           'it's stored here. Otherwise -1.
 	next_tick_ms as integer = 55 'Next tick milliseconds read before it's needed.
@@ -183,6 +184,8 @@ type RecordState
 	file as integer = -1       'File handle
 	active as bool             'Currently recording input and not paused.
 	paused as bool             'While paused, calls to setkeys don't affect recording.
+	tick as integer = -1       'Tick number, starting from zero.
+	debug as bool = NO         'Set to YES by editing this line; maybe add a commandline option
 	last_kb as KeyboardState   'Keyboard state during previous recorded tick
 end type
 
@@ -782,6 +785,7 @@ sub setwait (byval ms as double, byval flagms as double = 0)
 	setwait_called = YES
 end sub
 
+' Returns number of dowait calls
 function get_tickcount() as integer
 	return tickcount
 end function
@@ -1987,8 +1991,7 @@ sub resume_replaying_input
 end sub
 
 sub record_input_tick ()
-	static tick as integer = -1
-	tick += 1
+	record.tick += 1
 	dim presses as ubyte = 0
 	dim keys_down as integer = 0
 	for i as integer = 0 to scLAST
@@ -1998,18 +2001,29 @@ sub record_input_tick ()
 		if real_kb.keybd(i) then keys_down += 1  'must record setkeys_elapsed_ms
 	next i
 	if presses = 0 and keys_down = 0 and len(real_kb.inputtext) = 0 then exit sub
-	put #record.file,, tick
+
+	dim debugstr as string
+	if record.debug then debugstr = "L:" & LOC(record.file) & " T:" & record.tick & " ms:" & real_kb.setkeys_elapsed_ms & " ("
+
+	put #record.file,, record.tick
 	put #record.file,, cubyte(real_kb.setkeys_elapsed_ms)
 	put #record.file,, presses
+
 	for i as ubyte = 0 to scLAST
 		if real_kb.keybd(i) <> record.last_kb.keybd(i) then
 			PUT #record.file,, i
 			PUT #record.file,, cubyte(real_kb.keybd(i))
+			if record.debug then debugstr &= " " & scancodename(i) & "=" & real_kb.keybd(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
 	put #record.file,, cubyte(len(real_kb.inputtext))
 	put #record.file,, real_kb.inputtext
+	if record.debug then
+		debugstr &= " )"
+		if len(real_kb.inputtext) then debugstr &= " input: '" & real_kb.inputtext & "'"
+		debuginfo debugstr
+	end if
 	record.last_kb = real_kb
 end sub
 
@@ -2062,11 +2076,11 @@ sub replay_input_tick ()
 			stop_replaying_input "The end of the input playback file was reached.", errInfo
 			exit sub
 		end if
-		dim fpos as integer = LOC(replay.file)
 
 		'Check whether it's time to play the next recorded tick in the replay file
 		'(ticks on which nothing happened aren't saved)
 		if replay.nexttick = -1 then
+			replay.fpos = LOC(replay.file)
 			GET #replay.file,, replay.nexttick
 			' Grab the next tick_ms already, because for some reason it gives far more accurate .play_position_ms estimation
 			dim tick_ms as ubyte
@@ -2105,7 +2119,7 @@ sub replay_input_tick ()
 
 		dim as string info
 		if replay.debug then
-			info = "L:" & fpos & " T:" & replay.nexttick & " ms:" & replay_kb.setkeys_elapsed_ms & " ("
+			info = "L:" & replay.fpos & " T:" & replay.nexttick & " ms:" & replay_kb.setkeys_elapsed_ms & " ("
 		end if
 
 		dim key as ubyte
