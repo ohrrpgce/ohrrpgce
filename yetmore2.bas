@@ -235,6 +235,9 @@ END FUNCTION
 
 SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
 
+'uncomment for slice debugging
+'DestroyGameSlices YES
+
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
 IF need_fade_out THEN fadeout 0, 0, 0

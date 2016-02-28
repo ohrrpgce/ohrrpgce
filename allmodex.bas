@@ -142,15 +142,15 @@ dim shared use_speed_control as bool = YES
 dim shared fps_multiplier as double = 1.0
 
 type KeyboardState
-	setkeys_elapsed_ms as integer          'Time since last setkeys call (used by keyval)
-	keybd(-1 to scLAST) as integer         'keyval array
-	key_down_ms(-1 to scLAST) as integer   'ms each key has been down
+	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
+	keybd(scLAST) as integer            'keyval array
+	key_down_ms(scLAST) as integer      'ms each key has been down
 	inputtext as string
 end type
 
 dim shared kb as KeyboardState
 dim shared last_setkeys_time as double      'Used to compute kb.setkeys_elapsed_ms
-dim shared last_keybd(scLAST) as integer       'used only for input recording
+dim shared last_keybd(scLAST) as integer    'used only for input recording
 ' shadow_kb contains real state of keyboard while replaying input, otherwise not used.
 ' WARNING: shadow_kb.inputtext may not work if inputtext_enabled = NO!
 dim shared shadow_kb as KeyboardState
@@ -180,7 +180,7 @@ dim shared rec_input as bool = NO
 dim shared rec_input_file as integer     'file handle
 dim shared replay as ReplayState
 
-dim shared closerequest as integer = NO
+dim shared closerequest as bool = NO     'It has been requested to close the program.
 
 dim keybdmutex as any ptr                '(Global) Controls access to keybdstate(), mouseflags, mouselastflags, various backend functions,
                                          'and generally used to halt the polling thread.
@@ -1246,7 +1246,7 @@ function interrupting_keypress () as bool
 
 	io_pollkeyevents()
 
-	dim keybd_dummy(-1 to scLAST) as integer
+	dim keybd_dummy(scLAST) as integer
 	dim mouse as MouseInfo
 
 	mutexlock keybdmutex
@@ -1254,17 +1254,10 @@ function interrupting_keypress () as bool
 	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
 	mutexunlock keybdmutex
 
+	' Check for attempt to quit program
+	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then closerequest = YES
 	if closerequest then
-		'closerequest = NO
-		keybd_dummy(-1) = 1
-	end if
-	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then keybd_dummy(-1) = 1
-
-	'Quick abort (could probably do better, just moving this here for now)
-	if keybd_dummy(-1) then
 #ifdef IS_GAME
-		'uncomment for slice debugging
-		'DestroyGameSlices YES
 		exitprogram NO
 #else
 		ret = YES
@@ -1305,7 +1298,6 @@ sub setkeys_update_keybd (keybd() as integer)
 	'bit 0: key currently down
 	'bit 1: key down since last io_keybits call
 	'bit 2: zero
-	'(keybd(-1) is special)
 
 	'debug "raw scEnter = " & keybd(scEnter) & " scAlt = " & keybd(scAlt)
 
@@ -1459,24 +1451,17 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	diagonalhack = -1
 
 	'Check to see if the backend has received a request
-	'to close the window (eg. clicking the X), set the magic keyboard
-	'index -1 if so. It can only be unset with clearkey.
-	'keybd(-1) isn't directly recorded in replay files, so don't bother with shadow_kb.keybd(),
-	'but EITHER a real or recorded quit request will work to quit Custom.
-	if closerequest then
-		closerequest = NO
-		kb.keybd(-1) = 1
-	end if
-	if kb.keybd(scPageup) > 0 and kb.keybd(scPagedown) > 0 and kb.keybd(scEsc) > 1 then kb.keybd(-1) = 1
+	'to close the window (eg. clicking the window frame's X).
+	'This form of input isn't recorded, but the ESCs fired in Custom will be recorded,
+	'so there's no need to check the recorded key state for pageup+pagedown+esc
+	if real_keyval(scPageup) > 0 and real_keyval(scPagedown) > 0 and real_keyval(scEsc) > 1 then closerequest = YES
 
 #ifdef IS_CUSTOM
 	'Fire ESC keypresses to exit every menu
-	if kb.keybd(-1) then kb.keybd(scEsc) = 7
+	if closerequest then kb.keybd(scEsc) = 7
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
-	if kb.keybd(-1) then
-		'uncomment for slice debugging
-		'DestroyGameSlices YES
+	if closerequest then
 		exitprogram NO
 	end if
 #endif
@@ -1542,27 +1527,26 @@ end sub
 'Erase a keypress from the keyboard state.
 sub clearkey(byval k as integer)
 	kb.keybd(k) = 0
-	if k >= 0 then
-		kb.key_down_ms(k) = 0
-	end if
+	kb.key_down_ms(k) = 0
 end sub
 
 'Erase a keypress from the real keyboard state even if replaying recorded input.
 sub real_clearkey(byval k as integer)
 	if replay.active then
 		shadow_kb.keybd(k) = 0
-		if k >= 0 then
-			shadow_kb.key_down_ms(k) = 0
-		end if
+		shadow_kb.key_down_ms(k) = 0
 	else
 		clearkey(k)
 	end if
 end sub
 
-'Set kb.keyval(-1) on. So ugly
-sub setquitflag ()
-	kb.keybd(-1) = 1
+sub setquitflag (newstate as bool = YES)
+	closerequest = newstate
 end sub
+
+function getquitflag () as bool
+	return closerequest
+end function
 
 sub post_terminate_signal cdecl ()
 	closerequest = YES

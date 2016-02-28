@@ -441,10 +441,10 @@ FUNCTION ee_okay_to_unload(byref st as EEState) as integer
  IF st.changed = NO THEN RETURN YES
  DIM choice as integer
  'Prevent attempt to quit the program, stop and wait for response first
- DIM quitting as integer = keyval(-1)
- clearkey(-1)
+ DIM quitting as bool = getquitflag()
+ setquitflag NO
  choice = twochoice("Save your changes before exiting?", "Yes, save", "No, discard")
- IF keyval(-1) THEN choice = 1  'Second attempt to close the program: discard
+ IF getquitflag() THEN choice = 1  'Second attempt to close the program: discard
  SELECT CASE choice
   CASE -1: 'cancelled
    RETURN NO

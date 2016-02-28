@@ -618,11 +618,11 @@ SUB prompt_for_save_and_quit()
  quit_menu(1) = "Save changes and continue editing"
  quit_menu(2) = "Save changes and quit"
  quit_menu(3) = "Discard changes and quit"
- clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
+ setquitflag NO  'Stop firing esc's, if the user asked to quit the program
  
  DIM quitnow as integer
  quitnow = sublist(quit_menu(), "quit_and_save")
- IF keyval(-1) THEN '2nd quit request? Right away!
+ IF getquitflag() THEN '2nd quit request? Right away!
   DIM basename as string = trimextension(sourcerpg)
   DIM lumpfile as string
   DIM i as integer = 0
@@ -736,7 +736,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
  palette16_empty_cache
  cleanup_global_reload_doc
  clear_binsize_cache
- IF show_quit_msg ANDALSO keyval(-1) = 0 THEN
+ IF show_quit_msg ANDALSO getquitflag() = NO THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES

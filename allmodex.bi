@@ -162,7 +162,8 @@ DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate 
 DECLARE SUB setkeys (byval enable_inputtext as bool = NO)
 DECLARE SUB real_clearkey (byval k as integer)
 DECLARE SUB clearkey (byval k as integer)
-DECLARE SUB setquitflag ()
+DECLARE SUB setquitflag (newstate as bool = YES)
+DECLARE FUNCTION getquitflag () as bool
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
 
 DECLARE SUB start_recording_input (filename as string)
