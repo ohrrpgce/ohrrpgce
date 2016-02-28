@@ -117,7 +117,7 @@ DIM SHARED screen_height as integer = 0
 DIM SHARED resizable as integer = NO
 DIM SHARED resize_requested as integer = NO
 DIM SHARED resize_request as XYPair
-DIM SHARED waiting_for_resize as bool = NO
+DIM SHARED force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as STRING
 DIM SHARED rememmvis as integer = 1
 DIM SHARED debugging_io as bool = NO
@@ -364,15 +364,22 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     flags = flags OR SDL_FULLSCREEN
   END IF
 #IFDEF __FB_DARWIN__
-  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    SDL_QuitSubSystem(SDL_INIT_VIDEO)
-    IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
-      debug "Can't start SDL video subsys (resize): " & *SDL_GetError
-    END IF
-  END IF
-  'Force clipping in fullscreen, and undo when leaving
-  set_forced_mouse_clipping (windowedmode = NO)
+  force_video_reset = YES
 #ENDIF
+  IF force_video_reset THEN
+    'Sometimes need to quit and reinit the video subsystem fro changes to take effect
+    force_video_reset = NO
+    IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+      SDL_QuitSubSystem(SDL_INIT_VIDEO)
+      IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
+        debug "Can't start SDL video subsys (resize): " & *SDL_GetError
+      END IF
+    END IF
+#IFDEF __FB_DARWIN__
+    'Force clipping in fullscreen, and undo when leaving
+    set_forced_mouse_clipping (windowedmode = NO)
+#ENDIF
+  END IF
 #IFDEF __FB_ANDROID__
   'On Android, the requested screen size will be stretched.
   'We also want the option of a margin around the edges for
@@ -425,7 +432,6 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
       RETURN 0
     END IF
-    waiting_for_resize = NO
     'debuginfo "gfx_sdl: created screensurface with size " & screensurface->w & "*" & screensurface->h & " depth " _
     '          & screensurface->format->BitsPerPixel & " flags " & HEX(screensurface->flags)
     EXIT DO
@@ -470,7 +476,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
   'debuginfo "gfx_sdl_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
 
   'variable resolution handling
-  IF waiting_for_resize OR framesize.w <> w OR framesize.h <> h THEN
+  IF framesize.w <> w OR framesize.h <> h THEN
     framesize.w = w
     framesize.h = h
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
@@ -664,6 +670,12 @@ SUB gfx_sdl_recenter_window_hint()
   debuginfo "recenter_window_hint()"
   putenv("SDL_VIDEO_CENTERED=1")
   '(Note this is overridden by SDL_VIDEO_WINDOW_POS)
+#IFDEF __FB_WIN32__
+  'Under Windows SDL_VIDEO_CENTERED only has an effect when the window is recreated, which happens if
+  'the resolution (and probably other settings) change. So force recreating by quitting and restarting
+  'the video subsystem
+  force_video_reset = YES
+#ENDIF
 END SUB
 
 SUB gfx_sdl_set_zoom(byval value as integer)
@@ -894,7 +906,6 @@ SUB gfx_sdl_process_events()
           debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
         END IF
         IF resizable THEN
-          'waiting_for_resize = YES  'This is more of a sanity check
           resize_requested = YES
           resize_request.w = evnt.resize.w / zoom
           resize_request.h = evnt.resize.h / zoom
