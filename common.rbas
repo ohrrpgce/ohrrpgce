@@ -170,7 +170,8 @@ SUB ensure_normal_palette ()
  FOR i as integer = 0 TO 255
   remember_master(i) = master(i)
  NEXT
- loadpalette master(), gam.current_master_palette
+ 'Skip we haven't started a game yet
+ IF LEN(game) > 0 THEN loadpalette master(), gam.current_master_palette
  setpal master()
 #ENDIF
 END SUB
