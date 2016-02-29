@@ -26,6 +26,11 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
+//This g_Window used to be defined in the "Version 2.0 interfaces" section
+//but I had to move it up here to be able to use g_Window.centerWindow() in gfx_setoption
+Window g_Window;
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
 D3D g_DirectX;
@@ -118,9 +123,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 	if(!opt || !arg)
 		return 0;
 	if(::strcmp(opt, "w") == 0 || ::strcmp(opt, "width") == 0)
-		gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
+		{
+			gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
+			g_Window.centerWindow();
+		}
 	else if(::strcmp(opt, "h") == 0 || ::strcmp(opt, "height") == 0)
-		gfx_SendMessage(OM_GFX_SETHEIGHT, ::atoi(arg), 0);
+		{
+			gfx_SendMessage(OM_GFX_SETHEIGHT, ::atoi(arg), 0);
+			g_Window.centerWindow();
+		}
 	else if(::strcmp(opt, "f") == 0 || ::strcmp(opt, "fullscreen") == 0)
 	{
 		if(*arg == '0')
@@ -236,7 +247,6 @@ DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int& button, int& x, int& y
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 2.0 interfaces
 
-Window g_Window;
 HWND g_hWndDlg;
 Keyboard g_Keyboard;
 Mouse2 g_Mouse;
