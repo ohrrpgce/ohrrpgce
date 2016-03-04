@@ -1093,20 +1093,20 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
   sliceed_rule rules(), "FillMode", erIntGrabber, @.FillMode, 0, 2
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
-  IF .Fill = NO ORELSE .FillMode > 0 THEN
-   IF .Fill = NO ORELSE .FillMode = 2 THEN
+  IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
+   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
     str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
     sliceed_rule rules(), "align", erIntgrabber, @.AlignHoriz, 0, 2
    END IF
-   IF .Fill = NO ORELSE .FillMode = 1 THEN
+   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
     str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
     sliceed_rule rules(), "align", erIntgrabber, @.AlignVert, 0, 2
    END IF
-   IF .Fill = NO ORELSE .FillMode = 2 THEN
+   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
     str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
     sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorHoriz, 0, 2
    END IF
-   IF .Fill = NO ORELSE .FillMode = 1 THEN
+   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
     str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
     sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorVert, 0, 2
    END IF

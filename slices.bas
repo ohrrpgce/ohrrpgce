@@ -89,6 +89,7 @@ Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 
+'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake)
 Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  with *ch
@@ -1702,21 +1703,22 @@ End Sub
 Function GridSliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval w as integer) as integer
  if sl = 0 then debug "GridSliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
-  CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
-  CASE 1: RETURN alignTo->ScreenX + alignTo->paddingLeft + (w - alignTo->paddingLeft - alignTo->paddingRight) \ 2
-  CASE 2: RETURN alignTo->ScreenX + w - alignTo->paddingRight
+  CASE alignLeft:   RETURN alignTo->ScreenX + alignTo->paddingLeft
+  CASE alignMiddle: RETURN alignTo->ScreenX + alignTo->paddingLeft + (w - alignTo->paddingLeft - alignTo->paddingRight) \ 2
+  CASE alignRight:  RETURN alignTo->ScreenX + w - alignTo->paddingRight
  END SELECT
 End Function
 
 Function GridSliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byval h as integer) as integer
  if sl = 0 then debug "GridSliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
-  CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
-  CASE 1: RETURN alignTo->ScreenY + alignTo->paddingTop + (h - alignTo->paddingTop - alignTo->paddingBottom) \ 2
-  CASE 2: RETURN alignTo->ScreenY + h - alignTo->paddingBottom
+  CASE alignTop:    RETURN alignTo->ScreenY + alignTo->paddingTop
+  CASE alignMiddle: RETURN alignTo->ScreenY + alignTo->paddingTop + (h - alignTo->paddingTop - alignTo->paddingBottom) \ 2
+  CASE alignBottom: RETURN alignTo->ScreenY + h - alignTo->paddingBottom
  END SELECT
 End Function
 
+'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake)
 Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
  
@@ -2468,14 +2470,14 @@ Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  
  with *ch
   select case ch->AlignHoriz
-   case 0: .ScreenX = par->ScreenX + ppos.x - SliceXAnchor(ch) + ch->X
-   case 1: .ScreenX = par->ScreenX + ppos.x + psize.w / 2 - SliceXAnchor(ch) + ch->X
-   case 2: .ScreenX = par->ScreenX + ppos.x + psize.w - SliceXAnchor(ch) + ch->X
+   case alignLeft:   .ScreenX = par->ScreenX + ppos.x - SliceXAnchor(ch) + ch->X
+   case alignMiddle: .ScreenX = par->ScreenX + ppos.x + psize.w / 2 - SliceXAnchor(ch) + ch->X
+   case alignRight:  .ScreenX = par->ScreenX + ppos.x + psize.w - SliceXAnchor(ch) + ch->X
   end select
   select case ch->AlignVert
-   case 0: .ScreenY = par->ScreenY + ppos.y - SliceYAnchor(ch) + ch->Y
-   case 1: .ScreenY = par->ScreenY + ppos.y + psize.h / 2 - SliceYAnchor(ch) + ch->Y
-   case 2: .ScreenY = par->ScreenY + ppos.y + psize.h - SliceYAnchor(ch) + ch->Y
+   case alignTop:    .ScreenY = par->ScreenY + ppos.y - SliceYAnchor(ch) + ch->Y
+   case alignMiddle: .ScreenY = par->ScreenY + ppos.y + psize.h / 2 - SliceYAnchor(ch) + ch->Y
+   case alignBottom: .ScreenY = par->ScreenY + ppos.y + psize.h - SliceYAnchor(ch) + ch->Y
   end select
   if .Fill then
    if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
@@ -2616,54 +2618,54 @@ End Function
 Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
  if sl = 0 then debug "SliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
-  CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
-  CASE 1: RETURN alignTo->ScreenX + alignTo->paddingLeft + (alignTo->Width - alignTo->paddingLeft - alignTo->paddingRight) \ 2
-  CASE 2: RETURN alignTo->ScreenX + alignTo->Width - alignTo->paddingRight
+  CASE alignLeft:   RETURN alignTo->ScreenX + alignTo->paddingLeft
+  CASE alignMiddle: RETURN alignTo->ScreenX + alignTo->paddingLeft + (alignTo->Width - alignTo->paddingLeft - alignTo->paddingRight) \ 2
+  CASE alignRight:  RETURN alignTo->ScreenX + alignTo->Width - alignTo->paddingRight
  END SELECT
 End Function
 
 Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
  if sl = 0 then debug "SliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
-  CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
-  CASE 1: RETURN alignTo->ScreenY + alignTo->paddingTop + (alignTo->Height - alignTo->paddingTop - alignTo->paddingBottom) \ 2
-  CASE 2: RETURN alignTo->ScreenY + alignTo->Height - alignTo->paddingBottom
+  CASE alignTop:    RETURN alignTo->ScreenY + alignTo->paddingTop
+  CASE alignMiddle: RETURN alignTo->ScreenY + alignTo->paddingTop + (alignTo->Height - alignTo->paddingTop - alignTo->paddingBottom) \ 2
+  CASE alignBottom: RETURN alignTo->ScreenY + alignTo->Height - alignTo->paddingBottom
  END SELECT
 End Function
 
 Function SliceXAnchor(byval sl as Slice Ptr) as integer
  if sl = 0 then debug "SliceXAnchor null ptr": Return 0
  SELECT CASE sl->AnchorHoriz
-  CASE 0: RETURN 0
-  CASE 1: RETURN sl->Width \ 2
-  CASE 2: RETURN sl->Width
+  CASE alignLeft:   RETURN 0
+  CASE alignMiddle: RETURN sl->Width \ 2
+  CASE alignRight:  RETURN sl->Width
  END SELECT
 End Function
 
 Function SliceYAnchor(byval sl as Slice Ptr) as integer
  if sl = 0 then debug "SliceYAnchor null ptr": Return 0
  SELECT CASE sl->AnchorVert
-  CASE 0: RETURN 0
-  CASE 1: RETURN sl->Height \ 2
-  CASE 2: RETURN sl->Height
+  CASE alignTop:    RETURN 0
+  CASE alignMiddle: RETURN sl->Height \ 2
+  CASE alignBottom: RETURN sl->Height
  END SELECT
 End Function
 
-Function SliceEdgeX(byval sl as Slice Ptr, byval edge as integer) as integer
+Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
  if sl = 0 then debug "SliceEdgeX null ptr": Return 0
  SELECT CASE edge
-  CASE 0: RETURN 0
-  CASE 1: RETURN sl->Width \ 2
-  CASE 2: RETURN sl->Width
+  CASE alignLeft:   RETURN 0
+  CASE alignMiddle: RETURN sl->Width \ 2
+  CASE alignRight:  RETURN sl->Width
  END SELECT
 End Function
 
-Function SliceEdgeY(byval sl as Slice Ptr, byval edge as integer) as integer
+Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
  if sl = 0 then debug "SliceEdgeY null ptr": Return 0
  SELECT CASE edge
-  CASE 0: RETURN 0
-  CASE 1: RETURN sl->Height \ 2
-  CASE 2: RETURN sl->Height
+  CASE alignTop:    RETURN 0
+  CASE alignMiddle: RETURN sl->Height \ 2
+  CASE alignBottom: RETURN sl->Height
  END SELECT
 End Function
 
@@ -2683,6 +2685,7 @@ Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, b
  end with
 end sub
 
+' Apply slice movement to this slice and descendants
 Sub AdvanceSlice(byval s as slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Mobile then
@@ -2697,6 +2700,7 @@ Sub AdvanceSlice(byval s as slice ptr)
  end if
 end sub
 
+' Apply slice .Targ movement
 Sub SeekSliceTarg(byval s as slice ptr)
  'no null check because this is only called from AdvanceSlice
  with *s

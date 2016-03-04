@@ -108,6 +108,21 @@ Enum AutoSortModes
  slAutoSortBottomY
 End Enum
 
+Enum FillModes
+ sliceFillFull = 0
+ sliceFillHoriz = 1
+ sliceFillVert = 2
+End Enum
+
+'Also used for anchoring
+Enum AlignTypes
+ alignLeft = 0
+ alignTop = 0
+ alignMiddle = 1
+ alignRight = 2
+ alignBottom = 2
+End Enum
+
 Extern "C"
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
@@ -125,7 +140,7 @@ TYPE Slice
   LastChild as Slice Ptr
   NextSibling as Slice Ptr
   PrevSibling as Slice Ptr
-  NumChildren as Integer
+  NumChildren as integer
   
   X as integer 'the X,Y relative to whatever the slice is attached to
   Y as integer
@@ -133,9 +148,9 @@ TYPE Slice
   ScreenY as integer
   Width as integer
   Height as integer
-  Visible as integer
-  Mobile as integer
-  Clip as integer
+  Visible as bool
+  Mobile as bool  'Whether to apply target and velocity movement to this slice tree (default true)
+  Clip as bool
   
   'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
   Velocity as XYPair
@@ -149,23 +164,26 @@ TYPE Slice
   TargTicks as integer
 
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
-  Lookup As integer
+  Lookup as integer
 
   EditorColor as integer 'Not saved, used only by slice editor
 
   AutoSort as AutoSortModes
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
-  
-  AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when not filling
-  AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when not filling
-  AnchorHoriz as integer 'Relative to self. 0,1,2=Left,Mid,Right. Only used when not filling
-  AnchorVert as integer  'Relative to self. 0,1,2=Top,Mid,Bottom. Only used when not filling
+
+  AlignHoriz as AlignTypes  'Relative to parent. Only used when not filling
+  AlignVert as AlignTypes   'Relative to parent. Only used when not filling
+  AnchorHoriz as AlignTypes 'Relative to self. Only used when not filling
+  AnchorVert as AlignTypes  'Relative to self. Only used when not filling
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
-  
-  Fill as integer
-  FillMode as integer '0=Both, 1=Horizontal, 2=Vertical
+
+  ' Note that setting a slice to Fill causes its size to be modified, and its
+  ' position to be ignored. This inconsistency is unfortunate. It also means
+  ' the size of non-resizeable slices can be changed, which is a bug.
+  Fill as bool
+  FillMode as FillModes
   
   Attach as AttachTypes
   Union
@@ -183,7 +201,7 @@ TYPE Slice
   SliceData as any ptr
   SliceType as SliceTypes
   
-  Protect as integer
+  Protect as bool
   'Protect is used to mark slices that script authors should not be
   'allowed to directly delete or reparent.
   'Note that this is only checked when a slice is directly freed or
@@ -191,10 +209,6 @@ TYPE Slice
   'it can still be deleted or moved indirectly.
   
 END TYPE
-
-CONST sliceFillFull = 0
-CONST sliceFillHoriz = 1
-CONST sliceFillVert = 2
 
 TYPE SliceTable_
   root as Slice Ptr
@@ -340,10 +354,8 @@ DECLARE Function UpdateScreenSlice() as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
-DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as integer) as integer
-DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as integer) as integer
-DECLARE Function SliceEdgeScreenX(byval sl as Slice Ptr, byval edge as integer) as integer
-DECLARE Function SliceEdgeScreenY(byval sl as Slice Ptr, byval edge as integer) as integer
+DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
+DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer

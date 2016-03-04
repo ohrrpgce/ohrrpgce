@@ -1,1 +1,3 @@
 Each slice has an X and Y position relative to its parent. You can type in a number, or you can press Enter or Space to reposition the slice using the arrow keys.
+
+Slices set to fill their parent horizontally, vertically, or both, ignore their X, Y, or both X and Y settings.
