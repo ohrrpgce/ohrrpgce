@@ -1216,7 +1216,7 @@ END FUNCTION
 
 'Returns whether confirmed
 FUNCTION picksave_confirm(menu() as string, byval loading as integer, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
- DIM confirmboxY as integer = 14 + (44 * st.pt)
+ DIM confirmboxY as integer = 14 + (44 * (st.pt - st.top))
  DIM tog as integer
  DIM confirm(1) as string
  confirm(0) = readglobalstring(44, "Yes", 10)
