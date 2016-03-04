@@ -29,8 +29,6 @@ TYPE SliceEditState
  collection_file as string
  use_index as bool
  last_non_slice as integer
- saved_pos as XYPair
- saved_size as XYPair
  clipboard as Slice Ptr
  hide_mode as HideMode
 END TYPE
@@ -101,9 +99,7 @@ CONST slgrEDITSWITCHINDEX = 256
 
 '==============================================================================
 
-'This overload of slice_editor is only allowed locally.
-'The other public overloads are in sliceedit.bi
-DECLARE SUB slice_editor OVERLOAD (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
+DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
@@ -241,6 +237,7 @@ SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integ
  END WITH
 END SUB
 
+' Edit a group of slice collections - this is the overload used by the slice editor menus in Custom.
 SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
 
  DIM ses as SliceEditState
@@ -259,7 +256,7 @@ SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
   SliceLoadFromFile edslice, slice_editor_filename(ses)
  END IF
 
- slice_editor ses, edslice, YES, specialcodes()
+ slice_editor_main ses, edslice, YES, specialcodes()
 
  slice_editor_save edslice, slice_editor_filename(ses)
  
@@ -267,29 +264,36 @@ SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
 
 END SUB
 
-SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED)
+' Edit an existing slice tree.
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, reposition_slice as bool = NO)
  DIM ses as SliceEditState
+ DIM saved_pos as XYPair
  REDIM specialcodes(0) as SpecialLookupCode
  init_slice_editor_for_collection_group(ses, group, specialcodes())
- slice_editor ses, edslice, NO, specialcodes()
+
+ IF reposition_slice THEN
+  '--If we are are editing an existing slice in "full-screen", zero its position and restore after
+  saved_pos.x = edslice->X
+  saved_pos.y = edslice->Y
+  edslice->X = 0
+  edslice->Y = 0
+ END IF
+
+ slice_editor_main ses, edslice, NO, specialcodes()
+
+ IF reposition_slice THEN
+  edslice->X = saved_pos.x
+  edslice->Y = saved_pos.y
+ END IF
 END SUB
 
-SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
+' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
+SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
  '--use_index controls the display of the collection number index
 
  '--use_index controls whether or not this is the indexed collection editor
  '--or the non-indexed single-collection editor
  ses.use_index = use_index
- 
- '--save the dimensions of the outer container to restore them later
- ses.saved_pos.x = edslice->X
- ses.saved_pos.y = edslice->Y
- ses.saved_size.x = edslice->Width
- ses.saved_size.y = edslice->Height
- 
- '--zero the position, in case we are editing an existing slice in full-screen
- edslice->X = 0
- edslice->Y = 0
 
  '--user-defined slice lookup codes
  REDIM slicelookup(10) as string
@@ -556,11 +560,6 @@ SUB slice_editor (byref ses as SliceEditState, byref edslice as Slice Ptr, byval
   setvispage vpage
   dowait
  LOOP
-
- edslice->X = ses.saved_pos.x
- edslice->Y = ses.saved_pos.y
- edslice->Width = ses.saved_size.x
- edslice->Height = ses.saved_size.y
 
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
@@ -1518,6 +1517,7 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  RETURN n & "(!?)"
 END FUNCTION
 
+'This wrapper around SliceLoadFromFile falls back to a default for the various special slice collections
 SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
  DIM filename as string
  filename = workingdir & SLASH & "slicetree_" & collection_kind & "_" & collection_num & ".reld"
