@@ -1,3 +1,5 @@
 The alignment setting controls which edge of this slice's parent the slice will be positioned relative to.
 
 Remember, alignment is relative to the parent slice.
+
+Any padding that the parent slice has affects the position of the alignment point.

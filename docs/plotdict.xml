@@ -4500,7 +4500,12 @@ end
 		<command id="setslicex">
 			<canon>set slice x (handle, X)</canon>
 			<shortname>set slice x</shortname>
-			<description>Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<description>
+				Changes the y position of any slice, for example a sprite.
+				This position is relative to the slice's parent.
+				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
+				The position of the parent's align point also depends on the amount of padding the parent has.
+			</description>
 			<seealso>
 				<ref>putslice</ref>
 				<ref>slicex</ref>
@@ -4510,7 +4515,12 @@ end
 		<command id="setslicey">
 			<canon>set slice y (handle, Y)</canon>
 			<shortname>set slice y</shortname>
-			<description>Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<description>
+				Changes the y position of any slice, for example a sprite.
+				This position is relative to the slice's parent.
+				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
+				The position of the parent's align point also depends on the amount of padding the parent has.
+			</description>
 			<seealso>
 				<ref>putslice</ref>
 				<ref>slicey</ref>
@@ -4520,7 +4530,13 @@ end
 		<command id="slicescreenx">
 			<canon>slice screen x (handle)</canon>
 			<shortname>slice screen x</shortname>
-			<description>Returns the screen X position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's X position, but also its alignment, and the position and size of its parents.</description>
+			<description>
+				Returns the X position on the screen of the anchor point of a slice.
+				This position is relative to the screen, so it is calculated based on not only the slice's X position,
+				but also its alignment, and the position and size of its parents.
+				However, the slice's anchor point setting doesn't affect this, because that
+				specifies which point on the slice is attached to the anchor point.
+			</description>
 			<seealso>
 				<ref>slicescreeny</ref>
 				<ref>slicex</ref>
@@ -4529,7 +4545,13 @@ end
 		<command id="slicescreeny">
 			<canon>slice screen y (handle)</canon>
 			<shortname>slice screen y</shortname>
-			<description>Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.</description>
+			<description>
+				Returns the Y position on the screen of the anchor point of a slice.
+				This position is relative to the screen, so it is calculated based on not only the slice's Y position,
+				but also its alignment, and the position and size of its parents.
+				However, the slice's anchor point setting doesn't affect this, because that
+				specifies which point on the slice is attached to the anchor point.
+			</description>
 			<seealso>
 				<ref>slicescreenx</ref>
 				<ref>slicey</ref>

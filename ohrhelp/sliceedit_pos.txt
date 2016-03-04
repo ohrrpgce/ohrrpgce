@@ -1,3 +1,5 @@
 Each slice has an X and Y position relative to its parent. You can type in a number, or you can press Enter or Space to reposition the slice using the arrow keys.
 
 Slices set to fill their parent horizontally, vertically, or both, ignore their X, Y, or both X and Y settings.
+
+More exactly, this position is the relative displacement between this slice's anchor point, and the point on the parent that it is aligned with. The position of the parent's alignment points also depends on the amount of padding the parent has.
