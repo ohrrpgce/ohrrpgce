@@ -613,7 +613,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 	DWORD xPos, yPos;
 	RECT rClient, rDesktop;
 	GetClientRect(g_Window.getWindowHandle(), &rClient);
-	D3DXVECTOR2 clientPosition( (float)(rClient.right * (x+1)) / 320.0f, (float)(rClient.bottom * (y+1)) / 200.0f );
+	D3DXVECTOR2 clientPosition( (float)(rClient.right * x) / 320.0f + 0.5f, (float)(rClient.bottom * y) / 200.0f + 0.5f);
 	POINT pos = { _round(clientPosition.x), _round(clientPosition.y) };
 	
 	ClientToScreen(g_Window.getWindowHandle(), &pos);
