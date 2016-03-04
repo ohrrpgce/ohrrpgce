@@ -72,7 +72,7 @@ declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
 declare sub draw_allmodex_overlays (page as integer)
-declare sub show_overlay_message(msg as string)
+declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
@@ -477,6 +477,7 @@ private sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
+		show_overlay_message windowsize.w & " x " & windowsize.h, 1.5
 	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user
@@ -1843,9 +1844,9 @@ private sub replay_controls ()
 	reentering = NO
 end sub
 
-private sub show_overlay_message (msg as string)
+private sub show_overlay_message (msg as string, seconds as double = 3.)
 	overlay_message = msg
-	overlay_hide_time = timer + 3.
+	overlay_hide_time = timer + seconds
 	overlay_replay_display = NO
 end sub
 

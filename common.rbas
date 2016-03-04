@@ -512,7 +512,7 @@ SUB centerbox (byval x as integer, byval y as integer, byval w as integer, byval
 END SUB
 
 SUB center_edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
- edgeboxstyle x - w / 2, y - h / 2, w, h, boxstyle, p, fuzzy, supress_borders
+ edgeboxstyle x - w \ 2, y - h \ 2, w, h, boxstyle, p, fuzzy, supress_borders
 END SUB
 
 SUB edgeboxstyle (byref rect as RectType, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
