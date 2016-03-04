@@ -370,10 +370,20 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     IF count > 1 THEN price_str &= CHR(1) & count
    END WITHNODE
   END READNODE
-  ChangeTextSlice buyst.price_sl, price_str
+  'Set price text but don't wrap yet
+  ChangeTextSlice buyst.price_sl, price_str, , , NO
+  buyst.price_sl->Fill = NO
   IF LEN(price_str) THEN
    buyst.price_box->Visible = YES
-   buyst.price_box->Width = small(buyst.price_sl->Width + 16, 320)
+   buyst.price_box->Width = small(buyst.price_sl->Width + 16, buyst.root_sl->Width)
+   buyst.price_box->Height = 16
+   IF buyst.price_box->Width = buyst.root_sl->Width THEN
+    'Width is max, enable wrapping
+    ChangeTextSlice buyst.price_sl, , , , YES
+    buyst.price_sl->Fill = YES
+    buyst.price_sl->FillMode = sliceFillHoriz
+    buyst.price_box->Height = 8 + buyst.price_box->Height
+   END IF
   ELSE
    buyst.price_box->Visible = NO
   END IF
@@ -733,6 +743,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .AlignVert = 1
   .AnchorHoriz = 1
   .AlignHoriz = 1
+  .Fill = NO
+  .FillMode = sliceFillHoriz
  END WITH
  ChangeTextSlice buyst.price_sl, "Price goes here", uilook(uiText), YES
 
