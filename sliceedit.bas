@@ -1151,7 +1151,7 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as S
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN RETURN NO
-  IF keyval(scF1) > 1 THEN show_help "slicedit_browse_slicetype"
+  IF keyval(scF1) > 1 THEN show_help "sliceedit_browse_slicetype"
 
   usemenu state
   
