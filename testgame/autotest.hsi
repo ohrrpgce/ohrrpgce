@@ -77,4 +77,6 @@ define constant, begin
 5,enemy:AtkTagUseTester
 6,enemy:AtkTagTestNoReq
 7,enemy:Data read test
+1,sli:Some lookup
+2,sli:my root slice
 end

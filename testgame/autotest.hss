@@ -2529,6 +2529,7 @@ script, slice tests, begin
 
   # Extremely unfinished!
 
+  slice collection tests
   slice find tests
   slice tree tests
 
@@ -2567,6 +2568,72 @@ end
 
 ########################################################################
 
+# A lot more could be added to this
+script, slice collection tests, begin
+  $0="slice collection tests"
+
+  variable(sl, sl2)
+
+  # This is a slice collection with the root slice edited
+  sl := load slice collection(0)
+  w
+  assert(sl)
+  assert(parent slice(sl) == sprite layer)  # default parent
+  assert(slice is rect(sl) == true)
+  assert(is filling parent(sl) == false)
+  assert(slice x(sl) == -10)
+  assert(slice y(sl) == -20)
+  assert(slice width(sl) == 100)
+  assert(slice height(sl) == 50)
+  assert(get slice visible(sl) == true)
+  assert(get slice extra(sl, 0) == 10)
+  assert(get slice extra(sl, 1) == 20)
+  assert(get slice extra(sl, 2) == 30)
+  assert(get top padding(sl) == 1)
+  assert(get right padding(sl) == 2)
+  assert(get bottom padding(sl) == 3)
+  assert(get left padding(sl) == 4)
+  assert(get slice clipping(sl) == true)
+  assert(get slice lookup(sl) == sli:my root slice)
+  assert(get rect fuzziness(sl) == 48)
+  assert(get rect fg col(sl) == 101)
+  assert(get rect bg col(sl) == 71)
+  assert(get rect style(sl) == -1)
+  assert(get horiz align(sl) == edge:right)
+  assert(get vert align(sl) == edge:middle)
+  assert(get horiz anchor(sl) == edge:right)
+  assert(get vert anchor(sl) == edge:top)
+  assert(slice screen x(sl) == 310)   # position of the anchor point
+  assert(slice screen y(sl) == 80)
+
+  sl2 := lookup slice(sli:some lookup)
+  assert(sl2)
+  assert(parent slice(sl2) == sl)
+  assert(slice is sprite(sl2) == true)
+  assert(get spriteset number(sl2) == 5)
+  assert(get sprite palette(sl2) == 2)
+  assert(get sprite frame(sl2) == 6)
+  assert(get sprite trans(sl2) == false)
+  assert(sprite is horiz flipped(sl2) == true)
+  assert(sprite is vert flipped(sl2) == false)
+  assert(slice width(sl2) == 32)
+  assert(slice height(sl2) == 40)
+  assert(slice x(sl2) == 10)
+  assert(slice y(sl2) == -16)
+  assert(slice screen x(sl2) == 224)
+  assert(slice screen y(sl2) == 88)
+
+  free slice(sl)
+
+  # A simpler collection
+  sl := load slice collection(1)
+  assert(sl)
+  assert(get slice visible(sl) == false) # edited
+  assert(is filling parent(sl) == true)  # the default
+  free slice(sl)
+end
+
+########################################################################
 
 # Unfinished tests of findcollidingslice and sliceatpixel
 script, slice find tests, begin
@@ -3043,7 +3110,6 @@ end
 #game over
 #get ambient music
 #get attack name
-#get bottom padding (handle)
 #get color(index)
 #get damage cap
 #get each step script
@@ -3058,7 +3124,6 @@ end
 #get hero slice (who)
 #get instead of battle script
 #get item name (ID, item)
-#get left padding (handle)
 #get load script
 #get map edge mode
 #get map name (ID, map)
@@ -3071,28 +3136,14 @@ end
 #get NPC usable (who)
 #get on keypress script
 #get outline(handle)
-#get rect bgcol (handle)
 #get rect border (handle)
-#get rect fgcol (handle)
-#get rect style (handle)
-#get right padding (handle)
-#get slice clipping (handle)
-#get slice extra (handle, extra)
-#get slice lookup (handle)
 #get slice velocity x (handle)
 #get slice velocity y (handle)
-#get slice visible (handle)
 #get song name (ID, song)
 #get sort order (handle)
-#get sprite frame (handle)
-#get sprite palette (handle)
-#get sprite set number (handle)
-#get sprite trans (handle)
-#get sprite type (handle)
 #get text bg(handle)
 #get text color(handle)
 #get tile animation offset (animation pattern, layer)
-#get top padding (handle)
 #get victory music
 #get wrap(handle)
 #get zone extra (zone id, extra num)
@@ -3126,7 +3177,6 @@ end
 #load medium enemy sprite (num, palette)
 #load palette (palette number)
 #load portrait sprite (num, palette)
-#load slice collection (id)
 #load small enemy sprite (num, palette)
 #load tileset (tileset, layer)
 #load walkabout sprite (num, palette)
@@ -3172,7 +3222,6 @@ end
 #outside battle cure
 #overhead tile
 #pan camera (direction,distance,pixelstep)
-#parent slice (handle)
 #party money
 #pay money (amount)
 #place sprite
@@ -3313,27 +3362,16 @@ end
 #slice contains (handle1, handle2)
 #slice edge x (handle, edge)
 #slice edge y (handle, edge)
-#slice height (handle)
 #slice is container (handle)
 #slice is ellipse (handle)
 #slice is grid (handle)
 #slice is moving (handle)
-#slice is rect (handle)
-#slice is sprite (handle)
 #slice is text (handle)
 #slice is valid (id)
-#slice screen x (handle)
-#slice screen y (handle)
 #slice to back (handle)
 #slice to front (handle)
-#slice width (handle)
-#slice x (handle)
-#slice y (handle)
 #sort children (handle, wipe)
 #sprite frame count (handle)
-#sprite is horiz flipped (handle)
-#sprite is vert flipped (handle)
-#sprite layer
 #sqrt (number)
 #stop slice (handle)
 #stop timer (id)
