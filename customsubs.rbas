@@ -1458,6 +1458,9 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval pi
   NEXT j
  NEXT i
 
+ 'We actually want to be able to browse past the last palette to the first empty palette
+ state.last += 1
+
  state.pt = bound(curpal, 0, state.last)
  state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
 
