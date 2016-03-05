@@ -1949,7 +1949,9 @@ SUB show_help(helpkey as string)
   setwait 17
   setkeys YES
 
+  'The necessity of this would be eliminated by using a root slice set to fill (filling the screen slice)
   UpdateRootSliceSize(help_root)
+
   dat->line_limit = (vpages(vpage)->h - 32) \ 10 + 1
   scrollbar_state.size = dat->line_limit - 1
 

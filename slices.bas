@@ -2805,12 +2805,12 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
 end sub
 
 Function UpdateRootSliceSize(sl as slice ptr) as bool
- 'Update the size fo a slice to match the window size.
+ 'Update the size of a slice to match the window size.
  'Normally the root slice is set to fill; calling this function is only needed
  'when it isn't.
- 'Returns true if the size changed
+ 'Returns true if the size changed.
  if sl = 0 then return NO
- dim changed as integer = NO
+ dim changed as bool
  with *sl
   changed = (.Width <> get_resolution_w()) or (.Height <> get_resolution_h())
   .Width = get_resolution_w()
@@ -2819,9 +2819,16 @@ Function UpdateRootSliceSize(sl as slice ptr) as bool
  return changed
 end function
 
-Function UpdateScreenSlice() as bool
+Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
  'Match ScreenSlice size to window size; returns true if the size changed
- return UpdateRootSliceSize(ScreenSlice)
+ 'since the last call with clear_changed_flag=YES.
+ static changed as bool = NO
+ if UpdateRootSliceSize(ScreenSlice) then changed = yes
+ if clear_changed_flag and changed then
+  changed = NO
+  return YES
+ end if
+ return changed
 end function
 
 Sub RefreshSliceScreenPos(byval s as slice ptr)

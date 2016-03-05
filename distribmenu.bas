@@ -173,8 +173,8 @@ SUB edit_distrib_info ()
  DIM infosl as Slice Ptr
  infosl = NewSliceOfType(slText, rootsl)
  infosl->Width = 320
- infosl->AnchorVert = 2
- infosl->AlignVert = 2
+ infosl->AnchorVert = alignBottom
+ infosl->AlignVert = alignBottom
  ChangeTextSlice infosl, , uilook(uiText), YES, YES
 
  DIM distinfo as DistribState

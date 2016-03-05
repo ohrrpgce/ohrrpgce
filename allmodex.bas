@@ -14,6 +14,7 @@
 #include "util.bi"
 #include "const.bi"
 #include "uiconst.bi"
+#include "slices.bi"
 
 using Reload
 
@@ -439,7 +440,8 @@ sub resizepage (page as integer, w as integer, h as integer)
 		exit sub
 	end if
 	dim newpage as Frame ptr
-	newpage = frame_new(w, h, , YES)
+	newpage = frame_new(w, h)
+	frame_clear newpage, uilook(uiBackground)
 	frame_draw vpages(page), NULL, 0, 0, 1, 0, newpage
 	frame_unload @vpages(page)
 	vpages(page) = newpage
@@ -530,6 +532,11 @@ private sub screen_size_update ()
 			'If no match found, do nothing
 		end if
 	next
+
+	'Update the size of the Screen slice.
+	'This removes the need to call UpdateScreenSlice in all menus, but you can
+	'still call it to find out if the size changed.
+	UpdateScreenSlice NO  'clear_changed_flag=NO
 end sub
 
 'Makes the window resizeable, and sets a minimum size.

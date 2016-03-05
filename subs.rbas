@@ -2428,8 +2428,8 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
  ChangeTextSlice infobox, "", , , YES ' make wrapping
  WITH *infobox
   .Width = root->Width
-  .AlignVert = 2
-  .AnchorVert = 2
+  .AlignVert = alignBottom
+  .AnchorVert = alignBottom
  END WITH
  
  DIM info as string
