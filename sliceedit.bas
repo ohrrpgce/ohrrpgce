@@ -112,7 +112,7 @@ DECLARE SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as
 DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
-DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem) as Slice ptr
+DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
@@ -304,6 +304,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
  END IF
 
  ses.draw_root = edslice
+ ses.show_root = YES
  slice_editor_main ses, edslice, NO, specialcodes()
 
  IF reposition_slice THEN
@@ -350,8 +351,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
  
  DIM jump_to_collection as integer
 
- '--this early draw ensures that all the slices are updated before the loop starts
- DrawSlice ses.draw_root, dpage
+ '--Ensure all the slices are updated before the loop starts
+ RefreshSliceTreeScreenPos ses.draw_root
 
  ensure_normal_palette
  setkeys
@@ -479,6 +480,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     END IF
    ELSEIF keyval(scF) > 1 THEN
     slice_editor menu(state.pt).handle
+    state.need_update = YES
 
    ELSEIF keyval(scShift) > 0 THEN
 
@@ -532,7 +534,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   ' Highlighting and selecting slices with the mouse
   DIM topmost as Slice ptr = 0
   IF state.need_update = NO THEN
-   topmost = slice_editor_mouse_over(edslice, menu())
+   topmost = slice_editor_mouse_over(edslice, menu(), state)
    DIM mouse as MouseInfo = readmouse()
    IF topmost ANDALSO (mouse.clickstick AND mouseLeft) THEN
     cursor_seek = topmost
@@ -569,7 +571,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
 
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
-    IF menu(i).handle THEN
+    'Don't allow overridding highlighting of state.pt
+    IF i <> state.pt ANDALSO menu(i).handle THEN
      plainmenu(i) = fgcol_text(menu(i).s, menu(i).handle->EditorColor)
     ELSE
      plainmenu(i) = menu(i).s
@@ -607,20 +610,24 @@ END SUB
 
 'Sets ->EditorColor for each slice in menu() to highlight the slices that the mouse is over.
 'Returns the topmost non-ignored slice that the mouse is over, or NULL if none.
-FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem) as Slice ptr
+FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
  FOR idx as integer = 0 TO UBOUND(menu)
   IF menu(idx).handle THEN
    menu(idx).handle->EditorColor = uilook(uiMenuItem)
   END IF
  NEXT
 
+ DIM parent as Slice ptr = edslice
+ 'We want to allow finding edslice too (FindSliceAtPoint will ignore parent), but this
+ 'won't work when editing an existing slice tree.
+ IF edslice->Parent THEN parent = edslice->Parent
  DIM mouse as MouseInfo = readmouse()
  DIM topmost as Slice ptr = NULL
  DIM idx as integer = 0
  DO
   DIM temp as integer = idx
   ' Search for visible slices
-  DIM sl as Slice ptr = FindSliceAtPoint(edslice, mouse.x, mouse.y, temp, YES, YES)
+  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.x, mouse.y, temp, YES, YES)
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
@@ -763,8 +770,8 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
-   'If the slice (or an ancestor) is invisible its position won't be updated by DrawSlice
-   RefreshSliceScreenPos sl
+   'Invisible slices won't be updated by DrawSlice
+   RefreshSliceTreeScreenPos sl
 
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
@@ -931,8 +938,8 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
   IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
   draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
-  'If the slice (or an ancestor) is invisible its position won't be updated by DrawSlice
-  RefreshSliceScreenPos focussl
+  'Invisible slices won't be updated by DrawSlice
+  RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage
   DrawSliceAnts focussl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
@@ -1218,7 +1225,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  DIM index as integer = 0
 
  'Refresh positions of all slices
- DrawSlice edslice, dpage
+ RefreshSliceTreeScreenPos ses.draw_root
 
  DIM indent as integer = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
