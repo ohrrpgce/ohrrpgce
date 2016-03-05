@@ -116,7 +116,7 @@ DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceE
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, rootsl as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
+DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
@@ -126,7 +126,7 @@ DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slic
 DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
-DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr) as string
+DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
@@ -1174,12 +1174,12 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as S
  RETURN YES
 END FUNCTION
 
-FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr) as string
+FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
  'This shows the absolute screen position of a slice.
  DIM s as string
  WITH *sl
   s = (.ScreenX - rootsl->ScreenX) & "," & (.ScreenY - rootsl->ScreenY) & "(" & .Width & "x" & .Height & ")"
-  IF .parent = 0 AND .Lookup <> SL_ROOT THEN
+  IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= " [root]"
   END IF
   s &= "${K" & uilook(uiText) & "} "
@@ -1211,7 +1211,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
- slice_editor_refresh_recurse index, menu(), indent, ses.draw_root, edslice, hidden_slice, slicelookup()
+ slice_editor_refresh_recurse ses, index, menu(), indent, edslice, edslice, hidden_slice, slicelookup()
 
  REDIM PRESERVE menu(index - 1)
 
@@ -1249,12 +1249,12 @@ SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenu
  index += 1
 END SUB
 
-SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, rootsl as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
+SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
   caption = caption & SliceTypeName(sl)
-  caption = caption & " " & slice_caption(sl, slicelookup(), rootsl)
+  caption = caption & " " & slice_caption(sl, slicelookup(), ses.draw_root, edslice)
   IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
@@ -1262,7 +1262,7 @@ SUB slice_editor_refresh_recurse (byref index as integer, menu() as SliceEditMen
   'Now append the children
   DIM ch as slice ptr = .FirstChild
   DO WHILE ch <> 0
-   slice_editor_refresh_recurse index, menu(), indent, rootsl, ch, hidden_slice, slicelookup()
+   slice_editor_refresh_recurse ses, index, menu(), indent, edslice, ch, hidden_slice, slicelookup()
    ch = ch->NextSibling
   LOOP
   IF sl <> hidden_slice THEN
