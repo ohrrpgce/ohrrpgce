@@ -185,9 +185,9 @@ TYPE Slice
   Fill as bool
   FillMode as FillModes
   
-  Attach as AttachTypes
+  Attach as AttachTypes  'Not saved
   Union
-   Attached as Slice ptr
+   Attached as Slice ptr 'Not saved
   End Union
   
   Draw as SliceDraw
