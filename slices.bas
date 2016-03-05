@@ -2829,17 +2829,41 @@ Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
  return changed
 end function
 
-Sub RefreshSliceScreenPos(byval s as slice ptr)
- 'This sub quickly updates a slice's ScreenX and ScreenY
- 'without needing to do a full DrawSlice of the whole tree
+Sub RefreshSliceScreenPos(slc as slice ptr)
+ 'This sub quickly updates ScreenX, ScreenY, plus Width and Height when filling,
+ 'of a slice and its ancestors without needing to do a full DrawSlice of the whole tree
  'and without respect to the .Visible property
- if s = 0 then exit sub
+ if slc = 0 then exit sub
  DIM attach as Slice Ptr
- attach = GetSliceDrawAttachParent(s)
+ attach = GetSliceDrawAttachParent(slc)
  if attach = 0 then exit sub
- if attach = ScreenSlice then exit sub
- RefreshSliceScreenPos attach
- attach->ChildRefresh(attach, s)
+ if attach <> ScreenSlice then
+  RefreshSliceScreenPos attach
+ end if
+ attach->ChildRefresh(attach, slc)
+end sub
+
+Private Sub SliceRefreshRecurse(slc as Slice ptr)
+ dim attach as Slice Ptr
+ dim ch as Slice ptr = slc->FirstChild
+ do while ch <> 0
+  attach = GetSliceDrawAttachParent(ch)
+  attach->ChildRefresh(attach, ch)
+  SliceRefreshRecurse ch
+  ch = ch->NextSibling
+ Loop
+end sub
+
+Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
+ 'Updates ScreenX, ScreenY, plus Width and Height when filling,
+ 'of a slice tree (specially, all its ancestors and descendents but not siblings)
+ 'while ignoring the .Visible property. DrawSlice does not update the whole tree.
+ if slc = 0 then exit sub
+
+ 'Update slc and ancestors
+ RefreshSliceScreenPos slc
+
+ SliceRefreshRecurse slc
 end sub
 
 Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
