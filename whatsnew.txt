@@ -82,7 +82,8 @@ December ?? 2015 [Callipygous]
     * You can now run multiple copies of Custom at once (but can't
       open the same .rpg more than once). [Ralph]
     * You can now use the mouse to select or highlight slices in the
-      slice editor. [Ralph]
+      slice editor, press F5 to edit the hidden root slice, F6 to shift
+      around the view, and V to toggle slice visibility. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

@@ -303,6 +303,8 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
   edslice->Y = 0
  END IF
 
+ 'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunately
+ 'because it causes some subtle differences (e.g. permanence of shifting with F6)
  ses.draw_root = edslice
  ses.show_root = YES
  slice_editor_main ses, edslice, NO, specialcodes()
@@ -374,6 +376,20 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    ses.show_root = NOT ses.show_root
    cursor_seek = menu(state.pt).handle
    state.need_update = YES
+  END IF
+  IF keyval(scF6) > 1 THEN
+   'Move around our view on this slice collection.
+   'We move around the real rool, not draw_root, as it affects screen positions
+   'even if it's not drawn. (Bug: in-game, this moves the Root slice!)
+   DIM true_root as Slice ptr = FindRootSlice(edslice)
+   slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice
+   state.need_update = YES
+  END IF
+  IF keyval(scV) > 1 THEN
+   'Toggle visibility (does nothing on Select slice children)
+   IF menu(state.pt).handle THEN
+    menu(state.pt).handle->Visible XOR= YES
+   END IF
   END IF
   IF keyval(scF8) > 1 THEN
    'Make a sprite melt, just for a fun test
@@ -568,15 +584,24 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     draw_fullscreen_scrollbar state, , dpage
    END IF
 
+   'Determine the colour for each menu item
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
-    'Don't allow overridding highlighting of state.pt
-    IF i <> state.pt ANDALSO menu(i).handle THEN
-     plainmenu(i) = fgcol_text(menu(i).s, menu(i).handle->EditorColor)
-    ELSE
-     plainmenu(i) = menu(i).s
+    plainmenu(i) = menu(i).s
+    DIM col as integer = -1
+    IF menu(i).handle THEN
+     IF menu(i).handle->Visible = NO THEN
+      col = uilook(uiSelectedDisabled + IIF(state.pt = i, global_tog, 0))
+     ELSEIF menu(i).handle->EditorColor ANDALSO state.pt <> i THEN
+      'Don't override normal highlight
+      col = menu(i).handle->EditorColor
+     END IF
+     IF col > -1 THEN
+      plainmenu(i) = fgcol_text(plainmenu(i), col)
+     END IF
     END IF
    NEXT i
+
    standardmenu plainmenu(), state, 0, 0, dpage, menuopts
    edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   END IF

@@ -20,6 +20,8 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+Press V to toggle a slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
+
 Press Delete if you want to remove a slice.
 
 Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one. Press Ctrl+C while no slice is selected to copy all slices in the collection.
@@ -37,3 +39,5 @@ Press F4 to switch between hiding the menu (so you can see the slice collection 
 
 Press F5 to toggle whether the root slice is shown. For a slice collection, the root slice is by default a container set to fill its parent (which results in it filling the whole screen in the editor). "load slice collection" returns a handle to this root slice. You can freely change any of the properties of the root slice or even turn it into something else if you don't want an extra container.
 NOTE: if you add no children to the root slice, it won't be saved!
+
+Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.

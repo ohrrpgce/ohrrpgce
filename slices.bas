@@ -797,6 +797,16 @@ Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr =
   WEND
 End Function
 
+'Return the root of the tree.
+Function FindRootSlice(slc as Slice ptr) as Slice ptr
+ dim root as Slice ptr
+ while slc <> 0
+  root = slc
+  slc = root->parent
+ wend
+ return root
+End Function
+
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
 Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
  dim s as slice ptr
@@ -2242,6 +2252,9 @@ Sub DrawSelectSlice(byval sl as slice ptr, byval p as integer)
  
  'Does not actually draws anything, just manages the Visible property of its children.
  
+ 'FIXME: updating visibility should be done in a separate update phase, maybe included in refreshscreenpos...
+ 'but even that doesn't get updated immediately for setparent etc.
+
  dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
  dim index as integer = dat->index
  if dat->override >= 0 then index = dat->override
