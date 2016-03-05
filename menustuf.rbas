@@ -377,12 +377,15 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    buyst.price_box->Visible = YES
    buyst.price_box->Width = small(buyst.price_sl->Width + 16, buyst.root_sl->Width)
    buyst.price_box->Height = 16
-   IF buyst.price_box->Width = buyst.root_sl->Width THEN
-    'Width is max, enable wrapping
-    ChangeTextSlice buyst.price_sl, , , , YES
+   IF buyst.price_box->Width >= buyst.root_sl->Width THEN
+    'Fix the box at max width and wrap
     buyst.price_sl->Fill = YES
     buyst.price_sl->FillMode = sliceFillHoriz
-    buyst.price_box->Height = 8 + buyst.price_box->Height
+    'Update width of price_sl
+    RefreshSliceScreenPos buyst.price_sl
+    'Enable wrapping, which calculates the price_sl height
+    ChangeTextSlice buyst.price_sl, , , , YES
+    buyst.price_box->Height = 8 + buyst.price_sl->Height
    END IF
   ELSE
    buyst.price_box->Visible = NO
@@ -734,6 +737,8 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .AlignVert = 2
   .Y = -3
   .Height = 16
+  .PaddingLeft = 8
+  .PaddingRight = 8
  END WITH
  ChangeRectangleSlice buyst.price_box, 0
  
