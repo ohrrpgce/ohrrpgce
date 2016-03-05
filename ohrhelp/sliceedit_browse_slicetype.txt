@@ -1,4 +1,4 @@
-This is a list of available slice types.
+This is a list of available slice types. See http://rpg.hamsterrepublic.com/ohrrpgce/Slices for a description of each type.
 
 Use the up and down arrow keys to navigate the menu.
 

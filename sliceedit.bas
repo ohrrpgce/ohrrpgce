@@ -344,8 +344,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
 
  DIM cursor_seek as Slice Ptr = 0
 
- DIM slice_type as SliceTypes
-
  'File the collection was loaded from
  DIM source_filename as string
  
@@ -431,6 +429,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   END IF
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
+   DIM slice_type as SliceTypes
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     IF menu(state.pt).handle <> NULL ANDALSO menu(state.pt).handle <> edslice THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
@@ -1163,41 +1162,16 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
 END SUB
 
 FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
-
- DIM state as MenuState
- WITH state
-  .last = UBOUND(editable_slice_types)
-  .size = 22
- END WITH
-
+ DIM as integer default, choice
  DIM menu(UBOUND(editable_slice_types)) as string
  FOR i as integer = 0 TO UBOUND(menu)
   menu(i) = SliceTypeName(cast(SliceTypes, editable_slice_types(i)))
-  IF editable_slice_types(i) = slice_type THEN state.pt = i
+  IF editable_slice_types(i) = slice_type THEN default = i
  NEXT i
-
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scEsc) > 1 THEN RETURN NO
-  IF keyval(scF1) > 1 THEN show_help "sliceedit_browse_slicetype"
-
-  usemenu state
-  
-  IF enter_space_click(state) THEN
-   slice_type = editable_slice_types(state.pt)
-   RETURN YES
-  END IF
-  
-  clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
- 
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- RETURN NO 
+ choice = multichoice("What type of slice?", menu(), default, -1, "sliceedit_browse_slicetype")
+ IF choice = -1 THEN RETURN NO
+ slice_type = editable_slice_types(choice)
+ RETURN YES
 END FUNCTION
 
 FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr) as string
