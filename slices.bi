@@ -230,12 +230,12 @@ END TYPE
 TYPE RectangleSliceData
  'If any of fgcol, bgcol or border are manually changed, set style=-1 and style_loaded=0
  fgcol as integer
- border as integer 'Should default to -1
+ border as integer = -1    '-2: None, -1: Line, 0-14: use box style's border
  translucent as RectTransTypes
- fuzzfactor as integer 'Should default to 50
+ fuzzfactor as integer = 50
  bgcol as integer
  'if style is changed then set style_loaded = NO
- style as integer 'Should default to -1
+ style as integer = -1    '-1: None, 0-14: style
  style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
  'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE

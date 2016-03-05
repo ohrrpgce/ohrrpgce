@@ -348,6 +348,8 @@ END FUNCTION
 
 EXTERN "C"
 
+'Warning/TODO: one reason to call this instead of NewRectangleSlice, etc directly is that those
+'constructors overwrite some data with defaults. To fix that, just set the defaults in the UDT directly.
 FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
  DIM newsl as Slice Ptr
  SELECT CASE t
@@ -983,10 +985,6 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  
  dim d as RectangleSliceData ptr = new RectangleSliceData
  *d = dat
- '--Set non-zero defaults here
- d->border = -1
- d->style = -1
- d->fuzzfactor = 50
  
  ret->SliceType = slRectangle
  ret->SliceData = d
