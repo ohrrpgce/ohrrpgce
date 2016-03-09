@@ -1546,7 +1546,7 @@ DO
   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
    FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
     IF (st.mapx \ 20) + i < st.wide ANDALSO (st.mapy \ 20) + o < st.high THEN
-     temp = readblock(emap, st.mapx / 20 + i, st.mapy / 20 + o)
+     temp = readblock(emap, st.mapx \ 20 + i, st.mapy \ 20 + o)
      DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
      DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
      IF temp > 0 THEN printstr STR(temp), pixelx - ((temp < 10) * 5), pixely + 26, dpage
