@@ -81,9 +81,6 @@ EXTERN "C"
 
 'Stub functions.
 'These Null functions are used by Container, Root, and Special slices.
-Sub DrawNullSlice(byval s as slice ptr, byval p as integer)
- NumDrawnSlices -= 1
-End sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
@@ -422,7 +419,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Attached = 0
  ret->Attach = slSlice
  
- ret->Draw = @DrawNullSlice
+ ret->Draw = NULL
  ret->Dispose = @DisposeNullSlice
  ret->Clone = @CloneNullSlice
  ret->Save = @SaveNullSlice

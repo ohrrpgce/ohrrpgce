@@ -190,7 +190,7 @@ TYPE Slice
    Attached as Slice ptr 'Not saved
   End Union
   
-  Draw as SliceDraw
+  Draw as SliceDraw      'NULL for some slice types
   Dispose as SliceDispose
   Clone as SliceClone
   Save as SliceSave
