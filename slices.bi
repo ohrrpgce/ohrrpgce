@@ -130,7 +130,7 @@ Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
-Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1)
+Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
 End Extern
 
