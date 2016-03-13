@@ -4158,6 +4158,12 @@ SUB sfunctions(byval cmdid as integer)
   limitcamera gen(genCameraArg1), gen(genCameraArg2)
  CASE 604'--email saved game
   email_save_to_developer
+ CASE 605 '--dump slice tree
+  IF retvals(0) = 0 THEN
+   SliceDebugDumpTree SliceTable.Root
+  ELSEIF valid_plotslice(retvals(0)) THEN
+   SliceDebugDumpTree plotslices(retvals(0))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

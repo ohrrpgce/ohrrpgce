@@ -624,6 +624,7 @@ define function, begin
 602,hidemousecursor,0         # hides the OS mouse cursor
 603,pixelfocuscamera,3,0,0,2  # pixel focus camera(x,y,pixelstep)
 604,emailsavedgame,0          # save game and email it to you (experimental, android only)
+605,dumpslicetree,1,0         # Dump slice tree to g_debug.txt, like ctrl+F8 debug key (root slice handle)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

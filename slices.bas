@@ -3377,6 +3377,10 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  end if
 
  s = s & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
+ if sl->Visible = NO then s &= " visible:false"
+ for idx as integer = 0 to 2
+  if sl->Extra(idx) then s &= " extra" & idx & ":" & sl->Extra(idx)
+ next
  debug s
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent

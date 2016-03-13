@@ -6324,6 +6324,17 @@ The third argument is the total number of ticks that the animation should run. Y
 			<note>This is mainly intended for scroll slices, such as those created with the <ref>createscroll</ref> command, but it can be used on any type of slice. (Children that are set to fill their parents, or children that are automatically positioned by a grid parent may be unaffected.)</note></description>
 		</command>
 		</section>		<!--Scroll Slices-->
+
+		<section title="Panel Slices">
+			<description>
+				Panel slices split up their area between their first two children in various ways,
+				and don't display any other children.
+				Script commands to create or manipulate panel slices haven't been implemented yet; sorry!
+				You can however create them in the slice collection editor.
+			</description>
+		</section>		<!-- Panel Slices-->
+
+
 		</section>		<!-- Slice Types-->
 
 		<section title="Slice Collision Testing">
@@ -7189,6 +7200,26 @@ trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 trace value (hero X (me), hero Y (me))</example>
 			<seealso>
 				<ref>assert</ref>
+				<ref>dumpslicetree</ref>
+			</seealso>
+		</command>
+		<command id="dumpslicetree">
+			<canon>dump slice tree (slice)</canon>
+			<shortname>dump slice tree</shortname>
+			<description>
+				Prints out a brief description of a slice and all its descendents to "g_debug.txt".
+				<p>slice</p> is optional; if omitted the whole tree is printed out,
+				which is the same as pressing the <p>Ctrl+F8</p> debug key.
+				<note>
+					Most of the slice data isn't printed; if you want to inspect it the easiest
+					way to do so is either to press <p>Ctrl+F4</p> to view the slice editor/debugger,
+					or to call <ref>scripterror</ref> at the exact moment you want to check the slice tree;
+					you can then enter the slice debugger from the Script Error menu.
+				</note>
+			</description>
+			<seealso>
+				<ref>tracevalue</ref>
+				<ref>scripterror</ref>
 			</seealso>
 		</command>
 		<command id="scripterror">
