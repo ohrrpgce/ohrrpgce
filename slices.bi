@@ -130,7 +130,7 @@ Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
-Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
+Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
 End Extern
 
@@ -338,7 +338,7 @@ DECLARE Sub DestroyGameSlices(Byval dumpdebug as integer=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr, byval debugme as integer = 0)
-DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
+DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as integer = NO)
 DECLARE Sub AdvanceSlice(byval s as slice ptr)
 DECLARE Sub OrphanSlice(byval sl as slice ptr)

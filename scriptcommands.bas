@@ -2628,6 +2628,7 @@ SUB sfunctions(byval cmdid as integer)
   'visibleonly is recent addition
   IF curcmd->argc < 6 THEN retvals(5) = 0
   IF valid_plotslice(retvals(0)) THEN
+   ' We update retvals(0) and its ancestors, FindSliceAtPoint updates its descendents.
    RefreshSliceScreenPos plotslices(retvals(0))
    IF retvals(3) <= -1 THEN
     DIM slnum as integer = -1
@@ -2641,6 +2642,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 434'--find colliding slice(parent, handle, num, descend, visibleonly)
   IF curcmd->argc < 5 THEN retvals(4) = 0
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
+   ' We update retvals(0/1) and their ancestors, FindSliceCollision updates retvals(0)'s descendents.
    RefreshSliceScreenPos plotslices(retvals(0))
    RefreshSliceScreenPos plotslices(retvals(1))
    IF retvals(2) <= -1 THEN

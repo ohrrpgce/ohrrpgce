@@ -86,8 +86,10 @@ Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 
-'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake)
-Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
+'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake).
+'childindex is index of ch among its siblings. Pass -1 if not known,
+'which saves computing it if it's not needed. (Not used by DefaultChildRefresh)
+Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr, childindex as integer = -1)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  with *ch
   .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
@@ -130,9 +132,11 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
 
   'draw the slice's children
   dim ch as slice ptr = .FirstChild
+  dim childindex as integer = 0
   do while ch <> 0
-   DrawSlice(ch, page)
+   DrawSlice(ch, page, childindex)
    ch = ch->NextSibling
+   childindex += 1
   Loop
 
   if .Clip then
@@ -1724,7 +1728,7 @@ Function GridSliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byva
 End Function
 
 'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake)
-Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
+Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex as integer = -1)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
  
  '--get grid data
@@ -1733,9 +1737,9 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  dim w as integer = par->Width \ large(1, dat->cols)
  dim h as integer = par->Height \ large(1, dat->rows)
  '--Figure out which child this is
- dim slot as integer = SliceIndexAmongSiblings(ch)
- dim xslot as integer = slot mod large(1, dat->cols)
- dim yslot as integer = slot \ large(1, dat->cols)
+ if childindex < 0 then childindex = SliceIndexAmongSiblings(ch)
+ dim xslot as integer = childindex mod large(1, dat->cols)
+ dim yslot as integer = childindex \ large(1, dat->cols)
  
  with *ch
   .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
@@ -1782,6 +1786,7 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
 
   'draw the slice's children
   dim ch as slice ptr = .FirstChild
+  dim childindex as integer = 0
   for yslot as integer = 0 to dat->rows - 1
    for xslot as integer = 0 to dat->cols - 1
     if ch = 0 then exit for, for
@@ -1802,13 +1807,14 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
     GlobalCoordOffset.X -= large(clippos.X, 0)
     GlobalCoordOffset.Y -= large(clippos.Y, 0)
 
-    DrawSlice(ch, childpage)
+    DrawSlice(ch, childpage, childindex)
 
     freepage childpage
     GlobalCoordOffset.X += large(clippos.X, 0)
     GlobalCoordOffset.Y += large(clippos.Y, 0)
 
     ch = ch->NextSibling
+    childindex += 1
    next
   next
  end with
@@ -2459,22 +2465,22 @@ Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Sli
 
 End Sub
 
-Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr)
+Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex as integer = -1)
  if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
  
  '--get panel data
  dim dat as PanelSliceData ptr
  dat = par->SliceData
  
- dim slot as integer = SliceIndexAmongSiblings(ch)
- if slot > 1 then
+ if childindex < 0 then childindex = SliceIndexAmongSiblings(ch)
+ if childindex > 1 then
   'Panel only expects 2 children
   exit sub
  end if
 
  dim ppos as XYPair
  dim psize as XYPair
- CalcPanelArea ppos, psize, par, ch, slot
+ CalcPanelArea ppos, psize, par, ch, childindex
  
  with *ch
   select case ch->AlignHoriz
@@ -2527,7 +2533,7 @@ Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
     GlobalCoordOffset.Y -= clippos.y
    end if
 
-   DrawSlice(ch, page)
+   DrawSlice(ch, page, index)
    
    if .Clip then
     freepage page
@@ -2747,7 +2753,9 @@ Sub ApplySliceVelocity(byval s as slice ptr)
  end if
 end sub
 
-Sub DrawSlice(byval s as slice ptr, byval page as integer)
+'childindex is index of s among its siblings. Pass childindex -1 if not known,
+'which saves computing it if it's not needed.
+Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
  if s = 0 then debug "DrawSlice null ptr": exit sub
  'first, draw this slice
  if s->Visible then
@@ -2755,7 +2763,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
 
   DIM attach as Slice Ptr
   attach = GetSliceDrawAttachParent(s)
-  if attach then attach->ChildRefresh(attach, s)
+  if attach then attach->ChildRefresh(attach, s, childindex)
   if s->Draw then
    NumDrawnSlices += 1
    'translate screenX/Y by the position difference between page (due to it
@@ -2795,7 +2803,7 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
    s->X = 0
    s->Y = 0
   end if
-  DefaultChildRefresh(dummyparent, s)
+  DefaultChildRefresh(dummyparent, s, -1)
 
   if s->Draw then
    NumDrawnSlices += 1
@@ -2850,17 +2858,19 @@ Sub RefreshSliceScreenPos(slc as slice ptr)
  if attach <> ScreenSlice then
   RefreshSliceScreenPos attach
  end if
- attach->ChildRefresh(attach, slc)
+ attach->ChildRefresh(attach, slc, -1)
 end sub
 
 Private Sub SliceRefreshRecurse(slc as Slice ptr)
  dim attach as Slice Ptr
  dim ch as Slice ptr = slc->FirstChild
+ dim childindex as integer = 0
  do while ch <> 0
   attach = GetSliceDrawAttachParent(ch)
-  attach->ChildRefresh(attach, ch)
+  attach->ChildRefresh(attach, ch, childindex)
   SliceRefreshRecurse ch
   ch = ch->NextSibling
+  childindex += 1
  Loop
 end sub
 
@@ -2872,7 +2882,7 @@ Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
 
  'Update slc and ancestors
  RefreshSliceScreenPos slc
-
+ 'Update descendents
  SliceRefreshRecurse slc
 end sub
 
@@ -2921,14 +2931,16 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
  'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ 'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
  'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
  if parent = 0 or sl = 0 then debug "FindSliceCollision null ptr": return 0
- DIM as Slice Ptr s, temp
+ dim as Slice ptr s, temp
+ dim childindex as integer = 0
  s = parent->FirstChild
  while s
   if s <> sl then
    with *s
-    parent->ChildRefresh(parent, s)
+    parent->ChildRefresh(parent, s, childindex)
  
     if .Visible or (visibleonly = NO) then
 
@@ -2945,6 +2957,7 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
    end with
   end if
   s = s->NextSibling
+  childindex += 1
  wend
  return NULL
 end function
@@ -2953,14 +2966,16 @@ Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref
  'Find a slice which is not Special at a certain x,y screen position.
  'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
  'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
- 'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ 'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
+ 'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
  'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
  if parent = 0 then debug "FindSliceAtPoint null ptr": return 0
- DIM as Slice Ptr s, temp
+ dim as Slice ptr s, temp
+ dim childindex as integer = 0
  s = parent->FirstChild
  while s
   with *s
-   parent->ChildRefresh(parent, s)
+   parent->ChildRefresh(parent, s, childindex)
 
    if .Visible or (visibleonly = NO) then
     if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
@@ -2975,6 +2990,7 @@ Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref
    end if
   end with
   s = s->NextSibling
+  childindex += 1
  wend
  return NULL
 end function
