@@ -910,8 +910,9 @@ SUB gfx_sdl_process_events()
         END IF
         IF resizable THEN
           resize_requested = YES
-          resize_request.w = evnt.resize.w / zoom
-          resize_request.h = evnt.resize.h / zoom
+          'Round upwards
+          resize_request.w = (evnt.resize.w + zoom - 1) \ zoom
+          resize_request.h = (evnt.resize.h + zoom - 1) \ zoom
           'Nothing happens until the engine calls gfx_get_resize,
           'changes its internal window size (windowsize) as a result,
           'and starts pushing Frames with the new size to gfx_showpage.
