@@ -3192,6 +3192,9 @@ end
 				<ref>inputstringwithmousekeyboard</ref>
 			</seealso>
 		</command>
+		<reference ref="showvirtualgamepad" />
+		<reference ref="hidevirtualgamepad" />
+		<reference ref="autovirtualgamepad" />
 		</section>		<!-- Keyboard Input-->
 
 		<section title="Joystick Input">
@@ -4169,6 +4172,7 @@ end
 				</example>
 			</description>
 		</command>
+		<reference ref="dumpslicetree" />
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
 			<shortname>free slice</shortname>
@@ -7177,7 +7181,26 @@ end
 script,sum,a,b,c,begin
   return(a+b+c)
 end</example>
+			<seealso>
+				<ref>getscriptname</ref>
+				<ref>getcallingscriptid</ref>
+			</seealso>
 		</command>
+		<command id="milliseconds">
+			<canon>milliseconds</canon>
+			<shortname>milliseconds</shortname>
+			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).</description>
+			<seealso>
+				<ref>microseconds</ref>
+			</seealso>
+		</command>
+		<command id="microseconds">
+			<canon>microseconds</canon>
+			<shortname>microseconds</shortname>
+			<description>An alternative to <ref>milliseconds</ref> which measures millionths of a second. This command only exists for accurate benchmarking.</description>
+		</command>
+
+		<section title="Debugging">
 		<command id="trace">
 			<canon>trace (string)</canon>
 			<shortname>trace</shortname>
@@ -7273,20 +7296,8 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<ref>getscriptname</ref>
 			</seealso>
 		</command>
-		<command id="milliseconds">
-			<canon>milliseconds</canon>
-			<shortname>milliseconds</shortname>
-			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).</description>
-			<seealso>
-				<ref>microseconds</ref>
-			</seealso>
-		</command>
-		<command id="microseconds">
-			<canon>microseconds</canon>
-			<shortname>microseconds</shortname>
-			<description>An alternative to <ref>milliseconds</ref> which measures millionths of a second. This command only exists for accurate benchmarking.</description>
-		</command>
-	</section>
+		</section>		<!-- Debugging-->
+	</section>		<!-- Advanced Functions-->
 
 	<section title="Platform Specific">
 		<command id="runningondesktop">
