@@ -559,6 +559,10 @@ sub lock_resolution ()
 	resizing_enabled = gfx_set_resizable(NO, 0, 0)
 end sub
 
+function resolution_unlocked () as bool
+	return resizing_enabled
+end function
+
 'Set the window size, if possible, subject to min size bound. Doesn't modify resizability state.
 'This will resize all videopages (except compatpages) to the new window size.
 sub set_resolution (byval w as integer, byval h as integer)

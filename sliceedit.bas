@@ -354,6 +354,12 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
  '--Ensure all the slices are updated before the loop starts
  RefreshSliceTreeScreenPos ses.draw_root
 
+ DIM mouse_was_visible as bool = mousecursorvisible()
+ unhidemousecursor
+ #IFDEF IS_GAME
+  DIM resolution_was_unlocked as bool = resolution_unlocked()
+  unlock_resolution gen(genResolutionX), gen(genResolutionY)
+ #ENDIF
  ensure_normal_palette
  setkeys
  DO
@@ -616,6 +622,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
 
  restore_previous_palette
  setkeys
+ IF mouse_was_visible = NO THEN hidemousecursor
+ #IFDEF IS_GAME
+  'Make sure not to lock resolution when leaving recursive slice_editor() call
+  IF resolution_was_unlocked = NO THEN
+   set_resolution(gen(genResolutionX), gen(genResolutionY))
+   lock_resolution
+  END IF
+ #ENDIF
 END SUB
 
 'Sets a slice and all of its ancestors as the selected child of their parent, if a Select slice.
