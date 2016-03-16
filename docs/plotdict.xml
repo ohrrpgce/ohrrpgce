@@ -1556,7 +1556,7 @@ wait for text box # wait until the player continues</example>
 		<command id="showmap">
 			<canon>show map</canon>
 			<shortname>show map</shortname>
-			<description>shows the map again after a <ref>showbackdrop</ref> command</description>
+			<description>shows the map again after a <ref>showbackdrop</ref> command. Don't confuse this with <ref>showminimap</ref></description>
 		</command>
 	</section>		<!-- Basic Display Commands-->
 

@@ -425,6 +425,10 @@
 <a href="#Scroll%20Slices">Scroll Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Panel%20Slices">Panel Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -486,7 +490,12 @@
 </li>
 		<li>
 <a href="#Advanced%20Functions">Advanced Functions</a><br>
+		<ul>
+		<li>
+<a href="#Debugging">Debugging</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#Platform%20Specific">Platform Specific</a><br>
@@ -794,6 +803,9 @@
 		<a href="#about-drawnpcsaboveheroes">draw NPCs above heroes (setting)</a><br>
 		
 	
+		<a href="#about-dumpslicetree">dump slice tree (slice)</a><br>
+		
+	
 		
 		<a href="#about-directionconstants">east</a><br>
 	
@@ -869,7 +881,7 @@
 		<a href="#about-fillparent">fill parent (handle, true_or_false)</a><br>
 		
 	
-		<a href="#about-findcollidingslice">find colliding slice (parent, slice, number, check descendants)</a><br>
+		<a href="#about-findcollidingslice">find colliding slice (parent, slice, number, check descendants, visible only)</a><br>
 		
 	
 		<a href="#about-findenemyinformation">find enemy in formation (formation, enemy id, copy number)</a><br>
@@ -2501,7 +2513,7 @@
 		
 		<a href="#about-numericconstants">six</a><br>
 	
-		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants)</a><br>
+		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants, visible only)</a><br>
 		
 	
 		<a href="#about-slicechild">slice child (handle, number)</a><br>
@@ -5354,7 +5366,7 @@ resume box advance # go back to normal</pre>
 <a name="about-showmap"></a>
 		<h4>show map</h4>
 <p>
-			shows the map again after a <a href="#about-showbackdrop" class="ref">show backdrop</a> command
+			shows the map again after a <a href="#about-showbackdrop" class="ref">show backdrop</a> command. Don't confuse this with <a href="#about-showminimap" class="ref">show mini map</a>
 			
 			
 			
@@ -7182,63 +7194,93 @@ end</pre>
 <a name="about-alternpc"></a>
 		<h4>alter NPC (who,NPCstat,value)</h4>
 <p>
-			Changes the stats of an NPC type. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<br>
-<ul>
-<li>Alter NPC (who,NPCstat:picture,picture number)</li>
-<li>Alter NPC (who,NPCstat:palette,palette number)</li>
-<li>Alter NPC (who,NPCstat:move type,move type code)<br>Available move types<ul>
-<li>NPCmovetype:standstill</li>
-<li>NPCmovetype:wander</li>
-<li>NPCmovetype:pace</li>
-<li>NPCmovetype:rightturns</li>
-<li>NPCmovetype:leftturns</li>
-<li>NPCmovetype:randomturns</li>
-<li>NPCmovetype:chaseyou</li>
-<li>NPCmovetype:avoidyou</li>
-<li>NPCmovetype:walkinplace</li>
-</ul>
-</li>
-<li>Alter NPC (who,NPCstat:move speed,speed)</li>
-<li>Alter NPC (who,NPCstat:display text,text box number)</li>
-<li>Alter NPC (who,NPCstat:when activated,when activated code)<br>Available when activated codes<ul>
-<li>NPCwhenactivated:changedirection</li>
-<li>NPCwhenactivated:faceplayer</li>
-<li>NPCwhenactivated:donotfaceplayer</li>
-</ul>
-</li>
-<li>Alter NPC (who,NPCstat:give item,item number + 1) ... Note that the item number is offset + 1. A zero means no item.</li>
-<li>Alter NPC (who,NPCstat:pushability,pushability code)<br>Available pushability codes<ul>
-<li>NPCpush:off</li>
-<li>NPCpush:full</li>
-<li>NPCpush:horizontal</li>
-<li>NPCpush:vertical</li>
-<li>NPCpush:uponly</li>
-<li>NPCpush:rightonly</li>
-<li>NPCpush:downonly</li>
-<li>NPCpush:leftonly</li>
-</ul>
-</li>
-<li>Alter NPC (who,NPCstat:activation,activation code)<br>Available activation codes<ul>
-<li>NPCactivation:use</li>
-<li>NPCactivation:touch</li>
-<li>NPCactivation:stepon</li>
-</ul>
-</li>
-<li>Alter NPC (who,NPCstat:script,script ID)</li>
-<li>Alter NPC (who,NPCstat:script argument,number)</li>
-<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
-<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
-<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
-</ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
-		<pre># Example AlterNPC wrapper for changing NPC appearance
-
-plotscript,change NPC,who=0,picture=0,palette=0,begin
-  Alter NPC(who,NPCstat:picture,picture)
-  Alter NPC(who,NPCstat:palette,palette)
+			
+				Changes the stats of an NPC type.
+				Alter NPC can be used for many purposes.
+				The following constants for this command are available:
+				<br>
+				<ul>
+					<li>Alter NPC (who,NPCstat:picture,picture number)</li>
+					<li>
+						Alter NPC (who,NPCstat:palette,palette number)
+						<br>
+						Set the palette number to -1 to use the default palette.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:move type,move type code)
+						<br>
+						Available move types:
+						<ul>
+							<li>NPCmovetype:standstill</li>
+							<li>NPCmovetype:wander</li>
+							<li>NPCmovetype:pace</li>
+							<li>NPCmovetype:rightturns</li>
+							<li>NPCmovetype:leftturns</li>
+							<li>NPCmovetype:randomturns</li>
+							<li>NPCmovetype:chaseyou</li>
+							<li>NPCmovetype:avoidyou</li>
+							<li>NPCmovetype:walkinplace</li>
+						</ul>
+					</li>
+					<li>Alter NPC (who,NPCstat:move speed,speed)</li>
+					<li>Alter NPC (who,NPCstat:display text,text box number)</li>
+					<li>
+						Alter NPC (who,NPCstat:when activated,when activated code)
+						<br>
+						Available whenactivated codes:
+						<ul>
+							<li>NPCwhenactivated:changedirection</li>
+							<li>NPCwhenactivated:faceplayer</li>
+							<li>NPCwhenactivated:donotfaceplayer</li>
+						</ul>
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:give item,item number + 1)
+						... Note that the item number is offset + 1. A zero means no item.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:pushability,pushability code)
+						<br>
+						Available pushability codes:
+						<ul>
+							<li>NPCpush:off</li>
+							<li>NPCpush:full</li>
+							<li>NPCpush:horizontal</li>
+							<li>NPCpush:vertical</li>
+							<li>NPCpush:uponly</li>
+							<li>NPCpush:rightonly</li>
+							<li>NPCpush:downonly</li>
+							<li>NPCpush:leftonly</li>
+						</ul>
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:activation,activation code)
+						<br>
+						Available activation codes:
+						<ul>
+							<li>NPCactivation:use</li>
+							<li>NPCactivation:touch</li>
+							<li>NPCactivation:stepon</li>
+						</ul>
+					</li>
+					<li>Alter NPC (who,NPCstat:script,script ID)</li>
+					<li>Alter NPC (who,NPCstat:script argument,number)</li>
+					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
+					<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
+					<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+				</ul>
+				Normally you would only give an NPC ID number to alter NPC,
+				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
+				Just remember that alter NPC changes every copy of the NPC on the map,
+				not just the specific one you referenced.
+				<br>
+				A good way to make use of Alter NPC is to wrap it in your own script. For example:
+				<pre># Example alterNPC wrapper for changing NPC appearance
+# Palette -1 means the default palette.
+plotscript, change NPC, who, picture, palette = -1, begin
+  alter NPC(who, NPCstat:picture, picture)
+  alter NPC(who, NPCstat:palette, palette)
 end</pre>
-				<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to change an NPC's palette back to the default, you can use <span class="param">Alter NPC(who, NPCstat:palette, -1)</span><br clear="all">
-</div>
 			
 			
 			
@@ -7471,11 +7513,18 @@ end</pre>
 <a name="about-getenemyappearance"></a>
 		<h4>get enemy appearance (enemyid, appearance)</h4>
 <p>
-			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <ul>
-<li>enemy:picture</li>
-<li>enemy:palette</li>
-<li>enemy:picturesize</li>
-</ul> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large
+			
+				Returns data on the appearance of a enemy.
+				Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size.
+				You can use the following constants for appearance:
+				<ul>
+					<li>enemy:picture</li>
+					<li>enemy:palette</li>
+					<li>enemy:picturesize</li>
+				</ul>
+				<br>
+				You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setenemyappearance" class="ref">set enemy appearance</a></li></ul>
@@ -7486,9 +7535,18 @@ end</pre>
 <a name="about-setenemyappearance"></a>
 		<h4>set enemy appearance (enemyid, appearance,value)</h4>
 <p>
-			Lets you change an enemy's appearance.  Enemyid is the number of the enemy's appearance that you want to change, appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>. Value can is the new number that you want to assign, constants enemysize:small, enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Enemy appearance changes are temporary. They are not saved in the save game.<br clear="all">
+			
+				Lets you change an enemy's appearance.
+				Enemyid is the number of the enemy's appearance that you want to change,
+				appearance is one of the constants given in <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>.
+				Value can is the new number that you want to assign, constants enemysize:small,
+				enemysize:medium, or enemysize:large when changing picture size, or palette number when changing palette.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Enemy appearance changes are temporary. They are not saved in the save game.
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getenemyappearance" class="ref">get enemy appearance</a></li></ul>
@@ -7499,19 +7557,24 @@ end</pre>
 <a name="about-readenemydata"></a>
 		<h4>read enemy data (enemyid, data)</h4>
 <p>
-			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<ul>
-<li>enemy:gold</li>
-<li>enemy:experience</li>
-<li>enemy:item</li>
-<li>enemy:itempercent</li>
-<li>enemy:rareitem</li>
-<li>enemy:rareitempercent</li>
-<li>stealability</li>
-<li>stealableitem</li>
-<li>stealableitemchance</li>
-<li>stealablerareitem</li>
-<li>stealablerareitemchance</li>
-</ul>
+			
+				Returns the enemy's reward values.
+				Enemyid is the number of enemy, data is a predefined constant defining the data you want returned.
+				Use the following constants:
+				<ul>
+					<li>enemy:gold</li>
+					<li>enemy:experience</li>
+					<li>enemy:item</li>
+					<li>enemy:itempercent</li>
+					<li>enemy:rareitem</li>
+					<li>enemy:rareitempercent</li>
+					<li>stealability</li>
+					<li>stealableitem</li>
+					<li>stealableitemchance</li>
+					<li>stealablerareitem</li>
+					<li>stealablerareitemchance</li>
+				</ul>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-writeenemydata" class="ref">write enemy data</a></li></ul>
@@ -7797,149 +7860,178 @@ end
 <a name="about-keyispressed"></a>
 		<h4>key is pressed (scancode)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.<br>
-
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified scancode is being pressed
+				(either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not.
+				The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.
+				<br>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
+					which were previously the same scancode are now distinct (read scancode.hsi for the complete list).
+					However for backwards compatibility, the old behaviour is emulated
+					(so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes)
+					unless you turn on the "Enable better scancodes for scripts"
+					Preference Bitset in the General Game Settings menu.
+				<br clear="all">
 </div>
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.<br clear="all">
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					You can't rely on the behaviour of the caps-, scroll- and num-lock keys.
+					They might report on/off state instead of pressed/not pressed,
+					depending on the graphics backend, operating system, and engine version.
+				<br clear="all">
 </div>
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span> unless you stick a <a href="#about-wait" class="ref">wait</a> in your <a href="#about-while" class="ref">while</a> loop. That's because <span class="param">key is pressed</span> does not return real time data, but the state of the keyboard at the beginning of the current game tick.<br clear="all">
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					You can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span>
+					unless you stick a <a href="#about-wait" class="ref">wait</a> in your <a href="#about-while" class="ref">while</a> loop.
+					That's because <span class="param">key is pressed</span> does not return real time data,
+					but the state of the keyboard at the beginning of the current game tick.
+				<br clear="all">
 </div>
-			    Keyboard scan codes:
-<ul>
-<li>key:Esc</li>
-<li>key:F1</li>
-<li>key:F2</li>
-<li>key:F3</li>
-<li>...</li>
-<li>key:F15</li>
-</ul><ul>
-<li>key:Num Lock</li>
-<li>key:Scroll Lock</li>
-<li>key:Caps Lock</li>
-</ul><ul>
-<li>key:Print Screen</li>
-<li>key:Pause</li>
-</ul><ul>
-<li>key:1</li>
-<li>key:Exclamation</li>
-<li>key:2</li>
-<li>key:At Sign</li>
-<li>key:3</li>
-<li>key:Hash</li>
-<li>key:4</li>
-<li>key:Dollar Sign</li>
-<li>key:5</li>
-<li>key:6</li>
-<li>key:Circumflex</li>
-<li>key:7</li>
-<li>key:Ampersand</li>
-<li>key:8</li>
-<li>key:Asterisk</li>
-<li>key:9</li>
-<li>key:Left Parenthesis</li>
-<li>key:0</li>
-<li>key:Right Parenthesis</li>
-<li>key:Minus</li>
-<li>key:Underscore</li>
-<li>key:Equals</li>
-<li>key:Plus</li>
-<li>key:Backspace</li>
-</ul><ul>
-<li>key:A</li>
-<li>key:B</li>
-<li>key:C</li>
-<li>...</li>
-<li>key:Z</li>
-</ul><ul>
-<li>key:Left Bracket     # [</li>
-<li>key:Left Brace       # {</li>
-<li>key:Right Bracket    # ]</li>
-<li>key:Right Brace      # }</li>
-<li>key:Semicolon        # ;</li>
-<li>key:Colon            # :</li>
-<li>key:Quote            # '</li>
-<li>key:Doublequote      # "</li>
-<li>key:Apostrophe       # '</li>
-<li>key:Backquote        # `</li>
-<li>key:Tilde            # ~</li>
-<li>key:Backslash        # \</li>
-<li>key:Pipe             # |</li>
-<li>key:Comma            # ,</li>
-<li>key:Left Caret       # &lt;</li>
-<li>key:Period           # .</li>
-<li>key:Right Caret      # &gt;</li>
-<li>key:Slash            # /</li>
-<li>key:Question Mark    # ?</li>
-<li>key:Enter</li>
-<li>key:Space</li>
-<li>key:Tab</li>
-</ul><ul>
-<li>key:Home</li>
-<li>key:End</li>
-<li>key:Page Up</li>
-<li>key:Page Down</li>
-<li>key:Insert</li>
-<li>key:Delete</li>
-</ul><ul>
-<li>key:Up</li>
-<li>key:Left</li>
-<li>key:Right</li>
-<li>key:Down</li>
-</ul><ul>
-<li>key:Left Win Logo  # equal to key:Left Command</li>
-<li>key:Right Win Logo # equal to key:Right Command</li>
-<li>key:Context</li>
-<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
-<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
-</ul><ul>
-<li>key:Alt            # either Alt key pressed</li>
-<li>key:Left Alt</li>
-<li>key:Right Alt</li>
-<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
-<li>key:Ctrl           # either Ctrl key pressed</li>
-<li>key:Left Ctrl</li>
-<li>key:Right Ctrl</li>
-<li>key:Shift          # either Shift key pressed</li>
-<li>key:Left Shift</li>
-<li>key:Right Shift</li>
-</ul><ul>
-<li>key:Numpad 0</li>
-<li>key:Numpad 1</li>
-<li>key:Numpad 2</li>
-<li>key:Numpad 3</li>
-<li>key:Numpad 4</li>
-<li>key:Numpad 5</li>
-<li>key:Numpad 6</li>
-<li>key:Numpad 7</li>
-<li>key:Numpad 8</li>
-<li>key:Numpad 9</li>
-<li>key:Numpad Period</li>
-<li>key:Numpad Asterisk</li>
-<li>key:Numpad Slash</li>
-<li>key:Numpad Plus</li>
-<li>key:Numpad Minus</li>
-<li>key:Numpad Enter</li>
-</ul>
-          Joystick scan codes (for the first joystick only):
-<ul>
-<li>joy:button 1</li>
-<li>joy:button 2</li>
-<li>joy:button 3</li>
-<li>...</li>
-<li>joy:button 16</li>
-<li>joy:x left</li>
-<li>joy:x right</li>
-<li>joy:y up</li>
-<li>joy:y down</li>
-</ul>
-<div style="background-color:#EFF;" class="note">
+				Keyboard scan codes:
+				<ul>
+					<li>key:Esc</li>
+					<li>key:F1</li>
+					<li>key:F2</li>
+					<li>key:F3</li>
+					<li>...</li>
+					<li>key:F15</li>
+				</ul>
+				<ul>
+					<li>key:Num Lock</li>
+					<li>key:Scroll Lock</li>
+					<li>key:Caps Lock</li>
+				</ul>
+				<ul>
+					<li>key:Print Screen</li>
+					<li>key:Pause</li>
+				</ul>
+				<ul>
+					<li>key:1</li>
+					<li>key:Exclamation</li>
+					<li>key:2</li>
+					<li>key:At Sign</li>
+					<li>key:3</li>
+					<li>key:Hash</li>
+					<li>key:4</li>
+					<li>key:Dollar Sign</li>
+					<li>key:5</li>
+					<li>key:6</li>
+					<li>key:Circumflex</li>
+					<li>key:7</li>
+					<li>key:Ampersand</li>
+					<li>key:8</li>
+					<li>key:Asterisk</li>
+					<li>key:9</li>
+					<li>key:Left Parenthesis</li>
+					<li>key:0</li>
+					<li>key:Right Parenthesis</li>
+					<li>key:Minus</li>
+					<li>key:Underscore</li>
+					<li>key:Equals</li>
+					<li>key:Plus</li>
+					<li>key:Backspace</li>
+				</ul>
+				<ul>
+					<li>key:A</li>
+					<li>key:B</li>
+					<li>key:C</li>
+					<li>...</li>
+					<li>key:Z</li>
+				</ul>
+				<ul>
+					<li>key:Left Bracket     # [</li>
+					<li>key:Left Brace       # {</li>
+					<li>key:Right Bracket    # ]</li>
+					<li>key:Right Brace      # }</li>
+					<li>key:Semicolon        # ;</li>
+					<li>key:Colon            # :</li>
+					<li>key:Quote            # '</li>
+					<li>key:Doublequote      # "</li>
+					<li>key:Apostrophe       # '</li>
+					<li>key:Backquote        # `</li>
+					<li>key:Tilde            # ~</li>
+					<li>key:Backslash        # \</li>
+					<li>key:Pipe             # |</li>
+					<li>key:Comma            # ,</li>
+					<li>key:Left Caret       # &lt;</li>
+					<li>key:Period           # .</li>
+					<li>key:Right Caret      # &gt;</li>
+					<li>key:Slash            # /</li>
+					<li>key:Question Mark    # ?</li>
+					<li>key:Enter</li>
+					<li>key:Space</li>
+					<li>key:Tab</li>
+				</ul>
+				<ul>
+					<li>key:Home</li>
+					<li>key:End</li>
+					<li>key:Page Up</li>
+					<li>key:Page Down</li>
+					<li>key:Insert</li>
+					<li>key:Delete</li>
+				</ul>
+				<ul>
+					<li>key:Up</li>
+					<li>key:Left</li>
+					<li>key:Right</li>
+					<li>key:Down</li>
+				</ul>
+				<ul>
+					<li>key:Left Win Logo  # equal to key:Left Command</li>
+					<li>key:Right Win Logo # equal to key:Right Command</li>
+					<li>key:Context</li>
+					<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
+					<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
+				</ul>
+				<ul>
+					<li>key:Alt            # either Alt key pressed</li>
+					<li>key:Left Alt</li>
+					<li>key:Right Alt</li>
+					<li>key:Filtered Alt   # either Alt key pressed, unless a key combinations like Alt+Tab is pressed, however key presses are delayed until key release.</li>
+					<li>key:Ctrl           # either Ctrl key pressed</li>
+					<li>key:Left Ctrl</li>
+					<li>key:Right Ctrl</li>
+					<li>key:Shift          # either Shift key pressed</li>
+					<li>key:Left Shift</li>
+					<li>key:Right Shift</li>
+				</ul>
+				<ul>
+					<li>key:Numpad 0</li>
+					<li>key:Numpad 1</li>
+					<li>key:Numpad 2</li>
+					<li>key:Numpad 3</li>
+					<li>key:Numpad 4</li>
+					<li>key:Numpad 5</li>
+					<li>key:Numpad 6</li>
+					<li>key:Numpad 7</li>
+					<li>key:Numpad 8</li>
+					<li>key:Numpad 9</li>
+					<li>key:Numpad Period</li>
+					<li>key:Numpad Asterisk</li>
+					<li>key:Numpad Slash</li>
+					<li>key:Numpad Plus</li>
+					<li>key:Numpad Minus</li>
+					<li>key:Numpad Enter</li>
+				</ul>
+				Joystick scan codes (for the first joystick only):
+				<ul>
+					<li>joy:button 1</li>
+					<li>joy:button 2</li>
+					<li>joy:button 3</li>
+					<li>...</li>
+					<li>joy:button 16</li>
+					<li>joy:x left</li>
+					<li>joy:x right</li>
+					<li>joy:y up</li>
+					<li>joy:y down</li>
+				</ul>
+				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Previously it was necessary to <span class="param">include, scancode.hsi</span> to use the <span class="param">key:</span> constants, but no longer.<br clear="all">
 </div>
-
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-keyval" class="ref">keyval</a></li></ul>
@@ -7957,6 +8049,17 @@ end
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The joystick scancodes described in <a href="#about-keyispressed" class="ref">key is pressed</a> aren't fully supported for <span class="param">keyval</span>: the return value will be 3 if the key is down, or 0 if it isn't. In other words, no additional information over <a href="#about-keyispressed" class="ref">key is pressed</a>.<br clear="all">
 </div>
+			<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+				Don't rely on the key repeat rate for things that affect gameplay such as the rate at which you can shoot bullets!
+				The repeat rate is once every 55 milliseconds (18 times a second), independent of the frames per second (fps) that
+				the game is running at.
+				Suppose you use key repeat (e.g. keyval(key:X)&gt;1) to shoot bullets and your game runs at 36 fps,
+				then a bullet will be fired every other frame.
+				But if played on a really slow computer that only ran the game at 18 fps, a bullet will be fired every frame!
+			<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
@@ -8021,6 +8124,18 @@ end
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>show virtual gamepad</h4>
+		<p><a href="#about-showvirtualgamepad">Defined in the Platform Specific section.</a></p>
+		</div>
+		<div class="command">
+		<h4>hide virtual gamepad</h4>
+		<p><a href="#about-hidevirtualgamepad">Defined in the Platform Specific section.</a></p>
+		</div>
+		<div class="command">
+		<h4>auto virtual gamepad</h4>
+		<p><a href="#about-autovirtualgamepad">Defined in the Platform Specific section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -8837,9 +8952,21 @@ end</pre>
 <a name="about-getmenubit"></a>
 		<h4>get menu bit(menu handle, bit)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
-<li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
-</ul>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
+				For the <span class="param">bit</span> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			
 			
 			
 			
@@ -8849,9 +8976,21 @@ end</pre>
 <a name="about-setmenubit"></a>
 		<h4>set menu bit(menu handle, bit, value)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
-<li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
-</ul>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>.
+				For the <span class="param">bit</span> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			
 			
 			
 			
@@ -9639,6 +9778,10 @@ end</pre>
 <a href="#Scroll%20Slices">Scroll Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Panel%20Slices">Panel Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -9764,6 +9907,10 @@ end
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>dump slice tree (slice)</h4>
+		<p><a href="#about-dumpslicetree">Defined in the Debugging section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-freeslice"></a>
 		<h4>free slice (handle)</h4>
@@ -10225,7 +10372,12 @@ end
 <a name="about-setslicex"></a>
 		<h4>set slice x (handle, X)</h4>
 <p>
-			Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+			
+				Changes the y position of any slice, for example a sprite.
+				This position is relative to the slice's parent.
+				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
+				The position of the parent's align point also depends on the amount of padding the parent has.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10242,7 +10394,12 @@ end
 <a name="about-setslicey"></a>
 		<h4>set slice y (handle, Y)</h4>
 <p>
-			Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+			
+				Changes the y position of any slice, for example a sprite.
+				This position is relative to the slice's parent.
+				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
+				The position of the parent's align point also depends on the amount of padding the parent has.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10259,7 +10416,13 @@ end
 <a name="about-slicescreenx"></a>
 		<h4>slice screen x (handle)</h4>
 <p>
-			Returns the screen X position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's X position, but also its alignment, and the position and size of its parents.
+			
+				Returns the X position on the screen of the anchor point of a slice.
+				This position is relative to the screen, so it is calculated based on not only the slice's X position,
+				but also its alignment, and the position and size of its parents.
+				However, the slice's anchor point setting doesn't affect this, because that
+				specifies which point on the slice is attached to the anchor point.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10274,7 +10437,13 @@ end
 <a name="about-slicescreeny"></a>
 		<h4>slice screen y (handle)</h4>
 <p>
-			Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.
+			
+				Returns the Y position on the screen of the anchor point of a slice.
+				This position is relative to the screen, so it is calculated based on not only the slice's Y position,
+				but also its alignment, and the position and size of its parents.
+				However, the slice's anchor point setting doesn't affect this, because that
+				specifies which point on the slice is attached to the anchor point.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11767,6 +11936,10 @@ end
 <a href="#Scroll%20Slices">Scroll Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Panel%20Slices">Panel Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 <p>
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
@@ -12307,17 +12480,22 @@ set horiz align(sl, edge:right)
 <a name="about-getspritetype"></a>
 		<h4>get sprite type (handle)</h4>
 <p>
-			Gets the type of sprite slice <span class="param">handle</span>, or returns -1 if the slice is not a sprite. You can compare the result with the following constants:<ul>
-<li>spritetype:hero</li>
-<li>spritetype:small enemy</li>
-<li>spritetype:medium enemy</li>
-<li>spritetype:large enemy</li>
-<li>spritetype:walkabout</li>
-<li>spritetype:weapon</li>
-<li>spritetype:attack</li>
-<li>spritetype:border</li>
-<li>spritetype:portrait</li>
-</ul>
+			
+				Gets the type of sprite slice <span class="param">handle</span>, or returns -1 if the slice is not a sprite.
+				You can compare the result with the following constants:
+				<ul>
+					<li>spritetype:hero</li>
+					<li>spritetype:small enemy</li>
+					<li>spritetype:medium enemy</li>
+					<li>spritetype:large enemy</li>
+					<li>spritetype:walkabout</li>
+					<li>spritetype:weapon</li>
+					<li>spritetype:attack</li>
+					<li>spritetype:border</li>
+					<li>spritetype:portrait</li>
+					<li>spritetype:backdrop</li>
+				</ul>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12334,7 +12512,7 @@ set horiz align(sl, edge:right)
 <a name="about-setspritesetnumber"></a>
 		<h4>set sprite set number (handle, record)</h4>
 <p>
-			Changes the record number of the spriteset of a slice sprite <span class="param">handle</span>.
+			Changes the record number of the spriteset of a sprite slice <span class="param">handle</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12351,7 +12529,7 @@ set horiz align(sl, edge:right)
 <a name="about-getspritesetnumber"></a>
 		<h4>get sprite set number (handle)</h4>
 <p>
-			Gets the record number of the spriteset of a slice sprite <span class="param">handle</span>.
+			Gets the record number of the spriteset of a sprite slice <span class="param">handle</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12368,7 +12546,10 @@ set horiz align(sl, edge:right)
 <a name="about-setspritepalette"></a>
 		<h4>set sprite palette (handle, num)</h4>
 <p>
-			Changes the palette of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is -1 or omitted, the default palette for that sprite is loaded.
+			
+				Changes the palette of sprite slice <span class="param">handle</span> to be <span class="param">num</span>.
+				If <span class="param">num</span> is -1 or omitted, the default palette for that sprite is loaded.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getspritepalette" class="ref">get sprite palette</a></li></ul>
@@ -12379,7 +12560,7 @@ set horiz align(sl, edge:right)
 <a name="about-getspritepalette"></a>
 		<h4>get sprite palette (handle)</h4>
 <p>
-			Returns the palette of sprite <span class="param">handle</span>.
+			Returns the palette of sprite slice <span class="param">handle</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12396,7 +12577,11 @@ set horiz align(sl, edge:right)
 <a name="about-getspritedefaultpal"></a>
 		<h4>get sprite default pal (handle)</h4>
 <p>
-			Returns default palette of sprite <span class="param">handle</span>. You don't need to use this when you want to set a sprite to its default palette, because a palette number of -1 will have that effect. This command is for finding out the real palette number of the palette that would be used if the sprite is set to -1
+			
+				Returns the default palette of sprite slice <span class="param">handle</span>.
+				You don't need to use this when you want to set a sprite to its default palette, because setting the palette number to -1 will have that effect.
+				This command is for finding out the real palette number that would be used if the palette is set to -1.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12411,7 +12596,7 @@ set horiz align(sl, edge:right)
 <a name="about-setspriteframe"></a>
 		<h4>set sprite frame (handle, num)</h4>
 <p>
-			Changes the frame of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is less than 0, or greater than or equal to the number of frames, nothing will change.
+			Changes the frame of sprite slice <span class="param">handle</span> to be <span class="param">num</span>.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li></ul>
@@ -12422,7 +12607,7 @@ set horiz align(sl, edge:right)
 <a name="about-getspriteframe"></a>
 		<h4>get sprite frame (handle)</h4>
 <p>
-			Returns the current frame number of sprite <span class="param">handle</span>.
+			Returns the current frame number of sprite slice <span class="param">handle</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12439,7 +12624,10 @@ set horiz align(sl, edge:right)
 <a name="about-spriteframecount"></a>
 		<h4>sprite frame count (handle)</h4>
 <p>
-			Returns the total number of available frames for a given sprite <span class="param">handle</span>.
+			
+				Returns the total number of available frames for a given sprite slice <span class="param">handle</span>.
+				For example a backdrop has just one frame, an attack sprite has three.
+			
 			
 			
 			
@@ -12449,7 +12637,7 @@ set horiz align(sl, edge:right)
 <a name="about-horizflipsprite"></a>
 		<h4>horiz flip sprite (handle, flip)</h4>
 <p>
-			Flips a sprite <span class="param">handle</span> horizontally. You can also unflip a previously flipped sprite using <span class="param">horiz flip sprite(handle, false)</span>
+			Flips a sprite slice <span class="param">handle</span> horizontally. You can also unflip a previously flipped sprite using <span class="param">horiz flip sprite(handle, false)</span>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12464,7 +12652,7 @@ set horiz align(sl, edge:right)
 <a name="about-vertflipsprite"></a>
 		<h4>vert flip sprite (handle, flip)</h4>
 <p>
-			Flips a sprite <span class="param">handle</span> vertically. You can also unflip a previously flipped sprite using <span class="param">vert flip sprite(handle, false)</span>
+			Flips a sprite slice <span class="param">handle</span> vertically. You can also unflip a previously flipped sprite using <span class="param">vert flip sprite(handle, false)</span>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12479,7 +12667,7 @@ set horiz align(sl, edge:right)
 <a name="about-spriteishorizflipped"></a>
 		<h4>sprite is horiz flipped (handle)</h4>
 <p>
-			Returns true if a sprite <span class="param">handle</span> is flipped horizontally, or false if it is not.
+			Returns true if a sprite slice <span class="param">handle</span> is flipped horizontally, or false if it is not.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12494,7 +12682,7 @@ set horiz align(sl, edge:right)
 <a name="about-spriteisvertflipped"></a>
 		<h4>sprite is vert flipped (handle)</h4>
 <p>
-			Returns true if a sprite <span class="param">handle</span> is flipped vertically, or false if it is not.
+			Returns true if a sprite slice <span class="param">handle</span> is flipped vertically, or false if it is not.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -13152,7 +13340,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			This command takes a grid slice <span class="param">handle</span> and returns true if the grid is showing its optional grid lines. If the grid is in its normal invisible state, this command returns false. Don't confuse this command with <a href="#about-getslicevisible" class="ref">get slice visible</a>.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-gridisshown" class="ref">grid is shown</a></li></ul>
+			<div class="seealso">See also: <ul><li><a href="#about-showgrid" class="ref">show grid</a></li></ul>
 </div>
 		</p>
 </div>
@@ -13282,6 +13470,23 @@ The third argument is the total number of ticks that the animation should run. Y
 		<hr>
 		</div>
 		<div class="subsection">
+<a name="Panel%20Slices"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			<a href="#Slice%20Types">Slice Types</a> →
+			</span>Panel Slices</h3>
+		<ul></ul>
+<p>
+				Panel slices split up their area between their first two children in various ways,
+				and don't display any other children.
+				Script commands to create or manipulate panel slices haven't been implemented yet; sorry!
+				You can however create them in the slice collection editor.
+			</p>
+		
+		
+		<hr>
+		</div>
+		<div class="subsection">
 <a name="Slice%20Collision%20Testing"></a>
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
@@ -13335,18 +13540,32 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		<div class="command">
 <a name="about-sliceatpixel"></a>
-		<h4>slice at pixel (parent, x, y, number, check descendants)</h4>
+		<h4>slice at pixel (parent, x, y, number, check descendants, visible only)</h4>
 <p>
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position.
-				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>.
+				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
 				slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead of a slice handle.
 				<span class="param">check descendants</span> is an optional argument defaulting to true.
 				If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants.
+				<span class="param">visible only</span> is an optional argument defaulting to false.
+				If true, then only visible slices are counted or returned.
+				(That is, slices marked not-visible are ignored while searching for slices, but whether <span class="param">parent</span> itself
+				is visible doesn't have any effect.)
+				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					A point on the left or top edge of a slice counts as inside the slice,
+					while one on the bottom or right edges counts as outside.
+					If a slice has zero width or zero height, then there are no points inside it,
+					and slice at pixel will never return it!
+				<br clear="all">
+</div>
 			
 			
 			
@@ -13360,17 +13579,21 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		<div class="command">
 <a name="about-findcollidingslice"></a>
-		<h4>find colliding slice (parent, slice, number, check descendants)</h4>
+		<h4>find colliding slice (parent, slice, number, check descendants, visible only)</h4>
 <p>
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice colliding (intersecting) with the given <span class="param">slice</span> (by screen position).
-				To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>.
+				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
   				the bottom most one (returned by default) is number 0, next up is 1, etc.
 				0 is returned if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of overlapping slices is returned instead.
 				<span class="param">check descendants</span> is an optional argument defaulting to true.
 				If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants.
+				(That is, slices marked not-visible are ignored while searching for slices, but whether <span class="param">parent</span> itself
+				is visible doesn't have any effect.)
+				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
 			
 			
@@ -14002,17 +14225,40 @@ write pass block(15,3,pass)
 <a name="about-savemapstate"></a>
 		<h4>save map state (whichdata, customid)</h4>
 <p>
-			Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<br> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<br><span class="param">whichdata</span> is an <a href="#about-or" class="ref">or</a>'d combination of the following constants, which specify exactly what you want to save:<br><ul>
-<li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li>
-<li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li>
-<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
-<li>mapstate:mapsettings</li>
-<li>mapstate:npclocations</li>
-<li>mapstate:npcdefinitions</li>
-<li>mapstate:tilemap</li>
-<li>mapstate:passmap</li>
-<li>mapstate:zonemap</li>
-</ul>The default is mapstate:all. <br>If <span class="param">customid</span> is passed, it is used to save the state in a separate state file with an id number of <span class="param">customid</span> which can only be loaded with <a href="#about-loadmapstate" class="ref">load map state</a>. There are 32 available slots for use: 0 - 31.<br>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the ambient music, footoffset, map trigger scripts, and so forth, and also the tileset for each layer.
+			
+				Saves the state of the current map to a temporary file which will be loaded
+				(unless the map is set to ignore that particular data)
+				when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data:
+				the saved state will be used instead of the map data in the RPG file.
+				Both arguments are optional and are only for advanced uses.
+				<br>
+				Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!
+				<br>
+				<span class="param">whichdata</span> is an <a href="#about-or" class="ref">or</a>'d combination of the following constants,
+				which specify exactly what you want to save:
+				<br>
+				<ul>
+					<li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li>
+					<li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li>
+					<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
+					<li>mapstate:mapsettings</li>
+					<li>mapstate:npclocations</li>
+					<li>mapstate:npcdefinitions</li>
+					<li>mapstate:tilemap</li>
+					<li>mapstate:passmap</li>
+					<li>mapstate:zonemap</li>
+				</ul>
+				The default is mapstate:all.
+				<br>
+				If <span class="param">customid</span> is passed, it is used to save the state in a separate state file with an id
+				number of <span class="param">customid</span> which can only be loaded with <a href="#about-loadmapstate" class="ref">load map state</a>.
+				There are 32 available slots for use: 0 - 31.
+				<br>
+				Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it,
+				it will always be loaded when the map is loaded regardless of settings.
+				It saves all the settings found in the General Map Settings menu like the ambient music,
+				footoffset, map trigger scripts, and so forth, and also the tileset for each layer.
+			
 			
 			<pre>plotscript, generic menu screen, begin
   variable (remember map, remember x, remember y)
@@ -14089,21 +14335,55 @@ end</pre>
 <a name="about-settimer"></a>
 		<h4>set timer (id, count, speed, trigger, string, flags)</h4>
 <p>
-			Changes the settings for a given timer, and starts it. <span class="param">id</span> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15, but you can change the number of available timers with <a href="#about-allocatetimers" class="ref">allocate timers</a>. All other parameters are optional, or you can pass <a href="#about-timer:default" class="ref">timer: default</a> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument) will cause the timer to restart from the new value.<br>
-<span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end (the gameover script is not called), or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<br>
-You can bind a timer to a string using the <span class="param">string</span> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<br>
-A timer also has a few other options in the form of <span class="param">flags</span>. You can pass any combination of these flags (by <a href="#about-or" class="ref">or</a>ing them together; see the example): <ul>
-<li>
+			
+				Changes the settings for a given timer, and starts it.
+				<span class="param">id</span> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15
+				but you can change the number of available timers with <a href="#about-allocatetimers" class="ref">allocate timers</a>.
+				All other parameters are optional, or you can pass <a href="#about-timer:default" class="ref">timer: default</a> as any of them.
+				This will leave the parameter unchanged (from the last time you set it or from the default initial value),
+				it will NOT cause that timer setting to be reset to the default initial value.
+				<span class="param">Count</span> is the length of the timer.
+				While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames).
+				I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second.
+				Use a speed of 1 to count down in ticks.
+				Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument)
+				will cause the timer to restart from the new value.
+				<br>
+				<span class="param">trigger</span> is what happens when the timer runs out.
+				You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end (the gameover script is not called),
+				or specify a plotscript (in the form "@my script") to have that run.
+				A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.
+				If the timer runs out during a battle then the effect happens after the battle ends.
+				<br>
+				You can bind a timer to a string using the <span class="param">string</span> parameter to create a countdown that shows up on screen.
+				Pass it the id of a string, and that string will be updated every time the timer counts down.
+				You are responsible for displaying and positioning the string.
+				<br>
+				A timer also has a few other options in the form of <span class="param">flags</span>.
+				You can pass any combination of these flags (by <a href="#about-or" class="ref">or</a>ing them together; see the example):
+				<ul>
+					<li>
 <a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li>
-<li>
+					<li>
 <a href="#about-timerflag:menu" class="ref">timer flag: menu</a> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li>
-<li>
+					<li>
 <a href="#about-timerflag:critical" class="ref">timer flag: critical</a> to have the timer end a battle or exit a menu if it runs out during it</li>
-</ul><br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <span class="param">count</span> as 0 and <span class="param">speed</span> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.<br clear="all">
-</div><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Timer settings are not saved in game saves.<br clear="all">
+				</ul>
+				<br>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Timers start counting down not from the current game 'tick', but from next one.
+					So if you want to trigger something next tick (eg. run a script every frame)
+					you need to pass <span class="param">count</span> as 0 and <span class="param">speed</span> as 1.
+					A timer count set to 1 would counter-intuitively trigger in 2 ticks time.
+				<br clear="all">
 </div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Timer settings are not saved in game saves.
+				<br clear="all">
+</div>
+			
 			
 			<pre># This starts a 300 second (5 minute) timer that counts down once every 18 ticks (approximately one second).
 # If it runs out during battle, the battle won't end but a game-over will happen afterwards.
@@ -14643,7 +14923,12 @@ end</pre>
 <a name="Advanced%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Advanced Functions</h3>
+		<ul>
+		<li>
+<a href="#Debugging">Debugging</a><br>
 		<ul></ul>
+</li>
+</ul>
 <p></p>
 		
 		
@@ -14662,9 +14947,46 @@ end
 script,sum,a,b,c,begin
   return(a+b+c)
 end</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getscriptname" class="ref">get script name</a>, </li>
+<li><a href="#about-getcallingscriptid" class="ref">get calling script id</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-milliseconds"></a>
+		<h4>milliseconds</h4>
+<p>
+			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-microseconds" class="ref">microseconds</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-microseconds"></a>
+		<h4>microseconds</h4>
+<p>
+			An alternative to <a href="#about-milliseconds" class="ref">milliseconds</a> which measures millionths of a second. This command only exists for accurate benchmarking.
+			
+			
 			
 		</p>
 </div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Debugging"></a>
+		<h3>
+<span class="backlink"><a href="#Advanced%20Functions">Advanced Functions</a> →
+			</span>Debugging</h3>
+		<ul></ul>
+<p></p>
+		
+		
 		<div class="command">
 <a name="about-trace"></a>
 		<h4>trace (string)</h4>
@@ -14691,7 +15013,38 @@ trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 
 # This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
 trace value (hero X (me), hero Y (me))</pre>
-			<div class="seealso">See also: <ul><li><a href="#about-assert" class="ref">assert</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-assert" class="ref">assert</a>, </li>
+<li><a href="#about-dumpslicetree" class="ref">dump slice tree</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-dumpslicetree"></a>
+		<h4>dump slice tree (slice)</h4>
+<p>
+			
+				Prints out a brief description of a slice and all its descendents to "g_debug.txt".
+				<span class="param">slice</span> is optional; if omitted the whole tree is printed out,
+				which is the same as pressing the <span class="param">Ctrl+F8</span> debug key.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Most of the slice data isn't printed; if you want to inspect it the easiest
+					way to do so is either to press <span class="param">Ctrl+F4</span> to view the slice editor/debugger,
+					or to call <a href="#about-scripterror" class="ref">script error</a> at the exact moment you want to check the slice tree;
+					you can then enter the slice debugger from the Script Error menu.
+				<br clear="all">
+</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-tracevalue" class="ref">trace value</a>, </li>
+<li><a href="#about-scripterror" class="ref">script error</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -14761,27 +15114,6 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>
 </div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-milliseconds"></a>
-		<h4>milliseconds</h4>
-<p>
-			Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's up-time or any random value).
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-microseconds" class="ref">microseconds</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-microseconds"></a>
-		<h4>microseconds</h4>
-<p>
-			An alternative to <a href="#about-milliseconds" class="ref">milliseconds</a> which measures millionths of a second. This command only exists for accurate benchmarking.
-			
-			
-			
 		</p>
 </div>
 		<hr>
@@ -15479,7 +15811,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 752 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 753 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
