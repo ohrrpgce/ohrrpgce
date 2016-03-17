@@ -2675,9 +2675,11 @@ FUNCTION attack_placement_over_target(attack as AttackData, targslot as integer,
   xt = 0
   yt = (bslot(targslot).h - attackh) + 2
  ELSE
-  ' Align center of attack and target
+  ' Align center of attack and target and down 2 pixel
+  'FIXME: targetting the exact center of the enemy instead of the bottom center might be better,
+  ' but would require a pretty serious overhaul of projectile animation code 
   xt = bslot(targslot).w \ 2 - attackw \ 2
-  yt = bslot(targslot).h \ 2 - attackh \ 2
+  yt = bslot(targslot).h - attackh + 2
  END IF
  ' The following case is a simple fix for the fact that bslot() contains the *initial* positions
  ' of everyone at the start of the attack, not the actual position at this point of the animation.
