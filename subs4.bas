@@ -1879,14 +1879,14 @@ SUB gendata ()
    IF state.pt = 7 THEN
     ' Back-compat bitsets
     DIM bitname(47) as string
-    bitname(9) = "Simulate Old Levelup Bug"
+    bitname(9) = "Simulate Old Levelup bonus-accretion Bug"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(24) = "Enable better scancodes for scripts"
     bitname(25) = "Simulate old fail vs element resist bit"
     bitname(27) = "Recreate map slices when changing maps"
     bitname(28) = "Harm tiles harm non-caterpillar heroes"
     bitname(32) = "Don't limit maximum tags to 999"
-    bitname(33) = "Simulate Bug #430"
+    bitname(33) = "Simulate Bug #430 script wait skips"
     bitname(34) = "showtextbox happens immediately"
     bitname(36) = "Old attack positioning at bottom-left of target"
     bitname(37) = "Wrap map layers over edge of Crop maps"
