@@ -142,9 +142,9 @@ script,random battle,form,set,begin
   show value(set)
   show value(form)
   wait for key(any key)
-  greyscale palette
+  #greyscale palette
   fight formation(form)
-  reset palette
+  #reset palette
 end
 
 #-----------------------------------------------------------------------
