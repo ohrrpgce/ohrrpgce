@@ -424,7 +424,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
      formdata.slots(i).pos.y = bslot(4 + i).y
     NEXT i
     bat.atk.id = -1
-   CASE 2 'setmove(who,xm,ym,xstep,ystep)
+   CASE 2 'setmove(who,xticks,yticks,xstep,ystep)
     ww = popdw
     bslot(ww).xmov = popdw
     bslot(ww).ymov = popdw
@@ -448,18 +448,18 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     DIM fr as integer = popdw
     bslot(ww).frame = fr
     IF is_hero(ww) THEN bslot(ww).walk = 0
-   CASE 8 'absmove(who,n,n,n,n)
+   CASE 8 'absmove(who,x,y,xticks,yticks)
     ww = popdw
     DIM destpos as XYPair
     destpos.x = popdw
     destpos.y = popdw
-    DIM movestep as XYPair
-    movestep.x = popdw
-    movestep.y = popdw
-    bslot(ww).xspeed = (destpos.x - bslot(ww).x) / movestep.x
-    bslot(ww).yspeed = (destpos.y - bslot(ww).y) / movestep.y
-    bslot(ww).xmov = movestep.x
-    bslot(ww).ymov = movestep.y
+    DIM moveticks as XYPair
+    moveticks.x = popdw
+    moveticks.y = popdw
+    bslot(ww).xspeed = (destpos.x - bslot(ww).x) / moveticks.x
+    bslot(ww).yspeed = (destpos.y - bslot(ww).y) / moveticks.y
+    bslot(ww).xmov = moveticks.x
+    bslot(ww).ymov = moveticks.y
    CASE 9 'waitforall()
     bat.wait_frames = -1
    CASE 10 'inflict(targ, target_count)
@@ -469,7 +469,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    CASE 11 'setz(who,z)
     ww = popdw
     bslot(ww).z = popdw
-   CASE 12 '???(n,n,n,n,n)
+   CASE 12
     'unimplemented
    CASE 13 'wait(ticks)
     bat.wait_frames = popdw
@@ -477,7 +477,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     ww = popdw
     bslot(ww).frame = frameSTAND
     IF is_hero(ww) THEN bslot(ww).walk XOR= 1
-   CASE 15 'zmove(who,zm,zstep)
+   CASE 15 'zmove(who,zticks,zstep)
     ww = popdw
     bslot(ww).zmov = popdw
     bslot(ww).zspeed = popdw
@@ -518,17 +518,17 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    else
     bslot(w1).y = bslot(w2).y + popdw
    end if
-  CASE 20 'relmove(who, x, y, sx, sy)
+  CASE 20 'relmove(who, x, y, xticks, yticks)
    ww = popdw  'who
    DIM movedist as XYPair
    movedist.x = popdw
    movedist.y = popdw
-   DIM movestep as XYPair
-   movestep.x = popdw
-   movestep.y = popdw
+   DIM moveticks as XYPair
+   moveticks.x = popdw
+   moveticks.y = popdw
    with bslot(ww)
-    if movedist.y <> 0 then .xspeed = movedist.x / movestep.x
-    if movestep.y <> 0 then .yspeed = movedist.y / movestep.y
+    if movedist.y <> 0 then .xspeed = movedist.x / moveticks.x
+    if moveticks.y <> 0 then .yspeed = movedist.y / moveticks.y
     .xmov = movedist.x
     .ymov = movedist.y
    end with
@@ -1979,8 +1979,8 @@ SUB anim_disappear(byval who as integer)
  pushdw 6: pushdw who
 END SUB
 
-SUB anim_setpos(byval who as integer, byval x as integer, byval y as integer, byval d as integer)
- pushdw 3: pushdw who: pushdw x: pushdw y: pushdw d
+SUB anim_setpos(byval who as integer, byval x as integer, byval y as integer, byval direction as integer)
+ pushdw 3: pushdw who: pushdw x: pushdw y: pushdw direction
 END SUB
 
 SUB anim_setz(byval who as integer, byval z as integer)
@@ -1996,12 +1996,14 @@ SUB anim_setmove(who as integer, xmove_ticks as integer, ymove_ticks as integer,
  pushdw 2: pushdw who: pushdw xmove_ticks: pushdw ymove_ticks: pushdw xstep: pushdw ystep
 END SUB
 
-SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
- pushdw 8: pushdw who: pushdw tox: pushdw toy: pushdw xspeed: pushdw yspeed
+' Move to an X position in ABS(xticks) ticks, ditto for Z.
+SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xticks as integer, byval yticks as integer)
+ pushdw 8: pushdw who: pushdw tox: pushdw toy: pushdw xticks: pushdw yticks
 END SUB
 
-SUB anim_zmove(byval who as integer, byval zm as integer, byval zstep as integer)
- pushdw 15: pushdw who: pushdw zm: pushdw zstep
+' For ABS(zticks) ticks, move zstep pixels in the direction SGN(zticks)
+SUB anim_zmove(byval who as integer, byval zticks as integer, byval zstep as integer)
+ pushdw 15: pushdw who: pushdw zticks: pushdw zstep
 END SUB
 
 SUB anim_wait(byval ticks as integer)
@@ -2028,6 +2030,8 @@ SUB anim_align(byval who as integer, byval target as integer, byval dire as inte
  pushdw 17: pushdw who: pushdw target: pushdw dire: pushdw offset
 END SUB
 
+' Position 'who' is its center matches with 'target', plus an offset.
+' Note: this doesn't make total sense, because it doesn't use Z position, so may be behind or infront.
 SUB anim_setcenter(byval who as integer, byval target as integer, byval offx as integer, byval offy as integer)
  pushdw 18: pushdw who: pushdw target: pushdw offx: pushdw offy
 END SUB
@@ -2036,8 +2040,9 @@ SUB anim_align2(byval who as integer, byval target as integer, byval edgex as in
  pushdw 19: pushdw who: pushdw target: pushdw edgex: pushdw edgey: pushdw offx: pushdw offy
 END SUB
 
-SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
- pushdw 20: pushdw who: pushdw tox: pushdw toy: pushdw xspeed: pushdw yspeed
+' Move relative from the current X position in ABS(xticks) ticks, ditto for Y.
+SUB anim_relmove(byval who as integer, byval byx as integer, byval byy as integer, byval xticks as integer, byval yticks as integer)
+ pushdw 20: pushdw who: pushdw byx: pushdw byy: pushdw xticks: pushdw yticks
 END SUB
 
 SUB anim_setdir(byval who as integer, byval d as integer)
