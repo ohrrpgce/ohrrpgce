@@ -558,6 +558,13 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    'Pop the sentinel markers
    popdw
    popdw
+  CASE 24 'anim_abszmove(who,z,zticks)
+   ww = popdw
+   DIM destz as integer = popdw
+   DIM moveticks as integer = popdw
+   bslot(ww).zspeed = (destz - bslot(ww).z) / moveticks
+   bslot(ww).zmov = moveticks
+
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 
@@ -1999,6 +2006,11 @@ END SUB
 ' Move to an X position in ABS(xticks) ticks, ditto for Z.
 SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xticks as integer, byval yticks as integer)
  pushdw 8: pushdw who: pushdw tox: pushdw toy: pushdw xticks: pushdw yticks
+END SUB
+
+' Move to an Z position in ABS(zticks) ticks.
+SUB anim_abszmove(byval who as integer, byval toz as integer, byval zticks as integer)
+ pushdw 24: pushdw who: pushdw toz: pushdw zticks
 END SUB
 
 ' For ABS(zticks) ticks, move zstep pixels in the direction SGN(zticks)

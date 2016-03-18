@@ -28,6 +28,7 @@ DECLARE SUB anim_setpos(byval who as integer, byval x as integer, byval y as int
 DECLARE SUB anim_setz(byval who as integer, byval z as integer)
 DECLARE SUB anim_setmove(who as integer, xmove_ticks as integer, ymove_ticks as integer, xstep as integer, ystep as integer)
 DECLARE SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
+DECLARE SUB anim_abszmove(byval who as integer, byval toz as integer, byval zticks as integer)
 DECLARE SUB anim_zmove(byval who as integer, byval zm as integer, byval zstep as integer)
 DECLARE SUB anim_walktoggle(byval who as integer)
 DECLARE SUB anim_sound(byval which as integer)
