@@ -625,6 +625,18 @@ define function, begin
 603,pixelfocuscamera,3,0,0,2  # pixel focus camera(x,y,pixelstep)
 604,emailsavedgame,0          # save game and email it to you (experimental, android only)
 605,dumpslicetree,1,0         # Dump slice tree to g_debug.txt, like ctrl+F8 debug key (root slice handle)
+606,createpanel,2,0,0         #x create a panel slice of a specified size
+607,sliceispanel,1,0          #x return if the slice is a panel
+608,getpanelisvertical,1,0    #x return true for a vertical panel slice, false for a horizontal panel slice
+609,setpanelisvertical,2,0,1  #x change the vertical/horizontal orientation of a panel slice
+610,getpanelprimaryindex,1,0  #x return the index (0 or 1) of the panel primary child
+611,setpanelprimaryindex,2,0,0 #x change the panel primary child. must be 0 or 1
+612,getpanelpercentasint,1,0  #x return slice panel primary child percentage as an integer
+613,setpanelpercent,2,0,0     #x change slice panel primary child percentage
+614,getpanelpixels,1,0        #x return slice panel primary child pixel size
+615,setpanelpixels,2,0,0      #x change slice panel primary child pixel size
+616,getpanelpadding,1,0       #x return slice panel padding
+617,setpanelpadding,2,0,0     #x change slice panel padding
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

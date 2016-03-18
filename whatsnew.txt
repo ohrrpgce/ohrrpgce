@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-December ?? 2015 [Callipygous]
+March ?? 2016 [Callipygous]
 
   * New Features
     * Ported to Android phones and tablets, as well as specific support
@@ -166,6 +166,11 @@ December ?? 2015 [Callipygous]
     * "create scroll" "slice is scroll" "set scroll bar style"
       "get scroll bar style" "set scroll check depth"
       "get scroll check depth" "scroll to child" [James]
+    * "create panel", "slice is panel", "get panel is vertical",
+      "set panel is vertical", "get panel primary index",
+      "set panel primary index", "get panel percent as int",
+      "set panel percent", "get panel pixels", "set panel pixels",
+      "get panel padding", "set panel padding" [James]
     * "next npc reference" [Ralph]
     * "input string with virtual keyboard",
       "input string with mouse keyboard" [James]

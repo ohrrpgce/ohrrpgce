@@ -704,6 +704,9 @@
 		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
 		
 	
+		<a href="#about-createpanel">create panel (width, height)</a><br>
+		
+	
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		
 	
@@ -1212,6 +1215,21 @@
 		
 	
 		<a href="#about-getoutline">get outline(handle)</a><br>
+		
+	
+		<a href="#about-getpanelisvertical">get panel is vertical (handle)</a><br>
+		
+	
+		<a href="#about-getpanelpadding">get panel padding (handle)</a><br>
+		
+	
+		<a href="#about-getpanelpercentasint">get panel percent as int (handle)</a><br>
+		
+	
+		<a href="#about-getpanelpixels">get panel pixels (handle)</a><br>
+		
+	
+		<a href="#about-getpanelprimaryindex">get panel primary index (handle)</a><br>
 		
 	
 		<a href="#about-getrectbgcol">get rect bgcol (handle)</a><br>
@@ -2336,6 +2354,21 @@
 		<a href="#about-setpadding">set padding (handle, pixels)</a><br>
 		
 	
+		<a href="#about-setpanelisvertical">set panel is vertical (handle, value)</a><br>
+		
+	
+		<a href="#about-setpanelpadding">set panel padding (handle, padding)</a><br>
+		
+	
+		<a href="#about-setpanelpercent">set panel percent (handle, percent)</a><br>
+		
+	
+		<a href="#about-setpanelpixels">set panel pixels (handle, pixels)</a><br>
+		
+	
+		<a href="#about-setpanelprimaryindex">set panel primary index (handle, zero or one)</a><br>
+		
+	
 		<a href="#about-setparent">set parent (handle, parent handle)</a><br>
 		
 	
@@ -2550,6 +2583,9 @@
 		
 	
 		<a href="#about-sliceismoving">slice is moving (handle)</a><br>
+		
+	
+		<a href="#about-sliceispanel">slice is panel (handle)</a><br>
 		
 	
 		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
@@ -13479,11 +13515,129 @@ The third argument is the total number of ticks that the animation should run. Y
 <p>
 				Panel slices split up their area between their first two children in various ways,
 				and don't display any other children.
-				Script commands to create or manipulate panel slices haven't been implemented yet; sorry!
-				You can however create them in the slice collection editor.
 			</p>
 		
 		
+		<div class="command">
+<a name="about-createpanel"></a>
+		<h4>create panel (width, height)</h4>
+<p>
+			Creates a new panel slice, and returns an handle to it. Panel slices are special containers that automatically move and resize their first two children. The first two children will fill the panel slice's area. For example, a panel slice might be used to make to child slices share a 60%/40% split of an area regardless of the size or shape of that area. The two arguments are the width and height of the select slice.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-sliceispanel"></a>
+		<h4>slice is panel (handle)</h4>
+<p>
+			Returns true if the given slice <span class="param">handle</span> is a panel slice, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getpanelisvertical"></a>
+		<h4>get panel is vertical (handle)</h4>
+<p>
+			Returns true if the given panel slice <span class="param">handle</span> is configured to orient its children vertically, or false if it orients them horizontally.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setpanelisvertical"></a>
+		<h4>set panel is vertical (handle, value)</h4>
+<p>
+			Changes how the given panel slice <span class="param">handle</span> orients its children. If the <span class="param">value</span> is true, they will be oriented vertically, or if false it will orient them horizontally.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getpanelprimaryindex"></a>
+		<h4>get panel primary index (handle)</h4>
+<p>
+			Returns 0 or 1 to indicate whether the first or second child of the given panel slice <span class="param">handle</span> is the primary one. The primary child gets its size based on the panel slices's percentage and pixels, while the other child slice takes the remaining space.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setpanelprimaryindex"></a>
+		<h4>set panel primary index (handle, zero or one)</h4>
+<p>
+			Changes whether the first or second child of the given panel slice <span class="param">handle</span> is the primary one. The primary child gets its size based on the panel slices's percentage and pixels, while the other child slice takes the remaining space.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getpanelpercentasint"></a>
+		<h4>get panel percent as int (handle)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, returns an integer from 0 to 100 to indicate what percentage of the panel should be filled by the primary child slice
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setpanelpercent"></a>
+		<h4>set panel percent (handle, percent)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of theprimary child.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getpanelpixels"></a>
+		<h4>get panel pixels (handle)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, returns the number of pixels of space that the panel will reserve for its primary child
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setpanelpixels"></a>
+		<h4>set panel pixels (handle, pixels)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getpanelpadding"></a>
+		<h4>get panel padding (handle)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, returns the number of pixels of padding that will be left between the primary and secondary children
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setpanelpadding"></a>
+		<h4>set panel padding (handle, padding)</h4>
+<p>
+			Given a panel slice <span class="param">handle</span>, changes the number of pixels of padding that the panel will leave between the primary and secondary children.
+			
+			
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -15811,7 +15965,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 753 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 765 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

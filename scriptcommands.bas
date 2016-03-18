@@ -4166,6 +4166,71 @@ SUB sfunctions(byval cmdid as integer)
   ELSEIF valid_plotslice(retvals(0)) THEN
    SliceDebugDumpTree plotslices(retvals(0))
   END IF
+ CASE 606 '--create panel
+  DIM sl as Slice Ptr
+  sl = NewSliceOfType(slPanel, SliceTable.scriptsprite)
+  scriptret = create_plotslice_handle(sl)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+ CASE 607 '--slice is panel
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slPanel THEN scriptret = 1
+  END IF
+ CASE 608'--get panel is vertical
+  IF valid_plotpanelslice(retvals(0)) THEN
+   DIM dat as PanelSliceData Ptr
+   dat = GetPanelSliceData(plotslices(retvals(0)))
+   scriptret = IIF(dat->vertical, 1, 0)
+  END IF
+ CASE 609'--set panel is vertical
+  IF valid_plotpanelslice(retvals(0)) THEN
+   ChangePanelSlice plotslices(retvals(0)), retvals(1) <> 0
+  END IF
+ CASE 610'--get panel primary index
+  IF valid_plotpanelslice(retvals(0)) THEN
+   DIM dat as PanelSliceData Ptr
+   dat = GetPanelSliceData(plotslices(retvals(0)))
+   scriptret = dat->primary
+  END IF
+ CASE 611'--set panel primary index
+  IF valid_plotpanelslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 1, "panel child index") THEN
+    ChangePanelSlice plotslices(retvals(0)), , retvals(1)
+   END IF
+  END IF
+ CASE 612'--get panel percent as int
+  IF valid_plotpanelslice(retvals(0)) THEN
+   DIM dat as PanelSliceData Ptr
+   dat = GetPanelSliceData(plotslices(retvals(0)))
+   scriptret = CINT(dat->percent * 100)
+  END IF
+ CASE 613'--set panel percent
+  IF valid_plotpanelslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 100, "percent") THEN
+    ChangePanelSlice plotslices(retvals(0)), , , , CDBL(retvals(1))
+   END IF
+  END IF
+ CASE 614'--get panel pixels
+  IF valid_plotpanelslice(retvals(0)) THEN
+   DIM dat as PanelSliceData Ptr
+   dat = GetPanelSliceData(plotslices(retvals(0)))
+   scriptret = dat->pixels
+  END IF
+ CASE 615'--set panel pixels
+  IF valid_plotpanelslice(retvals(0)) THEN
+   ChangePanelSlice plotslices(retvals(0)), , , retvals(1)
+  END IF
+ CASE 616'--get panel padding
+  IF valid_plotpanelslice(retvals(0)) THEN
+   DIM dat as PanelSliceData Ptr
+   dat = GetPanelSliceData(plotslices(retvals(0)))
+   scriptret = dat->padding
+  END IF
+ CASE 617'--set panel padding
+  IF valid_plotpanelslice(retvals(0)) THEN
+   ChangePanelSlice plotslices(retvals(0)), , , , , retvals(1)
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -4393,6 +4458,17 @@ FUNCTION valid_plotscrollslice(byval handle as integer) as integer
    RETURN YES
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not a scroll", serrBadOp
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_plotpanelslice(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
+  IF plotslices(handle)->SliceType = slPanel THEN
+   RETURN YES
+  ELSE
+   scripterr current_command_name() & ": slice handle " & handle & " is not a panel", serrBadOp
   END IF
  END IF
  RETURN NO

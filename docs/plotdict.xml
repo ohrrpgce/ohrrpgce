@@ -6333,9 +6333,67 @@ The third argument is the total number of ticks that the animation should run. Y
 			<description>
 				Panel slices split up their area between their first two children in various ways,
 				and don't display any other children.
-				Script commands to create or manipulate panel slices haven't been implemented yet; sorry!
-				You can however create them in the slice collection editor.
 			</description>
+		<command id="createpanel">
+			<canon>create panel (width, height)</canon>
+			<shortname>create panel</shortname>
+			<description>Creates a new panel slice, and returns an handle to it. Panel slices are special containers that automatically move and resize their first two children. The first two children will fill the panel slice's area. For example, a panel slice might be used to make to child slices share a 60%/40% split of an area regardless of the size or shape of that area. The two arguments are the width and height of the select slice.</description>
+		</command>
+		<command id="sliceispanel">
+			<canon>slice is panel (handle)</canon>
+			<shortname>slice is panel</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a panel slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
+		</command>
+		<command id="getpanelisvertical">
+			<canon>get panel is vertical (handle)</canon>
+			<shortname>get panel is vertical</shortname>
+			<description>Returns true if the given panel slice <p>handle</p> is configured to orient its children vertically, or false if it orients them horizontally.</description>
+		</command>
+		<command id="setpanelisvertical">
+			<canon>set panel is vertical (handle, value)</canon>
+			<shortname>set panel is vertical</shortname>
+			<description>Changes how the given panel slice <p>handle</p> orients its children. If the <p>value</p> is true, they will be oriented vertically, or if false it will orient them horizontally.</description>
+		</command>
+		<command id="getpanelprimaryindex">
+			<canon>get panel primary index (handle)</canon>
+			<shortname>get panel primary index</shortname>
+			<description>Returns 0 or 1 to indicate whether the first or second child of the given panel slice <p>handle</p> is the primary one. The primary child gets its size based on the panel slices's percentage and pixels, while the other child slice takes the remaining space.</description>
+		</command>
+		<command id="setpanelprimaryindex">
+			<canon>set panel primary index (handle, zero or one)</canon>
+			<shortname>set panel primary index</shortname>
+			<description>Changes whether the first or second child of the given panel slice <p>handle</p> is the primary one. The primary child gets its size based on the panel slices's percentage and pixels, while the other child slice takes the remaining space.</description>
+		</command>
+		<command id="getpanelpercentasint">
+			<canon>get panel percent as int (handle)</canon>
+			<shortname>get panel percent as int</shortname>
+			<description>Given a panel slice <p>handle</p>, returns an integer from 0 to 100 to indicate what percentage of the panel should be filled by the primary child slice</description>
+		</command>
+		<command id="setpanelpercent">
+			<canon>set panel percent (handle, percent)</canon>
+			<shortname>set panel percent</shortname>
+			<description>Given a panel slice <p>handle</p>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of theprimary child.</description>
+		</command>
+		<command id="getpanelpixels">
+			<canon>get panel pixels (handle)</canon>
+			<shortname>get panel pixels</shortname>
+			<description>Given a panel slice <p>handle</p>, returns the number of pixels of space that the panel will reserve for its primary child</description>
+		</command>
+		<command id="setpanelpixels">
+			<canon>set panel pixels (handle, pixels)</canon>
+			<shortname>set panel pixels</shortname>
+			<description>Given a panel slice <p>handle</p>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.</description>
+		</command>
+		<command id="getpanelpadding">
+			<canon>get panel padding (handle)</canon>
+			<shortname>get panel padding</shortname>
+			<description>Given a panel slice <p>handle</p>, returns the number of pixels of padding that will be left between the primary and secondary children</description>
+		</command>
+		<command id="setpanelpadding">
+			<canon>set panel padding (handle, padding)</canon>
+			<shortname>set panel padding</shortname>
+			<description>Given a panel slice <p>handle</p>, changes the number of pixels of padding that the panel will leave between the primary and secondary children.</description>
+		</command>
 		</section>		<!-- Panel Slices-->
 
 
