@@ -362,6 +362,20 @@ UNION XYPair
   n(1) as integer
 END UNION
 
+UNION XYZTriple
+  TYPE
+   x as integer
+   y as integer
+   z as integer
+  END TYPE
+  TYPE
+   w as integer
+   h as integer
+   depth as integer
+  END TYPE
+  n(2) as integer
+END UNION
+
 UNION RectType
   TYPE
     x as integer
