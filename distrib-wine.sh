@@ -33,6 +33,14 @@ function ohrrpgce_common_files {
  cp support/LICENSE-madplay.txt tmpdist/support
  cp support/oggenc.exe tmpdist/support
  cp support/LICENSE-oggenc.txt tmpdist/support
+ cp support/wget.exe tmpdist/support
+ cp support/wget.hlp tmpdist/support
+ cp support/zip.exe tmpdist/support
+ cp support/unzip.exe tmpdist/support
+ cp support/rcedit.exe tmpdist/support
+ cp support/LICENSE-rcedit.txt tmpdist/support
+ cp relump.exe tmpdist/support
+ cp unlump.exe tmpdist/support
  mkdir tmpdist/ohrhelp
  cp ohrhelp/*.txt tmpdist/ohrhelp
  mkdir tmpdist/docs
@@ -86,6 +94,8 @@ rm -Rf tmpdist
 mkdir tmpdist
 
 echo "Packaging minimalist ohrrpgce-minimal.zip ..."
+# Note: this does not match contents of ohrrpgce-minimal.zip created
+# by distrib.bat, which e.g. excludes all support/ utils except wget.
 ohrrpgce_common_files
 
 cd tmpdist

@@ -84,6 +84,7 @@ support\cp whatsnew.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 support\cp gfx_directx.dll tmpdist
+REM wget.exe needed to download everything else (unzip is downloaded as an .exe)
 mkdir tmpdist\support
 support\cp support\wget.exe tmpdist\support
 mkdir tmpdist\ohrhelp
@@ -143,6 +144,8 @@ support\cp support\wget.exe tmpdist\support
 support\cp support\wget.hlp tmpdist\support
 support\cp support\zip.exe tmpdist\support
 support\cp support\unzip.exe tmpdist\support
+support\cp support\rcedit.exe tmpdist\support
+support\cp support\LICENSE-rcedit.txt tmpdist\support
 support\cp relump.exe tmpdist\support
 support\cp unlump.exe tmpdist\support
 support\cp vikings.rpg tmpdist
