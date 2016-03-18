@@ -527,10 +527,10 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    moveticks.x = popdw
    moveticks.y = popdw
    with bslot(ww)
-    if movedist.y <> 0 then .xspeed = movedist.x / moveticks.x
-    if moveticks.y <> 0 then .yspeed = movedist.y / moveticks.y
-    .xmov = movedist.x
-    .ymov = movedist.y
+    if moveticks.x <> 0 then .xspeed = movedist.x / moveticks.x else .xspeed = 0
+    if moveticks.y <> 0 then .yspeed = movedist.y / moveticks.y else .yspeed = 0
+    .xmov = moveticks.x
+    .ymov = moveticks.y
    end with
   CASE 21 'setdir(who, d)
    ww = popdw

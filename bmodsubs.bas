@@ -1279,8 +1279,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
 
   CASE atkrAnimJump
    anim_setframe who, frameJUMP
-   anim_relmove who, -40, 0, 7, 0
-   anim_zmove who, 20, 10
+   anim_relmove who, -26, 0, 13, 0
+   anim_zmove who, 13, 18
    anim_waitforall
    anim_disappear who
    anim_setframe who, frameSTAND
