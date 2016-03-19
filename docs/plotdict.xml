@@ -5492,6 +5492,11 @@ end
 			<shortname>slice is scroll</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a scroll slcie, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
+		<command id="sliceispanel">
+			<canon>slice is panel (handle)</canon>
+			<shortname>slice is panel</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a panel slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
+		</command>
 
 		</section>		<!-- Checking Slice Type-->
 
@@ -5511,10 +5516,12 @@ set horiz align(sl, edge:right)
 </example>
 			The example above creates a container and then puts two hero sprites inside it, one aligned left and one aligned right. If you move or resize the container, the sprites inside it will also be moved.</description>
 		</command>
+		<reference ref="sliceiscontainer" />
 		</section>		<!-- Container Slices-->
 
 		<section title="Sprite Slices">
 		<description>Unlike the other types of slices, sprite slices come in different subtypes for each of the different sprite sizes. A sprite slice of one subtype can be turned into another subtype with the <p>replace*sprite</p> commands.</description>
+		<reference ref="sliceissprite" />
 		<command id="loadherosprite">
 			<canon>load hero sprite (num, palette)</canon>
 			<shortname>load hero sprite</shortname>
@@ -5940,6 +5947,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>create rect</shortname>
 			<description>Create a new rectangle slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>style</p>. The style is text box style number from 0 to 14, or -1 for an unstyled box. The default is box style 0. Like all slice types, a rect slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
+		<reference ref="sliceisrect" />
 		<command id="getrectstyle">
 			<canon>get rect style (handle)</canon>
 			<shortname>get rect style</shortname>
@@ -6054,6 +6062,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>create ellipse</shortname>
 			<description>Create a new ellipse slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, an optional <p>border color</p> and an optional <p>fill color</p>. The ellipse will be hollow if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
+		<reference ref="sliceisellipse" />
 		<command id="getellipsebordercol">
 			<canon>get ellipse border col (handle)</canon>
 			<shortname>get ellipse border col</shortname>
@@ -6109,6 +6118,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				<ref>setslicetext</ref>
 			</seealso>
 		</command>
+		<reference ref="sliceistext" />
 		<command id="setslicetext">
 			<canon>set slice text(handle, string id)</canon>
 			<shortname>set slice text</shortname>
@@ -6201,6 +6211,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>create grid</shortname>
 			<description>Creates a new grid slice, and returns an handle to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.</description>
 		</command>
+		<reference ref="sliceisgrid" />
 		<command id="setgridcolumns">
 			<canon>set grid columns (handle, columns)</canon>
 			<shortname>set grid columns</shortname>
@@ -6265,6 +6276,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>create select</shortname>
 			<description>Creates a new select slice, and returns an handle to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.</description>
 		</command>
+		<reference ref="sliceisselect" />
 		<command id="setselectsliceindex">
 			<canon>set select slice index (handle, index)</canon>
 			<shortname>set select slice index</shortname>
@@ -6287,8 +6299,13 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="createscroll">
 			<canon>create scroll (width, height)</canon>
 			<shortname>create scroll</shortname>
-			<description>Creates a new scroll slice, and returns an handle to it. Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges if their children do not fit inside them. The two arguments are the width and height of the select slice.</description>
+			<description>
+				Creates a new scroll slice, and returns an handle to it.
+				Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges
+				if their children do not fit inside them. The two arguments are the width and height of the scroll slice.
+			</description>
 		</command>
+		<reference ref="sliceisscroll" />
 		<command id="setscrollbarstyle">
 			<canon>set scroll bar style (handle, style)</canon>
 			<shortname>set scroll bar style</shortname>
@@ -6330,20 +6347,23 @@ The third argument is the total number of ticks that the animation should run. Y
 		</section>		<!--Scroll Slices-->
 
 		<section title="Panel Slices">
-			<description>
-				Panel slices split up their area between their first two children in various ways,
-				and don't display any other children.
-			</description>
+		<description>
+			Panel slices split up their area between their first two children in various ways,
+			and don't display any other children.
+		</description>
 		<command id="createpanel">
 			<canon>create panel (width, height)</canon>
 			<shortname>create panel</shortname>
-			<description>Creates a new panel slice, and returns an handle to it. Panel slices are special containers that automatically move and resize their first two children. The first two children will fill the panel slice's area. For example, a panel slice might be used to make to child slices share a 60%/40% split of an area regardless of the size or shape of that area. The two arguments are the width and height of the select slice.</description>
+			<description>
+				Creates a new panel slice, and returns an handle to it.
+				Panel slices are special containers that automatically move and resize their first two children.
+				The first two children will fill the panel slice's area (while others aren't drawn).
+				For example, a panel slice might be used to make to child slices share a 60%/40% split of an area
+				regardless of the size or shape of that area.
+				The two arguments are the width and height of the panel slice.
+			</description>
 		</command>
-		<command id="sliceispanel">
-			<canon>slice is panel (handle)</canon>
-			<shortname>slice is panel</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a panel slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
-		</command>
+		<reference ref="sliceispanel" />
 		<command id="getpanelisvertical">
 			<canon>get panel is vertical (handle)</canon>
 			<shortname>get panel is vertical</shortname>
@@ -6372,7 +6392,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setpanelpercent">
 			<canon>set panel percent (handle, percent)</canon>
 			<shortname>set panel percent</shortname>
-			<description>Given a panel slice <p>handle</p>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of theprimary child.</description>
+			<description>Given a panel slice <p>handle</p>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.</description>
 		</command>
 		<command id="getpanelpixels">
 			<canon>get panel pixels (handle)</canon>
@@ -6447,7 +6467,8 @@ The third argument is the total number of ticks that the animation should run. Y
 				If true, then only visible slices are counted or returned.
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <p>parent</p> itself
 				is visible doesn't have any effect.)
-				Pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				For example, pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices
+				which are not selected (and therefore invisible).
 				<lb/>
 				This command never returns Special slices, such as the <ref>spritelayer</ref> slice.
 				<note>
