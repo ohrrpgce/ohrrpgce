@@ -688,13 +688,13 @@ SUB sfunctions(byval cmdid as integer)
    savegame scriptret - 1
   END IF
  CASE 166'--save in slot
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+  IF valid_save_slot(retvals(0)) THEN
    savegame retvals(0) - 1
   END IF
  CASE 167'--last save slot
   scriptret = lastsaveslot
  CASE 174'--load from slot
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+  IF valid_save_slot(retvals(0)) THEN
    IF save_slot_used(retvals(0) - 1) THEN
     gam.want.loadgame = retvals(0)
     script_start_waiting()
@@ -1515,11 +1515,11 @@ SUB sfunctions(byval cmdid as integer)
    END IF
   END IF
  CASE 171'--saveslotused
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+  IF valid_save_slot(retvals(0)) THEN
    IF save_slot_used(retvals(0) - 1) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+  IF valid_save_slot(retvals(0)) THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
     retvals(2) = maxScriptGlobals
@@ -1538,11 +1538,13 @@ SUB sfunctions(byval cmdid as integer)
    END IF
   END IF
  CASE 173'--exportglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= maxScriptGlobals AND retvals(1) <= retvals(2) THEN
-   saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
+  IF valid_save_slot(retvals(0)) THEN
+   IF retvals(1) >= 0 AND retvals(2) <= maxScriptGlobals AND retvals(1) <= retvals(2) THEN
+    saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
+   END IF
   END IF
  CASE 175'--deletesave
-  IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
+  IF valid_save_slot(retvals(0)) THEN
    erase_save_slot retvals(0) - 1
   END IF
  CASE 176'--run script by id
@@ -4797,6 +4799,10 @@ FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBad
   RETURN NO
  END IF
  RETURN YES
+END FUNCTION
+
+FUNCTION valid_save_slot(slot as integer) as integer
+ RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
 END FUNCTION
 
 

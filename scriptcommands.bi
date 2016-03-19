@@ -66,6 +66,7 @@ DECLARE FUNCTION valid_zone(byval id as integer) as integer
 DECLARE FUNCTION valid_door(byval id as integer) as integer
 DECLARE FUNCTION valid_map_layer(layer as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
+DECLARE FUNCTION valid_save_slot(slot as integer) as integer
 
 DECLARE SUB greyscalepal
 DECLARE SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
