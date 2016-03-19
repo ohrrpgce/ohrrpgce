@@ -60,7 +60,7 @@ DIM SHARED ScreenSlice as Slice Ptr
 ScreenSlice = NewSlice()
 SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
 WITH *ScreenSlice
- 'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the othetr way around
+ 'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the other way around
  .X = 0
  .Y = 0
  .ScreenX = 0
@@ -359,7 +359,7 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
    newsl = NewSlice(parent)
    WITH *newsl
     .SliceType = slRoot
-    .Attach = slScreen
+    '.Attach = slScreen  ' Don't explicitly set, to allow reparenting root; defaults to screen anyway.
     .Protect = YES
     'We manually set these here so that Root will have the correct
     'size even if DrawSlice has not been called on it yet. This

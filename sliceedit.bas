@@ -289,29 +289,30 @@ SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
 END SUB
 
 ' Edit an existing slice tree.
-SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, reposition_slice as bool = NO)
+' recursive is true if using Ctrl+F.
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
  DIM ses as SliceEditState
- DIM saved_pos as XYPair
+ DIM rootslice as Slice ptr
  REDIM specialcodes(0) as SpecialLookupCode
  init_slice_editor_for_collection_group(ses, group, specialcodes())
 
- IF reposition_slice THEN
-  '--If we are are editing an existing slice in "full-screen", zero its position and restore after
-  saved_pos.x = edslice->X
-  saved_pos.y = edslice->Y
-  edslice->X = 0
-  edslice->Y = 0
+ IF recursive THEN
+  'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunate
+  'because it may cause some subtle differences
+  ses.draw_root = edslice
+  ses.show_root = YES
+ ELSE
+  ' Temporarily reparent the root of the slice tree!
+  rootslice = FindRootSlice(edslice)
+  ses.draw_root = create_draw_root
+  SetSliceParent rootslice, ses.draw_root
  END IF
 
- 'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunately
- 'because it causes some subtle differences (e.g. permanence of shifting with F6)
- ses.draw_root = edslice
- ses.show_root = YES
  slice_editor_main ses, edslice, NO, specialcodes()
 
- IF reposition_slice THEN
-  edslice->X = saved_pos.x
-  edslice->Y = saved_pos.y
+ IF recursive = NO THEN
+  OrphanSlice rootslice
+  DeleteSlice @ses.draw_root
  END IF
 END SUB
 
@@ -386,7 +387,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF keyval(scF6) > 1 THEN
    'Move around our view on this slice collection.
    'We move around the real rool, not draw_root, as it affects screen positions
-   'even if it's not drawn. (Bug: in-game, this moves the Root slice!)
+   'even if it's not drawn. The root gets deleted when leaving slice_editor, so
+   'changes are temporary.
    DIM true_root as Slice ptr = FindRootSlice(edslice)
    slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice
    state.need_update = YES
@@ -500,7 +502,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
      END IF
     END IF
    ELSEIF keyval(scF) > 1 THEN
-    slice_editor menu(state.pt).handle
+    slice_editor menu(state.pt).handle, , YES
     state.need_update = YES
 
    ELSEIF keyval(scShift) > 0 THEN

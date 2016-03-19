@@ -33,7 +33,7 @@ CONST SL_COLLECT_VIRTUALKEYBOARDSCREEN = 21
 
 'Public functions
 DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFINED)
-DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, reposition_slice as bool = NO)
+DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
 DECLARE SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
 
 #ENDIF
