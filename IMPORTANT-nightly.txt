@@ -16,6 +16,14 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+
+2016-03-19:
+The undocumented "email saved game" command has been replaced with
+"send email" (which is documented), which behaves differently. So if you
+used "email saved game" it will no longer work.
+
+** 2013-04-09 Beelzebufo Released ***
+
 2013-01-29:
 Nightlies from the last two days (specifically r5584-r5595) might delete
 the settings for the last menu definition. They wouldn't touch the menu
@@ -29,6 +37,8 @@ r5507-r5529 on Windows usually would not save hero data and could delete
 r5484-r5550 deleted "Items" from hero battle menus.
 r5507-r5530 newly created heroes would have completely blank battle menus
 
+*** 2012-07-31 Alectormancy+2 Released ***
+*** 2012-07-27 Alectormancy+1 Released ***
 *** 2012-06-15 Alectormancy Released ***
 
 2012-05-21:

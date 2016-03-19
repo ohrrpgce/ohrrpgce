@@ -4160,8 +4160,17 @@ SUB sfunctions(byval cmdid as integer)
   gen(genCameraArg3) = ABS(retvals(2))
   gen(genCameraArg4) = ABS(retvals(2))
   limitcamera gen(genCameraArg1), gen(genCameraArg2)
- CASE 604'--email saved game
-  email_save_to_developer
+ CASE 604 '--send email (save slot, subject string id, body string id)
+  IF retvals(0) = 0 ORELSE valid_save_slot(retvals(0)) THEN
+   DIM as string subject, body
+   IF retvals(1) <> -1 ANDALSO valid_plotstr(retvals(1)) THEN  'subject string id
+    subject = plotstr(retvals(1)).s
+   END IF
+   IF retvals(2) <> -1 ANDALSO valid_plotstr(retvals(2)) THEN  'body string id
+    body = plotstr(retvals(2)).s
+   END IF
+   email_save_to_developer retvals(0) - 1, subject, body
+  END IF
  CASE 605 '--dump slice tree
   IF retvals(0) = 0 THEN
    SliceDebugDumpTree SliceTable.Root

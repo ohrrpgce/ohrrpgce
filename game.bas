@@ -3409,7 +3409,7 @@ SUB misc_debug_menu()
  menu(4) = "Test Slicified Spell Screen"
  #IFDEF __FB_ANDROID__
   REDIM PRESERVE menu(5)
-  menu(5) = "Email the game developer"
+  menu(5) = "Email saved game"
  #ENDIF
  DIM result as integer
  result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
@@ -3422,7 +3422,9 @@ SUB misc_debug_menu()
   CASE 2: patcharray gen(), "gen"
   CASE 3: patcharray gmap(), "gmap"
   CASE 4: spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
-  CASE 5: email_save_to_developer
+  CASE 5:
+   savegame 33
+   email_save_to_developer 33
  END SELECT
  restore_previous_palette
 END SUB
@@ -3509,23 +3511,29 @@ SUB battle_formation_testing_menu()
 
 END SUB
 
-'Save the game to a temporary slot, and email it to game author.
-'Currently only works on Android
-SUB email_save_to_developer
+'Send an email to the game author. Currently only works on Android.
+'save_slot: -1: Don't attach a save. 0+: Attach an existing save.
+'Also attaches g_debug.txt, g_debug_archive.txt if a save is attached.
+SUB email_save_to_developer(save_slot as integer = -1, subject as string = "", body as string = "")
+ DIM as string file1, file2, file3
+ IF save_slot >= 0 THEN 
+  file1 = savedir & SLASH & save_slot & ".rsav"
+  IF isfile(file1) = NO THEN file1 = ""
+ END IF
+ IF LEN(file1) THEN
+  file2 = log_dir & "g_debug.txt"
+  file3 = log_dir & "g_debug_archive.txt"
+  IF isfile(file3) = NO THEN file3 = ""
+  ' Later on it would be *awesome* to always record an .ohrkeys file since the last time the player
+  ' loaded a save or started a game, and include that and the save too.
+ END IF
+ IF LEN(subject) = 0 THEN subject = getdisplayname(trimpath(sourcerpg)) & " feedback"
+ IF LEN(body) = 0 THEN body = "(Please include a helpful description of the problem here)"
+
  DIM distinfo as DistribState
  load_distrib_state distinfo
- savegame 33
- DIM savefile as string = savedir & SLASH & "33.rsav"
- DIM logfile as string = log_dir & "g_debug.txt"
- DIM logfile2 as string = log_dir & "g_debug_archive.txt"
- IF isfile(logfile2) = NO THEN logfile2 = ""
- DIM subject as string = getdisplayname(trimpath(sourcerpg)) & " saved game"
- DIM message as string = "(Please include a helpful description of the problem here)"
-
- ' Later on it would be *awesome* to always record an .ohrkeys file since the last time the player
- ' loaded a save or started a game, and include that and the save too.
- email_files(distinfo.email, subject, message, savefile, logfile, logfile2)
- ' Not safe to delete 33.rsav immediately.
+ ' Note: email can be blank. User can always fill something in
+ email_files(distinfo.email, subject, body, file1, file2, file3)
 END SUB
 
 

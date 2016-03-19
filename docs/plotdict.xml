@@ -7155,7 +7155,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="saveinslot">
 			<canon>save in slot (slot)</canon>
 			<shortname>save in slot</shortname>
-			<description>Saves in the specified save slot (1 to 32, where only 1 to 4 are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
+			<description>Saves in the specified save slot (1 to 32, regardless of how many are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
 		</command>
 		<command id="loadfromslot">
 			<canon>load from slot (slot)</canon>
@@ -7194,6 +7194,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<shortname>save slot used</shortname>
 			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
 		</command>
+		<reference ref="sendemail" />
 		<command id="importglobals">
 			<canon>import globals (slot, first, last)</canon>
 			<shortname>import globals</shortname>
@@ -7374,6 +7375,47 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<seealso>
 				<ref>getscriptname</ref>
 			</seealso>
+		</command>
+		<command id="sendemail">
+			<canon>send email (save slot, subject string id, message string id)</canon>
+			<shortname>send email</shortname>
+			<description>
+				<danger>
+					As of Callipygous, this command is only implemented on Android!
+					Calling it on other platforms does nothing.
+				</danger>
+				This asks the player if they want to send an email to you, optionally
+				with a save file attached.
+				The purpose is to make it easy for players to send bug reports or feedback,
+				especially on Android, where it might otherwise be a nuisance to send saved games.
+
+				When called on Android, a standard system menu is brought up asking the player which
+				email client they want to use.
+				If they don't cancel, that client is opened with an email already filled out,
+				which they can edit as usual:
+				<lb/>
+				The email is sent to the address set in the Distribute Game->Distribution Info menu.
+				<lb/>
+				<p>subject string id</p> is optional; it is the id of a string containing the email
+				subject line.
+				If you leave it out or set it to -1 then the default subject line is "[Name of the game] feedback".
+				<lb/>
+				<p>message string id</p> is optional; it is the id of a string containing the email body text.
+				If you leave it out or set it to -1 then it defaults to "(Please include a helpful description of the problem here)".
+				<lb/>
+				The <p>save slot</p> argument is optional, and is either an existing save slot number,
+				or <p>false</p> (the default) to not attach a save.
+				You can use <ref>saveinslot</ref> with a large slot number to create a temporary save of the current game.
+				If you attach an save file two other files are also attached: g_debug.txt and g_debug_archive.txt.
+				g_debug.txt is useful for tracking down OHRRPGCE engine bugs,
+				but you can also write to it using <ref>trace</ref> and <ref>tracevalue</ref>.
+				You can also check it for error messages, such as script errors (errors will start with
+				a <p>!</p> at the beginning of the line).
+				g_debug_archive.txt contains backups of g_debug.txt from previous times the game was played.
+				<lb/>
+				To load the .rsav file, rename it if necessary (e.g. 0.rsav for the first save slot),
+				and put it in the 'gamename.saves' folder.
+			</description>
 		</command>
 		</section>		<!-- Debugging-->
 	</section>		<!-- Advanced Functions-->

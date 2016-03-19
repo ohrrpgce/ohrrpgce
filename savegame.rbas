@@ -173,6 +173,7 @@ SUB savegame (byval slot as integer)
   lastsaveslot = slot + 1
  END IF
 
+ debuginfo "Saving in slot " & slot
  current_save_slot = slot
  
  DIM doc as DocPtr

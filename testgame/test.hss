@@ -37,7 +37,7 @@ global variable (1024,highval)
 global variable (5, mylayer)
 global variable (6, tileset)
 
-# strings 0-9 are used. 31 is for temporaries
+# strings 0-9 are used. 31-32 is for temporaries
 define constant (9, zone watch string)
 
 script,makesuseofretvals,begin
@@ -601,6 +601,17 @@ end
 # In 'Testing scripts' menu
 plotscript, resume obstruction test, begin
   resume obstruction
+end
+
+# In 'Testing scripts' menu
+plotscript, send me save, begin
+  save in slot(32)
+  send email(32)
+end
+
+# In 'Testing scripts' menu
+plotscript, send me mail, begin
+  send email(false, $31="Honk!", $32="Achievement unlocked: sent email")
 end
 
 plotscript, make npc wander, arg, npc, begin

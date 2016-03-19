@@ -623,7 +623,7 @@ define function, begin
 601,unhidemousecursor,0       # unhides the OS mouse cursor
 602,hidemousecursor,0         # hides the OS mouse cursor
 603,pixelfocuscamera,3,0,0,2  # pixel focus camera(x,y,pixelstep)
-604,emailsavedgame,0          # save game and email it to you (experimental, android only)
+604,sendemail,3,0,-1,-1       # send an email, possibly with attached saved (save slot, subject string, body string)
 605,dumpslicetree,1,0         # Dump slice tree to g_debug.txt, like ctrl+F8 debug key (root slice handle)
 606,createpanel,2,0,0         #x create a panel slice of a specified size
 607,sliceispanel,1,0          #x return if the slice is a panel

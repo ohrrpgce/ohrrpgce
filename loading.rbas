@@ -3917,7 +3917,9 @@ END SUB
 SUB load_distrib_state(byref distinfo as DistribState, filename as string)
 
  DIM doc as DocPtr
- doc = LoadDocument(filename, optNoDelay)
+ IF isfile(filename) THEN
+  doc = LoadDocument(filename, optNoDelay)
+ END IF
  IF doc = 0 THEN
   debuginfo "distrib doc not found, create it"
   doc = CreateDocument()

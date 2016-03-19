@@ -7379,7 +7379,12 @@ end function
 
 sub email_files(address as string, subject as string, message as string, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL)
 	debuginfo "Emailing " & *file1 & " " & *file2 & " " & *file3 & " to " & address
+	debuginfo " subject: '" & subject & "' body: '" & message & "'"
 	#ifdef __FB_ANDROID__
+		' Omitted files should be NULL, not "".
+		if len(*file1) = 0 then file1 = NULL
+		if len(*file2) = 0 then file2 = NULL
+		if len(*file3) = 0 then file3 = NULL
 		SDL_ANDROID_EmailFiles(address, subject, message, file1, file2, file3)
 	#else
 		debug "email_files only supported on Android"
