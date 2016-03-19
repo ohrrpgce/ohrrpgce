@@ -7,7 +7,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-CONST CURRENT_RPG_VERSION = 19
+CONST CURRENT_RPG_VERSION = 20
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -25,6 +25,7 @@ CONST CURRENT_RPG_VERSION = 19
 ' 17 - alectormancy wip increase global limit from 4095 to 16383
 ' 18 - beelzebufo turn-based support
 ' 19 - beelzebufo replaced .DT0 with heroes.reld
+' 20 - callipygous release. Added general.reld (including new version system) and maxScriptCmdID checking.
 
 CONST CURRENT_RSAV_VERSION = 3
 ' Increment this number any time that loading and resaving a game in either
