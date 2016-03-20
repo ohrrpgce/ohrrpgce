@@ -2973,8 +2973,7 @@ SUB sfunctions(byval cmdid as integer)
     IF retvals(3) THEN
      IF SetZoneTile(zmap, retvals(0), retvals(1), retvals(2)) = 0 THEN
       scriptret = 1
-      'Is serrWarn the best for commands which fail? Do we need another?
-      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed", serrWarn
+      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed"
      END IF
     ELSE
      UnsetZoneTile(zmap, retvals(0), retvals(1), retvals(2))
@@ -3525,12 +3524,11 @@ SUB sfunctions(byval cmdid as integer)
     FOR i = UBOUND(npc) TO 0 STEP -1
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
-    'I don't want to raise an error here, again because it probably happens in routine in games like SoJ
     DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
     IF i = -1 THEN 
-     scripterr msgtemp & "; failed: too many NPCs exist", serrBound
+     scripterr msgtemp & "; failed: too many NPCs exist"
     ELSE
-     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", serrBound
+     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", serrWarn
     END IF
    END IF
    IF i > -1 THEN

@@ -863,7 +863,7 @@ END SUB
 FUNCTION game_setoption(opt as string, arg as string) as integer
  IF opt = "errlvl" THEN
   IF is_int(arg) THEN
-   err_suppress_lvl = str2int(arg, 4)
+   err_suppress_lvl = str2int(arg, serrWarn)
    RETURN 2
   ELSE
    RETURN 1

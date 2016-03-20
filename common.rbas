@@ -3967,11 +3967,8 @@ IF time_rpg_upgrade THEN
  debuginfo "Total upgrade time = " & FORMAT(TIMER - upgrade_start_time, ".###") & "s, time wasted on messages = " & FORMAT(upgrade_overhead_time, ".###") & "s"
 END IF
 
-IF gen(genErrorLevel) = 0 THEN
- 'Removed the question about script error levels, too annoying.
- 'Defaults to hiding serrBound and lower.
- gen(genErrorLevel) = 5
-END IF
+'Not currently used
+gen(genErrorLevel) = serrIgnore
 
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000

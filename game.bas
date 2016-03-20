@@ -574,7 +574,8 @@ getstatnames statnames()
 
 IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 'Might be changed by --errlvl commandline option
-IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)
+'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
+IF err_suppress_lvl = 0 THEN err_suppress_lvl = serrIgnore
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
