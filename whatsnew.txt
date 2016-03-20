@@ -84,6 +84,8 @@ March ?? 2016 [Callipygous]
     * You can now use the mouse to select or highlight slices in the
       slice editor, press F5 to edit the hidden root slice, F6 to shift
       around the view, and V to toggle slice visibility. [Ralph]
+    * New .rpg files start with a few template walkabout sets, donated
+      by FnrrfYgmSchnish
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]
