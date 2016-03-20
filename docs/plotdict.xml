@@ -3305,7 +3305,6 @@ end</example>
 		<reference ref="sliceatpixel" />
 		<reference ref="slicecollidepoint" />
 		<reference ref="npcatpixel" />
-		<reference ref="menuitematpixel" />
 		</section>		<!-- Helpful Related Commands-->
 
 		</section>		<!-- Mouse Input-->
