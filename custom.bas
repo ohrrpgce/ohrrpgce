@@ -75,7 +75,6 @@ DECLARE SUB quad_transforms_menu ()
 DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
-DECLARE SUB resolution_menu ()
 DECLARE SUB new_graphics_tests ()
 
 DECLARE SUB shopdata ()
@@ -1577,7 +1576,7 @@ SUB secret_menu ()
    IF st.pt = 5 THEN text_test_menu
    IF st.pt = 6 THEN font_test_menu
    IF st.pt = 7 THEN stat_growth_chart
-   IF st.pt = 8 THEN resolution_menu
+   IF st.pt = 8 THEN resolution_menu YES
    IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
    IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
    IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
@@ -1598,18 +1597,19 @@ SUB secret_menu ()
 END SUB
 
 FUNCTION window_size_description(scale as integer) as string
- IF scale >= 10 THEN
+ IF scale >= 11 THEN
+  ' Not implemented yet.
   RETURN "maximize"
  ELSE
   RETURN "~" & (10 * scale) & "% screen width"
  END IF
 END FUNCTION
 
-SUB resolution_menu ()
+SUB resolution_menu (secret_options as bool)
  DIM menu(4) as string
  DIM st as MenuState
  st.size = 24
- st.last = UBOUND(menu)
+ st.last = IIF(secret_options, UBOUND(menu), 2)
 
  'FIXME: selecting a resolution other than 320x200 causes the distrib menu
  'to not package gfx_directx.dll; remove that when gfx_directx is updated
@@ -1624,7 +1624,9 @@ SUB resolution_menu ()
    gen(genResolutionY) = large(10, gen(genResolutionY))
   END IF
   IF quit THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "window_settings"
+  IF keyval(scF1) > 1 THEN
+    show_help iif_string(secret_options, "window_settings", "window_settings_partial")
+  END IF
   SELECT CASE st.pt
    CASE 1: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
    CASE 2: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
@@ -1632,7 +1634,7 @@ SUB resolution_menu ()
    CASE 4: st.need_update OR= intgrabber(gen(genResolutionY), 0, 960)
   END SELECT
   IF st.need_update THEN
-   xbsave game + ".gen", gen(), 1000
+   xbsave game + ".gen", gen(), 1000   'Instant live previewing update
    st.need_update = NO
   END IF
   menu(0) = "Previous Menu"

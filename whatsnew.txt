@@ -86,6 +86,9 @@ March ?? 2016 [Callipygous]
       around the view, and V to toggle slice visibility. [Ralph]
     * New .rpg files start with a few template walkabout sets, donated
       by FnrrfYgmSchnish
+    * Added options to set how large the game's window should be by
+      default (by changing the scaling factor). The default size will
+      for most people be larger than the old 2x default. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

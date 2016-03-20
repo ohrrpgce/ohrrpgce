@@ -1778,7 +1778,7 @@ END SUB
 
 SUB gendata ()
  STATIC shown_framerate_warning as bool = NO
- CONST maxMenu = 19
+ CONST maxMenu = 20
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1809,11 +1809,13 @@ SUB gendata ()
  m(11) = "Global Music and Sound Effects..."
  m(12) = "Master Palettes..."
  m(13) = "Password For Editing..."
- m(14) = "Platform-specific options..."
+ m(14) = "Window-size Options..."
+ m(15) = "Platform-specific options..."
+
+ CONST options_start = 17
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(15) = NO
- CONST options_start = 16
+ enabled(options_start - 1) = NO
 
  index(options_start) = genMaxInventory
  max(options_start) = (inventoryMax + 1) \ 3
@@ -1901,7 +1903,8 @@ SUB gendata ()
    IF state.pt = 11 THEN generalmusicsfxmenu
    IF state.pt = 12 THEN masterpalettemenu
    IF state.pt = 13 THEN inputpasw
-   IF state.pt = 14 THEN edit_platform_options
+   IF state.pt = 14 THEN resolution_menu NO
+   IF state.pt = 15 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES

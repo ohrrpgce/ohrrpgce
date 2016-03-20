@@ -108,4 +108,6 @@ DECLARE SUB edit_purchase_details (byval prod as NodePtr)
 
 DECLARE SUB edit_savegame_options ()
 
+DECLARE SUB resolution_menu (secret_options as bool)
+
 #endif
