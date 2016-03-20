@@ -322,6 +322,7 @@ SUB script_error_mode_menu ()
 
  DIM infosl as Slice Ptr
  infosl = NewSliceofType(slText, box)
+ infosl->Fill = YES
  ChangeTextSlice infosl, , , , YES
 
  setkeys YES
@@ -356,9 +357,9 @@ SUB script_error_mode_menu ()
     menu(1) = "Script Error Display Mode: " & yesorno(gen(genDebugMode), "debug", "release")
     SELECT CASE gen(genDebugMode)
      CASE 0
-      ChangeTextSlice infosl, "Release mode hides script errors. It is recommended for older games that have not been tested with the newer, better script error detection."
+      ChangeTextSlice infosl, "Release mode hides script errors and warnings. It is HIGHLY recommended that you use release mode when releasing your game. Please press F1 for more information."
      CASE 1
-      ChangeTextSlice infosl, "Debug mode shows script errors. It is recommended for new games. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu"
+      ChangeTextSlice infosl, "Debug mode shows script errors and warnings. It is recommended while playtesting. It will automatically be turned OFF when you export your game from the ""Distribute Game"" menu. Please press F1 for more information."
     END SELECT
    END IF    
    box->Height = infosl->height + box->PaddingTop + box->PaddingBottom

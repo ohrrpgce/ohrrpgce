@@ -89,6 +89,10 @@ March ?? 2016 [Callipygous]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]
+    * A new Debug/Release mode setting replaces the old script
+      errorlevel. All existing games default to Release mode. Release
+      mode hides almost all script errors and warnings; Debug mode
+      should be used for testing but not for release. [James]
 
   * Bugfixes
     * Fixed a few cosmetic bugs in the equip menu including possibly

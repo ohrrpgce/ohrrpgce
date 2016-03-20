@@ -1,9 +1,13 @@
-Here you can change Script Error message display.
+Here you can change whether to display error and warning messages for scripts, and potentially other error messages.
 
 Release mode hides error messages.
 
 Debug mode shows error messages.
 
-Debug mode is reccomended. It will automatically be turned off when you export your game from the "Distribute Games" menu. That way you will see error messages when you test your own game, but when you share your game with players, they will not be bothered with error messages that might confuse them.
+In each new version of the OHRRPGCE more error checking might be added, which means that a game that previously worked OK might start to display lots of warnings. For this reason games you release should be in Release mode.
+
+Debug mode is recommended while you are working on your game. It will automatically be turned off when you export your game from the "Distribute Game" menu. That way you will see error messages when you test your own game, but when you share your game with players, they will not be bothered with error and warning messages that might confuse them.
+
+When you are live-previewing your game with the Test Game mode, debug mode is always turned on automatically.
 
 Even in "release" mode, error messages are always written to g_debug.txt and saved in g_debug_archive.txt

@@ -16,6 +16,9 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2016-03-20:
+If you previously used the Release/Debug mode option, reread about it. Contrary
+to what the help page used to say, you should not release games in Debug mode!
 
 2016-03-19:
 The undocumented "email saved game" command has been replaced with
