@@ -125,6 +125,8 @@ March ?? 2016 [Callipygous]
     * Fix general map data corruption that occured when loading certain
       very old games released before July 8 1999 [James]
     * Fix a few problems when installed in a read-only location [Ralph]
+    * Bug 2013: Pre-Beelzebufo games expected backdrops to appear
+      above the sprite layer [Ralph]
 
   * New Plotscripting Stuff
     * "Menu action plotscript" special script trigger to run a script

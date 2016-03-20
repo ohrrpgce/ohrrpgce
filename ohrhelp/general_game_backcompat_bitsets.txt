@@ -24,3 +24,5 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 "Old attack positioning at bottom-left of target" causes attack animations to be displayed in the old position, at the bottom-left corner of the targeted hero/enemy. When you turn this OFF attacks are displayed centered on their target.
 
 "Wrap map layers over edge of Crop maps" affects maps set to Map Edge Mode: Crop. Normally on a cropping map you can't see past the map edge and this bitset has no effect. When this is ON, if you view an off-map position then the map layers continue forever by wrapping around. This is only possible if you use scripting to move map layers, or if the map is smaller than the game window.
+
+"Draw Backdrop slice above Script layer" causes normal backdrops (sl:backdrop) to be drawn above the sprite layer (sl:script layer) instead of below. This was the behaviour in Alectormancy and earlier.

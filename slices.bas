@@ -172,6 +172,11 @@ Sub SetupGameSlices
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
  RefreshSliceScreenPos(SliceTable.ScriptSprite)
+
+ '"Draw Backdrop slice above Script layer" (backcompat)
+ IF readbit(gen(), genBits2, 23) THEN
+  SwapSiblingSlices SliceTable.Backdrop, SliceTable.ScriptSprite
+ END IF
  
  SliceTable.TextBox = NewSliceOfType(slSpecial, SliceTable.Root, SL_TEXTBOX_LAYER)
  SliceTable.TextBox->Fill = YES

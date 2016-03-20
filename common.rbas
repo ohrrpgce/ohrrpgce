@@ -3578,6 +3578,12 @@ FOR i as integer = 0 TO gen(genMaxMasterPal)
  END IF
 NEXT
 
+'Workaround bug #2013: Backdrops were drawn immediately above (instead of) spritelayer until
+'r5437, which swapped the order. genVersion was increased to 18 in r5477
+IF original_genVersion <= 17 THEN
+ setbit gen(), genBits2, 23, 1  'Draw Backdrop slice above Script layer
+END IF
+
 'Zero out new attack item cost (ammunition) data
 IF getfixbit(fixAttackitems) = 0 THEN
   upgrade_message "Zero new ammunition data..."
