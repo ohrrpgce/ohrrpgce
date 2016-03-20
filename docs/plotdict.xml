@@ -3298,6 +3298,16 @@ end</example>
 			<alias>unhidemousecursor</alias>
 			<shortname>show mouse cursor</shortname>
 		</command>
+
+		<section title="Helpful Related Commands">
+		<reference ref="camerapixelx" />
+		<reference ref="camerapixely" />
+		<reference ref="sliceatpixel" />
+		<reference ref="slicecollidepoint" />
+		<reference ref="npcatpixel" />
+		<reference ref="menuitematpixel" />
+		</section>		<!-- Helpful Related Commands-->
+
 		</section>		<!-- Mouse Input-->
 	</section>		<!-- Getting Player Input-->
 
@@ -3628,6 +3638,16 @@ end</example>
 			<shortname>menu is open</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), checks to see whether it is still open, and returns <ref>true</ref> if it is, or <ref>false</ref> if it has been closed.</description>
 		</command>
+		<command id="parentmenu">
+			<canon>parent menu(menu item handle)</canon>
+			<shortname>parent menu</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return a menu handle for the menu that the menu item belongs to.</description>
+		</command>
+		<command id="getmenuid">
+			<canon>get menu ID(menu handle)</canon>
+			<shortname>get menu ID</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
+		</command>
 
 		<section title="Menu Items">
 
@@ -3823,6 +3843,8 @@ end</example>
 		</section>  	<!--Menu Item Data-->
 		</section>	<!--Menu Items-->
 
+		<section title="Menu Data">
+
 		<command id="getmenubit">
 			<canon>get menu bit(menu handle, bit)</canon>
 			<shortname>get menu bit</shortname>
@@ -3860,16 +3882,6 @@ end</example>
 					<li>menubit:prevent main menu</li>
 				</ul>
 			</description>
-		</command>
-		<command id="parentmenu">
-			<canon>parent menu(menu item handle)</canon>
-			<shortname>parent menu</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return a menu handle for the menu that the menu item belongs to.</description>
-		</command>
-		<command id="getmenuid">
-			<canon>get menu ID(menu handle)</canon>
-			<shortname>get menu ID</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>parentmenu</ref>), return a the ID number of the menu, or -1 if the men was created with the <ref>createmenu</ref> command.</description>
 		</command>
 		<command id="getmenuboxstyle">
 			<canon>get menu boxstyle(menu handle)</canon>
@@ -4073,6 +4085,7 @@ set menu on close script(m, @my menu exit handler)
 			</seealso>
 		</command>
 
+		</section>          <!-- Menu Data -->
 	</section>
 
 	<section title="Slices">
