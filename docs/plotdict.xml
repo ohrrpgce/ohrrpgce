@@ -3294,6 +3294,10 @@ end</example>
 			<shortname>hidemousecursor</shortname>
 			<description>Causes the normal OS mouse cursor to be hidden. This command is seldom needed, because the cursor is hidden by default when you run <ref>initmouse</ref>.</description>
 		</command>
+		<command id="showmousecursor">
+			<alias>unhidemousecursor</alias>
+			<shortname>show mouse cursor</shortname>
+		</command>
 		</section>		<!-- Mouse Input-->
 	</section>		<!-- Getting Player Input-->
 

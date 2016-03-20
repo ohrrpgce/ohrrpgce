@@ -621,6 +621,7 @@ define function, begin
 599,input string with mouse keyboard,2,0,-1 # pop up a virtual keyboard that responds to mouse clicks
 600,runningonouya,0           # returns true if the device is OUYA (see also "running on console")
 601,unhidemousecursor,0       # unhides the OS mouse cursor
+601,showmousecursor,0
 602,hidemousecursor,0         # hides the OS mouse cursor
 603,pixelfocuscamera,3,0,0,2  # pixel focus camera(x,y,pixelstep)
 604,sendemail,3,0,-1,-1       # send an email, possibly with attached saved (save slot, subject string, body string)
