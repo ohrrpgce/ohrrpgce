@@ -84,6 +84,12 @@ SUB distribute_game ()
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
  append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+ DIM as string temp, iconbase
+ iconbase = trimextension(sourcerpg)
+ IF isfile(iconbase & ".ico") THEN temp = " found" ELSE temp = " not found"
+ append_simplemenu_item menu, " Windows icon: " & trimpath(iconbase) & ".ico" & temp, YES, uilook(uiDisabledItem)
+ IF isfile(iconbase & ".icns") THEN temp = " found" ELSE temp = " not found"
+ append_simplemenu_item menu, " Mac icon: " & trimpath(iconbase) & ".icns" & temp, YES, uilook(uiDisabledItem)
 
  append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
 
@@ -273,7 +279,7 @@ SUB edit_distrib_info ()
    ELSEIF (st.pt >= 5 ANDALSO st.pt <= 6) ORELSE LEN(menu[st.pt].text) >= 40 THEN
     ChangeTextSlice infosl, "Press ENTER to edit multiple lines"
    ELSE
-    ChangeTextSlice infosl, ""
+    ChangeTextSlice infosl, "Press F1 for details"
    END IF
    st.need_update = NO
   END IF

@@ -1,5 +1,9 @@
 You can export your game as a convenient package that is easy to share with other people.
 
+[Icons]
+If you've created Windows or Mac icons for your game place them next to the .rpg file with a matching filename and they will be used.
+See http://rpg.hamsterrepublic.com/ohrrpgce/Icons for more information.
+
 [Windows .ZIP]
 This is the most popular format for game developers. It is a simple zip file with a copy of your game, a renamed copy of game.exe that will automatically launch your game, plus all the support .dll files that a player will need to play your game on Windows without needing to install the OHRRPGCE.
 
