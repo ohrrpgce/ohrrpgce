@@ -484,7 +484,7 @@ addcaption caption(), capindex, "mute register"
 CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
 min(AtkLimCapTime) = -1
-addcaption caption(), capindex, "Ticks"
+addcaption caption(), capindex, "Ticks"  'Note: special-cased to add seconds estimate
 menucapoff(AtkCapTime) = capindex
 addcaption caption(), capindex, "Full Duration of Attack"
 addcaption caption(), capindex, "Not at All"
@@ -741,8 +741,13 @@ menutype(AtkAnimAttack) = 2000 + menucapoff(AtkAnimAttack)
 menuoff(AtkAnimAttack) = AtkDatAnimAttack
 menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
-menu(AtkDelay) = "Delay Ticks Before Attack:"
-menutype(AtkDelay) = 19'ticks
+IF gen(genBattleMode) = 0 THEN  'Active-turn
+ menu(AtkDelay) = "Delay Ticks Before Attack:"
+ menutype(AtkDelay) = 19'ticks
+ELSE
+ menu(AtkDelay) = "Delay Attacks Before Attack:"
+ menutype(AtkDelay) = 0'int
+END IF
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
 

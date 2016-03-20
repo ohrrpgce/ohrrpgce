@@ -131,7 +131,9 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
   this attack is used by a hero, the
   hero's weapon will display.
 
-Delay Before Attack: How long it takes (measured in ticks) before the attack is executed.
+Delay Ticks/Attacks Before Attack: Causes a delay before the attack is executed. If the Battle System is Active-time, this is measured in ticks. If it is turn-based, then this is how other combatants get to act first. If the delay is large then the attacker will always act last... unless someone else has an even bigger delay!
+
+Delay Turns Before Attack: In turn-based battles, this is how many rounds of combat the attacker will miss.
 
 Caption: A line of text that will be displayed at the bottom of the screen whenever the attack is used.
 
