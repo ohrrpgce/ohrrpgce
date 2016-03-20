@@ -498,12 +498,15 @@ SUB evalitemtags
  NEXT j
 END SUB
 
-FUNCTION findhero (byval who as integer, byval first as integer, byval last as integer, byval direction as integer) as integer
+FUNCTION findhero (byval id as integer, byval first as integer, byval last as integer, byval direction as integer, errlvl as scriptErrEnum = serrIgnore) as integer
  FOR i as integer = first TO last STEP direction
-  IF gam.hero(i).id + 1 = who ORELSE (who = -1 ANDALSO gam.hero(i).id >= 0) THEN
+  IF gam.hero(i).id + 1 = id ORELSE (id = -1 ANDALSO gam.hero(i).id >= 0) THEN
    RETURN i
   END IF
  NEXT i
+ IF errlvl > serrIgnore THEN
+  scripterr interpreter_context_name() + "Couldn't find hero with ID " & id & " in the party", errlvl
+ END IF
  RETURN -1 'not found
 END FUNCTION
 

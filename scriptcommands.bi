@@ -54,6 +54,7 @@ DECLARE FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as s
 
 DECLARE FUNCTION valid_item_slot(byval item_slot as integer) as integer
 DECLARE FUNCTION valid_item(byval itemid as integer) as integer
+DECLARE FUNCTION valid_hero_caterpillar_rank(who as integer) as integer
 DECLARE FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
 DECLARE FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
 DECLARE FUNCTION valid_stat(byval statid as integer) as integer

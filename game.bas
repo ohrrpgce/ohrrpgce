@@ -2721,14 +2721,14 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  '---REMOVE---
  IF box.hero_addrem < 0 THEN
   IF herocount(40) > 1 THEN
-   i = findhero(-box.hero_addrem, 0, 40, 1)
+   i = findhero(-box.hero_addrem, 0, 40, 1, serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF herocount(3) = 0 THEN forceparty
   END IF
  END IF '---end if < 0
  '---SWAP-IN---
  IF box.hero_swap > 0 THEN
-  i = findhero(box.hero_swap, 40, 0, -1)
+  i = findhero(box.hero_swap, 40, 0, -1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 0 TO 3
     IF gam.hero(o).id = -1 THEN
@@ -2740,7 +2740,7 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  END IF '---end if > 0
  '---SWAP-OUT---
  IF box.hero_swap < 0 THEN
-  i = findhero(-box.hero_swap, 0, 40, 1)
+  i = findhero(-box.hero_swap, 0, 40, 1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
@@ -2753,12 +2753,12 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  END IF '---end if < 0
  '---UNLOCK HERO---
  IF box.hero_lock > 0 THEN
-  DIM heroat as integer = findhero(box.hero_lock, 0, 40, 1)
+  DIM heroat as integer = findhero(box.hero_lock, 0, 40, 1, serrWarn)
   IF heroat > -1 THEN gam.hero(heroat).locked = NO
  END IF '---end if > 0
  '---LOCK HERO---
  IF box.hero_lock < 0 THEN
-  DIM heroat as integer = findhero(-box.hero_lock, 0, 40, 1)
+  DIM heroat as integer = findhero(-box.hero_lock, 0, 40, 1, serrWarn)
   IF heroat > -1 THEN gam.hero(heroat).locked = YES
  END IF '---end if > 0
 

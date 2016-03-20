@@ -523,7 +523,7 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = -1
   END IF
  CASE 23'--unequip
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    i = retvals(0)
    unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
   END IF
@@ -552,7 +552,7 @@ SUB sfunctions(byval cmdid as integer)
    shop retvals(0)
   END IF
  CASE 55'--get default weapon
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).def_wep - 1
   ELSE
    scriptret = 0
@@ -749,7 +749,7 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = tile_anim_deanimate_tile(retvals(0), tilesets(retvals(1))->tastuf())
   END IF
  CASE 258'--check hero wall
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    DIM as integer tempxgo = 0, tempygo = 0
    IF retvals(1) = 0 THEN tempygo = 20
    IF retvals(1) = 1 THEN tempxgo = -20
@@ -1037,7 +1037,7 @@ SUB sfunctions(byval cmdid as integer)
  'End of old game.bas-sfunctions
 
  CASE 135'--puthero
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cropposition retvals(1), retvals(2), 20
    catx(retvals(0) * 5) = retvals(1)
    caty(retvals(0) * 5) = retvals(2)
@@ -1055,11 +1055,11 @@ SUB sfunctions(byval cmdid as integer)
   mapy = retvals(1)
   limitcamera mapx, mapy
  CASE 138'--heropixelx
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = catx(retvals(0) * 5)
   END IF
  CASE 139'--heropixely
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = caty(retvals(0) * 5)
   END IF
  CASE 140'--npcpixelx
@@ -1143,7 +1143,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 2'--wait for all
   script_start_waiting(retvals(0))
  CASE 3'--wait for hero
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    script_start_waiting(retvals(0))
   END IF
  CASE 4'--waitforNPC
@@ -1161,7 +1161,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 9'--wait for key
   script_start_waiting(retvals(0))
  CASE 10'--walk hero
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    SELECT CASE retvals(1)
     CASE 0'--north
      catd(retvals(0) * 5) = 0
@@ -1222,7 +1222,7 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = 0
   END IF
  CASE 25'--set hero frame
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    herow(retvals(0)).wtog = bound(retvals(1), 0, 1) * 2
   END IF
  CASE 27'--suspend overlay
@@ -1262,11 +1262,11 @@ SUB sfunctions(byval cmdid as integer)
  CASE 42'--wait for camera
   script_start_waiting(retvals(0))
  CASE 43'--hero x
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = catx(retvals(0) * 5) \ 20
   END IF
  CASE 44'--hero y
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = caty(retvals(0) * 5) \ 20
   END IF
  CASE 47'--suspend obstruction
@@ -1280,7 +1280,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 51'--resume hero walls
   setbit gen(), genSuspendBits, suspendherowalls, 0
  CASE 53'--set hero direction
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
   END IF
  CASE 57, 118'--suspend caterpillar
@@ -1313,10 +1313,10 @@ SUB sfunctions(byval cmdid as integer)
  CASE 70'--room in active party
   scriptret = 4 - herocount(3)
  CASE 71'--lock hero
-  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
   IF hero_slot > -1 THEN gam.hero(hero_slot).locked = YES
  CASE 72'--unlock hero
-  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM hero_slot as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
   IF hero_slot > -1 THEN gam.hero(hero_slot).locked = NO
  CASE 74'--set death script
   gen(genGameoverScript) = large(retvals(0), 0)
@@ -1339,7 +1339,7 @@ SUB sfunctions(byval cmdid as integer)
    gam.need_fade_in = NO
   END IF
  CASE 81'--set hero speed
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    herow(retvals(0)).speed = bound(retvals(1), 0, 20)
   END IF
  CASE 82'--inventory
@@ -1349,7 +1349,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 85'--resume box advance
   setbit gen(), genSuspendBits, suspendboxadvance, 0
  CASE 87'--set hero position
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
   cropposition retvals(1), retvals(2), 1
    FOR i as integer = 0 TO 4
     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
@@ -1359,7 +1359,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 90'--find hero
   scriptret = findhero(retvals(0) + 1, 0, 40, 1)
  CASE 91'--check equipment
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    scriptret = eqstuf(retvals(0), bound(retvals(1) - 1, 0, 4)) - 1
   ELSE
    scriptret = 0
@@ -1375,7 +1375,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 96'--set hero Z
   catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
  CASE 102'--hero direction
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = catd(retvals(0) * 5)
   END IF
  CASE 103'--reset palette
@@ -1423,7 +1423,7 @@ SUB sfunctions(byval cmdid as integer)
    scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", serrBadOp
   END IF
  CASE 116'--hero is walking
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    IF herow(retvals(0)).xgo = 0 AND herow(retvals(0)).ygo = 0 THEN
     scriptret = 0
    ELSE
@@ -1452,13 +1452,13 @@ SUB sfunctions(byval cmdid as integer)
    NEXT j
   NEXT i
  CASE 129'--read spell
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 THEN
+  IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 THEN
    scriptret = spell(retvals(0), retvals(1), retvals(2))
   ELSE
    scriptret = 0
   END IF
  CASE 130'--write spell
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 AND retvals(3) >= 0 THEN
+  IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 3 AND retvals(2) >= 0 AND retvals(2) <= 23 AND retvals(3) >= 0 THEN
    spell(retvals(0), retvals(1), retvals(2)) = retvals(3)
   END IF
  CASE 131'--knows spell
@@ -1499,7 +1499,7 @@ SUB sfunctions(byval cmdid as integer)
    END IF
   END IF
  CASE 133'--hero by slot
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).id
   ELSE
    scriptret = -1
@@ -1605,7 +1605,7 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = -1
   END IF
  CASE 191'--hero frame
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = herow(retvals(0)).wtog \ 2
   END IF
  CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
@@ -2088,7 +2088,7 @@ SUB sfunctions(byval cmdid as integer)
    IF slot > 0 THEN scriptret = (scriptret * 100) / slot
   END IF
  CASE 321'--get hero speed (hero)
-  IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = herow(retvals(0)).speed
   END IF
  CASE 322'--load hero sprite
@@ -3160,7 +3160,7 @@ SUB sfunctions(byval cmdid as integer)
    debug "_checkpoint ignored"
   END IF
  CASE 519 '--get hero slice
-  IF bound_arg(retvals(0), 0, 3, "caterpillar slot") THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = find_plotslice_handle(herow(retvals(0)).sl)
   END IF
  CASE 520 '--get NPC slice
@@ -3837,7 +3837,7 @@ SUB sfunctions(byval cmdid as integer)
    END IF
   END WITH
  CASE 66'--add hero
-  IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxHero), "hero ID") THEN
    DIM slot as integer = first_free_slot_in_party()
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
@@ -3847,13 +3847,13 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 67'--delete hero
   IF herocount(40) > 1 THEN
-   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
+   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1, serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF herocount(3) = 0 THEN forceparty
    party_change_updates
   END IF
  CASE 68'--swap out hero
-  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1)
+  DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 40 TO 4 STEP -1
     IF gam.hero(o).id = -1 THEN
@@ -3864,7 +3864,7 @@ SUB sfunctions(byval cmdid as integer)
    NEXT o
   END IF
  CASE 69'--swap in hero
-  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1)
+  DIM i as integer = findhero(retvals(0) + 1, 40, 0, -1, serrWarn)
   IF i > -1 THEN
    FOR o as integer = 0 TO 3
     IF gam.hero(o).id = -1 THEN
@@ -3917,7 +3917,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
  CASE 110'--set hero picture
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    DIM heronum as integer = bound(retvals(0), 0, 40)
    DIM whichsprite as integer = bound(retvals(2), 0, 2)
    SELECT CASE whichsprite
@@ -3931,7 +3931,7 @@ SUB sfunctions(byval cmdid as integer)
    END SELECT
   END IF
  CASE 111'--set hero palette
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    DIM heronum as integer = bound(retvals(0), 0, 40)
    DIM whichsprite as integer = bound(retvals(2), 0, 2)
    SELECT CASE whichsprite
@@ -3989,7 +3989,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 158'--team menu
   hero_swap_menu 1
  CASE 183'--set hero level (who, what, allow forgetting spells)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
+  IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
    gam.hero(retvals(0)).lev = retvals(1)
    gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1)
@@ -3999,7 +3999,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 184'--give experience (who, how much)
   'who = -1 targets battle party
   IF retvals(0) <> -1 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   IF valid_hero_party(retvals(0)) THEN
     giveheroexperience retvals(0), retvals(1)
     updatestatslevelup retvals(0), 0
     evalherotags  'could revive a dead hero, I think
@@ -4014,7 +4014,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 186'--spells learnt
   'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
   DIM found as integer = 0
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    FOR i as integer = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
@@ -4027,21 +4027,21 @@ SUB sfunctions(byval cmdid as integer)
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
  CASE 269'--totalexperience
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    scriptret = hero_total_exp(retvals(0))
   END IF
  CASE 270'--experience to level
   scriptret = total_exp_to_level(retvals(0))
  CASE 271'--experiencetonextlevel
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).exp_next - gam.hero(retvals(0)).exp_cur
   END IF
  CASE 272'--setexperience  (who, what, allowforget)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
+  IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN
    setheroexperience retvals(0), retvals(1), retvals(2)
   END IF
  CASE 445'--update level up learning(who, allowforget)
-  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+  IF valid_hero_party(retvals(0)) THEN
    learn_spells_for_current_level retvals(0), (retvals(1)<>0)
   END IF
  CASE 449'--reset hero picture
@@ -4745,6 +4745,13 @@ FUNCTION valid_item(byval itemID as integer) as integer
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
+'TODO: Only use this where a command should be able to act on empty caterpillar hero slots
+FUNCTION valid_hero_caterpillar_rank(who as integer) as integer
+ RETURN bound_arg(who, 0, 3, "hero caterpillar party rank")
+END FUNCTION
+
+'TODO: Only use this where a command should be able to act on empty hero slots
+'(for compatibility, that's most of them!)
 FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
