@@ -2244,12 +2244,16 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   append_menu_item menu, choices(i)
  NEXT
 
+ DIM boxy as integer  'Y of box top, relative to screen centre
+ DIM boxheight as integer = 10 * (UBOUND(captlines) + 1)
+ boxy = large(-20 - boxheight \ 2 - 5 * UBOUND(choices), -vpages(vpage)->h \ 2 + 10)
+ menu.offset.Y = boxy + boxheight + 5
+ menu.anchor.Y = -1
+ menu.maxrows = (vpages(vpage)->h \ 2 - menu.offset.Y - 20) \ 10
+
  state.active = YES
- menu.maxrows = 10
  init_menu_state state, menu
  state.pt = defaultval
- menu.offset.Y = -20 + 5 * UBOUND(captlines)
- menu.anchor.Y = -1
 
  ensure_normal_palette
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
@@ -2281,9 +2285,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   usemenu state
 
   copypage holdscreen, vpage
-  DIM boxy as integer  'Y of box center
-  boxy = vpages(vpage)->h \ 2 - 30
-  centerbox vpages(vpage)->w \ 2, boxy, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, vpage
+  centerbox vpages(vpage)->w \ 2, vpages(vpage)->h \ 2 + boxy + boxheight \ 2, 16 + wide * 8, 6 + boxheight, 2, vpage
   FOR i as integer = 0 TO UBOUND(captlines)
    DIM linex as integer
    IF centerlines THEN
@@ -2291,7 +2293,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
    ELSE
     linex = (vpages(vpage)->w - wide * 8) \ 2
    END IF
-   edgeprint captlines(i), linex, boxy - 5 * (UBOUND(captlines) + 1) + i * 10, uilook(uiMenuItem), vpage
+   edgeprint captlines(i), linex, vpages(vpage)->h \ 2 + boxy + i * 10, uilook(uiMenuItem), vpage
   NEXT
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
@@ -2302,6 +2304,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  LOOP
  setkeys
  restore_previous_palette
+ copypage holdscreen, vpage
  freepage holdscreen
  ClearMenuData menu
 
