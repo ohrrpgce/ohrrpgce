@@ -15,6 +15,7 @@
 #include "const.bi"
 #include "misc.bi"  'for nulzstr
 #include "reload.bi"
+#include "common_menus.bi"
 
 USING RELOAD
 

@@ -59,7 +59,6 @@ DECLARE SUB edit_menu_bits (menu as MenuDef)
 DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
 DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState)
 DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
-DECLARE FUNCTION editbitset (array() as integer, byval wof as integer, byval last as integer, names() as string, helpkey as string="editbitset", byref remem_pt as integer = -2, byval immediate_quit as integer = NO) as integer
 DECLARE FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
 DECLARE SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string)
 DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as integer

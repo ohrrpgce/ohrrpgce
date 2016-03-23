@@ -41,7 +41,6 @@ DECLARE SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snu
 DECLARE SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
 DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
 DECLARE SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
-DECLARE SUB edit_global_bitsets(bitname() as string, helpfile as string)
 
 SUB vehicles
 
@@ -1429,19 +1428,10 @@ SUB battleoptionsmenu ()
   usemenu state, enabled()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 3 ANDALSO enabled(3) THEN edit_active_time_battle_bitsets
    IF state.pt = 5 THEN equipmergemenu
    IF state.pt = 8 THEN statcapsmenu
    IF state.pt = 9 THEN experience_chart
-   IF state.pt = 3 ANDALSO enabled(3) THEN
-    DIM bitname(35) as string
-    bitname(0) = "Pause on Spells & Items menus"
-    bitname(13) = "Pause on all battle menus & targeting"
-    bitname(21) = "Attack captions pause battle meters"
-    bitname(23) = "Pause for attack animations"
-    bitname(35) = "Pause when targeting attacks"
-    edit_global_bitsets bitname(), "general_game_active_battle_bitsets"
-   END IF
-
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker
     IF d <> "" THEN
@@ -1765,17 +1755,6 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
                          & gen(genMillisecPerFrame) & "ms/frame)"
 END SUB
 
-SUB edit_global_bitsets(bitname() as string, helpfile as string)
- DIM bittemp(2) as integer
- bittemp(0) = gen(genBits)
- bittemp(1) = gen(genBits2)
- bittemp(2) = gen(genBits2+1)
- editbitset bittemp(), 0, UBOUND(bitname), bitname(), helpfile
- gen(genBits) = bittemp(0)
- gen(genBits2) = bittemp(1)
- gen(genBits2+1) = bittemp(2)
-END SUB
-
 SUB gendata ()
  STATIC shown_framerate_warning as bool = NO
  CONST maxMenu = 20
@@ -1852,51 +1831,8 @@ SUB gendata ()
    IF state.pt = 3 THEN titlescreenbrowse
    IF state.pt = 4 THEN startingdatamenu
    IF state.pt = 5 THEN edit_savegame_options
-   IF state.pt = 6 THEN
-    ' General bitsets
-    DIM bitname(47) as string
-    bitname(1) = "Enable Caterpillar Party"
-    bitname(2) = "Don't Restore HP on Levelup"
-    bitname(3) = "Don't Restore MP on Levelup"
-    bitname(4) = "Inns Don't Revive Dead Heroes"
-    bitname(5) = "Hero Swapping Always Available"
-    bitname(6) = "Hide Ready-meter in Battle"
-    bitname(7) = "Hide Health-meter in Battle"
-    bitname(8) = "Disable Debugging Keys"
-    bitname(10) = "Permit double-triggering of scripts"
-    bitname(11) = "Skip title screen"
-    bitname(12) = "Skip load screen"
-    bitname(14) = "Disable Hero's Battle Cursor"
-    bitname(15) = "Default passability disabled by default"
-    bitname(17) = "Disable ESC key running from battle"
-    bitname(18) = "Don't save gameover/loadgame script IDs"
-    bitname(19) = "Dead heroes gain share of experience"
-    bitname(20) = "Locked heroes can't be re-ordered"
-    bitname(22) = "Don't randomize battle ready meters"
-    bitname(26) = "0 damage when immune to attack elements"
-    bitname(29) = "Attacks will ignore extra hits stat"
-    bitname(30) = "Don't divide experience between heroes"
-    bitname(31) = "Don't reset max stats after OOB attack"
-    bitname(38) = "Never show script timers during battles"
-    edit_global_bitsets bitname(), "general_game_bitsets"
-   END IF
-   IF state.pt = 7 THEN
-    ' Back-compat bitsets
-    DIM bitname(47) as string
-    bitname(9) = "Simulate Old Levelup bonus-accretion Bug"
-    bitname(16) = "Simulate Pushable NPC obstruction bug"
-    bitname(24) = "Enable better scancodes for scripts"
-    bitname(25) = "Simulate old fail vs element resist bit"
-    bitname(27) = "Recreate map slices when changing maps"
-    bitname(28) = "Harm tiles harm non-caterpillar heroes"
-    bitname(32) = "Don't limit maximum tags to 999"
-    bitname(33) = "Simulate Bug #430 script wait skips"
-    bitname(34) = "showtextbox happens immediately"
-    bitname(36) = "Old attack positioning at bottom-left of target"
-    bitname(37) = "Wrap map layers over edge of Crop maps"
-    bitname(39) = "Draw Backdrop slice above Script layer"
-    edit_global_bitsets bitname(), "general_game_backcompat_bitsets"
-   END IF
+   IF state.pt = 6 THEN edit_general_bitsets
+   IF state.pt = 7 THEN edit_backcompat_bitsets
    IF state.pt = 8 THEN battleoptionsmenu
    IF state.pt = 9 THEN generalscriptsmenu
    IF state.pt = 10 THEN script_error_mode_menu
