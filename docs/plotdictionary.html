@@ -312,7 +312,12 @@
 </li>
 		<li>
 <a href="#Mouse%20Input">Mouse Input</a><br>
+		<ul>
+		<li>
+<a href="#Helpful%20Related%20Commands">Helpful Related Commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 </ul>
 </li>
@@ -344,6 +349,10 @@
 		<ul></ul>
 </li>
 </ul>
+</li>
+		<li>
+<a href="#Menu%20Data">Menu Data</a><br>
+		<ul></ul>
 </li>
 </ul>
 </li>
@@ -2069,6 +2078,9 @@
 		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
 		
 	
+		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
+		
+	
 		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
 		
 	
@@ -2521,6 +2533,9 @@
 	
 		<a href="#about-showminimap">show mini map</a><br>
 		
+	
+		
+		<a href="#about-unhidemousecursor">show mouse cursor</a><br>
 	
 		<a href="#about-shownovalue">show no value</a><br>
 		
@@ -7857,7 +7872,12 @@ end
 </li>
 		<li>
 <a href="#Mouse%20Input">Mouse Input</a><br>
+		<ul>
+		<li>
+<a href="#Helpful%20Related%20Commands">Helpful Related Commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 </ul>
 <p></p>
@@ -8210,7 +8230,12 @@ end
 		<h3>
 <span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
 			</span>Mouse Input</h3>
+		<ul>
+		<li>
+<a href="#Helpful%20Related%20Commands">Helpful Related Commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 <p></p>
 		
 		
@@ -8349,6 +8374,44 @@ end</pre>
 			
 		</p>
 </div>
+		<div class="command">
+<a name="about-showmousecursor"></a>
+		
+				<h4>show mouse cursor</h4>
+				See <a href="#about-unhidemousecursor">unhidemousecursor</a>
+			</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Helpful%20Related%20Commands"></a>
+		<h3>
+<span class="backlink"><a href="#Getting%20Player%20Input">Getting Player Input</a> →
+			<a href="#Mouse%20Input">Mouse Input</a> →
+			</span>Helpful Related Commands</h3>
+		<ul></ul>
+<p></p>
+		
+		
+		<div class="command">
+		<h4>camera pixel X</h4>
+		<p><a href="#about-camerapixelx">Defined in the The Camera section.</a></p>
+		</div>
+		<div class="command">
+		<h4>camera pixel Y</h4>
+		<p><a href="#about-camerapixely">Defined in the The Camera section.</a></p>
+		</div>
+		<div class="command">
+		<h4>slice at pixel (parent, x, y, number, check descendants, visible only)</h4>
+		<p><a href="#about-sliceatpixel">Defined in the Slice Collision Testing section.</a></p>
+		</div>
+		<div class="command">
+		<h4>slice collide point (handle, x, y)</h4>
+		<p><a href="#about-slicecollidepoint">Defined in the Slice Collision Testing section.</a></p>
+		</div>
+		<div class="command">
+		<h4>NPC at pixel (x, y, number)</h4>
+		<p><a href="#about-npcatpixel">Defined in the Moving NPCs section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -8870,6 +8933,10 @@ get hero name (1, find hero (leader))
 </li>
 </ul>
 </li>
+		<li>
+<a href="#Menu%20Data">Menu Data</a><br>
+		<ul></ul>
+</li>
 </ul>
 <p></p>
 		
@@ -8985,54 +9052,6 @@ end</pre>
 		</p>
 </div>
 		<div class="command">
-<a name="about-getmenubit"></a>
-		<h4>get menu bit(menu handle, bit)</h4>
-<p>
-			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
-				and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
-				For the <span class="param">bit</span> bit number you should use one of the constants:
-				<ul>
-					<li>menubit:translucent box</li>
-					<li>menubit:never show scrollbar</li>
-					<li>menubit:allow gameplay</li>
-					<li>menubit:suspend player even if gameplay allowed</li>
-					<li>menubit:no box</li>
-					<li>menubit:no close</li>
-					<li>menubit:no controls</li>
-					<li>menubit:prevent main menu</li>
-				</ul>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenubit"></a>
-		<h4>set menu bit(menu handle, bit, value)</h4>
-<p>
-			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
-				and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>.
-				For the <span class="param">bit</span> bit number you should use one of the constants:
-				<ul>
-					<li>menubit:translucent box</li>
-					<li>menubit:never show scrollbar</li>
-					<li>menubit:allow gameplay</li>
-					<li>menubit:suspend player even if gameplay allowed</li>
-					<li>menubit:no box</li>
-					<li>menubit:no close</li>
-					<li>menubit:no controls</li>
-					<li>menubit:prevent main menu</li>
-				</ul>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 <a name="about-parentmenu"></a>
 		<h4>parent menu(menu item handle)</h4>
 <p>
@@ -9050,327 +9069,6 @@ end</pre>
 			
 			
 			
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuboxstyle"></a>
-		<h4>get menu boxstyle(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the boxstyle of the menu. This will be a number from 0 to 15.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuboxstyle"></a>
-		<h4>set menu boxstyle(menu handle, new box style)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenutextcolor"></a>
-		<h4>get menu textcolor(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the text color of the menu. This will be a number from 0 to 255.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenutextcolor"></a>
-		<h4>set menu textcolor(menu handle, new textcolor)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenumaxrows"></a>
-		<h4>get menu max rows(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenumaxrows"></a>
-		<h4>set menu max rows(menu handle, new max rows)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuoffsetx"></a>
-		<h4>get menu offset x(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x offset position of the menu's anchor point in pixels relative to the center of the screen.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
-<li>
-<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
-<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuoffsety"></a>
-		<h4>get menu offset y(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y offset position of the menu's anchor point in pixels relative to the center of the screen.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
-<li>
-<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
-<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuoffsetx"></a>
-		<h4>set menu offset x(menu handle, new x)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the x offset position of the menu's anchor point in pixels relative to the center of the screen.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
-<li>
-<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
-<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuoffsety"></a>
-		<h4>set menu offset y(menu handle, new y)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the y offset position of the menu's anchor point in pixels relative to the center of the screen.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
-<li>
-<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
-<li><a href="#about-setmenuoffsetx" class="ref">set menu offset x</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuanchorx"></a>
-		<h4>get menu anchor x(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
-<li>
-<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
-<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuanchory"></a>
-		<h4>get menu anchor y(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
-<li>
-<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
-<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuanchorx"></a>
-		<h4>set menu anchor x(menu handle, new anchor)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
-<li>
-<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
-<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuanchory"></a>
-		<h4>set menu anchor y(menu handle, new anchor)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
-<li>
-<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
-<li><a href="#about-setmenuanchorx" class="ref">set menu anchor x</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenutextalign"></a>
-		<h4>get menu text align(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenutextalign"></a>
-		<h4>set menu text align(menu handle, new align)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuminchars"></a>
-		<h4>get menu min chars(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setmenuminchars" class="ref">set menu min chars</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuminchars"></a>
-		<h4>set menu min chars(menu handle, new min)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getmenuminchars" class="ref">get menu min chars</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenumaxchars"></a>
-		<h4>get menu max chars(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setmenumaxchars" class="ref">set menu max chars</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenumaxchars"></a>
-		<h4>set menu max chars(menu handle, new max)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the maximum width of the menu in chars, or use 0 for no maximum.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getmenumaxchars" class="ref">get menu max chars</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuborder"></a>
-		<h4>get menu border(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-setmenuborder" class="ref">set menu border</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuborder"></a>
-		<h4>set menu border(menu handle, new border)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getmenuonclosescript"></a>
-		<h4>get menu on close script(menu handle)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
-			
-			<pre>variable(m, s)
-m := open menu(5)
-s := get menu on close script(m)
-run script by id(s)
-			</pre>
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
-<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-setmenuonclosescript"></a>
-		<h4>set menu on close script(menu handle, script id)</h4>
-<p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
-			
-			<pre>variable(m, s)
-m := open menu(5)
-set menu on close script(m, @my menu exit handler)
-			</pre>
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
-<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
-</ul>
-</div>
 		</p>
 </div>
 		<hr>
@@ -9730,6 +9428,386 @@ end</pre>
 			
 			
 			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Menu%20Data"></a>
+		<h3>
+<span class="backlink"><a href="#Menu%20Functions">Menu Functions</a> →
+			</span>Menu Data</h3>
+		<ul></ul>
+<p></p>
+		
+		
+		<div class="command">
+<a name="about-getmenubit"></a>
+		<h4>get menu bit(menu handle, bit)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
+				For the <span class="param">bit</span> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenubit"></a>
+		<h4>set menu bit(menu handle, bit, value)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>.
+				For the <span class="param">bit</span> bit number you should use one of the constants:
+				<ul>
+					<li>menubit:translucent box</li>
+					<li>menubit:never show scrollbar</li>
+					<li>menubit:allow gameplay</li>
+					<li>menubit:suspend player even if gameplay allowed</li>
+					<li>menubit:no box</li>
+					<li>menubit:no close</li>
+					<li>menubit:no controls</li>
+					<li>menubit:prevent main menu</li>
+				</ul>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuboxstyle"></a>
+		<h4>get menu boxstyle(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the boxstyle of the menu. This will be a number from 0 to 15.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuboxstyle"></a>
+		<h4>set menu boxstyle(menu handle, new box style)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenutextcolor"></a>
+		<h4>get menu textcolor(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the text color of the menu. This will be a number from 0 to 255.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenutextcolor"></a>
+		<h4>set menu textcolor(menu handle, new textcolor)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenumaxrows"></a>
+		<h4>get menu max rows(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenumaxrows"></a>
+		<h4>set menu max rows(menu handle, new max rows)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuoffsetx"></a>
+		<h4>get menu offset x(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x offset position of the menu's anchor point in pixels relative to the center of the screen.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li>
+<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuoffsety"></a>
+		<h4>get menu offset y(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y offset position of the menu's anchor point in pixels relative to the center of the screen.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-setmenuoffsetx" class="ref">set menu offset x</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuoffsetx"></a>
+		<h4>set menu offset x(menu handle, new x)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the x offset position of the menu's anchor point in pixels relative to the center of the screen.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li><a href="#about-setmenuoffsety" class="ref">set menu offset y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuoffsety"></a>
+		<h4>set menu offset y(menu handle, new y)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the y offset position of the menu's anchor point in pixels relative to the center of the screen.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuoffsetx" class="ref">get menu offset x</a>, </li>
+<li>
+<a href="#about-getmenuoffsety" class="ref">get menu offset y</a>, </li>
+<li><a href="#about-setmenuoffsetx" class="ref">set menu offset x</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuanchorx"></a>
+		<h4>get menu anchor x(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li>
+<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuanchory"></a>
+		<h4>get menu anchor y(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-setmenuanchorx" class="ref">set menu anchor x</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuanchorx"></a>
+		<h4>set menu anchor x(menu handle, new anchor)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li><a href="#about-setmenuanchory" class="ref">set menu anchor y</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuanchory"></a>
+		<h4>set menu anchor y(menu handle, new anchor)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenuanchorx" class="ref">get menu anchor x</a>, </li>
+<li>
+<a href="#about-getmenuanchory" class="ref">get menu anchor y</a>, </li>
+<li><a href="#about-setmenuanchorx" class="ref">set menu anchor x</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenutextalign"></a>
+		<h4>get menu text align(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenutextalign"></a>
+		<h4>set menu text align(menu handle, new align)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuminchars"></a>
+		<h4>get menu min chars(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenuminchars" class="ref">set menu min chars</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuminchars"></a>
+		<h4>set menu min chars(menu handle, new min)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenuminchars" class="ref">get menu min chars</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenumaxchars"></a>
+		<h4>get menu max chars(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenumaxchars" class="ref">set menu max chars</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenumaxchars"></a>
+		<h4>set menu max chars(menu handle, new max)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the maximum width of the menu in chars, or use 0 for no maximum.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenumaxchars" class="ref">get menu max chars</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuborder"></a>
+		<h4>get menu border(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenuborder" class="ref">set menu border</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuborder"></a>
+		<h4>set menu border(menu handle, new border)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuonclosescript"></a>
+		<h4>get menu on close script(menu handle)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
+			
+			<pre>variable(m, s)
+m := open menu(5)
+s := get menu on close script(m)
+run script by id(s)
+			</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
+<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuonclosescript"></a>
+		<h4>set menu on close script(menu handle, script id)</h4>
+<p>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
+			
+			<pre>variable(m, s)
+m := open menu(5)
+set menu on close script(m, @my menu exit handler)
+			</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
+<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -12084,6 +12162,16 @@ end
 			
 		</p>
 </div>
+		<div class="command">
+<a name="about-sliceispanel"></a>
+		<h4>slice is panel (handle)</h4>
+<p>
+			Returns true if the given slice <span class="param">handle</span> is a panel slice, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			
+			
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -12116,6 +12204,10 @@ set horiz align(sl, edge:right)
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>slice is container (handle)</h4>
+		<p><a href="#about-sliceiscontainer">Defined in the Checking Slice Type section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -12128,6 +12220,10 @@ set horiz align(sl, edge:right)
 <p>Unlike the other types of slices, sprite slices come in different subtypes for each of the different sprite sizes. A sprite slice of one subtype can be turned into another subtype with the <span class="param">replace*sprite</span> commands.</p>
 		
 		
+		<div class="command">
+		<h4>slice is sprite (handle)</h4>
+		<p><a href="#about-sliceissprite">Defined in the Checking Slice Type section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-loadherosprite"></a>
 		<h4>load hero sprite (num, palette)</h4>
@@ -12854,6 +12950,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
+		<h4>slice is rect (handle)</h4>
+		<p><a href="#about-sliceisrect">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-getrectstyle"></a>
 		<h4>get rect style (handle)</h4>
 <p>
@@ -13044,6 +13144,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
+		<h4>slice is ellipse (handle)</h4>
+		<p><a href="#about-sliceisellipse">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-getellipsebordercol"></a>
 		<h4>get ellipse border col (handle)</h4>
 <p>
@@ -13142,6 +13246,10 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>slice is text (handle)</h4>
+		<p><a href="#about-sliceistext">Defined in the Checking Slice Type section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-setslicetext"></a>
 		<h4>set slice text(handle, string id)</h4>
@@ -13291,6 +13399,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
+		<h4>slice is grid (handle)</h4>
+		<p><a href="#about-sliceisgrid">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-setgridcolumns"></a>
 		<h4>set grid columns (handle, columns)</h4>
 <p>
@@ -13403,6 +13515,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
+		<h4>slice is select (handle)</h4>
+		<p><a href="#about-sliceisselect">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-setselectsliceindex"></a>
 		<h4>set select slice index (handle, index)</h4>
 <p>
@@ -13440,12 +13556,20 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-createscroll"></a>
 		<h4>create scroll (width, height)</h4>
 <p>
-			Creates a new scroll slice, and returns an handle to it. Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges if their children do not fit inside them. The two arguments are the width and height of the select slice.
+			
+				Creates a new scroll slice, and returns an handle to it.
+				Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges
+				if their children do not fit inside them. The two arguments are the width and height of the scroll slice.
+			
 			
 			
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>slice is scroll (handle)</h4>
+		<p><a href="#about-sliceisscroll">Defined in the Checking Slice Type section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-setscrollbarstyle"></a>
 		<h4>set scroll bar style (handle, style)</h4>
@@ -13513,31 +13637,32 @@ The third argument is the total number of ticks that the animation should run. Y
 			</span>Panel Slices</h3>
 		<ul></ul>
 <p>
-				Panel slices split up their area between their first two children in various ways,
-				and don't display any other children.
-			</p>
+			Panel slices split up their area between their first two children in various ways,
+			and don't display any other children.
+		</p>
 		
 		
 		<div class="command">
 <a name="about-createpanel"></a>
 		<h4>create panel (width, height)</h4>
 <p>
-			Creates a new panel slice, and returns an handle to it. Panel slices are special containers that automatically move and resize their first two children. The first two children will fill the panel slice's area. For example, a panel slice might be used to make to child slices share a 60%/40% split of an area regardless of the size or shape of that area. The two arguments are the width and height of the select slice.
+			
+				Creates a new panel slice, and returns an handle to it.
+				Panel slices are special containers that automatically move and resize their first two children.
+				The first two children will fill the panel slice's area (while others aren't drawn).
+				For example, a panel slice might be used to make to child slices share a 60%/40% split of an area
+				regardless of the size or shape of that area.
+				The two arguments are the width and height of the panel slice.
+			
 			
 			
 			
 		</p>
 </div>
 		<div class="command">
-<a name="about-sliceispanel"></a>
 		<h4>slice is panel (handle)</h4>
-<p>
-			Returns true if the given slice <span class="param">handle</span> is a panel slice, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
-			
-			
-			
-		</p>
-</div>
+		<p><a href="#about-sliceispanel">Defined in the Checking Slice Type section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-getpanelisvertical"></a>
 		<h4>get panel is vertical (handle)</h4>
@@ -13592,7 +13717,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setpanelpercent"></a>
 		<h4>set panel percent (handle, percent)</h4>
 <p>
-			Given a panel slice <span class="param">handle</span>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of theprimary child.
+			Given a panel slice <span class="param">handle</span>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.
 			
 			
 			
@@ -13709,7 +13834,8 @@ The third argument is the total number of ticks that the animation should run. Y
 				If true, then only visible slices are counted or returned.
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <span class="param">parent</span> itself
 				is visible doesn't have any effect.)
-				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
+				For example, pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices
+				which are not selected (and therefore invisible).
 				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice.
 				<div style="background-color:#EFF;" class="note">
@@ -14517,7 +14643,12 @@ end</pre>
 				You can pass any combination of these flags (by <a href="#about-or" class="ref">or</a>ing them together; see the example):
 				<ul>
 					<li>
-<a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li>
+						<a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during battles (including in menus which
+						pause the battle, except the Pause screen itself).
+						You can turn on the "Never show script timers during battles" Peference Bitset to
+						cause battle-timers to count down but not display.
+						Note: Only the first battle-timer will show in battle! You can't show more than one.
+					</li>
 					<li>
 <a href="#about-timerflag:menu" class="ref">timer flag: menu</a> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li>
 					<li>
@@ -14942,7 +15073,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-saveinslot"></a>
 		<h4>save in slot (slot)</h4>
 <p>
-			Saves in the specified save slot (1 to 32, where only 1 to 4 are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <a href="#about-saveslotused" class="ref">save slot used</a>. To display the save game menu instead, use <a href="#about-savemenu" class="ref">save menu</a>.
+			Saves in the specified save slot (1 to 32, regardless of how many are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <a href="#about-saveslotused" class="ref">save slot used</a>. To display the save game menu instead, use <a href="#about-savemenu" class="ref">save menu</a>.
 			
 			
 			
@@ -15004,6 +15135,10 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>send email (save slot, subject string id, message string id)</h4>
+		<p><a href="#about-sendemail">Defined in the Debugging section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-importglobals"></a>
 		<h4>import globals (slot, first, last)</h4>
@@ -15268,6 +15403,54 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-sendemail"></a>
+		<h4>send email (save slot, subject string id, message string id)</h4>
+<p>
+			
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					As of Callipygous, this command is only implemented on Android!
+					Calling it on other platforms does nothing.
+				<br clear="all">
+</div>
+				This asks the player if they want to send an email to you, optionally
+				with a save file attached.
+				The purpose is to make it easy for players to send bug reports or feedback,
+				especially on Android, where it might otherwise be a nuisance to send saved games.
+
+				When called on Android, a standard system menu is brought up asking the player which
+				email client they want to use.
+				If they don't cancel, that client is opened with an email already filled out,
+				which they can edit as usual:
+				<br>
+				The email is sent to the address set in the Distribute Game-&gt;Distribution Info menu.
+				<br>
+				<span class="param">subject string id</span> is optional; it is the id of a string containing the email
+				subject line.
+				If you leave it out or set it to -1 then the default subject line is "[Name of the game] feedback".
+				<br>
+				<span class="param">message string id</span> is optional; it is the id of a string containing the email body text.
+				If you leave it out or set it to -1 then it defaults to "(Please include a helpful description of the problem here)".
+				<br>
+				The <span class="param">save slot</span> argument is optional, and is either an existing save slot number,
+				or <span class="param">false</span> (the default) to not attach a save.
+				You can use <a href="#about-saveinslot" class="ref">save in slot</a> with a large slot number to create a temporary save of the current game.
+				If you attach an save file two other files are also attached: g_debug.txt and g_debug_archive.txt.
+				g_debug.txt is useful for tracking down OHRRPGCE engine bugs,
+				but you can also write to it using <a href="#about-trace" class="ref">trace</a> and <a href="#about-tracevalue" class="ref">trace value</a>.
+				You can also check it for error messages, such as script errors (errors will start with
+				a <span class="param">!</span> at the beginning of the line).
+				g_debug_archive.txt contains backups of g_debug.txt from previous times the game was played.
+				<br>
+				To load the .rsav file, rename it if necessary (e.g. 0.rsav for the first save slot),
+				and put it in the 'gamename.saves' folder.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -15965,7 +16148,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 765 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 767 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

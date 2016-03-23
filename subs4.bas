@@ -1877,7 +1877,7 @@ SUB gendata ()
     bitname(29) = "Attacks will ignore extra hits stat"
     bitname(30) = "Don't divide experience between heroes"
     bitname(31) = "Don't reset max stats after OOB attack"
-    bitname(38) = "Never show script timer during battles"
+    bitname(38) = "Never show script timers during battles"
     edit_global_bitsets bitname(), "general_game_bitsets"
    END IF
    IF state.pt = 7 THEN

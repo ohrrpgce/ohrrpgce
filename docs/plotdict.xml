@@ -6938,7 +6938,13 @@ end</example>
 				A timer also has a few other options in the form of <p>flags</p>.
 				You can pass any combination of these flags (by <ref>or</ref>ing them together; see the example):
 				<ul>
-					<li><ref>timerflag:battle</ref> to have it count down during battles (including in menus which pause the battle, except the Pause screen itself)</li>
+					<li>
+						<ref>timerflag:battle</ref> to have it count down during battles (including in menus which
+						pause the battle, except the Pause screen itself).
+						You can turn on the "Never show script timers during battles" Peference Bitset to
+						cause battle-timers to count down but not display.
+						Note: Only the first battle-timer will show in battle! You can't show more than one.
+					</li>
 					<li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu)</li>
 					<li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li>
 				</ul>

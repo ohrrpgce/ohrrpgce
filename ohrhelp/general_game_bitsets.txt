@@ -23,3 +23,5 @@ The "debugging keys" are special keys that help with testing a game, but could b
 "Don't divide experience between heroes" causes all heroes to get the full amount of experience after battles, rather than dividing the experience depending on the number of heroes in your active party.
 
 "Don't reset max stats after OOB attack" prevents maximum values for stats other than HP and MP from being reset to the current values after an attack occurs out of battle (either from the Spells menu, attached to an item, or using the "map cure" script command). Turning this on prevents items that permanently alter a stat (other than HP and MP) from working properly! You only need to enable this bitset if you are using scripts which cause your current and maximum stat values to differ and you don't want an OOB attack to clobber the values.
+
+"Never show script timers during battles" prevents timers (see "set timer" command) from displaying during battle; they will countdown normally.
