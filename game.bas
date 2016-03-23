@@ -47,7 +47,6 @@ DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
 DECLARE SUB update_menu_states ()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
-DECLARE SUB debug_menu()
 DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)

@@ -194,7 +194,7 @@ March ?? 2016 [Callipygous]
     * "pixel focus camera" [James]
     * Added 'visible only' argument to "slice at pixel" and
       "find colliding slice" [Ralph]
-    * "send email" (Android only) [Ralph]
+    * "send email" (Android only), "debug menu" [Ralph]
 
   * Performance Fixes
     * Fixed delay when opening a menu that happened when a large number

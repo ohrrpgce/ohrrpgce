@@ -638,6 +638,7 @@ define function, begin
 615,setpanelpixels,2,0,0      #x change slice panel primary child pixel size
 616,getpanelpadding,1,0       #x return slice panel padding
 617,setpanelpadding,2,0,0     #x change slice panel padding
+618,debugmenu,0               # Opens the debug menu
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

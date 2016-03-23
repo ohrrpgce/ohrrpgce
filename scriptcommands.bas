@@ -3395,7 +3395,8 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = 1
    #ENDIF
   #ENDIF
-
+ CASE 618'--debug menu
+  debug_menu
 
 'old scriptnpc
 

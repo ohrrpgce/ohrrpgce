@@ -1620,6 +1620,7 @@ wait for text box # wait until the player continues</example>
 			<shortname>team menu</shortname>
 			<description>Takes you directly to the team menu, where you can change the order of the heroes in your active party, and swap heroes in and out of your reserve.</description>
 		</command>
+		<reference ref="debugmenu" />
 	</section>		<!-- Opening Built-in Menus-->
 
 	
@@ -7358,6 +7359,19 @@ trace value (hero X (me), hero Y (me))</example>
 			<seealso>
 				<ref>assert</ref>
 				<ref>tracevalue</ref>
+				<ref>debugmenu</ref>
+			</seealso>
+		</command>
+		<command id="debugmenu">
+			<canon>debug menu</canon>
+			<shortname>debug menu</shortname>
+			<description>
+				Opens the debug menu, which you can open by pressing F8 if debug keys are enabled;
+				this is useful if debug keys are disabled, or on handhelds/consoles without an F8 key.
+			</description>
+			<seealso>
+				<ref>scripterror</ref>
+				<ref>showminimap</ref>
 			</seealso>
 		</command>
 		<command id="assert">
