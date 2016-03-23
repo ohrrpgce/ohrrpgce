@@ -49,6 +49,8 @@ March ?? 2016 [Callipygous]
     * Attack damage bitset "Healing poison causes regen, and reverse";
       useful when attacker or target absorbs damage [Ralph]
     * Enemies can now be placed anywhere onscreen in formations [Ralph]
+    * Press F8 in-game to access the Debug Menu. It's the only debug
+      key you'll ever need to remember! [Ralph, James]
     * Added F7 debug key to kill all targettable enemies. Also, the tag
       debugger is available in-battle with F4; instant-run moved to
       Ctrl+F4. [Ralph, James]
@@ -91,7 +93,7 @@ March ?? 2016 [Callipygous]
       for most people be larger than the old 2x default. [Ralph]
     * The Distribute Game options will make use of Mac or Windows icons
       if it finds the icon files next to your .rpg file. See
-      http://rpg.hamsterrepublic.com/ohrrpgce/Icons for detaits [James]
+      http://rpg.hamsterrepublic.com/ohrrpgce/Icons for details [James]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

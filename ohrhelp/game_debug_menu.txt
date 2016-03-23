@@ -1,0 +1,43 @@
+The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
+
+F1 Show Minimap
+
+CTRL+F1 Pick a spot on the minimap of any map to teleport to.
+
+F2 Quicksave anywhere
+
+F3 Quickload anywhere (Warning: Do not quicksave or load during a script, especially if the suspend player command has been issued. The script will not continue when you quickload later)
+
+F4 Calls up the Tag-debug screen, which shows you which tags are OFF and which are ON, and lets you change them (+ and - scroll, CTRL+ sets and CTRL- unsets)
+
+CTRL+F4 Edit the slice tree (in the Slice Collection Editor). You can even save the slice tree to file.
+
+F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
+
+CTRL+F5 toggles the 'Simulate Old Levelup Bug' normally edited in the Preference Bitsets menu in Custom. This causes equipment's stat-bonuses to be added to your stats at each levelup. Included for compatibility with games made before 2001!
+
+CTRL+F7 Realign hero 0 with the tile grid
+
+F8 Bring up the debug menu
+
+CTRL+F8 Write a textual dump of the slice tree to g_debug.txt
+
+F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
+
+CTRL+F10 Enable script trigger logging. Every time a script is triggered by an event like a keypress it is logged to a text file called script_log.txt. Also displays when triggered scripts are paused by a wait or finish, however this won't work for scripts started before the bdebug key was pressed (restart the game if needed).
+
+F11 Toggle walking through walls (and other obstructions)
+
+CTRL+F11 Draw NPC type ID and reference numbers on top of NPCs. ID numbers on top, reference numbers below. The reference numbers are shown without the negative signs. Negative ID numbers means an NPC that is hidden due to tag conditions.
+
+CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per tick).
+
+Holding down SHIFT+TAB increases the framerate greatly.
+
+Test Battles: Display the battle formation set for the tile the hero is standing on, and start any of the battles in it.
+
+Manipulate gen() array: Raw-edit gen(), for engine developers. This gives you direct access to the data represented in the General Game Data menu, as well as an assortment of other data. Press Esc to exit.
+
+Manipulate gmap() array: Raw-edit gmap(), for engine developers. This gives you direct access to the data represented in the General Map Data submenu of the map editor.
+
+Test Slicified Spell Screen: An in-progress feature.

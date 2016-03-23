@@ -47,7 +47,8 @@ DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
 DECLARE SUB update_menu_states ()
 DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
-DECLARE SUB misc_debug_menu()
+DECLARE SUB debug_menu()
+DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
@@ -766,75 +767,7 @@ DO
  update_npcs()
 
  '--Debug keys
- IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN
-  'DEBUG debug "evaluate debugging keys"
-  IF keyval(scF2) > 1 AND txt.showing = NO THEN
-   savegame 32
-   gam.showtext = "Quick-saved. Press F3 to quick-load"
-   gam.showtext_ticks = 20
-  END IF
-  IF keyval(scF3) > 1 AND txt.showing = NO THEN
-   IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
-  END IF
-  IF keyval(scCtrl) > 0 AND keyval(scF7) > 1 THEN
-   catx(0) = (catx(0) \ 20) * 20
-   caty(0) = (caty(0) \ 20) * 20
-   herow(0).xgo = 0
-   herow(0).ygo = 0
-  END IF
-  IF keyval(scCtrl) > 0 THEN ' holding CTRL
-   IF keyval(scF1) > 1 AND txt.showing = NO THEN
-    IF teleporttool() THEN 'CTRL + F1
-     prepare_map
-    END IF
-   END IF
-   IF gam.debug_showtags = NO THEN
-    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
-     speedcontrol = large(speedcontrol - 1, 10.)
-     gam.showtext = speedcontrol & "ms/frame"
-     gam.showtext_ticks = 60
-    END IF
-    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
-     speedcontrol = small(speedcontrol + 1, 160.)
-     gam.showtext = speedcontrol & "ms/frame"
-     gam.showtext_ticks = 60
-    END IF
-   END IF
-   IF keyval(scF4) > 1 THEN
-    slice_editor SliceTable.Root
-   END IF
-   IF keyval(scF5) > 1 THEN 'Toggle level-up bug
-    IF readbit(gen(), genBits, 9) = 0 THEN
-     setbit gen(), genBits, 9, 1
-    ELSE
-     setbit gen(), genBits, 9, 0
-    END IF
-   END IF
-   IF keyval(scF8) > 1 THEN
-    debug "----------------Slice Tree Dump---------------"
-    SliceDebugDumpTree SliceTable.Root
-    notification "Dumped entire slice tree to g_debug.txt"
-   END IF
-   IF keyval(scF10) > 1 THEN
-    IF gam.script_log.enabled THEN
-     gam.script_log.enabled = NO
-     gam.showtext = "Script logging disabled."
-    ELSE
-     gam.showtext = "Script logging enabled."
-     start_script_trigger_log
-    END IF
-    gam.showtext_ticks = 20
-   END IF
-   IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
-  ELSE ' not holding CTRL
-   IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
-   IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0
-   IF keyval(scF5) > 1 THEN live_preview_menu
-   IF keyval(scF8) > 1 THEN misc_debug_menu
-   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
-   IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
-  END IF
- END IF
+ IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN check_debug_keys()
 
  IF gam.want.loadgame > 0 THEN
   'DEBUG debug "loading game slot " & (gam.want.loadgame - 1)
@@ -3226,8 +3159,8 @@ FUNCTION want_to_check_for_walls(byval who as integer) as bool
  'Check hero is at beginning of a movement to a new tile (aligned in at least one direction)...
  IF movdivis(herow(who).xgo) = NO AND movdivis(herow(who).ygo) = NO THEN RETURN NO
  '...and certain conditions aren't met
- IF gam.walk_through_walls = YES THEN RETURN NO
- IF vstate.dat.pass_walls = YES THEN RETURN NO
+ IF gam.walk_through_walls THEN RETURN NO
+ IF vstate.dat.pass_walls THEN RETURN NO
  IF vstate.active THEN
   DIM thisherotilex as integer = catx(who * 5) \ 20
   DIM thisherotiley as integer = caty(who * 5) \ 20
@@ -3400,34 +3333,197 @@ END FUNCTION
 '                                      Debug menus
 '==========================================================================================
 
-SUB misc_debug_menu()
- STATIC default as integer = 0
- REDIM menu(4) as string
- menu(0) = "Test Battles"
- menu(1) = "View/Edit Slice Tree"
- menu(2) = "Manipulate gen() array"
- menu(3) = "Manipulate gmap() array"
- menu(4) = "Test Slicified Spell Screen"
+
+TYPE DebugMenuDef
+ menu as string vector    ' List of menu item names. NULL if we're checking key combos instead
+ selected_item as string  ' If this is set, find the menu item with this name instead of building the menu.
+ DECLARE SUB start_building_menu()
+ DECLARE DESTRUCTOR()
+ DECLARE FUNCTION define(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+ DECLARE SUB debug_functions()
+END TYPE
+
+SUB DebugMenuDef.start_building_menu()
+ v_new menu
+END SUB
+
+DESTRUCTOR DebugMenuDef()
+ v_free menu
+END DESTRUCTOR
+
+' This does one of three different things; see debug_functions() for that explanation.
+' Returns whether to execute the definition of this debug function.
+' combining_scancode: either check for keyval(combining_scancode) > 1, or if 0, check keyval(scCtrl) = 0.
+' scancode: check for keyval(scancode) > 1, or no key combination if 0.
+' menuitem: name of the menu item to add to the debug menu, or "" for none.
+FUNCTION DebugMenuDef.define(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+ IF menu = NULL THEN
+  'Only check keys
+  IF combining_scancode THEN
+   IF keyval(combining_scancode) = 0 THEN RETURN NO
+  ELSE
+   IF keyval(scCtrl) > 0 THEN RETURN NO
+  END IF
+  IF scancode = 0 THEN RETURN NO
+  RETURN keyval(scancode) > 1
+ ELSEIF LEN(selected_item) THEN
+  RETURN menuitem = selected_item
+ ELSEIF LEN(menuitem) THEN
+  v_append menu, menuitem
+  RETURN NO
+ END IF
+END FUNCTION
+
+' This sub does three different things, depending on the state of the DebugMenuDef:
+' - Checks for debug key combos. define() returns true if that key is pressed.
+' - Builds a list of available debug menu items. define() returns false.
+' - Performs an action selected in the debug menu . define() returns true if selected.
+SUB DebugMenuDef.debug_functions()
+
+ ' If you don't want a debug function to appear in the debug menu, don't
+ ' give it a description (menuitem) string.
+ ' If you don't want a debug function to have a shortcut key, leave the key blank.
+ ' To give it multiple keys, write "define() OR define()" (not ORELSE!) with at
+ ' most one description string between them.
+ ' If you want to give extra requirements, write "may_frobnicate() ANDALSO define()"
+ ' (not AND, unless you want it to always appear in the menu!)
+
+ IF txt.showing = NO THEN
+  IF define(      , scF1, "Minimap (F1)") THEN minimap catx(0), caty(0)
+
+  IF define(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
+   IF teleporttool() THEN 'CTRL + F1
+    prepare_map
+   END IF
+  END IF
+
+  IF define(      , scF2, "Quick-save (F2)") THEN
+   savegame 32
+   gam.showtext = "Quick-saved. Press F3 to quick-load"
+   gam.showtext_ticks = 20
+  END IF
+
+  IF define(      , scF3, "Quick-load (F3)") THEN
+   IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
+  END IF
+ END IF
+
+ IF define(      , scF4, "Tag debugger (F4)") THEN
+  gam.debug_showtags XOR= YES
+  scrwatch = 0
+ END IF
+
+ IF define(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN
+  slice_editor SliceTable.Root
+ END IF
+
+ IF define(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
+
+ IF define(scCtrl, scF5, "Toggle level-up bug (Ctrl-F5)") THEN
+  IF readbit(gen(), genBits, 9) = 0 THEN
+   setbit gen(), genBits, 9, 1
+  ELSE
+   setbit gen(), genBits, 9, 0
+  END IF
+ END IF
+
+ IF define(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
+  catx(0) = (catx(0) \ 20) * 20
+  caty(0) = (caty(0) \ 20) * 20
+  herow(0).xgo = 0
+  herow(0).ygo = 0
+ END IF
+
+ IF define(      , scF8) THEN debug_menu
+ define(      ,     , "Debug menu (F8)")  'Do nothing
+
+ IF define(scCtrl, scF8, "List slices to g_debug.txt (Ctrl-F8)") THEN
+  debug "----------------Slice Tree Dump---------------"
+  SliceDebugDumpTree SliceTable.Root
+  notification "Dumped entire slice tree to g_debug.txt"
+ END IF
+
+ IF define(      , scF10) THEN
+  scrwatch = loopvar(scrwatch, 0, 2, 1)
+  gam.debug_showtags = NO
+ END IF
+
+ IF define(      ,      , "Script debugger (F10)") THEN
+  scrwatch = 2  'Go straight in instead of showing the memory usage bars
+  gam.debug_showtags = NO
+ END IF
+
+ IF define(scCtrl, scF10, "Toggle script logging (Ctrl-F10)") THEN
+  IF gam.script_log.enabled THEN
+   gam.script_log.enabled = NO
+   gam.showtext = "Script logging disabled."
+  ELSE
+   gam.showtext = "Script logging enabled."
+   start_script_trigger_log
+  END IF
+  gam.showtext_ticks = 20
+ END IF
+
+ IF define(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES
+
+ DIM showhide as string = iif_string(gam.debug_npc_info, "Hide", "Show")
+ IF define(scCtrl, scF11, showhide & " NPC info (Ctrl-F11)") THEN gam.debug_npc_info XOR= YES
+
+ 'Screenshotting with F12 is handled in allmodex
+ IF define( , , "Screenshot (F12)") THEN screenshot
+
+ IF gam.debug_showtags = NO THEN
+  IF define(scCtrl, scPlus) OR _
+     define(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
+   speedcontrol = large(speedcontrol - 1, 10.)
+   gam.showtext = speedcontrol & "ms/frame"
+   gam.showtext_ticks = 60
+  END IF
+  IF define(scCtrl, scMinus) OR _
+     define(scCtrl, scNumpadMinus, "Decrease tick rate (Ctrl -)") THEN
+   speedcontrol = small(speedcontrol + 1, 160.)
+   gam.showtext = speedcontrol & "ms/frame"
+   gam.showtext_ticks = 60
+  END IF
+ END IF
+
+ IF define( , , "Test Battles") THEN battle_formation_testing_menu
+ IF define( , , "Manipulate gen() array") THEN patcharray gen(), "gen"
+ IF define( , , "Manipulate gmap() array") THEN patcharray gmap(), "gmap"
+ IF define( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  #IFDEF __FB_ANDROID__
-  REDIM PRESERVE menu(5)
-  menu(5) = "Email saved game"
- #ENDIF
- DIM result as integer
- result = multichoice("Misc. Debug", menu(), default, , "game_misc_debug")
- IF result = -1 THEN EXIT SUB
- default = result
- ensure_normal_palette
- SELECT CASE result
-  CASE 0: battle_formation_testing_menu
-  CASE 1: slice_editor SliceTable.Root
-  CASE 2: patcharray gen(), "gen"
-  CASE 3: patcharray gmap(), "gmap"
-  CASE 4: spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
-  CASE 5:
+  IF define( , , "Email saved game") THEN
    savegame 33
    email_save_to_developer 33
- END SELECT
- restore_previous_palette
+  END IF
+ #ENDIF
+END SUB
+
+' Check for debug key combos.
+SUB check_debug_keys()
+ DIM dbg as DebugMenuDef
+ dbg.debug_functions()
+END SUB
+
+' Show a menu of debug functions.
+SUB debug_menu()
+ ' Build
+ DIM dbg as DebugMenuDef
+ dbg.start_building_menu()
+ dbg.debug_functions()
+ DIM menu() as string
+ vector_to_array menu(), dbg.menu
+
+ ' Show
+ DIM result as integer
+ STATIC default as integer = 0
+ result = multichoice("Debug Menu", menu(), default, , "game_debug_menu")
+ IF result = -1 THEN EXIT SUB
+
+ ' Enact
+ default = result
+ dbg.selected_item = menu(result)
+ dbg.debug_functions()
 END SUB
 
 SUB battle_formation_testing_menu()
@@ -3503,6 +3599,7 @@ SUB battle_formation_testing_menu()
 
   copypage holdscreen, vpage
   draw_menu menu, state, vpage
+  edgeprint "F1 Help", 0, vpages(vpage)->h - 10, uilook(uiMenuItem), vpage
   setvispage vpage
   dowait
  LOOP

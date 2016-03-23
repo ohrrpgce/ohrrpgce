@@ -995,12 +995,13 @@ DIM pt as integer = 0
 DIM tog as integer
 DIM csr as integer
 
+ensure_normal_palette
 setkeys
 DO
  setwait speedcontrol
  setkeys
  tog = tog XOR 1
- IF keyval(scEsc) > 1 THEN EXIT SUB
+ IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scUp) > 1 THEN csr = large(0, csr - 1)
  IF keyval(scDown) > 1 THEN csr = small(2, csr + 1)
  IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
@@ -1037,6 +1038,7 @@ DO
  setvispage vpage
  dowait
 LOOP
+restore_previous_palette
 
 END SUB
 
