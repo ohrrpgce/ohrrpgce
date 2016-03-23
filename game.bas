@@ -3418,13 +3418,8 @@ SUB DebugMenuDef.debug_functions()
 
  IF define(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
- IF define(scCtrl, scF5, "Toggle level-up bug (Ctrl-F5)") THEN
-  IF readbit(gen(), genBits, 9) = 0 THEN
-   setbit gen(), genBits, 9, 1
-  ELSE
-   setbit gen(), genBits, 9, 0
-  END IF
- END IF
+ DIM showhide as string = iif_string(gam.debug_npc_info, "Hide", "Show")
+ IF define(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
 
  IF define(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
   catx(0) = (catx(0) \ 20) * 20
@@ -3434,19 +3429,12 @@ SUB DebugMenuDef.debug_functions()
  END IF
 
  IF define(      , scF8) THEN debug_menu
- define(      ,     , "Debug menu (F8)")  'Do nothing
-
- IF define(scCtrl, scF8, "List slices to g_debug.txt (Ctrl-F8)") THEN
-  debug "----------------Slice Tree Dump---------------"
-  SliceDebugDumpTree SliceTable.Root
-  notification "Dumped entire slice tree to g_debug.txt"
- END IF
+ define(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
  IF define(      , scF10) THEN
   scrwatch = loopvar(scrwatch, 0, 2, 1)
   gam.debug_showtags = NO
  END IF
-
  IF define(      ,      , "Script debugger (F10)") THEN
   scrwatch = 2  'Go straight in instead of showing the memory usage bars
   gam.debug_showtags = NO
@@ -3465,13 +3453,10 @@ SUB DebugMenuDef.debug_functions()
 
  IF define(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES
 
- DIM showhide as string = iif_string(gam.debug_npc_info, "Hide", "Show")
- IF define(scCtrl, scF11, showhide & " NPC info (Ctrl-F11)") THEN gam.debug_npc_info XOR= YES
-
  'Screenshotting with F12 is handled in allmodex
  IF define( , , "Screenshot (F12)") THEN screenshot
 
- IF gam.debug_showtags = NO THEN
+ IF gam.debug_showtags = NO OR menu <> NULL THEN  'Always accessible in debug menu
   IF define(scCtrl, scPlus) OR _
      define(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
    speedcontrol = large(speedcontrol - 1, 10.)
@@ -3486,16 +3471,35 @@ SUB DebugMenuDef.debug_functions()
   END IF
  END IF
 
- IF define( , , "Test Battles") THEN battle_formation_testing_menu
+ 'This is implemented in allmodex, can't provide this as a menu item, but document it anyway.
+ define( , , "[Hold down to speed up:] (Shift+Tab)")
+
+ 'Ctrl+~ implemented in allmodex
+ IF define( , , "Show frames-per-second (Ctrl ~)") THEN showfps XOR= YES
+
+ IF define( , , "List slices to g_debug.txt") THEN
+  debug "----------------Slice Tree Dump---------------"
+  SliceDebugDumpTree SliceTable.Root
+  notification "Dumped entire slice tree to g_debug.txt"
+ END IF
+
+ IF define( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
+ IF define( , , "Show/test battle formations") THEN battle_formation_testing_menu
  IF define( , , "Manipulate gen() array") THEN patcharray gen(), "gen"
  IF define( , , "Manipulate gmap() array") THEN patcharray gmap(), "gmap"
- IF define( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+ 'IF define( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  #IFDEF __FB_ANDROID__
   IF define( , , "Email saved game") THEN
    savegame 33
    email_save_to_developer 33
   END IF
  #ENDIF
+
+ IF gen(genCurrentDebugMode) = 0 THEN
+  IF define( , , "Switch to debug mode (show errors)") THEN gen(genCurrentDebugMode) = 1
+ ELSE
+  IF define( , , "Switch to release mode (hide errors)") THEN gen(genCurrentDebugMode) = 0
+ END IF
 END SUB
 
 ' Check for debug key combos.

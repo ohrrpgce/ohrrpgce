@@ -273,5 +273,6 @@ extern key2text(3,53) as string*1
 extern disable_native_text_input as bool
 extern fonts() as Font ptr
 extern global_tog as integer
+extern showfps as bool
 
 #ENDIF

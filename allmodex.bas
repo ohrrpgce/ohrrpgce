@@ -220,7 +220,7 @@ dim shared updatepal as bool             'setpal called, load new palette at nex
 dim shared fpsframes as integer = 0
 dim shared fpstime as double = 0.0
 dim shared fpsstring as string
-dim shared showfps as bool = NO
+dim showfps as bool = NO
 dim shared overlay_message as string      'Message to display on screen
 dim shared overlay_hide_time as double    'Time at which to hide it
 dim shared overlay_replay_display as bool

@@ -48,9 +48,14 @@ March ?? 2016 [Callipygous]
     * Most 32 bit BMPs should be importable now [Ralph]
     * Attack damage bitset "Healing poison causes regen, and reverse";
       useful when attacker or target absorbs damage [Ralph]
-    * Enemies can now be placed anywhere onscreen in formations [Ralph]
     * Press F8 in-game to access the Debug Menu. It's the only debug
-      key you'll ever need to remember! [Ralph, James]
+      key you'll ever need to remember! Includes new debug options:
+      * Test Battles, to fight any formation
+      * Edit backcompat bitsets
+      * Email saved game (Android only)
+      * Toggle debug/reload mode
+      Also, a few debug keys changed or were removed.
+      [Ralph, James]
     * Added F7 debug key to kill all targettable enemies. Also, the tag
       debugger is available in-battle with F4; instant-run moved to
       Ctrl+F4. [Ralph, James]
@@ -76,6 +81,7 @@ March ?? 2016 [Callipygous]
       and no item to steal. [Ralph]
     * Added Regen icon to Battle System Options. [Ralph]
     * Hero positions in battle can be customized. [James]
+    * Enemies can now be placed anywhere onscreen in formations [Ralph]
     * Starting hero ID can be customized, and you can also set a
       'starting' textbox to display on a new game. [Ralph]
     * Added "Old attack positioning at bottom-left of target" back-
@@ -159,7 +165,7 @@ March ?? 2016 [Callipygous]
     * Press F5 in Custom's main menu or Script Management menu to
       reimport the last imported scripts. And while testing a game
       you can now set the scripts to be reloaded automatically (from the
-      F5 in-game debug menu) [Ralph]
+      data reload menu, press F5 in-game to access it) [Ralph]
     * "camera follows slice" [Ralph]
     * "get/set/reset hero picture/palette" family of commands can now
       also manipulate hero portrait pictures [James]
