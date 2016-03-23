@@ -1043,7 +1043,7 @@ END FUNCTION
 
 'This is called for error messages occurring inside scripts, and gives a description of the current context
 FUNCTION interpreter_context_name() as string
- IF insideinterpreter = NO THEN debugc errPromptBug, "script_context_name called outside interpreter"
+ IF insideinterpreter = NO THEN debugc errPromptBug, "interpreter_context_name called outside interpreter"
  IF curcmd->kind = tyfunct THEN
   RETURN commandname(curcmd->value) + ": "
  ELSEIF insideinterpreter THEN
@@ -1053,7 +1053,7 @@ END FUNCTION
 
 FUNCTION script_call_chain (byval trim_front as integer = YES) as string
  IF nowscript < 0 THEN
-  RETURN "Funny... no scripts running!"
+  RETURN "(No scripts running)"
  END IF
 
  DIM scriptlocation as string
@@ -1063,7 +1063,7 @@ FUNCTION script_call_chain (byval trim_front as integer = YES) as string
   scriptlocation = scriptname(scriptinsts(i).id) + " -> " + scriptlocation
  NEXT
  IF trim_front AND LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
- RETURN "  Call chain (current script last):" + CHR(10) + scriptlocation
+ RETURN scriptlocation
 END FUNCTION
 
 
@@ -1081,6 +1081,8 @@ FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
 END FUNCTION
 
 'For errorlevel scheme, see scriptErrEnum in const.bi
+'NOTE: this function can get called with errors which aren't caused by scripts,
+'for example findhero() called from a textbox conditional.
 SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
@@ -1094,7 +1096,9 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  'err_suppress_lvl is always at least serrIgnore
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
 
- debug "Scripterr(" & errorlevel & "): " + e
+ DIM as string call_chain
+ IF insideinterpreter THEN call_chain = script_call_chain(NO)
+ debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + e
 
  IF NOT should_display_error_to_user(errorlevel) THEN EXIT SUB
 
@@ -1108,7 +1112,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  IF errorlevel = serrError THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
  IF errorlevel >= serrBug THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
- e = e + CHR(10) + CHR(10) + script_call_chain
+ e = e + CHR(10) + CHR(10) + "  Call chain (current script last):" + CHR(10) + script_call_chain()
  split(wordwrap(e, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
  DIM state as MenuState
@@ -1187,14 +1191,18 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   DIM wid as integer = vpages(vpage)->w
   centerbox wid\2, 12, wid - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
+  DIM header as string
   IF errorlevel >= serrBug THEN
-   printstr "Impossible error/engine bug!", wid\2 - 28*4, 7, vpage
+   header = "Impossible error/engine bug!"
   ELSEIF errorlevel >= serrBound THEN
-   printstr "Script Error!", wid\2 - 13*4, 7, vpage
+   header = iif_string(insideinterpreter, "Script Error!", "Error!")
   ELSEIF errorlevel >= serrWarn THEN
-   printstr "Script Warning", wid\2 - 14*4, 7, vpage
+   header = iif_string(insideinterpreter, "Script Warning", "Warning")
   ELSEIF errorlevel = serrInfo THEN
-   printstr "Script Diagnostic", wid\2 - 17*4, 7, vpage
+   header = iif_string(insideinterpreter, "Script Diagnostic", "Diagnostic")
+  END IF
+  IF LEN(header) THEN
+   printstr header, xstring(header, wid\2), 7, vpage
   END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)
@@ -1234,8 +1242,9 @@ FUNCTION script_interrupt () as integer
  DIM as string errtext()
  DIM as string msg
 
- msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10) + script_call_chain
- debug script_call_chain(NO)
+ msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10)
+ msg &= "  Call chain (current script last):" + CHR(10) + script_call_chain()
+ debug "Script interrupted: " & script_call_chain(NO)
  split(wordwrap(msg, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
  DIM state as MenuState
