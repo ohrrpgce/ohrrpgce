@@ -61,7 +61,7 @@ declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 declare function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
 
-declare sub snapshot_check
+declare sub snapshot_check(force_snap as bool = NO)
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
@@ -5439,7 +5439,12 @@ end function
 '==========================================================================================
 
 
-sub screenshot (f as string)
+'Save a snapshot. Default filename if none specified
+sub screenshot (f as string = "")
+	if f = "" then
+		snapshot_check YES  'A bit hacky
+		exit sub
+	end if
 	'try external first
 	if gfx_screenshot(f) = 0 then
 		'otherwise save it ourselves
@@ -5453,7 +5458,8 @@ sub bmp_screenshot(f as string)
 	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 end sub
 
-private sub snapshot_check
+private sub snapshot_check(force_snap as bool = NO)
+'Either handle F12 key, or if force_snap is true, save a snapshot in the default location
 'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
 'moved, to prevent littering
@@ -5463,9 +5469,12 @@ private sub snapshot_check
 	initialize_static_dynamic_array(backlog)
 	static as integer backlog_num
 
-	dim as integer n, i
+	dim as integer n, i, F12bits
 
-	if real_keyval(scF12) = 0 then
+	F12bits = real_keyval(scF12)
+	if force_snap then F12bits = 7
+
+	if F12bits = 0 then
 		'delete the backlog
 		for n = 1 to ubound(backlog)
 			'debug "killing " & backlog(n)
@@ -5490,7 +5499,7 @@ private sub snapshot_check
 		next
 		backlog_num = n + 1
 
-		if real_keyval(scF12) = 1 then
+		if F12bits = 1 then
 			shot = tmpdir + shot
 			screenshot shot
 			for i = 0 to ubound(image_exts)

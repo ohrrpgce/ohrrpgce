@@ -136,7 +136,7 @@ DECLARE SUB loadsong (f as string)
 DECLARE FUNCTION get_music_volume () as single
 DECLARE SUB set_music_volume (byval vol as single)
 
-DECLARE SUB screenshot (f as string)
+DECLARE SUB screenshot (f as string = "")
 DECLARE SUB bmp_screenshot(f as string)
 DECLARE SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
