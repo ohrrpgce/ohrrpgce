@@ -2,11 +2,15 @@ This is a list of bitsets - simple OFF or ON settings. Bitsets that are turned O
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
 
-Modifiy bitsets with Left, Right, SPACE and ENTER.
+Modify bitsets with Left, Right, SPACE and ENTER.
 
-These settings enable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
+These settings enable or disable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
 
 In newly created games you normally wouldn't change any of these bitsets. When switching to a newer engine version you may want to enable new features or bugfixes by toggling options in this menu, but doing so may break something in your game.
+
+"Simulate Old Levelup bonus-accretion bug" simulates an ancient bug where equipment bonuses were added to hero stats on levelup. Included for compatibility with games made before 2001!
+
+"Simulate pushable NPC obstruction bug" simulates a bug where the player and NPCs could walk through NPCs in the process of being pushed.
 
 "Enable better scancodes for scripts" makes keys like Up and Numpad 8 which were previously indistinguishable able to be told apart; see "key is pressed" in the dictionary for details.
 
