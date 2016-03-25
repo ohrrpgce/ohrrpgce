@@ -1409,7 +1409,7 @@ FUNCTION get_special_menu_caption(byval subtype as integer) as string
   CASE 10: cap = readglobalstring(67, "Quit", 10)
   CASE 11: cap = readglobalstring(69, "Volume", 10)
   CASE 14: cap = readglobalstring(308, "Margins", 10)
-  CASE 15: cap = readglobalstring(312, "Purchases", 10)
+  CASE 15: cap = readglobalstring(313, "Purchases", 10)
  END SELECT
  RETURN cap
 END FUNCTION
