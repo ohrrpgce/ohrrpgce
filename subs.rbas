@@ -1863,6 +1863,16 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_
 
 END SUB
 
+FUNCTION npc_preview_text(byref npc as NPCType) as string
+ 'This is certaily not an attempt to show everything one might need to
+ 'know about an NPC, simply a way of showing a little more data so that
+ 'NPCs with the same sprite can be easily distinguished in the editor at a glance
+ IF npc.textbox > 0 THEN RETURN textbox_preview_line(npc.textbox)
+ IF npc.script <> 0 THEN RETURN scriptname(npc.script) & " [SCRIPT]"
+ IF npc.item > 0 THEN RETURN readitemname(npc.item - 1) & " [ITEM]"
+ IF npc.vehicle > 0 THEN RETURN load_vehicle_name(npc.vehicle - 1) & " [VEHICLE]"
+END FUNCTION
+
 SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
 'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
@@ -1877,7 +1887,7 @@ state.last = st.num_npc_defs - 1
 IF st.num_npc_defs < max_npc_defs THEN state.last += 1
 
 FOR i as integer = 0 TO st.num_npc_defs - 1
- boxpreview(i) = textbox_preview_line(st.npc_def(i).textbox)
+ boxpreview(i) = npc_preview_text(st.npc_def(i))
 NEXT i
 setkeys YES
 DO
@@ -1931,7 +1941,7 @@ DO
   END WITH
   '--Update box preview line
   REDIM PRESERVE boxpreview(st.num_npc_defs - 1)
-  boxpreview(state.pt) = textbox_preview_line(st.npc_def(state.pt).textbox)
+  boxpreview(state.pt) = npc_preview_text(st.npc_def(state.pt))
   '--Update menu size
   state.last = st.num_npc_defs - 1
   IF st.num_npc_defs < max_npc_defs THEN state.last += 1
