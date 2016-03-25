@@ -738,12 +738,12 @@ if win32:
     w32_env = Environment ()
     w32_env['ENV']['PATH'] = os.environ['PATH']
     if "Include" in os.environ:
-        w32_env.Append(CPPPATH = os.environ['Include'])
+        w32_env.Append(CPPPATH = os.environ['Include'].split(';'))
     if "Lib" in os.environ:
-        w32_env.Append(LIBPATH = os.environ['Lib'])
+        w32_env.Append(LIBPATH = os.environ['Lib'].split(';'))
     if 'DXSDK_DIR' in os.environ:
-        w32_env.Append(CPPPATH = os.path.join(os.environ['DXSDK_DIR'], 'Include'))
-        w32_env.Append(LIBPATH = os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86'))
+        w32_env.Append(CPPPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Include')])
+        w32_env.Append(LIBPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86')])
 
     RESFILE = w32_env.RES ('gfx_directx/gfx_directx.res', source = 'gfx_directx/gfx_directx.rc')
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
