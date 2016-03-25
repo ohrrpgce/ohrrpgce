@@ -478,16 +478,16 @@ DFI_IMPLEMENT_CDECL(int, gfx_ScreenShot, const char *szFileName)
 	switch(g_DirectX.getImageFileFormat())
 	{
 	case D3DXIFF_JPG:
-		::_tcscat(buffer, TEXT(".jpg"));
+		::_tcscat_s(buffer, 256, TEXT(".jpg"));
 		break;
 	case D3DXIFF_BMP:
-		::_tcscat(buffer, TEXT(".bmp"));
+		::_tcscat_s(buffer, 256, TEXT(".bmp"));
 		break;
 	case D3DXIFF_PNG:
-		::_tcscat(buffer, TEXT(".png"));
+		::_tcscat_s(buffer, 256, TEXT(".png"));
 		break;
 	case D3DXIFF_DDS:
-		::_tcscat(buffer, TEXT(".dds"));
+		::_tcscat_s(buffer, 256, TEXT(".dds"));
 		break;
 	default:
 		return FALSE;
