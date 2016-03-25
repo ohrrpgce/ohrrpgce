@@ -627,9 +627,11 @@ END SUB
 
 FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   STATIC state as WindowState
+  state.structsize = WINDOWSTATE_SZ
   DIM temp as integer = SDL_GetAppState()
   state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
   state.minimised = (temp AND SDL_APPACTIVE) = 0
+  state.fullscreen = (windowedmode = 0)
   RETURN @state
 END FUNCTION
 

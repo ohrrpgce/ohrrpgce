@@ -545,7 +545,9 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	HWND hActive = GetForegroundWindow();
 	pState->focused = (hActive == g_Window.getWindowHandle());
 	pState->minimised = IsIconic(g_Window.getWindowHandle());
-	pState->structsize = WINDOWSTATE_SZ;
+	if (pState->structsize >= 4)
+		pState->fullscreen = g_DirectX.isViewFullscreen();
+	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)

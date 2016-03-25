@@ -11,8 +11,9 @@ struct WindowState
 	int structsize;
 	int focused;
 	int minimised;
+	int fullscreen;
 };
-#define WINDOWSTATE_SZ 3
+#define WINDOWSTATE_SZ 4
 
 struct GFX_INIT
 {

@@ -18,11 +18,12 @@
 extern "C"
 
 type WindowState
-	structsize as integer  'number of members in the struct, currently 3 (New API only!)
+	structsize as integer  'number of members in the struct, set to WINDOWSTATE_SZ
 	focused as integer
 	minimised as integer
+	fullscreen as integer
 end type
-#define WINDOWSTATE_SZ 3
+#define WINDOWSTATE_SZ 4
 
 type GamePadMap
 	'For passing OHR scancodes to io_remap_android_gamepad

@@ -29,7 +29,6 @@ declare sub calculate_screen_res()
 
 dim shared screen_buffer_offset as integer = 0
 dim shared window_state as WindowState
-dim shared windowed as integer = 1
 dim shared init_gfx as integer = 0
 'defaults are 2x zoom and 640x400 in 8-bit
 dim shared zoom as integer = 2
@@ -63,11 +62,12 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	end if
 	window_state.focused = YES
 	window_state.minimised = NO
+	window_state.fullscreen = NO
 	return 1
 end function
 
 sub gfx_fb_screenres
-	if windowed = 0 then
+	if window_state.fullscreen = YES then
 		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
 		setmouse , , 0
 	else
@@ -172,10 +172,10 @@ function gfx_fb_screenshot(byval fname as zstring ptr) as integer
 end function
 
 sub gfx_fb_setwindowed(byval iswindow as integer)
-	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
-	if iswindow = windowed then exit sub
+	dim wantfullscreen as bool = iif(iswindow, NO, YES) 'only 1 "true" value
+	if window_state.fullscreen = wantfullscreen then exit sub
 
-	windowed = iswindow
+	window_state.fullscreen = wantfullscreen
 	gfx_fb_update_screen_mode
 end sub
 
@@ -327,10 +327,10 @@ sub process_events()
 			window_state.focused = NO
 		end if
 		if e.type = EVENT_WINDOW_GOT_FOCUS then
-			if windowed then
-				setmouse , , rememmvis
-			else
+			if window_state.fullscreen then
 				setmouse , , 0
+			else
+				setmouse , , rememmvis
 			end if
 			window_state.focused = YES
 		end if
@@ -366,11 +366,11 @@ sub process_events()
 	'We can't directly detect alt+enter because FB doesn't report key events when alt is held
 	'extremely insensitive, useless.
 /'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
-		windowed xor= 1
-		if windowed then
-			setmouse , , rememmvis
-		else
+		window_state.fullscreen xor= YES
+		if window_state.fullscreen then
 			setmouse , , 0
+		else
+			setmouse , , rememmvis
 		end if
 	end if
 	last_enter_state = multikey(SC_ENTER)
@@ -441,10 +441,10 @@ END SUB
 sub io_fb_setmousevisibility(byval visible as integer)
 	'Note that 'windowed' is an approximation - see process_events()
 	rememmvis = iif(visible, 1, 0)
-	if windowed then
-		setmouse , , rememmvis
-	else
+	if window_state.fullscreen then
 		setmouse , , 0
+	else
+		setmouse , , rememmvis
 	end if
 end sub
 
