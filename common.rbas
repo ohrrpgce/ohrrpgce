@@ -4256,9 +4256,12 @@ SUB create_default_menu(menu as MenuDef)
   append_menu_item(menu, "", 1, i)
   menu.last->hide_if_disabled = YES
  NEXT
- FOR i as integer = 10 TO 11  ' quit, volume
+ FOR i as integer = 16 TO 17  ' fullscreen, windowed
   append_menu_item(menu, "", 1, i)
+  menu.last->hide_if_disabled = YES
  NEXT
+ append_menu_item(menu, "", 1, 11)  ' volume
+ append_menu_item(menu, "", 1, 10)  ' quit
  menu.translucent = YES
  menu.min_chars = 14
 END SUB

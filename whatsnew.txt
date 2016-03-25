@@ -100,6 +100,8 @@ March ?? 2016 [Callipygous]
     * The Distribute Game options will make use of Mac or Windows icons
       if it finds the icon files next to your .rpg file. See
       http://rpg.hamsterrepublic.com/ohrrpgce/Icons for details [James]
+    * "Windowed" and "Fullscreen" special menu items. They appear in
+      the default menu in new games; other games need updating. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

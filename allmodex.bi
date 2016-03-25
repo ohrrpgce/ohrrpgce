@@ -39,6 +39,9 @@ DECLARE FUNCTION get_resolution_h () as integer
 DECLARE SUB get_screen_size (byref screenwidth as integer, byref screenheight as integer)
 DECLARE SUB set_scale_factor (scale as integer)
 
+DECLARE FUNCTION supports_fullscreen_well () as bool
+DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
+
 DECLARE SUB setvispage (byval page as integer)
 DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)

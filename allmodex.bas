@@ -618,6 +618,39 @@ sub set_scale_factor (scale as integer)
 	end if
 end sub
 
+'Returns true if successfully queries the fullscreen state, in which case 'fullscreen' is set.
+function try_check_fullscreen(byref fullscreen as bool) as bool
+	dim winstate as WindowState ptr = gfx_getwindowstate()
+	if winstate andalso winstate->structsize >= 4 then
+		fullscreen = winstate->fullscreen
+		return YES
+	end if
+	return NO
+end function
+
+function supports_fullscreen_well () as bool
+	'Return YES if we should show the fullscreen/windowed menu options
+	'and obey a game's fullscreen/windowed setting.
+	'Note: even if this returns false, you can still try to fullscreen using alt-tab
+	'or the --fullscreen arg and it might be supported.
+	if running_on_desktop() = NO then
+		return NO
+	end if
+#IFDEF __FB_LINUX__
+	' At least for me with KDE 4, fbgfx gives horrible results,
+	' turning off my 2nd monitor and lots of garbage and desktop resolution changing,
+	' and sometimes gets stuck with a fullscreen black screen.
+	' SDL 1.2 does something milder (causing the 2nd monitor to switch to mirrored)
+	' but only when the window size is smaller than the desktop.
+	' So probably the solution in gfx_sdl is to set the requested resolution to
+	' be equal to the desktop resolution and add black bars.
+	if gfxbackend = "fb" then
+		return NO
+	end if
+#ENDIF
+	return YES
+end function
+
 
 '==========================================================================================
 '                                   setvispage and Fading

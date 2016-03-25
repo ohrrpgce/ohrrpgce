@@ -2059,6 +2059,10 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
        activated = NO
       CASE 15 ' purchases
        purchases_menu()
+      CASE 16 ' windowed
+       IF running_on_desktop() THEN gfx_setwindowed(YES)
+      CASE 17 ' fullscreen
+       IF running_on_desktop() THEN gfx_setwindowed(NO)
      END SELECT
     CASE 2 ' Menu
      open_other_menu = .sub_t
@@ -2142,6 +2146,16 @@ SUB check_menu_tags ()
      IF .t = 1 AND .sub_t = 8 AND gmap(3) = 0 THEN .disabled = YES 'Save anywhere disabled on this map
      IF .t = 1 AND .sub_t = 14 AND NOT supports_safe_zone_margin() THEN .disabled = YES 'TV Safe Margin disabled on backends that don't support it
      IF .t = 1 AND .sub_t = 15 AND NOT supports_in_app_purchases() THEN .disabled = YES 'Purchases disabled on platforms that don't have a supported store
+     IF .t = 1 AND (.sub_t = 16 OR .sub_t = 17) THEN  'Windowed/Fullscreen
+      .disabled = YES
+      IF supports_fullscreen_well() THEN
+       DIM fullscreen as bool
+       IF try_check_fullscreen(fullscreen) THEN
+        IF fullscreen ANDALSO .sub_t = 16 THEN .disabled = NO
+        IF fullscreen = NO ANDALSO .sub_t = 17 THEN .disabled = NO
+       END IF
+      END IF
+     END IF
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i

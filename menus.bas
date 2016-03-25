@@ -1410,6 +1410,8 @@ FUNCTION get_special_menu_caption(byval subtype as integer) as string
   CASE 11: cap = readglobalstring(69, "Volume", 10)
   CASE 14: cap = readglobalstring(308, "Margins", 10)
   CASE 15: cap = readglobalstring(313, "Purchases", 10)
+  CASE 16: cap = readglobalstring(314, "Windowed", 20)
+  CASE 17: cap = readglobalstring(316, "Fullscreen", 20)
  END SELECT
  RETURN cap
 END FUNCTION
@@ -1429,6 +1431,10 @@ FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
      RETURN " [if available]"
     CASE 15: 'Purchases
      RETURN " [if available]"
+    CASE 16: 'Windowed
+     RETURN " [if fullscreen]"
+    CASE 17: 'Fullscreen
+     RETURN " [if windowed]"
    END SELECT
  END SELECT
  RETURN ""
