@@ -2674,7 +2674,7 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
      CASE 1: .caption = .caption & " Not Selectable"
     END SELECT
    CASE 1
-    .caption = .caption & " " & get_special_menu_caption(mi.sub_t, YES)
+    .caption = .caption & " " & get_special_menu_caption(mi.sub_t)
    CASE 2
     .caption = .caption & " " & getmenuname(mi.sub_t)
    CASE 4
@@ -2682,6 +2682,7 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
    CASE ELSE
     .caption = "Subtype: " & mi.sub_t
   END SELECT
+  .caption &= get_menu_item_editing_annotation(mi)
  END WITH
  
  append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always")

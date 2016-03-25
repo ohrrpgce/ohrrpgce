@@ -1361,7 +1361,7 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
   'No caption, use the default
   SELECT CASE mi.t
    CASE 1 ' special screen
-    cap = get_special_menu_caption(mi.sub_t, menu.edit_mode)
+    cap = get_special_menu_caption(mi.sub_t)
    CASE 2 ' another menu
     cap = getmenuname(mi.sub_t)
     IF cap = "" THEN cap = "Menu " & mi.sub_t
@@ -1371,7 +1371,10 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
     cap = scriptname(mi.sub_t)
   END SELECT
  END IF
- IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
+ IF menu.edit_mode = YES THEN
+  IF LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]"
+  cap &= get_menu_item_editing_annotation(mi)
+ END IF
  #IFDEF IS_GAME
   embedtext cap
  #ENDIF
@@ -1385,7 +1388,7 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
  RETURN cap
 END FUNCTION
 
-FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as bool = NO) as string
+FUNCTION get_special_menu_caption(byval subtype as integer) as string
  DIM cap as string
  SELECT CASE subtype
   CASE 0: cap = readglobalstring(60, "Items", 10)
@@ -1400,24 +1403,35 @@ FUNCTION get_special_menu_caption(byval subtype as integer, byval edit_mode as b
    ELSE
     cap = readglobalstring(64, "Order", 10)
    END IF
-   IF edit_mode = YES THEN cap = cap & " [general bitset]"
-  CASE 7,12:
-   cap = readglobalstring(68, "Map", 10)
-   IF subtype = 7 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
-  CASE 8,13:
-   cap = readglobalstring(66, "Save", 10)
-   IF subtype = 8 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
+  CASE 7,12: cap = readglobalstring(68, "Map", 10)
+  CASE 8,13: cap = readglobalstring(66, "Save", 10)
   CASE 9: cap = "Load" ' FIXME: Needs a global text string
   CASE 10: cap = readglobalstring(67, "Quit", 10)
   CASE 11: cap = readglobalstring(69, "Volume", 10)
-  CASE 14:
-   cap = readglobalstring(308, "Margins", 10)
-   IF edit_mode = YES THEN cap = cap & " [if available]"
-  CASE 15:
-   cap = readglobalstring(312, "Purchases", 10)
-   IF edit_mode = YES THEN cap = cap & " [if available]"
+  CASE 14: cap = readglobalstring(308, "Margins", 10)
+  CASE 15: cap = readglobalstring(312, "Purchases", 10)
  END SELECT
  RETURN cap
+END FUNCTION
+
+' Return the suffix that is appended to a menu item while in edit mode
+FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
+ SELECT CASE mi.t
+  CASE 1 ' special screen
+   SELECT CASE mi.sub_t
+    CASE 6  'Team/Order
+     RETURN " [general bitset]"
+    CASE 7: 'Map (if allowed)
+     RETURN " [if allowed by map]"
+    CASE 8: 'Save (if allowed)
+     RETURN " [if allowed by map]"
+    CASE 14: 'Margins
+     RETURN " [if available]"
+    CASE 15: 'Purchases
+     RETURN " [if available]"
+   END SELECT
+ END SELECT
+ RETURN ""
 END FUNCTION
 
 
