@@ -138,6 +138,7 @@ end sub
 function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	dim retstr as string
 	dim ret as integer = 1
+	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
 

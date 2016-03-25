@@ -60,9 +60,11 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		screeninfo , , bpp, , , refreshrate, driver
 		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
 	end if
+	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
 	window_state.fullscreen = NO
+	window_state.user_toggled_fullscreen = NO
 	return 1
 end function
 
@@ -367,6 +369,7 @@ sub process_events()
 	'extremely insensitive, useless.
 /'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
 		window_state.fullscreen xor= YES
+		window_state.user_toggled_fullscreen = YES
 		if window_state.fullscreen then
 			setmouse , , 0
 		else

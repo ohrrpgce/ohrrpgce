@@ -22,8 +22,9 @@ type WindowState
 	focused as integer
 	minimised as integer
 	fullscreen as integer
+	user_toggled_fullscreen as integer  'The user changed from windowed to fullscreen or vice-versa
 end type
-#define WINDOWSTATE_SZ 4
+#define WINDOWSTATE_SZ 5
 
 type GamePadMap
 	'For passing OHR scancodes to io_remap_android_gamepad

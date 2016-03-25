@@ -112,6 +112,7 @@ DIM SHARED smooth as integer = 0
 DIM SHARED screensurface as SDL_Surface ptr = NULL
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED windowedmode as bool = YES
+DIM SHARED user_toggled_fullscreen as bool = NO
 DIM SHARED screen_width as integer = 0
 DIM SHARED screen_height as integer = 0
 DIM SHARED resizable as integer = NO
@@ -632,6 +633,7 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
   state.minimised = (temp AND SDL_APPACTIVE) = 0
   state.fullscreen = (windowedmode = 0)
+  state.user_toggled_fullscreen = user_toggled_fullscreen
   RETURN @state
 END FUNCTION
 
@@ -804,6 +806,7 @@ SUB keycombos_logic(evnt as SDL_Event)
   IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
     IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
       gfx_sdl_setwindowed(windowedmode XOR YES)
+      user_toggled_fullscreen = YES
     END IF
     IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
       post_terminate_signal
@@ -812,6 +815,7 @@ SUB keycombos_logic(evnt as SDL_Event)
 
 #IFDEF __FB_DARWIN__
   'We have to handle menu item key combinations here: SDLMain.m only handles the case that you actually click on them
+  '(many of those actually generate an SDL keypress event, which is then handled here)
 
   IF evnt.key.keysym.mod_ AND KMOD_META THEN  'Command key
     IF evnt.key.keysym.sym = SDLK_m THEN
@@ -829,6 +833,8 @@ SUB keycombos_logic(evnt as SDL_Event)
     END IF
     IF evnt.key.keysym.sym = SDLK_f THEN
       gfx_sdl_setwindowed(windowedmode XOR YES)
+      ' Includes Cmd+F to fullscreen
+      user_toggled_fullscreen = YES
     END IF
     'SDL doesn't actually seem to send SDLK_QUESTION...
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN

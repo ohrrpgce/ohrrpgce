@@ -26,10 +26,6 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-//This g_Window used to be defined in the "Version 2.0 interfaces" section
-//but I had to move it up here to be able to use g_Window.centerWindow() in gfx_setoption
-Window g_Window;
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
@@ -125,12 +121,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 	if(::strcmp(opt, "w") == 0 || ::strcmp(opt, "width") == 0)
 		{
 			gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
-			g_Window.centerWindow();
 		}
 	else if(::strcmp(opt, "h") == 0 || ::strcmp(opt, "height") == 0)
 		{
 			gfx_SendMessage(OM_GFX_SETHEIGHT, ::atoi(arg), 0);
-			g_Window.centerWindow();
 		}
 	else if(::strcmp(opt, "f") == 0 || ::strcmp(opt, "fullscreen") == 0)
 	{
@@ -247,6 +241,7 @@ DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int& button, int& x, int& y
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 2.0 interfaces
 
+Window g_Window;
 HWND g_hWndDlg;
 Keyboard g_Keyboard;
 Mouse2 g_Mouse;
@@ -264,6 +259,7 @@ struct gfx_BackendState
 	bool bClosing; //flagged when shutting down
 	Tstring szHelpText;
 	BOOL bDisableSysMsg;
+	BOOL bUserToggledFullscreen;
 } g_State;
 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -363,9 +359,11 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 	{
 	case OM_GFX_SETWIDTH:
 		g_Window.setClientSize(dwParam, g_Window.getClientSize().cy);
+		g_Window.centerWindow();
 		break;
 	case OM_GFX_SETHEIGHT:
 		g_Window.setClientSize(g_Window.getClientSize().cx, dwParam);
+		g_Window.centerWindow();
 		break;
 	case OM_GFX_SETCLIENTAREA:
 		g_Window.setClientSize(dwParam, (int)pvParam);
@@ -547,6 +545,8 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	pState->minimised = IsIconic(g_Window.getWindowHandle());
 	if (pState->structsize >= 4)
 		pState->fullscreen = g_DirectX.isViewFullscreen();
+	if (pState->structsize >= 5)
+		pState->user_toggled_fullscreen = g_State.bUserToggledFullscreen;
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 
@@ -763,6 +763,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
+						g_State.bUserToggledFullscreen = true;
 						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
 						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 						if(g_DirectX.isViewFullscreen())
