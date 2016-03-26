@@ -19,7 +19,7 @@
 using Reload
 
 #ifdef IS_GAME
-declare sub exitprogram (byval need_fade_out as bool, byval errorout as integer = 0)
+declare sub exit_gracefully (need_fade_out as bool = NO)
 #endif
 
 #ifdef __FB_ANDROID__
@@ -624,6 +624,17 @@ function try_check_fullscreen(byref fullscreen as bool) as bool
 	if winstate andalso winstate->structsize >= 4 then
 		fullscreen = winstate->fullscreen
 		return YES
+	end if
+	return NO
+end function
+
+'Whether the player has at any point toggled fullscreen/windowed in some low-level way
+'like alt+enter or window buttons.
+'Like try_check_fullscreen(), the backend may not support this, but we don't care.
+function check_user_toggled_fullscreen() as bool
+	dim winstate as WindowState ptr = gfx_getwindowstate()
+	if winstate andalso winstate->structsize >= 5 then
+		return winstate->user_toggled_fullscreen
 	end if
 	return NO
 end function
@@ -1323,7 +1334,7 @@ function interrupting_keypress () as bool
 	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then closerequest = YES
 	if closerequest then
 #ifdef IS_GAME
-		exitprogram NO
+		exit_gracefully()
 #else
 		ret = YES
 #endif
@@ -1769,7 +1780,7 @@ private sub allmodex_controls()
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
 	if closerequest then
-		exitprogram NO
+		exit_gracefully()
 	end if
 #endif
 

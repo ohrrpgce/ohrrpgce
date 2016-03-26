@@ -118,6 +118,7 @@ TYPE GameState
   script_log as ScriptLoggingState
   want as ScriptWantSignals
   pad as VirtualGamePadState
+  user_toggled_fullscreen as bool    'User changed the default for this game
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

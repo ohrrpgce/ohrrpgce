@@ -134,6 +134,7 @@ DIM savefile as string
 DIM workingdir as string
 DIM documents_dir as string
 DIM prefsdir as string
+DIM config_file as string
 DIM app_dir as string
 
 DIM lump_reloading as LumpReloadOptions
@@ -431,7 +432,7 @@ IF gam.autorungame = NO THEN
  show_virtual_gamepad()
  sourcerpg = browse(7, rpg_browse_default, "*.rpg", tmpdir, 1, "game_browse_rpg")
  hide_virtual_gamepad()
- IF sourcerpg = "" THEN exitprogram NO
+ IF sourcerpg = "" THEN exit_gracefully NO
  IF isdir(sourcerpg) THEN
   usepreunlump = YES
   workingdir = sourcerpg
@@ -444,6 +445,7 @@ END IF
 '-- set up prefs dir
 prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
+config_file = prefsdir & SLASH & "gameconfig.ini"
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to $HOME
 DIM newcwd as string = trimfilename(sourcerpg)
@@ -564,7 +566,8 @@ queue_fade_in
 
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings
-set_safe_zone_margin read_ini_int(prefsdir & SLASH & "gameconfig.ini", "gfx.margin", default_margin_for_game())
+set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
+gam.user_toggled_fullscreen = NO
 
 REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
@@ -835,19 +838,32 @@ DO
  dowait
 LOOP
 
+' Loop back to the titlescreen
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
-reset_game_final_cleanup
+' Exit the game
+reset_game_final_cleanup  'This may call exitprogram
 LOOP ' This is the end of the DO that encloses the entire program.
 
 
 '==========================================================================================
 '==========================================================================================
 
+SUB save_game_config()
+ ' Save the fullscreen/windowed state, if the player customised it.
+ gam.user_toggled_fullscreen OR= check_user_toggled_fullscreen()
+ IF gam.user_toggled_fullscreen THEN
+  DIM fullscreen as bool
+  IF try_check_fullscreen(fullscreen) THEN
+   write_ini_value config_file, "gfx.fullscreen", fullscreen
+  END IF
+ END IF
+END SUB
 
 SUB reset_game_final_cleanup()
  'WARNING: It's a bug to call anything in here that causes something to be cached after
  'the cache has been emptied (such as anything that calls getbinsize after clear_binsize_cache)
+ save_game_config 'Call before cleaning up everything.
  cleanup_text_box
  resetinterpreter 'unload scripts
  unloadmaptilesets tilesets()
@@ -867,6 +883,7 @@ SUB reset_game_final_cleanup()
  stopsong
  resetsfx
  cleanup_other_temp_files
+ 'We bypass exit_gracefully() because we already called save_game_config
  IF gam.autorungame THEN exitprogram (NOT abortg)
  debuginfo "Recreating " & tmpdir
  killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
@@ -879,6 +896,13 @@ SUB reset_game_final_cleanup()
  clearpage 2
  clearpage 3
  sourcerpg = ""
+END SUB
+
+' Call this instead of exitprogram when not quitting due to an error.
+' This assumes no cleanup has been performed;
+SUB exit_gracefully(need_fade_out as bool = NO)
+ IF LEN(sourcerpg) THEN save_game_config
+ exitprogram need_fade_out, 0
 END SUB
 
 SUB cleanup_game_slices ()
@@ -1987,7 +2011,7 @@ SUB player_menu_keys ()
    END IF
    IF save_margin THEN
     save_margin = NO
-    write_ini_value prefsdir & SLASH & "gameconfig.ini", "gfx.margin", get_safe_zone_margin()
+    write_ini_value config_file, "gfx.margin", get_safe_zone_margin()
    END IF
   END IF
   IF carray(ccUse) > 1 THEN
@@ -2060,9 +2084,15 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       CASE 15 ' purchases
        purchases_menu()
       CASE 16 ' windowed
-       IF running_on_desktop() THEN gfx_setwindowed(YES)
+       IF running_on_desktop() THEN
+        gfx_setwindowed(YES)
+        gam.user_toggled_fullscreen = YES
+       END IF
       CASE 17 ' fullscreen
-       IF running_on_desktop() THEN gfx_setwindowed(NO)
+       IF running_on_desktop() THEN
+        gfx_setwindowed(NO)
+        gam.user_toggled_fullscreen = YES
+       END IF
      END SELECT
     CASE 2 ' Menu
      open_other_menu = .sub_t

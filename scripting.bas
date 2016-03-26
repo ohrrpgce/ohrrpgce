@@ -1172,7 +1172,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
      EXIT DO
     CASE 4
      debug "scripterr: User opted to quit"
-     exitprogram NO
+     exitprogram NO, 1
     CASE 5
      slice_editor SliceTable.Root
     CASE 6 'Script debugger
@@ -1293,7 +1293,7 @@ FUNCTION script_interrupt () as integer
      ret = YES
     CASE 3 'die
      debug "script_interrupt: User opted to quit"
-     exitprogram NO
+     exitprogram NO, 1
     CASE 4 'script debugger
      scrwatch = 2
      scriptwatcher scrwatch, 0 'clean mode, script state view mode

@@ -233,8 +233,9 @@ FUNCTION checkfordeath () as bool
  RETURN liveherocount = 0
 END FUNCTION
 
-SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
-
+'Note that this is called both from reset_game_final_cleanup(), in which case lots of stuff
+'has already been deallocated, or from exit_gracefully(), in which case no cleanup has been done!
+SUB exitprogram(byval need_fade_out as bool = NO, byval errorout as integer = 0)
 'uncomment for slice debugging
 'DestroyGameSlices YES
 
@@ -966,6 +967,14 @@ SUB apply_game_window_settings ()
   END IF
   'This should cause backend to automatically recenter window if necessary.
   set_scale_factor scale
+ END IF
+
+ IF supports_fullscreen_well() THEN
+  DIM fullscreen as bool = read_ini_int(config_file, "gfx.fullscreen", -2)
+  debuginfo "Config gfx.fullscreen = " & fullscreen
+  IF fullscreen <> -2 THEN
+   gfx_setwindowed(fullscreen = NO)
+  END IF
  END IF
 END SUB
 

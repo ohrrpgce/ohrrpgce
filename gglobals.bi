@@ -11,7 +11,8 @@
 #include "os.bi"
 
 'Misc game globals
-EXTERN prefsdir as string ' currently only used by Linux
+EXTERN prefsdir as string
+EXTERN config_file as string
 EXTERN savedir as string
 EXTERN timing() as integer
 EXTERN speedcontrol as double
