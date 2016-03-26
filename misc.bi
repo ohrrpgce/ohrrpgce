@@ -64,5 +64,6 @@ DECLARE FUNCTION ReadByteStr(byval fh as integer, byval maxlen as integer) as st
 EXTERN nulzstr as zstring ptr
 
 EXTERN overrode_default_zoom as bool
+EXTERN overrode_default_fullscreen as bool
 
 #ENDIF

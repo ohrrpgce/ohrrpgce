@@ -969,7 +969,7 @@ SUB apply_game_window_settings ()
   set_scale_factor scale
  END IF
 
- IF supports_fullscreen_well() THEN
+ IF supports_fullscreen_well() AND overrode_default_fullscreen = NO THEN
   DIM fullscreen as bool = read_ini_int(config_file, "gfx.fullscreen", -2)
   debuginfo "Config gfx.fullscreen = " & fullscreen
   IF fullscreen <> -2 THEN

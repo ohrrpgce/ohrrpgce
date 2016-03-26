@@ -325,6 +325,9 @@ unhidemousecursor  'init mouse state
 
 debuginfo "Setting default window settings..."
 set_safe_zone_margin default_margin()
+IF overrode_default_fullscreen = NO AND supports_fullscreen_well() THEN
+ gfx_setwindowed(YES)
+END IF
 set_resolution 320, 200
 IF overrode_default_zoom = NO THEN
  'If it was set on the commandline, then it should still be set to that; game didn't change it
