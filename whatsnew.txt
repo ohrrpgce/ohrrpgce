@@ -96,12 +96,14 @@ March ?? 2016 [Callipygous]
       by FnrrfYgmSchnish
     * Added options to set how large the game's window should be by
       default (by changing the scaling factor). The default size will
-      for most people be larger than the old 2x default. [Ralph]
+      for most people be larger than the old 2x default.
+      Also added a setting to make the game run in fullscreen by
+      default, unless the player has a remembered preference. [Ralph]
+    * "Windowed" and "Fullscreen" special menu items. They appear in
+      the default menu in new games; other games need updating. [Ralph]
     * The Distribute Game options will make use of Mac or Windows icons
       if it finds the icon files next to your .rpg file. See
       http://rpg.hamsterrepublic.com/ohrrpgce/Icons for details [James]
-    * "Windowed" and "Fullscreen" special menu items. They appear in
-      the default menu in new games; other games need updating. [Ralph]
 
   * Changes
     * Hidden menu items no longer affect the width of a menu [Ralph]

@@ -1,5 +1,7 @@
 This menu lets you set the in-game window size.
-Tip: You can change these settings while using the Test Game option to see the effects live!
+Tip: You can change the window settings while using the Test Game option to see the effects live!
+
+Default to fullscreen: Setting this to YES makes the game start in fullscreen if the player has no existing preference setting for the game. If the player ever changes the fullscreen to windowed, either by pressing alt+enter, or by using the Windowed and Fullscreen menu options, then their preference is saved. This setting has no effect when using 'Test Game', or if a commandline option overrides it.
 
 Default window size: This lets you adjust roughly how large your game window appears on the screen by default. Depending on the graphics backend in use the player may also be able to change the window size themselves (this is the case on Windows and Mac OSX). The scaling/zoom factor for the window (how large a single pixel appears) is then selected to get as close to your setting as possible.
 Note that the size is a percentage width or height of the screen, not area. 10% screen width and height is only 1% the screen area!

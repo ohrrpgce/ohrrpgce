@@ -969,12 +969,13 @@ SUB apply_game_window_settings ()
   set_scale_factor scale
  END IF
 
- IF supports_fullscreen_well() AND overrode_default_fullscreen = NO THEN
+ IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
+    check_user_toggled_fullscreen() = NO AND running_as_slave = NO THEN
   DIM fullscreen as bool = read_ini_int(config_file, "gfx.fullscreen", -2)
-  debuginfo "Config gfx.fullscreen = " & fullscreen
-  IF fullscreen <> -2 THEN
-   gfx_setwindowed(fullscreen = NO)
-  END IF
+  ' genFullscreen is used only if the player has never customised the setting.
+  debuginfo "Config gfx.fullscreen = " & fullscreen & ", genFullscreen = " & gen(genFullscreen)
+  IF fullscreen = -2 THEN fullscreen = gen(genFullscreen)
+  gfx_setwindowed(fullscreen = NO)
  END IF
 END SUB
 

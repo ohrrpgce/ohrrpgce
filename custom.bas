@@ -1606,10 +1606,10 @@ FUNCTION window_size_description(scale as integer) as string
 END FUNCTION
 
 SUB resolution_menu (secret_options as bool)
- DIM menu(4) as string
+ DIM menu(5) as string
  DIM st as MenuState
  st.size = 24
- st.last = IIF(secret_options, UBOUND(menu), 2)
+ st.last = IIF(secret_options, UBOUND(menu), 3)
 
  'FIXME: selecting a resolution other than 320x200 causes the distrib menu
  'to not package gfx_directx.dll; remove that when gfx_directx is updated
@@ -1628,20 +1628,22 @@ SUB resolution_menu (secret_options as bool)
     show_help iif_string(secret_options, "window_settings", "window_settings_partial")
   END IF
   SELECT CASE st.pt
-   CASE 1: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
-   CASE 2: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
-   CASE 3: st.need_update OR= intgrabber(gen(genResolutionX), 0, 1280)  'Arbitrary limits
-   CASE 4: st.need_update OR= intgrabber(gen(genResolutionY), 0, 960)
+   CASE 1: st.need_update OR= intgrabber(gen(genFullscreen), 0, 1)
+   CASE 2: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
+   CASE 3: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
+   CASE 4: st.need_update OR= intgrabber(gen(genResolutionX), 0, 1280)  'Arbitrary limits
+   CASE 5: st.need_update OR= intgrabber(gen(genResolutionY), 0, 960)
   END SELECT
   IF st.need_update THEN
    xbsave game + ".gen", gen(), 1000   'Instant live previewing update
    st.need_update = NO
   END IF
   menu(0) = "Previous Menu"
-  menu(1) = "Default window size: " & window_size_description(gen(genWindowSize))
-  menu(2) = "Test-Game window size: " & window_size_description(gen(genLivePreviewWindowSize))
-  menu(3) = "Display Width: " & gen(genResolutionX) & " pixels"
-  menu(4) = "Display Height:" & gen(genResolutionY) & " pixels"
+  menu(1) = "Default to fullscreen: " & yesorno(gen(genFullscreen))
+  menu(2) = "Default window size: " & window_size_description(gen(genWindowSize))
+  menu(3) = "Test-Game window size: " & window_size_description(gen(genLivePreviewWindowSize))
+  menu(4) = "Display Width: " & gen(genResolutionX) & " pixels"
+  menu(5) = "Display Height:" & gen(genResolutionY) & " pixels"
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
   setvispage vpage

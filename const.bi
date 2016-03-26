@@ -173,6 +173,7 @@ CONST genStartHero = 206        ' ID of initial hero
 CONST genStartTextbox = 207     ' ID of initial textbox, or 0 = none
 CONST genWindowSize = 208       ' Window size about X% of screen, in multiples of 10%. 10 means maximize
 CONST genLivePreviewWindowSize = 209 ' Test-Game window size about X% of screen, in multiples of 10%. 10 means maximize
+CONST genFullscreen = 210       ' Whether to start in fullscreen by default
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,
