@@ -4133,6 +4133,7 @@ SUB active_mode_state_machine (bat as BattleState, bslot() as BattleSprite, form
   END IF
   battle_check_delays bat, bslot()
  END IF
+ fulldeathcheck -1, bat, bslot(), formdata
  battle_check_for_hero_turns bat, bslot()
  battle_check_for_enemy_turns bat, bslot()
 END SUB
