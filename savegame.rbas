@@ -254,6 +254,11 @@ END SUB
 
 SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
  gam.map.id = node."current_map".warn
+ IF gam.map.id > gen(genMaxMap) THEN
+  visible_debug "This save file is corrupt: it is saved on nonexistent map " & gam.map.id
+  gam.map.id = 0
+ END IF
+
  DIM map_offset as XYPair
  map_offset = load_map_pos_save_offset(gam.map.id)
 
@@ -1440,10 +1445,18 @@ DIM as integer i, j, o, z
 loadrecord buffer(), old_savefile, 15000, slot * 2
 
 DIM savver as integer = buffer(0)
-IF savver < 2 OR savver > 3 THEN EXIT SUB
-'debuginfo "loading from slot " & slot & " of boring old " & old_savefile
+IF savver < 2 OR savver > 3 THEN
+ 'savver 0 occurs if this is an empty slot
+ EXIT SUB
+END IF
+debuginfo "loading from slot " & slot & " of old " & old_savefile
 
 gam.map.id = buffer(1)
+IF buffer(1) > gen(genMaxMap) THEN
+ visible_debug "This save file is corrupt: it is saved on nonexistent map " & gam.map.id
+ gam.map.id = 0
+END IF
+
 loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20

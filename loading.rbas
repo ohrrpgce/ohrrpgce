@@ -85,6 +85,11 @@ PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen 
   SEEK #f, 8
 
   arraylen = (LOF(f) - 7) \ getbinsize(binN)
+  IF arraylen < 1 THEN
+    REDIM dat(0)
+    visible_debug "NPC data is corrupt or missing, " & trimpath(file) & " is length " & LOF(f)
+    EXIT SUB
+  END IF
   IF resize THEN REDIM dat(arraylen - 1)
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)
