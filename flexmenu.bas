@@ -2229,7 +2229,7 @@ FOR i = 0 TO size
     SELECT CASE dat
      CASE 0 TO 11
       datatext = statnames(dat)
-     CASE 12: datatext = "posion register"
+     CASE 12: datatext = "poison register"
      CASE 13: datatext = "regen register"
      CASE 14: datatext = "stun register"
      CASE 15: datatext = "mute register"
