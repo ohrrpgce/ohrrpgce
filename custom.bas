@@ -1489,7 +1489,8 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  IF sessinfo.info_file_exists THEN
   ' We already checked Custom isn't still running
 
-  msg = CUSTOMEXE " crashed while editing " & sessinfo.sourcerpg & ", but a temp copy of the edited game still exists." LINE_END
+  msg = CUSTOMEXE " crashed while editing a game, but the temp unsaved modified copy of the game still exists." LINE_END
+  msg &= sessinfo.sourcerpg & LINE_END
 
   IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
    ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
@@ -1500,10 +1501,10 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
   msg &=  "}|" LINE_END _
           "}+>Loaded or last saved by Custom " LINE_END _
           "}  at:        " & format_date(sessinfo.session_start_time) & LINE_END _
-          "}  Last edit: " & format_date(sessinfo.last_lump_mtime) & LINE_END
+          "}  Last edit: " & format_date(sessinfo.last_lump_mtime)
 
   IF sessinfo.sourcerpg_current_mtime > sessinfo.session_start_time THEN
-   msg &= "|" LINE_END _
+   msg &= LINE_END "|" LINE_END _
           "+-> WARNING: " & trimpath(sessinfo.sourcerpg) & " modified since it was loaded or saved!" _
           " Modified " & format_date(sessinfo.sourcerpg_current_mtime) ' & LINE_END
 
@@ -1521,7 +1522,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  END IF
 
  DIM cleanup_menu(2) as string
- cleanup_menu(0) = "DO NOTHING"
+ cleanup_menu(0) = "DO NOTHING (ask again later)"
  cleanup_menu(1) = "RECOVER temp files as a .rpg"
  cleanup_menu(2) = "ERASE temp files"
  DIM choice as integer
