@@ -50,22 +50,22 @@ def create_dpkg():
     quiet_mkdir(package_name + '/DEBIAN')
     write_control_file(package_name + '/DEBIAN/control',
     """Package: %s
-    Priority: optional
-    Section: games
-    Installed-Size: %d
-    Maintainer: %s
-    Architecture: i386
-    Version: %s
-    Depends: %s
-    Recommends: %s
-    Description: Official Hamster Republic Role Playing Game Construction Engine
-     The O.H.R.RPG.C.E, which stands for Official Hamster Republic Role
-     Playing Game Construction Engine. The OHRRPGCE is a free utility that
-     you can use to create your own RPG game in a style similar to the
-     classic Final Fantasy games on the NES and SNES which have so shaped the
-     RPG genre. To learn how to create your own game, or to download other
-     people's games, visit http://HamsterRepublic.com/ohrrpgce/
-    """
+Priority: optional
+Section: games
+Installed-Size: %d
+Maintainer: %s
+Architecture: i386
+Version: %s
+Depends: %s
+Recommends: %s
+Description: Official Hamster Republic Role Playing Game Construction Engine
+ The O.H.R.RPG.C.E, which stands for Official Hamster Republic Role
+ Playing Game Construction Engine. The OHRRPGCE is a free utility that
+ you can use to create your own RPG game in a style similar to the
+ classic Final Fantasy games on the NES and SNES which have so shaped the
+ RPG genre. To learn how to create your own game, or to download other
+ people's games, visit http://HamsterRepublic.com/ohrrpgce/
+"""
     , (package_name, calculate_size(files, executables), maintainer, version, depends, recommends))
     install(package_name)
     run_dpkg(package_name, version)
