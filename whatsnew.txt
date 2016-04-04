@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March ?? 2016 [Callipygous]
+April 04 2016 [Callipygous]
 
   * New Features
     * Ported to Android phones and tablets, as well as specific support
