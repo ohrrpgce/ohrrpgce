@@ -303,6 +303,7 @@ TYPE BattleState
  inv_scroll as MenuState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
+ show_info_mode as integer '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
  'The following don't do anything right now, but are handy to leave in
  test_view_mode as integer 'used for debugging new display stuff with F12
  test_future as integer    'used for debugging new display stuff with F12

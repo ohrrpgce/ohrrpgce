@@ -1,0 +1,17 @@
+The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
+
+F4 Toggle tag debug screen
+
+Ctrl+F4 Instantly Run (even from inescapable enemies)
+
+F5 Gain a million Experience Points
+
+F6 Toggle between turn-based and active-time-based battle systems
+
+F7 Kill all enemies which are targetable and need to killed to win
+
+F8 Show the debug menu, with these keys documented.
+
+F10 Display Enemy ready-meters and state-variables, and again to hide.
+
+F11 Show queued attacks, and again to hide.

@@ -55,6 +55,8 @@ DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as
 DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_pause ()
+DECLARE SUB battle_debug_menu (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB check_battle_debug_keys (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
@@ -110,7 +112,6 @@ FUNCTION battle (byval form as integer) as bool
  DIM bat as BattleState
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
- DIM show_info_mode as integer = 0
 
  SELECT CASE gen(genBattleMode)
   CASE 0:
@@ -152,29 +153,9 @@ FUNCTION battle (byval form as integer) as bool
   battle_background_anim bat, formdata
 
   IF always_enable_debug_keys <> 0 OR readbit(gen(), genBits, 8) = 0 THEN
-   '--debug keys
-   IF keyval(scF4) > 1 THEN
-    IF keyval(scCtrl) > 0 THEN
-     bat.away = 11 ' Instant-cheater-running
-    ELSE
-     gam.debug_showtags = NOT gam.debug_showtags
-    END IF
-   END IF
-   IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
-   IF keyval(scF6) > 1 THEN bat.turn.mode XOR= 1 : notification "bat.turn.mode=" & bat.turn.mode
-   IF keyval(scF7) > 1 THEN
-    'Kill all enemies
-    FOR slot as integer = 4 TO 11
-     WITH bslot(slot)
-      IF .hero_untargetable = NO AND .death_unneeded = NO THEN
-       .stat.cur.hp = 0
-       triggerfade slot, bslot()
-      END IF
-     END WITH
-    NEXT
-    fulldeathcheck -1, bat, bslot(), formdata
-   END IF
-   IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
+   check_battle_debug_keys bat, bslot(), formdata
+
+   /' Currently unused...
    IF keyval(scF12) > 1 THEN
     bat.test_view_mode = loopvar(bat.test_view_mode, 0, 2, 1)
     SELECT CASE bat.test_view_mode
@@ -183,6 +164,7 @@ FUNCTION battle (byval form as integer) as bool
      CASE 2: bat.test_future = YES : debuginfo "bat.test_view_mode Future"
     END SELECT
    END IF
+   '/
   END IF
 
   IF keyval(scPause) > 1 THEN battle_pause
@@ -235,9 +217,9 @@ FUNCTION battle (byval form as integer) as bool
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
   IF bat.vic.state > 0 THEN show_victory bat, bslot()
   
-  IF show_info_mode = 1 THEN
+  IF bat.show_info_mode = 1 THEN
    show_enemy_meters bat, bslot(), formdata
-  ELSEIF show_info_mode = 2 THEN
+  ELSEIF bat.show_info_mode = 2 THEN
    display_attack_queue bslot()
   END IF
   
@@ -4367,3 +4349,72 @@ FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
  NEXT i
  RETURN NO
 END FUNCTION
+
+'==========================================================================================
+
+' This sub does three different things, depending on the state of the DebugMenuDef:
+' - Checks for debug key combos. dbg.def() returns true if that key is pressed.
+' - Builds a list of available debug menu items. dbg.def() returns false.
+' - Performs an action selected in the debug menu. dbg.def() returns true if selected.
+' See debug_menu_functions() for more info.
+SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+
+ IF dbg.def(      , scF4, "Tag debugger (F4)") THEN gam.debug_showtags XOR= YES
+ IF dbg.def(scCtrl, scF4, "Run instantly (Ctrl+F4)") THEN bat.away = 11
+ IF dbg.def(      , scF5, "Give million experience (F5)") THEN bat.rew.exper = 1000000
+ DIM temp as string
+ IF bat.turn.mode = 0 THEN temp = "Switch to turn-based battles" ELSE temp = "Switch to active-time battles"
+ IF dbg.def(      , scF6, temp & " (F6)") THEN
+  bat.turn.mode XOR= 1
+  notification "bat.turn.mode=" & bat.turn.mode
+ END IF
+ IF dbg.def(      , scF7, "Kill all targetable enemies (F7)") THEN
+  FOR slot as integer = 4 TO 11
+   WITH bslot(slot)
+    IF .hero_untargetable = NO AND .death_unneeded = NO THEN
+     .stat.cur.hp = 0
+     triggerfade slot, bslot()
+    END IF
+   END WITH
+  NEXT
+  fulldeathcheck -1, bat, bslot(), formdata
+ END IF
+
+ IF dbg.def(      , scF8) THEN battle_debug_menu bat, bslot(), formdata
+ dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
+
+ IF dbg.def(      , scF10, "Show enemy meters (F10)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 1, 0, 1)
+ IF dbg.def(      , scF11, "Show attack queue (F11)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 2, 0, 2)
+
+ 'Only for documentation, scPause is checked in main loop
+ IF dbg.def(      , , "Pause battle (Pause)") THEN battle_pause
+
+ 'F12 for bat.test_view_mode handled in main loop
+END SUB
+
+' Check for debug key combos.
+SUB check_battle_debug_keys(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ DIM dbg as DebugMenuDef
+ battle_debug_menu_functions(dbg, bat, bslot(), formdata)
+END SUB
+
+' Show a menu of debug functions.
+SUB battle_debug_menu(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ ' Build
+ DIM dbg as DebugMenuDef
+ dbg.start_building_menu()
+ battle_debug_menu_functions(dbg, bat, bslot(), formdata)
+ DIM menu() as string
+ vector_to_array menu(), dbg.menu
+
+ ' Show
+ DIM result as integer
+ STATIC default as integer = 0
+ result = multichoice("Battle Debug Menu", menu(), default, , "game_battle_debug_menu")
+ IF result = -1 THEN EXIT SUB
+
+ ' Enact
+ default = result
+ dbg.selected_item = menu(result)
+ battle_debug_menu_functions(dbg, bat, bslot(), formdata)
+END SUB

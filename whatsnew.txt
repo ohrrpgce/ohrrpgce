@@ -48,8 +48,9 @@ March ?? 2016 [Callipygous]
     * Most 32 bit BMPs should be importable now [Ralph]
     * Attack damage bitset "Healing poison causes regen, and reverse";
       useful when attacker or target absorbs damage [Ralph]
-    * Press F8 in-game to access the Debug Menu. It's the only debug
-      key you'll ever need to remember! Includes new debug options:
+    * Press F8 in-game to access the Debug Menu; works in battles too.
+      It's the only debug key you'll ever need to remember! Includes
+      new debug options including:
       * Test Battles, to fight any formation
       * Edit backcompat bitsets
       * Email saved game (Android only)

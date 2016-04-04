@@ -258,4 +258,12 @@ TYPE VirtualKeyboardScreenState
  drag_off as bool
 END TYPE
 
+TYPE DebugMenuDef
+ menu as string vector    ' List of menu item names. NULL if we're checking key combos instead
+ selected_item as string  ' If this is set, find the menu item with this name instead of building the menu.
+ Declare Sub start_building_menu()
+ Declare Destructor()
+ Declare Function def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+END TYPE
+
 #ENDIF

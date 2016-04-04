@@ -3380,14 +3380,6 @@ END FUNCTION
 '==========================================================================================
 
 
-TYPE DebugMenuDef
- menu as string vector    ' List of menu item names. NULL if we're checking key combos instead
- selected_item as string  ' If this is set, find the menu item with this name instead of building the menu.
- DECLARE SUB start_building_menu()
- DECLARE DESTRUCTOR()
- DECLARE FUNCTION def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
-END TYPE
-
 SUB DebugMenuDef.start_building_menu()
  v_new menu
 END SUB
