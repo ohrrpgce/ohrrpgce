@@ -3385,8 +3385,7 @@ TYPE DebugMenuDef
  selected_item as string  ' If this is set, find the menu item with this name instead of building the menu.
  DECLARE SUB start_building_menu()
  DECLARE DESTRUCTOR()
- DECLARE FUNCTION define(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
- DECLARE SUB debug_functions()
+ DECLARE FUNCTION def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
 END TYPE
 
 SUB DebugMenuDef.start_building_menu()
@@ -3397,12 +3396,12 @@ DESTRUCTOR DebugMenuDef()
  v_free menu
 END DESTRUCTOR
 
-' This does one of three different things; see debug_functions() for that explanation.
+' This does one of three different things; see debug_menu_functions() for that explanation.
 ' Returns whether to execute the definition of this debug function.
 ' combining_scancode: either check for keyval(combining_scancode) > 1, or if 0, check keyval(scCtrl) = 0.
 ' scancode: check for keyval(scancode) > 1, or no key combination if 0.
 ' menuitem: name of the menu item to add to the debug menu, or "" for none.
-FUNCTION DebugMenuDef.define(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+FUNCTION DebugMenuDef.def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
  IF menu = NULL THEN
   'Only check keys
   IF combining_scancode THEN
@@ -3421,73 +3420,73 @@ FUNCTION DebugMenuDef.define(combining_scancode as integer = 0, scancode as inte
 END FUNCTION
 
 ' This sub does three different things, depending on the state of the DebugMenuDef:
-' - Checks for debug key combos. define() returns true if that key is pressed.
-' - Builds a list of available debug menu items. define() returns false.
-' - Performs an action selected in the debug menu . define() returns true if selected.
-SUB DebugMenuDef.debug_functions()
+' - Checks for debug key combos. dbg.def() returns true if that key is pressed.
+' - Builds a list of available debug menu items. dbg.def() returns false.
+' - Performs an action selected in the debug menu. dbg.def() returns true if selected.
+SUB debug_menu_functions(dbg as DebugMenuDef)
 
  ' If you don't want a debug function to appear in the debug menu, don't
  ' give it a description (menuitem) string.
  ' If you don't want a debug function to have a shortcut key, leave the key blank.
- ' To give it multiple keys, write "define() OR define()" (not ORELSE!) with at
+ ' To give it multiple keys, write "dbg.def() OR dbg.def()" (not ORELSE!) with at
  ' most one description string between them.
- ' If you want to give extra requirements, write "may_frobnicate() ANDALSO define()"
+ ' If you want to give extra requirements, write "may_frobnicate() ANDALSO dbg.def()"
  ' (not AND, unless you want it to always appear in the menu!)
 
  IF txt.showing = NO THEN
-  IF define(      , scF1, "Minimap (F1)") THEN minimap catx(0), caty(0)
+  IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap catx(0), caty(0)
 
-  IF define(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
+  IF dbg.def(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
    IF teleporttool() THEN 'CTRL + F1
     prepare_map
    END IF
   END IF
 
-  IF define(      , scF2, "Quick-save (F2)") THEN
+  IF dbg.def(      , scF2, "Quick-save (F2)") THEN
    savegame 32
    gam.showtext = "Quick-saved. Press F3 to quick-load"
    gam.showtext_ticks = 20
   END IF
 
-  IF define(      , scF3, "Quick-load (F3)") THEN
+  IF dbg.def(      , scF3, "Quick-load (F3)") THEN
    IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
   END IF
  END IF
 
- IF define(      , scF4, "Tag debugger (F4)") THEN
+ IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
   gam.debug_showtags XOR= YES
   scrwatch = 0
  END IF
 
- IF define(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN
+ IF dbg.def(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN
   slice_editor SliceTable.Root
  END IF
 
- IF define(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
+ IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
  DIM showhide as string = iif_string(gam.debug_npc_info, "Hide", "Show")
- IF define(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
+ IF dbg.def(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
 
- IF define(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
+ IF dbg.def(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
   catx(0) = (catx(0) \ 20) * 20
   caty(0) = (caty(0) \ 20) * 20
   herow(0).xgo = 0
   herow(0).ygo = 0
  END IF
 
- IF define(      , scF8) THEN debug_menu
- define(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
+ IF dbg.def(      , scF8) THEN debug_menu
+ dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
- IF define(      , scF10) THEN
+ IF dbg.def(      , scF10) THEN
   scrwatch = loopvar(scrwatch, 0, 2, 1)
   gam.debug_showtags = NO
  END IF
- IF define(      ,      , "Script debugger (F10)") THEN
+ IF dbg.def(      ,      , "Script debugger (F10)") THEN
   scrwatch = 2  'Go straight in instead of showing the memory usage bars
   gam.debug_showtags = NO
  END IF
 
- IF define(scCtrl, scF10, "Toggle script logging (Ctrl-F10)") THEN
+ IF dbg.def(scCtrl, scF10, "Toggle script logging (Ctrl-F10)") THEN
   IF gam.script_log.enabled THEN
    gam.script_log.enabled = NO
    gam.showtext = "Script logging disabled."
@@ -3498,20 +3497,20 @@ SUB DebugMenuDef.debug_functions()
   gam.showtext_ticks = 20
  END IF
 
- IF define(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES
+ IF dbg.def(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES
 
  'Screenshotting with F12 is handled in allmodex
- IF define( , , "Screenshot (F12)") THEN screenshot
+ IF dbg.def( , , "Screenshot (F12)") THEN screenshot
 
- IF gam.debug_showtags = NO OR menu <> NULL THEN  'Always accessible in debug menu
-  IF define(scCtrl, scPlus) OR _
-     define(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
+ IF gam.debug_showtags = NO OR dbg.menu <> NULL THEN  'Always accessible in debug menu
+  IF dbg.def(scCtrl, scPlus) OR _
+     dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
    speedcontrol = large(speedcontrol - 1, 10.)
    gam.showtext = speedcontrol & "ms/frame"
    gam.showtext_ticks = 60
   END IF
-  IF define(scCtrl, scMinus) OR _
-     define(scCtrl, scNumpadMinus, "Decrease tick rate (Ctrl -)") THEN
+  IF dbg.def(scCtrl, scMinus) OR _
+     dbg.def(scCtrl, scNumpadMinus, "Decrease tick rate (Ctrl -)") THEN
    speedcontrol = small(speedcontrol + 1, 160.)
    gam.showtext = speedcontrol & "ms/frame"
    gam.showtext_ticks = 60
@@ -3519,40 +3518,40 @@ SUB DebugMenuDef.debug_functions()
  END IF
 
  'This is implemented in allmodex, can't provide this as a menu item, but document it anyway.
- define( , , "[Hold down to speed up:] (Shift+Tab)")
+ dbg.def( , , "[Hold down to speed up:] (Shift+Tab)")
 
  'Ctrl+~ implemented in allmodex
- IF define( , , "Show frames-per-second (Ctrl ~)") THEN showfps XOR= YES
+ IF dbg.def( , , "Show frames-per-second (Ctrl ~)") THEN showfps XOR= YES
 
- IF define( , , "List slices to g_debug.txt") THEN
+ IF dbg.def( , , "List slices to g_debug.txt") THEN
   debug "----------------Slice Tree Dump---------------"
   SliceDebugDumpTree SliceTable.Root
   notification "Dumped entire slice tree to g_debug.txt"
  END IF
 
- IF define( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
- IF define( , , "Show/test battle formations") THEN battle_formation_testing_menu
- IF define( , , "Manipulate gen() array") THEN patcharray gen(), "gen"
- IF define( , , "Manipulate gmap() array") THEN patcharray gmap(), "gmap"
- 'IF define( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+ IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
+ IF dbg.def( , , "Show/test battle formations") THEN battle_formation_testing_menu
+ IF dbg.def( , , "Manipulate gen() array") THEN patcharray gen(), "gen"
+ IF dbg.def( , , "Manipulate gmap() array") THEN patcharray gmap(), "gmap"
+ 'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  #IFDEF __FB_ANDROID__
-  IF define( , , "Email saved game") THEN
+  IF dbg.def( , , "Email saved game") THEN
    savegame 33
    email_save_to_developer 33
   END IF
  #ENDIF
 
  IF gen(genCurrentDebugMode) = 0 THEN
-  IF define( , , "Switch to debug mode (show errors)") THEN gen(genCurrentDebugMode) = 1
+  IF dbg.def( , , "Switch to debug mode (show errors)") THEN gen(genCurrentDebugMode) = 1
  ELSE
-  IF define( , , "Switch to release mode (hide errors)") THEN gen(genCurrentDebugMode) = 0
+  IF dbg.def( , , "Switch to release mode (hide errors)") THEN gen(genCurrentDebugMode) = 0
  END IF
 END SUB
 
 ' Check for debug key combos.
 SUB check_debug_keys()
  DIM dbg as DebugMenuDef
- dbg.debug_functions()
+ debug_menu_functions(dbg)
 END SUB
 
 ' Show a menu of debug functions.
@@ -3560,7 +3559,7 @@ SUB debug_menu()
  ' Build
  DIM dbg as DebugMenuDef
  dbg.start_building_menu()
- dbg.debug_functions()
+ debug_menu_functions(dbg)
  DIM menu() as string
  vector_to_array menu(), dbg.menu
 
@@ -3573,7 +3572,7 @@ SUB debug_menu()
  ' Enact
  default = result
  dbg.selected_item = menu(result)
- dbg.debug_functions()
+ debug_menu_functions(dbg)
 END SUB
 
 SUB battle_formation_testing_menu()
