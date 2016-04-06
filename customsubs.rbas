@@ -2403,7 +2403,9 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  WITH state
   .pt = 0
   .last = scriptmax
-  .size = 22
+  .autosize = YES
+  .autosize_ignore_lines = 2
+  .spacing = 8
  END WITH
  IF firstscript = 2 THEN
   state.pt = 1
