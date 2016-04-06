@@ -1519,7 +1519,8 @@ SUB item_editor
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
- state.size = 24
+ state.autosize = YES
+ state.spacing = 8
  state.first = -1
  state.top = -1
  state.last = gen(genMaxItem) + 1
