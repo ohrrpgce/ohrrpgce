@@ -824,7 +824,8 @@ SUB textbox_conditionals(byref box as TextBox)
  state.pt = 0
  state.first = -1
  state.last = 22
- state.size = 21
+ state.autosize = YES
+ state.spacing = 9
 
  DIM grey(-1 TO 22) as integer
  'This array tells which rows in the conditional editor are grey
@@ -918,6 +919,7 @@ SUB textbox_conditionals(byref box as TextBox)
 
   clearpage dpage
   FOR i as integer = state.top TO state.top + state.size
+   IF i > state.last THEN continue for
    textcolor uilook(uiMenuItem), 0
    IF grey(i) = YES THEN
     c = uilook(uiSelectedDisabled)
