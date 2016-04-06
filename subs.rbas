@@ -1870,7 +1870,6 @@ DIM boxpreview(st.num_npc_defs - 1) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
-state.size = 7
 
 '--If there's room for more, add "Add new NPC" option to end
 state.last = st.num_npc_defs - 1
@@ -1883,6 +1882,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
+ state.size = vpages(dpage)->h \ 25 - 1
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
@@ -1940,7 +1940,7 @@ DO
  END IF
 
  clearpage dpage
- FOR i as integer = state.top TO state.top + 7
+ FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
   IF state.pt = i THEN edgebox 0, (i - state.top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
