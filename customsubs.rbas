@@ -3020,8 +3020,6 @@ SUB edit_global_text_strings()
  DIM menuopts as MenuOptions
  DIM menu as GlobalTextStringsMenu
  DIM rect as RectType
- rect.wide = 320
- rect.high = 192
 
  '--load current names
 
@@ -3196,11 +3194,15 @@ SUB edit_global_text_strings()
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command
 
- state.top = -1
- state.pt = -1
- state.first = -1
- state.last = menu.curitem - 1
- state.size = 21
+ WITH state
+  .top = -1
+  .pt = -1
+  .first = -1
+  .last = menu.curitem - 1
+  .spacing = 8
+  .autosize = YES
+  .autosize_ignore_lines = 3
+ END WITH
  setkeys YES
  DO
   setwait 55
@@ -3239,14 +3241,16 @@ SUB edit_global_text_strings()
   'they both toggle state.tog. So work around that
   state.tog XOR= 1
   standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
+  rect.wide = vpages(dpage)->w
+  rect.high = vpages(dpage)->h - 8
   draw_scrollbar state, rect, , dpage
-  edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
+  edgeprint "CTRL+S Search", 0, vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
-   edgeprint "Press F1 for help about this string", 0, 181, uilook(uiDisabledItem), dpage
+   edgeprint "Press F1 for help about this string", 0, vpages(dpage)->h - 20, uilook(uiDisabledItem), dpage
   END IF
   IF menu.index(state.pt) >= 0 THEN
-   edgeboxstyle 160 - (menu.maxlen(state.pt) * 4), 191, 8 * menu.maxlen(state.pt) + 4, 8, 0, dpage, transOpaque, YES
-   edgeprint menu.text(state.pt), 162 - (menu.maxlen(state.pt) * 4), 191, uilook(uiText), dpage
+   edgeboxstyle vpages(dpage)->w / 2 - (menu.maxlen(state.pt) * 4), vpages(dpage)->h - 10, 8 * menu.maxlen(state.pt) + 4, 8, 0, dpage, transOpaque, YES
+   edgeprint menu.text(state.pt), vpages(dpage)->w / 2 + 2 - (menu.maxlen(state.pt) * 4), vpages(dpage)->h - 10, uilook(uiText), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
