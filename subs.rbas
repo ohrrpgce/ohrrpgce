@@ -514,7 +514,8 @@ menulimits(EnMenuAtkBequest) = EnLimAtk
 DIM workmenu(92) as integer
 DIM dispmenu(92) as string
 DIM state as MenuState
-state.size = 24
+state.autosize = YES
+state.spacing = 8
 state.need_update = YES
 
 DIM mainMenu(9) as integer
