@@ -29,6 +29,8 @@ DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
+DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
+
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
 DECLARE SUB add_undo_step(st as MapEditState, byval x as integer, byval y as integer, byval oldvalue as integer, byval mapid as integer)
@@ -368,6 +370,13 @@ END FUNCTION
 '                               Main SUB (toplevel menu)
 '==========================================================================================
 
+FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
+ DIM num as integer = 0
+ FOR i as integer = 0 to UBOUND(st.npc_inst)
+  IF ABS(st.npc_inst(i).id) - 1 = id THEN num += 1
+ NEXT i
+ RETURN num
+END FUNCTION
 
 SUB mapeditor (byval mapnum as integer)
 STATIC remember_menu_pt as integer = 0
@@ -1633,6 +1642,7 @@ DO
   textcolor uilook(uiSelectedItem + tog), 0
   printstr STR(st.cur_npc), (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
   edgeprint npc_preview_text(st.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
+  edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of NPC " & st.cur_npc & " on this map", 0, 10, uilook(uiText), dpage
  END IF
  
  textcolor uilook(uiSelectedItem + tog), 0 
