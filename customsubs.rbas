@@ -106,7 +106,9 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  tagsign = SGN(starttag)
  IF tagsign = 0 THEN tagsign = 1
 
- state.size = 23
+ state.autosize = YES
+ state.autosize_ignore_lines = 1
+ state.spacing = 8
  state.last = gen(genMaxTagname)
 
  state.pt = 0
@@ -219,20 +221,20 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    textcolor uilook(uiDisabledItem), 0
    tmpstr = "Alt:Tag #"
   END IF
-  printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
+  printstr tmpstr, vpages(dpage)->w - LEN(tmpstr) * 8, 0, dpage
   
   IF NOT int_browsing THEN
    tmpstr = "CTRL+F Search"
-   printstr tmpstr, 320 - LEN(tmpstr) * 8, 10, dpage
+   printstr tmpstr, vpages(dpage)->w - LEN(tmpstr) * 8, 10, dpage
    IF LEN(searchstring) > 0 THEN
     tmpstr = "F3 Again"
-    printstr tmpstr, 320 - LEN(tmpstr) * 8, 20, dpage
+    printstr tmpstr, vpages(dpage)->w - LEN(tmpstr) * 8, 20, dpage
    END IF
   END IF
 
   IF tag_is_autoset(state.pt + 1) THEN
    textcolor uilook(uiDisabledItem), 0
-   printstr "An auto-set tag. Press TAB for details", 0, 192, dpage
+   printstr "An auto-set tag. Press TAB for details", 0, vpages(dpage)->h - 8, dpage
   END IF
 
   SWAP vpage, dpage
