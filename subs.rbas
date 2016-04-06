@@ -3269,7 +3269,8 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  DIM selectst as SelectTypeState
  DIM st as MenuState
  st.last = UBOUND(menu)
- st.size = 24
+ st.autosize = YES
+ st.spacing = 8
  st.need_update = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -3307,6 +3308,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
   clearpage vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, st
+  draw_fullscreen_scrollbar st, , vpage
   standardmenu menu_display(), st, 0, 0, vpage
   setvispage vpage
   dowait
