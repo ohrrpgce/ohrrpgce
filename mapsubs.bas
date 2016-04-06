@@ -1632,6 +1632,7 @@ DO
   END WITH
   textcolor uilook(uiSelectedItem + tog), 0
   printstr STR(st.cur_npc), (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
+  edgeprint npc_preview_text(st.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
  END IF
  
  textcolor uilook(uiSelectedItem + tog), 0 

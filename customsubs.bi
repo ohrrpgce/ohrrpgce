@@ -109,4 +109,7 @@ DECLARE SUB edit_savegame_options ()
 
 DECLARE SUB resolution_menu (secret_options as bool)
 
+DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
+
+
 #endif
