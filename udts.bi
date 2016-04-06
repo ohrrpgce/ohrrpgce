@@ -258,6 +258,9 @@ TYPE MenuState
   has_been_drawn as bool
   rect as RectType
   spacing as integer
+  autosize_vertical as bool = NO 'Set this to true, and usemenu will
+                                 'auto-upate the menu size to fill the
+                                 'screen vertically
 END TYPE
 
 'A set of rendering options which can be passed to standardmenu.

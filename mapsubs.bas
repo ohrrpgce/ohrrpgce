@@ -224,6 +224,8 @@ SUB map_picker ()
  DIM topmenu() as string
  DIM topmenu_display() as string
  DIM state as MenuState
+ state.spacing = 8
+ state.autosize_vertical = YES
  DIM selectst as SelectTypeState
  
  make_map_picker_menu topmenu(), state

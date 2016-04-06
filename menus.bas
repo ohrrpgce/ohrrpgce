@@ -85,6 +85,19 @@ SUB clamp_menu_state (byref state as MenuState)
  END WITH
 END SUB
 
+SUB recalc_menu_size (byref state as MenuState, byval ignore_pixels as integer = 0)
+ 'Run this once per frame for a menu that should fill the whole screen vertically
+ 'Does not work unless .spacing is set correctly
+ 'The optional ignore_pixels argument is for when the the menu should not fill the entire vertical space
+ WITH state
+  IF .spacing = 0 THEN
+   debuginfo "recalc_menu_size: Can't calculate unless .spacing has been set"
+   EXIT SUB
+  END IF
+  .size = vpages(dpage)->h \ .spacing - 1
+ END WITH
+END SUB
+
 'Simple... and yet, more options than a regular menu item
 'Can also insert instead of appending... bad name
 SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
@@ -123,6 +136,10 @@ END FUNCTION
 
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
+  IF .autosize_vertical THEN
+   recalc_menu_size state
+  END IF
+ 
   DIM oldptr as integer = .pt
   DIM oldtop as integer = .top
   
@@ -176,6 +193,9 @@ END FUNCTION
 'menu's typetable tells the size in bytes of each menu item
 FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
+  IF .autosize_vertical THEN
+   recalc_menu_size state
+  END IF
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN NO
 
@@ -241,6 +261,9 @@ END FUNCTION
 'a version for menus with unselectable items, skip items for which selectable(i) = 0
 FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
+  IF .autosize_vertical THEN
+   recalc_menu_size state
+  END IF
   '.pt = -1 when the menu has no selectable items
   IF .pt = -1 THEN RETURN NO
 
@@ -308,6 +331,9 @@ END FUNCTION
 'Returns true when view changed.
 FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
+  IF .autosize_vertical THEN
+   recalc_menu_size state
+  END IF
   DIM oldtop as integer = .top
   DIM lasttop as integer = large(.first, .last - .size)
   IF keyval(deckey) > 1 THEN .top = loopvar(.top, .first, lasttop, -1)

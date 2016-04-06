@@ -23,6 +23,7 @@ DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, 
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB recalc_menu_size (byref state as MenuState, byval ignore_pixels as integer = 0)
 
 '' Selection by typing
 DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
