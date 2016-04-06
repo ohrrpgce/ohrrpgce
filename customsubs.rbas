@@ -4401,6 +4401,9 @@ SUB edit_platform_options ()
  DIM menu as MenuDef
  
  DIM st as MenuState
+ st.autosize = YES
+ st.autosize_ignore_lines = 1
+ st.spacing = 10
  st.active = YES
  st.need_update = YES
  
@@ -4475,6 +4478,12 @@ SUB edit_platform_options ()
   IF keyval(scF1) > 1 THEN show_help "general_platform_options"
   IF keyval(scEsc) > 1 THEN EXIT DO
 
+  WITH menu
+   .offset.x = vpages(dpage)->w / 2 * -1
+   .offset.y = vpages(dpage)->h / 2 * -1
+   .min_chars = vpages(dpage)->w / 8
+  END WITH
+  
   IF st.need_update THEN
    DO
     '--normally a single-pass loop. Only repeats if something
@@ -4489,8 +4498,6 @@ SUB edit_platform_options ()
      .align = -1
      .anchor.x = -1
      .anchor.y = -1
-     .offset.x = -160
-     .offset.y = -100
      .bordersize = -8
      .min_chars = 40
     END WITH
@@ -4729,7 +4736,7 @@ SUB edit_platform_options ()
    
   clearpage dpage
   IF t = platformoptBUTTON THEN
-   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, 190, uilook(uiSelectedDisabled), dpage
+   edgeprint "OUYA Controller: " & ouya_buttons(sub_t), 0, vpages(dpage)->h - 10, uilook(uiSelectedDisabled), dpage
   END IF
   
   draw_menu menu, st, dpage
