@@ -775,13 +775,11 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = add_menu(retvals(0), (retvals(1) <> 0))
   END IF
  CASE 275'--read menu int
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    scriptret = read_menu_int(menus(menuslot), retvals(1))
   END IF
  CASE 276'--write menu int
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    write_menu_int(menus(menuslot), retvals(1), retvals(2))
    mstates(menuslot).need_update = YES
   END IF
@@ -804,8 +802,7 @@ SUB sfunctions(byval cmdid as integer)
   scriptret = add_menu(-1)
   menus(topmenu).allow_gameplay = YES
  CASE 280'--close menu
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    remove_menu menuslot, NO
   END IF
  CASE 281'--top menu
@@ -813,13 +810,11 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = menus(topmenu).handle
   END IF
  CASE 282'--bring menu forward
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    bring_menu_forward menuslot
   END IF
  CASE 283'--add menu item
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    append_menu_item(menus(menuslot), "")
    scriptret = assign_menu_item_handle(*menus(menuslot).last)
    mstates(menuslot).need_update = YES
@@ -872,24 +867,21 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = menus(0).handle
   END IF
  CASE 290'--previous menu
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    menuslot = menuslot - 1
    IF menuslot >= 0 THEN
     scriptret = menus(menuslot).handle
    END IF
   END IF
  CASE 291'--next menu
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    menuslot = menuslot + 1
    IF menuslot <= topmenu THEN
     scriptret = menus(menuslot).handle
    END IF
   END IF
  CASE 292'--menu item by slot
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    scriptret = menu_item_handle_by_slot(menuslot, retvals(1), retvals(2)<>0)
   END IF
  CASE 293'--previous menu item
@@ -908,8 +900,7 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = menu_item_handle_by_slot(topmenu, mstates(topmenu).pt)
    END IF
   ELSE
-   menuslot = find_menu_handle(retvals(0))
-   IF valid_menuslot(menuslot) THEN
+   IF valid_menu_handle(retvals(0), menuslot) THEN
     scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
    END IF
   END IF
@@ -925,8 +916,7 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = menus(menuslot).handle
   END IF
  CASE 298'--get menu ID
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    scriptret = menus(menuslot).record
   END IF
  CASE 299'--swap menu items
@@ -942,16 +932,17 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 300'--find menu item caption
   IF valid_plotstr(retvals(1)) THEN
-   menuslot = find_menu_handle(retvals(0))
-   DIM start_slot as integer
-   IF retvals(2) = 0 THEN
-    start_slot = 0
-   ELSE
-    start_slot = find_menu_item_handle_in_menuslot(retvals(2), menuslot) + 1
-   END IF
-   IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
-    mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(3) <> 0))
-    IF mislot >= 0 THEN scriptret = menus(menuslot).items[mislot]->handle
+   IF valid_menu_handle(retvals(0), menuslot) THEN
+    DIM start_slot as integer
+    IF retvals(2) = 0 THEN
+     start_slot = 0
+    ELSE
+     start_slot = find_menu_item_handle_in_menuslot(retvals(2), menuslot) + 1
+    END IF
+    IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
+     mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(3) <> 0))
+     IF mislot >= 0 THEN scriptret = menus(menuslot).items[mislot]->handle
+    END IF
    END IF
   END IF
  CASE 301'--find menu ID
@@ -1018,8 +1009,7 @@ SUB sfunctions(byval cmdid as integer)
    IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
   END IF
  CASE 517'--menu item by true slot
-  menuslot = find_menu_handle(retvals(0))
-  IF valid_menuslot(menuslot) THEN
+  IF valid_menu_handle(retvals(0), menuslot) THEN
    DIM menuitem as MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
    IF menuitem THEN
     scriptret = menuitem->handle
@@ -4651,6 +4641,7 @@ FUNCTION find_menu_id (byval id as integer) as integer
  RETURN -1 ' Not found
 END FUNCTION
 
+'NOTE: you should nearly always use valid_menu_handle instead, which throws an error.
 FUNCTION find_menu_handle (byval handle as integer) as integer
  DIM i as integer
  FOR i = 0 TO topmenu
@@ -4659,6 +4650,17 @@ FUNCTION find_menu_handle (byval handle as integer) as integer
  RETURN -1 ' Not found
 END FUNCTION
 
+FUNCTION valid_menu_handle (handle as integer, byref menuslot as integer) as bool
+ menuslot = find_menu_handle(handle)
+ IF menuslot = -1 THEN
+  scripterr "Invalid menu handle " & handle
+  RETURN NO
+ ELSE
+  RETURN YES
+ END IF
+END FUNCTION
+
+'Return menu item slot with a certain handle in a certain menu slot, or -1
 FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
  DIM mislot as integer
  WITH menus(menuslot)

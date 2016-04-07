@@ -45,6 +45,7 @@ DECLARE FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer
+DECLARE FUNCTION valid_menu_handle (handle as integer, byref menuslot as integer) as bool
 DECLARE FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
 DECLARE FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
 DECLARE FUNCTION assign_menu_item_handle (byref mi as menudefitem) as integer
