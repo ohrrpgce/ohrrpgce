@@ -115,23 +115,30 @@ SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as stri
  END WITH
 END SUB
 
-FUNCTION mouse_on_menustate (state as MenuState) as integer
- 'If the mouse overlaps a MenuState, return the index of the menu item it is touching.
- 'Return a value < state.first if the mouse is not on any menu item.
+FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer
+ 'If the on-screen position overlaps a MenuState, return the index of the menu item it is touching.
+ 'Return a value < state.first if it's not on any menu item.
  WITH state
   IF .has_been_drawn THEN
-   DIM mouse as MouseInfo
-   mouse = readmouse()
-   IF mouse.movedtick ORELSE (mouse.clickstick AND mouseleft) THEN
-    DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, mouse.x, mouse.y, .spacing)
-    mpt += .top
-    IF mpt >= .first ANDALSO mpt <= .last THEN
-     RETURN mpt
-    END IF
+   DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, x, y, .spacing)
+   mpt += .top
+   IF mpt >= .first ANDALSO mpt <= .last THEN
+    RETURN mpt
    END IF
   END IF
   RETURN .first - 1 'Mouse is not over a menu item!
  END WITH
+END FUNCTION
+
+FUNCTION mouse_on_menustate (state as MenuState) as integer
+ 'If the mouse overlaps a MenuState, return the index of the menu item it is touching.
+ 'Return a value < state.first if the mouse is not on any menu item.
+ DIM mouse as MouseInfo
+ mouse = readmouse()
+ IF mouse.movedtick ORELSE (mouse.clickstick AND mouseleft) THEN
+  RETURN find_menu_item_at_point(state, mouse.x, mouse.y)
+ END IF
+ RETURN state.first - 1
 END FUNCTION
 
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool

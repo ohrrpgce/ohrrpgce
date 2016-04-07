@@ -3306,6 +3306,7 @@ end</example>
 		<reference ref="sliceatpixel" />
 		<reference ref="slicecollidepoint" />
 		<reference ref="npcatpixel" />
+		<reference ref="menuitematpixel" />
 		</section>		<!-- Helpful Related Commands-->
 
 		</section>		<!-- Mouse Input-->
@@ -3753,7 +3754,22 @@ while(mi) do, begin
  mi := find menu item(menu, 0, mi)
 end</example>
 		</command>
-
+		<command id="menuitematpixel">
+			<canon>menu item at pixel(x, y)</canon>
+			<shortname>menu item at pixel</shortname>
+			<description>
+				Given a position on the screen (for example <p>menu item at pixel</p>(<ref>mousepixelx</ref>, <ref>mousepixely</ref>)),
+				returns the handle for the menu item at that position, or <p>false</p> if none.
+				If multiple menus overlap at that location the top-most one is returned.
+				You can find the menu that the menu item belongs to with <ref>parentmenu</ref>.
+				<danger>
+					This command is unfinished: it's broken when the menu has scrollbars.
+				</danger>
+			</description>
+			<seealso>
+				<ref>selectedmenuitem</ref>
+			</seealso>
+		</command>
 		<section title="Menu Item Data">
 
 		<command id="getmenuitemcaption">
@@ -6498,6 +6514,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>findcollidingslice</ref>
+				<ref>menuitematpixel</ref>
 			</seealso>
 		</command>
 		<command id="findcollidingslice">

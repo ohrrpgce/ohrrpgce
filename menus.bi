@@ -25,6 +25,9 @@ DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded(
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB recalc_menu_size (byref state as MenuState)
 
+'' Mouse support
+DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer
+
 '' Selection by typing
 DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
 DECLARE SUB select_clear (selectst as SelectTypeState)

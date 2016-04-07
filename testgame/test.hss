@@ -37,8 +37,15 @@ global variable (1024,highval)
 global variable (5, mylayer)
 global variable (6, tileset)
 
-# strings 0-9 are used. 31-32 is for temporaries
+# strings 0-10 are used. 31-32 is for temporaries
 define constant (9, zone watch string)
+define constant (10, mouse string)
+
+# Used timers:
+define constant(0, timer: mouse handler)  # menu click handler
+# 9: in "dead time"
+# 199: in "killer timer"
+
 
 script,makesuseofretvals,begin
   show value (sum of some stuff)
@@ -121,7 +128,18 @@ end
 
 #-----------------------------------------------------------------------
 
+# new game script
+plotscript, new game, begin
+  init mouse
+  show mouse cursor
+  menu click handler  # installs timer
+end
+
+# load game script
 script,loader,begin
+  init mouse
+  show mouse cursor
+  menu click handler  # installs timer
   suspend NPCs
   show value(random(-32000,32000))           
   show text box (13)
@@ -130,7 +148,7 @@ script,loader,begin
   get hero name (1,find hero(hero by rank(leader)))
   string color (1,12,240)
   string style (1,string:flat)
-  center string at (1,160,40)
+  center string at (1,160,0)
   clear string (2)
   append number(2,string length(1))
   show string at (2,0,0)
@@ -431,6 +449,33 @@ end
 script, reference test, begin
   run script by ID(@empty onkey) # empty onkey
   show value(read global(@highval)) # highval
+end
+
+#-----------------------------------------------------------------------
+
+# Lets the player select and click on menu items, and select the current menu
+plotscript, menu click handler, begin
+  variable(mitem, menu)
+  mitem := menu item at pixel(mouse pixel x, mouse pixel y)
+  if (mitem) then (menu := parent menu(mitem))
+  if (top menu) then (
+    string sprintf(10, $10="topmenu:%d selected:%d menu:%d item:%d", top menu, selected menu item, menu, mitem)
+    showstringat(10, 0, 0)
+  ) else (
+    hide string(10)
+  )
+  if (mitem) then (
+    select menu item(mitem)
+    if (mouse click(leftbutton)) then (
+      if (menu == top menu) then (
+        # Clicked on the current menu
+        use menu item(mitem)
+      ) else (
+        bring menu forward(menu)
+      )
+    )
+  )
+  set timer (timer: mouse handler, 0, 1, @menu click handler)
 end
 
 #-----------------------------------------------------------------------
