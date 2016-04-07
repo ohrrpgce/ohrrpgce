@@ -119,6 +119,7 @@ TYPE GameState
   want as ScriptWantSignals
   pad as VirtualGamePadState
   user_toggled_fullscreen as bool    'User changed the default for this game
+  non_elemental_elements(63) as bool 'Loaded by load_non_elemental_elements()
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

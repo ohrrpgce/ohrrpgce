@@ -626,6 +626,7 @@ gam.want.battle = 0
 gam.want.teleport = NO
 gam.want.usenpc = 0
 gam.want.loadgame = 0
+load_non_elemental_elements gam.non_elemental_elements()
 
 txt.showing = NO
 txt.fully_shown = NO

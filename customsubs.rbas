@@ -5686,3 +5686,53 @@ FUNCTION npc_preview_text(byref npc as NPCType) as string
  IF npc.vehicle > 0 THEN RETURN load_vehicle_name(npc.vehicle - 1) & " [VEHICLE]"
 END FUNCTION
 
+SUB mark_non_elemental_elementals ()
+ DIM g as NodePtr = get_general_reld()
+ DIM elementals as NodePtr = GetOrCreateChild(g, "elementals")
+ DIM non_elemental as NodePtr
+ DIM eid as integer
+ DIM bits(3) as integer
+
+ DIM names() as string
+ getelementnames names()
+ FOR i as integer = 0 to UBOUND(names)
+  names(i) = "Treat " & names(i) & " attacks as non-elemental"
+ NEXT i
+ 
+ READNODE elementals
+  WITHNODE elementals."element" as e
+   eid = GetInteger(e)
+   IF eid >= 0 ANDALSO eid <= 63 THEN
+    non_elemental = GetOrCreateChild(e, "non_elemental")
+    setbit bits(), 0, eid, GetInteger(non_elemental)
+   END IF
+  END WITHNODE
+ END READNODE
+
+ editbitset bits(), 0, gen(genNumElements) - 1, names(), "non_elemental_elementals"
+ 
+ DIM saved(63) as bool
+
+ READNODE elementals
+  WITHNODE elementals."element" as e
+   eid = GetInteger(e)
+   IF eid >= 0 ANDALSO eid <= 63 THEN
+    non_elemental = GetOrCreateChild(e, "non_elemental")
+    SetContent non_elemental, IIF(xreadbit(bits(), eid), 1, 0)
+    saved(eid) = YES
+   END IF
+  END WITHNODE
+ END READNODE
+
+ DIM e as NodePtr 
+ FOR i as integer = 0 TO 63
+  IF NOT saved(i) THEN
+   e = AppendChildNode(elementals, "element", i)
+   SetChildNode(e, "non_elemental", IIF(xreadbit(bits(), i), 1, 0))
+  END IF
+ NEXT i
+
+ write_general_reld() 
+END SUB
+
+

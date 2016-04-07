@@ -2792,7 +2792,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   bat.atk.elemental(i) = NO
   IF attack.elemental_damage(i) = YES THEN
    bat.atk.elemental(i) = YES
-   bat.atk.non_elemental = NO
+   IF NOT gam.non_elemental_elements(i) THEN
+    bat.atk.non_elemental = NO
+   END IF
   END IF
  NEXT i
  

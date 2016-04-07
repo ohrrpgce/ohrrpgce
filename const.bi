@@ -253,8 +253,9 @@ CONST fixUNUSED23 = 23           'Don't use this bit for anything. It was wasted
 CONST fixWipeGEN = 24            'Zero out gen(199) to gen(499)
 CONST fixSetOldAttackPosBit = 25 'Turn on "Old attack positioning at bottom-left of target" backcompat bit
 CONST fixWrapCroppedMapsBit = 26 'Checked whether to turn on "Wrap map layers over edge of Crop maps" backcompat bit
+CONST fixInitNonElementalSpawning = 27 'Initialize non_elemental_for_spawning data in general.reld
 
-CONST sizefixbits = 26 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 27 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom

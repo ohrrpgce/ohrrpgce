@@ -215,4 +215,6 @@ DECLARE FUNCTION default_button_name_for_platform(platform_key as string, byval 
 
 DECLARE SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePtr)
 
+DECLARE SUB load_non_elemental_elements (elem() as bool)
+
 #ENDIF

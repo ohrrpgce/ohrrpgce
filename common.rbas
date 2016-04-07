@@ -3923,6 +3923,25 @@ IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
  NEXT
 END IF
 
+'Initialize the non_elemental_for_spawning data
+IF getfixbit(fixInitNonElementalSpawning) = 0 THEN
+ upgrade_message "Initializing elementals for non-elemental spawning..."
+ setfixbit(fixInitNonElementalSpawning, 1)
+ DIM elementals_node as NodePtr = GetOrCreateChild(general_reld, "elementals")
+ DIM element_node as NodePtr
+ DIM non_elemental_node as NodePtr
+ DIM non_elemental_default as integer
+ FOR i as integer = 0 to 63
+  non_elemental_default = 0
+  IF original_genVersion <= 14 ANDALSO (i >= 8 ANDALSO i <= 15) THEN
+   'This is a type-killer elemental in a game that is being upgraded from RPG version 14 or older
+   non_elemental_default = 1
+  END IF
+  element_node = AppendChildNode(elementals_node, "element", i)
+  non_elemental_node = AppendChildNode(element_node, "non_elemental", non_elemental_default)
+ NEXT i
+END IF
+
 'Update record-count for all fixed-length lumps.
 IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
 FOR i as integer = 0 TO 8
@@ -3975,6 +3994,8 @@ gen(genErrorLevel) = serrIgnore
 
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
+'Save changes to the general.reld lump too!
+write_general_reld()
 
 'wow! this is quite a big and ugly routine!
 END SUB

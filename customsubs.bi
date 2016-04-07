@@ -111,5 +111,7 @@ DECLARE SUB resolution_menu (secret_options as bool)
 
 DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
 
+DECLARE SUB mark_non_elemental_elementals ()
+
 
 #endif

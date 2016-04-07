@@ -4242,3 +4242,20 @@ FUNCTION last_hero_formation_id() as integer
  RETURN result
  
 END FUNCTION
+
+SUB load_non_elemental_elements (elem() as bool)
+ flusharray elem(), NO
+ DIM g as NodePtr = get_general_reld()
+ DIM elementals as NodePtr = GetOrCreateChild(g, "elementals")
+ READNODE elementals
+  WITHNODE elementals."element" as e
+   DIM eid as integer = GetInteger(e)
+   IF eid >= 0 ANDALSO eid <= 63 THEN
+    DIM non_elemental as NodePtr
+    non_elemental = GetOrCreateChild(e, "non_elemental")
+    IF GetInteger(non_elemental) THEN elem(eid) = YES
+   END IF
+  END WITHNODE
+ END READNODE
+END SUB
+
