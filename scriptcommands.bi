@@ -46,8 +46,8 @@ DECLARE FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer
 DECLARE FUNCTION valid_menu_handle (handle as integer, byref menuslot as integer) as bool
-DECLARE FUNCTION find_menu_item_handle_in_menuslot (byval handle as integer, byval menuslot as integer) as integer
 DECLARE FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_menuslot as integer) as integer
+DECLARE FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer) as bool
 DECLARE FUNCTION assign_menu_item_handle (byref mi as menudefitem) as integer
 DECLARE FUNCTION assign_menu_handles (byref menu as menudef) as integer
 DECLARE FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=yes) as integer
@@ -59,8 +59,6 @@ DECLARE FUNCTION valid_hero_caterpillar_rank(who as integer) as integer
 DECLARE FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
 DECLARE FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
 DECLARE FUNCTION valid_stat(byval statid as integer) as integer
-DECLARE FUNCTION valid_menuslot(byval menuslot as integer) as integer
-DECLARE FUNCTION valid_menuslot_and_mislot(byval menuslot as integer, byval mislot as integer) as integer
 DECLARE FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer
 DECLARE FUNCTION valid_formation(byval form as integer) as integer
 DECLARE FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as integer
