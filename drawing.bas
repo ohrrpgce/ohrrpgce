@@ -1885,7 +1885,13 @@ IF ts.canpaste THEN
 END IF
 END SUB
 
-SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+'xw, yw is the size of a single frame.
+'sets is the global holding maximum spriteset index, e.g. gen(genMaxNPCPic)
+'perset is frames per spriteset.
+'soff is the number of lines on a videopage that it takes to store a spriteset.
+'info() is an array of names for each frame
+'fileset is the .PT# number.
+SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
 'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
@@ -1925,7 +1931,7 @@ WITH ss
  .previewpos.y = 119
 END WITH
 
-DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4) as integer
+DIM placer(2 + ss.setsize \ 2) as integer
 DIM workpal(8 * (ss.at_a_time + 1)) as integer
 REDIM poffset(large(sets, ss.at_a_time)) as integer
 DIM as integer do_paste = 0

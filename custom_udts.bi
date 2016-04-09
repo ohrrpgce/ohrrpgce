@@ -36,15 +36,15 @@ END TYPE
 TYPE SpriteEditState
   '--sprite set state
   spritefile as string
-  fileset as integer
+  fileset as SpriteType '.PT# number
   framenum as integer
   wide as integer
   high as integer
-  perset as integer
-  size as integer ' In bytes, two pixels per byte
-  setsize as integer ' In bytes, two pixels per byte
+  perset as integer    'Number of frames per spriteset
+  size as integer      'Size of a single frame in bytes, two pixels per byte
+  setsize as integer   'Size of spriteset in bytes, two pixels per byte
   at_a_time as integer 'Number of sprite sets that fit on the browsing screen
-  fullset as integer
+  fullset as bool      'Whether editing full spritesets rather than frames
  
   '--sprite editor state
   zoom as integer
