@@ -130,10 +130,6 @@ dim shared windowsize as XYPair = (320, 200)
 dim shared minwinsize as XYPair
 dim shared resizing_enabled as bool = NO  'keeps track of backend state
 
-'storeset/loadset stuff
-dim shared bptr as integer ptr	' buffer
-dim shared bsize as integer  'record size, in BYTES
-
 dim shared bordertile as integer
 
 dim shared anim1 as integer
@@ -2703,6 +2699,8 @@ end sub
 '==========================================================================================
 '                                     Old allmodex IO
 '==========================================================================================
+' These are specifically for reading/writing files. The other obsolete
+' graphics stuff is above.
 
 'read from screen to file
 sub store_from_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
@@ -2727,40 +2725,6 @@ sub store_from_page (filename as string, record as integer, y as integer, numbyt
 	fput(fh, , sptr, numbytes)
 
 	close #fh
-end sub
-
-sub storeset (fil as string, i as integer, ignored as integer)
-' i = index
-	dim starttime as double = timer
-	dim f as integer
-	dim bi as integer
-	dim ub as ubyte
-	dim toggle as integer
-
-	if NOT fileiswriteable(fil) then exit sub
-	f = freefile
-	open fil for binary access read write as #f
-
-	seek #f, (i*bsize) + 1
-	'this is a horrible hack to get 2 bytes per integer, even though
-	'they are 4 bytes long in FB
-	bi = 0
-	toggle = 0
-	'debug "buffer size to read = " + str(bsize)
-	for idx as integer = 0 to bsize - 1 ' this will be slow
-		if toggle = 0 then
-			ub = bptr[bi] and &hff
-			toggle = 1
-		else
-			ub = (bptr[bi] and &hff00) shr 8
-			toggle = 0
-			bi = bi + 1
-		end if
-		put #f, , ub
-	next
-
-	debug_if_slow(starttime, 0.1, fil)
-	close #f
 end sub
 
 sub load_to_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
@@ -2788,55 +2752,6 @@ sub load_to_page (filename as string, record as integer, y as integer, numbytes 
 	fget(fh, , sptr, numbytes)
 
 	close #fh
-end sub
-
-sub loadset (fil as string, i as integer, ignored as integer)
-' i = index, l = line (only if reading to screen buffer)
-'Obsolete, use loadrecord instead
-'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
-	dim starttime as double = timer
-	dim f as integer
-	dim idx as integer
-	dim bi as integer
-	dim ub as ubyte
-	dim toggle as integer
-	dim sptr as ubyte ptr
-
-	if NOT fileisreadable(fil) then exit sub
-	if i < 0 then debug "loadset: attempt to read index " & i & " of """ & fil & """": exit sub
-	f = freefile
-	open fil for binary access read as #f
-
-	seek #f, (i*bsize) + 1
-	'this is a horrible hack to get 2 bytes per integer, even though
-	'they are 4 bytes long in FB
-	bi = 0
-	toggle = 0
-	'debug "buffer size to read = " + str(bsize)
-	for idx = 0 to bsize - 1 ' this will be slow
-		get #f, , ub
-		if toggle = 0 then
-			bptr[bi] = ub
-			toggle = 1
-		else
-			bptr[bi] = bptr[bi] or (ub shl 8)
-			'check sign
-			if (bptr[bi] and &h8000) > 0 then
-				bptr[bi] = bptr[bi] or &hffff0000 'make -ve
-			end if
-			toggle = 0
-			bi = bi + 1
-		end if
-	next
-
-	close #f
-	debug_if_slow(starttime, 0.1, fil)
-end sub
-
-'b is in BYTES
-sub setpicstuf (buf() as integer, byval b as integer, byval p as integer)
-	bptr = @buf(0) 'doesn't really work well with FB
-	bsize = b
 end sub
 
 sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)

@@ -1988,11 +1988,8 @@ DO
   IF state.pt > sets THEN
    sets = state.pt
    '--Add a new blank sprite set
-   setpicstuf buffer(), ss.setsize, -1
-   FOR i = 0 TO ss.setsize / 2
-    buffer(i) = 0
-   NEXT i
-   storeset ss.spritefile, state.pt, 0
+   DIM zerobuf(ss.setsize \ 2 - 1) as integer
+   storerecord zerobuf(), ss.spritefile, ss.setsize \ 2, state.pt
    '-- re-size the array that stores the default palette offset
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette

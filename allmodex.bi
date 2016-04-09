@@ -129,9 +129,6 @@ DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 
 DECLARE SUB store_from_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
 DECLARE SUB load_to_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
-DECLARE SUB storeset (fil as string, i as integer, ignored as integer)
-DECLARE SUB loadset (fil as string, i as integer, ignored as integer)
-DECLARE SUB setpicstuf (buf() as integer, byval b as integer, byval p as integer)
 
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()

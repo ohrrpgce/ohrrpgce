@@ -2874,13 +2874,11 @@ END SUB
 ' Other functions for working with tile animations are in common.rbas
 
 SUB load_tile_anims (byval tileset_num as integer, tastuf() as integer)
- setpicstuf tastuf(), 80, -1
- loadset game & ".tap", tileset_num, 0
+ loadrecord tastuf(), game & ".tap", 80 \ 2, tileset_num
 END SUB
 
 SUB save_tile_anims (byval tileset_num as integer, tastuf() as integer)
- setpicstuf tastuf(), 80, -1
- storeset game & ".tap", tileset_num, 0
+ storerecord tastuf(), game & ".tap", 80 \ 2, tileset_num
 END SUB
 
 'Given a tile ID which may or may not be animated, return the tile number for the
@@ -4013,16 +4011,14 @@ SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePtr)
 
  'First find out how many stuff records this shop actually uses
  DIM shop_buf(19) as integer
- setpicstuf shop_buf(), 40, -1
- loadset game & ".sho", shop_id, 0
+ loadrecord shop_buf(),  game & ".sho", 40 \ 2, shop_id
  DIM last_stuff as integer = shop_buf(16)
 
  'Create a buffer for loading STF records.
  DIM stufbuf(dimbinsize(binSTF)) as integer
- setpicstuf stufbuf(), getbinsize(binSTF), -1
  FOR slot as integer = 0 TO last_stuff
   'Load the data for this stuff slot
-  loadset game & ".stf", shop_id * 50 + slot, 0
+  loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + slot
   
   DIM slotnode as NodePtr
   slotnode = AppendChildNode(stuff_list, "stuff_slot", slot)

@@ -2518,14 +2518,13 @@ SUB loadshopstuf (array() as integer, byval id as integer)
  DIM nw as integer = curbinsize(binSTF) \ 2 'new size in memory
  flusharray array(), nw * 50 - 1, 0
  'load shop data from STF lump
- setpicstuf buffer(), ol * 2 * 50, -1
- loadset game + ".stf", id, 0
+ loadrecord buffer(), game + ".stf", ol * 50, id
  'in case shop data has been resized, scale records to new size
- FOR i as integer = 0 TO ol - 1
-  FOR o as integer = 0 to 49
+ FOR o as integer = 0 to 49  'shop item
+  FOR i as integer = 0 TO ol - 1  'field in shop item record
    array(o * nw + i) = buffer(o * ol + i)
-  NEXT o
- NEXT i
+  NEXT i
+ NEXT o
 END SUB
 
 FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer

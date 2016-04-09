@@ -1356,16 +1356,14 @@ FUNCTION getsongname (byval num as integer, byval prefixnum as integer = 0) as s
  IF num = -1 THEN RETURN "-none-"
  s = ""
  IF prefixnum THEN s = num & " "
- setpicstuf songd(), curbinsize(binSONGDATA), -1
- loadset workingdir + SLASH + "songdata.bin", num, 0
+ loadrecord songd(), workingdir + SLASH + "songdata.bin", curbinsize(binSONGDATA) \ 2, num
  s = s & readbinstring(songd(), 0, 30)
  RETURN s
 END FUNCTION
 
 FUNCTION getsfxname (byval num as integer) as string
  DIM sfxd(dimbinsize(binSFXDATA)) as integer
- setpicstuf sfxd(), curbinsize(binSFXDATA), -1
- loadset workingdir & SLASH & "sfxdata.bin", num, 0
+ loadrecord sfxd(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, num
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
@@ -3281,7 +3279,6 @@ IF gen(genVersion) = 3 THEN
  upgrade_message "Sept 15 2000 format (4)"
  gen(genVersion) = 4
  upgrade_message "Clearing New Attack Bitsets..."
- setpicstuf buffer(), 80, -1
  FOR o as integer = 0 TO gen(genMaxAttack)
   loadoldattackdata buffer(), o
   buffer(18) = 0
@@ -3303,8 +3300,7 @@ IF gen(genVersion) = 4 THEN
  upgrade_message "March 31 2001 format (5)"
  gen(genVersion) = 5
  upgrade_message "Upgrading 16-color Palette Format..."
- DIM temppal16(8) as integer
- setpicstuf temppal16(), 16, -1
+ DIM temppal16(8 - 1) as integer
  xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
  killfile game + ".pal"
  '--find last used palette
@@ -3327,13 +3323,13 @@ IF gen(genVersion) = 4 THEN
  FOR i as integer = 2 TO 7
   temppal16(i) = 0
  NEXT i
- storeset game + ".pal", 0, 0
+ storerecord temppal16(), game + ".pal", 16 \ 2, 0
  '--convert palettes
  FOR j as integer = 0 TO last
   FOR i as integer = 0 TO 7
    temppal16(i) = buffer(j * 8 + i)
   NEXT i
-  storeset game + ".pal", 1 + j, 0
+  storerecord temppal16(), game + ".pal", 16 \ 2, 1 + j
  NEXT j
  'esperable (2003) introduced the bug where harm tiles no longer damage the
  'whole active party if the caterpillar is disabled. Fixed for alectormancy.
@@ -3347,11 +3343,10 @@ IF gen(genVersion) = 5 THEN
  'Sub version info also added
  'Clear battle formation animation data
  FOR i as integer = 0 TO gen(genMaxFormation)
-  setpicstuf buffer(), 80, -1
-  loadset game + ".for", i, 0
+  loadrecord buffer(), game + ".for", 80 \ 2, i
   buffer(34) = 0
   buffer(35) = 0
-  storeset game + ".for", i, 0
+  storerecord buffer(), game + ".for", 80 \ 2, i
  NEXT i
  gen(genVersion) = 6
 END IF
@@ -3469,10 +3464,9 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
 
  setbinsize binSONGDATA, curbinsize(binSONGDATA)
  flusharray buffer(), dimbinsize(binSONGDATA), 0
- setpicstuf buffer(), curbinsize(binSONGDATA), -1
  FOR i as integer = 0 TO gen(genMaxSong)
   writebinstring song(i), buffer(), 0, 30
-  storeset workingdir + SLASH + "songdata.bin", i, 0
+  storerecord buffer(), workingdir + SLASH + "songdata.bin", curbinsize(binSONGDATA) \ 2, i
  NEXT
  ERASE song
 END IF
@@ -4499,9 +4493,8 @@ END FUNCTION
 
 SUB save_tag_name (tagname as string, byval index as integer)
  DIM buf(20) as integer
- setpicstuf buf(), 42, -1
  writebadbinstring tagname, buf(), 0, 20
- storeset game + ".tmn", index, 0
+ storerecord buf(), game + ".tmn", 42 \ 2, index
 END SUB
 
 SUB dump_integer_array_as_hex (arraydim as string, byval start as uinteger ptr, byval _ubound as integer, byval nibbles as integer = 8)

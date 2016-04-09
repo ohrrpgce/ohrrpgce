@@ -1493,8 +1493,7 @@ st.pt = 0
 st.last = -1
 
 '--initshop
-setpicstuf storebuf(), 40, -1
-loadset game + ".sho", id, 0
+loadrecord storebuf(), game + ".sho", 40 \ 2, id
 sn = readbadbinstring(storebuf(), 0, 15, 0)
 o = 0
 FOR i as integer = 0 TO 7

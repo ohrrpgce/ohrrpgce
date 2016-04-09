@@ -254,7 +254,6 @@ end function
 
 
 function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1, context as string = "") as bool
-'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle

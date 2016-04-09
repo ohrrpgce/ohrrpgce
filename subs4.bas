@@ -740,9 +740,8 @@ END SUB
 
 SUB importsong_save_song_data(sname as string, byval snum as integer)
  DIM songbuf(dimbinsize(binSONGDATA)) as integer
- setpicstuf songbuf(), curbinsize(binSONGDATA), -1
  writebinstring sname, songbuf(), 0, 30
- storeset workingdir & SLASH & "songdata.bin", snum, 0
+ storerecord songbuf(), workingdir & SLASH & "songdata.bin", curbinsize(binSONGDATA) \ 2, snum
 END SUB
 
 SUB importsfx ()
@@ -886,9 +885,8 @@ END SUB
 SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
  freesfx snum
  DIM sfxbuf(dimbinsize(binSFXDATA)) as integer
- setpicstuf sfxbuf(), curbinsize(binSFXDATA), -1
  writebinstring sname, sfxbuf(), 0, 30
- storeset workingdir & SLASH & "sfxdata.bin", snum, 0
+ storerecord sfxbuf(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, snum
 END SUB
 
 SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)

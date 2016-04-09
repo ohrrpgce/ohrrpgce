@@ -4222,15 +4222,15 @@ SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  v_new defaults, 160
  '--load defaults from tile set defaults file
- setpicstuf buf(), 322, -1
- loadset workingdir & SLASH & "defpass.bin", tilesetnum, 0
+ loadrecord buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum
  '--enforce magic number and filesize
  IF buf(160) = 4444 THEN
   FOR i as integer = 0 TO 159
    defaults[i] = buf(i)
-  NEXT  
+  NEXT
  ELSE
   'I wonder what this old unsupported file format was?
+  debug "Unsupported default tile passability format"
  END IF
 END SUB
 
@@ -4242,8 +4242,7 @@ SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
  '--set magic number
  buf(160) = 4444
  '--write defaults into tile set defaults file
- setpicstuf buf(), 322, -1
- storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
+ storerecord buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum
 END SUB
 
 

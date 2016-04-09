@@ -835,8 +835,7 @@ SUB shopdata ()
 END SUB
 
 SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
- setpicstuf shopbuf(), 40, -1
- loadset game & ".sho", shopst.id, 0
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shopst.id
  shopst.name = readbadbinstring(shopbuf(), 0, 15)
  shopst.st.need_update = YES
 END SUB
@@ -844,8 +843,7 @@ END SUB
 SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
  shopbuf(16) = small(shopbuf(16), 49)
  writebadbinstring shopst.name, shopbuf(), 0, 15
- setpicstuf shopbuf(), 40, -1
- storeset game & ".sho", shopst.id, 0
+ storerecord shopbuf(), game & ".sho", 40 \ 2, shopst.id
 END SUB
 
 SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
@@ -1158,8 +1156,7 @@ END SUB
 
 SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
  flusharray stufbuf(), dimbinsize(binSTF), 0
- setpicstuf stufbuf(), getbinsize(binSTF), -1
- loadset game & ".stf", shop_id * 50 + stuf.thing, 0
+ loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + stuf.thing
  stuf.thingname = readbadbinstring(stufbuf(), 0, 16, 0)
  '---check for invalid data
  IF stufbuf(17) < 0 OR stufbuf(17) > 2 THEN stufbuf(17) = 0
@@ -1173,8 +1170,7 @@ END SUB
 
 SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
  writebadbinstring stuf.thingname, stufbuf(), 0, 16
- setpicstuf stufbuf(), getbinsize(binSTF), -1
- storeset game & ".stf", shop_id * 50 + stuf.thing, 0
+ storerecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + stuf.thing
 END SUB
 
 
