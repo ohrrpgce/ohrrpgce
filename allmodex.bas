@@ -134,7 +134,6 @@ dim shared resizing_enabled as bool = NO  'keeps track of backend state
 'storeset/loadset stuff
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer  'record size, in BYTES
-dim shared bpage as integer  'Ye Olde Garbage
 
 dim shared bordertile as integer
 
@@ -2707,57 +2706,93 @@ end sub
 '                                     Old allmodex IO
 '==========================================================================================
 
+'read from screen to file
+sub store_from_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
+' record = index, y = line of the screen buffer to read from
+' numbytes = record size
+' page = page number of read from
+	dim fh as integer
+	dim sptr as ubyte ptr
 
-sub storeset (fil as string, byval i as integer, byval l as integer)
-' i = index, l = line (only if reading from screen buffer)
+	fh = freefile
+	if open(filename for binary access read write as #fh) then exit sub
+
+	seek #fh, (record*numbytes) + 1
+
+	sptr = vpages(page)->image
+	sptr = sptr + (vpages(page)->pitch * y)
+	while numbytes > vpages(page)->w
+		fput(fh, , sptr, vpages(page)->w)
+		numbytes -= vpages(page)->w
+		sptr += vpages(page)->pitch
+	wend
+	fput(fh, , sptr, numbytes)
+
+	close #fh
+end sub
+
+sub storeset (fil as string, i as integer, ignored as integer)
+' i = index
 	dim starttime as double = timer
 	dim f as integer
-	dim idx as integer
 	dim bi as integer
 	dim ub as ubyte
 	dim toggle as integer
-	dim sptr as ubyte ptr
 
 	if NOT fileiswriteable(fil) then exit sub
 	f = freefile
 	open fil for binary access read write as #f
 
-	seek #f, (i*bsize) + 1 'does this work properly with write?
+	seek #f, (i*bsize) + 1
 	'this is a horrible hack to get 2 bytes per integer, even though
 	'they are 4 bytes long in FB
 	bi = 0
 	toggle = 0
-	if bpage >= 0 then
-		'read from screen
-		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->pitch * l)
-		idx = bsize
-		while idx > vpages(wrkpage)->w
-			fput(f, , sptr, vpages(wrkpage)->w)
-			idx -= vpages(wrkpage)->w
-			sptr += vpages(wrkpage)->pitch
-		wend
-		fput(f, , sptr, idx)
-	else
-		'debug "buffer size to read = " + str(bsize)
-		for idx = 0 to bsize - 1 ' this will be slow
-			if toggle = 0 then
-				ub = bptr[bi] and &hff
-				toggle = 1
-			else
-				ub = (bptr[bi] and &hff00) shr 8
-				toggle = 0
-				bi = bi + 1
-			end if
-			put #f, , ub
-		next
-	end if
+	'debug "buffer size to read = " + str(bsize)
+	for idx as integer = 0 to bsize - 1 ' this will be slow
+		if toggle = 0 then
+			ub = bptr[bi] and &hff
+			toggle = 1
+		else
+			ub = (bptr[bi] and &hff00) shr 8
+			toggle = 0
+			bi = bi + 1
+		end if
+		put #f, , ub
+	next
 
-	close #f
 	debug_if_slow(starttime, 0.1, fil)
+	close #f
 end sub
 
-sub loadset (fil as string, byval i as integer, byval l as integer)
+sub load_to_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
+'Obsolete, use loadrecord instead
+'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
+	dim fh as integer
+	dim sptr as ubyte ptr
+
+	fh = freefile
+	if open(filename for binary access read as #fh) then exit sub
+	if record < 0 then
+		debug "load_to_page: attempt to read index " & record & " of """ & filename & """"
+		exit sub
+	end if
+
+	seek #fh, (record*numbytes) + 1
+	'read to screen
+	sptr = vpages(page)->image
+	sptr = sptr + (vpages(page)->pitch * y)
+	while numbytes > vpages(page)->w
+		fget(fh, , sptr, vpages(page)->w)
+		numbytes -= vpages(page)->w
+		sptr += vpages(page)->pitch
+	wend
+	fget(fh, , sptr, numbytes)
+
+	close #fh
+end sub
+
+sub loadset (fil as string, i as integer, ignored as integer)
 ' i = index, l = line (only if reading to screen buffer)
 'Obsolete, use loadrecord instead
 'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
@@ -2779,35 +2814,22 @@ sub loadset (fil as string, byval i as integer, byval l as integer)
 	'they are 4 bytes long in FB
 	bi = 0
 	toggle = 0
-	if bpage >= 0 then
-		'read to screen
-		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->pitch * l)
-		idx = bsize
-		while idx > vpages(wrkpage)->w
-			fget(f, , sptr, vpages(wrkpage)->w)
-			idx -= vpages(wrkpage)->w
-			sptr += vpages(wrkpage)->pitch
-		wend
-		fget(f, , sptr, idx)
-	else
-		'debug "buffer size to read = " + str(bsize)
-		for idx = 0 to bsize - 1 ' this will be slow
-			get #f, , ub
-			if toggle = 0 then
-				bptr[bi] = ub
-				toggle = 1
-			else
-				bptr[bi] = bptr[bi] or (ub shl 8)
-				'check sign
-				if (bptr[bi] and &h8000) > 0 then
-					bptr[bi] = bptr[bi] or &hffff0000 'make -ve
-				end if
-				toggle = 0
-				bi = bi + 1
+	'debug "buffer size to read = " + str(bsize)
+	for idx = 0 to bsize - 1 ' this will be slow
+		get #f, , ub
+		if toggle = 0 then
+			bptr[bi] = ub
+			toggle = 1
+		else
+			bptr[bi] = bptr[bi] or (ub shl 8)
+			'check sign
+			if (bptr[bi] and &h8000) > 0 then
+				bptr[bi] = bptr[bi] or &hffff0000 'make -ve
 			end if
-		next
-	end if
+			toggle = 0
+			bi = bi + 1
+		end if
+	next
 
 	close #f
 	debug_if_slow(starttime, 0.1, fil)
@@ -2815,15 +2837,8 @@ end sub
 
 'b is in BYTES
 sub setpicstuf (buf() as integer, byval b as integer, byval p as integer)
-	if p >= 0 then
-		if clippedframe <> vpages(p) then
-			setclip , , , , p
-		end if
-	end if
-
 	bptr = @buf(0) 'doesn't really work well with FB
 	bsize = b
-	bpage = p
 end sub
 
 sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)

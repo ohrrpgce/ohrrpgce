@@ -2409,8 +2409,7 @@ SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval
  DIM i as integer
  getpal16 workpal(), j - top, poffset(j)
  IF j <= sets THEN
-  setpicstuf buffer(), ss.setsize, 2
-  loadset ss.spritefile, large(j, 0), 0
+  load_to_page ss.spritefile, large(j, 0), 0, ss.setsize, 2
   FOR i = 0 TO (ss.perset - 1)
    loadsprite placer(), 0, ss.size * i, 0, ss.wide, ss.high, 2
    stosprite placer(), 0, ss.size * i, soff * (j - top), 3
@@ -2423,12 +2422,11 @@ SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval
  DIM starttime as double = timer   'FIXME: temporary to investigate slowdown in the sprite editor; remove later
  DIM i as integer
  IF j <= sets THEN
-  setpicstuf buffer(), ss.setsize, 2
   FOR i = 0 TO (ss.perset - 1)
    loadsprite placer(), 0, ss.size * i, soff * (j - top), ss.wide, ss.high, 3
    stosprite placer(), 0, ss.size * i, 0, 2
   NEXT i
-  storeset ss.spritefile, large(j, 0), 0
+  store_from_page ss.spritefile, large(j, 0), 0, ss.setsize, 2
  END IF
  debug_if_slow(starttime, 0.1, j)
 END SUB

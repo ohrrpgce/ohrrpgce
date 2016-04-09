@@ -128,8 +128,10 @@ DECLARE FUNCTION font_create_shadowed (basefont as Font ptr, xdrop as integer = 
 DECLARE FUNCTION font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
 DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 
-DECLARE SUB storeset (fil as string, byval i as integer, byval l as integer)
-DECLARE SUB loadset (fil as string, byval i as integer, byval l as integer)
+DECLARE SUB store_from_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
+DECLARE SUB load_to_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
+DECLARE SUB storeset (fil as string, i as integer, ignored as integer)
+DECLARE SUB loadset (fil as string, i as integer, ignored as integer)
 DECLARE SUB setpicstuf (buf() as integer, byval b as integer, byval p as integer)
 
 DECLARE SUB setupmusic
