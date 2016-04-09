@@ -3282,7 +3282,9 @@ IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
 END IF
 IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
  '--write changes so far
- 'TODO: Not implemented! (This hasn't worked for years, since pal16browse switched to Frames)
+ spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
+ spriteedit_save_spriteset state.pt, state.top, ss
+ IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
  '--save current palette
  storepal16 workpal(), state.pt - state.top, poffset(state.pt)
  poffset(state.pt) = pal16browse(poffset(state.pt), ss.fileset, state.pt)
