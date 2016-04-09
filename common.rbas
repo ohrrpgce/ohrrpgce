@@ -3197,14 +3197,10 @@ IF gen(genVersion) = 1 THEN
  upgrade_message "June 18 1999 format (2)"
  gen(genVersion) = 2
  upgrade_message "Updating Door Format..."
- FOR o as integer = 0 TO 19
-  IF isfile(game + ".dor") THEN xbload game + ".dor", buffer(), "No doors"
-  FOR i as integer = 0 TO 299
-   buffer(i) = buffer(o * 300 + i)
-  NEXT i
-  setpicstuf buffer(), 600, -1
-  storeset game + ".dox", o, 0
- NEXT o
+ ' Read 20 records, 600 bytes each
+ DIM doorbuf(20 * 600 \ 2) as integer
+ IF isfile(game + ".dor") THEN xbload game + ".dor", doorbuf(), "No doors"
+ storerecord doorbuf(), game + ".dox", 20 * 600 \ 2, 0
  upgrade_message "Enforcing default font"
  DIM font(1023) as integer
  getdefaultfont font()
