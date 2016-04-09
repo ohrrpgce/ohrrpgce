@@ -2583,8 +2583,8 @@ sub stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	end if
 
 	poff = picoff
-	h = pic(poff)
-	w = pic(poff + 1)
+	w = pic(poff)
+	h = pic(poff + 1)
 	poff += 2
 	sbytes = ((w * h) + 1) \ 2	'only 4 bits per pixel
 

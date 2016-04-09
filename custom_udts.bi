@@ -27,14 +27,14 @@ END ENUM
 TYPE SpriteEditStatic
   clonemarked as integer
   clonepos as XYPair
-  clonebuf(2561) as integer 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
-  spriteclip(2561) as integer 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
+  clonebuf(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
+  spriteclip(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
   clipsize as XYPair
   paste as integer
 END TYPE
 
 TYPE SpriteEditState
-  '--sprite set state
+  '--sprite set browser state
   spritefile as string
   fileset as SpriteType '.PT# number
   framenum as integer
@@ -45,6 +45,7 @@ TYPE SpriteEditState
   setsize as integer   'Size of spriteset in bytes, two pixels per byte
   at_a_time as integer 'Number of sprite sets that fit on the browsing screen
   fullset as bool      'Whether editing full spritesets rather than frames
+  visible_sprites as short ptr  'Stores all loaded visible sprites, as concatenated placer() arrays
  
   '--sprite editor state
   zoom as integer

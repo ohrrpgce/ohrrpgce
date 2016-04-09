@@ -44,11 +44,13 @@ DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byv
 DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
 
-DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
-DECLARE SUB spriteedit_save_what_you_see(byval setnum as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
-DECLARE SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
-DECLARE SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
-DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, soff as integer, workpal() as integer, poffset() as integer, info() as string, byval sets as integer)
+DECLARE SUB spriteedit_load_spriteset(byval setnum as integer, byval top as integer, byval sets as integer, ss as SpriteEditState)
+DECLARE SUB spriteedit_save_spriteset(byval setnum as integer, byval top as integer, byval sets as integer, ss as SpriteEditState)
+DECLARE SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState)
+DECLARE SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
+DECLARE SUB spriteedit_set_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
+DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, workpal() as integer, poffset() as integer, info() as string, placer() as integer)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
 DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, workpal() as integer, poffset() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
@@ -1888,10 +1890,9 @@ END SUB
 'xw, yw is the size of a single frame.
 'sets is the global holding maximum spriteset index, e.g. gen(genMaxNPCPic)
 'perset is frames per spriteset.
-'soff is the number of lines on a videopage that it takes to store a spriteset.
 'info() is an array of names for each frame
 'fileset is the .PT# number.
-SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
 'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
@@ -1929,6 +1930,7 @@ WITH ss
  .palindex = 1
  .previewpos.x = 319 - .wide
  .previewpos.y = 119
+ .visible_sprites = allocate((.at_a_time + 1) * (.setsize \ 2) * sizeof(short))
 END WITH
 
 DIM placer(2 + ss.setsize \ 2) as integer
@@ -1953,7 +1955,7 @@ FOR i = 0 TO 15
  poke8bit ss.nulpal(), i, i
 NEXT i
 loaddefaultpals ss.fileset, poffset(), sets
-spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+spriteedit_load_all_you_see state.top, sets, ss, workpal(), poffset()
 
 setkeys
 DO
@@ -1969,24 +1971,26 @@ DO
   END IF
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff
+  spriteedit_save_all_you_see state.top, sets, ss
   cropafter state.pt, sets, 0, ss.spritefile, ss.setsize
   clearpage 3
-  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+  spriteedit_load_all_you_see state.top, sets, ss, workpal(), poffset()
  END IF
  IF enter_or_space() THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff
-  sprite_editor ss, ss_save, state, soff, workpal(), poffset(), info(), sets
-  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+  spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
+  ' sprite_editor modifies placer(), workpal(), poffset(), ss, and ss_save
+  sprite_editor ss, ss_save, state, workpal(), poffset(), info(), placer()
+  spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
+  spriteedit_save_all_you_see state.top, sets, ss
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF ss.fullset = NO AND ss.perset > 1 THEN
-   spriteedit_save_all_you_see state.top, sets, ss, soff
+   spriteedit_save_all_you_see state.top, sets, ss
    savedefaultpals ss.fileset, poffset(), sets
-   sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info(), 1, ss.fileset, YES, state.pt, state.top
+   sprite ss.wide * ss.perset, ss.high, sets, 1, info(), 1, ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
-   spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+   spriteedit_load_all_you_see state.top, sets, ss, workpal(), poffset()
   END IF
  END IF
  DIM oldtop as integer = state.top
@@ -2000,7 +2004,7 @@ DO
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette
    poffset(state.pt) = 0
-   spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+   spriteedit_load_all_you_see state.top, sets, ss, workpal(), poffset()
   END IF
   state.top = bound(state.top, state.pt - state.size, state.pt)
  ELSE
@@ -2008,8 +2012,8 @@ DO
   usemenu state
  END IF
  IF oldtop <> state.top THEN
-  spriteedit_save_all_you_see oldtop, sets, ss, soff
-  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
+  spriteedit_save_all_you_see oldtop, sets, ss
+  spriteedit_load_all_you_see state.top, sets, ss, workpal(), poffset()
  END IF
  IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
  IF keyval(scRight) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
@@ -2020,8 +2024,8 @@ DO
   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
  '--copying
- IF copy_keychord() THEN 
-  loadsprite ss_save.spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+ IF copy_keychord() THEN
+  spriteedit_get_loaded_sprite ss, ss_save.spriteclip(), state.top, state.pt, ss.framenum
   ss_save.paste = YES
   ss_save.clipsize.x = ss.wide
   ss_save.clipsize.y = ss.high
@@ -2038,7 +2042,7 @@ DO
  END IF
  IF do_paste THEN
   do_paste = 0
-  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+  spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   rectangle 0, 0, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
   IF NOT paste_transparent THEN
@@ -2046,26 +2050,26 @@ DO
   END IF
   drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
-  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
-  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff)
+  spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
+  spriteedit_save_all_you_see state.top, sets, ss   'Actually we only need to save the modified frame
  END IF
  IF keyval(scF2) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
  IF keyval(scE) > 1 THEN
-  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+  spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), poffset(state.pt)
  END IF
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
  rectangle 4 + (ss.framenum * (ss.wide + 1)), (state.pt - state.top) * (ss.high + 5), ss.wide + 2, ss.high + 2, uilook(uiText), dpage
- FOR i = state.top TO small(state.top + ss.at_a_time, sets)
-  FOR o = 0 TO ss.perset - 1
-   rectangle 5 + (o * (ss.wide + 1)), 1 + ((i - state.top) * (ss.high + 5)), ss.wide, ss.high, 0, dpage
-   loadsprite placer(), 0, ss.size * o, soff * (i - state.top), ss.wide, ss.high, 3
-   drawsprite placer(), 0, workpal(), (i - state.top) * 16, 5 + (o * (ss.wide + 1)), 1 + ((i - state.top) * (ss.high + 5)), dpage
-  NEXT o
- NEXT i
+ FOR setnum as integer = state.top TO small(state.top + ss.at_a_time, sets)
+  FOR framenum as integer = 0 TO ss.perset - 1
+   rectangle 5 + framenum * (ss.wide + 1), 1 + (setnum - state.top) * (ss.high + 5), ss.wide, ss.high, 0, dpage
+   spriteedit_get_loaded_sprite ss, placer(), state.top, setnum, framenum
+   drawsprite placer(), 0, workpal(), (setnum - state.top) * 16, 5 + framenum * (ss.wide + 1), 1 + (setnum - state.top) * (ss.high + 5), dpage
+  NEXT
+ NEXT
  textcolor uilook(uiMenuItem), 0
  printstr "Palette " & poffset(state.pt), 320 - (LEN("Palette " & poffset(state.pt)) * 8), 0, dpage
  FOR i = 0 TO 15
@@ -2098,7 +2102,8 @@ DO
  dowait
 LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
-spriteedit_save_all_you_see state.top, sets, ss, soff
+spriteedit_save_all_you_see state.top, sets, ss
+deallocate ss.visible_sprites
 savedefaultpals ss.fileset, poffset(), sets
 'sprite_empty_cache ss.fileset
 'Robust against sprite leaks
@@ -2395,49 +2400,68 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 
 END SUB
 
-SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
- FOR j as integer = top TO top + ss.at_a_time
-  spriteedit_save_what_you_see(j, top, sets, ss, soff)
- NEXT j
-END SUB
-
-SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
- FOR setnum as integer = top TO top + ss.at_a_time
-  spriteedit_load_what_you_see(setnum, top, sets, ss, soff, workpal(), poffset())
+' Copies one of the frames visible in the spriteset browser into placer()
+SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
+ DIM offset as integer = (setnum - top) * (ss.setsize \ 2) + framenum * (ss.size \ 2)
+ placer(0) = ss.wide
+ placer(1) = ss.high
+ FOR idx as integer = 0 TO ss.size \ 2 - 1
+  placer(2 + idx) = ss.visible_sprites[offset + idx]
  NEXT
 END SUB
 
-SUB spriteedit_load_what_you_see(setnum as integer, top as integer, sets as integer, ss as SpriteEditState, soff as integer, workpal() as integer, poffset() as integer)
- ' Load pal
- getpal16 workpal(), setnum - top, poffset(setnum)
- ' Load spriteset
+' Sets one of the frames visible in the spriteset browser from placer()
+SUB spriteedit_set_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
+ DIM offset as integer = (setnum - top) * (ss.setsize \ 2) + framenum * (ss.size \ 2)
+ FOR idx as integer = 0 TO ss.size \ 2 - 1
+  ss.visible_sprites[offset + idx] = placer(2 + idx)
+ NEXT
+END SUB
+
+SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState)
+ FOR setnum as integer = top TO top + ss.at_a_time
+  spriteedit_save_spriteset(setnum, top, sets, ss)
+ NEXT setnum
+END SUB
+
+SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, workpal() as integer, poffset() as integer)
+ FOR setnum as integer = top TO top + ss.at_a_time
+  ' Load pal
+  getpal16 workpal(), setnum - top, poffset(setnum)
+  ' Load spriteset
+  spriteedit_load_spriteset(setnum, top, sets, ss)
+ NEXT
+END SUB
+
+' Load a spriteset into ss.visible_sprites
+SUB spriteedit_load_spriteset(setnum as integer, top as integer, sets as integer, ss as SpriteEditState)
  DIM buf(ss.setsize \ 2) as integer
  DIM placer(2 + ss.setsize \ 2) as integer
  DIM offset as integer = 0
  IF setnum <= sets THEN
   loadrecord buf(), ss.spritefile, ss.setsize \ 2, setnum
-  ' Create a placer() buffer, in order to write it to the storage vpage using stosprite
+  ' Create a temporary placer() buffer
   FOR framenum as integer = 0 TO (ss.perset - 1)
-   placer(0) = ss.high
-   placer(1) = ss.wide
+   placer(0) = ss.wide
+   placer(1) = ss.high
    FOR k as integer = 0 to ss.size \ 2 - 1
     placer(2 + k) = buf(offset)
     offset += 1
    NEXT
-   stosprite placer(), 0, ss.size * framenum, soff * (setnum - top), 3
+   spriteedit_set_loaded_sprite ss, placer(), top, setnum, framenum
   NEXT framenum
  END IF
 END SUB
 
-SUB spriteedit_save_what_you_see(setnum as integer, top as integer, sets as integer, ss as SpriteEditState, soff as integer)
+' Save one of the spriteset in ss.visible_sprites to disk
+SUB spriteedit_save_spriteset(setnum as integer, top as integer, sets as integer, ss as SpriteEditState)
  DIM buf(ss.setsize \ 2) as integer
  DIM placer(2 + ss.setsize \ 2) as integer
  DIM offset as integer = 0
  IF setnum <= sets THEN
   FOR framenum as integer = 0 TO (ss.perset - 1)
-   ' Load a frame from vpage 3 (ss.size is on-disk bytes per frame)
-   loadsprite placer(), 0, ss.size * framenum, soff * (setnum - top), ss.wide, ss.high, 3
-   'placer(0),placer(1) are h,w, placer(2 to 2+(w*h+1)\2) are pixels (2 bytes per int)
+   spriteedit_get_loaded_sprite ss, placer(), top, setnum, framenum
+   'placer(0),placer(1) are w,h, placer(2 to 2+(w*h+1)\2) are pixels (2 bytes per int)
    FOR k as integer = 0 to ss.size \ 2 - 1
     buf(offset) = placer(2 + k)
     offset += 1
@@ -3092,10 +3116,13 @@ SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, co
  frame_unload @spr2
 END SUB
 
-SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, soff as integer, workpal() as integer, poffset() as integer, info() as string, byval sets as integer)
- 'spriteage
+' placer() contains the sprite to be edited, in drawsprite() format,
+' workpal() contains the palettes for all spritesets visible in the sprite browser (yuck)
+' poffset() contains the (default) palette numbers for all spritesets in this .PT# lump
+' sprite_editor modifies all of these in-place and expects the caller to save them to file!
+' state.pt is the current spriteset ID
+SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, workpal() as integer, poffset() as integer, info() as string, placer() as integer)
 
- DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4) as integer
  DIM mouse as MouseInfo
 
  DIM pclip(8) as integer
@@ -3184,7 +3211,6 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
  ss.undoslot = 0
  ss.undomax = (32000 \ ss.size) - 1
  GOSUB spedbak
- loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
  hidemousecursor
  setkeys
  DO
@@ -3200,7 +3226,6 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
     GOSUB resettool
    ELSE
     spriteedit_clip placer(), ss
-    stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
     GOSUB resettool
     EXIT DO
    END IF
@@ -3220,7 +3245,6 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
  unhidemousecursor
- spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff)
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 EXIT SUB
 
@@ -3255,7 +3279,7 @@ IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
 END IF
 IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
  '--write changes so far
- stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
+ 'TODO: Not implemented! (This hasn't worked for years, since pal16browse switched to Frames)
  '--save current palette
  storepal16 workpal(), state.pt - state.top, poffset(state.pt)
  poffset(state.pt) = pal16browse(poffset(state.pt), ss.fileset, state.pt)
@@ -3269,8 +3293,9 @@ IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks
 IF copy_keychord() THEN
  ss_save.clipsize.x = ss.wide
  ss_save.clipsize.y = ss.high
- stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
- loadsprite ss_save.spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+ FOR idx as integer = 0 TO UBOUND(placer)
+  ss_save.spriteclip(idx) = placer(idx)
+ NEXT
  ss_save.paste = YES
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)

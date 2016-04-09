@@ -30,7 +30,7 @@ DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprty
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, byval soff as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+DECLARE SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -521,15 +521,15 @@ SUB gfx_editor_menu()
     EXIT DO
    END IF
    IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  8, 4
-   IF state.pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0
-   IF state.pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1
-   IF state.pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2
-   IF state.pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3
-   IF state.pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6
-   IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5
-   IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7
-   IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8
+   IF state.pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(),  8, 4
+   IF state.pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 4, 0
+   IF state.pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 4, 1
+   IF state.pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2, 2
+   IF state.pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 2, 3
+   IF state.pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 2, 6
+   IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 4, 5
+   IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 4, 7
+   IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 2, 8
    IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
    IF state.pt = 12 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
@@ -1659,7 +1659,6 @@ SUB arbitrary_sprite_editor ()
  size.x = 20
  size.y = 20
  DIM framecount as integer = 8
- DIM crappy_screenpage_lines as integer
  DIM zoom as integer = 2
 
  DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Sets=", "Start Editing..."}
@@ -1681,8 +1680,7 @@ SUB arbitrary_sprite_editor ()
   END SELECT
   IF enter_space_click(st) THEN
    IF st.pt = 5 THEN
-    crappy_screenpage_lines = ceiling(size.x * size.y * framecount / 2 / 320)
-    sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1
+    sprite size.x, size.y, tempsets, framecount, tempcaptions(), zoom, -1
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF
