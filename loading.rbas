@@ -2921,47 +2921,48 @@ END FUNCTION
 'in drawing.bas, which will be deleted ASAP. The modern loading/saving code
 'is in allmodex.bas
 
-
-SUB getpal16 (array() as integer, byval aoffset as integer, byval foffset as integer, byval autotype as integer=-1, byval sprite as integer=0)
+'array() holds multiple palettes (records). Load one of them from file.
+SUB getpal16 (array() as integer, byval array_record as integer, byval file_record as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DIM buf(8) as integer
 DIM defaultpal as integer
 DIM i as integer
 
 loadrecord buf(), game & ".pal", 8, 0
 IF buf(0) = 4444 THEN '--check magic number
- IF buf(1) >= foffset AND foffset >= 0 THEN
+ IF buf(1) >= file_record AND file_record >= 0 THEN
   'palette is available
-  loadrecord buf(), game & ".pal", 8, 1 + foffset
+  loadrecord buf(), game & ".pal", 8, 1 + file_record
   FOR i = 0 TO 7
-   array(aoffset * 8 + i) = buf(i)
+   array(array_record * 8 + i) = buf(i)
   NEXT i
   EXIT SUB
- ELSEIF foffset = -1 THEN
+ ELSEIF file_record = -1 THEN
   'load a default palette
   IF autotype >= 0 THEN
    defaultpal = getdefaultpal(autotype, sprite)
    IF defaultpal > -1 THEN
     'Recursive
-    getpal16 array(), aoffset, defaultpal
+    getpal16 array(), array_record, defaultpal
     EXIT SUB
    END IF
   END IF
  END IF
  'palette is out of range, return blank
  FOR i = 0 TO 7
-  array(aoffset * 8 + i) = 0
+  array(array_record * 8 + i) = 0
  NEXT i
 ELSE '--magic number not found, palette is still in BSAVE format
  DIM xbuf(100 * 8) as integer
  xbload game + ".pal", xbuf(), "16-color palettes missing from " + sourcerpg
  FOR i = 0 TO 7
-  array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
+  array(array_record * 8 + i) = xbuf(file_record * 8 + i)
  NEXT i
 END IF
 
 END SUB
 
-SUB storepal16 (array() as integer, byval aoffset as integer, byval foffset as integer)
+'array() holds multiple palettes (records). Store one of them to file.
+SUB storepal16 (array() as integer, byval array_record as integer, byval file_record as integer)
 DIM buf(8) as integer
 
 DIM f as string = game & ".pal"
@@ -2975,30 +2976,30 @@ END IF
 DIM last as integer = buf(1)
 DIM i as integer
 
-IF foffset > last THEN
+IF file_record > last THEN
  '--blank out palettes before extending file
- FOR i = last + 1 TO foffset
+ FOR i = last + 1 TO file_record
   flusharray buf(), 8, 0
   storerecord buf(), f, 8, 1 + i
  NEXT i
  '--update header
  buf(0) = 4444
- buf(1) = foffset
+ buf(1) = file_record
  storerecord buf(), f, 8, 0
 END IF
 
-IF foffset >= 0 THEN '--never write a negative file offset
+IF file_record >= 0 THEN '--never write a negative file offset
  'copy palette to buffer
  FOR i = 0 TO 7
-  buf(i) = array(aoffset * 8 + i)
+  buf(i) = array(array_record * 8 + i)
  NEXT i
  'write palette
- storerecord buf(), f, 8, 1 + foffset
+ storerecord buf(), f, 8, 1 + file_record
 END IF
 
-Palette16_update_cache f, foffset
+Palette16_update_cache f, file_record
 #IFDEF IS_CUSTOM
- IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & foffset
+ IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & file_record
 #ENDIF
 END SUB
 
