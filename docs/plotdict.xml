@@ -2354,7 +2354,7 @@ end</example>
 			</seealso>
 		</command>
 
-		<section title="Experience">
+		<section title="Experience and Levels">
 		<command id="getherolevel">
 			<canon>get hero level (who)</canon>
 			<shortname>get hero level</shortname>
@@ -2386,6 +2386,7 @@ end</example>
 				<ref>spellslearned</ref>
 			</seealso>
 		</command>
+		<reference ref="updateleveluplearning" />
 		<command id="herolevelled">
 			<canon>hero levelled (who)</canon>
 			<shortname>hero levelled</shortname>
@@ -2398,6 +2399,7 @@ if (herolevelled (find hero (hero: Bob))) then (
   show textbox (233) # ${S31} :show string 31
 )</example>
 		</command>
+		<reference ref="spellslearned" />
 		<command id="totalexperience">
 			<canon>total experience (who)</canon>
 			<shortname>total experience</shortname>
@@ -2421,7 +2423,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<shortname>give experience</shortname>
 			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command if you want to give experience by name or ID) or the whole party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearned</ref> for dealing with this. This command can give negative experience, but it will never cause a hero to delevel. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporarily raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 		</command>
-		</section>		<!-- Experience-->
+		</section>		<!-- Experience and Levels-->
 
 		</section>		<!--Hero Stats-->
 
@@ -2461,6 +2463,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<command id="spellslearnt">
 			<canon>spells learnt (hero,number)</canon>
 			<shortname>spells learnt</shortname>
+			<deprecated>zenzizenzic</deprecated>
 			<description>This is deprecated, do not use it. It is identical to <ref>spellslearned</ref> except it returns the id numbers of spells, instead of the id numbers +1. The attack constants exported in your .hsi file are all +1 the attack IDs in Custom.</description>
 		</command>
 		<command id="spellslearned">
@@ -2493,8 +2496,13 @@ end</example>
 
 		<section title="Out-of-battle Attacks">
 		<command id="outsidebattlecure">
-			<alias>mapcure</alias>
+			<canon>outside battle cure (attack minus 1, target, attacker)</canon>
 			<shortname>outside battle cure</shortname>
+			<deprecated>zenzizenzic</deprecated>
+			<description>
+				Obsolete, replaced by <ref>mapcure</ref>.
+				This is identical to mapcure except for the <p>attack</p> argument differing by one.
+			</description>
 		</command>
 		<command id="mapcure">
 			<canon>map cure (attack, target, attacker)</canon>
