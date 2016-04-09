@@ -37,6 +37,7 @@ TYPE SpriteEditState
   '--sprite set browser state
   spritefile as string
   fileset as SpriteType '.PT# number
+  max_spriteset as integer ptr  'Maximum spriteset number, equal to e.g. gen(genMaxHeroPic)
   framenum as integer
   wide as integer
   high as integer
