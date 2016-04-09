@@ -70,8 +70,7 @@ DECLARE SUB draw_background (x as integer, y as integer, wide as integer, high a
 
 
 'NOTE: clipping values are global.
-DECLARE SUB setclip OVERLOAD (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
-DECLARE SUB setclip (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval page as integer)
+DECLARE SUB setclip (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
 DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 DECLARE SUB saveclip(byref buf as ClipState)
 DECLARE SUB loadclip(byref buf as ClipState)

@@ -120,7 +120,6 @@ dim key2text(3,53) as string*1 => { _
 'For each vpage() element, this records whether it shouldn't be resized when the window size changes (normally is)
 '(Not fully implemented, as it seems it would only benefit textbox_appearance_editor)
 'dim shared fixedsize_vpages() as bool
-dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
 dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
 dim shared as integer clipl, clipt, clipr, clipb 'drawable area on clippedframe; right, bottom margins are excluded
 
@@ -267,7 +266,7 @@ sub modex_init()
 	next
 	'other vpages slots are for temporary pages
 
-	setclip , , , , 0
+	clippedframe = NULL
 
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
@@ -375,7 +374,6 @@ sub freepage (byval page as integer)
 		exit sub
 	end if
 
-	if page = wrkpage then wrkpage = 0 'no setclip call: legacy wrkpage code doesn't even use clips anyway
 	frame_unload(@vpages(page))
 end sub
 
@@ -2487,7 +2485,7 @@ end function
 sub drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer, byval trans as bool = YES)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	if clippedframe <> vpages(page) then
-		setclip , , , , page
+		setclip , , , , vpages(page)
 	end if
 
 	'convert the buffer into a Frame
@@ -2517,7 +2515,7 @@ sub wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byv
 	dim row as integer
 
 	if clippedframe <> vpages(page) then
-		setclip , , , , page
+		setclip , , , , vpages(page)
 	end if
 
 	sw = pic(picoff)
@@ -2585,7 +2583,7 @@ sub stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	dim w as integer
 
 	if clippedframe <> vpages(page) then
-		setclip , , , , page
+		setclip , , , , vpages(page)
 	end if
 
 	poff = picoff
@@ -2626,7 +2624,7 @@ sub loadsprite (pic() as integer, byval picoff as integer, byval x as integer, b
 	dim temp as integer
 
 	if clippedframe <> vpages(page) then
-		setclip , , , , page
+		setclip , , , , vpages(page)
 	end if
 
 	sbytes = ((w * h) + 1) \ 2	'only 4 bits per pixel
@@ -2952,7 +2950,7 @@ end sub
 
 sub putpixel (byval x as integer, byval y as integer, byval c as integer, byval p as integer)
 	if clippedframe <> vpages(p) then
-		setclip , , , , p
+		setclip , , , , vpages(p)
 	end if
 
 	if POINT_CLIPPED(x, y) then
@@ -2973,7 +2971,7 @@ end function
 
 function readpixel (byval x as integer, byval y as integer, byval p as integer) as integer
 	if clippedframe <> vpages(p) then
-		setclip , , , , p
+		setclip , , , , vpages(p)
 	end if
 
 	if POINT_CLIPPED(x, y) then
@@ -5585,21 +5583,12 @@ end sub
 
 'NOTE: there is only one set of clipping values, shared globally for
 'all drawing operations... this is probably a bad thing, but that is how
-'it works. The frame or page argument to setclip() is used to determine
+'it works. The frame argument to setclip() is used to determine
 'the allowed range of clipping values.
 
 'Set the bounds used by various (not quite all?) video page drawing functions.
-'setclip must be called to reset the clip bounds whenever the wrkpage changes, to ensure
+'setclip must be called to reset the clip bounds whenever the clippedframe changes, to ensure
 'that they are valid (the video page dimensions might differ).
-'Aside from tracking which page the clips are for, some legacy code actually uses wrkpage,
-'these should be removed.
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval page as integer)
-	wrkpage = page
-	setclip l, t, r, b, vpages(wrkpage)
-end sub
-
-'more modern version
-'would call this directly everywhere, but don't want to break that edge case that actually needs wrkpage set
 sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
 	if fr <> 0 then clippedframe = fr
 	with *clippedframe
