@@ -16,6 +16,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2016-04-09:
+Currently working on the sprite editor and in particular the loading/saving
+code. There's a possibility of serious bugs as a result!
+
+** 2016-04-04 Callipygous Released ***
+
 2016-03-20:
 If you previously used the Release/Debug mode option, reread about it. Contrary
 to what the help page used to say, you should not release games in Debug mode!
