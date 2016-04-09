@@ -2437,7 +2437,7 @@ function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 	dim dspr as ubyte ptr
 	dim nib as integer
 	dim i as integer
-	dim spix as integer
+	dim spix as integer  ' 2-byte word read from source
 	dim row as integer
 
 	sw = pic(picoff)
@@ -2455,13 +2455,13 @@ function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 	for i = 0 to (sw * sh) - 1
 		select case nib			' 2 bytes = 4 nibbles in each int
 			case 0
-				spix = (pic(picoff) and &hf000) shr 12
+				spix = (pic(picoff) and &h00f0) shr 4
 			case 1
-				spix = (pic(picoff) and &h0f00) shr 8
+				spix = (pic(picoff) and &h000f) shr 0
 			case 2
-				spix = (pic(picoff) and &hf0) shr 4
+				spix = (pic(picoff) and &hf000) shr 12
 			case 3
-				spix = pic(picoff) and &h0f
+				spix = (pic(picoff) and &h0f00) shr 8
 				picoff = picoff + 1
 		end select
 		*dspr = spix				' set image pixel
@@ -2506,7 +2506,7 @@ sub wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byv
 	dim dspr as ubyte ptr
 	dim nib as integer
 	dim i as integer
-	dim spix as integer
+	dim spix as integer  ' 2-byte word read from source
 	dim pix as integer
 	dim row as integer
 
@@ -2530,13 +2530,13 @@ sub wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byv
 	for i = 0 to (sw * sh) - 1
 		select case nib			' 2 bytes = 4 nibbles in each int
 			case 0
-				spix = (pic(picoff) and &hf000) shr 12
-			case 1
-				spix = (pic(picoff) and &h0f00) shr 8
-			case 2
 				spix = (pic(picoff) and &hf0) shr 4
+			case 1
+				spix = (pic(picoff) and &h0f) shr 0
+			case 2
+				spix = (pic(picoff) and &hf000) shr 12
 			case 3
-				spix = pic(picoff) and &h0f
+				spix = (pic(picoff) and &h0f00) shr 8
 				picoff = picoff + 1
 		end select
 		if spix = 0 and trans then
@@ -2595,10 +2595,10 @@ sub stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	toggle = 0
 	for i = 0 to sbytes - 1
 		if toggle = 0 then
-			PAGEPIXEL(x, y, page) = (pic(poff) and &hff00) shr 8
+			PAGEPIXEL(x, y, page) = pic(poff) and &hff
 			toggle = 1
 		else
-			PAGEPIXEL(x, y, page) = pic(poff) and &hff
+			PAGEPIXEL(x, y, page) = (pic(poff) and &hff00) shr 8
 			toggle = 0
 			poff += 1
 		end if
@@ -2637,9 +2637,9 @@ sub loadsprite (pic() as integer, byval picoff as integer, byval x as integer, b
 	for i = 0 to sbytes - 1
 		temp = PAGEPIXEL(x, y, page)
 		if toggle = 0 then
-			pic(poff) = temp shl 8
+			pic(poff) = temp
 		else
-			pic(poff) = pic(poff) or temp
+			pic(poff) = pic(poff) or (temp shl 8)
 			poff += 1
 		end if
 		toggle xor= 1
@@ -2677,18 +2677,17 @@ sub getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 		for sw = 0 to small(h, vpages(page)->h) - 1
 			select case nyb
 				case 0
-					pic(p) = (*sptr and &h0f) shl 12
+					pic(p) = (*sptr and &h0f) shl 4
 				case 1
-					pic(p) = pic(p) or ((*sptr and &h0f) shl 8)
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 0)
 				case 2
-					pic(p) = pic(p) or ((*sptr and &h0f) shl 4)
+					pic(p) = pic(p) or ((*sptr and &h0f) shl 12)
 				case 3
-					pic(p) = pic(p) or (*sptr and &h0f)
+					pic(p) = pic(p) or (*sptr and &h0f) shl 8
 					p += 1
 			end select
 			sptr += vpages(page)->pitch
-			nyb += 1
-			nyb = nyb and &h03
+			nyb = (nyb + 1) and 3
 		next
 		sbase = sbase + 1 'next col
 	next
