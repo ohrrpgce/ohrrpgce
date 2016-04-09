@@ -44,10 +44,10 @@ DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byv
 DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
 
-DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
-DECLARE SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
-DECLARE SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
-DECLARE SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
+DECLARE SUB spriteedit_save_what_you_see(byval setnum as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
+DECLARE SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
+DECLARE SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
 DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, soff as integer, workpal() as integer, poffset() as integer, info() as string, byval sets as integer)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
@@ -1953,7 +1953,7 @@ FOR i = 0 TO 15
  poke8bit ss.nulpal(), i, i
 NEXT i
 loaddefaultpals ss.fileset, poffset(), sets
-spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
 
 setkeys
 DO
@@ -1969,24 +1969,24 @@ DO
   END IF
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_save_all_you_see state.top, sets, ss, soff
   cropafter state.pt, sets, 0, ss.spritefile, ss.setsize
   clearpage 3
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
  END IF
  IF enter_or_space() THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_save_all_you_see state.top, sets, ss, soff
   sprite_editor ss, ss_save, state, soff, workpal(), poffset(), info(), sets
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF ss.fullset = NO AND ss.perset > 1 THEN
-   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+   spriteedit_save_all_you_see state.top, sets, ss, soff
    savedefaultpals ss.fileset, poffset(), sets
    sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info(), 1, ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
-   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+   spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
   END IF
  END IF
  DIM oldtop as integer = state.top
@@ -2000,7 +2000,7 @@ DO
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette
    poffset(state.pt) = 0
-   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+   spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
   END IF
   state.top = bound(state.top, state.pt - state.size, state.pt)
  ELSE
@@ -2008,8 +2008,8 @@ DO
   usemenu state
  END IF
  IF oldtop <> state.top THEN
-  spriteedit_save_all_you_see oldtop, sets, ss, soff, placer(), workpal(), poffset()
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_save_all_you_see oldtop, sets, ss, soff
+  spriteedit_load_all_you_see state.top, sets, ss, soff, workpal(), poffset()
  END IF
  IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
  IF keyval(scRight) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
@@ -2047,7 +2047,7 @@ DO
   drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
   stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
-  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
+  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff)
  END IF
  IF keyval(scF2) > 1 THEN
   debug_palettes = debug_palettes XOR 1
@@ -2098,7 +2098,7 @@ DO
  dowait
 LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
-spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+spriteedit_save_all_you_see state.top, sets, ss, soff
 savedefaultpals ss.fileset, poffset(), sets
 'sprite_empty_cache ss.fileset
 'Robust against sprite leaks
@@ -2395,43 +2395,56 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 
 END SUB
 
-SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
+SUB spriteedit_save_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer)
  FOR j as integer = top TO top + ss.at_a_time
-  spriteedit_save_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset()) 
+  spriteedit_save_what_you_see(j, top, sets, ss, soff)
  NEXT j
 END SUB
 
-SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
- FOR j as integer = top TO top + ss.at_a_time
-  spriteedit_load_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset())
- NEXT j
+SUB spriteedit_load_all_you_see(byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, workpal() as integer, poffset() as integer)
+ FOR setnum as integer = top TO top + ss.at_a_time
+  spriteedit_load_what_you_see(setnum, top, sets, ss, soff, workpal(), poffset())
+ NEXT
 END SUB
 
-SUB spriteedit_load_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
- DIM starttime as double = timer   'FIXME: temporary to investigate slowdown in the sprite editor; remove later
- DIM i as integer
- getpal16 workpal(), j - top, poffset(j)
- IF j <= sets THEN
-  load_to_page ss.spritefile, large(j, 0), 0, ss.setsize, 2
-  FOR i = 0 TO (ss.perset - 1)
-   loadsprite placer(), 0, ss.size * i, 0, ss.wide, ss.high, 2
-   stosprite placer(), 0, ss.size * i, soff * (j - top), 3
-  NEXT i
+SUB spriteedit_load_what_you_see(setnum as integer, top as integer, sets as integer, ss as SpriteEditState, soff as integer, workpal() as integer, poffset() as integer)
+ ' Load pal
+ getpal16 workpal(), setnum - top, poffset(setnum)
+ ' Load spriteset
+ DIM buf(ss.setsize \ 2) as integer
+ DIM placer(2 + ss.setsize \ 2) as integer
+ DIM offset as integer = 0
+ IF setnum <= sets THEN
+  loadrecord buf(), ss.spritefile, ss.setsize \ 2, setnum
+  ' Create a placer() buffer, in order to write it to the storage vpage using stosprite
+  FOR framenum as integer = 0 TO (ss.perset - 1)
+   placer(0) = ss.high
+   placer(1) = ss.wide
+   FOR k as integer = 0 to ss.size \ 2 - 1
+    placer(2 + k) = buf(offset)
+    offset += 1
+   NEXT
+   stosprite placer(), 0, ss.size * framenum, soff * (setnum - top), 3
+  NEXT framenum
  END IF
- debug_if_slow(starttime, 0.1, j)
 END SUB
 
-SUB spriteedit_save_what_you_see(byval j as integer, byval top as integer, byval sets as integer, ss as SpriteEditState, byval soff as integer, placer() as integer, workpal() as integer, poffset() as integer)
- DIM starttime as double = timer   'FIXME: temporary to investigate slowdown in the sprite editor; remove later
- DIM i as integer
- IF j <= sets THEN
-  FOR i = 0 TO (ss.perset - 1)
-   loadsprite placer(), 0, ss.size * i, soff * (j - top), ss.wide, ss.high, 3
-   stosprite placer(), 0, ss.size * i, 0, 2
-  NEXT i
-  store_from_page ss.spritefile, large(j, 0), 0, ss.setsize, 2
+SUB spriteedit_save_what_you_see(setnum as integer, top as integer, sets as integer, ss as SpriteEditState, soff as integer)
+ DIM buf(ss.setsize \ 2) as integer
+ DIM placer(2 + ss.setsize \ 2) as integer
+ DIM offset as integer = 0
+ IF setnum <= sets THEN
+  FOR framenum as integer = 0 TO (ss.perset - 1)
+   ' Load a frame from vpage 3 (ss.size is on-disk bytes per frame)
+   loadsprite placer(), 0, ss.size * framenum, soff * (setnum - top), ss.wide, ss.high, 3
+   'placer(0),placer(1) are h,w, placer(2 to 2+(w*h+1)\2) are pixels (2 bytes per int)
+   FOR k as integer = 0 to ss.size \ 2 - 1
+    buf(offset) = placer(2 + k)
+    offset += 1
+   NEXT
+  NEXT framenum
+  storerecord buf(), ss.spritefile, ss.setsize \ 2, setnum
  END IF
- debug_if_slow(starttime, 0.1, j)
 END SUB
 
 FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as string
@@ -3207,7 +3220,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
  unhidemousecursor
- spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
+ spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff)
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 EXIT SUB
 

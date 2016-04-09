@@ -2701,58 +2701,6 @@ end sub
 ' These are specifically for reading/writing files. The other obsolete
 ' graphics stuff is above.
 
-'read from screen to file
-sub store_from_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
-' record = index, y = line of the screen buffer to read from
-' numbytes = record size
-' page = page number of read from
-	dim fh as integer
-	dim sptr as ubyte ptr
-
-	fh = freefile
-	if open(filename for binary access read write as #fh) then exit sub
-
-	seek #fh, (record*numbytes) + 1
-
-	sptr = vpages(page)->image
-	sptr = sptr + (vpages(page)->pitch * y)
-	while numbytes > vpages(page)->w
-		fput(fh, , sptr, vpages(page)->w)
-		numbytes -= vpages(page)->w
-		sptr += vpages(page)->pitch
-	wend
-	fput(fh, , sptr, numbytes)
-
-	close #fh
-end sub
-
-sub load_to_page (filename as string, record as integer, y as integer, numbytes as integer, page as integer)
-'Obsolete, use loadrecord instead
-'Note: This is extremely slow when reading past end of file because fread buffering internal stuff
-	dim fh as integer
-	dim sptr as ubyte ptr
-
-	fh = freefile
-	if open(filename for binary access read as #fh) then exit sub
-	if record < 0 then
-		debug "load_to_page: attempt to read index " & record & " of """ & filename & """"
-		exit sub
-	end if
-
-	seek #fh, (record*numbytes) + 1
-	'read to screen
-	sptr = vpages(page)->image
-	sptr = sptr + (vpages(page)->pitch * y)
-	while numbytes > vpages(page)->w
-		fget(fh, , sptr, vpages(page)->w)
-		numbytes -= vpages(page)->w
-		sptr += vpages(page)->pitch
-	wend
-	fget(fh, , sptr, numbytes)
-
-	close #fh
-end sub
-
 sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
