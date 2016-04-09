@@ -253,14 +253,15 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1, context as string = "") as bool
+function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as string = "") as bool
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
 'context = filename if known. For debug only.
-'returns true if successful, false if failure (eg. file too short)
+'Returns true if successful, false if failure (eg. file too short,
+'in which case buf() is filled with zeroes.)
 'Even if the file is too short, reads as much as possible
 
 	dim starttime as double = timer
@@ -285,29 +286,25 @@ function loadrecord (buf() as integer, byval fh as integer, byval recordsize as 
 	return ret
 end function
 
-function loadrecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as bool
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as bool = YES) as bool
 'wrapper for above
 'set expectfile = NO to suppress errors
-	dim f as integer
-	dim i as integer
-
 	if recordsize <= 0 then return NO
 
-	if NOT fileisreadable(filen) then
+	dim fh as integer = freefile
+	if open(filen for binary access read as #fh) then
 		if expectfile = YES then debug "File not found loading record " & record & " from " & filen
-		for i = 0 to recordsize - 1
+		for i as integer = 0 to recordsize - 1
 			buf(i) = 0
 		next
 		return NO
 	end if
-	f = freefile
-	open filen for binary access read as #f
 
-	loadrecord = loadrecord (buf(), f, recordsize, record, filen)
-	close #f
+	loadrecord = loadrecord (buf(), fh, recordsize, record, filen)
+	close #fh
 end function
 
-sub storerecord (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1)
+sub storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
 	if ubound(buf) < recordsize - 1 then
 		debugc errBug, "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
@@ -326,19 +323,15 @@ sub storerecord (buf() as integer, byval fh as integer, byval recordsize as inte
 	put #fh, , writebuf()
 end sub
 
-sub storerecord (buf() as integer, filen as string, byval recordsize as integer, byval record as integer = 0)
+sub storerecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0)
 'wrapper for above
-	dim f as integer
-
-	if NOT fileiswriteable(filen) then
+	dim fh as integer = freefile
+	if open(filen for binary access read write as #fh) then
 		debug "could not write record to " & filen
 		exit sub
 	end if
-	f = freefile
-	open filen for binary access read write as #f
-
-	storerecord buf(), f, recordsize, record
-	close #f
+	storerecord buf(), fh, recordsize, record
+	close #fh
 end sub
 
 'Compares two files record-by-record, setting each element of the difference array to:

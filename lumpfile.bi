@@ -144,12 +144,11 @@ declare sub Lump_close(byref this as Lump)
 declare function Lump_unlumpfile(byref this as Lump, whereto as string) as integer
 declare function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
-declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
-
-declare function loadrecord overload (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1, context as string = "") as bool
-declare function loadrecord overload (buf() as integer, filename as string, byval recordsize as integer, byval record as integer = 0, byval expectfile as integer = YES) as bool
-declare sub storerecord overload (buf() as integer, byval fh as integer, byval recordsize as integer, byval record as integer = -1)
-declare sub storerecord overload (buf() as integer, filename as string, byval recordsize as integer, byval record as integer = 0)
+declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr 
+declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as string = "") as bool
+declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0, expectfile as bool = YES) as bool
+declare sub storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
+declare sub storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
 declare function compare_files_by_record (differences() as integer, leftfile as string, rightfile as string, byval recordsize as integer, byval maskarray as integer ptr = NULL) as integer
 
 declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
