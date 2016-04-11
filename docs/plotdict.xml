@@ -7231,7 +7231,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="lastsaveslot">
 			<canon>last save slot</canon>
 			<shortname>last save slot</shortname>
-			<description>Returns the last save slot saved to using the save menu, or the save slot the game was loaded from, or <ref>false</ref> if the game has not been saved yet. Save slots are numbered starting at 1. <ref>saveinslot</ref> does not change the value returned! If you need it to, you need to track it with a global variable.</description>
+			<description>
+				Returns the last save slot saved to using the save menu, if the player hasn't saved the game since starting/loading the game.
+				Otherwise, returns the save slot the game was loaded from, or <ref>false</ref> if this is an unsaved new game.
+				Save slots are numbered starting at 1.
+				<ref>saveinslot</ref> does not change the value returned by this command!
+				If you need it to, you need to track it with a global variable.
+			</description>
 			<seealso>
 				<ref>saveinslot</ref>
 				<ref>savemenu</ref>
