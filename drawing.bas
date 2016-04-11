@@ -18,18 +18,18 @@ DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = N
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
 DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
-DECLARE SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
+DECLARE SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
-DECLARE SUB refreshtileedit (mover() as integer, state as TileEditState)
-DECLARE SUB writeundoblock (mover() as integer, state as TileEditState)
-DECLARE SUB readundoblock (mover() as integer, state as TileEditState)
-DECLARE SUB fliptile (mover() as integer, ts as TileEditState)
-DECLARE SUB scrolltile (mover() as integer, ts as TileEditState, byval shiftx as integer, byval shifty as integer)
-DECLARE SUB clicktile (mover() as integer, ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
+DECLARE SUB refreshtileedit (state as TileEditState)
+DECLARE SUB writeundoblock (state as TileEditState)
+DECLARE SUB readundoblock (state as TileEditState)
+DECLARE SUB fliptile (ts as TileEditState)
+DECLARE SUB scrolltile (ts as TileEditState, byval shiftx as integer, byval shifty as integer)
+DECLARE SUB clicktile (ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
 DECLARE SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
-DECLARE SUB copymapblock (buf() as integer, byref sx as integer, byref sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
+DECLARE SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
 DECLARE SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
@@ -101,15 +101,12 @@ getpal16 workpal(), aindex, palval
 
 END SUB
 
-SUB copymapblock (buf() as integer, byref sx as integer, byref sy as integer, byref sp as integer, byref dx as integer, byref dy as integer, byref dp as integer)
-
-'buf() is a 20-byte array
-
-FOR i as integer = 0 TO 19
- loadsprite buf(), 0, sx, sy + i, 40, 1, sp
- stosprite buf(), 0, dx, dy + i, dp
-NEXT i
-
+'Copy a tile from one vpage to another
+SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
+ DIM srctile as Frame ptr
+ srctile = frame_new_view(vpages(sp), sx, sy, 20, 20)
+ frame_draw srctile, NULL, dx, dy, , NO, dp
+ frame_unload @srctile
 END SUB
 
 'Used inside the palette color disabler in importbmp
@@ -830,7 +827,6 @@ SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
-DIM mover(12) as integer
 DIM area(24) as MouseArea
 DIM mouse as MouseInfo
 ts.tilesetnum = tilesetnum
@@ -978,7 +974,7 @@ DO
  IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse, area(), bgcolor
+   editmaptile ts, mouse, area(), bgcolor
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
@@ -1045,30 +1041,30 @@ frame_unload @ts.drawframe
 unhidemousecursor
 END SUB
 
-SUB refreshtileedit (mover() as integer, state as TileEditState)
-copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
+SUB refreshtileedit (state as TileEditState)
+copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
 END SUB
 
-SUB writeundoblock (mover() as integer, state as TileEditState)
+SUB writeundoblock (state as TileEditState)
 state.undo = loopvar(state.undo, 0, 5, 1)
-copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
+copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
 textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (state.undo * 21), 2
 state.allowundo = 1
 END SUB
 
-SUB readundoblock (mover() as integer, state as TileEditState)
+SUB readundoblock (state as TileEditState)
 FOR j as integer = 0 TO 5
  rectangle 270, 16 + (j * 21), 8, 8, 0, 2
 NEXT j
-copymapblock mover(), 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
+copymapblock 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
 textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (state.undo * 21), 2
-refreshtileedit mover(), state
+refreshtileedit state
 END SUB
 
-SUB editmaptile (ts as TileEditState, mover() as integer, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
+SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 STATIC clone as TileCloneBuffer
 DIM spot as XYPair
 
@@ -1172,7 +1168,7 @@ clearpage 2
 FOR i as integer = 0 TO 5
  edgebox 279, 9 + (i * 21), 22, 22, uilook(uiBackground), uilook(uiMenuItem), 2
 NEXT i
-refreshtileedit mover(), ts
+refreshtileedit ts
 textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (ts.undo * 21), 2
 '--Draw master palette
@@ -1218,7 +1214,7 @@ DO
    IF slowkey(scRight, 100) THEN scrolloff.x = 1
    IF slowkey(scUp, 100) THEN scrolloff.y = -1
    IF slowkey(scDown, 100) THEN scrolloff.y = 1
-   scrolltile mover(), ts, scrolloff.x, scrolloff.y
+   scrolltile ts, scrolloff.x, scrolloff.y
    IF scrolloff.x OR scrolloff.y THEN fixmouse = YES
    ts.x = (ts.x + scrolloff.x + 20) MOD 20
    ts.y = (ts.y + scrolloff.y + 20) MOD 20
@@ -1256,10 +1252,10 @@ DO
  IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
-  readundoblock mover(), ts
+  readundoblock ts
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
- IF keyval(scSpace) > 0 THEN clicktile mover(), ts, keyval(scSpace) AND 4, clone
+ IF keyval(scSpace) > 0 THEN clicktile ts, keyval(scSpace) AND 4, clone
  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
@@ -1287,7 +1283,7 @@ DO
    'Handle scrolling by dragging the mouse
    'Did this drag start inside the sprite box? If not, ignore
    IF mouse.dragging ANDALSO mouseover(mouse.clickstart.x, mouse.clickstart.y, 0, 0, 0, area()) = 1 THEN
-    scrolltile mover(), ts, ts.x - ts.lastcpos.x, ts.y - ts.lastcpos.y
+    scrolltile ts, ts.x - ts.lastcpos.x, ts.y - ts.lastcpos.y
    END IF
   ELSE
    'for all other tools, pick a color
@@ -1295,14 +1291,14 @@ DO
     ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
    END IF
   END IF
-  IF mouse.buttons AND mouseLeft THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
+  IF mouse.buttons AND mouseLeft THEN clicktile ts, (mouse.clicks AND mouseLeft), clone
  CASE 2
   'Colour selector
   IF mouse.clicks AND mouseLeft THEN
    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
   END IF
  CASE 13 TO 16
-  IF mouse.clicks AND mouseLeft THEN fliptile mover(), ts
+  IF mouse.clicks AND mouseLeft THEN fliptile ts
  END SELECT
  FOR i as integer = 0 TO UBOUND(toolinfo)
   IF toolinfo(i).areanum = ts.zone - 1 THEN
@@ -1317,7 +1313,7 @@ DO
    IF mouse.y >= (10 + (i * 21)) AND mouse.y < (30 + (i * 21)) THEN
     IF (mouse.clicks AND mouseLeft) ANDALSO ts.allowundo THEN
      ts.undo = i
-     readundoblock mover(), ts
+     readundoblock ts
     END IF
    END IF
   NEXT i
@@ -1344,7 +1340,7 @@ DO
    END IF
   END IF
  END IF
- IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile mover(), ts
+ IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile ts
  DIM cy as integer = (ts.curcolor \ 16) MOD 8
  DIM cx as integer = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
  ts.lastcpos = TYPE<XYPair>(ts.x, ts.y)
@@ -1471,25 +1467,25 @@ SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval to
  ts.drawcursor = toolinfo(ts.tool).cursor + 1
 END SUB
 
-SUB clicktile (mover() as integer, ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
+SUB clicktile (ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
 DIM spot as XYPair
 
 IF ts.delay > 0 THEN EXIT SUB
 SELECT CASE ts.tool
  CASE draw_tool
-  IF ts.justpainted = 0 THEN writeundoblock mover(), ts
+  IF ts.justpainted = 0 THEN writeundoblock ts
   ts.justpainted = 3
   putpixel 280 + ts.x, 10 + (ts.undo * 21) + ts.y, ts.curcolor, 2
   rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
-  refreshtileedit mover(), ts
+  refreshtileedit ts
  CASE box_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
-    writeundoblock mover(), ts
+    writeundoblock ts
     DIM select_rect as RectType
     corners_to_rect_inclusive Type(ts.x, ts.y), ts.holdpos, select_rect
     rectangle ts.tilex * 20 + select_rect.x, ts.tiley * 20 + select_rect.y, select_rect.wide, select_rect.high, ts.curcolor, 3
-    refreshtileedit mover(), ts
+    refreshtileedit ts
     ts.hold = NO
    ELSE
     ts.hold = YES
@@ -1500,9 +1496,9 @@ SELECT CASE ts.tool
  CASE line_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
-    writeundoblock mover(), ts
+    writeundoblock ts
     drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.holdpos.x, ts.tiley * 20 + ts.holdpos.y, ts.curcolor, 3
-    refreshtileedit mover(), ts
+    refreshtileedit ts
     ts.hold = NO
    ELSE
     ts.hold = YES
@@ -1512,7 +1508,7 @@ SELECT CASE ts.tool
   END IF
  CASE fill_tool
   IF newkeypress THEN
-   writeundoblock mover(), ts
+   writeundoblock ts
    rectangle 0, 0, 22, 22, ts.curcolor, dpage
    FOR i as integer = 0 TO 19
     FOR j as integer = 0 TO 19
@@ -1525,19 +1521,19 @@ SELECT CASE ts.tool
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
     NEXT j
    NEXT i
-   refreshtileedit mover(), ts
+   refreshtileedit ts
    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
   END IF
  CASE replace_tool
   IF newkeypress THEN
-   writeundoblock mover(), ts
+   writeundoblock ts
    replacecolor vpages(3), readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), ts.curcolor, ts.tilex * 20, ts.tiley * 20, 20, 20
-   refreshtileedit mover(), ts
+   refreshtileedit ts
   END IF
  CASE oval_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
-    writeundoblock mover(), ts
+    writeundoblock ts
     rectangle 0, 0, 22, 22, uilook(uiText), dpage
     FOR i as integer = 0 TO 19
      FOR j as integer = 0 TO 19
@@ -1550,7 +1546,7 @@ SELECT CASE ts.tool
       putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
      NEXT j
     NEXT i
-    refreshtileedit mover(), ts
+    refreshtileedit ts
     rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
     ts.hold = NO
    ELSE
@@ -1560,7 +1556,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE airbrush_tool
-  IF ts.justpainted = 0 THEN writeundoblock mover(), ts
+  IF ts.justpainted = 0 THEN writeundoblock ts
   ts.justpainted = 3
   rectangle 19, 119, 22, 22, uilook(uiText), dpage
   FOR i as integer = 0 TO 19
@@ -1574,7 +1570,7 @@ SELECT CASE ts.tool
     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(20 + i, 120 + j, dpage), 3
    NEXT j
   NEXT i
-  refreshtileedit mover(), ts
+  refreshtileedit ts
  CASE mark_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
@@ -1593,7 +1589,7 @@ SELECT CASE ts.tool
     ts.adjustpos.x = 0
     ts.adjustpos.y = 0
     clone.exists = YES
-    refreshtileedit mover(), ts
+    refreshtileedit ts
     ts.hold = NO
     ts.tool = clone_tool ' auto-select the clone tool after marking
    ELSE
@@ -1604,7 +1600,7 @@ SELECT CASE ts.tool
   END IF
  CASE clone_tool
   IF newkeypress THEN
-   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
+   IF ts.justpainted = 0 THEN writeundoblock ts
    ts.justpainted = 3
    IF clone.exists = YES THEN
     FOR i as integer = 0 TO clone.size.y - 1
@@ -1616,7 +1612,7 @@ SELECT CASE ts.tool
       END IF
      NEXT j
     NEXT i
-    refreshtileedit mover(), ts
+    refreshtileedit ts
    ELSE
     'if no clone buffer, switch to mark tool
     ts.tool = mark_tool
@@ -1628,10 +1624,10 @@ SELECT CASE ts.tool
 END SELECT
 END SUB
 
-SUB scrolltile (mover() as integer, ts as TileEditState, byval shiftx as integer, byval shifty as integer)
+SUB scrolltile (ts as TileEditState, byval shiftx as integer, byval shifty as integer)
  'Save an undo before the first of a consecutive scrolls
  IF shiftx = 0 AND shifty = 0 THEN EXIT SUB
- IF ts.didscroll = NO THEN writeundoblock mover(), ts
+ IF ts.didscroll = NO THEN writeundoblock ts
  ts.didscroll = YES
 
  rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
@@ -1649,12 +1645,12 @@ SUB scrolltile (mover() as integer, ts as TileEditState, byval shiftx as integer
    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
   NEXT j
  NEXT i
- refreshtileedit mover(), ts
+ refreshtileedit ts
  rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
-SUB fliptile (mover() as integer, ts as TileEditState)
-writeundoblock mover(), ts
+SUB fliptile (ts as TileEditState)
+writeundoblock ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 DIM flipx as integer = 0
 DIM flipy as integer = 0
@@ -1675,7 +1671,7 @@ FOR i as integer = 0 TO 19
   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
  NEXT j
 NEXT i
-refreshtileedit mover(), ts
+refreshtileedit ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
