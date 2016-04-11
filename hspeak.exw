@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Sc 2016-04-11 Check /usr/share/games/ohrrpgce/ for include files
 --3Sb 2014-11-11 Better 'include' line lexing & garbage detection
 --3Sa 2014-08-23 Fix printing of a lexer error message
 --3S  2014-07-22 Automatically include plotscr.hsd and ignore
@@ -158,8 +159,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Sb"
-constant COPYRIGHT_DATE="2014"
+constant COMPILER_SUB_VERSION="Sc"
+constant COPYRIGHT_DATE="2016"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
 --increment this whenever using an older plotscr.hsd means you're missing out
@@ -1285,6 +1286,10 @@ function find_include_file(string include_name)
       if file_exists(compiler_dir&include_name) then
         return normalize_filename(compiler_dir&include_name)
       else
+        --try /usr/share/games/ohrrpgce/
+        if file_exists("/usr/share/games/ohrrpgce/"&include_name) then
+          return normalize_filename("/usr/share/games/ohrrpgce/"&include_name)
+        end if
         --give up
         return include_name
       end if
