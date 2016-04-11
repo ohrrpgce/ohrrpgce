@@ -48,6 +48,7 @@ end type
 '----------- Local functions ----------
 
 declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
+declare sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
 declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -114,6 +115,10 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176"}, _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
+
+' Frame type table
+DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unload)
+
 
 '--------- Module shared variables ---------
 
@@ -6063,7 +6068,8 @@ end function
 ' The head element will have 1 extra refcount if the frame array is in the cache. Each of the non-head
 ' elements also have 1 refcount, indicating that they are 'in use' by the head element,
 ' but this is just for feel-good book keeping
-sub frame_unload(byval p as frame ptr ptr)
+' (cdecl so that it can be used in the frame ptr vector typetable)
+sub frame_unload cdecl(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
 
@@ -6247,12 +6253,17 @@ end function
 function frame_reference(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
-		debug "tried to reference a non-refcounted sprite!"
+		showerror "tried to reference a non-refcounted sprite!"
 	else
 		p->refcount += 1
 	end if
 	return p
 end function
+
+' This is for the Frame ptr vector typetable. Ignore.
+private sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
+	*dest = frame_reference(*src)
+end sub
 
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the

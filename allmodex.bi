@@ -209,7 +209,7 @@ declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
 declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
-declare sub frame_unload(byval p as frame ptr ptr)
+declare sub frame_unload cdecl(byval p as frame ptr ptr)
 declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
 declare sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr

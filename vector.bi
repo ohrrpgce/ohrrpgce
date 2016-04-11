@@ -24,10 +24,6 @@
 ''''''''''''''''''''''''''''' Type Declarations ''''''''''''''''''''''''''''''''
 
 
-'Simple and stupid.
-'#DEFINE array ptr
-'#DEFINE list ptr
-'finally made up my mind
 #DEFINE vector ptr
 
 TYPE FnCtor as sub cdecl (byval as any ptr)

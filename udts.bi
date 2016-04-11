@@ -107,6 +107,12 @@ type Frame
                                     'will need to be freed at the same time
 end type
 
+' You can declare vectors of type "Frame ptr vector".
+' When you remove a Frame ptr from the vector, frame_unload is called (decrementing the refcount),
+' so likewise when you add a Frame ptr frame_reference is called to increment the refcount.
+' ** WARNING: This means you have to call frame_unload to decrement the refcount after appending it! **
+DECLARE_VECTOR_OF_TYPE(Frame ptr, Frame_ptr)
+
 ENUM AnimOpType
 	animOpWait	'(ticks)
 	animOpFrame	'(framenum)
