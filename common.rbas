@@ -405,8 +405,8 @@ SUB notification (msg as string)
  restore_previous_palette
 END SUB
 
-SUB visible_debug (msg as string)
- debug msg
+SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
+ debugc errlvl, msg
  notification msg + !"\nPress any key..."
  'pop_warning msg
 END SUB

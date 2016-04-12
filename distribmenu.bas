@@ -326,7 +326,7 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
  END IF
  safekill txtfile
  write_readme_text_file txtfile, LE
- IF isfile(txtfile) THEN visible_debug "Created " & shortname
+ IF isfile(txtfile) THEN visible_debug "Created " & shortname, errInfo
  
 END SUB
 
@@ -531,7 +531,7 @@ SUB distribute_game_as_zip ()
    RETURN
   END IF
   
-  visible_debug "Successfully created " & shortzip
+  visible_debug "Successfully created " & shortzip, errInfo
 
   EXIT DO 'single pass, never really loops.
  LOOP
@@ -856,7 +856,7 @@ SUB distribute_game_as_windows_installer ()
    EXIT DO
   END IF
 
-  visible_debug trimpath(installer) & " was successfully created!"
+  visible_debug trimpath(installer) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1095,7 +1095,7 @@ SUB distribute_game_as_debian_package ()
   'Create new deb
   IF create_ar_archive(debtmp, debname, "debian-binary control.tar.gz data.tar.gz") = NO THEN EXIT DO
   
-  visible_debug trimpath(debname) & " was successfully created!"
+  visible_debug trimpath(debname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1519,7 +1519,7 @@ SUB distribute_game_as_mac_app ()
   END IF
   CHDIR olddir
   
-  visible_debug trimpath(destname) & " was successfully created!"
+  visible_debug trimpath(destname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1650,7 +1650,7 @@ SUB distribute_game_as_linux_tarball ()
   END IF
   CHDIR olddir
   
-  visible_debug trimpath(destname) & " was successfully created!"
+  visible_debug trimpath(destname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 

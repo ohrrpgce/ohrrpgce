@@ -172,7 +172,7 @@ DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
 
 DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
 DECLARE SUB notification (msg as string)
-DECLARE SUB visible_debug (s as string)
+DECLARE SUB visible_debug (s as string, errlvl as errorLevelEnum = errDebug)
 DECLARE SUB showerror (msg as string, byval isfatal as bool = NO)
 DECLARE SUB fatalerror (msg as string)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
