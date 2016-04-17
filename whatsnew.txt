@@ -13,6 +13,12 @@ WHAT IS NEW?
 
   * Stuff Only Developers Will Notice
 
+??? ?? 2016 [Callipygous+1]
+
+  * Bugfixes
+    * You weren't meant to be able to resize the window in the sprite
+      editor; doing so would corrupt graphics (gfx_sdl only) [Ralph]
+
 April 04 2016 [Callipygous]
 
   * New Features

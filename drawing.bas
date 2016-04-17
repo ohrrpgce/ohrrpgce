@@ -1891,12 +1891,15 @@ END SUB
 SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
-'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
 DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
-set_resolution 320, 200
-lock_resolution
-'Force videopage sizes to update
-setvispage vpage
+IF fullset = NO THEN
+ 'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
+ '(Don't do this when reentering the sprite editor)
+ set_resolution 320, 200
+ lock_resolution
+ 'Force videopage sizes to update
+ setvispage vpage
+END IF
 
 DIM ss as SpriteEditState
 WITH ss
@@ -2111,8 +2114,10 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-unlock_resolution 320, 200
-set_resolution remember_resolution.w, remember_resolution.h
+IF fullset = NO THEN
+ unlock_resolution 320, 200
+ set_resolution remember_resolution.w, remember_resolution.h
+END IF
 
 END SUB '----END of sprite()
 
