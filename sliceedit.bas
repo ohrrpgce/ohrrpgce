@@ -393,7 +393,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice
    state.need_update = YES
   END IF
-  IF keyval(scV) > 1 THEN
+  IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
    'Toggle visibility (does nothing on Select slice children)
    IF menu(state.pt).handle THEN
     menu(state.pt).handle->Visible XOR= YES
