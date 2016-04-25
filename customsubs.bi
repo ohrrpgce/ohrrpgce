@@ -113,5 +113,6 @@ DECLARE FUNCTION npc_preview_text(byref npc as NPCType) as string
 
 DECLARE SUB mark_non_elemental_elementals ()
 
+DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
 #endif

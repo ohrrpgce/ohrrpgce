@@ -90,6 +90,7 @@ DECLARE SUB shop_add_new (shopst as ShopEditState)
 
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
+
 DECLARE SUB prompt_for_password()
 DECLARE SUB prompt_for_save_and_quit()
 DECLARE SUB choose_rpg_to_open (rpg_browse_default as string)
@@ -114,6 +115,7 @@ DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1
 DIM fadestate as integer
+DIM auto_distrib as string
 
 DIM game as string
 DIM sourcerpg as string
@@ -349,6 +351,14 @@ load_special_tag_caches
 load_lookup1_bin lookup1_bin_cache()
 
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
+
+IF auto_distrib <> "" THEN
+ xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
+ upgrade 'needed because it has not already happened because we are doing command-line import
+ auto_export_distribs auto_distrib
+ cleanup_workingdir_on_exit = YES
+ cleanup_and_terminate NO
+END IF
 
 'Reset start of session to after upgrades (to see which lumps are edited)
 write_session_info

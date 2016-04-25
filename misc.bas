@@ -16,6 +16,9 @@
 #ifdef IS_GAME
 #include "yetmore2.bi"
 #endif
+#ifdef IS_CUSTOM
+#include "customsubs.bi"
+#endif
 
 dim nulzstr as zstring ptr  '(see misc.bi)
 
@@ -67,6 +70,11 @@ function global_setoption(opt as string, arg as string) as integer
                 'Hidden options:
                 'help = help & "-slave channel     IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END
+#ENDIF
+#IFDEF IS_CUSTOM
+		help = help & "-distrib [zip|win|mac|tarball|debian|all] When opening a game, export a copy for" & LINE_END
+		help = help & "                    distribution in the requested format. Not all formats are " & LINE_END
+		help = help & "                    available on all platforms. See c_debug.txt for error messages" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
@@ -128,6 +136,9 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 	if argsused = 0 then argsused = common_setoption(opt, arg)  'common.rbas
 	#ifdef IS_GAME
 		if argsused = 0 then argsused = game_setoption(opt, arg)
+	#endif
+	#ifdef IS_CUSTOM
+		if argsused = 0 then argsused = custom_setoption(opt, arg)
 	#endif
 
 	return argsused

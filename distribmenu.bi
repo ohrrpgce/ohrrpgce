@@ -7,5 +7,6 @@
 'Except, this module isn't much crappier than it needs to be
 
 DECLARE SUB distribute_game ()
+DECLARE SUB auto_export_distribs (distrib_type as string)
 
 #endif

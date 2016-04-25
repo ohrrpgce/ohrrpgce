@@ -11,4 +11,4 @@ EXTERN slave_channel as IPCChannel
 EXTERN slave_process as ProcessHandle
 EXTERN cleanup_workingdir_on_exit as bool
 EXTERN cleanup_workingdir_on_error as bool
-
+EXTERN auto_distrib as string

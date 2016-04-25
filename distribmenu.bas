@@ -78,6 +78,10 @@ CONST distmenuINFO as integer = 6
 CONST distmenuREADME as integer = 7
 CONST distmenuLINUXSETUP as integer = 8
 
+DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
+DECLARE SUB dist_info (msg as string, errlvl as errorLevelEnum = errDebug)
+DIM SHARED auto_yes as bool = NO
+
 SUB distribute_game ()
  
  DIM menu as SimpleMenuItem vector
@@ -322,11 +326,11 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
  
  DIM shortname as string = trimpath(txtfile)
  IF isfile(txtfile) THEN
-  IF yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
+  IF dist_yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
  END IF
  safekill txtfile
  write_readme_text_file txtfile, LE
- IF isfile(txtfile) THEN visible_debug "Created " & shortname, errInfo
+ IF isfile(txtfile) THEN dist_info "Created " & shortname, errInfo
  
 END SUB
 
@@ -472,14 +476,14 @@ SUB distribute_game_as_zip ()
 
  DIM zip as string = find_helper_app("zip", YES)
  IF zip = "" THEN
-  visible_debug "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
+  dist_info "Can't create zip files: " & missing_helper_message("zip" + DOTEXE)
   RETURN
  END IF
 
  DIM destzip as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & ".zip"
  DIM shortzip as string = trimpath(destzip)
  IF isfile(destzip) THEN
-  IF yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite, but do the overwrite later
  END IF
 
@@ -492,13 +496,13 @@ SUB distribute_game_as_zip ()
  DIM gameplayer as string
  gameplayer = get_windows_gameplayer()
  IF gameplayer = "" THEN
-  IF yesno("game.exe is not available, continue anyway?") = NO THEN RETURN
+  IF dist_yesno("game.exe is not available, continue anyway?") = NO THEN RETURN
   use_gameplayer = NO
  END IF
 
  makedir ziptmp
  IF NOT isdir(ziptmp) THEN
-  visible_debug "ERROR: unable to create temporary folder"
+  dist_info "ERROR: unable to create temporary folder"
   RETURN
  END IF
 
@@ -527,11 +531,11 @@ SUB distribute_game_as_zip ()
   spawn_ret = spawn_and_wait(zip, args)
   IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
    safekill destzip
-   visible_debug "Zip file creation failed." & spawn_ret
+   dist_info "Zip file creation failed." & spawn_ret
    RETURN
   END IF
   
-  visible_debug "Successfully created " & shortzip, errInfo
+  dist_info "Successfully created " & shortzip, errInfo
 
   EXIT DO 'single pass, never really loops.
  LOOP
@@ -554,7 +558,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as boo
   END IF
  ELSE 'simple case for regular .rpg files
   IF confirmed_copy(src_rpg_or_rpgdir, dest_rpg) = NO THEN
-   visible_debug "ERROR: failed to copy " & src_rpg_or_rpgdir
+   dist_info "ERROR: failed to copy " & src_rpg_or_rpgdir
   END IF
  END IF
  RETURN YES
@@ -594,7 +598,7 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  DIM args as string = escape_filename(exe_name) & " --set-icon " & escape_filename(ico_name)
  DIM spawn_ret as string
  spawn_ret = win_or_wine_spawn_and_wait(rcedit, args)
- IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
+ IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
 
 
 END SUB
@@ -667,7 +671,7 @@ FUNCTION get_windows_gameplayer() as string
  IF isfile(exepath & SLASH & "game.exe") THEN
   RETURN exepath & SLASH & "game.exe"
  ELSE
-  visible_debug "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
+  dist_info "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
  END IF
 
 #ENDIF
@@ -677,7 +681,7 @@ FUNCTION get_windows_gameplayer() as string
  '--Find the folder that we are going to download game.exe into
  DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -694,7 +698,7 @@ FUNCTION get_windows_gameplayer() as string
  
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "win.download.agree") THEN
-  IF yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
+  IF dist_yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "win.download.agree"
  END IF
 
@@ -705,23 +709,23 @@ FUNCTION get_windows_gameplayer() as string
  download_file url, dldir
  
  IF NOT isfile(destzip) THEN
-  visible_debug "ERROR: Failed to download game.exe" : RETURN ""
+  dist_info "ERROR: Failed to download game.exe" : RETURN ""
  END IF
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
  DIM args as string = "-o " & escape_filename(destzip) & " game.exe gfx_directx.dll SDL.dll SDL_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
  
- IF NOT isfile(dldir & SLASH & "game.exe")           THEN visible_debug "ERROR: Failed to unzip game.exe" : RETURN ""
- IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN visible_debug "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL.dll")            THEN visible_debug "ERROR: Failed to unzip SDL.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "SDL_mixer.dll")      THEN visible_debug "ERROR: Failed to unzip SDL_mixer.dll" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "game.exe")           THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "gfx_directx.dll")    THEN dist_info "ERROR: Failed to unzip gfx_directx.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL.dll")            THEN dist_info "ERROR: Failed to unzip SDL.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "SDL_mixer.dll")      THEN dist_info "ERROR: Failed to unzip SDL_mixer.dll" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
  
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
@@ -739,7 +743,7 @@ FUNCTION get_linux_gameplayer() as string
  IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
   RETURN exepath & SLASH & "ohrrpgce-game"
  ELSE
-  visible_debug "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+  dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
  END IF
 
 #ENDIF
@@ -751,7 +755,7 @@ FUNCTION get_linux_gameplayer() as string
  '--Find the folder that we are going to download ohrrpgce-game into
  DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -769,7 +773,7 @@ FUNCTION get_linux_gameplayer() as string
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "linux.download.agree") THEN
-  IF yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
+  IF dist_yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "linux.download.agree"
  END IF
 
@@ -779,20 +783,20 @@ FUNCTION get_linux_gameplayer() as string
  '--Actually download the dang file
  download_file url, dldir
  IF NOT isfile(destzip) THEN
-  visible_debug "ERROR: Failed to download Linux ohrrpgce-game" : RETURN ""
+  dist_info "ERROR: Failed to download Linux ohrrpgce-game" : RETURN ""
  END IF
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN visible_debug "ERROR: Couldn't find unzip tool": RETURN ""
+ IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
  
  '--Unzip the desired files
  DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game LICENSE-binary.txt -d " & escape_filename(dldir)
  DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN visible_debug "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
  
- IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN visible_debug "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN dist_info "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
  
  RETURN dldir & SLASH & "ohrrpgce-game"
 
@@ -807,7 +811,7 @@ SUB distribute_game_as_windows_installer ()
  DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
 
  IF isfile(installer) THEN
-  IF yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite (but actually do the overwrite later)
  END IF
 
@@ -826,7 +830,7 @@ SUB distribute_game_as_windows_installer ()
  
   DIM gameplayer as string
   gameplayer = get_windows_gameplayer()
-  IF gameplayer = "" THEN visible_debug "ERROR: game.exe is not available" : EXIT DO
+  IF gameplayer = "" THEN dist_info "ERROR: game.exe is not available" : EXIT DO
   IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
   
   insert_windows_exe_icon isstmp & SLASH & basename & ".exe", trimextension(sourcerpg) & ".ico"
@@ -847,16 +851,16 @@ SUB distribute_game_as_windows_installer ()
   
   DIM spawn_ret as string
   spawn_ret = win_or_wine_spawn_and_wait(iscc, args)
-  IF LEN(spawn_ret) THEN visible_debug "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
+  IF LEN(spawn_ret) THEN dist_info "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
   'Remove the old copy of the installer
   safekill installer
   'Move the new installer to the correct location
   IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
-   visible_debug "ERROR: iscc.exe completed but installer was not created"
+   dist_info "ERROR: iscc.exe completed but installer was not created"
    EXIT DO
   END IF
 
-  visible_debug trimpath(installer) & " was successfully created!", errInfo
+  dist_info trimpath(installer) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -935,7 +939,7 @@ FUNCTION win_path (filename as string) as string
 #ELSE
  'When using wine, paths that start with $HOME can be translated to Z:
  IF LEFT(filename, 1) <> "/" THEN
-  visible_debug "ERROR: Unable to translate path for wine: " & filename 
+  dist_info "ERROR: Unable to translate path for wine: " & filename 
   RETURN filename
  END IF
  DIM winepath as string = "z:" & filename
@@ -947,16 +951,16 @@ END FUNCTION
 FUNCTION find_or_download_innosetup () as string
  DIM iscc as string = find_innosetup()
  IF iscc = "" THEN
-  IF yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
+  IF dist_yesno("Inno Setup 5 is required to create windows installation packages. Would you like to download it from jrsoftware.org now?") THEN
    download_file "http://www.jrsoftware.org/download.php/is.exe", settings_dir, "is.exe"
    DIM spawn_ret as string
    spawn_ret = win_or_wine_spawn_and_wait(settings_dir & SLASH & "is.exe")
    safekill settings_dir & SLASH & "is.exe"
-   IF LEN(spawn_ret) THEN visible_debug "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
+   IF LEN(spawn_ret) THEN dist_info "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
    '--re-search for iscc now that it may have been installed
    iscc = find_innosetup()
   END IF
-  IF iscc = "" THEN visible_debug "Canceling export. Inno Setup 5 is not available." : RETURN ""
+  IF iscc = "" THEN dist_info "Canceling export. Inno Setup 5 is not available." : RETURN ""
  END IF
  RETURN iscc
 END FUNCTION
@@ -1008,7 +1012,7 @@ SUB distribute_game_as_debian_package ()
  DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_i386.deb"
 
  IF isfile(debname) THEN
-  IF yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite, but do it later
  END IF
 
@@ -1036,7 +1040,7 @@ SUB distribute_game_as_debian_package ()
   debuginfo "Copy linux game player" 
   DIM gameplayer as string
   gameplayer = get_linux_gameplayer()
-  IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
+  IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
   
   debuginfo "Create menu file"
@@ -1075,7 +1079,7 @@ SUB distribute_game_as_debian_package ()
 
   debuginfo "Create debian control file"
   write_debian_control_file debtmp & SLASH & "control", basename, pkgver, size_in_kibibytes, distinfo
-  IF NOT isfile(debtmp & SLASH & "control") THEN visible_debug "Couldn't create debian control file" : EXIT DO
+  IF NOT isfile(debtmp & SLASH & "control") THEN dist_info "Couldn't create debian control file" : EXIT DO
   write_debian_postinst_script debtmp & SLASH & "postinst"
   write_debian_postrm_script debtmp & SLASH & "postrm"
 
@@ -1095,7 +1099,7 @@ SUB distribute_game_as_debian_package ()
   'Create new deb
   IF create_ar_archive(debtmp, debname, "debian-binary control.tar.gz data.tar.gz") = NO THEN EXIT DO
   
-  visible_debug trimpath(debname) & " was successfully created!", errInfo
+  dist_info trimpath(debname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1179,7 +1183,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  'if they contain spaces they must be quoted
 
  DIM ar as string = find_helper_app("ar", YES)
- IF ar = "" THEN visible_debug "ERROR: ar is not available" : RETURN NO
+ IF ar = "" THEN dist_info "ERROR: ar is not available" : RETURN NO
 
  DIM args as string
  args = " qc"
@@ -1196,8 +1200,8 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  spawn_ret = spawn_and_wait(ar, args)
  CHDIR olddir
  
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
- IF NOT isfile(archive) THEN visible_debug "Could not create " & archive : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
+ IF NOT isfile(archive) THEN dist_info "Could not create " & archive : RETURN NO
  RETURN YES
  
 END FUNCTION
@@ -1211,7 +1215,7 @@ FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as stri
  'if they contain spaces they must be quoted
  
  DIM zip as string = find_helper_app("zip", YES)
- IF zip = "" THEN visible_debug "ERROR: zip is not available": RETURN NO
+ IF zip = "" THEN dist_info "ERROR: zip is not available": RETURN NO
 
  DIM spawn_ret as string
  DIM args as string
@@ -1224,9 +1228,9 @@ FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as stri
  spawn_ret = spawn_and_wait(zip, args)
  CHDIR olddir
  
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
 
- IF NOT isfile(zipfile) THEN visible_debug "Could not create " & zipfile : RETURN NO
+ IF NOT isfile(zipfile) THEN dist_info "Could not create " & zipfile : RETURN NO
  RETURN YES
 END FUNCTION
 
@@ -1239,10 +1243,10 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  'if they contain spaces they must be quoted
  
  DIM tar as string = find_helper_app("tar", YES)
- IF tar = "" THEN visible_debug "ERROR: tar is not available": RETURN NO
+ IF tar = "" THEN dist_info "ERROR: tar is not available": RETURN NO
 
  DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+ IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
 
  DIM uncompressed as string = trimextension(tarball)
 
@@ -1269,11 +1273,11 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  spawn_ret = spawn_and_wait(tar, args)
  CHDIR olddir
  
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
 
  IF gzip_file(uncompressed) = NO THEN RETURN NO
  
- IF NOT isfile(tarball) THEN visible_debug "Could not create " & tarball : RETURN NO
+ IF NOT isfile(tarball) THEN dist_info "Could not create " & tarball : RETURN NO
  RETURN YES
 END FUNCTION
 
@@ -1290,7 +1294,7 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
  
  
  DIM tar as string = find_helper_app("tar", YES)
- IF tar = "" THEN visible_debug "ERROR: tar utility is not available": RETURN NO
+ IF tar = "" THEN dist_info "ERROR: tar utility is not available": RETURN NO
 
  DIM spawn_ret as string
  DIM args as string
@@ -1303,7 +1307,7 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
  spawn_ret = spawn_and_wait(tar, args)
  CHDIR olddir
  
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  
  RETURN YES
 
@@ -1312,15 +1316,15 @@ END FUNCTION
 FUNCTION gzip_file (filename as string) as integer
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+ IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
  args = escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(filename & ".gz") THEN
-  visible_debug "ERROR: gzip completed but " & filename & ".gz was not created"
+  dist_info "ERROR: gzip completed but " & filename & ".gz was not created"
  END IF
 
  RETURN YES
@@ -1329,15 +1333,15 @@ END FUNCTION
 FUNCTION gunzip_file (filename as string) as integer
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN visible_debug "ERROR: gzip is not available": RETURN NO
+ IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
  args = " -d -f " & escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
- IF LEN(spawn_ret) THEN visible_debug spawn_ret : RETURN NO
+ IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(trimextension(filename)) THEN
-  visible_debug "ERROR: gzip -d completed but " & filename & ".gz was not uncompressed"
+  dist_info "ERROR: gzip -d completed but " & filename & ".gz was not uncompressed"
  END IF
 
  RETURN YES
@@ -1460,7 +1464,7 @@ SUB distribute_game_as_mac_app ()
  DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-mac.zip"
 
  IF isfile(destname) THEN
-  IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite! (but actually do the overwriting later on)
  END IF
 
@@ -1477,13 +1481,13 @@ SUB distribute_game_as_mac_app ()
   debuginfo "Rename mac game player" 
   DIM gameplayer as string
   gameplayer = get_mac_gameplayer()
-  IF gameplayer = "" THEN visible_debug "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
+  IF gameplayer = "" THEN dist_info "ERROR: OHRRPGCE-Game.app is not available" : EXIT DO
   DIM app as string = apptmp & SLASH & distinfo.pkgname & ".app"
 #IFDEF __FB_WIN32__
-  IF confirmed_copydirectory(gameplayer, app) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & app : EXIT DO
+  IF confirmed_copydirectory(gameplayer, app) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & app : EXIT DO
 #ELSE
   'Mac and Linux do it this way to preserve symlinks and permissions
-  IF os_shell_move(gameplayer, app) = NO THEN visible_debug "Couldn't move " & gameplayer & " to " & app : EXIT DO
+  IF os_shell_move(gameplayer, app) = NO THEN dist_info "Couldn't move " & gameplayer & " to " & app : EXIT DO
 #ENDIF
   IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
@@ -1519,7 +1523,7 @@ SUB distribute_game_as_mac_app ()
   END IF
   CHDIR olddir
   
-  visible_debug trimpath(destname) & " was successfully created!", errInfo
+  dist_info trimpath(destname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1536,7 +1540,7 @@ FUNCTION get_mac_gameplayer() as string
  '--Find the folder that we are going to download OHRRPGCE-Game.app into
  DIM dldir as string = settings_dir & SLASH & "_gameplayer"
  IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN visible_debug "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -1561,14 +1565,14 @@ FUNCTION get_mac_gameplayer() as string
  safekill desttar
 
  IF NOT isfile(dldir & SLASH & "mac.download.agree") THEN
-  IF yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
+  IF dist_yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
   touchfile dldir & SLASH & "mac.download.agree"
  END IF
 
  '--Actually download the dang file
  download_file url, dldir
  IF NOT isfile(destgz) THEN
-  visible_debug "ERROR: Failed to download Mac OHRRPGCE" : RETURN ""
+  dist_info "ERROR: Failed to download Mac OHRRPGCE" : RETURN ""
  END IF
 
  '--remove the old uncompressed files
@@ -1579,9 +1583,9 @@ FUNCTION get_mac_gameplayer() as string
  IF gunzip_file(destgz) = NO THEN RETURN ""
  IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app LICENSE-binary.txt") = NO THEN RETURN ""
  
- IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN visible_debug "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN visible_debug "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN visible_debug "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
+ IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
  
  RETURN dldir & SLASH & "OHRRPGCE-Game.app"
 
@@ -1595,7 +1599,7 @@ SUB distribute_game_as_linux_tarball ()
  DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-linux.tar.gz"
 
  IF isfile(destname) THEN
-  IF yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite! (but actually do the overwriting later on)
  END IF
 
@@ -1615,14 +1619,14 @@ SUB distribute_game_as_linux_tarball ()
   debuginfo "Rename linux game player" 
   DIM gameplayer as string
   gameplayer = get_linux_gameplayer()
-  IF gameplayer = "" THEN visible_debug "ERROR: ohrrpgce-game is not available" : EXIT DO
+  IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   debuginfo " exe: " & gameplayer
   DIM tarballdir_base as string = distinfo.pkgname & "-linux"
   DIM tarballdir as string = apptmp & SLASH & tarballdir_base
   debuginfo " tarballdir: " & tarballdir
   makedir tarballdir
   DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
-  IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN visible_debug "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
+  IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
 #IFDEF __UNIX__
   'Mac and Linux fix the permissions
   DIM cmd as string
@@ -1650,7 +1654,7 @@ SUB distribute_game_as_linux_tarball ()
   END IF
   CHDIR olddir
   
-  visible_debug trimpath(destname) & " was successfully created!", errInfo
+  dist_info trimpath(destname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
 
@@ -1658,4 +1662,56 @@ SUB distribute_game_as_linux_tarball ()
  killdir apptmp, YES
 
 END SUB
+
+FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
+ IF auto_yes THEN RETURN YES
+ RETURN yesno(capt, defaultval, escval)
+END FUNCTION
+
+SUB dist_info (msg as string, errlvl as errorLevelEnum = errDebug)
+ IF auto_yes THEN
+  debugc errlvl, msg
+ ELSE
+  visible_debug msg, errlvl
+ END IF
+END SUB
+
+SUB auto_export_distribs (distrib_type as string)
+ debuginfo "Auto-export: " & distrib_type
+
+ auto_yes = YES
+ IF distrib_type = "zip" ORELSE distrib_type = "all" THEN
+  distribute_game_as_zip
+ END IF
+ IF distrib_type = "win" ORELSE distrib_type = "all" THEN
+  IF can_run_windows_exes() THEN
+   distribute_game_as_windows_installer
+  ELSE
+   dist_info "auto distrib: windows installer export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "mac" ORELSE distrib_type = "all" THEN
+  IF can_make_mac_packages() THEN
+   distribute_game_as_mac_app
+  ELSE
+   dist_info "auto distrib: mac app export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "debian" ORELSE distrib_type = "all" THEN
+  IF can_make_debian_packages() THEN
+   distribute_game_as_debian_package
+  ELSE
+   dist_info "auto distrib: debian package export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "tarball" ORELSE distrib_type = "all" THEN
+  IF can_make_tarballs() THEN
+   distribute_game_as_linux_tarball
+  ELSE
+   dist_info "auto distrib: linux tarball export unavailable"
+  END IF
+ END IF
+ auto_yes = NO
+END SUB
+
 

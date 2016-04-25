@@ -5735,4 +5735,18 @@ SUB mark_non_elemental_elementals ()
  write_general_reld() 
 END SUB
 
+FUNCTION custom_setoption(opt as string, arg as string) as integer
+ IF opt = "distrib" THEN
+  SELECT CASE arg
+   CASE "zip", "win", "mac", "tarball", "debian", "all"
+    auto_distrib = arg
+    RETURN 2
+  END SELECT
+  debug "-distrib doesn't know how to export """ & arg & """"
+  RETURN 1
+ END IF
+ RETURN 0
+END FUNCTION
+
+
 
