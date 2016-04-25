@@ -1235,7 +1235,7 @@ FUNCTION escape_filename (filename as string) as string
   'This is intended for escaping filenames for use in shells
 #IFDEF __UNIX__
   'Don't escape '
-  RETURN """" & escape_string(filename, """`\$|<>&#;()") & """"
+  RETURN """" & escape_string(filename, """`\$|<>&#;") & """"
 #ELSE
   'Note " is not allowed in filenames
   RETURN """" & filename & """"
