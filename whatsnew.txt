@@ -1,10 +1,26 @@
 WHAT IS NEW?
 
+???? ?? 2016 [Debatable]
+
+  * New Features
+
+  * Changes
+
+  * Bugfixes
+
+  * New Plotscripting Stuff
+    * "menu item at pixel" [Ralph, James]
+
+  * Stuff Only Developers Will Notice
+
 ??? ?? 2016 [Callipygous+1]
 
   * Bugfixes
     * You weren't meant to be able to resize the window in the sprite
       editor; doing so would corrupt graphics (gfx_sdl only) [Ralph]
+    * Under Unix, utilities couldn't be run (e.g. to encode and import
+      audio or distribute the game) on files containing the characters
+      ( ) | < > # ; &.
 
 April 04 2016 [Callipygous]
 
