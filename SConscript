@@ -166,18 +166,19 @@ del CXXLINKFLAGS
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
-for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'AS', 'CC', 'CXX':
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 
-#CC and CXX are probably not needed anymore
+# If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
+# If using gengcc=1, CC will not be used by fbc, set GCC envar instead.
 AS = os.environ.get ('AS')
 CC = os.environ.get ('CC')
 CXX = os.environ.get ('CXX')
 clang = False
 if CC:
     clang = 'clang' in CC
-    if not clang:
+    if not clang and 'GCC' not in os.environ:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
     env.Replace (CC = CC)
