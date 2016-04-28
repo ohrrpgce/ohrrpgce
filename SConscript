@@ -295,6 +295,7 @@ if arch == 'armeabi':
     #env['CFLAGS'] += -L$(SYSROOT)/usr/lib
     # CC, CXX, AS must be set in environment to point to cross compiler
 elif arch == 'x86':
+    env['FBFLAGS'] += ["-arch", "686"]
     env['CFLAGS'].append ('-m32')
     env['CXXFLAGS'].append ('-m32')
     if not clang:
