@@ -243,8 +243,17 @@ use_32bit_integer()
 
 #undef gosub
 #define gosub _gosub_beta(__LINE__,__FUNCTION_NQ__)
-'the "if 0 then" is used to place a label after the goto
-#define _gosub_beta(a,b) asm : call gosub_##b##_line_##a end asm : if 0 then asm : gosub_##b##_line_##a: end asm : goto
+'The "if 0 then" is used to place a label after the goto (the goto label occurs afterwards)
+'We subtract 12 from esp to perserve 16-byte stack alignment, in case it is required
+'(eg Linux i386/x86_64)
+#macro _gosub_beta(a,b)
+  asm
+    sub esp, 12
+    call gosub_##b##_line_##a
+    add esp, 12
+  end asm
+  if 0 then asm : gosub_##b##_line_##a: end asm : goto
+#endmacro
 #define retrace asm ret
 #define crt_jmp_buf byte
 
