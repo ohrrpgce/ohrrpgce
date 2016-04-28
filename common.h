@@ -32,15 +32,28 @@ typedef int boolint;
 
 /* Several other C/C++ compilers, like Comeau C++, also have good gcc compatibility. Change this.
    Apparently the Intel compiler defines __GNUC__ */
-#if defined(__GNUC__) || defined(__IBMC__) || defined(__INTEL_COMPILER)
+// pure function: do not modify global memory, but may read it (including ptr args)
+#if defined(__clang__)
 # define pure __attribute__ ((__pure__))
 # define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
-# define noreturn __attribute__ ((__noreturn__))
+// Recent clang supports C++11 [[noreturn]] but not GNU syntax
+# if __clang_major__ >= 4
+#  define _noreturn [[noreturn]]
+# else
+#  define _noreturn
+# endif
+# define warn_unused_result __attribute__ ((__warn_unused_result__))
+#elif defined(__GNUC__) || defined(__IBMC__) || defined(__INTEL_COMPILER)
+# define pure __attribute__ ((__pure__))
+# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
+// [[noreturn]] in C++11
+# define _noreturn __attribute__ ((__noreturn__))
+// [[nodiscard]] in C++11
 # define warn_unused_result __attribute__ ((__warn_unused_result__))
 #else
 # define pure
 # define format_chk(fmt_arg)
-# define noreturn
+# define _noreturn
 //# define inline
 #endif
 
@@ -54,7 +67,7 @@ const char *trimpath(const char *filename);
 void debugc(enum ErrorLevel errorlevel, const char *msg);
 
 // libfb.a
-void (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void) noreturn;
+void _noreturn (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void);
 
 // in miscc.c
 void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
