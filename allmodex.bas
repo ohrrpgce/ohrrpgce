@@ -1197,6 +1197,8 @@ private function read_inputtext () as string
 				end select
 				'debug "unicode char " & w_in[i]
 				ret += "?"
+			elseif w_in[i] = 127 then
+				'Delete (only sent on OSX). Ignore; we use scancodes instead.
 			elseif w_in[i] >= icons_low and w_in[i] <= icons_high then
 				ret += "?"
 			elseif w_in[i] < 32 then
