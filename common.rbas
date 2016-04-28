@@ -2398,6 +2398,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
 
+ debuginfo "spawn_and_wait " & escape_filename(app) + " " + args
+
  IF gfxbackend = "console" THEN
   CLS
   safe_shell escape_filename(app) & " " & args

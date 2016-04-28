@@ -26,6 +26,8 @@ WHAT IS NEW?
     * Under Unix, utilities couldn't be run (e.g. to encode and import
       audio or distribute the game) on files containing the characters
       ( ) | < > # ; &.
+    * Running utilities (like hspeak) didn't work on Macs where the
+      OHRRPGCE hadn't been installed previously [Ralph]
 
 April 04 2016 [Callipygous]
 
