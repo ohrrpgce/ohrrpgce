@@ -86,7 +86,7 @@ static void sendSDLKey(SDLKey key, SDLMod mod) {
 
 @implementation NSApplication (SDLApplication)
 /* Invoked from the Quit menu item */
-- (void)terminate:(id)sender
+- (void)terminateOption:(id)sender
 {
     /* Post a SDL_QUIT event */
     SDL_Event event;
@@ -183,7 +183,7 @@ static void setApplicationMenu(void)
     [appleMenu addItem:[NSMenuItem separatorItem]];
 
     title = [@"Quit " stringByAppendingString:appName];
-    [appleMenu addItemWithTitle:title action:@selector(terminate:) keyEquivalent:@"q"];
+    [appleMenu addItemWithTitle:title action:@selector(terminateOption:) keyEquivalent:@"q"];
 
     
     /* Put menu into the menubar */
@@ -257,6 +257,7 @@ static void setupWindowMenu(void)
     [windowMenuItem release];
 }
 
+#ifdef IS_CUSTOM
 /* Create the help menu */
 static void setupHelpMenu(void)
 {
@@ -280,6 +281,7 @@ static void setupHelpMenu(void)
     [helpMenu release];
     [helpMenuItem release];
 }
+#endif
 
 /* Replacement for NSApplicationMain */
 static void CustomApplicationMain (int argc, char **argv)
