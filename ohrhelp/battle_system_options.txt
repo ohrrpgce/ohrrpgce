@@ -8,6 +8,8 @@ Stat Caps: See maximum values for battle stats and damage.
 
 Hero Elemental Resist Calculation: See the help screen for this menu.
 
+Mark Non-elemental Elementals: Used to categorize elements; see the help page.
+
 Battle Mode: Choose between active-time and turn-based.
 
   ACTIVE TIME: Each hero takes turns

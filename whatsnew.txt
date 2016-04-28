@@ -3,10 +3,15 @@ WHAT IS NEW?
 ???? ?? 2016 [Debatable]
 
   * New Features
+    * Mark Non-elemental Elementals menu lets you define which elements
+      shouldn't count as elemental for enemy spawning purposes [James]
 
   * Changes
 
   * Bugfixes
+    * In old games, attacks with enemy type-killer bits wrongly counted
+      as elemental for the purpose of spawning. This fix is only
+      applied if the game has not been edited since Ypsiliform. [James]
 
   * New Plotscripting Stuff
     * "menu item at pixel" [Ralph, James]

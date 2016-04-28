@@ -1,7 +1,7 @@
 In the "Spawning" section of the enemy editor, you can specify a spawning action in response to a non-elemental attack.
 
-By marking elementals here as "Non-elemental" you can have those elements ignored for determining whether an attack counts as "non-elemental"
+By marking elementals here as "Non-elemental" you can have those elements ignored for determining whether an attack counts as "non-elemental".
 
-Typically non-lemental elements would be used for special-use elementals, such as an elemental that exists only to trigger spawning in a special situation.
+Typically non-elemental elements would be used for special-use elementals, such as an elemental that exists only to trigger spawning in a special situation.
 
-This is unlikely to be desired for your standard "Fire" "Water" "Air" type of elementals.
+This is unlikely to be desired for your standard "Fire", "Water", "Air" type of elementals.
