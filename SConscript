@@ -269,6 +269,10 @@ else:
 ################ Mac SDKs
 
 if mac:
+    if fbcversion > 220:
+        # fbc will probably default to -gen gcc anyway, but even if using it
+        # isn't ideal, this script needs to know whether it's used.
+        gengcc = True
     macsdk = ARGUMENTS.get ('macsdk', '')
     macSDKpath = ''
     if os.path.isdir(os.path.expanduser(FRAMEWORKS_PATH)):
@@ -413,7 +417,11 @@ if linkgcc:
 
     if mac:
         # -no_pie (no position-independent execution) fixes a warning
-        env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o'), '-Wl,-no_pie']
+
+        if fbcversion <= 220:
+            # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
+            env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
+        env['CXXLINKFLAGS'] += ['-Wl,-no_pie']
         if macSDKpath:
             env['CXXLINKFLAGS'] += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
@@ -441,7 +449,11 @@ if linkgcc:
 
 if not linkgcc:
     # At the moment we don't link C++ into any utilities, so this is actually only needed in commonenv
-    env['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s', '-l','gcc_eh']
+    env['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s']
+    if mac and fbcversion > 220:
+        # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
+        # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
+        env['FBLINKFLAGS'] += ['-l','gcc_eh']
 
 
 ################ Program-specific stuff starts here
@@ -526,6 +538,12 @@ elif mac:
             commonenv.ParseConfig('sdl-config --cflags')
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+
+    if arch == 'x86_64' and 'sdl' in music:
+        print
+        print 'WARNING: according the SDL_mixer 1.2 release notes:'
+        print '"Mac native midi had to be disabled because the code depends on legacy Quicktime and won\'t compile in 64-bit."'
+
 elif android:
     # liblog for __android_log_print/write
     base_libraries += ['log']

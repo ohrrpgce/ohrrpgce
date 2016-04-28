@@ -250,10 +250,6 @@ use_32bit_integer()
 
 #else  'choose GOSUB workaround
 
-#ifdef __FB_DARWIN__
- #error "setjmp GOSUB hack not supported on Mac"
-#endif
-
 'alternative to above blocks, use this code on non x86 platforms
 'use a setjmp/longjmp kludge
 
