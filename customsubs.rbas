@@ -5661,3 +5661,13 @@ SUB edit_savegame_options
  write_general_reld
 END SUB
 
+FUNCTION npc_preview_text(byref npc as NPCType) as string
+ 'This is certaily not an attempt to show everything one might need to
+ 'know about an NPC, simply a way of showing a little more data so that
+ 'NPCs with the same sprite can be easily distinguished in the editor at a glance
+ IF npc.textbox > 0 THEN RETURN textbox_preview_line(npc.textbox)
+ IF npc.script <> 0 THEN RETURN scriptname(npc.script) & " [SCRIPT]"
+ IF npc.item > 0 THEN RETURN readitemname(npc.item - 1) & " [ITEM]"
+ IF npc.vehicle > 0 THEN RETURN load_vehicle_name(npc.vehicle - 1) & " [VEHICLE]"
+END FUNCTION
+
