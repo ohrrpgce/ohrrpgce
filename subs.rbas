@@ -247,10 +247,10 @@ NEXT
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(260) as string
-DIM menutype(260) as integer
-DIM menuoff(260) as integer
-DIM menulimits(260) as integer
+DIM menu(264) as string
+DIM menutype(264) as integer
+DIM menuoff(264) as integer
+DIM menulimits(264) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -389,13 +389,13 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
 NEXT i
 
-CONST EnMenuSpawnNum = 94
+CONST EnMenuSpawnNum = 98
 menu(EnMenuSpawnNum) = "How Many to Spawn:"
 menutype(EnMenuSpawnNum) = 0
 menuoff(EnMenuSpawnNum) = EnDatSpawnNum
 menulimits(EnMenuSpawnNum) = EnLimSpawnNum
 
-CONST EnMenuAtkNormal = 95' to 99
+CONST EnMenuAtkNormal = 99' to 103
 FOR i as integer = 0 TO 4
  menu(EnMenuAtkNormal + i) = "Normal:"
  menutype(EnMenuAtkNormal + i) = 7
@@ -403,7 +403,7 @@ FOR i as integer = 0 TO 4
  menulimits(EnMenuAtkNormal + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuAtkDesp = 100' to 104
+CONST EnMenuAtkDesp = 104' to 108
 FOR i as integer = 0 TO 4
  menu(EnMenuAtkDesp + i) = "Desperation:"
  menutype(EnMenuAtkDesp + i) = 7
@@ -411,7 +411,7 @@ FOR i as integer = 0 TO 4
  menulimits(EnMenuAtkDesp + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuAtkAlone = 105' to 109
+CONST EnMenuAtkAlone = 109' to 113
 FOR i as integer = 0 TO 4
  menu(EnMenuAtkAlone + i) = "Alone:"
  menutype(EnMenuAtkAlone + i) = 7
@@ -419,59 +419,59 @@ FOR i as integer = 0 TO 4
  menulimits(EnMenuAtkAlone + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuStealItem = 110
+CONST EnMenuStealItem = 114
 menu(EnMenuStealItem) = "Stealable Item:"
 menutype(EnMenuStealItem) = 8
 menuoff(EnMenuStealItem) = EnDatStealItem
 menulimits(EnMenuStealItem) = EnLimItem
 
-CONST EnMenuStealRItem = 111
+CONST EnMenuStealRItem = 115
 menu(EnMenuStealRItem) = "Rare Stealable Item:"
 menutype(EnMenuStealRItem) = 8
 menuoff(EnMenuStealRItem) = EnDatStealRItem
 menulimits(EnMenuStealRItem) = EnLimItem
 
-CONST EnMenuStealItemP = 112
+CONST EnMenuStealItemP = 116
 menu(EnMenuStealItemP) = "Steal Rate%:"
 menutype(EnMenuStealItemP) = 0
 menuoff(EnMenuStealItemP) = EnDatStealItemP
 menulimits(EnMenuStealItemP) = EnLimPercent
 
-CONST EnMenuStealRItemP = 113
+CONST EnMenuStealRItemP = 117
 menu(EnMenuStealRItemP) = "Rare Steal Rate%:"
 menutype(EnMenuStealRItemP) = 0
 menuoff(EnMenuStealRItemP) = EnDatStealRItemP
 menulimits(EnMenuStealRItemP) = EnLimPercent
 
-CONST EnMenuStealAvail = 114
+CONST EnMenuStealAvail = 118
 menu(EnMenuStealAvail) = "Steal Availability:"
 menutype(EnMenuStealAvail) = 2000 + EnCapStealAvail
 menuoff(EnMenuStealAvail) = EnDatStealAvail
 menulimits(EnMenuStealAvail) = EnLimStealAvail
 
-CONST EnMenuDissolve = 115
+CONST EnMenuDissolve = 119
 menu(EnMenuDissolve) = "Death Animation:"
 menutype(EnMenuDissolve) = 2000 + EnCapDissolve
 menuoff(EnMenuDissolve) = EnDatDissolve
 menulimits(EnMenuDissolve) = EnLimDissolve
 
-CONST EnMenuDissolveTime = 116
+CONST EnMenuDissolveTime = 120
 menu(EnMenuDissolveTime) = "Death Animation ticks:"
 menutype(EnMenuDissolveTime) = 13
 menuoff(EnMenuDissolveTime) = EnDatDissolveTime
 menulimits(EnMenuDissolveTime) = EnLimDissolveTime
 
-CONST EnMenuDeathSFX = 117
+CONST EnMenuDeathSFX = 121
 menu(EnMenuDeathSFX) = "Death Sound Effect:"
 menutype(EnMenuDeathSFX) = 14
 menuoff(EnMenuDeathSFX) = EnDatDeathSFX
 menulimits(EnMenuDeathSFX) = EnLimDeathSFX
 
-CONST EnMenuCursorOffset = 118
+CONST EnMenuCursorOffset = 122
 menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
 
-CONST EnMenuElemCtr = 119' to 182
+CONST EnMenuElemCtr = 123' to 186
 FOR i as integer = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemCtr + i) = "Counter element " & elementnames(i) & ":"
  menutype(EnMenuElemCtr + i) = 7
@@ -483,7 +483,7 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  menulimits(EnMenuElemCtr + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuStatCtr = 183' to 194
+CONST EnMenuStatCtr = 187' to 198
 FOR i as integer = 0 TO 11
  menu(EnMenuStatCtr + i) = "Counter damage to " & statnames(i) & ":"
  menutype(EnMenuStatCtr + i) = 7
@@ -491,18 +491,18 @@ FOR i as integer = 0 TO 11
  menulimits(EnMenuStatCtr + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuElementalsAct = 195
+CONST EnMenuElementalsAct = 199
 menu(EnMenuElementalsAct) = "Elemental Resistances..."
 menutype(EnMenuElementalsAct) = 1
 
-CONST EnMenuElemDmg = 196' to 259
+CONST EnMenuElemDmg = 200' to 263
 FOR i as integer = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15) + ":"
  menutype(EnMenuElemDmg + i) = 5000 + EnCapElemResist + i  'percent_grabber
  menuoff(EnMenuElemDmg + i) = 239 + i*2 
 NEXT
 
-CONST EnMenuAtkBequest = 260
+CONST EnMenuAtkBequest = 264
 menu(EnMenuAtkBequest) = "On-Death Bequest Attack:"
 menutype(EnMenuAtkBequest) = 7
 menuoff(EnMenuAtkBequest) = EnDatAtkBequest
