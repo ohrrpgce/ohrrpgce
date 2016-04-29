@@ -4,8 +4,10 @@
 osascript <<EOF
 tell application "Terminal"
     activate
-    set mytab to do script "$@"
-    --set mytab to do script "~/src2/zenzizenzic/hspeak -y ~/src2/zenzizenzic/plotscr.hsd ; exit"
+    --There are many different ways to quote, which probably aren't equivalent:
+    --set mytab to do script quoted form of "$@"
+    set mytab to do script "'$@'"
+    --set mytab to do script "\"$@\""
     delay 0.5
     repeat while mytab is busy
         delay 1
