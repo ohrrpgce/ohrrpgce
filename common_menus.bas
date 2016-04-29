@@ -40,7 +40,8 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   END IF
  NEXT
  state.last = nextbit - 1
- state.size = 24 'default of 25 puts the last item off the screen
+ state.autosize = YES
+ state.spacing = 8
 
  DIM ret as integer = NO
  DIM col as integer

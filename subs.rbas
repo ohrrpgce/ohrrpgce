@@ -514,7 +514,8 @@ menulimits(EnMenuAtkBequest) = EnLimAtk
 DIM workmenu(92) as integer
 DIM dispmenu(92) as string
 DIM state as MenuState
-state.size = 24
+state.autosize = YES
+state.spacing = 8
 state.need_update = YES
 
 DIM mainMenu(9) as integer
@@ -1518,7 +1519,8 @@ SUB item_editor
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
- state.size = 24
+ state.autosize = YES
+ state.spacing = 8
  state.first = -1
  state.top = -1
  state.last = gen(genMaxItem) + 1
@@ -1870,7 +1872,6 @@ DIM boxpreview(st.num_npc_defs - 1) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
-state.size = 7
 
 '--If there's room for more, add "Add new NPC" option to end
 state.last = st.num_npc_defs - 1
@@ -1883,6 +1884,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
+ state.size = vpages(dpage)->h \ 25 - 1
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
@@ -1940,7 +1942,7 @@ DO
  END IF
 
  clearpage dpage
- FOR i as integer = state.top TO state.top + 7
+ FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
   IF state.pt = i THEN edgebox 0, (i - state.top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
@@ -3269,7 +3271,8 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  DIM selectst as SelectTypeState
  DIM st as MenuState
  st.last = UBOUND(menu)
- st.size = 24
+ st.autosize = YES
+ st.spacing = 8
  st.need_update = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -3307,6 +3310,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
   clearpage vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, st
+  draw_fullscreen_scrollbar st, , vpage
   standardmenu menu_display(), st, 0, 0, vpage
   setvispage vpage
   dowait

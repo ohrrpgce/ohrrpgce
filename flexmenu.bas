@@ -1020,7 +1020,8 @@ menulimits(AtkTurnDelay) = AtkLimTurnDelay
 DIM workmenu(65) as integer
 DIM dispmenu(65) as string
 DIM state as MenuState
-state.size = 23
+state.autosize = YES
+state.spacing = 8
 
 DIM mainMenu(13) as integer
 mainMenu(0) = AtkBackAct
@@ -1490,7 +1491,8 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
   DIM preview as Slice ptr = preview_box->FirstChild
   DIM state as MenuState
   state.last = UBOUND(menu)
-  state.size = 24
+  state.autosize = YES
+  state.spacing = 8
   state.pt = 1
 
   state.need_update = YES
