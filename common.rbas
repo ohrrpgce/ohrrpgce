@@ -315,6 +315,7 @@ SUB end_debug
  IF NOT importantdebug THEN
    safekill log_dir & filename
    lastlogfile = ""
+   log_buffer &= "end_debug: deleted uninteresting log file" LINE_END
  ELSE
    'Remember not to archive the log if we restart the log in the same directory
    lastlogfile = absolute_path(log_dir & filename)

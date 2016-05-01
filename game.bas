@@ -279,9 +279,6 @@ mersenne_twister TIMER
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the program
 
-' Start storing debug messages again when we quit a game (this is initially YES)
-remember_debug_messages = YES
-
 '====================== (Re)initialise gfx/window/IO options ==================
 
 presentsong = -1
@@ -475,17 +472,12 @@ CHDIR newcwd
 
 IF overrode_log_dir = NO THEN log_dir = CURDIR & SLASH
 start_new_debug
-debuginfo long_version & build_info
-debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"
-debuginfo DATE & " " & TIME
-debuginfo "curdir: " & CURDIR
-debuginfo "tmpdir: " & tmpdir
-debuginfo "settings_dir: " & settings_dir
 debuginfo "Loading " & sourcerpg
 ' Initialisation is over, don't store any further debug messages in memory.
 remember_debug_messages = NO
+debuginfo "curdir: " & CURDIR
+debuginfo "tmpdir: " & tmpdir
+debuginfo "settings_dir: " & settings_dir
 
 init_save_system
 gam.script_log.filename = log_dir & "script_log.txt"
@@ -851,8 +843,13 @@ LOOP
 ' Loop back to the titlescreen
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
+' Start storing debug messages again when we're in-between games, so messages aren't missed
+remember_debug_messages = YES
+debuginfo "...Quit the game." LINE_END
+
 ' Exit the game
 reset_game_final_cleanup  'This may call exitprogram
+
 LOOP ' This is the end of the DO that encloses the entire program.
 
 

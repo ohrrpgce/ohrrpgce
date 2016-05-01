@@ -290,9 +290,6 @@ END IF
 remember_debug_messages = NO
 
 start_new_debug
-debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo DATE & " " & TIME
 debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir
