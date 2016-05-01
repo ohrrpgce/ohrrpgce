@@ -58,7 +58,8 @@ DIM game_unique_id as string
 REDIM sprite_sizes(-1 TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
-'holds the directory to dump logfiles into
+'The directory to write logs like g/c_debug[_archive].txt
+'(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
 DIM log_dir as string
 
 'Used on Mac to point to the app bundle Resources directory

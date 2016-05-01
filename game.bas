@@ -197,11 +197,7 @@ retvalsp = @retvals(0)
 'Note: On Android exename is "sdl" and exepath is "" (currently unimplemented in FB and meaningless for an app anyway)
 
 orig_dir = CURDIR
-
-#IFDEF __FB_ANDROID__
- log_dir = orig_dir & SLASH
-#ENDIF
-'Else log_dir remains ""
+'Note: debug log messages go in CURDIR until log_dir set below
 
 app_dir = EXEPATH  'FreeBasic builtin
 
@@ -219,7 +215,16 @@ app_dir = EXEPATH  'FreeBasic builtin
  END IF
 #ENDIF
 
-'Once the initial current working dir is set, can create debug log.
+#IFDEF __FB_ANDROID__
+ 'Prevent log_dir from being changed to the .rpg directory
+ '(But why? If it's on external storage, that seems like great place to put it)
+ log_dir = orig_dir & SLASH
+ overrode_log_dir = YES
+#ELSE
+ log_dir = CURDIR & SLASH
+#ENDIF
+
+'Once log_dir is set, can create debug log.
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
@@ -464,7 +469,7 @@ end_debug 'delete unimportant messages generated before this point, or from prev
 
 CHDIR newcwd
 
-' log_dir is almost always "", so CURDIR is the location of g_debug.txt
+IF overrode_log_dir = NO THEN log_dir = CURDIR & SLASH
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)

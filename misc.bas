@@ -25,6 +25,7 @@ dim nulzstr as zstring ptr  '(see misc.bi)
 'An option was given on commandline to set zoom or fullscreen/windowed (overrides the games' settings)
 dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO
+dim overrode_log_dir as bool = NO
 
 'Gosub workaround global variables
 dim gosubbuf(31) as crt_jmp_buf
@@ -127,6 +128,9 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 	end if
 	if opt = "fullscreen" or opt = "f" or opt = "windowed" or opt = "w" then
 		overrode_default_fullscreen = YES
+	end if
+	if opt = "log" then
+		overrode_log_dir = YES
 	end if
 
 	' Delegate
