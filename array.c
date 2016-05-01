@@ -577,7 +577,7 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 	typetable *tytbl = get_type(*array);
 	unsigned int len = length(*array);
 
-	if (from < 0 || to > len || from > to) {
+	if (from < 0 || (to > len || from > to)) {
 		debug(errPromptBug, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
 		return *array;
 	}
