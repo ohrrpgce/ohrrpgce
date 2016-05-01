@@ -285,6 +285,8 @@ IF dir_to_change_into <> "" ANDALSO diriswriteable(dir_to_change_into) THEN
  IF overrode_log_dir = NO THEN log_dir = dir_to_change_into & SLASH
 END IF
 'otherwise, keep current directory as it was (FIXME: ideally would now be the same as in Game)
+'Final log_dir set, no more need to remember.
+remember_debug_messages = NO
 
 start_new_debug
 debuginfo long_version & build_info

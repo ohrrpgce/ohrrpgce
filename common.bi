@@ -319,6 +319,7 @@ EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemTagsCache
 EXTERN lookup1_bin_cache() as TriggerData
-EXTERN debug_to_console as integer
+EXTERN debug_to_console as bool
+EXTERN remember_debug_messages as bool
 
 #endif

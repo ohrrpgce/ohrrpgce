@@ -278,6 +278,8 @@ mersenne_twister TIMER
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the program
 
+' Start storing debug messages again when we quit a game (this is initially YES)
+remember_debug_messages = YES
 
 '====================== (Re)initialise gfx/window/IO options ==================
 
@@ -481,6 +483,8 @@ debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir
 debuginfo "settings_dir: " & settings_dir
 debuginfo "Loading " & sourcerpg
+' Initialisation is over, don't store any further debug messages in memory.
+remember_debug_messages = NO
 
 init_save_system
 gam.script_log.filename = log_dir & "script_log.txt"

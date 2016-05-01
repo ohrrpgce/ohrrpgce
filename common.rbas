@@ -31,6 +31,9 @@ DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
 DECLARE SUB fatal_error_shutdown ()
 DECLARE SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
+DECLARE SUB append_to_logfile(s as string)
+DECLARE SUB archive_log_file(logfile as string, archivefile as string)
+
 
 #IFDEF IS_GAME
 #include "game_udts.bi"
@@ -61,6 +64,9 @@ setup_sprite_sizes
 'The directory to write logs like g/c_debug[_archive].txt
 '(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
 DIM log_dir as string
+
+'While true, debug messages also get appended to log_buffer.
+DIM remember_debug_messages as bool = YES
 
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir as string
@@ -100,10 +106,12 @@ DIM SHARED full_upgrade as integer = YES
 DIM SHARED full_upgrade as integer = NO
 #ENDIF
 
-DIM SHARED debug_to_console as integer = NO
+' Debug log stuff
+DIM SHARED debug_to_console as bool = NO
 'don't delete the debug file at end of play
-DIM SHARED importantdebug as integer = 0
-
+DIM SHARED importantdebug as bool = NO
+'Stores debug messages printed during initialisation, or in-game between playing different games.
+DIM SHARED log_buffer as string
 'When restarting the log, the previous path if significant
 DIM SHARED lastlogfile as string
 
@@ -230,26 +238,36 @@ FUNCTION soundfile (byval sfxnum as integer) as string
  END IF
 END FUNCTION
 
+' If c/g_debug.txt already exists, archive it and create a new one.
 SUB start_new_debug
- CONST buflen = 128 * 1024
-
- DIM as string logfile, oldfile
+ DIM as string logfile, archivefile
  #IFDEF IS_GAME
    logfile = log_dir & "g_debug.txt"
-   oldfile = log_dir & "g_debug_archive.txt"
+   archivefile = log_dir & "g_debug_archive.txt"
  #ELSE
    logfile = log_dir & "c_debug.txt"
-   oldfile = log_dir & "c_debug_archive.txt"
+   archivefile = log_dir & "c_debug_archive.txt"
  #ENDIF
- 'If we just closed a debug file, don't archive it, or we'll never notice it
+ ' Noop if we're already writing to this logfile
  IF lastlogfile = absolute_path(logfile) THEN EXIT SUB
- IF NOT isfile(logfile) THEN EXIT SUB
+ IF isfile(logfile) THEN
+  archive_log_file logfile, archivefile
+ END IF
+ IF LEN(log_buffer) THEN
+  ' Write internal buffer, which contains a lot of useful info printed during startup.
+  append_to_logfile log_buffer
+ END IF
+ debuginfo "---start_new_debug---"
+END SUB
 
+' Append logfile to archivefile and delete it.
+PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
  DIM dlog as integer = FREEFILE
  OPEN logfile FOR BINARY as dlog
  DIM archive as integer = FREEFILE
- OPEN oldfile FOR BINARY as archive
+ OPEN archivefile FOR BINARY as archive
 
+ CONST buflen = 128 * 1024
  DIM as ubyte ptr buf = ALLOCATE(buflen)
 
  DIM copyamount as size_t = bound(buflen - LOF(dlog), 0, LOF(archive))
@@ -265,9 +283,9 @@ SUB start_new_debug
  END IF
 
  CLOSE #archive
- safekill oldfile
+ safekill archivefile
  archive = FREEFILE
- OPEN oldfile FOR BINARY as archive
+ OPEN archivefile FOR BINARY as archive
  PUT #archive, , *buf, copyamount
 
  IF LOF(dlog) > buflen THEN
@@ -296,15 +314,16 @@ SUB end_debug
  #ENDIF
  IF NOT importantdebug THEN
    safekill log_dir & filename
+   lastlogfile = ""
  ELSE
    'Remember not to archive the log if we restart the log in the same directory
    lastlogfile = absolute_path(log_dir & filename)
  END IF
- importantdebug = 0
+ importantdebug = NO
 END SUB
 
 SUB debug (s as string)
- importantdebug = -1
+ importantdebug = YES
  debuginfo "! " & s
 END SUB
 
@@ -349,7 +368,11 @@ SUB debuginfo (s as string)
  'For now, on Android log everything to the kernel log for convenience
  external_log s
  IF debug_to_console THEN PRINT s
+ IF remember_debug_messages THEN log_buffer &= s & LINE_END
+ append_to_logfile s
+END SUB
 
+PRIVATE SUB append_to_logfile(s as string)
  STATIC sizeerror as integer = 0
  DIM filename as string
  #IFDEF IS_GAME
