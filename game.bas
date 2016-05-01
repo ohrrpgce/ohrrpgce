@@ -285,6 +285,7 @@ presentsong = -1
 
 gam.current_master_palette = -1
 load_default_master_palette master()
+setpal master()
 DefaultUIColors uilook(), boxlook()
 getdefaultfont current_font()
 setfont current_font()
@@ -398,7 +399,7 @@ ELSE  'NOT running_as_slave
 
 END IF  'NOT running_as_slave
 
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 IF gam.autorungame = NO THEN
  IF exename <> "ohrrpgce-game" THEN
   DO 'single-pass loop for breaking
@@ -484,12 +485,6 @@ debuginfo "Loading " & sourcerpg
 init_save_system
 gam.script_log.filename = log_dir & "script_log.txt"
 
-IF gam.autorungame = NO THEN
- edgeboxstyle 4, 3, 312, 14, 0, vpage
-ELSE
- setpal master()
-END IF
-
 #IFDEF __FB_ANDROID__
 cleanup_other_temp_files
 #ENDIF
@@ -497,6 +492,7 @@ cleanup_other_temp_files
 
 '==================================== Unlump ==================================
 
+edgeboxstyle 4, 3, 312, 14, 0, vpage  'Rectangle behind "Loading"
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
