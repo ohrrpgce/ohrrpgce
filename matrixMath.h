@@ -17,7 +17,7 @@ struct float3x3 {
          _31, _32, _33;
 };
 struct SURFACE_RECT {
-   long left, top, right, bottom;
+   int left, top, right, bottom;
 };
 
 extern "C" {

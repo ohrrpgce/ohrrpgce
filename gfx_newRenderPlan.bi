@@ -24,8 +24,9 @@ Type Surface
 	handle as any ptr
 	width as int32
 	height as int32
-	format as SurfaceFormat
-	usage as SurfaceUsage
+			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
+	format as int32 ' SurfaceFormat
+	usage as int32  ' SurfaceUsage
 	Union
 		pRawData as any ptr
 		pColorData as RGBcolor ptr  'uint32s
