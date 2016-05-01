@@ -1,4 +1,5 @@
 
+#include "config.bi"
 #include "testing.bi"
 #include "reload.bi"
 #include "reloadext.bi"
@@ -602,3 +603,5 @@ startTest(cleanup)
 	doc2 = 0
 	pass
 endTest
+
+print "All passed."

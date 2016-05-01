@@ -93,7 +93,7 @@ DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as Menu
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 
-CONST ANIM_SKIP_SENTINEL = &hDEEFDEEF
+CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
 'these are the battle global variables
 DIM bstackstart as integer

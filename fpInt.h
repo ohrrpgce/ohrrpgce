@@ -13,11 +13,11 @@ struct FPInt
 {
 	union
 	{
-		long raw : 32;		//two words (below)
+		int32_t raw : 32;   //two words (below)
 		struct
 		{
-			unsigned short fraction : 16;		//low word
-			short whole : 16;					//high word
+			uint32_t fraction : 16; //low word
+			int32_t whole : 16;     //high word
 		};
 	};
 
@@ -32,14 +32,14 @@ struct FPInt
 	FPInt operator* (const FPInt& rhs) const {
 		long long n = (long long)raw * (long long)rhs.raw; 
 		FPInt ret; 
-		ret.raw = (long)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		ret.raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return ret;
 	}
 	FPInt operator/ (const FPInt& rhs) const {
 		long long n = ((long long)raw) << 16; //shift first item up by 16 bits
 		n /= (long long)rhs.raw;
 		FPInt ret;
-		ret.raw = (long)n;// & 0xffffffff;
+		ret.raw = (int32_t)n;// & 0xffffffff;
 		return ret;
 	}
 
@@ -59,13 +59,13 @@ struct FPInt
 	FPInt& operator-= (const FPInt& rhs) {raw -= rhs.raw; return *this;}
 	FPInt& operator*= (const FPInt& rhs) {
 		long long n = (long long)raw * (long long)rhs.raw; 
-		raw = (long)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return *this;
 	}
 	FPInt& operator/= (const FPInt& rhs) {
 		long long n = ((long long)raw) << 16; //shift first item up by 16 bits
 		n /= (long long)rhs.raw;
-		raw = (long)n;// & 0xffffffff;
+		raw = (int32_t)n;// & 0xffffffff;
 		return *this;
 	}
 
@@ -107,12 +107,10 @@ struct FPInt
 	operator double () const {return ((double)whole + (double)(fraction) * 0.0000152587890625);}
 	operator float () const {return ((float)whole + (float)(fraction) * 0.0000152587890625f);}
 	operator long long () const {return (long long)whole;}
-	operator long () const {return (long)whole;}
 	operator int () const {return (int)whole;}
 	operator short () const {return (short)whole;}
 	operator char () const {return (char)whole;}
 	operator unsigned long long () const {return (unsigned long long)whole;}
-	operator unsigned long () const {return (unsigned long)whole;}
 	operator unsigned int () const {return (unsigned int)whole;}
 	operator unsigned short () const {return (unsigned short)whole;}
 	operator unsigned char () const {return (unsigned char)whole;}
@@ -120,17 +118,15 @@ struct FPInt
 	//ctor's
 	FPInt() : raw(0) {}
 	FPInt(const FPInt& c) : raw(c.raw) {}
-	FPInt(float n) : raw(0) {raw = (long)(n * 65536.0f);}
-	FPInt(double n) : raw(0) {raw = (long)(n * 65536.0);}
+	FPInt(float n) : raw(0) {raw = (int32_t)(n * 65536.0f);}
+	FPInt(double n) : raw(0) {raw = (int32_t)(n * 65536.0);}
 	FPInt(char n) : raw(0) {whole = n;}
 	FPInt(short n) : raw(0) {whole = n;}
 	FPInt(int n) : raw(0) {whole = n;}
-	FPInt(long n) : raw(0) {whole = n;}
 	FPInt(long long n) : raw(0) {whole = n;}
 	FPInt(unsigned char n) : raw(0) {whole = n;}
 	FPInt(unsigned short n) : raw(0) {whole = n;}
 	FPInt(unsigned int n) : raw(0) {whole = n;}
-	FPInt(unsigned long n) : raw(0) {whole = n;}
 	FPInt(unsigned long long n) : raw(0) {whole = n;}
 };
 

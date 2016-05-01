@@ -5,6 +5,8 @@
 #IFNDEF MATRIX_MATH_BI
 #DEFINE MATRIX_MATH_BI
 
+#include "config.bi" 
+
 TYPE Float2
   x as single
   y as single
@@ -23,10 +25,10 @@ TYPE Float3x3
 END TYPE
 
 TYPE Rect
-  left as LONG
-  top as LONG
-  right as LONG
-  bottom as LONG
+  left as integer
+  top as integer
+  right as integer
+  bottom as integer
 END TYPE
 
 EXTERN "C"
