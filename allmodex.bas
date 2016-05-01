@@ -168,6 +168,7 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext,
 type ReplayState
 	active as bool             'Currently replaying input and not paused
 	paused as bool             'While paused, keyval, etc, act on real_kb.
+	filename as string         'Used only for error messages.
 	file as integer = -1       'File handle
 	tick as integer = -1       'Counts number of ticks we've replayed
 	fpos as integer            'Debugging only: File offset of the tick chunk
@@ -854,7 +855,9 @@ function dowait () as bool
 'returns true if the flag time has passed (since the last time it was passed)
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
-	if use_speed_control = NO then tickcount += 1 : return YES
+	tickcount += 1
+	if use_speed_control = NO then return YES
+	global_tog XOR= 1
 	dim i as integer
 	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
@@ -866,8 +869,6 @@ function dowait () as bool
 	else
 		debug "dowait called without setwait"
 	end if
-	tickcount += 1
-	global_tog XOR= 1
 	return timer >= flagtime
 end function
 
@@ -1953,7 +1954,11 @@ sub start_recording_input (filename as string)
 	end if
 	record.constructor()  'Clear data
 	record.file = FREEFILE
-	open filename for binary access write as #record.file
+	if open(filename for binary access write as #record.file) then
+		stop_recording_input "Couldn't open " & filename
+		record.file = -1
+		exit sub
+	end if
 	dim header as string = "OHRRPGCEkeys"
 	put #record.file,, header
 	dim ohrkey_ver as integer = 4
@@ -2000,25 +2005,30 @@ sub start_replaying_input (filename as string)
 	end if
 	replay.constructor()     'Reset
 	replay_kb.constructor()  'Reset
+	replay.filename = filename
 	replay.file = FREEFILE
-	open filename for binary access read as #replay.file
+	if open(filename for binary access read as #replay.file) then
+		stop_replaying_input "Couldn't open " & filename
+		replay.file = -1
+		exit sub
+	end if
 	replay.active = YES
 	dim header as string = STRING(12, 0)
 	GET #replay.file,, header
 	if header <> "OHRRPGCEkeys" then
-		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+		stop_replaying_input "No OHRRPGCEkeys header in """ & replay.filename & """"
 		exit sub
 	end if
 	dim ohrkey_ver as integer = -1
 	GET #replay.file,, ohrkey_ver
 	if ohrkey_ver <> 4 then
-		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
+		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & replay.filename & """. Only know how to understand version 4"
 		exit sub
 	end if
 	dim seed as double
 	GET #replay.file,, seed
 	RANDOMIZE seed, 3
-	debuginfo "Replaying keyboard input from: """ & filename & """"
+	debuginfo "Replaying keyboard input from: """ & replay.filename & """"
 	read_replay_length()
 	show_replay_overlay()
 end sub
@@ -2036,6 +2046,8 @@ sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		debugc errorlevel, "STOP replaying input"
 		use_speed_control = YES
 	end if
+	' Cancel any speedup
+	base_fps_multiplier = 1.
 end sub
 
 ' While replay is paused you can call setkeys without changing the replay state,
