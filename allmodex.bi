@@ -168,7 +168,7 @@ DECLARE FUNCTION getquitflag () as bool
 
 DECLARE SUB start_recording_input (filename as string)
 DECLARE SUB stop_recording_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
-DECLARE SUB start_replaying_input (filename as string)
+DECLARE SUB start_replaying_input (filename as string, num_repeats as integer = 1)
 DECLARE SUB stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
 DECLARE SUB pause_replaying_input
 DECLARE SUB resume_replaying_input

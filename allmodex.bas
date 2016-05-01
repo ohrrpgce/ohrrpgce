@@ -69,6 +69,7 @@ declare function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 declare sub pollingthread(byval as any ptr)
 declare function read_inputtext () as string
 
+declare sub load_replay_header ()
 declare sub record_input_tick ()
 declare sub replay_input_tick ()
 declare sub read_replay_length ()
@@ -79,6 +80,7 @@ declare sub show_replay_overlay()
 declare sub hide_overlays ()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
+declare sub macro_controls ()
 
 declare function hexptr(p as any ptr) as string
 
@@ -180,6 +182,8 @@ type ReplayState
 	length_ticks as integer    'Length in ticks (max tick num)
 	length_ms as integer       'Approximate length of the replay, in milliseconds
 	play_position_ms as integer 'Approximate position in replay in ms (calculated in same way as length_ms)
+	repeat_count as integer    'Number of times to repeat the playback
+	repeats_done as integer    'Number of repeats already finished.
 end type
 
 type RecordState
@@ -193,6 +197,7 @@ end type
 
 dim shared replay as ReplayState
 dim shared record as RecordState
+dim shared macrofile as string
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -298,6 +303,8 @@ sub setmodex()
 	fpstime = TIMER
 	fpsframes = 0
 	fpsstring = ""
+	' TODO: tmpdir is shared by all instances of Custom, but when that is fixed this can be removed
+	macrofile = tmpdir & "macro" & get_process_id() & ".ohrkeys"
 
 	if gfx_supports_variable_resolution() = NO then
 		debuginfo "Resolution changing not supported"
@@ -320,6 +327,7 @@ sub modex_quit()
 	'debug "cachehit = " & cachehit & " mis == " & cachemiss
 
 	releasestack
+	safekill macrofile
 end sub
 
 sub restoremode()
@@ -1805,6 +1813,8 @@ private sub allmodex_controls()
 
 	if replay.active then replay_controls()
 
+	macro_controls()
+
 	'This is a pause that doesn't show up in recorded input
 	if (replay.active or record.active) and real_keyval(scPause) > 1 then
 		real_clearkey(scPause)
@@ -1902,6 +1912,52 @@ private sub replay_controls ()
 	reentering = NO
 end sub
 
+'Called from inside setkeys, but it's OK to call setkeys from here as we disallow reentry.
+sub macro_controls ()
+	static reentering as bool = NO
+	if reentering then exit sub
+	reentering = YES
+
+	' Start/stop recording a macro
+	if real_keyval(scCtrl) > 0 and real_keyval(scF11) > 1 and replay.active = NO then
+		real_clearkey(scF11)
+
+		if record.active = NO then
+			show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
+			start_recording_input macrofile
+		else
+			stop_recording_input "Recorded macro, [SHIFT+]CTRL+F12 to play", errInfo
+		end if
+	end if
+
+	' Start/stop playing a macro
+	if real_keyval(scCtrl) > 0 and real_keyval(scF12) > 1 and record.active = NO then
+		real_clearkey(scF12)
+
+		if replay.active then
+			show_overlay_message "Ended macro playback early", 2.
+			stop_replaying_input
+		elseif isfile(macrofile) then
+			dim as integer repeat_count = 1
+			if real_keyval(scShift) > 0 then
+				dim repeats as string
+				prompt_for_string repeats, "Number of macro repetitions?"
+				repeat_count = str2int(repeats, -1)
+				if repeat_count = -1 then
+					exit sub
+				end if
+			end if
+
+			show_overlay_message "Replaying macro " & replay.repeat_count & " time(s)"
+			start_replaying_input macrofile, repeat_count
+		else
+			show_overlay_message "No macro saved. Use Ctrl+F11 to start"
+		end if
+	end if
+
+	reentering = NO
+end sub
+
 private sub show_overlay_message (msg as string, seconds as double = 3.)
 	overlay_message = msg
 	overlay_hide_time = timer + seconds
@@ -1936,8 +1992,12 @@ private sub draw_allmodex_overlays (page as integer)
 
 	if overlay_replay_display then
 		overlay_hide_time = 0.  'Hides any other message
+		dim repeat_str as string
+		if replay.repeat_count > 1 then
+			repeat_str = "#" & (1 + replay.repeats_done) & "/" & replay.repeat_count
+		end if
 		overlay_message = "Pos: " & ms_to_string(replay.play_position_ms) & "/" & ms_to_string(replay.length_ms) & _
-		     "  " & replay.tick & "/" & replay.length_ticks & _
+		     "  " & rpad(replay.tick & "/" & replay.length_ticks, " ", 9) & repeat_str & _
 		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 7) & rpad(fpsstring, " ", 10) & "[F1 for help]"
 	elseif overlay_hide_time < timer then
 		overlay_message = ""
@@ -2008,7 +2068,15 @@ sub resume_recording_input
 	real_kb = record.last_kb
 end sub
 
-sub start_replaying_input (filename as string)
+sub restart_replaying_input ()
+	replay.tick = -1
+	replay.nexttick = -1
+	replay.play_position_ms = 0
+	seek replay.file, 1
+	load_replay_header()
+end sub
+
+sub start_replaying_input (filename as string, num_repeats as integer = 1)
 	if record.active or record.paused then
 		debug "Can't replay input because already recording input!"
 		exit sub
@@ -2023,6 +2091,11 @@ sub start_replaying_input (filename as string)
 		exit sub
 	end if
 	replay.active = YES
+	replay.repeat_count = num_repeats
+	load_replay_header()
+end sub
+
+sub load_replay_header ()
 	dim header as string = STRING(12, 0)
 	GET #replay.file,, header
 	if header <> "OHRRPGCEkeys" then
@@ -2040,7 +2113,9 @@ sub start_replaying_input (filename as string)
 	RANDOMIZE seed, 3
 	debuginfo "Replaying keyboard input from: """ & replay.filename & """"
 	read_replay_length()
-	show_replay_overlay()
+	if replay.repeats_done = 0 then
+		show_replay_overlay()
+	end if
 end sub
 
 sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum = errError)
@@ -2156,8 +2231,15 @@ sub replay_input_tick ()
 	replay.tick += 1
 	do
 		if EOF(replay.file) then
-			stop_replaying_input "The end of the input playback file was reached.", errInfo
-			exit sub
+			replay.repeats_done += 1
+			'show_overlay_message "Finished replay " & replay.repeats_done & " of " & replay.repeat_count
+
+			if replay.repeats_done >= replay.repeat_count then
+				stop_replaying_input "The end of the playback file was reached.", errInfo
+				exit sub
+			else
+				restart_replaying_input
+			end if
 		end if
 
 		'Check whether it's time to play the next recorded tick in the replay file
