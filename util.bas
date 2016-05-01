@@ -264,13 +264,15 @@ FUNCTION blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer)
  return ret
 END FUNCTION
 
-FUNCTION rpad (s as string, pad_char as string, size as integer) as string
+FUNCTION rpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
+ IF clip = NO AND LEN(s) >= size THEN RETURN s
  DIM temp as string
  temp = LEFT(s, size)
  RETURN temp & STRING(size - LEN(temp), pad_char)
 END FUNCTION
 
-FUNCTION lpad (s as string, pad_char as string, size as integer) as string
+FUNCTION lpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
+ IF clip = NO AND LEN(s) >= size THEN RETURN s
  DIM temp as string
  temp = RIGHT(s, size)
  RETURN STRING(size - LEN(temp), pad_char) & temp

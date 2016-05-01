@@ -439,8 +439,8 @@ declare function simple_randint (byref prng_state as uinteger, byval upperbound 
 
 declare function cstring (s as string) as zstring ptr
 declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
-declare function rpad (s as string, pad_char as string, size as integer) as string
-declare function lpad (s as string, pad_char as string, size as integer) as string
+declare function rpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
+declare function lpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer
