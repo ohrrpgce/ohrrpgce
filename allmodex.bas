@@ -76,6 +76,7 @@ declare sub read_replay_length ()
 declare sub draw_allmodex_overlays (page as integer)
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
+declare sub hide_overlays ()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
@@ -1850,7 +1851,7 @@ private sub replay_menu ()
 	ensure_normal_palette
 	dim previous_speed as double = base_fps_multiplier
 	base_fps_multiplier = 1.
-	choice = multichoice("Stop replaying?", menu(), 0, 0)
+	choice = multichoice("Stop replaying recorded input?", menu(), 0, 0)
 	if choice = 0 then
 		base_fps_multiplier = previous_speed
                 resume_replaying_input
@@ -1870,12 +1871,14 @@ private sub replay_controls ()
 	reentering = YES
 
 	if real_keyval(scF1) > 1 then
+		dim remem as bool = overlay_replay_display
 		pause_replaying_input()
-		overlay_replay_display = NO
+		hide_overlays()
 		base_fps_multiplier = 1.
 		show_help("share_replay")
 		setkeys
 		clearkey(scEsc)
+		overlay_replay_display = remem
 		resume_replaying_input()
 	end if
 	if real_keyval(scSpace) > 1 then
@@ -1907,8 +1910,12 @@ end sub
 
 'Show the overlay for replaying input
 private sub show_replay_overlay ()
-'	overlay_hide_time = timer + 3.
 	overlay_replay_display = YES
+end sub
+
+private sub hide_overlays ()
+	overlay_message = ""
+	overlay_replay_display = NO
 end sub
 
 private function ms_to_string (ms as integer) as string
@@ -1928,11 +1935,14 @@ private sub draw_allmodex_overlays (page as integer)
 	end if
 
 	if overlay_replay_display then
+		overlay_hide_time = 0.  'Hides any other message
 		overlay_message = "Pos: " & ms_to_string(replay.play_position_ms) & "/" & ms_to_string(replay.length_ms) & _
 		     "  " & replay.tick & "/" & replay.length_ticks & _
 		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 7) & rpad(fpsstring, " ", 10) & "[F1 for help]"
+	elseif overlay_hide_time < timer then
+		overlay_message = ""
 	end if
-	if overlay_replay_display or overlay_hide_time > timer then
+	if len(overlay_message) then
 		basic_textbox overlay_message, uilook(uiText), page, vpages(page)->h / 2 - 16
 	end if
 end sub
