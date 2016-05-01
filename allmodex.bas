@@ -277,9 +277,8 @@ end sub
 sub setmodex()
 	modex_init()
 
-	'initialise graphics and io
-
-	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
+	'Select and initialise a graphics/io
+	init_gfx_backend()
 
 	'init vars
 	endpollthread = NO

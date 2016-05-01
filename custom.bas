@@ -187,7 +187,8 @@ END IF
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
-' These strings can already contain info collected before backend initialisation
+' Load these three strings with info collectable before backend initialisation
+read_backend_info()
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo DATE & " " & TIME
 

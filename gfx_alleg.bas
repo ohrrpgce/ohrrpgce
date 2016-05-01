@@ -4,14 +4,13 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
+#include "backends.bi"
 #include "gfx.bi"
 #undef Font
 #include "allegro.bi"
 #include "scancodes.bi"
 
 declare sub debug(s as string)
-
-extern allegro_initialised as bool
 
 dim shared init_gfx as integer = 0
 dim shared screenbuf as BITMAP ptr = null

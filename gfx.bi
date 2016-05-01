@@ -14,6 +14,7 @@
 
 #include "udts.bi"
 #include "const.bi"
+#include "backends.bi"
 
 extern "C"
 
@@ -42,15 +43,8 @@ type GamePadMap
 	R2 as integer
 end type
 
-extern wantpollingthread as bool
-extern as string gfxbackend, musicbackend
-extern as string gfxbackendinfo, musicbackendinfo, systeminfo
-
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
-'(unrelated to gfx_init)
-declare sub Gfx_backend_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-
 extern Gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 extern Gfx_close as sub ()
 
@@ -170,12 +164,6 @@ extern Io_setmousevisibility as sub (byval visible as integer)
 extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 extern Io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
-
-' functions in backends.bas
-
-extern "C"
-declare function backends_setoption(opt as string, arg as string) as integer
-end extern
 
 ' functions in allmodex.bas
 

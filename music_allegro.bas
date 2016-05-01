@@ -7,6 +7,7 @@
 #print WARNING: music_allegro compiles, but the sound effects interface is unimplemented.
 #print
 
+#include "backends.bi"
 #include "music.bi"
 #include "util.bi"
 #include "common.bi"
@@ -19,8 +20,6 @@
 #ifndef MIDI_AUTODETECT
 #define MIDI_AUTODETECT -1
 #endif
-
-extern allegro_initialised as bool
 
 '''' Module-shared variables
 

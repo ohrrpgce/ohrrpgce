@@ -171,6 +171,8 @@ dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 dim as string systeminfo
 
+dim allegro_initialised as bool = NO
+
 sub gfx_dummy_get_screen_size(wide as integer ptr, high as integer ptr) : *wide = 0 : *high = 0 : end sub
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
 function gfx_dummy_get_resize(byref ret as XYPair) as bool : return NO : end function
@@ -207,7 +209,7 @@ function io_dummy_running_on_ouya() as bool : return NO : end function
 'Those are set to defaults, most of which do nothing.
 'In addition other functions are only allowed to be missing when loading old dynamic
 'libraries from before they existed; handled in gfx_load_library[_new]
-sub set_default_gfx_function_ptrs
+private sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
 	gfx_getversion = NULL
 	gfx_setdebugfunc = NULL
@@ -263,7 +265,7 @@ end function
 #endmacro
 
 'Load a dynamically linked gfx backend. Returns true on success
-function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
+private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	dim hFile as any ptr = backendinfo->dylib
 	dim needpolling as integer = NO
 	if hFile <> NULL then return YES
@@ -354,7 +356,7 @@ end function
 'Returns true on success
 'filename is the name of the file, ie. "gfx_directx.dll" 
 'backendinfo is modified with relevant data
-function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
+private function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	Dim hFile As any ptr
 	hFile = dylibload(filename)
 	If hFile = NULL Then Return NO
@@ -403,7 +405,7 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 	Return YES
 End Function
 
-Sub default_gfx_render_procs()
+private sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
@@ -423,7 +425,7 @@ Sub default_gfx_render_procs()
 	gfx_present = @gfx_present_SW
 end sub
 
-sub prefer_backend(b as GfxBackendStuff ptr)
+private sub prefer_backend(b as GfxBackendStuff ptr)
 	for i as integer = ubound(gfx_choices) - 1 to 0 step -1
 		if gfx_choices(i + 1) = b then swap gfx_choices(i), gfx_choices(i + 1)
 	next
@@ -501,7 +503,7 @@ function backends_setoption(opt as string, arg as string) as integer
 end function
 
 'Returns true on success
-function load_backend(which as GFxBackendStuff ptr) as bool
+private function load_backend(which as GFxBackendStuff ptr) as bool
 	if currentgfxbackend = which then return YES
 	if currentgfxbackend <> NULL then
 		unload_backend(currentgfxbackend)
@@ -538,7 +540,7 @@ function load_backend(which as GFxBackendStuff ptr) as bool
 	return YES
 end function
 
-sub unload_backend(which as GFxBackendStuff ptr)
+private sub unload_backend(which as GFxBackendStuff ptr)
 	if which->dylib then
 		dylibfree(which->dylib)
 		which->dylib = NULL
@@ -546,7 +548,7 @@ sub unload_backend(which as GFxBackendStuff ptr)
 end sub
 
 'onlyfirst: only try the most prefered. Returns true on success
-function gfx_load(byval onlyfirst as integer) as bool
+private function gfx_load(byval onlyfirst as bool) as bool
 	if currentgfxbackend <> NULL then return YES 'hmm
 	for i as integer = 0 to ubound(gfx_choices)
 		if load_backend(gfx_choices(i)) then return YES
@@ -556,13 +558,14 @@ function gfx_load(byval onlyfirst as integer) as bool
 	return NO
 end function
 
-sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+' Try to init gfx backends in order of preference until one works.
+sub init_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
 				dim info_buffer as zstring * 512
 				debuginfo "Initialising gfx_" + .name + "..."
-				if gfx_init(terminate_signal_handler, windowicon, @info_buffer, 511) = 0 then 
+				if gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON", @info_buffer, 511) = 0 then
 					unload_backend(gfx_choices(i))
 					currentgfxbackend = NULL
 					'TODO: what about the polling thread?
@@ -585,33 +588,34 @@ end sub
 
 end extern
 
-'initialise the music backend name because it's static, yet music_init
-'might not be called until Import Music menu
-musicbackend = MUSIC_BACKEND
-'musicbackendinfo = "music_" + MUSIC_BACKEND
-musicbackendinfo = music_get_info()
+' Load gfxbackendinfo, musicbackendinfo, systeminfo
+sub read_backend_info()
+	'gfx backend not selected yet.
 
-'This is shared between gfx_alleg and music_allegro
-extern allegro_initialised as bool
-dim allegro_initialised as bool = NO
+	'initialise the music backend name because it's static, yet music_init
+	'might not be called until Import Music menu
+	musicbackend = MUSIC_BACKEND
+	'musicbackendinfo = "music_" + MUSIC_BACKEND
+	musicbackendinfo = music_get_info()
 
-#ifdef __FB_DARWIN__
-type OSType as integer
-extern "C"
- 'From CoreServices (Gestalt.h)
- declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
-end extern
+	#ifdef __FB_DARWIN__
+		type OSType as integer
+		extern "C"
+		 'From CoreServices (Gestalt.h)
+		 declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
+		end extern
 
-dim as integer response
-'Note that we have to give the OSTypes backwards because we're little-endian
-Gestalt(*cast(integer ptr, @"1sys"), @response)  'gestaltSystemVersionMajor
-systeminfo = "Mac OS " & response & "."
-Gestalt(*cast(integer ptr, @"2sys"), @response)  'gestaltSystemVersionMinor
-systeminfo &= response & "."
-Gestalt(*cast(integer ptr, @"3sys"), @response)  'gestaltSystemVersionBugFix
-systeminfo &= response
-#endif
+		dim as integer response
+		'Note that we have to give the OSTypes backwards because we're little-endian
+		Gestalt(*cast(integer ptr, @"1sys"), @response)  'gestaltSystemVersionMajor
+		systeminfo = "Mac OS " & response & "."
+		Gestalt(*cast(integer ptr, @"2sys"), @response)  'gestaltSystemVersionMinor
+		systeminfo &= response & "."
+		Gestalt(*cast(integer ptr, @"3sys"), @response)  'gestaltSystemVersionBugFix
+		systeminfo &= response
+	#endif
 
-#ifdef __FB_WIN32__
-systeminfo = get_windows_version()
-#endif
+	#ifdef __FB_WIN32__
+		systeminfo = get_windows_version()
+	#endif
+end sub
