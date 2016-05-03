@@ -99,19 +99,34 @@ SUB editor_editor()
  WITH st.menu
   .anchor.x = -1
   .anchor.y = -1
-  .offset.x = -160
-  .offset.y = -100
+  .offset.x = vpages(dpage)->w / 2 * -1
+  .offset.y = vpages(dpage)->h / 2 * -1
   .bordersize = -4
   .align = -1
-  .maxrows = 18
+  .maxrows = vpages(dpage)->h / 10 - 2
+  .min_chars = vpages(dpage)->w / 8 - 2
+  .no_box = YES
  END WITH
+ 
+ DIM oldsize as XYPair
  
  setkeys YES
  DO
   setwait 55
   setkeys YES
 
+  IF oldsize.x <> vpages(dpage)->w ORELSE oldsize.y <> vpages(dpage)->h THEN 
+   oldsize.x = vpages(dpage)->w
+   oldsize.y = vpages(dpage)->h
+   st.state.need_update = YES
+  END IF
   IF st.state.need_update THEN
+   WITH st.menu
+    .offset.x = vpages(dpage)->w / 2 * -1
+    .offset.y = vpages(dpage)->h / 2 * -1
+    .maxrows = vpages(dpage)->h / 10 - 2
+    .min_chars = vpages(dpage)->w / 8 - 2
+   END WITH
    DeleteMenuItems st.menu
    st.indent = 0
    ee_refresh st
@@ -155,7 +170,7 @@ SUB editor_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help", 0, 190, uilook(uiText), dpage
+  edgeprint "F1=Help", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -575,14 +590,14 @@ FUNCTION widget_editor(byval widget as NodePtr) as integer
 
  ClearMenuData st.menu
  WITH st.menu
-  .anchor.x = 0
-  .anchor.y = 0
-  .offset.x = 0
-  .offset.y = 0
+  .anchor.x = -1
+  .anchor.y = -1
   .bordersize = -4
   .align = -1
-  .maxrows = 18
+  .no_box = YES
  END WITH
+ 
+ DIM oldsize as XYPair
  
  ee_get_widget_code(st.code, widget)
  
@@ -591,11 +606,22 @@ FUNCTION widget_editor(byval widget as NodePtr) as integer
   setwait 55
   setkeys YES
 
+  IF oldsize.x <> vpages(dpage)->w ORELSE oldsize.y <> vpages(dpage)->h THEN 
+   oldsize.x = vpages(dpage)->w
+   oldsize.y = vpages(dpage)->h
+   st.state.need_update = YES
+  END IF
   IF st.state.need_update THEN
+   st.state.need_update = NO
+   WITH st.menu
+    .offset.x = vpages(dpage)->w / 2 * -1
+    .offset.y = vpages(dpage)->h / 2 * -1
+    .maxrows = vpages(dpage)->h / 10 - 2
+    .min_chars = vpages(dpage)->w / 8 - 2
+   END WITH
    DeleteMenuItems st.menu
    widget_editor_refresh st, widget
    init_menu_state st.state, st.menu
-   st.state.need_update = NO
   END IF
   
   IF keyval(scESC) > 1 THEN
@@ -613,7 +639,7 @@ FUNCTION widget_editor(byval widget as NodePtr) as integer
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help", 0, 190, uilook(uiText), dpage
+  edgeprint "F1=Help", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
