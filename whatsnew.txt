@@ -5,6 +5,10 @@ WHAT IS NEW?
   * New Features
     * Mark Non-elemental Elementals menu lets you define which elements
       shouldn't count as elemental for enemy spawning purposes [James]
+    * Dramatic Pause for attack animations. Unlike "Delay Ticks" this
+      always pauses time for everybody in battle. Dramatic pause starts
+      after the (undelayed) caption appears, but before the visible
+      animation begins [James]
 
   * Changes
 

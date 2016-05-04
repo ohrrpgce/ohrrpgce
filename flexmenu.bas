@@ -123,6 +123,7 @@ CONST AtkWepPal = 144
 CONST AtkWepHand0 = 145
 CONST AtkWepHand1 = 146
 CONST AtkTurnDelay = 147
+CONST AtkDramaticPause = 148
 
 'Next menu item is 148 (remember to update MnuItems)
 
@@ -195,6 +196,7 @@ CONST AtkDatWepHand0Y = 316
 CONST AtkDatWepHand1X = 317
 CONST AtkDatWepHand1Y = 318
 CONST AtkDatTurnDelay = 319
+CONST AtkDatDramaticPause = 320
 
 'anything past this requires expanding the data
 
@@ -307,7 +309,7 @@ atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 147
+CONST MnuItems = 148
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -318,8 +320,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(41) as integer
-DIM min(41) as integer
+DIM max(42) as integer
+DIM min(42) as integer
 
 'Limit(0) is not used
 
@@ -627,7 +629,10 @@ CONST AtkLimTurnDelay = 41
 max(AtkLimTurnDelay) = 1000
 min(AtkLimTurnDelay) = 0
 
-'next limit is 42 (remember to update the dim)
+CONST AtkLimDramaticPause = 42
+max(AtkLimDramaticPause) = 1000
+
+'next limit is 43 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -1014,6 +1019,11 @@ menu(AtkTurnDelay) = "Delay Turns Before Attack:"
 menutype(AtkTurnDelay) = 0
 menuoff(AtkTurnDelay) = AtkDatTurnDelay
 menulimits(AtkTurnDelay) = AtkLimTurnDelay
+
+menu(AtkDramaticPause) = "Dramatic Pause Ticks:"
+menutype(AtkDramaticPause) = 19'ticks
+menuoff(AtkDramaticPause) = AtkDatDramaticPause
+menulimits(AtkDramaticPause) = AtkLimDramaticPause
 
 '----------------------------------------------------------
 '--menu structure
@@ -1591,23 +1601,24 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(5) = AtkAnimAttacker
   workmenu(6) = AtkDelay
   workmenu(7) = AtkTurnDelay
-  workmenu(8) = AtkCaption
-  workmenu(9) = AtkCapTime
-  workmenu(10) = AtkCaptDelay
-  workmenu(11) = AtkSoundEffect
-  workmenu(12) = AtkLearnSoundEffect
-  state.last = 12
+  workmenu(8) = AtkDramaticPause
+  workmenu(9) = AtkCaption
+  workmenu(10) = AtkCapTime
+  workmenu(11) = AtkCaptDelay
+  workmenu(12) = AtkSoundEffect
+  workmenu(13) = AtkLearnSoundEffect
+  state.last = 13
   
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF anim = 0 ORELSE anim = 2 ORELSE anim = 3 ORELSE anim = 8 THEN
    'Attack picture only matters for Stike, Dash-In, Spinstrike and Teleport
-   workmenu(12) = AtkWepPic
-   state.last = 12
+   workmenu(14) = AtkWepPic
+   state.last = 14
    IF recbuf(AtkDatWepPic) > 0 THEN
-    workmenu(13) = AtkWepPal
-    workmenu(14) = AtkWepHand0
-    workmenu(15) = AtkWepHand1
-    state.last = 15
+    workmenu(15) = AtkWepPal
+    workmenu(16) = AtkWepHand0
+    workmenu(17) = AtkWepHand1
+    state.last = 17
    END IF
   END IF
    

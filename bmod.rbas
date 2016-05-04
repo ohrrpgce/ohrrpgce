@@ -2811,6 +2811,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  'BIG CRAZY SCRIPT CONSTRUCTION
  'DEBUG debug "begin script construction"
+ IF attack.dramatic_pause > 0 THEN
+  anim_wait attack.dramatic_pause
+ END IF
+ 
  IF is_hero(bat.acting) THEN
   'load weapon sprites
   with bslot(24)

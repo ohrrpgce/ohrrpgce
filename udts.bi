@@ -741,6 +741,7 @@ Type AttackData
 	attack_anim as AttackAnimation
 	attack_delay as integer 'in ticks
 	turn_delay as integer 'in turns
+	dramatic_pause as integer 'in ticks
 	hits as integer
 	targ_stat as integer
 	prefer_targ as integer

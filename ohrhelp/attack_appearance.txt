@@ -133,7 +133,9 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
 
 Delay Ticks/Attacks Before Attack: Causes a delay before the attack is executed. If the Battle System is Active-time, this is measured in ticks. If it is turn-based, then this is how other combatants get to act first. If the delay is large then the attacker will always act last... unless someone else has an even bigger delay!
 
-Delay Turns Before Attack: In turn-based battles, this is how many rounds of combat the attacker will miss.
+Delay Turns Before Attack: In turn-based battles, this is how many rounds of combat the attacker will wait before attacking. In active-time battles, the turn delay is based on the amount of time it takes for the attacker's ready-meter to fill up.
+
+Dramatic Pause: This delay is part of the attacker's animation. Unlike "Delay Ticks" the Dramatic Pause always freezes time for all heroes and enemies. A Dramatic Pause cannot be interrupted by other attacks.
 
 Caption: A line of text that will be displayed at the bottom of the screen whenever the attack is used.
 
@@ -147,12 +149,13 @@ Display Caption: Controls how long the attack caption is displayed. Press left a
   animation finishes, so the length
   of time depends on which "Attack
   Animation" and "Attacker Animation"
-  you have chosen.
+  you have chosen. This includes the
+  time of the "Dramatic Pause"
 
 * ## ticks - Allows you to specify a
   specific number of game ticks.
 
-Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attack animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed.
+Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attack animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed. If you are using a "Dramatic Pause" the caption delay starts counting from the beginning of the dramatic pause.
 
 Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle and outside battle)
 
