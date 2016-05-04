@@ -8,11 +8,13 @@
 '' <outfile> defaults to <infile>.mid if not specified.
 ''
 '' To compile:
-''        scons bam2mid,  or fbc bam2mid.bas
+''        scons bam2mid
 ''
 
 #include "banks.bi"
 #include "crt/stddef.bi"
+#include "lumpfile.bi"
+
 
 #define VELOCITY 		96
 
@@ -20,22 +22,12 @@
 #define NOTE_ON		&b10010000
 #define PATCH_CHANGE 	&b11000000
 
-' See comment in util.bi.
-#IF __FB_VERSION__ < "0.91"
-declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as uinteger = 0, byval src as any ptr, byval bytes as integer ) as integer
-#ELSE
-declare function fput alias "fb_FilePut" ( byval fnum as long, byval pos as long = 0, byval src as any ptr, byval bytes as size_t ) as long
-#ENDIF
-
 declare sub setbigval(byval value as integer)
 declare sub setsmallval(byval value as integer)
 declare function setvarval(byval value as integer) as integer
 declare function getvoice(bamvoice as voice) as integer
 declare sub magicSysexStart(byval file as integer, byval length as integer)
 declare sub magicSysexEnd(byval file as integer)
-
-'external
-'declare sub debug(message as string)
 
 dim shared bignum(0 to 3) as ubyte => { 0, 0, 0, 0 }
 dim shared smallnum(0 to 1) as ubyte => { 0, 0 }
@@ -74,7 +66,7 @@ sub bam2mid(infile as string, outfile as string)
 
 	'open both files
 	f1 = freefile
-	open infile for binary as #f1
+	openfile(infile, for_binary, f1)
 	if err <> 0 then
 		'debug "File " + infile + " could not be opened."
 		exit sub
@@ -90,7 +82,7 @@ sub bam2mid(infile as string, outfile as string)
 	kill outfile
 
 	f2 = freefile
-	open outfile for binary as #f2
+	openfile(outfile, for_binary, f2)
 	if err <> 0 then
 		'debug "Output file " + outfile + " could not be opened."
 		close #f1

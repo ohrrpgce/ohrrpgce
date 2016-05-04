@@ -225,7 +225,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
-			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
+			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname)

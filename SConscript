@@ -595,6 +595,7 @@ base_modules +=   ['util.bas',
                    'unicode.c',
                    'array.c',
                    'miscc.c',
+                   'filelayer.cpp',
                    'vector.bas']
 
 # Modules shared by the reload utilities, additional to base_modules
@@ -650,8 +651,7 @@ game_modules = ['game',
                 'plankmenu.bas']
 
 # The following are built only once and linked into Game and Custom
-common_modules += ['filelayer.cpp',
-                   'rasterizer.cpp',
+common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
                    'gfx_newRenderPlan.cpp']
 
@@ -727,7 +727,7 @@ GAME = gameenv.BASEXE   (rootdir + gamename, source = gamesrc)
 CUSTOM = editenv.BASEXE (rootdir + editname, source = editsrc)
 GAME = GAME[0]  # first element of NodeList is the executable
 CUSTOM = CUSTOM[0]
-env_exe ('bam2mid')
+env_exe ('bam2mid', source = ['bam2mid.bas'] + base_objects)
 env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)

@@ -107,3 +107,47 @@ Assumes function syntax is being used iff a ( follows the function name."
     (push-mark (elt argloc (1- argno)))
     (goto-char (elt argloc argno))))
 
+(defun replace-open ()
+  "Convert OPEN to OPENFILE. Does not support access read write, lock, encoding, len.
+Move point to start of OPEN (or before it on the same line) before invoking.
+Queries for every following OPEN in the file as well.
+
+E.g.
+  OPEN fi FOR BINARY ACCESS READ AS #fh ''asd
+To
+  OPENFILE(fi, FOR_BINARY + ACCESS_READ, fh) ''asd
+"
+  (interactive)
+  (let (add-bracket
+        (line-end (save-excursion
+                    (end-of-line)
+                    (point-marker))))
+    (setq case-fold-search t)
+    (search-forward "open" line-end)
+    (replace-match "openfile")
+    (unless (looking-at "(")
+      ;; delete space
+      (delete-char 1)
+      (insert "(")
+      (setq add-bracket t))
+    (search-forward " for " line-end)
+    (delete-char -1)
+    (insert "_")
+    (backward-word)
+    (delete-char -1)
+    (insert ", ")
+    (when (search-forward " access " line-end t)
+      (replace-match " + access_"))
+    (search-forward " as " line-end)
+    (replace-match ", ")
+    (when (search-forward "#" line-end t)
+      (delete-char -1))
+    (forward-word)
+    (when add-bracket
+      (insert ")"))
+    (when (equal (read-event "Press ENTER to continue") 'return)
+      (re-search-forward "open.* for .*as")
+      (goto-char (match-beginning 0))
+      (when (equal (read-event "Press ENTER to repeat") 'return)
+        (undo-boundary)
+        (replace-open)))))

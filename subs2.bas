@@ -99,7 +99,7 @@ printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
 setvispage 0
 
 DIM fh as integer = FREEFILE
-OPEN outf FOR OUTPUT as #fh
+OPENFILE(outf, FOR_OUTPUT, fh)
 PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath(sourcerpg)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
@@ -294,7 +294,7 @@ SUB importscripts (f as string, quickimport as bool)
   IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = -1
    fptr = FREEFILE
-   OPEN tmpdir + "scripts.bin" FOR BINARY as #fptr
+   OPENFILE(tmpdir + "scripts.bin", FOR_BINARY, fptr)
    'load header
    GET #fptr, , temp
    headersize = temp
@@ -317,7 +317,7 @@ SUB importscripts (f as string, quickimport as bool)
    END IF
 
    fptr = FREEFILE
-   OPEN tmpdir + "scripts.txt" FOR INPUT as #fptr
+   OPENFILE(tmpdir + "scripts.txt", FOR_INPUT, fptr)
   END IF
 
   'load in existing trigger table
@@ -327,7 +327,7 @@ SUB importscripts (f as string, quickimport as bool)
     DIM fname as string = workingdir & SLASH & "lookup1.bin"
     IF isfile(fname) THEN
      fh = FREEFILE
-     OPEN fname FOR BINARY as #fh
+     OPENFILE(fname, FOR_BINARY, fh)
      .size = LOF(fh) \ 40
     END IF
 
@@ -365,7 +365,7 @@ SUB importscripts (f as string, quickimport as bool)
   DIM id as integer
   DIM trigger as integer
   DIM plotscr_lsth as integer = FREEFILE
-  IF OPEN(workingdir + SLASH + "plotscr.lst" FOR BINARY AS #plotscr_lsth) THEN
+  IF OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, plotscr_lsth) THEN
    visible_debug "Could not open " + workingdir + SLASH + "plotscr.lst"
    CLOSE fptr
    EXIT SUB

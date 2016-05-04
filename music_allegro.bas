@@ -93,16 +93,11 @@ end function
 
 sub music_play(songname as string, fmt as MusicFormatEnum)
 	if music_on = 1 then
-		songname = rtrim$(songname)	'lose any added nulls
+		songname = rtrim(songname)	'lose any added nulls
 		
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			dim as integer bf, flen
-			'get length of input file
-			bf = freefile
-			open songname for binary access read as #bf
-			flen = lof(bf)
-			close #bf
+			dim as integer flen = filelen(songname)
 			'use last 3 hex digits of length as a kind of hash, 
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff

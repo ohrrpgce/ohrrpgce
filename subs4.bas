@@ -1691,7 +1691,7 @@ SUB startingdatamenu
    IF lastmap <> gen(genStartMap) THEN
     DIM fh as integer
     fh = FREEFILE
-    OPEN maplumpname(gen(genStartMap), "t") FOR BINARY as #fh
+    OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY, fh)
     SEEK #fh, 8
     max(1) = Readshort(fh, -1) - 1 'map width
     max(2) = ReadShort(fh, -1) - 1 'map height

@@ -1211,7 +1211,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  unlump newrpg, workingdir + SLASH
  '--create archinym information lump
  DIM fh as integer = FREEFILE
- OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
+ OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, "ohrrpgce"
  PRINT #fh, version
  CLOSE #fh

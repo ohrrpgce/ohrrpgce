@@ -509,7 +509,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
  f = workingdir + SLASH + "fixbits.bin"
  IF NOT isfile(f) THEN RETURN 0
  DIM fh as integer = FREEFILE
- IF OPEN(f FOR BINARY ACCESS READ as fh) THEN debug "Could not read " & f : RETURN 0
+ IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) THEN debug "Could not read " & f : RETURN 0
  DIM ub as UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
  CLOSE #fh
@@ -521,7 +521,7 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer = FREEFILE
- IF OPEN(f FOR BINARY as fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
+ IF OPENFILE(f, FOR_BINARY, fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
  extendfile fh, (bitnum \ 8) + 1  'Prevent writing garbage
  DIM ub as UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
@@ -727,7 +727,7 @@ FUNCTION scriptname (byval num as integer) as string
   ELSE
    ret = "[id " & num & "]"
    DIM fh as integer = FREEFILE
-   OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+   OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
    WHILE loadrecord (buf(), fh, 20)
     IF buf(0) = num THEN
      ret = readbinstring(buf(), 1, 38)
@@ -787,7 +787,7 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
  END IF
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
- IF OPEN(f FOR BINARY as #fh) = 0 THEN
+ IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
   DIM v as short
   GET #fh, 1 + index * 2, v
   CLOSE #fh
@@ -810,7 +810,7 @@ SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval set
  DIM v as SHORT
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
- IF OPEN(f FOR BINARY as #fh) = 0 THEN
+ IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
   FOR i as integer = 0 to sets
    GET #fh, 1 + i * 2, v
    poffset(i) = v
@@ -825,7 +825,7 @@ SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, byval set
  DIM v as SHORT
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
- OPEN f FOR BINARY as #fh
+ OPENFILE(f, FOR_BINARY, fh)
  FOR i as integer = 0 to sets
   v = poffset(i)
   PUT #fh, 1 + i * 2, v
@@ -932,7 +932,7 @@ PRIVATE SUB load_binsize_cache ()
  NEXT
  DIM fh as integer = FREEFILE
  ' No error if missing
- IF OPEN(workingdir + SLASH + "binsize.bin" FOR BINARY as #fh) = 0 THEN
+ IF OPENFILE(workingdir + SLASH + "binsize.bin", FOR_BINARY, fh) = 0 THEN
   DIM as short recordsize
   ' If binsize.bin is larger than expected that is reported in rpg_sanity_checks
   DIM as integer recs = LOF(fh) \ 2
@@ -973,7 +973,7 @@ SUB setbinsize (byval id as integer, byval size as integer)
   RETURN
  END IF
  DIM fh as integer = FREEFILE
- IF OPEN(workingdir & SLASH & "binsize.bin" FOR BINARY as #fh) THEN
+ IF OPENFILE(workingdir & SLASH & "binsize.bin", FOR_BINARY, fh) THEN
   showerror "Failed to write binsize.bin(" & id & "), will cause data corruption!"
   RETURN
  END IF
@@ -988,7 +988,7 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
  DIM fh as integer
  IF isfile(gamedir + SLASH + "archinym.lmp") THEN
   fh = FREEFILE
-  OPEN gamedir + SLASH + "archinym.lmp" FOR INPUT as #fh
+  OPENFILE(gamedir + SLASH + "archinym.lmp", FOR_INPUT, fh)
   LINE INPUT #fh, iname
   CLOSE #fh
   iname = LCASE(iname)
@@ -1212,7 +1212,7 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
   DIM palbuf(767) as UBYTE
 
   DIM fh as integer = FREEFILE
-  OPEN workingdir + SLASH + "palettes.bin" FOR BINARY as #fh
+  OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
   GET #fh, , headsize
   GET #fh, , recsize
   GET #fh, recsize * palnum + headsize + 1, palbuf()
@@ -1231,7 +1231,7 @@ SUB savepalette(pal() as RGBcolor, byval palnum as integer)
  DIM as SHORT headsize = 4, recsize = 768  'Defaults
 
  DIM fh as integer = FREEFILE
- OPEN workingdir + SLASH + "palettes.bin" FOR BINARY as #fh
+ OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
  IF LOF(fh) >= 4 THEN
   GET #fh, 1, headsize
   GET #fh, 3, recsize
@@ -2960,9 +2960,9 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
    END IF
 
    DIM inputf as integer = FREEFILE
-   OPEN tempf FOR BINARY as inputf
+   OPENFILE(tempf, FOR_BINARY, inputf)
    DIM outputf as integer = FREEFILE
-   OPEN lumpf FOR BINARY as outputf
+   OPENFILE(lumpf, FOR_BINARY, outputf)
 
    'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
    '(Note that if a partial record is not extended here, then fix_record_count will do so)
@@ -3408,7 +3408,7 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
  fh = FREEFILE
- OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT as #fh
+ OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, RIGHT(game, LEN(game) - LEN(workingdir + SLASH))
  PRINT #fh, version + "(previous)"
  CLOSE #fh
@@ -3469,12 +3469,12 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  upgrade_message "Upgrading Song Name format..."
  DIM song(99) as string
  fh = FREEFILE
- OPEN game + ".sng" FOR BINARY as #fh
+ OPENFILE(game + ".sng", FOR_BINARY, fh)
  temp = LOF(fh)
  CLOSE #fh
  IF temp > 0 THEN
   fh = FREEFILE
-  OPEN game + ".sng" FOR INPUT as #fh
+  OPENFILE(game + ".sng", FOR_INPUT, fh)
   FOR i as integer = 0 TO 99
    INPUT #fh, song(i)
   NEXT i
@@ -3609,7 +3609,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
   upgrade_message "Zero new ammunition data..."
   setfixbit(fixAttackitems, 1)
   fh = freefile
-  OPEN workingdir + SLASH + "attack.bin" FOR BINARY as #FH
+  OPENFILE(workingdir + SLASH + "attack.bin", FOR_BINARY, fh)
   REDIM dat(curbinsize(binATTACK)/2 - 1) as SHORT
   p = 1
   FOR i as integer = 0 to gen(genMaxAttack)
@@ -3630,7 +3630,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  DO
   setfixbit(fixWeapPoints, 1)
   fh = freefile
-  OPEN game + ".dt0" FOR BINARY as #fh
+  OPENFILE(game + ".dt0", FOR_BINARY, fh)
   REDIM dat(dimbinsize(binDT0)) as SHORT
   FOR i as integer = 0 to gen(genMaxHero)
    GET #fh,,dat()
@@ -3838,7 +3838,7 @@ IF full_upgrade AND getfixbit(fixTextBoxPortrait) = 0 THEN
  DIM boxbuf(dimbinsize(binSAY)) as integer
  DIM recsize as integer = getbinsize(binSAY) \ 2
  fh = FREEFILE
- OPEN game & ".say" FOR BINARY ACCESS READ WRITE as #fh
+ OPENFILE(game & ".say", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genMaxTextBox)
   'This was stupefying slow, by far the slowest of all upgrades
   'LoadTextBox box, i
@@ -4061,7 +4061,7 @@ END SUB
 'it has a header if any and one record.
 SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
  DIM fh as integer = FREEFILE
- IF OPEN(lumpname FOR BINARY as #fh) THEN
+ IF OPENFILE(lumpname, FOR_BINARY, fh) THEN
   debugc errError, "Error while opening " & lumpname
   EXIT SUB
  END IF
@@ -4102,7 +4102,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   debug "fix_record_count mismatch for " & info & " lump, " & total_bytes & " is not evenly divisible by " & record_byte_size & " (" & mismatch & ")"
   '--expand the lump to have a valid total size
   DIM fh as integer = FREEFILE
-  OPEN lumpname FOR BINARY as #fh
+  OPENFILE(lumpname, FOR_BINARY, fh)
   DO WHILE total_bytes MOD record_byte_size <> 0
    total_bytes += 1
    PUT #fh, skip_header_bytes + total_bytes, CHR(0)
@@ -4266,7 +4266,7 @@ SUB loadglobalstrings
 'we load the whole lump into memory because readglobalstring can be called
 'hunderds of times a second. It's stored in a raw format; good enough.
 DIM fh as integer = FREEFILE
-OPEN game + ".stt" FOR BINARY as #fh
+OPENFILE(game + ".stt", FOR_BINARY, fh)
 IF LOF(fh) > 0 THEN
  global_strings_buffer = STRING(LOF(fh), 0)
  GET #fh, 1, global_strings_buffer
@@ -5417,7 +5417,7 @@ FUNCTION load_help_file(helpkey as string) as string
   helpfile = help_dir & SLASH & helpkey & ".txt"
   IF isfile(helpfile) THEN
    DIM fh as integer = FREEFILE
-   OPEN helpfile FOR INPUT ACCESS READ as #fh
+   OPENFILE(helpfile, FOR_INPUT + ACCESS_READ, fh)
    DIM helptext as string = ""
    DIM s as string
    DO WHILE NOT EOF(fh)
@@ -5443,7 +5443,7 @@ SUB save_help_file(helpkey as string, text as string)
  DIM helpfile as string
  helpfile = help_dir & SLASH & helpkey & ".txt"
  DIM fh as integer = FREEFILE
- IF OPEN(helpfile FOR OUTPUT ACCESS READ WRITE as #fh) = 0 THEN
+ IF OPENFILE(helpfile, FOR_OUTPUT, fh) = 0 THEN
   DIM trimmed_text as string
   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
   PRINT #fh, trimmed_text

@@ -2316,7 +2316,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
 
  'Look through lists of definescript scripts too
  fh = FREEFILE
- OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY as #fh
+ OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, fh)
  'numberedlast = firstscript + LOF(fh) \ 40 - 1
  numberedlast = firstscript + gen(genNumPlotscripts) - 1
 
@@ -2336,7 +2336,7 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  CLOSE #fh
 
  fh = FREEFILE
- OPEN workingdir + SLASH + "lookup1.bin" FOR BINARY as #fh
+ OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh)
  scriptmax = numberedlast + LOF(fh) \ 40
 
  IF scriptmax < firstscript THEN
@@ -2516,7 +2516,7 @@ SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggerty
  DIM screxists as integer = NO
 
  DIM fh as integer = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  DIM num_triggers as integer = LOF(fh) \ 40
  IF temp = -1 THEN temp = num_triggers + 16384
 
@@ -2710,7 +2710,7 @@ SUB script_usage_list ()
 
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+ OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   id = buf(0)
@@ -2725,7 +2725,7 @@ SUB script_usage_list ()
 
  'First, a detour: determine the alphabetic rank of each plotscript
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  REDIM plotscripts(0) as string
  WHILE loadrecord(buf(), fh, 20)
   s = readbinstring(buf(), 1, 38)
@@ -2822,7 +2822,7 @@ SUB load_script_ids_list()
  DIM buf(19) as integer
  DIM fh as integer
  fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY as #fh
+ OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   script_ids_list(i) = buf(0)
@@ -2906,7 +2906,7 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  DIM found_name as string = ""
  
  fh = FREEFILE
- OPEN tmpdir & "plotscr.lst.tmp" FOR BINARY ACCESS READ as #fh
+ OPENFILE(tmpdir & "plotscr.lst.tmp", FOR_BINARY + ACCESS_READ, fh)
  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF buf(0) = id THEN '--Yay! found it in the old file!
@@ -2919,7 +2919,7 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY as #fh
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
@@ -3278,7 +3278,7 @@ END SUB
 SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  IF index < 0 THEN EXIT SUB
  DIM fh as integer = FREEFILE
- OPEN game & ".stt" FOR BINARY as #fh
+ OPENFILE(game & ".stt", FOR_BINARY, fh)
  DIM ch as string
  ch = CHR(small(LEN(s), small(maxlen, 255)))
  PUT #fh, 1 + index * 11, ch

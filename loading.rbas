@@ -81,7 +81,7 @@ PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen 
   NEXT i
 
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS READ as #f
+  OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
   SEEK #f, 8
 
   arraylen = (LOF(f) - 7) \ getbinsize(binN)
@@ -125,7 +125,7 @@ SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as intege
   safekill file
 
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS WRITE as #f  'Should also truncate
+  OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'Should also truncate
   SEEK #f, 8
 
   DIM as integer recordlen = getbinsize(binN) \ 2
@@ -215,7 +215,7 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
   DIM i as integer
   DIM f as integer
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS READ as #f
+  OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
   SEEK #f, 8
   CleanNPCL dat()
   FOR i = 0 to 299
@@ -241,7 +241,7 @@ SUB SaveNPCL(file as string, dat() as NPCInst)
   DIM i as integer
   DIM f as integer
   f = FREEFILE
-  OPEN file FOR BINARY ACCESS WRITE as #f  'truncates
+  OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'truncates
   SEEK #f, 8
   FOR i = 0 to 299
     WriteShort f, -1, dat(i).x / 20
@@ -578,7 +578,7 @@ END SUB
 'Get size of a tilemap file; returns false if badly formed
 FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
   DIM as integer fh = FREEFILE
-  IF OPEN(filename FOR BINARY ACCESS READ as #fh) <> 0 THEN RETURN NO
+  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) <> 0 THEN RETURN NO
   WITH info
     .wide = readshort(fh, 8)  'skip over BSAVE header
     .high = readshort(fh, 10)
@@ -603,7 +603,7 @@ SUB LoadTilemap(map as TileMap, filename as string)
 
   DIM as integer fh
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS READ as #fh
+  OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
   map.wide = bound(readshort(fh, 8), 16, 32678)
   map.high = bound(readshort(fh, 10), 10, 32678)
   map.layernum = 0
@@ -629,7 +629,7 @@ FUNCTION LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool
   NEXT
 
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS READ as #fh
+  OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
   DIM as integer tempw = readshort(fh, 8)
   DIM as integer temph = readshort(fh, 10)
   wide = bound(tempw, 16, 32678)
@@ -663,7 +663,7 @@ SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS WRITE as #fh  'Should also truncate
+  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
   writeshort fh, 8, tmap.wide
   writeshort fh, 10, tmap.high
   PUT #fh, 12, *tmap.data, tmap.wide * tmap.high
@@ -674,7 +674,7 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
   safekill filename
   fh = FREEFILE
-  OPEN filename FOR BINARY ACCESS WRITE as #fh  'Should also truncate
+  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
   SEEK #fh, 12
@@ -1291,7 +1291,7 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 	end if
 	
 	f = freefile
-	open filename for binary access read as #f
+	openfile(filename, for_binary + access_read, f)
 	
 	
 	if hasheader then 
@@ -1325,7 +1325,7 @@ Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool
 	
 	safekill(filename)
 	
-	open filename for binary as #f
+	openfile(filename, for_binary, f)
 	
 	if withhead then
 		dim stupid as ubyte = 253
@@ -1371,7 +1371,7 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	
 	dim as integer f = freefile, i
 	
-	open filename for binary access read as #f
+	openfile(filename, for_binary + access_read, f)
 	
 	seek #f, record * 600 + 1
 	
@@ -1392,7 +1392,7 @@ Sub SerDoors(filename as string, array() as door, byval record as integer)
 	if not fileiswriteable(filename) then exit sub
 	dim as integer f = freefile, i
 	
-	open filename for binary as #f
+	openfile(filename, for_binary, f)
 	
 	seek #f, record * 600 + 1
 	
@@ -1481,7 +1481,7 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	
 	ClearHeroData hero
 	
-	open filename for binary access read as #f
+	openfile(filename, for_binary + access_read, f)
 	dim recordsize as integer = getbinsize(binDT0)  'in BYTES
 	seek #f, record * recordsize + 1
 	
@@ -1539,7 +1539,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 	
 	dim as integer f = freefile, i, j
 	
-	open filename for binary as #f
+	openfile(filename, for_binary, f)
 	
 	seek #f, record * getbinsize(binDT0) + 1
 	
@@ -1951,7 +1951,7 @@ Function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, 
  'isY is NO for x and YES for y
  DIM fh as integer
  fh = FREEFILE
- OPEN game & ".dt0" FOR BINARY as #fh
+ OPENFILE(game & ".dt0", FOR_BINARY, fh)
  GetHeroHandPos = ReadShort(fh,hero_id * getbinsize(binDT0) + 595 + which_frame * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
 End Function
@@ -2279,7 +2279,7 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
 
  DIM f as integer
  f = FREEFILE
- OPEN filename FOR BINARY ACCESS READ as #f
+ OPENFILE(filename, FOR_BINARY + ACCESS_READ, f)
  SEEK #f, palnum * getbinsize(binUIColors) + 1
  FOR i as integer = 0 TO uiColorOldLast
   colarray(i) = ReadShort(f)
@@ -2369,7 +2369,7 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
 
  DIM f as integer
  f = FREEFILE
- OPEN filename FOR BINARY as #f
+ OPENFILE(filename, FOR_BINARY, f)
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
  FOR i as integer = 0 TO uiColorOldLast
   WriteShort f, -1, colarray(i)
@@ -3531,7 +3531,7 @@ SUB load_hsp_header(filename as string, header as HSHeader)
  WITH header
   .valid = NO
   DIM fh as integer = FREEFILE
-  IF OPEN(filename FOR INPUT AS #fh) THEN
+  IF OPENFILE(filename, FOR_INPUT, fh) THEN
    debug "load_hsp_header: Could not open " & filename
    EXIT SUB
   END IF
@@ -3569,7 +3569,7 @@ END SUB
 'There's a lot of similar loading code in importscripts. I think ideally it should be rewritten
 SUB load_lookup1_bin(table() as TriggerData)
  DIM as integer fh = FREEFILE
- IF OPEN(workingdir + SLASH + "lookup1.bin" FOR BINARY AS #fh) THEN
+ IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh) THEN
   'failure
   REDIM table(-1 TO -1)
   EXIT SUB
@@ -3595,7 +3595,7 @@ END SUB
 SUB save_string_list(array() as string, filename as string)
 
  DIM fh as integer = FREEFILE
- OPEN filename FOR BINARY ACCESS WRITE as #fh
+ OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)
 
  DIM s as string
  
@@ -3615,7 +3615,7 @@ SUB load_string_list(array() as string, filename as string)
  IF isfile(filename) THEN
 
   DIM fh as integer = FREEFILE
-  OPEN filename FOR INPUT ACCESS READ as #fh
+  OPENFILE(filename, FOR_INPUT + ACCESS_READ, fh)
 
   DIM s as string
  

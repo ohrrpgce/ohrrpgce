@@ -551,7 +551,7 @@ PRIVATE FUNCTION loadscript_open_script (n as integer) as integer
  END IF
 
  DIM fh as integer = FREEFILE
- OPEN scriptfile FOR BINARY as #fh
+ OPENFILE(scriptfile, FOR_BINARY, fh)
  RETURN fh
 END FUNCTION
 
@@ -1002,7 +1002,7 @@ FUNCTION commandname (byval id as integer) as string
 
  '--could check workingdir as well like we do in runscript; but doesn't seem necessary
  DIM fh as integer = FREEFILE
- IF OPEN(tmpdir + "commands.bin" FOR BINARY ACCESS READ as fh) THEN
+ IF OPENFILE(tmpdir + "commands.bin", FOR_BINARY + ACCESS_READ, fh) THEN
   add_string_cache cache(), id, ret
   RETURN ret
  END IF

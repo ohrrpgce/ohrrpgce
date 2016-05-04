@@ -16,6 +16,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "cutil.bi"
 #include "os.bi"
 #include "common_base.bi"
+#include "lumpfile.bi"
 #ifdef __FB_MAIN__
 #include "testing.bi"
 #endif
@@ -906,7 +907,7 @@ END FUNCTION
 'Please not do depend on the algorithm not changing.
 FUNCTION hash_file(filename as string) as unsigned integer
   DIM fh as integer = FREEFILE
-  IF OPEN(filename FOR BINARY as #fh) THEN
+  IF OPENFILE(filename, FOR_BINARY, fh) THEN
     debug "hash_file: couldn't open " & filename
     RETURN 0
   END IF
@@ -1286,7 +1287,7 @@ END FUNCTION
 
 SUB touchfile (filename as string)
   dim as integer fh = FREEFILE
-  IF OPEN(filename FOR BINARY as #fh) THEN
+  IF OPENFILE(filename, FOR_BINARY, fh) THEN
     debug "touchfile(): could not open " + filename
     EXIT SUB
   END IF
@@ -1601,7 +1602,7 @@ FUNCTION fileisreadable(filename as string) as integer
   dim ret as bool = NO
   dim fh as integer, err_code as integer
   fh = freefile
-  err_code = open(filename for binary access read as #fh)
+  err_code = openfile(filename, for_binary + access_read, fh)
   if err_code = 2 then
     'Doesn't exist
   elseif err_code <> 0 then
@@ -1620,7 +1621,7 @@ FUNCTION fileiswriteable(filename as string) as integer
   dim ret as bool = NO
   dim fh as integer
   fh = freefile
-  if open (filename for binary access read write as #fh) = 0 then
+  if openfile(filename, for_binary + access_read_write, fh) = 0 then
     close #fh
     ret = YES
   end if
@@ -1933,7 +1934,7 @@ SUB xbload (filename as string, array() as integer, errmsg as string)
 		dim i as integer
 		
 		ff = FreeFile
-		IF OPEN(filename FOR BINARY ACCESS READ as #ff) THEN
+		IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, ff) THEN
 			fatalerror errmsg
 		END IF
 		GET #ff,, byt 'Magic number, always 253
@@ -1984,7 +1985,7 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	next
 
 	ff = FreeFile
-	OPEN filename FOR BINARY ACCESS write as #ff  'Truncate
+	OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, ff)  'Truncate
 	PUT #ff, , byt				'Magic number
 	PUT #ff, , seg				'segment - obsolete
 	PUT #ff, , offset			'offset - obsolete
@@ -2088,7 +2089,7 @@ END FUNCTION
 
 FUNCTION byte_size_of_file(filename as string) as integer
  DIM fh as integer = FREEFILE
- OPEN filename for binary access read as #fh
+ OPENFILE(filename, for_binary + access_read, fh)
  byte_size_of_file = LOF(fh)
  CLOSE #fh
 END FUNCTION
@@ -2120,7 +2121,7 @@ FUNCTION string_from_first_line_of_file (filename as string) as string
  'ignore/removes any line-ending chars
  DIM fh as integer = FREEFILE
  DIM result as string
- OPEN filename for input as #fh
+ OPENFILE(filename, for_input, fh)
  LINE INPUT #fh, result
  CLOSE #fh
  RETURN result
@@ -2132,7 +2133,7 @@ FUNCTION string_from_file (filename as string) as string
  DIM fh as integer = FREEFILE
  DIM result as string = ""
  DIM s as string
- OPEN filename for input as #fh
+ OPENFILE(filename, for_input, fh)
  DO WHILE NOT EOF(fh)
   LINE INPUT #fh, s
   s = RTRIM(s)
@@ -2147,7 +2148,7 @@ SUB string_to_file (string_to_write as string, filename as string)
  DIM s as string = string_to_write
  replacestr string_to_write, !"\n", LINE_END
  DIM fh as integer = FREEFILE
- OPEN filename FOR BINARY AS #FH
+ OPENFILE(filename, FOR_BINARY, FH)
  PUT #fh, , s
  CLOSE #fh
 END SUB
@@ -2157,7 +2158,7 @@ SUB lines_from_file(strarray() as string, filename as string, expect_exists as b
  REDIM strarray(-1 TO -1)
  DIM as integer fh
  fh = FREEFILE
- IF OPEN(filename FOR INPUT as #fh) THEN
+ IF OPENFILE(filename, FOR_INPUT, fh) THEN
   IF expect_exists THEN debug "Could not open " & filename
   EXIT SUB
  END IF
@@ -2174,7 +2175,7 @@ END SUB
 SUB lines_to_file(strarray() as string, filename as string)
  DIM fh as integer
  fh = FREEFILE
- IF OPEN(filename FOR BINARY ACCESS WRITE as #fh) THEN
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) THEN
   debug "Could not open " & filename & " for writing"
   EXIT SUB
  END IF

@@ -424,7 +424,7 @@ FOR i as integer = 0 TO UBOUND(filelist)
  IF br.special = 4 THEN
   IF LCASE(justextension(filename)) = "mas" THEN
    DIM masfh as integer = FREEFILE
-   OPEN filename FOR BINARY as #masfh
+   OPENFILE(filename, FOR_BINARY, masfh)
    DIM a as string = "       "
    GET #masfh, 1, a
    CLOSE #masfh
@@ -492,7 +492,7 @@ FUNCTION browse_sanity_check_reload(filename as string, info as string) as integ
  'info argument will be modified
  DIM header as string = "    "
  DIM fh as integer = FREEFILE
- OPEN filename FOR BINARY ACCESS READ as #fh
+ OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
   GET #fh, 1, header
  CLOSE #fh
  IF header <> "RELD" THEN info = "Has no RELOAD file header." : RETURN NO
@@ -556,7 +556,7 @@ FUNCTION validmusicfile (file as string, byval typemask as integer) as integer
 
  IF LEN(hdmask) THEN
   musfh = FREEFILE
-  OPEN file FOR BINARY as #musfh
+  OPENFILE(file, FOR_BINARY, musfh)
   GET #musfh, 1, hdmask
   CLOSE #musfh
   IF hdmask <> realhd THEN return 0
@@ -813,7 +813,7 @@ FUNCTION check_for_plotscr_inclusion(filename as string) as bool
  }
 
  DIM fh as integer = FREEFILE
- IF OPEN(filename FOR INPUT AS #fh) THEN RETURN NO
+ IF OPENFILE(filename, FOR_INPUT, fh) THEN RETURN NO
  DIM s as string
  FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines
   LINE INPUT #fh, s

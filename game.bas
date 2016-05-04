@@ -3692,14 +3692,14 @@ SUB refresh_keepalive_file ()
  DIM filename as string
  filename = tmpdir & "keepalive.tmp"
  DIM fh as integer = FREEFILE
- OPEN filename FOR BINARY ACCESS WRITE as #fh
+ OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)
  PUT #fh, 1, timestamp
  CLOSE #fh
 END SUB
 
 FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
  DIM fh as integer = FREEFILE
- OPEN keepalive_file FOR BINARY ACCESS READ as #fh
+ OPENFILE(keepalive_file, FOR_BINARY + ACCESS_READ, fh)
  DIM datestr as string = "YYYY-MM-DD"
  GET #fh, 1, datestr
  CLOSE #fh

@@ -288,7 +288,7 @@ Function GetWeaponPos(byval w as integer, byval f as integer, byval isY as integ
  DIM fh as integer
  IF w >= 0 THEN
   fh = FREEFILE
-  OPEN game + ".itm" FOR BINARY as #fh
+  OPENFILE(game + ".itm", FOR_BINARY, fh)
   DIM recoff as integer = w * getbinsize(binITM) + 1
   'debug "weapon " & w & " offset: " & (recoff + 156 + f * 4 + isY * 2)
   GetWeaponPos = ReadShort(fh, recoff + 156 + f * 4 + iif(isY,1,0) * 2)

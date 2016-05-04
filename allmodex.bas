@@ -995,7 +995,7 @@ function isawav(fi as string) as bool
 	dim chnk_ID as integer
 	dim chnk_size as integer
 	dim fh as integer = freefile
-	open fi for binary access read as #fh
+	openfile(fi, for_binary + access_read, fh)
 
 	get #fh, , chnk_ID
 	if chnk_ID <> _RIFF then
@@ -2024,7 +2024,7 @@ sub start_recording_input (filename as string)
 	end if
 	record.constructor()  'Clear data
 	record.file = FREEFILE
-	if open(filename for binary access write as #record.file) then
+	if openfile(filename, for_binary + access_write, record.file) then
 		stop_recording_input "Couldn't open " & filename
 		record.file = -1
 		exit sub
@@ -2085,7 +2085,7 @@ sub start_replaying_input (filename as string, num_repeats as integer = 1)
 	replay_kb.constructor()  'Reset
 	replay.filename = filename
 	replay.file = FREEFILE
-	if open(filename for binary access read as #replay.file) then
+	if openfile(filename, for_binary + access_read, replay.file) then
 		stop_replaying_input "Couldn't open " & filename
 		replay.file = -1
 		exit sub
@@ -2820,7 +2820,7 @@ sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 
 	if NOT fileiswriteable(fil) then exit sub
 	f = freefile
-	open fil for binary access read write as #f
+	openfile(fil, for_binary + access_read_write, f)
 
 	'skip to index
 	seek #f, (record*64000) + 1 'will this work with write access?
@@ -2871,7 +2871,7 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 		return dest
 	end if
 	fh = freefile
-	if open(filen for binary access read as #fh) then
+	if openfile(filen, for_binary + access_read, fh) then
 		debugc errError, "frame_load_mxs: Couldn't open " & filen
 		return dest
 	end if
@@ -4791,7 +4791,7 @@ private function write_bmp_header(filen as string, w as integer, h as integer, b
 
 	safekill filen
 	of = freefile
-	if open(filen for binary access write as #of) then
+	if openfile(filen, for_binary + access_write, of) then
 		debugc errError, "write_bmp_header: couldn't open " & filen
 		return -1
 	end if
@@ -4808,7 +4808,7 @@ end function
 'Returns -1 is invalid, -2 if unsupported
 function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER) as integer
 	dim bf as integer = freefile
-	if open(bmp for binary access read as #bf) then
+	if openfile(bmp, for_binary + access_read, bf) then
 		debuginfo "open_bmp_and_read_header: couldn't open " & bmp
 		return -1
 	end if
@@ -6076,7 +6076,7 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 	dim recsize as integer = frsize * numframes
 
 	dim fh as integer = freefile
-	if open(filen for binary access read as #fh) then
+	if openfile(filen, for_binary + access_read, fh) then
 		debugc errError, "frame_load_4bit: could not open " & filen
 		return 0
 	end if
@@ -7029,7 +7029,7 @@ function Palette16_load(fil as string, byval num as integer, byval autotype as i
 
 	dim fh as integer = freefile
 
-	if open(fil for binary access read as #fh) then return 0
+	if openfile(fil, for_binary + access_read, fh) then return 0
 
 	dim mag as short
 

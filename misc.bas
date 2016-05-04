@@ -174,7 +174,7 @@ FUNCTION ReadShort(filename as string, byval p as integer) as short
 	DIM ret as short
 	DIM fh as integer
 	fh = FREEFILE
-	OPEN filename for binary access read as #fh
+	OPENFILE(filename, for_binary + access_read, fh)
 	GET #fh, p, ret
 	CLOSE #fh
 	return ret
@@ -205,7 +205,7 @@ END SUB
 Sub WriteShort(filename as string, byval p as integer, byval v as integer)
 	DIM fh as integer
 	fh = FREEFILE
-	OPEN filename FOR BINARY AS #fh
+	OPENFILE(filename, FOR_BINARY, fh)
 	PUT #fh, p, cshort(v)
 	CLOSE #fh
 END SUB

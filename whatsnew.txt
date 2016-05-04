@@ -17,6 +17,7 @@ WHAT IS NEW?
     * "menu item at pixel" [Ralph, James]
 
   * Stuff Only Developers Will Notice
+    * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
 
 ??? ?? 2016 [Callipygous+1]
 
