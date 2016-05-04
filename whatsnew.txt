@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-???? ?? 2016 [Debatable]
+???? ?? 2016 [Dwimmercrafty]
 
   * New Features
     * Mark Non-elemental Elementals menu lets you define which elements
