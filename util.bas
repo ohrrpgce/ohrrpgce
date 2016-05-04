@@ -1368,11 +1368,17 @@ END FUNCTION
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
 SUB findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
+  REDIM filelist(-1 TO -1)
+  IF directory = "" THEN
+   ' For safety and bug catching: for example deletetemps() calls findfiles
+   ' and then deletes everything.
+   showerror "findfiles called with empty directory"
+   EXIT SUB
+  END IF
   DIM as string searchdir = directory
   IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
   DIM as string nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
-  REDIM filelist(-1 TO -1)
 #ifdef DEBUG_FILE_IO
   debuginfo "findfiles(directory = " & directory & ", namemask = " & namemask & ", " _
             & IIF_string(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
@@ -1491,6 +1497,13 @@ SUB killdir(directory as string, recurse as bool = NO)
 #ifdef DEBUG_FILE_IO
   debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
 #endif
+  ' For safety. (You ought to pass absolute paths.) Check
+  ' writability so we don't recurse if started from e.g. /home until
+  ' we hit something deletable (this happened to me)!
+  IF LEN(directory) < 5 ORELSE diriswriteable(directory) = NO THEN
+   showerror "killdir: refusing to delete directory '" & directory & "'"
+   EXIT SUB
+  END IF
   DIM filelist() as string
   findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
@@ -1631,16 +1644,18 @@ FUNCTION diriswriteable(d as string) as bool
   return NO
 END FUNCTION
 
-FUNCTION isfile (filename as string) as integer
+FUNCTION isfile (filename as string) as bool
   ' directories don't count as files
   ' FIXME: Returns true if passed a directory on Linux.
   ' this is a simple wrapper for fileisreadable
-  if filename = "" then return 0
+  if filename = "" then return NO
   return fileisreadable(filename)
 END FUNCTION
 
-FUNCTION isdir (sDir as string) as integer
+FUNCTION isdir (sDir as string) as bool
   dim ret as bool
+  ' Returning true for "" would help to hide bugs.
+  if sDir = "" then return NO
 #IFDEF __FB_ANDROID__
   '[ does not work in Android 2.2. I don't know how reliable this is
   ret = SHELL("ls " + escape_filename(sDir) + "/") = 0
