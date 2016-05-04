@@ -255,9 +255,13 @@ fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
 fbcinfo = get_command_output(fbc_binary, "-version")
 fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
 # Convert e.g. 1.04.1 into 1041
-fbcversion = int(fbcversion.replace('.', ''))
+fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*fbcversion.split('.'))
 if verbose:
     print "Using fbc", fbc_binary, " version:", fbcversion, " arch:", arch
+
+# Headers in fb/ depend on this define
+env['CFLAGS'] += ['-DFBCVERSION=%d' % fbcversion]
+env['CXXFLAGS'] += ['-DFBCVERSION=%d' % fbcversion]
 
 # FB 0.91 added a multithreaded version of libfbgfx
 if fbcversion >= 910:

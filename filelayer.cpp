@@ -17,6 +17,10 @@ IPCChannel *lump_updates_channel;
 bool lock_lumps = false;
 bool allow_lump_writes;
 
+// The function that tells whether to hook a file open
+FnOpenCallback pfnLumpfileFilter;
+
+
 const char *trimpath(const char *filename) {
 	const char *p = filename, *ret = filename;
 	while (*p) {
@@ -107,6 +111,7 @@ void dump_openfiles() {
 	}
 }
 
+// Replacement for fb_DevFileOpen().
 int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
 	//fprintf(stderr, "opening %p (%s).\n", handle, filename);
 
@@ -133,26 +138,97 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 	return 0;
 }
 
-FnOpenCallback pfnLumpfileFilter;
+// This is a replacement for fb_FileOpen/fb_FileOpenEncod which is what plain OPEN with
+// or without an ENCODING argument is translated to in -lang fb.
+// Note that calling this function acts like the functional form OPEN(): when compiled with -exx
+// it doesn't cause the program to abort if there's an error.
+// Return 0 on success, 1 on error, 2 if file not found (FB_RTERROR_FILENOTFOUND)
+FBCALL int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
+	unsigned int mode, access;
+	FB_FILE_ENCOD encod;
 
-// This is called on each (regular) OPEN, to optionally override the file opener function
-FBCALL int OPEN_hook(FBSTRING *filename,
-                     unsigned open_mode,
-                     unsigned access_mode,
-                     unsigned lock_mode,
-                     int rec_len,
-                     FnFileOpen *pfnFileOpen) {
-	// It's safe to call a FB function in this context: fb_FileOpen[Ex]
-	// (in libfb_file_open.c) seems to be specifically designed in this way: the state
-	// the runtime library has not been modified (e.g. locked) at this point.
+	switch(openbits & FOR_MASK) {
+		case 0:  // Default
+		case FOR_BINARY:
+			mode = FB_FILE_MODE_BINARY;
+			break;
+		case FOR_INPUT:
+			mode = FB_FILE_MODE_INPUT;
+			break;
+		case FOR_OUTPUT:
+			mode = FB_FILE_MODE_OUTPUT;
+			break;
+		case FOR_APPEND:
+			mode = FB_FILE_MODE_APPEND;
+			break;
+		default:
+			fatal_error("OPENFILE: bad flags %x", openbits);
+			return 1;
+	}
 
+	switch(openbits & ACCESS_MASK) {
+		case ACCESS_ANY:
+			access = FB_FILE_ACCESS_ANY;
+			break;
+		case ACCESS_READ:
+			access = FB_FILE_ACCESS_READ;
+			break;
+		case ACCESS_WRITE:
+			access = FB_FILE_ACCESS_WRITE;
+			break;
+		case 0:  // Default (in contrast to FB, which defaults to ANY)
+		case ACCESS_READ_WRITE:
+			access = FB_FILE_ACCESS_READWRITE;
+			break;
+		default:
+			fatal_error("OPENFILE: bad flags %x", openbits);
+			return 1;
+	}
+
+	switch(openbits & ENCODING_MASK) {
+		case 0:  // Default
+		case ENCODING_ASCII:
+			encod = FB_FILE_ENCOD_ASCII;
+			break;
+		case ENCODING_UTF8:
+			encod = FB_FILE_ENCOD_UTF8;
+			break;
+		case ENCODING_UTF16:
+			encod = FB_FILE_ENCOD_UTF16;
+			break;
+		case ENCODING_UTF32:
+			encod = FB_FILE_ENCOD_UTF32;
+			break;
+		default:
+			fatal_error("OPENFILE: bad flags %x", openbits);
+			return 1;
+	}
+
+	if ((fnum = fb_FileFree()) == 0) {
+		fatal_error("OPEN_lump: too many open files");
+		return 1;
+	}
+
+	FnFileOpen fnOpen;
 	// This is the correct test
-	//bool writable = access_mode & FB_FILE_ACCESS_WRITE || accessmode == FB_FILE_ACCESS_ANY;
+	//bool writable = access != FB_FILE_ACCESS_READ;
 	// This tests only for explicit ACCESS WRITE, which is much more likely to be an error
-	bool writable = access_mode & FB_FILE_ACCESS_WRITE;
-	if (pfnLumpfileFilter(filename, writable ? -1 : 0))
-		*pfnFileOpen = lump_file_opener;
-	return 0;  // Success. We don't know any FB error codes, and we don't want to use them anyway
+	bool writable = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE);
+	if (pfnLumpfileFilter && pfnLumpfileFilter(filename, writable ? -1 : 0)) {
+		if (encod != FB_FILE_ENCOD_ASCII) {
+			fatal_error("OPENFILE: ENCODING not implemented for hooked files");
+			return 1;
+		}
+		fnOpen = lump_file_opener;
+	} else {
+		if (encod == FB_FILE_ENCOD_ASCII)
+			fnOpen = fb_DevFileOpen;
+		else
+			fnOpen = fb_DevFileOpenEncod;
+	}
+
+	return fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
+				FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
 }
 
 // A replacement for FB's filecopy which sends modification messages and deals with open files
@@ -167,7 +243,6 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
 	pfnLumpfileFilter = lumpfile_filter;
-	__fb_ctx.pfnDevOpenHook = OPEN_hook;
 #ifndef _WIN32
 	lock_lumps = true;
 #endif
@@ -176,7 +251,6 @@ void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, 
 }
 
 void clear_OPEN_hook() {
-	__fb_ctx.pfnDevOpenHook = NULL;
 	lock_lumps = false;
 	allow_lump_writes = true;
 	lump_updates_channel = NULL_CHANNEL;

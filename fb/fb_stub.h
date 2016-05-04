@@ -1,36 +1,7 @@
 /*
  *  This is a stripped down version of FB 1.04's src/rtlib/fb.h
- *  with some other files merged in and some changes: mainly,
- *  addition of FnDevOpenHook. All other headers are also from FB 1.04.
- *
- *  libfb - FreeBASIC's runtime library
- *	Copyright (C) 2004-2010 The FreeBASIC development team.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2.1 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  As a special exception, the copyright holders of this library give
- *  you permission to link this library with independent modules to
- *  produce an executable, regardless of the license terms of these
- *  independent modules, and to copy and distribute the resulting
- *  executable under terms of your choice, provided that you also meet,
- *  for each linked independent module, the terms and conditions of the
- *  license of that module. An independent module is a module which is
- *  not derived from or based on this library. If you modify this library,
- *  you may extend this exception to your version of the library, but
- *  you are not obligated to do so. If you do not wish to do so, delete
- *  this exception statement from your version.
+ *  with some other files merged in and some changes.
+ *  See readme.txt
  */
 
 #ifndef __FB_H__
@@ -193,33 +164,68 @@ typedef struct _FB_LIST {
 } FB_LIST;
 
 
-#include "fb_error.h"
 #include "fb_array.h"
 #include "fb_string.h"
 #include "fb_file.h"
 #include "fb_device.h"
 
-typedef FBCALL int (*FnDevOpenHook)( FBSTRING *filename,
-                                     unsigned open_mode,
-                                     unsigned access_mode,
-                                     unsigned lock_mode,
-                                     int rec_len,
-                                     FnFileOpen *pfnFileOpen );
+typedef FBCALL int (*FnDummy)();
 
+// Although the signatures of these functions have sometimes changed, the contents of
+// this struct hasn't changed since 2007 (as of 20160504)
+typedef struct FB_HOOKSTB {
+	FnDummy inkeyproc;
+	FnDummy getkeyproc;
+	FnDummy keyhitproc;
+	FnDummy clsproc;
+	FnDummy colorproc;
+	FnDummy locateproc;
+	FnDummy widthproc;
+	FnDummy getxproc;
+	FnDummy getyproc;
+	FnDummy getxyproc;
+	FnDummy getsizeproc;
+	FnDummy printbuffproc;
+	FnDummy printbuffwproc;
+	FnDummy readstrproc;
+	FnDummy multikeyproc;
+	FnDummy getmouseproc;
+	FnDummy setmouseproc;
+	FnDummy inproc;
+	FnDummy outproc;
+	FnDummy viewupdateproc;
+	FnDummy lineinputproc;
+	FnDummy lineinputwproc;
+	FnDummy readxyproc;
+	FnDummy sleepproc;
+	FnDummy isredirproc;
+	FnDummy pagecopyproc;
+	FnDummy pagesetproc;
+} FB_HOOKSTB;
+
+#if FBCVERSION < 240
+	typedef uintptr_t FB_TLSENTRY;  // Platform dependent, e.g. pthread_key_t on Unix
+	#define FB_TLSKEYS 5
+#endif
+
+// This is also fairly stable. We need this to access the file table, fileTB.
 typedef struct FB_RTLIB_CTX_ {
 	int             argc;
 	char          **argv;
 	FBSTRING        null_desc;
 	char           *errmsg;
-  /* The following only exists in FB 0.23 and earlier! */
-	FnDevOpenHook	pfnDevOpenHook;
-  /* And some other stuff... but not going to include all other headers
+#if FBCVERSION < 240
+	FnDummy         pfnDevOpenHook;
+	FB_TLSENTRY     tls_ctxtb[FB_TLSKEYS];
+#endif
 	FB_HOOKSTB      hooks;
 	FB_FILE         fileTB[FB_MAX_FILES];
+	/* We don't care about anything after this point */
 	int             do_file_reset;
 	int             lang;
+#if FBCVERSION >= 1020
 	void          (*exit_gfxlib2)(void);
-  */
+#endif
 } FB_RTLIB_CTX;
 
 extern FB_RTLIB_CTX __fb_ctx;

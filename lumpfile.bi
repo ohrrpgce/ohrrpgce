@@ -188,6 +188,45 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 '----------------------------------------------------------------------
 '                       filelayer.cpp stuff
 
+
+' NOTE: Duplicated in filelayer.h
+enum OPENBits
+	' FOR RANDOM (fixed sized records) not supported. Use load/storerecord() instead.
+	FOR_BINARY =        &h0010000  ' default
+	FOR_INPUT =         &h0020000
+	FOR_OUTPUT =        &h0040000
+	FOR_APPEND =        &h0080000
+	FOR_MASK =          &h00F0000
+	' For files, ACCESS ANY means try READ_WRITE, failing that use READ.
+	' Which sounds like a misfeature to me, so let's default to ACCESS_READ_WRITE instead.
+	ACCESS_ANY =        &h0100000
+	ACCESS_READ =       &h0200000
+	ACCESS_WRITE =      &h0400000
+	ACCESS_READ_WRITE = &h0800000  ' default
+	ACCESS_MASK =       &h0F00000
+	' Not implemented yet for hooked files, so no point using these
+	'ENCODING_ASCII =   &h1000000  ' default
+	'ENCODING_UTF8 =    &h2000000
+	'ENCODING_UTF16 =   &h4000000
+	'ENCODING_UTF32 =   &h8000000
+	'ENCODING_MASK =    &hF000000
+	' LOCK not supported... in fact it's not even properly supported by FB!
+	' However it could be added (since we already have file locking implemented in os.bi)
+	' if it were useful.
+	' LEN (record length) not supported.
+end enum
+
+'Replacement for OPEN (and FREEFILE) which is used to hook accesses to lumps, and send messages from Custom
+'to a spawned instance of Game when a modified file is closed.
+'Sets fh to a FREEFILE file number (initial value ignored).
+'Returns 0 on success, 1 on error, 2 if file doesn't exist.
+'Example:
+'  OPEN file FOR BINARY ACCESS READ as #fh
+'becomes:
+'  OPENFILE(file, FOR_BINARY + ACCESS_READ, fh)
+'All access flags are optional; you can pass 0.
+declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as integer) as integer
+
 type FnStringPredicate as function (filename as string) as boolint
 type FnOpenCallback as function (filename as string, writable as boolint) as boolint
 

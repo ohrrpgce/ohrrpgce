@@ -1433,7 +1433,7 @@ function inworkingdir(filename as string, byval writable as boolint) as boolint
 
 #ifdef IS_GAME
 	if running_as_slave andalso ret andalso writable then
-		fatalerror "Engine bug: Illegally tried to write to " & filename
+		fatalerror "Engine bug: Illegally tried to open protected file " & filename & " for writing"
 	end if
 #endif
 
