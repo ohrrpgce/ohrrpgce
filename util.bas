@@ -2087,13 +2087,6 @@ FUNCTION ends_with(s as string, suffix as string) as integer
  RETURN RIGHT(s, LEN(suffix)) = suffix
 END FUNCTION
 
-FUNCTION byte_size_of_file(filename as string) as integer
- DIM fh as integer = FREEFILE
- OPENFILE(filename, for_binary + access_read, fh)
- byte_size_of_file = LOF(fh)
- CLOSE #fh
-END FUNCTION
-
 FUNCTION count_directory_size(directory as string) as integer
  '--Count the bytes in all the files in a directory and all subdirectories.
  '--This doesn't consider the space taken by the directories themselves,
@@ -2104,7 +2097,7 @@ FUNCTION count_directory_size(directory as string) as integer
  '--First cound files
  findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  bytes += byte_size_of_file(directory & SLASH & filelist(i))
+  bytes += filelen(directory & SLASH & filelist(i))
  NEXT
  
  '--Then count subdirectories
