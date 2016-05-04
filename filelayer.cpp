@@ -9,7 +9,9 @@
 #include <map>
 #include "common.h"
 
-map<FB_FILE *, FileInfo> openfiles;
+// When quitting FB closes all files from within a destructor, so globals may have already
+// been deleted. So it would be a bad idea to define openfiles as an object instead of pointer.
+map<FB_FILE *, FileInfo> *openfiles;
 typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
 IPCChannel *lump_updates_channel;
@@ -42,12 +44,18 @@ void send_lump_modified_msg(const char *filename) {
 }
 
 int file_wrapper_close(FB_FILE *handle) {
-	assert(openfiles.count(handle));
-	FileInfo &info = openfiles[handle];
+	assert(openfiles->count(handle));
+	FileInfo &info = (*openfiles)[handle];
 	//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
 	if (info.dirty && !allow_lump_writes) {
-		// It's not really safe to call debug in here
-		debug(errBug, "illegally wrote to %s", info.name.c_str());
+		// It's not really a great idea to call debug in here,
+		// because we've been called from inside the rtlib, so
+		// the global rtlib mutex is held. Luckily, FB uses recursive
+		// mutexes, meaning the same thread can lock one multiple times.
+		// Worse, if the user quits, FB will close all files,
+		// calling us recursively! That's actually ok...
+		info.dirty = false;  // Prevent recursion into debug()
+		debug(errPromptBug, "Illegally wrote to protected file %s", info.name.c_str());
 	}
 	if (info.dirty) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
@@ -55,9 +63,9 @@ int file_wrapper_close(FB_FILE *handle) {
 	}
 	//debuginfo("unlocking %s", info.name.c_str());
 	unlock_file((FILE *)handle->opaque);  // Only needed on Windows
-	openfiles.erase(handle);
+	openfiles->erase(handle);
 
-	return fb_DevFileClose(handle);  
+	return fb_DevFileClose(handle);
 }
 
 int file_wrapper_seek(FB_FILE *handle, fb_off_t offset, int whence) {
@@ -76,8 +84,8 @@ int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 }
 
 int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
-	assert(openfiles.count(handle));
-	FileInfo &info = openfiles[handle];
+	assert(openfiles->count(handle));
+	FileInfo &info = (*openfiles)[handle];
 	info.dirty = true;
 
 	return fb_DevFileWrite(handle, value, valuelen);
@@ -102,8 +110,8 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 };
 
 void dump_openfiles() {
-	debug(errDebug, "%d open files:", (int)openfiles.size());
-	for (openfiles_iterator_t it = openfiles.begin(); it != openfiles.end(); ++it) {
+	debug(errDebug, "%d open files:", (int)openfiles->size());
+	for (openfiles_iterator_t it = openfiles->begin(); it != openfiles->end(); ++it) {
 		const char *fname = it->second.name.c_str();
 		debug(errDebug, " %p (%s)", it->first, fname);
 		if (lock_lumps)
@@ -122,8 +130,8 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 	if (ret) return ret;
 
 	handle->hooks = &lumpfile_hooks;
-	assert(openfiles.count(handle) == 0);
-	FileInfo &info = openfiles[handle];
+	assert(openfiles->count(handle) == 0);
+	FileInfo &info = (*openfiles)[handle];
 	info.name = string(filename);
 	if (lock_lumps) {
 		if (handle->access & FB_FILE_ACCESS_WRITE) {
@@ -242,6 +250,8 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 }
 
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
+	if (!openfiles)
+		openfiles = new map<FB_FILE *, FileInfo>;
 	pfnLumpfileFilter = lumpfile_filter;
 #ifndef _WIN32
 	lock_lumps = true;
