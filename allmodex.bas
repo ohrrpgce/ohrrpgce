@@ -486,7 +486,7 @@ private sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
-		show_overlay_message windowsize.w & " x " & windowsize.h, 1.5
+		show_overlay_message windowsize.w & " x " & windowsize.h, 0.7
 	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user
@@ -554,7 +554,7 @@ sub unlock_resolution (byval min_w as integer, byval min_h as integer)
 	if gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
-	debuginfo "unlock_resolution " & min_w & "*" & min_h
+	debuginfo "unlock_resolution(" & min_w & "," & min_h & ")"
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
@@ -563,6 +563,7 @@ end sub
 
 'Disable window resizing.
 sub lock_resolution ()
+	debuginfo "lock_resolution()"
 	resizing_enabled = gfx_set_resizable(NO, 0, 0)
 end sub
 

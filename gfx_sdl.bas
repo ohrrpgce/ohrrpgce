@@ -116,11 +116,11 @@ DIM SHARED windowedmode as bool = YES
 DIM SHARED user_toggled_fullscreen as bool = NO
 DIM SHARED screen_width as integer = 0
 DIM SHARED screen_height as integer = 0
-DIM SHARED resizable as integer = NO
-DIM SHARED resize_requested as integer = NO
+DIM SHARED resizable as bool = NO
+DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED force_video_reset as bool = NO
-DIM SHARED remember_windowtitle as STRING
+DIM SHARED remember_windowtitle as string
 DIM SHARED rememmvis as integer = 1
 DIM SHARED debugging_io as bool = NO
 DIM SHARED keystate as Uint8 ptr = NULL
@@ -479,6 +479,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
 
   'variable resolution handling
   IF framesize.w <> w OR framesize.h <> h THEN
+    'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize.w & "*" & framesize.h & " to " & w & "*" & h
     framesize.w = w
     framesize.h = h
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
@@ -918,10 +919,15 @@ SUB gfx_sdl_process_events()
           debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
         END IF
         IF resizable THEN
-          resize_requested = YES
           'Round upwards
           resize_request.w = (evnt.resize.w + zoom - 1) \ zoom
           resize_request.h = (evnt.resize.h + zoom - 1) \ zoom
+          IF framesize.w <> resize_request.w OR framesize.h <> resize_request.h THEN
+            'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
+            'to be sent with the size you just set... this would produce annoying overlay
+            'messages in screen_size_update() if we don't filter them out.
+            resize_requested = YES
+          END IF
           'Nothing happens until the engine calls gfx_get_resize,
           'changes its internal window size (windowsize) as a result,
           'and starts pushing Frames with the new size to gfx_showpage.
