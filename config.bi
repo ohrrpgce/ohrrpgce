@@ -4,6 +4,9 @@
 #IFNDEF CONFIG_BI
 #DEFINE CONFIG_BI
 
+
+'====================================== Build string ======================================
+
 #IF __FB_DEBUG__
  #DEFINE _GSTR " -g"
 #ELSE
@@ -56,6 +59,9 @@
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
 
+
+'==================================== OS-specific defines =================================
+
 #IFDEF __FB_ANDROID__
  #DEFINE LOWMEM
 #ENDIF
@@ -76,7 +82,6 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
  #ENDIF
 #ENDIF
 
-
 #IFDEF __UNIX__
  'FB's headers check for __FB_LINUX__
  '(because they are actually headers from some GNU/Linux distrib, other platforms not officially supported)
@@ -91,21 +96,47 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
  #ENDIF
 #ENDIF
 
-' We put a few declarations in a namespace so that they aren't lost after including
-' windows.bi and #undefing. If more include_windows_bi() problems occur we can get
-' around them by moving more stuff into this namespace.
-NAMESPACE OHR
+#ifdef __UNIX__
+#define SLASH "/"
+#define ispathsep(character) (character = ASC("/"))
+#define LINE_END !"\n"
+#define CUSTOMEXE "ohrrpgce-custom"
+#define GAMEEXE "ohrrpgce-game"
+#define DOTEXE ""
+#define ALLFILES "*"
+#else
+#define SLASH "\"
+#define ispathsep(character) (character = ASC("/") OR character = ASC("\"))
+#define LINE_END !"\r\n"
+#define CUSTOMEXE "custom.exe"
+#define GAMEEXE "game.exe"
+#define DOTEXE ".exe"
+#define ALLFILES "*.*"
+#endif
+
+'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
+CONST YES = -1
+CONST NO = 0
 
 #IFNDEF NULL
 #DEFINE NULL 0
 #ENDIF
+
+
+'================================= 32/64 bit differences ==================================
+
+
+' We put a few declarations in a namespace so that they aren't lost after including
+' windows.bi and #undefing. If more include_windows_bi() problems occur we can get
+' around them by moving more stuff into this namespace.
+NAMESPACE OHR
 
 ' TODO: FB 1.04+ has a boolean type, which we ignore for now
 ' (it's 1 bit in size and compatible with C/C++ bool)
 #IFDEF __FB_64BIT__
   TYPE bool as long  '32 bit
 #ELSE
-  'Tip: Change this to 'long' to warnings for inconsistent usage of bool vs integer
+  'Tip: Change this to 'long' to cause warnings for inconsistent usage of bool vs integer
   TYPE bool as integer
 #ENDIF
 
@@ -143,11 +174,6 @@ TYPE boolint as long  '32 bit
     TYPE ssize_t as integer
   #ENDIF
 #ENDIF
-
-
-'---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
-CONST YES = -1
-CONST NO = 0
 
 END NAMESPACE
 
@@ -195,14 +221,13 @@ TYPE fb_uinteger as uinteger
 
 use_32bit_integer()
 
+
+'======================================== windows.bi ======================================
+
+' include_windows_bi() MUST be used after config.bi is included but before anything else!
 #macro include_windows_bi()
 # ifndef windows_bi_included
 #  define windows_bi_included
-#  undef point
-#  undef copyfile
-#  undef iswindow
-#  undef rectangle
-#  undef ellipse
 #  define _X86_
    use_native_integer()
 #  include once "windows.bi"
@@ -237,7 +262,41 @@ use_32bit_integer()
 # endif
 #endmacro
 
-'''''''''''GOSUB hack
+
+'==================================== TIMER_START/STOP ====================================
+
+'Warning: you may not nest TIMER_STOP/START calls!
+
+'under windows, TIMER uses QueryPerformanceCounter, under unix it uses gettimeofday
+#ifdef ACCURATETIMER
+ 'use a timer which counts CPU time spent by this process (preferably thread) only
+ #ifdef __FB_WIN32__
+  'only available on win 2000 or later
+  include_windows_bi()
+  #if defined(GetThreadTimes)
+   #define timer_variables  as FILETIME ptr atimer_s, atimer_e
+   extern timer_variables
+   #define TIMER_START(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_s)
+   #define TIMER_STOP(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_e): a += (atimer_e.dwLowDateTime - atimer_s.dwLowDateTime) * 0.0000001
+  #else
+   #print GetThreadTimes not available; don't define ACCURATETIMER
+  #endif
+ #else
+  'assume anything else is a unix
+  'options: clock, times, clock_gettime (with CLOCK_THREAD_CPUTIME_ID) which apparently counts in clock ticks (1ms)
+  #define timer_variables as timespec atimer_s, atimer_e
+  extern timer_variables
+  #define TIMER_START(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_s)
+  #define TIMER_STOP(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_e): a += (atimer_e.tv_nsec - atimer_s.tv_nsec) * 0.000000001
+ #endif
+#endif
+#ifndef TIMER_START
+ #define TIMER_START(a) a -= TIMER
+ #define TIMER_STOP(a)  a += TIMER
+#endif
+
+
+'====================================== GOSUB Hack ========================================
 
 #if __FB_GCC__ = 0
 'use nearly-as-fast assembly version (one extra jump)
@@ -281,23 +340,5 @@ extern gosubptr as integer
 #define retrace longjmp(@gosubbuf(gosubptr-1),1)
 
 #endif  'choose GOSUB workaround
-
-#ifdef __UNIX__
-#define SLASH "/"
-#define ispathsep(character) (character = ASC("/"))
-#define LINE_END !"\n"
-#define CUSTOMEXE "ohrrpgce-custom"
-#define GAMEEXE "ohrrpgce-game"
-#define DOTEXE ""
-#define ALLFILES "*"
-#else
-#define SLASH "\"
-#define ispathsep(character) (character = ASC("/") OR character = ASC("\"))
-#define LINE_END !"\r\n"
-#define CUSTOMEXE "custom.exe"
-#define GAMEEXE "game.exe"
-#define DOTEXE ".exe"
-#define ALLFILES "*.*"
-#endif
 
 #ENDIF
