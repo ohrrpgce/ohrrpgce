@@ -11,16 +11,18 @@
 
 '#define RELOAD_NOPRIVATEHEAP
 
+#include "config.bi"
+
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+        include_windows_bi()
+#endif
+
 #include "reload.bi"
 #include "reloadext.bi"
 #include "util.bi"
 #include "cutil.bi"
 #include "lumpfile.bi"
 #include "common_base.bi"
-
-#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
-        include_windows_bi()
-#endif
 
 Namespace Reload
 

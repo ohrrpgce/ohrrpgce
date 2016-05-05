@@ -558,6 +558,8 @@ private function gfx_load(byval onlyfirst as bool) as bool
 	return NO
 end function
 
+end extern
+
 ' Try to init gfx backends in order of preference until one works.
 sub init_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
@@ -585,8 +587,6 @@ sub init_gfx_backend()
 	display_help_string "No working graphics backend!"
 	system 1
 end sub
-
-end extern
 
 ' Load gfxbackendinfo, musicbackendinfo, systeminfo
 sub read_backend_info()

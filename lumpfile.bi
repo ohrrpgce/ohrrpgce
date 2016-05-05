@@ -216,6 +216,11 @@ enum OPENBits
 	' LEN (record length) not supported.
 end enum
 
+type FnStringPredicate as function (filename as string) as boolint
+type FnOpenCallback as function (filename as string, writable as boolint) as boolint
+
+extern "C"
+
 'Replacement for OPEN (and FREEFILE) which is used to hook accesses to lumps, and send messages from Custom
 'to a spawned instance of Game when a modified file is closed.
 'Sets fh to a FREEFILE file number (initial value ignored).
@@ -227,13 +232,10 @@ end enum
 'All access flags are optional; you can pass 0.
 declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as integer) as integer
 
-type FnStringPredicate as function (filename as string) as boolint
-type FnOpenCallback as function (filename as string, writable as boolint) as boolint
-
-extern "C"
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
 declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)
 declare sub clear_OPEN_hook()
+
 end extern
 
 declare function inworkingdir(filename as string, writable as boolint) as boolint

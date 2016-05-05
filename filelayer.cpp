@@ -151,7 +151,7 @@ int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len)
 // Note that calling this function acts like the functional form OPEN(): when compiled with -exx
 // it doesn't cause the program to abort if there's an error.
 // Return 0 on success, 1 on error, 2 if file not found (FB_RTERROR_FILENOTFOUND)
-FBCALL int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
+int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	unsigned int mode, access;
 	FB_FILE_ENCOD encod;
 
@@ -213,7 +213,7 @@ FBCALL int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	}
 
 	if ((fnum = fb_FileFree()) == 0) {
-		fatal_error("OPEN_lump: too many open files");
+		fatal_error("OPENFILE: too many open files");
 		return 1;
 	}
 

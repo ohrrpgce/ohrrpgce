@@ -1,21 +1,22 @@
 ''
-'' gfx_sdl.bas - External graphics functions implemented in SDL
+'' gfx_sdl.bas - External graphics functions implemented in SDL 1.2
 ''
 '' Part of the OHRRPGCE - See LICENSE.txt for GNU GPL License details and disclaimer of liability
 ''
 
 #include "config.bi"
+
+#ifdef __FB_WIN32__
+	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	include_windows_bi()
+#endif
+
 #include "crt.bi"
 #include "gfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "common.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
-
-#ifdef __FB_WIN32__
-	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
-	include_windows_bi()
-#endif
 
 #ifdef __UNIX__
 	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict

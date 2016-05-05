@@ -1,8 +1,15 @@
 ''
-'' music_sdl.bas - External music functions implemented in SDL.
+'' music_sdl.bas - External music functions implemented with SDL 1.2 + SDL_mixer 1.2
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+
+#include "config.bi"
+
+#ifdef __FB_WIN32__
+	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	include_windows_bi()
+#endif
 
 #include "music.bi"
 #include "gfx.bi"
@@ -10,11 +17,6 @@
 #include "common.bi"
 #include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
-
-#ifdef __FB_WIN32__
-	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
-	include_windows_bi()
-#endif
 
 #ifdef __UNIX__
 	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict

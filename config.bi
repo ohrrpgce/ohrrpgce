@@ -224,6 +224,7 @@ use_32bit_integer()
 #  undef rectangle
 #  undef ellipse
 #  undef color_menu
+#  undef openfile
    'Needed in music_native2.bas
    type MSG_ as MSG
    const TRANSPARENT_ = TRANSPARENT
