@@ -4,6 +4,7 @@
 '' part of OHRRPGCE - see elsewhere for license details
 ''
 
+#include "config.bi"
 #include "backends.bi"
 #include "gfx.bi"
 #undef Font

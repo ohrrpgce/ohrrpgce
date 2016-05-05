@@ -7,10 +7,13 @@
 #print WARNING: music_allegro compiles, but the sound effects interface is unimplemented.
 #print
 
+#include "config.bi"
 #include "backends.bi"
 #include "music.bi"
 #include "util.bi"
 #include "common.bi"
+#include "file.bi"   'for filelen
+
 
 #undef font
 #include "allegro.bi"

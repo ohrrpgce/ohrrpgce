@@ -487,10 +487,12 @@ common_libpaths = []
 
 ################ gfx and music backend modules and libraries
 
+# OS-specific libraries and options for each backend are added below.
+
 gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
-           'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'}, # probably also need to link pdcurses on windows, untested
+           'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'},
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
            }
@@ -531,6 +533,8 @@ if win32:
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
+    if 'console' in gfx:
+        common_libraries += ['pdcurses']
 elif mac:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']

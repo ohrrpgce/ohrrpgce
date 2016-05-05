@@ -7,5 +7,8 @@ WINDOW *get_stdscr() {
 }
 
 void set_ESCDELAY(int val) {
+#ifndef PDCURSES
+  // Not available in PDCurses (Windows)
   ESCDELAY = val;
+#endif
 }
