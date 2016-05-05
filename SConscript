@@ -184,6 +184,7 @@ if CC:
     env.Replace (CC = CC)
 if CXX:
     env.Replace (CXX = CXX)
+gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
@@ -330,11 +331,16 @@ else:
     raise Exception('Unknown architecture %s' % arch)
 
 if gengcc:
+    gccversion = get_command_output(gcc, "-dumpversion")
+    gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
+    #print "GCC version", gccversion
     # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
     gcc_flags = []
     if FB_exx:
-        # -exx results in a lot of labelled goto use, which confuses gcc
-        gcc_flags.append ('-Wno-maybe-uninitialized')
+        # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning.
+        # (This flag only in recent gcc)
+        if gccversion >= 480:
+            gcc_flags.append ('-Wno-maybe-uninitialized')
     if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
