@@ -33,7 +33,8 @@ WHAT IS NEW?
       ( ) | < > # ; &.
     * Running utilities (like hspeak) didn't work on Macs where the
       OHRRPGCE hadn't been installed previously [Ralph]
-    * Delete key didn't work while typing on Macs.
+    * Delete key didn't work while typing on Macs. And after resizing
+      the window, text input stopped working. [Ralph]
 
   * Stuff Only Developers Will Notice
     * 64 bit builds work now.

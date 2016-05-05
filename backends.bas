@@ -12,6 +12,12 @@
 
 extern "C"
 
+#ifdef __FB_DARWIN__
+	type OSType as integer
+	'From CoreServices (Gestalt.h)
+	declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
+#endif
+
 dim gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer
 dim gfx_Shutdown as sub ()
 dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
@@ -599,12 +605,6 @@ sub read_backend_info()
 	musicbackendinfo = music_get_info()
 
 	#ifdef __FB_DARWIN__
-		type OSType as integer
-		extern "C"
-		 'From CoreServices (Gestalt.h)
-		 declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
-		end extern
-
 		dim as integer response
 		'Note that we have to give the OSTypes backwards because we're little-endian
 		Gestalt(*cast(integer ptr, @"1sys"), @response)  'gestaltSystemVersionMajor

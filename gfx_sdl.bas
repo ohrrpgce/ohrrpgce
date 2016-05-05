@@ -121,6 +121,7 @@ DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
+DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED rememmvis as integer = 1
 DIM SHARED debugging_io as bool = NO
 DIM SHARED keystate as Uint8 ptr = NULL
@@ -446,7 +447,13 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   unsetenv("SDL_VIDEO_CENTERED")
 #ENDIF
 
+#ENDIF  ' Not __FB_ANDROID__
+
+#IFDEF __FB_DARWIN__
+  ' SDL on OSX forgets the Unicode input state after a setvideomode
+  SDL_EnableUNICODE(IIF(remember_enable_textinput, 1, 0))
 #ENDIF
+
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   IF windowedmode = NO THEN
     SDL_ShowCursor(0)
@@ -860,6 +867,9 @@ SUB gfx_sdl_process_events()
   WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
     SELECT CASE evnt.type
       CASE SDL_QUIT_
+        IF debugging_io THEN
+          debuginfo "SDL_QUIT"
+        END IF
         post_terminate_signal
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
@@ -1000,6 +1010,7 @@ END SUB
 SUB io_sdl_enable_textinput (byval enable as integer)
   DIM oldstate as integer
   oldstate = SDL_EnableUNICODE(IIF(enable, 1, 0))
+  remember_enable_textinput = enable  ' Needed only because of an SDL bug on OSX
   IF debugging_io THEN
     debuginfo "SDL_EnableUNICODE(" & enable & ") = " & oldstate & " (prev state)"
   END IF
