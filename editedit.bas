@@ -32,7 +32,7 @@ TYPE EEState
  clipboard as NodePtr
  clipboard_is as NodePtr
  filename as string
- changed as integer
+ changed as bool
 END TYPE
 
 TYPE WEStateF as WEState
@@ -45,9 +45,14 @@ END TYPE
 TYPE WEState
  state as MenuState
  menu as MenuDef
- changed as integer
  code as WidgetCode
+ changed as bool
+ exit_please as bool
 END TYPE
+
+CONST wedEXIT = -1
+CONST wedSTRING = -2
+CONST wedINT = -3
 
 '-----------------------------------------------------------------------
 
@@ -77,6 +82,8 @@ DECLARE FUNCTION ee_widget_has_caption(byval widget as NodePtr) as integer
 
 DECLARE FUNCTION widget_editor(byval widget as NodePtr) as integer
 DECLARE SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
+DECLARE SUB widget_editor_edit_menu_item(byref st as WEState, mi as MenuDefItem Ptr)
+DECLARE FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byval node as NodePtr) as bool
 
 DECLARE SUB ee_get_widget_code(byref code as WidgetCode, byval widget as NodePtr)
 
@@ -479,16 +486,6 @@ FUNCTION ee_okay_to_unload(byref st as EEState) as integer
 END FUNCTION
 
 '-----------------------------------------------------------------------
-'an object oriented callback system might be better than these functions
-'...maybe... maybe not worth it... Why bend over backwards to make FB
-'act like something it isn't... haven't decided for sure yet.
-'
-'It is sort of a balancing act. Do I want to update each of the subs and
-'functions below each time I add a widget type? Or do I want to update
-'a set of fake-object-oriented callbacks like the ones in slices.bas
-'with their associated boilerplate? Which is more work?
-'
-'Maybe the hybrid approach?
 
 FUNCTION ee_prompt_for_widget_kind() as string
  STATIC last_kind as integer = 0
@@ -581,7 +578,6 @@ END FUNCTION
 FUNCTION widget_editor(byval widget as NodePtr) as integer
 
  DIM st as WEState
- 
  st.changed = NO
 
  st.state.pt = 1
@@ -624,13 +620,13 @@ FUNCTION widget_editor(byval widget as NodePtr) as integer
    init_menu_state st.state, st.menu
   END IF
   
-  IF keyval(scESC) > 1 THEN
+  IF keyval(scESC) > 1 ORELSE st.exit_please THEN
    EXIT DO 
   END IF
   IF keyval(scF1) > 1 THEN show_help("widget_editor")
 
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
-   'ee_edit_menu_item st, st.menu.items[st.state.pt]
+   widget_editor_edit_menu_item st, st.menu.items[st.state.pt]
   END IF
   
   IF keyval(scShift) = 0 THEN
@@ -646,34 +642,100 @@ FUNCTION widget_editor(byval widget as NodePtr) as integer
   dowait
  LOOP
 
- RETURN NO 
+ RETURN st.changed 
 END FUNCTION
+
+SUB widget_editor_edit_menu_item(byref st as WEState, mi as MenuDefItem Ptr)
+ IF mi = 0 THEN debug "widget_editor_edit_menu_item: null mi": EXIT SUB
+ DIM kind as integer = mi->t
+ DIM node as NodePtr 
+ node = mi->dataptr
+ IF node = 0 THEN debug "widget_editor_edit_menu_item: mi has null node": EXIT SUB
+
+ IF widget_editor_edit_node(st, kind, node) THEN
+  st.changed = YES
+  'Something changed, signal to rebuild the menu strings
+  st.state.need_update = YES
+ END IF
+
+END SUB
+
+FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byval node as NodePtr) as bool
+ IF node = 0 THEN debug "widget_editor_edit_node: null node" : RETURN NO
+
+ DIM changed as bool = NO
+
+ SELECT CASE kind
+  CASE wedSTRING:
+   DIM s as string = GetString(node)
+   IF strgrabber(s, 1000000) THEN ' The 1 million character limit is totally arbitrary
+    SetContent node, s
+    changed = YES
+   END IF
+  CASE wedINT:
+   DIM i as integer = GetInteger(node)
+   IF intgrabber(i, -1000000, 1000000) THEN 'The +- 1 million limit is totally arbitrary
+    SetContent node, i
+    changed = YES
+   END IF
+ END SELECT
+ 
+ IF keyval(scEnter) > 1 THEN
+  SELECT CASE kind
+   CASE wedEXIT:
+    st.exit_please = YES
+  END SELECT
+
+ END IF
+ 
+ RETURN changed
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+SUB wed_append_editable_string(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
+ DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
+ DIM s as string = GetString(n)
+ append_menu_item(st.menu, caption & ":" & s, wedSTRING, , n)
+END SUB
+
+SUB wed_append_zdefault_int(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
+ DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
+ DIM i as integer = GetInteger(n)
+ append_menu_item(st.menu, caption & ":" & zero_default(i), wedINT, , n)
+END SUB
+
+SUB wed_append_bool(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
+ DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
+ DIM b as integer = GetInteger(n) <> 0
+ append_menu_item(st.menu, caption & ":" & yesorno(b))
+END SUB
 
 SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
  DIM index as integer
- append_menu_item(st.menu, "Done Editing this Widget...")
+ append_menu_item(st.menu, "Done Editing this Widget...", wedEXIT)
  IF ee_widget_has_caption(widget) THEN
-  append_menu_item(st.menu, "Caption:" & GetChildNodeStr(widget, "caption"))
+  wed_append_editable_string(st, "Caption", widget, "caption")
  END IF
  IF ee_widget_has_data(widget) THEN
-  append_menu_item(st.menu, "Data Node:" & GetChildNodeStr(widget, "data"))
+  wed_append_editable_string(st, "Data Node", widget, "data")
  END IF
  st.code.refresh_callback(st, widget)
 END SUB
 
-'#######################################################################
+'-----------------------------------------------------------------------
 
 SUB null_widget_refresh(byref st as WEState, byval widget as NodePtr)
  'for widgets that don't have any extra properties.
 END SUB
 
 SUB int_widget_refresh(byref st as WEState, byval widget as NodePtr)
- append_menu_item(st.menu, "Max:" & zero_default(GetChildNodeInt(widget, "max")))
- append_menu_item(st.menu, "Min:" & zero_default(GetChildNodeInt(widget, "min")))
- append_menu_item(st.menu, "Enum:" & GetChildNodeStr(widget, "enum"))
- append_menu_item(st.menu, "Optional:" & yesorno(GetChildNodeBool(widget, "optional")))
- append_menu_item(st.menu, "Zero Default:" & yesorno(GetChildNodeBool(widget, "zerodefault")))
- append_menu_item(st.menu, "-1 Default:" & yesorno(GetChildNodeBool(widget, "neg1default")))
+ wed_append_zdefault_int(st, "Max", widget, "max")
+ wed_append_zdefault_int(st, "Min", widget, "min")
+ wed_append_editable_string(st, "Enum key", widget, "enum")
+ wed_append_bool(st, "Optional", widget, "optional")
+ wed_append_bool(st, "Zero Default", widget, "zerodefault")
+ wed_append_bool(st, "-1 Default", widget, "neg1default")
 END SUB
 
 SUB picture_widget_refresh(byref st as WEState, byval widget as NodePtr)

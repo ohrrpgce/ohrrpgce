@@ -833,7 +833,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  END WITH
 END SUB
 
-FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
@@ -841,6 +841,7 @@ FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as i
   .caption = caption
   .t = t
   .sub_t = sub_t
+  .dataptr = dataptr
  END WITH
 
  dlist_append(menu.itemlist, item) 'updates .numitems
