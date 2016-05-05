@@ -564,6 +564,14 @@ elif unix:  # Linux & BSD
 
 ################ Add the libraries to env and commonenv
 
+if win32:
+    env['FBLINKFLAGS'] += ['-p', 'win32']
+    env['CXXLINKFLAGS'] += ['-L', 'win32']
+    common_libpaths += ['win32']
+
+commonenv['CXXLINKFLAGS'] += ['-L' + path for path in common_libpaths]
+commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in common_libpaths])
+
 for lib in base_libraries:
     env['CXXLINKFLAGS'] += ['-l' + lib]
     env['FBLINKFLAGS'] += ['-l', lib]
@@ -576,14 +584,6 @@ for lib in base_libraries + common_libraries:
     else:
         commonenv['CXXLINKFLAGS'] += ['-l' + lib]
         commonenv['FBLINKFLAGS'] += ['-l', lib]
-
-if win32:
-    env['FBLINKFLAGS'] += ['-p', 'win32']
-    env['CXXLINKFLAGS'] += ['-L', 'win32']
-    common_libpaths += ['win32']
-
-commonenv['CXXLINKFLAGS'] += ['-L' + path for path in common_libpaths]
-commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in common_libpaths])
 
 
 ################ Modules
