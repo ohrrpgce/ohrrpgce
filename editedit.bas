@@ -33,6 +33,7 @@ TYPE EEState
  clipboard_is as NodePtr
  filename as string
  changed as bool
+ type_data as bool
 END TYPE
 
 TYPE WEStateF as WEState
@@ -172,6 +173,10 @@ SUB editor_editor()
   IF keyval(scF5) > 1 THEN
    editor_runner st.root
   END IF
+  IF keyval(scTab) > 1 THEN
+   st.type_data = NOT st.type_data
+   st.state.need_update = YES
+  END IF
 
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    ee_edit_menu_item st, st.menu.items[st.state.pt]
@@ -186,7 +191,7 @@ SUB editor_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "F1=Help  TAB=mode (" & iif_string(st.type_data, "data node", "widget caption") & ")", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -227,14 +232,21 @@ FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
 
  DIM changed as integer = NO
 
- IF ee_widget_has_caption(widget) THEN
-  DIM cap as string
-  cap = GetChildNodeStr(widget, "caption")
-  IF strgrabber(cap, 40) THEN
-   IF cap = "" THEN
-    SetChildNode(widget, "caption")
+ DIM subwidget as string = ""
+ IF st.type_data THEN
+  IF ee_widget_has_data(widget) THEN subwidget = "data"
+ ELSE
+  IF ee_widget_has_caption(widget) THEN subwidget = "caption"
+ END IF
+  
+ IF subwidget <> "" THEN
+  DIM s as string
+  s = GetChildNodeStr(widget, subwidget)
+  IF strgrabber(s, 1000000) THEN
+   IF s = "" THEN
+    SetChildNode(widget, subwidget)
    ELSE
-    SetChildNode(widget, "caption", cap)
+    SetChildNode(widget, subwidget, s)
    END IF
    changed = YES
   END IF
@@ -397,7 +409,7 @@ SUB ee_refresh (byref st as EEState, byval widget as NodePtr)
  s = STRING(st.indent, " ") & ee_widget_string(st, widget)
  
  DIM index as integer
- index = append_menu_item(st.menu, s)
+ index = append_menu_item(st.menu, s, , , , YES)
  
  DIM mi as MenuDefItem Ptr
  mi = st.menu.items[index]
@@ -415,13 +427,26 @@ SUB ee_refresh (byref st as EEState, byval widget as NodePtr)
  st.indent -= 1
 END SUB
 
+FUNCTION ee_grey_str(s as string) as string
+ RETURN "${K" & uilook(uiDisabledItem) & "}" & s & "${K-1}"
+END FUNCTION
+
+FUNCTION ee_emphasis_str(s as string) as string
+ RETURN "${K" & uilook(uiSelectedDisabled) & "}" & s & "${K-1}"
+END FUNCTION
+
 FUNCTION ee_widget_string(byref st as EEState, byval widget as Nodeptr) as string
  IF widget = 0 THEN debug "ee_widget_string: null node" : RETURN "<null ptr>"
  DIM s as string = ""
  IF widget = st.clipboard_is OR NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
- s &= "<" & GetString(widget) & ">" & GetChildNodeStr(widget, "caption", "")
+ s &= ee_grey_str("<") & GetString(widget) & ee_grey_str(">")
+ IF NOT st.type_data THEN s &= ee_emphasis_str("[")
+ s &= GetChildNodeStr(widget, "caption", "")
+ IF NOT st.type_data THEN s &= ee_emphasis_str("]")
  IF ee_widget_has_data(widget) THEN
-  s &= " [" & ee_widget_data_node_name(widget) & "]"
+  IF st.type_data THEN s &= ee_emphasis_str("[")
+  s &= ee_widget_data_node_name(widget)
+  IF st.type_data THEN s &= ee_emphasis_str("]")
  END IF
  RETURN s
 END FUNCTION

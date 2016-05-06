@@ -195,6 +195,11 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   unselectable as bool  ' Not used (yet)
   disabled as bool  ' set at run-time based on .tag1 and .tag2
 
+  withtags as bool ' If true, text color/font codes will be enabled
+                   ' This is fine for some purposes, but not ready to be exposed
+                   ' to end users yet because menu auto-width is not yet smart about these
+                   ' texttags
+
   'Other members
   handle    as integer
   caption   as string  ' This is the caption as set in the menu editor/set menu item caption

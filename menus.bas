@@ -833,7 +833,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  END WITH
 END SUB
 
-FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0, byval withtags as integer=NO) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
@@ -842,6 +842,7 @@ FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as i
   .t = t
   .sub_t = sub_t
   .dataptr = dataptr
+  .withtags = withtags 'FIXME: menu auto-width stuff is not smart about texttags yet
  END WITH
 
  dlist_append(menu.itemlist, item) 'updates .numitems
@@ -1299,7 +1300,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
       metermax = (8 * large(6, LEN(.text)))
       edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * metermax / 10), 10, menu.boxstyle, page, NO, YES
      END IF
-     edgeprint .text, where.x, where.y, col, page
+     edgeprint .text, where.x, where.y, col, page, .withtags
     END IF
    END WITH
   END IF

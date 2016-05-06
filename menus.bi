@@ -46,7 +46,7 @@ DECLARE SUB DeleteMenuItems(menu as MenuDef)
 DECLARE SUB SortMenuItems(menu as MenuDef)
 DECLARE FUNCTION getmenuname(byval record as integer) as string
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu as MenuDef)
-DECLARE FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
+DECLARE FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0, byval withtags as integer=NO) as integer
 DECLARE SUB remove_menu_item OVERLOAD (byref menu as MenuDef, byval mi as MenuDefItem ptr)
 DECLARE SUB remove_menu_item OVERLOAD (byref menu as MenuDef, byval mislot as integer)
 DECLARE SUB swap_menu_items(byref menu1 as MenuDef, byval mislot1 as integer, byref menu2 as MenuDef, byval mislot2 as integer)
