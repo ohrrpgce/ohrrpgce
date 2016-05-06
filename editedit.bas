@@ -53,6 +53,7 @@ END TYPE
 CONST wedEXIT = -1
 CONST wedSTRING = -2
 CONST wedINT = -3
+CONST wedBOOL = -4
 
 '-----------------------------------------------------------------------
 
@@ -77,8 +78,13 @@ DECLARE FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as
 
 DECLARE FUNCTION ee_prompt_for_widget_kind() as string
 DECLARE FUNCTION ee_create_widget(byref st as EEState, kind as string) as NodePtr
-DECLARE FUNCTION ee_container_check(byval cont as NodePtr, byval widget as NodePtr) as integer
+DECLARE FUNCTION ee_container_check(byval cont as NodePtr) as bool
+DECLARE FUNCTION ee_container_single_check(byval cont as NodePtr) as bool
+DECLARE FUNCTION ee_count_children(byval cont as NodePtr) as integer
+DECLARE FUNCTION ee_container_is_full(byval cont as NodePtr) as bool
+DECLARE FUNCTION ee_parent_is_full(byval cont as NodePtr) as bool
 DECLARE FUNCTION ee_widget_has_caption(byval widget as NodePtr) as integer
+DECLARE FUNCTION ee_widget_has_data(byval widget as NodePtr) as integer
 
 DECLARE FUNCTION widget_editor(byval widget as NodePtr) as integer
 DECLARE SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
@@ -241,7 +247,11 @@ END FUNCTION
 
 SUB ee_insertion(byref st as EEState, byval widget as Nodeptr)
  IF keyval(scInsert) > 1 THEN
- DIM kind as string
+  IF ee_parent_is_full(widget) THEN
+   visible_debug "Parent container widget is full, and cannot hold any more child widgets"
+   EXIT SUB
+  END IF
+  DIM kind as string
   kind = ee_prompt_for_widget_kind()
   IF kind <> "" THEN
    DIM newnode as Nodeptr
@@ -355,7 +365,8 @@ SUB ee_swap_widget_right(byval widget as Nodeptr)
  DIM sib as NodePtr
  sib = PrevSibling(widget, "widget")
  IF sib = 0 THEN EXIT SUB
- IF ee_container_check(sib, widget) = NO THEN EXIT SUB
+ IF ee_container_check(sib) = NO THEN EXIT SUB
+ IF ee_container_is_full(sib) THEN EXIT SUB
  AddChild(sib, widget)
 END SUB
 
@@ -405,6 +416,9 @@ FUNCTION ee_widget_string(byref st as EEState, byval widget as Nodeptr) as strin
  DIM s as string = ""
  IF widget = st.clipboard_is OR NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
  s &= "<" & GetString(widget) & ">" & GetChildNodeStr(widget, "caption", "")
+ IF ee_widget_has_data(widget) THEN
+  s &= " [" & GetChildNodeStr(widget, "data", "") & "]"
+ END IF
  RETURN s
 END FUNCTION
 
@@ -486,24 +500,28 @@ FUNCTION ee_okay_to_unload(byref st as EEState) as integer
 END FUNCTION
 
 '-----------------------------------------------------------------------
+'Update these to add a new widget:
 
 FUNCTION ee_prompt_for_widget_kind() as string
  STATIC last_kind as integer = 0
- DIM w(13) as string
- w(0) = "int"
- w(1) = "string"
- w(2) = "label"
- w(3) = "bit"
- w(4) = "submenu"
- w(5) = "picture"
- w(6) = "item"
- w(7) = "attack"
- w(8) = "textbox"
- w(9) = "tag"
- w(10) = "tagcheck"
- w(11) = "array"
- w(12) = "maybe"
- w(13) = "exclusive"
+ 'The order widgets are listed here doesn't matter for anything other than the order they appear in the menu
+ DIM w(...) as string = { _
+  "int",_
+  "string",_
+  "label",_
+  "bool",_
+  "submenu",_
+  "picture",_
+  "item",_
+  "attack",_
+  "textbox",_
+  "tag",_
+  "tagcheck",_
+  "equipslot",_
+  "multi",_
+  "array",_
+  "maybe",_
+  "exclusive"}
  DIM choice as integer
  choice = multichoice("Insert which kind of widget?", w(), last_kind, , "ee_prompt_for_widget_kind")
  IF choice = -1 THEN RETURN ""
@@ -515,13 +533,12 @@ FUNCTION ee_create_widget(byref st as EEState, kind as string) as NodePtr
  DIM widget as NodePtr
  widget = CreateNode(st.doc, "widget")
  SetContent(widget, kind)
- '--If any widget kind had any strictly mandatory sub-nodes, we could add them here...
- '  ...but I am not sure we will actually have any of those.
+ 'We could add sub-nodes below if we wanted to
  SELECT CASE kind
   CASE "int":
   CASE "string":
   CASE "label":
-  CASE "bit":
+  CASE "bool":
   CASE "submenu":
   CASE "picture":
   CASE "item":
@@ -529,23 +546,34 @@ FUNCTION ee_create_widget(byref st as EEState, kind as string) as NodePtr
   CASE "textbox":
   CASE "tag":
   CASE "tagcheck":
+  CASE "multi":
   CASE "array":
   CASE "maybe":
   CASE "exclusive":
+  CASE "equipslot":
   CASE ELSE
    debug "Oops! Created a widget of kind """ & kind & """, but we have no idea what that is!"
  END SELECT
  RETURN widget
 END FUNCTION
 
-FUNCTION ee_container_check(byval cont as NodePtr, byval widget as NodePtr) as integer
+FUNCTION ee_container_check(byval cont as NodePtr) as bool
  IF cont = 0 THEN RETURN NO
- IF widget = 0 THEN RETURN NO
  SELECT CASE GetString(cont)
   CASE "submenu": RETURN YES
   CASE "array": RETURN YES
   CASE "maybe": RETURN YES
   CASE "exclusive": RETURN YES
+  CASE "multi": RETURN YES
+ END SELECT
+ RETURN NO
+END FUNCTION
+
+FUNCTION ee_container_single_check(byval cont as NodePtr) as bool
+ 'For containers that only hold one child widget
+ IF cont = 0 THEN RETURN NO
+ SELECT CASE GetString(cont)
+  CASE "multi": RETURN YES
  END SELECT
  RETURN NO
 END FUNCTION
@@ -556,7 +584,6 @@ FUNCTION ee_widget_has_caption(byval widget as NodePtr) as integer
  SELECT CASE GetString(widget)
   CASE "array": RETURN NO
   CASE "maybe": RETURN NO
-  CASE "exclusive": RETURN NO
  END SELECT
  RETURN YES
 END FUNCTION
@@ -566,11 +593,59 @@ FUNCTION ee_widget_has_data(byval widget as NodePtr) as integer
  IF widget = 0 THEN RETURN NO
  SELECT CASE GetString(widget)
   CASE "label": RETURN NO
-  CASE "submenu": RETURN NO
-  CASE "maybe": RETURN NO
-  CASE "exclusive": RETURN NO
  END SELECT
  RETURN YES
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+FUNCTION ee_count_children(byval cont as NodePtr) as integer
+ IF cont = 0 THEN RETURN 0
+ DIM result as integer = 0
+ DIM ch as NodePtr = FirstChild(cont, "widget")
+ DO WHILE ch
+  result += 1
+  ch = NextSibling(ch, "widget")
+ LOOP
+ IF result > 0 THEN
+  IF NOT ee_container_check(cont) THEN debug "ee_count_children: Found " & result & " child widgets on non-container: " & GetString(cont) 
+  IF result > 1 ANDALSO ee_container_single_check(cont) THEN
+   debug "ee_count_children: Found " & result & " child widgets on a container that only allows one child: " & GetString(cont)
+  END IF
+ END IF
+ RETURN result
+END FUNCTION
+
+FUNCTION ee_container_is_full(byval cont as NodePtr) as bool
+ IF cont = 0 THEN debug "ee_container_is_full: null cont" : RETURN YES
+ IF NOT ee_container_check(cont) THEN
+  debug "ee_container_is_full: " & GetString(cont) & " is not a container"
+  RETURN YES
+ END IF
+ IF ee_container_single_check(cont) ANDALSO ee_count_children(cont) >= 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+FUNCTION ee_parent_is_full(byval cont as NodePtr) as bool
+ IF cont = 0 THEN debug "ee_parent_is_full: null cont" : RETURN YES
+ DIM parent as NodePtr = NodeParent(cont)
+ IF parent = 0 THEN debug "ee_parent_is_full: no parent exits" : RETURN YES
+ DIM pname as string = NodeName(parent)
+ debug "ee_parent_is_full: parent name = """ & pname & """"
+ IF pname <> "widget" THEN
+  'Parent is not a widget
+  IF pname = "widgets" THEN
+   'Top level widget is never full
+   RETURN NO
+  END IF
+  debug "ee_parent_is_full: unknown parent node name: """ & pname & """"
+  RETURN YES
+ END IF
+ IF NOT ee_container_check(parent) THEN
+  debug "ee_parent_is_full: parent is not really a container: """ & GetString(parent) & """"
+  RETURN YES
+ END IF
+ RETURN ee_container_is_full(parent)
 END FUNCTION
 
 '-----------------------------------------------------------------------
@@ -650,7 +725,9 @@ SUB widget_editor_edit_menu_item(byref st as WEState, mi as MenuDefItem Ptr)
  DIM kind as integer = mi->t
  DIM node as NodePtr 
  node = mi->dataptr
- IF node = 0 THEN debug "widget_editor_edit_menu_item: mi has null node": EXIT SUB
+ IF kind <> wedEXIT THEN
+  IF node = 0 THEN debug "widget_editor_edit_menu_item: mi (" & mi->caption & ") has null node": EXIT SUB
+ END IF
 
  IF widget_editor_edit_node(st, kind, node) THEN
   st.changed = YES
@@ -666,6 +743,8 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
  DIM changed as bool = NO
 
  SELECT CASE kind
+  CASE wedEXIT:
+   IF enter_or_space() THEN st.exit_please = YES
   CASE wedSTRING:
    DIM s as string = GetString(node)
    IF strgrabber(s, 1000000) THEN ' The 1 million character limit is totally arbitrary
@@ -678,16 +757,14 @@ FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byv
     SetContent node, i
     changed = YES
    END IF
+  CASE wedBOOL:
+   DIM b as integer = GetInteger(node) <> 0
+   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 ORELSE enter_or_space() THEN
+    SetContent node, (NOT b)
+    changed = YES
+   END IF
  END SELECT
- 
- IF keyval(scEnter) > 1 THEN
-  SELECT CASE kind
-   CASE wedEXIT:
-    st.exit_please = YES
-  END SELECT
-
- END IF
- 
+  
  RETURN changed
 END FUNCTION
 
@@ -707,8 +784,14 @@ END SUB
 
 SUB wed_append_bool(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
  DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
- DIM b as integer = GetInteger(n) <> 0
- append_menu_item(st.menu, caption & ":" & yesorno(b))
+ DIM b as bool = GetInteger(n) <> 0
+ append_menu_item(st.menu, caption & ":" & yesorno(b), wedBOOL, , n)
+END SUB
+
+SUB wed_append_zero_or_one(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
+ DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
+ DIM i as integer = GetInteger(n)
+ append_menu_item(st.menu, caption & ":" & i & iif_string(i < 0 ORELSE i > 1, " [should be 0 or 1!]", ""), wedINT, , n)
 END SUB
 
 SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
@@ -747,6 +830,10 @@ SUB tagcheck_widget_refresh(byref st as WEState, byval widget as NodePtr)
  append_menu_item(st.menu, "Default Description:" & GetChildNodeStr(widget, "default"))
 END SUB
 
+SUB multi_widget_refresh(byref st as WEState, byval widget as NodePtr)
+ wed_append_zero_or_one(st, "Minimum repetitions", widget, "min_nodes")
+END SUB
+
 SUB array_widget_refresh(byref st as WEState, byval widget as NodePtr)
  append_menu_item(st.menu, "Count:" & zero_default(GetChildNodeInt(widget, "count"), "variable length"))
  append_menu_item(st.menu, "Key:" & GetChildNodeStr(widget, "key"))
@@ -775,7 +862,7 @@ SUB ee_get_widget_code(byref code as WidgetCode, byval widget as NodePtr)
     .refresh_callback = @int_widget_refresh
    CASE "string":
    CASE "label":
-   CASE "bit":
+   CASE "bool":
    CASE "picture":
     .refresh_callback = @picture_widget_refresh
    CASE "item":
@@ -783,6 +870,8 @@ SUB ee_get_widget_code(byref code as WidgetCode, byval widget as NodePtr)
    CASE "tagcheck":
     .refresh_callback = @tagcheck_widget_refresh
    CASE "tag":
+   CASE "multi":
+    .refresh_callback = @multi_widget_refresh
    CASE "array":
     .refresh_callback = @array_widget_refresh
    CASE "maybe":
