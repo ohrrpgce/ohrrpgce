@@ -61,6 +61,7 @@ DECLARE SUB ee_create_new_editor_file(byref st as EEState)
 DECLARE SUB ee_refresh OVERLOAD (byref st as EEState)
 DECLARE SUB ee_refresh OVERLOAD (byref st as EEState, byval widget as NodePtr)
 DECLARE FUNCTION ee_widget_string(byref st as EEState, byval widget as Nodeptr) as string
+DECLARE FUNCTION ee_widget_data_node_name(byval widget as NodePtr) as string
 DECLARE SUB ee_focus_widget(byref st as EEState, byval widget as Nodeptr)
 DECLARE SUB ee_export(byref st as EEState)
 DECLARE FUNCTION ee_browse(byref st as EEState) as integer
@@ -74,19 +75,21 @@ DECLARE SUB ee_swap_widget_down(byval widget as Nodeptr)
 DECLARE SUB ee_swap_widget_left(byval widget as Nodeptr)
 DECLARE SUB ee_swap_widget_right(byval widget as Nodeptr)
 DECLARE SUB ee_edit_menu_item(byref st as EEState, mi as MenuDefItem Ptr)
-DECLARE FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as integer
+DECLARE FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
 
 DECLARE FUNCTION ee_prompt_for_widget_kind() as string
 DECLARE FUNCTION ee_create_widget(byref st as EEState, kind as string) as NodePtr
 DECLARE FUNCTION ee_container_check(byval cont as NodePtr) as bool
 DECLARE FUNCTION ee_container_single_check(byval cont as NodePtr) as bool
-DECLARE FUNCTION ee_count_children(byval cont as NodePtr) as integer
-DECLARE FUNCTION ee_container_is_full(byval cont as NodePtr) as bool
-DECLARE FUNCTION ee_parent_is_full(byval cont as NodePtr) as bool
 DECLARE FUNCTION ee_widget_has_caption(byval widget as NodePtr) as integer
 DECLARE FUNCTION ee_widget_has_data(byval widget as NodePtr) as integer
 
-DECLARE FUNCTION widget_editor(byval widget as NodePtr) as integer
+DECLARE FUNCTION ee_count_children(byval cont as NodePtr) as integer
+DECLARE FUNCTION ee_container_is_full(byval cont as NodePtr) as bool
+DECLARE FUNCTION ee_parent_is_full(byval cont as NodePtr) as bool
+DECLARE FUNCTION ee_get_widget_parent_container(byval widget as NodePtr) as NodePtr
+
+DECLARE FUNCTION widget_editor(byval widget as NodePtr) as bool
 DECLARE SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
 DECLARE SUB widget_editor_edit_menu_item(byref st as WEState, mi as MenuDefItem Ptr)
 DECLARE FUNCTION widget_editor_edit_node(byref st as WEState, byval kind as integer, byval node as NodePtr) as bool
@@ -213,12 +216,13 @@ SUB ee_edit_menu_item(byref st as EEState, mi as MenuDefItem Ptr)
 
  IF ee_edit_widget(st, widget) THEN
   mi->caption = STRING(mi->extra(0), " ") & ee_widget_string(st, widget)
+  st.state.need_update = YES
   st.changed = YES
  END IF
 
 END SUB
 
-FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as integer
+FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
  IF widget = 0 THEN debug "ee_edit_widget: null widget" : RETURN NO
 
  DIM changed as integer = NO
@@ -417,7 +421,21 @@ FUNCTION ee_widget_string(byref st as EEState, byval widget as Nodeptr) as strin
  IF widget = st.clipboard_is OR NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
  s &= "<" & GetString(widget) & ">" & GetChildNodeStr(widget, "caption", "")
  IF ee_widget_has_data(widget) THEN
-  s &= " [" & GetChildNodeStr(widget, "data", "") & "]"
+  s &= " [" & ee_widget_data_node_name(widget) & "]"
+ END IF
+ RETURN s
+END FUNCTION
+
+FUNCTION ee_widget_data_node_name(byval widget as NodePtr) as string
+ DIM s as string
+ s = GetChildNodeStr(widget, "data", "")
+ DIM cont as NodePtr
+ cont = ee_get_widget_parent_container(widget)
+ IF cont THEN
+  DIM ps as string = ee_widget_data_node_name(cont)
+  IF ps <> "" AND s <> "" THEN
+   RETURN ps & "/" & s
+  END IF
  END IF
  RETURN s
 END FUNCTION
@@ -648,9 +666,26 @@ FUNCTION ee_parent_is_full(byval cont as NodePtr) as bool
  RETURN ee_container_is_full(parent)
 END FUNCTION
 
+FUNCTION ee_get_widget_parent_container(byval widget as NodePtr) as NodePtr
+ IF widget = 0 THEN debug "ee_get_widget_parent_container: null widget": RETURN 0
+ DIM p as NodePtr
+ p = NodeParent(widget)
+ IF p = 0 THEN RETURN 0 ' no parent exists
+ IF NodeName(p) = "widgets" THEN RETURN 0 ' Is a top-level widget
+ IF NodeName(p) <> "widget" THEN
+  debug "ee_get_widget_parent_container: parent node of unknown name """ & NodeName(p) & """"
+  RETURN 0
+ END IF
+ IF NOT ee_container_check(p) THEN
+  debug "ee_get_widget_parent_container: parent node " & NodeName(p) & " is not a container"
+  RETURN 0
+ END IF
+ RETURN p
+END FUNCTION
+
 '-----------------------------------------------------------------------
 
-FUNCTION widget_editor(byval widget as NodePtr) as integer
+FUNCTION widget_editor(byval widget as NodePtr) as bool
 
  DIM st as WEState
  st.changed = NO
