@@ -3267,12 +3267,29 @@ end</example>
 		<command id="mousebutton">
 			<canon>mouse button (which)</canon>
 			<shortname>mouse button</shortname>
-			<description>Returns <ref>true</ref> if the specified mouse button is pressed. You can use the constants <ref>leftbutton</ref> and <ref>rightbutton</ref> to specify the button.</description>
+			<description>
+				Returns <ref>true</ref> if the specified mouse button is currently pressed down.
+				You can use the constants <ref>leftbutton</ref> and <ref>rightbutton</ref> to specify the button.
+				<note>
+					Just like keyboard commands such as <ref>keyispressed</ref>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <ref>wait</ref> command, because the mouse state is only updated one per frame.
+				</note>
+			</description>
 		</command>
 		<command id="mouseclick">
 			<canon>mouse click (which)</canon>
 			<shortname>mouse click</shortname>
-			<description>Returns <ref>true</ref> if the specified mouse button has been clicked in the last tick. You can use the constants <ref>leftbutton</ref> and <ref>rightbutton</ref> to specify the button.</description>
+			<description>
+				Returns <ref>true</ref> if the specified mouse button has been 'clicked' down in the last tick.
+				Returns true even if the mouse button is still down.
+				You can use the constants <ref>leftbutton</ref> and <ref>rightbutton</ref> to specify the button.
+				<note>
+					Just like keyboard commands such as <ref>keyispressed</ref>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <ref>wait</ref> command, because the mouse state is only updated one per frame.
+				</note>
+			</description>
 		</command>
 		<command id="putmouse">
 			<canon>put mouse (X, Y)</canon>

@@ -271,7 +271,7 @@
 <a href="#Hero%20Stats">Hero Stats</a><br>
 		<ul>
 		<li>
-<a href="#Experience">Experience</a><br>
+<a href="#Experience%20and%20Levels">Experience and Levels</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -1619,6 +1619,9 @@
 		<a href="#about-menuisopen">menu is open(menu handle)</a><br>
 		
 	
+		<a href="#about-menuitematpixel">menu item at pixel(x, y)</a><br>
+		
+	
 		<a href="#about-menuitembyslot">menu item by slot(menu handle, slot, visible only)</a><br>
 		
 	
@@ -1787,8 +1790,8 @@
 		<a href="#about-outsidebattle">outside battle</a><br>
 		
 	
+		<a href="#about-outsidebattlecure">outside battle cure (attack minus 1, target, attacker)</a><br>
 		
-		<a href="#about-mapcure">outside battle cure</a><br>
 	
 		
 		<a href="#about-tileconstants">overhead tile</a><br>
@@ -6510,7 +6513,7 @@ end</pre>
 <a href="#Hero%20Stats">Hero Stats</a><br>
 		<ul>
 		<li>
-<a href="#Experience">Experience</a><br>
+<a href="#Experience%20and%20Levels">Experience and Levels</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -6780,7 +6783,7 @@ end</pre>
 			</span>Hero Stats</h3>
 		<ul>
 		<li>
-<a href="#Experience">Experience</a><br>
+<a href="#Experience%20and%20Levels">Experience and Levels</a><br>
 		<ul></ul>
 </li>
 </ul>
@@ -6960,11 +6963,11 @@ end</pre>
 		<hr>
 		</div>
 		<div class="subsection">
-<a name="Experience"></a>
+<a name="Experience%20and%20Levels"></a>
 		<h3>
 <span class="backlink"><a href="#Hero%20Data">Hero Data</a> →
 			<a href="#Hero%20Stats">Hero Stats</a> →
-			</span>Experience</h3>
+			</span>Experience and Levels</h3>
 		<ul></ul>
 <p></p>
 		
@@ -7023,6 +7026,10 @@ end</pre>
 		</p>
 </div>
 		<div class="command">
+		<h4>update level up learning(who, allowforget)</h4>
+		<p><a href="#about-updateleveluplearning">Defined in the Hero's Spells section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-herolevelled"></a>
 		<h4>hero levelled (who)</h4>
 <p>
@@ -7038,6 +7045,10 @@ if (herolevelled (find hero (hero: Bob))) then (
 			
 		</p>
 </div>
+		<div class="command">
+		<h4>spells learned (hero,number)</h4>
+		<p><a href="#about-spellslearned">Defined in the Hero's Spells section.</a></p>
+		</div>
 		<div class="command">
 <a name="about-totalexperience"></a>
 		<h4>total experience (who)</h4>
@@ -7210,10 +7221,17 @@ end</pre>
 		
 		<div class="command">
 <a name="about-outsidebattlecure"></a>
-		
-				<h4>outside battle cure</h4>
-				See <a href="#about-mapcure">map cure</a>
-			</div>
+		<h4>outside battle cure (attack minus 1, target, attacker)</h4>
+<p>
+			
+				Obsolete, replaced by <a href="#about-mapcure" class="ref">map cure</a>.
+				This is identical to mapcure except for the <span class="param">attack</span> argument differing by one.
+			
+			
+			
+			
+		</p>
+</div>
 		<div class="command">
 <a name="about-mapcure"></a>
 		<h4>map cure (attack, target, attacker)</h4>
@@ -8310,7 +8328,17 @@ end</pre>
 <a name="about-mousebutton"></a>
 		<h4>mouse button (which)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is pressed. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is currently pressed down.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -8320,7 +8348,18 @@ end</pre>
 <a name="about-mouseclick"></a>
 		<h4>mouse click (which)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been clicked in the last tick. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been 'clicked' down in the last tick.
+				Returns true even if the mouse button is still down.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -8418,6 +8457,10 @@ end</pre>
 		<div class="command">
 		<h4>NPC at pixel (x, y, number)</h4>
 		<p><a href="#about-npcatpixel">Defined in the Moving NPCs section.</a></p>
+		</div>
+		<div class="command">
+		<h4>menu item at pixel(x, y)</h4>
+		<p><a href="#about-menuitematpixel">Defined in the Menu Items section.</a></p>
 		</div>
 		<hr>
 		</div>
@@ -9251,7 +9294,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-findmenuitemcaption"></a>
 		<h4>find menu item caption(menu handle, string ID, search after handle, visible only)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu. The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. It defaults to <a href="#about-booleanconstants" class="ref">true</a>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu (so it must belong to the same menu). The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. It defaults to <a href="#about-booleanconstants" class="ref">true</a>.
 			
 			<pre>variable(menu, mi)
 menu := open menu(menu:test menu)
@@ -9262,6 +9305,27 @@ while(mi) do, begin
  mi := find menu item(menu, 0, mi)
 end</pre>
 			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitematpixel"></a>
+		<h4>menu item at pixel(x, y)</h4>
+<p>
+			
+				Given a position on the screen (for example <span class="param">menu item at pixel</span>(<a href="#about-mousepixelx" class="ref">mouse pixel X</a>, <a href="#about-mousepixely" class="ref">mouse pixel Y</a>)),
+				returns the handle for the menu item at that position, or <span class="param">false</span> if none.
+				If multiple menus overlap at that location the top-most one is returned.
+				You can find the menu that the menu item belongs to with <a href="#about-parentmenu" class="ref">parent menu</a>.
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					This command is unfinished: it's broken when the menu has scrollbars.
+				<br clear="all">
+</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-selectedmenuitem" class="ref">selected menu item</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -13859,7 +13923,9 @@ The third argument is the total number of ticks that the animation should run. Y
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-slicecollidepoint" class="ref">slice collide point</a>, </li>
-<li><a href="#about-findcollidingslice" class="ref">find colliding slice</a></li>
+<li>
+<a href="#about-findcollidingslice" class="ref">find colliding slice</a>, </li>
+<li><a href="#about-menuitematpixel" class="ref">menu item at pixel</a></li>
 </ul>
 </div>
 		</p>
@@ -15121,7 +15187,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-lastsaveslot"></a>
 		<h4>last save slot</h4>
 <p>
-			Returns the last save slot saved to using the save menu, or the save slot the game was loaded from, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet. Save slots are numbered starting at 1. <a href="#about-saveinslot" class="ref">save in slot</a> does not change the value returned! If you need it to, you need to track it with a global variable.
+			
+				Returns the last save slot saved to using the save menu, if the player hasn't saved the game since starting/loading the game.
+				Otherwise, returns the save slot the game was loaded from, or <a href="#about-booleanconstants" class="ref">false</a> if this is an unsaved new game.
+				Save slots are numbered starting at 1.
+				<a href="#about-saveinslot" class="ref">save in slot</a> does not change the value returned by this command!
+				If you need it to, you need to track it with a global variable.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -16175,7 +16247,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 768 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 769 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
