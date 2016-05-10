@@ -2289,9 +2289,6 @@ FOR i = 0 TO size
   IF nospace = NO AND nowmenu(i) <> "" THEN nowmenu(i) += " "
   nowmenu(i) += datatext
  END IF
- IF mpointer = i THEN
-  nowmenu(i) = RIGHT(nowmenu(i), 40)
- END IF
 NEXT i
 END SUB
 
