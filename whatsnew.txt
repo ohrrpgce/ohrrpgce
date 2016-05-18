@@ -9,6 +9,7 @@ WHAT IS NEW?
       always pauses time for everybody in battle. Dramatic pause starts
       after the (undelayed) caption appears, but before the visible
       animation begins [James]
+    * New attacker animation "Standing Strike" [James]
 
   * Changes
 

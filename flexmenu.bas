@@ -438,7 +438,7 @@ max(AtkLimChainRate) = 100
 min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
-max(AtkLimAnimAttacker) = 8
+max(AtkLimAnimAttacker) = 9
 menucapoff(AtkAnimAttacker) = capindex
 addcaption caption(), capindex, "Strike"
 addcaption caption(), capindex, "Cast"
@@ -449,6 +449,7 @@ addcaption caption(), capindex, "Land"
 addcaption caption(), capindex, "Null"
 addcaption caption(), capindex, "Standing Cast"
 addcaption caption(), capindex, "Teleport"
+addcaption caption(), capindex, "Standing Strike"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 10
@@ -1610,8 +1611,12 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   state.last = 13
   
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
-  IF anim = 0 ORELSE anim = 2 ORELSE anim = 3 ORELSE anim = 8 THEN
-   'Attack picture only matters for Stike, Dash-In, Spinstrike and Teleport
+  IF     anim = atkrAnimStrike _
+  ORELSE anim = atkrAnimDashIn _
+  ORELSE anim = atkrAnimSpinStrike _
+  ORELSE anim = atkrAnimTeleport _
+  ORELSE anim = atkrAnimStandingStrike _
+  THEN
    workmenu(14) = AtkWepPic
    state.last = 14
    IF recbuf(AtkDatWepPic) > 0 THEN

@@ -1222,7 +1222,7 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
   IF t(0) = who THEN EXIT SUB
   anim_setpos who, target->x + target->w * d, target->y + target->h - bslot(who).h, 0
 
- CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast
+ CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast, atkrAnimStandingStrike
   ' Do nothing
 
  END SELECT
@@ -1238,7 +1238,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setframe who, frameCAST
    anim_wait 3
 
-  CASE atkrAnimStrike, atkrAnimDashIn, atkrAnimTeleport
+  CASE atkrAnimStrike, atkrAnimDashIn, atkrAnimTeleport, atkrAnimStandingStrike
    anim_setframe who, frameSTAND
    anim_wait 3 'wait 3 ticks
    anim_setframe who, frameATTACKA
@@ -1327,7 +1327,7 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
   anim_setpos who, bslot(t(0)).x, bslot(t(0)).y, 0
   anim_zmove who, -10, 20
   anim_waitforall
- CASE atkrAnimDashIn, atkrAnimNull, atkrAnimStandingCast, atkrAnimTeleport
+ CASE atkrAnimDashIn, atkrAnimNull, atkrAnimStandingCast, atkrAnimTeleport, atkrAnimStandingStrike
   ' nothing
  END SELECT
 END SUB
@@ -1358,7 +1358,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
    anim_waitforall
    anim_setframe who, frameSTAND
-  CASE atkrAnimStandingCast
+  CASE atkrAnimStandingCast, atkrAnimStandingStrike
    anim_setframe who, frameSTAND
   END SELECT
  END IF

@@ -719,6 +719,7 @@ Enum AttackerAnimation
 	atkrAnimNull = 6
 	atkrAnimStandingCast = 7
 	atkrAnimTeleport = 8   ' (shows weapon)
+	atkrAnimStandingStrike = 9 ' (shows weapon)
 End Enum
 
 Type AttackData
