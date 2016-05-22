@@ -28,11 +28,6 @@ Namespace Reload
 
 Type hashFunction as Function(byval k as ZString ptr) as uinteger
 
-'These are in addition to the 'f as integer' overloads in reload.bi
-Declare Function ReadVLI(byval f as FILE ptr) as longint
-'Can add the FILE* overload back when you actually need it...
-Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
-
 Declare Function AddStringToTable (st as string, byval doc as DocPtr) as integer
 Declare Function FindStringInTable overload(st as string, byval doc as DocPtr) as integer
 
@@ -1898,128 +1893,106 @@ Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
 	return n
 End Function
 
+
+'==========================================================================================
+'                                           VLI
+'==========================================================================================
+
+#macro WRITEBYTE_BufferedFile(SRC)
+        Buffered_putc(outfile, SRC)
+#endmacro
+
+#macro WRITEBYTE_FB(SRC)
+        put #outfile, , SRC
+#endmacro
+
+#macro _WriteVLI(WRITEBYTE)
+	dim byt as ubyte
+	dim neg as bool = NO
+
+	if v < 0 then
+		neg = YES
+		v = not v
+                ' v is now non-negative, so all shifts are effectively unsigned
+	end if
+
+	byt = v and &b111111 'first, extract the low six bits
+	v = v SHR 6
+
+	if neg then   byt OR=  &b1000000 'bit 6 is the "number is negative" bit
+
+	if v > 0 then byt OR= &b10000000 'bit 7 is the "omg there's more data" bit
+
+        WRITEBYTE(byt)
+
+	do while v > 0
+		byt = v and &b1111111 'extract the next 7 bits
+		v = v SHR 7
+		
+		if v > 0 then byt OR= &b10000000
+		
+                WRITEBYTE(byt)
+	loop
+#endmacro
+
 'This writes an integer out in such a fashion as to minimize the number of bytes used. Eg, 36 will
 'be stored in one byte, while 365 will be stored in two, 10000 in three bytes, etc
-Sub WriteVLI(byval f as integer, byval v as Longint)
-	dim o as ubyte
-	dim neg as integer = 0
-	
-	if o < 0 then
-		neg = yes
-		v = abs(v)
-	end if
-	
-	o = v and &b111111 'first, extract the low six bits
-	v = v SHR 6
-	
-	if neg then   o OR=  &b1000000 'bit 6 is the "number is negative" bit
-	
-	if v > 0 then o OR= &b10000000 'bit 7 is the "omg there's more data" bit
-	
-	put #f, , o
-	
-	do while v > 0
-		o = v and &b1111111 'extract the next 7 bits
-		v = v SHR 7
-		
-		if v > 0 then o OR= &b10000000
-		
-		put #f, , o
-	loop
-
+Sub WriteVLI(outfile as BufferedFile ptr, v as longint)
+        _WriteVLI(WRITEBYTE_BufferedFile)
 end sub
 
-Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
-	dim o as ubyte
-	dim neg as integer = 0
+Sub WriteVLI(outfile as integer, v as longint)
+        _WriteVLI(WRITEBYTE_FB)
+end sub
+
+
+#macro READBYTE_stdio(DEST)
+        scope
+		dim tmp as integer = fgetc(infile)
+		if tmp = -1 then return 0
+		DEST = tmp
+        end scope
+#endmacro
+
+#macro READBYTE_FB(DEST)
+        if get(#infile, , DEST) then return 0
+#endmacro
+
+#macro _ReadVLI(READBYTE)
+	dim byt as ubyte
+	dim ret as longint = 0
+	dim neg as bool = NO
+	dim bit as integer = 0
+
+	READBYTE(byt)
+	if byt AND &b1000000 then neg = YES
 	
-	if o < 0 then
-		neg = yes
-		v = abs(v)
-	end if
-	
-	o = v and &b111111 'first, extract the low six bits
-	v = v SHR 6
-	
-	if neg then   o OR=  &b1000000 'bit 6 is the "number is negative" bit
-	
-	if v > 0 then o OR= &b10000000 'bit 7 is the "omg there's more data" bit
-	
-	Buffered_putc(f, o)
-	
-	do while v > 0
-		o = v and &b1111111 'extract the next 7 bits
-		v = v SHR 7
-		
-		if v > 0 then o OR= &b10000000
-		
-		Buffered_putc(f, o)
+	ret OR= (byt AND &b111111) SHL bit
+	bit += 6
+
+	do while byt AND &b10000000
+                READBYTE(byt)
+		ret OR= cast(longint, byt AND &b1111111) SHL bit
+		bit += 7
 	loop
 
-end sub
+	if neg then ret = not ret
+	return ret
+#endmacro
 
 'This reads the number back in again
-function ReadVLI(byval f as integer) as longint
-	dim o as ubyte
-	dim ret as longint = 0
-	dim neg as integer = 0
-	dim bit as integer = 0
-	
-	get #f, , o
-	
-	if o AND &b1000000 then neg = yes
-	
-	ret OR= (o AND &b111111) SHL bit
-	bit += 6
-	
-	do while o AND &b10000000
-		get #f, , o
-		
-		ret OR= (o AND &b1111111) SHL bit
-		bit += 7
-	loop
-	
-	if neg then ret *= -1
-	
-	return ret
-	
+function ReadVLI(infile as FILE ptr) as longint
+        _ReadVLI(READBYTE_stdio)
 end function
 
-function ReadVLI(byval f as FILE ptr) as longint
-	dim tmp as integer
-	dim o as ubyte
-	dim ret as longint = 0
-	dim neg as integer = 0
-	dim bit as integer = 0
-	
-	'get #f, , o
-	tmp = fgetc(f)
-	
-	if tmp = -1 then return 0
-	
-	o = tmp
-	
-	if o AND &b1000000 then neg = yes
-	
-	ret OR= (o AND &b111111) SHL bit
-	bit += 6
-	
-	do while o AND &b10000000
-		'get #f, , o
-		tmp = fgetc(f)
-		if tmp = -1 then return 0
-		
-		o = tmp
-		
-		ret OR= (o AND &b1111111) SHL bit
-		bit += 7
-	loop
-	
-	if neg then ret *= -1
-	
-	return ret
+function ReadVLI(infile as integer) as longint
+        _ReadVLI(READBYTE_FB)
 end function
 
+
+'==========================================================================================
+'                                Hash table for node names
+'==========================================================================================
 
 Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, numbuckets as integer) as ReloadHash ptr
 	dim ret as HashPtr = RCallocate(sizeof(ReloadHash), doc)
@@ -2123,6 +2096,9 @@ Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer
 		b = b->nxt
 	loop
 end sub
+
+
+'==========================================================================================
 
 Function DocumentMemoryUsage(byval doc as DocPtr) as longint
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)

@@ -3,6 +3,7 @@
 #include "testing.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "file.bi"  'for filelen
 
 Using Reload
 Using Reload.Ext
@@ -35,6 +36,172 @@ startTest(bitsetTest)
 	doc = null
 endTest
 #endif
+
+CONST VLITestFile as string = "reloadtest_vli.bin"
+
+#macro WRITE_VLIS()
+	for idx as integer = -10000 to 10000
+		WriteVLI fil, idx
+	next
+
+	WriteVLI fil, 1000000
+	WriteVLI fil, 100000000
+	WriteVLI fil, 10000000000
+	WriteVLI fil, 1000000000000
+	WriteVLI fil, 100000000000000
+	WriteVLI fil, 10000000000000000
+	WriteVLI fil, 9223372036854775807  '2^63 - 1
+
+	WriteVLI fil, -1000000
+	WriteVLI fil, -100000000
+	WriteVLI fil, -10000000000
+	WriteVLI fil, -1000000000000
+	WriteVLI fil, -100000000000000
+	WriteVLI fil, -10000000000000000
+	WriteVLI fil, -9223372036854775807
+	WriteVLI fil, -9223372036854775808
+#endmacro
+
+#macro READ_VLIS()
+	for idx as integer = -10000 to 10000
+		if ReadVLI(fil) <> idx then fail
+	next
+
+	if ReadVLI(fil) <> 1000000 then fail
+	if ReadVLI(fil) <> 100000000 then fail
+	if ReadVLI(fil) <> 10000000000 then fail
+	if ReadVLI(fil) <> 1000000000000 then fail
+	if ReadVLI(fil) <> 100000000000000 then fail
+	if ReadVLI(fil) <> 10000000000000000 then fail
+	if ReadVLI(fil) <> 9223372036854775807 then fail
+
+	if ReadVLI(fil) <> -1000000 then fail
+	if ReadVLI(fil) <> -100000000 then fail
+	if ReadVLI(fil) <> -10000000000 then fail
+	if ReadVLI(fil) <> -1000000000000 then fail
+	if ReadVLI(fil) <> -100000000000000 then fail
+	if ReadVLI(fil) <> -10000000000000000 then fail
+	if ReadVLI(fil) <> -9223372036854775807 then fail
+	if ReadVLI(fil) <> -9223372036854775808 then fail
+#endmacro
+
+startTest(VLIEncoding)
+	dim bytes(9) as ubyte
+	dim fil as integer = freefile
+	if open(VLITestFile for binary as fil) then fail
+	WriteVLI fil, &b0
+	WriteVLI fil, &b111111
+	WriteVLI fil, &b1000000
+	WriteVLI fil, &b10011001010110101
+	WriteVLI fil, &b0111111111111111111111111111111111111111111111111111111111111111  '2^63 - 1
+	WriteVLI fil, &b1111111111111111111111111111111111111111111111111110011011000111  'negative
+	WriteVLI fil, &b1111111111111111111111111111111111111111111111111100000100000010  'negative
+	WriteVLI fil, -1
+	WriteVLI fil, -64
+	WriteVLI fil, -65
+	WriteVLI fil, &b1000000000000000000000000000000000000000000000000000000000000000  '-2^63
+	get #fil, 1, bytes()
+	if bytes(0) <> &b00000000 then fail
+	get #fil, 2, bytes()
+	if bytes(0) <> &b00111111 then fail
+	get #fil, 3, bytes()
+	if bytes(0) <> &b10000000 then fail
+	if bytes(1) <> &b00000001 then fail
+	get #fil, 5, bytes()
+	if bytes(0) <> &b10110101 then fail
+	if bytes(1) <> &b11001010 then fail
+	if bytes(2) <> &b00001001 then fail
+	get #fil, 8, bytes()
+	if bytes(0) <> &b10111111 then fail
+	if bytes(1) <> &b11111111 then fail
+	if bytes(2) <> &b11111111 then fail
+	if bytes(3) <> &b11111111 then fail
+	if bytes(4) <> &b11111111 then fail
+	if bytes(5) <> &b11111111 then fail
+	if bytes(6) <> &b11111111 then fail
+	if bytes(7) <> &b11111111 then fail
+	if bytes(8) <> &b11111111 then fail
+	if bytes(9) <> &b00000001 then fail  'Only 1 bit used
+	get #fil, 18, bytes()
+	if bytes(0) <> &b11111000 then fail
+	if bytes(1) <> &b01100100 then fail  'Exactly fits in 2 bytes
+	get #fil, 20, bytes()
+	if bytes(0) <> &b11111101 then fail
+	if bytes(1) <> &b11111011 then fail
+	if bytes(2) <> &b00000001 then fail  'Just doesn't fit in 2 bytes
+	get #fil, 23, bytes()
+	if bytes(0) <> &b01000000 then fail
+	get #fil, 24, bytes()
+	if bytes(0) <> &b01111111 then fail
+	get #fil, 25, bytes()
+	if bytes(0) <> &b11000000 then fail
+	if bytes(1) <> &b00000001 then fail
+	get #fil, 27, bytes()
+	if bytes(0) <> &b11111111 then fail
+	if bytes(1) <> &b11111111 then fail
+	if bytes(2) <> &b11111111 then fail
+	if bytes(3) <> &b11111111 then fail
+	if bytes(4) <> &b11111111 then fail
+	if bytes(5) <> &b11111111 then fail
+	if bytes(6) <> &b11111111 then fail
+	if bytes(7) <> &b11111111 then fail
+	if bytes(8) <> &b11111111 then fail
+	if bytes(9) <> &b00000001 then fail  'Only 1 bit used
+	close fil
+endTest
+
+' Test overloads of ReadVLI/WriteVLI using FB files are compatible
+startTest(VLIFBFile)
+	safekill VLITestFile
+	dim fil as integer = freefile
+	if open(VLITestFile for binary as fil) then fail
+
+	WRITE_VLIS()
+
+	seek fil, 1
+
+	READ_VLIS()
+
+	if seek(fil) <> lof(fil) + 1 then fail
+	close fil
+	killfile VLITestFile
+endTest
+
+' Test overloads of ReadVLI/WriteVLI using C stdio/BufferedFile are compatible
+startTest(VLICFile)
+	scope
+		dim fil as BufferedFile ptr
+		fil = Buffered_open(VLITestFile)
+		if fil = NULL then fail
+
+		WRITE_VLIS()
+
+		Buffered_close(fil)
+	end scope
+
+	scope
+		dim fil as FILE ptr
+		fil = fopen(VLITestFile, "rb")
+		if fil = NULL then fail
+
+		READ_VLIS()
+
+		if ftell(fil) <> filelen(VLITestFile) then fail
+		fclose(fil)
+	end scope
+endTest
+
+' Test that the two sets of ReadVLI/WriteVLI overloads are compatible
+startTest(VLIOverloadsCompatible)
+	dim fil as integer = freefile
+	if open(VLITestFile for binary as fil) then fail
+
+	READ_VLIS()
+
+	if seek(fil) <> lof(fil) + 1 then fail
+	close fil
+	killfile VLITestFile
+endTest
 
 startTest(createDocument)
 	doc = CreateDocument()

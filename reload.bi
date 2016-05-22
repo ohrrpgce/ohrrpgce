@@ -9,6 +9,7 @@
 
 #include "config.bi"
 #include "util.bi"
+#include "lumpfile.bi"
 
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
@@ -182,7 +183,9 @@ Declare Function AppendChildNode(byval parent as NodePtr, n as string, val as st
 Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer) as NodePtr
 
 Declare function ReadVLI overload(byval f as integer) as longint
-declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
+Declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
+Declare Function ReadVLI(byval f as FILE ptr) as longint
+Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
 
 Declare Function DocumentMemoryUsage(byval doc as DocPtr) as LongInt
 
