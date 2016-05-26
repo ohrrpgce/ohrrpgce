@@ -1326,6 +1326,7 @@ SUB reset_game_state ()
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
  gam.mouse_enabled = NO
+ gam.pad.being_shown = NO
 
  'If we are resetting, the old slices will have already been destroyed
  'by cleanup_game_slices() so we just re-assign herow().sl

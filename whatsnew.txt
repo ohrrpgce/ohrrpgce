@@ -36,6 +36,8 @@ WHAT IS NEW?
       OHRRPGCE hadn't been installed previously [Ralph]
     * Delete key didn't work while typing on Macs. And after resizing
       the window, text input stopped working. [Ralph]
+    * Fix the Android virtual gamepad being hidden if you open a game,
+      exit to the file-picker and then open a game again
 
   * Stuff Only Developers Will Notice
     * 64 bit builds work now.
