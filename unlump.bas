@@ -5,16 +5,17 @@
 '
 ' Compile with makeutil.sh or makeutil.bat
 '
-'basic subs and functions
-DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
-DECLARE SUB fatalcleanup ()
-DECLARE FUNCTION checkpassword (pass as string) as integer
 
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"
 #include "lumpfile.bi"
 #include "common_base.bi"
+
+'basic subs and functions
+DECLARE FUNCTION editstr (stri as string, key as string, byref cur as integer, byref max as integer, byref number as integer) as string
+DECLARE SUB fatalcleanup ()
+DECLARE FUNCTION checkpassword (pass as string) as integer
 
 cleanup_function = @fatalcleanup
 
