@@ -383,10 +383,6 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
         debug "Can't start SDL video subsys (resize): " & *SDL_GetError
       END IF
     END IF
-#IFDEF __FB_DARWIN__
-    'Force clipping in fullscreen, and undo when leaving
-    set_forced_mouse_clipping (windowedmode = NO)
-#ENDIF
   END IF
 #IFDEF __FB_ANDROID__
   'On Android, the requested screen size will be stretched.
@@ -459,6 +455,9 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
 #IFDEF __FB_DARWIN__
   ' SDL on OSX forgets the Unicode input state after a setvideomode
   SDL_EnableUNICODE(IIF(remember_enable_textinput, 1, 0))
+
+  'Force clipping in fullscreen, and undo when leaving
+  set_forced_mouse_clipping (windowedmode = NO AND mouse_visible = NO)
 #ENDIF
 
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
@@ -1142,6 +1141,9 @@ END FUNCTION
 SUB io_sdl_setmousevisibility(byval visible as integer)
   mouse_visible = iif(visible, 1, 0)
   SDL_ShowCursor(mouse_visible)
+#IFDEF __FB_DARWIN__
+  set_forced_mouse_clipping (windowedmode = NO AND mouse_visible = NO)
+#ENDIF
 END SUB
 
 'Change from SDL to OHR mouse button numbering (swap middle and right)
