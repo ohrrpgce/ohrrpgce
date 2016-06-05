@@ -356,7 +356,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
  RefreshSliceTreeScreenPos ses.draw_root
 
  DIM mouse_was_visible as bool = mousecursorvisible()
- unhidemousecursor
+ showmousecursor
  #IFDEF IS_GAME
   DIM resolution_was_unlocked as bool = resolution_unlocked()
   unlock_resolution gen(genResolutionX), gen(genResolutionY)

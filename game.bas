@@ -327,7 +327,8 @@ remap_touchscreen_button 4, 0
 remap_touchscreen_button 5, 0
 
 setwindowtitle "O.H.R.RPG.C.E"
-unhidemousecursor  'init mouse state
+showmousecursor  'init mouse state
+mouserect -1, -1, -1, -1
 
 debuginfo "Setting default window settings..."
 set_safe_zone_margin default_margin()

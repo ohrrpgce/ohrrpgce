@@ -1581,9 +1581,8 @@ sub hidemousecursor ()
 	cursorvisible = NO
 end sub
 
-sub unhidemousecursor ()
+sub showmousecursor ()
 	io_setmousevisibility(-1)
-	io_mouserect(-1, -1, -1, -1)
 	cursorvisible = YES
 end sub
 

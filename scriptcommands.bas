@@ -4142,7 +4142,8 @@ SUB sfunctions(byval cmdid as integer)
   'See also "running on console"
   scriptret = IIF(running_on_ouya(), 1, 0)
  CASE 601 '--unhide mouse cursor
-  unhidemousecursor
+  showmousecursor
+  mouserect -1, -1, -1, -1
  CASE 602 '--hide mouse cursor
   hidemousecursor
  CASE 603'--pixel focus camera
