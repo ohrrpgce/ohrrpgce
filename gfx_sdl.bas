@@ -303,6 +303,9 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
   
+  ' SDL_VIDEO_CENTERED has no effect on Mac (Quartz backend); the window is always
+  ' centred unless SDL_VIDEO_WINDOW_POS is in effect.
+
   IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
@@ -367,10 +370,12 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     flags = flags OR SDL_FULLSCREEN
   END IF
 #IFDEF __FB_DARWIN__
+  '(In brief recent testing with SDL 1.2.14 and OS 10.8.5 I couldn't find any need
+  'to force a reset, but I'll assume there may still be a need for older OSX or SDL or something.)
   force_video_reset = YES
 #ENDIF
   IF force_video_reset THEN
-    'Sometimes need to quit and reinit the video subsystem fro changes to take effect
+    'Sometimes need to quit and reinit the video subsystem for changes to take effect
     force_video_reset = NO
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
       SDL_QuitSubSystem(SDL_INIT_VIDEO)
@@ -441,6 +446,8 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   LOOP
   'Don't recenter the window as the user resizes it
   '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
+  'Note: on OSX unfortunately SDL will always recenter the window if its resizability changes, and the only
+  'way to override that is to set SDL_VIDEO_WINDOW_POS.
 #IFDEF __FB_WIN32__
   putenv("SDL_VIDEO_CENTERED=")
 #ELSE
@@ -613,6 +620,7 @@ SUB gfx_sdl_setwindowed(byval towindowed as bool)
   END IF
   gfx_sdl_set_screen_mode()
   IF screensurface = NULL THEN
+   debuginfo "setwindowed: fallback to previous zoom"
    'Attempt to fallback
    windowedmode XOR= YES
    IF remember_zoom <> -1 THEN
@@ -684,7 +692,7 @@ SUB gfx_sdl_recenter_window_hint()
   'Takes effect at the next SDL_SetVideoMode call, and it's then removed
   debuginfo "recenter_window_hint()"
   putenv("SDL_VIDEO_CENTERED=1")
-  '(Note this is overridden by SDL_VIDEO_WINDOW_POS)
+  '(Note this is overridden by SDL_VIDEO_WINDOW_POS, so this function may do nothing when running as slave)
 #IFDEF __FB_WIN32__
   'Under Windows SDL_VIDEO_CENTERED only has an effect when the window is recreated, which happens if
   'the resolution (and probably other settings) change. So force recreating by quitting and restarting
