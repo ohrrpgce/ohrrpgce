@@ -17,11 +17,19 @@ def get_command_output(cmd, args = ""):
 
 include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
-standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 'windows.bi', 'win/', 'win\\',
-               'file.bi', 'datetime.bi', 'allegro.bi', 'string.bi', 'curses.bi']
+# Add an include file to this list if it should be a dependency even if it doesn't exist in a clean build.
+generated_includes = ['ver.txt']
 
 def scrub_includes(includes):
-    return [v for v in includes if not any([v.startswith(inc) for inc in standard_bi])]
+    """Remove those include files from a list which scons should ignore
+    because they're standard includes."""
+    ret = []
+    for fname in includes:
+        if fname in generated_includes or os.path.isfile(fname):
+            # scons should expect include files in rootdir, where FB looks for them
+            # (verprint() provides #/ver.txt, and without the #/ scons won't run it)
+            ret.append ('#' + os.path.sep + fname)
+    return ret
 
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()
@@ -158,6 +166,7 @@ def verprint (used_gfx, used_music, fbc, builddir, rootdir):
 
     # If there is a build/ver.txt placed there by previous versions of this function
     # then it must be deleted because scons thinks that one is preferred
+    # (ver.txt does not go in build/ because FB doesn't look there for includes)
     try:
         os.remove (builddir + 'ver.txt')
     except OSError: pass

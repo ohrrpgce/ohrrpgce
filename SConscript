@@ -666,11 +666,14 @@ common_modules += ['rasterizer.cpp',
                    'gfx_newRenderPlan.cpp']
 
 
-################ Generate build & version info files before compiling any modules
+################ ver.txt (version info) build rule
 
 builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
-verprint (gfx, music, fbc, builddir, rootdir)
+def version_info(source, target, env):
+    verprint (gfx, music, fbc, builddir, rootdir)
+VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'], source = ['codename.txt'], action = version_info)
+AlwaysBuild(VERPRINT)
 
 
 ################ Generate object file Nodes
