@@ -29,7 +29,7 @@ CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
 CXXLINKFLAGS = []
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
-FRAMEWORKS_PATH = "~/Library/Frameworks"  # Frameworks search path in addition to the default /Library/Frameworks
+FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 
@@ -280,9 +280,11 @@ if mac:
         gengcc = True
     macsdk = ARGUMENTS.get ('macsdk', '')
     macSDKpath = ''
-    if os.path.isdir(os.path.expanduser(FRAMEWORKS_PATH)):
+    if os.path.isdir(FRAMEWORKS_PATH):
         env['FBLINKERFLAGS'] += ['-F', FRAMEWORKS_PATH]
         env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
+    # This is also the version used by the current FB 1.06 mac branch
+    macosx_version_min = '10.4'
     if macsdk:
         if macsdk == '10.4':
             # 10.4 has a different naming scheme
@@ -292,9 +294,10 @@ if mac:
         macSDKpath = '/Developer/SDKs/' + macSDKpath
         if not os.path.isdir(macSDKpath):
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
-        env['FBLINKERFLAGS'] += ['-mmacosx-version-min=' + macsdk]
-        env['CFLAGS'] += ['-mmacosx-version-min=' + macsdk]
-        env['CXXFLAGS'] += ['-mmacosx-version-min=' + macsdk]
+        macosx_version_min = macsdk
+    env['FBLINKERFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
+    env['CFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
+    env['CXXFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
 
 
 ################ Arch-specific stuff
@@ -450,6 +453,7 @@ if linkgcc:
         return target, map(to_o, enumerate(source))
 
     if mac:
+        # -( -) not supported
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
     else:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
@@ -589,6 +593,9 @@ for lib in base_libraries:
 for lib in base_libraries + common_libraries:
     if mac and lib in ('SDL', 'SDL_mixer', 'Cocoa'):
         # Use frameworks rather than normal unix libraries
+        # (Note: linkgcc=0 does not work on Mac because the #inclib "SDL" in the
+        # SDL headers causes fbc to pass -lSDL to the linker, which can't be
+        # found (even if we add the framework path, because it's not called libSDL.dylib))
         commonenv['CXXLINKFLAGS'] += ['-framework', lib]
         commonenv['FBLINKERFLAGS'] += ['-framework', lib]
     else:
@@ -881,9 +888,11 @@ Options:
   scriptprofile=1     Script profiling build: track time in interpreter.
   asm=1               Produce .asm or .c files in build/ while compiling.
   fbc=PATH            Point to a different version of fbc.
-  macsdk=version      Target a previous version of Mac OS X, eg. 10.4
-                      You will need the relevant SDK installed, and need to use a
-                      copy of FB built against that SDK.
+  macsdk=version      Compile against a Mac OS X SDK instead of using the system
+                      headers and libraries. Specify the SDK version, e.g. 10.4.
+                      You will need the relevant SDK installed in /Developer/SDKs and
+                      may want to use a copy of FB built against that SDK.
+                      Also sets macosx-version-min (defaults to 10.4).
   prefix=PATH         For 'install' action. Default: '/usr'
   destdir=PATH        For 'install' action. Use if you want to install into a staging
                       area, for a package creation tool. Default: ''
