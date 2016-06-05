@@ -38,6 +38,7 @@ WHAT IS NEW?
       the window, text input stopped working. [Ralph]
     * Fix the Android virtual gamepad being hidden if you open a game,
       exit to the file-picker and then open a game again
+    * Options for changing the window size now work on Macs [Ralph]
 
   * Stuff Only Developers Will Notice
     * 64 bit builds work now.

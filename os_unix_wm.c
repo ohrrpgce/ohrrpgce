@@ -16,8 +16,38 @@
 #include <X11/Xlib.h>
 #endif
 
+#ifdef __APPLE__
+// For CoreGraphics (part of Carbon)
+#include <CoreGraphics/CGDirectDisplay.h>
+#endif
+
 #include "common.h"
 #include "os.h"
+
+
+//==========================================================================================
+//                                          OSX
+//==========================================================================================
+
+#ifdef __APPLE__
+
+void os_get_screen_size(int *wide, int *high) {
+	*wide = *high = 0;
+
+	// Return the size of the main display (or the largest mirrored screen of the
+	// main display), which is the one that is used when fullscreening.
+	// OSX 10.0 or later
+	uint32_t numDisplays;
+	CGDirectDisplayID displays[1];
+	CGError err = CGGetActiveDisplayList(1, displays, &numDisplays);
+	if (err) {
+		debug(errError, "CGGetActiveDisplayList failed: %d", err);
+		return;
+	}
+	CGRect rect = CGDisplayBounds(displays[0]);
+	*wide = rect.size.width;
+	*high = rect.size.height;
+}
 
 
 //==========================================================================================
@@ -25,7 +55,7 @@
 //==========================================================================================
 
 
-#ifdef X_WINDOWS
+#elif defined(X_WINDOWS)
 
 void os_get_screen_size(int *wide, int *high) {
 	Display *display;
