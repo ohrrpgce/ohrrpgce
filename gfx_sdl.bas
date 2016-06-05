@@ -1208,6 +1208,14 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
       SDL_WarpMouse x * zoom, y * zoom
       SDL_PumpEvents
+#IFDEF __FB_DARWIN__
+      ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
+      ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
+      ' but SDL forgets to hide the cursor if it was previously requested, and further,
+      ' SDL_ShowCursor(0) does nothing because SDL thinks it's already hidden.
+      SDL_ShowCursor(1)
+      SDL_ShowCursor(mouse_visible)
+#ENDIF
     END IF
   END IF
 END SUB
