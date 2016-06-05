@@ -683,14 +683,17 @@ function get_process_path (pid as integer) as string
 	proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)
 	if proc = NULL then
 		dim errcode as integer = GetLastError()
-		debug "get_process_path: open err " & errcode & " " & get_windows_error(errcode)
+		' OpenProcess sets "Invalid parameter" error if the pid doesn't exist
+		if errcode <> ERROR_INVALID_PARAMETER then
+			debug "get_process_path: OpenProcess(pid=" & pid & ") err " & errcode & " " & get_windows_error(errcode)
+		end if
 		return ""
 	end if
 	dim ret as zstring * 256
 	'QueryFullProcessImageName, which returns a normal filename instead of device form, is Win Vista+.
 	if GetProcessImageFileName(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
-		debug "get_process_path: query err " & errcode & " " & get_windows_error(errcode)
+		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & get_windows_error(errcode)
 	end if
 	CloseHandle(proc)
 	return ret
