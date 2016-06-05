@@ -29,16 +29,16 @@ declare sub calculate_screen_res()
 
 dim shared screen_buffer_offset as integer = 0
 dim shared window_state as WindowState
-dim shared init_gfx as integer = 0
+dim shared init_gfx as bool = NO
 'defaults are 2x zoom and 640x400 in 8-bit
 dim shared zoom as integer = 2
 dim shared screenmodex as integer = 640
 dim shared screenmodey as integer = 400
-dim shared bordered as integer = 0
+dim shared bordered as integer = 0  '0 or 1
 dim shared depth as integer = 8
-dim shared smooth as integer = 0
-dim shared mouseclipped as integer = 0
-dim shared rememmvis as integer = 1
+dim shared smooth as integer = 0  '0 or 1
+dim shared mouseclipped as bool = NO
+dim shared mouse_visible as integer = 1  '0 or 1
 dim shared remember_windowtitle as string
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared inputtext as string
@@ -49,11 +49,11 @@ dim shared truepal(255) as int32
 
 
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-	if init_gfx = 0 then
+	if init_gfx = NO then
 		calculate_screen_res
 		gfx_fb_screenres
 		screenset 1, 0
-		init_gfx = 1
+		init_gfx = YES
 		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
 		dim refreshrate as size_t
 		dim driver as string
@@ -74,20 +74,19 @@ sub gfx_fb_screenres
 		setmouse , , 0
 	else
 		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
-		setmouse , , rememmvis
+		setmouse , , mouse_visible
 	end if
 end sub
 
 sub gfx_fb_update_screen_mode()
-	if init_gfx = 1 then
+	if init_gfx then
 		mutexlock keybdmutex
-		dim i as integer
 		calculate_screen_res
 		gfx_fb_screenres
 		windowtitle remember_windowtitle
 		'Palette must be re-set
 		if depth = 8 then
-			for i = 0 to 255
+			for i as integer = 0 to 255
 				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
 			next
 		end if
@@ -332,7 +331,7 @@ sub process_events()
 			if window_state.fullscreen then
 				setmouse , , 0
 			else
-				setmouse , , rememmvis
+				setmouse , , mouse_visible
 			end if
 			window_state.focused = YES
 		end if
@@ -373,7 +372,7 @@ sub process_events()
 		if window_state.fullscreen then
 			setmouse , , 0
 		else
-			setmouse , , rememmvis
+			setmouse , , mouse_visible
 		end if
 	end if
 	last_enter_state = multikey(SC_ENTER)
@@ -443,11 +442,11 @@ END SUB
 
 sub io_fb_setmousevisibility(byval visible as integer)
 	'Note that 'windowed' is an approximation - see process_events()
-	rememmvis = iif(visible, 1, 0)
+	mouse_visible = iif(visible, 1, 0)
 	if window_state.fullscreen then
 		setmouse , , 0
 	else
-		setmouse , , rememmvis
+		setmouse , , mouse_visible
 	end if
 end sub
 
@@ -488,11 +487,11 @@ sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as 
 	mymax = (ymax + screen_buffer_offset) * zoom + zoom - 1
 	if xmin >= 0 then
 		'enable clipping
-		mouseclipped = 1
+		mouseclipped = YES
 		setmouse  , , , 1
 	else
 		'disable clipping
-		mouseclipped = 0
+		mouseclipped = NO
 		setmouse  , , , 0
 	end if
 end sub
