@@ -92,7 +92,7 @@ DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
-DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
+DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
 DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
@@ -122,15 +122,15 @@ DIM SHARED resize_request as XYPair
 DIM SHARED force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
-DIM SHARED rememmvis as integer = 1
+DIM SHARED mouse_visible as integer = 1
 DIM SHARED debugging_io as bool = NO
 DIM SHARED keystate as Uint8 ptr = NULL
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
-DIM SHARED mouseclipped as integer = NO   'Whether we are ACTUALLY clipped
-DIM SHARED forced_mouse_clipping as integer = NO
+DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
+DIM SHARED forced_mouse_clipping as bool = NO
 'These were the args to the last call to io_mouserect
 DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
@@ -458,7 +458,7 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   IF windowedmode = NO THEN
     SDL_ShowCursor(0)
   ELSE
-    SDL_ShowCursor(rememmvis)
+    SDL_ShowCursor(mouse_visible)
   END IF
   RETURN 1
 END FUNCTION
@@ -591,9 +591,9 @@ FUNCTION gfx_sdl_screenshot(byval fname as zstring ptr) as integer
   gfx_sdl_screenshot = 0
 END FUNCTION
 
-SUB gfx_sdl_setwindowed(byval iswindow as integer)
+SUB gfx_sdl_setwindowed(byval towindowed as bool)
 #IFDEF __FB_DARWIN__
-  IF iswindow = NO THEN
+  IF towindowed = NO THEN
     'Zoom 3 or 4 look better in fullscreen, so change to one of those temporarily
     IF zoom <= 2 AND zoom_has_been_changed = NO THEN
       remember_zoom = zoom
@@ -606,7 +606,7 @@ SUB gfx_sdl_setwindowed(byval iswindow as integer)
     END IF
   END IF
 #ENDIF
-  IF iswindow = 0 THEN
+  IF towindowed = 0 THEN
     windowedmode = NO
   ELSE
     windowedmode = YES
@@ -903,17 +903,17 @@ SUB gfx_sdl_process_events()
           END IF
           IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
-            IF mouseclipped = 1 THEN
+            IF mouseclipped THEN
               SDL_WarpMouse privatemx, privatemy
               SDL_PumpEvents
             END IF
           ELSE
             IF windowedmode THEN
-              SDL_ShowCursor(rememmvis)
+              SDL_ShowCursor(mouse_visible)
             ELSE
               SDL_ShowCursor(0)
             END IF
-            IF mouseclipped = 1 THEN
+            IF mouseclipped THEN
               SDL_GetMouseState(@privatemx, @privatemy)
               lastmx = privatemx
               lastmy = privatemy
@@ -1132,8 +1132,8 @@ FUNCTION io_sdl_running_on_ouya() as bool
 END FUNCTION
 
 SUB io_sdl_setmousevisibility(byval visible as integer)
-  rememmvis = iif(visible, 1, 0)
-  SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
+  mouse_visible = iif(visible, 1, 0)
+  SDL_ShowCursor(mouse_visible)
 END SUB
 
 'Change from SDL to OHR mouse button numbering (swap middle and right)
@@ -1213,11 +1213,11 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
 END SUB
 
 SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  IF mouseclipped = 0 AND (xmin >= 0) THEN
+  IF mouseclipped = NO AND (xmin >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
     'we stick the mouse at the centre of the window. It's a very common hack.
-    mouseclipped = 1
+    mouseclipped = YES
     SDL_GetMouseState(@privatemx, @privatemy)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
       SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
@@ -1225,9 +1225,9 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
     END IF
     lastmx = screensurface->w \ 2
     lastmy = screensurface->h \ 2
-  ELSEIF mouseclipped = 1 AND (xmin = -1) THEN
+  ELSEIF mouseclipped = YES AND (xmin = -1) THEN
     'exit clipping mode
-    mouseclipped = 0
+    mouseclipped = NO
     SDL_WarpMouse privatemx, privatemy
   END IF
   mxmin = xmin * zoom
@@ -1237,12 +1237,12 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
 END SUB
 
 'This turns forced mouse clipping on or off
-SUB set_forced_mouse_clipping(byval newvalue as integer)
+SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue
     IF forced_mouse_clipping THEN
-      IF mouseclipped = 0 THEN
+      IF mouseclipped = NO THEN
         internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
       END IF
       'If already clipped: nothing to be done
