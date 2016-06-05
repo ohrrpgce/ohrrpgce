@@ -6180,7 +6180,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setslicetext">
 			<canon>set slice text(handle, string id)</canon>
 			<shortname>set slice text</shortname>
-			<description>Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.</description>
+			<description>
+				Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.
+				Afterwards, there is no link between the text slice and the string; they have different contents.
+			</description>
 			<seealso>
 				<ref>createtext</ref>
 				<ref>getslicetext</ref>
@@ -6189,7 +6192,10 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getslicetext">
 			<canon>get slice text(string id, slice handle)</canon>
 			<shortname>get slice text</shortname>
-			<description>Copy the contents of the text slice specified by <p>slice handle</p> into a string specified by <p>string id</p>.</description>
+			<description>
+				Copy the contents of the text slice specified by <p>slice handle</p> into a string specified by <p>string id</p>.
+				Afterwards, there is no link between the text slice and the string; they have different contents.
+			</description>
 			<seealso>
 				<ref>createtext</ref>
 				<ref>setslicetext</ref>
