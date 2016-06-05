@@ -600,10 +600,10 @@ END FUNCTION
 SUB gfx_sdl_setwindowed(byval towindowed as bool)
 #IFDEF __FB_DARWIN__
   IF towindowed = NO THEN
-    'Zoom 3 or 4 look better in fullscreen, so change to one of those temporarily
-    IF zoom <= 2 AND zoom_has_been_changed = NO THEN
+    'Low resolution looks bad in fullscreen, so change zoom temporarily
+    IF zoom_has_been_changed = NO THEN
       remember_zoom = zoom
-      zoom = 3
+      zoom = large(zoom, 4)  'Rather crude
     END IF
   ELSE
     'Change zoom back?
