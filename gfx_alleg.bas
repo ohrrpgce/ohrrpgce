@@ -13,12 +13,12 @@
 
 declare sub debug(s as string)
 
-dim shared init_gfx as integer = 0
+dim shared init_gfx as bool = NO
 dim shared screenbuf as BITMAP ptr = null
 
-dim shared mouse_hidden as integer = 0
+dim shared mouse_hidden as bool = NO
 dim shared baroffset as integer = 0
-dim shared windowed as integer = 1
+dim shared windowed as bool = YES
 dim shared user_toggled_fullscreen as bool = NO
 dim shared alpal(255) as RGB
 
@@ -45,7 +45,7 @@ dim shared scantrans(0 to 127) as integer => { _
 extern "C"
 
 function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-	if init_gfx = 0 then
+	if init_gfx = NO then
 		if allegro_initialised = NO then
 			allegro_init()
 			allegro_initialised = YES
@@ -53,7 +53,7 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 		snprintf(info_buffer, info_buffer_size, "%s", allegro_id)
 
 		set_color_depth(8)
-		if windowed <> 0 then
+		if windowed then
 			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
 			baroffset = 0
 		else
@@ -67,7 +67,7 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 		unscare_mouse
 		set_window_close_hook(@post_terminate_signal)
 
-		init_gfx = 1
+		init_gfx = YES
 	end if
 	return 1
 end function
@@ -108,10 +108,8 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 end sub
 
 sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
-'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
-	dim as integer i
-
-	for i = 0 to 255
+	'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
+	for i as integer = 0 to 255
 		alpal(i).r = pal[i].r \ 4
 		alpal(i).g = pal[i].g \ 4
 		alpal(i).b = pal[i].b \ 4
@@ -124,18 +122,18 @@ function gfx_alleg_screenshot(byval fname as zstring ptr) as integer
 	gfx_alleg_screenshot = 0
 end function
 
-sub gfx_alleg_setwindowed(byval iswindow as integer)
-	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
+sub gfx_alleg_setwindowed(byval iswindow as bool)
+	if iswindow then iswindow = YES  'Only 1 "true" value
 	if iswindow = windowed then exit sub
 
 	windowed = iswindow
 
-	if init_gfx = 1 then
+	if init_gfx then
 		if screenbuf <> null then
 			destroy_bitmap(screenbuf)
 			screenbuf = null
 		end if
-		if windowed <> 0 then
+		if windowed then
 			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
 			baroffset = 0
 		else
@@ -147,7 +145,7 @@ sub gfx_alleg_setwindowed(byval iswindow as integer)
 end sub
 
 sub gfx_alleg_windowtitle(byval title as zstring ptr)
-	if init_gfx = 1 then
+	if init_gfx then
  		set_window_title(title)
  	end if
 end sub
@@ -157,7 +155,7 @@ function gfx_alleg_getwindowstate() as WindowState ptr
 	state.structsize = WINDOWSTATE_SZ
 	state.focused = YES  'Don't know
 	state.minimised = NO  'Don't know
-	state.fullscreen = (windowed = 0)
+	state.fullscreen = (windowed = NO)
 	state.user_toggled_fullscreen = user_toggled_fullscreen
 	return @state
 end function
@@ -176,11 +174,6 @@ end function
 
 '------------- IO Functions --------------
 sub io_alleg_init
-' 	'mostly handled above
-' 	if mouse_hidden = 0 then
-' 		scare_mouse() 'hide mouse
-' 		mouse_hidden = 1
-' 	end if
 end sub
 
 sub io_alleg_updatekeys(byval keybd as integer ptr)
@@ -201,7 +194,7 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 	'the polling thread rather than the main thread.
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
 		user_toggled_fullscreen = YES
-		if windowed = 0 then
+		if windowed = NO then
 			gfx_alleg_setwindowed(1)
 		else
 			gfx_alleg_setwindowed(0)
@@ -218,14 +211,14 @@ SUB io_alleg_hide_virtual_keyboard()
 END SUB
 
 sub io_alleg_setmousevisibility(byval visible as integer)
-'who know why this check is here
- 	if visible <> 0 and mouse_hidden = 1 then
+	'who know why this check is here
+	if visible <> 0 and mouse_hidden = YES then
  		unscare_mouse()
- 		mouse_hidden = 0
+		mouse_hidden = NO
  	end if
- 	if visible = 0 and mouse_hidden = 0 then
+ 	if visible = 0 and mouse_hidden = NO then
  		scare_mouse()
- 		mouse_hidden = 1
+		mouse_hidden = YES
  	end if
 end sub
 
