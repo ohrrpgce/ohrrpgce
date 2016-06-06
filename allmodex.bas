@@ -75,6 +75,7 @@ declare sub read_replay_length ()
 declare sub draw_allmodex_overlays (page as integer)
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
+declare sub hide_overlays ()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
@@ -169,6 +170,7 @@ dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext,
 type ReplayState
 	active as bool             'Currently replaying input and not paused
 	paused as bool             'While paused, keyval, etc, act on real_kb.
+	filename as string         'Used only for error messages.
 	file as integer = -1       'File handle
 	tick as integer = -1       'Counts number of ticks we've replayed
 	fpos as integer            'Debugging only: File offset of the tick chunk
@@ -479,7 +481,7 @@ private sub screen_size_update ()
 	'Changes windowsize if user tried to resize, otherwise does nothing
 	if gfx_get_resize(windowsize) then
 		'debuginfo "User window resize to " & windowsize.w & "*" & windowsize.h
-		show_overlay_message windowsize.w & " x " & windowsize.h, 1.5
+		show_overlay_message windowsize.w & " x " & windowsize.h, 0.7
 	end if
 
 	'Clamping windowsize to the minwinsize here means trying to override user
@@ -547,7 +549,7 @@ sub unlock_resolution (byval min_w as integer, byval min_h as integer)
 	if gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
-	debuginfo "unlock_resolution " & min_w & "*" & min_h
+	debuginfo "unlock_resolution(" & min_w & "," & min_h & ")"
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
@@ -556,6 +558,7 @@ end sub
 
 'Disable window resizing.
 sub lock_resolution ()
+	debuginfo "lock_resolution()"
 	resizing_enabled = gfx_set_resizable(NO, 0, 0)
 end sub
 
@@ -857,7 +860,9 @@ function dowait () as bool
 'returns true if the flag time has passed (since the last time it was passed)
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
-	if use_speed_control = NO then tickcount += 1 : return YES
+	tickcount += 1
+	if use_speed_control = NO then return YES
+	global_tog XOR= 1
 	dim i as integer
 	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
@@ -869,8 +874,6 @@ function dowait () as bool
 	else
 		debug "dowait called without setwait"
 	end if
-	tickcount += 1
-	global_tog XOR= 1
 	return timer >= flagtime
 end function
 
@@ -1852,7 +1855,7 @@ private sub replay_menu ()
 	ensure_normal_palette
 	dim previous_speed as double = base_fps_multiplier
 	base_fps_multiplier = 1.
-	choice = multichoice("Stop replaying?", menu(), 0, 0)
+	choice = multichoice("Stop replaying recorded input?", menu(), 0, 0)
 	if choice = 0 then
 		base_fps_multiplier = previous_speed
                 resume_replaying_input
@@ -1872,12 +1875,14 @@ private sub replay_controls ()
 	reentering = YES
 
 	if real_keyval(scF1) > 1 then
+		dim remem as bool = overlay_replay_display
 		pause_replaying_input()
-		overlay_replay_display = NO
+		hide_overlays()
 		base_fps_multiplier = 1.
 		show_help("share_replay")
 		setkeys
 		clearkey(scEsc)
+		overlay_replay_display = remem
 		resume_replaying_input()
 	end if
 	if real_keyval(scSpace) > 1 then
@@ -1909,8 +1914,12 @@ end sub
 
 'Show the overlay for replaying input
 private sub show_replay_overlay ()
-'	overlay_hide_time = timer + 3.
 	overlay_replay_display = YES
+end sub
+
+private sub hide_overlays ()
+	overlay_message = ""
+	overlay_replay_display = NO
 end sub
 
 private function ms_to_string (ms as integer) as string
@@ -1930,11 +1939,14 @@ private sub draw_allmodex_overlays (page as integer)
 	end if
 
 	if overlay_replay_display then
+		overlay_hide_time = 0.  'Hides any other message
 		overlay_message = "Pos: " & ms_to_string(replay.play_position_ms) & "/" & ms_to_string(replay.length_ms) & _
 		     "  " & replay.tick & "/" & replay.length_ticks & _
 		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 7) & rpad(fpsstring, " ", 10) & "[F1 for help]"
+	elseif overlay_hide_time < timer then
+		overlay_message = ""
 	end if
-	if overlay_replay_display or overlay_hide_time > timer then
+	if len(overlay_message) then
 		basic_textbox overlay_message, uilook(uiText), page, vpages(page)->h / 2 - 16
 	end if
 end sub
@@ -1956,7 +1968,11 @@ sub start_recording_input (filename as string)
 	end if
 	record.constructor()  'Clear data
 	record.file = FREEFILE
-	open filename for binary access write as #record.file
+	if open(filename for binary access write as #record.file) then
+		stop_recording_input "Couldn't open " & filename
+		record.file = -1
+		exit sub
+	end if
 	dim header as string = "OHRRPGCEkeys"
 	put #record.file,, header
 	dim ohrkey_ver as integer = 4
@@ -2003,25 +2019,30 @@ sub start_replaying_input (filename as string)
 	end if
 	replay.constructor()     'Reset
 	replay_kb.constructor()  'Reset
+	replay.filename = filename
 	replay.file = FREEFILE
-	open filename for binary access read as #replay.file
+	if open(filename for binary access read as #replay.file) then
+		stop_replaying_input "Couldn't open " & filename
+		replay.file = -1
+		exit sub
+	end if
 	replay.active = YES
 	dim header as string = STRING(12, 0)
 	GET #replay.file,, header
 	if header <> "OHRRPGCEkeys" then
-		stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+		stop_replaying_input "No OHRRPGCEkeys header in """ & replay.filename & """"
 		exit sub
 	end if
 	dim ohrkey_ver as integer = -1
 	GET #replay.file,, ohrkey_ver
 	if ohrkey_ver <> 4 then
-		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 4"
+		stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & replay.filename & """. Only know how to understand version 4"
 		exit sub
 	end if
 	dim seed as double
 	GET #replay.file,, seed
 	RANDOMIZE seed, 3
-	debuginfo "Replaying keyboard input from: """ & filename & """"
+	debuginfo "Replaying keyboard input from: """ & replay.filename & """"
 	read_replay_length()
 	show_replay_overlay()
 end sub
@@ -2039,6 +2060,8 @@ sub stop_replaying_input (msg as string="", byval errorlevel as ErrorLevelEnum =
 		debugc errorlevel, "STOP replaying input"
 		use_speed_control = YES
 	end if
+	' Cancel any speedup
+	base_fps_multiplier = 1.
 end sub
 
 ' While replay is paused you can call setkeys without changing the replay state,
