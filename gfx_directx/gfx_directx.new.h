@@ -56,8 +56,6 @@ DLLEXPORT void gfx_SetWindowTitle(const char* szTitle); //sets the window title;
 DLLEXPORT const char* gfx_GetWindowTitle(); //returns the window title without the backend's possible additions
 DLLEXPORT void gfx_GetWindowState(WindowState *pState); //returns window information
 
-DLLEXPORT void gfx_ShowCursor(); //sets the os cursor to display over the client area
-DLLEXPORT void gfx_HideCursor(); //sets the os cursor to hide while over the client area
 DLLEXPORT void gfx_ClipCursor(int left, int top, int right, int bottom); //clips the os cursor to the ohr rectangle, which is scaled to the client area; passing a negative for any value disables the clip
 
 /////////////////////////////////////////////////////////////////////////////////////////////

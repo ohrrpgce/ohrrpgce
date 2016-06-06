@@ -1944,7 +1944,7 @@ SUB text_test_menu
   dowait
  LOOP
  setkeys
- unhidemousecursor
+ defaultmousecursor
 END SUB
 
 SUB font_test_menu

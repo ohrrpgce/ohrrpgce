@@ -1,4 +1,11 @@
 --------------------------------------------------
+6/5/16
+v1.19
+
+-New io_setmousevisibility and rewritten cursor visibility handling
+-A few other undocumented changes over the last years
+
+--------------------------------------------------
 6/6/12
 v1.18
 

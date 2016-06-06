@@ -42,6 +42,16 @@ type GamePadMap
 	R2 as integer
 end type
 
+' This is used in a C interface, so need to force 32 bit type (enums may be 64 bit).
+' -1 for compatibility with old io_setmousevisibility.
+type CursorVisibility as integer
+enum
+	cursorHidden = 0   'Cursor always hidden
+	cursorVisible = -1 'Cursor always shown, except on touch screens
+	cursorDefault = -2 'Cursor shown when windowed, hidden in fullscreen
+end enum
+
+
 extern wantpollingthread as bool
 extern as string gfxbackend, musicbackend
 extern as string gfxbackendinfo, musicbackendinfo, systeminfo
@@ -164,7 +174,7 @@ extern Io_mousebits as sub (byref mx as integer, byref my as integer, byref mwhe
 extern Io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 
 extern Io_setmouse as sub (byval x as integer, byval y as integer)
-extern Io_setmousevisibility as sub (byval visible as integer)
+extern Io_setmousevisibility as sub (byval visibility as CursorVisibility)
 
 'call io_mouserect(-1, -1, -1, -1) to disable clipping
 extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)

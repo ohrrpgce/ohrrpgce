@@ -307,7 +307,10 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 	ns.rClippedArea = r;
 	ns.buttonClipped = CS_OFF;
 	ns.clipped = CS_OFF;
-	ns.visibility = CV_SHOW;
+	ns.visibility = CV_Default;
+	// We will immediately receive a message to let us know if the mouse starts over the window
+	ns.bOverClient = false;
+	ns.bCursorVisible = true;
 	ns.mode = VM_WINDOWED;
 	m_state = ns;
 	m_inputState.push(IS_LIVE);
@@ -324,38 +327,19 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_NCHITTEST:
 		{
+			// Test whether the mouse is over the client area of the window
+			// FIXME: it appears that it's wrong to do anything (like call ShowCursor) in response to this,
+			// because this message can be recieved as a query rather than a mouse movement?
+			// Should react to WM_NCMOUSEMOVE and WM_MOUSEMOVE instead?
+
 			//if(!(m_state.mode == VM_WINDOWED && m_state.clipped == CS_ON && m_inputState.top() == IS_LIVE))
 			//{
+
 				if(HTCLIENT == DefWindowProc(hWnd, msg, wParam, lParam))
-				{
-					if(!bWasOverClient)
-					{
-						bWasOverClient = true;
-						if(m_state.mode == VM_WINDOWED && m_state.visibility == CV_HIDE)
-						{
-							if(m_inputState.top() == IS_LIVE && !bWasHidingCursor)
-							{
-								bWasHidingCursor = true;
-								ShowCursor(FALSE);
-							}
-						}
-					}
-				}
+					m_state.bOverClient = true;
 				else
-				{
-					if(bWasOverClient)
-					{
-						bWasOverClient = false;
-						if(m_state.mode == VM_WINDOWED)
-						{
-							if(bWasHidingCursor)
-							{
-								bWasHidingCursor = false;
-								ShowCursor(TRUE);
-							}
-						}
-					}
-				}
+					m_state.bOverClient = false;
+				updateCursorVisibility();
 			//}
 			return false;
 		}
@@ -571,8 +555,6 @@ void Mouse2::setInputState(InputState state)
 		{
 			if(m_state.clipped == CS_ON)
 				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
-			if(m_state.visibility == CV_HIDE)
-				ShowCursor(FALSE);
 		}
 	}
 	else
@@ -585,10 +567,9 @@ void Mouse2::setInputState(InputState state)
 		else
 		{
 			ClipCursor(NULL);
-			if(m_state.visibility == CV_HIDE)
-				ShowCursor(TRUE);
 		}
 	}
+	updateCursorVisibility();
 }
 
 void Mouse2::setVideoMode(VideoMode mode)
@@ -600,14 +581,11 @@ void Mouse2::setVideoMode(VideoMode mode)
 	{
 		if(m_inputState.top() == IS_DEAD)
 		{
-			ShowCursor(FALSE);
 			RECT r = {0,0,319,199};
 			ClipCursor(&ScaleRectClient(m_hWnd, r));
 		}
 		else
 		{
-			if(m_state.visibility == CV_SHOW)
-				ShowCursor(FALSE);
 			if(m_state.clipped == CS_ON)
 				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
 			else
@@ -621,19 +599,52 @@ void Mouse2::setVideoMode(VideoMode mode)
 	{
 		if(m_inputState.top() == IS_DEAD)
 		{
-			ShowCursor(TRUE);
 			ClipCursor(NULL);
 		}
 		else
 		{
-			if(m_state.visibility == CV_SHOW)
-				ShowCursor(TRUE);
 			if(m_state.clipped == CS_ON)
 				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
 			else
 				ClipCursor(NULL);
 		}
 	}
+	updateCursorVisibility();
+}
+
+// Decide whether the cursor should be visible, and enact.
+void Mouse2::updateCursorVisibility()
+{
+	bool bCurrent = m_state.bCursorVisible;
+	bool bNew;
+	if(m_inputState.top() == IS_DEAD)
+	{
+		if(m_state.mode == VM_FULLSCREEN)
+			bNew = false;
+		else
+			bNew = true;
+	}
+	else
+	{
+		if(!m_state.bOverClient)
+			bNew = m_state.mode == VM_WINDOWED;
+		else
+		{
+			if(m_state.visibility == CV_Visible)
+				bNew = true;
+			else if(m_state.visibility == CV_Hidden)
+				bNew = false;
+			else  // CV_Default
+				bNew = m_state.mode == VM_WINDOWED;
+		}
+	}
+	// ShowCursor increments or decrements an internal counter;
+	// the cursor is hidden when the counter reaches zero.
+	if (bNew && !bCurrent)
+		ShowCursor(TRUE);
+	else if (!bNew && bCurrent)
+		ShowCursor(FALSE);
+	m_state.bCursorVisible = bNew;
 }
 
 void Mouse2::setCursorVisibility(CursorVisibility visibility)
@@ -643,16 +654,7 @@ void Mouse2::setCursorVisibility(CursorVisibility visibility)
 	m_state.visibility = visibility;
 	if(m_inputState.top() == IS_DEAD)
 		return;
-	if(m_state.visibility == CV_SHOW)
-	{
-		if(m_state.mode == VM_WINDOWED)
-			ShowCursor(TRUE);
-	}
-	else
-	{
-		if(m_state.mode == VM_WINDOWED)
-			ShowCursor(FALSE);
-	}
+	updateCursorVisibility();
 }
 
 void Mouse2::setClipState(ClipState state)

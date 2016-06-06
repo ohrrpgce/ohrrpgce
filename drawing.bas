@@ -189,7 +189,7 @@ DO
   IF mstate.pt = 4 THEN
    hidemousecursor
    GOSUB disable
-   unhidemousecursor
+   defaultmousecursor
   END IF
   IF mstate.pt = 5 THEN
    DIM outfile as string
@@ -1040,7 +1040,7 @@ END IF
 v_free ts.defaultwalls
 oldpaste = ts.canpaste
 frame_unload @ts.drawframe
-unhidemousecursor
+defaultmousecursor
 END SUB
 
 SUB refreshtileedit (mover() as integer, state as TileEditState)
@@ -2749,7 +2749,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   imagepos.y = 1
  END IF
 
- DIM mouse_was_visible as bool = mousecursorvisible()
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  hidemousecursor
  DIM mouse as MouseInfo
  setkeys
@@ -2827,7 +2827,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   setvispage vpage
   dowait
  LOOP
- IF mouse_was_visible THEN unhidemousecursor
+ setcursorvisibility(prev_mouse_vis)
  RETURN ret
 END FUNCTION
 
@@ -3210,7 +3210,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   tick = 0
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
- unhidemousecursor
+ defaultmousecursor
  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 EXIT SUB

@@ -182,8 +182,10 @@ DECLARE SUB resume_recording_input
 
 DECLARE FUNCTION havemouse () as bool
 DECLARE SUB hidemousecursor ()
-DECLARE SUB unhidemousecursor ()
-DECLARE FUNCTION mousecursorvisible () as bool
+DECLARE SUB showmousecursor ()
+DECLARE SUB defaultmousecursor ()
+DECLARE SUB setcursorvisibility (state as CursorVisibility)
+DECLARE FUNCTION getcursorvisibility () as CursorVisibility
 DECLARE FUNCTION readmouse () as MouseInfo
 DECLARE SUB movemouse (byval x as integer, byval y as integer)
 DECLARE SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
