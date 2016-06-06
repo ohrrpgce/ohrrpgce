@@ -208,7 +208,7 @@ dim shared endpollthread as bool         'signal the polling thread to quit
 dim shared keybdstate(scLAST) as integer '"real"time keyboard array (only used internally by pollingthread)
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
-dim shared cursorvisible as bool = YES
+dim shared cursorvisibility as CursorVisibility = cursorDefault
 
 'State saved from one readmouse call to the next
 dim shared mouse_lastpos as XYPair       'Position at last readmouse call
@@ -627,6 +627,7 @@ sub set_scale_factor (scale as integer)
 end sub
 
 'Returns true if successfully queries the fullscreen state, in which case 'fullscreen' is set.
+'(Note: gfx_fb doesn't know for certain whether it's fullscreen; can't catch alt+enter.
 function try_check_fullscreen(byref fullscreen as bool) as bool
 	dim winstate as WindowState ptr = gfx_getwindowstate()
 	if winstate andalso winstate->structsize >= 4 then
@@ -1572,22 +1573,41 @@ end sub
 
 
 function havemouse() as bool
-'atm, all backends support the mouse, or don't know
-	 return YES
+	'atm, all backends support the mouse, or don't know
+	return YES
 end function
 
+' Cause mouse cursor to be always hidden
 sub hidemousecursor ()
-	io_setmousevisibility(0)
-	cursorvisible = NO
+	io_setmousevisibility(cursorHidden)
+	cursorvisibility = cursorHidden
 end sub
 
+' Cause mouse cursor to be always visible, except on touchscreen devices
 sub showmousecursor ()
-	io_setmousevisibility(-1)
-	cursorvisible = YES
+	io_setmousevisibility(cursorVisible)
+	cursorvisibility = cursorVisible
 end sub
 
-function mousecursorvisible () as bool
-	return cursorvisible
+' Use when the mouse is not in use:
+' Hide the mouse cursor in fullscreen, and show it when windowed.
+sub defaultmousecursor ()
+	io_setmousevisibility(cursorDefault)
+	cursorvisibility = cursorDefault
+end sub
+
+sub setcursorvisibility (state as CursorVisibility)
+	select case state
+	case cursorVisible, cursorHidden, cursorDefault
+		io_setmousevisibility(state)
+		cursorvisibility = state
+	case else
+		showerror "Bad setcursorvisibility(" & state & ") call"
+	end select
+end sub
+
+function getcursorvisibility () as CursorVisibility
+	return cursorvisibility
 end function
 
 function readmouse () as MouseInfo
@@ -1658,6 +1678,8 @@ sub movemouse (byval x as integer, byval y as integer)
 end sub
 
 sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+	' Set window title to tell the player about scrolllock to escape mouse-grab
+	' gfx_directx does this itself, including handling scroll lock
 	if gfxbackend = "fb" or gfxbackend = "sdl" then
 		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
 			mouse_grab_requested = NO

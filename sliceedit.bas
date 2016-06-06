@@ -355,7 +355,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
  '--Ensure all the slices are updated before the loop starts
  RefreshSliceTreeScreenPos ses.draw_root
 
- DIM mouse_was_visible as bool = mousecursorvisible()
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  showmousecursor
  #IFDEF IS_GAME
   DIM resolution_was_unlocked as bool = resolution_unlocked()
@@ -624,7 +624,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
 
  restore_previous_palette
  setkeys
- IF mouse_was_visible = NO THEN hidemousecursor
+ setcursorvisibility(prev_mouse_vis)
  #IFDEF IS_GAME
   'Make sure not to lock resolution when leaving recursive slice_editor() call
   IF resolution_was_unlocked = NO THEN

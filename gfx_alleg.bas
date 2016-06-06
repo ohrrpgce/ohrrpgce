@@ -64,7 +64,11 @@ function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval wi
 
 		install_keyboard
 		install_mouse
-		unscare_mouse
+		if windowed then
+			unscare_mouse
+		else
+			scare_mouse
+		end if
 		set_window_close_hook(@post_terminate_signal)
 
 		init_gfx = YES
@@ -210,13 +214,22 @@ SUB io_alleg_hide_virtual_keyboard()
 	'Does nothing on platforms that have real keyboards
 END SUB
 
-sub io_alleg_setmousevisibility(byval visible as integer)
+sub io_alleg_setmousevisibility(byval visibility as CursorVisibility)
+	dim vis as bool
+	if visibility = cursorDefault then
+		if windowed = YES then vis = NO else vis = YES
+	elseif visibility = cursorVisible then
+		vis = YES
+	else
+		vis = NO
+	end if
+
 	'who know why this check is here
-	if visible <> 0 and mouse_hidden = YES then
+	if vis = YES and mouse_hidden = YES then
  		unscare_mouse()
 		mouse_hidden = NO
  	end if
- 	if visible = 0 and mouse_hidden = NO then
+	if vis = YES and mouse_hidden = NO then
  		scare_mouse()
 		mouse_hidden = YES
  	end if

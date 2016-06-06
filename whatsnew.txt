@@ -24,7 +24,7 @@ WHAT IS NEW?
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
 
-??? ?? 2016 [Callipygous+1]
+June ?? 2016 [Callipygous+1]
 
   * Bugfixes
     * You weren't meant to be able to resize the window in the sprite
@@ -39,6 +39,7 @@ WHAT IS NEW?
     * Fix the Android virtual gamepad being hidden if you open a game,
       exit to the file-picker and then open a game again
     * Options for changing the window size now work on Macs [Ralph]
+    * "unhide mouse cursor" now works in fullscreen too [Ralph]
 
   * Stuff Only Developers Will Notice
     * 64 bit builds work now.

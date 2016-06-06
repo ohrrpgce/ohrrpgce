@@ -6,6 +6,7 @@
 ''
 
 #include "config.bi"
+#include "util.bi"
 #include "fbgfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
@@ -23,6 +24,8 @@ extern "C"
 'subs only used internally
 declare sub gfx_fb_screenres()		'set screen res, etc
 declare sub calculate_screen_res()
+declare sub update_mouse_visibility()
+
 
 'border required to fit standard 4:3 screen at zoom 1
 #define BORDER 20
@@ -38,7 +41,7 @@ dim shared bordered as integer = 0  '0 or 1
 dim shared depth as integer = 8
 dim shared smooth as integer = 0  '0 or 1
 dim shared mouseclipped as bool = NO
-dim shared mouse_visible as integer = 1  '0 or 1
+dim shared mouse_visibility as CursorVisibility = cursorDefault
 dim shared remember_windowtitle as string
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared inputtext as string
@@ -68,14 +71,32 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	return 1
 end function
 
-sub gfx_fb_screenres
+private sub gfx_fb_screenres
 	if window_state.fullscreen = YES then
 		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
-		setmouse , , 0
 	else
 		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
-		setmouse , , mouse_visible
 	end if
+	update_mouse_visibility()
+end sub
+
+private sub update_mouse_visibility
+	dim vis as integer  '0 or 1
+	if mouse_visibility = cursorDefault then
+		' window_state.fullscreen is an approximation (see process_events()),
+		' and because it's so unreliable we need a constant default.
+#ifdef IS_CUSTOM
+		vis = 1
+#else
+		vis = 0
+#endif
+		'if window_state.fullscreen = YES then vis = 0 else vis = 1
+	elseif mouse_visibility = cursorVisible then
+		vis = 1
+	else
+		vis = 0
+	end if
+	setmouse  , , vis
 end sub
 
 sub gfx_fb_update_screen_mode()
@@ -112,7 +133,7 @@ sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integ
 	elseif depth = 32 then
 		smoothzoomblit_8_to_32bit(raw, cast(uint32 ptr, sptr), w, h, w * zoom, zoom, smooth, @truepal(0))
 	else
-		debug "gfx_fb_showpage: depth " & depth
+		debugc errDie, "gfx_fb_showpage: bad depth " & depth
 	end if
 
 	screenunlock
@@ -252,6 +273,7 @@ end function
 
 sub calculate_screen_res()
 	'FIXME: this is an utter mess
+	'FIXME: fullscreen doesn't work if the zoom results in an odd resolution like 960x600.
 	'calculate mode
 	if zoom = 1 then
 		if depth = 8 then
@@ -285,9 +307,7 @@ end function
 
 '------------- IO Functions --------------
 sub io_fb_init
-	'setmouse , , 0 'hide mouse
 end sub
-
 
 sub process_key_event(e as Event, byval value as integer)
 	'NOTE: numpad 5 seems to be broken on Windows, events for that key have scancode = 0 regardless of numlock state!
@@ -328,23 +348,19 @@ sub process_events()
 			window_state.focused = NO
 		end if
 		if e.type = EVENT_WINDOW_GOT_FOCUS then
-			if window_state.fullscreen then
-				setmouse , , 0
-			else
-				setmouse , , mouse_visible
-			end if
+			update_mouse_visibility()
 			window_state.focused = YES
 		end if
 		if e.type = EVENT_KEY_PRESS then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
-			'debug "key press scan=" & e.scancode & " ascii=" & e.ascii
+			'debug "key press scan=" & e.scancode & " (" & scancodename(e.scancode) & ") ascii=" & e.ascii
 			process_key_event(e, 8)
 		end if
 		if e.type = EVENT_KEY_REPEAT then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
 		end if
 		if e.type = EVENT_KEY_RELEASE then
-			'debug "key release scan=" & e.scancode & " ascii=" & e.ascii
+			'debug "key release scan=" & e.scancode & " (" & scancodename(e.scancode) & ") ascii=" & e.ascii
 			process_key_event(e, 0)
 		end if
 	wend
@@ -364,16 +380,14 @@ sub process_events()
 
 	'Try to catch fullscreening to reduce mouse visibility confusion. However, fullscreening
 	'with the window button is not considered.
-	'We can't directly detect alt+enter because FB doesn't report key events when alt is held
-	'extremely insensitive, useless.
+	'FB's X11 backend in effect doesn't report key events for alt+enter, nor will you ever see both
+	'pressed at once with multikey, because the moment that they are, FB (the X11 backend anyway)
+	'toggles fullscreen, resetting the state.
+	'And FB has no way to check whether we're fullscreen.
 /'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
 		window_state.fullscreen xor= YES
 		window_state.user_toggled_fullscreen = YES
-		if window_state.fullscreen then
-			setmouse , , 0
-		else
-			setmouse , , mouse_visible
-		end if
+		update_mouse_visibility()
 	end if
 	last_enter_state = multikey(SC_ENTER)
 '/
@@ -440,17 +454,14 @@ SUB io_fb_hide_virtual_keyboard()
 	'Does nothing on platforms that have real keyboards
 END SUB
 
-sub io_fb_setmousevisibility(byval visible as integer)
-	'Note that 'windowed' is an approximation - see process_events()
-	mouse_visible = iif(visible, 1, 0)
-	if window_state.fullscreen then
-		setmouse , , 0
-	else
-		setmouse , , mouse_visible
-	end if
+sub io_fb_setmousevisibility(visibility as CursorVisibility)
+	mouse_visibility = visibility
+	update_mouse_visibility()
 end sub
 
 sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
+	'FIXME: this is broken in fullscreen -z 2, with the Y position offset from the true, even if
+	'FB accurately knows that it's running in fullscreen.
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
 	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
