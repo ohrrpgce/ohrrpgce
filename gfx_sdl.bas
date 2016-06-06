@@ -91,7 +91,7 @@ DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
-DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
+DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
 DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
@@ -120,15 +120,16 @@ DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
-DIM SHARED rememmvis as integer = 1
+DIM SHARED remember_enable_textinput as bool = NO
+DIM SHARED mouse_visible as integer = 1
 DIM SHARED debugging_io as bool = NO
 DIM SHARED keystate as Uint8 ptr = NULL
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
-DIM SHARED mouseclipped as integer = NO   'Whether we are ACTUALLY clipped
-DIM SHARED forced_mouse_clipping as integer = NO
+DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
+DIM SHARED forced_mouse_clipping as bool = NO
 'These were the args to the last call to io_mouserect
 DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
@@ -301,6 +302,9 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
   
+  ' SDL_VIDEO_CENTERED has no effect on Mac (Quartz backend); the window is always
+  ' centred unless SDL_VIDEO_WINDOW_POS is in effect.
+
   IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
     putenv("SDL_VIDEO_CENTERED=1")
   ELSE
@@ -365,10 +369,12 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     flags = flags OR SDL_FULLSCREEN
   END IF
 #IFDEF __FB_DARWIN__
+  '(In brief recent testing with SDL 1.2.14 and OS 10.8.5 I couldn't find any need
+  'to force a reset, but I'll assume there may still be a need for older OSX or SDL or something.)
   force_video_reset = YES
 #ENDIF
   IF force_video_reset THEN
-    'Sometimes need to quit and reinit the video subsystem fro changes to take effect
+    'Sometimes need to quit and reinit the video subsystem for changes to take effect
     force_video_reset = NO
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
       SDL_QuitSubSystem(SDL_INIT_VIDEO)
@@ -376,10 +382,6 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
         debug "Can't start SDL video subsys (resize): " & *SDL_GetError
       END IF
     END IF
-#IFDEF __FB_DARWIN__
-    'Force clipping in fullscreen, and undo when leaving
-    set_forced_mouse_clipping (windowedmode = NO)
-#ENDIF
   END IF
 #IFDEF __FB_ANDROID__
   'On Android, the requested screen size will be stretched.
@@ -439,18 +441,29 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   LOOP
   'Don't recenter the window as the user resizes it
   '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
+  'Note: on OSX unfortunately SDL will always recenter the window if its resizability changes, and the only
+  'way to override that is to set SDL_VIDEO_WINDOW_POS.
 #IFDEF __FB_WIN32__
   putenv("SDL_VIDEO_CENTERED=")
 #ELSE
   unsetenv("SDL_VIDEO_CENTERED")
 #ENDIF
 
+#ENDIF  ' Not __FB_ANDROID__
+
+#IFDEF __FB_DARWIN__
+  ' SDL on OSX forgets the Unicode input state after a setvideomode
+  SDL_EnableUNICODE(IIF(remember_enable_textinput, 1, 0))
+
+  'Force clipping in fullscreen, and undo when leaving
+  set_forced_mouse_clipping (windowedmode = NO AND mouse_visible = NO)
 #ENDIF
+
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   IF windowedmode = NO THEN
     SDL_ShowCursor(0)
   ELSE
-    SDL_ShowCursor(rememmvis)
+    SDL_ShowCursor(mouse_visible)
   END IF
   RETURN 1
 END FUNCTION
@@ -583,13 +596,13 @@ FUNCTION gfx_sdl_screenshot(byval fname as zstring ptr) as integer
   gfx_sdl_screenshot = 0
 END FUNCTION
 
-SUB gfx_sdl_setwindowed(byval iswindow as integer)
+SUB gfx_sdl_setwindowed(byval towindowed as bool)
 #IFDEF __FB_DARWIN__
-  IF iswindow = NO THEN
-    'Zoom 3 or 4 look better in fullscreen, so change to one of those temporarily
-    IF zoom <= 2 AND zoom_has_been_changed = NO THEN
+  IF towindowed = NO THEN
+    'Low resolution looks bad in fullscreen, so change zoom temporarily
+    IF zoom_has_been_changed = NO THEN
       remember_zoom = zoom
-      zoom = 3
+      zoom = large(zoom, 4)  'Rather crude
     END IF
   ELSE
     'Change zoom back?
@@ -598,13 +611,14 @@ SUB gfx_sdl_setwindowed(byval iswindow as integer)
     END IF
   END IF
 #ENDIF
-  IF iswindow = 0 THEN
+  IF towindowed = 0 THEN
     windowedmode = NO
   ELSE
     windowedmode = YES
   END IF
   gfx_sdl_set_screen_mode()
   IF screensurface = NULL THEN
+   debuginfo "setwindowed: fallback to previous zoom"
    'Attempt to fallback
    windowedmode XOR= YES
    IF remember_zoom <> -1 THEN
@@ -676,7 +690,7 @@ SUB gfx_sdl_recenter_window_hint()
   'Takes effect at the next SDL_SetVideoMode call, and it's then removed
   debuginfo "recenter_window_hint()"
   putenv("SDL_VIDEO_CENTERED=1")
-  '(Note this is overridden by SDL_VIDEO_WINDOW_POS)
+  '(Note this is overridden by SDL_VIDEO_WINDOW_POS, so this function may do nothing when running as slave)
 #IFDEF __FB_WIN32__
   'Under Windows SDL_VIDEO_CENTERED only has an effect when the window is recreated, which happens if
   'the resolution (and probably other settings) change. So force recreating by quitting and restarting
@@ -859,6 +873,9 @@ SUB gfx_sdl_process_events()
   WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
     SELECT CASE evnt.type
       CASE SDL_QUIT_
+        IF debugging_io THEN
+          debuginfo "SDL_QUIT"
+        END IF
         post_terminate_signal
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
@@ -892,17 +909,17 @@ SUB gfx_sdl_process_events()
           END IF
           IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
-            IF mouseclipped = 1 THEN
+            IF mouseclipped THEN
               SDL_WarpMouse privatemx, privatemy
               SDL_PumpEvents
             END IF
           ELSE
             IF windowedmode THEN
-              SDL_ShowCursor(rememmvis)
+              SDL_ShowCursor(mouse_visible)
             ELSE
               SDL_ShowCursor(0)
             END IF
-            IF mouseclipped = 1 THEN
+            IF mouseclipped THEN
               SDL_GetMouseState(@privatemx, @privatemy)
               lastmx = privatemx
               lastmy = privatemy
@@ -999,6 +1016,7 @@ END SUB
 SUB io_sdl_enable_textinput (byval enable as integer)
   DIM oldstate as integer
   oldstate = SDL_EnableUNICODE(IIF(enable, 1, 0))
+  remember_enable_textinput = enable  ' Needed only because of an SDL bug on OSX
   IF debugging_io THEN
     debuginfo "SDL_EnableUNICODE(" & enable & ") = " & oldstate & " (prev state)"
   END IF
@@ -1120,8 +1138,11 @@ FUNCTION io_sdl_running_on_ouya() as bool
 END FUNCTION
 
 SUB io_sdl_setmousevisibility(byval visible as integer)
-  rememmvis = iif(visible, 1, 0)
-  SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
+  mouse_visible = iif(visible, 1, 0)
+  SDL_ShowCursor(mouse_visible)
+#IFDEF __FB_DARWIN__
+  set_forced_mouse_clipping (windowedmode = NO AND mouse_visible = NO)
+#ENDIF
 END SUB
 
 'Change from SDL to OHR mouse button numbering (swap middle and right)
@@ -1196,16 +1217,24 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
       SDL_WarpMouse x * zoom, y * zoom
       SDL_PumpEvents
+#IFDEF __FB_DARWIN__
+      ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
+      ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
+      ' but SDL forgets to hide the cursor if it was previously requested, and further,
+      ' SDL_ShowCursor(0) does nothing because SDL thinks it's already hidden.
+      SDL_ShowCursor(1)
+      SDL_ShowCursor(mouse_visible)
+#ENDIF
     END IF
   END IF
 END SUB
 
 SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  IF mouseclipped = 0 AND (xmin >= 0) THEN
+  IF mouseclipped = NO AND (xmin >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
     'we stick the mouse at the centre of the window. It's a very common hack.
-    mouseclipped = 1
+    mouseclipped = YES
     SDL_GetMouseState(@privatemx, @privatemy)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
       SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
@@ -1213,9 +1242,9 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
     END IF
     lastmx = screensurface->w \ 2
     lastmy = screensurface->h \ 2
-  ELSEIF mouseclipped = 1 AND (xmin = -1) THEN
+  ELSEIF mouseclipped = YES AND (xmin = -1) THEN
     'exit clipping mode
-    mouseclipped = 0
+    mouseclipped = NO
     SDL_WarpMouse privatemx, privatemy
   END IF
   mxmin = xmin * zoom
@@ -1225,12 +1254,12 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
 END SUB
 
 'This turns forced mouse clipping on or off
-SUB set_forced_mouse_clipping(byval newvalue as integer)
+SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue
     IF forced_mouse_clipping THEN
-      IF mouseclipped = 0 THEN
+      IF mouseclipped = NO THEN
         internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
       END IF
       'If already clipped: nothing to be done
