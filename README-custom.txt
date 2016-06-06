@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor      (2016-04-04 callipygous version)
+ O.H.R.RPG.C.E Editor    (2016-06-06 callipygous+1 version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
