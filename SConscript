@@ -146,10 +146,12 @@ music = [music.lower ()]
 ################ Create base environment
 
 #CXXLINKFLAGS are used when linking with g++
-#FBLINKFLAGS are used when linking with fbc
+#FBLINKFLAGS are passed to fbc when linking with fbc
+#FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
 
 env = Environment (FBFLAGS = FBFLAGS,
                    FBLINKFLAGS = [],
+                   FBLINKERFLAGS = [],
                    CFLAGS = CFLAGS,
                    FBC = fbc,
                    CXXFLAGS = CXXFLAGS,
@@ -203,7 +205,10 @@ baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
 basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $FBFLAGS',
                     suffix = '.o', src_suffix = '.bas', single_source = True,
                     source_factory = translate_rb)
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS',
+
+# Only used when linking with fbc.
+# Because fbc ignores all but the last -Wl flag, have to concatenate them.
+basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
                   suffix = exe_suffix, src_suffix = '.bas', source_factory = translate_rb)
 
 # Not used; use asm=1
