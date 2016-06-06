@@ -2069,12 +2069,14 @@ SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray
  FOR i as integer = 0 TO uiBoxLast
   boxarray(i).bgcol = boxdef(i * 2)
   boxarray(i).edgecol = boxdef(i * 2 + 1)
+  boxarray(i).border = 0  'Line only
  NEXT i
 END SUB
 
 SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  'Default UI for Classic OHR master palette
  'for upgrading old games that lack an uicolors.bin file
+ 'Boxstyle borders all set to line only.
  DIM uidef(uiColorLast) as integer = _
         {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240}
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
@@ -2086,6 +2088,7 @@ END SUB
 SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  'Default UI for NeoTA's new Master palette
  'for the filepicker before loading a game.
+ 'Boxstyle borders all set to line only.
  DIM uidef(uiColorLast) as integer = _
         {0,144,80,110,240,102,144,244,215,242,67,212,215,240,0,220,110,0}
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
