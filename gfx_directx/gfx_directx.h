@@ -27,6 +27,12 @@ struct GFX_INIT
 };
 #include "stdint.h"
 
+enum CursorVisibility {
+	CV_Hidden = 0,   // (cursorHidden)  Cursor always hidden
+	CV_Visible = -1, // (cursorVisible) Cursor always shown, except on touch screens
+	CV_Default = -2  // (cursorDefault) Cursor shown when windowed, hidden in fullscreen
+};
+
 //surfaces
 enum SurfaceFormat
 {
@@ -123,7 +129,7 @@ DFI_DECLARE_CDECL( void, io_pollkeyevents );
 DFI_DECLARE_CDECL( void, io_keybits, int *keybd );
 DFI_DECLARE_CDECL( void, io_textinput, wchar_t* buffer, int bufferLen );
 //DFI_DECLARE_CDECL( void, io_mousebits, int& mx, int& my, int& mwheel, int& mbuttons, int& mclicks );
-DFI_DECLARE_CDECL( int, io_setmousevisibility, int visible );
+DFI_DECLARE_CDECL( int, io_setmousevisibility, CursorVisibility visibility );
 DFI_DECLARE_CDECL( void, io_getmouse, int& mx, int& my, int& mwheel, int& mbuttons );
 DFI_DECLARE_CDECL( void, io_setmouse, int x, int y );
 DFI_DECLARE_CDECL( void, io_mouserect, int xmin, int xmax, int ymin, int ymax );
@@ -160,8 +166,7 @@ DFI_DECLARE_CDECL( void, gfx_SetWindowTitle, const char* szTitle ); //sets the w
 DFI_DECLARE_CDECL( const char*, gfx_GetWindowTitle ); //returns the window title without the backend's possible additions
 DFI_DECLARE_CDECL( void, gfx_GetWindowState, int nID, WindowState *pState ); //returns window information
 
-DFI_DECLARE_CDECL( void, gfx_ShowCursor ); //sets the os cursor to display over the client area
-DFI_DECLARE_CDECL( void, gfx_HideCursor ); //sets the os cursor to hide while over the client area
+DFI_DECLARE_CDECL( void, gfx_SetCursorVisibility, CursorVisibility visibility ); //visibility of the OS cursor over the client area
 DFI_DECLARE_CDECL( void, gfx_ClipCursor, int left, int top, int right, int bottom ); //clips the os cursor to the ohr rectangle, which is scaled to the client area; passing a negative for any value disables the clip
 
 /////////////////////////////////////////////////////////////////////////////////////////////

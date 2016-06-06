@@ -205,12 +205,9 @@ DFI_IMPLEMENT_CDECL(void, io_textinput, wchar_t *buffer, int bufferLen)
 	gfx_GetText(buffer, bufferLen);
 }
 
-DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
+DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, CursorVisibility visibility)
 {
-	if(visible == 0)
-		gfx_HideCursor();
-	else
-		gfx_ShowCursor();
+	gfx_SetCursorVisibility(visibility);
 	return 1;
 }
 
@@ -550,16 +547,9 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 
-DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)
+DFI_IMPLEMENT_CDECL(void, gfx_SetCursorVisibility, CursorVisibility visibility)
 {
-	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_SHOW);
-	//g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
-}
-
-DFI_IMPLEMENT_CDECL(void, gfx_HideCursor)
-{
-	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_HIDE);
-	g_Mouse.setInputState(gfx::Mouse2::IS_LIVE);
+	g_Mouse.setCursorVisibility(visibility);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_ClipCursor, int left, int top, int right, int bottom)
@@ -706,7 +696,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			switch(wParam)
 			{
-			case VK_SCROLL:
+			case VK_SCROLL:  // scroll lock: disable mouse input and clipping
 				{
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{

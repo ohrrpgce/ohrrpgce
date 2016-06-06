@@ -7,6 +7,8 @@
 #include <windows.h>
 #include <stack>
 
+#include "gfx_directx.h"  // for CursorVisibility
+
 namespace gfx
 {
 	//class Mouse
@@ -108,11 +110,6 @@ namespace gfx
 			VM_WINDOWED,
 			VM_FULLSCREEN,
 		};
-		enum CursorVisibility
-		{
-			CV_SHOW,
-			CV_HIDE,
-		};
 		enum ClipState
 		{
 			CS_OFF,
@@ -123,7 +120,9 @@ namespace gfx
 		struct State
 		{
 			VideoMode mode;
-			CursorVisibility visibility;
+			CursorVisibility visibility;  // The visibility requested by the engine
+			bool bCursorVisible;  // Whether the cursor is actually currently visible
+			bool bOverClient;  // Whether the mouse is over the client area (where visibility takes effect)
 			ClipState clipped;
 			RECT rClippedArea;
 			ClipState buttonClipped;
@@ -137,6 +136,8 @@ namespace gfx
 		Buttons m_buttons;
 		std::stack<InputState> m_inputState;
 		State m_state;
+
+		void updateCursorVisibility();
 	public:
 		Mouse2();
 
@@ -145,7 +146,7 @@ namespace gfx
 		Buttons getButtonState() const {return m_buttons;}
 		bool isInputLive() const {return m_inputState.top() == IS_LIVE;}
 		bool isVideoFullscreen() const {return m_state.mode == VM_FULLSCREEN;}
-		bool isCursorVisible() const {return m_state.visibility == CV_SHOW;}
+		bool isCursorVisible() const {return m_state.bCursorVisible;}
 		bool isClippedCursor() const {return m_state.clipped == CS_ON;}
 
 		bool processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
