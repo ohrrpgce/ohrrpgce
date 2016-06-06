@@ -8310,7 +8310,17 @@ end</pre>
 <a name="about-mousebutton"></a>
 		<h4>mouse button (which)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is pressed. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is currently pressed down.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -8320,7 +8330,18 @@ end</pre>
 <a name="about-mouseclick"></a>
 		<h4>mouse click (which)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been clicked in the last tick. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been 'clicked' down in the last tick.
+				Returns true even if the mouse button is still down.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -13261,7 +13282,10 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setslicetext"></a>
 		<h4>set slice text(handle, string id)</h4>
 <p>
-			Copy a string specified by <span class="param">string id</span> into the text slice specified by <span class="param">handle</span>.
+			
+				Copy a string specified by <span class="param">string id</span> into the text slice specified by <span class="param">handle</span>.
+				Afterwards, there is no link between the text slice and the string; they have different contents.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -13276,7 +13300,10 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getslicetext"></a>
 		<h4>get slice text(string id, slice handle)</h4>
 <p>
-			Copy the contents of the text slice specified by <span class="param">slice handle</span> into a string specified by <span class="param">string id</span>.
+			
+				Copy the contents of the text slice specified by <span class="param">slice handle</span> into a string specified by <span class="param">string id</span>.
+				Afterwards, there is no link between the text slice and the string; they have different contents.
+			
 			
 			
 			<div class="seealso">See also: <ul>
