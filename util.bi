@@ -299,11 +299,11 @@ declare function makedir (directory as string) as integer
 declare function safekill (filename as string) as bool
 declare function killfile (filename as string) as bool
 declare function local_file_move(frompath as string, topath as string) as integer
-declare function fileisreadable(f as string) as integer
-declare function fileiswriteable(f as string) as integer
+declare function fileisreadable(f as string) as bool
+declare function fileiswriteable(f as string) as bool
 declare function diriswriteable(d as string) as bool
-declare function isfile (n as string) as integer
-declare function isdir (sdir as string) as integer
+declare function isfile (n as string) as bool
+declare function isdir (sdir as string) as bool
 declare function count_directory_size(directory as string) as integer
 declare function byte_size_of_file(filename as string) as integer
 declare function string_from_first_line_of_file (filename as string) as string
