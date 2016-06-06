@@ -18,7 +18,10 @@
 
 #ifdef __APPLE__
 // For CoreGraphics (part of Carbon)
-#include <CoreGraphics/CGDirectDisplay.h>
+//#include <CoreGraphics/CGDirectDisplay.h>
+// Apparently you can't include CoreGraphics directly in OS 10.7 and older;
+// so include ApplicationServices which includes CoreGraphics
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 #include "common.h"
