@@ -188,7 +188,7 @@ DO
   IF mstate.pt = 4 THEN
    hidemousecursor
    GOSUB disable
-   showmousecursor
+   defaultmousecursor
   END IF
   IF mstate.pt = 5 THEN
    DIM outfile as string
@@ -1038,7 +1038,7 @@ END IF
 v_free ts.defaultwalls
 oldpaste = ts.canpaste
 frame_unload @ts.drawframe
-showmousecursor
+defaultmousecursor
 END SUB
 
 SUB refreshtileedit (state as TileEditState)
@@ -3248,7 +3248,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   tick = 0
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
- showmousecursor
+ defaultmousecursor
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 EXIT SUB
 

@@ -5546,7 +5546,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   IF dowait THEN tog = (tog + 1) MOD 256
   firsttick = NO
  LOOP
- showmousecursor
+ defaultmousecursor
  RETURN ret
 END FUNCTION
 

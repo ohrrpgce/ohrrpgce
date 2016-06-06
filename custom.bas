@@ -1953,7 +1953,7 @@ SUB text_test_menu
   dowait
  LOOP
  setkeys
- showmousecursor
+ defaultmousecursor
 END SUB
 
 SUB font_test_menu
