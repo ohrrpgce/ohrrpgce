@@ -17,6 +17,10 @@ WHAT IS NEW?
     * In old games, attacks with enemy type-killer bits wrongly counted
       as elemental for the purpose of spawning. This fix is only
       applied if the game has not been edited since Ypsiliform. [James]
+    * When heroes and NPCs are in the same layer, heroes will draw
+      on top of NPCs that have the same Y position (instead of being
+      layered unpredictably) This is most noticeable with vehicles that
+      do not hide the leader. [Ralph, James]
 
   * New Plotscripting Stuff
     * "menu item at pixel" [Ralph, James]
