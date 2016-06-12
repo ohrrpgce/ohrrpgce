@@ -70,12 +70,20 @@ Description: Official Hamster Republic Role Playing Game Construction Engine
     install(package_name)
     run_dpkg(package_name, version)
 
-def install(destdir = '', prefix = '/usr'):
+def install(destdir = '', prefix = '/usr', dry_run = False):
     """Installs the OHRRPGCE on the local machine (not including Vikings of Midgard).
-    Pass destdir to install into a staging area instead of writing to /"""
+    Pass destdir to install into a staging area instead of writing to /
+    (dry_run is not implemented)."""
     build_tree(destdir, package_name, files, executables, icons, prefix = prefix)
     menu_entry(destdir, package_name, "OHRRPGCE Game Player", prefix + "/games/ohrrpgce-game", desktop_file_suffix="-game", icon="ohrrpgce-game.png", prefix=prefix)
     menu_entry(destdir, package_name, "OHRRPGCE Custom Editor", prefix + "/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom", icon="ohrrpgce-custom.png", prefix=prefix)
+
+def uninstall(destdir = '', prefix = '/usr', dry_run = False):
+    """Uninstalls the OHRRPGCE from the local machine (not including Vikings of Midgard).
+    Pass destdir to remove a staging area instead of writing to / (probably useless)"""
+    rm_tree(destdir, package_name, files, executables, icons, prefix = prefix, dry_run=dry_run)
+    remove_menu_entry(destdir, package_name, desktop_file_suffix="-game", prefix=prefix, dry_run=dry_run)
+    remove_menu_entry(destdir, package_name, desktop_file_suffix="-custom", prefix=prefix, dry_run=dry_run)
 
 if __name__ == '__main__':
     create_dpkg()

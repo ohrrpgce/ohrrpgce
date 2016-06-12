@@ -32,6 +32,7 @@ envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
+dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
@@ -845,15 +846,20 @@ tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTES
 TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
-def install(target, source, env):
+def packager(target, source, env):
+    action = str(target[0])  # eg 'install'
     if mac or android or not unix:
-        print "The 'install' action is only implemented on Unix systems."
+        print "The '%s' action is only implemented on Unix systems." % action
+        return 1
+    if action == 'install' and dry_run:
+        print "dry_run option not implemented for 'install' action"
         return 1
     sys.path += ['linux']
     import ohrrpgce
-    ohrrpgce.install(destdir, prefix)
+    getattr(ohrrpgce, action)(destdir, prefix, dry_run = dry_run)
 
-Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = install)
+Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = packager)
+Phony ('uninstall', source = [GAME, CUSTOM, HSPEAK], action = packager)
 
 Default (GAME)
 Default (CUSTOM)
@@ -893,9 +899,11 @@ Options:
                       You will need the relevant SDK installed in /Developer/SDKs and
                       may want to use a copy of FB built against that SDK.
                       Also sets macosx-version-min (defaults to 10.4).
-  prefix=PATH         For 'install' action. Default: '/usr'
-  destdir=PATH        For 'install' action. Use if you want to install into a staging
-                      area, for a package creation tool. Default: ''
+  prefix=PATH         For 'install' and 'uninstall' actions. Default: '/usr'
+  destdir=PATH        For 'install' and 'uninstall' actions. Use if you want to
+                      install into a staging area, for a package creation tool.
+                      Default: ''
+  dry_run=1           For 'uninstall' only. Print files that would be deleted.
   v=1                 Be verbose.
 
 Experimental options:
@@ -937,6 +945,7 @@ Targets (executables to build):
 Other targets/actions:
   install             (Unix only.) Install the OHRRPGCE. Uses prefix and destdir args
                       Installs files into ${destdir}${prefix}/games and ${destdir}${prefix}/share
+  uninstall           (Unix only.) Uninstalls. Uses prefix, destdir, dry_run args
   reload              Compile all RELOAD utilities.
   autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
   interactivetest     Runs interactivetest.rpg with recorded input.

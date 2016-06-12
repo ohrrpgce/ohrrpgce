@@ -103,6 +103,40 @@ def build_tree(destdir, package_name, files, executables, icons, prefix = "/usr"
   for file in files:
     copy_file_or_dir(file, dest + os.path.basename(file))
 
+def safe_rm(path, dry_run = False):
+  assert len(path) > 5
+  if os.path.isfile(path):
+    print "rm", path
+    if not dry_run:
+      os.remove(path)
+
+def safe_rmtree(path, dry_run = False):
+  assert len(path) > 5
+  if os.path.isdir(path):
+    print "rmtree", path
+    if not dry_run:
+      shutil.rmtree(path)
+
+def rm_tree(destdir, package_name, files, executables, icons, prefix = "/usr", dry_run = False):
+  # Executables
+  if len(executables):
+    dest = destdir + prefix + "/games/"
+    for exe in executables:
+      path = dest + os.path.basename(exe)
+      safe_rm(path, dry_run)
+  # Icons
+  if len(icons):
+    # Icons should be either .png or .svg.
+    # My reading of the freedesktop.org standard is that it doesn't matter where you put the icon
+    # if you only have one resolution.
+    dest = destdir + prefix + "/share/icons/hicolor/32x32/apps/"
+    for icon in icons:
+      path = dest + os.path.basename(icon)
+      safe_rm(path, dry_run)
+  # Data files
+  dest = destdir + prefix + "/share/games/" + package_name +"/"
+  safe_rmtree(dest, dry_run)
+
 def quiet_mkdir(dir):
   try:
     os.makedirs(dir)
@@ -133,6 +167,12 @@ Categories=Application;Game;
     s += "Icon=%s\n" % (icon,)
   f.write(s)
   f.close()
+
+def remove_menu_entry(destdir, package_name, desktop_file_suffix="", prefix = "/usr", dry_run = False):
+  path = destdir + prefix + "/share/menu/" + package_name
+  safe_rm(path, dry_run)
+  path = destdir + prefix + "/share/applications/" + package_name + desktop_file_suffix + ".desktop"
+  safe_rm(path, dry_run)
 
 def rpg_menu_entry(destdir, package_name, title, rpg_file, prefix = "/usr"):
   command = "%s/games/ohrrpgce-game %s/share/games/%s/%s" % (prefix, prefix, package_name, rpg_file)
