@@ -253,6 +253,14 @@ PRIVATE SUB update_walkabout_hero_slices()
   NEXT i
  END IF
 
+ '--Move the heroes to the end of their walkabout layer sibling list.
+ '--This forces tie-breaking of heroes and NPCs with equal Y coord so that the
+ '--leader is on top, then 2nd hero, etc, then NPCs if they're on the same layer.
+ FOR cat_rank as integer = 3 TO 0 STEP -1
+  IF herow(cat_rank).sl <> 0 THEN
+   SetSliceParent herow(cat_rank).sl, SliceGetParent(herow(cat_rank).sl)
+  END IF
+ NEXT cat_rank
 END SUB
 
 PRIVATE SUB update_walkabout_npc_slices()
@@ -289,17 +297,6 @@ PRIVATE SUB update_walkabout_npc_slices()
    set_walkabout_frame npc(i).sl, npc(i).dir, npc(i).frame \ 2
   END IF
  NEXT i
- 
- '--If NPCs and heroes are in the same layer, move heroes to the end of the
- '--sibling list to make sure they layer over NPCs if their Y is equal
- IF gmap(16) = 2 THEN
-  FOR cat_rank as integer = 3 TO 0 STEP -1
-   IF herow(cat_rank).sl <> 0 THEN
-    SetSliceParent herow(cat_rank).sl, SliceGetParent(herow(cat_rank).sl)
-   END IF
-  NEXT cat_rank
- END IF
-
 END SUB
 
 'Does not create or delete NPC/hero slices (vishero/visnpc), but only updates their graphical state.
