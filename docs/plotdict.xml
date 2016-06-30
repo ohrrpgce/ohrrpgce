@@ -6732,7 +6732,10 @@ The third argument is the total number of ticks that the animation should run. Y
 pass := northwall+southwall+eastwall+westwall
 write pass block(15,3,pass)
 # this makes the fifteenth tile in the third column
-# impassable on all directions</example>
+# impassable on all directions
+
+write pass block(15,3,none)
+# Use 0 or none to remove walls from a tile</example>
 		</command>
 
 		<section title="Tile Animations">
