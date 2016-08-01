@@ -1001,6 +1001,7 @@ SUB sfunctions(byval cmdid as integer)
    IF use_item_in_slot(retvals(0), gam.want.box) THEN
     scriptret = 1
    END IF
+   evalitemtags
    IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
   END IF
  CASE 517'--menu item by true slot

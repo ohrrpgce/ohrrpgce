@@ -22,6 +22,8 @@ WHAT IS NEW?
       on top of NPCs that have the same Y position (instead of being
       layered unpredictably) This is most noticeable with vehicles that
       do not hide the leader. [Ralph, James]
+    * "use item in slot" was not immediately updating item ownership
+      tags [James]
 
   * New Plotscripting Stuff
     * "menu item at pixel" [Ralph, James]
