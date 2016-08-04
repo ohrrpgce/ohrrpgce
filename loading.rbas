@@ -3291,6 +3291,7 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   NEXT i
   
   .bequest_attack = buf(367)
+  .non_elem_counter_attack = buf(368)
   
  END WITH
 END SUB

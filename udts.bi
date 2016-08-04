@@ -912,6 +912,7 @@ TYPE EnemyDef
   desperation_ai(4) as integer 'id+1, 0=none
   alone_ai(4) as integer       'id+1, 0=none
   elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
+  non_elem_counter_attack as integer 'id+1, 0=none
   stat_counter_attack(11) as integer 'id+1, 0=none
   bequest_attack as integer    'id+1, 0=none
   '--bitsets

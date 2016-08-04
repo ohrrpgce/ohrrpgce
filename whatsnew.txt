@@ -10,6 +10,9 @@ WHAT IS NEW?
       after the (undelayed) caption appears, but before the visible
       animation begins [James]
     * New attacker animation "Standing Strike" [James]
+    * Enemies can not do a non-elemental counterattack for any attack
+      that lacks elemental damage. Similar to non-elemental spawning
+      [James]
 
   * Changes
 

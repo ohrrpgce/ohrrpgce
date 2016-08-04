@@ -163,6 +163,7 @@ CONST EnDatElemCtr2 = 127' to 182
 CONST EnDatSpawnElement2 = 183' to 238
 CONST EnDatElemResist = 239' to 366
 CONST EnDatAtkBequest = 367
+CONST EnDatNonElemCtr = 368
 
 '-------------------------------------------------------------------------
 
@@ -247,10 +248,10 @@ NEXT
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(264) as string
-DIM menutype(264) as integer
-DIM menuoff(264) as integer
-DIM menulimits(264) as integer
+DIM menu(265) as string
+DIM menutype(265) as integer
+DIM menuoff(265) as integer
+DIM menulimits(265) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -508,11 +509,17 @@ menutype(EnMenuAtkBequest) = 7
 menuoff(EnMenuAtkBequest) = EnDatAtkBequest
 menulimits(EnMenuAtkBequest) = EnLimAtk
 
+CONST EnMenuNonElemCtr = 265
+menu(EnMenuNonElemCtr) = "Counter non-elemental attacks:"
+menutype(EnMenuNonElemCtr) = 7
+menuoff(EnMenuNonElemCtr) = EnDatNonElemCtr
+menulimits(EnMenuNonElemCtr) = EnLimAtk
+
 '-------------------------------------------------------------------------
 '--menu structure
 'WARNING: make these big enough to hold atkMenu when genNumElements is maxed out
-DIM workmenu(92) as integer
-DIM dispmenu(92) as string
+DIM workmenu(93) as integer
+DIM dispmenu(93) as string
 DIM state as MenuState
 state.autosize = YES
 state.spacing = 8
@@ -571,7 +578,7 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(28 + gen(genNumElements)) as integer
+DIM atkMenu(29 + gen(genNumElements)) as integer
 atkMenu(0) = EnMenuBackAct
 FOR i as integer = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
@@ -582,8 +589,9 @@ atkMenu(16) = EnMenuAtkBequest
 FOR i as integer = 0 TO gen(genNumElements) - 1
  atkMenu(17 + i) = EnMenuElemCtr + i
 NEXT i
+atkMenu(17 + gen(genNumElements)) = EnMenuNonElemCtr
 FOR i as integer = 0 TO 11
- atkMenu(17 + gen(genNumElements) + i) = EnMenuStatCtr + i
+ atkMenu(18 + gen(genNumElements) + i) = EnMenuStatCtr + i
 NEXT i
 
 DIM elementalMenu(gen(genNumElements)) as integer

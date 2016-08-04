@@ -4040,6 +4040,13 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
    END IF
   NEXT i
  END IF
+ '--then non-elemental attack
+ IF bat.atk.non_elemental THEN
+  IF bslot(who).non_elem_counter_attack > 0 THEN
+   autotarget who, bslot(who).non_elem_counter_attack - 1, bslot(), YES, blocking
+   EXIT SUB '-- only one counterattack per trigger attack
+  END IF
+ END IF
  '-then stat damage 
  FOR i as integer = 0 TO 11
   IF h > 0 AND targstat = i THEN

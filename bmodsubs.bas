@@ -1751,6 +1751,7 @@ SUB transfer_enemy_counterattacks (byval slot as integer, bslot() as BattleSprit
   FOR j as integer = 0 TO gen(genNumElements) - 1
    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
   NEXT j
+  .non_elem_counter_attack = .enemy.non_elem_counter_attack
   FOR j as integer = 0 TO 11
    .stat_counter_attack(j) = .enemy.stat_counter_attack(j)
   NEXT j

@@ -136,6 +136,7 @@ TYPE BattleSprite
   ignore_for_alone    as integer 'YES/NO
   '--counterattacking
   elem_counter_attack(maxElements - 1) as integer
+  non_elem_counter_attack as integer
   stat_counter_attack(11) as integer
   '--
   enemy as EnemyDef '--only populated if this slot holds an enemy
