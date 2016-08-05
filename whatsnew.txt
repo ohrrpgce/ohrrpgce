@@ -27,6 +27,7 @@ WHAT IS NEW?
       do not hide the leader. [Ralph, James]
     * "use item in slot" was not immediately updating item ownership
       tags [James]
+    * Fix broken self-targeting on-death-bequest attacks [James]
 
   * New Plotscripting Stuff
     * "menu item at pixel" [Ralph, James]

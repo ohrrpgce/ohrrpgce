@@ -1697,6 +1697,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     .thankvengemask(i) = NO
    NEXT i
    .bequesting = NO
+   .self_bequesting = NO
    .active_turn_num = 0
   END WITH
   setup_non_volitile_enemy_state slot, bslot()
@@ -1772,6 +1773,7 @@ SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprit
   .cursorpos.y = .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound
   .bequesting = NO
+  .self_bequesting = NO
  END WITH
 END SUB
 

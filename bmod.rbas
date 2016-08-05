@@ -92,6 +92,8 @@ DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as inte
 DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
+DECLARE FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
+DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -689,7 +691,15 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
   bat.caption_time = 0
   bat.caption_delay = 0
  END IF
- 
+
+ '--clean up .self_bequesting 
+ ' (we don't have to clean up .bequesting here because it only stays on until the bequest attack is triggered)
+ IF bat.acting >= 0 THEN
+  bslot(bat.acting).self_bequesting = NO
+ ELSE
+  debuginfo "cleaning up attack " & attack.name & " with no attacker set"
+ END IF
+
  '--check to see if anybody is dead
  fulldeathcheck bat.atk.was_id, bat, bslot(), formdata
  
@@ -1372,6 +1382,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
     .bequesting = NO
+    .self_bequesting = NO
     populate_battle_menu_menudef i, .batmenu, st(i)
     init_menu_state .menust, .batmenu
     .menust.active = YES
@@ -1532,7 +1543,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
  dead_enemies = 0
  FOR deadguy = 4 TO 11
   WITH bslot(deadguy)
-   IF (.stat.cur.hp = 0 AND .bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES THEN dead_enemies += 1
+   IF (.stat.cur.hp = 0 ANDALSO .bequesting = NO ANDALSO .self_bequesting = NO) OR .hero_untargetable = YES OR .death_unneeded = YES THEN dead_enemies += 1
   END WITH
  NEXT
  IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
@@ -2183,6 +2194,13 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  END IF
 END SUB
 
+FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
+ FOR i as integer = 0 TO UBOUND(t)
+  IF t(i) > -1 ANDALSO t(i) = slot THEN RETURN YES
+ NEXT i
+ RETURN NO
+END FUNCTION
+
 SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 'killing_attack contains attack id or -1 when no attack is relevant.
 
@@ -2200,6 +2218,10 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
   bslot(deadguy).bequesting = NO
   already_bequested = YES
   triggerfade deadguy, bslot()
+ END IF
+ IF bslot(deadguy).self_bequesting THEN
+  'Must wait until self-bequest attack is completely finished
+  EXIT SUB
  END IF
 
  '--Do not proceed unless the target is dead
@@ -2238,10 +2260,12 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  
  IF is_enemy(deadguy) ANDALSO bslot(deadguy).enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
   'Trigger an on-death bequest attack, and defer dying until later.
-  IF autotarget(deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot()) THEN
+  DIM beq_t(11) as integer
+  IF autotarget(deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot(), beq_t()) THEN
    '--Bequest attack only happens if it has a valid target
    WITH bslot(deadguy)
     .bequesting = YES
+    .self_bequesting = is_among_targets(deadguy, beq_t())
     .vis = 1
     .dissolve = 0
     .flee = 0
@@ -2711,6 +2735,16 @@ FUNCTION projectile_start_position(attack as AttackData, attacker as integer, ba
  RETURN ret
 END FUNCTION
 
+FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
+ IF bslot(t(index)).vis <> 0 THEN RETURN NO 'Is visible, so yes, we can hit it
+ IF attack_can_hit_dead(t(index), attack, bslot(bat.acting).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
+ IF bslot(bat.acting).self_bequesting THEN
+  'This is a self-bequest attack
+  IF bat.acting = t(index) THEN RETURN NO 'Bequesting attacker is always allowed to hit self
+ END IF
+ RETURN YES
+END FUNCTION
+
 SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
  DIM i as integer
 
@@ -2771,7 +2805,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  'CANNOT HIT INVISIBLE FOES
  FOR i = 0 TO 11
   IF t(i) > -1 THEN
-   IF bslot(t(i)).vis = 0 AND attack_can_hit_dead(t(i), attack, bslot(bat.acting).stored_targs_can_be_dead) = NO THEN
+   IF check_for_unhittable_invisible_foe(i, attack, bat, bslot(), t()) THEN
     t(i) = -1
    END IF
   END IF

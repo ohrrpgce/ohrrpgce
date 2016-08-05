@@ -143,12 +143,13 @@ TYPE BattleSprite
   '--
   lifemeter as integer 'FIXME: this can be replaced by the width property of the lifemeter slice
                         'when lifemeters have been converted to slices
-  bequesting as integer ' YES/NO if true, this character is doing a final attack before
-                         ' they die. Death is delayed until there are no more queued attacks
-                         ' for this attacker. A bequesting character cannot be targeted by new
-                         ' attacks, and does not take any more normal turns. If the bequested
-                         ' attack is a self-targeting cure attack, the attacker's death can be
-                         ' cancelled.
+  bequesting as bool     ' YES/NO if true, this character is triggering a final attack before
+                         ' they die. Death is delayed until the bequest attack happens.
+                         ' A bequesting character cannot be targeted by new
+                         ' attacks (except self-targeting), and does not take any more normal turns. 
+  self_bequesting as bool ' Only for self-targeted bequest attacks. Reset when the attack ends
+                         'If the bequested attack is a self-targeting cure attack, or a
+                         'transmogrify attack the attacker's death can be cancelled.
 END TYPE
 
 'This type stores the state of the currently animating attack
