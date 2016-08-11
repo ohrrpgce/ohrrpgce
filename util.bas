@@ -1254,6 +1254,7 @@ END FUNCTION
 
 'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
 'Returns the exit code, or -1 if it couldn't be run.
+'NOTE: use instead run_and_get_output and check stderr if you want better ability to catch errors
 FUNCTION safe_shell (cmd as string) as integer
 #IFDEF __FB_WIN32__
   'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
@@ -1266,22 +1267,51 @@ FUNCTION safe_shell (cmd as string) as integer
 #ENDIF
 END FUNCTION
 
-'Like SHELL, but passes back the result (stdout) in the 'outdata' string.
-'The return value is -1 on an error running or capturing the output, otherwise the exit code from the shell.
-'Anything written to stderr ends up on our stderr.
-'(There is a second implementation of this as run_process_and_get_output in os_unix.c)
-FUNCTION run_and_get_output(cmd as string, outdata as string) as integer
+'Like SHELL, but passes back the output in the 'stdout' string, and optionally 'stderr' in a string too.
+'By default stderr also gets debuginfo logged.
+'If stderr = "<ignore>" then stderr isn't captured, and writes to stderr pass through to our stderr stream.
+'
+'The return value is generally -1 on an error invoking the shell,
+'-4444/-4445 on an error running or capturing the output,
+'and otherwise the shell exit code, generally equal to the program exitcode and 0 on success.
+'
+'(There is a second implementation of this as run_process_and_get_output in os_unix.c
+' which does't support stderr, but doesn't use temporary files or run the shell)
+FUNCTION run_and_get_output(cmd as string, stdout as string, stderr as string) as integer
   DIM ret as integer
-  DIM tempfile as string
-  tempfile = tmpdir & "temp_outdata." & randint(1000000) & ".tmp"
-  ret = safe_shell(cmd & " > " & escape_filename(tempfile))
-  IF ret = -1 ORELSE NOT isfile(tempfile) THEN
-    debug "Failed to run " & cmd
-    outdata = ""
-    RETURN -1
+  DIM as string stdout_file, stderr_file, cmdline
+  DIM as bool grab_stderr
+  grab_stderr = (stderr <> "<ignore>")
+
+  stdout_file = tmpdir & "temp_stdout." & randint(1000000) & ".tmp"
+  cmdline = cmd & " > " & escape_filename(stdout_file)
+  IF grab_stderr THEN
+    stderr_file = tmpdir & "temp_stderr." & randint(1000000) & ".tmp"
+    ' This redirection works on Windows too
+    cmdline &= " 2> " & escape_filename(stderr_file)
   END IF
-  outdata = string_from_file(tempfile)
-  killfile tempfile
+  ret = safe_shell(cmdline)
+
+  IF grab_stderr THEN
+    IF isfile(stderr_file) THEN
+      stderr = string_from_file(stderr_file)
+      killfile stderr_file
+    ELSE
+      stderr = "(redirection failed)"
+      ret = -4445
+    END IF
+  END IF
+
+  IF isfile(stdout_file) THEN
+    stdout = string_from_file(stdout_file)
+    killfile stdout_file
+  ELSE
+    stdout = ""
+    ret = -4444
+  END IF
+
+  IF ret ORELSE (grab_stderr AND LEN(stderr)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr
+
   RETURN ret
 END FUNCTION
 

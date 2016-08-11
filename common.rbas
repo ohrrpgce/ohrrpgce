@@ -475,6 +475,7 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  'When used to move a directory on unixes, this should preserve bits and symlinks.
  'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
  'Returns YES for success or NO for failure
+ 'Note: use local_file_move() if possible for more robust error reporting.
  
  IF isfile(dest) THEN
   safekill dest
@@ -482,7 +483,7 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
   killdir dest, YES
  END IF
  
- DIM spawn_ret as string
+ DIM stderr as string
  DIM mv as string
  DIM args as string
  #IFDEF __UNIX__
@@ -495,10 +496,10 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  #ENDIF
  args &= " " & escape_filename(src) & " " & escape_filename(dest)
 
- 'spawn_ret = spawn_and_wait(mv, args)
- SHELL mv & args
- 
- 'IF LEN(spawn_ret) THEN debug "os_shell_move: spawn failed: " & spawn_ret : RETURN NO
+ 'SHELL mv & args
+ IF run_and_get_output(mv & args, "", stderr) THEN
+  visible_debug "os_shell_move: move failed: " & stderr : RETURN NO
+ END IF
  IF NOT isdir(dest) THEN debug "os_shell_move: dest file not created: " & dest : RETURN NO
  
  RETURN YES
@@ -2503,14 +2504,21 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
 #ENDIF
 
- 'Generic UNIX: xterm is everywhere, isn't it?
-
+ 'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
  'os_* process handling functions only currently implemented on Windows
- DIM cmd as string
+ 'We run SHELL (aka system()) which runs sh, which runs xterm, which runs app.
+ 'That's a lot that can go wrong!
+
+ DIM cmd as string, outbuffer as string, stderr as string
  cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
- 'debuginfo cmd
- SHELL cmd
- RETURN ""
+ ' Capture stdout and stderr
+ DIM res as integer = run_and_get_output(cmd, outbuffer, stderr)
+ IF res THEN
+  IF LEN(outbuffer) = 0 THEN outbuffer = "Error code " & res
+  RETURN "Could not run " & app & !":\n" & outbuffer & " " & stderr
+ END IF
+
+ RETURN ""  'Success
 
 END FUNCTION
 

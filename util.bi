@@ -331,7 +331,7 @@ declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as long, byval pos a
 '                              Shell
 
 declare function safe_shell (cmd as string) as integer
-declare function run_and_get_output(cmd as string, output as string) as integer
+declare function run_and_get_output(cmd as string, stdout as string, stderr as string = "") as integer
 
 
 '----------------------------------------------------------------------
