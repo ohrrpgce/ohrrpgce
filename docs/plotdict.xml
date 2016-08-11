@@ -661,7 +661,15 @@ wait for hero (me) # wait until he stops</example>
 		<command id="waitforkey">
 			<canon>wait for key (key)</canon>
 			<shortname>wait for key</shortname>
-			<description>Waits for the player to press a key. You can use the following constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>. If you do not specify, then <ref>anykey</ref> will be used. These are not scancodes, and can not be mixed with scancodes! Use <ref>waitforscancode</ref> if you want to use scancodes or wait for other keys. <p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> both wait for Alt or Esc. If and only if anykey is used, then waitforkey will return the scancode of the key that was pressed, which might be a joystick scancode like <p>joy:x up</p>.</description>
+			<description>
+				Waits for the player to press a key.
+				You can use the following constants: <ref>anykey</ref>, <ref>upkey</ref>, <ref>downkey</ref>, <ref>leftkey</ref>, <ref>rightkey</ref>, <ref>usekey</ref>, <ref>cancelkey</ref>, or <ref>menukey</ref>.
+				If you do not specify <p>key</p>, then <ref>anykey</ref> will be used.
+				These are not scancodes (as used by <ref>keyispressed</ref>), and can not be mixed with scancodes!
+				Use <ref>waitforscancode</ref> if you want to use scancodes or wait for other keys.
+				<p>usekey</p> will wait for Space, Ctrl or Enter; and <p>cancelkey</p> and <p>menukey</p> (which are identical) both wait for Alt or Esc.
+				If and only if anykey is used, then <p>waitforkey</p> will return the scancode of the key that was pressed, which might be a joystick scancode like <p>joy:x up</p>.
+			</description>
 			<example>show text box(623) # "press cancel!"
 wait for key(cancel key)</example>
 		</command>
@@ -677,20 +685,23 @@ wait for scancode(key:P)</example>
 			<canon>wait for NPC (who)</canon>
 			<shortname>wait for NPC</shortname>
 			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).</description>
-			<example>walk NPC (2,up,3) # make the NPC go up three spaces
-wait for NPC (2) # wait until he&apos;s done</example>
+			<example>walk NPC (2,up,3) # make NPC 2 go up three spaces
+wait for NPC (2) # wait until the NPC'S done</example>
+			<note>
+				If the NPC ceases to exist, or if you move to a different map, then <p>wait for npc</p> stops waiting (continues).
+			</note>
 		</command>
 		<command id="waitforcamera">
 			<canon>wait for camera</canon>
 			<shortname>wait for camera</shortname>
 			<description>Wait for the camera to stop panning after a <ref>pancamera</ref>, <ref>focuscamera</ref> or <ref>pixelfocuscamera</ref> command.</description>
 			<example>pan camera (left,10) # show the villain 10 tiles off screen
-wait for camera # wait until he&apos;s on screen</example>
+wait for camera # wait until he's on screen</example>
 		</command>
 		<command id="waitforall">
 			<canon>wait for all</canon>
 			<shortname>wait for all</shortname>
-			<description>Waits for any camera motion to stop, waits for all heroes to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
+			<description>Waits for any camera motion due to <ref>pancamera</ref>, <ref>focuscamera</ref>, etc to stop, waits for all heroes to stop walking, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
 			<example># do a bunch of things all at once
 wait for all # wait until everything is done</example>
 		</command>
