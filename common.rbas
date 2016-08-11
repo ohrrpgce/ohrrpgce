@@ -2420,6 +2420,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'You can of course also kill the program on all platforms with Ctrl+C
  'app should be a path to an executable (not escaped), while args should be escaped as needed.
  'Returns an error message, or "" if no apparent failure
+ 'NOTE: you should display the error with visible_debug, because this function doesn't write
+ 'it to the debug log (TODO: change that)
 
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
@@ -2663,7 +2665,7 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
  
   '--Check to see if the download worked
   IF LEN(spawn_ret) = 0 THEN RETURN YES
-  debug "ERROR: wget download failed: " & spawn_ret
+  visible_debug "ERROR: wget download failed: " & spawn_ret
  END IF
  
  '--find curl to do the downloading
@@ -2682,7 +2684,7 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
  
   '--Check to see if the download worked
   IF LEN(spawn_ret) = 0 THEN RETURN YES
-  debug "ERROR: curl download failed: " & spawn_ret
+  visible_debug "ERROR: curl download failed: " & spawn_ret
  END IF
 
  visible_debug "Download failed (tried both wget and curl)" 
@@ -2774,7 +2776,7 @@ FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as int
  ret = spawn_and_wait(app, args)
  IF LEN(ret) THEN
   safekill out_file
-  RETURN "wav to ogg conversion failed."
+  RETURN "wav to ogg conversion failed: " & ret
  END IF
 
  IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"

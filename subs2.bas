@@ -545,14 +545,15 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
  'Note this will momentarily pop up a console window on Windows, unpleasant.
  'Could get around this by using open_piped_process
 
- DIM blurb as string
- IF run_and_get_output(escape_filename(hspeak_path) & " -k", blurb) <> 0 THEN
+ DIM blurb as string, stderr as string
+ IF run_and_get_output(escape_filename(hspeak_path) & " -k", blurb, stderr) <> 0 THEN
+  visible_debug !"Error occurred when running hspeak:\n" & stderr
   RETURN ""
  END IF
 
  DIM hsversion as string = MID(blurb, INSTR(blurb, " v") + 2, 3)
  IF LEN(hsversion) <> 3 ORELSE isdigit(hsversion[0]) = NO THEN
-  debug !"Couldn't get HSpeak version from blurb:\n" & blurb
+  debug !"Couldn't get HSpeak version from blurb:\n'" & blurb & "'"
   RETURN ""
  END IF
  RETURN hsversion
@@ -563,7 +564,7 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN
-  notification missing_helper_message("hspeak")
+  visible_debug missing_helper_message("hspeak")
   RETURN ""
  END IF
  args = "-y"
@@ -602,7 +603,7 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
  errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname, curdir)))
  IF LEN(errmsg) THEN
-  notification errmsg + !"\n\nNo scripts were imported."
+  visible_debug errmsg + !"\n\nNo scripts were imported."
   RETURN ""
  END IF
  IF isfile(outfile) = NO THEN
