@@ -1277,11 +1277,11 @@ END FUNCTION
 '
 '(There is a second implementation of this as run_process_and_get_output in os_unix.c
 ' which does't support stderr, but doesn't use temporary files or run the shell)
-FUNCTION run_and_get_output(cmd as string, stdout as string, stderr as string) as integer
+FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as string) as integer
   DIM ret as integer
   DIM as string stdout_file, stderr_file, cmdline
   DIM as bool grab_stderr
-  grab_stderr = (stderr <> "<ignore>")
+  grab_stderr = (stderr_s <> "<ignore>")
 
   stdout_file = tmpdir & "temp_stdout." & randint(1000000) & ".tmp"
   cmdline = cmd & " > " & escape_filename(stdout_file)
@@ -1294,23 +1294,23 @@ FUNCTION run_and_get_output(cmd as string, stdout as string, stderr as string) a
 
   IF grab_stderr THEN
     IF isfile(stderr_file) THEN
-      stderr = string_from_file(stderr_file)
+      stderr_s = string_from_file(stderr_file)
       killfile stderr_file
     ELSE
-      stderr = "(redirection failed)"
+      stderr_s = "(redirection failed)"
       ret = -4445
     END IF
   END IF
 
   IF isfile(stdout_file) THEN
-    stdout = string_from_file(stdout_file)
+    stdout_s = string_from_file(stdout_file)
     killfile stdout_file
   ELSE
-    stdout = ""
+    stdout_s = ""
     ret = -4444
   END IF
 
-  IF ret ORELSE (grab_stderr AND LEN(stderr)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr
+  IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr
 
   RETURN ret
 END FUNCTION

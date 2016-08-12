@@ -483,7 +483,7 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
   killdir dest, YES
  END IF
  
- DIM stderr as string
+ DIM stderr_s as string
  DIM mv as string
  DIM args as string
  #IFDEF __UNIX__
@@ -497,8 +497,8 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  args &= " " & escape_filename(src) & " " & escape_filename(dest)
 
  'SHELL mv & args
- IF run_and_get_output(mv & args, "", stderr) THEN
-  visible_debug "os_shell_move: move failed: " & stderr : RETURN NO
+ IF run_and_get_output(mv & args, "", stderr_s) THEN
+  visible_debug "os_shell_move: move failed: " & stderr_s : RETURN NO
  END IF
  IF NOT isdir(dest) THEN debug "os_shell_move: dest file not created: " & dest : RETURN NO
  
@@ -2511,13 +2511,13 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'We run SHELL (aka system()) which runs sh, which runs xterm, which runs app.
  'That's a lot that can go wrong!
 
- DIM cmd as string, outbuffer as string, stderr as string
+ DIM cmd as string, outbuffer as string, stderr_s as string
  cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
  ' Capture stdout and stderr
- DIM res as integer = run_and_get_output(cmd, outbuffer, stderr)
+ DIM res as integer = run_and_get_output(cmd, outbuffer, stderr_s)
  IF res THEN
   IF LEN(outbuffer) = 0 THEN outbuffer = "Error code " & res
-  RETURN "Could not run " & app & !":\n" & outbuffer & " " & stderr
+  RETURN "Could not run " & app & !":\n" & outbuffer & " " & stderr_s
  END IF
 
  RETURN ""  'Success

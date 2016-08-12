@@ -545,9 +545,9 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
  'Note this will momentarily pop up a console window on Windows, unpleasant.
  'Could get around this by using open_piped_process
 
- DIM blurb as string, stderr as string
- IF run_and_get_output(escape_filename(hspeak_path) & " -k", blurb, stderr) <> 0 THEN
-  visible_debug !"Error occurred when running hspeak:\n" & stderr
+ DIM blurb as string, stderr_s as string
+ IF run_and_get_output(escape_filename(hspeak_path) & " -k", blurb, stderr_s) <> 0 THEN
+  visible_debug !"Error occurred when running hspeak:\n" & stderr_s
   RETURN ""
  END IF
 
