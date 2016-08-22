@@ -3847,7 +3847,15 @@ wait for hero (me) # wait until he stops</pre>
 <a name="about-waitforkey"></a>
 		<h4>wait for key (key)</h4>
 <p>
-			Waits for the player to press a key. You can use the following constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>. If you do not specify, then <a href="#about-keyconstants" class="ref">any key</a> will be used. These are not scancodes, and can not be mixed with scancodes! Use <a href="#about-waitforscancode" class="ref">wait for scancode</a> if you want to use scancodes or wait for other keys. <span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> both wait for Alt or Esc. If and only if anykey is used, then waitforkey will return the scancode of the key that was pressed, which might be a joystick scancode like <span class="param">joy:x up</span>.
+			
+				Waits for the player to press a key.
+				You can use the following constants: <a href="#about-keyconstants" class="ref">any key</a>, <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#about-keyconstants" class="ref">left key</a>, <a href="#about-keyconstants" class="ref">right key</a>, <a href="#about-keyconstants" class="ref">use key</a>, <a href="#about-keyconstants" class="ref">cancel key</a>, or <a href="#about-keyconstants" class="ref">menu key</a>.
+				If you do not specify <span class="param">key</span>, then <a href="#about-keyconstants" class="ref">any key</a> will be used.
+				These are not scancodes (as used by <a href="#about-keyispressed" class="ref">key is pressed</a>), and can not be mixed with scancodes!
+				Use <a href="#about-waitforscancode" class="ref">wait for scancode</a> if you want to use scancodes or wait for other keys.
+				<span class="param">usekey</span> will wait for Space, Ctrl or Enter; and <span class="param">cancelkey</span> and <span class="param">menukey</span> (which are identical) both wait for Alt or Esc.
+				If and only if anykey is used, then <span class="param">waitforkey</span> will return the scancode of the key that was pressed, which might be a joystick scancode like <span class="param">joy:x up</span>.
+			
 			
 			<pre>show text box(623) # "press cancel!"
 wait for key(cancel key)</pre>
@@ -3870,9 +3878,15 @@ wait for scancode(key:P)</pre>
 		<h4>wait for NPC (who)</h4>
 <p>
 			Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+				If the NPC ceases to exist, or if you move to a different map, then <span class="param">wait for npc</span> stops waiting (continues).
+			<br clear="all">
+</div>
 			
-			<pre>walk NPC (2,up,3) # make the NPC go up three spaces
-wait for NPC (2) # wait until he's done</pre>
+			
+			<pre>walk NPC (2,up,3) # make NPC 2 go up three spaces
+wait for NPC (2) # wait until the NPC'S done</pre>
 			
 		</p>
 </div>
@@ -3891,7 +3905,7 @@ wait for camera # wait until he's on screen</pre>
 <a name="about-waitforall"></a>
 		<h4>wait for all</h4>
 <p>
-			Waits for any camera motion to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
+			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
 			
 			<pre># do a bunch of things all at once
 wait for all # wait until everything is done</pre>

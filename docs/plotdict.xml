@@ -684,12 +684,13 @@ wait for scancode(key:P)</example>
 		<command id="waitfornpc">
 			<canon>wait for NPC (who)</canon>
 			<shortname>wait for NPC</shortname>
-			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).</description>
-			<example>walk NPC (2,up,3) # make NPC 2 go up three spaces
-wait for NPC (2) # wait until the NPC'S done</example>
+			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).
 			<note>
 				If the NPC ceases to exist, or if you move to a different map, then <p>wait for npc</p> stops waiting (continues).
 			</note>
+			</description>
+			<example>walk NPC (2,up,3) # make NPC 2 go up three spaces
+wait for NPC (2) # wait until the NPC'S done</example>
 		</command>
 		<command id="waitforcamera">
 			<canon>wait for camera</canon>
