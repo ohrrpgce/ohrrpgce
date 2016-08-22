@@ -3181,7 +3181,7 @@ DIM auto_upgrader_version as EngineVersion = read_engine_version_node(general_re
 
 ' Note that creating a new .rpg file updates the archinym creation info, but not immediately last_editor_version
 IF last_editor_version.recorded THEN
- debuginfo "Last edited by: " & last_editor_version.long_version
+ debuginfo "Last edited by: [[" & last_editor_version.long_version & "]]"
 ELSE
  debuginfo "No detailed editor version info."
 END IF

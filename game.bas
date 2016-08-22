@@ -156,7 +156,7 @@ DIM topmenu as integer = -1
 REDIM csetup(12) as integer
 REDIM carray(13) as integer
 REDIM joy(14) as integer
-REDIM gotj(2) as integer
+REDIM gotj(2) as bool
 
 'Script interpreter
 DIM nowscript as integer = -1

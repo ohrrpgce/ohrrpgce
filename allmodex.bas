@@ -294,6 +294,7 @@ sub setmodex()
 
 	keybdmutex = mutexcreate
 	if wantpollingthread then
+		debuginfo "Starting IO polling thread"
 		keybdthread = threadcreate(@pollingthread)
 	end if
 
@@ -708,14 +709,14 @@ sub setvispage (byval page as integer)
 		gfx_showpage(.image, .w, .h)
 		' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
 		' although in gfx_fb it freezes readmouse instead)
-		debug_if_slow(starttime2, 0.1, "gfx_showpage")
+		debug_if_slow(starttime2, 0.05, "gfx_showpage")
 		mutexunlock keybdmutex
 	end with
 
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
-	debug_if_slow(starttime, 0.2, "")
+	debug_if_slow(starttime, 0.1, "")
 end sub
 
 sub setpal(pal() as RGBcolor)
@@ -870,11 +871,21 @@ function dowait () as bool
 	if use_speed_control = NO then return YES
 	global_tog XOR= 1
 	dim i as integer
+	dim starttime as double = timer
 	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
 		sleep i
 		io_waitprocessing()
 	loop
+	' dowait might be called after waittime has already passed, ignore that and log only
+	' if we took more than 5ms longer than wanted (the time printed is the unwanted delay).
+	' On Windows FB sleep calls winapi Sleep(), which has a default of 15.6ms, adjustable
+	' with timeBeginPeriod(). 15.6ms is very coarse for 60fps games, so we probably
+	' should request a higher frequency. (Also, Win XP rounds the sleep period up to the
+	' following tick, while Win 7+ rounds it down, although that probably makes no
+	' difference due to the avoid while loop. See
+	' https://randomascii.wordpress.com/2013/04/02/sleep-variation-investigated/
+	debug_if_slow(large(starttime, waittime), 0.018, (waittime - starttime) * 1000 & "ms")
 	if setwait_called then
 		setwait_called = NO
 	else
@@ -1296,11 +1307,13 @@ function anykeypressed (byval checkjoystick as bool = YES, trigger_level as inte
 		end if
 	next
 	if checkjoystick then
+		dim starttime as double = timer
 		if io_readjoysane(0, joybutton, joyx, joyy) then
 			for i as integer = 16 to 1 step -1
 				if joybutton and (i ^ 2) then return (scJoyButton1 - 1) + i
 			next i
 		end if
+		debug_if_slow(starttime, 0.005, "io_readjoysane")
 	end if
 end function
 
@@ -1329,6 +1342,7 @@ end function
 'NOTE: any such keypresses are lost! This is OK for the current purposes
 'NOTE: This checks the real keyboard state while replaying input.
 function interrupting_keypress () as bool
+	dim starttime as double = timer
 	dim ret as bool = NO
 
 	io_pollkeyevents()
@@ -1340,6 +1354,8 @@ function interrupting_keypress () as bool
 	io_keybits(@keybd_dummy(0))
 	io_mousebits(mouse.x, mouse.y, mouse.wheel, mouse.buttons, mouse.clicks)
 	mutexunlock keybdmutex
+
+	debug_if_slow(starttime, 0.005, "")
 
 	' Check for attempt to quit program
 	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then closerequest = YES
@@ -1523,7 +1539,7 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
-	debug_if_slow(starttime, 0.005, replay.active)
+	debug_if_slow(starttime, 0.01, replay.active)
 
 	'Handle special keys, possibly clear or add keypresses. Might recursively call setkeys.
 	allmodex_controls()
@@ -1669,7 +1685,7 @@ function readmouse () as MouseInfo
 		end if
 	end if
 
-	debug_if_slow(starttime, 0.01, info.clicks)
+	debug_if_slow(starttime, 0.005, info.clicks)
 	return info
 end function
 
@@ -1716,18 +1732,26 @@ function readjoy (joybuf() as integer, byval jnum as integer) as bool
 '  down motion when joybuf(0) > joybuf(10)
 '  left motion when joybuf(1) < joybuf(11)
 '  right motion when joybuf(1) > joybuf(12)
+	dim starttime as double = timer
 	dim as integer buttons, x, y
-	if io_readjoysane(jnum, buttons, x, y) = 0 then return 0
-
-	joybuf(0) = x
-	joybuf(1) = y
-	joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
-	joybuf(3) = (buttons AND 2) = 0 'ditto
-	return -1
+	dim ret as bool
+	ret = io_readjoysane(jnum, buttons, x, y)
+	if ret then
+		joybuf(0) = x
+		joybuf(1) = y
+		joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
+		joybuf(3) = (buttons AND 2) = 0 'ditto
+		ret = YES
+	end if
+	debug_if_slow(starttime, 0.005, jnum & " = " & buttons)
+	return ret
 end function
 
 function readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
-	return io_readjoysane(joynum, buttons, x, y)
+	dim starttime as double = timer
+	dim ret as bool = io_readjoysane(joynum, buttons, x, y)
+	debug_if_slow(starttime, 0.005, joynum & " = " & buttons)
+	return ret
 end function
 
 
@@ -1759,7 +1783,12 @@ private sub pollingthread(byval unused as any ptr)
 	while endpollthread = NO
 		mutexlock keybdmutex
 
+		dim starttime as double = timer
+
 		io_updatekeys(@keybdstate(0))
+		debug_if_slow(starttime, 0.005, "io_updatekeys")
+		starttime = timer
+
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to scLAST
@@ -1779,6 +1808,8 @@ private sub pollingthread(byval unused as any ptr)
 		mouselastflags = buttons
 
 		mutexunlock keybdmutex
+
+		debug_if_slow(starttime, 0.005, "io_getmouse")
 
 		'25ms was found to be sufficient
 		sleep 25

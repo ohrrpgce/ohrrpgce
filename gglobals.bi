@@ -38,8 +38,8 @@ EXTERN force_prefsdir_save as bool
 EXTERN persist_reld_doc as DocPtr
 
 'Input handling globals
-EXTERN as integer carray(), csetup()
-EXTERN as integer gotj(), joy()
+EXTERN as integer carray(), csetup(), joy()
+EXTERN as bool gotj()
 
 'Game state globals
 EXTERN gam as GameState
