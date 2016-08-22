@@ -832,6 +832,7 @@ def Phony(name, source, action):
 AUTOTEST = Phony ('autotest_rpg', source = GAME, action =
                   [GAME.abspath + tmp +  ' --log . --runfast testgame/autotest.rpg -z 2',
                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
+env.Alias ('autotest', source = AUTOTEST)
 INTERTEST = Phony ('interactivetest', source = GAME, action =
                    [GAME.abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg -z 2'
                     ' --replayinput testgame/interactivetest.ohrkey',
@@ -947,7 +948,7 @@ Other targets/actions:
                       Installs files into ${destdir}${prefix}/games and ${destdir}${prefix}/share
   uninstall           (Unix only.) Uninstalls. Uses prefix, destdir, dry_run args
   reload              Compile all RELOAD utilities.
-  autotest_rpg        Runs autotest.rpg. See autotest.py for improved harness.
+  autotest            Runs autotest.rpg. See autotest.py for a better tool to check differences.
   interactivetest     Runs interactivetest.rpg with recorded input.
   test (or tests)     Compile and run all automated tests, including autotest.rpg.
   .                   Compile everything (but doesn't run tests)
