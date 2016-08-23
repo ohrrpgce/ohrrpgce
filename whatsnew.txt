@@ -13,6 +13,9 @@ WHAT IS NEW?
     * Enemies can not do a non-elemental counterattack for any attack
       that lacks elemental damage. Similar to non-elemental spawning
       [James]
+    * Spells in spell lists can now also display HP, Money, and Item
+      costs. MP costs are no longer invisible in Level-MP spell lists
+      [James]
 
   * Changes
 

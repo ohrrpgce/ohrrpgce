@@ -6273,6 +6273,27 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
  DIM vec as string vector
  v_new vec
 
+ FOR i as integer = 0 TO UBOUND(atk.item)
+  IF atk.item(i).id > 0 ANDALSO atk.item(i).number <> 0 THEN
+   DIM item_name as string = readitemname(atk.item(i).id - 1)
+   cost_s = item_name
+   IF atk.item(i).number <> 1 THEN
+    cost_s &= CHR(1) & atk.item(i).number
+   END IF
+   v_append vec, cost_s
+  END IF
+ NEXT i
+
+ IF atk.money_cost <> 0 THEN
+  cost_s = atk.money_cost & "$"  
+  v_append vec, cost_s
+ END IF
+
+ IF atk.hp_cost <> 0 THEN
+  cost_s = atk.hp_cost & " " & statnames(statHP)  
+  v_append vec, cost_s
+ END IF
+ 
  IF atk.mp_cost <> 0 THEN
   DIM mp_cost as integer = focuscost(atk.mp_cost, focus)
   cost_s = mp_cost & " " & statnames(statMP) & " " & cur_mp & "/" & max_mp  

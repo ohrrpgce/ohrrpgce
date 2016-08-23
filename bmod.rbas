@@ -1004,7 +1004,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     textcolor uilook(uiDescription), 0
     IF bat.sptr < 24 THEN
      printstr bat.spell.slot(bat.sptr).desc, 9, 77, dpage
-     printstr bat.spell.slot(bat.sptr).cost, 308 - LEN(bat.spell.slot(bat.sptr).cost) * 8, 90, dpage
+     DIM cost_caption as string = RIGHT(bat.spell.slot(bat.sptr).cost, 30)
+     printstr cost_caption, 311 - LEN(cost_caption) * 8, 90, dpage
     END IF
    END IF
    'if keyval(scS) > 1 then gen(genMaxInventory) += 3

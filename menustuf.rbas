@@ -3463,13 +3463,14 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
   NEXT o
   textcolor uilook(uiMenuItem), 0
   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
-  printstr sp.cancel_menu_caption, 16, 171, sp.page 'cancel
+  printstr sp.cancel_menu_caption, 9, 171, sp.page 'cancel
   IF sp.mset = 1 THEN
    IF sp.spell(sp.cursor).desc <> "" THEN
     rectangle 6, 155, 308, 1, boxlook(2).edgecol, sp.page  'description divider
    END IF
    textcolor uilook(uiDescription), 0
-   printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, sp.page 'cost
+   DIM cost_caption as string = RIGHT(sp.spell(sp.cursor).cost, 30)
+   printstr cost_caption, 311 - LEN(cost_caption) * 8, 171, sp.page 'cost
    printstr sp.spell(sp.cursor).desc, 9, 158, sp.page 'description
   END IF
  END IF
