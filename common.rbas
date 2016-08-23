@@ -6314,5 +6314,3 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
  v_free vec
  RETURN result
 END FUNCTION
-
-

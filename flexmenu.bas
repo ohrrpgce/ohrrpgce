@@ -1471,6 +1471,21 @@ DO
  textcolor uilook(uiMenuItem), 0
  printstr vpages(dpage), damagepreview, 0, 77, 320, 0
 
+ 'Cost preview
+ IF helpkey = "attack_cost" THEN
+  DIM tmp_atk as AttackData
+  tmp_atk.mp_cost = recbuf(AtkDatMpCost)
+  tmp_atk.hp_cost = recbuf(AtkDatHpCost)
+  tmp_atk.money_cost = recbuf(AtkDatMoneyCost)
+  FOR i as integer = 0 TO 2
+   tmp_atk.item(i).id = recbuf(AtkDatItem + i * 2)
+   tmp_atk.item(i).number = recbuf(AtkDatItemCost + i * 2)
+  NEXT i
+  DIM cost_caption as string = attack_cost_info(tmp_atk, 0, 99, 99)
+  edgeprint cost_caption, 320 - LEN(cost_caption) * 8, 190, uilook(uiDisabledItem), dpage
+  edgeprint RIGHT(cost_caption, 30), 320 - LEN(RIGHT(cost_caption, 30)) * 8, 190, uilook(uiText), dpage
+ END IF
+
  standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just tab-flipped, show ID and name
    show_name = large(0, show_name - 1)
