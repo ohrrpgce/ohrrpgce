@@ -3214,12 +3214,8 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     
     .name = atk.name
     .desc = atk.description
-    IF sp.lists(sp.listnum).magic_type = 0 THEN
-     .cost = cost & " " & statnames(statMP) & " " & gam.hero(sp.hero).stat.cur.mp & "/" & gam.hero(sp.hero).stat.max.mp
-    END IF
-    IF sp.lists(sp.listnum).magic_type = 1 THEN
-     .cost = readglobalstring(160, "Level MP", 20) & " " & (INT(i / 3) + 1) & ":  " & lmp(sp.hero, INT(i / 3))
-    END IF
+    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(i / 3) + 1)
+
    END IF
    .name = rpad(.name, " ", 10)
   END WITH

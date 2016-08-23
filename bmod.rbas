@@ -1876,15 +1876,6 @@ SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnu
  END IF
 END SUB
 
-'Adjust the MP cost of an attack according to focus stat
-FUNCTION focuscost (cost as integer, focus as integer) as integer
- IF focus > 0 THEN
-  RETURN cost - INT(cost / (100 / focus))
- ELSE
-  RETURN cost
- END IF
-END FUNCTION
-
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  'Calculate a hero's elemental resists after taking equipment into account
  'elemental_resists() (the destination) should be sized up to at least gen(genNumElements) - 1;
@@ -2504,14 +2495,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
     loadattackdata atk, bat.spell.slot(i).atk_id
     bat.spell.slot(i).name = atk.name
     bat.spell.slot(i).desc = atk.description
-    IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
-     '--regular MP
-     bat.spell.slot(i).cost = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.focus) & " " & statnames(statMP) & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
-    END IF
-    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
-     '--level MP
-     bat.spell.slot(i).cost = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
-    END IF
+    bat.spell.slot(i).cost = bslot_attack_cost_info(bslot(), atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3) + 1)
     IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
      '-- check whether or not the spell is allowed
      bat.spell.slot(i).enable = YES
@@ -4465,3 +4449,33 @@ SUB battle_debug_menu(bat as BattleState, bslot() as BattleSprite, formdata as F
  dbg.selected_item = menu(result)
  battle_debug_menu_functions(dbg, bat, bslot(), formdata)
 END SUB
+
+FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+ DIM cur_lmp as integer = 0
+ IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
+  cur_lmp = lmp(hero_slot, lmp_level - 1)
+ END IF
+ RETURN attack_cost_info(atk,_
+   gam.hero(hero_slot).stat.cur.focus,_
+   gam.hero(hero_slot).stat.cur.mp,_
+   gam.hero(hero_slot).stat.max.mp,_
+   magic_list_type,_
+   lmp_level,_
+   cur_lmp)
+END FUNCTION
+
+FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+ DIM cur_lmp as integer = 0
+ IF slot >= 0 ANDALSO slot <= 3 THEN
+  IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
+   cur_lmp = lmp(slot, lmp_level - 1)
+  END IF
+ END IF
+ RETURN attack_cost_info(atk,_
+   bslot(slot).stat.cur.focus,_
+   bslot(slot).stat.cur.mp,_
+   bslot(slot).stat.max.mp,_
+   magic_list_type,_
+   lmp_level,_
+   cur_lmp)
+END FUNCTION

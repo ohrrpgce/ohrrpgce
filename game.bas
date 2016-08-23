@@ -3858,3 +3858,4 @@ FUNCTION top_menu_allows_controls() as bool
  END IF
  RETURN NO
 END FUNCTION
+

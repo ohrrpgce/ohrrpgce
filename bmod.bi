@@ -13,7 +13,6 @@
 declare function battle (byval form as integer) as bool
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnum)
-declare function focuscost (byval cost as integer, byval focus as integer) as integer
 DECLARE SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 declare sub invertstack
 declare sub quickinflict (byval harm as integer, byval targ as integer, bslot() as battlesprite)
@@ -61,5 +60,8 @@ DECLARE SUB clear_attack_queue_slot(byval slot as integer)
 DECLARE SUB display_attack_queue (bslot() as BattleSprite)
 DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as integer
 DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as integer
+
+DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
+DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
 
 #ENDIF

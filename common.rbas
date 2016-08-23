@@ -6258,4 +6258,40 @@ FUNCTION dissolve_type_caption(n as integer) as string
  END SELECT
 END FUNCTION
 
+'Adjust the MP cost of an attack according to focus stat
+FUNCTION focuscost (cost as integer, focus as integer) as integer
+ IF focus > 0 THEN
+  RETURN cost - INT(cost / (100 / focus))
+ ELSE
+  RETURN cost
+ END IF
+END FUNCTION
+
+FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=0, byval cur_lmp as integer=0) as string
+
+ DIM cost_s as string
+ DIM vec as string vector
+ v_new vec
+
+ IF atk.mp_cost <> 0 THEN
+  DIM mp_cost as integer = focuscost(atk.mp_cost, focus)
+  cost_s = mp_cost & " " & statnames(statMP) & " " & cur_mp & "/" & max_mp  
+  v_append vec, cost_s
+ END IF
+
+ IF magic_list_type = 1 ANDALSO lmp_level > 0 THEN
+  'Uses level-based MP
+  cost_s = readglobalstring(160, "Level MP", 20) & " " & lmp_level & ": " & cur_lmp
+  v_append vec, cost_s
+ END IF
+ 
+ DIM result as string 
+ FOR i as integer = 0 to v_len(vec) - 1
+  IF LEN(result) > 0 THEN result &= " "
+  result &= vec[i]
+ NEXT i
+ v_free vec
+ RETURN result
+END FUNCTION
+
 
