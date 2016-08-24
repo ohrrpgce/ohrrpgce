@@ -1310,7 +1310,7 @@ FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as strin
     ret = -4444
   END IF
 
-  IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr
+  IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr_s
 
   RETURN ret
 END FUNCTION
