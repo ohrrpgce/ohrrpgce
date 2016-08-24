@@ -79,14 +79,13 @@ namespace gfx
 			UINT height;
 			Palette<UINT> palette;
 		} m_image;
-		Tstring m_szModuleName;
 
 		RECT calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
 	public:
 		D3D();
 		virtual ~D3D();
 
-		HRESULT initialize(Window *pWin, LPCTSTR szModuleName, Tstring* pStrResult = NULL); //starts up the engine
+		HRESULT initialize(Window *pWin, Tstring* pStrResult = NULL); //starts up the engine
 		HRESULT shutdown(); //shuts down the engine
 		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
 		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying

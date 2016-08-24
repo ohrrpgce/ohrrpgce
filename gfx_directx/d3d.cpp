@@ -46,16 +46,12 @@ RECT D3D::calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UI
 	return r;
 }
 
-HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrResult)
+HRESULT D3D::initialize(gfx::Window *pWin, Tstring* pStrResult)
 {
 	HRESULT hr = S_OK;
 	if(!pWin)
 		return E_POINTER;
 	shutdown();
-	if(szModuleName != NULL)
-		m_szModuleName = szModuleName;
-	else
-		m_szModuleName = TEXT("");
 
 	Tstring dummyResult;
 	if(!pStrResult)
@@ -155,7 +151,6 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 HRESULT D3D::shutdown()
 {
 	m_bInitialized = FALSE;
-	m_szModuleName.clear();
 	m_surface.initialize(0,0,0);
 	m_d3ddev = NULL;
 	m_d3d = NULL;
@@ -181,9 +176,8 @@ HRESULT D3D::shutdown()
 //	{
 //		if(IDYES == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 //			return Shutdown();
-//		Tstring szModule = m_szModuleName;
 //		Shutdown();
-//		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+//		return initialize(m_pWindow);
 //	}
 //	if(pRawPage != NULL)
 //	{
@@ -264,9 +258,8 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	{
 		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 			return shutdown();
-		Tstring szModule = m_szModuleName;
 		shutdown();
-		return initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+		return initialize(m_pWindow);
 	}
 
 	//present
@@ -320,9 +313,8 @@ HRESULT D3D::present32(unsigned int *pRawPage, UINT width, UINT height)
 	{
 		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 			return shutdown();
-		Tstring szModule = m_szModuleName;
 		shutdown();
-		return initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+		return initialize(m_pWindow);
 	}
 
 	//present

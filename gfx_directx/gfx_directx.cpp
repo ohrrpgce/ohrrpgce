@@ -310,7 +310,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 
 	//g_State.Debug("gfx_directx: Window Intialized!");
 
-	if( FAILED(g_DirectX.initialize(&g_Window, MODULENAME, &g_d3dInitInfo)) )
+	if( FAILED(g_DirectX.initialize(&g_Window, &g_d3dInitInfo)) )
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
@@ -896,7 +896,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case PBT_APMRESUMECRITICAL:
 			case PBT_APMRESUMEAUTOMATIC:
 				{
-					g_DirectX.initialize(&g_Window, MODULENAME);
+					g_DirectX.initialize(&g_Window);
 					g_Joystick.initialize(g_Window.getAppHandle(), g_Window.getWindowHandle());
 					g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
 					g_Mouse.updateClippingRect();
