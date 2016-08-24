@@ -1,4 +1,5 @@
 #include "mouse.h"
+
 using namespace gfx;
 
 //Mouse::Mouse() : m_wheel(0)
@@ -358,20 +359,7 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_MOUSEMOVE:
 		{
-			::GetCursorPos(&m_cursorPos);
-			ScreenToClient(hWnd, &m_cursorPos);
-			RECT rClientRect;
-			GetClientRect(hWnd, &rClientRect);
-
-			if(m_cursorPos.x < rClientRect.left) m_cursorPos.x = 0;
-			else if(m_cursorPos.x > rClientRect.right) m_cursorPos.x = rClientRect.right;
-			if(m_cursorPos.y < rClientRect.top) m_cursorPos.y = 0;
-			else if(m_cursorPos.y > rClientRect.bottom) m_cursorPos.y = rClientRect.bottom;
-
-			m_cursorPos.x = (LONG)(320.0f * (float)m_cursorPos.x / (float)rClientRect.right);
-			m_cursorPos.y = (LONG)(200.0f * (float)m_cursorPos.y / (float)rClientRect.bottom);
-			m_cursorPos.x = (m_cursorPos.x > 319) ? 319 : m_cursorPos.x;
-			m_cursorPos.y = (m_cursorPos.y > 199) ? 199 : m_cursorPos.y;
+			updatePosition();
 		} break;
 	case WM_NCLBUTTONDOWN:
 		{
@@ -610,6 +598,58 @@ void Mouse2::setVideoMode(VideoMode mode)
 		}
 	}
 	updateCursorVisibility();
+}
+
+LONG _round(double v)
+{
+	return (LONG)floor(v + .5);
+}
+
+// WM_MOUSEMOVE event
+void Mouse2::updatePosition()
+{
+	::GetCursorPos(&m_cursorPos);
+	ScreenToClient(m_hWnd, &m_cursorPos);
+	RECT rClientRect;
+	GetClientRect(m_hWnd, &rClientRect);
+
+	if(m_cursorPos.x < rClientRect.left) m_cursorPos.x = 0;
+	else if(m_cursorPos.x > rClientRect.right) m_cursorPos.x = rClientRect.right;
+	if(m_cursorPos.y < rClientRect.top) m_cursorPos.y = 0;
+	else if(m_cursorPos.y > rClientRect.bottom) m_cursorPos.y = rClientRect.bottom;
+
+	m_cursorPos.x = (LONG)(320.0f * (float)m_cursorPos.x / (float)rClientRect.right);
+	m_cursorPos.y = (LONG)(200.0f * (float)m_cursorPos.y / (float)rClientRect.bottom);
+	m_cursorPos.x = (m_cursorPos.x > 319) ? 319 : m_cursorPos.x;
+	m_cursorPos.y = (m_cursorPos.y > 199) ? 199 : m_cursorPos.y;
+}
+
+// client changes
+int Mouse2::setPosition(int x, int y)
+{
+	DWORD xPos, yPos;
+	RECT rClient, rDesktop;
+	GetClientRect(m_hWnd, &rClient);
+	D3DXVECTOR2 clientPosition( (float)(rClient.right * x) / 320.0f + 0.5f, (float)(rClient.bottom * y) / 200.0f + 0.5f);
+	POINT pos = { _round(clientPosition.x), _round(clientPosition.y) };
+	
+	ClientToScreen(m_hWnd, &pos);
+	GetWindowRect(GetDesktopWindow(), &rDesktop);
+
+	//it was recommended not to use mouse_event; but if we need to, we could go back to it
+	//mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
+
+	xPos = _round( (float)pos.x / (float)rDesktop.right * 65535.0f );
+	yPos = _round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
+
+	INPUT mouseEvent = { INPUT_MOUSE };
+	mouseEvent.mi.dx = xPos;
+	mouseEvent.mi.dy = yPos;
+	mouseEvent.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
+	if(0 == SendInput( 1, &mouseEvent, sizeof(mouseEvent) ))
+		return FALSE;
+
+	return TRUE;
 }
 
 // Decide whether the cursor should be visible, and enact.

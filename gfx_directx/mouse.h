@@ -138,6 +138,8 @@ namespace gfx
 		State m_state;
 
 		void updateCursorVisibility();
+		void updatePosition();
+
 	public:
 		Mouse2();
 
@@ -155,6 +157,8 @@ namespace gfx
 		void setCursorVisibility(CursorVisibility visibility);
 		void setClipState(ClipState state);
 		void setClippingRect(RECT* pRect);
+		// Set cursor position in game coords. Returns TRUE on scuess
+		int setPosition(int x, int y);
 		void updateClippingRect(); //call whenever the window size changes
 		void pushState(InputState state);
 		void popState();

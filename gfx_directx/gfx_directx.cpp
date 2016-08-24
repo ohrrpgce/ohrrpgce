@@ -583,36 +583,9 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
 	return TRUE;
 }
 
-LONG _round(double v)
-{
-	return (LONG)floor(v + .5);
-}
-
 DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 {
-	DWORD xPos, yPos;
-	RECT rClient, rDesktop;
-	GetClientRect(g_Window.getWindowHandle(), &rClient);
-	D3DXVECTOR2 clientPosition( (float)(rClient.right * x) / 320.0f + 0.5f, (float)(rClient.bottom * y) / 200.0f + 0.5f);
-	POINT pos = { _round(clientPosition.x), _round(clientPosition.y) };
-	
-	ClientToScreen(g_Window.getWindowHandle(), &pos);
-	GetWindowRect(GetDesktopWindow(), &rDesktop);
-
-	//it was recommended not to use mouse_event; but if we need to, we could go back to it
-	//mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
-
-	xPos = _round( (float)pos.x / (float)rDesktop.right * 65535.0f );
-	yPos = _round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
-
-	INPUT mouseEvent = { INPUT_MOUSE };
-	mouseEvent.mi.dx = xPos;
-	mouseEvent.mi.dy = yPos;
-	mouseEvent.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
-	if(0 == SendInput( 1, &mouseEvent, sizeof(mouseEvent) ))
-		return FALSE;
-
-	return TRUE;
+	return g_Mouse.setPosition(x, y);
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int& x, int& y, int& buttons)
