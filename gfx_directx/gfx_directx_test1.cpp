@@ -56,7 +56,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	//				TEXT("TestApp Message"), MB_OK);
 
 	UINT j = 0;
-	int x,y,buttons;
+	//int x,y,buttons;
 	::ZeroMemory(g_keys, sizeof(g_keys));
 	//db.io_setmousevisibility(CV_Hidden);
 	while(!g_bQuit)

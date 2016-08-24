@@ -18,7 +18,7 @@ extern "C"
 	declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
 #endif
 
-dim gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer
+dim gfx_Initialize as function (byval pCreationData as const GfxInitData ptr) as integer
 dim gfx_Shutdown as sub ()
 dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
 'dim gfx_GetVersion as function () as integer

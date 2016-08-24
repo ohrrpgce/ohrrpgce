@@ -7,6 +7,8 @@
 
 #define DLLEXPORT __declspec(dllexport)
 
+#include "../errorlevel.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -14,25 +16,28 @@ extern "C"
 
 struct WindowState
 {
-	int structsize;
+	int structsize;    // Number of members
 	int focused;
 	int minimised;
+	int fullscreen;
+	int user_toggled_fullscreen;
 };
-#define WINDOWSTATE_SZ 3
+#define WINDOWSTATE_SZ 5
 
-struct GFX_INIT
+
+struct GfxInitData
 {
-	int nSize;
-	const char* szInitWindowTitle;
-	const char* szWindowIcon;
+	int structsize;    // Number of members
+	const char* windowtitle;
+	const char* windowicon;
 	void (__cdecl *PostTerminateSignal)(void);
-	void (__cdecl *OnCriticalError)(const char* szError);
-	void (__cdecl *SendDebugString)(const char* szMessage);
+	void (__cdecl *DebugMsg)(ErrorLevel errlvl, const char* message);
 };
+#define GFXINITDATA_SZ 5
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //basic backend functions
-DLLEXPORT int gfx_Initialize(const GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
+DLLEXPORT int gfx_Initialize(const GfxInitData* pCreationData); //initializes the backend; if failed, returns 0
 DLLEXPORT void gfx_Shutdown(); //shuts down the backend--does not post the termination signal
 
 DLLEXPORT int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam); //sends a message to the backend; return value depends on message sent

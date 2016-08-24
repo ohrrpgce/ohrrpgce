@@ -1,21 +1,22 @@
-'new backend interfaces--proposal
-'started 12/22/09
+' New backend interfaces (proposal, not used yet)
+' Also, gfx.new_x.bi contains function declarations instead of
+' function pointer declarations.
 
 'gfx_GetVersion() and gfx_getversion(), and gfx_ScreenShot() and gfx_screenshot()
 'collide, so are disabled for now
 
 extern "C"
 
-type GFX_INIT
-	szInitWindowTitle as zstring ptr
-	szWindowIcon as zstring ptr
+type GfxInitData
+	structsize as integer    ' Number of members
+	windowtitle as zstring ptr
+	windowicon as zstring ptr
 	PostTerminateSignal as sub cdecl()
-	OnCriticalError as sub cdecl(byval szError as zstring ptr)
-	SendDebugString as sub cdecl(byval szMessage as const zstring ptr)
-	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
+	DebugMsg as sub cdecl(errlvl as integer, byval message as const zstring ptr)
 end type
+#define GFXINITDATA_SZ 5
 
-extern gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
+extern gfx_Initialize as function (byval pCreationData as const GfxInitData ptr) as integer 'initializes the backend; if failed, returns 0
 extern gfx_Shutdown as sub () 'shuts down the backend--does not post the termination signal
 
 extern gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer 'sends a message to the backend; return value depends on message sent

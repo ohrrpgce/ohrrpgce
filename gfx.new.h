@@ -1,24 +1,29 @@
-//new backend interfaces--proposal
-//started 12/22/09
+// New backend interfaces (proposal, not used yet)
+// This header mirrors gfx.new_x.h.
+// This file should not normally be included; it's just a template of the
+// necessary functions to define in a shared-library gfx backend, but doesn't
+// do the necessary dllexporting. Have a look at gfx_directx/gfx_directx.h instead.
 
 #ifndef GFX_NEW_H
 #define GFX_NEW_H
 
 #include "gfx_common/config.h"
+#include "errorlevel.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-struct GFX_INIT
+struct GfxInitData
 {
-	char* szInitWindowTitle;
-	char* szWindowIcon;
+	int structsize;    // Number of members
+	char* windowtitle;
+	char* windowicon;
 	void (__cdecl *PostTerminateSignal)(void);
-	void (__cdecl *OnCriticalError)(const char* szError);
-	void (__cdecl *SendDebugString)(const char* szMessage);
+	void (__cdecl *DebugMsg)(ErrorLevel errlvl, const char* message);
 };
+#define GFXINITDATA_SZ 5
 
 enum CursorVisibility {
 	CV_Hidden = 0,   // (cursorHidden)  Cursor always hidden
@@ -28,7 +33,7 @@ enum CursorVisibility {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //basic backend functions
-int gfx_Initialize(const GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
+int gfx_Initialize(const GfxInitData* pCreationData); //initializes the backend; if failed, returns 0
 void gfx_Shutdown(); //shuts down the backend--does not post the termination signal
 
 int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam); //sends a message to the backend; return value depends on message sent

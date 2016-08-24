@@ -1,20 +1,23 @@
-'new backend interfaces--proposal
-'started 12/22/09
+' New backend interfaces (proposal, not used yet)
+' This file should not normally be included; it's just a template of the
+' necessary functions to define in a shared-library gfx backend, but doesn't
+' do the necessary dllexporting.
+' Include gfx.new.bi instead.
 
 extern "C"
 
-type GFX_INIT
-	szInitWindowTitle as zstring ptr
-	szWindowIcon as zstring ptr
+type GfxInitData
+	structsize as integer    ' Number of members
+	windowtitle as zstring ptr
+	windowicon as zstring ptr
 	PostTerminateSignal as sub cdecl()
-	OnCriticalError as sub cdecl(byval szError as zstring ptr)
-	SendDebugString as sub cdecl(byval szMessage as const zstring ptr)
-	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
-	end type
+	DebugMsg as sub cdecl(errlvl as integer, byval message as const zstring ptr)
+end type
+#define GFXINITDATA_SZ 5
 
 #ifdef GFX_EXTERNAL_DLL
 
-DECLARE FUNCTION gfx_Initialize (byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
+DECLARE FUNCTION gfx_Initialize (byval pCreationData as const GfxInitData ptr) as integer 'initializes the backend; if failed, returns 0
 DECLARE SUB gfx_Shutdown () 'shuts down the backend--does not post the termination signal
 
 DECLARE FUNCTION gfx_SendMessage (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer 'sends a message to the backend; return value depends on message sent
