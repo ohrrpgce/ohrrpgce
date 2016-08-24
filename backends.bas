@@ -218,6 +218,7 @@ function io_dummy_running_on_ouya() as bool : return NO : end function
 private sub set_default_gfx_function_ptrs
 	default_gfx_render_procs()
 	gfx_getversion = NULL
+	gfx_Initialize = NULL
 	gfx_setdebugfunc = NULL
 	gfx_get_screen_size = @gfx_dummy_get_screen_size
 	gfx_supports_variable_resolution = @gfx_dummy_supports_variable_resolution
@@ -295,7 +296,14 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 		return NO
 	end if
 
-	MUSTLOAD(gfx_init)
+
+	' Switching over to new gfx API gradually; accept either init routine.
+	TRYLOAD(gfx_Initialize)
+	if gfx_Initialize = NULL then
+		MUSTLOAD(gfx_init)
+	else
+		TRYLOAD (gfx_init)   'Support old gfx_directx with incompatible gfx_Initialize
+	end if
 	MUSTLOAD(gfx_close)
 	TRYLOAD (gfx_setdebugfunc)
 	'gfx_getversion already loaded
@@ -571,21 +579,33 @@ sub init_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
-				dim info_buffer as zstring * 512
 				debuginfo "Initialising gfx_" + .name + "..."
-				if gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON", @info_buffer, 511) = 0 then
-					unload_backend(gfx_choices(i))
-					currentgfxbackend = NULL
-					'TODO: what about the polling thread?
-					queue_error = info_buffer
-					debug queue_error
-				else
-					if len(info_buffer) then
-						gfxbackendinfo += " """ + info_buffer + """"
-						debuginfo gfxbackendinfo
+
+				if gfx_Initialize then
+					dim initdata as GfxInitData = ( _
+						GFXINITDATA_SZ, @"O.H.R.RPG.C.E.", @"FB_PROGRAM_ICON", _
+						@post_terminate_signal, @debugc _
+					)
+					if gfx_Initialize(@initdata) then
+						exit sub
 					end if
-					exit sub
 				end if
+				if gfx_init then
+					dim info_buffer as zstring * 512
+					if gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON", @info_buffer, 511) = 0 then
+						'TODO: what about the polling thread?
+						queue_error = info_buffer
+						debug queue_error
+					else
+						if len(info_buffer) then
+							gfxbackendinfo += " """ + info_buffer + """"
+							debuginfo gfxbackendinfo
+						end if
+						exit sub
+					end if
+				end if
+				unload_backend(gfx_choices(i))
+				currentgfxbackend = NULL
 			end if
 		end with
 	next

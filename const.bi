@@ -313,7 +313,7 @@ End Enum
 
 'Constants for debugc
 'NOTE: errorlevel.h MUST be updated when this is changed!
-Enum errorLevelEnum
+Enum 'errorLevelEnum
   errInfo = 1   'Informational spam (doesn't cause g/c_debug.txt to be kept)
   errDebug      'Log a message and preserve g/c_debug.txt
   errError      'Something is wrong, but it's not necessarily due to a bug
@@ -325,6 +325,7 @@ Enum errorLevelEnum
   errFatalBug   'Does not return!
   errDie        'Exit immediately without attempting to show a message (especially for gfx backend errors)
 End Enum
+Type errorLevelEnum as integer  'For compatibility with C
 
 'Constants for scripterr and friends
 Enum scriptErrEnum

@@ -12,7 +12,7 @@ type GfxInitData
 	windowtitle as zstring ptr
 	windowicon as zstring ptr
 	PostTerminateSignal as sub cdecl()
-	DebugMsg as sub cdecl(errlvl as integer, byval message as const zstring ptr)
+	DebugMsg as sub cdecl(errlvl as integer, byval message as zstring ptr)
 end type
 #define GFXINITDATA_SZ 5
 
