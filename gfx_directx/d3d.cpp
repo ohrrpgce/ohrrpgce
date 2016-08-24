@@ -47,6 +47,26 @@ RECT D3D::calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UI
 	return r;
 }
 
+RECT D3D::getImageRect()
+{
+	SIZE clientSize = m_pWindow->getClientSize();
+	if(m_bPreserveAspectRatio)
+	{
+		SIZE imageSize = m_surface.getDimensions();
+		return calculateAspectRatio(imageSize.cx, imageSize.cy, clientSize.cx, clientSize.cy);
+	}
+	else
+	{
+		RECT rImage = {0, 0, clientSize.cx, clientSize.cy};
+		return rImage;
+	}
+}
+
+SIZE D3D::getImageResolution()
+{
+	return m_surface.getDimensions();
+}
+
 HRESULT D3D::initialize(gfx::Window *pWin)
 {
 	HRESULT hr = S_OK;
@@ -274,6 +294,7 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	if(FAILED(hr))
 		return hr;
 
+	// srcSurface, srcRect, destSurface, destRect
 	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 	if(FAILED(hr))
 		return hr;

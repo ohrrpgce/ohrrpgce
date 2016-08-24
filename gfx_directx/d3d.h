@@ -89,22 +89,31 @@ namespace gfx
 		HRESULT shutdown(); //shuts down the engine
 		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
 		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
-		HRESULT present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //draws the raw page (array of indices into palette), and sets the palette; if pPalette is NULL, the page is presented with the previous palette; if pRawpage is NULL, the page is presented with the new palette; if both are NULL, the image is presented again
+		// Draws the raw page (array of indices into palette), and sets the palette;
+		// if pPalette is NULL, the page is presented with the previous palette;
+		// if pRawpage is NULL, the page is presented with the new palette;
+		// if both are NULL, the image is presented again
+		HRESULT present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); 
 		HRESULT present32(unsigned int *pRawPage, UINT width, UINT height);
 		HRESULT screenShot(LPCTSTR strName); //gets a screenshot, appending the correct format image to the end of the name
 		void onLostDevice();
 		void onResetDevice();
+		// Sets the dimensions of the backbuffer (to be called when the client area size changes)
+		HRESULT setResolution(SIZE pRect);
 
-		//option setting
+		//// Option setting
 		HRESULT setViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
-		HRESULT setResolution(SIZE pRect); //sets the dimensions of the backbuffer (client area)
 		HRESULT setVsyncEnabled(BOOL bVsync); //enables vsync if true
 		void setSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
 		void setAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
 		void setImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
 
-		//info
+		//// Info
 		SIZE getResolution(); //returns size of back buffer (client area) in pixels
+		// The part of the client window on which the image is actually drawn,
+		// excluding black spacing bars. In client coordinates, ie. 0,0 is top-left.
+		RECT getImageRect();
+		SIZE getImageResolution(); // The in-game resolution
 		Palette<UINT> getPalette(); //returns a reference of the palette, non-deletable
 		BOOL isVsyncEnabled(); //returns true if vsync is enabled
 		BOOL isViewFullscreen(); //returns true if view is fullscreen

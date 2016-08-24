@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <stack>
 
+#include "d3d.h"
 #include "../gfx_common/gfx.h" // for CursorVisibility
 
 namespace gfx
@@ -131,7 +132,8 @@ namespace gfx
 
 	protected:
 		HWND m_hWnd;
-		POINT m_cursorPos;
+		D3D *m_pDirectX;  // pointer to g_DirectX
+		POINT m_cursorPos;  // position in engine coords, clamped to valid range.
 		long m_wheel;
 		Buttons m_buttons;
 		std::stack<InputState> m_inputState;
@@ -142,6 +144,8 @@ namespace gfx
 
 	public:
 		Mouse2();
+
+		void initialize(D3D *pDirectX);
 
 		const POINT& getCursorPos() const {return m_cursorPos;}
 		long getWheel() const {return m_wheel;}
@@ -157,7 +161,7 @@ namespace gfx
 		void setCursorVisibility(CursorVisibility visibility);
 		void setClipState(ClipState state);
 		void setClippingRect(RECT* pRect);
-		// Set cursor position in game coords. Returns TRUE on scuess
+		// Set cursor position in engine coords. Returns TRUE on scuess
 		int setPosition(int x, int y);
 		void updateClippingRect(); //call whenever the window size changes
 		void pushState(InputState state);

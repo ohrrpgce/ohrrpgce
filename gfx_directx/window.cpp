@@ -56,6 +56,7 @@ HRESULT Window::initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WND
 		return HRESULT_FROM_WIN32(GetLastError());
 	m_rWindow.right = 800;
 	m_rWindow.bottom = 600;
+	// Compute the size of the window from the size of the client area
 	::AdjustWindowRectEx(&m_rWindow, WS_OVERLAPPEDWINDOW, 0, 0);
 	m_hWnd = ::CreateWindowEx(0, TEXT("gfx_directx window class"), TEXT(""), WS_OVERLAPPEDWINDOW, 
 							  m_rWindow.left, m_rWindow.top, 

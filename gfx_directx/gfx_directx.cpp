@@ -316,6 +316,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	else
 		Debug(errInfo, "Joysticks supported.");
 
+	g_Mouse.initialize(&g_DirectX);
+
 	gfx_SetWindowTitle(pCreationData->windowtitle);
 
 	g_Window.setClientSize(640, 400);

@@ -31,6 +31,9 @@ WHAT IS NEW?
     * "use item in slot" was not immediately updating item ownership
       tags [James]
     * Fix broken self-targeting on-death-bequest attacks [James]
+    * gfx_directx: fixed incorrect positioning of the mouse cursor when
+      the window was stretched or maximised, which caused problems with
+      tile cursor movement in the tile browser and tile cutter [Ralph]
 
   * New Plotscripting Stuff
     * "menu item at pixel" [Ralph, James]

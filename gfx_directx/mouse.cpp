@@ -299,7 +299,7 @@ RECT ScaleRectWindow(HWND hWnd, const RECT& rSrc)
 	//return rWin;
 }
 
-Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
+Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL), m_pDirectX(NULL)
 {
 	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
 	State ns;
@@ -315,6 +315,11 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 	ns.mode = VM_WINDOWED;
 	m_state = ns;
 	m_inputState.push(IS_LIVE);
+}
+
+void Mouse2::initialize(gfx::D3D *pDirectX)
+{
+	m_pDirectX = pDirectX;
 }
 
 bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -608,39 +613,48 @@ LONG _round(double v)
 // WM_MOUSEMOVE event
 void Mouse2::updatePosition()
 {
-	::GetCursorPos(&m_cursorPos);
-	ScreenToClient(m_hWnd, &m_cursorPos);
-	RECT rClientRect;
-	GetClientRect(m_hWnd, &rClientRect);
+	POINT pos;
+	::GetCursorPos(&pos);
+	ScreenToClient(m_hWnd, &pos);
 
-	if(m_cursorPos.x < rClientRect.left) m_cursorPos.x = 0;
-	else if(m_cursorPos.x > rClientRect.right) m_cursorPos.x = rClientRect.right;
-	if(m_cursorPos.y < rClientRect.top) m_cursorPos.y = 0;
-	else if(m_cursorPos.y > rClientRect.bottom) m_cursorPos.y = rClientRect.bottom;
+	// In client coordinates: window top-left is at 0,0
+	RECT rImage = m_pDirectX->getImageRect();
+	int imWidth = rImage.right - rImage.left;
+	int imHeight = rImage.bottom - rImage.top;
+	SIZE rGameRes = m_pDirectX->getImageResolution();
 
-	m_cursorPos.x = (LONG)(320.0f * (float)m_cursorPos.x / (float)rClientRect.right);
-	m_cursorPos.y = (LONG)(200.0f * (float)m_cursorPos.y / (float)rClientRect.bottom);
-	m_cursorPos.x = (m_cursorPos.x > 319) ? 319 : m_cursorPos.x;
-	m_cursorPos.y = (m_cursorPos.y > 199) ? 199 : m_cursorPos.y;
+	m_cursorPos.x = (LONG)((float)(pos.x - rImage.left) * rGameRes.cx / imWidth);
+	m_cursorPos.y = (LONG)((float)(pos.y - rImage.top) * rGameRes.cy / imHeight);
+
+	m_cursorPos.x = min(max(m_cursorPos.x, 0), rGameRes.cx - 1);
+	m_cursorPos.y = min(max(m_cursorPos.y, 0), rGameRes.cy - 1);
 }
 
 // client changes
 int Mouse2::setPosition(int x, int y)
 {
 	DWORD xPos, yPos;
-	RECT rClient, rDesktop;
-	GetClientRect(m_hWnd, &rClient);
-	D3DXVECTOR2 clientPosition( (float)(rClient.right * x) / 320.0f + 0.5f, (float)(rClient.bottom * y) / 200.0f + 0.5f);
-	POINT pos = { _round(clientPosition.x), _round(clientPosition.y) };
-	
+	RECT rDesktop;
+
+	// In client coordinates: window top-left is at 0,0
+	RECT rImage = m_pDirectX->getImageRect();
+	int imWidth = rImage.right - rImage.left;
+	int imHeight = rImage.bottom - rImage.top;
+	SIZE rGameRes = m_pDirectX->getImageResolution();
+
+	// Translate to desktop coordinates
+	// add 0.5 to put the mouse cursor at the centre of the scaled pixel
+	POINT pos;
+	pos.x = (LONG)(rImage.left + (float)(x + 0.5) * imWidth / rGameRes.cx);
+	pos.y = (LONG)(rImage.top + (float)(y + 0.5) * imHeight / rGameRes.cy);
 	ClientToScreen(m_hWnd, &pos);
-	GetWindowRect(GetDesktopWindow(), &rDesktop);
 
 	//it was recommended not to use mouse_event; but if we need to, we could go back to it
 	//mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
 
-	xPos = _round( (float)pos.x / (float)rDesktop.right * 65535.0f );
-	yPos = _round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
+	GetWindowRect(GetDesktopWindow(), &rDesktop);
+	xPos = _round( (float)pos.x / (float)(rDesktop.right - 1) * 65535.0f );
+	yPos = _round( (float)pos.y / (float)(rDesktop.bottom - 1) * 65535.0f );
 
 	INPUT mouseEvent = { INPUT_MOUSE };
 	mouseEvent.mi.dx = xPos;
@@ -648,7 +662,6 @@ int Mouse2::setPosition(int x, int y)
 	mouseEvent.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
 	if(0 == SendInput( 1, &mouseEvent, sizeof(mouseEvent) ))
 		return FALSE;
-
 	return TRUE;
 }
 
