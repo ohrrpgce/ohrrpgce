@@ -3,6 +3,7 @@
 #define DFI_CLASS
 
 #include <windows.h>
+#include <stdio.h>
 
 #include "../gfx_common/gfx.h"
 #include "keyboard.h"
@@ -18,13 +19,18 @@ void __cdecl RequestQuit()
 	g_bQuit = true;
 }
 
+void __cdecl DebugMsg(ErrorLevel errlvl, const char *szMessage)
+{
+	printf(szMessage);
+	printf("\n");
+}
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nShowCmd)
 {
 	GfxBackendDll db(TEXT("gfx_directx.dll"));
-	db.Init_gfx_init();
+	db.Init_gfx_Initialize();
 	db.Init_gfx_windowtitle();
 	db.Init_gfx_setpal();
-	//db.Init_io_init();
 	db.Init_io_setmousevisibility();
 	db.Init_gfx_showpage();
 	db.Init_io_keybits();
@@ -40,16 +46,14 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	g_paletteTest[0xee] = 0xffff0000;
 	g_paletteTest[0xdd] = 0xff0000ff;
 
-	char szInfoBuffer[512] = "";
-	if(!db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer)))
+	GfxInitData initData = {GFXINITDATA_SZ, "DirectX Backend Test App", "", RequestQuit, DebugMsg};
+	if(!db.gfx_Initialize(&initData))
 	{
 		MessageBox(NULL, TEXT("Initialization failure!"), TEXT("Error"), MB_OK | MB_ICONEXCLAMATION);
 		db.gfx_close();
 		return -1;
 	}
-	db.gfx_windowtitle("DirectX Backend Test App");
 	db.gfx_setpal(g_paletteTest);
-	//db.io_init();
 	//::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
 	//				TEXT("\r\nUse 'S' to take a screenshot."),
 	//				TEXT("TestApp Message"), MB_OK);

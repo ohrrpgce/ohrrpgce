@@ -1,6 +1,7 @@
 #define ISOLATION_AWARE_ENABLED 1
 
 #include "../gfx_common/gfx.h"
+#include "debugmsg.h"
 #include "window.h"
 #include "d3d.h"
 #include "keyboard.h"
@@ -26,32 +27,41 @@ using namespace gfx;
 #endif
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Version 1.0 interfaces
-D3D g_DirectX;
-Tstring g_d3dInitInfo; //this is so hacky... geh...
-
+struct gfx_BackendState
+{
+	Tstring szWindowTitle;
+	Tstring szWindowIcon;
+	void (__cdecl *PostTerminateSignal)(void);
+	void (__cdecl *DebugMsg)(ErrorLevel errlvl, const char* szMessage);
+	bool bClosing; //flagged when shutting down
+	Tstring szHelpText;
+	BOOL bDisableSysMsg;
+	BOOL bUserToggledFullscreen;
+} g_State;
 
 void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 	//MessageBoxA(NULL, szMessage, "Debug Message", MB_OK);
 }
 
-DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void), const char* windowicon, char* info_buffer, int info_buffer_size)
-{
-	GfxInitData gfxInit = {sizeof(GfxInitData), "O.H.R.RPG.C.E.", windowicon, terminate_signal_handler, DefaultDebugMsg};
-	//if(gfx_Initialize(&gfxInit) == 0)
-	//{
-	//	if(info_buffer != NULL && info_buffer_size > 16)
-	//		strcpy(info_buffer, "Backend failed!");
-	//	return 0;
-	//}
-	//if(info_buffer != NULL && info_buffer_size > 18)
-	//	strcpy(info_buffer, "Backend success!");
-	int result = gfx_Initialize(&gfxInit);
-	StringToString(info_buffer, info_buffer_size, g_d3dInitInfo.c_str());
-
-	return result;
+// For informative messages use errInfo
+void gfx::Debug(ErrorLevel errlvl, const char* szMessage, ...) {
+	if (g_State.DebugMsg)
+	{
+		va_list vl;
+		va_start(vl, szMessage);
+		char buf[512];
+		strcpy_s(buf, 512, "gfx_directx: ");
+		int len = strlen("gfx_directx: ");
+		vsnprintf_s(buf + len, 512 - len, _TRUNCATE, szMessage, vl);
+		va_end(vl);
+		g_State.DebugMsg(errlvl, buf);
+	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Version 1.0 interfaces
+D3D g_DirectX;
+
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
 {
@@ -245,19 +255,6 @@ Keyboard g_Keyboard;
 Mouse2 g_Mouse;
 Joystick g_Joystick;
 
-struct gfx_BackendState
-{
-	Tstring szWindowTitle;
-	Tstring szWindowIcon;
-	void (__cdecl *PostTerminateSignal)(void);
-	void (__cdecl *DebugMsg)(ErrorLevel errlvl, const char* szMessage);
-	bool bClosing; //flagged when shutting down
-	Tstring szHelpText;
-	BOOL bDisableSysMsg;
-	BOOL bUserToggledFullscreen;
-
-	void Debug(const char* szMessage) { DebugMsg(errInfo, szMessage); }
-} g_State;
 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -293,39 +290,31 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_State.DebugMsg = pCreationData->DebugMsg;
 
 	if(g_State.PostTerminateSignal == NULL || g_State.DebugMsg == NULL) {
-		g_d3dInitInfo += TEXT("\r\nRequired GfxInitData callbacks missing!");
+		Debug(errInfo, "Required GfxInitData callbacks missing!");
 		return FALSE;
 	}
-	//g_State.Debug("gfx_directx: Initializing...");
-	g_d3dInitInfo += TEXT("gfx_Initialize()...");
+	Debug(errInfo, "gfx_Initialize()...");
 
 	if(FAILED(g_Window.initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
 								   (WNDPROC)OHRWndProc)))
 	{
-		//g_State.Debug("gfx_directx: Failed at window initialization! Fallback...");
-		g_d3dInitInfo += TEXT("\r\nWindow initialization failed!");
+		Debug(errInfo, "Window initialization failed!");
 		return FALSE;
 	}
 
-	//g_State.Debug("gfx_directx: Window Intialized!");
-
-	if( FAILED(g_DirectX.initialize(&g_Window, &g_d3dInitInfo)) )
+	if( FAILED(g_DirectX.initialize(&g_Window)) )
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
-		//g_State.Debug("gfx_directx: Failed at d3d initialization! Fallback...");
+		Debug(errInfo, "Failed at d3d initialization!");
 		return FALSE;
 	}
 
-	//g_State.Debug("gfx_directx: D3D Initialized!");
-
 	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
-		//g_State.Debug("gfx_directx: Failed to support joysticks!");
-		g_d3dInitInfo += TEXT("\r\nJoystick support failed! Possibly lacking dinput8.dll.");
+		Debug(errInfo, "Joystick support failed! Possibly lacking dinput8.dll.");
 	else
-		//g_State.Debug("gfx_directx: Joysticks supported!");
-		g_d3dInitInfo += TEXT("\r\nJoysticks supported.");
+		Debug(errInfo, "Joysticks supported.");
 
 	gfx_SetWindowTitle(pCreationData->windowtitle);
 
@@ -334,18 +323,18 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_Window.showWindow();
 	g_Window.setClientSize(640, 400);
 
-	//g_State.Debug("gfx_directx: Initialization success!");
+	Debug(errInfo, "Initialization success");
 	return TRUE;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
-	//g_State.Debug("gfx_directx: Closing backend...");
+	Debug(errInfo, "gfx_Shutdown()...");
 	g_Joystick.shutdown();
 	g_DirectX.shutdown();
 	g_Window.shutdown();
 	gfx_PumpMessages();
-	//g_State.Debug("gfx_directx: Close complete!");
+	Debug(errInfo, "Shutdown complete");
 	CoUninitialize();
 }
 
