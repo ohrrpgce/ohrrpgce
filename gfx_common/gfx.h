@@ -1,10 +1,10 @@
-//gfx_directx.h
-//started 10/22/09
-//provides directx 9.0c shader enabled graphics backend for the ohrrpgce
+// Definition of the OHRRPGCE graphics backend API (both old and new).
+// Any C/C++ program exporting or importing the API can include this file.
 
 #pragma once
 
 #include "DllFunctionInterface.h"
+#include "gfx_msg.h"
 #include "../errorlevel.h"
 
 #include "stdint.h"

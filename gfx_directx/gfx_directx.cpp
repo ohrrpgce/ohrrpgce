@@ -1,7 +1,6 @@
 #define ISOLATION_AWARE_ENABLED 1
 
-#include "gfx_msg.h"
-#include "gfx_directx.h"
+#include "../gfx_common/gfx.h"
 #include "window.h"
 #include "d3d.h"
 #include "keyboard.h"
@@ -39,7 +38,7 @@ void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 
 DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void), const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	GfxInitData gfxInit = {sizeof(GfxInitData), "OHRRPGCE", windowicon, terminate_signal_handler, DefaultDebugMsg};
+	GfxInitData gfxInit = {sizeof(GfxInitData), "O.H.R.RPG.C.E.", windowicon, terminate_signal_handler, DefaultDebugMsg};
 	//if(gfx_Initialize(&gfxInit) == 0)
 	//{
 	//	if(info_buffer != NULL && info_buffer_size > 16)

@@ -4,10 +4,9 @@
 
 #include <windows.h>
 
-#include "gfx_directx.h"
+#include "../gfx_common/gfx.h"
 #include "keyboard.h"
-
-#include "..\\scancodes.h"
+#include "../scancodes.h"
 
 BYTE g_frameTest[320 * 200];
 UINT g_paletteTest[256];

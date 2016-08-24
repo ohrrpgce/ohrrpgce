@@ -7,7 +7,7 @@
 #include <windows.h>
 #include <stack>
 
-#include "gfx_directx.h"  // for CursorVisibility
+#include "../gfx_common/gfx.h" // for CursorVisibility
 
 namespace gfx
 {
