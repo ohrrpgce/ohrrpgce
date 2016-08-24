@@ -796,6 +796,34 @@ if win32:
         w32_env.Append(CPPPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Include')])
         w32_env.Append(LIBPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86')])
 
+    if profile:
+        # Profile using MicroProfiler, which uses instrumentation (counting function calls)
+        # There are many other available profilers based on either instrumentation or
+        # statistical sampling (like gprof), so this can be easily adapted.
+        dllpath = WhereIs("micro-profiler.dll", os.environ['PATH'], "dll")
+
+        if not dllpath:
+            # MicroProfiler is MIT licensed, but you need to install it using
+            # regsvr32 (with admin privileges) for it to work, so there's little
+            # benefit to distributing the library ourselves.
+            print "MicroProfiler is not installed. You can install it from"
+            print "https://visualstudiogallery.msdn.microsoft.com/800cc437-8cb9-463f-9382-26bedff7cdf0"
+            Exit(1)
+
+        # if optimisations == False:
+        #     # MidSurface::copySystemPage() and Palette::operator[] are extremely slow when
+        #     # profiled without optimisation, so don't instrument MidSurface.
+        #     w32_no_profile_env = w32_env.Clone ()
+        #     midsurface = os.path.join ('gfx_directx', 'midsurface.cpp')
+        #     directx_sources.remove (midsurface)
+        #     directx_sources.append (w32_no_profile_env.Object (midsurface))
+
+        MPpath = os.path.dirname(dllpath) + os.path.sep
+        directx_sources.append (w32_env.Object('micro-profiler.initalizer.obj', MPpath + 'micro-profiler.initializer.cpp'))
+        w32_env.Append (LIBPATH = MPpath)
+        # Call _penter and _pexit in every function.
+        w32_env.Append (CPPFLAGS = ['/Gh', '/GH'])
+
     RESFILE = w32_env.RES ('gfx_directx/gfx_directx.res', source = 'gfx_directx/gfx_directx.rc')
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
     directx_sources.append (RESFILE)
@@ -803,7 +831,13 @@ if win32:
     # Enable exceptions, most warnings, unicode
     w32_env.Append (CPPFLAGS = ['/EHsc', '/W3'], CPPDEFINES = ['UNICODE', '_UNICODE'])
 
-    if optimisations == False:
+    if profile:
+        # debug info, static link VC9.0 runtime lib, but no link-time code-gen
+        # as it inlines too many functions, which don't get instrumented
+        w32_env.Append (CPPFLAGS = ['/Zi', '/MT'], LINKFLAGS = ['/DEBUG'])
+        # Optimise for space (/O1) to inline trivial functions, otherwise takes seconds per frame
+        w32_env.Append (CPPFLAGS = ['/O2' if optimisations else '/O1'])
+    elif optimisations == False:
         # debug info, runtime error checking, static link debugging VC9.0 runtime lib, no optimisation
         w32_env.Append (CPPFLAGS = ['/Zi', '/RTC1', '/MTd', '/Od'], LINKFLAGS = ['/DEBUG'])
     else:
@@ -891,7 +925,8 @@ Options:
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
                       disables -exx and uses GCC emitter.
-  profile=1           Profiling build for gprof.
+  profile=1           Profiling build using gprof (executables) or MicroProfiler
+                      (gfx_directx.dll/gfx_directx_test1.exe).
   scriptprofile=1     Script profiling build: track time in interpreter.
   asm=1               Produce .asm or .c files in build/ while compiling.
   fbc=PATH            Point to a different version of fbc.
