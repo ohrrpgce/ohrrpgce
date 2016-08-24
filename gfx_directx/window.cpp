@@ -151,7 +151,7 @@ HWND Window::getWindowHandle()
 	return m_hWnd;
 }
 
-RECT Window::getWindowSize()
+RECT Window::getWindowRect()
 {
 	return m_rWindow;
 }

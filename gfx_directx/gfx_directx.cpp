@@ -354,10 +354,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 		g_Window.setClientSize(dwParam, (int)pvParam);
 		break;
 	case OM_GFX_SETLEFT:
-		g_Window.setWindowPosition(dwParam, g_Window.getWindowSize().top);
+		g_Window.setWindowPosition(dwParam, g_Window.getWindowRect().top);
 		break;
 	case OM_GFX_SETTOP:
-		g_Window.setWindowPosition(g_Window.getWindowSize().left, dwParam);
+		g_Window.setWindowPosition(g_Window.getWindowRect().left, dwParam);
 		break;
 	case OM_GFX_SETPOSITION:
 		g_Window.setWindowPosition(dwParam, (int)pvParam);
@@ -405,11 +405,11 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 	case OM_GFX_GETCLIENTAREA:
 		return (g_Window.getClientSize().cx << 16) | g_Window.getClientSize().cy;
 	case OM_GFX_GETLEFT:
-		return g_Window.getWindowSize().left;
+		return g_Window.getWindowRect().left;
 	case OM_GFX_GETTOP:
-		return g_Window.getWindowSize().top;
+		return g_Window.getWindowRect().top;
 	case OM_GFX_GETPOSITION:
-		return (g_Window.getWindowSize().left << 16) | g_Window.getWindowSize().top;
+		return (g_Window.getWindowRect().left << 16) | g_Window.getWindowRect().top;
 	case OM_GFX_GETARP:
 		return g_DirectX.isAspectRatioPreserved() ? TRUE : FALSE;
 	case OM_GFX_GETWINDOWED:
@@ -810,8 +810,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				RECT r = {0,0, LOWORD(lParam), HIWORD(lParam)};
-				g_DirectX.setResolution(&r);
+				SIZE r = {LOWORD(lParam), HIWORD(lParam)};
+				g_DirectX.setResolution(r);
 				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 				g_Mouse.updateClippingRect();
 				g_Mouse.popState();

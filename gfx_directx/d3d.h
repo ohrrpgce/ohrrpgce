@@ -49,8 +49,8 @@ namespace gfx
 		D3DXIMAGE_FILEFORMAT m_saveFormat;
 		MidSurface m_surface; //surface that receives ohr data
 		Window* m_pWindow;
-		RECT m_rWindowedMode; //position and dimensions in windowed mode
-		RECT m_rFullscreenMode; //position and dimensions in fullscreen mode
+		SIZE m_sizeWindowed; // size of draw area (and back buffer) in windowed mode
+		SIZE m_sizeFullscreen; // size of draw area (and back buffer) in fullscreen mode
 		BOOL m_bInitialized;
 		BOOL m_bVSync;
 		BOOL m_bSmoothDraw; //determines whether texture has smooth linear interpolation
@@ -97,14 +97,14 @@ namespace gfx
 
 		//option setting
 		HRESULT setViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
-		HRESULT setResolution(LPCRECT pRect); //sets the dimensions of the backbuffer
+		HRESULT setResolution(SIZE pRect); //sets the dimensions of the backbuffer (client area)
 		HRESULT setVsyncEnabled(BOOL bVsync); //enables vsync if true
 		void setSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
 		void setAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
 		void setImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
 
 		//info
-		RECT getResolution(); //returns active resolution
+		SIZE getResolution(); //returns size of back buffer (client area) in pixels
 		Palette<UINT> getPalette(); //returns a reference of the palette, non-deletable
 		BOOL isVsyncEnabled(); //returns true if vsync is enabled
 		BOOL isViewFullscreen(); //returns true if view is fullscreen

@@ -55,17 +55,17 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 	shutdown();
 
 	m_pWindow = pWin;
-	m_rWindowedMode = m_pWindow->getWindowSize();
-	m_rWindowedMode.right = m_pWindow->getClientSize().cx;
-	m_rWindowedMode.bottom = m_pWindow->getClientSize().cy;
-	RECT rTmp;
-	::GetWindowRect(::GetDesktopWindow(), &rTmp);
-	m_rFullscreenMode = rTmp;
+	m_sizeWindowed = m_pWindow->getClientSize();
+
+	RECT rDesktop;
+	::GetWindowRect(::GetDesktopWindow(), &rDesktop);
+	m_sizeFullscreen.cx = rDesktop.right;
+	m_sizeFullscreen.cy = rDesktop.bottom;
 
 	::ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));
 	m_d3dpp.BackBufferFormat		= D3DFMT_X8R8G8B8;
-	m_d3dpp.BackBufferWidth			= m_rWindowedMode.right;
-	m_d3dpp.BackBufferHeight		= m_rWindowedMode.bottom;
+	m_d3dpp.BackBufferWidth			= m_sizeWindowed.cx;
+	m_d3dpp.BackBufferHeight		= m_sizeWindowed.cy;
 	m_d3dpp.hDeviceWindow			= m_pWindow->getWindowHandle();
 	if(!m_bVSync)
 		m_d3dpp.PresentationInterval= D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -411,14 +411,14 @@ HRESULT D3D::setViewFullscreen(BOOL bFullscreen)
 
 	if(m_d3dpp.Windowed)
 	{
-		m_d3dpp.BackBufferWidth		= m_rWindowedMode.right;
-		m_d3dpp.BackBufferHeight	= m_rWindowedMode.bottom;
+		m_d3dpp.BackBufferWidth		= m_sizeWindowed.cx;
+		m_d3dpp.BackBufferHeight	= m_sizeWindowed.cy;
 		//m_d3dpp.SwapEffect			= D3DSWAPEFFECT_COPY;
 	}
 	else
 	{
-		m_d3dpp.BackBufferWidth		= m_rFullscreenMode.right;
-		m_d3dpp.BackBufferHeight	= m_rFullscreenMode.bottom;
+		m_d3dpp.BackBufferWidth		= m_sizeFullscreen.cx;
+		m_d3dpp.BackBufferHeight	= m_sizeFullscreen.cy;
 		//m_d3dpp.SwapEffect			= D3DSWAPEFFECT_DISCARD;
 		m_pWindow->setWindowSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 		m_pWindow->setWindowPosition(0,0);
@@ -440,17 +440,13 @@ HRESULT D3D::setViewFullscreen(BOOL bFullscreen)
 	return S_OK;
 }
 
-HRESULT D3D::setResolution(LPCRECT pRect)
+HRESULT D3D::setResolution(SIZE size)
 {
-	if(!pRect)
-		return E_POINTER;
-
 	if(m_d3dpp.Windowed)
 	{
-		m_rWindowedMode.right = pRect->right;
-		m_rWindowedMode.bottom = pRect->bottom;
-		m_d3dpp.BackBufferWidth		= m_rWindowedMode.right;
-		m_d3dpp.BackBufferHeight	= m_rWindowedMode.bottom;
+		m_sizeWindowed = size;
+		m_d3dpp.BackBufferWidth	= size.cx;
+		m_d3dpp.BackBufferHeight = size.cy;
 		//intentionally not setting these--otherwise will enter recursive pit of despair, abandon all hope!
 		//m_pWindow->SetClientSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 		//m_pWindow->CenterWindow();
@@ -496,11 +492,12 @@ void D3D::setImageFileFormat(D3DXIMAGE_FILEFORMAT format)
 	m_saveFormat = format;
 }
 
-RECT D3D::getResolution()
+SIZE D3D::getResolution()
 {
+	// This is currently equal to the size of the client area.
 	if(m_d3dpp.Windowed)
-		return m_rWindowedMode;
-	return m_rFullscreenMode;
+		return m_sizeWindowed;
+	return m_sizeFullscreen;
 }
 
 Palette<UINT> D3D::getPalette()

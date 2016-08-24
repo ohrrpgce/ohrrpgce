@@ -16,7 +16,7 @@ namespace gfx
 		HINSTANCE m_hInst;
 		HWND m_hWnd;
 		MSG m_msg;
-		RECT m_rWindow;
+		RECT m_rWindow;  // Area of the whole window
 		bool m_bRunning;
 	public:
 		Window();
@@ -35,7 +35,7 @@ namespace gfx
 
 		HINSTANCE getAppHandle();
 		HWND getWindowHandle();
-		RECT getWindowSize();
+		RECT getWindowRect();  // Position of the whole window
 		SIZE getClientSize();
 		BOOL postWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //non-blocking window message call
 		BOOL sendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //blocking window message call
