@@ -5,8 +5,8 @@ using namespace gfx;
 D3D::D3D() 
 : m_pWindow(NULL), m_bInitialized(FALSE), m_bVSync(TRUE), m_bSmoothDraw(FALSE),
   m_bPreserveAspectRatio(TRUE), m_saveFormat(D3DXIFF_PNG),
-  DXCreate(),
-  DXScreenShot()
+  DXCreate(TEXT("d3d9.dll")),
+  DXScreenShot(TEXT("d3dx9_24.dll"))
 {
 	::ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));
 

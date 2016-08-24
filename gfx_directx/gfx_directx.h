@@ -74,32 +74,7 @@ struct Palette
 };
 
 
-DFI_CLASS_BEGIN( DllBackend );
-
-
-#ifndef DFI_IMPORT
-#if 0 //set to 1 if using stdcall calling methods, instead of cdecl
-#pragma comment(linker, "/export:gfx_init=_gfx_init@16")
-#pragma comment(linker, "/export:gfx_close=_gfx_close@0")
-#pragma comment(linker, "/export:gfx_getversion=_gfx_getversion@0")
-#pragma comment(linker, "/export:gfx_showpage=_gfx_showpage@12")
-#pragma comment(linker, "/export:gfx_setpal=_gfx_setpal@4")
-#pragma comment(linker, "/export:gfx_screenshot=_gfx_screenshot@4")
-#pragma comment(linker, "/export:gfx_setwindowed=_gfx_setwindowed@4")
-#pragma comment(linker, "/export:gfx_windowtitle=_gfx_windowtitle@4")
-#pragma comment(linker, "/export:gfx_getwindowstate=_gfx_getwindowstate@0")
-#pragma comment(linker, "/export:gfx_setoption=_gfx_setoption@8")
-#pragma comment(linker, "/export:gfx_describe_options=_gfx_describe_options@0")
-#pragma comment(linker, "/export:io_init=_io_init@0")
-#pragma comment(linker, "/export:io_pollkeyevents=_io_pollkeyevents@0")
-#pragma comment(linker, "/export:io_keybits=_io_keybits@4")
-#pragma comment(linker, "/export:io_setmousevisibility=_io_setmousevisibility@4")
-#pragma comment(linker, "/export:io_getmouse=_io_getmouse@16")
-#pragma comment(linker, "/export:io_setmouse=_io_setmouse@8")
-#pragma comment(linker, "/export:io_mouserect=_io_mouserect@16")
-#pragma comment(linker, "/export:io_readjoysane=_io_readjoysane@16")
-#endif
-#endif //DFI_IMPORT
+DFI_CLASS_BEGIN( GfxBackendDll );
 
 //terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 //windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
@@ -184,4 +159,4 @@ DFI_DECLARE_CDECL( int, gfx_SetJoystick, int nDevice, int x, int y ); //sets the
 DFI_DECLARE_CDECL( int, gfx_GetJoystickCount ); //returns the number of joysticks attached to the system
 
 
-DFI_CLASS_END( DllBackend, TEXT("gfx_directx.dll") );
+DFI_CLASS_END( GfxBackendDll );

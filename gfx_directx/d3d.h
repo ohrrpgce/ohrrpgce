@@ -23,7 +23,7 @@ namespace gfx
 	//d3d9.dll Direct3DCreate9() library manager class
 	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXCreate);
 	_DFI_IMPORT_CLASS_DECLARE(IDirect3D9*, __stdcall, Direct3DCreate9, UINT sdkVersion);
-	_DFI_IMPORT_CLASS_SHELL_END(DXCreate, TEXT("d3d9.dll"));
+	_DFI_IMPORT_CLASS_SHELL_END(DXCreate);
 
 	//d3dx9_24.dll D3DXSaveSurfaceToFile() library manager class
 	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXScreenShot);
@@ -37,7 +37,7 @@ namespace gfx
 																		  LPDIRECT3DSURFACE9 pSrcSurface, 
 																		  CONST PALETTEENTRY* pSrcPalette, 
 																		  CONST RECT* pSrcRect);
-	_DFI_IMPORT_CLASS_SHELL_END(DXScreenShot, TEXT("d3dx9_24.dll"));
+	_DFI_IMPORT_CLASS_SHELL_END(DXScreenShot);
 
 	//main class; the previous libraries are included in this class
 	class D3D : protected DXCreate, protected DXScreenShot

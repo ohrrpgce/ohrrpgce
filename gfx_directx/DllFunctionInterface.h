@@ -21,8 +21,8 @@
 //DFI_LOAD_FUNCTION( hDll, function )	: loads a function from a dll
 //
 //functions the programmer uses with classes
-//DFI_CLASS_BEGIN( cls )		: begins the class 'cls' definition, which wraps the managment of the dll library; this precedes all calls to DFI_DECLARE*()
-//DFI_CLASS_END( cls, dllName ) : ends the class 'cls' definition; 'dllName' is the string name of the dll; this succeeds all calls to DFI_DECLARE*()
+//DFI_CLASS_BEGIN( cls ) : begins the class 'cls' definition, which wraps the managment of the dll library; this precedes all calls to DFI_DECLARE*()
+//DFI_CLASS_END( cls ) : ends the class 'cls' definition; this succeeds all calls to DFI_DECLARE*()
 //
 //in the dll export function definition header, if STDCALL is used, the following directive should be included, in lieu of name decoration:
 //#pragma comment(linker, "/export:FunctionName=_FunctionName@N")
@@ -136,8 +136,8 @@
 //	2.	After the DFI header is included, but before the dll header, call DFI_CLASS_BEGIN(), supplying a class name.
 //		DO NOT call DFI_CLASS_END() here.
 //	3.	Include the dll header.
-//	4.	After the dll header, call DFI_CLASS_END(), supplying the class name and the dll string name.
-//	5.	Instantiate the class.
+//	4.	After the dll header, call DFI_CLASS_END(), supplying the class name.
+//	5.	Instantiate the class, supplying the dll filename.
 //	6.	Call the class's Init_*() function before each function can be used.
 //	7.	Use the class's function pointers.
 //		NOTE: In this setup, DFI_LOAD_LIBRARY(), DFI_LOAD_FUNCTION(), and DFI_FREE_LIBRARY() do not have to be called,
@@ -164,12 +164,12 @@
 //	#include "myDllFunctions.h"
 //
 //	/*4*/
-//	DFI_CLASS_END( MyDllClass, TEXT("myDll.dll") );
+//	DFI_CLASS_END( MyDllClass );
 //
 //	int main()
 //	{
 //		/*5*/
-//		MyDllClass cls;
+//		MyDllClass cls(TEXT("my.dll");
 //
 //		/*6*/
 //		if(!cls.Init_AddNumbers())
@@ -246,15 +246,15 @@
 	private: \
 		static HMODULE _DFI_IMPORT_CLASS_DLL_HANDLE; \
 		static INT m_refCount; \
-		static void AddRef(); \
+		static void AddRef(const TCHAR *dllName); \
 		static void Release(); \
 	public: \
-		cls(); \
+		cls(const TCHAR *dllname); \
 		virtual ~cls()
 
-#define _DFI_IMPORT_CLASS_SHELL_END_UNIQUE( cls, dllName ) \
+#define _DFI_IMPORT_CLASS_SHELL_END_UNIQUE( cls ) \
 	}; \
-	void cls::AddRef() \
+	void cls::AddRef(const TCHAR *dllName) \
 	{ \
 		++m_refCount; \
 		if(m_refCount == 1) \
@@ -270,10 +270,10 @@
 			_DFI_IMPORT_CLASS_DLL_HANDLE = NULL; \
 		} \
 	} \
-	cls::cls() \
+	cls::cls(const TCHAR *dllName) \
 	{ \
 		ZeroMemory(this, sizeof(cls)); \
-		AddRef(); \
+		AddRef(dllName); \
 	} \
 	cls::~cls() \
 	{ \
@@ -285,10 +285,10 @@
 #define _DFI_IMPORT_CLASS_SHELL_END_EXTERN() }
 
 #ifdef DFI_UNIQUE
-#define _DFI_IMPORT_CLASS_SHELL_END( cls, dllName ) \
-	_DFI_IMPORT_CLASS_SHELL_END_UNIQUE(cls, dllName)
+#define _DFI_IMPORT_CLASS_SHELL_END( cls ) \
+	_DFI_IMPORT_CLASS_SHELL_END_UNIQUE(cls)
 #else
-#define _DFI_IMPORT_CLASS_SHELL_END( cls, dllName ) \
+#define _DFI_IMPORT_CLASS_SHELL_END( cls ) \
 	_DFI_IMPORT_CLASS_SHELL_END_EXTERN()
 #endif //DFI_UNIQUE
 
@@ -370,16 +370,16 @@
 #ifdef DFI_CLASS
 #define DFI_CLASS_BEGIN( cls ) \
 	_DFI_IMPORT_CLASS_SHELL_BEGIN(cls)
-#define DFI_CLASS_END( cls, dllName ) \
-	_DFI_IMPORT_CLASS_SHELL_END(cls, dllName)
+#define DFI_CLASS_END( cls ) \
+	_DFI_IMPORT_CLASS_SHELL_END(cls)
 #else
 #define DFI_CLASS_BEGIN( cls )
-#define DFI_CLASS_END( cls, dllName )
+#define DFI_CLASS_END( cls )
 #endif //DFI_CLASS
 
 #else
 
 #define DFI_CLASS_BEGIN( cls )
-#define DFI_CLASS_END( cls, dllName )
+#define DFI_CLASS_END( cls )
 
 #endif //DFI_IMPORT

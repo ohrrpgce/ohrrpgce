@@ -21,7 +21,7 @@ void __cdecl RequestQuit()
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nShowCmd)
 {
-	DllBackend db;
+	GfxBackendDll db(TEXT("gfx_directx.dll"));
 	db.Init_gfx_init();
 	db.Init_gfx_windowtitle();
 	db.Init_gfx_setpal();
