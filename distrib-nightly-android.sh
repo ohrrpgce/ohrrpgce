@@ -12,6 +12,12 @@ ln -s ohrrpgce src
 cd ~/src/misc/sdl-android
 rm project/bin/MainActivity-debug.apk
 ./build.sh
+
+if [ "$1" = "-noupload" ] ; then
+  echo "skipping upload."
+  exit
+fi
+
 if [ -f project/bin/MainActivity-debug.apk ] ; then
   scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android-debug.apk
 fi
