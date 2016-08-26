@@ -100,14 +100,14 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 	{
-		Debug(errError, "IDirect3D9 object failed to be created! This is bad bad sad sad :(.");
+		Debug(errError, "IDirect3D9 object failed to be created! (Header and runtime version mismatch?)");
 		return E_FAIL;
 	}
 
 	D3DADAPTER_IDENTIFIER9 adapterID;
 	hr = m_d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterID);
 	if(FAILED(hr)) {
-		Debug(errError, "Unable to query adapter information! Errorcode: %d", hr);
+		Debug(errError, "Unable to query adapter information! Error %s", HRESULTString(hr));
 	}
 	else
 	{
@@ -131,7 +131,7 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 								 &m_d3ddev);
 		if(FAILED(hr))
 		{
-			Debug(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Errorcode: %d", hr);
+			Debug(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Error %s", HRESULTString(hr));
 			return hr;
 		}
 		else
@@ -141,7 +141,7 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 		Debug(errInfo, "IDirect3DDevice9 object created as hardware device.");
 	if(FAILED(m_surface.initialize(m_d3ddev, 320, 200)))
 	{
-		Debug(errError, "IDirect3DSurface9 object failed to be created! Errorcode: %d", hr);
+		Debug(errError, "IDirect3DSurface9 object failed to be created! Error %s", HRESULTString(hr));
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;

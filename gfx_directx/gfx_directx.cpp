@@ -44,18 +44,52 @@ void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 }
 
 // For informative messages use errInfo
-void gfx::Debug(ErrorLevel errlvl, const char* szMessage, ...) {
+void gfx::Debug(ErrorLevel errlvl, const char* szMessage, ...)
+{
 	if (g_State.DebugMsg)
 	{
 		va_list vl;
 		va_start(vl, szMessage);
-		char buf[512];
-		strcpy_s(buf, 512, "gfx_directx: ");
-		int len = strlen("gfx_directx: ");
-		vsnprintf_s(buf + len, 512 - len, _TRUNCATE, szMessage, vl);
+		const int BUFLEN = 512;
+		char buf[BUFLEN];
+		strcpy_s(buf, BUFLEN, "gfx_directx: ");
+		int len = strlen(buf);
+		vsnprintf_s(buf + len, BUFLEN - len, _TRUNCATE, szMessage, vl);
 		va_end(vl);
 		g_State.DebugMsg(errlvl, buf);
 	}
+}
+
+static void _TrimTrailingNewline(char *buf)
+{
+	char *last = buf + strlen(buf) - 1;
+	while (last >= buf && (*last == '\n' || *last == '\r'))
+		*last-- = '\0';
+}
+
+const char *gfx::LastErrorString()
+{
+	const int BUFLEN = 256;
+	static char buf[BUFLEN];
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, buf, BUFLEN, NULL);
+	_TrimTrailingNewline(buf);
+	return buf;
+}
+
+// Try to translate an HRESULT into a string
+const char *gfx::HRESULTString(HRESULT hresult)
+{
+	const int BUFLEN = 256;
+	static char buf[BUFLEN];
+	int len = sprintf_s(buf, BUFLEN, "0x%08x ", hresult);
+	// Check whether this is a win32 error code
+	if (HRESULT_FACILITY(hresult) == FACILITY_WIN32 || hresult == 0)
+	{
+		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, HRESULT_CODE(hresult), 0, buf + len, BUFLEN - len, NULL);
+		_TrimTrailingNewline(buf);
+	}
+	// HRESULTS with FACILITY_ITF (0x8004xxxx) in particular are library/interface specific, not universal.
+	return buf;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,16 +324,17 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_State.DebugMsg = pCreationData->DebugMsg;
 
 	if(g_State.PostTerminateSignal == NULL || g_State.DebugMsg == NULL) {
-		Debug(errInfo, "Required GfxInitData callbacks missing!");
+		Debug(errError, "Required GfxInitData callbacks missing!");
 		return FALSE;
 	}
 	Debug(errInfo, "gfx_Initialize()...");
 
-	if(FAILED(g_Window.initialize(::GetModuleHandle(MODULENAME), 
+	HRESULT hr;
+	if(FAILED(hr = g_Window.initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
 								   (WNDPROC)OHRWndProc)))
 	{
-		Debug(errInfo, "Window initialization failed!");
+		Debug(errError, "Window initialization failed! %s", HRESULTString(hr));
 		return FALSE;
 	}
 
@@ -307,12 +342,12 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
-		Debug(errInfo, "Failed at d3d initialization!");
+		Debug(errError, "Failed at d3d initialization!");
 		return FALSE;
 	}
 
 	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
-		Debug(errInfo, "Joystick support failed! Possibly lacking dinput8.dll.");
+		Debug(errError, "Joystick support failed!");
 	else
 		Debug(errInfo, "Joysticks supported.");
 

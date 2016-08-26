@@ -1,4 +1,5 @@
 #include "joystick.h"
+#include "debugmsg.h"
 #pragma comment (lib, "dxguid.lib")
 using namespace gfx;
 
@@ -61,6 +62,7 @@ Joystick::~Joystick()
 	//m_hLibrary = NULL;
 }
 
+// Called after configNewDevices(): remove entries from m_device that are no longer present
 void Joystick::filterAttachedDevices()
 {
 	if(m_devices.size() == 0)
@@ -71,7 +73,10 @@ void Joystick::filterAttachedDevices()
 		iterNext = iter;
 		iterNext++;
 		if(iter->bRefreshed == false)
+		{
+			Debug(errInfo, " Device %S disappeared", iter->info.tszInstanceName);
 			m_devices.erase(iter);
+		}
 		else
 			iter->bRefreshed = false;
 		iter = iterNext;
@@ -81,26 +86,50 @@ void Joystick::filterAttachedDevices()
 void Joystick::configNewDevices()
 {
 	HRESULT hr = S_OK;
+	const char *errsrc;
 	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
 	while(iter != m_devices.end())
 	{
 		iterNext = iter;
 		iterNext++;
+		if(iter->bNewDevice || iter->bRefreshed)
+			Debug(errInfo, " Found %S type=0x%x", iter->info.tszInstanceName, iter->info.dwDevType);
 		if(iter->bNewDevice)
 		{
 			iter->bNewDevice = false;
 			hr = m_dinput->CreateDevice(iter->info.guidInstance, &iter->pDevice, NULL);
 			if(FAILED(hr))
-				m_devices.erase(iter);
+			{
+				errsrc = "CreateDevice";
+				goto error;
+			}
+			// Foreground, so that the device input is lost when switching to another window
 			hr = iter->pDevice->SetCooperativeLevel(m_hWnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
 			if(FAILED(hr))
-				m_devices.erase(iter);
+			{
+				errsrc = "SetCooperativeLevel";
+				goto error;
+			}
 			hr = iter->pDevice->SetDataFormat(&c_dfDIJoystick);
 			if(FAILED(hr))
-				m_devices.erase(iter);
+			{
+				errsrc = "SetDataFormat";
+				goto error;
+			}
 			hr = iter->pDevice->EnumObjects((LPDIENUMDEVICEOBJECTSCALLBACK)EnumDeviceObjects, (void*)iter->pDevice, DIDFT_PSHBUTTON | DIDFT_ABSAXIS);
 			if(FAILED(hr))
-				m_devices.erase(iter);
+			{
+				errsrc = "EnumObjects";
+				goto error;
+			}
+
+			Debug(errInfo, " ...initialised successfully.");
+			iter = iterNext;
+			continue;
+
+		  error:
+			Debug(errError, " ...but initialisation failed: %s %s", errsrc, HRESULTString(hr));
+			m_devices.erase(iter);
 		}
 		iter = iterNext;
 	}
@@ -113,11 +142,17 @@ HRESULT Joystick::initialize(HINSTANCE hInstance, HWND hWnd)
 	HRESULT hr = S_OK;
 	hr = CoCreateInstance( CLSID_DirectInput8, NULL, CLSCTX_INPROC_SERVER, IID_IDirectInput8, (void**)&m_dinput );
 	if(FAILED(hr))
+	{
+		Debug(errError, "Failed to DirectInput8 for joystick. Possibly lacking dinput8.dll: %s", HRESULTString(hr));
 		return hr;
+	}
 
 	hr = m_dinput->Initialize(hInstance, DIRECTINPUT_VERSION);
 	if(FAILED(hr))
+	{
+		Debug(errError, "IDirectInput8->Initialize failed: %s", HRESULTString(hr));
 		return hr;
+	}
 
 	m_hWnd = hWnd;
 
@@ -136,6 +171,7 @@ void Joystick::refreshEnumeration()
 {
 	if(m_dinput == NULL)
 		return;
+	Debug(errInfo, "Scanning for attached devices");
 	m_dinput->EnumDevices( DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)EnumDevices, (void*)&m_devices, DIEDFL_ATTACHEDONLY );
 	configNewDevices();
 	filterAttachedDevices();
@@ -184,7 +220,10 @@ void Joystick::poll()
 		default:
 			hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
 			if(FAILED(hr))
+			{
+				Debug(errError, "Joystick GetDeviceState failed: %s", HRESULTString(hr));
 				break;
+			}
 			iter->nButtons = 0x0;
 			for(UINT i = 0; i < 32; i++)
 				iter->nButtons |= (js.rgbButtons[i] & 0x80) ? (0x1 << i) : 0x0;
