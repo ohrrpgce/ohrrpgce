@@ -877,15 +877,16 @@ function dowait () as bool
 		sleep i
 		io_waitprocessing()
 	loop
-	' dowait might be called after waittime has already passed, ignore that and log only
-	' if we took more than 5ms longer than wanted (the time printed is the unwanted delay).
+	' dowait might be called after waittime has already passed, ignore that
+        ' (the time printed is the unwanted delay).
 	' On Windows FB sleep calls winapi Sleep(), which has a default of 15.6ms, adjustable
 	' with timeBeginPeriod(). 15.6ms is very coarse for 60fps games, so we probably
 	' should request a higher frequency. (Also, Win XP rounds the sleep period up to the
 	' following tick, while Win 7+ rounds it down, although that probably makes no
 	' difference due to the avoid while loop. See
 	' https://randomascii.wordpress.com/2013/04/02/sleep-variation-investigated/
-	debug_if_slow(large(starttime, waittime), 0.018, (waittime - starttime) * 1000 & "ms")
+	' If there's a long delay here it's because the system is busy; not interesting.
+	debug_if_slow(large(starttime, waittime), 0.2, "")
 	if setwait_called then
 		setwait_called = NO
 	else
@@ -1313,7 +1314,7 @@ function anykeypressed (byval checkjoystick as bool = YES, trigger_level as inte
 				if joybutton and (i ^ 2) then return (scJoyButton1 - 1) + i
 			next i
 		end if
-		debug_if_slow(starttime, 0.005, "io_readjoysane")
+		debug_if_slow(starttime, 0.01, "io_readjoysane")
 	end if
 end function
 
@@ -1743,14 +1744,14 @@ function readjoy (joybuf() as integer, byval jnum as integer) as bool
 		joybuf(3) = (buttons AND 2) = 0 'ditto
 		ret = YES
 	end if
-	debug_if_slow(starttime, 0.005, jnum & " = " & buttons)
+	debug_if_slow(starttime, 0.01, jnum & " = " & buttons)
 	return ret
 end function
 
 function readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
 	dim starttime as double = timer
 	dim ret as bool = io_readjoysane(joynum, buttons, x, y)
-	debug_if_slow(starttime, 0.005, joynum & " = " & buttons)
+	debug_if_slow(starttime, 0.01, joynum & " = " & buttons)
 	return ret
 end function
 
