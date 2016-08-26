@@ -985,7 +985,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				{
 					g_Joystick.refreshEnumeration();
 					TCHAR strInfoBuffer[128] = TEXT("");
-					::_stprintf_s(strInfoBuffer, 128, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
+					::_stprintf_s(strInfoBuffer, 128, TEXT("Re-scan For Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 					::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 				} break;
 			case IDOK:
@@ -1039,7 +1039,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf_s(strInfoBuffer, 128, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
-			::_stprintf_s(strInfoBuffer, 128, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
+			::_stprintf_s(strInfoBuffer, 128, TEXT("Re-scan For Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 			if(g_DirectX.isScreenShotsActive())
 			{

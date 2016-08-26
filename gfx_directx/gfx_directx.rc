@@ -73,10 +73,10 @@ BEGIN
     CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,87,162,54,10
     PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,177,50,14
     EDITTEXT        IDC_OPTIONS_Status,185,86,155,86,ES_MULTILINE | ES_READONLY | WS_VSCROLL
-    PUSHBUTTON      "Refresh Joysticks",IDC_OPTIONS_RefreshJoysticks,20,108,128,12
+    PUSHBUTTON      "Re-scan For Joysticks",IDC_OPTIONS_RefreshJoysticks,20,108,128,12
     CONTROL         "Disable System Messages",IDC_OPTIONS_DisableSystemMessages,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,98,97,10
-    PUSHBUTTON      "Joystick Config",IDC_OPTIONS_JoystickConfig,20,121,128,13,WS_DISABLED
+    //PUSHBUTTON      "Joystick Config",IDC_OPTIONS_JoystickConfig,20,121,128,13,WS_DISABLED
 END
 
 
