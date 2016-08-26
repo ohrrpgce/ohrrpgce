@@ -32,6 +32,7 @@ namespace gfx
 		static BOOL __stdcall EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 	protected:
 		HWND m_hWnd;
+		BOOL m_bRefreshRequest;
 
 		SmartPtr<IDirectInput8> m_dinput;
 		std::list<Device> m_devices;
@@ -46,6 +47,7 @@ namespace gfx
 		void shutdown();
 
 		void refreshEnumeration(); //refreshes the device list
+		void delayedRefreshEnumeration() { m_bRefreshRequest = TRUE; }
 		UINT getJoystickCount();
 		BOOL getState(int& nDevice, int& buttons, int& xPos, int& yPos);
 		void poll();

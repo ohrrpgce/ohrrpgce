@@ -48,7 +48,7 @@ BOOL Joystick::EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 }
 
 //COM initialization is used instead of loading the library
-Joystick::Joystick() : /*m_hLibrary(NULL), */m_hWnd(NULL)
+Joystick::Joystick() : /*m_hLibrary(NULL), */m_hWnd(NULL), m_bRefreshRequest(FALSE)
 {
 	//m_hLibrary = LoadLibrary(TEXT("dinput8.dll"));
 }
@@ -92,7 +92,7 @@ void Joystick::configNewDevices()
 	{
 		iterNext = iter;
 		iterNext++;
-		if(iter->bNewDevice || iter->bRefreshed)
+		if(iter->bNewDevice) // || iter->bRefreshed)
 			Debug(errInfo, " Found %S type=0x%x", iter->info.tszInstanceName, iter->info.dwDevType);
 		if(iter->bNewDevice)
 		{
@@ -173,7 +173,8 @@ void Joystick::refreshEnumeration()
 {
 	if(m_dinput == NULL)
 		return;
-	Debug(errInfo, "Scanning for attached devices");
+	m_bRefreshRequest = FALSE;
+	Debug(errInfo, "Scanning for newly-attached joysticks");
 	m_dinput->EnumDevices( DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)EnumDevices, (void*)&m_devices, DIEDFL_ATTACHEDONLY );
 	configNewDevices();
 	filterAttachedDevices();
@@ -181,6 +182,8 @@ void Joystick::refreshEnumeration()
 
 UINT Joystick::getJoystickCount()
 {
+	// Detects unplugged devices, and triggers any delayed devices refresh
+	poll();
 	return m_devices.size();
 }
 
@@ -204,6 +207,8 @@ void Joystick::poll()
 {
 	if(m_dinput == NULL)
 		return;
+	if(m_bRefreshRequest)
+		refreshEnumeration();
 
 	HRESULT hr = S_OK;
 	DIJOYSTATE js;

@@ -8,6 +8,7 @@
 #include "mouse.h"
 #include "joystick.h"
 #include "version.h"
+#include <dbt.h>
 
 using namespace gfx;
 
@@ -349,7 +350,18 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
 		Debug(errError, "Joystick support failed!");
 	else
+	{
 		Debug(errInfo, "Joysticks supported.");
+
+		/* Ask for more detailed WM_DEVICECHANGE messages (WinXP+)
+		DEV_BROADCAST_DEVICEINTERFACE notificationFilter = {0};
+		notificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		notificationFilter.dbcc_size = sizeof(notificationFilter);
+		if(!RegisterDeviceNotification( g_Window.getWindowHandle(), &notificationFilter,
+						DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES))
+			Debug(errError, "RegisterDeviceNotification failed");
+		*/
+	}
 
 	g_Mouse.initialize(&g_DirectX);
 
@@ -908,6 +920,20 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} break;
 			default:
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
+			}
+			return TRUE;
+		} break;
+	case WM_DEVICECHANGE:
+		{
+			switch(wParam)
+			{
+			case DBT_DEVICEARRIVAL:
+			case DBT_DEVICEREMOVECOMPLETE:
+				// DBT_DEVNODES_CHANGED is the only message sent if RegisterDeviceNotification
+				// hasn't been called; a bunch of these messages get sent at once
+			case DBT_DEVNODES_CHANGED:
+				g_Joystick.delayedRefreshEnumeration();
+				break;
 			}
 			return TRUE;
 		} break;

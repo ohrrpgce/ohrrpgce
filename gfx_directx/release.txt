@@ -1,7 +1,10 @@
 8/27/16
 v1.20
 
+-Now requires gfx_Initialize instead of gfx_init; older OHR versions not supported
+-Prints various errors to debug log
 -Fix bug 2006: major slowdown after switching to another program while a joystick is plugged in
+-Auto re-scan joysticks when something is plugged in
 
 --------------------------------------------------
 6/5/16
