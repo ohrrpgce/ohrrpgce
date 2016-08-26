@@ -1,3 +1,8 @@
+8/27/16
+v1.20
+
+-Fix bug 2006: major slowdown after switching to another program while a joystick is plugged in
+
 --------------------------------------------------
 6/5/16
 v1.19
