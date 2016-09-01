@@ -878,6 +878,8 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   debuginfo "Running without speed control"
   enable_speed_control NO
   RETURN 1 'arg not used
+ ELSEIF opt = "scriptlog" THEN
+  gam.script_log.enabled = YES
  ELSEIF opt = "debugkeys" THEN
   'Undocumented
   debuginfo "--debugkeys used"

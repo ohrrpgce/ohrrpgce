@@ -1174,8 +1174,7 @@ caty(0) = 0
 catz(0) = 0
 catd(0) = 0
 gam.getinputtext_enabled = NO
-gam.script_log.tick = 0
-gam.script_log.wait_msg_repeats = 0
+script_log_resetgame
 'leader = 0
 mapx = 0
 mapy = 0

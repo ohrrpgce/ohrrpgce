@@ -162,6 +162,7 @@ SUB start_script_trigger_log
  DIM fh as integer = FREEFILE
  IF OPEN(gam.script_log.filename FOR APPEND AS #fh) THEN
   notification "Could not open " & gam.script_log.filename & ". Script logging disabled."
+  gam.script_log.enabled = NO
   EXIT SUB
  END IF
  gam.script_log.enabled = YES
@@ -172,6 +173,7 @@ SUB start_script_trigger_log
  print #fh, "waiting or paused due to either another script which was triggered (indicated by a"
  print #fh, "line to its right) or while waiting for a script they called (not shown)."
  print #fh, "Dotted lines ':' show triggered scripts which have not even had a chance to start."
+ print #fh, "(...) means that a script continues waiting multiple ticks for the same reason."
  print #fh,
  print #fh, " Symbols in front of script names:"
  print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished" 
@@ -182,6 +184,18 @@ SUB start_script_trigger_log
  print #fh, "- -- A previously started script finished"
  print #fh,
  CLOSE #fh
+END SUB
+
+'Called when resetting game (but not before the first time through a game)
+SUB script_log_resetgame
+ WITH gam.script_log
+  ' Leave .enabled alone, continuing to log
+  IF .enabled THEN
+   script_log_out !"--- Game ended ---\n\n"
+  END IF
+  .tick = 0
+  .wait_msg_repeats = 0
+ END WITH
 END SUB
 
 SUB script_log_out (text as string)

@@ -68,6 +68,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
+		help = help & "-scriptlog          Script logging initially turned on (Ctrl+F10 to toggle)" LINE_END
                 'Hidden options:
                 'help = help & "-slave channel     IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END

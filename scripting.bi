@@ -10,6 +10,7 @@ DECLARE SUB run_queued_scripts ()
 
 DECLARE SUB start_script_trigger_log ()
 DECLARE SUB script_log_tick ()
+DECLARE SUB script_log_resetgame
 DECLARE SUB script_log_out (text as string)
 DECLARE SUB watched_script_triggered (script as QueuedScript)
 DECLARE SUB watched_script_resumed ()

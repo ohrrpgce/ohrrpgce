@@ -585,6 +585,7 @@ nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
 resetinterpreter
+IF gam.script_log.enabled THEN start_script_trigger_log
 'the old stack used only inbattle
 releasestack
 setupstack
