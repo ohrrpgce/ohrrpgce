@@ -710,7 +710,8 @@ SUB sfunctions(byval cmdid as integer)
    'Enact whatever the user picked
    IF scriptret = -1 THEN
     'New Game
-    gam.quit = 2  'don't go straight back to loadmenu!
+    gam.quit = YES
+    gam.want.dont_quit_to_loadmenu = YES  'don't go straight back to loadmenu!
     script_start_waiting()
     fadeout 0, 0, 0
    ELSEIF scriptret > 0 THEN

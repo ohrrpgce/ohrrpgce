@@ -67,7 +67,7 @@ TYPE ScriptLoggingState
   last_script_childtime as double    'Seconds of child run time by the last watched script to finish
 END TYPE
 
-'Set by script commands to signal that they want something to be done after leaving the
+'Set by script commands (or other triggers) to signal that they want something to be done after leaving the
 'script interpreter (used to be called wantdoor, etc).
 'These actions are delayed for historical/backcompat reasons; see interpret().
 TYPE ScriptWantSignals
@@ -78,6 +78,7 @@ TYPE ScriptWantSignals
   usenpc as integer   'NPC instance +1
   loadgame as integer 'Save slot +1
   resetgame as bool   'Called "reset game"
+  dont_quit_to_loadmenu as bool 'If no title screen, don't quit to the load menu.
 END TYPE
 
 'Used when automatically updating the visibility of the virtual gamepad
@@ -119,7 +120,7 @@ TYPE GameState
   getinputtext_enabled as bool
   script_log as ScriptLoggingState
   want as ScriptWantSignals
-  quit as integer                    'NO, YES, or 2 to quit and skip load menu
+  quit as bool                       'Quit back to titlescreen
   pad as VirtualGamePadState
   user_toggled_fullscreen as bool    'User changed the default for this game
   non_elemental_elements(63) as bool 'Loaded by load_non_elemental_elements()

@@ -590,7 +590,6 @@ setupstack
 
 SetupGameSlices
 'beginplay
-gam.want.resetgame = NO  'Don't skip titlescreen
 
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
@@ -624,6 +623,7 @@ gam.want.battle = 0
 gam.want.teleport = NO
 gam.want.usenpc = 0
 gam.want.loadgame = 0
+gam.want.dont_quit_to_loadmenu = NO
 'gam.want.resetgame reset after title/loadmenu
 load_non_elemental_elements gam.non_elemental_elements()
 
@@ -826,8 +826,11 @@ DO
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
   IF gam.want.resetgame THEN EXIT DO  'skip to new game
+  DIM skip_load_menu as bool = readbit(gen(), genBits, 12)
+  skip_load_menu OR= (count_used_save_slots() = 0)
+  skip_load_menu OR= gam.want.dont_quit_to_loadmenu
   'if skipping title and loadmenu, quit
-  IF readbit(gen(), genBits, 11) AND (readbit(gen(), genBits, 12) OR gam.quit = 2 OR count_used_save_slots() = 0) THEN
+  IF readbit(gen(), genBits, 11) AND skip_load_menu THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
