@@ -347,6 +347,9 @@ SUB killallscripts
  'this kills all running scripts.
  'for use in cases of massive errors, quiting to titlescreen or loading a game.
 
+ 'Try to compute running times instead of corrupting the timing statistics (untested!)
+ stop_fibre_timing
+
  'Hack, see explanation in killscriptthread
  IF nowscript >= 0 THEN scrat(nowscript).state = stexit
 
@@ -437,8 +440,8 @@ END SUB
 '==========================================================================================
 
 
-FUNCTION runscript (byval id as integer, byval newcall as integer, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
-'newcall: whether his script is triggered rather than called from a script
+FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
+'newcall: whether his script is triggered (start a new fibre) rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect
 
 DIM n as integer
@@ -448,6 +451,8 @@ IF n = 0 THEN
  runscript = 2 '--quiet failure (though decodetrigger might have shown a scripterr)
  EXIT FUNCTION
 END IF
+
+IF insideinterpreter = NO AND newcall = NO THEN debugc errPromptBug, "runscript: newcall=NO outside interpreter"
 
 DIM index as integer = nowscript + 1
 
@@ -507,9 +512,12 @@ WITH scriptinsts(index)
   RETURN 0 '--error
  END IF
 
- '--suspend the previous script
  IF newcall AND index > 0 THEN
+  '--suspend the previous fibre
   scrat(index - 1).state *= -1
+  #IFDEF SCRIPTPROFILE
+   stop_fibre_timing
+  #ENDIF
  END IF
 
  '--we are successful, so now its safe to increment this
@@ -524,11 +532,11 @@ WITH scriptinsts(index)
 END WITH
 
 #IFDEF SCRIPTPROFILE
-IF insideinterpreter THEN 'we have nowscript > 0
- TIMER_STOP(scriptinsts(nowscript - 1).scr->totaltime)
- scriptinsts(nowscript).scr->entered += 1
- TIMER_START(scriptinsts(nowscript).scr->totaltime)
-END IF
+ IF newcall THEN
+  start_fibre_timing
+ ELSE
+  script_call_timing
+ END IF
 #ENDIF
 
 RETURN 1 '--success
@@ -556,7 +564,7 @@ PRIVATE FUNCTION loadscript_open_script (n as integer) as integer
 END FUNCTION
 
 'Loads a script or fetchs it from the cache. Returns NULL on failure.
-'Only loads the script header if loaddata is false.
+'If loaddata is false, only loads the script header.
 FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
  'debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
 
@@ -834,7 +842,7 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
  'this formula has only been given some testing, and doesn't do all that well
  DIM score as integer
  IF script.refcount THEN RETURN 1000000000
- score = script.lastuse - scriptctr
+ score = small(script.lastuse - scriptctr, 1000000000)  'Handle overflow
  score = iif(score > -400, score, -400) _
        + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
        - iif(script.ptr, script.size, 0) \ (scriptmemMax \ 1024)
@@ -929,48 +937,185 @@ END SUB
 '                                    Script profiling
 '==========================================================================================
 
+' Do script profile accounting when one script calls another (including with runscriptbyid),
+' but not when a new script fibre is started.
+' nowscript is the new script, nowscript-1 is the calling script.
+SUB script_call_timing
+ DIM timestamp as double
+ READ_TIMER(timestamp)
+ 'Exclusive time for calling script
+ scriptinsts(nowscript - 1).scr->totaltime += timestamp
+ WITH *scriptinsts(nowscript).scr
+  'debug "script_call_timing: slot " & (nowscript-1) & " id " & scriptinsts(nowscript - 1).scr->id & " called slot " & nowscript & " id " & .id & " calls_in_stack=" & .calls_in_stack
+  'debug "  caller totaltime now " & scriptinsts(nowscript - 1).scr->totaltime
+  .entered += 1
+  'Exclusive time
+  .totaltime -= timestamp
+  'Inclusive time
+  IF .calls_in_stack = 0 THEN
+   .laststart = timestamp
+   'debug "  set laststart=" & timestamp
+  END IF
+  .calls_in_stack += 1
+ END WITH
+END SUB
 
-FUNCTION profiling_script_scorer(byref script as ScriptData) as integer
- 'sort by total time
- script.totaltime -= script.entered * timeroverhead
- RETURN script.totaltime * -10000
+' Called when a script returns and script profiling enabled.
+' nowscript is the returning script, and nowscript-1 may have called it, otherwise it was triggered/spawned.
+SUB script_return_timing
+ DIM timestamp as double
+ READ_TIMER(timestamp)
+ WITH *scriptinsts(nowscript).scr
+  'debug "script_return_timing: slot " & nowscript & " id " & .id & " calls_in_stack=" & .calls_in_stack & " (returning script)
+  'Exclusive time
+  .totaltime += timestamp
+  'debug "  id " & .id & " totaltime now " & .totaltime
+  'Inclusive time
+  .calls_in_stack -= 1
+  IF .calls_in_stack = 0 THEN
+   'Was not a recursive call, so won't be double-counting time
+   .childtime += timestamp - .laststart
+   'debug "  adding to id " & .id & " childtime: " & (timestamp - .laststart)  & " now: " & .childtime
+  END IF
+ END WITH
+
+ IF nowscript > 0 ANDALSO scrat(nowscript - 1).state >= 0 THEN
+  'Was called from another script; time accounting for it
+  WITH *scriptinsts(nowscript - 1).scr
+   .entered += 1
+   .totaltime -= timestamp
+  END WITH
+ END IF
+END SUB
+
+' Call this when starting/resuming execution of a script fibre;
+' used to collect timing statistics.
+SUB start_fibre_timing
+ #IFNDEF SCRIPTPROFILE
+  EXIT SUB
+ #ENDIF
+ IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
+ 'debug "start_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
+
+ scrat(nowscript).scr->entered += 1
+
+ DIM timestamp as double
+ READ_TIMER(timestamp)
+
+ ' Exclusive time (in this script)
+ scrat(nowscript).scr->totaltime -= timestamp
+
+ ' Error checking
+ FOR which as integer = nowscript TO 0 STEP -1
+  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
+  IF scrat(which).scr->calls_in_stack <> 0 THEN debugc errPromptBug, "Garbage calls_in_stack value" 
+ NEXT
+
+ ' Inclusive time (in this script and call tree descendents)
+ FOR which as integer = nowscript TO 0 STEP -1
+  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
+  WITH *scrat(which).scr
+   .calls_in_stack += 1
+   .laststart = timestamp
+   'debug "  set slot " & which & " id " & .id & " laststart = " & timestamp
+  END WITH
+ NEXT
+END SUB
+
+' Call this when execution of the current script fibre stops, e.g. due to a wait
+' command or a script error.
+SUB stop_fibre_timing
+ #IFNDEF SCRIPTPROFILE
+  EXIT SUB
+ #ENDIF
+ IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
+ 'debug "stop_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
+
+ DIM timestamp as double
+ READ_TIMER(timestamp)
+
+ ' Exclusive time (in this script)
+ scrat(nowscript).scr->totaltime += timestamp
+ 'debug "  id " & scrat(nowscript).scr->id & " totaltime now " & scrat(nowscript).scr->totaltime
+
+ ' Inclusive time (in this script and call tree descendents)
+ FOR which as integer = nowscript TO 0 STEP -1
+  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
+  WITH *scrat(which).scr
+   .calls_in_stack -= 1
+   IF .calls_in_stack = 0 THEN
+    'Was not a recursive call, so won't be double-counting time
+    .childtime += timestamp - .laststart
+    'debug "  adding to id " & .id & " childtime: " & (timestamp - .laststart) & " now: " & .childtime
+   END IF
+  END WITH
+ NEXT
+END SUB
+
+'Sort by total time
+PRIVATE FUNCTION profiling_script_totaltime_scorer(byref script as ScriptData) as integer
+ 'script.totaltime -= script.entered * timeroverhead
+ RETURN script.totaltime * -100000  'Resolution of 10us, overflows after 6 hours
+END FUNCTION
+
+'Sort by child time
+PRIVATE FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as integer
+ RETURN script.childtime * -100000  'Resolution of 10us, overflows after 6 hours
 END FUNCTION
 
 'Print profiling information on scripts to g_debug.txt
 SUB print_script_profiling
- FOR i as integer = 0 TO 999
-  timeroverhead -= TIMER
-  timeroverhead += TIMER
+ DIM timestamp as double
+ READ_TIMER(timestamp)
+ timeroverhead = -timestamp
+ FOR i as integer = 0 TO 1999
+  READ_TIMER(timestamp)
  NEXT
- timeroverhead /= 1000
+ timeroverhead += timestamp
+ timeroverhead /= 2000
 
  REDIM LRUlist() as ScriptListElmt
  DIM numscripts as integer
 
  'give each script a score (the lower, the more likely to throw) and sort them
  'this is roughly a least recently used list
- sort_scripts LRUlist(), numscripts, @profiling_script_scorer
+ sort_scripts LRUlist(), numscripts, @profiling_script_totaltime_scorer
 
  DIM entiretime as double
+ DIM totalswitches as integer
  FOR i as integer = 0 TO numscripts - 1
   entiretime += LRUlist(i).p->totaltime
+  totalswitches += LRUlist(i).p->entered
  NEXT
 
- debug "script profiling information:"
- debug "#switches is the number of times that the interpreter switched to that script"
- debug "(switching time is relatively neglible and included to help determine"
- debug "calls to other scripts, which are more expensive)"
- debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec   (timer overhead = " & format(timeroverhead*1000000, "0.00") & "us)"
- debug " %time        time    time/call      #calls   #switches  script name"
+ debug "=== Script profiling information ==="
+ debug "'%time' shows the percentage of the total time spent in this script."
+ debug "'time' is the time spent in the script (and built-in commands it called)."
+ debug "'childtime' is the time spent in a script and all scripts it called, and all"
+ debug "  scripts called from those, and so on."
+ debug "'#calls' is the number of times the script ran."
+ debug "'#switches' is the number of times that the interpreter switched to that"
+ debug "  script, which is the sum of #calls, how many other scripts it called and"
+ debug "  how many times it waited (switching time is relatively neglible)."
+ debug "ms is milliseconds (0.001 seconds), us is microseconds (0.000001 seconds)"
+ debug ""
+ debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec"
+ debug "(Timer overhead = " & format(timeroverhead*1e6, "0.00") & "us per measurement)"
+ debug "(Estimated time wasted profiling: " & format(timeroverhead * totalswitches, "0.000") & "sec)"
+ debug ""
+ debug "  -- Scripts sorted by time --"
+ debug " %time        time   childtime    time/call      #calls   #switches  script name"
  FOR i as integer = 0 TO numscripts - 1
  ' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
   WITH *LRUlist(i).p
-   debug " " & format(100 * .totaltime / entiretime, "00.00") _
+   debug RIGHT("  " & format(100 * .totaltime / entiretime, "0.00"), 6) _
        & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
+       & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
        & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
        & RIGHT(SPACE(11) & .totaluse, 12) _
        & RIGHT(SPACE(11) & .entered, 12) _
-       & "  " & scriptname(ABS(.id)) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
+       & "  " & scriptname(ABS(.id))
+       '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
 
  '  debug "id = " & .id & " " & scriptname(ABS(.id))
  '  debug "refcount = " & .refcount
@@ -979,6 +1124,25 @@ SUB print_script_profiling
  '  debug "size = " & .size
   END WITH
  NEXT
+
+ sort_scripts LRUlist(), numscripts, @profiling_script_childtime_scorer
+
+ debug ""
+ debug "  -- Scripts sorted by childtime --"
+ debug "%chdtime   chdtime  chdtime/call      #calls   #switches  script name"
+ FOR i as integer = 0 TO numscripts - 1
+  WITH *LRUlist(i).p
+   DIM percall as string
+   debug RIGHT("  " & format(100 * .childtime / entiretime, "0.00"), 6)  _
+       & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
+       & RIGHT(SPACE(11) & format(.childtime*1000/.totaluse, "0.0"), 12) & "ms" _
+       & RIGHT(SPACE(11) & .totaluse, 12) _
+       & RIGHT(SPACE(11) & .entered, 12) _
+       & "  " & scriptname(ABS(.id))
+  END WITH
+ NEXT
+ debug ""
+
 END SUB
 
 
@@ -1107,6 +1271,9 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   IF int_array_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
  END IF
 
+ ' OK, decided to show the error
+ stop_fibre_timing
+
  recursivecall += 1
 
  IF errorlevel = serrError THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
@@ -1231,6 +1398,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  recursivecall -= 1
 
  next_interpreter_check_time = TIMER + scriptCheckDelay
+ start_fibre_timing
 
  'Note: when we resume after a script error, the keyboard state changes, which might break a script
  'Not worth worrying about this.
@@ -1241,6 +1409,8 @@ FUNCTION script_interrupt () as integer
  DIM as integer ret = NO
  DIM as string errtext()
  DIM as string msg
+
+ stop_fibre_timing
 
  msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10)
  msg &= "  Call chain (current script last):" + CHR(10) + script_call_chain()
@@ -1336,6 +1506,7 @@ FUNCTION script_interrupt () as integer
  clearpage vpage
  setvispage vpage
  next_interpreter_check_time = TIMER + scriptCheckDelay
+ start_fibre_timing
 
  'Note: when we resume after a script interruption, the keyboard state changes, which might break a script
  'Not worth worrying about this.

@@ -147,8 +147,7 @@ DIM tmpvar as integer
 DIM tmpkind as integer
 
 #IFDEF SCRIPTPROFILE
- scrat(nowscript).scr->entered += 1
- TIMER_START(scrat(nowscript).scr->totaltime)
+ start_fibre_timing
 #ENDIF
 
 scriptinsts(nowscript).started = YES
@@ -488,7 +487,7 @@ LOOP
 END WITH
 
 #IFDEF SCRIPTPROFILE
- IF nowscript >= 0 THEN TIMER_STOP(scrat(nowscript).scr->totaltime)
+ stop_fibre_timing
 #ENDIF
 
 END SUB
@@ -523,6 +522,7 @@ END FUNCTION
 
 SUB killtopscript
  'Forces the topmost script to return
+ IF nowscript < 0 THEN EXIT SUB
  'Possible to use unwindtodo instead (used to do this) but that can't be done from
  'everywhere, and is slower
  'unwindtodo(scrat(nowscript), 9999)
@@ -559,40 +559,45 @@ END FUNCTION
 
 FUNCTION functiondone () as integer
 'returns 0 when returning a value to a caller
-'returns 1 when all scripts are finished
-'returns 2 when reactivating a suspended script
+'returns 1 when all scripts/fibres are finished
+'returns 2 when the fibre finished and reactivating a suspended fibre
 
 IF scriptinsts(nowscript).watched THEN watched_script_finished
 
-deref_script(scrat(nowscript).scr)
+DIM endingscript as ScriptData ptr = scrat(nowscript).scr
+
+'debug "functiondone nowscript " & nowscript & " id = " & scriptinsts(nowscript).id  & " " & scriptname(scriptinsts(nowscript).id)
+
+'Pretty useless bookkeeping, could delete
+scriptctr += 1
+endingscript->lastuse = scriptctr
+
+#IFDEF SCRIPTPROFILE
+ script_return_timing
+#ENDIF
+
+deref_script(endingscript)
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
-#IFDEF SCRIPTPROFILE
- TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
-#ENDIF
 ELSE
  DIM state as OldScriptState ptr = @scrat(nowscript)
 
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
  IF state->state < 0 THEN
-  '--suspended script is resumed
+  '--suspended fibre is resumed
   state->state = ABS(state->state)
   IF scriptinsts(nowscript).watched THEN watched_script_resumed
-  functiondone = 2'--reactivating a supended script
+  functiondone = 2'--reactivating a supended fibre
+  #IFDEF SCRIPTPROFILE
+   start_fibre_timing
+  #ENDIF
  ELSE
   scriptret = scrat(nowscript + 1).ret
   state->state = streturn'---return
   functiondone = 0'--returning a value to a caller
  END IF
-#IFDEF SCRIPTPROFILE
- TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
- scrat(nowscript).scr->entered += 1
- TIMER_START(scrat(nowscript).scr->totaltime)
- scriptctr += 1
- scrat(nowscript + 1).scr->lastuse = scriptctr
-#ENDIF
 END IF
 
 END FUNCTION

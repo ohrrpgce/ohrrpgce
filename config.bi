@@ -274,8 +274,9 @@ use_32bit_integer()
   'only available on win 2000 or later
   include_windows_bi()
   #if defined(GetThreadTimes)
-   #define timer_variables  as FILETIME ptr atimer_s, atimer_e
+   #define timer_variables  as FILETIME ptr atimer_s, atimer_e, atimer_temp
    extern timer_variables
+   #define READ_TIMER(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_temp): a = atimer_temp.dwLowDateTime * 0.0000001
    #define TIMER_START(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_s)
    #define TIMER_STOP(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_e): a += (atimer_e.dwLowDateTime - atimer_s.dwLowDateTime) * 0.0000001
   #else
@@ -284,13 +285,15 @@ use_32bit_integer()
  #else
   'assume anything else is a unix
   'options: clock, times, clock_gettime (with CLOCK_THREAD_CPUTIME_ID) which apparently counts in clock ticks (1ms)
-  #define timer_variables as timespec atimer_s, atimer_e
+  #define timer_variables as timespec atimer_s, atimer_e, atimer_temp
   extern timer_variables
+  #define READ_TIMER(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_temp): a = atimer_temp.tv_nsec * 0.000000001
   #define TIMER_START(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_s)
   #define TIMER_STOP(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_e): a += (atimer_e.tv_nsec - atimer_s.tv_nsec) * 0.000000001
  #endif
 #endif
 #ifndef TIMER_START
+ #define READ_TIMER(a)   a = TIMER
  #define TIMER_START(a) a -= TIMER
  #define TIMER_STOP(a)  a += TIMER
 #endif

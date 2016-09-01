@@ -449,9 +449,17 @@ TYPE ScriptData
   'Book keeping
   refcount as integer   'number of ScriptInst pointing to this data
   totaluse as integer   'total number of times this script has been requested since loading
-  lastuse as integer
-  totaltime as double   'time spent in here, in seconds. Used only if SCRIPTPROFILE is defined
-  entered as integer    'number of times entered. Used only if SCRIPTPROFILE is defined
+  lastuse as uinteger
+  'For script profiling. The following are filled in and used only if SCRIPTPROFILE is defined.
+  calls_in_stack as integer 'Number of times this script appears in the call chain for the current
+                        'executing fibre. Needed to account child running time when recursing.
+  laststart as double   'Timer when the first instance of this script in the currently executing
+                        'fibre was started. If not used in the current fibre, is garbage.
+                        'Used for tracking time spent in self and children.
+  totaltime as double   'time spent in here, in seconds. If currently executing, subtract start time.
+  childtime as double   'time spent in here and all descendents, in seconds
+  entered as integer    'number of times entered
+  'End profiling.
 
   next as ScriptData ptr 'next in linked list, for hashtable
   backptr as ScriptData ptr ptr 'pointer to pointer pointing to this, in script(), or a .next pointer
@@ -470,7 +478,7 @@ TYPE OldScriptState
   frames(maxScriptNesting) as OldScriptFrame   'frame(0) points to local variables, others to variables of ancestor scripts
   heapend as integer    'one-past-end of offsets on the heap used by this script (starts at frame(0).heap)
   stackbase as integer  'position where this script's stack data starts in scrst
-  state as integer      'what the script is doing right now
+  state as integer      'current interpreter statemachine state; negated if suspended by another fibre
   ptr as integer        'the execution pointer (in int32's from the start of the script data)
   ret as integer        'the scripts current return value
   curargn as integer    'current arg for current statement
@@ -479,7 +487,7 @@ TYPE OldScriptState
 END TYPE
 
 ENUM WaitTypeEnum
-  waitingOnNothing = 0  'The script isn't waiting
+  waitingOnNothing = 0  'The script isn't waiting (but might be suspended; check OldScriptState.state)
   waitingOnCmd          'A command in the script triggered a wait (ScriptInst.curvalue says which)
   waitingOnTick         'The script was externally made to wait; ScriptInst.waitarg gives the number of ticks
 END ENUM

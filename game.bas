@@ -162,7 +162,7 @@ REDIM gotj(2) as bool
 DIM nowscript as integer = -1
 DIM scriptret as integer
 REDIM retvals(32) as integer
-DIM scriptctr as integer
+DIM scriptctr as uinteger
 DIM numloadedscr as integer    'Number of loaded script headers in script cache (some may not have data loaded)
 DIM totalscrmem as integer     'Total memory used by all loaded scripts, in int32s
 DIM unused_script_cache_mem as integer  'Memory used by scripts in cache which are unused, int32s
