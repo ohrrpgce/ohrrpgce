@@ -1839,8 +1839,8 @@ SUB dotimer(byval timercontext as integer)
             .speed -= 1
             'do something
             if .trigger = TIMERTRIGGER_GAMEOVER then
-              'FIXME: possible minor bug: does whether or not a fadeout occurs depend on whether there is a gameover script?
-              fatal = YES
+              'Fadeout due to death
+              fadeout 255, 0, 0
               gam.quit = YES
 
               exit sub
