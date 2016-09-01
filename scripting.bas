@@ -169,9 +169,9 @@ SUB start_script_trigger_log
  print #fh, "Script trigger log for " & getdisplayname(trimpath(sourcerpg)) & ", " & DATE & " " & TIME
  print #fh,
  print #fh, "Solid lines '|' show triggered scripts which have already started running but are"
- print #fh, "waiting or paused due to either another script which was triggered (line to the right)"
- print #fh, "or while waiting for a script they called (not shown)."
- print #fh, "Dotted lines ':' show triggered scripts which have no even had a chance to start."
+ print #fh, "waiting or paused due to either another script which was triggered (indicated by a"
+ print #fh, "line to its right) or while waiting for a script they called (not shown)."
+ print #fh, "Dotted lines ':' show triggered scripts which have not even had a chance to start."
  print #fh,
  print #fh, " Symbols in front of script names:"
  print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished" 
@@ -268,10 +268,15 @@ END SUB
 SUB watched_script_finished
  DIM logline as string
  IF gam.script_log.last_logged = nowscript THEN
-  script_log_out " ... finished"
+  logline = " ... finished"
  ELSE
-  script_log_out !"\n" & script_log_indent() & "-" & scriptname(scriptinsts(nowscript).id) & " finished"
+  logline = !"\n" & script_log_indent() & "-" & scriptname(scriptinsts(nowscript).id) & " finished"
  END IF
+ #IFDEF SCRIPTPROFILE
+  ' This global is set by script_return_timing()
+  logline &= "  (took " & format(gam.script_log.last_script_childtime * 1e3, "0.0") & "ms)"
+ #ENDIF
+ script_log_out logline
 
  gam.script_log.last_logged = -1
 END SUB
@@ -975,6 +980,9 @@ SUB script_return_timing
   IF .calls_in_stack = 0 THEN
    'Was not a recursive call, so won't be double-counting time
    .childtime += timestamp - .laststart
+   IF scriptinsts(nowscript).watched THEN
+    gam.script_log.last_script_childtime = timestamp - .laststart
+   END IF
    'debug "  adding to id " & .id & " childtime: " & (timestamp - .laststart)  & " now: " & .childtime
   END IF
  END WITH

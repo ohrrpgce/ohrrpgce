@@ -64,6 +64,7 @@ TYPE ScriptLoggingState
   output_flag as bool                'Set to true after script_log_out called
   last_wait_msg as string
   wait_msg_repeats as integer        'Number of ticks in a row with identical last_wait_msg
+  last_script_childtime as double    'Seconds of child run time by the last watched script to finish
 END TYPE
 
 'Set by script commands to signal that they want something to be done after leaving the

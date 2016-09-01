@@ -562,8 +562,6 @@ FUNCTION functiondone () as integer
 'returns 1 when all scripts/fibres are finished
 'returns 2 when the fibre finished and reactivating a suspended fibre
 
-IF scriptinsts(nowscript).watched THEN watched_script_finished
-
 DIM endingscript as ScriptData ptr = scrat(nowscript).scr
 
 'debug "functiondone nowscript " & nowscript & " id = " & scriptinsts(nowscript).id  & " " & scriptname(scriptinsts(nowscript).id)
@@ -575,6 +573,9 @@ endingscript->lastuse = scriptctr
 #IFDEF SCRIPTPROFILE
  script_return_timing
 #ENDIF
+
+' Script logging
+IF scriptinsts(nowscript).watched THEN watched_script_finished
 
 deref_script(endingscript)
 nowscript = nowscript - 1

@@ -3488,7 +3488,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    gam.script_log.enabled = NO
    gam.showtext = "Script logging disabled."
   ELSE
-   gam.showtext = "Script logging enabled."
+   gam.showtext = "Logging to " & trimpath(gam.script_log.filename)
    start_script_trigger_log
   END IF
   gam.showtext_ticks = 20
