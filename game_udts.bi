@@ -77,6 +77,7 @@ TYPE ScriptWantSignals
   teleport as bool    'Map num has changed, call preparemap()
   usenpc as integer   'NPC instance +1
   loadgame as integer 'Save slot +1
+  resetgame as bool   'Called "reset game"
 END TYPE
 
 'Used when automatically updating the visibility of the virtual gamepad
@@ -118,6 +119,7 @@ TYPE GameState
   getinputtext_enabled as bool
   script_log as ScriptLoggingState
   want as ScriptWantSignals
+  quit as integer                    'NO, YES, or 2 to quit and skip load menu
   pad as VirtualGamePadState
   user_toggled_fullscreen as bool    'User changed the default for this game
   non_elemental_elements(63) as bool 'Loaded by load_non_elemental_elements()

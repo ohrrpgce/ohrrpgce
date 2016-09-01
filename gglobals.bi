@@ -20,8 +20,6 @@ EXTERN autotestmode as bool
 EXTERN always_enable_debug_keys as bool
 EXTERN presentsong as integer
 EXTERN lastsaveslot as integer
-EXTERN abortg as integer
-EXTERN resetg as integer
 EXTERN usepreunlump as bool
 EXTERN fatal as bool
 EXTERN checkfatal as bool

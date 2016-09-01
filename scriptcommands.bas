@@ -591,7 +591,7 @@ SUB sfunctions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendrandomenemies, 0
   gam.random_battle_countdown = range(100, 60)
  CASE 73'--game over
-  abortg = 1
+  gam.quit = YES
   script_start_waiting()
  CASE 77'--show value
   gam.showstring = STR(retvals(0))
@@ -707,9 +707,10 @@ SUB sfunctions(byval cmdid as integer)
  CASE 234'--load menu
   scriptret = picksave(1) + 1
   IF retvals(0) THEN
+   'Enact whatever the user picked
    IF scriptret = -1 THEN
     'New Game
-    abortg = 2  'don't go straight back to loadmenu!
+    gam.quit = 2  'don't go straight back to loadmenu!
     script_start_waiting()
     fadeout 0, 0, 0
    ELSEIF scriptret > 0 THEN
@@ -985,7 +986,7 @@ SUB sfunctions(byval cmdid as integer)
    activate_menu_item(*menus(menuslot).items[mislot], menuslot)
   END IF
  CASE 438 '--reset game
-  resetg = YES
+  gam.want.resetgame = YES
   script_start_waiting()
  CASE 490'--use item (id)
   scriptret = 0

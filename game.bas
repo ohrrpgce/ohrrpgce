@@ -119,8 +119,6 @@ DIM presentsong as integer
 DIM backcompat_sound_slot_mode as integer
 REDIM backcompat_sound_slots(7) as integer
 
-DIM abortg as integer
-DIM resetg as integer
 DIM fatal as bool
 DIM checkfatal as bool
 DIM lastformation as integer
@@ -592,7 +590,7 @@ setupstack
 
 SetupGameSlices
 'beginplay
-resetg = NO  'Don't skip titlescreen
+gam.want.resetgame = NO  'Don't skip titlescreen
 
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
@@ -611,7 +609,7 @@ set_speedcontrol
 initgamedefaults
 fatal = NO
 checkfatal = NO
-abortg = 0
+gam.quit = NO
 lastformation = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -626,6 +624,7 @@ gam.want.battle = 0
 gam.want.teleport = NO
 gam.want.usenpc = 0
 gam.want.loadgame = 0
+'gam.want.resetgame reset after title/loadmenu
 load_non_elemental_elements gam.non_elemental_elements()
 
 txt.showing = NO
@@ -645,27 +644,29 @@ reset_vehicle vstate
 '========================== Title and loadgame menu ============================
 
 DIM load_slot as integer = -1
-'resetg is YES when we are skipping straight to launching the game
-IF readbit(gen(), genBits, 11) = 0 AND resetg = NO THEN
- IF titlescreen() = NO THEN EXIT DO
- IF readbit(gen(), genBits, 12) = 0 THEN load_slot = picksave(1)
-ELSE
- IF readbit(gen(), genBits, 12) = 0 AND resetg = NO THEN
+'.resetgame is YES when resetgame was called so we are skipping straight to launching the game
+IF gam.want.resetgame = NO THEN
+ IF readbit(gen(), genBits, 11) = 0 THEN
+  '"Skip title screen" is off
+  IF titlescreen() = NO THEN EXIT DO
+  IF readbit(gen(), genBits, 12) = 0 THEN load_slot = picksave(1)
+ ELSEIF readbit(gen(), genBits, 12) = 0 THEN
+  '"Skip load screen" is off
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   load_slot = picksave(2)
  END IF
 END IF
-resetg = NO
+gam.want.resetgame = NO
 'DEBUG debug "picked save slot " & load_slot
 queue_music_change -1  'stop music
 IF load_slot = -2 THEN
  fadeout 0, 0, 0
- EXIT DO 'resetg
-END IF
-IF load_slot >= 0 THEN
+ EXIT DO
+ELSEIF load_slot >= 0 THEN
  fadeout 0, 0, 0
  doloadgame load_slot
 ELSE
+ 'New game
  refresh_purchases()
  fadeout 0, 0, 0
  clearpage 0
@@ -812,6 +813,7 @@ DO
    queue_fade_in 1
   ELSE
    fadeout 255, 0, 0
+   gam.quit = YES
   END IF
  END IF
 
@@ -819,13 +821,13 @@ DO
  displayall()
 
  'Main loop exit test (does this need to be here?)
- IF fatal OR abortg > 0 OR resetg THEN
+ IF gam.quit OR gam.want.resetgame THEN
   resetgame
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
-  IF resetg THEN EXIT DO  'skip to new game
+  IF gam.want.resetgame THEN EXIT DO  'skip to new game
   'if skipping title and loadmenu, quit
-  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_used_save_slots() = 0) THEN
+  IF readbit(gen(), genBits, 11) AND (readbit(gen(), genBits, 12) OR gam.quit = 2 OR count_used_save_slots() = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
@@ -893,7 +895,7 @@ SUB reset_game_final_cleanup()
  resetsfx
  cleanup_other_temp_files
  'We bypass exit_gracefully() because we already called save_game_config
- IF gam.autorungame THEN exitprogram (NOT abortg)
+ IF gam.autorungame THEN exitprogram YES
  debuginfo "Recreating " & tmpdir
  killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
  makedir tmpdir
@@ -1839,7 +1841,7 @@ SUB dotimer(byval timercontext as integer)
             if .trigger = TIMERTRIGGER_GAMEOVER then
               'FIXME: possible minor bug: does whether or not a fadeout occurs depend on whether there is a gameover script?
               fatal = YES
-              abortg = 1
+              gam.quit = YES
 
               exit sub
             end if

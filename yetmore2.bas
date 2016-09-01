@@ -295,7 +295,7 @@ SUB verify_quit
   wtog = loopvar(wtog, 0, 3, 1)
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
-   IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
+   IF ptr2 < 0 THEN gam.quit = YES: fadeout 0, 0, 0
    EXIT DO
   END IF
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
