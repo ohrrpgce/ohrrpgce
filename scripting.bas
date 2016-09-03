@@ -25,7 +25,7 @@
 
 DECLARE SUB freescripts (byval mem as integer)
 DECLARE FUNCTION loadscript_open_script(n as integer) as integer
-DECLARE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer, id as integer) as bool
+DECLARE FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptData ptr
 DECLARE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
 DECLARE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
 DECLARE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
@@ -597,10 +597,9 @@ FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
   'Header not loaded yet
   fh = loadscript_open_script(id)
   IF fh = 0 THEN RETURN NULL
-  header = callocate(sizeof(ScriptData))
-  IF loadscript_read_header(header, fh, id) = NO THEN
+  header = loadscript_read_header(fh, id)
+  IF header = NULL THEN
    CLOSE #fh
-   deallocate header
    RETURN NULL
   END IF
   scriptcache_add id, header
@@ -623,17 +622,19 @@ FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
  RETURN header
 END FUNCTION
 
-'Load a script header from a hsz into a ScriptData. id is the script id.
+'Load a script header from a hsz into a new ScriptData. id is the script id.
 'Returns true on success
-PRIVATE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer, id as integer) as bool
+PRIVATE FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptData ptr
  DIM shortvar as short
 
- WITH *header
+ DIM ret as ScriptData ptr = NEW ScriptData
+ WITH *ret
   .id = id
   'minimum length of a valid 16-bit .hsx
   IF LOF(fh) < 10 THEN
    scripterr "script " & id & " corrupt (too short: " & LOF(fh) & " bytes)", serrError
-   RETURN NO
+   DELETE ret
+   RETURN NULL
   END IF
 
   GET #fh, 1, shortvar
@@ -642,7 +643,8 @@ PRIVATE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer,
 
   IF skip < 4 THEN
    scripterr "script " & id & " is corrupt (header length " & skip & ")", serrError
-   RETURN NO
+   DELETE ret
+   RETURN NULL
   END IF
 
   'Note that there is no check for the header being longer than expected. Optional
@@ -669,7 +671,8 @@ PRIVATE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer,
   END IF
   IF .scrformat > CURRENT_HSZ_VERSION THEN
    scripterr "script " & id & " is in an unsupported format", serrError
-   RETURN NO
+   DELETE ret
+   RETURN NULL
   END IF
   DIM wordsize as integer
   IF .scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
@@ -710,22 +713,17 @@ PRIVATE FUNCTION loadscript_read_header(header as ScriptData ptr, fh as integer,
   .size = (LOF(fh) - skip) \ wordsize
   IF .size > scriptmemMax THEN
    scripterr "Script " & id & " " & scriptname(id) & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", serrError
-   RETURN NO
+   DELETE ret
+   RETURN NULL
   END IF
 
   IF .strtable < 0 OR .strtable > .size THEN
    scripterr "Script " & id & " corrupt; bad string table offset", serrError
-   RETURN NO
+   DELETE ret
+   RETURN NULL
   END IF
-
-  .refcount = 0
-  .totaluse = 0
-  .lastuse = 0
-  .totaltime = 0.0
-  .entered = 0
-  .ptr = NULL
  END WITH
- RETURN YES
+ RETURN ret
 END FUNCTION
 
 'Load the data from a file into the .ptr field of a ScriptData.
@@ -792,10 +790,10 @@ PRIVATE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
 END SUB
 
 'Destruct a ScriptData and remove it from the cache.
-SUB delete_scriptdata (byval scriptd as ScriptData ptr)
+SUB delete_ScriptData (byval scriptd as ScriptData ptr)
  WITH *scriptd
   IF .refcount THEN
-   fatalerror "delete_scriptdata: nonzero refcount"
+   fatalerror "delete_ScriptData: nonzero refcount"
    EXIT SUB
   END IF
 
@@ -812,7 +810,7 @@ SUB delete_scriptdata (byval scriptd as ScriptData ptr)
   *.backptr = .next
  END WITH
 
- deallocate(scriptd)
+ DELETE scriptd
 END SUB
 
 'Dereference script pointer
@@ -886,12 +884,12 @@ SUB freescripts (byval mem as integer)
 
  FOR i as integer = 0 TO numscripts - 1
   IF mem = 0 THEN
-   delete_scriptdata LRUlist(i).p
+   delete_ScriptData LRUlist(i).p
   ELSE
    IF LRUlist(i).p->refcount <> 0 THEN EXIT SUB
    IF unused_script_cache_mem <= mem THEN EXIT SUB
    'debug "unloading script " & scriptname(ABS(LRUlist(i).p->id)) & " refcount " & LRUlist(i).p->refcount
-   delete_scriptdata LRUlist(i).p
+   delete_ScriptData LRUlist(i).p
   END IF
  NEXT
 END SUB
@@ -928,7 +926,7 @@ SUB reload_scripts
    nextp = scrp->next
    WITH *scrp
     IF .refcount = 0 THEN
-     delete_scriptdata scrp
+     delete_ScriptData scrp
     ELSE
      unfreeable += 1
      debuginfo "not reloading script " & scriptname(ABS(.id)) & " because it's in use: refcount=" & .refcount

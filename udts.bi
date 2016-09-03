@@ -429,7 +429,6 @@ TYPE TriggerData
   id as integer
 END TYPE
 
-'WARNING: don't add strings to this
 TYPE ScriptData
   'Script attributes
   id as integer         'id number of script  (set to 0 to mark as unused slot)
