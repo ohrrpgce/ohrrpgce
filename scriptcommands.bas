@@ -677,16 +677,22 @@ SUB sfunctions(byval cmdid as integer)
    refresh_map_slice_tilesets
   END IF
  CASE 151'--show mini map
+  stop_fibre_timing
   minimap catx(0), caty(0)
+  start_fibre_timing
  CASE 153'--items menu
+  stop_fibre_timing
   gam.want.box = item_screen()
   IF gam.want.box ANDALSO immediate_showtextbox THEN loadsay gam.want.box: gam.want.box = 0
+  start_fibre_timing
  CASE 155, 170'--save menu
   'ID 155 is a backcompat hack
+  stop_fibre_timing
   scriptret = picksave(0) + 1
   IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
    savegame scriptret - 1
   END IF
+  start_fibre_timing
  CASE 166'--save in slot
   IF valid_save_slot(retvals(0)) THEN
    savegame retvals(0) - 1
@@ -705,6 +711,7 @@ SUB sfunctions(byval cmdid as integer)
    gam.showstring = plotstr(retvals(0)).s
   END IF
  CASE 234'--load menu
+  stop_fibre_timing
   scriptret = picksave(1) + 1
   IF retvals(0) THEN
    'Enact whatever the user picked
@@ -719,6 +726,7 @@ SUB sfunctions(byval cmdid as integer)
     script_start_waiting()
    END IF
   END IF
+  start_fibre_timing
  CASE 245'--save map state
   IF retvals(1) > -1 AND retvals(1) <= 31 THEN
    savemapstate_bitmask retvals(1), retvals(0), "state"
@@ -1320,7 +1328,9 @@ SUB sfunctions(byval cmdid as integer)
   FOR i as integer = 0 TO 2
    retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
   NEXT
+  stop_fibre_timing
   fadeout retvals(0), retvals(1), retvals(2)
+  start_fibre_timing
   IF gam.need_fade_in ANDALSO gam.fade_in_script_overridable THEN
    'For backwards compatibility, if a fade delay has been increased so that a
    'fadescreenout that used to occur after a queued fade now happens before,
@@ -1329,7 +1339,9 @@ SUB sfunctions(byval cmdid as integer)
    gam.need_fade_in = NO
   END IF
  CASE 76'--fade screen in
+  stop_fibre_timing
   fadein
+  start_fibre_timing
   IF gam.need_fade_in AND gam.fade_in_delay <= 0 THEN
    'Avoid unnecessary pause
    gam.need_fade_in = NO
@@ -3392,7 +3404,9 @@ SUB sfunctions(byval cmdid as integer)
    #ENDIF
   #ENDIF
  CASE 618'--debug menu
+  stop_fibre_timing
   debug_menu
+  start_fibre_timing
 
 'old scriptnpc
 
@@ -3960,18 +3974,23 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = gam.hero(bound(retvals(0), 0, 40)).portrait_pal
   END SELECT
  CASE 150'--status screen
+  stop_fibre_timing
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
     status_screen retvals(0)
    END IF
   END IF
+  start_fibre_timing
  CASE 152'--spells menu
+  stop_fibre_timing
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
     old_spells_menu retvals(0)
    END IF
   END IF
+  start_fibre_timing
  CASE 154'--equip menu
+  stop_fibre_timing
   'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
@@ -3981,10 +4000,15 @@ SUB sfunctions(byval cmdid as integer)
    'Or pass -1 to equip the first hero in the party
    equip rank_to_party_slot(0)
   END IF
+  start_fibre_timing
  CASE 157'--order menu
+  stop_fibre_timing
   hero_swap_menu 0
+  start_fibre_timing
  CASE 158'--team menu
+  stop_fibre_timing
   hero_swap_menu 1
+  start_fibre_timing
  CASE 183'--set hero level (who, what, allow forgetting spells)
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
