@@ -388,11 +388,13 @@ SUB resetinterpreter
 
  killallscripts
 
-#IFDEF SCRIPTPROFILE
- print_script_profiling
-#ENDIF
+ IF numloadedscr > 0 THEN
+  #IFDEF SCRIPTPROFILE
+   print_script_profiling
+  #ENDIF
 
- IF numloadedscr > 0 THEN freescripts(0)
+  freescripts(0)
+ END IF
 END SUB
 
 ' The current script fibre starts waiting due to the current command, halting execution.
