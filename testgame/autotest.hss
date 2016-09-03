@@ -1437,6 +1437,7 @@ end
 
 plotscript, another npc script, begin
   assert(ticknumber == 2)
+  npc script triggered := 1
 end
 
 script, use npc script tests, begin
@@ -1454,7 +1455,9 @@ script, use npc script tests, begin
 
   # Both this script and anothernpcscript should wait
   create npc(7)  # Calls anothernpcscript
+  npc script triggered := 0
   use npc(7)
+  assert(npc script triggered == 1)
   assert(ticknumber == 2)
   delete npc(7)
 
@@ -2529,7 +2532,8 @@ script, concurrent script trigger tests, begin
   # goes to a map with an autorun script
 
   # Preconditions
-  assert(current map == 0 && hero x == 6 && hero y == 6)
+  assert(current map == 0)
+  set hero position(0, 6, 6)
   npc script triggered := 0
   map autorun triggered := 0
 
