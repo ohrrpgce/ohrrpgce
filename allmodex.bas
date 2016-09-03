@@ -1321,14 +1321,16 @@ end function
 'Returns a scancode or joystick button scancode
 function waitforanykey () as integer
 	dim as integer key, sleepjoy = 3
-
+	dim remem_speed_control as bool = use_speed_control
+	use_speed_control = YES
 	setkeys
 	do
-		setwait 40
+		setwait 60
 		io_pollkeyevents()
 		setkeys
 		key = anykeypressed(sleepjoy = 0)
 		if key then
+			use_speed_control = remem_speed_control
 			return key
 		end if
 		if sleepjoy > 0 then
