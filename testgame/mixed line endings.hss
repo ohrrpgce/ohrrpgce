@@ -5,6 +5,6 @@ script, _dummy1, i, begin
 end
 
 script, _dummy2, i, begin
-        wait
+        noop
         variable(x, asdasd)
         subscript, foo2, begin        endend

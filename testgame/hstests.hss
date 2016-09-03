@@ -1,11 +1,26 @@
 ########################################################################
 # This file contains testcases for the script interpreter and HSpeak.
-# It is part of autotest.rpg; see autotest.hss
-#
+# It can compiled either as part of autotest.hss (run by autotest.rpg)
+# or independently, but compiling hstests_standalone.hss.
 
 # include a file with UTF-16 encoding
 include, "utf16 encoding test.hss"
 include, mixed line endings.hss
+
+########################################################################
+
+# Only use globals between 200-300 and 5000-6000 here. Others are used
+# in autotest.hss.
+global variable(200, ticker 0)
+global variable(201, ticker 1)
+global variable(202, ticker 2)
+global variable(203, expected ticker 0)
+global variable(204, expected ticker 1)
+global variable(205, tick counter slice)
+global variable(206, a global)
+global variable(207, another global)
+global variable(5000, global 5000)
+
 
 ########################################################################
 
@@ -14,7 +29,6 @@ script, interpreter tests, begin
   string tests
   math tests
   flow tests
-  scheduling tests
   subscript tests
 end
 
@@ -163,7 +177,8 @@ end
 
 script, string tests, begin
   # This tests only pure string manipulation stuff.
-  # Display of plotstrings is tested in "plotstr tests"
+  # plotstring-specific stuff is tested in "plotstr tests", while loading strings
+  # from the game is in "string load tests"
   # Still many untested including: searchstring, numberfromstring, globalstostring
   $0="String tests", trace(0)
 
@@ -177,7 +192,7 @@ script, string tests, begin
   $2=" .~fooY"
   assert(string compare(1,2) == false)
 
-  # Check HSpeak encodes Unicode correctly
+  # Check HSpeak encodes Unicode correctly, replacing unrepresentable characters with '?'
   $1="	 ¡éÖœ£"  # tab, space, exclamation
   $2="‰Œẽñ"  # characters above U+00FF
   $3="???ñ"
@@ -194,61 +209,6 @@ script, string tests, begin
   assert(ascii from string(3, 4) == 233)
   assert(ascii from string(3, 10) == 63)
   assert(ascii from string(3, 11) == 241)
-  show string at(3, 0, 0)
-  w
-  hide string(3)
-
-  $1="SelfStab"
-  read attack name(2, 0 + 1)
-  assert(string compare(1,2))
-  
-  $1="Attack self"
-  get attack caption(2, 0 + 1)
-  assert(string compare(1,2))
-
-  embedding global := -1234
-  $3="<embedded> "
-
-  # Test the obsolete stringfromtextbox: 4th arg ignored
-  stringfromtextbox(1, 8, 2)
-  $2="."
-  assert(string compare(1, 2))
-  stringfromtextbox(1, 8, 3)
-  $2=""
-  assert(string compare(1, 2))
-  stringfromtextbox(1, 8, 4)
-  $2="##"
-  assert(string compare(1, 2))
-  stringfromtextbox(1, 8, 5, false)
-  $2=",-1234. ,<embedded> "
-  assert(string compare(1, 2))
-  stringfromtextbox(1, 8, 5, true)
-  assert(string compare(1, 2))
-
-  # textbox line
-  textboxline(1, 8, 2)
-  $2="."
-  assert(string compare(1, 2))
-  textboxline(1, 8, 3)
-  $2=""
-  assert(string compare(1, 2))
-  textboxline(1, 8, 4)
-  $2=" ## "
-  assert(string compare(1, 2))
-  textboxline(1, 8, 4, true, false)
-  assert(string compare(1, 2))
-  textboxline(1, 8, 4, true, true)
-  $2="##"
-  assert(string compare(1, 2))
-  textboxline(1, 8, 5, false)
-  $2=" ,${V105}. ,${S3} "
-  assert(string compare(1, 2))
-  textboxline(1, 8, 5, true)
-  $2=" ,-1234. ,<embedded>  "
-  assert(string compare(1, 2))
-  textboxline(1, 8, 5, true, true)
-  $2=",-1234. ,<embedded> "
-  assert(string compare(1, 2))
 
   assert($1="foo" == 1)
   assert($1+"bar" == 1)
@@ -310,135 +270,6 @@ script, math tests, begin
   assert(read global(@another global) == 10)
   write global(@another global, 4)
   assert(another global == 4)
-end
-
-########################################################################
-
-# Test the interaction of different script fibres, including pausing,
-# waiting, and back-compat blocking.
-# This makes use of timers, but the real timer tests are in autotest.hss
-script, scheduling tests, begin
-  $0="scheduling tests"
-
-  tick counter slice := create container
-  set slice velocity x(tick counter slice, 1, 1000)
-
-  blocking tests
-  assert(check bug 430 enabled == false)
-  variable (oldval)
-  oldval := read general(178)  # genBits2
-  write general(178, oldval, or, (2 ^ 1)) # Enable bug 430
-  assert(check bug 430 enabled == true)
-  write general(178, oldval)
-
-  free slice(tick counter slice)
-end
-
-script, ticknumber, begin
-  return(slice x(tick counter slice))
-end
-
-########################################################################
-
-script, blocker script, begin
-#  assert(ticker 0 == expected ticker 0)
-  ticker 1 += 1
-  wait
-  ticker 1 += 1
-end
-
-script, blocker script 2, begin
-  assert(ticker 1 == expected ticker 1)
-  ticker 2 += 1
-  wait
-  ticker 2 += 1
-  assert(ticker 1 == expected ticker 1)
-end
-
-script, eachtick script, begin
-  ticker 0 += 1
-  set timer(3, 0, 1, @eachtick script)
-end
-
-script, blocking tests, begin
-  $0="blocking tests"
-
-  variable (start tick)
-  start tick := ticknumber
-  ticker 0 := 0
-  ticker 1 := 0  # globals
-  ticker 2 := 0
-
-  # Start an each-tick script on a timer that should not interfer with anything else
-  # (since it has a higher timer ID)
-  set timer(3, 0, 1, @eachtick script)
-
-  wait(2)
-  assert(ticknumber == start tick + 2)
-
-  # Trigger another script and check that this one is blocked
-  # (This is also a test for bug 430, because of eachtick script)
-  expected ticker 0 := 0
-  set timer(1, 0, 1, @blocker script)
-  assert(ticknumber == start tick + 2)
-  # This script will continue running until the next tick
-  assert(ticker 1 == 0)
-  wait(1)
-  assert(ticker 1 == 2)
-  assert(ticknumber == start tick + 4)
-
-  # Trigger two scripts to run at once; one blocks the other (test for bug 430)
-  expected ticker 1 := 2
-  set timer(1, 0, 1, @blocker script)
-  set timer(2, 0, 1, @blocker script 2)  # Runs first
-  assert(ticknumber == start tick + 4)
-  wait
-  assert(ticknumber == start tick + 7)  # one tick wait each plus the wait above
-  assert(ticker 1 == 4)
-  assert(ticker 2 == 2)
-
-  # Check eachtick ran every tick
-  #trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
-  assert(ticker 0 == ticknumber -- start tick)
-  stop timer(3)
-end
-
-########################################################################
-
-script, bug 430 tester, begin
-  variable (start tick)
-  start tick := ticknumber
-  wait  # should be skipped
-  if (ticknumber == start tick) then (
-    # was skipped
-    ticker 1 += 1
-  )
-end
-
-# blocking tests is completely broken if bug 430 is enabled, so here is a separate test,
-# Returns whether bug 430 is enabled
-script, check bug 430 enabled, begin
-  $0="check bug 430 enabled"
-  variable (start tick)
-  start tick := ticknumber
-  ticker 1 := 0  # globals
-  ticker 2 := 0
-
-  # Trigger two scripts to run at once; one blocks the other (test for bug 430)
-  expected ticker 1 := 0
-  set timer(1, 0, 1, @bug 430 tester)
-  set timer(2, 0, 1, @blocker script 2)  # Runs first
-  wait
-  assert(ticker 2 == 2)
-  if(ticknumber == start tick + 2 && ticker 1 == 1) then (
-    # wait in blocker script 2 plus the wait above
-    return (true)
-  ) else if(ticknumber == start tick + 3 && ticker 1 == 0) then (
-    return (false)
-  ) else (
-    # Other combinations should be impossible
-    crash
-  )
 end
 
 ########################################################################

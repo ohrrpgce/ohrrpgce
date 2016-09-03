@@ -1,0 +1,40 @@
+########################################################################
+# This file is a wrapper to allow separately compiling hstests.hss,
+# which contains testcases for the script interpreter and HSpeak.
+
+include, hamsterspeak.hsd
+include, hstests.hss
+
+#string 0 = error messages
+#string 1-9 = temporary misc
+#string 10 = error message arg
+#string 11 = asserts
+#string 95-96 = temp misc
+define constant(10, err arg string)
+define constant(11, assert expression string)
+
+
+########################################################################
+
+plotscript, main, begin
+  interpreter tests
+end
+
+########################################################################
+
+script, crash, begin
+  if(string length(10) >> 0) then(
+    $0+"("
+    concatenate strings(0, err arg string)
+    $0+")"
+  )
+  trace(0)
+  script error(0)
+end
+
+script, assert failure, begin
+  $1="ASSERT FAILURE:"
+  trace(1)
+  trace(assert expression string)
+  crash
+end

@@ -1,0 +1,120 @@
+# This file is a subset of plotscr.hsd, defining the parts of
+# HamsterSpeak that do not depend on the OHRRPGCE, but could be
+# implemented by a stand-alone HS interpreter.
+# NOTE: you have to pass the -b option to hspeak to use this,
+# otherwise it will automatically import plotscr.hsd.
+
+plotscr version, begin
+  "3P ",  # Version number used for feature checking
+          # and displaying future-version warnings in Game/Custom;
+          # only very rarely necessary to increment (don't when
+          # new commands are added; that's detected separately),
+          # otherwise leave alone to allow forwards compatibility.
+  "3S "   # Minimum supported version of hspeak;
+          # Custom/Game don't care about this.
+end
+
+
+define function, begin
+0,noop,0                    # no operation
+# 73,gameover,0               # returns you to the title screen
+108,seedrandom,1,0          #? reseed the random number generator
+114,readglobal,1,0          # index
+115,writeglobal,2,0,0       # index,value
+176,runscriptbyid,-1        # run a script by its id number and pass any number of arguments
+# 200,systemhour,0
+# 201,systemminute,0
+# 202,systemsecond,0
+211,clearstring,1,0           #deletes the data from string(stringID)
+212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
+213,appendnumber,2,0,0        #adds number to string(stringID,number)
+214,copystring,2,0,0          #copies string from one to another(sourceID,destinationID)
+215,concatenatestrings,2,0,0  #adds two strings(sourceID,destinationID)
+216,stringlength,1,0          #returns the length of string(stringID)
+217,deletechar,2,0,1          #deletes character from string(stringID,position)
+218,replacechar,3,0,1,0       #replaces character in the specified string(stringID,position,ascii)
+219,asciifromstring,2,0,1     #returns the ascii in the string(ascii number)(stringID,position)
+# 226,systemday,0               #returns system day
+# 227,systemmonth,0             #returns system month
+# 228,systemyear,0              #returns system year
+229,stringcompare,2,0,0	      #returns whether two strings are the same(stringID1, stringID2)
+232,trace,1,0                 #writes the provided string to G_DEBUG.txt
+238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
+239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
+# 241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
+251,setstringfromtable,2,0,0  #string support function
+252,appendstringfromtable,2,0,0      #string support function
+273,milliseconds,0            #timer in milliseconds
+466,tracevalueinternal,-1     #tracevalue is translated to this
+# 516,_checkpoint,0                #dumps checkpoint screenshot for automated testing. Only works when run with the -autotest command line argument
+# 531,getinputtext,1,0             #get user textual input since last tick (string)
+# 532,enableinputtext,1,1          #whether to enable getinputtext (enable?)
+# 533,inputtextenabled,0           #(undocumented) whether getinputtext is enabled
+542,microseconds,0               #microsecond timer
+# 553,runningondesktop,0           #returns true if the device is Windows/Mac/Linux
+# 554,runningonmobile,0            #returns true if the device is Android
+# 555,runningonconsole,0           #returns true if the device is console (OUYA, Gamestick, FireTV, Mojo)
+565,stringsprintf,-1             #(dest string id, format string id, args...) Format a string, like sprintf
+566,scripterror,1,-1             #(string id) Show a script error
+567,getscriptname,2,0,0          #(string id, script id) Get name of a script
+568,getcallingscriptid,1,1       #(depth) Get ID number of a parent or ancestor script
+# 595,runningonwindows,0        # returns true if the device is Windows
+# 596,runningonmac,0            # returns true if the device is Mac
+# 597,runningonlinux,0          # returns true if the device is Linux
+# 600,runningonouya,0           # returns true if the device is OUYA (see also "running on console")
+end
+
+define trigger,begin
+0, script
+1, plotscript
+end
+
+define operator,begin
+20 ^   exponent
+30,mod,modulus
+30 /   divide
+30 *   multiply
+40 --  subtract
+40 +   add
+50 ==  equal
+50 <>  notequal
+50 <<  lessthan
+50 >>  greaterthan
+50 <   lessthan
+50 >   greaterthan
+50 <=  lessthanorequalto
+50 >=  greaterthanorequalto
+60,xor,xor
+60,and,and
+60,or, or
+65 &&  logand
+70 ||  logor
+70 ^^  logxor
+80 :=  setvariable
+80 +=  increment
+80 -=  decrement
+80 $+  concatenatestrings
+80 $=  copystring
+end
+
+define constant, begin
+0,zero
+1,one
+2,two
+3,three
+4,four
+5,five
+6,six
+7,seven
+8,eight
+9,nine
+10,ten
+0,false
+1,true
+0,off
+1,on
+0,none
+-1,autonumber
+16383,maximum global id
+99,maximum string id
+end
