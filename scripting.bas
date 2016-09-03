@@ -511,6 +511,7 @@ WITH scriptinsts(index)
  .scr->totaluse += 1
  scriptctr += 1
  .scr->lastuse = scriptctr
+ IF newcall THEN .scr->trigger_type = *scripttype
  'increment refcount once loading is successful
 
  .id = n
@@ -829,21 +830,28 @@ END SUB
 
 TYPE ScriptListElmt
  p as ScriptData ptr
- score as integer
+ score as double
 END TYPE
 
 'Iterate over all loaded scripts, sort them in descending order according to score
 'returned by the callback, and return number of scripts in numscripts
 '(LRUlist is dynamic)
-SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, scorefunc as function(scr as ScriptData) as integer)
+SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, scorefunc as function(scr as ScriptData) as double, fibres_only as bool = NO)
  DIM j as integer
  numscripts = 0
  REDIM LRUlist(-1 TO -1)
+ ' Iterate over the linked-list buckets of the 'script' hashmap.
  FOR i as integer = 0 TO UBOUND(script)
   DIM scrp as ScriptData Ptr = script(i)
   WHILE scrp
-   DIM score as integer = scorefunc(*scrp)
+   ' A script is a fibre root if it has been started with a call to runscript with a trigger type name.
+   IF fibres_only AND LEN(scrp->trigger_type) = 0 THEN
+    scrp = scrp->next
+    CONTINUE WHILE
+   END IF
+   DIM score as double = scorefunc(*scrp)
    REDIM PRESERVE LRUlist(-1 TO numscripts)
+   ' Insert this script into the ordered list
    FOR j = numscripts - 1 TO 0 STEP -1
     IF score >= LRUlist(j).score THEN EXIT FOR
     LRUlist(j + 1).p = LRUlist(j).p
@@ -857,7 +865,7 @@ SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, score
  NEXT
 END SUB
 
-FUNCTION freescripts_script_scorer(byref script as ScriptData) as integer
+FUNCTION freescripts_script_scorer(byref script as ScriptData) as double
  'this formula has only been given some testing, and doesn't do all that well
  DIM score as integer
  IF script.refcount THEN RETURN 1000000000
@@ -1088,14 +1096,14 @@ SUB stop_fibre_timing
 END SUB
 
 'Sort by total time
-PRIVATE FUNCTION profiling_script_totaltime_scorer(byref script as ScriptData) as integer
- 'script.totaltime -= script.entered * timeroverhead
- RETURN script.totaltime * -100000  'Resolution of 10us, overflows after 6 hours
+PRIVATE FUNCTION profiling_script_totaltime_scorer(byref script as ScriptData) as double
+ 'RETURN (script.totaltime - script.entered * timeroverhead) * -100000
+ RETURN -script.totaltime
 END FUNCTION
 
 'Sort by child time
-PRIVATE FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as integer
- RETURN script.childtime * -100000  'Resolution of 10us, overflows after 6 hours
+PRIVATE FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as double
+ RETURN -script.childtime
 END FUNCTION
 
 'Print profiling information on scripts to g_debug.txt
@@ -1132,6 +1140,8 @@ SUB print_script_profiling
  debug "'#switches' is the number of times that the interpreter switched to that"
  debug "  script, which is the sum of #calls, how many other scripts it called and"
  debug "  how many times it waited (switching time is relatively neglible)."
+ debug "'type' is the way that a script was last triggered"
+ debug ""
  debug "ms is milliseconds (0.001 seconds), us is microseconds (0.000001 seconds)"
  debug ""
  debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec"
@@ -1160,19 +1170,20 @@ SUB print_script_profiling
   END WITH
  NEXT
 
- sort_scripts LRUlist(), numscripts, @profiling_script_childtime_scorer
+ 'Print fibres only
+ sort_scripts LRUlist(), numscripts, @profiling_script_childtime_scorer, YES
 
  debug ""
- debug "  -- Scripts sorted by childtime --"
- debug "%chdtime   chdtime  chdtime/call      #calls   #switches  script name"
+ debug "  -- Triggered scripts sorted by childtime --"
+ debug "%chdtime   chdtime  chdtime/call    #calls                type  script name"
  FOR i as integer = 0 TO numscripts - 1
   WITH *LRUlist(i).p
    DIM percall as string
    debug RIGHT("  " & format(100 * .childtime / entiretime, "0.00"), 6)  _
        & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
        & RIGHT(SPACE(11) & format(.childtime*1000/.totaluse, "0.0"), 12) & "ms" _
-       & RIGHT(SPACE(11) & .totaluse, 12) _
-       & RIGHT(SPACE(11) & .entered, 12) _
+       & RIGHT(SPACE(9) & .totaluse, 10) _
+       & RIGHT(SPACE(20) & .trigger_type, 20) _
        & "  " & scriptname(ABS(.id))
   END WITH
  NEXT

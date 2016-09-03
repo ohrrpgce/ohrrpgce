@@ -446,6 +446,8 @@ TYPE ScriptData
   parent as integer     'ID of parent script or 0 if not a subscript
 
   'Book keeping
+  trigger_type as string 'The type of the last trigger (eg "new game") of this script, or blank
+                        '(A script is considered to be a fibre root if it has a non-blank trigger_type)
   refcount as integer   'number of ScriptInst pointing to this data
   totaluse as integer   'total number of times this script has been requested since loading
   lastuse as uinteger
