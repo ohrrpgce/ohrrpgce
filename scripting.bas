@@ -533,10 +533,10 @@ WITH scriptinsts(index)
 
  IF newcall AND index > 0 THEN
   '--suspend the previous fibre
-  scrat(index - 1).state *= -1
   #IFDEF SCRIPTPROFILE
-   stop_fibre_timing
+   stop_fibre_timing  'Must call before suspending
   #ENDIF
+  scrat(index - 1).state *= -1
  END IF
 
  '--we are successful, so now its safe to increment this
@@ -547,7 +547,9 @@ WITH scriptinsts(index)
   unused_script_cache_mem -= .scr->size
  END IF
 
- 'debug "running " & .id & " " & scriptname(.id) & ", parent = " & .scr->parent & " totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
+ 'debug "running " & .id & " " & scriptname(.id) & " in slot " & nowscript & " newcall = " _
+ '      & newcall & " type " & *scripttype & ", parent = " & .scr->parent & " totaluse = " _
+ '      & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
 #IFDEF SCRIPTPROFILE
@@ -965,7 +967,7 @@ SUB script_call_timing
  'Exclusive time for calling script
  scriptinsts(nowscript - 1).scr->totaltime += timestamp
  WITH *scriptinsts(nowscript).scr
-  'debug "script_call_timing: slot " & (nowscript-1) & " id " & scriptinsts(nowscript - 1).scr->id & " called slot " & nowscript & " id " & .id & " calls_in_stack=" & .calls_in_stack
+  'debug "script_call_timing: slot " & (nowscript-1) & " id " & scriptinsts(nowscript - 1).scr->id & " called slot " & nowscript & " id " & .id & " calls_in_stack++ =" & .calls_in_stack
   'debug "  caller totaltime now " & scriptinsts(nowscript - 1).scr->totaltime
   .entered += 1
   'Exclusive time
@@ -980,12 +982,12 @@ SUB script_call_timing
 END SUB
 
 ' Called when a script returns and script profiling enabled.
-' nowscript is the returning script, and nowscript-1 may have called it, otherwise it was triggered/spawned.
+' nowscript is the returning script, and either nowscript-1 called it, or it was triggered/spawned.
 SUB script_return_timing
  DIM timestamp as double
  READ_TIMER(timestamp)
  WITH *scriptinsts(nowscript).scr
-  'debug "script_return_timing: slot " & nowscript & " id " & .id & " calls_in_stack=" & .calls_in_stack & " (returning script)
+  'debug "script_return_timing: slot " & nowscript & " id " & .id & " calls_in_stack-- =" & .calls_in_stack & " (returning script)"
   'Exclusive time
   .totaltime += timestamp
   'debug "  id " & .id & " totaltime now " & .totaltime
@@ -1030,7 +1032,9 @@ SUB start_fibre_timing
  ' Error checking
  FOR which as integer = nowscript TO 0 STEP -1
   IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
-  IF scrat(which).scr->calls_in_stack <> 0 THEN debugc errPromptBug, "Garbage calls_in_stack value" 
+  WITH *scrat(which).scr
+   IF .calls_in_stack <> 0 THEN debugc errPromptBug, "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
+  END WITH
  NEXT
 
  ' Inclusive time (in this script and call tree descendents)
@@ -1039,13 +1043,14 @@ SUB start_fibre_timing
   WITH *scrat(which).scr
    .calls_in_stack += 1
    .laststart = timestamp
-   'debug "  set slot " & which & " id " & .id & " laststart = " & timestamp
+   'debug "  set slot " & which & " id " & .id & " laststart = " & timestamp & " ++calls_in_stack = " & .calls_in_stack
   END WITH
  NEXT
 END SUB
 
 ' Call this when execution of the current script fibre stops, e.g. due to a wait
 ' command or a script error.
+' NOTE: if script_return_timing cleans up the last script in a fibre, stop_fibre_timing doesn't get called.
 SUB stop_fibre_timing
  #IFNDEF SCRIPTPROFILE
   EXIT SUB
@@ -1064,6 +1069,7 @@ SUB stop_fibre_timing
  FOR which as integer = nowscript TO 0 STEP -1
   IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
   WITH *scrat(which).scr
+   'debug "  id " & .id & " calls_in_stack-- = " & .calls_in_stack
    .calls_in_stack -= 1
    IF .calls_in_stack = 0 THEN
     'Was not a recursive call, so won't be double-counting time
@@ -1072,6 +1078,15 @@ SUB stop_fibre_timing
    END IF
   END WITH
  NEXT
+
+ ' Error checking
+ FOR which as integer = nowscript TO 0 STEP -1
+  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
+  WITH *scrat(which).scr
+   IF .calls_in_stack <> 0 THEN debugc errPromptBug, "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id & " slot " & which
+  END WITH
+ NEXT
+
 END SUB
 
 'Sort by total time

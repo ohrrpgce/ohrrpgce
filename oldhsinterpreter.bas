@@ -588,6 +588,7 @@ ELSE
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
  IF state->state < 0 THEN
   '--suspended fibre is resumed
+  'debug "  resuming fibre in slot " & nowscript
   state->state = ABS(state->state)
   IF scriptinsts(nowscript).watched THEN watched_script_resumed
   functiondone = 2'--reactivating a supended fibre
