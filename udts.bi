@@ -499,7 +499,7 @@ TYPE ScriptInst
   waiting as WaitTypeEnum  'Whether the script is waiting
   waitarg as integer    'wait state argument 1
   waitarg2 as integer   'wait state argument 2
-  watched as bool       'true for scripts which are being logged
+  watched as bool       'true for scripts which are being logged (fibre roots only)
   started as bool       'used only if watched is true: whether the script has started
   id as integer         'id number of script
 
@@ -511,7 +511,8 @@ TYPE ScriptInst
   curargc as integer    'number of args for current statement  (used only in old script debugger...)
 END TYPE
 
-TYPE QueuedScript
+TYPE ScriptFibre
+
   id as integer         'Triggers pre-decoded
   scripttype as string
   trigger_loc as string 'More information about how it was triggered
@@ -520,6 +521,8 @@ TYPE QueuedScript
   argc as integer       'The number of args passed
   args(3) as integer
 END TYPE
+
+DECLARE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
 
 TYPE ScriptCommand
   kind as integer

@@ -3,7 +3,8 @@
 
 #include "scrconst.bi"
 
-DECLARE SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+DECLARE SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, scripttype as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
+
 DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
 DECLARE SUB dequeue_scripts ()
 DECLARE SUB run_queued_scripts ()
@@ -12,7 +13,7 @@ DECLARE SUB start_script_trigger_log ()
 DECLARE SUB script_log_tick ()
 DECLARE SUB script_log_resetgame
 DECLARE SUB script_log_out (text as string)
-DECLARE SUB watched_script_triggered (script as QueuedScript)
+DECLARE SUB watched_script_triggered (fibre as ScriptFibre)
 DECLARE SUB watched_script_resumed ()
 DECLARE SUB watched_script_finished ()
 
@@ -30,7 +31,7 @@ DECLARE SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 
 DECLARE SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
 DECLARE SUB script_stop_waiting(returnval as integer = 0)
 
-DECLARE FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
+DECLARE FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr) as integer
 DECLARE FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
 DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)

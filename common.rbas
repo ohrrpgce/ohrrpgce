@@ -702,7 +702,7 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
 #ifdef IS_GAME
    IF .id = 0 THEN
     ' Not an error in Custom as we're not trying to actually run it
-    scripterr "Script " + .name + " is used but has not been imported", serrError
+    scripterr "Script " + .name + " is used but is missing (no script with that name)", serrError
    END IF
 #endif
    RETURN .id

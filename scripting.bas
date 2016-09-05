@@ -32,15 +32,13 @@ DECLARE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
 
 '------------ Global variables ------------
 
-'These have to be in the same module as dequeue_scripts for some reason; looks like a FB bug.
-REDIM scrqFirst() as QueuedScript
-REDIM scrqBackcompat() as QueuedScript
-REDIM scrqLast() as QueuedScript
+DEFINE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
 
 '--------- Module shared variables ---------
 
 'Used by trigger_script
-DIM SHARED trigger_script_failure as integer
+DIM SHARED trigger_script_failure as bool
+DIM SHARED last_queued_script as ScriptFibre ptr
 
 DIM SHARED timeroverhead as double
 
@@ -50,17 +48,24 @@ DIM SHARED timeroverhead as double
 '==========================================================================================
 
 
-SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scripttype as string, trigger_loc as string, scrqueue() as QueuedScript, byval trigger as integer = plottrigger)
+SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, scripttype as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
  'Add a script to one of the script queues, unless already inside the interpreter.
  'In that case, run immediately.
- 'scrqueue should be one of the scrq* arrays
- 'double_trigger_check: whether "no double-triggering" should take effect
+ 'After calling this SUB, call trigger_script_arg zero or more times to set the arguments.
+ 'All arguments must be given, in the right order.
+ '
+ 'id:           either a script ID or a trigger number
+ 'numargs:      the number of arguments that will be provided
+ 'double_trigger_check:  whether "no double-triggering" should take effect
+ 'scripttype:   type of the script (used for debugging/tracing), eg "autorun"
+ 'trigger_loc:  specific script trigger cause, eg "map 5"
+ 'fibregroup:   a vector of ScriptFibre ptrs, usually mainFibreGroup
 
- STATIC dummy_queued_script as QueuedScript
+ STATIC dummy_queued_script as ScriptFibre
 
  IF insideinterpreter THEN
   DIM rsr as integer
-  rsr = runscript(id, YES, double_trigger_check, scripttype, trigger)
+  rsr = runscript(id, YES, double_trigger_check, scripttype)
   trigger_script_failure = (rsr <> 1)
   IF gam.script_log.enabled = NO THEN EXIT SUB
 
@@ -69,24 +74,25 @@ SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scr
   scrat(nowscript).state = sttriggered
   last_queued_script = @dummy_queued_script
  ELSE
-  REDIM PRESERVE scrqueue(-1 TO UBOUND(scrqueue) + 1)
-  last_queued_script = @scrqueue(UBOUND(scrqueue))
+  last_queued_script = NEW ScriptFibre
+  v_append fibregroup, last_queued_script
  END IF
 
  'Save information about this script, for use by trigger_script_arg()
  WITH *last_queued_script
-  IF trigger <> 0 THEN id = decodetrigger(id)
+  id = decodetrigger(id)
   .id = id
   .scripttype = scripttype
   .log_line = scriptname(id) & "("
   .trigger_loc = trigger_loc
   .double_trigger_check = double_trigger_check
-  .argc = 0
+  .argc = numargs
+  IF numargs > UBOUND(.args) + 1 THEN fatalerror "trigger_script: too many args: " & numargs
  END WITH
 END SUB
 
 SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
- 'Set one of the args for a script that was just triggered
+ 'Set one of the args for a script that was just triggered. They must be in the right order, and all provided.
  'Note that after calling trigger_script, script queuing can be in three states:
  'inside interpreter, trigger_script_failure = NO
  '    triggered a script which started immediately
@@ -103,9 +109,8 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
  END IF
 
  WITH *last_queued_script
-  IF argno > UBOUND(.args) THEN fatalerror "trigger_script_arg: args queue overflow"
+  IF argno >= .argc THEN fatalerror .scripttype & " triggering is broken: trigger_script_arg bad arg num " & argno
   .args(argno) = value
-  .argc = large(.argc, argno + 1)
   IF gam.script_log.enabled THEN
    IF argno <> 0 THEN .log_line += ", "
    IF argname THEN .log_line += *argname + "="
@@ -114,9 +119,9 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
  END WITH
 END SUB
 
-PRIVATE SUB run_queued_script (script as QueuedScript)
+PRIVATE SUB run_queued_script (script as ScriptFibre)
  DIM rsr as integer
- rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype, 0)
+ rsr = runscript(script.id, YES, script.double_trigger_check, script.scripttype)
  IF rsr = 1 THEN
   FOR argno as integer = 0 TO script.argc - 1
    setScriptArg argno, script.args(argno)
@@ -128,27 +133,22 @@ END SUB
 
 SUB run_queued_scripts
  'Load the queued scripts into the interpreter.
- 'We have to call runscript in the reverse order, because we build the stack up from bottom
 
- FOR i as integer = UBOUND(scrqFirst) TO 0 STEP -1
-  run_queued_script(scrqFirst(i))
- NEXT
- FOR i as integer = 0 TO UBOUND(scrqBackcompat)
-  run_queued_script(scrqBackcompat(i))
- NEXT
- FOR i as integer = UBOUND(scrqLast) TO 0 STEP -1
-  run_queued_script(scrqLast(i))
+ FOR i as integer = 0 TO v_len(mainFibreGroup) - 1
+  run_queued_script(*mainFibreGroup[i])
  NEXT
 
  dequeue_scripts
 END SUB
 
 SUB dequeue_scripts
- 'Wipe the script queues
+ 'Wipe the script queue
  last_queued_script = NULL
- REDIM scrqFirst(-1 TO -1)
- REDIM scrqBackcompat(-1 TO -1)
- REDIM scrqLast(-1 TO -1)
+ IF mainFibreGroup = NULL THEN EXIT SUB  'During startup when not initialised yet
+ FOR idx as integer = 0 TO v_len(mainFibreGroup) - 1
+  DELETE mainFibreGroup[idx]
+ NEXT
+ v_resize mainFibreGroup, 0
 END SUB
 
 
@@ -234,7 +234,7 @@ FUNCTION script_log_indent (byval upto as integer = -1, byval spaces as integer 
 END FUNCTION
 
 'Called after runscript when running a script which should be watched
-SUB watched_script_triggered(script as QueuedScript)
+SUB watched_script_triggered(script as ScriptFibre)
  scriptinsts(nowscript).watched = YES
  IF gam.script_log.last_logged > -1 ANDALSO scriptinsts(gam.script_log.last_logged).started = NO THEN
   script_log_out " (queued)"
@@ -460,12 +460,12 @@ END SUB
 '==========================================================================================
 
 
-FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr, byval trigger as integer) as integer
+FUNCTION runscript (byval id as integer, byval newcall as bool, byval double_trigger_check as bool, byval scripttype as zstring ptr) as integer
 'newcall: whether his script is triggered (start a new fibre) rather than called from a script
 'double_trigger_check: whether "no double-triggering" should take effect
 
 DIM n as integer
-IF trigger <> 0 THEN n = decodetrigger(id) ELSE n = id
+n = decodetrigger(id)
 
 IF n = 0 THEN
  runscript = 2 '--quiet failure (though decodetrigger might have shown a scripterr)

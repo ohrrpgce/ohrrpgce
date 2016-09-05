@@ -348,7 +348,7 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
 
  IF doit THEN
-  trigger_script scriptnum, YES, "on-key", "", scrqBackcompat()
+  trigger_script scriptnum, 1, YES, "on-key", "", mainFibreGroup
  END IF
 
 END SUB
@@ -1558,7 +1558,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 176'--run script by id
   DIM rsr as integer
   DIM argc as integer = curcmd->argc  'Must store before calling runscript
-  rsr = runscript(retvals(0), NO, NO, "indirect", plottrigger) 'possible to get ahold of triggers
+  rsr = runscript(retvals(0), NO, NO, "indirect")
   IF rsr = 1 THEN
    '--fill heap with arguments
    FOR i as integer = 1 TO argc - 1  'flexible argument number!

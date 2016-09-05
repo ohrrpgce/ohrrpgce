@@ -734,7 +734,9 @@ SUB update_vehicle_state ()
   END IF
  END IF
  IF vstate.trigger_cleanup THEN '--clear
-  IF vstate.dat.on_dismount < 0 THEN trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
+  IF vstate.dat.on_dismount < 0 THEN
+   trigger_script ABS(vstate.dat.on_dismount), 0, YES, "vehicle dismount", "", mainFibreGroup
+  END IF
   IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
   settag vstate.dat.riding_tag, NO
   IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
@@ -789,7 +791,7 @@ SUB update_vehicle_state ()
        '--dismount
        vehicle_graceful_dismount
       CASE IS > 0
-       trigger_script button(i), YES, "vehicle button " & i, "", scrqBackcompat()
+       trigger_script button(i), 0, YES, "vehicle button " & i, "", mainFibreGroup
      END SELECT
     END IF
    NEXT i
@@ -829,7 +831,7 @@ SUB forcedismount (catd() as integer)
    loadsay vstate.dat.on_dismount
   END IF
   IF vstate.dat.on_dismount < 0 THEN
-   trigger_script ABS(vstate.dat.on_dismount), YES, "vehicle dismount", "", scrqBackcompat()
+   trigger_script ABS(vstate.dat.on_dismount), 0, YES, "vehicle dismount", "", mainFibreGroup
   END IF
   settag vstate.dat.riding_tag, NO
   herow(0).speed = vstate.old_speed
@@ -907,7 +909,9 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
   END IF
  NEXT i
  IF scrambled_heroes = count THEN
-  IF vstate.dat.on_mount < 0 THEN trigger_script ABS(vstate.dat.on_mount), YES, "vehicle on-mount", "", scrqBackcompat()
+  IF vstate.dat.on_mount < 0 THEN
+   trigger_script ABS(vstate.dat.on_mount), 0, YES, "vehicle on-mount", "", mainFibreGroup
+  END IF
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
   herow(0).speed = vstate.dat.speed
   IF herow(0).speed = 3 THEN herow(0).speed = 10

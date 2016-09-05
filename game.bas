@@ -169,12 +169,12 @@ DIM scrwatch as integer
 DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer
 REDIM global(maxScriptGlobals) as integer
+DIM mainFibreGroup as ScriptFibre ptr vector
 REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
 DIM timing_fibre as bool
 DIM scriptprofiling as bool
 DIM wantimmediate as integer
-DIM last_queued_script as QueuedScript ptr
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
@@ -588,6 +588,7 @@ IF gam.script_log.enabled THEN start_script_trigger_log
 'the old stack used only inbattle
 releasestack
 setupstack
+v_new mainFibreGroup
 
 SetupGameSlices
 'beginplay
@@ -677,7 +678,7 @@ ELSE
  'Trigger textbox and/or script
  gam.want.box = gen(genStartTextbox)  '0 for no textbox
  IF gen(genNewGameScript) > 0 THEN
-  trigger_script gen(genNewGameScript), YES, "newgame", "", scrqBackcompat()
+  trigger_script gen(genNewGameScript), 0, YES, "newgame", "", mainFibreGroup
  END IF
  prepare_map
 END IF
@@ -728,7 +729,7 @@ DO
  'DEBUG debug "keyboard handling"
  IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
   IF gen(genEscMenuScript) > 0 THEN
-   trigger_script gen(genEscMenuScript), NO, "", "", scrqBackcompat()
+   trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
   ELSEIF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
@@ -809,7 +810,7 @@ DO
   txt.showing = NO
   txt.fully_shown = NO
   IF gen(genGameoverScript) > 0 THEN
-   trigger_script gen(genGameoverScript), NO, "death", "", scrqBackcompat()
+   trigger_script gen(genGameoverScript), 0, NO, "death", "", mainFibreGroup
    fatal = NO
    queue_fade_in 1
   ELSE
@@ -933,7 +934,7 @@ END SUB
 SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
  IF gen(genLoadGameScript) > 0 THEN
-  trigger_script gen(genLoadGameScript), YES, "loadgame", "", scrqBackcompat()
+  trigger_script gen(genLoadGameScript), 1, YES, "loadgame", "", mainFibreGroup
   '--pass save slot as argument
   IF load_slot = 32 THEN
    trigger_script_arg 0, -1, "slot"  'quickload slot
@@ -1284,7 +1285,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
        END IF
       ELSE
        'trigger the instead-of-battle script
-       trigger_script gmap(13), YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), scrqBackcompat()
+       trigger_script gmap(13), 2, YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), mainFibreGroup
        trigger_script_arg 0, battle_formation, "formation"
        trigger_script_arg 1, battle_formation_set, "formation set"
       END IF
@@ -1295,7 +1296,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
 
   'Each step trigger
   IF gmap(14) > 0 THEN
-   trigger_script gmap(14), YES, "eachstep", "map " & gam.map.id, scrqBackcompat()
+   trigger_script gmap(14), 3, YES, "eachstep", "map " & gam.map.id, mainFibreGroup
    trigger_script_arg 0, catx(0) \ 20, "tile x"
    trigger_script_arg 1, caty(0) \ 20, "tile y"
    trigger_script_arg 2, catd(0), "direction"
@@ -1856,7 +1857,7 @@ SUB dotimer(byval timercontext as integer)
 
             if .trigger >= 0 then  'a plotscript
               ' NOTE: this doesn't run until the next tick (a design flaw)
-              trigger_script .trigger, NO, "timer", "", scrqBackcompat()
+              trigger_script .trigger, 1, NO, "timer", "", mainFibreGroup
               trigger_script_arg 0, i, "id"
             end if
           end if
@@ -1934,7 +1935,7 @@ SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
   bring_menu_forward slot
  END IF
  IF menus(topmenu).on_close <> 0 AND run_on_close THEN
-  trigger_script menus(topmenu).on_close, YES, "menu on-close", "menu " & menus(topmenu).record, scrqBackcompat()
+  trigger_script menus(topmenu).on_close, 0, YES, "menu on-close", "menu " & menus(topmenu).record, mainFibreGroup
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
@@ -2114,7 +2115,8 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
     CASE 3 ' Text box
      menu_text_box = .sub_t
     CASE 4 ' Run Script
-     trigger_script .sub_t, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, scrqBackcompat()
+     DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
+     trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
      IF menus(topmenu).allow_gameplay THEN
       IF .close_if_selected THEN
        'The menu item handle would be useless, so as a special case pass 0
@@ -2406,12 +2408,12 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  IF afterbat = NO THEN
   IF gmap(7) > 0 THEN
-   trigger_script gmap(7), YES, "map autorun", "map " & gam.map.id, scrqBackcompat()
+   trigger_script gmap(7), 1, YES, "map autorun", "map " & gam.map.id, mainFibreGroup
    trigger_script_arg 0, gmap(8), "arg"
   END IF
  ELSE
   IF gmap(12) > 0 THEN
-   trigger_script gmap(12), NO, "afterbattle", "", scrqBackcompat()
+   trigger_script gmap(12), 1, NO, "afterbattle", "", mainFibreGroup
    '--afterbattle script gets one arg telling if you won or ran
    trigger_script_arg 0, IIF(gam.wonbattle, 1, 0), "wonbattle"
   END IF
@@ -2523,7 +2525,7 @@ SUB loadsay (byval box_id as integer)
   IF istag(txt.box.instead_tag, 0) THEN
    '--do something else instead
    IF txt.box.instead < 0 THEN
-    trigger_script -txt.box.instead, YES, "textbox instead", "box " & box_id, scrqBackcompat()
+    trigger_script -txt.box.instead, 0, YES, "textbox instead", "box " & box_id, mainFibreGroup
     txt.sayer = -1
     EXIT SUB
    ELSE
@@ -2667,7 +2669,7 @@ SUB advance_text_box ()
  '---JUMP TO NEXT TEXT BOX--------
  IF istag(txt.box.after_tag, 0) THEN
   IF txt.box.after < 0 THEN
-   trigger_script -txt.box.after, YES, "textbox", "box " & txt.id, scrqBackcompat()
+   trigger_script -txt.box.after, 0, YES, "textbox", "box " & txt.id, mainFibreGroup
   ELSE
    loadsay txt.box.after
    EXIT SUB
@@ -3180,7 +3182,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
-  trigger_script npcs(id).script, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).x & "," & npc(npcnum).y, scrqBackcompat()
+  trigger_script npcs(id).script, 2, YES, "NPC", "NPC ID " & id & " at " & npc(npcnum).x & "," & npc(npcnum).y, mainFibreGroup
   trigger_script_arg 0, npcs(id).scriptarg, "arg"
   trigger_script_arg 1, (npcnum + 1) * -1, "npcref"
  END IF

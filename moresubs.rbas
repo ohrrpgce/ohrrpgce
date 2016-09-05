@@ -1565,7 +1565,7 @@ DO
     innRestore
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
-     trigger_script storebuf(19), NO, "inn", "ID " & id, scrqBackcompat()
+     trigger_script storebuf(19), 0, NO, "inn", "ID " & id, mainFibreGroup
      EXIT DO
     ELSE
      '--Inn has no script, do simple fade

@@ -256,7 +256,7 @@ DO
       '.state = streturn'---return
      CASE tyscript
       DIM argc as integer = curcmd->argc
-      rsr = runscript(curcmd->value, NO, NO, "indirect", 0)
+      rsr = runscript(curcmd->value, NO, NO, "indirect")
       'WARNING: WITH now points to scrat(nowscript-1)
       IF rsr = 1 THEN
        '--fill heap with arguments
