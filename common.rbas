@@ -692,10 +692,13 @@ FUNCTION readbadgenericname (byval index as integer, filename as string, byval r
  RETURN ""  'failure
 END FUNCTION
 
+' Given a trigger or script ID, return a script ID. If the script is missing,
+' show an error (Game only), and return 0.
 FUNCTION decodetrigger (byval trigger as integer) as integer
  'debug "decoding " + STR(trigger)
  IF trigger >= 16384 AND trigger - 16384 <= UBOUND(lookup1_bin_cache) THEN
   WITH lookup1_bin_cache(trigger - 16384)
+   'debug "  id " & .id & " name " & .name
 #ifdef IS_GAME
    IF .id = 0 THEN
     ' Not an error in Custom as we're not trying to actually run it
@@ -709,47 +712,16 @@ FUNCTION decodetrigger (byval trigger as integer) as integer
  END IF
 END FUNCTION
 
-'If called with an invalid script id, the result will be "[id]"
-FUNCTION scriptname (byval num as integer) as string
- DIM ret as string
-
- 'Remember script names; can be a large speed up in script debugger.
- 'Done in Custom too: game_unique_id is changed after importing scripts
- STATIC cache(24) as IntStrPair
- ret = search_string_cache(cache(), num, game_unique_id)
- IF LEN(ret) THEN RETURN ret
-
- DIM buf(19) as integer
- IF num >= 16384 THEN
-  IF loadrecord (buf(), workingdir + SLASH + "lookup1.bin", 20, num - 16384, NO) THEN
-   DIM scrname as string = readbinstring(buf(), 1, 36)
-   IF buf(0) THEN
-    ret = scrname
-   ELSE
-    ret = "[" & scrname & "]"
-   END IF
-  END IF
+' Find the name of a script given ID number or trigger ID.
+' If called with an invalid script id, the result will be "[id ###]"
+FUNCTION scriptname (id_or_trigger as integer) as string
+ IF id_or_trigger = 0 THEN
+  RETURN "[none]"
+ ELSE
+  DIM idx as integer = intstr_array_find(script_names(), id_or_trigger)
+  IF idx > -1 THEN RETURN script_names(idx).s
+  RETURN "[id " & id_or_trigger & "]"
  END IF
-
- IF ret = "" THEN
-  IF num = 0 THEN
-   ret = "[none]"
-  ELSE
-   ret = "[id " & num & "]"
-   DIM fh as integer = FREEFILE
-   OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
-   WHILE loadrecord (buf(), fh, 20)
-    IF buf(0) = num THEN
-     ret = readbinstring(buf(), 1, 38)
-     EXIT WHILE
-    END IF
-   WEND
-   CLOSE fh
-  END IF
- END IF
-
- add_string_cache cache(), num, ret
- RETURN ret
 END FUNCTION
 
 Function seconds2str(byval sec as integer, f as string = " %m: %S") as string

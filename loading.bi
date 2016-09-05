@@ -166,7 +166,7 @@ DECLARE SUB save_hero_formation(byref hform as HeroFormation, byval form_num as 
 DECLARE SUB write_hero_formation(byval par as NodePtr, byref hform as HeroFormation)
 
 DECLARE SUB load_hsp_header(filename as string, header as HSHeader)
-DECLARE SUB load_lookup1_bin(table() as TriggerData)
+DECLARE SUB load_script_triggers_and_names()
 
 DECLARE SUB save_string_list(array() as string, filename as string)
 DECLARE SUB load_string_list(array() as string, filename as string)

@@ -170,7 +170,6 @@ DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer
 REDIM global(maxScriptGlobals) as integer
 REDIM plotstr(maxScriptStrings) as Plotstring
-REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
 DIM insideinterpreter as bool
 DIM wantimmediate as integer
 DIM last_queued_script as QueuedScript ptr
@@ -613,7 +612,7 @@ lastformation = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
-load_lookup1_bin lookup1_bin_cache()
+load_script_triggers_and_names
 
 makebackups 'make a few backup lumps
 

@@ -109,7 +109,6 @@ REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
 REDIM herotags(59) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
-REDIM lookup1_bin_cache(-1 TO -1) as TriggerData
 DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
@@ -353,7 +352,7 @@ setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 load_special_tag_caches
-load_lookup1_bin lookup1_bin_cache()
+load_script_triggers_and_names
 
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 

@@ -1421,15 +1421,12 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
-   handled = YES  'ignore
-   'Note: in theory the scriptname cache should be cleared. However
-   'scripts are recompiled with matching ID numbers, and definescript
-   'is dead, so not a realistic problem.
+   load_script_triggers_and_names
+   handled = YES
 
   ELSEIF modified_lumps[i] = "lookup1.bin" THEN                           'LOOKUP1.BIN
-   load_lookup1_bin lookup1_bin_cache()
+   load_script_triggers_and_names
    handled = YES
-   'Note: in theory the scriptname cache should be cleared; see plotscr.lst
 
   END IF
 

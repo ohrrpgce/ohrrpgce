@@ -429,8 +429,8 @@ SUB importscripts (f as string, quickimport as bool)
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
 
-  '--reload cache (we only cache this to share code between Game and Custom)
-  load_lookup1_bin lookup1_bin_cache()
+  '--reload lookup1.bin and plotscr.lst
+  load_script_triggers_and_names
 
   '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
   append_message " ...autofix broken triggers..."
