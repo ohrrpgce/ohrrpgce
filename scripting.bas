@@ -1017,6 +1017,9 @@ SUB script_return_timing
    .entered += 1
    .totaltime -= timestamp
   END WITH
+ ELSE
+  ' Fibre finished.
+  timing_fibre = NO
  END IF
 END SUB
 
@@ -1028,6 +1031,8 @@ SUB start_fibre_timing
  #ENDIF
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "start_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
+ IF timing_fibre THEN EXIT SUB
+ timing_fibre = YES
 
  scrat(nowscript).scr->entered += 1
 
@@ -1065,6 +1070,8 @@ SUB stop_fibre_timing
  #ENDIF
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "stop_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
+ IF timing_fibre = NO THEN EXIT SUB
+ timing_fibre = NO
 
  DIM timestamp as double
  READ_TIMER(timestamp)

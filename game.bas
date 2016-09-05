@@ -171,6 +171,7 @@ DIM interruption_grace_period as integer
 REDIM global(maxScriptGlobals) as integer
 REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
+DIM timing_fibre as bool
 DIM wantimmediate as integer
 DIM last_queued_script as QueuedScript ptr
 
