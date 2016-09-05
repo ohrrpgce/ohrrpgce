@@ -35,6 +35,7 @@ Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING 
   Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
 #endif
 
+DIM nulzstr as zstring ptr  '(see misc.bi)
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir as string
@@ -688,6 +689,20 @@ END SUB
 FUNCTION int_array_find (array() as integer, value as integer) as integer
  FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF array(i) = value THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
+FUNCTION intstr_array_find (array() as IntStrPair, value as integer) as integer
+ FOR i as integer = LBOUND(array) TO UBOUND(array)
+  IF array(i).i = value THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
+FUNCTION intstr_array_find (array() as IntStrPair, value as string) as integer
+ FOR i as integer = LBOUND(array) TO UBOUND(array)
+  IF array(i).s = value THEN RETURN i
  NEXT
  RETURN -1
 END FUNCTION

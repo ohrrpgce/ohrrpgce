@@ -145,7 +145,7 @@ declare function Lump_unlumpfile(byref this as Lump, whereto as string) as integ
 declare function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr 
-declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as string = "") as bool
+declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as zstring ptr = nulzstr) as bool
 declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0, expectfile as bool = YES) as bool
 declare sub storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 declare sub storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)

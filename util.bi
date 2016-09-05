@@ -125,11 +125,13 @@ END TYPE
 
 declare function str_array_find (array() as string, value as string, notfound as integer=-1) as integer
 declare function str_array_findcasei (array() as string, value as string, notfound as integer=-1) as integer
-declare function int_array_find overload(array() as integer, value as integer) as integer
+declare function int_array_find (array() as integer, value as integer) as integer
+declare function intstr_array_find overload (array() as IntStrPair, value as integer) as integer
+declare function intstr_array_find overload (array() as IntStrPair, value as string) as integer
 declare sub array_shuffle_to_end overload(array() as integer, which as integer)
 declare sub array_shuffle_to_end overload(array() as string, which as integer)
 
-'These act on *dynamically typed* destination arrays only! Static arrays will segfault!
+'These act on *dynamic length* destination arrays only! Static arrays will segfault!
 declare sub str_array_append (array() as string, s as string)
 declare sub int_array_append (array() as integer, byval k as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
@@ -174,6 +176,7 @@ declare function readstackdw (byval off as integer) as integer
 
 '------------ String Cache ------------
 
+'See also the intstr_* functions.
 declare function search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string = CHR(234)) as string
 declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value as string)
 declare sub remove_string_cache (cache() as IntStrPair, byval key as integer)
@@ -523,6 +526,9 @@ DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 '----------------------------------------------------------------------
 '              Globals (think twice before adding more)
 
+
+'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
+EXTERN nulzstr as zstring ptr
 
 EXTERN tmpdir as string
 'Ideally would not be in this module

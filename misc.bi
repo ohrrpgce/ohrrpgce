@@ -30,9 +30,6 @@ DECLARE FUNCTION ReadByteStr(byval fh as integer, byval maxlen as integer) as st
 
 ''''Globals
 
-'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
-EXTERN nulzstr as zstring ptr
-
 ' Globals telling whether certain commandline arguments have been seen.
 EXTERN overrode_default_zoom as bool
 EXTERN overrode_default_fullscreen as bool

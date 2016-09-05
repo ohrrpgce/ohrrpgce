@@ -20,8 +20,6 @@
 #include "customsubs.bi"
 #endif
 
-dim nulzstr as zstring ptr  '(see misc.bi)
-
 'An option was given on commandline to set zoom or fullscreen/windowed (overrides the games' settings)
 dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO

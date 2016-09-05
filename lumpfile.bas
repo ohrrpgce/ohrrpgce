@@ -253,7 +253,7 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as string = "") as bool
+function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as zstring ptr = nulzstr) as bool
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
