@@ -96,8 +96,6 @@ if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
     CXXFLAGS.append ('-pg')
-if int (ARGUMENTS.get ('scriptprofile', 0)):
-    FBFLAGS += ['-d','SCRIPTPROFILE']
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -927,7 +925,6 @@ Options:
                       disables -exx and uses GCC emitter.
   profile=1           Profiling build using gprof (executables) or MicroProfiler
                       (gfx_directx.dll/gfx_directx_test1.exe).
-  scriptprofile=1     Script profiling build: track time in interpreter.
   asm=1               Produce .asm or .c files in build/ while compiling.
   fbc=PATH            Point to a different version of fbc.
   macsdk=version      Compile against a Mac OS X SDK instead of using the system

@@ -73,6 +73,7 @@ SUB trigger_script (byval id as integer, byval double_trigger_check as bool, scr
   last_queued_script = @scrqueue(UBOUND(scrqueue))
  END IF
 
+ 'Save information about this script, for use by trigger_script_arg()
  WITH *last_queued_script
   IF trigger <> 0 THEN id = decodetrigger(id)
   .id = id
@@ -191,7 +192,7 @@ SUB script_log_resetgame
  WITH gam.script_log
   ' Leave .enabled alone, continuing to log
   IF .enabled THEN
-   script_log_out !"--- Game ended ---\n\n"
+   script_log_out !"\n--- Game ended ---\n\n"
   END IF
   .tick = 0
   .wait_msg_repeats = 0
@@ -286,10 +287,10 @@ SUB watched_script_finished
  ELSE
   logline = !"\n" & script_log_indent() & "-" & scriptname(scriptinsts(nowscript).id) & " finished"
  END IF
- #IFDEF SCRIPTPROFILE
+ IF scriptprofiling THEN
   ' This global is set by script_return_timing()
   logline &= "  (took " & format(gam.script_log.last_script_childtime * 1e3, "0.0") & "ms)"
- #ENDIF
+ END IF
  script_log_out logline
 
  gam.script_log.last_logged = -1
@@ -389,9 +390,7 @@ SUB resetinterpreter
  killallscripts
 
  IF numloadedscr > 0 THEN
-  #IFDEF SCRIPTPROFILE
-   print_script_profiling
-  #ENDIF
+  IF scriptprofiling THEN print_script_profiling
 
   freescripts(0)
  END IF
@@ -536,9 +535,7 @@ WITH scriptinsts(index)
 
  IF newcall AND index > 0 THEN
   '--suspend the previous fibre
-  #IFDEF SCRIPTPROFILE
-   stop_fibre_timing  'Must call before suspending
-  #ENDIF
+  IF scriptprofiling THEN stop_fibre_timing  'Must call before suspending
   scrat(index - 1).state *= -1
  END IF
 
@@ -555,13 +552,13 @@ WITH scriptinsts(index)
  '      & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
-#IFDEF SCRIPTPROFILE
+IF scriptprofiling THEN
  IF newcall THEN
   start_fibre_timing
  ELSE
   script_call_timing
  END IF
-#ENDIF
+END IF
 
 RETURN 1 '--success
 
@@ -822,6 +819,8 @@ SUB deref_script(script as ScriptData ptr)
  IF script->refcount = 0 THEN
   'scriptcachemem
   unused_script_cache_mem += script->size
+  ' Don't delete ScriptDatas, as they include the timing info
+  IF scriptprofiling THEN EXIT SUB
   IF unused_script_cache_mem > scriptmemMax THEN
    'Evicting stuff from the script cache is probably pointless, but we've already got it,
    'and it may be useful for the new script interpreter...
@@ -925,11 +924,14 @@ SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as 
  END WITH
 END SUB
 
+'Unload all scripts not in use, so they will get loaded again when used.
+'TODO: it would be preferable to keep the bookkeeping data by only deleting the script commands and strings
 SUB reload_scripts
  IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
 
  DIM unfreeable as integer = 0
 
+ ' Iterate over the hashmap bucket chains
  FOR i as integer = 0 TO UBOUND(script)
   DIM as ScriptData Ptr scrp = script(i), nextp
   WHILE scrp
@@ -1026,9 +1028,7 @@ END SUB
 ' Call this when starting/resuming execution of a script fibre;
 ' used to collect timing statistics.
 SUB start_fibre_timing
- #IFNDEF SCRIPTPROFILE
-  EXIT SUB
- #ENDIF
+ IF scriptprofiling = NO THEN EXIT SUB
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "start_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
  IF timing_fibre THEN EXIT SUB
@@ -1065,9 +1065,7 @@ END SUB
 ' command or a script error.
 ' NOTE: if script_return_timing cleans up the last script in a fibre, stop_fibre_timing doesn't get called.
 SUB stop_fibre_timing
- #IFNDEF SCRIPTPROFILE
-  EXIT SUB
- #ENDIF
+ IF scriptprofiling = NO THEN EXIT SUB
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "stop_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
  IF timing_fibre = NO THEN EXIT SUB
@@ -1157,7 +1155,7 @@ SUB print_script_profiling
  debug "(Timer overhead = " & format(timeroverhead*1e6, "0.00") & "us per measurement)"
  debug "(Estimated time wasted profiling: " & format(timeroverhead * totalswitches, "0.000") & "sec)"
  debug ""
- debug "  -- Scripts sorted by time --"
+ debug "  -- All scripts sorted by time --"
  debug " %time        time   childtime    time/call      #calls   #switches  script name"
  FOR i as integer = 0 TO numscripts - 1
  ' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
@@ -1197,7 +1195,6 @@ SUB print_script_profiling
   END WITH
  NEXT
  debug ""
-
 END SUB
 
 

@@ -17,6 +17,12 @@ WHAT IS NEW?
       costs. MP costs are no longer invisible in Level-MP spell lists
       [James]
 
+  * New Plotscripting Features
+    * "menu item at pixel" [Ralph, James]
+    * You can now profile scripts (collect statistics on running times)
+      by pressing Ctrl+F9. (Before, you had to download a special build
+      to profile scripts.) More useful stats are now collected. [Ralph]
+
   * Changes
 
   * Bugfixes
@@ -37,8 +43,6 @@ WHAT IS NEW?
     * Bug 2006: gfx_directx: major slowdown after switching to another
       program while a joystick is plugged in [Ralph]
 
-  * New Plotscripting Stuff
-    * "menu item at pixel" [Ralph, James]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

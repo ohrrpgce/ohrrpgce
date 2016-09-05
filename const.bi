@@ -273,14 +273,9 @@ CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth
-#IFDEF SCRIPTPROFILE
 'Amount of script data to cache
-CONST scriptmemMax = 10000000 'in 4-byte ints
-CONST scriptTableSize = 512  'hash table size, power of 2 please
-#ELSE
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
-CONST scriptTableSize = 256  'hash table size, power of 2 please
-#ENDIF
+CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 

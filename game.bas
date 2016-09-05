@@ -172,6 +172,7 @@ REDIM global(maxScriptGlobals) as integer
 REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
 DIM timing_fibre as bool
+DIM scriptprofiling as bool
 DIM wantimmediate as integer
 DIM last_queued_script as QueuedScript ptr
 
@@ -3480,6 +3481,18 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF8) THEN debug_menu
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
+
+ IF dbg.def(scCtrl, scF9, iif_string(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
+  scriptprofiling XOR= YES
+  IF scriptprofiling THEN
+   gam.showtext = "Timings will be printed to g_debug.txt"
+  ELSE
+   print_script_profiling
+   gam.showtext = "Script timings printed to g_debug.txt"
+  END IF
+  gam.showtext_ticks = 36
+ END IF
+
  IF dbg.def(      , scF10) THEN
   scrwatch = loopvar(scrwatch, 0, 2, 1)
   gam.debug_showtags = NO
@@ -3497,7 +3510,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    gam.showtext = "Logging to " & trimpath(gam.script_log.filename)
    start_script_trigger_log
   END IF
-  gam.showtext_ticks = 20
+  gam.showtext_ticks = 36
  END IF
 
  IF dbg.def(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES

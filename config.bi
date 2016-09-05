@@ -52,12 +52,7 @@
 #ELSE
  #DEFINE _BSTR " 32-bit"
 #ENDIF
-#IFDEF SCRIPTPROFILE
- #DEFINE _SSTR " script_profiling"
-#ELSE
- #DEFINE _SSTR
-#ENDIF
-CONST build_info as string = "" _GSTR _ESTR _GENSTR _SSTR _PSTR _BSTR
+CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 
 
 '==================================== OS-specific defines =================================

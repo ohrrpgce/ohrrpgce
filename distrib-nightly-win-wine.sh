@@ -142,10 +142,6 @@ rm -f game*.exe custom*.exe
 wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=2
 zip_and_upload directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc/gdbcmds1.txt misc/gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0 scriptprofile=1
-zip_and_upload directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
-
 # Note that this is duplicated in distrib-nightly.sh
 echo "uploading plotscripting docs"
 scp docs/plotdict.xml "${SCPHOST}":"${SCPDOCS}"

@@ -83,6 +83,7 @@ EXTERN scrat() as OldScriptState
 EXTERN scriptinsts() as ScriptInst
 EXTERN retvals() as integer
 EXTERN wantimmediate as integer
+EXTERN scriptprofiling as bool
 EXTERN timing_fibre as bool
 EXTERN insideinterpreter as bool
 EXTERN scrwatch as integer

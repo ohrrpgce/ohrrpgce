@@ -146,9 +146,7 @@ DIM tmpnow as integer
 DIM tmpvar as integer
 DIM tmpkind as integer
 
-#IFDEF SCRIPTPROFILE
- start_fibre_timing
-#ENDIF
+IF scriptprofiling THEN start_fibre_timing
 
 scriptinsts(nowscript).started = YES
 next_interpreter_check_time = TIMER + scriptCheckDelay
@@ -486,9 +484,7 @@ DO
 LOOP
 END WITH
 
-#IFDEF SCRIPTPROFILE
- stop_fibre_timing
-#ENDIF
+IF scriptprofiling THEN stop_fibre_timing
 
 END SUB
 
@@ -570,9 +566,7 @@ DIM endingscript as ScriptData ptr = scrat(nowscript).scr
 scriptctr += 1
 endingscript->lastuse = scriptctr
 
-#IFDEF SCRIPTPROFILE
- script_return_timing
-#ENDIF
+IF scriptprofiling THEN script_return_timing
 
 ' Script logging
 IF scriptinsts(nowscript).watched THEN watched_script_finished
@@ -592,9 +586,7 @@ ELSE
   state->state = ABS(state->state)
   IF scriptinsts(nowscript).watched THEN watched_script_resumed
   functiondone = 2'--reactivating a supended fibre
-  #IFDEF SCRIPTPROFILE
-   start_fibre_timing
-  #ENDIF
+  IF scriptprofiling THEN start_fibre_timing
  ELSE
   scriptret = scrat(nowscript + 1).ret
   state->state = streturn'---return
