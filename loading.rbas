@@ -3576,7 +3576,6 @@ END SUB
 'There's a lot of similar loading code in importscripts. Maybe it could be moved here
 SUB load_script_triggers_and_names()
  DIM buf(19) as integer
- DIM scrname as string
  REDIM script_names(0)
 
  ' Load lookup1.bin (script trigger -> script ID and name)
@@ -3590,15 +3589,17 @@ SUB load_script_triggers_and_names()
 
   DIM idx as integer = 0
   WHILE loadrecord(buf(), fh, 20, idx)
-   DIM id as integer = buf(0)
-   scrname = readbinstring(buf(), 1, 36)
-   lookup1_bin_cache(idx).id = id
+   DIM script_id as integer = buf(0)
+   DIM trigger_id as integer = idx + 16384
+   DIM scrname as string = readbinstring(buf(), 1, 36)
+   'debug "lookup1: trigger " & trigger_id & " script " & id & " " & scrname
+   lookup1_bin_cache(idx).id = script_id
    lookup1_bin_cache(idx).name = scrname
-   IF id = 0 THEN
+   IF script_id = 0 THEN
     ' Previously defined, but no longer exists
     scrname = "[" & scrname & "]"
    END IF
-   intstr_array_append script_names(), idx + 16384, scrname
+   intstr_array_append script_names(), trigger_id, scrname
    idx += 1
   WEND
   CLOSE fh
@@ -3611,8 +3612,10 @@ SUB load_script_triggers_and_names()
  ELSE
   DIM idx as integer = 0
   WHILE loadrecord(buf(), fh, 20, idx)
-   scrname = readbinstring(buf(), 1, 38)
-   intstr_array_append script_names(), idx, scrname
+   DIM script_id as integer = buf(0)
+   DIM scrname as string = readbinstring(buf(), 1, 38)
+   'debug "plotscr.lst:  script " & id & " " & scrname
+   intstr_array_append script_names(), script_id, scrname
    idx += 1
   WEND
   CLOSE fh
