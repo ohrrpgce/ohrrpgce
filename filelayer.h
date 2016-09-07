@@ -39,17 +39,25 @@ enum OPENBits {
 	// LEN (record length) not supported.
 };
 
+
+enum FilterActionEnum {
+	DENY = 0,     // Don't open the file
+	HOOK = 1,     // Open and hook it
+	DONT_HOOK = 2 // Open but don't hook it
+};
+
 struct FileInfo {
 	string name;
 	bool dirty;
+	bool reported_error;  // Don't show more than one error
 
-	FileInfo() : dirty(false) {};
+	FileInfo() : dirty(false), reported_error(false) {};
 };
 
 extern "C" {
 
 	typedef FBCALL boolint (*FnStringPredicate)(FBSTRING *filename);
-	typedef FBCALL boolint (*FnOpenCallback)(FBSTRING *filename, boolint writable);
+	typedef FBCALL FilterActionEnum (*FnOpenCallback)(FBSTRING *filename, boolint writable, boolint writes_allowed);
 
 	void send_lump_modified_msg(const char *filename);
 	boolint copyfile(FBSTRING *source, FBSTRING *destination);

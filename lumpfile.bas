@@ -1414,25 +1414,25 @@ end sub
 '----------------------------------------------------------------------
 '                     filelayer.cpp support stuff
 
-
 'This is called on EVERY OPEN call once the OPEN hook is registered!
 'See filelayer.cpp (where it is registered as pfnLumpfileFilter)
 'Returns whether the file is a normal lump file in workingdir.
-'This is used to determine whether the file should be hooked
+'This is used to determine whether the file should be hooked.
 'writable: whether attempting to *explicitly* open with write access
-function inworkingdir(filename as string, byval writable as boolint) as boolint
+function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 	if RIGHT(filename, 10) = "_debug.txt" then return NO
 	'if RIGHT(filename, 12) = "_archive.txt" then return NO
 	'Uncomment this for OPEN tracing (or you could just use strace...)
 	'debuginfo "OPEN(" & filename & ")  " & ret
 
-	dim ret as integer = YES
-	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then ret = NO
-	if right(filename, 4) = ".tmp" then ret = NO
+	dim ret as FilterActionEnum = FilterActionEnum.hook
+	if strncmp(strptr(filename), strptr(workingdir), len(workingdir)) <> 0 then ret = FilterActionEnum.dont_hook
+	if right(filename, 4) = ".tmp" then ret = FilterActionEnum.dont_hook
 
 #ifdef IS_GAME
-	if running_as_slave andalso ret andalso writable then
-		fatalerror "Engine bug: Illegally tried to open protected file " & filename & " for writing"
+	if ret = FilterActionEnum.hook andalso writable andalso writes_allowed = NO then
+		debugc errPromptBug, "Engine bug: Illegally tried to open protected file " & filename & " for writing"
+		ret = FilterActionEnum.deny
 	end if
 #endif
 

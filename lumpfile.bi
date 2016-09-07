@@ -197,7 +197,7 @@ enum OPENBits
 	FOR_OUTPUT =        &h0040000
 	FOR_APPEND =        &h0080000
 	FOR_MASK =          &h00F0000
-	' For files, ACCESS ANY means try READ_WRITE, failing that use READ.
+	' For files, ACCESS ANY (FB's default) means try READ_WRITE, failing that use READ.
 	' Which sounds like a misfeature to me, so let's default to ACCESS_READ_WRITE instead.
 	ACCESS_ANY =        &h0100000
 	ACCESS_READ =       &h0200000
@@ -216,8 +216,14 @@ enum OPENBits
 	' LEN (record length) not supported.
 end enum
 
+Enum FilterActionEnum Explicit
+	deny = 0      ' Don't open the file
+	hook = 1      ' Open and hook it
+	dont_hook = 2 ' Open but don't hook it
+End Enum
+
 type FnStringPredicate as function (filename as string) as boolint
-type FnOpenCallback as function (filename as string, writable as boolint) as boolint
+type FnOpenCallback as function (filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 
 extern "C"
 
@@ -238,7 +244,7 @@ declare sub clear_OPEN_hook()
 
 end extern
 
-declare function inworkingdir(filename as string, writable as boolint) as boolint
+declare function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", timeout_ms as integer = 500) as integer
 
 #endif

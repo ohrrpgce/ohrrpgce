@@ -17,7 +17,7 @@ typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 IPCChannel *lump_updates_channel;
 
 bool lock_lumps = false;
-bool allow_lump_writes;
+bool allow_lump_writes = true;
 
 // The function that tells whether to hook a file open
 FnOpenCallback pfnLumpfileFilter;
@@ -47,16 +47,6 @@ int file_wrapper_close(FB_FILE *handle) {
 	assert(openfiles->count(handle));
 	FileInfo &info = (*openfiles)[handle];
 	//debuginfo("closing %s, read-lock:%d write-lock:%d", info.name.c_str(), test_locked(info.name.c_str(), 0), test_locked(info.name.c_str(), 1));
-	if (info.dirty && !allow_lump_writes) {
-		// It's not really a great idea to call debug in here,
-		// because we've been called from inside the rtlib, so
-		// the global rtlib mutex is held. Luckily, FB uses recursive
-		// mutexes, meaning the same thread can lock one multiple times.
-		// Worse, if the user quits, FB will close all files,
-		// calling us recursively! That's actually ok...
-		info.dirty = false;  // Prevent recursion into debug()
-		debug(errPromptBug, "Illegally wrote to protected file %s", info.name.c_str());
-	}
 	if (info.dirty) {
 		//fprintf(stderr, "%s was dirty\n", info.name.c_str());
 		send_lump_modified_msg(info.name.c_str());
@@ -86,9 +76,22 @@ int file_wrapper_read(FB_FILE *handle, void *value, size_t *pValuelen) {
 int file_wrapper_write(FB_FILE *handle, const void *value, size_t valuelen) {
 	assert(openfiles->count(handle));
 	FileInfo &info = (*openfiles)[handle];
-	info.dirty = true;
-
-	return fb_DevFileWrite(handle, value, valuelen);
+	if (!allow_lump_writes) {
+		// It's not really a great idea to call debug in here,
+		// because we've been called from inside the rtlib, so
+		// the global rtlib mutex is held. Luckily, FB uses recursive
+		// mutexes, meaning the same thread can lock one multiple times.
+		if (!info.reported_error) {
+			// Setting this flag does not prevent recursion, since debug can open
+			// a new file. We rely on the hook filter not hooking ?_debug.txt
+			info.reported_error = true;
+			debug(errPromptBug, "Tried to write to protected file %s", info.name.c_str());
+		}
+		return 1;
+	} else {
+		info.dirty = true;
+		return fb_DevFileWrite(handle, value, valuelen);
+	}
 }
 
 // Modified version of hooks_dev_table in libfb_dev_file_open.c
@@ -100,7 +103,7 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 	file_wrapper_read,
 	fb_DevFileReadWstr,
 	file_wrapper_write,
-	fb_DevFileWriteWstr,
+	fb_DevFileWriteWstr,  // Ought to intercept this
 	fb_DevFileLock,
 	fb_DevFileUnlock,
 	fb_DevFileReadLine,
@@ -110,6 +113,10 @@ static FB_FILE_HOOKS lumpfile_hooks = {
 };
 
 void dump_openfiles() {
+	if (!openfiles) {
+		debug(errDebug, "dump_openfiles: set_OPEN_hook not called.");
+		return;
+	}
 	debug(errDebug, "%d open files:", (int)openfiles->size());
 	for (openfiles_iterator_t it = openfiles->begin(); it != openfiles->end(); ++it) {
 		const char *fname = it->second.name.c_str();
@@ -121,6 +128,7 @@ void dump_openfiles() {
 
 // Replacement for fb_DevFileOpen().
 int lump_file_opener(FB_FILE *handle, const char *filename, size_t filename_len) {
+	assert(openfiles);
 	//fprintf(stderr, "opening %p (%s).\n", handle, filename);
 
 	// Just let the default file opener handle it (it does quite a lot of stuff, actually),
@@ -176,6 +184,7 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 
 	switch(openbits & ACCESS_MASK) {
 		case ACCESS_ANY:
+			// Try to open for writing, then for reading if that fails
 			access = FB_FILE_ACCESS_ANY;
 			break;
 		case ACCESS_READ:
@@ -218,37 +227,54 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	}
 
 	FnFileOpen fnOpen;
-	// This is the correct test
-	//bool writable = access != FB_FILE_ACCESS_READ;
-	// This tests only for explicit ACCESS WRITE, which is much more likely to be an error
-	bool writable = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE);
-	if (pfnLumpfileFilter && pfnLumpfileFilter(filename, writable ? -1 : 0)) {
+
+	// Tests for an explicit ACCESS WRITE;
+	// pfnLumpfileFilter is responsible for showing an error if allow_lump_writes = NO.
+	bool explicit_write = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE);
+
+	FilterActionEnum action = DONT_HOOK;
+	if (pfnLumpfileFilter)
+		action = pfnLumpfileFilter(filename, explicit_write ? -1 : 0, allow_lump_writes ? -1 : 0);
+	if (action == HOOK) {
+		if (!allow_lump_writes) {
+			// If we implicitly asked for writing, then reduce to read access.
+			access = FB_FILE_ACCESS_READ;
+		}
 		if (encod != FB_FILE_ENCOD_ASCII) {
 			fatal_error("OPENFILE: ENCODING not implemented for hooked files");
 			return 1;
 		}
 		fnOpen = lump_file_opener;
-	} else {
+	} else if (action == DONT_HOOK) {
 		if (encod == FB_FILE_ENCOD_ASCII)
 			fnOpen = fb_DevFileOpen;
 		else
 			fnOpen = fb_DevFileOpenEncod;
+	} else {  // DENY
+		return 1;
 	}
 
 	return fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
 				FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
 }
 
+
 // A replacement for FB's filecopy which sends modification messages and deals with open files
 // NOTE: return values are opposite to FileCopy (true for success)
 boolint copyfile(FBSTRING *source, FBSTRING *destination) {
+	FilterActionEnum action = DONT_HOOK;
+	if (pfnLumpfileFilter)
+		action = pfnLumpfileFilter(destination, -1, allow_lump_writes ? -1 : 0);
+	if (action == DENY)
+		return 0;
 	int ret = copy_file_replacing(source->data, destination->data);
-	if (ret && pfnLumpfileFilter && pfnLumpfileFilter(destination, -1)) {
+	if (ret && action == HOOK)
 		send_lump_modified_msg(destination->data);
-	}
 	return ret;
 }
 
+// TODO: there's no reason to pass lump_writes_allowed; instead the filter function
+// ought to return whether a file should be write-protection.
 void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel) {
 	if (!openfiles)
 		openfiles = new map<FB_FILE *, FileInfo>;
