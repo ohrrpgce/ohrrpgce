@@ -1,5 +1,11 @@
 
 #include "string.bi"
+#include "const.bi"
+
+extern "C"
+	type FnDebugHook as sub (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
+	declare sub set_debug_hook (byval new_debug_hook as FnDebugHook)
+end extern
 
 TYPE testPtr as function() as integer
 

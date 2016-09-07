@@ -764,6 +764,7 @@ RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rba
 VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
 UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
+FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('game', GAME)
@@ -875,7 +876,7 @@ INTERTEST = Phony ('interactivetest', source = GAME, action =
 SideEffect (Alias ('g_debug.txt'), [AUTOTEST, INTERTEST])
 
 # There has to be some better way to do this...
-tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST])]
+tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST])]
 TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
@@ -968,6 +969,7 @@ Targets (executables to build):
   reload2xml
   reloadutil          To compare two .reload documents, or time load time
   utiltest
+  filetest
   vectortest
   rbtest
   slice2bas
