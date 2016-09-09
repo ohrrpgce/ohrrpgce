@@ -29,32 +29,37 @@ typedef int boolint;
 # define ispathsep(chr) ((chr) == '/')
 #endif
 
-
-/* Several other C/C++ compilers, like Comeau C++, also have good gcc compatibility. Change this.
-   Apparently the Intel compiler defines __GNUC__ */
-// pure function: do not modify global memory, but may read it (including ptr args)
-#if defined(__clang__)
-# define pure __attribute__ ((__pure__))
-# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
-// Recent clang supports C++11 [[noreturn]] but not GNU syntax
-# if __clang_major__ >= 4
-#  define _noreturn [[noreturn]]
-# else
-#  define _noreturn
+// __has_attribute is supported since gcc 5.0 and clang 2.9. That's very recent
+// but I don't think we care if the attributes accidentally don't get used.
+# ifndef __has_attribute
+#  define __has_attribute(x) 0
 # endif
-# define warn_unused_result __attribute__ ((__warn_unused_result__))
-#elif defined(__GNUC__) || defined(__IBMC__) || defined(__INTEL_COMPILER)
+
+// pure function: do not modify global memory, but may read it (including ptr args)
+#if __has_attribute(pure)
 # define pure __attribute__ ((__pure__))
-# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
-// [[noreturn]] in C++11
+#else
+# define warn_unused_result
+#endif
+
+// _noreturn: does not return. Not the same as C++11 [[noreturn]], which can't be applied to function pointers.
+#if __has_attribute(noreturn)
 # define _noreturn __attribute__ ((__noreturn__))
-// [[nodiscard]] in C++11
+#else
+# define _noreturn
+#endif
+
+// warn_unused_result: like [[nodiscard]] in C++11
+#if __has_attribute(warn_unused_result)
 # define warn_unused_result __attribute__ ((__warn_unused_result__))
 #else
-# define pure
+# define warn_unused_result
+#endif
+
+#if __has_attribute(format)
+# define format_chk(fmt_arg) __attribute__ ((__format__ (__printf__, fmt_arg, fmt_arg + 1)))
+#else
 # define format_chk(fmt_arg)
-# define _noreturn
-//# define inline
 #endif
 
 // Escape a filename for use in a shell in a way suitable for this OS.
