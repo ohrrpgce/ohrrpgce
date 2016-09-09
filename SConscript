@@ -14,6 +14,22 @@ import re
 from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output
 
 FBFLAGS = ['-mt']
+# Flags used when compiling C, C++, and -gen gcc generated C source
+CFLAGS = []
+# TRUE_CFLAGS apply only to normal .c[pp] sources, NOT to those generated via gengcc=1.
+# Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
+# which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
+# under MinGW. (See bug 951)
+TRUE_CFLAGS = '-g -Wall --std=gnu99'.split()
+# Flags used only for C++ (in addition to CFLAGS) (note: NOTE used for android_source=1 builds)
+CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split()
+# CXXLINKFLAGS are used when linking with g++
+CXXLINKFLAGS = []
+# FBLINKFLAGS are passed to fbc when linking with fbc
+FBLINKFLAGS = []
+# FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
+FBLINKERFLAGS = []
+
 verbose = int (ARGUMENTS.get ('v', False))
 if verbose:
     FBFLAGS += ['-v']
@@ -21,12 +37,7 @@ if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 fbc = ARGUMENTS.get ('fbc','fbc')
 fbc = os.path.expanduser (fbc)  # expand ~
-# Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
-# which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
-# under MinGW. (See bug 951)
-CFLAGS = '-g -Wall --std=gnu99'.split ()  # These flags apply only to .c[pp] sources, NOT to CC invoked via gengcc=1
-CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
-CXXLINKFLAGS = []
+gengcc = int (ARGUMENTS.get ('gengcc', 0))
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
@@ -90,12 +101,10 @@ FB_g = (debug >= 1)       # compile with -g?
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
 
-gengcc = int (ARGUMENTS.get ('gengcc', 0))
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
-    CXXFLAGS.append ('-pg')
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -106,7 +115,6 @@ if asan:
     # AddressSanitizer is supported by both gcc & clang. They are responsible for linking runtime library
     assert linkgcc, "linkgcc=0 asan=1 combination not supported."
     CFLAGS.append ('-fsanitize=address')
-    CXXFLAGS.append ('-fsanitize=address')
     CXXLINKFLAGS.append ('-fsanitize=address')
     base_libraries.append ('dl')
     # Also, compile FB to C by default, unless overridden with gengcc=0.
@@ -119,7 +127,6 @@ if FB_g:
     FBFLAGS.append ('-g')
 if optimisations:
     CFLAGS.append ('-O3')
-    CXXFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
 if gengcc:
@@ -144,24 +151,12 @@ music = [music.lower ()]
 
 ################ Create base environment
 
-#CXXLINKFLAGS are used when linking with g++
-#FBLINKFLAGS are passed to fbc when linking with fbc
-#FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
 
-env = Environment (FBFLAGS = FBFLAGS,
-                   FBLINKFLAGS = [],
-                   FBLINKERFLAGS = [],
-                   CFLAGS = CFLAGS,
+env = Environment (CFLAGS = [],
+                   CXXFLAGS = [],
                    FBC = fbc,
-                   CXXFLAGS = CXXFLAGS,
-                   CXXLINKFLAGS = CXXLINKFLAGS,
                    VAR_PREFIX = '',
                    **envextra)
-# These no longer do anything
-del CFLAGS
-del CXXFLAGS
-del FBFLAGS
-del CXXLINKFLAGS
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
@@ -260,8 +255,7 @@ if verbose:
     print "Using fbc", fbc_binary, " version:", fbcversion, " arch:", arch
 
 # Headers in fb/ depend on this define
-env['CFLAGS'] += ['-DFBCVERSION=%d' % fbcversion]
-env['CXXFLAGS'] += ['-DFBCVERSION=%d' % fbcversion]
+CFLAGS += ['-DFBCVERSION=%d' % fbcversion]
 
 # FB 0.91 added a multithreaded version of libfbgfx
 if fbcversion >= 910:
@@ -280,8 +274,8 @@ if mac:
     macsdk = ARGUMENTS.get ('macsdk', '')
     macSDKpath = ''
     if os.path.isdir(FRAMEWORKS_PATH):
-        env['FBLINKERFLAGS'] += ['-F', FRAMEWORKS_PATH]
-        env['CXXLINKFLAGS'] += ['-F', FRAMEWORKS_PATH]
+        FBLINKERFLAGS += ['-F', FRAMEWORKS_PATH]
+        CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
     # This is also the version used by the current FB 1.06 mac branch
     macosx_version_min = '10.4'
     if macsdk:
@@ -294,41 +288,36 @@ if mac:
         if not os.path.isdir(macSDKpath):
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
         macosx_version_min = macsdk
-    env['FBLINKERFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
-    env['CFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
-    env['CXXFLAGS'] += ['-mmacosx-version-min=' + macosx_version_min]
+    FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
+    CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
 
 
 ################ Arch-specific stuff
 
 if arch == 'armeabi':
     gengcc = True
-    env['FBFLAGS'] += ["-gen", "gcc", "-arch", "arm", "-R"]
-    #env['CFLAGS'] += -L$(SYSROOT)/usr/lib
+    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-R"]
+    #CFLAGS += '-L$(SYSROOT)/usr/lib'
     # CC, CXX, AS must be set in environment to point to cross compiler
 elif arch == 'x86':
-    env['FBFLAGS'] += ["-arch", "686"]
-    env['CFLAGS'].append ('-m32')
-    env['CXXFLAGS'].append ('-m32')
+    FBFLAGS += ["-arch", "686"]
+    CFLAGS.append ('-m32')
     if not clang:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
         # (which is a recent change in the Linux x86 ABI) but fbc's GAS backend is not yet updated for that
         # I don't know what clang does, but it doesn't support this commandline option.
-        env['CFLAGS'].append ('-mpreferred-stack-boundary=2')
-        env['CXXFLAGS'].append ('-mpreferred-stack-boundary=2')
+        CFLAGS.append ('-mpreferred-stack-boundary=2')
     # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
     # except on Intel Macs, where it is both always present, and required by system headers
     if not mac:
-        env['CFLAGS'].append ('-mno-sse')
-        env['CXXFLAGS'].append ('-mno-sse')
-    #env['FBFLAGS'] += ["-arch", "686"]
+        CFLAGS.append ('-mno-sse')
+    #FBFLAGS += ["-arch", "686"]
 elif arch == 'x86_64':
     gengcc = True
-    env['CFLAGS'].append ('-m64')
-    env['CXXFLAGS'].append ('-m64')
+    CFLAGS.append ('-m64')
     # This also causes FB to default to -gen gcc, as -gen gas not supported
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
-    env['FBFLAGS'] += ['-arch', 'x86_64']
+    FBFLAGS += ['-arch', 'x86_64']
 else:
     raise Exception('Unknown architecture %s' % arch)
 
@@ -351,7 +340,7 @@ if gengcc:
         # Use AddressSanitizer in C files produced by fbc
         gcc_flags.append ('-fsanitize=address')
     if len(gcc_flags):
-        env['FBFLAGS'] += ["-Wc", ','.join (gcc_flags)]
+        FBFLAGS += ["-Wc", ','.join (gcc_flags)]
 
 
 ################ A bunch of stuff for linking
@@ -404,38 +393,38 @@ if linkgcc:
     # for more dependencies (specifically SDL on X11, etc)
     # Usually the default, but overridden on some distros. Don't know whether GOLD ld supports this.
     if not mac:
-        env['CXXLINKFLAGS'] += ['-Wl,--add-needed']
+        CXXLINKFLAGS += ['-Wl,--add-needed']
 
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
-    env['CXXLINKFLAGS'] += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+    CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
     if verbose:
-        env['CXXLINKFLAGS'] += ['-v']
+        CXXLINKFLAGS += ['-v']
     if GCC_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
-        env['CXXLINKFLAGS'] += ['-Wl,-S']
+        CXXLINKFLAGS += ['-Wl,-S']
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
-        env['CXXLINKFLAGS'] += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
+        CXXLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
     else:
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
             # because on X11 need to provide it as an XPM instead
-            env['CXXLINKFLAGS'] += ['linux/fb_icon.c']
+            CXXLINKFLAGS += ['linux/fb_icon.c']
         # Android doesn't have ncurses, and libpthread is part of libc
         if not android:
             # The following are required by libfb
-            env['CXXLINKFLAGS'] += ['-lncurses', '-lpthread']
+            CXXLINKFLAGS += ['-lncurses', '-lpthread']
 
     if mac:
         # -no_pie (no position-independent execution) fixes a warning
 
         if fbcversion <= 220:
             # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
-            env['CXXLINKFLAGS'] += [os.path.join(libpath, 'operatornew.o')]
-        env['CXXLINKFLAGS'] += ['-Wl,-no_pie']
+            CXXLINKFLAGS += [os.path.join(libpath, 'operatornew.o')]
+        CXXLINKFLAGS += ['-Wl,-no_pie']
         if macSDKpath:
-            env['CXXLINKFLAGS'] += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
+            CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
     def compile_main_module(target, source, env):
         """
@@ -462,12 +451,26 @@ if linkgcc:
 
 if not linkgcc:
     # At the moment we don't link C++ into any utilities, so this is actually only needed in commonenv
-    env['FBLINKFLAGS'] += ['-l','stdc++'] #, '-l','gcc_s']
+    FBLINKFLAGS += ['-l','stdc++'] #, '-l','gcc_s']
     if mac and fbcversion > 220:
         # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
-        env['FBLINKFLAGS'] += ['-l','gcc_eh']
+        FBLINKFLAGS += ['-l','gcc_eh']
 
+
+# With the exception of base_libraries, now have determined all shared variables
+# so put them in the shared Environment env. After this point need to modify one of
+# the specific Environments.
+
+env['FBFLAGS'] = FBFLAGS
+env['CFLAGS'] += CFLAGS + TRUE_CFLAGS
+env['CXXFLAGS'] += CFLAGS + CXXFLAGS
+env['CXXLINKFLAGS'] = CXXLINKFLAGS
+env['FBLINKFLAGS'] = FBLINKFLAGS
+env['FBLINKERFLAGS'] = FBLINKFLAGS
+
+# These no longer have any effect.
+del FBFLAGS, TRUE_CFLAGS, CFLAGS, CXXFLAGS, CXXLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
 
 ################ Program-specific stuff starts here
 
@@ -677,7 +680,7 @@ common_modules += ['rasterizer.cpp',
 builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
 def version_info(source, target, env):
-    verprint (gfx, music, fbc, builddir, rootdir)
+    verprint (gfx, music, fbc, arch, asan, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'], source = ['codename.txt'], action = version_info)
 AlwaysBuild(VERPRINT)
 
@@ -965,7 +968,7 @@ Targets (executables to build):
   relump
   hspeak
   reloadtest
-  xml2reload
+  xml2reload          Requires libxml2 to build.
   reload2xml
   reloadutil          To compare two .reload documents, or time load time
   utiltest
@@ -996,4 +999,8 @@ Examples:
   scons gfx=sdl+fb music=native game
  Do a 'release' build (same as binary distributions) of everything, using 4 CPU cores:
   scons -j 4 debug=0 .
+ Create 64 bit release builds and run tests:
+  scons -j4 arch=64 debug=0 . test
+ Install (Unix only):
+  sudo scons install prefix=/usr/local
 """)

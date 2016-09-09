@@ -37,7 +37,7 @@ def basfile_scan(node, env, path):
     #print str(node) + " includes", included
     return included
 
-def verprint (used_gfx, used_music, fbc, builddir, rootdir):
+def verprint (used_gfx, used_music, fbc, arch, asan, builddir, rootdir):
     """
     Generate ver.txt, iver.txt (Innosetup), distver.bat.
 
@@ -149,7 +149,8 @@ def verprint (used_gfx, used_music, fbc, builddir, rootdir):
 
     gfx_code = 'gfx_' + "+".join (supported_gfx)
     music_code = 'music_' + "+".join (used_music)
-    data = {'name' : name, 'codename': codename, 'date': date,
+    asan = 'AddrSan' if asan else ''
+    data = {'name' : name, 'codename': codename, 'date': date, 'arch': arch, 'asan': asan,
             'rev' : rev, 'branch_rev' : branch_rev, 'fbver': fbver, 'music': music_code,
             'gfx' : gfx_code}
 
@@ -162,7 +163,7 @@ def verprint (used_gfx, used_music, fbc, builddir, rootdir):
         'CONST version_branch_revision as integer = %(branch_rev)s' % data,
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
-        '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])
+        '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s %(arch)s %(asan)s"') %  data])
 
     # If there is a build/ver.txt placed there by previous versions of this function
     # then it must be deleted because scons thinks that one is preferred
