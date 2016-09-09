@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+#ifndef FBCVERSION
+#error FBCVERSION must be defined.
+#endif
+
 #define ENABLE_MT
 
 /* Must be included before any system headers due to certain #defines */

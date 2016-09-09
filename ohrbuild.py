@@ -212,6 +212,8 @@ def android_source_actions (sourcelist, rootdir, destdir):
         'cp %s/*.h %s/' % (rootdir, destdir),
         'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
         'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
+        # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
+        'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
     ]
     return actions
     

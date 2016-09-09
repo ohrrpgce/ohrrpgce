@@ -129,6 +129,8 @@ if optimisations:
     CFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
+else:
+    CFLAGS.append ('-O0')
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
 
@@ -182,6 +184,9 @@ gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
+
+builddir = Dir('.').abspath + os.path.sep
+rootdir = Dir('#').abspath + os.path.sep
 
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
@@ -457,6 +462,16 @@ if not linkgcc:
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
         FBLINKFLAGS += ['-l','gcc_eh']
 
+if android_source:
+    with open(rootdir + 'android/extraconfig.cfg', 'w+') as fil:
+        # Unfortunately the commandergenius port only has a single CFLAGS,
+        # which gets used for handwritten C, generated C, and C++.
+        CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
+        if arch in ('x86', 'x86_64'):
+            CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
+        fil.write('AppCflags="%s"\n' % ' '.join(CFLAGS))
+        fil.write('MultiABI="%s"\n' % arch)
+
 
 # With the exception of base_libraries, now have determined all shared variables
 # so put them in the shared Environment env. After this point need to modify one of
@@ -677,8 +692,6 @@ common_modules += ['rasterizer.cpp',
 
 ################ ver.txt (version info) build rule
 
-builddir = Dir('.').abspath + os.path.sep
-rootdir = Dir('#').abspath + os.path.sep
 def version_info(source, target, env):
     verprint (gfx, music, fbc, arch, asan, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'], source = ['codename.txt'], action = version_info)
