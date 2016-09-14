@@ -470,11 +470,13 @@ if not linkgcc:
 if android_source:
     with open(rootdir + 'android/extraconfig.cfg', 'w+') as fil:
         # Unfortunately the commandergenius port only has a single CFLAGS,
-        # which gets used for handwritten C, generated C, and C++.
-        CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
+        # which gets used for handwritten C, generated-from-FB C, and C++.
+        # It would be better to change that.
+        NDK_CFLAGS = CFLAGS[:]
+        NDK_CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
         if arch in ('x86', 'x86_64'):
-            CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
-        fil.write('AppCflags="%s"\n' % ' '.join(CFLAGS))
+            NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
+        fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
         fil.write('MultiABI="%s"\n' % arch)
 
 
