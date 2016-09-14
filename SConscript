@@ -72,7 +72,7 @@ else:
 if 'android-source' in ARGUMENTS:
     # Produce .c files, and also an executable, which is an unwanted side product
     # (We could do with build targets for compiling to .asm/.c but not assembling+linking)
-    FBFLAGS += ["-r"]
+    FBFLAGS += ["-r", "-target", "android"]
     android = True
     android_source = True
     linkgcc = False
