@@ -80,7 +80,12 @@ elif 'android' in ARGUMENTS:
     android = True
 
 if android:
-    FBFLAGS += ["-d", "__FB_ANDROID__=1"]
+    # There are 4 ARM ABIs used on Android
+    # armeabi - ARMV5TE and later. All floating point is done by library calls
+    # armeabi-v7a - ARM V7 and later, has hardware floating point (VFP)
+    # armeabi-v7a-hard - slightly faster floating point than armeabi-v7a, not binary compatible with armeabi
+    # arm64-v8a - 64 bit. Has NEON SIMD
+    # See https://developer.android.com/ndk/guides/abis.html for more
     arch = 'armeabi'
 
 if int (ARGUMENTS.get ('asm', False)):
@@ -301,7 +306,7 @@ if mac:
 
 if arch == 'armeabi':
     gengcc = True
-    FBFLAGS += ["-gen", "gcc", "-arch", "arm", "-R"]
+    FBFLAGS += ["-gen", "gcc", "-arch", "armv5te", "-R"]
     #CFLAGS += '-L$(SYSROOT)/usr/lib'
     # CC, CXX, AS must be set in environment to point to cross compiler
 elif arch == 'x86':

@@ -224,6 +224,7 @@ app_dir = EXEPATH  'FreeBasic builtin
 #ENDIF
 
 'Once log_dir is set, can create debug log.
+external_log "main() started; starting debug log..."
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
