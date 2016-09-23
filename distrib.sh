@@ -2,13 +2,16 @@
 #
 # Build and package builds for linux
 
+# Number of threads to use
+NJOBS=-j2
+
 if [ ! -f distrib.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
   exit 1
 fi
 
-echo Building binaries
-scons -j2 debug=0 game custom hspeak unlump relump || exit 1
+echo "Building relump"
+scons $NJOBS debug=0 relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
@@ -39,68 +42,76 @@ echo Erasing old distribution files
 rm -f distrib/ohrrpgce-*.tar.bz2
 rm -f distrib/*.deb
 
-echo "Packaging binary distribution of CUSTOM"
+package_for_arch() {
+	ARCH=$1
 
-echo "  Including binaries"
-cp -p ohrrpgce-game tmp &&
-cp -p ohrrpgce-custom tmp &&
-cp -p unlump tmp &&
-cp -p relump tmp || exit 1
+	echo "Building $ARCH binaries"
+	scons $NJOBS debug=0 arch=$ARCH game custom hspeak unlump relump || exit 1
 
-echo "  Including hspeak"
-cp -p hspeak tmp || exit 1
+	echo "Packaging $ARCH binary distribution of CUSTOM"
 
-echo "  Including support files"
-cp -p ohrrpgce.new tmp &&
-cp -p plotscr.hsd tmp &&
-cp -p scancode.hsi tmp || exit 1
+	echo "  Including binaries"
+	cp -p ohrrpgce-game tmp &&
+	cp -p ohrrpgce-custom tmp &&
+	cp -p unlump tmp &&
+	cp -p relump tmp || exit 1
 
-echo "  Including readmes"
-cp -p README-game.txt tmp &&
-cp -p README-custom.txt tmp &&
-cp -p IMPORTANT-nightly.txt tmp &&
-cp -p LICENSE.txt tmp &&
-cp -p LICENSE-binary.txt tmp &&
-cp -p whatsnew.txt tmp || exit 1
+	echo "  Including hspeak"
+	cp -p hspeak tmp || exit 1
 
-echo "  Including Vikings of Midgard"
-cp -p vikings.rpg tmp &&
-cp -pr "vikings/Vikings script files" tmp &&
-cp -p "vikings/README-vikings.txt" tmp || exit 1
+	echo "  Including support files"
+	cp -p ohrrpgce.new tmp &&
+	cp -p plotscr.hsd tmp &&
+	cp -p scancode.hsi tmp || exit 1
 
-echo "  Including import"
-mkdir -p tmp/import
-cp -pr import/* tmp/import || exit 1
+	echo "  Including readmes"
+	cp -p README-game.txt tmp &&
+	cp -p README-custom.txt tmp &&
+	cp -p IMPORTANT-nightly.txt tmp &&
+	cp -p LICENSE.txt tmp &&
+	cp -p LICENSE-binary.txt tmp &&
+	cp -p whatsnew.txt tmp || exit 1
 
-echo "  Including docs"
-mkdir -p tmp/docs
-cp -p docs/*.html tmp/docs &&
-cp -p docs/plotdict.xml tmp/docs &&
-cp -p docs/htmlplot.xsl tmp/docs &&
-cp -p docs/more-docs.txt tmp/docs || exit 1
+	echo "  Including Vikings of Midgard"
+	cp -p vikings.rpg tmp &&
+	cp -pr "vikings/Vikings script files" tmp &&
+	cp -p "vikings/README-vikings.txt" tmp || exit 1
 
-echo "  Including help files"
-cp -pr ohrhelp tmp || exit 1
+	echo "  Including import"
+	mkdir -p tmp/import
+	cp -pr import/* tmp/import || exit 1
 
-echo "tarring and bzip2ing distribution"
-mv tmp ohrrpgce
-tar -jcf distrib/ohrrpgce-linux-x86.tar.bz2 ./ohrrpgce --exclude .svn
-mv ohrrpgce tmp
+	echo "  Including docs"
+	mkdir -p tmp/docs
+	cp -p docs/*.html tmp/docs &&
+	cp -p docs/plotdict.xml tmp/docs &&
+	cp -p docs/htmlplot.xsl tmp/docs &&
+	cp -p docs/more-docs.txt tmp/docs || exit 1
 
-TODAY=`date "+%Y-%m-%d"`
-CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-mv distrib/ohrrpgce-linux-x86.tar.bz2 distrib/ohrrpgce-linux-x86-$TODAY-$CODE.tar.bz2
+	echo "  Including help files"
+	cp -pr ohrhelp tmp || exit 1
 
-echo "Erasing contents of temporary directory"
-rm -Rf tmp/*
+	echo "tarring and bzip2ing $ARCH distribution"
+	TODAY=`date "+%Y-%m-%d"`
+	CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
+	mv tmp ohrrpgce
+	tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 ./ohrrpgce --exclude .svn
+	mv ohrrpgce tmp
 
-echo "Prepare minimal player zip"
-cp ohrrpgce-game tmp/
-strip tmp/ohrrpgce-game
-zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
-rm tmp/ohrrpgce-game
+	echo "Erasing contents of temporary directory"
+	rm -Rf tmp/*
 
-echo "Building Debian/Ubuntu packages"
+	echo "Prepare minimal $ARCH player zip"
+	cp ohrrpgce-game tmp/
+	strip tmp/ohrrpgce-game
+	zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$CODE-$ARCH.zip tmp/ohrrpgce-game LICENSE-binary.txt README-linux-bin-minimal.txt
+	rm tmp/ohrrpgce-game
+}
+
+package_for_arch x86
+package_for_arch x86_64
+
+echo "Building x86 Debian/Ubuntu packages"
 cd linux
 if [ -f *.deb ] ; then
   rm *.deb
