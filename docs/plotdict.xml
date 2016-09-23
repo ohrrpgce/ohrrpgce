@@ -7345,7 +7345,26 @@ end</example>
 		<command id="runscriptbyid">
 			<canon>run script by ID (id, argument1, argument2, argument3...)</canon>
 			<shortname>run script by ID</shortname>
-			<description>The <p>run script by id</p> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A run-time error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
+			<description>
+				The <p>run script by id</p> command allows you to run a script using its ID.
+				You can get the ID of a script by writing <p>@</p> (the 'reference' operator)
+				in front of its name, see the example.
+				You can not run a built-in command like <ref>wait</ref>; they aren't scripts.
+				Arguments after the ID will be passed to the script.
+				The return value of this command is whatever value the script returns.
+				A run-time error is displayed and -1 is returned if the script does not exist.
+				You can pass up to 31 arguments to the script.
+				<lb/>
+				The advantage of this command as opposed to just calling the script directly is that the ID may be stored in a variable,
+				or it could be the function return value of another script.
+				For example, using <ref>setsliceextra</ref> you might want to store the ID
+				of a script that should be run when the player clicks on a slice.
+				<note>
+					If you pass too few arguments, the unspecified ones will have value zero <b>regardless</b> of any default values given in the script declaration.
+					<lb/>
+					If you pass too many (which does not cause an error), the extra ones are ignored.
+				</note>
+			</description>
 			<example>plotscript,scriptcallingtest,begin
   show value (run script by id (@sum, 1, 2, 3))
 end
