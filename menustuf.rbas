@@ -1043,7 +1043,7 @@ restore_previous_palette
 END SUB
 
 FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
-' loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
+' loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen.
 ' loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
 ' terribly sorry for the dirtiness
 ' newgame_opt is ignored for the save menu. For the load menu it determines whether
@@ -1086,11 +1086,6 @@ st.last = last_slot
 st.size = 3
 
 DIM allow as integer
-
-gam.need_fade_in = NO 'FIXME: this looks like a tacky hack.
-IF loading = 2 THEN
- queue_fade_in 1
-END IF
 
 IF loading THEN
  st.pt = 0

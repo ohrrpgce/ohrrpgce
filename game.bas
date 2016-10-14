@@ -561,11 +561,6 @@ IF running_as_slave THEN check_game_custom_versions_match
 
 '======================== Stuff initialised once per .RPG =====================
 
-fadeout 0, 0, 0
-'This queue_fade_in apparently does nothing, since the titlescreen, load menu,
-'and main loop all override it
-queue_fade_in
-
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings
 set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
@@ -597,6 +592,7 @@ SetupGameSlices
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
 
+fadeout 0, 0, 0
 
 '===================== Stuff reinitialised each new/load-game ==================
 
@@ -649,6 +645,7 @@ reset_vehicle vstate
 DIM load_slot as integer = -1
 '.resetgame is YES when resetgame was called so we are skipping straight to launching the game
 IF gam.want.resetgame = NO THEN
+ queue_fade_in
  IF readbit(gen(), genBits, 11) = 0 THEN
   '"Skip title screen" is off
   IF titlescreen() = NO THEN EXIT DO

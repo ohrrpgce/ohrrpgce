@@ -326,28 +326,30 @@ FUNCTION titlescreen () as bool
  DIM backdrop as Frame ptr
  backdrop = frame_load(sprTypeBackdrop, gen(genTitle))
 
- queue_fade_in 1
  IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
  setkeys
  DO
   setwait speedcontrol
   setkeys
-  control
-  IF carray(ccMenu) > 1 THEN
-   ret = NO
-   EXIT DO
-  END IF
-  IF anykeypressed() THEN EXIT DO
-  IF running_on_mobile() ANDALSO should_disable_virtual_gamepad() THEN
-   'Special case for Android games that don't use the virtual gamepad
-   'Allow them to click past the title screen without having to script their own title screen
-   DIM mouse as MouseInfo
-   mouse = readmouse()
-   IF (mouse.clickstick AND mouseLeft) THEN
+  ' Draw the screen at least once and fade in before skipping the title screen
+  ' (This is not required to avoid any bug, it simply ensures this function acts consistently.)
+  IF gam.need_fade_in = NO THEN
+   control
+   IF carray(ccMenu) > 1 THEN
+    ret = NO
     EXIT DO
    END IF
+   IF anykeypressed() THEN EXIT DO
+   IF running_on_mobile() ANDALSO should_disable_virtual_gamepad() THEN
+    'Special case for Android games that don't use the virtual gamepad
+    'Allow them to click past the title screen without having to script their own title screen
+    DIM mouse as MouseInfo
+    mouse = readmouse()
+    IF (mouse.clickstick AND mouseLeft) THEN
+     EXIT DO
+    END IF
+   END IF
   END IF
-  
 
   frame_draw backdrop, , 0, 0, , NO, vpage
   setvispage vpage

@@ -42,7 +42,8 @@ WHAT IS NEW?
       tile cursor movement in the tile browser and tile cutter [Ralph]
     * Bug 2006: gfx_directx: major slowdown after switching to another
       program while a joystick is plugged in [Ralph]
-
+    * If you skipped the title instantly by pressing a key at the wrong
+      moment then the load menu would have a blacked-out palette [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
