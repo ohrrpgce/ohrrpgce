@@ -649,11 +649,13 @@ IF gam.want.resetgame = NO THEN
  IF readbit(gen(), genBits, 11) = 0 THEN
   '"Skip title screen" is off
   IF titlescreen() = NO THEN EXIT DO
-  IF readbit(gen(), genBits, 12) = 0 THEN load_slot = picksave(1)
+  IF readbit(gen(), genBits, 12) = 0 THEN load_slot = pickload()
  ELSEIF readbit(gen(), genBits, 12) = 0 THEN
   '"Skip load screen" is off
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
-  load_slot = picksave(2)
+  ' Show a black background beneath the load menu
+  clearpage vpage
+  load_slot = pickload()
  END IF
 END IF
 gam.want.resetgame = NO
@@ -2078,10 +2080,10 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       CASE 7,12 ' map
        minimap catx(0), caty(0)
       CASE 8,13 ' save
-       slot = picksave(0)
+       slot = picksave()
        IF slot >= 0 THEN savegame slot
       CASE 9 ' load
-       slot = picksave(1, NO, YES)  'No New Game option, beep if the menu doesn't display
+       slot = pickload(NO, YES)  'No New Game option, beep if the menu doesn't display
        '(Maybe it would be better to display the load menu even if there are no saves)
        IF slot >= 0 THEN
         gam.want.loadgame = slot + 1

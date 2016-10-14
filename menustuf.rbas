@@ -48,8 +48,9 @@ DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp as SpellsMenuState)
 DECLARE SUB spells_menu_control(sp as SpellsMenuState)
 DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
-DECLARE SUB picksave_draw(menu() as string, byval loading as integer, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
-DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as integer, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
+DECLARE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
+DECLARE SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
+DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
 DECLARE SUB status_buildmenu(her as HeroDef, byval pt as integer, mtype() as integer, elementaldmg() as single, elementnames() as string, elementalmenu() as string, elementalmenu_st as MenuState, portrait as GraphicPair)
@@ -1042,15 +1043,30 @@ restore_previous_palette
 
 END SUB
 
-FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
-' loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen.
-' loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
-' terribly sorry for the dirtiness
-' newgame_opt is ignored for the save menu. For the load menu it determines whether
-' the "New Game" button is shown.
-' beep_if_no_saves is for providing audible feedback if the load menu is skipped if
-' there are no saves.
-'
+FUNCTION pickload (newgame_opt as bool = YES, beep_if_no_saves as bool = NO) as integer
+ ' newgame_opt is ignored for the save menu. For the load menu it determines whether
+ '   the "New Game" button is shown.
+ ' beep_if_no_saves is for providing audible feedback if the load menu is skipped if
+ '   there are no saves.
+ '
+ ' Return value:
+ '  0 or higher: save slot
+ '  -1   no saves available/New Game
+ '  -2   cancelled/Exit
+ RETURN picksaveload(YES, newgame_opt, beep_if_no_saves)
+END FUNCTION
+
+FUNCTION picksave () as integer
+ ' Return value:
+ '  0 or higher: save slot
+ '  -1: cancelled/Exit
+ RETURN picksaveload(NO)
+END FUNCTION
+
+PRIVATE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
+' Save or load menu.
+' loading: false is the save menu, true is the load menu.
+' See pickload for other argument documentation.
 ' Return value:
 '  0 or higher: save slot
 '  -1   no saves available/New Game (loading only) or cancelled (saving only)
@@ -1058,6 +1074,7 @@ FUNCTION picksave (byval loading as integer, byval newgame_opt as bool = YES, by
 
 show_virtual_gamepad()
 
+DIM ret_slot as integer
 DIM max_slot as integer = 31
 DIM last_slot as integer
 last_slot = gen(genSaveSlotCount) - 1
@@ -1105,11 +1122,8 @@ DIM holdscreen as integer
 DIM page as integer
 page = compatpage
 holdscreen = allocatepage
-IF loading < 2 THEN
- '--preserve background for display beneath the save/load picker
- copypage page, holdscreen
-END IF
-'otherwise, holdscreen is black
+'--preserve background for display beneath the save/load picker
+copypage page, holdscreen
 
 DIM pv(last_slot) as SaveSlotPreview
 FOR i as integer = 0 TO last_slot
@@ -1135,7 +1149,7 @@ IF loading THEN
   IF pv(i).valid THEN nofull = NO
  NEXT i
  IF nofull = YES THEN
-  picksave = -1
+  ret_slot = -1
   IF beep_if_no_saves THEN MenuSound gen(genCancelSFX)
   GOTO freesprites
  END IF
@@ -1147,11 +1161,11 @@ setkeys
 DO
  setwait speedcontrol
  setkeys
- IF loading = 0 THEN playtimer
+ IF loading = NO THEN playtimer
  control
  IF carray(ccMenu) > 1 THEN
   MenuSound gen(genCancelSFX)
-  IF loading THEN picksave = -2 ELSE picksave = -1
+  IF loading THEN ret_slot = -2 ELSE ret_slot = -1
   EXIT DO
  END IF
 
@@ -1170,12 +1184,12 @@ DO
   IF newgame_opt AND st.pt = -1 THEN
    'Selected "New Game"
    MenuSound gen(genAcceptSFX)
-   picksave = st.pt
+   ret_slot = st.pt
    EXIT DO
   ELSEIF st.pt < 0 THEN
    'Selected "Cancel" or "Exit"
    MenuSound gen(genCancelSFX)
-   IF loading THEN picksave = -2 ELSE picksave = -1
+   IF loading THEN ret_slot = -2 ELSE ret_slot = -1
    EXIT DO
   ELSE
    allow = 1
@@ -1188,7 +1202,7 @@ DO
    END IF
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
-    picksave = st.pt
+    ret_slot = st.pt
     EXIT DO
    ELSE
     MenuSound gen(genCancelSFX)
@@ -1212,12 +1226,13 @@ FOR i as integer = 0 TO last_slot
   palette16_unload(@sprites(i, o).pal)
  NEXT
 NEXT
-EXIT FUNCTION
+
+RETURN ret_slot
 
 END FUNCTION
 
 'Returns whether confirmed
-FUNCTION picksave_confirm(menu() as string, byval loading as integer, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
+FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
  DIM confirmboxY as integer = 14 + (44 * (st.pt - st.top))
  DIM tog as integer
  DIM confirm(1) as string
@@ -1263,7 +1278,7 @@ FUNCTION picksave_confirm(menu() as string, byval loading as integer, byval newg
  LOOP
 END FUNCTION
 
-SUB picksave_draw(menu() as string, byval loading as integer, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
+SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
  'newgame_opt controls whether there are one (left only) or two buttons (left and right) at the top
  'st.pt = -1 and menu(0) is the left button, st.pt = -2 and menu(1) is the right button
  DIM col as integer

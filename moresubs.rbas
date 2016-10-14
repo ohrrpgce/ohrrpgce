@@ -1557,7 +1557,7 @@ DO
    END IF
   END IF
   IF menuid(st.pt) = 5 THEN '--SAVE
-   temp = picksave(0)
+   temp = picksave()
    IF temp >= 0 THEN savegame temp
   END IF
   IF menuid(st.pt) = 3 THEN '--INN

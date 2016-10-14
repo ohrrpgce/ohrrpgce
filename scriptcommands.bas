@@ -688,7 +688,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 155, 170'--save menu
   'ID 155 is a backcompat hack
   stop_fibre_timing
-  scriptret = picksave(0) + 1
+  scriptret = picksave() + 1
   IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
    savegame scriptret - 1
   END IF
@@ -712,7 +712,7 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 234'--load menu
   stop_fibre_timing
-  scriptret = picksave(1) + 1
+  scriptret = pickload() + 1
   IF retvals(0) THEN
    'Enact whatever the user picked
    IF scriptret = -1 THEN

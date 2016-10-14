@@ -1112,7 +1112,7 @@ SUB receive_file_updates ()
  IF master_channel = NULL_CHANNEL THEN
   'Opps, it closed. Better quit immediately because workingdir is probably gone (crashy)
   IF yesno("Lost connection to Custom; the game has to be closed. Do you want to save the game first? (WARNING: resulting save might be corrupt)", NO) THEN
-   DIM slot as integer = picksave(0)
+   DIM slot as integer = picksave()
    IF slot >= 0 THEN savegame slot
   END IF
   exitprogram YES, 0
