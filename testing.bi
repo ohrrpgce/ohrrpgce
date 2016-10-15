@@ -1,4 +1,5 @@
 
+#include "config.bi"
 #include "string.bi"
 #include "const.bi"
 
