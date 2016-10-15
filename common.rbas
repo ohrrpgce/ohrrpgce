@@ -5153,16 +5153,16 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   IF keyval(scEsc) > 1 THEN RETURN ""
   IF keyval(scF1) > 1 THEN show_help helpkey
   IF keyval(scUp) > 1 ORELSE keyval(scDown) > 1 THEN foldermode = NOT foldermode
-  IF foldermode THEN
-   IF enter_or_space() THEN
-    DIM newdir as string
-    newdir = browse(11, directory, "", "", 0, "browse_for_folder")
-    IF isdir(newdir) ANDALSO diriswriteable(newdir) THEN
-     directory = newdir
-     foldermode = NO
-    END IF
+  IF (foldermode AND enter_or_space()) OR keyval(scTAB) > 1 THEN
+   DIM newdir as string
+   newdir = browse(11, directory, "", "", 0, "browse_for_folder")
+   IF isdir(newdir) ANDALSO diriswriteable(newdir) THEN
+    directory = newdir
+    foldermode = NO
    END IF
-  ELSE
+   setkeys YES  'clear ENTER
+  END IF
+  IF foldermode = NO THEN
    strgrabber filename, 40
    filename = fixfilename(filename)
    IF keyval(scEnter) > 1 THEN
@@ -5182,25 +5182,25 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   END IF
   clearpage dpage
   textcolor uilook(uiText), 0
-  printstr query, 160 - LEN(query) * 4, 20, dpage
-  printstr "Output directory: ", 160 - 18 * 4, 35, dpage
+
+  DIM screenwidth as integer = vpages(dpage)->w \ 2
+  printstr query, xstring(query), 20, dpage
+  printstr "Output directory (TAB to select):", xstring("Output directory (TAB to select):"), 35, dpage
 
   IF foldermode THEN
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   ELSE
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
   END IF
-  printstr directory, xstring(directory, 160), 45, dpage
+  printstr directory, xstringright(directory), 45, dpage
   
   IF foldermode THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
   ELSE
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   END IF
-  printstr filename, 160 - LEN(filename & ext) * 4 , 60, dpage
+  printstr filename + fgtag(uilook(uiText)) + ext, xstringright(filename + ext), 60, dpage, YES
 
-  textcolor uilook(uiText), uilook(uiHighlight)
-  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
