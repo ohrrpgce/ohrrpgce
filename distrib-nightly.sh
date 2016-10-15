@@ -70,15 +70,15 @@ cd wip
 
 ./distrib.sh
 
-mv distrib/ohrrpgce-linux-*-wip-x86.tar.bz2 distrib/ohrrpgce-linux-wip-x86.tar.bz2
-mv distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 distrib/ohrrpgce-linux-wip-x86_64.tar.bz2
+mv distrib/ohrrpgce-linux-*-wip-x86.tar.bz2 distrib/ohrrpgce-linux-wip-x86.tar.bz2 &&
 scp -p distrib/ohrrpgce-linux-wip-x86.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
+mv distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 &&
 scp -p distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-linux-wip-*.tar.bz2
 
 # ohrrpgce-player-linux-bin-minimal.zip is downloaded by the distrib menu
 # (Leave out minimal x86_64 package for now, as it's not used)
-mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip distrib/ohrrpgce-player-linux-bin-minimal.zip
+mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip distrib/ohrrpgce-player-linux-bin-minimal.zip &&
 scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-player-linux-bin-minimal.zip
 

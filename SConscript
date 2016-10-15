@@ -337,11 +337,10 @@ if gengcc:
     #print "GCC version", gccversion
     # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
     gcc_flags = []
-    if FB_exx:
-        # -exx results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning.
-        # (This flag only in recent gcc)
-        if gccversion >= 480:
-            gcc_flags.append ('-Wno-maybe-uninitialized')
+    # -exx especially results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning.
+    # (This flag only in recent gcc)
+    if gccversion >= 480:
+        gcc_flags.append ('-Wno-maybe-uninitialized')
     if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0

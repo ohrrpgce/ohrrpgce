@@ -39,14 +39,15 @@ mkdir -p distrib
 rm -Rf tmp/*
 
 echo Erasing old distribution files
-rm -f distrib/ohrrpgce-*.tar.bz2
+rm -f distrib/ohrrpgce-linux-*.tar.bz2
+rm -f distrib/ohrrpgce-player-*.zip
 rm -f distrib/*.deb
 
 package_for_arch() {
   ARCH=$1
 
   echo "Building $ARCH binaries"
-  scons $NJOBS debug=0 arch=$ARCH game custom hspeak unlump relump || exit 1
+  scons $NJOBS debug=0 arch=$ARCH game custom hspeak unlump relump || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
 
@@ -54,15 +55,15 @@ package_for_arch() {
   cp -p ohrrpgce-game tmp &&
   cp -p ohrrpgce-custom tmp &&
   cp -p unlump tmp &&
-  cp -p relump tmp || exit 1
+  cp -p relump tmp || return 1
 
   echo "  Including hspeak"
-  cp -p hspeak tmp || exit 1
+  cp -p hspeak tmp || return 1
 
   echo "  Including support files"
   cp -p ohrrpgce.new tmp &&
   cp -p plotscr.hsd tmp &&
-  cp -p scancode.hsi tmp || exit 1
+  cp -p scancode.hsi tmp || return 1
 
   echo "  Including readmes"
   cp -p README-game.txt tmp &&
@@ -70,32 +71,32 @@ package_for_arch() {
   cp -p IMPORTANT-nightly.txt tmp &&
   cp -p LICENSE.txt tmp &&
   cp -p LICENSE-binary.txt tmp &&
-  cp -p whatsnew.txt tmp || exit 1
+  cp -p whatsnew.txt tmp || return 1
 
   echo "  Including Vikings of Midgard"
   cp -p vikings.rpg tmp &&
   cp -pr "vikings/Vikings script files" tmp &&
-  cp -p "vikings/README-vikings.txt" tmp || exit 1
+  cp -p "vikings/README-vikings.txt" tmp || return 1
 
   echo "  Including import"
   mkdir -p tmp/import
-  cp -pr import/* tmp/import || exit 1
+  cp -pr import/* tmp/import || return 1
 
   echo "  Including docs"
   mkdir -p tmp/docs
   cp -p docs/*.html tmp/docs &&
   cp -p docs/plotdict.xml tmp/docs &&
   cp -p docs/htmlplot.xsl tmp/docs &&
-  cp -p docs/more-docs.txt tmp/docs || exit 1
+  cp -p docs/more-docs.txt tmp/docs || return 1
 
   echo "  Including help files"
-  cp -pr ohrhelp tmp || exit 1
+  cp -pr ohrhelp tmp || return 1
 
   echo "tarring and bzip2ing $ARCH distribution"
   TODAY=`date "+%Y-%m-%d"`
   CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
   mv tmp ohrrpgce
-  tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 ./ohrrpgce --exclude .svn
+  tar -jcf distrib/ohrrpgce-linux-$TODAY-$CODE-$ARCH.tar.bz2 ./ohrrpgce --exclude .svn || return 1
   mv ohrrpgce tmp
 
   echo "Erasing contents of temporary directory"
@@ -108,8 +109,7 @@ package_for_arch() {
   rm tmp/ohrrpgce-game
 }
 
-package_for_arch x86
-
+package_for_arch x86 &&
 if which dpkg > /dev/null; then
   echo "Building x86 Debian/Ubuntu packages"
   cd linux
