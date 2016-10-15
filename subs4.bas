@@ -34,12 +34,12 @@ DECLARE SUB inputpasw ()
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
-DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
+DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
 DECLARE SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool)
 DECLARE SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
 DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string)
 DECLARE SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
-DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
+DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string)
 DECLARE SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
 
 SUB vehicles
@@ -556,7 +556,7 @@ DO
    importsong_import_song_file songname, songfile, songnum
    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
   END IF
-  IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext
+  IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext, songname
   IF state.pt = 5 AND songfile <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
     music_stop
@@ -721,9 +721,10 @@ SUB importsong_get_song_info (songname as string, songfile as string, byval song
  NEXT
 END SUB
 
-SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
-'exportsong:
- IF bamfile <> songfile AND bamfile <> "" THEN
+'songfile: Complete path to the song file to be exported
+'bamfile: The .bam fallback file, if any
+SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
+ IF bamfile <> songfile AND LEN(bamfile) THEN
   DIM submenu(2) as string
   submenu(0) = "Export " + file_ext + " file"
   submenu(1) = "Export .bam fallback file"
@@ -733,7 +734,7 @@ SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as str
   IF choice = 2 THEN EXIT SUB
  END IF
  DIM query as string = "Name of file to export to?"
- DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_song")
+ DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_song", songname)
  IF outfile = "" THEN EXIT SUB
  copyfile songfile, outfile & file_ext
 END SUB
@@ -811,7 +812,7 @@ DO
     importsfx_importsfxfile sfxname, sfxfile, sfxnum, file_ext
     importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   CASE 4   'export
-    IF sfxfile <> "" THEN importsfx_exportsfx sfxfile, file_ext
+    IF sfxfile <> "" THEN importsfx_exportsfx sfxfile, file_ext, sfxname
   CASE 5   'delete sfx
     IF sfxfile <> "" THEN
       IF yesno("Really delete this sound?", NO, NO) THEN
@@ -875,9 +876,9 @@ SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum a
  importsfx_save_sfx_data sfxname, sfxnum
 END SUB
 
-SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
+SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string)
  DIM query as string = "Name of file to export to?"
- DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_sfx")
+ DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_sfx", sfxname)
  IF outfile = "" THEN EXIT SUB
  copyfile sfxfile, outfile & file_ext
 END SUB

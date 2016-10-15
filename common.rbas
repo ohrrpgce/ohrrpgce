@@ -5106,6 +5106,8 @@ FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as 
  RETURN remove_nonprintable_ascii(tmp)
 END FUNCTION
 
+'ext: The file extension; must start with '.'
+'directory:  If blank, default to curdir
 FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
  DIM filename as string = default
  DIM tog as integer
