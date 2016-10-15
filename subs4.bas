@@ -33,14 +33,14 @@ DECLARE SUB import_convert_wav(byref wav as string, byref oggtemp as string)
 DECLARE SUB inputpasw ()
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
-DECLARE SUB importsong_save_song_data(sname as string, byval snum as integer)
+DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string)
-DECLARE SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, selectable() as bool)
-DECLARE SUB importsong_import_song_file (sname as string, songfile as string, byval snum as integer)
-DECLARE SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)
-DECLARE SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
+DECLARE SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool)
+DECLARE SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
+DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string)
+DECLARE SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
 DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
-DECLARE SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
+DECLARE SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
 
 SUB vehicles
 
@@ -510,13 +510,13 @@ state.size = 24
 state.last = 10
 state.pt = 1
 
-DIM snum as integer = 0
-DIM sname as string = ""
+DIM songnum as integer = 0
+DIM songname as string = ""
 DIM songfile as string = ""
 DIM bamfile as string = ""
 DIM newsong as integer
 DIM file_ext as string
-importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
 
 setkeys YES
 DO
@@ -528,33 +528,33 @@ DO
  usemenu state, selectable()
 
  IF state.pt = 2 AND songfile <> "" THEN
-  strgrabber sname, 30
-  menu(2) = "Name: " + sname
+  strgrabber songname, 30
+  menu(2) = "Name: " + songname
  ELSE
   '-- check for switching song
-  newsong = snum
+  newsong = songnum
   IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
-   importsong_save_song_data sname, snum
-   snum = newsong
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+   importsong_save_song_data songname, songnum
+   songnum = newsong
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
   END IF
-  IF keyval(scLeft) > 1 AND snum > 0 THEN
-   importsong_save_song_data sname, snum
-   snum = snum - 1
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+  IF keyval(scLeft) > 1 AND songnum > 0 THEN
+   importsong_save_song_data songname, songnum
+   songnum -= 1
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
   END IF
-  IF keyval(scRight) > 1 AND snum < 32767 THEN
-   importsong_save_song_data sname, snum
-   snum = snum + 1
-   IF needaddset(snum, gen(genMaxSong), "song") THEN sname = ""
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+  IF keyval(scRight) > 1 AND songnum < 32767 THEN
+   importsong_save_song_data songname, songnum
+   songnum += 1
+   IF needaddset(songnum, gen(genMaxSong), "song") THEN songname = ""
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
   END IF
  END IF
  IF enter_space_click(state) THEN
   IF state.pt = 0 THEN EXIT DO
   IF state.pt = 3 THEN
-   importsong_import_song_file sname, songfile, snum
-   importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+   importsong_import_song_file songname, songfile, songnum
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
   END IF
   IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext
   IF state.pt = 5 AND songfile <> "" THEN  'delete song
@@ -562,16 +562,16 @@ DO
     music_stop
     'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
     'setupmusic
-    delete_song snum, songfile
+    delete_song songnum, songfile
     safekill bamfile
     IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
-    importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
    END IF
   END IF
   IF state.pt = 6 THEN  'delete BAM fallback
    IF yesno("Really delete this BAM song?", NO, NO) THEN
     safekill bamfile
-    importsong_get_song_info sname, songfile, snum, file_ext, menu(), selectable()
+    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
     state.pt = 0
    END IF
   END IF
@@ -584,13 +584,13 @@ DO
  setvispage vpage
  dowait
 LOOP
-importsong_save_song_data sname, snum
+importsong_save_song_data songname, songnum
 music_stop
 EXIT SUB
 
 END SUB
 
-SUB importsong_import_song_file (sname as string, songfile as string, byval snum as integer)
+SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
  STATIC default as string
  music_stop
  'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
@@ -600,7 +600,7 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
  DIM sourcesong as string = browse(5, default, "", "",, "browse_import_song")
 
  'Get song name
- DIM a as string = trimextension(trimpath(sourcesong))
+ DIM newname as string = trimextension(trimpath(sourcesong))
 
  'Convert MP3
  DIM oggtemp as string
@@ -615,16 +615,16 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
   EXIT SUB
  END IF
 
- delete_song snum, songfile
+ delete_song songnum, songfile
 
- sname = a
+ songname = newname
 
  'generate lump name
  DIM extension as string = LCASE(justextension(sourcesong))
- IF extension = "bam" AND snum <= 99 THEN
-  songfile = game + "." & snum
+ IF extension = "bam" AND songnum <= 99 THEN
+  songfile = game + "." & songnum
  ELSE
-  songfile = workingdir & SLASH & "song" & snum & "." & extension
+  songfile = workingdir & SLASH & "song" & songnum & "." & extension
  END IF
 
  'Copy in new lump (this implicitly sends a notification to Game if it's been spawned)
@@ -632,28 +632,28 @@ SUB importsong_import_song_file (sname as string, songfile as string, byval snum
 
  IF oggtemp <> "" THEN killfile oggtemp
 
- importsong_save_song_data sname, snum
+ importsong_save_song_data songname, songnum
 END SUB
 
-SUB importsong_get_song_info (sname as string, songfile as string, byval snum as integer, file_ext as string, menu() as string, selectable() as bool)
+SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool)
  music_stop
 
  DIM temp as string
  '-- first job: find the song's name
- temp = workingdir & SLASH & "song" & snum
+ temp = workingdir & SLASH & "song" & songnum
  songfile = ""
  DIM songtype as string = "NO FILE"
  '-- BAM special case and least desirable, so check first and override
- IF snum > 99 THEN
+ IF songnum > 99 THEN
   IF isfile(temp & ".bam") THEN
    file_ext = ".bam"
    songfile = temp & file_ext
    songtype = "Bob's Adlib Music (BAM)"
   END IF
  ELSE
-  IF isfile(game & "." & snum) THEN
+  IF isfile(game & "." & songnum) THEN
    file_ext = ".bam"
-   songfile = game & "." & snum
+   songfile = game & "." & songnum
    songtype = "Bob's Adlib Music (BAM)"
   END IF
  END IF
@@ -690,18 +690,18 @@ SUB importsong_get_song_info (sname as string, songfile as string, byval snum as
  END IF
  '--add more formats here
 
- sname = getsongname(snum)
+ songname = getsongname(songnum)
 
  IF songfile <> "" THEN '--song exists
   loadsong songfile
  ELSE
-  sname = ""
+  songname = ""
  END IF
 
  DIM optionsbottom as integer
 
- menu(1) = "<- Song " & snum & " of " & gen(genMaxSong) & " ->"
- IF songfile <> "" THEN menu(2) = "Name: " & sname ELSE menu(2) = "-Unused-"
+ menu(1) = "<- Song " & songnum & " of " & gen(genMaxSong) & " ->"
+ IF songfile <> "" THEN menu(2) = "Name: " & songname ELSE menu(2) = "-Unused-"
  menu(7) = ""
  menu(8) = "Type: " & songtype
  menu(9) = "Filesize: " & filesize(songfile)
@@ -738,10 +738,10 @@ SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as str
  copyfile songfile, outfile & file_ext
 END SUB
 
-SUB importsong_save_song_data(sname as string, byval snum as integer)
+SUB importsong_save_song_data(songname as string, byval songnum as integer)
  DIM songbuf(dimbinsize(binSONGDATA)) as integer
- writebinstring sname, songbuf(), 0, 30
- storerecord songbuf(), workingdir & SLASH & "songdata.bin", curbinsize(binSONGDATA) \ 2, snum
+ writebinstring songname, songbuf(), 0, 30
+ storerecord songbuf(), workingdir & SLASH & "songdata.bin", curbinsize(binSONGDATA) \ 2, songnum
 END SUB
 
 SUB importsfx ()
@@ -764,12 +764,12 @@ state.pt = 1
 state.size = 24
 state.last = UBOUND(menu)
 
-DIM snum as integer = 0
-DIM sname as string = ""
+DIM sfxnum as integer = 0
+DIM sfxname as string = ""
 DIM sfxfile as string = ""
 DIM newsfx as integer
 DIM file_ext as string
-importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
+importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
 
 setkeys YES
 DO
@@ -781,48 +781,48 @@ DO
  usemenu state, selectable()
 
  IF state.pt = 2 AND sfxfile <> "" THEN
-  strgrabber sname, 30
-  menu(2) = "Name: " + sname
+  strgrabber sfxname, 30
+  menu(2) = "Name: " + sfxname
  ELSE
   '-- check for switching sfx
-  newsfx = snum
+  newsfx = sfxnum
   IF intgrabber(newsfx, 0, gen(genMaxSFX), scLeftCaret, scRightCaret) THEN
-   importsfx_save_sfx_data sname, snum
-   snum = newsfx
-   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
+   importsfx_save_sfx_data sfxname, sfxnum
+   sfxnum = newsfx
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   END IF
-  IF keyval(scLeft) > 1 AND snum > 0 THEN
-   importsfx_save_sfx_data sname, snum
-   snum = snum - 1
-   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
+  IF keyval(scLeft) > 1 AND sfxnum > 0 THEN
+   importsfx_save_sfx_data sfxname, sfxnum
+   sfxnum -= 1
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   END IF
-  IF keyval(scRight) > 1 AND snum < 32767 THEN
-   importsfx_save_sfx_data sname, snum
-   snum = snum + 1
-   IF needaddset(snum, gen(genMaxSFX), "sfx") THEN sname = ""
-   importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
+  IF keyval(scRight) > 1 AND sfxnum < 32767 THEN
+   importsfx_save_sfx_data sfxname, sfxnum
+   sfxnum += 1
+   IF needaddset(sfxnum, gen(genMaxSFX), "sfx") THEN sfxname = ""
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   END IF
  END IF
  IF enter_space_click(state) THEN
   SELECT CASE state.pt
-  CASE 0
+  CASE 0   'quit
     EXIT DO
-  CASE 3
-    importsfx_importsfxfile sname, sfxfile, snum, file_ext
-    importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
-  CASE 4
+  CASE 3   'import
+    importsfx_importsfxfile sfxname, sfxfile, sfxnum, file_ext
+    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+  CASE 4   'export
     IF sfxfile <> "" THEN importsfx_exportsfx sfxfile, file_ext
-  CASE 5
-    IF sfxfile <> "" THEN  'delete sfx
+  CASE 5   'delete sfx
+    IF sfxfile <> "" THEN
       IF yesno("Really delete this sound?", NO, NO) THEN
-        freesfx snum
+        freesfx sfxnum
         safekill sfxfile
-        importsfx_get_sfx_info sname, sfxfile, snum, file_ext, menu()
+        importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
       END IF
     END IF
   CASE 1, 6
     IF sfxfile <> "" THEN 'play sfx
-      playsfx snum, 0
+      playsfx sfxnum, 0
     END IF
 
   END SELECT
@@ -835,16 +835,16 @@ DO
  setvispage vpage
  dowait
 LOOP
-importsfx_save_sfx_data sname, snum
+importsfx_save_sfx_data sfxname, sfxnum
 END SUB
 
-SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as integer, file_ext as string)
+SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
  STATIC default as string
 
  DIM sourcesfx as string = browse(6, default, "", "",, "browse_import_sfx")
 
- '-- get name
- DIM a as string = trimextension(trimpath(sourcesfx))
+ '-- get name (before sourcesfx is modified)
+ DIM newname as string = trimextension(trimpath(sourcesfx))
 
  'Convert MP3
  DIM oggtemp as string
@@ -861,10 +861,10 @@ SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as in
  'Delete the old file. We cannot assume it will be overwritten because the extension might change
  IF sfxfile <> "" THEN safekill sfxfile
 
- sname = a
+ sfxname = newname
 
  '-- calculate lump name
- sfxfile = workingdir & SLASH & "sfx" & snum & "." & LCASE(justextension(sourcesfx))
+ sfxfile = workingdir & SLASH & "sfx" & sfxnum & "." & LCASE(justextension(sourcesfx))
 
  '--copy in the new lump
  copyfile sourcesfx, sfxfile
@@ -872,7 +872,7 @@ SUB importsfx_importsfxfile(sname as string, sfxfile as string, byval snum as in
  IF oggtemp <> "" THEN killfile oggtemp
 
  '--save and update
- importsfx_save_sfx_data sname, snum
+ importsfx_save_sfx_data sfxname, sfxnum
 END SUB
 
 SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
@@ -882,16 +882,16 @@ SUB importsfx_exportsfx(sfxfile as string, file_ext as string)
  copyfile sfxfile, outfile & file_ext
 END SUB
 
-SUB importsfx_save_sfx_data(sname as string, byval snum as integer)
- freesfx snum
+SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
+ freesfx sfxnum
  DIM sfxbuf(dimbinsize(binSFXDATA)) as integer
- writebinstring sname, sfxbuf(), 0, 30
- storerecord sfxbuf(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, snum
+ writebinstring sfxname, sfxbuf(), 0, 30
+ storerecord sfxbuf(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, sfxnum
 END SUB
 
-SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as integer, file_ext as string, menu() as string)
+SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string)
  '-- first job: find the sfx's name
- DIM temp as string = workingdir & SLASH & "sfx" & snum
+ DIM temp as string = workingdir & SLASH & "sfx" & sfxnum
  DIM sfxtype as string = "NO FILE"
  
  sfxfile = "" ' this will be rebuilt below
@@ -913,14 +913,14 @@ SUB importsfx_get_sfx_info(sname as string, sfxfile as string, byval snum as int
  '--add more formats here
 
  if sfxfile <> "" then
-  'playsfx snum, 0
-  sname = getsfxname(snum)
+  'playsfx sfxnum, 0
+  sfxname = getsfxname(sfxnum)
  ELSE '--sfx doesn't exist
-  sname = ""
+  sfxname = ""
  END IF
 
- menu(1) = "<- SFX " & snum & " of " & gen(genMaxSFX) & " ->"
- IF sfxfile <> "" THEN menu(2) = "Name: " & sname ELSE menu(2) = "-Unused-"
+ menu(1) = "<- SFX " & sfxnum & " of " & gen(genMaxSFX) & " ->"
+ IF sfxfile <> "" THEN menu(2) = "Name: " & sfxname ELSE menu(2) = "-Unused-"
  menu(8) = ""
  menu(9) = "Type: " & sfxtype
  menu(10) = "Filesize: " & filesize(sfxfile)
