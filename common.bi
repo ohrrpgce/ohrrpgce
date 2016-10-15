@@ -86,7 +86,8 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
-DECLARE FUNCTION xstring (s as string, x as integer, withtags as bool = NO) as integer
+DECLARE FUNCTION xstring (s as string, x as integer = -9999, withtags as bool = NO, rightmost as bool = NO) as integer
+DECLARE FUNCTION xstringright (s as string, x as integer = -9999, withtags as bool = NO) as integer
 DECLARE FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
 DECLARE FUNCTION caption_or_int (byval n as integer, captions() as string) as string
 DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
@@ -169,6 +170,8 @@ DECLARE SUB show_message (s as string)
 DECLARE SUB append_message (s as string)
 
 DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
+DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
+DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
 DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
 DECLARE SUB notification (msg as string)

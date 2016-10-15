@@ -414,6 +414,26 @@ FUNCTION hilite(what as string, col as integer = -1) as string
  RETURN "${K" & col & "}" & what & "${K-1}"
 END FUNCTION
 
+'Return the markup tag to switch foreground color. -1 resets to initial.
+'Optionally, if you pass a string, wraps it with start/reset color tags.
+FUNCTION fgtag(col as integer, text as string = "") as string
+ IF LEN(text) THEN
+  RETURN "${K" & col & "}" & text & "$K{-1}"
+ ELSE
+  RETURN "${K" & col & "}"
+ END IF
+END FUNCTION
+
+'Return the markup tag to switch background color (0 is transparent). -1 resets to initial.
+'Optionally, if you pass a string, wraps it with start/reset color tags.
+FUNCTION bgtag(col as integer, text as string = "") as string
+ IF LEN(text) THEN
+  RETURN "${KB" & col & "}" & text & "$KB{-1}"
+ ELSE
+  RETURN "${KB" & col & "}"
+ END IF
+END FUNCTION
+
 'Draw a wrapped string in the middle of the page, in a box
 'yoffset: offset from centre of screen
 SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
@@ -1128,11 +1148,23 @@ FUNCTION shorten_to_right (text as string, byval wide as integer) as string
  RETURN LEFT(text, curspos.charnum) + "..."
 END FUNCTION
 
-'Returns left edge x coord of a string centred at given x
+'Returns left edge x coord of a string centred at given x (defaults to screen center if omitted),
+'but not going over the screen edges.
+'If the string is to long to fit the screen, positions it so the LEFT part is shown; pass showright=YES
+'to show the RIGHT-most part instead.
 'If withtags is true, calc length after processing text markup (but not newlines)
-FUNCTION xstring (s as string, x as integer, withtags as bool = NO) as integer
+FUNCTION xstring (s as string, x as integer = -9999, withtags as bool = NO, rightmost as bool = NO) as integer
+ IF x = -9999 THEN x = vpages(vpage)->w \ 2
  DIM wid as integer = textwidth(s, , withtags)
- RETURN large(small(x - wid \ 2, vpages(vpage)->w - wid), 0)
+ DIM ret as integer = x - wid \ 2
+ IF rightmost THEN ret = large(ret, 0)       'Don't go over left screen edge
+ ret = small(ret, vpages(vpage)->w - wid)    'Don't go over right screen edge
+ IF rightmost = NO THEN RETURN large(ret, 0) 'Don't go over left screen edge
+ RETURN ret
+END FUNCTION
+
+FUNCTION xstringright (s as string, x as integer = -9999, withtags as bool = NO) as integer
+ RETURN xstring(s, x, withtags, YES)
 END FUNCTION
 
 FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
