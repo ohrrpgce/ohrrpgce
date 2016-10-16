@@ -51,8 +51,8 @@ base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
 dummyenv = Environment(ENV = {'PATH': os.environ['PATH']})
 fbc_binary, fbcversion, default_target, default_arch = get_fb_info(dummyenv, fbc)
-if True:  #verbose:
-    print "Using fbc", fbc_binary, " version:", fbcversion
+if verbose:
+    print "Using fbc", fbc_binary #, " version:", fbcversion
 
 win32 = False
 unix = False
@@ -80,7 +80,7 @@ if not target:
 # Must check android before linux, because of 'arm-linux-androideabi'
 if 'android' in target:
     android = True
-elif 'win32' in target or 'windows' in target:
+elif 'win32' in target or 'windows' in target or 'mingw' in target:
     win32 = True
 elif 'darwin' in target or 'mac' in target:
     mac = True
@@ -99,7 +99,7 @@ else:
 
 target_prefix = ''  # prepended to gcc, etc.
 if target.count('-') >= 2:
-    target_prefix = target
+    target_prefix = target + '-'
 
 if arch == '32':
     if 'x86' in default_arch:
@@ -224,8 +224,8 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
 def findtool(envvar, toolname):
     if os.environ.get (envvar):
         return os.environ.get (envvar)
-    if WhereIs (target_prefix + "-" + toolname):
-        return target_prefix + "-" + toolname
+    if WhereIs (target_prefix + toolname):
+        return target_prefix + toolname
     return toolname
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
@@ -291,7 +291,7 @@ rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '--care
 
 # windres is part of mingw, and this is only used with linkgcc anyway.
 # FB includes GoRC.exe, but finding that file is too much trouble...
-rc_builder = Builder (action = 'windres --input $SOURCE --output $TARGET',
+rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output $TARGET',
                       suffix = '.obj', src_suffix = '.rc')
 
 bas_scanner = Scanner (function = basfile_scan,
@@ -357,7 +357,7 @@ if android:
     CXXLINKFLAGS += ["-pie"]
 
 # We set gengcc=True if FB will default to it; we need to know whether it's used
-if arch != 'x86':
+if arch != 'x86' and 'mingw32' not in target:
     gengcc = True
 if mac and fbcversion > 220:
     gengcc = True
@@ -391,11 +391,11 @@ else:
     Exit(1)
 
 # If cross compiling, do a sanity test
-if (target or android) and not android_source:
+if not android_source:
     gcctarget = get_command_output(GCC, "-dumpmachine")
-    print "Using target:", target, " arch:", arch, " gcc:", GCC, " gcctarget:", gcctarget
+    print "Using target:", target, " arch:", arch, " gcc:", GCC, " gcctarget:", gcctarget, " fbcversion:", fbcversion
     # If it contains two dashes it looks like a target triple
-    if target_prefix and target_prefix != gcctarget:
+    if target_prefix and target_prefix != gcctarget + '-':
         print "Error: This GCC doesn't target " + target_prefix
         print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
                "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
@@ -472,7 +472,7 @@ if linkgcc:
         CXXLINKFLAGS += ['-Wl,-S']
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
-        CXXLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32\ld_opt_hack.txt']
+        CXXLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32/ld_opt_hack.txt']
     else:
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
@@ -864,8 +864,8 @@ if android_source:
     if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
         raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
 
-# building gfx_directx.dll
-if win32:
+# building gfx_directx.dll (can't crosscompile)
+if platform.system () == 'Windows':
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]

@@ -47,6 +47,7 @@ WHAT IS NEW?
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
+    * Cross-compiling support using "scons target=..." [Ralph]
 
 June 06 2016 [Callipygous+1]
 
