@@ -6,14 +6,24 @@ import fnmatch
 import sys
 import itertools
 
-def get_command_output(cmd, args = ""):
+def get_command_output(cmd, args, shell = True):
     """Runs a shell command and returns stdout as a string"""
     import subprocess
-    proc = subprocess.Popen('"' + cmd + '" ' + args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if shell:
+        # Argument must be a single string (additional arguments get passed as extra /bin/sh args)
+        if isinstance(args, (list, tuple)):
+            args = ' '.join(args)
+        cmdargs = '"' + cmd + '" ' + args
+    else:
+        assert isinstance(args, (list, tuple))
+        cmdargs = [cmd] + args
+    proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     errtext = proc.stderr.read()
-    if len(errtext) > 0:
-        raise Exception("subprocess.Popen(%s) returned stderr:\n%s" % (cmd, errtext))
-    return proc.stdout.read().strip()
+    outtext = proc.stdout.read()
+    # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
+    if len(errtext) > 0 or proc.returncode:
+        raise Exception("subprocess.Popen(%s) failed;\n%s\n%s" % (cmdargs, outtext, errtext))
+    return outtext.strip()
 
 include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
@@ -36,6 +46,38 @@ def basfile_scan(node, env, path):
     included = scrub_includes (include_re.findall (contents))
     #print str(node) + " includes", included
     return included
+
+def get_fb_info(env, fbc):
+    """Find fbc and query its version and default target and arch."""
+    fbc_binary = fbc
+    if not os.path.isfile (fbc_binary):
+        fbc_binary = env.WhereIs (fbc)
+    if not fbc_binary:
+        raise Exception("FreeBasic compiler is not installed!")
+    # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
+    # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
+    # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
+    fbcinfo = get_command_output(fbc_binary, ["-version"])
+    fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
+    # Convert e.g. 1.04.1 into 1041
+    fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*fbcversion.split('.'))
+
+    fbtarget = re.findall("target:([a-z]*)", fbcinfo)  # Old versions of fbc.
+    if len(fbtarget) == 0:
+        # New versions of fbc. Format is os-cpufamily, and it is the
+        # directory name where libraries are kept in non-standalone builds.
+        fbtarget = re.findall(" built for ([a-z0-9-]+)", fbcinfo)
+        if len(fbtarget) == 0:
+            raise Exception("Couldn't determine fbc default target")
+    fbtarget = fbtarget[0]
+    if '-' in fbtarget:
+        # New versions of fbc
+        default_target, default_arch = fbtarget.split('-')
+    else:
+        # Old versions
+        default_target, default_arch = fbtarget, 'x86'
+
+    return fbc_binary, fbcversion, default_target, default_arch
 
 def verprint (used_gfx, used_music, fbc, arch, asan, builddir, rootdir):
     """

@@ -11,7 +11,7 @@ import shutil
 import shlex
 import itertools
 import re
-from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output
+from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output, get_fb_info
 
 FBFLAGS = ['-mt']
 # Flags used when compiling C, C++, and -gen gcc generated C source
@@ -47,46 +47,98 @@ dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
+################ Decide the target/OS and cpu arch
+
+dummyenv = Environment(ENV = {'PATH': os.environ['PATH']})
+fbc_binary, fbcversion, default_target, default_arch = get_fb_info(dummyenv, fbc)
+if True:  #verbose:
+    print "Using fbc", fbc_binary, " version:", fbcversion
+
 win32 = False
 unix = False
 mac = False
 android = False
 android_source = False
-arch = ARGUMENTS.get ('arch', 'x86')
-if arch == '32':
-    arch = 'x86'
-if arch in ('x64', '64'):
-    arch = 'x86_64'
-exe_suffix = ''
-if platform.system () == 'Windows':
-    win32 = True
-    exe_suffix = '.exe'
-    # Force use of gcc instead of MSVC++, so compiler flags are understood
-    envextra = {'tools': ['mingw']}
-elif platform.system () == 'Darwin':
-    unix = True
-    mac = True
-else:
-    unix = True
+target = ARGUMENTS.get ('target', None)
+arch = ARGUMENTS.get ('arch', None)  # default decided below
 
 if 'android-source' in ARGUMENTS:
     # Produce .c files, and also an executable, which is an unwanted side product
     # (We could do with build targets for compiling to .asm/.c but not assembling+linking)
-    FBFLAGS += ["-r", "-target", "android"]
-    android = True
+    FBFLAGS += ["-r"]
+    if target:
+        print "Don't use 'target' and 'android-source' together. Use only 'target' for real cross-compiling."
+        # You can use arch however, since it is passed to the .apk build system.
+        Exit(1)
+    target = 'android'
     android_source = True
     linkgcc = False
-elif 'android' in ARGUMENTS:
-    android = True
 
-if android:
-    # There are 4 ARM ABIs used on Android
-    # armeabi - ARMV5TE and later. All floating point is done by library calls
-    # armeabi-v7a - ARM V7 and later, has hardware floating point (VFP)
-    # armeabi-v7a-hard - slightly faster floating point than armeabi-v7a, not binary compatible with armeabi
-    # arm64-v8a - 64 bit. Has NEON SIMD
-    # See https://developer.android.com/ndk/guides/abis.html for more
-    arch = 'armeabi'
+if not target:
+    target = default_target
+
+# Must check android before linux, because of 'arm-linux-androideabi'
+if 'android' in target:
+    android = True
+elif 'win32' in target or 'windows' in target:
+    win32 = True
+elif 'darwin' in target or 'mac' in target:
+    mac = True
+elif 'linux' in target or 'unix' in target:
+    unix = True
+else:
+    print "!! WARNING: target '%s' not recognised!" % target
+
+exe_suffix = ''
+if win32:
+    exe_suffix = '.exe'
+    # Force use of gcc instead of MSVC++, so compiler flags are understood
+    envextra = {'tools': ['mingw']}
+else:
+    unix = True
+
+target_prefix = ''  # prepended to gcc, etc.
+if target.count('-') >= 2:
+    target_prefix = target
+
+if arch == '32':
+    if 'x86' in default_arch:
+        arch = 'x86'
+    else:
+        arch = 'armv7-a'
+if arch == '64':
+    if 'x86' in default_arch:
+        arch = 'x86_64'
+    else:
+        arch = 'aarch64'
+if arch in ('armeabi', 'androideabi'):
+    # armeabi is an android abi name. ARM EABI is a family of ABIs.
+    # For example, in debian ARM EABI (called armel) allows armv4t+.
+    arch = 'armv5te'
+if arch in ('arm', 'armv7a', 'armeabi-v7a'):
+    # Again, armeabi-v7a is an android abi.
+    arch = 'armv7-a'
+if not arch:
+    if target_prefix:
+        # The arch is implied in the target triple. Let fbc handle it, parsing the
+        # triple is too much work
+        arch = '(see target)'
+    elif android:
+        # There are 4 ARM ABIs used on Android
+        # armeabi - ARMV5TE and later. All floating point is done by library calls
+        #           (aka androideabi, as it is slightly more specific than the ARM EABI)
+        # armeabi-v7a - ARM V7 and later, has hardware floating point (VFP)
+        # armeabi-v7a-hard - not a real ABI. armeabi-v7a with faster passing convention
+        #           for floating point values. Not binary compatible with armeabi, support
+        #           was dropped in later Android NDK versions.
+        # arm64-v8a
+        # See https://developer.android.com/ndk/guides/abis.html for more
+        arch = 'armv5te'
+    else:
+        arch = default_arch
+
+
+################ Other commandline arguments
 
 if int (ARGUMENTS.get ('asm', False)):
     FBFLAGS += ["-R", "-RR", "-g"]
@@ -136,8 +188,6 @@ if optimisations:
     FBFLAGS += ["-O", "2"]
 else:
     CFLAGS.append ('-O0')
-if gengcc:
-    FBFLAGS += ["-gen", "gcc"]
 
 # Backend selection.
 # Defaults:
@@ -171,21 +221,31 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 
+def findtool(envvar, toolname):
+    if os.environ.get (envvar):
+        return os.environ.get (envvar)
+    if WhereIs (target_prefix + "-" + toolname):
+        return target_prefix + "-" + toolname
+    return toolname
+
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If using gengcc=1, CC will not be used by fbc, set GCC envar instead.
-AS = os.environ.get ('AS')
-CC = os.environ.get ('CC')
-CXX = os.environ.get ('CXX')
+GCC = findtool ('GCC', "gcc")
+CC = findtool ('CC', "gcc")
+CXX = findtool ('CXX', "g++")
 clang = False
 if CC:
     clang = 'clang' in CC
     if not clang and 'GCC' not in os.environ:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
+        GCC = CC
     env.Replace (CC = CC)
 if CXX:
     env.Replace (CXX = CXX)
-gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
+
+#gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
+#gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
 
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
@@ -248,22 +308,6 @@ env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARI
 
 ################ Find fbc and get fbcinfo fbcversion
 
-fbc_binary = fbc
-if not os.path.isfile (fbc_binary):
-    fbc_binary = env.WhereIs (fbc)
-if not fbc_binary:
-    raise Exception("FreeBasic compiler is not installed!")
-fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
-# Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
-# older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
-# older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
-fbcinfo = get_command_output(fbc_binary, "-version")
-fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
-# Convert e.g. 1.04.1 into 1041
-fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*fbcversion.split('.'))
-if verbose:
-    print "Using fbc", fbc_binary, " version:", fbcversion, " arch:", arch
-
 # Headers in fb/ depend on this define
 CFLAGS += ['-DFBCVERSION=%d' % fbcversion]
 
@@ -277,10 +321,6 @@ else:
 ################ Mac SDKs
 
 if mac:
-    if fbcversion > 220:
-        # fbc will probably default to -gen gcc anyway, but even if using it
-        # isn't ideal, this script needs to know whether it's used.
-        gengcc = True
     macsdk = ARGUMENTS.get ('macsdk', '')
     macSDKpath = ''
     if os.path.isdir(FRAMEWORKS_PATH):
@@ -302,15 +342,33 @@ if mac:
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
 
 
-################ Arch-specific stuff
+################ Cross-compiling and arch-specific stuff
 
-if arch == 'armeabi':
+if target:
+    FBFLAGS += ['-target', target]
+
+if android:
+    # Android 5.0+ will only run PIE exes, for security reasons (ASLR).
+    # However, only Android 4.1+ (APP_PLATFORM android-16) support  PIE exes!
+    # This only matters for compiling test cases.
+    # A workaround is to use a tool to load a PIE executable as a library
+    # and run it on older Android:
+    #https://chromium.googlesource.com/chromium/src/+/32352ad08ee673a4d43e8593ce988b224f6482d3/tools/android/run_pie/run_pie.c
+    CXXLINKFLAGS += ["-pie"]
+
+# We set gengcc=True if FB will default to it; we need to know whether it's used
+if arch != 'x86':
     gengcc = True
-    FBFLAGS += ["-gen", "gcc", "-arch", "armv5te", "-R"]
-    #CFLAGS += '-L$(SYSROOT)/usr/lib'
-    # CC, CXX, AS must be set in environment to point to cross compiler
+if mac and fbcversion > 220:
+    gengcc = True
+
+if arch == 'armv5te':
+    # FB puts libraries in 'arm' folder
+    FBFLAGS += ["-arch", arch]
+elif arch == 'armv7-a':
+    FBFLAGS += ["-arch", arch]
 elif arch == 'x86':
-    FBFLAGS += ["-arch", "686"]
+    FBFLAGS += ["-arch", "686"]  # "x86" alias will only be added in FB 1.06
     CFLAGS.append ('-m32')
     if not clang:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
@@ -321,18 +379,32 @@ elif arch == 'x86':
     # except on Intel Macs, where it is both always present, and required by system headers
     if not mac:
         CFLAGS.append ('-mno-sse')
-    #FBFLAGS += ["-arch", "686"]
 elif arch == 'x86_64':
-    gengcc = True
+    FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
     # This also causes FB to default to -gen gcc, as -gen gas not supported
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
-    FBFLAGS += ['-arch', 'x86_64']
+elif arch == '(see target)':
+    pass  # We let fbc figure it out from the target
 else:
-    raise Exception('Unknown architecture %s' % arch)
+    print "Error: Unknown architecture %s" % arch
+    Exit(1)
+
+# If cross compiling, do a sanity test
+if (target or android) and not android_source:
+    gcctarget = get_command_output(GCC, "-dumpmachine")
+    print "Using target:", target, " arch:", arch, " gcc:", GCC, " gcctarget:", gcctarget
+    # If it contains two dashes it looks like a target triple
+    if target_prefix and target_prefix != gcctarget:
+        print "Error: This GCC doesn't target " + target_prefix
+        print ("You need to either pass 'target' as a target triple (e.g. target=arm-linux-androideabi) and "
+               "ensure that the toolchain executables (e.g. arm-linux-androideabi-gcc) "
+               "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
+        Exit(1)
 
 if gengcc:
-    gccversion = get_command_output(gcc, "-dumpversion")
+    FBFLAGS += ["-gen", "gcc"]
+    gccversion = get_command_output(GCC, "-dumpversion")
     gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
     #print "GCC version", gccversion
     # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
@@ -357,46 +429,32 @@ if gengcc:
 if linkgcc:
     # Link using g++ instead of fbc; this makes it easy to link correct C++ libraries, but harder to link FB
 
-    # target should be the OS code, with the arch?
-    # Looks like the code below doesn't care, as long as it finds the right directory
-    if win32:
-        target = 'win32'
-    elif android:
-        if not CC or not CXX or not AS:
-            raise Exception("You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
-        target = get_command_output(CC, "-dumpmachine")
-        if target != 'arm-linux-androideabi':
-            raise Exception("This GCC doesn't target arm-linux-androideabi. You need to set CC, CXX, AS environmental variables correctly to crosscompile to Android")
-        target += '-freebasic'
+    # Find the directory where the FB libraries are kept.
+    if fbcversion >= 1030:
+        libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS)
+        checkfile = os.path.join (libpath, 'fbrt0.o')
+        if not os.path.isfile (checkfile):
+            print "Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + repr(checkfile) + " is missing."
+            Exit(1)
     else:
-        target = re.findall("target:([a-z]*)", fbcinfo)
-        if len(target) == 0:
-            # Omit the arch
-            target = re.findall(" for ([a-z0-9]+)", fbcinfo)
-            if len(target) == 0:
-                raise Exception("Couldn't determine fbc target")
-                # Or just default to the current platform
-        target = target[0]
-    if verbose:
-        print "linkgcc: target =", target
+        # Manually determine library location (TODO: delete this if certainly not supporting FB 1.02 any more)
+        fbc_path = os.path.dirname(os.path.realpath(fbc_binary))
+        fblibpaths = [[fbc_path, '..', 'lib', 'freebasic'],  # Normal
+                      [fbc_path, 'lib'],   # Standalone
+                      [fbc_path, '..', 'lib'],
+                      ['/usr/share/freebasic/lib'],
+                      ['/usr/local/lib/freebasic']]
+        # For each of the above possible library paths, check four possible target subdirectories:
+        # (FB changes where the libraries are stored every other month)
+        targetdirs = [ [], [target + '-' + arch], [arch + '-' + target], [target] ]
 
-    fblibpaths = [[fbc_path, 'lib'],
-                  [fbc_path, '..', 'lib'],
-                  [fbc_path, '..', 'lib', 'freebasic'],
-                  ['/usr/share/freebasic/lib'],
-                  ['/usr/local/lib/freebasic']]
-    # For each of the above possible library paths, check four possible target subdirectories:
-    # (FB changes where the libraries are stored every other month)
-    targetdirs = [ [], [target + '-' + arch], [arch + '-' + target], [target] ]
-    # FB since 0.25 doesn't seem to use a platform subdirectory in lib ?
-
-    for path, targetdir in itertools.product(fblibpaths, targetdirs):
-        libpath = os.path.join(*(path + targetdir))
-        #print "Looking for FB libs in", libpath
-        if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
-            break
-    else:
-        raise Exception("Couldn't find the FreeBASIC lib directory")
+        for path, targetdir in itertools.product(fblibpaths, targetdirs):
+            libpath = os.path.join(*(path + targetdir))
+            print "Looking for FB libs in", libpath
+            if os.path.isfile(os.path.join(libpath, 'fbrt0.o')):
+                break
+        else:
+            raise Exception("Couldn't find the FreeBASIC lib directory")
 
     # This causes ld to recursively search the dependencies of linked dynamic libraries
     # for more dependencies (specifically SDL on X11, etc)
@@ -476,7 +534,13 @@ if android_source:
         if arch in ('x86', 'x86_64'):
             NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
         fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
-        fil.write('MultiABI="%s"\n' % arch)
+        if arch == 'armv5te':
+            abi = 'armeabi'
+        elif arch == 'armv7-a':
+            abi = 'armeabi-v7a'
+        else:
+            abi = arch
+        fil.write('MultiABI="%s"\n' % abi)
 
 
 # With the exception of base_libraries, now have determined all shared variables
@@ -965,15 +1029,24 @@ Options:
 Experimental options:
   gengcc=1            Compile using GCC emitter.
   linkgcc=0           Link using fbc instead of g++ (only works for a few targets)
-  android=1           Compile for android. Commandline programs only.
-  android-source=1    Used as part of the Android build process for Game/Custom.
+  android-source=1    Used as part of the Android build process for Game/Custom (see wiki)
   glibc=1             Enable memory_usage function
-  arch=64             Create a x86_64 build (options: x86/32, x86_64/64)
+  target=...          Set cross-compiling target. Passed through to fbc. Either
+                      a toolchain prefix triplet such as arm-linux-androideabi or
+                      a target name supported by fbc (e.g. darwin, android) or
+                      a platform-cpu pair (e.g. linux-arm).
+  arch=ARCH           Specify CPU type. Overrides 'target'. Options include:
+                       32 or x86            (Default, even on x86_64 systems!)
+                       64 or x86_64
+                       arm/armeabi/arm5vte  Older ARM devices w/o FPUs (Android default)
+                       armv7-a              Newer ARM devices w/ FPUs, like RPi2+.
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
   fbc                 Override FB compiler
   AS, CC, CXX         Override assembler/compiler. Should be set when crosscompiling
+  GCC                 Used only to compile C code generated from FB code. May not be clang!
+                      CC used by default, unless CC appears to be clang.
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll
@@ -986,18 +1059,20 @@ Targets (executables to build):
   unlump
   relump
   hspeak
-  reloadtest
-  xml2reload          Requires libxml2 to build.
+  dumpohrkey          Convert .ohrkeys to text
+  bam2mid             Convert .bam to .mid
+  slice2bas           For embedding .slice files
   reload2xml
+  xml2reload          Requires libxml2 to build.
   reloadutil          To compare two .reload documents, or time load time
+ Automated tests (executables; use "test" target to build and run):
+  reloadtest
   utiltest
   filetest
   vectortest
   rbtest
-  slice2bas
-  gfx_directx_test    (Non-automated) gfx_directx.dll test
-  dumpohrkey
-  bam2mid
+ Nonautomated test programs:
+  gfx_directx_test    gfx_directx.dll test
   miditest
 Other targets/actions:
   install             (Unix only.) Install the OHRRPGCE. Uses prefix and destdir args

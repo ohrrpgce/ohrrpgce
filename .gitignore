@@ -56,3 +56,4 @@ autotest/
 autobackups/
 joyset.ini
 android/tmp/
+android/extraconfig.cfg
