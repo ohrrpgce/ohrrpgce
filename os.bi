@@ -27,6 +27,7 @@ declare function memory_usage_string() as string
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as boolint
 
+declare function list_files_or_subdirs (searchdir as string, nmask as string, showhidden as bool, whichtype as integer) as string vector
 declare function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 declare function list_subdirs (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 

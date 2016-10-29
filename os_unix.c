@@ -92,17 +92,22 @@ FBSTRING *memory_usage_string() {
 //==========================================================================================
 
 // Returns a string vector
-array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, int whichtype) {
+// whichtype: 0 for files, 1 for directory, other for either
+array_t list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, int whichtype) {
 	// whichtype is 0 for files and 1 for directories
 	DIR *dp;
-	dp = opendir(searchdir->data);
+	char *dirpath;
+	if (searchdir->data)
+		dirpath = searchdir->data;
+	else
+		dirpath = ".";
+	dp = opendir(dirpath);
 	int save_errno = errno;
 
 	array_t ret = NULL;
 	array_new(&ret, 0, &type_table(string));
-
 	if (dp == NULL) {
-		debug(errError, "list_files: unable to opendir(%s): %s", searchdir->data, strerror(save_errno));
+		debug(errError, "list_files/subdirs: unable to opendir(%s): %s", dirpath, strerror(save_errno));
 	} else {
 		int wcflags = FNM_PATHNAME | FNM_CASEFOLD;
 		if (!showhidden) {
@@ -114,19 +119,30 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 			if (ep->d_type == DT_LNK) {
 				// Is it a symlink to a dir or a file?
 				char filename[512];
-				if (snprintf(filename, 512, "%s/%s", searchdir->data, ep->d_name) > 511)
+				if (snprintf(filename, 512, "%s/%s", dirpath, ep->d_name) > 511)
 					continue;
 				struct stat finfo;
+				// stat follows symlinks recursively
 				if (stat(filename, &finfo)) {
-					// Only a minor error, a broken symlink is nothing to write home about,
-					debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
+					// ENOENT (path not found) indicates a broken symlink, nothing to write home about
+					if (errno != ENOENT)
+						debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
 					continue;
 				}
-				if (whichtype == 0 && !S_ISREG(finfo.st_mode)) continue;
-				if (whichtype == 1 && !S_ISDIR(finfo.st_mode)) continue;
-			}
-			else if (whichtype == 0 && ep->d_type != DT_REG) continue;
-			else if (whichtype == 1 && ep->d_type != DT_DIR) continue;
+				if (S_ISREG(finfo.st_mode)) {
+					if (whichtype == 1) continue;
+				} else if (S_ISDIR(finfo.st_mode)) {
+					if (whichtype == 0) continue;
+				} else
+					// It's something else, like a FIFO or block device
+					continue;
+			} else if (ep->d_type == DT_REG) {
+				if (whichtype == 1) continue;
+			} else if (ep->d_type == DT_DIR) {
+				if (whichtype == 0) continue;
+			} else
+				// It's something else, like a FIFO or block device
+				continue;
 			if (strcmp(ep->d_name, ".") == 0 || strcmp(ep->d_name, "..") == 0) continue;
 			if (fnmatch(nmask->data, ep->d_name, wcflags) == 0) {
 				//fnmatch returns 0 on a successful match because it hates me :(
@@ -141,12 +157,12 @@ array_t _list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhi
 
 // Returns a string vector
 array_t list_files (FBSTRING *searchdir, FBSTRING *nmask, int showhidden) {
-	return _list_files_or_subdirs(searchdir, nmask, showhidden, 0);
+	return list_files_or_subdirs(searchdir, nmask, showhidden, 0);
 }
 
 // Returns a string vector
 array_t list_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden) {
-	return _list_files_or_subdirs(searchdir, nmask, showhidden, 1);
+	return list_files_or_subdirs(searchdir, nmask, showhidden, 1);
 }
 
 int drivelist (void *drives_array) {
