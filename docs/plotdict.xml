@@ -1802,7 +1802,7 @@ end</example>
 		<command id="setiteminslot">
 			<canon>set item in slot (slot, item)</canon>
 			<shortname>set item in slot</shortname>
-			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen (slots are numbered from 0 to <ref>getinventorysize</ref>-1), and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.</description>
+			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen (slots are numbered from 0 to <ref>getinventorysize</ref>-1), and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase an item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.</description>
 			<seealso>
 				<ref>iteminslot</ref>
 				<ref>itemcountinslot</ref>
@@ -7376,6 +7376,23 @@ end</example>
 				<ref>getscriptname</ref>
 				<ref>getcallingscriptid</ref>
 			</seealso>
+		</command>
+		<command id="rungame">
+			<canon>run game(file string id)</canon>
+			<shortname>run game</shortname>
+			<description>
+				Quit the current game and switch to a different .rpg file/.rpgdir.
+				When that game is quit, the program either exits or goes to the game browse as usual.
+				<p>file string id</p> is the ID of a string that contains the filename of the game to load.
+				If the game is not in the same directory, then you need to provide a relative
+				path, like "bonus content\Prequel.rpg" or "../selectmenu.rpg".
+				The path is case-insensitive and <p>/</p> and <p>\</p> are interchangeable.
+			</description>
+			<example>
+				# load another file in the same directory
+				$0 = "part2.rpg"
+				run game(0)
+			</example>
 		</command>
 		<command id="milliseconds">
 			<canon>milliseconds</canon>

@@ -659,6 +659,15 @@ plotscript, send me mail, begin
   send email(false, $31="Honk!", $32="Achievement unlocked: sent email")
 end
 
+# In 'Testing scripts' menu
+plotscript, run collider_rpg, begin
+  run game($0="COLLIDER.RPG")
+end
+
+plotscript, run vikings_rpgdir, begin
+  run game($0="..\VIKINGS/vikings.rpgdir")
+end
+
 plotscript, make npc wander, arg, npc, begin
   Alter NPC (npc,NPCstat:move type,NPCmovetype:wander)
 end

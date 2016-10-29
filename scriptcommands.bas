@@ -30,6 +30,10 @@
 'Mike: why? it's already wrapped in gfx_*.bas
 #include "gfx.bi"
 
+''''' Local functions
+DECLARE SUB run_game ()
+
+
 ''''' Global variables
 
 'Script commands in this file need to REDIM plotslices() and timers(), but FB
@@ -3407,6 +3411,8 @@ SUB sfunctions(byval cmdid as integer)
   stop_fibre_timing
   debug_menu
   start_fibre_timing
+ CASE 620'--run game (string id, load slot)
+  run_game
 
 'old scriptnpc
 
@@ -4874,4 +4880,33 @@ SUB write_checkpoint ()
  DIM f as string = absolute_with_orig_path("checkpoint" & right("0000" & n, 5))
  bmp_screenshot f
  n += 1
+END SUB
+
+' Implementation of "run game".
+PRIVATE SUB run_game ()
+ ' Not being able to load the game should always show an error (use serrError for everything)
+ IF valid_plotstr(retvals(0), serrError) = NO THEN RETURN
+
+ IF running_as_slave THEN
+  ' This would require more work to implement
+  scripterr "Sorry, you can't use " + current_command_name() + " while Testing Game"
+  RETURN
+ END IF
+
+ ' Parse the path
+ DIM path as string = plotstr(retvals(0)).s
+ ' find_file_portably returns either an error message or a path
+ path = find_file_portably(path)
+ IF isfile(path) = NO ANDALSO isdir(path) = NO THEN
+  scripterr interpreter_context_name() + path, serrError
+  RETURN
+ END IF
+ IF select_rpg_or_rpgdir(path) = NO THEN
+  scripterr interpreter_context_name() + "Not a valid game: " + path, serrError
+  RETURN
+ END IF
+
+ gam.want.rungame = path
+ ' TODO: when switching to fibres, should call exit_interpreter() or something like that instead
+ script_start_waiting()
 END SUB

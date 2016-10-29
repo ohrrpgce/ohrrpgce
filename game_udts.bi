@@ -76,6 +76,7 @@ TYPE ScriptWantSignals
   battle as integer   'Formation number +1
   teleport as bool    'Map num has changed, call preparemap()
   usenpc as integer   'NPC instance +1
+  rungame as string   'Path to game to load, or ""
   loadgame as integer 'Save slot +1
   resetgame as bool   'Called "reset game"
   dont_quit_to_loadmenu as bool 'If no title screen, don't quit to the load menu.
@@ -110,6 +111,7 @@ TYPE GameState
   debug_showtags as bool
   debug_npc_info as bool
   autorungame as bool                'Game was autorun, not selected from RPG browser
+  return_to_browser as bool          'Return to browser when quitting the game
   need_fade_in as bool
   fade_in_delay as integer
   fade_in_script_overridable as bool 'If true, the fade in can be cancelled by a fadescreenout command

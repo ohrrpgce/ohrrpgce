@@ -284,6 +284,8 @@ DO
 
 presentsong = -1
 
+clearpage vpage  ' Remove junk when using "run game"
+setvispage vpage
 gam.current_master_palette = -1
 load_default_master_palette master()
 setpal master()
@@ -327,21 +329,24 @@ remap_touchscreen_button 3, 0
 remap_touchscreen_button 4, 0
 remap_touchscreen_button 5, 0
 
-setwindowtitle "O.H.R.RPG.C.E"
-defaultmousecursor  'init mouse state
-mouserect -1, -1, -1, -1
+IF LEN(gam.want.rungame) = 0 THEN
+ ' We can skip this, to reduce flicker
 
-debuginfo "Setting default window settings..."
-set_safe_zone_margin default_margin()
-IF overrode_default_fullscreen = NO AND supports_fullscreen_well() THEN
- gfx_setwindowed(YES)
-END IF
-set_resolution 320, 200
-IF overrode_default_zoom = NO THEN
- 'If it was set on the commandline, then it should still be set to that; game didn't change it
- set_scale_factor 2
-END IF
+ setwindowtitle "O.H.R.RPG.C.E"
+ defaultmousecursor  'init mouse state
+ mouserect -1, -1, -1, -1
 
+ debuginfo "Setting default window settings..."
+ set_safe_zone_margin default_margin()
+ IF overrode_default_fullscreen = NO AND supports_fullscreen_well() THEN
+  gfx_setwindowed(YES)
+ END IF
+ set_resolution 320, 200
+ IF overrode_default_zoom = NO THEN
+  'If it was set on the commandline, then it should still be set to that; game didn't change it
+  set_scale_factor 2
+ END IF
+END IF
 
 '=============================== Select a game ================================
 
@@ -371,22 +376,34 @@ ELSE  'NOT running_as_slave
  END IF
  IF makedir(workingdir) THEN fatalerror "Couldn't create " & workingdir
 
- '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
- '---ALSO CHECKS FOR GAME.EXE RENAMING
+ IF LEN(gam.want.rungame) THEN
 
- 'DEBUG debug "searching commandline for game"
- FOR i as integer = 0 TO UBOUND(cmdline_args)
-  DIM arg as string = cmdline_args(i)
-
-  ' On success sets sourcerpg, gam.autorungame, usepreunlump and possibly workingdir
-  IF select_rpg_or_rpgdir(arg) THEN
-   EXIT FOR
-  ELSEIF isdir(arg) THEN
-   rpg_browse_default = absolute_path(arg)
-  ELSE
-   visible_debug "Unrecognised commandline argument " & arg & " ignored"
+  IF select_rpg_or_rpgdir(gam.want.rungame) = NO THEN
+   ' We already checked this was valid!
+   fatalerror gam.want.rungame + " disappeared!"
   END IF
- NEXT
+
+  gam.want.rungame = ""
+
+ ELSE
+
+  '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
+  '---ALSO CHECKS FOR GAME.EXE RENAMING
+
+  'DEBUG debug "searching commandline for game"
+  FOR i as integer = 0 TO UBOUND(cmdline_args)
+   DIM arg as string = cmdline_args(i)
+
+   ' On success sets sourcerpg, gam.autorungame, usepreunlump and possibly workingdir
+   IF select_rpg_or_rpgdir(arg) THEN
+    EXIT FOR
+   ELSEIF isdir(arg) THEN
+    rpg_browse_default = absolute_path(arg)
+   ELSE
+    visible_debug "Unrecognised commandline argument " & arg & " ignored"
+   END IF
+  NEXT
+ END IF
 
 END IF  'NOT running_as_slave
 
@@ -427,6 +444,9 @@ END IF
 
 IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
+ ' If we've shown the browser once, that means we should return to it when quitting
+ ' (Can't use gam.autorungame to make that decision due to "run game")
+ gam.return_to_browser = YES
  show_virtual_gamepad()
  sourcerpg = browse(7, rpg_browse_default, "*.rpg", tmpdir, 1, "game_browse_rpg")
  hide_virtual_gamepad()
@@ -811,10 +831,11 @@ DO
  displayall()
 
  'Main loop exit test (does this need to be here?)
- IF gam.quit OR gam.want.resetgame THEN
+ IF gam.quit OR gam.want.resetgame OR LEN(gam.want.rungame) THEN
   resetgame
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
   resetsfx
+  IF LEN(gam.want.rungame) THEN EXIT DO, DO  'Quit out of game
   IF gam.want.resetgame THEN EXIT DO  'skip to new game
   DIM skip_load_menu as bool = readbit(gen(), genBits, 12)
   skip_load_menu OR= (count_used_save_slots() = 0)
@@ -888,7 +909,7 @@ SUB reset_game_final_cleanup()
  resetsfx
  cleanup_other_temp_files
  'We bypass exit_gracefully() because we already called save_game_config
- IF gam.autorungame THEN exitprogram YES
+ IF gam.return_to_browser = NO AND LEN(gam.want.rungame) = 0 THEN exitprogram YES
  debuginfo "Recreating " & tmpdir
  killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
  makedir tmpdir
@@ -1657,7 +1678,7 @@ SUB interpret()
   usenpc 2, gam.want.usenpc - 1
   gam.want.usenpc = 0
  END IF
- 'ALSO gam.want.loadgame
+ 'ALSO gam.want.loadgame, gam.want.rungame
 END SUB
 
 

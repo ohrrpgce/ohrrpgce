@@ -22,6 +22,8 @@ WHAT IS NEW?
     * You can now profile scripts (collect statistics on running times)
       by pressing Ctrl+F9. (Before, you had to download a special build
       to profile scripts.) More useful stats are now collected. [Ralph]
+    * "run game" quits the current game and loads a different game
+      (.rpg file/.rpgdir) [Ralph]
 
   * Changes
 
