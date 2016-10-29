@@ -58,6 +58,9 @@ DECLARE SUB cleanup_game_slices ()
 DECLARE SUB save_game_config()
 DECLARE SUB exit_gracefully(need_fade_out as bool = NO)
 
+DECLARE FUNCTION select_rpg_or_rpgdir(path as string) as bool
+DECLARE FUNCTION seek_rpg_or_rpgdir_and_select_it(where as string, gamename as string) as bool
+
 DECLARE SUB usenpc(byval cause as integer, byval npcnum as integer)
 
 DECLARE SUB forceparty ()

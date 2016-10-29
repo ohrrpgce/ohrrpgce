@@ -46,7 +46,6 @@ DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
 DECLARE SUB update_menu_states ()
-DECLARE FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
 DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
@@ -277,7 +276,9 @@ mersenne_twister TIMER
 '==============================================================================
 
 'DEBUG debug "Thestart"
-DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the program
+DO
+' This is a big loop that encloses the entire program (more than it should).
+' The loop is only reached when resetting the program (quitting out of a game).
 
 '====================== (Re)initialise gfx/window/IO options ==================
 
@@ -376,25 +377,14 @@ ELSE  'NOT running_as_slave
  'DEBUG debug "searching commandline for game"
  FOR i as integer = 0 TO UBOUND(cmdline_args)
   DIM arg as string = cmdline_args(i)
-  arg = absolute_path(arg)
- 
-  IF LCASE(RIGHT(arg, 4)) = ".rpg" AND isfile(arg) THEN
-   sourcerpg = arg
-   gam.autorungame = YES
+
+  ' On success sets sourcerpg, gam.autorungame, usepreunlump and possibly workingdir
+  IF select_rpg_or_rpgdir(arg) THEN
    EXIT FOR
-  ELSEIF isdir(arg) THEN 'perhaps it's an unlumped folder?
-   'check for essentials (archinym.lmp was added long before .rpgdir support)
-   IF isfile(arg + SLASH + "archinym.lmp") THEN 'ok, accept it
-    gam.autorungame = YES
-    usepreunlump = YES
-    sourcerpg = trim_trailing_slashes(arg)
-    workingdir = arg
-   ELSE
-    rpg_browse_default = arg
-   END IF
-   EXIT FOR
+  ELSEIF isdir(arg) THEN
+   rpg_browse_default = absolute_path(arg)
   ELSE
-   visible_debug "Unrecognised commandline argument " & cmdline_args(i) & " ignored"
+   visible_debug "Unrecognised commandline argument " & arg & " ignored"
   END IF
  NEXT
 
@@ -403,16 +393,14 @@ END IF  'NOT running_as_slave
 #IFDEF __UNIX__
 IF gam.autorungame = NO THEN
  IF exename <> "ohrrpgce-game" THEN
-  DO 'single-pass loop for breaking
-   IF starts_with(exepath, "/usr/local") THEN
-    IF seek_rpg_or_rpgdir_and_play_it("/usr/local/share/games/" & exename, exename) THEN EXIT DO
-    IF seek_rpg_or_rpgdir_and_play_it("/usr/local/share/" & exename, exename) THEN EXIT DO
-   END IF
-   IF starts_with(exepath, "/usr/games") ORELSE starts_with(exepath, "/usr/bin") THEN
-    IF seek_rpg_or_rpgdir_and_play_it("/usr/share/games/" & exename, exename) THEN EXIT DO
-    IF seek_rpg_or_rpgdir_and_play_it("/usr/share/" & exename, exename) THEN EXIT DO
-   END IF
-  EXIT DO : LOOP '--end of single-pass loop for breaking
+  IF starts_with(exepath, "/usr/games") ORELSE starts_with(exepath, "/usr/bin") THEN
+   seek_rpg_or_rpgdir_and_select_it("/usr/share/" & exename, exename)
+   seek_rpg_or_rpgdir_and_select_it("/usr/share/games/" & exename, exename)
+  END IF
+  IF starts_with(exepath, "/usr/local") THEN
+   seek_rpg_or_rpgdir_and_select_it("/usr/local/share/" & exename, exename)
+   seek_rpg_or_rpgdir_and_select_it("/usr/local/share/games/" & exename, exename)
+  END IF
  END IF
 END IF
 #ENDIF
@@ -423,7 +411,7 @@ IF gam.autorungame = NO THEN
   IF isfile(data_dir & "/bundledgame") THEN
    DIM bundledname as string
    bundledname = TRIM(string_from_first_line_of_file(data_dir & "/bundledgame"), ANY !" \t\r\n")
-   IF seek_rpg_or_rpgdir_and_play_it(data_dir, bundledname) THEN
+   IF seek_rpg_or_rpgdir_and_select_it(data_dir, bundledname) THEN
     force_prefsdir_save = YES
    END IF
   END IF
@@ -433,7 +421,7 @@ END IF
 
 IF gam.autorungame = NO THEN
  IF LCASE(exename) <> "game" ANDALSO exename <> "ohrrpgce-game" THEN
-  seek_rpg_or_rpgdir_and_play_it exepath, exename
+  seek_rpg_or_rpgdir_and_select_it exepath, exename
  END IF
 END IF
 
@@ -3365,29 +3353,36 @@ END SUB
 
 '==========================================================================================
 
-FUNCTION seek_rpg_or_rpgdir_and_play_it(where as string, gamename as string) as integer
- '--Search to see if a rpg file or an rpgdir of a given name exists
- ' and if so, select it for playing (the browse screen will not appear)
- 'Returns YES if found, NO if not found
- IF isfile(where & SLASH & gamename & ".rpg") THEN
-  sourcerpg = where & SLASH + gamename & ".rpg"
+' Check if the given path/string is an rpg file or an rpgdir
+' and if so, select it for playing (the browse screen will not appear).
+' Returns YES if found, NO if not found.
+FUNCTION select_rpg_or_rpgdir(path as string) as bool
+ IF LCASE(RIGHT(path, 4)) = ".rpg" ANDALSO isfile(path) THEN
+  sourcerpg = absolute_path(path)
   gam.autorungame = YES
+  usepreunlump = NO
   RETURN YES
- ELSE
-  DIM rpgd as string = where & SLASH & gamename & ".rpgdir"
-  IF isdir(rpgd) THEN
-   IF isfile(rpgd & SLASH & "archinym.lmp") THEN
-    sourcerpg = rpgd
-    workingdir = rpgd
-    gam.autorungame = YES
-    usepreunlump = YES
-    RETURN YES
-   END IF
+ ELSEIF isdir(path) THEN
+  'Perhaps it's an unlumped folder?
+  'Check for essentials (archinym.lmp was added long before .rpgdir support)
+  IF isfile(path & SLASH & "archinym.lmp") THEN
+   sourcerpg = trim_trailing_slashes(absolute_path(path))
+   workingdir = sourcerpg
+   gam.autorungame = YES
+   usepreunlump = YES
+   RETURN YES
   END IF
  END IF
  RETURN NO
 END FUNCTION
 
+' Search to see if a rpg file or an rpgdir of a given name exists
+' and if so, select it for playing (the browse screen will not appear).
+' Returns YES if found, NO if not found.
+FUNCTION seek_rpg_or_rpgdir_and_select_it(where as string, gamename as string) as bool
+ RETURN select_rpg_or_rpgdir(where & SLASH & gamename & ".rpg") ORELSE _
+        select_rpg_or_rpgdir(where & SLASH & gamename & ".rpgdir")
+END FUNCTION
 
 '==========================================================================================
 '                                      Debug menus
