@@ -284,7 +284,8 @@ declare function trimextension (filename as string) as string
 declare function justextension (filename as string) as string
 declare function get_path_root (pathname as string) as string
 declare function trim_path_root (pathname as string) as string
-declare function is_absolute_path (sDir as string) as integer
+declare function is_absolute_path (sDir as string) as bool
+declare function is_possibly_absolute_path (sDir as string) as bool
 declare function absolute_path (pathname as string) as string
 declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as integer = NO) as string
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
@@ -294,6 +295,7 @@ declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
+declare function find_file_portably (path as string) as string
 declare function writeablecopyfile (src as string, dest as string) as bool
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
 declare function copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string

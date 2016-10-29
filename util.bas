@@ -1075,16 +1075,24 @@ FUNCTION justextension (filename as string) as string
   END IF
 END FUNCTION
 
-'If a path is absolute return the root directory: / on Unix, X:/ or X:\ or / or \ on Windows
+'Return the root of a Windows path, regardless of the current OS: X:/ or X:\ or / or \
 'Otherwise return ""
 'FIXME: should handle network paths on Windows too
-FUNCTION get_path_root (pathname as string) as string
-#IFDEF __FB_WIN32__
+FUNCTION get_windows_path_root (pathname as string) as string
   DIM first as string = LCASE(LEFT(pathname, 1))
   DIM temp as string = MID(pathname, 2, 2)
   IF first >= "a" ANDALSO first <= "z" ANDALSO (temp = ":\" OR temp = ":/") THEN
     RETURN MID(pathname, 1, 3)
   END IF
+END FUNCTION
+
+'If a path is absolute return the root directory: / on Unix, X:/ or X:\ or / or \ on Windows
+'Otherwise return ""
+'FIXME: should handle network paths on Windows too
+FUNCTION get_path_root (pathname as string) as string
+#IFDEF __FB_WIN32__
+  DIM root as string = get_windows_path_root(pathname)
+  IF LEN(root) THEN RETURN root
 #ENDIF
   IF LEN(pathname) ANDALSO ispathsep(pathname[0]) THEN RETURN MID(pathname, 1, 1)
   RETURN ""
@@ -1100,8 +1108,17 @@ FUNCTION trim_path_root (pathname as string) as string
   END IF
 END FUNCTION
 
-FUNCTION is_absolute_path (sDir as string) as integer
+FUNCTION is_absolute_path (sDir as string) as bool
   RETURN LEN(get_path_root(sDir)) <> 0
+END FUNCTION
+
+'Return whether a path is absolute on this or any other OS
+FUNCTION is_possibly_absolute_path (pathname as string) as bool
+  IF LEN(pathname) THEN
+    IF pathname[0] = ASC("/") OR pathname[0] = ASC("\") THEN RETURN YES
+  END IF
+  IF LEN(get_windows_path_root(pathname)) THEN RETURN YES
+  RETURN NO
 END FUNCTION
 
 'Make a path absolute. See also absolute_with_orig_path
@@ -1226,6 +1243,151 @@ FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   IF RIGHT(ret, 1) <> SLASH THEN ret += SLASH
   RETURN ret
 END FUNCTION
+
+' Given a relative path to a file or dir by a user clueless about Unix/Windows differences, try to find
+' that file, returning either a simplified/normalised path or an error message. Use isfile() to test for success.
+' 'path' is not modified.
+' In particular:
+' - \ is treated as a path separator even on Unix
+' - The path is treated as case insensitive, and we search for a file matching that pattern
+' - If there are multiple files matching case insensitively, return an error
+' - If the path would be absolute on any platform, give up, this can't be made portable
+'
+' NOTE: while on UNIX we return the path with the actual capitalisation, on Windows we don't bother
+' to do so, and return the original path (normalised and simplified).
+FUNCTION find_file_portably (path as string) as string
+  IF is_possibly_absolute_path(path) THEN RETURN "Absolute path not allowed: " + path
+
+  CONST findhidden = YES
+
+  DIM _path as string = path
+  #IFDEF __UNIX__
+    replacestr _path, "\", "/"
+    _path = simplify_path(_path)
+
+    DIM ret as string
+    DIM filenames as string vector
+
+    ' Walk the path
+    REDIM components() as string
+    split _path, components(), SLASH
+
+    FOR idx as integer = 0 TO UBOUND(components)
+      DIM namemask as string = anycase(components(idx))
+      IF idx > 0 THEN ret += SLASH
+
+      IF components(idx) = ".." THEN
+        ret += components(idx)
+        CONTINUE FOR
+      END IF
+
+      IF idx = UBOUND(components) THEN
+        ' We don't know whether we're looking for a file or directory, allow either
+        v_move filenames, list_files_or_subdirs(ret, namemask, findhidden, -1)
+      ELSE
+        v_move filenames, list_subdirs(ret, namemask, findhidden)
+      END IF
+
+      IF v_len(filenames) = 0 THEN
+        ' Failure
+        v_free filenames
+        RETURN "Can't find " + ret + components(idx)
+      ELSEIF v_len(filenames) > 1 THEN
+        ' Return an error
+        DIM errmsg as string = "Found multiple paths"
+        IF LEN(ret) THEN errmsg += " (in " + ret + ")"
+        ' Sort just so the error message is deterministic, for testcases
+        v_sort filenames
+        errmsg += " with same case-insensitive name: " + v_str(filenames)
+        v_free filenames
+        RETURN errmsg
+      END IF
+      ret += filenames[0]
+    NEXT
+
+    v_free filenames
+    RETURN ret
+
+  #ELSE
+    ' On Windows, no searching needed
+    _path = simplify_path(path)
+    IF isfile(_path) OR isdir(_path) THEN RETURN _path
+    RETURN "Can't find " + _path
+  #ENDIF
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+' Have to allow find_file_portably to not resolve the true capitalisation on Windows
+#IFDEF __UNIX__
+  #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_unix)
+#ELSE
+  #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_windows)
+#ENDIF
+#DEFINE testfilemissing(path, expected) testEqual(find_file_portably(path), "Can't find " + normalize_path(expected))
+#DEFINE testfileabsolute(path) testEqual(find_file_portably(path), "Absolute path not allowed: " + path)
+
+startTest(find_file_portably)
+  CONST tempdir = "_Testdir.tmp"
+  CONST tempdir2 = tempdir + SLASH + "subDir"
+  IF makedir(tempdir) <> 0 THEN fail
+  IF makedir(tempdir2) <> 0 THEN fail
+  touchfile(tempdir + "/Foo.Tmp")
+  touchfile(tempdir2 + "/bar.TMP")
+  #IFDEF __UNIX__
+    touchfile(tempdir + "/file1.TMP")
+    touchfile(tempdir + "/FILE1.tmp")
+    IF makedir(tempdir + "/Subdir1") <> 0 THEN fail
+    IF makedir(tempdir + "/SUBDIR1") <> 0 THEN fail
+  #ENDIF
+
+  ' Test finding files
+  testfindfile(tempdir + "/foo.tmp",          tempdir + "/Foo.Tmp",  tempdir + "\foo.tmp")
+  testfindfile(tempdir + "\Foo.tmp",          tempdir + "/Foo.Tmp",  tempdir + "\Foo.tmp")
+  testfindfile(UCASE(tempdir) + "\foo.TMP",   tempdir + "/Foo.Tmp",  UCASE(tempdir) + "\foo.TMP")
+  testfindfile(tempdir2 + "/..\foo.tmp",      tempdir + "/Foo.Tmp",  tempdir + "\foo.tmp")
+  testfindfile(tempdir2 + "\../foo.tmp",      tempdir + "/Foo.Tmp",  tempdir + "\foo.tmp")
+  testfindfile(tempdir2 + "/Bar.tmp",         tempdir2 + "/bar.TMP", tempdir2 + "\Bar.tmp")
+  testfindfile(UCASE(tempdir2) + "\bar.tmp",  tempdir2 + "/bar.TMP", UCASE(tempdir2) + "\bar.tmp")
+  ' Test finding directories
+  testfindfile(tempdir,                       tempdir,  tempdir)
+  testfindfile(tempdir2,                      tempdir2, tempdir2)
+  testfindfile(UCASE(tempdir2),               tempdir2, UCASE(tempdir2))
+  testfindfile(tempdir2 + "/",                tempdir2, tempdir2)
+  testfindfile(tempdir2 + "\",                tempdir2, tempdir2)
+  testfindfile(tempdir2 + "//.",              tempdir2, tempdir2)
+  testfindfile(tempdir2 + "\\.",              tempdir2, tempdir2)
+  testfindfile(tempdir2 + "/..",              tempdir,  tempdir)
+  testfindfile(tempdir2 + "\..",              tempdir,  tempdir)
+  ' Test files that don't exist
+  testfilemissing(tempdir + "\Not.A.Directory\",        tempdir + SLASH + "Not.A.Directory")
+  testfilemissing(tempdir + "/Not here",                tempdir + SLASH + "Not here")
+  testfilemissing(tempdir2 + "\nor THERE",              tempdir2 + SLASH + "nor THERE")
+  testfilemissing(tempdir + "/FLOOP\..\not anywhere!",  tempdir + SLASH + "not anywhere!")  ' Should simplify
+  ' Test parent directories
+  CHDIR tempdir2
+  testfindfile("bar.tmp",                     "bar.TMP",    "bar.tmp")
+  testfindfile("..\foo.tmp",                  "../Foo.Tmp", "..\foo.tmp")
+  testfindfile("..\subdir",                   "../subDir",  "..\subdir")
+  testfindfile("..",                          "..",         "..")
+  CHDIR "../.."
+
+  ' Test disallowed paths
+  testfileabsolute("c:/Invalid")
+  testfileabsolute("c:\Invalid")
+  testfileabsolute("/Invalid")
+  ' Test multiple files with same case-collapsed path (can't happen on Windows)
+  #IFDEF __UNIX__
+    DIM normed as string = normalize_path(tempdir + "/")
+    testEqual(find_file_portably(tempdir + "/file1.tmp"), _
+              "Found multiple paths (in " + normed + ") with same case-insensitive name: [""FILE1.tmp"", ""file1.TMP""]")
+    testEqual(find_file_portably(tempdir + "/subdir1/file"), _
+              "Found multiple paths (in " + normed + ") with same case-insensitive name: [""SUBDIR1"", ""Subdir1""]")
+  #ENDIF
+
+  killdir(tempdir, YES)  'recursively
+endTest
+#ENDIF
+
 
 FUNCTION anycase (filename as string) as string
   'create a case-insensitive regex from a filename
@@ -1410,6 +1572,7 @@ END FUNCTION
 #endif
 
 'Finds files in a directory, writing them into an array without their path
+'(If you want to find a single file, use find_file_portably())
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
@@ -1574,7 +1737,7 @@ SUB killdir(directory as string, recurse as bool = NO)
 '  END IF
 END SUB
 
-'Returns zero on success
+'Returns zero on success (including if already exists)
 FUNCTION makedir (directory as string) as integer
   IF isdir(directory) THEN
     debuginfo "makedir: " & directory & " already exists"
