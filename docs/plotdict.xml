@@ -1521,13 +1521,37 @@ wait for text box # wait until the player continues</example>
 		<command id="gameover">
 			<canon>game over</canon>
 			<shortname>game over</shortname>
-			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <ref>resetgame</ref>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.</description>
+			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <ref>resetgame</ref>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.
+				<note>
+					By using <ref>resetgame</ref> or <ref>loadfromslot</ref> instead,
+					you can pass arguments to the newgame and loadgame scripts.
+				</note>
+			</description>
 		</command>
 		<command id="resetgame">
-			<canon>reset game</canon>
+			<canon>reset game(args...)</canon>
 			<shortname>reset game</shortname>
-			<description>Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <ref>gameover</ref> so that the program will not exit if the title screen and load screen have both been disabled. It always resets the game back to the beginning.</description>
+			<description>
+				Resets and starts a new game, skipping both title and load game screens.
+				It can be necessary to use this instead of <ref>gameover</ref> so that the
+				program will not exit if the title screen and load screen have both been disabled.
+				It always resets the game back to the beginning.
+				You can pass any number of optional <p>args</p>, which become the arguments
+				to the newgame script.
+				For an example, see <ref>loadfromslot</ref>, which passes its arguments
+				to the loadgame script in the same way.
+				<danger>
+					The default arguments of a newgame script (and all other triggered scripts)
+					are currently ignored.
+					If you don't pass enough <p>args</p>, then the remaining arguments default to zero.
+				</danger>
+			</description>
+			<seealso>
+				<ref>gameover</ref>
+				<ref>loadfromslot</ref>
+			</seealso>
 		</command>
+		<reference ref="rungame"/>
 	</section>		<!-- Triggering Stuff-->
 
 	<section title="Basic Display Commands">
@@ -7244,15 +7268,57 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<description>Saves in the specified save slot (1 to 32, regardless of how many are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
 		</command>
 		<command id="loadfromslot">
-			<canon>load from slot (slot)</canon>
+			<canon>load from slot (slot, args...)</canon>
 			<shortname>load from slot</shortname>
 			<description>
 				Loads a saved game from a save <p>slot</p> as if it had been loaded from the load game menu.
-				<p>slot</p> is a slot number from 1 to 32, regardless of how many are displayed on the Load and Save menus).
+				<p>slot</p> is a slot number from 1 to 32, (regardless of how many are displayed on the Load and Save menus).
 				This command will end the current game (and fade out and in again) if it successfully loads.
 				If the load fails because the slot has never been saved in, the script will continue.
 				Anything that you want to happen after loading a saved game needs to be put in the 'load game' script instead (specified in Special Plotscripts).
+				You can pass any number of additional optional <p>args</p> to the loadgame script.
+				(<p>slot</p> is also always passed as the first argument to the loadgame script,
+				so <p>args</p> are the 2nd and later arguments.)
+				<danger>
+					The default arguments of a loadgame script (and all other triggered scripts)
+					are currently ignored.
+					If you don't pass enough <p>args</p>, then the remaining arguments default to zero,
+					so don't use defaults other than zero!
+				</danger>
 			</description>
+			<example># This example shows automatically loading the last save when you die,
+# and does something special after loading by passing an argument to the loadgame
+# script. You could accomplish the same thing with a global variable instead.
+
+# "slot" is the save slot number
+# "is quickload" defaults to 0 (false) if the game is loaded from the regular load menu, and
+# can be something else if we use "load from slot"
+plotscript, my loadgame script, slot, is quickload, begin
+  if (is quickload) then (
+    show textbox(42)  # "You died and have been restored from the last save point!"
+    wait for textbox
+  )
+end
+
+plotscript, my gameover script, begin
+  fade screen out(63, 0, 0)  # fade to red
+  wait(10)
+  fade screen out(0, 0, 0)   # fade to black
+  if (last save slot) then (
+    # On death, reload the last save automatically, and tell the loadgame script we're doing so
+    load from slot(last save slot, true)
+  ) else (
+    # The player hasn't saved yet... too bad!
+    game over
+  )
+end</example>
+			<seealso>
+				<ref>loadmenu</ref>
+				<ref>saveinslot</ref>
+				<ref>saveslotused</ref>
+				<ref>lastsaveslot</ref>
+				<ref>resetgame</ref>
+			</seealso>
 		</command>
 		<command id="deletesave">
 			<canon>delete save (slot)</canon>
@@ -7388,11 +7454,9 @@ end</example>
 				path, like "bonus content\Prequel.rpg" or "../selectmenu.rpg".
 				The path is case-insensitive and <p>/</p> and <p>\</p> are interchangeable.
 			</description>
-			<example>
-				# load another file in the same directory
-				$0 = "part2.rpg"
-				run game(0)
-			</example>
+			<example># load another game in the same directory
+$0 = "part2.rpg"
+run game(0)</example>
 		</command>
 		<command id="milliseconds">
 			<canon>milliseconds</canon>

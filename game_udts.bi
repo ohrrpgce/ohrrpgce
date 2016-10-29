@@ -80,6 +80,8 @@ TYPE ScriptWantSignals
   loadgame as integer 'Save slot +1
   resetgame as bool   'Called "reset game"
   dont_quit_to_loadmenu as bool 'If no title screen, don't quit to the load menu.
+
+  script_args(any) as integer  'Arguments to newgame/loadgame
 END TYPE
 
 'Used when automatically updating the visibility of the virtual gamepad

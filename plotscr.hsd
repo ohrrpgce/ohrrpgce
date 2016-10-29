@@ -191,7 +191,7 @@ define function, begin
 171,saveslotused,1,1        # returns true if a saved game exists in the specified slot
 172,importglobals,3,1,-1,-1 # (slot) or (slot, id) or (slot, first, last) reads a range of globals from a save slot
 173,exportglobals,3,1,0,16383 # (slot) or (slot, first, last) writes a range of globals to a save slot
-174,loadfromslot,1,1        # loads saved game from slot
+174,loadfromslot,-1         # loads saved game from slot (slot, args...)
 175,deletesave,1,1          # delete (hide from load/save screen - data not *actaully* deleted) specified slot
 176,runscriptbyid,-1        # run a script by its id number and pass any number of arguments
 177,NPCiswalking,1,0        # (who) returns true if walking (for real, unlike the old implementation)
@@ -455,7 +455,7 @@ define function, begin
 435,parentslice,1,0           #return a slice's parent
 436,childcount,1,0            #return number of children of a slice
 437,lookupslice,2,0,0         #find a slice using a lookup code constant
-438,resetgame,0               #reset the game
+438,resetgame,-1              #reset the game (newgame args)
 439,sliceisvalid,1,0          #checks for a real, non-deleted slice handle
 440,iteminslot,1,0            #read inventory by position
 441,setiteminslot,2,0,0       #write inventory by position

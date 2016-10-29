@@ -30,6 +30,9 @@ global variable(114, testing script triggers)
 global variable(115, savegame map)
 global variable(116, savegame slice)
 global variable(117, savegame npc)
+global variable(118, called resetgame)
+global variable(119, hook loadgame)
+
 # 200-500 used in hstests.hss
 # 5000-6000 used in hstests.hss
 
@@ -41,6 +44,9 @@ global variable(117, savegame npc)
 define constant(10, err arg string)
 define constant(11, assert expression string)
 
+# save slots 1 and 2, at least, also get used
+define constant(31, save slot: persistent)
+
 ########################################################################
 
 # Set on starting map 0
@@ -50,9 +56,44 @@ plotscript, mapautorun, begin
   map autorun triggered += 1
 end
 
-plotscript, run all tests, begin
+# TODO: What would be nice is to reset the game between each test suite,
+# making use of the ability to pass args to a new/load game script,
+# so that we don't have to worry about things interfering with each other
+plotscript, new game, arg1, arg2, arg3, begin
+  trace($1="newgame script")
+  tracevalue(arg1, arg2, arg3)
   suspend player
   seed random(4444)
+
+  # This stuff is for "test reset game"
+  import globals(save slot: persistent, @called resetgame, @called resetgame)
+  if (called resetgame || arg1) then (
+    after resetgame(arg1, arg2, arg3)
+    run tests 2   # continue tests
+  )
+  else (
+    run tests 1   # start tests
+  )
+end
+
+plotscript, load game, slot, arg1, arg2, arg3, begin
+  trace($1="loadgame script")
+  tracevalue(slot, arg1, arg2, arg3, hook loadgame)
+  suspend player
+  seed random(4444)
+
+  if (hook loadgame) then (
+    after loadgame(arg1, arg2, arg3)
+    run tests 3   # continue tests
+  )
+  else (
+    # This means we weren't expecting this script to be called
+    crash
+  )
+end
+
+# testing starts here
+script, run tests 1, begin
   assert(map autorun triggered == 1)
   interpreter tests
   scheduling tests
@@ -72,21 +113,53 @@ plotscript, run all tests, begin
   enemy tests
   battle tests
   timer tests
-  savegame tests 1  # Saves and loads the game
+  resetgame tests   # Resets the game
+  crash
 end
 
-plotscript, load game, begin
-  savegame tests 2
+# follows "resetgame tests"
+script, run tests 2, begin
+  savegame tests  # Saves and loads the game
+  crash
+end
+
+# follows "savegame tests"
+script, run tests 3, begin
+  # more tests here, potentially
+  passed tests
+end
+
+script, passed tests, begin
   $0="TESTS SUCCEEDED"
   trace(0)
   gameover
 end
+
 
 ########################################################################
 
 script, w, ticks=default wait, begin
   wait(ticks)
   _checkpoint
+end
+
+# Returns a string of the script call stack in given string id
+script, callstack, string, begin
+  variable(depth, id)
+  depth := 1
+  $ string = ""
+  while (true) do (
+    id := getcallingscriptid(depth)
+    if (id == 0) then (break)
+    if (depth == 1) then (
+      getscriptname(string, id)
+    ) else (
+      getscriptname(95, id)
+      stringsprintf(string, $96="%s -> %s", 95, string)
+    )
+    depth += 1
+  )
+  return(string)
 end
 
 script, crash, begin
@@ -96,7 +169,13 @@ script, crash, begin
     $0+")"
   )
   show text box(1)
-  trace(0)
+  $1="crash() called from "
+  callstack(2)
+  1 $+ 2
+  trace(1)
+  $1="in testsuite: "
+  1 $+ 0
+  trace(1)
   w(25)
   # script error(0)
   game over
@@ -3145,8 +3224,9 @@ end
 
 ########################################################################
 
-script, savegame tests 1, begin
+script, savegame tests, begin
   $0="saving/loading tests 1"
+  trace(0)
   # Partially split into savegame tests 2
 
   # Preconditions
@@ -3175,7 +3255,9 @@ script, savegame tests 1, begin
   show string at(7, 100, 120)
   w
 
+  hook loadgame := 1
   save in slot(1)
+  hook loadgame := 0
   assert(save slot used(1) == true)
 
   # Change state a bit to check it's actually reset and loaded
@@ -3193,10 +3275,27 @@ script, savegame tests 1, begin
   w
 
   load from slot(1)
+  # continues from "after loadgame"
 
   $0="Loadgame didn't happen!"
   crash
 end
+
+script, after loadgame, arg1, arg2, arg3, begin
+  if (hook loadgame == 1) then (
+    assert(arg1 == 0)
+    assert(arg2 == 0)
+    assert(arg3 == 0)
+    savegame tests 2
+    crash
+  ) else (
+    assert(arg1 == 30)
+    assert(arg2 == -100)
+    assert(arg3 == 0)
+    hook loadgame := 0
+  )
+end
+
 
 # This is called from the loadgame plotscript
 script, savegame tests 2, begin
@@ -3226,6 +3325,56 @@ script, savegame tests 2, begin
   hide string(6)
   hide string(7)
   free slice(savegame slice)
+
+  # Now try passing args to the loadgame script
+  hook loadgame := 2
+  save in slot(1)
+  hook loadgame := 0
+  load from slot(1, 30, -100)
+  # continues from "after loadgame"
+
+  $0="Loadgame didn't happen!"
+  crash
+end
+
+
+########################################################################
+
+script, reset game tests, begin
+  $0="reset game tests"
+  trace(0)
+
+  # Test with no args
+  called resetgame := true
+  export globals(save slot: persistent, @called resetgame, @called resetgame)
+  reset game
+  $0="resetgame didn't happen!"
+  crash
+end
+
+# Called with default args
+plotscript, after resetgame, arg1, arg2, arg3, begin
+  $0="reset game tests"
+  trace(0)
+
+  called resetgame := false
+  export globals(save slot: persistent, @called resetgame, @called resetgame)
+
+  if (arg1 == 0) then (
+    # after resetting with no args
+    assert(arg2 == 0)
+    assert(arg3 == 0)
+
+    reset game(10, 20)
+    $0="resetgame didn't happen!"
+    crash
+  ) else (
+    # after resetting with args
+    assert(arg1 == 10)
+    assert(arg2 == 20)
+    assert(arg3 == 0)
+    # exit the script and continue to next tests
+  )
 end
 
 ########################################################################
@@ -3368,7 +3517,6 @@ end
 #load attack sprite (num, palette)
 #load backdrop sprite (num)
 #load border sprite (num, palette)
-#load from slot (slot)
 #load hero sprite (num, palette)
 #load large enemy sprite (num, palette)
 #load map state (whichdata, customid)
@@ -3450,7 +3598,6 @@ end
 #replace small enemy sprite (handle, num, palette)
 #replace walkabout sprite (handle, num, palette)
 #replace weapon sprite (handle, num, palette)
-#reset game
 #reset map state (whichdata)
 #reset palette
 #resume map music
@@ -3462,8 +3609,8 @@ end
 #resume random enemys
 #resume timers
 #RGB(red, green, blue)
+#run game
 #run script by ID (id, argument1, argument2, argument3...)
-#save in slot (slot)
 #save map state (whichdata, customid)
 #save menu (reallysave)
 #search string (ID1, ID2, start)

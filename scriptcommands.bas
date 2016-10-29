@@ -703,10 +703,17 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 167'--last save slot
   scriptret = lastsaveslot
- CASE 174'--load from slot
-  IF valid_save_slot(retvals(0)) THEN
+ CASE 174'--load from slot(slot, args...)
+  IF curcmd->argc = 0 THEN
+   scripterr "load from slot: Expected save slot as argument"
+  ELSEIF valid_save_slot(retvals(0)) THEN
    IF save_slot_used(retvals(0) - 1) THEN
     gam.want.loadgame = retvals(0)
+    ' Save extra args
+    REDIM gam.want.script_args(-1 TO curcmd->argc - 2)
+    FOR i as integer = 1 TO curcmd->argc - 1
+     gam.want.script_args(i - 1) = retvals(i)
+    NEXT
     script_start_waiting()
    END IF
   END IF
@@ -1000,6 +1007,10 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 438 '--reset game
   gam.want.resetgame = YES
+  REDIM gam.want.script_args(-1 TO curcmd->argc - 1)
+  FOR i as integer = 0 TO curcmd->argc - 1  'flexible argument number!
+   gam.want.script_args(i) = retvals(i)
+  NEXT
   script_start_waiting()
  CASE 490'--use item (id)
   scriptret = 0
@@ -1526,11 +1537,11 @@ SUB sfunctions(byval cmdid as integer)
     renamehero retvals(0), YES
    END IF
   END IF
- CASE 171'--saveslotused
+ CASE 171'--save slot used
   IF valid_save_slot(retvals(0)) THEN
    IF save_slot_used(retvals(0) - 1) THEN scriptret = 1 ELSE scriptret = 0
   END IF
- CASE 172'--importglobals
+ CASE 172'--import globals
   IF valid_save_slot(retvals(0)) THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
@@ -1549,13 +1560,13 @@ SUB sfunctions(byval cmdid as integer)
     END IF
    END IF
   END IF
- CASE 173'--exportglobals
+ CASE 173'--export globals
   IF valid_save_slot(retvals(0)) THEN
    IF retvals(1) >= 0 AND retvals(2) <= maxScriptGlobals AND retvals(1) <= retvals(2) THEN
     saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
    END IF
   END IF
- CASE 175'--deletesave
+ CASE 175'--delete save
   IF valid_save_slot(retvals(0)) THEN
    erase_save_slot retvals(0) - 1
   END IF
@@ -1573,7 +1584,7 @@ SUB sfunctions(byval cmdid as integer)
    scripterr "run script by id failed loading " & retvals(0), serrError
    scriptret = -1
   END IF
- CASE 180'--mapwidth([map])
+ CASE 180'--map width([map])
   'map width did not originally have an argument
   IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.x
@@ -1584,7 +1595,7 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = mapsize.wide
    END IF
   END IF
- CASE 181'--mapheight([map])
+ CASE 181'--map height([map])
   'map height did not originally have an argument
   IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.y
@@ -1595,9 +1606,9 @@ SUB sfunctions(byval cmdid as integer)
     scriptret = mapsize.high
    END IF
   END IF
- CASE 187'--getmusicvolume
+ CASE 187'--get music volume
   scriptret = get_music_volume * 255
- CASE 188'--setmusicvolume
+ CASE 188'--set music volume
   set_music_volume bound(retvals(0), 0, 255) / 255
  CASE 189, 307'--get formation song
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN

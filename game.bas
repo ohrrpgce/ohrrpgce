@@ -686,7 +686,11 @@ ELSE
  'Trigger textbox and/or script
  gam.want.box = gen(genStartTextbox)  '0 for no textbox
  IF gen(genNewGameScript) > 0 THEN
-  trigger_script gen(genNewGameScript), 0, YES, "newgame", "", mainFibreGroup
+  trigger_script gen(genNewGameScript), UBOUND(gam.want.script_args) + 1, YES, "newgame", "", mainFibreGroup
+  FOR idx as integer = 0 TO UBOUND(gam.want.script_args)
+   trigger_script_arg idx, gam.want.script_args(idx), "custom arg"
+  NEXT
+  REDIM gam.want.script_args(-1 TO -1)
  END IF
  prepare_map
 END IF
@@ -943,13 +947,19 @@ END SUB
 SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
  IF gen(genLoadGameScript) > 0 THEN
-  trigger_script gen(genLoadGameScript), 1, YES, "loadgame", "", mainFibreGroup
+  DIM nargs as integer = UBOUND(gam.want.script_args) + 2
+  trigger_script gen(genLoadGameScript), nargs, YES, "loadgame", "", mainFibreGroup
   '--pass save slot as argument
   IF load_slot = 32 THEN
    trigger_script_arg 0, -1, "slot"  'quickload slot
   ELSE
    trigger_script_arg 0, load_slot, "slot"
   END IF
+  '--pass more args, if provided to "load from slot"
+  FOR idx as integer = 1 TO nargs - 1
+   trigger_script_arg idx, gam.want.script_args(idx - 1), "custom arg"
+  NEXT
+  REDIM gam.want.script_args(-1 TO -1)
  END IF
  gam.map.same = YES
 
