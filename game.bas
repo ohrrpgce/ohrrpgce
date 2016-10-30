@@ -1077,7 +1077,7 @@ END SUB
 
 SUB interpolatecat
  'given the current positions of the caterpillar party, interpolate their inbetween frames
- FOR o as integer = 0 TO 10 STEP 5
+ FOR o as integer = 0 TO UBOUND(catx) - 5 STEP 5
   FOR i as integer = o + 1 TO o + 4
    catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
    caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
@@ -1088,7 +1088,7 @@ END SUB
 
 SUB update_heroes(byval force_step_check as integer=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
- FOR whoi as integer = 0 TO 3
+ FOR whoi as integer = 0 TO sizeActiveParty - 1
   IF herow(whoi).speed = 0 THEN
    '--cancel movement, or some of the following code misbehaves
    herow(whoi).xgo = 0
@@ -1153,24 +1153,24 @@ SUB update_heroes(byval force_step_check as integer=NO)
  'Caterpillar hero movement: if enabled and the leader about to move then make others trail
  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
   IF herow(0).xgo OR herow(0).ygo THEN
-   FOR i as integer = 15 TO 1 STEP -1
+   FOR i as integer = UBOUND(catx) TO 1 STEP -1
     catx(i) = catx(i - 1)
     caty(i) = caty(i - 1)
     catd(i) = catd(i - 1)
    NEXT i
-   FOR whoi as integer = 0 TO 3
+   FOR whoi as integer = 0 TO sizeActiveParty - 1
     herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
    NEXT whoi
   END IF
  ELSE
-  FOR whoi as integer = 0 TO 3
+  FOR whoi as integer = 0 TO sizeActiveParty - 1
    IF herow(whoi).xgo OR herow(whoi).ygo THEN herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
   NEXT whoi
  END IF
 
  'Non-caterpillar (normal [xy]go-based) hero movement
- REDIM didgo(0 TO 3) as integer
- FOR whoi as integer = 0 TO 3
+ REDIM didgo(0 TO sizeActiveParty - 1) as integer
+ FOR whoi as integer = 0 TO sizeActiveParty - 1
   'NOTE: this loop covers the max caterpillar size, and not the current
   ' return value of caterpillar_size() because empty hero slots still
   ' need to be movable on the map. Scripts sometimes want to move a hero

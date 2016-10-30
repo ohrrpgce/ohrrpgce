@@ -255,12 +255,14 @@ CONST fixSetOldAttackPosBit = 25 'Turn on "Old attack positioning at bottom-left
 CONST fixWrapCroppedMapsBit = 26 'Checked whether to turn on "Wrap map layers over edge of Crop maps" backcompat bit
 CONST fixInitNonElementalSpawning = 27 'Initialize non_elemental_for_spawning data in general.reld
 
-CONST sizefixbits = 27 ' *** Update this when adding fix bits ***
+CONST sizeFixBits = 28 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
+CONST sizeActiveParty = 4 'The size of the active/battle party
+CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST maplayerMax = 7 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
@@ -273,7 +275,7 @@ CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth
-'Amount of script data to cache
+'Amount of script data to cache (these are configurable)
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
 CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable

@@ -2,6 +2,7 @@
 #DEFINE GAME_UDTS_BI
 
 #INCLUDE "slices.bi"
+#INCLUDE "const.bi"
 
 'This file contains UDTs that only get used in game mode, and not in custom,
 'so as to prevent them from cluttering up the global udts.bi file
@@ -109,7 +110,7 @@ TYPE GameState
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called
   mouse as MouseInfo
-  hero(40) as HeroState
+  hero(sizeParty - 1) as HeroState
   debug_showtags as bool
   debug_npc_info as bool
   autorungame as bool                'Game was autorun, not selected from RPG browser
@@ -127,7 +128,7 @@ TYPE GameState
   quit as bool                       'Quit back to titlescreen
   pad as VirtualGamePadState
   user_toggled_fullscreen as bool    'User changed the default for this game
-  non_elemental_elements(63) as bool 'Loaded by load_non_elemental_elements()
+  non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

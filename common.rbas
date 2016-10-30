@@ -547,7 +547,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
 END FUNCTION
 
 SUB setfixbit(byval bitnum as integer, byval bitval as integer)
- IF bitnum > sizefixbits THEN fatalerror "setfixbit(" & bitnum & "): You forgot sizefixbits!"
+ IF bitnum >= sizeFixBits THEN fatalerror "setfixbit(" & bitnum & "): You forgot sizefixbits!"
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer = FREEFILE
@@ -4251,7 +4251,7 @@ SUB rpg_sanity_checks
 
  'Check fixbits.bin is not from future
  DIM maxbits as integer = filelen(workingdir + SLASH + "fixbits.bin") * 8
- FOR i as integer = sizefixbits + 1 TO maxbits - 1
+ FOR i as integer = sizeFixBits TO maxbits - 1
   IF getfixbit(i) THEN
    debug "Unknown fixbit " & i & " set"
    future_rpg_warning

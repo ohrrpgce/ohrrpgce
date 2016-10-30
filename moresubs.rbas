@@ -1656,7 +1656,7 @@ DO
  copypage holdscreen, vpage
  edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, page
  DIM y as integer = 0
- FOR i as integer = 0 TO 3
+ FOR i as integer = 0 TO sizeActiveParty - 1
   IF gam.hero(i).id >= 0 THEN
    DIM col as integer = uilook(uiText)
    edgeprint gam.hero(i).name, 128 - LEN(gam.hero(i).name) * 8, 5 + y * 10, col, page
@@ -1734,7 +1734,7 @@ SUB writejoysettings
  CLOSE #fh
 END SUB
 
-FUNCTION herocount (byval last as integer = 3) as integer
+FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
  '--differs from liveherocount() in that it does not care if they are alive
  DIM count as integer = 0
  FOR i as integer = 0 TO last
