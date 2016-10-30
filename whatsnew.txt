@@ -48,6 +48,9 @@ WHAT IS NEW?
       program while a joystick is plugged in [Ralph]
     * If you skipped the title instantly by pressing a key at the wrong
       moment then the load menu would have a blacked-out palette [Ralph]
+    * Harm tiles didn't work if there are 'gaps' in the active party
+      (caterpillar rank and party slots aren't equal) and caterpillar
+      party was disabled [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

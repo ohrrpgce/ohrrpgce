@@ -1201,7 +1201,9 @@ SUB update_heroes(byval force_step_check as integer=NO)
 
   DIM steppingslot as integer = whoi
   '--If caterpillar is not suspended, only the leader's motion determines a step
-  '--(a limitation of the caterpillar party)
+  '--(a limitation of the caterpillar party.)
+  '--BUG: if the caterpillar isn't properly interpolated, will get weird results like
+  '--jumping over tiles without damage.
   IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
 
   IF didgo(steppingslot) = YES AND (herow(steppingslot).xgo MOD 20) = 0 AND (herow(steppingslot).ygo MOD 20) = 0 THEN
@@ -1214,17 +1216,18 @@ SUB update_heroes(byval force_step_check as integer=NO)
    DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
    IF p AND passHarm THEN
 
+    DIM harm_whole_party as bool = NO
+
     IF whoi = 0 AND readbit(gen(), genBits, 1) = 0 THEN
-     'The caterpillar is disabled, so harm the whole party when the leader steps on a harm tile,
-     'for some customisable defintion of 'whole'
-     DIM howmany as integer
+     'The caterpillar is disabled, so maybe harm the whole party when the leader steps on a harm tile
+     'if backcompat sit, otherwise old buggy behaviour: just the leader
      IF readbit(gen(), genBits2, 12) THEN  'Harm tiles harm non-caterpillar heroes
-      howmany = herocount  'whole active party
-     ELSE
-      'Old buggy behaviour: just the leader
-      howmany = 1
+      harm_whole_party = YES
      END IF
-     FOR party_slot as integer = 0 TO howmany - 1
+    END IF
+
+    IF harm_whole_party THEN
+     FOR party_slot as integer = 0 TO sizeActiveParty - 1
       IF gam.hero(party_slot).id >= 0 THEN
        gam.hero(party_slot).stat.cur.hp = large(gam.hero(party_slot).stat.cur.hp - gmap(9), 0)
       END IF
