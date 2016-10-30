@@ -1634,17 +1634,25 @@ script, trigger tests, begin
 end
 
 script, assert hurt pattern, test no, start hp, h0, h1, h2, h3, begin
-  # h# is true if hero # should be hurt
+  # h# is the amount of damage by which hero # in the walkabout party should be hurt
+  # h# is ignored if # > number of heroes in walkabout party
   $0="assert hurt pattern, test no. "
   append number(0, test no)
-  assert(get hero stat(0, stat:hp) == start hp -- h0)
-  assert(get hero stat(1, stat:hp) == start hp -- h1)
-  assert(get hero stat(2, stat:hp) == start hp -- h2)
-  assert(get hero stat(3, stat:hp) == start hp -- h3)
-  set hero stat(0, stat:hp, start hp)
-  set hero stat(1, stat:hp, start hp)
-  set hero stat(2, stat:hp, start hp)
-  set hero stat(3, stat:hp, start hp)
+
+  subscript, consider rank, rank, harm amount, begin
+    if (hero by rank(rank) == -1) then (exit script)
+    # This will break if there are duplicate heroes, a well known flaw
+    variable(slot)
+    slot := find hero(hero by rank(rank))
+tracevalue(rank, slot, get hero stat(slot, stat:hp), start hp -- harm amount)
+    assert(get hero stat(slot, stat:hp) == start hp -- harm amount)
+    set hero stat(slot, stat:hp, start hp)
+  end
+
+  consider rank(0, h0)
+  consider rank(1, h1)
+  consider rank(2, h2)
+  consider rank(3, h3)
 end
 
 script, harm tile tests, begin
@@ -1657,55 +1665,79 @@ script, harm tile tests, begin
 
   variable(start hp)
   start hp := get hero stat(0, stat:hp, current stat)
-  # hero is now at tile 7,6, caterpillar is enabled and not suspended, and all heroes have 'start hp' hp
 
   write map block(6, 6, 140, 1)
   write pass block(6, 6, harmtile)
 
-  # Test damage to individual heroes, caterpillar enabled
-  # also testing crossing over harmtile without stopping
-  walk hero(me, left, 1)
-  wait for hero(me), _checkpoint   # check for flash
-  assert hurt pattern(0, start hp, true, false, false, false)
-  walk hero(me, left, 2)
-  wait for hero(me), _checkpoint
-  assert hurt pattern(1, start hp, false, true, true, false)
+  subscript, test damage patterns, begin
+    set caterpillar mode(on)
+    # Turn off "Harm tiles harm non-caterpillar party" (actually the current setting in the .rpg)
+    write general(177, read general(177), and, (-1, xor, 2^12))
+    # hero is now at tile 7,6, caterpillar is enabled and not suspended, and all heroes have 'start hp' hp
 
-  # Test damage to individual heroes, caterpillar suspended
-  suspend caterpillar
-  walk hero(1, right, 1)
-  walk hero(2, down, 1)
-  walk hero(3, left, 1)
-  wait for hero(3)
-  assert hurt pattern(2, start hp, false, true, false, true)
+    # Test damage to individual heroes, caterpillar enabled
+    # also testing crossing over harmtile without stopping
+    walk hero(me, left, 1)
+    wait for hero(me), _checkpoint   # check for flash
+    assert hurt pattern(0, start hp, true, false, false, false)
+    walk hero(me, left, 2)
+    wait for hero(me), _checkpoint
+    assert hurt pattern(1, start hp, false, true, true, false)
 
-  # Test damage to whole party, caterpillar disabled
-  set caterpillar mode(off)
-  walk hero(me, right, 3)
-  wait for hero(me)
-  # "Harm tiles harm non-caterpillar party" is off
-  assert hurt pattern(3, start hp, true, false, false, false)
-  # Turn on "Harm tiles harm non-caterpillar party"
-  write general(177, read general(177), or, 2^12)
-  walk hero(me, left, 2)
-  wait for hero(me)
-  assert hurt pattern(4, start hp, true, true, true, true)
-  # Check this makes no difference
-  resume caterpillar
-  walk hero(me, right, 2)
-  wait for hero(me)
-  assert hurt pattern(5, start hp, true, true, true, true)
+    # Test damage to individual heroes, caterpillar suspended
+    suspend caterpillar
+    walk hero(1, right, 1)  # step onto harm tile
+    walk hero(2, down, 1)   # step off harm tile
+    walk hero(3, left, 1)   # step onto harm tile
+    wait for hero(2)
+    assert hurt pattern(2, start hp, false, true, false, true)
 
+    # Test damage to whole party, caterpillar disabled
+    # (Leader walks back and forth over the tile)
+    set caterpillar mode(off)
+    walk hero(me, right, 3)  # two tiles onto harm, then one off
+    wait for hero(me)
+    # "Harm tiles harm non-caterpillar party" is off
+    assert hurt pattern(3, start hp, true, false, false, false)
+    # Turn on "Harm tiles harm non-caterpillar party"
+    write general(177, read general(177), or, 2^12)
+    walk hero(me, left, 2)
+    wait for hero(me)
+    assert hurt pattern(4, start hp, true, true, true, true)
+    # Check this makes no difference
+    resume caterpillar
+    walk hero(me, right, 2)
+    wait for hero(me)
+    assert hurt pattern(5, start hp, true, true, true, true)
+  end
+
+  # Test with four heroes in the party
+  trace($99="First harmtile test run")
+  test damage patterns
+
+  # Move hero back to 7,6
+  set hero position(me, 11, 6)
+  walk hero to x(me, 7)
+  wait for hero(me)
+
+  # Test party and walkabout slots not matching
+  trace($99="Second harmtile test run")
+  swap by position(0, 20) # remove leader
+  test damage patterns
+
+  # Test damage value
   set harm tile damage(2)
   walk hero(me, left, 2)
   wait for hero(me)
   assert hurt pattern(6, start hp, 2, 2, 2, 2)
 
+  # Test death
   test harm tile death(start hp)
-  
+
+  # Cleanup
   write map block(6, 6, 0, 1)
   write pass block(6, 6, 0)
-
+  swap by position(0, 20) # return leader
   set caterpillar mode(on)
   set harm tile damage(1)  # restore
   # Caterpiller on and resumed, all heroes have 'start hp' hp

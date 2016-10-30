@@ -664,6 +664,11 @@ plotscript, run collider_rpg, begin
   run game($0="COLLIDER.RPG")
 end
 
+# In 'Testing scripts' menu
+plotscript, swap slot 0 and 3, begin
+  swap by position(0, 3)
+end
+
 plotscript, run vikings_rpgdir, begin
   run game($0="..\VIKINGS/vikings.rpgdir")
 end
