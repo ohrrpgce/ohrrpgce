@@ -284,14 +284,16 @@ DO
 
 presentsong = -1
 
-clearpage vpage  ' Remove junk when using "run game"
-setvispage vpage
 gam.current_master_palette = -1
 load_default_master_palette master()
 setpal master()
 DefaultUIColors uilook(), boxlook()
 getdefaultfont current_font()
 setfont current_font()
+
+' Remove junk when using "run game"
+clearpage vpage
+setvispage vpage
 
 '-- Init joysticks
 FOR i as integer = 0 TO 1

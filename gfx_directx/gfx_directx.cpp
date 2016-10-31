@@ -125,6 +125,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_present, Surface* pSurfaceIn, ::Palette* pPalette)
 	if(pSurfaceIn->format == SF_32bit)
 		g_DirectX.present32( pSurfaceIn->pColorData, pSurfaceIn->width, pSurfaceIn->height );
 	else
+		// FIXME: this crashes if gfx_setpal hasn't been called yet
 		g_DirectX.present( pSurfaceIn->pPaletteData, pSurfaceIn->width, pSurfaceIn->height, &gfx::Palette<UINT>(pPalette->p, 256) );
 	gfx_PumpMessages();
 
@@ -496,6 +497,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 DFI_IMPLEMENT_CDECL(void, gfx_PresentOld, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
 	if(pPalette)
+		// FIXME: this crashes if gfx_setpal hasn't been called yet
 		g_DirectX.present(pSurface, nWidth, nHeight, &gfx::Palette<UINT>(pPalette, 256));
 	else
 		g_DirectX.present(pSurface, nWidth, nHeight, NULL);
