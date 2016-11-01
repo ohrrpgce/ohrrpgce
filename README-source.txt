@@ -1,25 +1,45 @@
-Welcome to the OHRRPGCE Source Code documentation! This file explains what
-you need in order to compile the OHRRPGCE, some hints for hacking
-improvements, and apologies for the general crappyness of most of the
-code :)
 -----------------------------------------------------------------------------
-See http://rpg.HamsterRepublic.com/ohrrpgce/Source for more detailed,
-up-to-date information, especially
-http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
+   Official Hamster Republic RPG Construction Engine    (O.H.R.RPG.C.E)
+                                    http://HamsterRepublic.com/ohrrpgce/
 -----------------------------------------------------------------------------
-WINDOWS/LINUX:
-  Recommends FreeBasic version 0.90.1
-  Requires minimum FreeBasic version 0.22.0
+
+Welcome to the OHRRPGCE Source Code! This file gives some basic instructions
+for compiling the OHRRPGCE, some hints for hacking improvements, and
+apologies for the general crappyness of much of the code :)
+-----------------------------------------------------------------------------
+We strongly recommend reading http://rpg.HamsterRepublic.com/ohrrpgce/Source
+for more detailed up-to-date compiling instructions and documentation of the
+source code, especially http://rpg.HamsterRepublic.com/ohrrpgce/Compiling
+
+Please see whatsnew.txt for the changelog.
+-----------------------------------------------------------------------------
+LICENSE:
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the
+  Free Software Foundation; either version 2 of the License, or (at your
+  option) any later version. See LICENSE.txt for the full text of the GPL.
+
+  Any .RPG files you create are yours to distribute as you please; the GPL
+  does not apply to games made with the engine.
+-----------------------------------------------------------------------------
+WINDOWS/LINUX/UNIX:
+  Recommend FreeBasic version 1.05.0
+  Requires minimum FreeBasic version 1.00.0
   Download FreeBasic from http://freebasic.net/
+   http://rpg.hamsterrepublic.com/ohrrpgce/Getting_FreeBasic
   Compiling requires Python and Scons
   Building HSpeak requires Euphoria v4.0+: http://www.OpenEuphoria.com/
+  (Compiling x86_64 versions of HSpeak requires Euphoria 4.1)
+  Compiling gfx_directx.dll (optional) requires Visual C++ and a DirectX SDK.
+  (See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling#gfx_directx)
+  x86, x86_64, and ARM on Win32, GNU/Linux, OSX and Android are tested.
 -----------------------------------------------------------------------------
 MAC OS X:
-  Compiling requires Python, Scons, and a custom FreeBasic build.
-  Read "Compiling" on the wiki.
+  Compiling requires Python, Scons, and a fork of FreeBasic 1.06+
+  Read http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_in_Mac_OS_X
 -----------------------------------------------------------------------------
 ANDROID:
-  Requires fbc-arm
+  Requires a fork of FreeBasic 1.06+
   Requires sdl-android (ohrrpgce fork)
   See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_for_Android for info
 -----------------------------------------------------------------------------
@@ -30,14 +50,16 @@ INSTRUCTIONS
   Install SConscript
   Run "scons --help" to see options
   Run "scons" to compile Game and Custom
+   (32 bit) or "scons arch=64" (64 bit)
+  (Unix only) You can run "scons install" to install system-wide or as part
+  of creating a package. You can run linux/ohrrpgce.py to create a .deb file.
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known
   bugs, visit http://HamsterRepublic.com/ohrrpgce/buglist.php
   We also welcome code-cleanup and new features as long as you don't break
   compatibility with existing games. If you want to submit a improvement
-  to us, I recommend you post your patch and/or a description of the changes
-  to http://HamsterRepublic.com/bugzilla/ instead of e-mailing it to us.
+  see http://rpg.hamsterrepublic.com/ohrrpgce/Source#Submitting_Improvements
 -----------------------------------------------------------------------------
 WHAT IF YOU WANT TO BREAK COMPATIBILITY?
   I will not accept patches that break compatibility into the official
@@ -57,7 +79,7 @@ HISTORY & AN APOLOGY
 
   When I first started programming the OHRRPGCE back in late 1996, I was
   ignorant of many important programming concepts. The most noticeable of
-  which are functional programming, and namespace scoping. All of my
+  which are procedural programming and namespace scoping. All of my
   subroutines were written using basic's GOSUB RETURN structure, which is
   like a function, except that it has no local namespace, takes no arguments
   and returns no values (so it is really not much like a function at all!)
@@ -71,7 +93,7 @@ HISTORY & AN APOLOGY
   solve the problem, so I had to break the code up into multiple modules,
   and the only way to do that was to convert my GOSUBs into SUBs and
   FUNCTIONs. Remember now, at the time I was still an ignorant newbie
-  programmer, and I did not understand the concept of functional
+  programmer, and I did not understand the concept of procedural
   programming. I just saw subs and functions as a way to break my code into
   smaller pieces, and my code was heavily dependant on global namespace, so I
   ended up with a bunch of subs and functions with very very long argument
@@ -104,8 +126,8 @@ HISTORY & AN APOLOGY
 
   Well, I hope that doesn't discourage you too much. Play around with the
   code, have fun, and if you make any improvements that you would like me
-  to merge back into the official version, submit patches to me at
-  http://HamsterRepublic.com/bugzilla/
+  to merge back into the official version, submit patches/pull requests; see
+  http://rpg.hamsterrepublic.com/ohrrpgce/Source#Submitting_Improvements
 -----------------------------------------------------------------------------
 James Paige - Bob@HamsterRepublic.com - http://HamsterRepublic.com/ohrrpgce/
 -----------------------------------------------------------------------------

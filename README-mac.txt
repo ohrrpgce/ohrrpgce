@@ -20,8 +20,8 @@ Copy it anywhere in your home folder.
 ---
 HELP
 
-While editing your game with OHRRPGCE-Custom, you can
-press F1 at any time to get help about the current screen.
+While editing your game with OHRRPGCE-Custom, you can press F1
+or Cmd-Shift-? at any time to get help about the current screen.
 
 Visit http://rpg.hamsterrepublic.com/ohrrpgce/Main_Page
 for more help.
