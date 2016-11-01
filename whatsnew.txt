@@ -26,6 +26,8 @@ WHAT IS NEW?
       (.rpg file/.rpgdir) [Ralph]
     * You can now pass arguments to the newgame and loadgame scripts by
       giving extra arguments to "resetgame" and "loadfromslot" [Ralph]
+    * "reparent to npc" and "reparent to hero" convenience functions
+      [James]
 
   * Changes
 

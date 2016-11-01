@@ -1495,6 +1495,14 @@ script, set padding, hsd:sl, hsd:newpadding, begin
   set bottom padding(hsd:sl, hsd:newpadding)
 end
 
+script, reparent to npc, hsd:sl, hsd:npc, begin
+  set parent(hsd:sl, lookup slice(sl:walkabout sprite component, get npc slice(hsd:npc)))
+end
+
+script, reparent to hero, hsd:sl, hsd:hero rank, begin
+  set parent(hsd:sl, lookup slice(sl:walkabout sprite component, get hero slice(hsd:hero rank)))
+end
+
 #--------------------------------------------------------------------------
 # script triggers
 

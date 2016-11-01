@@ -1541,7 +1541,7 @@
 		<a href="#about-loadbordersprite">load border sprite (num, palette)</a><br>
 		
 	
-		<a href="#about-loadfromslot">load from slot (slot)</a><br>
+		<a href="#about-loadfromslot">load from slot (slot, args...)</a><br>
 		
 	
 		<a href="#about-loadherosprite">load hero sprite (num, palette)</a><br>
@@ -1916,6 +1916,12 @@
 		<a href="#about-renameherobyslot">rename hero by slot(who)</a><br>
 		
 	
+		<a href="#about-reparenttohero">reparent to hero (handle, hero)</a><br>
+		
+	
+		<a href="#about-reparenttonpc">reparent to npc (handle, npc)</a><br>
+		
+	
 		<a href="#about-replaceattacksprite">replace attack sprite (handle, num, palette)</a><br>
 		
 	
@@ -1949,7 +1955,7 @@
 		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-resetgame">reset game</a><br>
+		<a href="#about-resetgame">reset game(args...)</a><br>
 		
 	
 		<a href="#about-resetheropalette">reset hero palette (who,type)</a><br>
@@ -2022,6 +2028,9 @@
 		<a href="#about-keyconstants">right key</a><br>
 	
 		<a href="#about-roominactiveparty">room in active party</a><br>
+		
+	
+		<a href="#about-rungame">run game(file string id)</a><br>
 		
 	
 		<a href="#about-runningonconsole">running on console</a><br>
@@ -5346,6 +5355,13 @@ resume box advance # go back to normal</pre>
 		<h4>game over</h4>
 <p>
 			Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <a href="#about-resetgame" class="ref">reset game</a>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					By using <a href="#about-resetgame" class="ref">reset game</a> or <a href="#about-loadfromslot" class="ref">load from slot</a> instead,
+					you can pass arguments to the newgame and loadgame scripts.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -5353,14 +5369,39 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 <a name="about-resetgame"></a>
-		<h4>reset game</h4>
+		<h4>reset game(args...)</h4>
 <p>
-			Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> so that the program will not exit if the title screen and load screen have both been disabled. It always resets the game back to the beginning.
+			
+				Resets and starts a new game, skipping both title and load game screens.
+				It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> so that the
+				program will not exit if the title screen and load screen have both been disabled.
+				It always resets the game back to the beginning.
+				You can pass any number of optional <span class="param">args</span>, which become the arguments
+				to the newgame script.
+				For an example, see <a href="#about-loadfromslot" class="ref">load from slot</a>, which passes its arguments
+				to the loadgame script in the same way.
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					The default arguments of a newgame script (and all other triggered scripts)
+					are currently ignored.
+					If you don't pass enough <span class="param">args</span>, then the remaining arguments default to zero.
+				<br clear="all">
+</div>
 			
 			
 			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-gameover" class="ref">game over</a>, </li>
+<li><a href="#about-loadfromslot" class="ref">load from slot</a></li>
+</ul>
+</div>
 		</p>
 </div>
+		<div class="command">
+		<h4>run game(file string id)</h4>
+		<p><a href="#about-rungame">Defined in the Advanced Functions section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -5924,7 +5965,7 @@ end</pre>
 <a name="about-setiteminslot"></a>
 		<h4>set item in slot (slot, item)</h4>
 <p>
-			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen (slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1), and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.
+			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen (slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1), and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase an item slot, use -1 as the item ID. If the slot was empty, one copy of the item will be placed in it. Otherwise the original item count is preserved. If the maximum stack size of the new item type is less than the number of items in that slot, the extra items will be removed from that slot and placed whereever there is room.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10210,6 +10251,26 @@ end
 		<h4>get slice extra (handle, extra)</h4>
 <p>
 			Retrieve an extra data value previously set on a slice <span class="param">handle</span> with <a href="#about-setsliceextra" class="ref">set slice extra</a>. <span class="param">extra</span> is a number from 0 to 2 which indicates which extra data field to read.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-reparenttonpc"></a>
+		<h4>reparent to npc (handle, npc)</h4>
+<p>
+			Reparent a slice <span class="param">handle</span> so that it is attached to an NPC's sprite. The <span class="param">npc</span> argument can be an ID number or an NPC reference. The slice will be parented to the NPC's sprite component. If you want it to be parented to the NPC's container slice you should use <a href="#about-setparent" class="ref">set parent</a>(<span class="param">handle</span>, <a href="#about-getnpcslice" class="ref">get npc slice</a>(<span class="param">npc</span>)) instead.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-reparenttohero"></a>
+		<h4>reparent to hero (handle, hero)</h4>
+<p>
+			Reparent a slice <span class="param">handle</span> so that it is attached to an hero's walkabout caterpillar sprite. The <span class="param">hero</span> argument is the hero's rank in the caterpillar party. The slice will be parented to the hero's sprite component. If you want it to be parented to the hero's container slice you should use <a href="#about-setparent" class="ref">set parent</a>(<span class="param">handle</span>, <a href="#about-getheroslice" class="ref">get hero slice</a>(<span class="param">hero</span>)) instead.
 			
 			
 			
@@ -15177,18 +15238,65 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 </div>
 		<div class="command">
 <a name="about-loadfromslot"></a>
-		<h4>load from slot (slot)</h4>
+		<h4>load from slot (slot, args...)</h4>
 <p>
 			
 				Loads a saved game from a save <span class="param">slot</span> as if it had been loaded from the load game menu.
-				<span class="param">slot</span> is a slot number from 1 to 32, regardless of how many are displayed on the Load and Save menus).
+				<span class="param">slot</span> is a slot number from 1 to 32, (regardless of how many are displayed on the Load and Save menus).
 				This command will end the current game (and fade out and in again) if it successfully loads.
 				If the load fails because the slot has never been saved in, the script will continue.
 				Anything that you want to happen after loading a saved game needs to be put in the 'load game' script instead (specified in Special Plotscripts).
+				You can pass any number of additional optional <span class="param">args</span> to the loadgame script.
+				(<span class="param">slot</span> is also always passed as the first argument to the loadgame script,
+				so <span class="param">args</span> are the 2nd and later arguments.)
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					The default arguments of a loadgame script (and all other triggered scripts)
+					are currently ignored.
+					If you don't pass enough <span class="param">args</span>, then the remaining arguments default to zero,
+					so don't use defaults other than zero!
+				<br clear="all">
+</div>
 			
 			
-			
-			
+			<pre># This example shows automatically loading the last save when you die,
+# and does something special after loading by passing an argument to the loadgame
+# script. You could accomplish the same thing with a global variable instead.
+
+# "slot" is the save slot number
+# "is quickload" defaults to 0 (false) if the game is loaded from the regular load menu, and
+# can be something else if we use "load from slot"
+plotscript, my loadgame script, slot, is quickload, begin
+  if (is quickload) then (
+    show textbox(42)  # "You died and have been restored from the last save point!"
+    wait for textbox
+  )
+end
+
+plotscript, my gameover script, begin
+  fade screen out(63, 0, 0)  # fade to red
+  wait(10)
+  fade screen out(0, 0, 0)   # fade to black
+  if (last save slot) then (
+    # On death, reload the last save automatically, and tell the loadgame script we're doing so
+    load from slot(last save slot, true)
+  ) else (
+    # The player hasn't saved yet... too bad!
+    game over
+  )
+end</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-loadmenu" class="ref">load menu</a>, </li>
+<li>
+<a href="#about-saveinslot" class="ref">save in slot</a>, </li>
+<li>
+<a href="#about-saveslotused" class="ref">save slot used</a>, </li>
+<li>
+<a href="#about-lastsaveslot" class="ref">last save slot</a>, </li>
+<li><a href="#about-resetgame" class="ref">reset game</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -15327,9 +15435,28 @@ end</pre>
 <a name="about-runscriptbyid"></a>
 		<h4>run script by ID (id, argument1, argument2, argument3...)</h4>
 <p>
-			The <span class="param">run script by id</span> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A run-time error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">No check on the correct number of arguments can be performed, so default arguments are not used.<br clear="all">
+			
+				The <span class="param">run script by id</span> command allows you to run a script using its ID.
+				You can get the ID of a script by writing <span class="param">@</span> (the 'reference' operator)
+				in front of its name, see the example.
+				You can not run a built-in command like <a href="#about-wait" class="ref">wait</a>; they aren't scripts.
+				Arguments after the ID will be passed to the script.
+				The return value of this command is whatever value the script returns.
+				A run-time error is displayed and -1 is returned if the script does not exist.
+				You can pass up to 31 arguments to the script.
+				<br>
+				The advantage of this command as opposed to just calling the script directly is that the ID may be stored in a variable,
+				or it could be the function return value of another script.
+				For example, using <a href="#about-setsliceextra" class="ref">set slice extra</a> you might want to store the ID
+				of a script that should be run when the player clicks on a slice.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you pass too few arguments, the unspecified ones will have value zero <b>regardless</b> of any default values given in the script declaration.
+					<br>
+					If you pass too many (which does not cause an error), the extra ones are ignored.
+				<br clear="all">
 </div>
+			
 			
 			<pre>plotscript,scriptcallingtest,begin
   show value (run script by id (@sum, 1, 2, 3))
@@ -15344,6 +15471,25 @@ end</pre>
 <li><a href="#about-getcallingscriptid" class="ref">get calling script id</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-rungame"></a>
+		<h4>run game(file string id)</h4>
+<p>
+			
+				Quit the current game and switch to a different .rpg file/.rpgdir.
+				When that game is quit, the program either exits or goes to the game browse as usual.
+				<span class="param">file string id</span> is the ID of a string that contains the filename of the game to load.
+				If the game is not in the same directory, then you need to provide a relative
+				path, like "bonus content\Prequel.rpg" or "../selectmenu.rpg".
+				The path is case-insensitive and <span class="param">/</span> and <span class="param">\</span> are interchangeable.
+			
+			
+			<pre># load another game in the same directory
+$0 = "part2.rpg"
+run game(0)</pre>
+			
 		</p>
 </div>
 		<div class="command">
@@ -16270,7 +16416,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 769 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 772 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

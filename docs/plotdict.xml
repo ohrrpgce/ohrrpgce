@@ -4356,6 +4356,16 @@ end
 			<shortname>get slice extra</shortname>
 			<description>Retrieve an extra data value previously set on a slice <p>handle</p> with <ref>setsliceextra</ref>. <p>extra</p> is a number from 0 to 2 which indicates which extra data field to read.</description>
 		</command>
+		<command id="reparenttonpc">
+			<canon>reparent to npc (handle, npc)</canon>
+			<shortname>reparent to npc</shortname>
+			<description>Reparent a slice <p>handle</p> so that it is attached to an NPC's sprite. The <p>npc</p> argument can be an ID number or an NPC reference. The slice will be parented to the NPC's sprite component. If you want it to be parented to the NPC's container slice you should use <ref>setparent</ref>(<p>handle</p>, <ref>getnpcslice</ref>(<p>npc</p>)) instead.</description>
+		</command>
+		<command id="reparenttohero">
+			<canon>reparent to hero (handle, hero)</canon>
+			<shortname>reparent to hero</shortname>
+			<description>Reparent a slice <p>handle</p> so that it is attached to an hero's walkabout caterpillar sprite. The <p>hero</p> argument is the hero's rank in the caterpillar party. The slice will be parented to the hero's sprite component. If you want it to be parented to the hero's container slice you should use <ref>setparent</ref>(<p>handle</p>, <ref>getheroslice</ref>(<p>hero</p>)) instead.</description>
+		</command>
 
 		<section title="Getting Slices">
 		<description>This section describes commands to find existing slices or load them from a defined slice collection. Commands to create slices are in other sections.</description>
