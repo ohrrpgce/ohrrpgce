@@ -1530,15 +1530,33 @@ SUB extendfile (byval fh as integer, byval length as integer)
  END IF
 END SUB
 
+' This translates a filename, e.g. returned from browse() or findfiles() to
+' Latin-1 so it can be displayed normally.
+' FIXME: check the font type instead of assuming Latin-1.
+'
+' Filenames may be in various encodings depending on OS, filesystem, and locale.
+' In practice, on Unix the encoding might be anything, and is determined by
+' the LANG and LC_CTYPE envvars.
+' On Windows, there are ANSI (8-bit) and UTF-16 filenames for each file, depending
+' on which variant of winapi functions get called; FB uses the ANSI ones
+' meaning filenames are encoded in the system codepage, often Windows-1252
+' (an extension of Latin1).
+' FIXME: it appears that ANSI filenames on Windows can't be used to open
+' files that can't be encoded in the ANSI codepage; Windows does lossy conversion.
+'
+' The engine recieves filenames in the unknown encoding, treats them as byte
+' strings (aside from dependable ASCII characters like / \ .) and then hands
+' them back to the OS, and must never attempt to muck with the encoding
+' along the way. This function must ONLY be used for display, as it is lossy!
+FUNCTION decode_filename(filename as string) as string
+  IF LEN(filename) = 0 THEN RETURN filename
 #ifdef __UNIX__
-
-'Attempt to decode a filename (using native encoding) and then convert down to Latin-1 encoding
-PRIVATE FUNCTION decode_filename(filename as string) as string
   DIM length as integer
   DIM unicode as wstring ptr
 
-/'
-  'Always assume UTF8 -- doesn't work in practise
+#ifdef __FB_ANDROID__
+  'Android NDK doesn't support mbstowcs or non-C locales (only exposed to Java apps),
+  'and is always UTF8
   length = utf8_length(strptr(filename))
   IF length < 0 THEN
     debuginfo "decode_filename(" & filename & ") failed, " & length
@@ -1546,12 +1564,9 @@ PRIVATE FUNCTION decode_filename(filename as string) as string
   END IF
   unicode = utf8_decode(strptr(filename), @length)
   IF unicode = NULL THEN RETURN filename  'Shouldn't happen
-'/
-#ifdef __FB_ANDROID__
-  'Android NDK doesn't support mbstowcs or non-C locales (only exposed to Java apps)
-  'FIXME: Not sure what to do...
-  RETURN filename
+
 #else
+/' This is just equivalent to assigning a string to a wstring!
   length = mbstowcs(NULL, STRPTR(filename), 0)
   IF length = -1 THEN
     debuginfo "decode_filename(" & filename & ") failed"
@@ -1559,33 +1574,36 @@ PRIVATE FUNCTION decode_filename(filename as string) as string
   END IF
   unicode = allocate(SIZEOF(wstring) * (length + 1))
   mbstowcs(unicode, STRPTR(filename), length + 1)
-
-  'DIM ret as string = SPACE(length)
-  'wstring_to_latin1(unicode, strptr(ret), length + 1)
-  DIM ret as string = *unicode
-  'debug "decode_filename(" & filename & ") = " & ret
-  deallocate unicode
-  RETURN ret
+'/
+  length = LEN(filename)
+  unicode = allocate(SIZEOF(wstring) * (length + 1))
+  *unicode = filename
 #endif
 
-END FUNCTION
+  DIM ret as string = SPACE(length)
+  length = wstring_to_latin1(unicode, strptr(ret), length + 1)
+  ' The result might be shorter
+  ret = LEFT(ret, length)
+  deallocate unicode
 
 #elseif defined(__FB_WIN32__)
 
-'Convert Windows-1252 to Latin-1 by removing the extra characters
-FUNCTION decode_filename(filename as string) as string
-  DIM ret as string = SPACE(LEN(filename))
-  FOR i as integer = 0 TO LEN(filename) - 1
-    IF filename[i] >= 127 AND filename[i] <= 160 THEN
+  'Internally FB uses legacy ANSI file IO functions, so Windows
+  'converts everything to the system codepage for us, typically Windows-1252.
+  'Convert Windows-1252 to Latin-1 by removing the extra characters
+  '(There's little point doing this)
+  DIM ret as string = filename
+  FOR i as integer = 0 TO LEN(ret) - 1
+    IF ret[i] >= 127 AND ret[i] <= 160 THEN
       ret[i] = ASC("?")
-    ELSE
-      ret[i] = filename[i]
     END IF
   NEXT
-  RETURN ret
-END FUNCTION
 
 #endif
+
+  'debug "decode_filename(" & filename & ") = " & ret
+  RETURN ret
+END FUNCTION
 
 'Finds files in a directory, writing them into an array without their path
 '(If you want to find a single file, use find_file_portably())
@@ -1624,7 +1642,7 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
      IF filenames[i] = "dev" ORELSE filenames[i] = "proc" ORELSE filenames[i] = "sys" THEN CONTINUE FOR
      'Maybe we should filter out some other dirs on Mac and on Android?
     END IF
-    str_array_append filelist(), decode_filename(filenames[i])
+    str_array_append filelist(), filenames[i]
   NEXT
 
   v_free filenames
@@ -1667,7 +1685,7 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
       'files with attribute 0 appear in the list, so single those out
       IF DIR(searchdir + foundfile, 55) = "" OR DIR(searchdir + foundfile, 39) <> "" THEN CONTINUE FOR
     END IF
-    str_array_append filelist(), decode_filename(foundfile)
+    str_array_append filelist(), foundfile
   NEXT
 #endif
 END SUB
