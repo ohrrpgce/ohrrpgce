@@ -87,13 +87,13 @@ SUB distribute_game ()
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
  append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
- append_simplemenu_item menu, " Game file: " & trimpath(sourcerpg), YES, uilook(uiDisabledItem)
+ append_simplemenu_item menu, " Game file: " & decode_filename(trimpath(sourcerpg)), YES, uilook(uiDisabledItem)
  DIM as string temp, iconbase
  iconbase = trimextension(sourcerpg)
  IF isfile(iconbase & ".ico") THEN temp = " found" ELSE temp = " not found"
- append_simplemenu_item menu, " Windows icon: " & trimpath(iconbase) & ".ico" & temp, YES, uilook(uiDisabledItem)
+ append_simplemenu_item menu, " Windows icon: " & decode_filename(trimpath(iconbase)) & ".ico" & temp, YES, uilook(uiDisabledItem)
  IF isfile(iconbase & ".icns") THEN temp = " found" ELSE temp = " not found"
- append_simplemenu_item menu, " Mac icon: " & trimpath(iconbase) & ".icns" & temp, YES, uilook(uiDisabledItem)
+ append_simplemenu_item menu, " Mac icon: " & decode_filename(trimpath(iconbase)) & ".icns" & temp, YES, uilook(uiDisabledItem)
 
  append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
 
@@ -324,7 +324,7 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 
  DIM txtfile as string = trimfilename(sourcerpg) & SLASH & "README-" & distinfo.pkgname & ".txt"
  
- DIM shortname as string = trimpath(txtfile)
+ DIM shortname as string = decode_filename(trimpath(txtfile))
  IF isfile(txtfile) THEN
   IF dist_yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
  END IF
@@ -481,7 +481,7 @@ SUB distribute_game_as_zip ()
  END IF
 
  DIM destzip as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & ".zip"
- DIM shortzip as string = trimpath(destzip)
+ DIM shortzip as string = decode_filename(trimpath(destzip))
  IF isfile(destzip) THEN
   IF dist_yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite, but do the overwrite later
@@ -811,7 +811,7 @@ SUB distribute_game_as_windows_installer ()
  DIM installer as string = trimfilename(sourcerpg) & SLASH & "setup-" & basename & ".exe"
 
  IF isfile(installer) THEN
-  IF dist_yesno(trimpath(installer) & " already exists. Overwrite it?") = NO THEN RETURN
+  IF dist_yesno(decode_filename(trimpath(installer)) & " already exists. Overwrite it?") = NO THEN RETURN
   'Okay to overwrite (but actually do the overwrite later)
  END IF
 

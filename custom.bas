@@ -1359,7 +1359,8 @@ FUNCTION check_ok_to_open (filename as string) as bool
    IF NOT sessinfo.running THEN
     notification "Found a copy of Custom which was editing this game, but crashed. Run Custom again to do a cleanup or recovery."
    ELSE
-    notification "Another copy of " CUSTOMEXE " is already editing " & sourcerpg & !".\nYou can't open the same game twice at once! " _
+    notification "Another copy of " CUSTOMEXE " is already editing " & decode_filename(sourcerpg) & _
+                 !".\nYou can't open the same game twice at once! " _
                  "(Make a copy first if you really want to.)"
    END IF
    RETURN NO
@@ -1450,7 +1451,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  DIM destfile as string
  destfile = pick_recovered_rpg_filename(sessinfo.sourcerpg)
 
- printstr "Saving as " + destfile, 0, 180, vpage
+ printstr "Saving as " + decode_filename(destfile), 0, 180, vpage
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
  setvispage vpage
  '--re-lump recovered files as RPG file
@@ -1460,7 +1461,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  clearpage vpage
 
  DIM msg as string
- msg = "The recovered game has been saved as " & destfile & !"\n" _
+ msg = "The recovered game has been saved as " & decode_filename(destfile) & !"\n" _
        "You can rename it to " & origname & ", but ALWAYS keep the previous copy " _
        !"as a backup because some data in the recovered file might be corrupt!\n" _
        "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com"
@@ -1500,7 +1501,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
   ' We already checked Custom isn't still running
 
   msg = CUSTOMEXE " crashed while editing a game, but the temp unsaved modified copy of the game still exists." LINE_END
-  msg &= sessinfo.sourcerpg & LINE_END
+  msg &= decode_filename(sessinfo.sourcerpg) & LINE_END
 
   IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
    ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
@@ -1515,7 +1516,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 
   IF sessinfo.sourcerpg_current_mtime > sessinfo.session_start_time THEN
    msg &= LINE_END "|" LINE_END _
-          "+-> WARNING: " & trimpath(sessinfo.sourcerpg) & " modified since it was loaded or saved!" _
+          "+-> WARNING: " & decode_filename(trimpath(sessinfo.sourcerpg)) & " modified since it was loaded or saved!" _
           " Modified " & format_date(sessinfo.sourcerpg_current_mtime) ' & LINE_END
 
    replacestr(msg, LINE_END "}", LINE_END "|")

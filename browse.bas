@@ -24,9 +24,10 @@ End Enum
 
 Type BrowseMenuEntry
 	kind as BrowseEntryKind
-	filename as string
-	caption as string
-	about as string
+	filename as string         'Actual filename, in whatever encoding the OS uses
+	decoded_filename as string 'Filename in Latin-1
+	caption as string          'How the entry is shown
+	about as string            'Description to show at bottom when selected
 End type
 
 Type BrowseMenuState
@@ -204,7 +205,7 @@ DO
      'Search both display name (preferentially) and filename
      selectst.query_at = find_on_word_boundary(LCASE(tree(index).caption), selectst.query)
      IF selectst.query_at = 0 THEN
-      IF INSTR(LCASE(tree(index).filename), selectst.query) = 1 THEN selectst.query_at = -1  'invisible match
+      IF INSTR(LCASE(tree(index).decoded_filename), selectst.query) = 1 THEN selectst.query_at = -1  'invisible match
      END IF
      IF selectst.query_at THEN
       br.mstate.pt = index
@@ -241,9 +242,9 @@ DO
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  IF br.special = 7 AND tree(br.mstate.pt).kind = bkSelectable THEN
   'Selected item is an RPG
-  edgeprint shorten_to_left(br.nowdir + tree(br.mstate.pt).filename, 304), 8, 6, uilook(uiText), dpage
+  edgeprint shorten_to_left(decode_filename(br.nowdir + tree(br.mstate.pt).filename), 304), 8, 6, uilook(uiText), dpage
  ELSE
-  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
+  edgeprint decode_filename(br.nowdir), 8, 6, uilook(uiText), dpage
  END IF
  edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
  edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
@@ -320,7 +321,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      IF valid_audio_file(filepath, FORMAT_BAM) THEN
       loadsong filepath
      ELSE
-      br.alert = .filename + " is not a valid BAM file"
+      br.alert = .decoded_filename + " is not a valid BAM file"
      END IF
     END IF
    CASE 5 'music
@@ -467,7 +468,6 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
     .caption = load_gamename(br.tmp & "browse.txt")
     .about = load_aboutline(br.tmp & "browse.txt")
     safekill br.tmp & "browse.txt"
-    IF .caption = "" THEN .caption = .filename
    END IF
    '--RELOAD files
    IF br.special = 8 THEN
@@ -690,7 +690,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    WITH tree(br.mstate.last)
     .kind = bkSubDir
     .filename = filelist(i)
-    IF .filename = "." OR .filename = ".." OR RIGHT(.filename, 4) = ".tmp" THEN br.mstate.last -= 1
+    IF .filename = "." OR .filename = ".." OR RIGHT(LCASE(.filename), 4) = ".tmp" THEN br.mstate.last -= 1
    END WITH
    DIM extension as string = justextension(filelist(i))
    IF br.special = 7 THEN ' Special handling in RPG mode
@@ -747,7 +747,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      .kind = bkSelectable
      .filename = ""
      .caption = "Select this folder"
-     .about = br.nowdir
+     .about = decode_filename(br.nowdir)
     END WITH
    END IF
   ELSE
@@ -758,8 +758,9 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  '--set display
  FOR i as integer = 0 TO br.mstate.last
   WITH tree(i)
+   .decoded_filename = decode_filename(.filename)
    IF LEN(.caption) = 0 THEN
-    .caption = .filename
+    .caption = .decoded_filename
    END IF
   END WITH
  NEXT

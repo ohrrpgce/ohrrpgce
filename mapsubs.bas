@@ -3397,7 +3397,7 @@ SUB mapedit_import_tilemaps(st as MapEditState, map() as TileMap, pass as TileMa
 
  REDIM newlayers(0) as TileMap
  IF LoadTilemaps(newlayers(), infile, YES) = NO THEN
-  pop_warning "Bad file; could not load " & infile
+  pop_warning "Bad file; could not load " & decode_filename(infile)
   EXIT SUB
  END IF
 

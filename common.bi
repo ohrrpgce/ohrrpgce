@@ -218,7 +218,7 @@ DECLARE FUNCTION last_inv_slot() as integer
 
 DECLARE FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_warnings as bool = NO) as string
 DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
-DECLARE FUNCTION remove_nonprintable_ascii(s as string) as string
+DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
 DECLARE FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
 
 DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string

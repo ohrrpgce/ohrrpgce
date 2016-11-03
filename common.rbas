@@ -2227,13 +2227,13 @@ SUB export_string_to_file(s as string)
  IF filename = "" THEN RETURN
  filename &= ".txt"
  IF isfile(filename) THEN
-  IF yesno("""" & filename & """ already exists. Do you want to overwrite it?", NO, NO) = NO THEN RETURN
+  IF yesno("""" & decode_filename(filename) & """ already exists. Do you want to overwrite it?", NO, NO) = NO THEN RETURN
  END IF
- IF NOT fileiswriteable(filename) THEN visible_debug "File """ & filename & """  is not writeable" : RETURN
+ IF NOT fileiswriteable(filename) THEN visible_debug "File """ & decode_filename(filename) & """  is not writeable" : RETURN
 
  string_to_file s, filename
  
- visible_debug "Successfully wrote the text to """ & filename & """"
+ visible_debug "Successfully wrote the text to """ & decode_filename(filename) & """"
 END SUB
 
 SUB import_string_from_file(s as string)
@@ -5091,8 +5091,9 @@ FUNCTION escape_nonprintable_ascii(s as string) as string
  RETURN result
 END FUNCTION
 
-'This is like escape_nonprintable_ascii except that it removes non printable characters and icons
-FUNCTION remove_nonprintable_ascii(s as string) as string
+'This is like escape_nonprintable_ascii except that it replaced non printable characters and icons
+'with something else or removes them.
+FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
  DIM as integer icons_low, icons_high
  IF get_font_type(current_font()) = ftypeLatin1 THEN
   icons_low = 127
@@ -5122,8 +5123,12 @@ FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as 
  RETURN remove_nonprintable_ascii(tmp)
 END FUNCTION
 
+'Prompts the user for a file path
 'ext: The file extension; must start with '.'
 'directory:  If blank, default to curdir
+'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
+'be encoded before being used, but the whole path return still needs to be run through
+'decode_filename() before being displayed.
 FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
  DIM filename as string = default
  DIM tog as integer
@@ -5176,7 +5181,8 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   ELSE
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
   END IF
-  printstr directory, xstringright(directory), 45, dpage
+  DIM display_dir as string = decode_filename(directory)
+  printstr display_dir, xstringright(display_dir), 45, dpage
   
   IF foldermode THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)

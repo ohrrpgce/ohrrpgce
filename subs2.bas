@@ -750,9 +750,9 @@ SUB text_box_editor () 'textage
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
       IF export_textboxes(box_text_file, metadata()) THEN
-       notification "Successfully exported " & box_text_file
+       notification "Successfully exported " & decode_filename(box_text_file)
       ELSE
-       notification "Failed to export " & box_text_file
+       notification "Failed to export " & decode_filename(box_text_file)
       END IF '--export_textboxes
      END IF '--box_text_file <> ""
     END IF '--metadata
@@ -772,7 +772,7 @@ SUB text_box_editor () 'textage
       remember_boxcount = gen(genMaxTextbox)
       import_warn = ""
       IF import_textboxes(box_text_file, import_warn) THEN
-       notification "Successfully imported """ & box_text_file & """." & import_warn
+       notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
       ELSE
        'Failure! Reset, revert, abort, run-away!
        gen(genMaxTextBox) = remember_boxcount

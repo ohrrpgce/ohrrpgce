@@ -1851,7 +1851,7 @@ END SUB
 FUNCTION import_textboxes (filename as string, byref warn as string) as integer
  DIM fh as integer = FREEFILE
  IF OPEN(filename FOR INPUT as #fh) THEN
-  import_textboxes_warn warn, "Failed to open """ & filename & """."
+  import_textboxes_warn warn, "Failed to open """ & decode_filename(filename) & """."
   RETURN NO
  END IF
  DIM warn_length as integer = 0
@@ -1873,7 +1873,7 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as integer
   s = decode_backslash_codes(s, "Line " & line_number & ":", show_encoding_warnings)
   IF firstline THEN
    IF RTRIM(s) <> STRING(38, "=") THEN
-    import_textboxes_warn warn, filename & " is not a valid text box file. Expected header row, found """ & s & """."
+    import_textboxes_warn warn, decode_filename(filename) & " is not a valid text box file. Expected header row, found """ & s & """."
     CLOSE #fh
     RETURN NO
    END IF
@@ -5264,7 +5264,7 @@ SUB edit_purchase_options ()
        SetContent(node, string_from_file(key_der_file))
        st.need_update = YES
       ELSE
-       pop_warning "Unable to read the file """ & key_der_file & """"
+       pop_warning "Unable to read the file """ & decode_filename(key_der_file) & """"
       END IF
      END IF
    END SELECT

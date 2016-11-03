@@ -600,7 +600,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, byval s
  DIM sourcesong as string = browse(5, default, "", "",, "browse_import_song")
 
  'Get song name
- DIM newname as string = trimextension(trimpath(sourcesong))
+ DIM newname as string = decode_filename(trimextension(trimpath(sourcesong)))
 
  'Convert MP3
  DIM oggtemp as string
@@ -845,7 +845,7 @@ SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum a
  DIM sourcesfx as string = browse(6, default, "", "",, "browse_import_sfx")
 
  '-- get name (before sourcesfx is modified)
- DIM newname as string = trimextension(trimpath(sourcesfx))
+ DIM newname as string = decode_filename(trimextension(trimpath(sourcesfx)))
 
  'Convert MP3
  DIM oggtemp as string
