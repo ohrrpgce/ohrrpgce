@@ -33,6 +33,7 @@
 	<!ATTLIST a            href CDATA #IMPLIED>
 	<!ELEMENT lb           (#PCDATA)>
 	<!ELEMENT p            (#PCDATA)>
+	<!ELEMENT tt           (#PCDATA)>
 	<!ELEMENT b            (#PCDATA)>
 ]>
 <!--

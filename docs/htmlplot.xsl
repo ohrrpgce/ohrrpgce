@@ -83,14 +83,15 @@
 						/*content: " ?";*/
 					}
 
-					.key, .param {
+					.param {
 						font-weight: bold;
 						color: yellow;
 					}
 
-					/*.param {
-						color: yellow;
-					}*/
+					.code {
+						font-style: italic;
+						color: greenyellow;
+					}
 
 					.seealso {
 						margin-top: 10px;
@@ -126,10 +127,10 @@
 					  color: #008800;
 					}
 
-					div.note .param, div.note .key {
+					div.note .param, div.note .code {
 					  color: #888800;
 					}
-					
+
 					.icon {
 						float:left;
 						padding-right: 5px;
@@ -155,7 +156,7 @@
 			<body>
 				<h1>Plotscripting Dictionary</h1>
 				<p>This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />. If you're reading this on the  <a href="http://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a> rather than an HTML file included in a download, then this documents the latest nightly version, not the last stable release!</p>
-				<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Old_Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
+				<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
 				<hr/>
 				<h2>Commands by Category</h2>
 				<p>
@@ -270,8 +271,7 @@
 	</xsl:template>
 
 	<xsl:template match="a"><a href="{@href}"><xsl:value-of select="." /></a></xsl:template>
-	<xsl:template match="p"><span class="key"><xsl:value-of select="." /></span></xsl:template>
-	<xsl:template match="ref">
+	<xsl:template match="ref" name="ref">
 		<xsl:if test='count(id(.))=0'>
 			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
 		</xsl:if>
@@ -289,23 +289,16 @@
 	</xsl:template>
 	<xsl:template match="ref" mode="seealso">
 		<li>
-		<xsl:if test='count(id(.))=0'>
-			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
-		</xsl:if>
-		<xsl:if test='count(id(.))>0'>
-			<xsl:if test='not(id(.)/alias)'>
-				<a href="#about-{.}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
-			</xsl:if>
-			<xsl:if test='id(.)/alias'>
-				<a href="#about-{id(.)/alias}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
-			</xsl:if>
-		</xsl:if><xsl:if test="not(position() = last())">, </xsl:if>
+			<xsl:call-template name="ref"/>
+			<xsl:if test="not(position() = last())">, </xsl:if>
 		</li>
 	</xsl:template>
 
 	<xsl:template match="lb"><br/></xsl:template>
 
 	<xsl:template match="p"><span class="param"><xsl:apply-templates /></span></xsl:template>
+
+	<xsl:template match="tt"><span class="code"><xsl:apply-templates /></span></xsl:template>
 
 	<xsl:template match="b"><b><xsl:apply-templates /></b></xsl:template>
 
