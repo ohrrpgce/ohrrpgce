@@ -1429,6 +1429,22 @@ FUNCTION escape_filenamec CDECL (byval filename as zstring ptr) as zstring ptr
   RETURN retz
 END FUNCTION
 
+'Makes sure that a string cannot contain any chars unsafe for filenames (overly strict)
+FUNCTION fixfilename (filename as string) as string
+  DIM result as string = ""
+  DIM ch as string
+  DIM ascii as integer
+  FOR i as integer = 1 TO LEN(filename)
+    ch = MID(filename, i, 1)
+    ascii = ASC(ch)
+    SELECT CASE ascii
+      CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
+        result = result & ch
+    END SELECT
+  NEXT i
+  RETURN result
+END FUNCTION
+
 'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
 'Returns the exit code, or -1 if it couldn't be run.
 'NOTE: use instead run_and_get_output and check stderr if you want better ability to catch errors

@@ -5114,22 +5114,6 @@ FUNCTION remove_nonprintable_ascii(s as string) as string
  RETURN ret
 END FUNCTION
 
-FUNCTION fixfilename (s as string) as string
- 'Makes sure that a string cannot contain any chars unsafe for filenames (overly strict)
- DIM result as string = ""
- DIM ch as string
- DIM ascii as integer
- FOR i as integer = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  ascii = ASC(ch)
-  SELECT CASE ascii
-   CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
-    result = result & ch
-  END SELECT
- NEXT i
- RETURN result
-END FUNCTION
-
 FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
  ' :_'~? are allowed
  DIM to_exclude as string = !"`!@#$%^&*()-+=[]{}\\|<>,.;/\""
