@@ -1,10 +1,10 @@
 // OHRRPGCE - Unicode routines
-// Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 // 
-// Portions of this file are used under the following license:
+// This file is placed under the following license:
 // 
 // Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
 // See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
+// Copyright (c) 2012,2016 Ralph Versteegen
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -68,10 +68,10 @@ static uint32_t decode_utf8_char(uint32_t* state, uint32_t* codep, uint32_t byte
 }
 
 // In codepoints. Returns negative value if invalid (actually position of bad character)
-int utf8_length(char* s) {
+ssize_t utf8_length(unsigned char* s) {
 	uint32_t codepoint = 0;
 	uint32_t state = UTF8_ACCEPT;
-	size_t count = 0;
+	ssize_t count = 0;
 
 	for (count = 0; *s; ++s) {
 		if (decode_utf8_char(&state, &codepoint, *s) == UTF8_ACCEPT)
@@ -87,8 +87,8 @@ int utf8_length(char* s) {
 
 // Returns NULL on failure, otherwise returns an allocated UCS2 or UTF32, depending on system, string
 // If length is not NULL and there was no error, then it is filled with the length
-wchar_t *utf8_decode(char *input, size_t *length) {
-	size_t len = utf8_length(input);
+wchar_t *utf8_decode(unsigned char *input, ssize_t *length) {
+	ssize_t len = utf8_length(input);
 	if (len <= -1)
 		return NULL;
 	if (length)
@@ -97,7 +97,7 @@ wchar_t *utf8_decode(char *input, size_t *length) {
 	uint32_t codepoint = 0;
 	uint32_t state = UTF8_ACCEPT;
 	wchar_t *ret, *outchar;
-	outchar = ret = malloc((len + 1) * sizeof(wchar_t));
+	outchar = ret = (wchar_t*)malloc((len + 1) * sizeof(wchar_t));
 
 	while (*input) {
 		if (decode_utf8_char(&state, &codepoint, *input++) == UTF8_ACCEPT) {
@@ -111,7 +111,8 @@ wchar_t *utf8_decode(char *input, size_t *length) {
 	return ret;
 }
 
-void wstring_to_latin1(wchar_t *input, char *output, int outsize) {
+// Process a nul-terminated wstring into a char* buffer of size 'outsize' bytes.
+void wstring_to_latin1(wchar_t *input, unsigned char *output, ssize_t outsize) {
 	if (outsize <= 0) return;
 
 	while (*input && outsize-- > 1) {
