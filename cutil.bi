@@ -35,7 +35,9 @@ declare function utf8_length(byval in as ubyte ptr) as ssize_t
 
 declare function utf8_decode(byval in as ubyte ptr, byval length as ssize_t ptr = NULL) as wstring ptr
 
-declare sub wstring_to_latin1(byval input as wstring ptr, byval output as ubyte ptr, byval outsize as ssize_t)
+declare function wstring_to_latin1(byval input as wstring ptr, byval output as ubyte ptr, byval outsize as ssize_t) as ssize_t
+
+declare function partially_normalise_unicode(byval input as wstring ptr, byval output as wstring ptr, byval outsize as ssize_t) as ssize_t
 
 end extern
 
