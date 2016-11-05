@@ -33,6 +33,7 @@ reloadtest
 vectortest
 rbtest
 utiltest
+filetest
 xml2reload
 reload2xml
 reloadutil

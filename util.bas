@@ -1655,19 +1655,24 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
 
   DIM foundfile as string
   DIM attrib as integer
-  /'---DOS directory attributes
+  /'---Windows directory attributes
   CONST attribReadOnly = 1
   CONST attribHidden = 2
   CONST attribSystem = 4
+  ' 8 is not used
   CONST attribDirectory = 16
   CONST attribArchive = 32
-  CONST attribReserved = 192 '64 OR 128
-  CONST attribAlmostAll = 237 ' All except directory and hidden
+  CONST attribDevice = 64
+  CONST attribNormal = 128  '"A file that does not have other attributes set." (Not a real attribute?)
+  CONST attribReserved = 64+128
+  CONST attribAlmostAll = 255-16-2 ' All except directory and hidden
   '/
+  ' Recall that DIR returns all things in a directory except those
+  ' with a bit that we didn't specify
   IF filetype = fileTypeDirectory THEN
-    attrib = 53
+    attrib = 32+16+4+1
   ELSE
-    attrib = (253 XOR 16)
+    attrib = 255 XOR (16+2)
   END IF
   IF findhidden THEN attrib += 2
   foundfile = DIR(searchdir + nmask, attrib)
@@ -1683,10 +1688,16 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
     IF filetype = fileTypeDirectory THEN
       'alright, we want directories, but DIR is too broken to give them to us
       'files with attribute 0 appear in the list, so single those out
-      IF DIR(searchdir + foundfile, 55) = "" OR DIR(searchdir + foundfile, 39) <> "" THEN CONTINUE FOR
+      IF DIR(searchdir + foundfile, 32+16+4+2+1) = "" OR DIR(searchdir + foundfile, 32+4+2+1) <> "" THEN CONTINUE FOR
     END IF
     str_array_append filelist(), foundfile
   NEXT
+
+  'If DIR is not called until it returns "" then internally it holds a HANDLE for the search,
+  'which makes the directory on which it was last run undeletable. So reset it by
+  'doing another search (C:\ is actually invalid, the search string can't end in \)
+  DIR("C:\")
+
 #endif
 END SUB
 

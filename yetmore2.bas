@@ -1094,6 +1094,7 @@ SUB receive_file_updates ()
    music_stop
    'DIR might be holding a handle for the last directory on which it was run, which could prevent
    'Custom from deleting workingdir. So reset it.
+   '(findfiles() now does this automatically, but in case something else calls DIR...)
    #IFDEF __FB_WIN32__
     DIM dummy as string = DIR("C:\")
    #ENDIF
