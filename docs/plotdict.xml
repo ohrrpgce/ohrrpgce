@@ -4579,7 +4579,7 @@ end
 		<command id="slicex">
 			<canon>slice x (handle)</canon>
 			<shortname>slice x</shortname>
-			<description>Returns the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<description>Returns the X position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
 				<ref>slicey</ref>
 				<ref>setslicex</ref>
@@ -4589,7 +4589,7 @@ end
 		<command id="slicey">
 			<canon>slice y (handle)</canon>
 			<shortname>slice y</shortname>
-			<description>Returns the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<description>Returns the Y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
 				<ref>slicex</ref>
 				<ref>setslicey</ref>
@@ -4610,7 +4610,7 @@ end
 			<canon>set slice x (handle, X)</canon>
 			<shortname>set slice x</shortname>
 			<description>
-				Changes the y position of any slice, for example a sprite.
+				Changes the X position of any slice, for example a sprite.
 				This position is relative to the slice's parent.
 				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
 				The position of the parent's align point also depends on the amount of padding the parent has.
@@ -4625,7 +4625,7 @@ end
 			<canon>set slice y (handle, Y)</canon>
 			<shortname>set slice y</shortname>
 			<description>
-				Changes the y position of any slice, for example a sprite.
+				Changes the Y position of any slice, for example a sprite.
 				This position is relative to the slice's parent.
 				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
 				The position of the parent's align point also depends on the amount of padding the parent has.
@@ -4749,7 +4749,7 @@ end
 		<command id="setsliceedgex">
 			<canon>set slice edge x (handle, edge, value)</canon>
 			<shortname>set slice edge x</shortname>
-			<description>Changes the x position of a specific edge of a slice. This is like <ref>setslicex</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
+			<description>Changes the X position of a specific edge of a slice. This is like <ref>setslicex</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
 			<seealso>
 				<ref>sliceedgex</ref>
 				<ref>sliceedgey</ref>
@@ -4759,7 +4759,7 @@ end
 		<command id="setsliceedgey">
 			<canon>set slice edge y (handle, edge, value)</canon>
 			<shortname>set slice edge y</shortname>
-			<description>Changes the x position of a specific edge of a slice. This is like <ref>setslicey</ref>, except that you can set by any edge regardless of the slice's anchor. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
+			<description>Changes the Y position of a specific edge of a slice. This is like <ref>setslicey</ref>, except that you can set by any edge regardless of the slice's anchor. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
 			<seealso>
 				<ref>sliceedgex</ref>
 				<ref>sliceedgey</ref>
