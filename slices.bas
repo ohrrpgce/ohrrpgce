@@ -792,6 +792,7 @@ End Sub
 
 Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
   IF start_sl = 0 THEN start_sl = SliceTable.root
+  IF start_sl = 0 THEN debug "LookupSlice null default root slice": RETURN 0
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
   IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
   DIM child as Slice Ptr
