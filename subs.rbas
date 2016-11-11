@@ -71,6 +71,8 @@ DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
 DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
 
+DECLARE SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as slice Ptr)
+
 ' Formation editor slice lookup codes
 CONST SL_FORMEDITOR_BACKDROP = 100
 CONST SL_FORMEDITOR_ENEMY = 200  '+0 to +7 for 8 slots
@@ -991,7 +993,8 @@ SUB formation_set_editor
  menuopts.edged = YES
 
  LoadFormationSet formset, set_id
- GOSUB lpreviewform
+ formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+
  setkeys
  DO
   setwait 55
@@ -1001,7 +1004,9 @@ SUB formation_set_editor
    EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_sets"
-  IF usemenu(state) THEN GOSUB lpreviewform
+  IF usemenu(state) THEN 
+   formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
+  END IF
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     SaveFormationSet formset, set_id
@@ -1019,7 +1024,7 @@ SUB formation_set_editor
   IF state.pt = 3 THEN tag_grabber formset.tag
   IF state.pt >= 4 THEN
    IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
-    GOSUB lpreviewform
+    formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
    END IF
   END IF
   IF state.pt >= 4 AND form_id >= 0 THEN
@@ -1048,7 +1053,9 @@ SUB formation_set_editor
  DeleteSlice @rootslice
  EXIT SUB
 
-lpreviewform:
+END SUB
+
+SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as slice Ptr)
  IF state.pt >= 4 THEN
   '--have form selected
   form_id = formset.formations(state.pt - 4)
@@ -1058,8 +1065,6 @@ lpreviewform:
    load_formation_slices ename(), form, @rootslice
   END IF
  END IF
- RETRACE
-
 END SUB
 
 SUB hero_formation_editor ()
