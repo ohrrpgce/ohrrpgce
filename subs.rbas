@@ -2201,15 +2201,19 @@ SUB hero_editor_stats_menu (her as HeroDef)
  DIM twomenus as bool = (gen(genMaxLevel) > 0)  'whether to draw the second menu
 
  '.unselectable attribute only used from leftmenu
- DIM as BasicMenuItem vector leftmenu, rightmenu
+ DIM as BasicMenuItem vector leftmenu, rightmenu, middlemenu
  v_new leftmenu, 4 + 12
  v_new rightmenu, 4 + 12
+ v_new middlemenu, 4 + 12
  leftmenu[0].text = "Previous Menu"
  leftmenu[1].text = "Stat Visibility..."
  leftmenu[2].unselectable = YES
  leftmenu[3].text = "LEVEL ZERO"
  leftmenu[3].unselectable = YES
  leftmenu[3].col = uilook(uiDescription)
+ 'Middlemenu is not editable, it just shows experience at Max level, if the max is not 99
+ middlemenu[3].text = "LEVEL " & gen(genMaxLevel)
+ middlemenu[3].col = uilook(uiDescription)
  ' FIXME: the rightmost column is always the level 99 stats rather than gen(genMaxLevel)
  rightmenu[3].text = "LEVEL 99"
  rightmenu[3].col = uilook(uiDescription)
@@ -2279,6 +2283,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   IF mstate.need_update THEN
    mstate.need_update = NO
+   middlemenu[3].text = "LEVEL " & gen(genMaxLevel)
    FOR i as integer = 0 TO UBOUND(her.Lev0.sta)
     WITH leftmenu[4 + i]
      .text = statnames(i) & " " & her.Lev0.sta(i)
@@ -2290,6 +2295,10 @@ SUB hero_editor_stats_menu (her as HeroDef)
      .col = uiLook(uiMenuItem)
      IF should_hide_hero_stat(her, i) THEN .col = uiLook(uiDisabledItem)
     END WITH
+    WITH middlemenu[4 + i]
+     .text = statnames(i) & " " & atlevel(gen(genMaxLevel), her.Lev0.sta(i), her.LevMax.sta(i))
+     .col = uiLook(uiSelectedDisabled)
+    END WITH
    NEXT i
   END IF
 
@@ -2297,11 +2306,14 @@ SUB hero_editor_stats_menu (her as HeroDef)
   clearpage dpage
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   IF activemenu = 0 THEN
-   standardmenu leftmenu, mstate, 8, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, inactive_state, 160, 0, dpage
+   standardmenu leftmenu, mstate, 0, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, inactive_state, 216, 0, dpage
   ELSE 'activemenu = 1
-   standardmenu leftmenu, inactive_state, 8, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, mstate, 160, 0, dpage
+   standardmenu leftmenu, inactive_state, 0, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, mstate, 216, 0, dpage
+  END IF
+  IF gen(genMaxLevel) <> 99 ANDALSO gen(genMaxLevel) > 0 THEN
+   standardmenu middlemenu, inactive_state, 108, 0, dpage
   END IF
 
   IF statnum >= 0 THEN  '--Draw graph
@@ -2333,15 +2345,23 @@ SUB hero_editor_stats_menu (her as HeroDef)
    IF keyval(scLeftShift) > 1 THEN
     debug "0=" & atlevel(0, n0, nMax) & " max(" & gen(genMaxLevel) & ")=" & atlevel(gen(genMaxLevel), n0, nMax) & " 99=" & atlevel(99, n0, nMax)
    END IF
-   IF keyval(scF7) > 1 AND gen(genMaxLevel) > 1 THEN gen(genMaxLevel) -= 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
-   IF keyval(scF8) > 1 THEN gen(genMaxLevel) += 1 : debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+   IF keyval(scF7) > 1 AND gen(genMaxLevel) > 0 THEN
+    gen(genMaxLevel) -= 1
+    debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+    mstate.need_update = YES
+   END IF
+   IF keyval(scF8) > 1 THEN
+    gen(genMaxLevel) += 1
+    debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+    mstate.need_update = YES
+   END IF
   END IF
 
   IF statnum = statSpeed THEN
    textcolor uilook(uiDescription), 0
    printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
    IF twomenus THEN
-    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(her.LevMax.spd), 0, 190, dpage
+    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, 190, dpage
    END IF
   END IF
   SWAP vpage, dpage

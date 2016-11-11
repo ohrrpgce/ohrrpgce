@@ -16,6 +16,8 @@ WHAT IS NEW?
     * Spells in spell lists can now also display HP, Money, and Item
       costs. MP costs are no longer invisible in Level-MP spell lists
       [James]
+    * If your max level is lower than 99, the hero stat editor now
+      shows a middle column that displays stats at max level [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
