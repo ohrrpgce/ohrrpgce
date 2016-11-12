@@ -626,9 +626,11 @@ for k in music:
 if win32:
     base_modules += ['os_windows.bas', 'os_windows2.c']
     # winmm needed for MIDI, used by music backends but also by miditest
-    base_libraries += ['winmm', 'psapi']
+    # psapi.dll needed just for get_process_path(). Not present on Win98 unfortunately
+    # ole32.dll needed just for open_document()
+    base_libraries += ['winmm', 'psapi', 'ole32']
     common_libraries += [libfbgfx]
-    commonenv['FBFLAGS'] += ['-s','gui']
+    commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
     if 'console' in gfx:
         common_libraries += ['pdcurses']

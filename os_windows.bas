@@ -699,27 +699,28 @@ function get_process_path (pid as integer) as string
 	return ret
 end function
 
-
-/'
-'Opens a file (or URL) with default handler.
-'If successful returns "", otherwise returns an error message.
+'Opens a file (or URL, starting with a protocol like http://) with default handler.
+'If successful returns "", otherwise returns an error message (in practice only returns error messages for
+'files, you never get an error message for an invalid or malformed URL)
 function open_document (filename as string) as string
 	'Initialise COM; may be necessary. May be called multiple times
 	'as long as the args are the same.
-	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED OR COINIT_DISABLE_OLE1DDE)
 	dim info as SHELLEXECUTEINFO
 	info.cbSize = SIZEOF(SHELLEXECUTEINFO)
-	'Probably unneeded. Waits for the 'execute operation' to complete (does that
+	'SEE_MASK_NOASYNC probably unneeded. Waits for the 'execute operation' to complete (does that
 	'mean better error catching?). Needed when called from background thread.
 	info.fmask = SEE_MASK_NOASYNC
-	info.lpVerb = @"open"
-	info.lpFile = filename
+	' Verb: Use the default action for this URL/filename. Can instead explicitly pass @"open", but that
+	' apparently may not work if the web browser failed to register as supporting "open"
+	info.lpVerb = @""
+	info.lpFile = STRPTR(filename)
 	info.nShow = SW_SHOWNORMAL
 	if ShellExecuteEx(@info) = 0 then
 		return error_string
 	end if
 	return ""
 end function
-'/
+
 
 end extern

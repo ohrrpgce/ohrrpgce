@@ -2394,8 +2394,11 @@ SUB playsongnum (byval songnum as integer)
   loadsong songfile
 END SUB
 
+' Open a URL using default system handler, which must start with a protocol like
+' http:// or https://.
+' Would return NO to indicate failure (no web browser installed), except we can't
+' detect failure on most platforms. Definitely no error for a bad URL.
 FUNCTION open_url (url as string) as bool
- 'Would return NO to indicate failure, except we can't detect failure, so always returns YES
  DIM cmd as string
  DIM result as string
 #IFDEF __FB_DARWIN__
@@ -2405,17 +2408,19 @@ FUNCTION open_url (url as string) as bool
 #ENDIF
 
 #IFDEF __FB_WIN32__
- cmd = "START ""Spawning Web Browser"" """ & url & """"
- SHELL cmd
- 'Well, Dang, I don't know how to check this for success either!
- RETURN YES
+ ' Using SHELL results in a console window popping up momentarily (also, this
+ ' doesn't work under Wine because it doesn't support the console title arg).
+ ' cmd = "START ""Spawning Web Browser"" """ & url & """"
+ ' SHELL cmd
+ ' 'Well, Dang, I don't know how to check this for success either!
+ ' RETURN YES
 
  'Alternative way to open an HTML using winapi call, which doesn't involve
  'running cmd.exe, and returns whether it succeeds, but is untested
- ' result = open_document(url)
- ' IF LEN(result) = 0 THEN RETURN YES
- ' visible_debug "Couldn't open " & url & ": " & result
- ' RETURN NO
+ result = open_document(url)
+ IF LEN(result) = 0 THEN RETURN YES
+ visible_debug "Couldn't open " & url & ": " & result
+ RETURN NO
 #ENDIF
 
  '--Try the unix way
