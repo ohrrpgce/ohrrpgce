@@ -134,3 +134,4 @@ James Paige - Bob@HamsterRepublic.com - http://HamsterRepublic.com/ohrrpgce/
 Do you want to keep up with the latest development progress? Subscribe to
 the Developer's Mailing list:
 http://lists.motherhamster.org/listinfo.cgi/ohrrpgce-motherhamster.org
+-----------------------------------------------------------------------------
