@@ -14,7 +14,7 @@ cd ~/src/nightly
 
 if [ ! -d ohrrpgce ] ; then
   echo nightly snapshot not found, checking out from svn...
-  svn checkout svn://gilgamesh.HamsterRepublic.com/ohrrpgce ./ohrrpgce
+  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce
 fi
 
 cd ohrrpgce
