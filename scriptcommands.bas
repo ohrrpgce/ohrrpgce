@@ -1203,9 +1203,7 @@ SUB sfunctions(byval cmdid as integer)
    IF retvals(0) <= max_tag() THEN
     settag tag(), retvals(0), retvals(1)
    ELSE
-    'This is the sort of thing scripterr level 1 was for, except we can't go adding
-    'those to existing commands
-    debug "Setting onetime tags with the settag command is deprecated"
+    scripterr "Setting onetime tags with the settag command is deprecated", serrInfo
     settag onetime(), retvals(0) - (max_tag()+1), retvals(1)
    END IF
    tag_updates
@@ -3323,11 +3321,11 @@ SUB sfunctions(byval cmdid as integer)
    END IF
   END IF
  CASE 540'--check onetime
-  IF bound_arg(retvals(0), 1, 15999, "onetime use tag") THEN
+  IF bound_arg(retvals(0), 1, max_onetime, "onetime use tag") THEN
    scriptret = ABS(istag(onetime(), retvals(0), 0))
   END IF
  CASE 541'--set onetime
-  IF bound_arg(retvals(0), 1, 15999, "onetime use tag") THEN
+  IF bound_arg(retvals(0), 1, max_onetime, "onetime use tag") THEN
    settag onetime(), retvals(0), retvals(1)
    tag_updates
   END IF

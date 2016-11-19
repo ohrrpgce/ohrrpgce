@@ -53,7 +53,6 @@ CONST RECOMMENDED_HSPEAK_VERSION = "3S "
 'HSpeak version is older than this. Older versions will still
 'work though.
 
-CONST max_onetime = 15999
 
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'max map ID
@@ -113,7 +112,7 @@ CONST genMaxItem = 82           'max item in .ITM
 CONST genMaxBoxBorder = 83      'max box border number in .PT7
 CONST genMaxPortrait = 84       'max portrait graphic number in .PT8
 CONST genMaxInventory = 85      'max available inventory slot (0 means use inventoryMax)
-CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
+CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero (NO LONGER USED)
 CONST genLevelCap = 87          'Default maximum level (0 to genMaxLevel) (not to be confused with genMaxLevel)
 CONST genEquipMergeFormula = 88 'Formula to use to calculate effective hero elemental resists
 CONST genNumElements = 89       'Number of elements used
@@ -259,6 +258,7 @@ CONST sizeFixBits = 28 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
+CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.)
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
 CONST sizeActiveParty = 4 'The size of the active/battle party

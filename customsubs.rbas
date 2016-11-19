@@ -1409,6 +1409,7 @@ FUNCTION textbox_preview_line(box as TextBox) as string
  RETURN "" 
 END FUNCTION
 
+' Toggle tagnum between 0 and an unused onetime tag ID (2 to max_onetime)
 ' This only checks NPC definitions that have already been written
 ' to disk, so that should be done so before calling
 SUB onetimetog(byref tagnum as integer)
@@ -1416,19 +1417,20 @@ SUB onetimetog(byref tagnum as integer)
   tagnum = 0
   EXIT SUB
  END IF
- DIM onetimeusage(1000) as integer
- check_used_onetime_npcs onetimeusage()
+ DIM onetimeusage(max_onetime \ 16) as integer
+ check_used_onetime_npcs onetimeusage()  'Marks bits 0 and 1 as used
+ DIM tried as integer = 0
  DIM i as integer = gen(genOneTimeNPC)
- IF i = 0 THEN i+=1 'skip bit 1
  DO
-  i += 1
-  IF i > max_onetime THEN i = 2 'skip bit 1
+  IF i > max_onetime THEN i = 2
   IF readbit(onetimeusage(), 0, i) = NO THEN EXIT DO
-  IF i = gen(genOneTimeNPC) THEN
-   visible_debug "All onetime usage numbers have been used up!"
+  IF tried = max_onetime THEN
+   visible_debug "All onetime usage tags have been used up! Do you really have 16000+ NPCs? This is probably an engine bug!"
    tagnum = 0
    EXIT SUB
   END IF
+  i += 1
+  tried += 1
  LOOP
  tagnum = i
  gen(genOneTimeNPC) = i
@@ -4336,14 +4338,15 @@ SUB check_used_onetime_npcs(bits() as integer)
  ' bits have been used. The result is a bitset array with 0 bits for unused
  ' onetimes and 1 bits for used onetimes.
  flusharray bits()
- setbit bits(), 0, 0, YES ' bit 1 always on to prevent it from being used
+ setbit bits(), 0, 0, YES ' bit 0 can't be used, 0 indicates usable repeatedly.
+ setbit bits(), 0, 1, YES ' bit 1 can't be used, because istag() doesn't allow tag 1.
  REDIM npcdata(0) as NPCType
  FOR m as integer = 0 TO gen(genMaxMap)
   LoadNPCD maplumpname(m, "n"), npcdata()
   FOR i as integer = 0 TO UBOUND(npcdata)
    WITH npcdata(i)
     IF .usetag > max_onetime THEN
-     debug "WARNING: out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
+     debugc errError, "out-of-range onetime tag " & .usetag & " for NPC " & i & " on map " & m
     ELSEIF .usetag > 0 THEN
      'debug "Map " & m & " NPC " & i & " uses onetime " & .usetag
      IF readbit(bits(), 0, .usetag) THEN

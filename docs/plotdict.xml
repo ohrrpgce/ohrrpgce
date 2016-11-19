@@ -726,12 +726,23 @@ wait for all # wait until everything is done</example>
 		<command id="setonetime">
 			<canon>set onetime (onetime,value)</canon>
 			<shortname>set onetime</shortname>
-			<description>Sets the value of an NPC onetime use flag. NPC onetime use flags behave like tags but are stored separately. The available constants are: <ref>off</ref>, <ref>on</ref>, <ref>true</ref>, or <ref>false</ref>.</description>
+			<description>
+				Sets the value of an NPC onetime use flag.
+				NPC onetime use flags behave like tags but are stored separately.
+				<p>value</p> is the new setting; for clarity you can use the constants
+				<ref>off</ref>, <ref>on</ref>, <ref>true</ref>, or <ref>false</ref>.
+			</description>
 		</command>
 		<command id="checkonetime">
 			<canon>check onetime (onetime)</canon>
 			<shortname>check onetime</shortname>
-			<description>A function that checks the value of an NPC onetime flag, and returns <ref>true</ref> if the one-time npc has already been used, and <ref>false</ref> if the onetime npc has not yet been used. It can be used in <ref>if</ref> and <ref>while</ref> statements. NPC onetime flags are similar to tags, but stored separately.</description>
+			<description>
+				A function that checks the value of an NPC onetime flag,
+				and returns <ref>true</ref> if the one-time NPC has already been used,
+				and <ref>false</ref> if the onetime NPC has not yet been used.
+				It can be used in <ref>if</ref> and <ref>while</ref> statements.
+				NPC onetime flags are similar to tags, but stored separately.
+			</description>
 		</command>
 	</section>
 

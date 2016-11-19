@@ -45,6 +45,8 @@ Activation: This controls how an NPC is activated. It also controls whether or n
 Appear if Tag: These two tags can be used to control when the NPC appears. You can type in a tag number, or press ENTER or SPACE to bring up the tag browser. Press - to switch between requiring the tag to be OFF or ON.
 
 Usable Repeatedly/Usable Only Once: This allows you to make an NPC disappear permanently after being activated once. This is most often used for treasure chests or for one-time plotscript triggers.
+NOTE: All copies of an NPC will disappear when any of them is activated! Use multiple NPC definitions, or the "delete NPC" script command to remove a single NPC.
+"(onetime #)" indicates the ID number of the flag, which you can set or check with a script.
 
 Run Script: A plotscript that will be run when the NPC is activated. You can press ENTER or SPACE here to open the script browser. This script will automatically receive two arguments. The script argument defined below is first, and an NPC reference number for the activating NPC is second.
 
