@@ -10,6 +10,8 @@ if [ ! -d "$LOCALREPO" ]; then
     echo "Cloning from $REMOTEREPO"
 
     git clone "$REMOTEREPO" "$LOCALREPO" --origin svn
+    # svn/HEAD gets created automatically when cloning, delete it
+    git branch -d -r svn/HEAD
     cd "$LOCALREPO"
     git config svn-remote.svn.url "$SVNREPO"
     git config svn-remote.svn.fetch "wip:refs/remotes/svn/wip"
