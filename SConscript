@@ -21,7 +21,7 @@ CFLAGS = []
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
 # under MinGW. (See bug 951)
 TRUE_CFLAGS = '-g -Wall --std=gnu99'.split()
-# Flags used only for C++ (in addition to CFLAGS) (note: NOTE used for android_source=1 builds)
+# Flags used only for C++ (in addition to CFLAGS)
 CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split()
 # CXXLINKFLAGS are used when linking with g++
 CXXLINKFLAGS = []
@@ -534,6 +534,7 @@ if android_source:
         if arch in ('x86', 'x86_64'):
             NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
         fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
+        fil.write('AppCppflags="%s"\n' % ' '.join(CXXFLAGS))
         if arch == 'armv5te':
             abi = 'armeabi'
         elif arch == 'armv7-a':
