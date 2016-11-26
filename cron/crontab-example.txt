@@ -6,3 +6,6 @@ MAILTO=Bob-cron@HamsterRepublic.com
 
 # Run once an hour, on the half-hour
 30 *    * * *   /path/to/script/wiki-spamwords
+
+# Run every 20 min
+10,30,50 *    * * *   /path/to/script/git-svn.sh
