@@ -22,7 +22,7 @@ CFLAGS = []
 # under MinGW. (See bug 951)
 TRUE_CFLAGS = '-g -Wall --std=gnu99'.split()
 # Flags used only for C++ (in addition to CFLAGS)
-CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split()
+CXXFLAGS = '--std=c++11 -g -Wall -Wno-non-virtual-dtor'.split()
 # CXXLINKFLAGS are used when linking with g++
 CXXLINKFLAGS = []
 # FBLINKFLAGS are passed to fbc when linking with fbc

@@ -12,7 +12,6 @@
 // When quitting FB closes all files from within a destructor, so globals may have already
 // been deleted. So it would be a bad idea to define openfiles as an object instead of pointer.
 map<FB_FILE *, FileInfo> *openfiles;
-typedef map<FB_FILE *, FileInfo>::iterator openfiles_iterator_t;
 
 IPCChannel *lump_updates_channel;
 
@@ -118,7 +117,7 @@ void dump_openfiles() {
 		return;
 	}
 	debug(errDebug, "%d open files:", (int)openfiles->size());
-	for (openfiles_iterator_t it = openfiles->begin(); it != openfiles->end(); ++it) {
+	for (auto it = openfiles->begin(); it != openfiles->end(); ++it) {
 		const char *fname = it->second.name.c_str();
 		debug(errDebug, " %p (%s)", it->first, fname);
 		if (lock_lumps)
