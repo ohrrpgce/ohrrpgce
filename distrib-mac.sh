@@ -79,7 +79,6 @@ cp -p docs/htmlplot.xsl tmp/docs
 cp -p docs/more-docs.txt tmp/docs
 
 echo "Creating disk image"
-
 mv tmp OHRRPGCE-$CODE
 #tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
 hdiutil create -srcfolder OHRRPGCE-$CODE/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg
@@ -92,4 +91,4 @@ echo "Create minimal player tarball"
 gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$CODE.tar.gz OHRRPGCE-Game.app README-mac-minimal.txt LICENSE-binary.txt
 
 echo "Creating utilities zip"
-zip distrib/utilities-mac.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
+zip distrib/ohrrpgce-util-mac.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt
