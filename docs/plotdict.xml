@@ -632,10 +632,31 @@ Besides readability, there is one other important difference between using switc
 	</section>
 
 	<section title="Wait Commands">
+		<description>
+			Note that all of the wait commands wait for at least one tick,
+			even if the thing they are waiting for is false
+			(unless you call a command with invalid arguments, causing a script error instead).
+			For example, "wait for textbox" waits for one tick even if there is no textbox.
+			<lb/>
+			<note>
+				If a battle occurs, a menu is entered (unless it 'Allows Scripts') or
+				another script is triggered, your script will be paused until the other
+				thing finishes.
+				While paused, any wait commands don't continue checking.
+				For example, <ref>wait</ref> stops counting down, and
+				<ref>waitfornpc</ref> doesn't end if the NPC it's waiting for
+				stops moving while a script is paused but then starts again
+				before it the script resumes.
+			</note>
+		</description>
 		<command id="wait">
 			<canon>wait (ticks)</canon>
 			<shortname>wait</shortname>
-			<description>Makes the script wait for the specified number of ticks. There are roughly 18 ticks to a second, but this can vary under some conditions. If you leave out the argument, it will wait for one tick.</description>
+			<description>
+				Makes the script wait for the specified number of ticks.
+				There are roughly 18 ticks to a second, but this can vary under some conditions.
+				If you leave out the argument, it will wait for one tick.
+			</description>
 			<example>show text box(2) # Show a text box
 wait(50) # Wait about 3 seconds
 advance text box # "hit spacebar"</example>
@@ -7289,6 +7310,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 	</section>
 
 	<section title="Saved Games">
+		<reference ref="loadmenu" />
 		<command id="autosave">
 			<canon>autosave</canon>
 			<shortname>autosave</shortname>
@@ -7388,6 +7410,8 @@ end</example>
 			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
 		</command>
 		<reference ref="sendemail" />
+		<reference ref="getloadscript" />
+		<reference ref="setloadscript" />
 		<command id="importglobals">
 			<canon>import globals (slot, first, last)</canon>
 			<shortname>import globals</shortname>

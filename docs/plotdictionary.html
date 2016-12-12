@@ -72,14 +72,15 @@
 						/*content: " ?";*/
 					}
 
-					.key, .param {
+					.param {
 						font-weight: bold;
 						color: yellow;
 					}
 
-					/*.param {
-						color: yellow;
-					}*/
+					.code {
+						font-style: italic;
+						color: greenyellow;
+					}
 
 					.seealso {
 						margin-top: 10px;
@@ -115,10 +116,10 @@
 					  color: #008800;
 					}
 
-					div.note .param, div.note .key {
+					div.note .param, div.note .code {
 					  color: #888800;
 					}
-					
+
 					.icon {
 						float:left;
 						padding-right: 5px;
@@ -144,7 +145,7 @@
 <body>
 <h1>Plotscripting Dictionary</h1>
 <p>This is a listing of all the plotscripting commands implemented as of right now. If you're reading this on the  <a href="http://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a> rather than an HTML file included in a download, then this documents the latest nightly version, not the last stable release!</p>
-<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Old_Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
+<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
 <hr>
 <h2>Commands by Category</h2>
 <p><div class="sectionlist">
@@ -3805,14 +3806,36 @@ Besides readability, there is one other important difference between using switc
 		<h3>
 <span class="backlink"></span>Wait Commands</h3>
 		<ul></ul>
-<p></p>
+<p>
+			Note that all of the wait commands wait for at least one tick,
+			even if the thing they are waiting for is false
+			(unless you call a command with invalid arguments, causing a script error instead).
+			For example, "wait for textbox" waits for one tick even if there is no textbox.
+			<br>
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+				If a battle occurs, a menu is entered (unless it 'Allows Scripts') or
+				another script is triggered, your script will be paused until the other
+				thing finishes.
+				While paused, any wait commands don't continue checking.
+				For example, <a href="#about-wait" class="ref">wait</a> stops counting down, and
+				<a href="#about-waitfornpc" class="ref">wait for NPC</a> doesn't end if the NPC it's waiting for
+				stops moving while a script is paused but then starts again
+				before it the script resumes.
+			<br clear="all">
+</div>
+		</p>
 		
 		
 		<div class="command">
 <a name="about-wait"></a>
 		<h4>wait (ticks)</h4>
 <p>
-			Makes the script wait for the specified number of ticks. There are roughly 18 ticks to a second, but this can vary under some conditions. If you leave out the argument, it will wait for one tick.
+			
+				Makes the script wait for the specified number of ticks.
+				There are roughly 18 ticks to a second, but this can vary under some conditions.
+				If you leave out the argument, it will wait for one tick.
+			
 			
 			<pre>show text box(2) # Show a text box
 wait(50) # Wait about 3 seconds
@@ -3967,7 +3990,12 @@ wait for all # wait until everything is done</pre>
 <a name="about-setonetime"></a>
 		<h4>set onetime (onetime,value)</h4>
 <p>
-			Sets the value of an NPC onetime use flag. NPC onetime use flags behave like tags but are stored separately. The available constants are: <a href="#about-booleanconstants" class="ref">off</a>, <a href="#about-booleanconstants" class="ref">on</a>, <a href="#about-booleanconstants" class="ref">true</a>, or <a href="#about-booleanconstants" class="ref">false</a>.
+			
+				Sets the value of an NPC onetime use flag.
+				NPC onetime use flags behave like tags but are stored separately.
+				<span class="param">value</span> is the new setting; for clarity you can use the constants
+				<a href="#about-booleanconstants" class="ref">off</a>, <a href="#about-booleanconstants" class="ref">on</a>, <a href="#about-booleanconstants" class="ref">true</a>, or <a href="#about-booleanconstants" class="ref">false</a>.
+			
 			
 			
 			
@@ -3977,7 +4005,13 @@ wait for all # wait until everything is done</pre>
 <a name="about-checkonetime"></a>
 		<h4>check onetime (onetime)</h4>
 <p>
-			A function that checks the value of an NPC onetime flag, and returns <a href="#about-booleanconstants" class="ref">true</a> if the one-time npc has already been used, and <a href="#about-booleanconstants" class="ref">false</a> if the onetime npc has not yet been used. It can be used in <a href="#about-if" class="ref">if</a> and <a href="#about-while" class="ref">while</a> statements. NPC onetime flags are similar to tags, but stored separately.
+			
+				A function that checks the value of an NPC onetime flag,
+				and returns <a href="#about-booleanconstants" class="ref">true</a> if the one-time NPC has already been used,
+				and <a href="#about-booleanconstants" class="ref">false</a> if the onetime NPC has not yet been used.
+				It can be used in <a href="#about-if" class="ref">if</a> and <a href="#about-while" class="ref">while</a> statements.
+				NPC onetime flags are similar to tags, but stored separately.
+			
 			
 			
 			
@@ -4997,9 +5031,11 @@ while (npcref) do (
 <a name="about-getnpcid"></a>
 		<h4>get NPC ID (reference)</h4>
 <p>
-			This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">In some older versions, This command was useful if you needed to do an <a href="#about-alternpc" class="ref">alter NPC</a> or a <a href="#about-setnpcspeed" class="ref">set NPC speed</a> on an NPC that you are working with by reference. This is no longer necessary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)<br clear="all">
-</div>
+			
+				This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>.
+				If you give <span class="param">get NPC ID</span> a reference to an NPC it will return the NPC's ID.
+				If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1.
+			
 			
 			
 			
@@ -5465,12 +5501,23 @@ resume box advance # go back to normal</pre>
 <a name="about-showbackdrop"></a>
 		<h4>show backdrop (number)</h4>
 <p>
-			Displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <a href="#about-wait" class="ref">wait</a> commands in between. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">It's also possible to display backdrops as sprite slices.<br clear="all">
+			
+				Displays the specified full screen backdrop on the screen.
+				This allows you to show full screen pictures without attaching them to text boxes.
+				Use <a href="#about-showmap" class="ref">show map</a> or <span class="code">show backdrop(-1)</span> to hide the backdrop and
+				show the map again.
+				You can also do some simple animation effects by calling show backdrop many times with <a href="#about-wait" class="ref">wait</a> commands in between.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">It's also possible to display backdrops as sprite slices using <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.<br clear="all">
 </div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-showmap" class="ref">show map</a>, </li>
+<li><a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -9460,7 +9507,7 @@ end</pre>
 <a name="about-getmenuitemtag"></a>
 		<h4>get menu item tag(menu item handle, whichtag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.
 			
 			
 			
@@ -9470,7 +9517,7 @@ end</pre>
 <a name="about-setmenuitemtag"></a>
 		<h4>set menu item tag(menu item handle, new tag, whichtag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, Set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.
 			
 			
 			
@@ -9480,7 +9527,7 @@ end</pre>
 <a name="about-getmenuitemsettag"></a>
 		<h4>get menu item settag(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.
 			
 			
 			
@@ -9490,7 +9537,7 @@ end</pre>
 <a name="about-setmenuitemsettag"></a>
 		<h4>set menu item settag(menu item handle, new settag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.
 			
 			
 			
@@ -9500,7 +9547,7 @@ end</pre>
 <a name="about-getmenuitemtogtag"></a>
 		<h4>get menu item togtag(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).
 			
 			
 			
@@ -9510,7 +9557,7 @@ end</pre>
 <a name="about-setmenuitemtogtag"></a>
 		<h4>set menu item togtag(menu item handle, new settag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive).
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the tag that will be toggled when the menu item is selected. (The tag number will always be positive).
 			
 			
 			
@@ -10581,7 +10628,7 @@ end
 <a name="about-slicex"></a>
 		<h4>slice x (handle)</h4>
 <p>
-			Returns the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+			Returns the X position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10598,7 +10645,7 @@ end
 <a name="about-slicey"></a>
 		<h4>slice y (handle)</h4>
 <p>
-			Returns the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
+			Returns the Y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10633,7 +10680,7 @@ end
 		<h4>set slice x (handle, X)</h4>
 <p>
 			
-				Changes the y position of any slice, for example a sprite.
+				Changes the X position of any slice, for example a sprite.
 				This position is relative to the slice's parent.
 				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
 				The position of the parent's align point also depends on the amount of padding the parent has.
@@ -10655,7 +10702,7 @@ end
 		<h4>set slice y (handle, Y)</h4>
 <p>
 			
-				Changes the y position of any slice, for example a sprite.
+				Changes the Y position of any slice, for example a sprite.
 				This position is relative to the slice's parent.
 				More exactly, it's the relative displacement between this slice's anchor point, and the selected align point on the parent.
 				The position of the parent's align point also depends on the amount of padding the parent has.
@@ -10871,7 +10918,7 @@ end
 <a name="about-setsliceedgex"></a>
 		<h4>set slice edge x (handle, edge, value)</h4>
 <p>
-			Changes the x position of a specific edge of a slice. This is like <a href="#about-setslicex" class="ref">set slice x</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>
+			Changes the X position of a specific edge of a slice. This is like <a href="#about-setslicex" class="ref">set slice x</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10888,7 +10935,7 @@ end
 <a name="about-setsliceedgey"></a>
 		<h4>set slice edge y (handle, edge, value)</h4>
 <p>
-			Changes the x position of a specific edge of a slice. This is like <a href="#about-setslicey" class="ref">set slice y</a>, except that you can set by any edge regardless of the slice's anchor. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>
+			Changes the Y position of a specific edge of a slice. This is like <a href="#about-setslicey" class="ref">set slice y</a>, except that you can set by any edge regardless of the slice's anchor. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>
 			
 			
 			<div class="seealso">See also: <ul>
@@ -15216,6 +15263,10 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		
 		
 		<div class="command">
+		<h4>load menu (reallyload)</h4>
+		<p><a href="#about-loadmenu">Defined in the Opening Built-in Menus section.</a></p>
+		</div>
+		<div class="command">
 <a name="about-autosave"></a>
 		<h4>autosave</h4>
 <p>
@@ -15348,6 +15399,14 @@ end</pre>
 		<div class="command">
 		<h4>send email (save slot, subject string id, message string id)</h4>
 		<p><a href="#about-sendemail">Defined in the Debugging section.</a></p>
+		</div>
+		<div class="command">
+		<h4>get load script</h4>
+		<p><a href="#about-getloadscript">Defined in the Script Triggers section.</a></p>
+		</div>
+		<div class="command">
+		<h4>set load script (id)</h4>
+		<p><a href="#about-setloadscript">Defined in the Script Triggers section.</a></p>
 		</div>
 		<div class="command">
 <a name="about-importglobals"></a>
