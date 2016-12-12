@@ -3513,6 +3513,7 @@ SUB sfunctions(byval cmdid as integer)
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
  CASE 122'--get NPC ID
+  ' Note: this command can be given an ID, effectively checking whether any NPCs with that ID exist
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = ABS(npc(npcref).id) - 1

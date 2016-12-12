@@ -1344,7 +1344,11 @@ while (npcref) do (
 		<command id="getnpcid">
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
-			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <p>get NPC ID</p> will return -1<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer necessary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
+			<description>
+				This command is the opposite of <ref>npcreference</ref>.
+				If you give <p>get NPC ID</p> a reference to an NPC it will return the NPC's ID.
+				If the NPC ID is not valid then <p>get NPC ID</p> will return -1.
+			</description>
 		</command>
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
@@ -1596,8 +1600,16 @@ wait for text box # wait until the player continues</example>
 		<command id="showbackdrop">
 			<canon>show backdrop (number)</canon>
 			<shortname>show backdrop</shortname>
-			<description>Displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between. <note>It's also possible to display backdrops as sprite slices.</note></description>
+			<description>
+				Displays the specified full screen backdrop on the screen.
+				This allows you to show full screen pictures without attaching them to text boxes.
+				Use <ref>showmap</ref> or <tt>show backdrop(-1)</tt> to hide the backdrop and
+				show the map again.
+				You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between.
+				<note>It's also possible to display backdrops as sprite slices using <ref>loadbackdropsprite</ref>.</note>
+			</description>
 			<seealso>
+				<ref>showmap</ref>
 				<ref>loadbackdropsprite</ref>
 			</seealso>
 		</command>
@@ -3843,6 +3855,7 @@ end</example>
 				<ref>selectedmenuitem</ref>
 			</seealso>
 		</command>
+
 		<section title="Menu Item Data">
 
 		<command id="getmenuitemcaption">
@@ -3881,32 +3894,32 @@ end</example>
 		<command id="getmenuitemtag">
 			<canon>get menu item tag(menu item handle, whichtag)</canon>
 			<shortname>get menu item tag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.</description>
 		</command>
 		<command id="setmenuitemtag">
 			<canon>set menu item tag(menu item handle, new tag, whichtag)</canon>
 			<shortname>set menu item tag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, Set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and a tag number <p>whichtag</p> which can be 1 or 2, set the tag required for the menu item to <p>new tag</p>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.</description>
 		</command>
 		<command id="getmenuitemsettag">
 			<canon>get menu item settag(menu item handle)</canon>
 			<shortname>get menu item settag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.</description>
 		</command>
 		<command id="setmenuitemsettag">
 			<canon>set menu item settag(menu item handle, new settag)</canon>
 			<shortname>set menu item settag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.</description>
 		</command>
 		<command id="getmenuitemtogtag">
 			<canon>get menu item togtag(menu item handle)</canon>
 			<shortname>get menu item togtag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).</description>
 		</command>
 		<command id="setmenuitemtogtag">
 			<canon>set menu item togtag(menu item handle, new settag)</canon>
 			<shortname>set menu item togtag</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), Change the tag that will be toggled when the menu item is selected. (the tag number will always be positive).</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the tag that will be toggled when the menu item is selected. (The tag number will always be positive).</description>
 		</command>
 		<command id="getmenuitembit">
 			<canon>get menu item bit(menu item handle, bit)</canon>
