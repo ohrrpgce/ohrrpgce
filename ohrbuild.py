@@ -157,10 +157,10 @@ def verprint (used_gfx, used_music, fbc, arch, asan, builddir, rootdir):
         if platform.system () == 'Windows':
             print "Not attempting to get SVN revision from git; takes forever"
         else:
-            # Don't call git-svn if remotes/git-svn doesn't exist, git-svn starts
-            # doing something very expensive (initialising?)
-            if os.system ("git show-ref -q git-svn") == 0:
-                date, rev = query_svn ('git','svn','info')
+            # If git config settings for git-svn have been set up but git-svn hasn't been
+            # told to initialise yet, this will take a long time before failing...
+            # but there's no good reason that should occur
+            date, rev = query_svn ('git','svn','info')
     if rev == 0:
         print "Falling back to reading svninfo.txt"
         date, rev = query_svn ('cat','svninfo.txt')
