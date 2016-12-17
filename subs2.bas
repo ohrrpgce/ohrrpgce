@@ -1242,7 +1242,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 17:
      IF box.line_sound > 0 THEN
       playsfx box.line_sound - 1
-     ELSEIF gen(genTextboxLine) > 0 THEN
+     ELSEIF box.line_sound = 0 AND gen(genTextboxLine) > 0 THEN
       playsfx gen(genTextboxLine) - 1
      END IF
    END SELECT
@@ -1298,7 +1298,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       resetsfx
      END IF
     CASE 17:
-     IF zintgrabber(box.line_sound, -1, gen(genMaxSFX)) THEN
+     IF zintgrabber(box.line_sound, -2, gen(genMaxSFX)) THEN
       state.need_update = YES
       resetsfx
      END IF
@@ -1415,7 +1415,9 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
     END IF
    CASE 16: menutemp = yesorno(box.stop_sound_after)
    CASE 17:
-    IF box.line_sound = 0 THEN
+    IF box.line_sound < 0 THEN
+     menutemp = "NONE"
+    ELSEIF box.line_sound = 0 THEN
      IF gen(genTextboxLine) <= 0 THEN
       menutemp = "default (NONE)"
      ELSE

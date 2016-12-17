@@ -401,9 +401,11 @@ IF txt.show_lines < 7 THEN
    IF txt.box.line_sound > 0 THEN
     ' Don't subtract 1, since menusound takes sfx id + 1
     menusound txt.box.line_sound
-   ELSE
-    ' Instead of silence, use default
+   ELSEIF txt.box.line_sound = 0 THEN
+    ' Default
     menusound gen(genTextboxLine)
+   ELSEIF txt.box.line_sound < 0 THEN
+    ' Silence
    END IF
   END IF
  END IF
