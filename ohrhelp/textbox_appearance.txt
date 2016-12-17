@@ -55,4 +55,6 @@ Sound Effect: Choose a special sound effect to play when this text box is displa
 
 Stop sound after box: Have the game automatically stop the sound effect when the player proceeds past this text box.
 
+Line Sound: Choose a sound played as each non-blank textbox line is displayed (aside from the first). If "default", the global textbox line sound is used.
+
 Transparent Backdrop: This only matters if the text box has a backdrop. If YES, color 0 will be transparent, and will allow the map to show through behind the backdrop.

@@ -18,6 +18,8 @@ WHAT IS NEW?
       [James]
     * If your max level is lower than 99, the hero stat editor now
       shows a middle column that displays stats at max level [James]
+    * Per-textbox each-line sound effects, overriding the global option
+      [MirceaKitsune]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

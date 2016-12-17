@@ -397,7 +397,15 @@ IF txt.show_lines < 7 THEN
  txt.show_lines = txt.show_lines + 1
  '--play sounds for non-blank lines
  IF txt.show_lines > 1 THEN
-  IF trim(txt.box.text(txt.show_lines)) <> "" THEN menusound gen(genTextboxLine)
+  IF trim(txt.box.text(txt.show_lines)) <> "" THEN
+   IF txt.box.line_sound > 0 THEN
+    ' Don't subtract 1, since menusound takes sfx id + 1
+    menusound txt.box.line_sound
+   ELSE
+    ' Instead of silence, use default
+    menusound gen(genTextboxLine)
+   END IF
+  END IF
  END IF
  '--note when the display of lines is done
  IF txt.show_lines >= 7 THEN

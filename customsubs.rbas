@@ -1806,6 +1806,11 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
     PRINT #fh, "Sound Effect: " & box.sound_effect & " (None)"
    END IF
    PRINT #fh, "Stop Sound After Box: " & yesorno(box.stop_sound_after)
+   IF box.line_sound > 0 THEN
+    PRINT #fh, "Line Sound: " & box.line_sound & " (" & escape_nonprintable_ascii(getsfxname(box.line_sound - 1)) & ")"
+   ELSE
+    PRINT #fh, "Line Sound: " & box.line_sound & " (Default)"
+   END IF
    PRINT #fh, "Show Box: " & yesorno(NOT box.no_box) '--argh, double negatives
    PRINT #fh, "Translucent: " & yesorno(NOT box.opaque) '--  "       "      "
    
@@ -2013,6 +2018,8 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as integer
         box.sound_effect = VALINT(v)
        CASE "stop sound after box"
         box.stop_sound_after = str2bool(v)
+       CASE "line sound"
+        box.line_sound = VALINT(v)
        CASE "show box"
         box.no_box = str2bool(v,,YES)
        CASE "translucent"

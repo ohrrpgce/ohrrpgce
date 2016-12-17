@@ -1011,6 +1011,7 @@ TYPE TextBox
   portrait_pos  as XYPair
   sound_effect as integer    ' +1, 0 means none
   stop_sound_after as bool
+  line_sound as integer      ' +1, 0 means none
   backdrop_trans as bool
 END TYPE
 

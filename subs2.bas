@@ -1202,7 +1202,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
 END SUB
 
 SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
- DIM menu(17) as string
+ DIM menu(18) as string
  DIM state as MenuState
  state.size = 20
  state.last = UBOUND(menu)
@@ -1231,7 +1231,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
-    CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
+    CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
     CASE 12:
      IF box.portrait_type = 1 THEN
       box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id)
@@ -1239,6 +1239,12 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 14: textbox_position_portrait box, st, backdrop
     CASE 15: IF box.sound_effect > 0 THEN playsfx box.sound_effect - 1
+    CASE 17:
+     IF box.line_sound > 0 THEN
+      playsfx box.line_sound - 1
+     ELSEIF gen(genTextboxLine) > 0 THEN
+      playsfx gen(genTextboxLine) - 1
+     END IF
    END SELECT
    state.need_update = YES
   END IF
@@ -1251,7 +1257,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
      CASE 9: box.restore_music = (NOT box.restore_music)
      CASE 13: box.portrait_box = (NOT box.portrait_box)
      CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
-     CASE 17: box.backdrop_trans = (NOT box.backdrop_trans)
+     CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
     END SELECT
     state.need_update = YES
    END IF
@@ -1288,6 +1294,11 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
      END IF
     CASE 15:
      IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
+      state.need_update = YES
+      resetsfx
+     END IF
+    CASE 17:
+     IF zintgrabber(box.line_sound, -1, gen(genMaxSFX)) THEN
       state.need_update = YES
       resetsfx
      END IF
@@ -1350,7 +1361,8 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
  menu(14) = "Position Portrait..."
  menu(15) = "Sound Effect:"
  menu(16) = "Stop sound after box:"
- menu(17) = "Transparent backdrop:"
+ menu(17) = "Line Sound:"
+ menu(18) = "Transparent backdrop:"
  DIM menutemp as string
  FOR i as integer = 0 TO UBOUND(menu)
   menutemp = ""
@@ -1403,6 +1415,16 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
     END IF
    CASE 16: menutemp = yesorno(box.stop_sound_after)
    CASE 17:
+    IF box.line_sound = 0 THEN
+     IF gen(genTextboxLine) <= 0 THEN
+      menutemp = "default (NONE)"
+     ELSE
+      menutemp = "default (" & (gen(genTextboxLine) - 1) & " " & getsfxname(gen(genTextboxLine) - 1) & ")"
+     END IF
+    ELSE
+     menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
+    END IF
+   CASE 18:
     IF box.backdrop > 0 THEN
      menutemp = yesorno(box.backdrop_trans)
     ELSE
@@ -1464,6 +1486,7 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
   .portrait_pos    = boxcopier.portrait_pos
   .sound_effect    = boxcopier.sound_effect
   .stop_sound_after= boxcopier.stop_sound_after
+  .line_sound      = boxcopier.line_sound
  END WITH
  SaveTextBox box, st.id
 END SUB
