@@ -83,8 +83,8 @@ function spamCallBack($title, $body, $section){
   if($do_filter){
 	
     //Create a diff, for better filtering  
-    $old_page = new Article($title);
-    $old = $old_page->fetchContent();
+    $old_page = new WikiPage($title);
+    $old = $old_page->getContent();
     $diff = getDiff($old,$body);
     $diff = implode("\n",$diff);
     unset($old_page);
