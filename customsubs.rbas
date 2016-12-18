@@ -1796,8 +1796,10 @@ FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
    PRINT #fh, "Backdrop: " & box.backdrop
    IF box.music > 0 THEN
     PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname(box.music - 1)) & ")"
-   ELSE
+   ELSEIF box.music = 0 THEN
     PRINT #fh, "Music: " & box.music & " (None)"
+   ELSEIF box.music < 0 THEN
+    PRINT #fh, "Music: " & box.music & " (Silence)"
    END IF
    PRINT #fh, "Restore Music: " & yesorno(box.restore_music)
    IF box.sound_effect > 0 THEN

@@ -2599,6 +2599,9 @@ SUB loadsay (byval box_id as integer)
  IF txt.box.music > 0 THEN
   txt.remember_music = presentsong
   wrappedsong txt.box.music - 1
+ ELSEIF txt.box.music < 0 THEN
+  txt.remember_music = presentsong
+  stopsong
  END IF
 
  '--play a sound effect

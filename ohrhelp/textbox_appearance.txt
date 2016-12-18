@@ -15,7 +15,7 @@ Box style: Choose the color of the textbox background.  There are only 15 choice
 
 Backdrop: Choose a special fullscreen backdrop to be displayed while this text box is present. Import backdrops in the Graphics Editor.
 
-Music: Choose a special song to start playing when this text box is displayed. Import songs in the Main Menu.
+Music: Choose a special song to start playing when this text box is displayed. You can also use the "silence" option to stop the song instead. Import songs in the Main Menu.
 
 Show Box: You can optionally turn off the box to just show the text alone.
 

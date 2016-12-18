@@ -1003,7 +1003,7 @@ TYPE TextBox
   textcolor   as integer     ' 0=default
   boxstyle    as integer
   backdrop    as integer     ' +1
-  music       as integer     ' +1
+  music       as integer     ' +1, 0=none, -1=silence
   portrait_box  as integer
   portrait_type as integer
   portrait_id   as integer

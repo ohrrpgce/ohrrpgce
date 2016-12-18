@@ -1275,7 +1275,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       END IF
      END IF
     CASE 6:
-     IF zintgrabber(box.music, -1, gen(genMaxSong)) THEN
+     IF zintgrabber(box.music, -2, gen(genMaxSong)) THEN
       state.need_update = YES
       music_stop
      END IF
@@ -1377,7 +1377,14 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
    CASE 3: menutemp = "" & box.textcolor
    CASE 4: menutemp = "" & box.boxstyle
    CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"
-   CASE 6: IF box.music THEN menutemp = (box.music - 1) & " " & getsongname(box.music - 1) ELSE menutemp = "NONE"
+   CASE 6:
+    IF box.music < 0 THEN
+     menutemp = "SILENCE"
+    ELSEIF box.music = 0 THEN
+     menutemp = "NONE"
+    ELSE
+     menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
+    END IF
    CASE 7: menutemp = yesorno(NOT box.no_box)
    CASE 8: menutemp = yesorno(NOT box.opaque)
    CASE 9: menutemp = yesorno(box.restore_music)
