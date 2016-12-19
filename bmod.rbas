@@ -1376,8 +1376,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .vis = 1
     'load hero sprites
     .sprite_num = 8
-    .sprites = frame_load(0, gam.hero(i).battle_pic)
-    .pal = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
+    .sprites = frame_load(sprTypeHero, gam.hero(i).battle_pic)
+    .pal = palette16_load(gam.hero(i).battle_pal, sprTypeHero, gam.hero(i).battle_pic)
     .frame = frameSTAND
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
@@ -2776,8 +2776,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    .frame = frameSTAND
    frame_unload(@.sprites)
    palette16_unload(@.pal)
-   .sprites = frame_load(6, attack.picture)
-   .pal = palette16_load(attack.pal, 6, attack.picture)
+   .sprites = frame_load(sprTypeAttack, attack.picture)
+   .pal = palette16_load(attack.pal, sprTypeAttack, attack.picture)
   end with
  NEXT i
  
@@ -2857,8 +2857,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     .hand(1).x = GetWeaponPos(eqstuf(bat.acting,0)-1,0,0)
     .hand(1).y = GetWeaponPos(eqstuf(bat.acting,0)-1,0,1)
    END IF
-   .sprites = frame_load(5, wpic)
-   .pal = palette16_load(wpal, 5, wpic)
+   .sprites = frame_load(sprTypeWeapon, wpic)
+   .pal = palette16_load(wpal, sprTypeWeapon, wpic)
    .frame = 0
   end with
  END IF

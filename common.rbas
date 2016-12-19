@@ -609,7 +609,7 @@ ELSEIF border >= 0 AND border <= 14 THEN
  DIM border_gfx as GraphicPair
  borderindex = boxlook(border).border - 1
  IF borderindex >= 0 THEN
-  load_sprite_and_pal border_gfx, 7, borderindex
+  load_sprite_and_pal border_gfx, sprTypeBoxBorder, borderindex
  END IF
  WITH border_gfx
   IF .sprite THEN ' Only proceed if a sprite is actually selected
@@ -4845,7 +4845,7 @@ END FUNCTION
 
 SUB setup_sprite_sizes ()
  'Populates the global sprite_sizes
- WITH sprite_sizes(0)
+ WITH sprite_sizes(sprTypeHero)  '0
   .name = "Hero"
   .size.x = 32
   .size.y = 40
@@ -4853,7 +4853,7 @@ SUB setup_sprite_sizes ()
   .directions = 4
   .genmax = genMaxHeroPic
  END WITH
- WITH sprite_sizes(1)
+ WITH sprite_sizes(sprTypeSmallEnemy)  '1
   .name = "Small Enemy"
   .size.x = 34
   .size.y = 34
@@ -4861,7 +4861,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxEnemy1Pic
  END WITH
- WITH sprite_sizes(2)
+ WITH sprite_sizes(sprTypeMediumEnemy)  '2
   .name = "Medium Enemy"
   .size.x = 50
   .size.y = 50
@@ -4869,7 +4869,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxEnemy2Pic
  END WITH
- WITH sprite_sizes(3)
+ WITH sprite_sizes(sprTypeLargeEnemy)  '3
   .name = "Large Enemy"
   .size.x = 80
   .size.y = 80
@@ -4877,7 +4877,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxEnemy3Pic
  END WITH
- WITH sprite_sizes(4)
+ WITH sprite_sizes(sprTypeWalkabout)  '4
   .name = "Walkabout"
   .size.x = 20
   .size.y = 20
@@ -4885,7 +4885,7 @@ SUB setup_sprite_sizes ()
   .directions = 4
   .genmax = genMaxNPCPic
  END WITH
- WITH sprite_sizes(5)
+ WITH sprite_sizes(sprTypeWeapon)  '5
   .name = "Weapon"
   .size.x = 24
   .size.y = 24
@@ -4893,7 +4893,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxWeaponPic
  END WITH
- WITH sprite_sizes(6)
+ WITH sprite_sizes(sprTypeAttack)  '6
   .name = "Attack"
   .size.x = 50
   .size.y = 50
@@ -4901,7 +4901,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxAttackPic
  END WITH
- WITH sprite_sizes(7)
+ WITH sprite_sizes(sprTypeBoxBorder)  '7
   .name = "Box Border"
   .size.x = 16
   .size.y = 16
@@ -4909,7 +4909,7 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxBoxBorder
  END WITH
- WITH sprite_sizes(8)
+ WITH sprite_sizes(sprTypePortrait)  '8
   .name = "Portrait"
   .size.x = 50
   .size.y = 50

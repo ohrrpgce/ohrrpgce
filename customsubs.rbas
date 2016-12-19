@@ -1222,8 +1222,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  facetype(1) = "Face Player"
  facetype(2) = "Do Not Face Player"
 
- npcdata.sprite = frame_load(4, npcdata.picture)
- npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
+ npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
+ npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
 
  itemname = load_item_name(npcdata.item, 0, 0)
  boxpreview = textbox_preview_line(npcdata.textbox)
@@ -1244,18 +1244,18 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
      frame_unload @npcdata.sprite
      palette16_unload @npcdata.pal
-     npcdata.sprite = frame_load(4, npcdata.picture)
-     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
+     npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
    CASE 1'--palette
     IF intgrabber(npcdata.palette, lnpc(state.pt), unpc(state.pt)) THEN
      palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
     IF enter_space_click(state) THEN
-     npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture)
+     npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture)
      palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
    CASE 2
     intgrabber(npcdata.movetype, lnpc(state.pt), unpc(state.pt))
@@ -1615,8 +1615,8 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
     pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
-   .sprite = frame_load(8, img_id)
-   .pal    = palette16_load(pal_id, 8, img_id)
+   .sprite = frame_load(sprTypePortrait, img_id)
+   .pal    = palette16_load(pal_id, sprTypePortrait, img_id)
   END IF
  END WITH
 END SUB

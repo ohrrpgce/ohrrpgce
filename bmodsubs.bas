@@ -1783,8 +1783,8 @@ SUB setup_enemy_sprite_and_name(byval slot as integer, bslot() as BattleSprite)
   .sprite_num = 1
   frame_unload @.sprites
   palette16_unload @.pal
-  .sprites = frame_load(1 + .enemy.size, .enemy.pic)
-  .pal = palette16_load(.enemy.pal, 1 + .enemy.size, .enemy.pic)
+  .sprites = frame_load(sprTypeSmallEnemy + .enemy.size, .enemy.pic)
+  .pal = palette16_load(.enemy.pal, sprTypeSmallEnemy + .enemy.size, .enemy.pic)
   .name = .enemy.name
  end with
 END SUB

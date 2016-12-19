@@ -1135,8 +1135,8 @@ FOR i as integer = 0 TO last_slot
   FOR o as integer = 0 TO 3
    '--hero pic and palette
    IF pv(i).hero_id(o) > 0 THEN
-    sprites(i, o).sprite = frame_load(0, pv(i).hero(o).battle_pic)
-    sprites(i, o).pal = palette16_load(pv(i).hero(o).battle_pal, 0, pv(i).hero(o).battle_pic)
+    sprites(i, o).sprite = frame_load(sprTypeHero, pv(i).hero(o).battle_pic)
+    sprites(i, o).pal = palette16_load(pv(i).hero(o).battle_pal, sprTypeHero, pv(i).hero(o).battle_pic)
    END IF
   NEXT o
  END IF

@@ -1814,13 +1814,13 @@ SUB quad_transforms_menu ()
   setwait 55
   
   if st.need_update then
-   if spritemode < -1 then spritemode = 8
-   if spritemode > 8 then spritemode = -1
+   if spritemode < -1 then spritemode = sprTypeLastPT
+   if spritemode > sprTypeLastPT then spritemode = -1
 
    frame_unload @testframe
 
    select case spritemode
-    case 0 to 8
+    case 0 to sprTypeLastPT
      DIM tempsprite as GraphicPair
      load_sprite_and_pal tempsprite, spritemode, 0, -1
      with tempsprite

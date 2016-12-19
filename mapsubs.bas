@@ -528,7 +528,7 @@ END WITH
 
 '--load hero graphics--
 loadherodata her, 0
-load_sprite_and_pal hero_gfx, 4, her.walk_sprite, her.walk_sprite_pal
+load_sprite_and_pal hero_gfx, sprTypeWalkabout, her.walk_sprite, her.walk_sprite_pal
 
 
 modenames(0) = "Picture Mode"
@@ -1890,8 +1890,8 @@ SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
    IF .sprite THEN frame_unload @.sprite
    IF .pal THEN palette16_unload @.pal
    IF i <= st.num_npc_defs - 1 THEN
-    .sprite = frame_load(4, st.npc_def(i).picture)
-    .pal    = palette16_load(st.npc_def(i).palette, 4, st.npc_def(i).picture)
+    .sprite = frame_load(sprTypeWalkabout, st.npc_def(i).picture)
+    .pal    = palette16_load(st.npc_def(i).palette, sprTypeWalkabout, st.npc_def(i).picture)
    END IF
   END WITH
  NEXT i
