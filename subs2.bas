@@ -719,6 +719,7 @@ SUB text_box_editor () 'textage
    END IF
    IF state.pt = 6 THEN
     IF box.after > 0 THEN
+     '--Go to Next textbox
      SaveTextBox box, st.id
      st.id = box.after
      textbox_edit_load box, st, menu()
@@ -749,6 +750,7 @@ SUB text_box_editor () 'textage
      box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
+      SaveTextBox box, st.id
       IF export_textboxes(box_text_file, metadata()) THEN
        notification "Successfully exported " & decode_filename(box_text_file)
       ELSE
@@ -783,6 +785,9 @@ SUB text_box_editor () 'textage
      LoadTextBox box, st.id
     END IF
    END IF
+
+   '--Save box after visting any submenu, for live previewing
+   SaveTextBox box, st.id
   END IF
   textcolor uilook(uiMenuItem), 0
   IF state.pt = 1 THEN textcolor uilook(uiSelectedItem + state.tog), 0
