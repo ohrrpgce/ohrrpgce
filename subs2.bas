@@ -654,7 +654,6 @@ SUB text_box_editor () 'textage
  
  DIM style_clip as integer = 0
  
- DIM remptr as integer
  DIM temptrig as integer
  
  textbox_edit_load box, st, menu()
@@ -665,17 +664,20 @@ SUB text_box_editor () 'textage
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-   SaveTextBox box, st.id
    cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY)
    textbox_edit_load box, st, menu()
   END IF
   usemenu state
-  remptr = st.id
+
+  '--Editing
+  '--NOTE: On this top-level menu, the textbox must be saved immediately after
+  '--any data changes (e.g. after a submenu) so we can assume no unsaved changes.
   SELECT CASE state.pt
    CASE 7'textsearch
     strgrabber st.search, 36
    CASE 6'quickchainer
     IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
+     SaveTextBox box, st.id
      update_textbox_editor_main_menu box, menu()
     END IF'--modify next
    CASE ELSE '--not using the quick textbox chainer nor the search
@@ -683,11 +685,11 @@ SUB text_box_editor () 'textage
     IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
      IF yesno("Copy box " & style_clip & "'s style to this box") THEN
       textbox_copy_style_from_box style_clip, box, st
+      SaveTextBox box, st.id
       textbox_edit_load box, st, menu()
      END IF
     END IF
     IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
-     SaveTextBox box, remptr
      IF st.id > gen(genMaxTextBox) THEN
       gen(genMaxTextBox) = st.id
       textbox_create_from_box 0, box, st
@@ -695,9 +697,9 @@ SUB text_box_editor () 'textage
      textbox_edit_load box, st, menu()
     END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
-     SaveTextBox box, st.id
      IF yesno("Create a textbox like this one?") THEN
       gen(genMaxTextBox) += 1
+      DIM as integer remptr = st.id
       st.id = gen(genMaxTextBox)
       textbox_create_from_box remptr, box, st
      END IF
@@ -720,7 +722,6 @@ SUB text_box_editor () 'textage
    IF state.pt = 6 THEN
     IF box.after > 0 THEN
      '--Go to Next textbox
-     SaveTextBox box, st.id
      st.id = box.after
      textbox_edit_load box, st, menu()
     ELSE
@@ -750,7 +751,6 @@ SUB text_box_editor () 'textage
      box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
-      SaveTextBox box, st.id
       IF export_textboxes(box_text_file, metadata()) THEN
        notification "Successfully exported " & decode_filename(box_text_file)
       ELSE
@@ -760,7 +760,6 @@ SUB text_box_editor () 'textage
     END IF '--metadata
    END IF
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
-    SaveTextBox box, st.id
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
      box_text_file = browse(0, browse_default, "*.txt", tmpdir, 0, "browse_import_textbox")
      clearpage vpage
@@ -786,9 +785,11 @@ SUB text_box_editor () 'textage
     END IF
    END IF
 
-   '--Save box after visting any submenu, for live previewing
+   '--Save box after visiting any submenu
    SaveTextBox box, st.id
   END IF
+
+  '--Draw screen
   textcolor uilook(uiMenuItem), 0
   IF state.pt = 1 THEN textcolor uilook(uiSelectedItem + state.tog), 0
 
@@ -814,7 +815,6 @@ SUB text_box_editor () 'textage
   setvispage vpage
   dowait
  LOOP
- SaveTextBox box, st.id
  WITH st.portrait
   IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
@@ -1452,7 +1452,6 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
 END SUB
 
 SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
- SaveTextBox box, st.id
  DIM remember_id as integer = st.id
  st.id += 1
  DIM foundstr as integer = NO
@@ -1476,9 +1475,10 @@ SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
 END SUB
 
 SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
- '--this inits a new text box, and copies in values from another box for defaults
+ '--this inits and saves a new text box, copying in values from another box for defaults
  ClearTextBox box
  textbox_copy_style_from_box template_box_id, box, st
+ SaveTextBox box, st.id
 END SUB
 
 SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
@@ -1502,7 +1502,6 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
   .stop_sound_after= boxcopier.stop_sound_after
   .line_sound      = boxcopier.line_sound
  END WITH
- SaveTextBox box, st.id
 END SUB
 
 'Concatenate textbox lines into a string
@@ -1651,7 +1650,6 @@ END SUB
 
 SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
 'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
- SaveTextBox box, st.id
  DIM do_search as integer = YES
  REDIM prev(5) as TextboxConnectNode
  DIM current as TextboxConnectNode
