@@ -87,11 +87,12 @@ END SUB
 
 SUB recalc_menu_size (byref state as MenuState)
  'Run this once per frame for a menu that should fill the whole screen vertically
- 'Does not work unless .spacing is set correctly
+ 'Does not work unless .spacing is set correctly (set on call to standardmenu)
  'The optional ignore_pixels argument is for when the the menu should not fill the entire vertical space
  WITH state
   IF .spacing = 0 THEN
-   debuginfo "recalc_menu_size: Can't calculate unless .spacing has been set"
+   ' This error is currently impossible
+   IF .has_been_drawn = YES THEN debugc errBug, "recalc_menu_size: .spacing didn't get set"
    EXIT SUB
   END IF
   .size = (vpages(dpage)->h - .autosize_ignore_pixels) \ .spacing - 1 - .autosize_ignore_lines
@@ -415,7 +416,8 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
  WITH state
   .has_been_drawn = YES
-  .spacing = 8
+  IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
+  .spacing += menuopts.itemspacing
   .rect.x = x
   .rect.y = y
   .rect.wide = get_resolution_w()
@@ -433,7 +435,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
  rect.x = x
  rect.y = y
  rect.wide = wide
- rect.high = (state.size + 1) * 8
+ rect.high = (state.size + 1) * state.spacing
  IF menuopts.scrollbar THEN
   draw_scrollbar state, rect, 0, page
  ELSEIF menuopts.fullscreen_scrollbar THEN
@@ -450,10 +452,10 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
     DIM linewidth as integer = textwidth(.text)
     IF .bgcol THEN
-     rectangle x + 0, y + (i - state.top) * 8, wide, 8, .bgcol, page
+     rectangle x + 0, y, wide, 8, .bgcol, page
     END IF
     IF state.pt = i AND state.active AND menuopts.highlight <> NO THEN
-     rectangle x + 0, y + (i - state.top) * 8, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
+     rectangle x + 0, y, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
     DIM col as integer = .col
     IF .disabled THEN
@@ -470,12 +472,12 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
      END IF
     END IF
     IF menuopts.edged THEN
-     edgeprint .text, drawx, y + (i - state.top) * 8, col, page, YES
+     edgeprint .text, drawx, y, col, page, YES
     ELSE
      textcolor col, 0
-     printstr .text, drawx, y + (i - state.top) * 8, page, YES
+     printstr .text, drawx, y, page, YES
     END IF
-
+    y += state.spacing
    END WITH
   END IF
  NEXT i
@@ -1344,7 +1346,7 @@ SUB position_menu (menu as MenuDef, byval page as integer)
 
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
-   'hidden items used to matter for auto-width but not auto-height; now they don't
+   'hidden items used to matter for auto-width but not auto-height; now they don't for either
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
    menu.rect.wide = large(menu.rect.wide, LEN(.text) * 8 + bord * 2)
    menu.rect.high += 10

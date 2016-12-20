@@ -342,6 +342,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
  DIM menuopts as MenuOptions
  WITH menuopts
   .edged = YES
+  .itemspacing = -1
   .highlight = YES
  END WITH
 

@@ -1760,7 +1760,7 @@ DO
    'Draw zonemenu
    DIM pixel_width as integer = vpages(dpage)->w \ 3
    ' Where to put the menu
-   DIM xpos as integer
+   DIM as integer xpos, ypos = 40
    xpos = vpages(dpage)->w - pixel_width
    IF (st.x * 20) - st.mapx > xpos AND st.tiny = NO THEN
     xpos = 8
@@ -1768,11 +1768,12 @@ DO
    DIM zmenuopts as MenuOptions
    zmenuopts.edged = YES
    zmenuopts.wide = pixel_width
-   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, 40, dpage, zmenuopts
+   zmenuopts.itemspacing = -1  'Squeeze so all zones can fit in at 320x200
+   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, ypos, dpage, zmenuopts
 
    IF zonemenustate.pt > -1 THEN
     ' A little right arrow
-    edgeprint CHR(26), xpos - 8, 40 + (zonemenustate.pt - zonemenustate.top)*9, uilook(uiText), dpage
+    edgeprint CHR(26), xpos - 8, ypos + (zonemenustate.pt - zonemenustate.top) * zonemenustate.spacing, uilook(uiText), dpage
    END IF
 
   END IF
@@ -2019,7 +2020,7 @@ SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMe
   zonemenu_add_zone zonemenu, st.zonecolours(), GetZoneInfo(zmap, tilezonelist(i))
  NEXT
 
- zonemenustate.size = 14
+ zonemenustate.size = 15
  'sets .pt to something valid, or -1 if nothing selectable
  init_menu_state zonemenustate, cast(BasicMenuItem vector, zonemenu)
 
@@ -2578,6 +2579,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
  DIM state as MenuState
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.itemspacing = -1
  menuopts.showright = YES
  menuopts.fullscreen_scrollbar = YES
  DIM menu as LayerMenuItem vector

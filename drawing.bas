@@ -2660,6 +2660,7 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
   DIM st as MenuState
   DIM menuopts as MenuOptions
   menuopts.edged = YES
+  menuopts.itemspacing = -1
   st.active = YES
   IF .directions > 1 THEN
    st.last = 7

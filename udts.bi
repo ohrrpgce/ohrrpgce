@@ -265,16 +265,17 @@ TYPE MenuState
   size      as integer 'number of elements to display at a time - 1
   need_update as bool  'menu needs some kind of update
   tog       as bool    'For flashing cursor
-  '--populated when the menu is drawn
-  has_been_drawn as bool
-  rect as RectType
-  spacing as integer
   autosize as bool = NO 'Set this to true, and usemenu will
                                  'auto-upate the menu size to fill the
                                  'screen vertically
   autosize_ignore_pixels as integer = 0 ' Often you only want
                                  ' *most* of the screen to be filled
   autosize_ignore_lines as integer = 0
+  '--These are populated when the menu is drawn by standardmenu. They should and can
+  '--only be set manually when standardmenu isn't used.
+  has_been_drawn as bool
+  rect as RectType
+  spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
 END TYPE
 
 'A set of rendering options which can be passed to standardmenu.
@@ -283,6 +284,9 @@ END TYPE
 TYPE MenuOptions
   edged as bool
   wide as integer = 9999
+  itemspacing as integer  'Pixels added to the default item spacing.
+                          'negative shrinks, positive grows. This
+                          'alters the vertical size of the whole menu!
   highlight as bool
   showright as bool       'Always show the right-most portion of text if too long,
                           'instead of only doing so when selected.

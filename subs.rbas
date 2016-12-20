@@ -991,6 +991,7 @@ SUB formation_set_editor
  state.size = 24
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.itemspacing = -1
 
  LoadFormationSet formset, set_id
  formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice

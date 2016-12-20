@@ -651,6 +651,7 @@ SUB text_box_editor () 'textage
  state.size = 24
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.itemspacing = -1
  
  DIM style_clip as integer = 0
  
