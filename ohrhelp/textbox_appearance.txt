@@ -4,26 +4,29 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the me
 
 Use the Left and Right arrow keys to change values, or you can type in numbers. The text box will act as a preview for what the player will see.
 
-Position: Change the vertical
-position of the text box onscreen.
+Position: Change the vertical position of the text box onscreen.
 
-Shrink: Change the vertical height of the box.  0 signifies no shrink, and is the largest a text box can be. Going left from 0, or pressing -, sets the shrink to "auto" which means the text box will size itself to fit snugly around the last line of text.
+Text Color: Choose the color of the text. Press ENTER or SPACE to see the whole palette to choose from.
 
-Textcolor: Choose the color of the text. Press ENTER or SPACE to see the whole palette to choose from.
-
-Box style: Choose the color of the textbox background.  There are only 15 choices (0-14), but you can change them in the Graphics Editor under User Interface Colors.
-
-Backdrop: Choose a special fullscreen backdrop to be displayed while this text box is present. Import backdrops in the Graphics Editor.
-
-Music: Choose a special song to start playing when this text box is displayed. You can also use the "silence" option to stop the song instead. Import songs in the Main Menu.
+=Box=
 
 Show Box: You can optionally turn off the box to just show the text alone.
 
 Translucent: You can optionally make the textbox's background color "translucent".
 
-Restore Music: You can set this text box to restore the map's ambient music when it is displayed. Set the map's ambient music in the Map Editor.
+Box Style: Choose the color of the textbox background.  There are only 15 choices (0-14), but you can change them in the Graphics Editor under User Interface Colors.
 
-Portrait Type: You can show a character portrait attached to the text box. Draw your portraits in the Graphics Editor first.
+Box Shrink: Change the vertical height of the box.  0 signifies no shrink, and is the largest a text box can be. Going left from 0, or pressing -, sets the shrink to "auto" which means the text box will size itself to fit snugly around the last line of text.
+
+=Backdrop=
+
+Backdrop: Choose a special fullscreen backdrop to be displayed while this text box is present. Import backdrops in the Graphics Editor.
+
+Transparent Backdrop: This only matters if the text box has a backdrop. If YES, color 0 will be transparent, and will allow the map to show through behind the backdrop.
+
+=Portrait=
+
+Type: You can show a character portrait attached to the text box. Draw your portraits in the Graphics Editor first.
 
  * Fixed - Portrait ID will be the ID
   number of the portrait. Use this if
@@ -45,16 +48,20 @@ Portrait Type: You can show a character portrait attached to the text box. Draw 
   can choose heroes not in the
   current walkabout party.
 
-Portrait Palette: "default" is the 16-color palette you used to draw the portrait, but you can change it with the arrow keys or by pressing ENTER or SPACE to browse your available palettes.
+Palette: "default" is the 16-color palette you used to draw the portrait, but you can change it with the arrow keys or by pressing ENTER or SPACE to browse your available palettes.
 
-Portrait Box: Choose whether or not to show a box around the portrait.
+Box: Choose whether or not to show a box around the portrait.
 
 Position Portrait: Position where the portrait will appear onscreen.
 
+=Audio=
+
+Music: Choose a special song to start playing when this text box is displayed. You can also use the "silence" option to stop the song instead. Import songs in the Main Menu.
+
+Restore Map Music Afterwards: You can set this text box to restore the map's ambient music after the textbox is displayed. Works even if Music is None. Set the map's ambient music in the Map Editor.
+
 Sound Effect: Choose a special sound effect to play when this text box is displayed.
 
-Stop sound after box: Have the game automatically stop the sound effect when the player proceeds past this text box.
+Stop Sound Afterwards: Have the game automatically stop the sound effect when the player proceeds past this text box.
 
 Line Sound: Choose a sound played as each non-blank textbox line is displayed (aside from the first). If "default", the global textbox line sound is used.
-
-Transparent Backdrop: This only matters if the text box has a backdrop. If YES, color 0 will be transparent, and will allow the map to show through behind the backdrop.

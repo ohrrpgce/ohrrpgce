@@ -1032,7 +1032,8 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, ov
    edgeprint box.text(i), 8, 3 + ypos + i * 10, col, dpage
   NEXT i
  END IF
- IF box.portrait_box THEN
+ ' Don't draw box if portrait type is NONE
+ IF box.portrait_box AND box.portrait_type <> 0 THEN
   edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
  END IF
  WITH st.portrait
@@ -1214,9 +1215,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
 
  DIM state as MenuState
  init_menu_state state, cast(BasicMenuItem vector, menu)
+ state.autosize = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.itemspacing = -1
 
  'Show backdrop
  DIM backdrop as Frame ptr
@@ -1228,7 +1229,6 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  DO
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
   usemenu state, cast(BasicMenuItem vector, menu)
@@ -1247,7 +1247,10 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
-    CASE 14: textbox_position_portrait box, st, backdrop
+    CASE 14:
+     IF box.portrait_type <> 0 THEN  'If portrait type is NONE, then the portrait+box aren't visible
+      textbox_position_portrait box, st, backdrop
+     END IF
     CASE 15: IF box.sound_effect > 0 THEN playsfx box.sound_effect - 1
     CASE 17:
      IF box.line_sound > 0 THEN
@@ -1353,6 +1356,7 @@ END SUB
 
 ' Append a menu item; first argument is menu item type
 PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, caption as string, unselectable as bool = NO, col as integer = 0)
+ IF itemdata = -1 THEN unselectable = YES : col = uilook(uiText)
  append_simplemenu_item menu, caption, unselectable, col, itemdata
 END SUB
 
@@ -1361,21 +1365,19 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
  v_new menu
  menuitem 0, menu, "Go Back"
  menuitem 1, menu, "Position: " & box.vertical_offset
- menuitem 2, menu, "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
- menuitem 3, menu, "Textcolor: " & box.textcolor
- menuitem 4, menu, "Box style: " & box.boxstyle
- menuitem 5, menu, "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
- IF box.music < 0 THEN
-  menutemp = "SILENCE"
- ELSEIF box.music = 0 THEN
-  menutemp = "NONE"
- ELSE
-  menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
- END IF
- menuitem 6, menu, "Music: " & menutemp
+ menuitem 3, menu, "Text Color: " & box.textcolor
+
+ menuitem -1, menu, "Box:"
  menuitem 7, menu, "Show Box: " & yesorno(NOT box.no_box)
- menuitem 8, menu, "Translucent: " & yesorno(NOT box.opaque)
- menuitem 9, menu, "Restore Music: " & yesorno(box.restore_music)
+ menuitem 8, menu, "Translucent: " & IIF(box.no_box, "(N/A)", yesorno(NOT box.opaque))
+ menuitem 4, menu, "Box Style: " & IIF(box.no_box, "(N/A)", STR(box.boxstyle))
+ menuitem 2, menu, "Shrink: " & IIF(box.no_box, "(N/A)", IIF(box.shrink = -1, "Auto", STR(box.shrink)))
+
+ menuitem -1, menu, "Backdrop:"
+ menuitem 5, menu, "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
+ menuitem 18, menu, "Transparent: " & IIF(box.backdrop > 0, yesorno(box.backdrop_trans), "(N/A)")
+
+ menuitem -1, menu, "Portrait:"
  SELECT CASE box.portrait_type
   CASE 0: menutemp = "NONE"
   CASE 1: menutemp = "Fixed"
@@ -1384,31 +1386,43 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
   CASE 4: menutemp = "Hero (by ID)"
   CASE ELSE: menutemp = ""
  END SELECT
- menuitem 10, menu, "Portrait type: " & menutemp
+ menuitem 10, menu, "Type: " & menutemp
+ menutemp = STR(box.portrait_id)
  SELECT CASE box.portrait_type
-  CASE 0: menutemp = " (N/A)"
-  CASE 2: IF box.portrait_id = 0 THEN menutemp = " (Leader)"
-  CASE 3: IF box.portrait_id > 3 THEN menutemp = " (Reserve)"
-  CASE 4: menutemp = " (" & getheroname(box.portrait_id) & ")"
-  CASE ELSE: menutemp = ""
+  CASE 0: menutemp = "(N/A)"
+  CASE 2: IF box.portrait_id = 0 THEN menutemp &= " (Leader)"
+  CASE 3: IF box.portrait_id > 3 THEN menutemp &= " (Reserve)"
+  CASE 4: menutemp &= " (" & getheroname(box.portrait_id) & ")"
  END SELECT
- menuitem 11, menu, "Portrait ID: " & box.portrait_id & menutemp
+ menuitem 11, menu, "ID: " & menutemp
  menutemp = defaultint(box.portrait_pal)
  SELECT CASE box.portrait_type
-  CASE 0: menutemp &= " (N/A)"
+  CASE 0: menutemp = "(N/A)"
   CASE 1:
   CASE ELSE: menutemp &= " (N/A, see hero editor)"
  END SELECT
- menuitem 12, menu, "Portrait Palette: " & menutemp
- menuitem 13, menu, "Portrait Box: " & yesorno(box.portrait_box)
+ menuitem 12, menu, "Palette: " & menutemp
+ menuitem 13, menu, "Box: " & IIF(box.portrait_type = 0, "(N/A)", yesorno(box.portrait_box))
  menuitem 14, menu, "Position Portrait..."
+
+ menuitem -1, menu, "Audio:"
+ IF box.music < 0 THEN
+  menutemp = "SILENCE"
+ ELSEIF box.music = 0 THEN
+  menutemp = "NONE"
+ ELSE
+  menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
+ END IF
+ menuitem 6, menu, "Music: " & menutemp
+ menuitem 9, menu, "Restore Map Music Afterwards: " & yesorno(box.restore_music)
+
  IF box.sound_effect = 0 THEN
   menutemp = "NONE"
  ELSE
   menutemp = (box.sound_effect - 1) & " " & getsfxname(box.sound_effect - 1)
  END IF
  menuitem 15, menu, "Sound Effect: " & menutemp
- menuitem 16, menu, "Stop sound after box: " & yesorno(box.stop_sound_after)
+ menuitem 16, menu, "Stop Sound Afterwards: " & IIF(box.sound_effect, yesorno(box.stop_sound_after), "(N/A)")
  IF box.line_sound < 0 THEN
   menutemp = "NONE"
  ELSEIF box.line_sound = 0 THEN
@@ -1421,7 +1435,6 @@ SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, 
   menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
  END IF
  menuitem 17, menu, "Line Sound: " & menutemp
- menuitem 18, menu, "Transparent backdrop: " & IIF(box.backdrop > 0, yesorno(box.backdrop_trans), "(N/A)")
 
  load_text_box_portrait box, st.portrait
 END SUB
