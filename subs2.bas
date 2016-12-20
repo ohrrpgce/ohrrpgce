@@ -637,8 +637,8 @@ SUB text_box_editor () 'textage
  menu(1) = "Text Box"
  menu(2) = "Edit Text"
  menu(3) = "Edit Conditionals"
- menu(4) = "Edit Choice"
- menu(5) = "Box Appearance"
+ menu(4) = "Edit Choices"
+ menu(5) = "Box Appearance & Sounds"
  menu(6) = "Next:"
  menu(7) = "Text Search:"
  menu(8) = "Connected Boxes..."
@@ -1351,105 +1351,71 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
 END SUB
 
 SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
- menu(0) = "Go Back"
- menu(1) = "Position:"
- menu(2) = "Shrink:"
- menu(3) = "Textcolor:"
- menu(4) = "Box style:"
- menu(5) = "Backdrop:"
- menu(6) = "Music:"
- menu(7) = "Show Box:"
- menu(8) = "Translucent:"
- menu(9) = "Restore Music:"
- menu(10) = "Portrait type:"
- menu(11) = "Portrait ID:"
- menu(12) = "Portrait Palette:"
- menu(13) = "Portrait Box:"
- menu(14) = "Position Portrait..."
- menu(15) = "Sound Effect:"
- menu(16) = "Stop sound after box:"
- menu(17) = "Line Sound:"
- menu(18) = "Transparent backdrop:"
  DIM menutemp as string
- FOR i as integer = 0 TO UBOUND(menu)
-  menutemp = ""
-  SELECT CASE i
-   CASE 1: menutemp = "" & box.vertical_offset
-   CASE 2:
-    IF box.shrink = -1 THEN
-     menutemp = "Auto"
-    ELSE
-     menutemp = "" & box.shrink
-    END IF
-   CASE 3: menutemp = "" & box.textcolor
-   CASE 4: menutemp = "" & box.boxstyle
-   CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"
-   CASE 6:
-    IF box.music < 0 THEN
-     menutemp = "SILENCE"
-    ELSEIF box.music = 0 THEN
-     menutemp = "NONE"
-    ELSE
-     menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
-    END IF
-   CASE 7: menutemp = yesorno(NOT box.no_box)
-   CASE 8: menutemp = yesorno(NOT box.opaque)
-   CASE 9: menutemp = yesorno(box.restore_music)
-   CASE 10:
-    SELECT CASE box.portrait_type
-     CASE 0: menutemp = "NONE"
-     CASE 1: menutemp = "Fixed"
-     CASE 2: menutemp = "Hero (by caterpillar order)"
-     CASE 3: menutemp = "Hero (by party order)"
-     CASE 4: menutemp = "Hero (by ID)"
-    END SELECT
-   CASE 11:
-    menutemp = STR(box.portrait_id)
-    SELECT CASE box.portrait_type
-     CASE 0: menutemp = menutemp & " (N/A)"
-     CASE 2: IF box.portrait_id = 0 THEN menutemp = menutemp & " (Leader)"
-     CASE 3: IF box.portrait_id > 3 THEN menutemp = menutemp & " (Reserve)"
-     CASE 4: menutemp &= " (" & getheroname(box.portrait_id) & ")"
-     CASE ELSE: menutemp = "" & box.portrait_id
-    END SELECT
-   CASE 12:
-    menutemp = defaultint(box.portrait_pal)
-    SELECT CASE box.portrait_type
-     CASE 0: menutemp = menutemp & " (N/A)"
-     CASE 1:
-     CASE ELSE: menutemp = menutemp & " (N/A, see hero editor)"
-    END SELECT
-   CASE 13: menutemp = yesorno(box.portrait_box)
-   CASE 14:
-   CASE 15:
-    IF box.sound_effect = 0 THEN
-     menutemp = menutemp & "NONE"
-    ELSE
-     menutemp = menutemp & box.sound_effect - 1 & " " & getsfxname(box.sound_effect - 1)
-    END IF
-   CASE 16: menutemp = yesorno(box.stop_sound_after)
-   CASE 17:
-    IF box.line_sound < 0 THEN
-     menutemp = "NONE"
-    ELSEIF box.line_sound = 0 THEN
-     IF gen(genTextboxLine) <= 0 THEN
-      menutemp = "default (NONE)"
-     ELSE
-      menutemp = "default (" & (gen(genTextboxLine) - 1) & " " & getsfxname(gen(genTextboxLine) - 1) & ")"
-     END IF
-    ELSE
-     menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
-    END IF
-   CASE 18:
-    IF box.backdrop > 0 THEN
-     menutemp = yesorno(box.backdrop_trans)
-    ELSE
-     menutemp = "(N/A)"
-    END IF
-  END SELECT
-  IF LEN(menutemp) THEN menutemp = " " & menutemp
-  menu(i) = menu(i) & menutemp
- NEXT i
+ menu(0) = "Go Back"
+ menu(1) = "Position: " & box.vertical_offset
+ menu(2) = "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
+ menu(3) = "Textcolor: " & box.textcolor
+ menu(4) = "Box style: " & box.boxstyle
+ menu(5) = "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
+ IF box.music < 0 THEN
+  menutemp = "SILENCE"
+ ELSEIF box.music = 0 THEN
+  menutemp = "NONE"
+ ELSE
+  menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
+ END IF
+ menu(6) = "Music: " & menutemp
+ menu(7) = "Show Box: " & yesorno(NOT box.no_box)
+ menu(8) = "Translucent: " & yesorno(NOT box.opaque)
+ menu(9) = "Restore Music: " & yesorno(box.restore_music)
+ SELECT CASE box.portrait_type
+  CASE 0: menutemp = "NONE"
+  CASE 1: menutemp = "Fixed"
+  CASE 2: menutemp = "Hero (by caterpillar order)"
+  CASE 3: menutemp = "Hero (by party order)"
+  CASE 4: menutemp = "Hero (by ID)"
+  CASE ELSE: menutemp = ""
+ END SELECT
+ menu(10) = "Portrait type: " & menutemp
+ SELECT CASE box.portrait_type
+  CASE 0: menutemp = " (N/A)"
+  CASE 2: IF box.portrait_id = 0 THEN menutemp = " (Leader)"
+  CASE 3: IF box.portrait_id > 3 THEN menutemp = " (Reserve)"
+  CASE 4: menutemp = " (" & getheroname(box.portrait_id) & ")"
+  CASE ELSE: menutemp = ""
+ END SELECT
+ menu(11) = "Portrait ID: " & box.portrait_id & menutemp
+ menutemp = defaultint(box.portrait_pal)
+ SELECT CASE box.portrait_type
+  CASE 0: menutemp &= " (N/A)"
+  CASE 1:
+  CASE ELSE: menutemp &= " (N/A, see hero editor)"
+ END SELECT
+ menu(12) = "Portrait Palette: " & menutemp
+ menu(13) = "Portrait Box: " & yesorno(box.portrait_box)
+ menu(14) = "Position Portrait..."
+ IF box.sound_effect = 0 THEN
+  menutemp = "NONE"
+ ELSE
+  menutemp = (box.sound_effect - 1) & " " & getsfxname(box.sound_effect - 1)
+ END IF
+ menu(15) = "Sound Effect: " & menutemp
+ menu(16) = "Stop sound after box: " & yesorno(box.stop_sound_after)
+ IF box.line_sound < 0 THEN
+  menutemp = "NONE"
+ ELSEIF box.line_sound = 0 THEN
+  IF gen(genTextboxLine) <= 0 THEN
+   menutemp = "default (NONE)"
+  ELSE
+   menutemp = "default (" & (gen(genTextboxLine) - 1) & " " & getsfxname(gen(genTextboxLine) - 1) & ")"
+  END IF
+ ELSE
+  menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
+ END IF
+ menu(17) = "Line Sound: " & menutemp
+ menu(18) = "Transparent backdrop: " & IIF(box.backdrop > 0, yesorno(box.backdrop_trans), "(N/A)")
+
  load_text_box_portrait box, st.portrait
 END SUB
 
