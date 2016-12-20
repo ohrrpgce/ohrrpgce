@@ -336,14 +336,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
 
  DIM state as MenuState
  WITH state
-  .spacing = 8
   .need_update = YES
+  .autosize = YES
+  .autosize_ignore_pixels = 14
  END WITH
  DIM menuopts as MenuOptions
  WITH menuopts
   .edged = YES
   .itemspacing = -1
   .highlight = YES
+  .fullscreen_scrollbar = YES
  END WITH
 
  DIM cursor_seek as Slice Ptr = 0
@@ -570,7 +572,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
-   state.size = vpages(dpage)->h / state.spacing - 4
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
    state.need_update = NO
   ELSE
@@ -589,10 +590,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    DrawSliceAnts topmost, dpage
   END IF
   IF ses.hide_mode <> hideMenu THEN
-   IF state.last > state.size THEN
-    draw_fullscreen_scrollbar state, , dpage
-   END IF
-
    'Determine the colour for each menu item
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
@@ -790,9 +787,8 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
  DIM state as MenuState
  WITH state
   .pt = remember_pt
-  .spacing = 8
-  .size = 22
   .need_update = YES
+  .autosize = YES
  END WITH
  DIM menuopts as MenuOptions
  WITH menuopts
@@ -816,7 +812,6 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
 
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
-   state.size = vpages(dpage)->h \ state.spacing - 1
   END IF
 
   usemenu state

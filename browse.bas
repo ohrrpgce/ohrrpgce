@@ -265,7 +265,6 @@ DO
   .rect.y = 20
   .rect.wide = get_resolution_w()
   .rect.high = get_resolution_h()
-  .spacing = 9
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)

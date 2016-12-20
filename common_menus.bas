@@ -41,7 +41,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  NEXT
  state.last = nextbit - 1
  state.autosize = YES
- state.spacing = 8
+ state.spacing = 8  'Necessary because not using standardmenu
 
  DIM ret as integer = NO
  DIM col as integer
@@ -84,11 +84,10 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
    textcolor col, 0
    DIM drawstr as string = " " & menu(i)
    IF state.pt = i THEN drawstr = RIGHT(drawstr, 40)
-   printstr drawstr, 0, (i - state.top) * 8, dpage
+   printstr drawstr, 0, (i - state.top) * state.spacing, dpage
   NEXT i
   WITH state
    .has_been_drawn = YES
-   .spacing = 8
    .rect.x = 0
    .rect.y = 0
    .rect.wide = get_resolution_w()

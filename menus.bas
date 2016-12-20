@@ -403,9 +403,11 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, 
  v_free basicmenu
 END SUB
 
+'Draws an undecorated menu (just lines of coloured text, and optionally a scrollbar), as used throughout Custom.
+'(The in-game user-customisable menus are drawn with draw_menu.)
 'menu may in fact be a vector of any type inheriting from BasicMenuItem:
 ' standardmenu cast(BasicMenuItem vector, menu), ...
-'menu's typetable tells the size in bytes of each menu item
+'The vector's internal typetable tells the size in bytes of each menu item
 SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
 
  IF state.first <> 0 THEN
@@ -423,6 +425,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   .rect.wide = get_resolution_w()
   .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
  END WITH
+
+ ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
+ ' menu is inactive (more than one on-screen), and on the first tick before
+ ' .spacing is set the correct .size can't be set either (iff .autosize=YES)
+ recalc_menu_size state
 
  IF state.active THEN
   state.tog XOR= 1

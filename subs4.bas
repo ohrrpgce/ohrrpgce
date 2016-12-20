@@ -1368,7 +1368,6 @@ SUB battleoptionsmenu ()
  DIM state as MenuState
  WITH state
   .autosize = YES
-  .spacing = 8
   .last = maxMenu
   .need_update = YES
  END WITH

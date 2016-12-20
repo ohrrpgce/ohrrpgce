@@ -831,8 +831,8 @@ SUB textbox_conditionals(byref box as TextBox)
  state.pt = 0
  state.first = -1
  state.last = 22
+ state.spacing = 9  'Necessary because not using standardmenu
  state.autosize = YES
- state.spacing = 9
 
  DIM grey(-1 TO 22) as integer
  'This array tells which rows in the conditional editor are grey
@@ -926,7 +926,8 @@ SUB textbox_conditionals(byref box as TextBox)
 
   clearpage dpage
   FOR i as integer = state.top TO state.top + state.size
-   IF i > state.last THEN continue for
+   IF i > state.last THEN CONTINUE FOR
+   DIM drawy as integer = (i - state.top) * state.spacing
    textcolor uilook(uiMenuItem), 0
    IF grey(i) = YES THEN
     c = uilook(uiSelectedDisabled)
@@ -936,12 +937,12 @@ SUB textbox_conditionals(byref box as TextBox)
      CASE 0, 1 ' Disabled or check tag 1=ON never true
       c = uilook(uiDisabledItem)
     END SELECT
-    rectangle 0, (i - state.top) * 9, 312, 8, c, dpage
+    rectangle 0, drawy, 312, state.spacing - 1, c, dpage
    ELSE
     IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
    END IF
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
-   printstr menu(i), 0, (i - state.top) * 9, dpage
+   printstr menu(i), 0, drawy, dpage
   NEXT i
   draw_fullscreen_scrollbar state, , dpage
   SWAP vpage, dpage

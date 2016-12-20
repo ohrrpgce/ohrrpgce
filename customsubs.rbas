@@ -108,7 +108,6 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
 
  state.autosize = YES
  state.autosize_ignore_lines = 1
- state.spacing = 8
  state.last = gen(genMaxTagname)
 
  state.pt = 0
@@ -2418,7 +2417,6 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
   .last = scriptmax
   .autosize = YES
   .autosize_ignore_lines = 2
-  .spacing = 8
  END WITH
  IF firstscript = 2 THEN
   state.pt = 1
@@ -3216,7 +3214,6 @@ SUB edit_global_text_strings()
   .pt = -1
   .first = -1
   .last = menu.curitem - 1
-  .spacing = 8
   .autosize = YES
   .autosize_ignore_lines = 3
  END WITH
@@ -3253,6 +3250,7 @@ SUB edit_global_text_strings()
  
   clearpage dpage
   menuopts.highlight = YES
+  menuopts.scrollbar = YES
   standardmenu menu.text(), state, 232, 0, dpage, menuopts
   'Since both halves of the menu share the same state and both are active,
   'they both toggle state.tog. So work around that
@@ -3260,7 +3258,6 @@ SUB edit_global_text_strings()
   standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
   rect.wide = vpages(dpage)->w
   rect.high = vpages(dpage)->h - 8
-  draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
    edgeprint "Press F1 for help about this string", 0, vpages(dpage)->h - 20, uilook(uiDisabledItem), dpage
@@ -4417,7 +4414,6 @@ SUB edit_platform_options ()
  DIM st as MenuState
  st.autosize = YES
  st.autosize_ignore_lines = 1
- st.spacing = 10
  st.active = YES
  st.need_update = YES
  
@@ -4492,12 +4488,6 @@ SUB edit_platform_options ()
   IF keyval(scF1) > 1 THEN show_help "general_platform_options"
   IF keyval(scEsc) > 1 THEN EXIT DO
 
-  WITH menu
-   .offset.x = vpages(dpage)->w / 2 * -1
-   .offset.y = vpages(dpage)->h / 2 * -1
-   .min_chars = vpages(dpage)->w / 8
-  END WITH
-  
   IF st.need_update THEN
    DO
     '--normally a single-pass loop. Only repeats if something
@@ -4513,7 +4503,9 @@ SUB edit_platform_options ()
      .anchor.x = -1
      .anchor.y = -1
      .bordersize = -8
-     .min_chars = 40
+     .min_chars = 999  ' Fill the screen
+     .offset.x = vpages(dpage)->w / 2 * -1
+     .offset.y = vpages(dpage)->h / 2 * -1
     END WITH
     append_menu_item menu, "Previous menu..."
     menu.last->t = platformoptEXIT

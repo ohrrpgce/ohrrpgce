@@ -524,7 +524,6 @@ DIM workmenu(93) as integer
 DIM dispmenu(93) as string
 DIM state as MenuState
 state.autosize = YES
-state.spacing = 8
 state.need_update = YES
 
 DIM mainMenu(9) as integer
@@ -1534,7 +1533,6 @@ SUB item_editor
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.autosize = YES
- state.spacing = 8
  state.first = -1
  state.top = -1
  state.last = gen(genMaxItem) + 1
@@ -3306,7 +3304,6 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  DIM st as MenuState
  st.last = UBOUND(menu)
  st.autosize = YES
- st.spacing = 8
  st.need_update = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
