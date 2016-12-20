@@ -45,7 +45,7 @@ DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as str
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
 DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
-DECLARE SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
 DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
@@ -1209,12 +1209,15 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
 END SUB
 
 SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
- DIM menu(18) as string
+ DIM menu as SimpleMenuItem vector
+ update_textbox_appearance_editor_menu menu, box, st
+
  DIM state as MenuState
- state.size = 20
- state.last = UBOUND(menu)
- state.need_update = YES
- 
+ init_menu_state state, cast(BasicMenuItem vector, menu)
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+ menuopts.itemspacing = -1
+
  'Show backdrop
  DIM backdrop as Frame ptr
  IF box.backdrop > 0 THEN
@@ -1228,9 +1231,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
-  usemenu state
+  usemenu state, cast(BasicMenuItem vector, menu)
   IF enter_space_click(state) THEN
-   SELECT CASE state.pt
+   SELECT CASE menu[state.pt].dat
     CASE 0: EXIT DO ' Exit the appearance menu
     CASE 3: box.textcolor = color_browser_256(box.textcolor)
     CASE 6: IF box.music > -1 THEN playsongnum box.music - 1
@@ -1258,7 +1261,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scAlt) = 0 THEN
    'Not holding ALT
    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
-    SELECT CASE state.pt
+    SELECT CASE menu[state.pt].dat
      CASE 7: box.no_box = (NOT box.no_box)
      CASE 8: box.opaque = (NOT box.opaque)
      CASE 9: box.restore_music = (NOT box.restore_music)
@@ -1268,7 +1271,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     END SELECT
     state.need_update = YES
    END IF
-   SELECT CASE state.pt
+   SELECT CASE menu[state.pt].dat
     CASE 1: state.need_update OR= intgrabber(box.vertical_offset, 0, gen(genResolutionX) \ 4 - 1)
     CASE 2: state.need_update OR= intgrabber(box.shrink, -1, 21)
     CASE 3: state.need_update OR= intgrabber(box.textcolor, 0, 255)
@@ -1324,7 +1327,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   END IF
   IF state.need_update THEN
    state.need_update = NO
-   update_textbox_appearance_editor_menu menu(), box, st
+   update_textbox_appearance_editor_menu menu, box, st
   END IF
 
   clearpage dpage
@@ -1332,11 +1335,8 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   rectangle 0, 0, gen(genResolutionX), gen(genResolutionY), uilook(uiBackground), dpage
   IF backdrop THEN frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
-  FOR i as integer = 0 TO UBOUND(menu)
-   DIM col as integer = uilook(uimenuItem)
-   IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
-   edgeprint menu(i), 0, i * 10, col, dpage
-  NEXT i
+  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
+
   IF keyval(scAlt) > 0 THEN
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr "Box " & st.id, 320 - LEN("Box " & st.id) * 8, 0, dpage
@@ -1345,19 +1345,26 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   setvispage vpage
   dowait
  LOOP
+ v_free menu
  frame_unload @backdrop
  resetsfx
  music_stop
 END SUB
 
-SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBox, byref st as TextboxEditState)
+' Append a menu item; first argument is menu item type
+PRIVATE SUB menuitem(itemdata as integer, byref menu as SimpleMenuItem vector, caption as string, unselectable as bool = NO, col as integer = 0)
+ append_simplemenu_item menu, caption, unselectable, col, itemdata
+END SUB
+
+SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
  DIM menutemp as string
- menu(0) = "Go Back"
- menu(1) = "Position: " & box.vertical_offset
- menu(2) = "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
- menu(3) = "Textcolor: " & box.textcolor
- menu(4) = "Box style: " & box.boxstyle
- menu(5) = "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
+ v_new menu
+ menuitem 0, menu, "Go Back"
+ menuitem 1, menu, "Position: " & box.vertical_offset
+ menuitem 2, menu, "Shrink: " & IIF(box.shrink = -1, "Auto", STR(box.shrink))
+ menuitem 3, menu, "Textcolor: " & box.textcolor
+ menuitem 4, menu, "Box style: " & box.boxstyle
+ menuitem 5, menu, "Backdrop: " & IIF(box.backdrop, STR(box.backdrop - 1), "NONE")
  IF box.music < 0 THEN
   menutemp = "SILENCE"
  ELSEIF box.music = 0 THEN
@@ -1365,10 +1372,10 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
  ELSE
   menutemp = (box.music - 1) & " " & getsongname(box.music - 1)
  END IF
- menu(6) = "Music: " & menutemp
- menu(7) = "Show Box: " & yesorno(NOT box.no_box)
- menu(8) = "Translucent: " & yesorno(NOT box.opaque)
- menu(9) = "Restore Music: " & yesorno(box.restore_music)
+ menuitem 6, menu, "Music: " & menutemp
+ menuitem 7, menu, "Show Box: " & yesorno(NOT box.no_box)
+ menuitem 8, menu, "Translucent: " & yesorno(NOT box.opaque)
+ menuitem 9, menu, "Restore Music: " & yesorno(box.restore_music)
  SELECT CASE box.portrait_type
   CASE 0: menutemp = "NONE"
   CASE 1: menutemp = "Fixed"
@@ -1377,7 +1384,7 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
   CASE 4: menutemp = "Hero (by ID)"
   CASE ELSE: menutemp = ""
  END SELECT
- menu(10) = "Portrait type: " & menutemp
+ menuitem 10, menu, "Portrait type: " & menutemp
  SELECT CASE box.portrait_type
   CASE 0: menutemp = " (N/A)"
   CASE 2: IF box.portrait_id = 0 THEN menutemp = " (Leader)"
@@ -1385,23 +1392,23 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
   CASE 4: menutemp = " (" & getheroname(box.portrait_id) & ")"
   CASE ELSE: menutemp = ""
  END SELECT
- menu(11) = "Portrait ID: " & box.portrait_id & menutemp
+ menuitem 11, menu, "Portrait ID: " & box.portrait_id & menutemp
  menutemp = defaultint(box.portrait_pal)
  SELECT CASE box.portrait_type
   CASE 0: menutemp &= " (N/A)"
   CASE 1:
   CASE ELSE: menutemp &= " (N/A, see hero editor)"
  END SELECT
- menu(12) = "Portrait Palette: " & menutemp
- menu(13) = "Portrait Box: " & yesorno(box.portrait_box)
- menu(14) = "Position Portrait..."
+ menuitem 12, menu, "Portrait Palette: " & menutemp
+ menuitem 13, menu, "Portrait Box: " & yesorno(box.portrait_box)
+ menuitem 14, menu, "Position Portrait..."
  IF box.sound_effect = 0 THEN
   menutemp = "NONE"
  ELSE
   menutemp = (box.sound_effect - 1) & " " & getsfxname(box.sound_effect - 1)
  END IF
- menu(15) = "Sound Effect: " & menutemp
- menu(16) = "Stop sound after box: " & yesorno(box.stop_sound_after)
+ menuitem 15, menu, "Sound Effect: " & menutemp
+ menuitem 16, menu, "Stop sound after box: " & yesorno(box.stop_sound_after)
  IF box.line_sound < 0 THEN
   menutemp = "NONE"
  ELSEIF box.line_sound = 0 THEN
@@ -1413,8 +1420,8 @@ SUB update_textbox_appearance_editor_menu (menu() as string, byref box as TextBo
  ELSE
   menutemp = (box.line_sound - 1) & " " & getsfxname(box.line_sound - 1)
  END IF
- menu(17) = "Line Sound: " & menutemp
- menu(18) = "Transparent backdrop: " & IIF(box.backdrop > 0, yesorno(box.backdrop_trans), "(N/A)")
+ menuitem 17, menu, "Line Sound: " & menutemp
+ menuitem 18, menu, "Transparent backdrop: " & IIF(box.backdrop > 0, yesorno(box.backdrop_trans), "(N/A)")
 
  load_text_box_portrait box, st.portrait
 END SUB
