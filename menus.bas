@@ -163,6 +163,9 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
    IF keyval(scEnd) > 1 THEN .pt = .last
   END IF
   .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
+  ' If the bottom of the menu is above the bottom of the screen, scroll up
+  .top = large(small(.top, .last - .size), .first)
+  ' Selected item must be visible
   .top = bound(.top, .pt - .size, .pt)
  
   IF oldptr = .pt AND oldtop = .top THEN
@@ -255,6 +258,9 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
+  ' If the bottom of the menu is above the bottom of the screen, scroll up
+  .top = large(small(.top, .last - .size), .first)
+  ' Selected item must be visible
   .top = bound(.top, .pt - .size, .pt)
 
   IF oldptr = .pt AND oldtop = .top THEN
@@ -323,6 +329,9 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
+  ' If the bottom of the menu is above the bottom of the screen, scroll up
+  .top = large(small(.top, .last - .size), .first)
+  ' Selected item must be visible
   .top = bound(.top, .pt - .size, .pt)
 
   IF oldptr = .pt AND oldtop = .top THEN
