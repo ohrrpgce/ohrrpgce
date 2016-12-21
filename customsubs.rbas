@@ -1290,7 +1290,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 12'--script
     IF enter_space_click(state) THEN
-     scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
+     scrname = scriptbrowse(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
      scrname = scriptname(npcdata.script)
     END IF
@@ -2301,14 +2301,8 @@ FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zeroc
  RETURN base_tag_caption(n, prefix, "=" & onoroff(n), zerocap, onecap, negonecap, YES)
 END FUNCTION
 
-SUB scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string)
- 'For when you don't care about the return value of scriptbrowse_string()
- DIM s as string
- s = scriptbrowse_string(trigger, triggertype, scrtype)
-END SUB
-
 'Modifies 'trigger' (a script trigger) and returns the display name of the selected script (which might "[none]")
-FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
+FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
  DIM localbuf(20) as integer
  REDIM scriptnames(0) as string
  REDIM scriptids(0) as integer

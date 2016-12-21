@@ -823,7 +823,7 @@ SUB shopdata ()
    END IF
    IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
    IF shopst.st.pt = 6 THEN
-    shopst.menu(6) = "Inn Script: " & scriptbrowse_string(shopbuf(19), plottrigger, "Inn Plotscript")
+    shopst.menu(6) = "Inn Script: " & scriptbrowse(shopbuf(19), plottrigger, "Inn Plotscript")
    END IF
   END IF
   IF shopst.st.pt = 5 THEN
