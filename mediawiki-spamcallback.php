@@ -17,12 +17,10 @@ $spamLOG       = $IP . '/spammer.log';
 
 ///////////////////////////////////////////////////////////////////////
 function checkBlackList($filename,$name,$body,&$reason){
-        printf("<!-- JAMESDEBUG %s _ %s _ %s _ %s -->", $filename, $name, $body, $reason);
   if($handle=fopen($filename,'r')){
     while (!feof($handle)) {
       $regex = trim(fgets($handle));
       if($regex and $regex[0] != '#'){
-        printf("<!-- JAMESDEBUG %s -->", $regex);
         if(preg_match('/'.$regex.'/', $body, $match)){
           $reason = sprintf('%s blacklist match: %s',$name,$match[0]);
           fclose($handle);
@@ -83,8 +81,8 @@ function spamCallBack($editor, $text, $section, &$error, $summary){
   if($do_filter){
 
     //Create a diff, for better filtering
-    $old_page = new Article($title);
-    $old = $old_page->fetchContent();
+    $old_page = new WikiPage($title);
+    $old = $old_page->getContent();
     $diff = getDiff($old,$body);
     $diff = implode("\n",$diff);
     unset($old_page);
