@@ -73,7 +73,7 @@ if filename2 <> "" then
 	doc2 = verboseload(filename2)
 
 	if Reload.Ext.CompareNodes(Reload.DocumentRoot(doc1), Reload.DocumentRoot(doc2), pedantic) = 0 then
-		print "* Documents compare " & iif_string(pedantic, "exactly ", "effectively ") & "equal. *"
+		print "* Documents compare " & iif(pedantic, "exactly ", "effectively ") & "equal. *"
 	end if
 end if
 

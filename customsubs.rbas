@@ -537,7 +537,7 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
  ELSEIF cond.type = compTag THEN
   IF cond.tag = 0 THEN
   ELSE
-   ret = "Tag " & ABS(cond.tag) & iif_string(cond.tag >= 0, "=ON", "=OFF")
+   ret = "Tag " & ABS(cond.tag) & IIF(cond.tag >= 0, "=ON", "=OFF")
    IF cond.tag = 1 THEN
     ret += " [Never]"
    ELSEIF cond.tag = -1 THEN
@@ -5465,7 +5465,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->sub_t = 99999
    menu.last->dataptr = n
 
-   append_menu_item menu, "Can be purchased: " & IIF_string(prod."repeatable".exists, "Repeatedly", "Only Once")
+   append_menu_item menu, "Can be purchased: " & IIF(prod."repeatable".exists, "Repeatedly", "Only Once")
    menu.last->t = editpurchTOGGLEREPEATABLE
    menu.last->dataptr = prod
 

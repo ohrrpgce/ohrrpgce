@@ -1867,7 +1867,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_
  '--Can't delete ID 0; must always have at least one NPC
  IF id > 0 AND id = num_npc_defs - 1 THEN deleting = YES
 
- IF yesno(iif_string(uses, "Done. ", "") & "Really " & iif_string(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
+ IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
 
  IF deleting THEN
   num_npc_defs -= 1

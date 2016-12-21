@@ -1052,7 +1052,7 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
  END IF
  entered = 1
  DIM printmsg as string
- printmsg = iif_string(isfatal, "FATAL: ", "ERROR: ") + msg
+ printmsg = IIF(isfatal, "FATAL: ", "ERROR: ") + msg
  debug printmsg
  PRINT printmsg
  IF modex_initialised = NO THEN
@@ -2726,7 +2726,7 @@ FUNCTION missing_helper_message (appname as string) as string
  DIM ret as string
  DIM mult as integer = INSTR(appname, " ")
 
- ret = appname + DOTEXE + iif_string(mult, " are both missing (only one required).", " is missing.")
+ ret = appname + DOTEXE + IIF(mult, " are both missing (only one required).", " is missing.")
 
  #IFDEF __FB_WIN32__
   IF appname = "hspeak" THEN
@@ -4431,7 +4431,7 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
  RETURN ret
 END FUNCTION
 
-'This is for *tag conditions*! It makes no sense for bools! Use yesorno or iif_string instead.
+'This is for *tag conditions*! It makes no sense for bools! Use yesorno or IIF instead.
 FUNCTION onoroff (byval n as integer) as string
  IF n >= 0 THEN RETURN "ON"
  RETURN "OFF"

@@ -479,7 +479,7 @@ class NodeSpec(object):
         if self.default not in (None, '0', '0.0', '""'):
             if self.type == "string":
                 # UGH
-                return "iif_string(CINT({ptr}), %s, %s)" % (getter, self.default)
+                return "IIF(CINT({ptr}), %s, %s)" % (getter, self.default)
             else:
                 return "IIF({ptr}, %s, %s)" % (getter, self.default)
         return getter
@@ -1331,7 +1331,6 @@ class ReloadBasicTranslator(object):
         outfile.write('#define RELOADINTERNAL\n')
         outfile.write('#include "reload.bi"\n')
         outfile.write('#include "reloadext.bi"\n')
-        outfile.write('#include "util.bi"\n')  # for iif_string
         outfile.write('USING Reload\n')
         outfile.write('USING Reload.Ext\n')
         outfile.write('\n')

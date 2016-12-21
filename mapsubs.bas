@@ -927,7 +927,7 @@ DO
       IF i > UBOUND(map) THEN
        DIM howmany as integer
        howmany = i - UBOUND(map)
-       IF yesno("Layer " & i & " doesn't exist yet. Create " & iif_string(howmany = 1, "a new map layer?", howmany & " new map layers?")) THEN
+       IF yesno("Layer " & i & " doesn't exist yet. Create " & IIF(howmany = 1, "a new map layer?", howmany & " new map layers?")) THEN
         mapedit_append_new_layers st, map(), visible(), gmap(), howmany
        END IF
       END IF
@@ -1702,7 +1702,7 @@ DO
 
  IF st.tool = clone_tool THEN
   textcolor uilook(uiText), 0
-  printstr hilite("Ctrl+M: ") & iif_string(st.clone_merge, "Tile Merging On", "Tile Merging Off"), maprect.p2.x - 196, maprect.p2.y - 16, dpage, YES
+  printstr hilite("Ctrl+M: ") & IIF(st.clone_merge, "Tile Merging On", "Tile Merging Off"), maprect.p2.x - 196, maprect.p2.y - 16, dpage, YES
  END IF
 
  IF st.editmode = door_mode THEN
@@ -1722,7 +1722,7 @@ DO
    SELECT CASE st.tool
     CASE draw_tool, mark_tool, clone_tool
     CASE ELSE
-     printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
+     printstr hilite("+") + "/" + hilite("-") + IIF(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
    END SELECT
 
    printstr "(" + hilite("Z") + ": Editing)", 140, 24, dpage, YES
@@ -1746,14 +1746,14 @@ DO
   ELSE
    '-- View mode
 
-   printstr iif_string(st.autoshow_zones,"      ","Don't ") & hilite("A") + "utoshow zones  " _
-            & iif_string(st.showzonehints,"      ","Don't ") & hilite("S") + "how other", 0, 5, dpage, YES
+   printstr IIF(st.autoshow_zones,"      ","Don't ") & hilite("A") + "utoshow zones  " _
+            & IIF(st.showzonehints,"      ","Don't ") & hilite("S") + "how other", 0, 5, dpage, YES
 
    IF zoneselected THEN
     DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
     printstr hilite("E") + "dit/" _
-             & iif_string(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
-             & iif_string(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, vpages(dpage)->h - 8, dpage, YES
+             & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
+             & IIF(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, vpages(dpage)->h - 8, dpage, YES
    END IF
 
    'Draw zonemenu
@@ -2013,7 +2013,7 @@ SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMe
   zonemenu_add_zone zonemenu, st.zonecolours(), GetZoneInfo(zmap, lockedzonelist(i))
  NEXT
 
- append_simplemenu_item zonemenu, iif_string(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES, uilook(uiText)
+ append_simplemenu_item zonemenu, IIF(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES, uilook(uiText)
  DIM tileliststart as integer = v_len(zonemenu)
  FOR i as integer = 0 TO UBOUND(tilezonelist)
   zonemenu_add_zone zonemenu, st.zonecolours(), GetZoneInfo(zmap, tilezonelist(i))

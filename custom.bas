@@ -1637,7 +1637,7 @@ SUB resolution_menu (secret_options as bool)
   END IF
   IF quit THEN EXIT DO
   IF keyval(scF1) > 1 THEN
-    show_help iif_string(secret_options, "window_settings", "window_settings_partial")
+    show_help IIF(secret_options, "window_settings", "window_settings_partial")
   END IF
   SELECT CASE st.pt
    CASE 1: st.need_update OR= intgrabber(gen(genFullscreen), 0, 1)

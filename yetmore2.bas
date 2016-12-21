@@ -797,9 +797,9 @@ SUB debug_npcs ()
    IF .id <> 0 THEN
     DIM as integer drawX, drawY
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-     debug " " & i & ": ID=" & (ABS(.id) - 1) & iif_string(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
+     debug " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
     ELSE
-     debug " " & i & ": ID=" & (ABS(.id) - 1) & iif_string(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
+     debug " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
     END IF
    END IF
   END WITH
@@ -815,7 +815,7 @@ SUB npc_debug_display ()
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      textcolor uilook(uiText), 0
      'the numbers can overlap quite badly, try to squeeze them in
-     temp = iif_string(.id < 0, "-", "") & (ABS(.id) - 1)
+     temp = IIF(.id < 0, "-", "") & (ABS(.id) - 1)
      printstr MID(temp, 1, 1), drawX, drawY + 4, dpage
      printstr MID(temp, 2, 1), drawX + 7, drawY + 4, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 4, dpage

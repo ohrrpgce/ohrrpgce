@@ -225,7 +225,7 @@ startTest(stringResizing)
 	v_resize arr, 50
 	if v_len(arr) <> 50 then fail
 	for i as integer = 0 to 49
-		if arr[i] <> iif_string(i < 23, "800" & i, "") then fail
+		if arr[i] <> iif(i < 23, "800" & i, "") then fail
 	next
 	v_resize arr, 0
 	if v_len(arr) <> 0 then fail

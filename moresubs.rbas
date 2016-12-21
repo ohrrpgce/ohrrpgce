@@ -946,7 +946,7 @@ FUNCTION teleporttool () as bool
   rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage
   state.pt = IIF(pickpoint, 1, 0)
   standardmenu menu(), state, 0, vpages(vpage)->h - 27, vpage, menuopts
-  DIM caption as string = iif_string(pickpoint, "Arrows/SHIFT move; ENTER to teleport", "Select map; ENTER to select position")
+  DIM caption as string = IIF(pickpoint, "Arrows/SHIFT move; ENTER to teleport", "Select map; ENTER to select position")
   edgeprint caption, 0, vpages(vpage)->h - 9, uilook(uiText), vpage
   edgeprint "+/- to zoom", vpages(vpage)->w - 90, vpages(vpage)->h - 18, uilook(uiText), vpage
   setvispage vpage

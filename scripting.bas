@@ -1414,11 +1414,11 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   IF errorlevel >= serrBug THEN
    header = "Impossible error/engine bug!"
   ELSEIF errorlevel >= serrBound THEN
-   header = iif_string(insideinterpreter, "Script Error!", "Error!")
+   header = IIF(insideinterpreter, "Script Error!", "Error!")
   ELSEIF errorlevel >= serrWarn THEN
-   header = iif_string(insideinterpreter, "Script Warning", "Warning")
+   header = IIF(insideinterpreter, "Script Warning", "Warning")
   ELSEIF errorlevel = serrInfo THEN
-   header = iif_string(insideinterpreter, "Script Diagnostic", "Diagnostic")
+   header = IIF(insideinterpreter, "Script Diagnostic", "Diagnostic")
   END IF
   IF LEN(header) THEN
    printstr header, xstring(header, wid\2), 7, vpage

@@ -3504,7 +3504,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
 
  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
- DIM showhide as string = iif_string(gam.debug_npc_info, "Hide", "Show")
+ DIM showhide as string = IIF(gam.debug_npc_info, "Hide", "Show")
  IF dbg.def(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
 
  IF dbg.def(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
@@ -3518,7 +3518,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
 
- IF dbg.def(scCtrl, scF9, iif_string(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
+ IF dbg.def(scCtrl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
   scriptprofiling XOR= YES
   IF scriptprofiling THEN
    gam.showtext = "Timings will be printed to g_debug.txt"

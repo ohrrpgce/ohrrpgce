@@ -191,7 +191,7 @@ SUB editor_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help  TAB=mode (" & iif_string(st.type_data, "data node", "widget caption") & ")", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "F1=Help  TAB=mode (" & IIF(st.type_data, "data node", "widget caption") & ")", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -851,7 +851,7 @@ END SUB
 SUB wed_append_zero_or_one(byref st as WEState, caption as string, byval widget as NodePtr, sub_widget_name as string)
  DIM n as NodePtr = GetOrCreateChild(widget, sub_widget_name)
  DIM i as integer = GetInteger(n)
- append_menu_item(st.menu, caption & ":" & i & iif_string(i < 0 ORELSE i > 1, " [should be 0 or 1!]", ""), wedINT, , n)
+ append_menu_item(st.menu, caption & ":" & i & IIF(i < 0 ORELSE i > 1, " [should be 0 or 1!]", ""), wedINT, , n)
 END SUB
 
 SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)

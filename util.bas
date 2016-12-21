@@ -541,11 +541,6 @@ FUNCTION blank_default(s as string, blankcaption as string="default") as string
  RETURN s
 END FUNCTION
 
-'FIXME: Can be replaced by IIF in most recent FB version, once we switch to it
-FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as string
- IF condition THEN RETURN s1 ELSE RETURN s2
-END FUNCTION
-
 'Returns a copy of the string with separators inserted, replacing spaces, so that there's at most 'wid'
 'characters between separators; use together with split()
 Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as string
@@ -1624,7 +1619,7 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
 #ifdef DEBUG_FILE_IO
   debuginfo "findfiles(directory = " & directory & ", namemask = " & namemask & ", " _
-            & IIF_string(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
+            & IIF(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
 #endif
 
 #ifdef __UNIX__
