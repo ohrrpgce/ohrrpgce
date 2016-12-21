@@ -118,7 +118,7 @@ DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as Slice
 DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
-DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
+DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
@@ -810,7 +810,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
    'Invisible slices won't be updated by DrawSlice
    RefreshSliceTreeScreenPos sl
 
-   slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
+   slice_edit_detail_refresh state, menu(), menuopts, sl, rules(), slicelookup()
    state.need_update = NO
   END IF
 
@@ -1006,7 +1006,7 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as in
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
-SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
+SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
  REDIM menu(6) as string
  REDIM rules(0) as EditRule
  rules(0).helpkey = "detail"
@@ -1192,10 +1192,8 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, sl as
   sliceed_rule rules(), "autosort", erIntgrabber, @.AutoSort, 0, 5
   str_array_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
  END WITH
-  
- state.last = UBOUND(menu)
- state.pt = small(state.pt, state.last)
- state.top = small(state.top, state.pt)
+
+ init_menu_state state, menu(), menuopts
 END SUB
 
 FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes

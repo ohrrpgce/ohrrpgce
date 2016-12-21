@@ -11,9 +11,9 @@
 '*** Requires construction (with ClearMenuData or LoadMenuData) ***
 
 '' Generic MenuState Stuff
-DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem)
-DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector)
-DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as string)
+DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as string, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB clamp_menu_state (byref state as MenuState)
 DECLARE SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as string, byval unselectable as bool = NO, byval col as integer = 0, byval dat as integer = 0, byval where as integer = -1)
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
@@ -26,6 +26,7 @@ DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, byval x
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB recalc_menu_size (byref state as MenuState)
+DECLARE SUB set_menustate_size (state as MenuState, menuopts as MenuOptions, x as integer, y as integer)
 
 '' Mouse support
 DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer

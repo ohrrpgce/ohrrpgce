@@ -41,7 +41,6 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  NEXT
  state.last = nextbit - 1
  state.autosize = YES
- state.spacing = 8  'Necessary because not using standardmenu
 
  DIM ret as integer = NO
  DIM col as integer
@@ -71,7 +70,10 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   ELSE
    IF enter_space_click(state) THEN EXIT DO
   END IF
+
+  ' Draw
   clearpage dpage
+  set_menustate_size state, MenuOptions(), 0, 0  ' Recalcs .size, .rect, .spacing
   draw_fullscreen_scrollbar state, , dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN
@@ -86,13 +88,6 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
    IF state.pt = i THEN drawstr = RIGHT(drawstr, 40)
    printstr drawstr, 0, (i - state.top) * state.spacing, dpage
   NEXT i
-  WITH state
-   .has_been_drawn = YES
-   .rect.x = 0
-   .rect.y = 0
-   .rect.wide = get_resolution_w()
-   .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
-  END WITH
   SWAP vpage, dpage
   setvispage vpage
   dowait

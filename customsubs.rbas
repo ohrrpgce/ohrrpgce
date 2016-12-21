@@ -2414,10 +2414,10 @@ FUNCTION scriptbrowse_string (byref trigger as integer, byval triggertype as int
  DIM state as MenuState
  WITH state
   .pt = 0
-  .last = scriptmax
   .autosize = YES
   .autosize_ignore_lines = 2
  END WITH
+ init_menu_state state, scriptnames()
  IF firstscript = 2 THEN
   state.pt = 1
  ELSE

@@ -35,7 +35,9 @@ DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
 
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
-SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem)
+SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
+ set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+
  WITH state
   .first = 0
   .last = UBOUND(menu)
@@ -59,7 +61,9 @@ END SUB
 '
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
-SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector)
+SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
+ set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+
  WITH state
   .first = 0
   .last = v_len(menu) - 1
@@ -376,6 +380,29 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
  NEXT
 END SUB
 
+' Initialises/updates the size and position data in MenuState, including .size
+' if .autosize is true. This shouldn't be called unless you're reimplementing
+' standardmenu, otherwise call init_menu_state instead.
+' Sets .has_been_drawn=YES to indicate that these members have been initialised,
+' even if not called from standardmenu.
+SUB set_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer, y as integer)
+ WITH state
+  .has_been_drawn = YES
+  IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
+  .spacing += menuopts.itemspacing
+  .rect.x = x
+  .rect.y = y
+  .rect.wide = get_resolution_w()
+  .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
+ END WITH
+
+ ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
+ ' menu is inactive (more than one on-screen), and on the first tick with
+ ' .autosize=YES before .spacing is set the correct .size won't be known either.
+ ' (In that case, you should call init_menu_state, passing menuopts if used.)
+ recalc_menu_size state
+END SUB
+
 SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu
@@ -425,20 +452,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   EXIT SUB
  END IF
 
- WITH state
-  .has_been_drawn = YES
-  IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
-  .spacing += menuopts.itemspacing
-  .rect.x = x
-  .rect.y = y
-  .rect.wide = get_resolution_w()
-  .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
- END WITH
-
- ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
- ' menu is inactive (more than one on-screen), and on the first tick before
- ' .spacing is set the correct .size can't be set either (iff .autosize=YES)
- recalc_menu_size state
+ set_menustate_size state, menuopts, x, y
 
  IF state.active THEN
   state.tog XOR= 1
@@ -827,7 +841,9 @@ FUNCTION getmenuname(byval record as integer) as string
 END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
-SUB init_menu_state (byref state as MenuState, menu() as string)
+SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
+ set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+
  WITH state
   .first = LBOUND(menu)
   .last = UBOUND(menu)
