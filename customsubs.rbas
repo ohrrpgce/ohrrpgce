@@ -764,8 +764,8 @@ SUB ui_color_editor(palnum as integer)
  DIM sample_menu as MenuDef
  ClearMenuData sample_menu
  WITH sample_menu
-  .anchor.x = 1
-  .anchor.y = -1
+  .anchorhoriz = alignRight
+  .anchorvert = alignTop
   .offset.x = 156
   .offset.y = -96
  END WITH
@@ -873,8 +873,8 @@ SUB ui_boxstyle_editor(palnum as integer)
  DIM sample_menu as MenuDef
  ClearMenuData sample_menu
  WITH sample_menu
-  .anchor.x = 1
-  .anchor.y = -1
+  .anchorhoriz = alignRight
+  .anchorvert = alignTop
   .offset.x = 156
   .offset.y = -96
  END WITH
@@ -2244,18 +2244,18 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
   
-  WITH menu.anchor
-   IF keyval(scUp) > 1 THEN .y = bound(.y - 1, -1, 1)
-   IF keyval(scDown) > 1 THEN .y = bound(.y + 1, -1, 1)
-   IF keyval(scLeft) > 1 THEN .x = bound(.x - 1, -1, 1)
-   IF keyval(scRight) > 1 THEN .x = bound(.x + 1, -1, 1)
+  WITH menu
+   IF keyval(scUp) > 1 THEN .anchorvert = bound(.anchorvert - 1, alignTop, alignBottom)
+   IF keyval(scDown) > 1 THEN .anchorvert = bound(.anchorvert + 1, alignTop, alignBottom)
+   IF keyval(scLeft) > 1 THEN .anchorhoriz = bound(.anchorhoriz - 1, alignLeft, alignRight)
+   IF keyval(scRight) > 1 THEN .anchorhoriz = bound(.anchorhoriz + 1, alignLeft, alignRight)
   END WITH
  
   clearpage dpage
   draw_menu menu, mstate, dpage
   WITH menu
-   x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
-   y = .rect.y - 2 + anchor_point(.anchor.y, .rect.high)
+   x = .rect.x - 2 + anchor_point(.anchorhoriz, .rect.wide)
+   y = .rect.y - 2 + anchor_point(.anchorvert, .rect.high)
    rectangle x, y, 5, 5, 2 + tog, dpage 
   END WITH
   edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
@@ -4499,9 +4499,9 @@ SUB edit_platform_options ()
     ClearMenuData menu
     WITH menu
      .no_box = YES
-     .align = -1
-     .anchor.x = -1
-     .anchor.y = -1
+     .textalign = alignLeft
+     .anchorhoriz = alignLeft
+     .anchorvert = alignTop
      .bordersize = -8
      .min_chars = 999  ' Fill the screen
      .offset.x = vpages(dpage)->w / 2 * -1
@@ -5093,9 +5093,9 @@ SUB edit_button_name_strings()
    ClearMenuData menu
    WITH menu
     .no_box = YES
-    .align = -1
-    .anchor.x = -1
-    .anchor.y = -1
+    .textalign = alignLeft
+    .anchorhoriz = alignLeft
+    .anchorvert = alignTop
     .offset.x = -160
     .offset.y = -100
     .bordersize = -8
@@ -5311,9 +5311,9 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  ClearMenuData menu
  WITH menu
   .no_box = YES
-  .align = -1
-  .anchor.x = -1
-  .anchor.y = -1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
   .offset.x = -160
   .offset.y = -100
   .bordersize = -8
@@ -5442,9 +5442,9 @@ SUB edit_purchase_details (byval prod as NodePtr)
    ClearMenuData menu
    WITH menu
     .no_box = YES
-    .align = -1
-    .anchor.x = -1
-    .anchor.y = -1
+    .textalign = alignLeft
+    .anchorhoriz = alignLeft
+    .anchorvert = alignTop
     .offset.x = -160
     .offset.y = -100
     .bordersize = -8

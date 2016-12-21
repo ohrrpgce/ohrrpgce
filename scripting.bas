@@ -1338,7 +1338,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  state.pt = 0
  DIM menu as MenuDef
  ClearMenuData menu
- menu.anchor.y = -1
+ menu.anchorvert = alignTop
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
@@ -1473,7 +1473,7 @@ FUNCTION script_interrupt () as integer
  state.pt = 0
  DIM menu as MenuDef
  ClearMenuData menu
- menu.anchor.y = -1
+ menu.anchorvert = alignTop
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 

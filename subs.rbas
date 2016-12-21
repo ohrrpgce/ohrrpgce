@@ -2600,7 +2600,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
  append_menu_item menu, "Attack:"
  append_menu_item menu, "Learned at level:"
  append_menu_item menu, "Learned from an item:"
- menu.align = -1
+ menu.textalign = alignLeft
  
  DIM st as MenuState
  init_menu_state st, menu
@@ -2696,18 +2696,18 @@ SUB hero_editor_battle_menu (her as HeroDef)
    ClearMenuData menu
    WITH menu
     .no_box = YES
-    .align = -1
-    .anchor.x = -1
-    .anchor.y = -1
+    .textalign = alignLeft
+    .anchorhoriz = alignLeft
+    .anchorvert = alignTop
     .offset.x = -160
     .offset.y = -100
     .bordersize = -8
    END WITH
    ClearMenuData preview
    WITH preview
-    .align = -1
-    .anchor.x = 1
-    .anchor.y = -1
+    .textalign = alignLeft
+    .anchorhoriz = alignRight
+    .anchorvert = alignTop
     .offset.x = 154
     .offset.y = -86
     .bordersize = -5
@@ -2834,7 +2834,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    ClearMenuData menu
    WITH menu
     .boxstyle = 1
-    .align = -1
+    .textalign = alignLeft
     .min_chars = 36
    END WITH
    append_menu_item menu, "Previous menu...", edbatmenu_EXIT

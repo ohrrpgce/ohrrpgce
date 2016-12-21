@@ -3963,11 +3963,11 @@ SUB resizemapmenu (st as MapEditState, map() as TileMap, byref rs as MapResizeSt
 
  ClearMenuData rs.menu
  WITH rs.menu
-  .anchor.x = -1
-  .anchor.y = 1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignBottom
   .offset.x = -160
   .offset.y = 100
-  .align = -1
   .no_box = YES
   .bordersize = -8
  END WITH

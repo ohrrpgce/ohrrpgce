@@ -71,12 +71,12 @@ SUB reload_editor()
 
  ClearMenuData st.menu
  WITH st.menu
-  .anchor.x = -1
-  .anchor.y = -1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
   .offset.x = -160
   .offset.y = -100
   .bordersize = -4
-  .align = -1
   .maxrows = 18
  END WITH
  

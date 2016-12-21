@@ -422,7 +422,7 @@ SUB buystuff_init_info_menu(buyst as ShopBuyState)
   WITH buyst.info
    .offset.x = buyst.info_sl->ScreenX - 160 + buyst.info_sl->Width / 2
    .offset.y = buyst.info_sl->ScreenY - 102
-   .anchor.y = -1
+   .anchorvert = alignTop
    .bordersize = -8
    .maxrows = buyst.info_sl->Height / 8
    .itemspacing = -2
@@ -538,9 +538,9 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
  DIM id as integer
  ClearMenuData menu
  WITH menu
-  .align = -1
-  .anchor.x = -1
-  .anchor.y = -1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
   .offset.x = -155
   .offset.y = -95
   .bordersize = -2

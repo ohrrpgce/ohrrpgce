@@ -114,15 +114,6 @@ Enum FillModes
  sliceFillVert = 2
 End Enum
 
-'Also used for anchoring
-Enum AlignTypes
- alignLeft = 0
- alignTop = 0
- alignMiddle = 1
- alignRight = 2
- alignBottom = 2
-End Enum
-
 Extern "C"
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
@@ -172,10 +163,10 @@ TYPE Slice
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
 
-  AlignHoriz as AlignTypes  'Relative to parent. Only used when not filling
-  AlignVert as AlignTypes   'Relative to parent. Only used when not filling
-  AnchorHoriz as AlignTypes 'Relative to self. Only used when not filling
-  AnchorVert as AlignTypes  'Relative to self. Only used when not filling
+  AlignHoriz as AlignType  'Relative to parent. Only used when not filling
+  AlignVert as AlignType   'Relative to parent. Only used when not filling
+  AnchorHoriz as AlignType 'Relative to self. Only used when not filling
+  AnchorVert as AlignType  'Relative to self. Only used when not filling
   
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
 
@@ -356,8 +347,8 @@ DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
-DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
-DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
+DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
+DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer

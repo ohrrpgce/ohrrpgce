@@ -16,6 +16,7 @@
 #include "scrconst.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "sliceedit.bi"
 
 'This is in subs.bas:
 DECLARE SUB clearallpages ()
@@ -2338,24 +2339,28 @@ dstate.active = NO
 
 DIM edmenu as MenuDef
 ClearMenuData edmenu
-edmenu.align = -1
-edmenu.anchor.x = -1
-edmenu.anchor.y = -1
-edmenu.offset.x = -160
-edmenu.offset.y = -100
-edmenu.boxstyle = 3
-edmenu.translucent = YES
-edmenu.min_chars = 38
+WITH edmenu
+ .textalign = alignLeft
+ .anchorhoriz = alignLeft
+ .anchorvert = alignTop
+ .offset.x = -160
+ .offset.y = -100
+ .boxstyle = 3
+ .translucent = YES
+ .min_chars = 38
+END WITH
 DIM menudata as MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail as MenuDef
 ClearMenuData detail
-detail.align = -1
-detail.anchor.x = -1
-detail.anchor.y = 1
-detail.offset.x = -152
-detail.offset.y = 92
-detail.min_chars = 36
+WITH detail
+ .textalign = alignLeft
+ .anchorhoriz = alignLeft
+ .anchorvert = alignBottom
+ .offset.x = -152
+ .offset.y = 92
+ .min_chars = 36
+END WITH
 
 DIM box_preview as string = ""
 
@@ -2475,7 +2480,7 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
     reposition_anchor menudata, mstate
    END IF
   CASE 10 ' text align
-   IF intgrabber(menudata.align, -1, 1) THEN state.need_update = YES
+   IF intgrabber(menudata.textalign, alignLeft, alignRight) THEN state.need_update = YES
   CASE 11 ' Minimum width in chars
    IF intgrabber(menudata.min_chars, 0, 38) THEN state.need_update = YES
   CASE 12 ' Maximum width in chars
@@ -2650,7 +2655,7 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  append_menu_item edmenu, "Edit Bitsets..."
  append_menu_item edmenu, "Reposition menu..."
  append_menu_item edmenu, "Change Anchor Point..."
- append_menu_item edmenu, "Text Align: " & sign_string(menu.align, "Left", "Center", "Right")
+ append_menu_item edmenu, "Text Align: " & HorizCaptions(menu.textalign)
  append_menu_item edmenu, "Minimum width: " & zero_default(menu.min_chars, "Automatic")
  append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
  append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
@@ -2777,16 +2782,18 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
    END IF
    wide(i) = large(wide(i), LEN(menu(i).items[j]->caption) * 8)
   NEXT j
-  menu(i).align = -1
-  menu(i).anchor.x = -1
-  menu(i).anchor.y = -1
-  menu(i).offset.y = -95
-  menu(i).maxrows = 22
-  IF i = 0 THEN
-   menu(i).offset.x = -160
-  ELSE
-   menu(i).offset.x = menu(i-1).offset.x + wide(i-1)
-  END IF
+  WITH menu(i)
+   .textalign = alignLeft
+   .anchorhoriz = alignLeft
+   .anchorvert = alignTop
+   .offset.y = -95
+   .maxrows = 22
+   IF i = 0 THEN
+    .offset.x = -160
+   ELSE
+    .offset.x = menu(i-1).offset.x + wide(i-1)
+   END IF
+  END WITH
   init_menu_state state(i), menu(i)
  NEXT i
 

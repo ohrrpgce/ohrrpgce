@@ -1713,6 +1713,7 @@ define constant, begin
 5,menubit:no close
 6,menubit:no controls
 7,menubit:prevent main menu
+### The align: constants are for menu alignment, NOT for slices!
 0,align:center
 -1,align:left
 1,align:right
@@ -1724,6 +1725,7 @@ define constant, begin
 -2,song:same as last map
 -1,any enemy
 0,inv:max
+### The edge: constants are for slice alignment, NOT for menus!
 0,edge:left
 1,edge:center
 2,edge:right

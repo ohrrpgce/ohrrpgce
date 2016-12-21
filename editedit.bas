@@ -114,12 +114,12 @@ SUB editor_editor()
 
  ClearMenuData st.menu
  WITH st.menu
-  .anchor.x = -1
-  .anchor.y = -1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
   .offset.x = vpages(dpage)->w / 2 * -1
   .offset.y = vpages(dpage)->h / 2 * -1
   .bordersize = -4
-  .align = -1
   .maxrows = vpages(dpage)->h / 10 - 2
   .min_chars = vpages(dpage)->w / 8 - 2
   .no_box = YES
@@ -721,10 +721,10 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
 
  ClearMenuData st.menu
  WITH st.menu
-  .anchor.x = -1
-  .anchor.y = -1
+  .textalign = alignLeft
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
   .bordersize = -4
-  .align = -1
   .no_box = YES
  END WITH
  

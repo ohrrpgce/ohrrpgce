@@ -1567,7 +1567,7 @@ SUB live_preview_menu ()
  
  DIM menu1 as MenuDef
  ClearMenuData menu1
- menu1.align = -1
+ menu1.textalign = alignLeft
  menu1.boxstyle = 3
  menu1.translucent = YES
  menu1.min_chars = 38

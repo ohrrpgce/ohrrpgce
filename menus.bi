@@ -6,6 +6,8 @@
 #ifndef MENUS_BI
 #define MENUS_BI
 
+#include "udts.bi"
+
 '*** Requires construction (with ClearMenuData or LoadMenuData) ***
 
 '' Generic MenuState Stuff
@@ -67,7 +69,7 @@ DECLARE SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, 
 DECLARE SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
 DECLARE SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
 DECLARE SUB position_menu (menu as MenuDef, byval page as integer)
-DECLARE FUNCTION anchor_point(byval anchor as integer, byval size as integer) as integer
+DECLARE FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
 DECLARE FUNCTION count_menu_items (menu as MenuDef) as integer
 DECLARE FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
 DECLARE FUNCTION get_special_menu_caption(byval subtype as integer) as string

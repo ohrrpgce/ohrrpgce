@@ -4079,7 +4079,7 @@ end</example>
 		<command id="getmenuanchorx">
 			<canon>get menu anchor x(menu handle)</canon>
 			<shortname>get menu anchor x</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x anchor position of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the x anchor position of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>. (Not the <tt>edge:</tt> constants used by slices!)</description>
 			<seealso>
 				<ref>getmenuanchory</ref>
 				<ref>setmenuanchorx</ref>
@@ -4089,7 +4089,7 @@ end</example>
 		<command id="getmenuanchory">
 			<canon>get menu anchor y(menu handle)</canon>
 			<shortname>get menu anchor y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y anchor position of the menu. The return value will be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the y anchor position of the menu. The return value will be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>. (Not the <tt>edge:</tt> constants used by slices!)</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>setmenuanchorx</ref>
@@ -4109,7 +4109,7 @@ end</example>
 		<command id="setmenuanchory">
 			<canon>set menu anchor y(menu handle, new anchor)</canon>
 			<shortname>set menu anchor y</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the vertical y anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the vertical y anchor position of the menu. The <p>new anchor</p> can be <p>align:center</p>, <p>align:top</p> or <p>align:bottom</p>. (Not the <tt>edge:</tt> constants used by slices!)</description>
 			<seealso>
 				<ref>getmenuanchorx</ref>
 				<ref>getmenuanchory</ref>
@@ -4119,7 +4119,7 @@ end</example>
 		<command id="getmenutextalign">
 			<canon>get menu text align(menu handle)</canon>
 			<shortname>get menu text align</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the text alignment of the menu. The return value will be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>. (Not the <tt>edge:</tt> constants used by slices!)</description>
 			<seealso>
 				<ref>setmenutextalign</ref>
 			</seealso>
@@ -4127,7 +4127,7 @@ end</example>
 		<command id="setmenutextalign">
 			<canon>set menu text align(menu handle, new align)</canon>
 			<shortname>set menu text align</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the text alignment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the text alignment of the menu. The <p>new align</p> can be <p>align:center</p>, <p>align:left</p> or <p>align:right</p>. (Not the <tt>edge:</tt> constants used by slices!)</description>
 			<seealso>
 				<ref>getmenutextalign</ref>
 			</seealso>
@@ -4774,7 +4774,7 @@ end
 		<command id="sliceedgex">
 			<canon>slice edge x (handle, edge)</canon>
 			<shortname>slice edge x</shortname>
-			<description>Returns the x position of a particular edge of a slice. use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
+			<description>Returns the x position of a particular edge of a slice. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>sliceedgey</ref>
 				<ref>setsliceedgex</ref>
@@ -4784,7 +4784,7 @@ end
 		<command id="sliceedgey">
 			<canon>slice edge y (handle, edge)</canon>
 			<shortname>slice edge y</shortname>
-			<description>Returns the y position of a particular edge of a slice. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
+			<description>Returns the y position of a particular edge of a slice. Use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>sliceedgex</ref>
 				<ref>setsliceedgex</ref>
@@ -4794,7 +4794,7 @@ end
 		<command id="setsliceedgex">
 			<canon>set slice edge x (handle, edge, value)</canon>
 			<shortname>set slice edge x</shortname>
-			<description>Changes the X position of a specific edge of a slice. This is like <ref>setslicex</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
+			<description>Changes the X position of a specific edge of a slice. This is like <ref>setslicex</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>sliceedgex</ref>
 				<ref>sliceedgey</ref>
@@ -4804,7 +4804,7 @@ end
 		<command id="setsliceedgey">
 			<canon>set slice edge y (handle, edge, value)</canon>
 			<shortname>set slice edge y</shortname>
-			<description>Changes the Y position of a specific edge of a slice. This is like <ref>setslicey</ref>, except that you can set by any edge regardless of the slice's anchor. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
+			<description>Changes the Y position of a specific edge of a slice. This is like <ref>setslicey</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>sliceedgex</ref>
 				<ref>sliceedgey</ref>
@@ -4814,7 +4814,7 @@ end
 		<command id="sethorizalign">
 			<canon>set horiz align (handle, edge)</canon>
 			<shortname>set horiz align</shortname>
-			<description>Changes the horizontal alignment of any slice relative to its parent. The available edges are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
+			<description>Changes the horizontal alignment of any slice relative to its parent. The available edges are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!) The default value is edge:left.</description>
 			<seealso>
 				<ref>setvertalign</ref>
 				<ref>sethorizanchor</ref>
@@ -4825,7 +4825,7 @@ end
 		<command id="setvertalign">
 			<canon>set vert align (handle, edge)</canon>
 			<shortname>set vert align</shortname>
-			<description>Changes the vertical alignment of any slice relative to its parent. The available edges are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
+			<description>Changes the vertical alignment of any slice relative to its parent. The available edges are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!) The default value is edge:top.</description>
 			<seealso>
 				<ref>sethorizalign</ref>
 				<ref>sethorizanchor</ref>
@@ -4836,7 +4836,7 @@ end
 		<command id="sethorizanchor">
 			<canon>set horiz anchor (handle, edge)</canon>
 			<shortname>set horiz anchor</shortname>
-			<description>Changes the horizontal anchor of any slice. The available anchor values are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
+			<description>Changes the horizontal anchor of any slice. The available anchor values are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!) The default value is edge:left.</description>
 			<seealso>
 				<ref>setvertalign</ref>
 				<ref>sethorizalign</ref>
@@ -4847,7 +4847,7 @@ end
 		<command id="setvertanchor">
 			<canon>set vert anchor (handle, edge)</canon>
 			<shortname>set vert anchor</shortname>
-			<description>Changes the vertical anchor of any slice. The available anchor values are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
+			<description>Changes the vertical anchor of any slice. The available anchor values are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!) The default value is edge:top.</description>
 			<seealso>
 				<ref>setvertalign</ref>
 				<ref>sethorizalign</ref>
@@ -4858,7 +4858,7 @@ end
 		<command id="gethorizalign">
 			<canon>get horiz align (handle)</canon>
 			<shortname>get horiz align</shortname>
-			<description>Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>.</description>
+			<description>Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>getvertalign</ref>
 				<ref>gethorizanchor</ref>
@@ -4869,7 +4869,7 @@ end
 		<command id="getvertalign">
 			<canon>get vert align (handle)</canon>
 			<shortname>get vert align</shortname>
-			<description>Returns the vertical alignment of any slice relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>.</description>
+			<description>Returns the vertical alignment of any slice relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>gethorizalign</ref>
 				<ref>gethorizanchor</ref>
@@ -4880,7 +4880,7 @@ end
 		<command id="gethorizanchor">
 			<canon>get horiz anchor (handle)</canon>
 			<shortname>get horiz anchor</shortname>
-			<description>Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>.</description>
+			<description>Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>getvertanchor</ref>
 				<ref>gethorizalign</ref>
@@ -4891,7 +4891,7 @@ end
 		<command id="getvertanchor">
 			<canon>get vert anchor (handle)</canon>
 			<shortname>get vert anchor</shortname>
-			<description>Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>.</description>
+			<description>Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. (Not the <tt>align:</tt> constants used by menus!)</description>
 			<seealso>
 				<ref>gethorizanchor</ref>
 				<ref>gethorizalign</ref>

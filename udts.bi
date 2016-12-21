@@ -169,6 +169,16 @@ TYPE ClipState
 	clipb as integer
 END TYPE
 
+'Used for menu and slice anchor points and slice align points
+Enum AlignType
+  alignLeft = 0
+  alignTop = 0
+  alignMiddle = 1
+  alignCenter = 1
+  alignRight = 2
+  alignBottom = 2
+End Enum
+
 TYPE MenuSet
   menufile as string
   itemfile as string
@@ -243,8 +253,10 @@ TYPE MenuDef
   highlight_selection as bool 'Bitset 9
   rect      as RectType
   offset    as XYPair
-  anchor    as XYPair
-  align     as integer
+  anchorhoriz as AlignType  'Relative to self
+  anchorvert as AlignType   'Relative to self
+  textalign as AlignType    'Text alignment
+
   min_chars as integer
   max_chars as integer
   bordersize as integer

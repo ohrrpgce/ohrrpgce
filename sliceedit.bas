@@ -144,11 +144,11 @@ DECLARE SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval grou
 
 '==============================================================================
 
-REDIM SHARED HorizCaptions(2) as string
+DIM HorizCaptions(2) as string
 HorizCaptions(0) = "Left"
 HorizCaptions(1) = "Center"
 HorizCaptions(2) = "Right"
-REDIM SHARED VertCaptions(2) as string
+DIM VertCaptions(2) as string
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"

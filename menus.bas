@@ -735,9 +735,9 @@ SUB ClearMenuData(dat as MenuDef)
   .maxrows = 0
   .offset.x = 0
   .offset.y = 0
-  .anchor.x = 0
-  .anchor.y = 0
-  .align = 0
+  .anchorhoriz = alignCenter
+  .anchorvert = alignCenter
+  .textalign = alignCenter
   .min_chars = 0
   .max_chars = 0
   .bordersize = 0
@@ -916,9 +916,9 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   MenuBitsFromArray dat, bits()
   .offset.x = ReadShort(f)
   .offset.y = ReadShort(f)
-  .anchor.x = ReadShort(f)
-  .anchor.y = ReadShort(f)
-  .align = ReadShort(f)
+  .anchorhoriz = ReadShort(f) + 1 ' On-disk enum is -1,0,1
+  .anchorvert = ReadShort(f) + 1  ' ditto
+  .textalign = ReadShort(f) + 1   ' ditto
   .min_chars = ReadShort(f)
   .max_chars = ReadShort(f)
   .bordersize = ReadShort(f)
@@ -1021,9 +1021,9 @@ SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
   WriteShort(f, -1, bits(0))
   WriteShort(f, -1, .offset.x)
   WriteShort(f, -1, .offset.y)
-  WriteShort(f, -1, .anchor.x)
-  WriteShort(f, -1, .anchor.y)
-  WriteShort(f, -1, .align)
+  WriteShort(f, -1, .anchorhoriz - 1) ' On-disk enum is -1,0,1
+  WriteShort(f, -1, .anchorvert - 1)  ' ditto  
+  WriteShort(f, -1, .textalign - 1)   ' ditto
   WriteShort(f, -1, .min_chars)
   WriteShort(f, -1, .max_chars)
   WriteShort(f, -1, .bordersize)
@@ -1160,9 +1160,9 @@ FUNCTION read_menu_int (menu as MenuDef, byval intoffset as integer) as integer
     RETURN bits(0)
    CASE 16: RETURN .offset.x
    CASE 17: RETURN .offset.y
-   CASE 18: RETURN .anchor.x
-   CASE 19: RETURN .anchor.y
-   CASE 20: RETURN .align
+   CASE 18: RETURN .anchorhoriz - 1 ' Translate to align: constants
+   CASE 19: RETURN .anchorvert - 1  ' ditto
+   CASE 20: RETURN .textalign - 1   ' ditto
    CASE 21: RETURN .min_chars
    CASE 22: RETURN .max_chars
    CASE 23: RETURN .bordersize
@@ -1177,6 +1177,7 @@ END FUNCTION
 
 SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as integer)
  '--This sub allows write access to integers in a menu for the plotscripting interface
+ '--FIXME: there's no error checking, not even in the wrapper scripts in plotscr.hsd!
  '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
  DIM bits(0) as integer
  WITH menu
@@ -1189,9 +1190,9 @@ SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as inte
     MenuBitsFromArray menu, bits()
    CASE 16: .offset.x = n
    CASE 17: .offset.y = n
-   CASE 18: .anchor.x = n
-   CASE 19: .anchor.y = n
-   CASE 20: .align = n
+   CASE 18: .anchorhoriz = n + 1 ' Translate from align: constants
+   CASE 19: .anchorvert = n + 1  ' ditto
+   CASE 20: .textalign = n + 1   ' ditto
    CASE 21: .min_chars = n
    CASE 22: .max_chars = n
    CASE 23: .bordersize = n
@@ -1331,12 +1332,12 @@ SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byre
  DIM bord as integer
  bord = 8 + menu.bordersize
  WITH menu.rect
-  SELECT CASE menu.align
-   CASE -1
+  SELECT CASE menu.textalign
+   CASE alignLeft
     where.x = .x + bord
-   CASE 0
+   CASE alignCenter
     where.x = .x + .wide / 2 - LEN(cap) * 4
-   CASE 1
+   CASE alignRight
     where.x = .x + .wide - bord - LEN(cap) * 8
   END SELECT
   where.y = .y + bord + (i * (10 + menu.itemspacing))
@@ -1370,18 +1371,18 @@ SUB position_menu (menu as MenuDef, byval page as integer)
  END IF
 
  WITH menu
-  .rect.x = vpages(page)->w \ 2 - anchor_point(.anchor.x, .rect.wide) + menu.offset.x
-  .rect.y = vpages(page)->h \ 2 - anchor_point(.anchor.y, .rect.high) + menu.offset.y
+  .rect.x = vpages(page)->w \ 2 - anchor_point(.anchorhoriz, .rect.wide) + menu.offset.x
+  .rect.y = vpages(page)->h \ 2 - anchor_point(.anchorvert, .rect.high) + menu.offset.y
  END WITH
 END SUB
 
-FUNCTION anchor_point(byval anchor as integer, byval size as integer) as integer
+FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
  SELECT CASE anchor
-  CASE -1
+  CASE alignLeft
    RETURN 0
-  CASE 0
+  CASE alignMiddle
    RETURN size \ 2
-  CASE 1
+  CASE alignRight
    RETURN size
  END SELECT
 END FUNCTION
@@ -1423,7 +1424,7 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
   embedtext cap
  #ENDIF
  IF menu.max_chars > 0 THEN ' Crop overlength
-  IF menu.align = 1 THEN ' right align
+  IF menu.textalign = alignRight THEN
    cap = RIGHT(cap, menu.max_chars)
   ELSE ' left and center align
    cap = LEFT(cap, menu.max_chars)

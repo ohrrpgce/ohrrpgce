@@ -36,4 +36,8 @@ DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFIN
 DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
 DECLARE SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
 
+'Globals
+EXTERN HorizCaptions(2) as string
+EXTERN VertCaptions(2) as string
+
 #ENDIF

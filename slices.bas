@@ -2672,7 +2672,7 @@ Function SliceYAnchor(byval sl as Slice Ptr) as integer
  END SELECT
 End Function
 
-Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
+Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
  if sl = 0 then debug "SliceEdgeX null ptr": Return 0
  SELECT CASE edge
   CASE alignLeft:   RETURN 0
@@ -2681,7 +2681,7 @@ Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
  END SELECT
 End Function
 
-Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignTypes) as integer
+Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
  if sl = 0 then debug "SliceEdgeY null ptr": Return 0
  SELECT CASE edge
   CASE alignTop:    RETURN 0

@@ -2285,7 +2285,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  DIM boxheight as integer = 10 * (UBOUND(captlines) + 1)
  boxy = large(-20 - boxheight \ 2 - 5 * UBOUND(choices), -vpages(vpage)->h \ 2 + 10)
  menu.offset.Y = boxy + boxheight + 5
- menu.anchor.Y = -1
+ menu.anchorvert = alignTop
  menu.maxrows = (vpages(vpage)->h \ 2 - menu.offset.Y - 20) \ 10
 
  state.active = YES
