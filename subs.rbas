@@ -2421,13 +2421,13 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   clearpage dpage
   standardmenu menu(), mstate, 0, 0, dpage
   IF listnum >= 0 THEN
-   edgeprint spell_list_types(her.list_type(listnum)), 0, 180, uilook(uiSelectedDisabled), dpage
+   edgeprint spell_list_types(her.list_type(listnum)), 0, vpages(dpage)->h - 20, uilook(uiSelectedDisabled), dpage
    IF LEN(her.list_name(listnum)) > 0 THEN
     hint = "Press ENTER to edit spells in this list."
    ELSE
     hint = "Type a name for this spell list."
    END IF
-   edgeprint hint, 0, 190, uilook(uiDisabledItem), dpage
+   edgeprint hint, 0, vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -2792,9 +2792,9 @@ SUB hero_editor_battle_menu (her as HeroDef)
   END IF
     
   clearpage dpage
-  edgeprint "Preview", 256, 0, uilook(uiText), dpage
-  edgeprint "INSERT=add, DEL=delete, F1=help", 0, 190, uilook(uiSelectedDisabled), dpage
+  edgeprint "INSERT=add, DEL=delete, F1=help", 0, vpages(dpage)->h - 10, uilook(uiSelectedDisabled), dpage
   draw_menu preview, prst, dpage
+  edgeprint "Preview", prst.rect.x + 10, 0, uilook(uiText), dpage
   draw_menu menu, st, dpage
   SWAP vpage, dpage
   setvispage vpage

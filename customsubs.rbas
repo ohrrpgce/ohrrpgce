@@ -77,10 +77,10 @@ END SUB
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
 FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
  STATIC searchstring as string
- DIM state as MenuState
  DIM thisname as string
  DIM ret as integer = starttag
  IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
+
  DIM menu as BasicMenuItem vector
  v_new menu, gen(genMaxTagname) + 1
  IF picktag THEN
@@ -106,6 +106,10 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  tagsign = SGN(starttag)
  IF tagsign = 0 THEN tagsign = 1
 
+ DIM menuopts as MenuOptions
+ menuopts.fullscreen_scrollbar = YES
+
+ DIM state as MenuState
  state.autosize = YES
  state.autosize_ignore_lines = 1
  state.last = gen(genMaxTagname)
@@ -210,8 +214,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   END IF
 
   clearpage dpage
-  draw_fullscreen_scrollbar state, , dpage
-  standardmenu menu, state, 0, 0, dpage
+  standardmenu menu, state, 0, 0, dpage, menuopts
   DIM tmpstr as string
   IF int_browsing THEN
    textcolor uilook(uiText), uilook(uiHighlight)
@@ -2516,7 +2519,8 @@ FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as i
  n = temp
 END FUNCTION
 
-SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
+PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
+ 'Helper function to find the next script ID/trigger assigned to a script that exists.
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
  'triggertype not used (yet?)

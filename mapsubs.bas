@@ -2535,7 +2535,7 @@ SUB mapedit_gmapdata(st as MapEditState, gmap() as integer, zmap as ZoneMap)
   IF mapedit_need_default_edge_tile(st, gmap()) THEN
    'Show default edge tile
    writeblock sampmap, 0, 0, gmap(6)
-   DIM tilepos as XYPair = (8 + 8 * LEN(menu[midx(6)].text), 8 * midx(6))
+   DIM tilepos as XYPair = (8 + 8 * LEN(menu[midx(6)].text), 8 * (midx(6) - state.top))
    DIM tileview as Frame ptr
    tileview = frame_new_view(vpages(dpage), tilepos.x, tilepos.y, 20, 20)
    drawmap sampmap, 0, 0, st.tilesets(0)->spr, tileview ', NO, 0, NULL, NO
