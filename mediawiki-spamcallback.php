@@ -11,20 +11,18 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-$basePath = '/var/www/wiki/';
-//$basePath = '/home/finalfan/public_html/ohr/';
-
-$spamNOTEVIL   = $basePath . 'not.evil.txt';
-$spamCHONGQED  = $basePath . 'blacklist.chongqed.org.txt';
-$spamSPAMWORDS = $basePath . 'blacklist.spamwords.txt';
-$spamLOG       = $basePath . 'ohrrpgce/spammer.log';
+$spamNOTEVIL   = $IP . '/../not.evil.txt';
+$spamSPAMWORDS = $IP . '/../blacklist.spamwords.txt';
+$spamLOG       = $IP . '/spammer.log';
 
 ///////////////////////////////////////////////////////////////////////
 function checkBlackList($filename,$name,$body,&$reason){
+        printf("<!-- JAMESDEBUG %s _ %s _ %s _ %s -->", $filename, $name, $body, $reason);
   if($handle=fopen($filename,'r')){
     while (!feof($handle)) {
       $regex = trim(fgets($handle));
       if($regex and $regex[0] != '#'){
+        printf("<!-- JAMESDEBUG %s -->", $regex);
         if(preg_match('/'.$regex.'/', $body, $match)){
           $reason = sprintf('%s blacklist match: %s',$name,$match[0]);
           fclose($handle);
@@ -55,9 +53,8 @@ function checkWhiteList($filename,$who){
 }
 
 ///////////////////////////////////////////////////////////////////////
-function spamCallBack($title, $body, $section){
+function spamCallBack($editor, $text, $section, &$error, $summary){
   global $spamNOTEVIL;
-  global $spamCHONGQED;
   global $spamSPAMWORDS;
   global $spamLOG;
 
@@ -66,6 +63,9 @@ function spamCallBack($title, $body, $section){
   global $wgOut;
   global $wgParser;
   global $wgUser;
+
+  $title = $editor->getTitle()->getBaseTitle();
+  $body = $text;
 
   $block = false;
   $do_filter = true;
@@ -81,26 +81,21 @@ function spamCallBack($title, $body, $section){
   }
 
   if($do_filter){
-	
-    //Create a diff, for better filtering  
-    $old_page = new WikiPage($title);
-    $old = $old_page->getContent();
+
+    //Create a diff, for better filtering
+    $old_page = new Article($title);
+    $old = $old_page->fetchContent();
     $diff = getDiff($old,$body);
     $diff = implode("\n",$diff);
     unset($old_page);
 
     // special handling if there are any external links
-    if(preg_match('/https?:\/\//', $diff)){
-      // check the chonqed blocklist for spammer urls.
-      // the blacklist is downloaded to a text file by a nightly cron job
-      $block = checkBlackList($spamCHONGQED,'chongqed',$diff,$reason);
-    }
     if (!$block){
       // check the spammy keyword list
       $block = checkBlackList($spamSPAMWORDS,'spammy keyword',$diff,$reason);
     }
     if (!$block){
-      // The main page is the most-spammed, and therefore may need extra rules  
+      // The main page is the most-spammed, and therefore may need extra rules
       if(!$block and 'Main Page' == $title->mTextform and !$title->mPrefixedText){
         if(preg_match('/http:\/\//',$diff)){
           $reason = 'direct links are forbidden on the main page';
@@ -137,8 +132,8 @@ function spamCallBack($title, $body, $section){
     $urlcount = preg_match_all('/http:\//', $diff, $match);
 
     // alert the administrator of the spam attempt
-    // (unless there are more than 4 urls, in whcih case assume spam)
-    if($urlcount < 5) mail($wgEmergencyContact,
+    // (unless there is more than 1 urls, in which case assume spam)
+    if($urlcount <= 1) mail($wgEmergencyContact,
          sprintf('%s %s',$wgSitename,$title->mTextform),
          sprintf("spam attempt blocked from \"%s\"\nReason: %s\n\n%s",
                  $log_name,$reason,$diff),
@@ -150,9 +145,9 @@ function spamCallBack($title, $body, $section){
     $deceitHTML = $parserOutput->mText;
     $wgOut->addHTML($deceitHTML);
     $wgOut->addHTML( "<br style=\"clear:both;\" />\n" );
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 /**
