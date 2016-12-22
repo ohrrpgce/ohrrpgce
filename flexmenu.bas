@@ -1469,7 +1469,7 @@ DO
  'Damage preview, blank on most menus.
  'It really can get 13 lines long! *shudder*
  textcolor uilook(uiMenuItem), 0
- printstr vpages(dpage), damagepreview, 0, 77, 320, 0
+ printstr vpages(dpage), damagepreview, 0, 77, vpages(dpage)->w, 0
 
  'Cost preview
  IF helpkey = "attack_cost" THEN
@@ -1482,8 +1482,10 @@ DO
    tmp_atk.item(i).number = recbuf(AtkDatItemCost + i * 2)
   NEXT i
   DIM cost_caption as string = attack_cost_info(tmp_atk, 0, 99, 99)
-  edgeprint cost_caption, 320 - LEN(cost_caption) * 8, 190, uilook(uiDisabledItem), dpage
-  edgeprint RIGHT(cost_caption, 30), 320 - LEN(RIGHT(cost_caption, 30)) * 8, 190, uilook(uiText), dpage
+  ' This preview indicates that only the right-most 30 characters fit on the screen;
+  ' the rest are shown dark.
+  edgeprint cost_caption, vpages(dpage)->w - textwidth(cost_caption), vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
+  edgeprint RIGHT(cost_caption, 30), vpages(dpage)->w - textwidth(RIGHT(cost_caption, 30)), vpages(dpage)->h - 10, uilook(uiText), dpage
  END IF
 
  standardmenu dispmenu(), state, 0, 0, dpage
@@ -1491,7 +1493,7 @@ DO
    show_name = large(0, show_name - 1)
    tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
-   printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
+   printstr tmpstr, vpages(dpage)->w - textwidth(tmpstr), 0, dpage
  END IF
 
  SWAP vpage, dpage
@@ -2404,15 +2406,15 @@ DO
  IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
  IF mstate.active THEN
   draw_menu menudata, mstate, dpage
-  edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
+  edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, vpages(dpage)->h - 9, uilook(uiDisabledItem), dpage
   IF record = 0 THEN
-   edgeprint "CTRL+R to reload default", 0, 181, uilook(uiDisabledItem), dpage
+   edgeprint "CTRL+R to reload default", 0, vpages(dpage)->h - 19, uilook(uiDisabledItem), dpage
   END IF
  END IF
  IF dstate.active THEN
   draw_menu detail, dstate, dpage
   IF menudata.items[mstate.pt]->t = 3 THEN '--textbox
-   edgeprint box_preview, 0, 191, uilook(uiText), dpage
+   edgeprint box_preview, 0, vpages(dpage)->h - 9, uilook(uiText), dpage
   END IF
  END IF
  

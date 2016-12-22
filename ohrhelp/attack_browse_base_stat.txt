@@ -1,4 +1,4 @@
-Choose the base attack stat, and press ENTER or SPACE
+Choose the base attack stat, and press ENTER or SPACE. Pressing ESC cancels.
 
 Base attack stat controls how much damage the attack will do.
 

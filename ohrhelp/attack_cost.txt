@@ -6,7 +6,7 @@ Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
-Be aware that the player will only see the MP costs of an attack in a spell menu. Other costs of an attack aren't displayed.
+The attack cost as shown to the player in the spell lists is previewed at the bottom of the screen. If the text is so long that not all of it can be shown in-game, part of the preview will be greyed out.
 
 MP Cost: This is the number of magic points the attacker must spend to use the attack. The MP cost gets adjusted according to the `MP~' (spell cost %) stat. MP~ 0 makes no difference. An MP~ of 50 halves the MP cost; 100 makes the MP cost 0, and 200 negates the MP cost!
 Finally, if an attack is in a FF1-style level-MP spell list, it will also cost level-MP depending on the row it appears on. That's completely independent.

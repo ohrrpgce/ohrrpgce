@@ -853,7 +853,8 @@ SUB ui_color_editor(palnum as integer)
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
    rectangle 0, 8 * (i - state.top), 8, 8, uilook(i), dpage
   NEXT i
-  edgeprint "Ctrl+D to revert to default", 100, 190, uilook(uiText), dpage
+  DIM msg as string = "Ctrl+D to revert to default"
+  edgeprint msg, xstring(msg), vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -991,7 +992,8 @@ SUB ui_boxstyle_editor(palnum as integer)
     rectangle 0, 8 * (i - state.top), 8, 8, boxlook(INT(i / 3)).edgecol, dpage
    END IF
   NEXT i
-  edgeprint "Ctrl+D to revert to default", 100, 190, uilook(uiText), dpage
+  DIM msg as string = "Ctrl+D to revert to default"
+  edgeprint msg, xstring(msg), vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -2129,8 +2131,8 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   rectangle sl->ScreenX + x, sl->ScreenY + y - 2, 2, 2, col, dpage
   rectangle sl->ScreenX + x, sl->ScreenY + y + 2, 2, 2, col, dpage
 
-  edgeprint caption, xstring(caption, 160), 0, uilook(uiText), dpage
-  edgeprint "Position point and press Enter or SPACE", 0, 190, uilook(uiText), dpage
+  edgeprint caption, xstring(caption), 0, uilook(uiText), dpage
+  edgeprint "Position point and press Enter or SPACE", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -2156,17 +2158,19 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   IF keyval(scDown) > 0  THEN y += 1
 
   clearpage dpage
-  drawbox 160 - wide, 100 - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
-  frame_draw spr.sprite + frame, spr.pal, 160 - wide, 100 - high, 2,, dpage
+  DIM midx as integer = vpages(dpage)->w / 2
+  DIM midy as integer = vpages(dpage)->h / 2
+  drawbox midx - wide, midy - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
+  frame_draw spr.sprite + frame, spr.pal, midx - wide, midy - high, 2,, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
-  rectangle 160 - wide + x * 2 - 2, 100 - high + y * 2, 2, 2, col, dpage
-  rectangle 160 - wide + x * 2 + 2, 100 - high + y * 2, 2, 2, col, dpage
-  rectangle 160 - wide + x * 2, 100 - high + y * 2 - 2, 2, 2, col, dpage
-  rectangle 160 - wide + x * 2, 100 - high + y * 2 + 2, 2, 2, col, dpage
+  rectangle midx - wide + x * 2 - 2, midy - high + y * 2, 2, 2, col, dpage
+  rectangle midx - wide + x * 2 + 2, midy - high + y * 2, 2, 2, col, dpage
+  rectangle midx - wide + x * 2, midy - high + y * 2 - 2, 2, 2, col, dpage
+  rectangle midx - wide + x * 2, midy - high + y * 2 + 2, 2, 2, col, dpage
 
-  edgeprint caption, xstring(caption, 160), 0, uilook(uiText), dpage
-  edgeprint "Position point and press Enter or SPACE", 0, 190, uilook(uiText), dpage
+  edgeprint caption, xstring(caption), 0, uilook(uiText), dpage
+  edgeprint "Position point and press Enter or SPACE", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -2229,7 +2233,7 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState)
   clearpage dpage
   draw_menu menu, mstate, dpage
   edgeprint "Offset=" & menu.offset.x & "," & menu.offset.y, 0, 0, uilook(uiDisabledItem), dpage
-  edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
+  edgeprint "Arrows to re-position, ESC to exit", 0, vpages(dpage)->h - 9, uilook(uiDisabledItem), dpage
   
   SWAP vpage, dpage
   setvispage vpage
@@ -2264,7 +2268,7 @@ SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
    y = .rect.y - 2 + anchor_point(.anchorvert, .rect.high)
    rectangle x, y, 5, 5, 2 + tog, dpage 
   END WITH
-  edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
+  edgeprint "Arrows to re-position, ESC to exit", 0, vpages(dpage)->h - 9, uilook(uiDisabledItem), dpage
   
   SWAP vpage, dpage
   setvispage vpage
@@ -4414,7 +4418,7 @@ SUB edit_platform_options ()
  
  DIM st as MenuState
  st.autosize = YES
- st.autosize_ignore_lines = 1
+ st.autosize_ignore_pixels = 14
  st.active = YES
  st.need_update = YES
  
@@ -4780,7 +4784,7 @@ FUNCTION prompt_for_scancode () as integer
  DIM pressed as integer
  DIM presstime as double ' the timestamp when the key was first pressed
  DIM heldfor as double ' the number of seconds the key has been held
- DIM threshold as double = 1.5
+ DIM threshold as double = 1.
  DIM keylist as string
  DIM keyname as string
  DIM count as integer
@@ -4811,6 +4815,7 @@ FUNCTION prompt_for_scancode () as integer
 
  DIM infosl as Slice Ptr
  infosl = NewSliceofType(slText, box)
+ infosl->Fill = YES
  ChangeTextSlice infosl, instructions, , , YES
  
  DIM bar as Slice Ptr
@@ -5267,8 +5272,8 @@ SUB edit_purchase_options ()
   clearpage dpage
   
   draw_menu menu, st, dpage
-  edgeprint "Don't enable purchases unless all the", 0, 183, uilook(uiSelectedDisabled), dpage
-  edgeprint "content if your game is original!", 0, 191, uilook(uiSelectedDisabled), dpage
+  edgeprint "Don't enable purchases unless all the", 0, vpages(dpage)->h - 17, uilook(uiSelectedDisabled), dpage
+  edgeprint "content if your game is original!", 0, vpages(dpage)->h - 9, uilook(uiSelectedDisabled), dpage
   
   SWAP vpage, dpage
   setvispage vpage

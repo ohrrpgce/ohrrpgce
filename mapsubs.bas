@@ -2591,6 +2591,8 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
 
  state.top = 0
  state.size = 19
+ state.autosize = YES
+ state.autosize_ignore_pixels = 26
 
  mapedit_makelayermenu st, menu, state, gmap(), visible(), map(), YES, st.layer
 
@@ -2732,7 +2734,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
   copypage 2, dpage
   standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
 
-  DIM liney as integer = 190
+  DIM liney as integer = vpages(dpage)->h - 10
   edgeprint "SHIFT+arrows to move layers, - to delete", 0, liney, uilook(uiText), dpage
   liney -= 10
   IF UBOUND(map) < maplayerMax THEN
@@ -4117,7 +4119,7 @@ SUB show_minimap(st as MapEditState, map() as TileMap)
  frame_draw minimap, NULL, 0, 0, 1, NO, vpage
  frame_unload @minimap
 
- edgeprint "Press Any Key", 0, 180, uilook(uiText), vpage
+ edgeprint "Press Any Key", 0, vpages(dpage)->h - 9, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
 END SUB

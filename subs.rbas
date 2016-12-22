@@ -820,7 +820,7 @@ DO
   show_name = large(0, show_name - 1)
   DIM tmpstr as string = readbadbinstring(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, vpage
+  printstr tmpstr, vpages(vpage)->w - textwidth(tmpstr), 0, vpage
  END IF
 
  setvispage vpage
@@ -1664,9 +1664,10 @@ SUB individual_item_editor(item_id as integer)
  DIM selectst as SelectTypeState
  DIM enable_strgrabber as bool
  DIM state as MenuState
- state.size = 24
  state.last = menusize
  state.need_update = YES
+ state.autosize = YES
+ state.autosize_ignore_pixels = 12
 
  setkeys YES
  DO
@@ -1770,7 +1771,7 @@ SUB individual_item_editor(item_id as integer)
    drawline handle.x + 1, handle.y    , handle.x + 2, handle.y    , col, dpage
    drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
   END IF
-  edgeprint box_preview, 0, 191, uilook(uiText), dpage
+  edgeprint box_preview, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -2880,7 +2881,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   END WITH
   
   copypage holdscreen, vpage
-  fuzzyrect 0, 0, 320, 200, uilook(uiBackground), vpage
+  fuzzyrect 0, 0, vpages(vpage)->w, vpages(vpage)->h, uilook(uiBackground), vpage
   draw_menu menu, st, vpage
   setvispage vpage
   
@@ -3298,6 +3299,8 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  st.last = UBOUND(menu)
  st.autosize = YES
  st.need_update = YES
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES
 
  FOR i as integer = 0 TO gen(genNumElements) - 1
   float_reprs(i) = format_percent(elementals(i))
@@ -3334,8 +3337,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
   clearpage vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, st
-  draw_fullscreen_scrollbar st, , vpage
-  standardmenu menu_display(), st, 0, 0, vpage
+  standardmenu menu_display(), st, 0, 0, vpage, menuopts
   setvispage vpage
   dowait
  LOOP
