@@ -760,6 +760,8 @@ SUB ClearMenuData(dat as MenuDef)
   .offset.y = 0
   .anchorhoriz = alignCenter
   .anchorvert = alignCenter
+  .alignhoriz = alignCenter
+  .alignvert = alignCenter
   .textalign = alignCenter
   .min_chars = 0
   .max_chars = 0
@@ -941,6 +943,8 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   MenuBitsFromArray dat, bits()
   .offset.x = ReadShort(f)
   .offset.y = ReadShort(f)
+  .alignhoriz = alignCenter       ' Not saved
+  .alignvert = alignCenter        ' ditto
   .anchorhoriz = ReadShort(f) + 1 ' On-disk enum is -1,0,1
   .anchorvert = ReadShort(f) + 1  ' ditto
   .textalign = ReadShort(f) + 1   ' ditto
@@ -1396,8 +1400,8 @@ SUB position_menu (menu as MenuDef, byval page as integer)
  END IF
 
  WITH menu
-  .rect.x = vpages(page)->w \ 2 - anchor_point(.anchorhoriz, .rect.wide) + menu.offset.x
-  .rect.y = vpages(page)->h \ 2 - anchor_point(.anchorvert, .rect.high) + menu.offset.y
+  .rect.x = anchor_point(.alignhoriz, vpages(page)->w) - anchor_point(.anchorhoriz, .rect.wide) + menu.offset.x
+  .rect.y = anchor_point(.alignvert, vpages(page)->h) - anchor_point(.anchorvert, .rect.high) + menu.offset.y
  END WITH
 END SUB
 

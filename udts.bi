@@ -255,6 +255,8 @@ TYPE MenuDef
   offset    as XYPair
   anchorhoriz as AlignType  'Relative to self
   anchorvert as AlignType   'Relative to self
+  alignhoriz as AlignType   'Relative to screen. NOT saved or exposed to users
+  alignvert as AlignType    'Relative to screen. NOT saved or exposed to users
   textalign as AlignType    'Text alignment
 
   min_chars as integer
