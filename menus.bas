@@ -1328,11 +1328,11 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
       rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page
      END IF
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      metermax = (8 * large(6, LEN(.text)))
+      metermax = large(48, textwidth(.text))
       edgeboxstyle where.x, where.y, get_music_volume * metermax, 10, menu.boxstyle, page, NO, YES
      END IF
      IF .t = 1 AND .sub_t = 14 THEN ' TV Safe Margin meter
-      metermax = (8 * large(6, LEN(.text)))
+      metermax = large(48, textwidth(.text))
       edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * metermax / 10), 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint .text, where.x, where.y, col, page, .withtags
@@ -1361,9 +1361,9 @@ SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byre
    CASE alignLeft
     where.x = .x + bord
    CASE alignCenter
-    where.x = .x + .wide / 2 - LEN(cap) * 4
+    where.x = .x + (.wide - textwidth(cap)) / 2
    CASE alignRight
-    where.x = .x + .wide - bord - LEN(cap) * 8
+    where.x = .x + .wide - bord - textwidth(cap)
   END SELECT
   where.y = .y + bord + (i * (10 + menu.itemspacing))
  END WITH
@@ -1381,7 +1381,7 @@ SUB position_menu (menu as MenuDef, byval page as integer)
   WITH *menu.items[i]
    'hidden items used to matter for auto-width but not auto-height; now they don't for either
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
-   menu.rect.wide = large(menu.rect.wide, LEN(.text) * 8 + bord * 2)
+   menu.rect.wide = large(menu.rect.wide, textwidth(.text) + bord * 2)
    menu.rect.high += 10
    IF i <> 0 THEN menu.rect.high += menu.itemspacing
   END WITH
