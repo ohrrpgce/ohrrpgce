@@ -45,6 +45,7 @@ DECLARE SUB select_instr(menu() as string, selectst as SelectTypeState, state as
 
 '' MenuDef
 DECLARE SUB ClearMenuData(dat as MenuDef)
+DECLARE SUB InitLikeStandardMenu(menu as MenuDef)
 DECLARE SUB DeleteMenuItems(menu as MenuDef)
 DECLARE SUB SortMenuItems(menu as MenuDef)
 DECLARE FUNCTION getmenuname(byval record as integer) as string

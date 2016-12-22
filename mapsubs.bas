@@ -3961,15 +3961,10 @@ END SUB
 SUB resizemapmenu (st as MapEditState, map() as TileMap, byref rs as MapResizeState)
  'returns the new size and offset in passed args, or -1 width to cancel
 
- ClearMenuData rs.menu
+ InitLikeStandardMenu rs.menu
  WITH rs.menu
-  .textalign = alignLeft
-  .anchorhoriz = alignLeft
+  .alignvert = alignBottom
   .anchorvert = alignBottom
-  .offset.x = -160
-  .offset.y = 100
-  .no_box = YES
-  .bordersize = -8
  END WITH
  append_menu_item rs.menu, "Cancel"
  FOR i as integer = 1 TO 6

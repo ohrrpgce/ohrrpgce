@@ -2657,9 +2657,9 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
    menu.items[3]->caption = "Learned from an item: " & cap
    
    st.need_update = NO
-   copypage holdscreen, vpage
   END IF
 
+  copypage holdscreen, vpage
   draw_menu menu, st, vpage
   setvispage vpage
   
@@ -2693,23 +2693,16 @@ SUB hero_editor_battle_menu (her as HeroDef)
   IF keyval(scEsc) > 1 THEN EXIT DO
 
   IF st.need_update THEN
-   ClearMenuData menu
-   WITH menu
-    .no_box = YES
-    .textalign = alignLeft
-    .anchorhoriz = alignLeft
-    .anchorvert = alignTop
-    .offset.x = -160
-    .offset.y = -100
-    .bordersize = -8
-   END WITH
+   InitLikeStandardMenu menu
    ClearMenuData preview
    WITH preview
     .textalign = alignLeft
+    .alignhoriz = alignRight
+    .alignvert = alignTop
     .anchorhoriz = alignRight
     .anchorvert = alignTop
-    .offset.x = 154
-    .offset.y = -86
+    .offset.x = -6
+    .offset.y = 16
     .bordersize = -5
     .itemspacing = -2
     .highlight_selection = YES

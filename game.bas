@@ -3666,8 +3666,9 @@ SUB battle_formation_testing_menu()
  menu.maxrows = 16
  init_menu_state state, menu
  state.pt = defaultval
+ menu.alignvert = alignTop
  menu.anchorvert = alignTop
- menu.offset.Y = -90
+ menu.offset.Y = 10
 
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer

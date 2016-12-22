@@ -261,7 +261,7 @@ TYPE MenuDef
 
   min_chars as integer
   max_chars as integer
-  bordersize as integer
+  bordersize as integer  'Pixels added to default border padding (which is 8).
   itemspacing as integer 'pixels added to the default item spacing.
                           'negative shrinks, positive grows. This
                           'alters the vertical size of the whole menu!

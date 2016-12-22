@@ -68,17 +68,10 @@ SUB reload_editor()
  st.state.pt = 0
  st.state.need_update = YES
  st.state.active = YES
+ st.state.autosize = YES
+ st.state.autosize_ignore_pixels = 16
 
- ClearMenuData st.menu
- WITH st.menu
-  .textalign = alignLeft
-  .anchorhoriz = alignLeft
-  .anchorvert = alignTop
-  .offset.x = -160
-  .offset.y = -100
-  .bordersize = -4
-  .maxrows = 18
- END WITH
+ InitLikeStandardMenu st.menu
  
  setkeys YES
  DO
@@ -134,7 +127,7 @@ SUB reload_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, 190, uilook(uiText), dpage
+  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage

@@ -777,6 +777,23 @@ SUB ClearMenuData(dat as MenuDef)
  MenuBitsFromArray dat, bits()
 END SUB
 
+'Initialise a MenuDef so that it looks like a plain menu, as drawn by standardmenu
+SUB InitLikeStandardMenu(menu as MenuDef)
+ ClearMenuData menu
+ WITH menu
+  .no_box = YES
+  .textalign = alignLeft
+  .alignhoriz = alignLeft
+  .alignvert = alignTop
+  .anchorhoriz = alignLeft
+  .anchorvert = alignTop
+  .min_chars = 9999  'Fill screen
+  'border should be -8 to be like standardmenu, but drawing the menu at 4,4 looks better
+  .bordersize = -4
+  .itemspacing = -1
+ END WITH
+END SUB
+
 SUB DeleteMenuItems(menu as MenuDef)
  DIM i as integer
  WITH menu

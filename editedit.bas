@@ -111,39 +111,17 @@ SUB editor_editor()
  st.state.pt = 0
  st.state.need_update = YES
  st.state.active = YES
+ st.state.autosize = YES
+ st.state.autosize_ignore_pixels = 12
 
- ClearMenuData st.menu
- WITH st.menu
-  .textalign = alignLeft
-  .anchorhoriz = alignLeft
-  .anchorvert = alignTop
-  .offset.x = vpages(dpage)->w / 2 * -1
-  .offset.y = vpages(dpage)->h / 2 * -1
-  .bordersize = -4
-  .maxrows = vpages(dpage)->h / 10 - 2
-  .min_chars = vpages(dpage)->w / 8 - 2
-  .no_box = YES
- END WITH
- 
- DIM oldsize as XYPair
+ InitLikeStandardMenu st.menu
  
  setkeys YES
  DO
   setwait 55
   setkeys YES
 
-  IF oldsize.x <> vpages(dpage)->w ORELSE oldsize.y <> vpages(dpage)->h THEN 
-   oldsize.x = vpages(dpage)->w
-   oldsize.y = vpages(dpage)->h
-   st.state.need_update = YES
-  END IF
   IF st.state.need_update THEN
-   WITH st.menu
-    .offset.x = vpages(dpage)->w / 2 * -1
-    .offset.y = vpages(dpage)->h / 2 * -1
-    .maxrows = vpages(dpage)->h / 10 - 2
-    .min_chars = vpages(dpage)->w / 8 - 2
-   END WITH
    DeleteMenuItems st.menu
    st.indent = 0
    ee_refresh st
@@ -718,17 +696,10 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
  st.state.pt = 1
  st.state.need_update = YES
  st.state.active = YES
+ st.state.autosize = YES
+ st.state.autosize_ignore_pixels = 16
 
- ClearMenuData st.menu
- WITH st.menu
-  .textalign = alignLeft
-  .anchorhoriz = alignLeft
-  .anchorvert = alignTop
-  .bordersize = -4
-  .no_box = YES
- END WITH
- 
- DIM oldsize as XYPair
+ InitLikeStandardMenu st.menu
  
  ee_get_widget_code(st.code, widget)
  
@@ -737,19 +708,8 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
   setwait 55
   setkeys YES
 
-  IF oldsize.x <> vpages(dpage)->w ORELSE oldsize.y <> vpages(dpage)->h THEN 
-   oldsize.x = vpages(dpage)->w
-   oldsize.y = vpages(dpage)->h
-   st.state.need_update = YES
-  END IF
   IF st.state.need_update THEN
    st.state.need_update = NO
-   WITH st.menu
-    .offset.x = vpages(dpage)->w / 2 * -1
-    .offset.y = vpages(dpage)->h / 2 * -1
-    .maxrows = vpages(dpage)->h / 10 - 2
-    .min_chars = vpages(dpage)->w / 8 - 2
-   END WITH
    DeleteMenuItems st.menu
    widget_editor_refresh st, widget
    init_menu_state st.state, st.menu
@@ -856,7 +816,7 @@ END SUB
 
 SUB widget_editor_refresh(byref st as WEState, byval widget as NodePtr)
  DIM index as integer
- append_menu_item(st.menu, "Done Editing this Widget...", wedEXIT)
+ append_menu_item(st.menu, "Done editing this Widget...", wedEXIT)
  IF ee_widget_has_caption(widget) THEN
   wed_append_editable_string(st, "Caption", widget, "caption")
  END IF
