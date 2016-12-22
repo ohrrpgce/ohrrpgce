@@ -2341,10 +2341,10 @@ DIM edmenu as MenuDef
 ClearMenuData edmenu
 WITH edmenu
  .textalign = alignLeft
+ .alignhoriz = alignLeft
+ .alignvert = alignTop
  .anchorhoriz = alignLeft
  .anchorvert = alignTop
- .offset.x = -160
- .offset.y = -100
  .boxstyle = 3
  .translucent = YES
  .min_chars = 38
@@ -2736,13 +2736,12 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  DIM hstate as MenuState
  hstate.last = 4
  DIM state(4) as MenuState
- DIM wide(4) as integer
  DIM menu(4) as MenuDef
  FOR i as integer = 0 TO 4
   ClearMenuData menu(i)
  NEXT i
 
- append_menu_item(menu(0), "Default(Atk)")
+ append_menu_item(menu(0), "Default (" & statnames(statAtk) & ")")
  menu(0).last->extra(0) = 0
  append_menu_item(menu(0), "100")
  menu(0).last->extra(0) = 5
@@ -2780,46 +2779,46 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
     state(i).pt = j
     hstate.pt = i
    END IF
-   wide(i) = large(wide(i), LEN(menu(i).items[j]->caption) * 8)
   NEXT j
   WITH menu(i)
    .textalign = alignLeft
+   .alignhoriz = alignLeft
+   .alignvert = alignTop
    .anchorhoriz = alignLeft
    .anchorvert = alignTop
-   .offset.y = -95
+   .offset.y = 5
    .maxrows = 22
+   .bordersize = -4
    IF i = 0 THEN
-    .offset.x = -160
+    .offset.x = 4
    ELSE
-    .offset.x = menu(i-1).offset.x + wide(i-1)
+    .offset.x = menu(i-1).offset.x + menu(i-1).rect.wide + 8
    END IF
   END WITH
   init_menu_state state(i), menu(i)
+  ' Draw the menu to calculate its width and position
+  draw_menu menu(i), state(i), vpage
  NEXT i
 
- DO
-  FOR i as integer = 0 TO 4
-   draw_menu menu(i), state(i), vpage
-  NEXT i
-  IF menu(hstate.pt).rect.x < 0 THEN
-   FOR i as integer = 0 TO 4
-    menu(i).offset.x += 16
-   NEXT i
-  ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > 320 THEN
-   FOR i as integer = 0 TO 4
-    menu(i).offset.x -= 16
-   NEXT i
+ ' Pre-scroll the menus so that the selected one is fully visible
+ DIM shiftx as integer
+ WITH menu(hstate.pt).rect
+  IF .x < 0 THEN
+   shiftx = .x
   ELSE
-   EXIT DO
+   shiftx = large(0, .x + .wide - vpages(vpage)->w)
   END IF
- LOOP
+ END WITH
+ FOR i as integer = 0 TO 4
+  menu(i).offset.x -= shiftx
+ NEXT i
 
  DIM oldpt as integer
  DIM result as integer
 
  setkeys
  DO
-  setwait 55
+  setwait 33
   setkeys
 
   IF keyval(scEsc) > 1 THEN
@@ -2847,7 +2846,7 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
    FOR i as integer = 0 TO 4
     menu(i).offset.x += 16
    NEXT i
-  ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > 320 THEN
+  ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > vpages(vpage)->w THEN
    FOR i as integer = 0 TO 4
     menu(i).offset.x -= 16
    NEXT i
