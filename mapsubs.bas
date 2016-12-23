@@ -2759,6 +2759,7 @@ SUB mapedit_layers (st as MapEditState, gmap() as integer, visible() as integer,
  LOOP
  mapedit_load_tilesets st, map(), gmap()
  IF layerisenabled(gmap(), st.layer) = 0 THEN st.layer = 0
+ v_free menu
 
 END SUB
 
