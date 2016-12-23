@@ -191,8 +191,7 @@ TYPE FnReader as FUNCTION (st as MapEditStateFwd, byval x as integer, byval y as
 
 TYPE MapEditState
   'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
-  npc_def(max_npc_defs - 1) as NPCType
-  num_npc_defs as integer
+  npc_def(any) as NPCType
   npc_inst(299) as NPCInst
 
   mapnum as integer          'Map ID number

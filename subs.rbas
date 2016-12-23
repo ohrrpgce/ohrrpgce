@@ -6,7 +6,7 @@
 #include "config.bi"
 #include "const.bi"
 #include "udts.bi"
-#include "custom_udts.bi"
+#include "custom.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"
@@ -1844,11 +1844,11 @@ FUNCTION item_attack_name(n as integer) as string
  RETURN n - 1 & " " & readattackname(n - 1)
 END FUNCTION
 
-SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_defs as integer, npc_insts() as NPCInst)
+SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as NPCInst)
 
  '--Count number of uses
  DIM as integer uses = 0
- FOR i as integer = 0 to 299
+ FOR i as integer = 0 to UBOUND(npc_insts)
   IF npc_insts(i).id = id + 1 THEN uses += 1
  NEXT
 
@@ -1862,33 +1862,31 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, byref num_npc_
  END IF
 
  '--Wiping a definition clear, or completely deleting it?
- DIM as integer deleting = NO
+ DIM as bool deleting = NO
  '--Can't delete ID 0; must always have at least one NPC
- IF id > 0 AND id = num_npc_defs - 1 THEN deleting = YES
+ IF id > 0 AND id = UBOUND(npc) THEN deleting = YES
 
  IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
 
+ CleanNPCDefinition npc(id)
  IF deleting THEN
-  num_npc_defs -= 1
- ELSE
-  CleanNPCDefinition npc(id)
+  REDIM PRESERVE npc(UBOUND(npc) - 1)
  END IF
 
 END SUB
 
 SUB npcdef (st as MapEditState, npc_img() as GraphicPair, gmap() as integer, zmap as ZoneMap)
-'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
-DIM boxpreview(st.num_npc_defs - 1) as string
+DIM boxpreview(UBOUND(st.npc_def)) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
 
-'--If there's room for more, add "Add new NPC" option to end
-state.last = st.num_npc_defs - 1
-IF st.num_npc_defs < max_npc_defs THEN state.last += 1
+state.last = UBOUND(st.npc_def)
+'--Add "Add new NPC" option to end
+state.last += 1
 
-FOR i as integer = 0 TO st.num_npc_defs - 1
+FOR i as integer = 0 TO UBOUND(st.npc_def)
  boxpreview(i) = npc_preview_text(st.npc_def(i))
 NEXT i
 setkeys YES
@@ -1902,52 +1900,44 @@ DO
  intgrabber state.pt, 0, state.last
  usemenu state
  IF enter_space_click(state) THEN
-  IF state.pt = st.num_npc_defs THEN
+  IF state.pt = state.last THEN
    '--Add new NPC option
-   st.num_npc_defs += 1
-   CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
+   REDIM PRESERVE st.npc_def(UBOUND(st.npc_def) + 1)
+   CleanNPCDefinition st.npc_def(UBOUND(st.npc_def))
   ELSE
    '--An NPC
    'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
-   SaveNPCD_fixedlen maplumpname(st.mapnum, "n"), st.npc_def(), st.num_npc_defs
+   SaveNPCD maplumpname(st.mapnum, "n"), st.npc_def()
    edit_npc st.npc_def(state.pt), gmap(), zmap
   END IF
   need_update_selected = YES
  END IF
  IF keyval(scPlus) > 1 THEN
   '--Fast add button (for people who really want ID 134 for a task)
-  st.num_npc_defs += 1
-  CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
-  state.pt = st.num_npc_defs - 1
+  state.pt = UBOUND(st.npc_def) + 1
+  REDIM PRESERVE st.npc_def(state.pt)
+  CleanNPCDefinition st.npc_def(state.pt)
   need_update_selected = YES
  END IF
  IF keyval(scDelete) > 1 THEN
-  '--This updates st.num_npc_defs as needed, but not state.pt
-  handle_npc_def_delete st.npc_def(), state.pt, st.num_npc_defs, st.npc_inst()
-  IF state.pt > st.num_npc_defs - 1 THEN
+  '--This updates arrays, but not state.pt
+  handle_npc_def_delete st.npc_def(), state.pt, st.npc_inst()
+  IF state.pt > UBOUND(st.npc_def) THEN
    '--Deleted last NPC def
-   frame_unload @npc_img(state.pt).sprite
-   palette16_unload @npc_img(state.pt).pal
-   state.pt = st.num_npc_defs - 1
+   state.pt = UBOUND(st.npc_def)
   END IF
   need_update_selected = YES
  END IF
 
  IF need_update_selected THEN
   '--Note not all, or even any, of these updates will be required in a given case
-  '--Re-load the picture and palette
-  WITH npc_img(state.pt)
-   IF .sprite THEN frame_unload(@.sprite)
-   .sprite = frame_load(sprTypeWalkabout, st.npc_def(state.pt).picture)
-   IF .pal THEN palette16_unload(@.pal)
-   .pal = palette16_load(st.npc_def(state.pt).palette, sprTypeWalkabout, st.npc_def(state.pt).picture)
-  END WITH
+  mapedit_update_npc_graphics st, npc_img()
   '--Update box preview line
-  REDIM PRESERVE boxpreview(st.num_npc_defs - 1)
+  REDIM PRESERVE boxpreview(UBOUND(st.npc_def))
   boxpreview(state.pt) = npc_preview_text(st.npc_def(state.pt))
-  '--Update menu size
-  state.last = st.num_npc_defs - 1
-  IF st.num_npc_defs < max_npc_defs THEN state.last += 1
+  '--Update menu size (including Add NPC option) and scroll up if needed
+  state.last = UBOUND(st.npc_def) + 1
+  usemenu state
 
   need_update_selected = NO
  END IF
@@ -1955,10 +1945,10 @@ DO
  clearpage dpage
  FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
-  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
+  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, vpages(dpage)->w, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
   IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
-  IF i > st.num_npc_defs - 1 THEN
+  IF i = state.last THEN
    '--Add new NPC option
    printstr "Add new NPC", 0, ((i - state.top) * 25) + 5, dpage
   ELSE

@@ -67,13 +67,8 @@ END SUB
 '==========================================================================================
 
 
-'There are two versions of LoadNPCD:
-'LoadNPCD(file, dat()):
-'  (Normal version) dat is variable length (already initialised!!), redimmed to the correct length by LoadNPCD
-'LoadNPCD_fixedlen(file, dat(), arraylen):
-'  dat is a fixed length (0 TO max_npc_def), and the REAL length is returned in arraylen
-
-PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen as integer, byval resize as integer)
+' Read NPC definitions from file. Resizes dat().
+SUB LoadNPCD(file as string, dat() as NPCType)
   DIM as integer i, j, f
 
   'It's still up to you to actually load the new sprites, but "do not pass
@@ -85,17 +80,16 @@ PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen 
    END WITH
   NEXT i
 
-  f = FREEFILE
   OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
   SEEK #f, 8
 
-  arraylen = (LOF(f) - 7) \ getbinsize(binN)
+  DIM as integer arraylen = (LOF(f) - 7) \ getbinsize(binN)
   IF arraylen < 1 THEN
     REDIM dat(0)
     visible_debug "NPC data is corrupt or missing, " & trimpath(file) & " is length " & LOF(f)
     EXIT SUB
   END IF
-  IF resize THEN REDIM dat(arraylen - 1)
+  REDIM dat(arraylen - 1)
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)
 
@@ -110,20 +104,7 @@ PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen 
   CLOSE #f
 END SUB
 
-SUB LoadNPCD_fixedlen(file as string, dat() as NPCType, byref arraylen as integer)
-  IF UBOUND(dat) <> max_npc_defs - 1 THEN
-    fatalerror "Programmer error! LoadNPCD: dat() length " & UBOUND(dat)
-  END IF
-  LoadNPCD_internal(file, dat(), arraylen, NO)
-END SUB
-
-SUB LoadNPCD(file as string, dat() as NPCType)
-  LoadNPCD_internal(file, dat(), 0, YES)  'dummy arraylen
-END SUB
-
-'As for LoadNPCD, there are two versions of SaveNPCD. See comment above
-
-SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as integer)
+SUB SaveNPCD(file as string, dat() as NPCType)
   DIM as integer i, j, f
 
   'We want to truncate the file to the right length
@@ -131,12 +112,12 @@ SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as intege
 
   f = FREEFILE
   OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'Should also truncate
-  SEEK #f, 8
+  SEEK #f, 8  'Skip garbage bsave header
 
   DIM as integer recordlen = getbinsize(binN) \ 2
   DIM as integer buf(recordlen - 1)
 
-  FOR i = 0 TO arraylen - 1
+  FOR i = 0 TO UBOUND(dat)
     FOR j = 0 TO recordlen - 1
       IF j = 3 AND dat(i).speed = 10 THEN
         '--Special case for speed = 10 (gets stored as 3)
@@ -149,10 +130,6 @@ SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as intege
   NEXT
 
   CLOSE #f
-END SUB
-
-SUB SaveNPCD(file as string, dat() as NPCType)
-  SaveNPCD_fixedlen(file, dat(), UBOUND(dat) + 1)
 END SUB
 
 'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime

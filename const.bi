@@ -257,7 +257,6 @@ CONST fixInitNonElementalSpawning = 27 'Initialize non_elemental_for_spawning da
 CONST sizeFixBits = 28 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
-CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
 CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.)
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere

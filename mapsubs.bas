@@ -6,7 +6,7 @@
 #include "config.bi"
 #include "const.bi"
 #include "udts.bi"
-#include "custom_udts.bi"
+#include "custom.bi"
 
 '---------------------------- External subs and functions --------------------------------
 
@@ -99,7 +99,6 @@ DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, rs as MapResizeState, byre
 DECLARE SUB resizetiledata OVERLOAD (tmaps() as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
 DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, x_off as integer, y_off as integer, new_width as integer, new_height as integer, byref yout as integer, page as integer)
 
-DECLARE SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
 DECLARE SUB update_tilepicker(st as MapEditState)
 DECLARE SUB verify_map_size (st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap, mapname as string)
 DECLARE SUB fix_tilemaps(map() as TileMap)
@@ -386,7 +385,7 @@ DIM st as MapEditState
 DIM modenames(5) as string
 DIM gmap(dimbinsize(binMAP)) as integer
 DIM pal16(288) as integer
-DIM npcnum(max_npc_defs - 1) as integer
+DIM npcnum() as integer
 DIM her as HeroDef
 DIM hero_gfx as GraphicPair
 
@@ -421,8 +420,7 @@ DIM npczone_needupdate as integer
 DIM as integer jiggle(maplayerMax \ 16)
 DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers visible
 
-'npcdef assumes that npc_img is sized (0 TO max_npc_defs - 1), just like st.npc_def()
-DIM npc_img(max_npc_defs - 1) as GraphicPair
+DIM npc_img() as GraphicPair
 
 REDIM map(0) as TileMap ' dummy empty map data, will be resized later
 DIM pass as TileMap
@@ -548,7 +546,7 @@ st.zoneminimap = NULL
 
 mapedit_loadmap st, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), mapname
 
-update_npc_graphics st, npc_img()
+mapedit_update_npc_graphics st, npc_img()
 
 st.x = 0
 st.y = 0
@@ -616,7 +614,7 @@ DO
    CASE 3
     mapedit_layers st, gmap(), visible(), map()
    CASE 4
-    'This may change st.num_npc_defs, delete NPC instances, and write npc definitions to disk
+    'This may delete NPC instances, and write npc definitions to disk
     npcdef st, npc_img(), gmap(), zmap
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
@@ -1090,7 +1088,7 @@ DO
      END IF
     END IF
    END IF
-   intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, scLeftCaret, scRightCaret)
+   intgrabber(st.cur_npc, 0, UBOUND(st.npc_def), scLeftCaret, scRightCaret)
 
    '---FOEMODE--------
   CASE foe_mode
@@ -1529,11 +1527,9 @@ DO
   drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
 
   '--Draw npcs
-  FOR i as integer = 0 TO UBOUND(npcnum)
-   npcnum(i) = 0
-  NEXT
+  REDIM npcnum(UBOUND(st.npc_def))  'Clear counts to 0
   st.walk = (st.walk + 1) MOD 4
-  FOR i as integer = 0 TO 299
+  FOR i as integer = 0 TO UBOUND(st.npc_inst)
    WITH st.npc_inst(i)
     IF .id > 0 THEN
      ' +/-20 Y must be for the footoffset
@@ -1882,17 +1878,19 @@ SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, by
  printstr icon, x, y, dpage
 END SUB
 
-SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
- ' npc_img() may be sized larger than the number of NPC defs (st.num_npc_defs),
- ' if so, the extra graphics if any are freed
+SUB mapedit_update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
+ ' Resizes and fills npc_img()
  FOR i as integer = 0 TO UBOUND(npc_img)
   WITH npc_img(i)
    IF .sprite THEN frame_unload @.sprite
    IF .pal THEN palette16_unload @.pal
-   IF i <= st.num_npc_defs - 1 THEN
-    .sprite = frame_load(sprTypeWalkabout, st.npc_def(i).picture)
-    .pal    = palette16_load(st.npc_def(i).palette, sprTypeWalkabout, st.npc_def(i).picture)
-   END IF
+  END WITH
+ NEXT
+ REDIM npc_img(UBOUND(st.npc_def))
+ FOR i as integer = 0 TO UBOUND(st.npc_def)
+  WITH npc_img(i)
+   .sprite = frame_load(sprTypeWalkabout, st.npc_def(i).picture)
+   .pal    = palette16_load(st.npc_def(i).palette, sprTypeWalkabout, st.npc_def(i).picture)
   END WITH
  NEXT i
 END SUB
@@ -3009,7 +3007,7 @@ SUB new_blank_map (st as MapEditState, map() as TileMap, pass as TileMap, emap a
  gmap(31) = 1 'Walkabout layer above map layer 0
  CleanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
- st.num_npc_defs = 1
+ REDIM PRESERVE st.npc_def(0)
  cleandoors doors()
  cleandoorlinks link()
  'Just in case
@@ -3030,7 +3028,7 @@ SUB mapedit_loadmap (st as MapEditState, map() as TileMap, pass as TileMap, emap
  END IF
  mapedit_load_tilesets st, map(), gmap()
  LoadNPCL maplumpname(st.mapnum, "l"), st.npc_inst()
- LoadNPCD_fixedlen maplumpname(st.mapnum, "n"), st.npc_def(), st.num_npc_defs
+ LoadNPCD maplumpname(st.mapnum, "n"), st.npc_def()
  deserdoors game & ".dox", doors(), st.mapnum
  deserdoorlinks maplumpname(st.mapnum, "d"), link()
  mapname = getmapname(st.mapnum)
@@ -3046,7 +3044,7 @@ SUB mapedit_savemap (st as MapEditState, map() as TileMap, pass as TileMap, emap
  savetilemap emap, maplumpname(st.mapnum, "e")
  SaveZoneMap zmap, maplumpname(st.mapnum, "z")
  SaveNPCL maplumpname(st.mapnum, "l"), st.npc_inst()
- SaveNPCD_fixedlen maplumpname(st.mapnum, "n"), st.npc_def(), st.num_npc_defs
+ SaveNPCD maplumpname(st.mapnum, "n"), st.npc_def()
  serdoors game & ".dox", doors(), st.mapnum
  serdoorlinks maplumpname(st.mapnum, "d"), link()
  '--save map name
@@ -3293,7 +3291,7 @@ SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap a
   IF choice = 1 THEN  '--everything
    new_blank_map st, map(), pass, emap, zmap, gmap(), doors(), link()
    mapname = ""
-   update_npc_graphics st, npc_img()
+   mapedit_update_npc_graphics st, npc_img()
    mapedit_throw_away_history st
   ELSEIF choice = 2 THEN  '--just tile related data
    CleanTilemaps map(), st.wide, st.high, 1
@@ -3309,8 +3307,8 @@ SUB mapedit_delete(st as MapEditState, map() as TileMap, pass as TileMap, emap a
   ELSEIF choice = 4 THEN
    CleanNPCL st.npc_inst()
    CleanNPCD st.npc_def()
-   st.num_npc_defs = 1
-   update_npc_graphics st, npc_img()
+   REDIM PRESERVE st.npc_def(0)
+   mapedit_update_npc_graphics st, npc_img()
   ELSEIF choice = 5 THEN
    CleanDoors doors()
   ELSEIF choice = 6 THEN
@@ -3857,6 +3855,7 @@ SUB DrawDoorPair(st as MapEditState, byval linknum as integer, map() as TileMap,
  clearpage 2
  IF link(linknum).source = -1 THEN EXIT SUB
 
+ '-----------------ENTRY DOOR
  IF door_exists(doors(), link(linknum).source) THEN
   dmx = doors(link(linknum).source).x * 20 - 150
   dmy = doors(link(linknum).source).y * 20 - 65

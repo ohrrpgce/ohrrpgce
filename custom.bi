@@ -10,6 +10,7 @@
 
 #include "config.bi"
 #include "udts.bi"
+#include "custom_udts.bi"
 
 DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE SUB vehicles ()
@@ -28,5 +29,7 @@ DECLARE SUB maptile ()
 DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
+
+DECLARE SUB mapedit_update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
 
 #endif

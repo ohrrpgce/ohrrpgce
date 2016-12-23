@@ -21,6 +21,7 @@ WHAT IS NEW?
     * Per-textbox each-line sound effects, overriding the global option
       [MirceaKitsune]
     * 'Silence' as an option for textbox Music setting [MirceaKitsune]
+    * Removed NPC definitions limit (NPC instance limit remains) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
