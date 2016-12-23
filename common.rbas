@@ -45,8 +45,7 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 
 #IFDEF IS_CUSTOM
 #include "cglobals.bi"
-
-DECLARE FUNCTION charpicker() as string
+#include "customsubs.bi"
 #ENDIF
 
 

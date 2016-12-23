@@ -24,24 +24,8 @@
 #include "editedit.bi"
 #include "os.bi"
 #include "distribmenu.bi"
+#include "custom.bi"
 
-'FIXME: add header files for these declarations
-DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
-DECLARE SUB vehicles ()
-DECLARE SUB scriptman ()
-DECLARE SUB map_picker ()
-DECLARE SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
-DECLARE SUB importsong ()
-DECLARE SUB importsfx ()
-DECLARE SUB gendata ()
-DECLARE SUB item_editor ()
-DECLARE SUB formation_editor ()
-DECLARE SUB enemydata ()
-DECLARE SUB hero_editor ()
-DECLARE SUB text_box_editor ()
-DECLARE SUB maptile ()
-DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
-DECLARE SUB reimport_previous_scripts ()
 
 '''' Local function and type declarations
 
@@ -66,7 +50,6 @@ DECLARE SUB check_for_crashed_workingdirs ()
 DECLARE FUNCTION empty_workingdir (workdir as string) as bool
 DECLARE FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 DECLARE FUNCTION check_ok_to_open (filename as string) as bool
-DECLARE SUB write_session_info ()
 DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 
 DECLARE SUB secret_menu ()
@@ -535,15 +518,15 @@ SUB gfx_editor_menu()
     EXIT DO
    END IF
    IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(),  8, 4
-   IF state.pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 4, 0
-   IF state.pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 4, 1
-   IF state.pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2, 2
-   IF state.pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 2, 3
-   IF state.pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 2, 6
-   IF state.pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 4, 5
-   IF state.pt = 9 THEN sprite 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 4, 7
-   IF state.pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 2, 8
+   IF state.pt = 2 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(),  8, 4
+   IF state.pt = 3 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 4, 0
+   IF state.pt = 4 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 4, 1
+   IF state.pt = 5 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2, 2
+   IF state.pt = 6 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 2, 3
+   IF state.pt = 7 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 2, 6
+   IF state.pt = 8 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 4, 5
+   IF state.pt = 9 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 4, 7
+   IF state.pt = 10 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 2, 8
    IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
    IF state.pt = 12 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
@@ -1695,7 +1678,7 @@ SUB arbitrary_sprite_editor ()
   END SELECT
   IF enter_space_click(st) THEN
    IF st.pt = 5 THEN
-    sprite size.x, size.y, tempsets, framecount, tempcaptions(), zoom, -1
+    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), zoom, -1
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF

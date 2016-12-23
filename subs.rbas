@@ -37,7 +37,6 @@ DECLARE SUB hero_formation_editor ()
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
-DECLARE SUB item_editor
 DECLARE SUB individual_item_editor(item_id as integer)
 DECLARE SUB item_editor_equipbits(itembuf() as integer)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
@@ -51,7 +50,6 @@ DECLARE SUB animate_hero_preview(byref st as HeroEditState)
 DECLARE SUB clear_hero_preview_pics(byref st as HeroEditState)
 DECLARE SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
 
-DECLARE SUB hero_editor
 DECLARE FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero_id as integer) as bool
 DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
 DECLARE SUB hero_editor_stats_menu (her as HeroDef)

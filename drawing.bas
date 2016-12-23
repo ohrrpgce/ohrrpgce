@@ -37,7 +37,6 @@ DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
 DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
-DECLARE SUB maptile ()
 DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
@@ -1888,7 +1887,7 @@ END SUB
 'perset is frames per spriteset.
 'info() is an array of names for each frame
 'fileset is the .PT# number.
-SUB sprite (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
 DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
@@ -1987,7 +1986,7 @@ DO
   IF ss.fullset = NO AND ss.perset > 1 THEN
    spriteedit_save_all_you_see state.top, ss
    savedefaultpals ss.fileset, poffset(), sets
-   sprite ss.wide * ss.perset, ss.high, sets, 1, info(), 1, ss.fileset, YES, state.pt, state.top
+   spriteset_editor ss.wide * ss.perset, ss.high, sets, 1, info(), 1, ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
    spriteedit_load_all_you_see state.top, ss, workpal(), poffset()

@@ -15,11 +15,8 @@
 #include "reload.bi"
 #include "slices.bi"
 #include "ver.txt"
-
+#include "custom.bi"
 #include "customsubs.bi"
-
-'Functions defined elsewhere
-DECLARE SUB write_session_info ()
 
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
