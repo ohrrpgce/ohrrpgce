@@ -72,7 +72,7 @@ def arrayDimension():       return "(", CHECKPNT, expressionList, ")"
 def initialValue():         return "=", CHECKPNT, expression
 
 # Inside one style of DIM
-def typedVariableDecl():    return CHECKPNT, identifier, QUES, arrayDimension, "as", typename, QUES, initialValue
+def typedVariableDecl():    return CHECKPNT, QUES, "byref", identifier, QUES, arrayDimension, "as", typename, QUES, initialValue
 
 # Inside the other style of DIM
 def typelessVariableDecl(): return CHECKPNT, identifier, QUES, arrayDimension, QUES, initialValue
@@ -80,8 +80,9 @@ def typelessVariableDecl(): return CHECKPNT, identifier, QUES, arrayDimension, Q
 # Inside an arg list
 def argumentDecl():         return QUES, ["byval", "byref"], identifier, QUES, arrayDimension, "as", typename, QUES, initialValue
 
-def dimStatement():         return [("dim", QUES, "shared", "as", CHECKPNT, typename, typelessVariableDecl, STAR, (",", typelessVariableDecl)),
-                                    ("dim", QUES, "shared", CHECKPNT, typedVariableDecl, STAR, (",", typedVariableDecl))]
+def dimStatement():         return "dim", CHECKPNT, QUES, "shared", [(QUES, "byref", "as", CHECKPNT, typename, typelessVariableDecl,
+                                                                      STAR, (",", typelessVariableDecl)),
+                                                                     (typedVariableDecl, STAR, (",", typedVariableDecl))]
 
 def argList():              return "(", CHECKPNT, [")", (argumentDecl, STAR, (",", argumentDecl), ")")]
 

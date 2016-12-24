@@ -53,6 +53,19 @@ startTest(testBasicReading)
 	if not nod."int".bool then fail
 endTest
 
+startTest(testDimParsing)
+	dim var1 as integer, var2 as integer ptr vector
+	dim as nodeptr root = DocumentRoot(doc), helper = root."helper".ptr
+	dim byref helper_alias as nodeptr = helper
+	dim byref as nodeptr helper_alias2 = helper, root_alias = root
+
+	if root <> root_alias then fail
+	if helper <> helper_alias then fail
+	if root_alias."helper" <> 100 then fail
+	if helper_alias."int" <> 12345 then fail
+	if helper_alias2."int" <> 12345 then fail
+endTest
+
 startTest(testNestedNodes)
 	dim nod1 as NodePtr
 	dim nod2 as NodePtr
