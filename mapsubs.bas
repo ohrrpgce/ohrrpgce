@@ -100,7 +100,7 @@ DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, x_off as integer, y_off as
 DECLARE SUB update_tilepicker(st as MapEditState)
 DECLARE SUB verify_map_size (st as MapEditState)
 DECLARE SUB fix_tilemaps(map as MapData)
-DECLARE SUB mapedit_loadmap (st as MapEditState)
+DECLARE SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
 DECLARE SUB mapedit_load_tilesets (st as MapEditState)
 DECLARE SUB mapedit_savemap (st as MapEditState)
 DECLARE SUB new_blank_map (st as MapEditState)
@@ -386,7 +386,6 @@ DIM npcnum() as integer
 DIM her as HeroDef
 DIM hero_gfx as GraphicPair
 
-st.map.id = mapnum
 st.editmode = 0
 st.seteditmode = -1
 DIM mode_tools_map(zone_mode, 10) as integer = { _
@@ -529,7 +528,7 @@ FOR i as integer = 0 TO 255
 NEXT
 st.zoneminimap = NULL
 
-mapedit_loadmap st
+mapedit_loadmap st, mapnum
 
 load_npc_graphics st.map.npc_def(), st.npc_img()
 
@@ -654,10 +653,6 @@ NEXT i
 
 unloadmaptilesets st.tilesets()
 unloadtilemap st.menubar
-unloadtilemaps st.map.tiles()
-unloadtilemap st.map.pass
-unloadtilemap st.map.foemap
-deletezonemap st.map.zmap
 v_free st.history
 IF st.secondary_undo_buffer THEN debugc errPromptBug, "mapedit cleanup: secondary_undo_buffer exists!"
 v_free st.cloned
@@ -673,6 +668,7 @@ frame_unload @overlaytileset
 frame_unload @st.zoneminimap
 v_free mode_tools
 v_free zonemenu
+' Contents of st.map are freed by destructor
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 EXIT SUB
@@ -2972,8 +2968,7 @@ SUB mapedit_addmap()
   mapedit_savemap st
  ELSEIF how >= 0 THEN
   gen(genMaxMap) += 1
-  st.map.id = how
-  mapedit_loadmap st
+  mapedit_loadmap st, how
   st.map.id = gen(genMaxMap)
   mapedit_savemap st
  END IF
@@ -3000,26 +2995,10 @@ SUB new_blank_map (st as MapEditState)
  mapedit_load_tilesets st
 END SUB
 
-SUB mapedit_loadmap (st as MapEditState)
- loadrecord st.map.gmap(), game & ".map", getbinsize(binMAP) \ 2, st.map.id
- IF st.map.gmap(31) = 0 THEN st.map.gmap(31) = 2
+SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
+ st.map.load(mapnum)
  flusharray st.visible(), , -1  'Mark all layers visible (when they're enabled)
- loadtilemaps st.map.tiles(), maplumpname(st.map.id, "t")
- st.map.wide = st.map.tiles(0).wide
- st.map.high = st.map.tiles(0).high
- loadtilemap st.map.pass, maplumpname(st.map.id, "p")
- loadtilemap st.map.foemap, maplumpname(st.map.id, "e")
- IF isfile(maplumpname(st.map.id, "z")) THEN
-  LoadZoneMap st.map.zmap, maplumpname(st.map.id, "z")
- ELSE
-  CleanZoneMap st.map.zmap, st.map.wide, st.map.high
- END IF
  mapedit_load_tilesets st
- LoadNPCL maplumpname(st.map.id, "l"), st.map.npc()
- LoadNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
- deserdoors game & ".dox", st.map.door(), st.map.id
- deserdoorlinks maplumpname(st.map.id, "d"), st.map.doorlink()
- st.map.name = getmapname(st.map.id)
  verify_map_size st
 END SUB
 

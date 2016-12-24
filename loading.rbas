@@ -525,7 +525,38 @@ END SUB
 
 CONSTRUCTOR MapData()
   REDIM gmap(dimbinsize(binMAP))
+  id = -1
 END CONSTRUCTOR
+
+DESTRUCTOR MapData()
+  UnloadTilemaps tiles()
+  UnloadTilemap pass
+  UnloadTilemap foemap
+  DeleteZoneMap zmap
+  id = -1
+END DESTRUCTOR
+
+SUB MapData.load(map_id as integer)
+  id = map_id
+  loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, id
+  IF gmap(31) = 0 THEN gmap(31) = 2
+  name = getmapname(id)
+  LoadTilemaps tiles(), maplumpname(id, "t")
+  wide = tiles(0).wide
+  high = tiles(0).high
+  LoadTilemap pass, maplumpname(id, "p")
+  LoadTilemap foemap, maplumpname(id, "e")
+  IF isfile(maplumpname(id, "z")) THEN
+    LoadZoneMap zmap, maplumpname(id, "z")
+  ELSE
+    ' Old games
+    CleanZoneMap zmap, wide, high
+  END IF
+  LoadNPCL maplumpname(id, "l"), npc()
+  LoadNPCD maplumpname(id, "n"), npc_def()
+  DeSerDoors game & ".dox", door(), id
+  DeSerDoorLinks maplumpname(id, "d"), doorlink()
+END SUB
 
 FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
  IF layernum > 7 THEN

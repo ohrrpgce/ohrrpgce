@@ -643,7 +643,10 @@ TYPE MapData
   npc_def(any) as NPCType
   npc(299) as NPCInst
 
-  Declare Constructor()
+  Declare Constructor ()
+  Declare Destructor ()
+
+  Declare Sub load (map_id as integer)
 END TYPE
 
 Type FontChar
