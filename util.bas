@@ -46,6 +46,72 @@ DIM tmpdir as string
 init_runtime
 
 
+
+'------------- Basic datatypes -------------
+
+OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
+  RETURN lhs.x = rhs.x AND lhs.y = rhs.y
+END OPERATOR
+
+OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
+  RETURN lhs.x <> rhs.x OR lhs.y <> rhs.y
+END OPERATOR
+
+OPERATOR XYPair.+= (rhs as XYPair)
+  x += rhs.x
+  y += rhs.y
+END OPERATOR
+
+OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
+END OPERATOR
+
+OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
+OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x \ rhs, lhs.y \ rhs)
+END OPERATOR
+
+OPERATOR - (lhs as XYPair) as XYPair
+  RETURN TYPE(-lhs.x, -lhs.y)
+END OPERATOR
+
+
+OPERATOR = (lhs as RectType, rhs as RectType) as bool
+  RETURN memcmp(@lhs, @rhs, sizeof(RectType)) = 0
+END OPERATOR
+
+OPERATOR <> (lhs as RectType, rhs as RectType) as bool
+  RETURN memcmp(@lhs, @rhs, sizeof(RectType)) <> 0
+END OPERATOR
+
+#IFDEF __FB_MAIN__
+startTest(XYPairOperators)
+  DIM as XYPair A = (1,2), B = (3,4)
+
+  IF A <> A THEN fail
+  IF A <> TYPE<XYPair>(1,2) THEN fail
+  IF (A = TYPE<XYPair>(1,2)) <> YES THEN fail
+  A += B
+  IF A <> TYPE<XYPair>(4,6) THEN fail
+  IF -A <> TYPE<XYPair>(-4,-6) THEN fail
+  IF A * 10 <> TYPE<XYPair>(40,60) THEN fail
+  IF A \ 3 <> TYPE<XYPair>(1,2) THEN fail
+  IF A * 5 \ 5 <> A THEN fail
+endTest
+
+startTest(RectTypeOperators)
+  DIM as RectType A = (1,2,1,1), B = (1,2,1,0)
+
+  IF A <> A THEN fail
+  IF A = B THEN fail
+endTest
+#ENDIF
+
+
+
 '------------- Math operations -------------
 
 FUNCTION bitcount (byval v as unsigned integer) as integer

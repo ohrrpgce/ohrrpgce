@@ -366,7 +366,16 @@ UNION XYPair
    h as integer
   END TYPE
   n(1) as integer
+
+  DECLARE OPERATOR += (rhs as XYPair)
 END UNION
+
+DECLARE OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
+DECLARE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
+DECLARE OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
+DECLARE OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR - (lhs as XYPair) as XYPair
 
 UNION XYZTriple
   TYPE
@@ -394,6 +403,9 @@ UNION RectType
     size as XYPair
   END TYPE
 END UNION
+
+DECLARE OPERATOR = (lhs as RectType, rhs as RectType) as bool
+DECLARE OPERATOR <> (lhs as RectType, rhs as RectType) as bool
 
 'Specify opposite points instead of width and height
 TYPE RectPoints
