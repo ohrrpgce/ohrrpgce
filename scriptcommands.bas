@@ -1271,8 +1271,8 @@ SUB sfunctions(byval cmdid as integer)
   gen(genCameraArg3) = large(retvals(2), 1)
  CASE 41'--focus camera
   gen(genCameraMode) = focuscam
-  gen(genCameraArg1) = (retvals(0) * 20) - (get_resolution_w() - 20) / 2
-  gen(genCameraArg2) = (retvals(1) * 20) - (get_resolution_h() - 20) / 2
+  gen(genCameraArg1) = (retvals(0) * 20) - (get_resolution().w - 20) / 2
+  gen(genCameraArg2) = (retvals(1) * 20) - (get_resolution().h - 20) / 2
   gen(genCameraArg3) = ABS(retvals(2))
   gen(genCameraArg4) = ABS(retvals(2))
   limitcamera gen(genCameraArg1), gen(genCameraArg2)
@@ -4191,8 +4191,8 @@ SUB sfunctions(byval cmdid as integer)
   hidemousecursor
  CASE 603'--pixel focus camera
   gen(genCameraMode) = focuscam
-  gen(genCameraArg1) = retvals(0) - get_resolution_w() / 2
-  gen(genCameraArg2) = retvals(1) - get_resolution_h() / 2
+  gen(genCameraArg1) = retvals(0) - get_resolution().w / 2
+  gen(genCameraArg2) = retvals(1) - get_resolution().h / 2
   gen(genCameraArg3) = ABS(retvals(2))
   gen(genCameraArg4) = ABS(retvals(2))
   limitcamera gen(genCameraArg1), gen(genCameraArg2)

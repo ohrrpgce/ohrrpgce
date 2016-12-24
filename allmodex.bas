@@ -591,13 +591,8 @@ sub set_resolution (byval w as integer, byval h as integer)
 end sub
 
 'The current internal window size in pixels (actual window updated at next setvispage)
-function get_resolution_w() as integer
-	return windowsize.w
-end function
-
-'The current internal window size in pixels (actual window updated at next setvispage)
-function get_resolution_h() as integer
-	return windowsize.h
+function get_resolution() as XYPair
+	return windowsize
 end function
 
 'Get resolution of the (primary) monitor. On Windows, this excludes size of the taskbar.

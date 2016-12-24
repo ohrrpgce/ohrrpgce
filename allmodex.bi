@@ -34,8 +34,7 @@ DECLARE SUB unlock_resolution (byval min_w as integer, byval min_h as integer)
 DECLARE SUB lock_resolution ()
 DECLARE FUNCTION resolution_unlocked () as bool
 DECLARE SUB set_resolution (byval w as integer, byval h as integer)
-DECLARE FUNCTION get_resolution_w () as integer
-DECLARE FUNCTION get_resolution_h () as integer
+DECLARE FUNCTION get_resolution () as XYPair
 DECLARE SUB get_screen_size (byref screenwidth as integer, byref screenheight as integer)
 DECLARE SUB set_scale_factor (scale as integer)
 

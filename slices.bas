@@ -65,8 +65,8 @@ WITH *ScreenSlice
  .Y = 0
  .ScreenX = 0
  .ScreenY = 0
- .Width = get_resolution_w()
- .Height = get_resolution_h()
+ .Width = get_resolution().w
+ .Height = get_resolution().h
 END WITH
 
 'frame_new_view changes the position of the origin. This is the transform needed to translate
@@ -370,8 +370,8 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
     'size even if DrawSlice has not been called on it yet. This
     'is needed to make second-level roots .Fill=YES work correctly
     'in the transitional phase when root is not yet drawn
-    .Width = get_resolution_w()
-    .Height = get_resolution_h()
+    .Width = get_resolution().w
+    .Height = get_resolution().h
    END WITH
   CASE slSpecial:
    newsl = NewSlice(parent)
@@ -1082,7 +1082,7 @@ Sub WrapTextSlice(byval sl as slice ptr, lines() as string)
  if dat->wrap AND sl->width > 7 then
   d = wordwrap(dat->s, int(sl->width / 8))
  elseif dat->wrap AND sl->width <= 7 then
-  d = wordwrap(dat->s, int((get_resolution_w() - sl->X) / 8))
+  d = wordwrap(dat->s, int((get_resolution().w - sl->X) / 8))
  else
   d = dat->s
  end if
@@ -2836,9 +2836,9 @@ Function UpdateRootSliceSize(sl as slice ptr) as bool
  if sl = 0 then return NO
  dim changed as bool
  with *sl
-  changed = (.Width <> get_resolution_w()) or (.Height <> get_resolution_h())
-  .Width = get_resolution_w()
-  .Height = get_resolution_h()
+  changed = get_resolution() <> TYPE(.Width, .Height)
+  .Width = get_resolution().w
+  .Height = get_resolution().h
  end with
  return changed
 end function

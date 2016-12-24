@@ -263,8 +263,8 @@ DO
   .has_been_drawn = YES
   .rect.x = 10
   .rect.y = 20
-  .rect.wide = get_resolution_w()
-  .rect.high = get_resolution_h()
+  .rect.wide = get_resolution().w
+  .rect.high = get_resolution().h
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)

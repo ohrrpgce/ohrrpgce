@@ -369,7 +369,7 @@ state.size = 20
 state.need_update = YES
 
 'The tileset editor only works at 320x200 or larger, since the tileset is stored on page 3
-DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
+DIM remember_resolution as XYPair = get_resolution()
 set_resolution 320, 200
 lock_resolution
 'Force videopage sizes to update
@@ -1890,7 +1890,7 @@ END SUB
 SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval zoom as integer, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 STATIC ss_save as SpriteEditStatic
 
-DIM remember_resolution as XYPair = (get_resolution_w, get_resolution_h)
+DIM remember_resolution as XYPair = get_resolution()
 IF fullset = NO THEN
  'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
  '(Don't do this when reentering the sprite editor)

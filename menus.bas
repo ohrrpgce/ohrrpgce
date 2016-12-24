@@ -392,8 +392,8 @@ SUB set_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer
   .spacing += menuopts.itemspacing
   .rect.x = x
   .rect.y = y
-  .rect.wide = get_resolution_w()
-  .rect.high = small(get_resolution_h(), (.size + 1) * .spacing)
+  .rect.wide = get_resolution().w
+  .rect.high = small(get_resolution().h, (.size + 1) * .spacing)
  END WITH
 
  ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
@@ -866,7 +866,7 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
  WITH state
   .first = LBOUND(menu)
   .last = UBOUND(menu)
-  .size = small(.last - .first, cint(int(get_resolution_h() / 8)))
+  .size = small(.last - .first, cint(int(get_resolution().h / 8)))
   .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
   IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
   .top = bound(.top, 0, large(.last - .size, 0))

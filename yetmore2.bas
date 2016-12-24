@@ -944,8 +944,8 @@ SUB apply_game_window_settings ()
  'This can happen while live-previewing, or maybe messing around with writegeneral
  IF gen(genResolutionX) < 10 OR gen(genResolutionY) < 10 THEN EXIT SUB
 
- IF gen(genResolutionX) <> get_resolution_w() OR gen(genResolutionY) <> get_resolution_h() THEN
-  'get_resolution_w/h will be 320x200 if the backend doesn't support anything else
+ IF TYPE<XYPair>(gen(genResolutionX), gen(genResolutionY)) <> get_resolution() THEN
+  'get_resolution() will be 320x200 if the backend doesn't support anything else
   IF gfx_supports_variable_resolution() = NO THEN
    notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. The game will probably be unplayable!"
   ELSE
