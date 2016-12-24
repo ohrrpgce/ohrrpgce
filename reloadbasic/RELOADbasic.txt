@@ -8,6 +8,8 @@ Syntax:
 
 nodevar must be a Node ptr variable. Zero length nodespecs aren't implemented yet, so you can only
 refer to descendants (you need to call GetInteger, etc. manually to get a node's value directly).
+nodevar has to be either a local variable or function argument. (This strict requirement should
+probably be removed.)
 
 Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray section.
 

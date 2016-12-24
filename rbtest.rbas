@@ -64,6 +64,9 @@ startTest(testDimParsing)
 	if root_alias."helper" <> 100 then fail
 	if helper_alias."int" <> 12345 then fail
 	if helper_alias2."int" <> 12345 then fail
+
+	dim nod as reload.NodePtr = root   'Test reload namespace handled OK
+	if nod."helper" <> 100 then fail
 endTest
 
 startTest(testNestedNodes)
@@ -306,6 +309,21 @@ startTest(testWarnRequire)
 
 	if error_out(root) <> 0 then fail
 	if set_error = NO then fail
+endTest
+
+type UDT
+	dummy as integer
+	declare function a_method cdecl (nod as NodePtr) as integer
+end type
+
+function UDT.a_method cdecl (nod as NodePtr) as integer
+	if nod."helper" <> 100 then return 0
+	return 1
+end function
+
+startTest(testMethodsAndArguments)
+	dim obj as UDT
+	if obj.a_method(DocumentRoot(doc)) <> 1 then fail
 endTest
 
 startTest(testMoreReadNodeDefaulting)

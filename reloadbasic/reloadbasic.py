@@ -37,6 +37,8 @@ def string():               return re.compile(r'"(""|[^"\n])*"|!"(""|\\.|[^"\n])
 
 def identifier():           return re.compile(r'[_a-zA-Z]\w*')
 
+def dottedIdentifier():     return re.compile(r'[_.a-zA-Z][_.0-9a-zA-Z]*')
+
 def namespace():            return PLUS, (identifier, ".")
 
 # Basically anything except a comma or (, ), {, }
@@ -65,6 +67,7 @@ def expression():           return PLUS, [("(", CHECKPNT, expressionList, ")"),
                                           nodeSpec, string, genericToken]
 
 def typename():             return STAR, namespace, identifier, STAR, re.compile('ptr|vector', re.I)
+#def typename():             return dottedIdentifier, STAR, re.compile('ptr|vector', re.I)
 
 def arrayDimension():       return "(", CHECKPNT, expressionList, ")"
 
@@ -88,11 +91,12 @@ def argList():              return "(", CHECKPNT, [")", (argumentDecl, STAR, (",
 
 def functionDecorators():   return QUES, "cdecl"
 
-def functionStart():        return QUES, "private", [("function", CHECKPNT, identifier, functionDecorators, QUES, argList, "as", typename),
-                                                     ("starttest", CHECKPNT, "(", identifier, ")")]
+# starttest/endtest are special cases for the macros defined in testing.bi
+def functionStart():        return QUES, "private", [("function", CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, "as", typename),
+                                                     ("starttest", CHECKPNT, "(", dottedIdentifier, ")")]
 def functionEnd():          return [("end", "function"), "endtest"]
 
-def subStart():             return QUES, "private", "sub", CHECKPNT, identifier, functionDecorators, QUES, argList
+def subStart():             return QUES, "private", "sub", CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList
 def subEnd():               return "end", "sub"
 
 def readNode():             return "readnode", CHECKPNT, [(nodeSpec, "as", identifier), identifier], STAR, (",", re.compile("default|ignoreall"))
@@ -101,9 +105,7 @@ def readNodeEnd():          return "end", "readnode"
 def withNode():             return "withnode", CHECKPNT, nodeSpec, "as", identifier
 def withNodeEnd():          return "end", "withnode"
 
-def arrayName():            return STAR, (identifier, "."), identifier
-
-def loadArray():            return "loadarray", CHECKPNT, arrayName, "(", "$", identifier, ")", "=", expression
+def loadArray():            return "loadarray", CHECKPNT, dottedIdentifier, "(", "$", identifier, ")", "=", expression
 
 def nodeSpecAssignment():   return nodeSpec, "=", CHECKPNT, expression
 
@@ -215,13 +217,13 @@ class TranslationIteratorWrapper(FileParsingIterator):
 
 
 def get_ident(astnode):
-    """Translate identifier ASTNode to string"""
-    assert astnode.name == 'identifier'
+    """Translate identifier/dottedIdentifier ASTNode to string"""
+    assert astnode.name in ('identifier', 'dottedIdentifier')
     return astnode[0].lower()
 
 def get_ident_with_case(astnode):
-    """Translate identifier ASTNode to string, preserving case"""
-    assert astnode.name == 'identifier'
+    """Translate identifier/dottedIdentifier ASTNode to string, preserving case"""
+    assert astnode.name in ('identifier', 'dottedIdentifier')
     return astnode[0]
 
 def get_string(astnode):
@@ -944,7 +946,7 @@ class ReloadBasicFunction(object):
         expression = self.node_with_replacements(node.expression, [(nodespec.node, replacement)])
 
         index_var = get_ident(node.identifier)
-        arrayname = self.astnode_to_string(node.arrayName)
+        arrayname = get_ident(node.dottedIdentifier)
 
         # Prologue
         temp = FLUSH_ARRAY_TEMPLATE
@@ -1252,7 +1254,7 @@ class ReloadBasicFunction(object):
         """
         header is a subStart or functionStart ASTNode.
         """
-        self.name = get_ident_with_case(header.identifier)
+        self.name = get_ident_with_case(header.dottedIdentifier)
 
         args = header.get("argList")
         if args:
