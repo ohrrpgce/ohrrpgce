@@ -7,10 +7,15 @@
 #include "const.bi"
 #include "udts.bi"
 #include "custom.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "customsubs.bi"
+#include "cglobals.bi"
+#include "scrconst.bi"
+#include "loading.bi"
 
-'---------------------------- External subs and functions --------------------------------
-
-
+CONST tilew = 20
+CONST tileh = 20
 
 '---------------------------- Local subs/functions & types -------------------------------
 
@@ -88,7 +93,7 @@ DECLARE SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bo
 DECLARE SUB ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE SUB ToggleLayerEnabled(vis() as integer, byval l as integer)
 
-DECLARE SUB DrawDoorPair(st as MapEditState, byval linknum as integer)
+DECLARE SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
 
 DECLARE SUB calculatepassblock(st as MapEditState, x as integer, y as integer)
 
@@ -138,13 +143,6 @@ DECLARE SUB resize_dimchange(st as MapEditState, byref rs as MapResizeState)
 DECLARE SUB resize_correct_width(st as MapEditState, byref rs as MapResizeState)
 DECLARE SUB resize_correct_height(st as MapEditState, byref rs as MapResizeState)
 
-#include "allmodex.bi"
-#include "common.bi"
-#include "customsubs.bi"
-#include "cglobals.bi"
-
-#include "scrconst.bi"
-#include "loading.bi"
 
 DEFINE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
 DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
@@ -3621,6 +3619,7 @@ SUB mapedit_linkdoors (st as MapEditState)
  state.size = 11
  state.need_update = YES
 
+ DIM last_resolution as XYPair
  DIM menu_temp as string
  DIM col as integer
 
@@ -3643,9 +3642,11 @@ SUB mapedit_linkdoors (st as MapEditState)
     state.last = small(state.last + 1, UBOUND(st.map.doorlink))
    END IF
   END IF
+  IF last_resolution <> get_resolution() THEN state.need_update = YES
   IF state.need_update THEN
    state.need_update = NO
-   DrawDoorPair st, state.pt
+   DrawDoorPair st, state.pt, 2
+   last_resolution = get_resolution()
   END IF
 
   '--Draw screen
@@ -3721,16 +3722,17 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  DIM menu_temp as string
  DIM col as integer
 
- DrawDoorPair st, linknum
+ DIM last_resolution as XYPair
 
  setkeys
  DO
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF preview_delay > 0 THEN
-   preview_delay -= 1
-   IF preview_delay = 0 THEN DrawDoorPair st, linknum
+  preview_delay -= 1
+  IF preview_delay = 0 OR last_resolution <> get_resolution() THEN
+   last_resolution = get_resolution()
+   DrawDoorPair st, linknum, 2
   END IF
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "door_link_editor"
@@ -3758,7 +3760,7 @@ SUB link_one_door(st as MapEditState, linknum as integer)
   END IF
   '--Draw screen
   copypage 2, dpage
-  rectangle 0, 99, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
+  rectangle 0, vpages(dpage)->h \ 2, vpages(dpage)->w, 2, uilook(uiSelectedDisabled + state.tog), dpage
   FOR i as integer = -1 TO 4
    menu_temp = ""
    SELECT CASE i
@@ -3781,9 +3783,9 @@ SUB link_one_door(st as MapEditState, linknum as integer)
    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i) & " " & menu_temp, 1, 1 + (i + 1) * 10, col, dpage
   NEXT i
-  edgeprint "ENTER", 275, 0, uilook(uiText), dpage
-  edgeprint "EXIT", 283, 190, uilook(uiText), dpage
-  edgeprint outmap, 0, 190, uilook(uiText), dpage
+  edgeprint "ENTER", vpages(dpage)->w - 45, 0, uilook(uiText), dpage
+  edgeprint "EXIT", vpages(dpage)->w - 45, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint outmap, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -3825,70 +3827,79 @@ END SUB
 
 '==========================================================================================
 
-SUB DrawDoorPair(st as MapEditState, byval linknum as integer)
- DIM as integer dmx, dmy, i
- DIM as string caption
- DIM destdoor(99) as door
- DIM destmap as integer
- DIM gmap2(dimbinsize(binMAP)) as integer
- REDIM map2(0) as TileMap
- DIM pass2 as TileMap
- DIM tilesets2(maplayerMax) as TilesetData ptr
+'Draws a preview of a certain door on a map to either the top or bottom half of a page
+SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as integer, top_half as bool, page as integer)
+ DIM as integer dmx, dmy
+ DIM as integer starty, view_width, view_height
+ IF top_half THEN
+  starty = 0
+ ELSE
+  starty = vpages(page)->h \ 2 + 2
+ END IF
+ view_width = vpages(page)->w
+ view_height = vpages(page)->h \ 2
+
+ IF door_exists(map.door(), doornum) THEN
+  DIM byref thisdoor as Door = map.door(doornum)
+  ' dmx/dmy gives the camera position (top left of viewport relative to the map)
+  dmx = thisdoor.x * tilew       - (view_width - tilew) \ 2
+  ' thisdoor.y is offset by 1
+  dmy = (thisdoor.y - 1) * tileh - (view_height - tileh) \ 2
+  dmx = small(large(dmx, 0), map.wide * tilew - view_width)
+  dmy = small(large(dmy, 0), map.high * tileh - view_height)
+  FOR i as integer = 0 TO UBOUND(map.tiles)
+   IF LayerIsEnabled(map.gmap(), i) THEN
+    drawmap map.tiles(i), dmx, dmy, tilesets(i), page, i <> 0, , , starty, view_height
+   END IF
+  NEXT i
+  IF LayerIsEnabled(map.gmap(), 0) THEN
+   drawmap map.tiles(0), dmx, dmy, tilesets(0), page, 0, 2, @map.pass, starty, view_height
+  END IF
+  ' Position of the door on the screen
+  DIM as integer door_drawx, door_drawy
+  door_drawx = thisdoor.x * tilew - dmx
+  door_drawy = (thisdoor.y - 1) * tileh - dmy + starty
+  edgebox door_drawx, door_drawy, tilew, tileh, uilook(uiMenuItem), uilook(uiBackground), page
+  textcolor uilook(uiBackground), 0
+  DIM as string caption = STR(doornum)
+  printstr caption, door_drawx + (tilew - textwidth(caption)) \ 2, door_drawy + (tileh - 8) \ 2, page
+ ELSE
+  textcolor uilook(uiDisabledItem), 0
+  DIM as string caption = "(No such door)"
+  printstr caption, xstring(caption), starty + view_height \ 2, page
+ END IF
+ 
+END SUB
+
+' Draw preview of source and destination doors of a doorlink.
+SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
  DIM byref doorlink as DoorLink = st.map.doorlink(linknum)
 
- clearpage 2
+ clearpage page
  IF doorlink.source = -1 THEN EXIT SUB
 
- '-----------------ENTRY DOOR
- IF door_exists(st.map.door(), doorlink.source) THEN
-  DIM byref thisdoor as Door = st.map.door(doorlink.source)
-  dmx = thisdoor.x * 20 - 150
-  dmy = thisdoor.y * 20 - 65
-  dmx = small(large(dmx, 0), st.map.wide * 20 - 320)
-  dmy = small(large(dmy, 0), st.map.high * 20 - 100)
-  FOR i as integer = 0 TO UBOUND(st.map.tiles)
-   IF LayerIsEnabled(st.map.gmap(), i) THEN
-    drawmap st.map.tiles(i), dmx, dmy, st.tilesets(i), 2, i <> 0, , , 0, 99
-   END IF
-  NEXT i
-  IF LayerIsEnabled(st.map.gmap(), 0) THEN
-   drawmap st.map.tiles(0), dmx, dmy, st.tilesets(0), 2, 0, 2, @st.map.pass, 0, 99
-  END IF
-  edgebox thisdoor.x * 20 - dmx, thisdoor.y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
-  textcolor uilook(uiBackground), 0
-  caption = STR(doorlink.source)
-  printstr caption, thisdoor.x * 20 - dmx + 10 - (4 * LEN(caption)), thisdoor.y * 20 - dmy - 14, 2
- END IF
- '-----------------EXIT DOOR
- destmap = doorlink.dest_map
- loadrecord gmap2(), game + ".map", getbinsize(binMAP) \ 2, destmap
- deserdoors game + ".dox", destdoor(), destmap
- LoadTilemaps map2(), maplumpname(destmap, "t")
- LoadTilemap pass2, maplumpname(destmap, "p")
- loadmaptilesets tilesets2(), gmap2()
+ ' Entry door
+ DrawDoorPreview st.map, st.tilesets(), doorlink.source, YES, page
 
- IF door_exists(destdoor(), doorlink.dest) THEN
-  DIM byref thisdoor as Door = destdoor(doorlink.dest)
-  dmx = thisdoor.x * 20 - 150
-  dmy = thisdoor.y * 20 - 65
-  dmx = small(large(dmx, 0), map2(0).wide * 20 - 320)
-  dmy = small(large(dmy, 0), map2(0).high * 20 - 100)
-  FOR i as integer = 0 TO UBOUND(map2)
-   IF LayerIsEnabled(gmap2(), i) THEN
-     drawmap map2(i), dmx, dmy, tilesets2(i), 2, i <> 0, , , 101
-   END IF
-  NEXT i
-  IF LayerIsEnabled(gmap2(), 0) THEN
-   drawmap map2(0), dmx, dmy, tilesets2(0), 2, 0, 2, @pass2, 101
-  END IF
-  edgebox thisdoor.x * 20 - dmx, thisdoor.y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
-  textcolor uilook(uiBackground), 0
-  caption = STR(doorlink.dest)
-  printstr caption, thisdoor.x * 20 - dmx + 10 - (4 * LEN(caption)), thisdoor.y * 20 - dmy + 86, 2
+ ' Exit door
+ IF doorlink.dest_map = st.map.id THEN
+  DrawDoorPreview st.map, st.tilesets(), doorlink.dest, NO, page
+ ELSE
+  DIM destmap as MapData
+  DIM dest_tilesets(maplayerMax) as TilesetData ptr
+  destmap.id = doorlink.dest_map
+  loadrecord destmap.gmap(), game + ".map", getbinsize(binMAP) \ 2, destmap.id
+  deserdoors game + ".dox", destmap.door(), destmap.id
+  LoadTilemaps destmap.tiles(), maplumpname(destmap.id, "t")
+  LoadTilemap destmap.pass, maplumpname(destmap.id, "p")
+  loadmaptilesets dest_tilesets(), destmap.gmap()
+  destmap.wide = destmap.pass.wide
+  destmap.high = destmap.pass.high
+
+  DrawDoorPreview destmap, dest_tilesets(), doorlink.dest, NO, page
+
+  unloadmaptilesets dest_tilesets()
  END IF
- unloadtilemaps map2()
- unloadtilemap pass2
- unloadmaptilesets tilesets2()
 END SUB
 
 SUB calculatepassblock(st as MapEditState, x as integer, y as integer)

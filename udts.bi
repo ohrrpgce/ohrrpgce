@@ -615,7 +615,7 @@ End Type
 
 Type Door
   x as integer
-  y as integer
+  y as integer     ' FIXME: Actual Y + 1 !!!
   bits(0) as integer
 End Type
 
