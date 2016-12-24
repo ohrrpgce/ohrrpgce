@@ -30,6 +30,9 @@ DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
 
-DECLARE SUB mapedit_update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
+DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
+DECLARE SUB npcdef (st as MapEditState)
+DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
+
 
 #endif

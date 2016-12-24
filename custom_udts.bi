@@ -186,24 +186,21 @@ DECLARE_VECTOR_OF_TYPE(MapEditUndoTile vector, MapEditUndoTile_vector)
 
 TYPE MapEditStateFwd as MapEditState
 
-TYPE FnBrush as SUB (st as MapEditStateFwd, byval x as integer, byval y as integer, byval value as integer = -1, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
-TYPE FnReader as FUNCTION (st as MapEditStateFwd, byval x as integer, byval y as integer, byval extraarg as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+TYPE FnBrush as SUB (st as MapEditStateFwd, byval x as integer, byval y as integer, byval value as integer = -1, byval extraarg as integer = -1)
+TYPE FnReader as FUNCTION (st as MapEditStateFwd, byval x as integer, byval y as integer, byval extraarg as integer = -1) as integer
 
 TYPE MapEditState
-  'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
-  npc_def(any) as NPCType
-  npc_inst(299) as NPCInst
+  map as MapData
 
-  mapnum as integer          'Map ID number
   editmode as integer        'ENUM MapEditMode
   seteditmode as integer     'Normally -1, set to an editmode to cause a switch
   x as integer               'Cursor position, in tiles
   y as integer
   mapx as integer            'Camera position (top left of viewable area), in pixels
   mapy as integer
-  wide as integer            'Map size
-  high as integer
   layer as integer
+  visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
+  jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
@@ -213,6 +210,7 @@ TYPE MapEditState
   menubar as TileMap
   cursor as GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+  npc_img(any) as GraphicPair
   defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)
   menustate as MenuState     'The top-level menu state
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised

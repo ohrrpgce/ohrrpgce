@@ -469,9 +469,9 @@ SUB gamestate_maps_from_reload(byval node as Reload.NodePtr)
  END IF
 END SUB
 
-SUB gamestate_npcs_from_reload(byval node as Reload.NodePtr, byval map as integer)
+SUB gamestate_npcs_from_reload(byval node as Reload.NodePtr, byval map_id as integer)
  DIM map_offset as XYPair
- map_offset = load_map_pos_save_offset(map)
+ map_offset = load_map_pos_save_offset(map_id)
 
  CleanNPCL npc()
 
@@ -1002,12 +1002,12 @@ SUB gamestate_maps_to_reload(byval parent as Reload.NodePtr)
  
 END SUB
 
-SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map as integer)
+SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map_id as integer)
  DIM node as NodePtr
  node = SetChildNode(parent, "npcs")
 
  DIM map_offset as XYPair
- map_offset = load_map_pos_save_offset(map)
+ map_offset = load_map_pos_save_offset(map_id)
 
  DIM n as NodePtr
  FOR i as integer = 0 TO 299

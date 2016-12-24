@@ -519,9 +519,13 @@ END SUB
 
 
 '==========================================================================================
-'                                  General/Other Map Data
+'                                          Maps
 '==========================================================================================
 
+
+CONSTRUCTOR MapData()
+  REDIM gmap(dimbinsize(binMAP))
+END CONSTRUCTOR
 
 FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
  IF layernum > 7 THEN

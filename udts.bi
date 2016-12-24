@@ -613,6 +613,39 @@ Type ZoneMap
   extraID_hash as HashTable 'table of ZoneHashedSegments for overcrowded tiles, indexed by (x SHL 16) + y
 End Type
 
+Type Door
+  x as integer
+  y as integer
+  bits(0) as integer
+End Type
+
+Type DoorLink
+  source as integer
+  dest as integer
+  dest_map as integer
+  tag1 as integer
+  tag2 as integer
+End Type
+
+TYPE MapData
+  id as integer
+  name as string
+  wide as integer        'Map size in tiles
+  high as integer
+
+  tiles(any) as TileMap
+  pass as TileMap
+  foemap as TileMap
+  zmap as ZoneMap
+  gmap(any) as integer
+  door(99) as Door
+  doorlink(199) as DoorLink
+  npc_def(any) as NPCType
+  npc(299) as NPCInst
+
+  Declare Constructor()
+END TYPE
+
 Type FontChar
 	offset as integer  'offset into spr->image
 	offx as byte   'pixel offsets
@@ -661,15 +694,6 @@ Type StringCharPos
 End Type
 
 Type PrintStrStatePtr as PrintStrState ptr
-
-Type Door
-	as integer x, y
-	as integer bits(0)
-End Type
-
-Type DoorLink
-	as integer source, dest, dest_map, tag1, tag2
-End Type
 
 Union Stats
        Type
