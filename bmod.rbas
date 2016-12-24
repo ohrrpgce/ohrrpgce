@@ -133,11 +133,6 @@ FUNCTION battle (byval form as integer) as bool
  'fade to near white
  fadeout 240, 240, 240
  queue_fade_in
- 
- clearpage 0
- clearpage 1
- clearpage 2
- clearpage 3
 
  battle_loadall form, bat, bslot(), st(), formdata
 
@@ -339,11 +334,6 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
  END IF
 
  fadeout 0, 0, 0
- clearpage 0
- clearpage 1
- clearpage 2
- clearpage 3
-
  frame_unload(@bat.backdrop)
  FOR i as integer = LBOUND(bslot) TO UBOUND(bslot)
   frame_unload(@bslot(i).sprites)

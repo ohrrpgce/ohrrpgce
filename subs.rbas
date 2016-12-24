@@ -80,13 +80,6 @@ CONST SL_FORMEDITOR_HERO_AREA = 399  'container that holds heroes
 CONST SL_FORMEDITOR_HERO = 400  '+0 to +3 for 4 slots
 
 
-SUB clearallpages
-clearpage 0 'UPDATE as of fbc v0.20
-clearpage 1 'I re-checked a loop version of this. It's still bigger.
-clearpage 2 'Sure, it really doesn't matter, but just saying...
-clearpage 3 '~Mike
-END SUB
-
 SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string, byval EnCapElemResist as integer)
  FOR i as integer = 0 TO gen(genNumElements) - 1
   caption(EnCapElemResist + i) = format_percent(DeSerSingle(recbuf(), 239 + i*2))
@@ -97,8 +90,6 @@ SUB enemydata
 
 DIM elementnames() as string
 getelementnames elementnames()
-
-clearallpages
 
 '-------------------------------------------------------------------------
 
@@ -829,7 +820,6 @@ LOOP
 saveenemydata recbuf(), recindex
 
 resetsfx
-clearallpages
 DeleteSlice @preview_box
 frame_unload @preview_sprite
 

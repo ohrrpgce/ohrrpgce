@@ -18,9 +18,6 @@
 #include "slices.bi"
 #include "sliceedit.bi"
 
-'This is in subs.bas:
-DECLARE SUB clearallpages ()
-
 'Local
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, byref recindex as integer, byval preview_box as Slice Ptr) as integer
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
@@ -205,7 +202,6 @@ CONST AtkDatDramaticPause = 320
 
 SUB attackdata
 
-clearallpages
 DIM i as integer
 
 DIM elementnames() as string
@@ -1505,7 +1501,6 @@ LOOP
 saveattackdata recbuf(), recindex
 
 resetsfx
-clearallpages
 DeleteSlice @preview_box
 
 END SUB

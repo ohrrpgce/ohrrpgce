@@ -681,8 +681,6 @@ ELSE
  'New game
  refresh_purchases()
  fadeout 0, 0, 0
- clearpage 0
- clearpage 1
  'Add initial hero to party (slot 0)
  addhero 1 + gen(genStartHero), 0
  'Trigger textbox and/or script
@@ -922,10 +920,6 @@ SUB reset_game_final_cleanup()
  'killdir and thus makedir would fail if some in-use file can't be deleted
  IF NOT isdir(tmpdir) THEN fatalerror "Can't recreate temp directory " & tmpdir
  fadeout 0, 0, 0
- clearpage 0
- clearpage 1
- clearpage 2
- clearpage 3
  sourcerpg = ""
 END SUB
 
