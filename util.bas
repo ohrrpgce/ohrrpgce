@@ -332,18 +332,23 @@ FUNCTION blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer)
  return ret
 END FUNCTION
 
-FUNCTION rpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
- IF clip = NO AND LEN(s) >= size THEN RETURN s
+FUNCTION rpad (s as string, pad_char as string, size as integer, clip as clipDir = clipRight) as string
+ IF clip = clipNone AND LEN(s) >= size THEN RETURN s
  DIM temp as string
- temp = LEFT(s, size)
+ temp = IIF(clip = clipRight, LEFT(s, size), RIGHT(s, size))
  RETURN temp & STRING(size - LEN(temp), pad_char)
 END FUNCTION
 
-FUNCTION lpad (s as string, pad_char as string, size as integer, clip as bool = YES) as string
- IF clip = NO AND LEN(s) >= size THEN RETURN s
+FUNCTION lpad (s as string, pad_char as string, size as integer, clip as clipDir = clipLeft) as string
+ IF clip = clipNone AND LEN(s) >= size THEN RETURN s
  DIM temp as string
- temp = RIGHT(s, size)
+ temp = IIF(clip = clipRight, LEFT(s, size), RIGHT(s, size))
  RETURN STRING(size - LEN(temp), pad_char) & temp
+END FUNCTION
+
+' First pad right, then pad left
+FUNCTION rlpad (s as string, pad_char as string, pad_right as integer, pad_left as integer, clip as clipDir = clipNone) as string
+ RETURN lpad(rpad(s, pad_char, pad_right, NO), pad_char, pad_left, clip)
 END FUNCTION
 
 'Like INSTR, but return the n-th match
