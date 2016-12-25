@@ -92,6 +92,7 @@ NEXT
 
 END SUB
 
+' Save current palette and load another one. When palchange=0, just saves current
 SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 
 storepal16 workpal(), aindex, palval
@@ -1978,9 +1979,12 @@ DO
  IF enter_or_space() THEN
   spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   ' sprite_editor modifies placer(), workpal(), poffset(), ss, and ss_save
+  ' It also saves changes to palettes directly to disk (but not the sprite!)
   sprite_editor ss, ss_save, state, workpal(), poffset(), info(), placer()
   spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   spriteedit_save_all_you_see state.top, ss
+  ' Reload, because palettes might have been edited which are used by other visible spritesets
+  spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF ss.fullset = NO AND ss.perset > 1 THEN
@@ -2017,9 +2021,11 @@ DO
  IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
  IF keyval(scRight) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
  IF keyval(scLeftBrace) > 1 THEN
+  ' Previous palette
   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
  IF keyval(scRightBrace) > 1 THEN
+  ' Next palette
   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
  '--copying
@@ -2100,7 +2106,6 @@ DO
  clearpage dpage
  dowait
 LOOP
-changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 spriteedit_save_all_you_see state.top, ss
 deallocate ss.visible_sprites
 savedefaultpals ss.fileset, poffset(), sets
@@ -2118,7 +2123,7 @@ IF fullset = NO THEN
  set_resolution remember_resolution.w, remember_resolution.h
 END IF
 
-END SUB '----END of sprite()
+END SUB '----END of spriteset_editor()
 
 SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
  'clip possibly rotated sprite buffer to sprite's frame size
@@ -3123,7 +3128,8 @@ END SUB
 ' placer() contains the sprite to be edited, in drawsprite() format,
 ' workpal() contains the palettes for all spritesets visible in the sprite browser (yuck)
 ' poffset() contains the (default) palette numbers for all spritesets in this .PT# lump
-' sprite_editor modifies all of these in-place and expects the caller to save them to file!
+' sprite_editor modifies all of these in-place and expects the caller to save placer()
+' and poffset()! However, it saves workpal() itself.
 ' state.pt is the current spriteset ID
 SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, workpal() as integer, poffset() as integer, info() as string, placer() as integer)
 
@@ -3276,9 +3282,11 @@ IF ss.zonenum = 2 THEN
  END IF
 END IF
 IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse.clicks > 0) THEN
+ ' Previous palette
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
 END IF
 IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
+ ' Next palette
  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
 END IF
 IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
