@@ -60,6 +60,7 @@ TYPE SpriteEditState
   gotmouse as integer
   drawcursor as integer
   tool as integer
+  pal_num as integer  ' Palette used by current sprite
   curcolor as integer ' Index in master palette
   palindex as integer ' Index in 16 color palette
   hidemouse as integer
