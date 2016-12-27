@@ -16,6 +16,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2016-12-28:
+Back to doing some major work on sprite editor internals, so once again
+there's a risk of serious bugs appearing. 
+
+In other news, do not use 64-bit builds of Custom. They crash in certain menus.
+
 2016-04-09:
 Currently working on the sprite editor and in particular the loading/saving
 code. There's a possibility of serious bugs as a result!

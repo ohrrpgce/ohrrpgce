@@ -30,7 +30,10 @@ TYPE SpriteEditStatic
   clonebuf(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
   spriteclip(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
   clipsize as XYPair
-  paste as integer
+  paste as bool  'A sprite has been copied into spriteclip(). Used by both spriteset browser and sprite editor!
+
+  pal_clipboard_used as bool  'A palette has been copied into .pal_clipboard
+  pal_clipboard as Palette16
 END TYPE
 
 TYPE SpriteEditState
@@ -61,8 +64,9 @@ TYPE SpriteEditState
   drawcursor as integer
   tool as integer
   pal_num as integer  ' Palette used by current sprite
-  curcolor as integer ' Index in master palette
+  curcolor as integer ' Index in master palette (equal to .palette->col(.palindex))
   palindex as integer ' Index in 16 color palette
+  palette as Palette16 ptr 'The current palette
   hidemouse as integer
   airsize as integer
   mist as integer
@@ -81,7 +85,6 @@ TYPE SpriteEditState
   adjustpos as XYPair
   previewpos as XYPair
   nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
-  clippedpal as integer
   showcolnum as integer
 END TYPE
 

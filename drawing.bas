@@ -30,7 +30,8 @@ DECLARE SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
-DECLARE SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
+DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
+DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
 DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
@@ -49,11 +50,11 @@ DECLARE SUB spriteedit_save_all_you_see(byval top as integer, ss as SpriteEditSt
 DECLARE SUB spriteedit_load_all_you_see(byval top as integer, ss as SpriteEditState, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
 DECLARE SUB spriteedit_set_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
-DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, workpal() as integer, info() as string, placer() as integer)
+DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, placer() as integer)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
-DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, workpal() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
-DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer)
+DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
+DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer)
 DECLARE SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
@@ -93,12 +94,19 @@ NEXT
 END SUB
 
 ' Save current palette and load another one. When palchange=0, just saves current
-SUB changepal (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
-
+' Overload used by spriteset browser
+SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 storepal16 workpal(), aindex, palval
 palval = bound(palval + palchange, 0, 32767)
 getpal16 workpal(), aindex, palval
+END SUB
 
+' Overload used by sprite editor
+SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
+ palette16_save ss.palette, ss.pal_num
+ ss.pal_num = bound(ss.pal_num + palchange, 0, 32767)
+ palette16_unload @ss.palette
+ ss.palette = palette16_load(ss.pal_num)
 END SUB
 
 'Copy a tile from one vpage to another
@@ -1978,15 +1986,15 @@ DO
  END IF
  IF enter_or_space() THEN
   spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
-  ' sprite_editor modifies placer(), workpal(), poffset(), ss, and ss_save
-  ' It also saves changes to palettes (but not default palettes) directly to disk (but not the sprite!)
+  ' sprite_editor modifies placer(), ss (including ss.palette and ss.pal_num), and ss_save
+  ' It also saves changes to palettes (but not default palettes (ss.pal_num)) directly to disk (but not the sprite!)
   ss.pal_num = poffset(state.pt)
-  sprite_editor ss, ss_save, state, workpal(), info(), placer()
+  sprite_editor ss, ss_save, state, info(), placer()
   spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   spriteedit_save_all_you_see state.top, ss
   poffset(state.pt) = ss.pal_num
   savedefaultpals ss.fileset, poffset(), sets  'Save default palettes immediately, only needed for live previewing
-  ' Reload, because palettes might have been edited which are used by other visible spritesets
+  ' Reload the palettes
   spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
@@ -2153,8 +2161,8 @@ SUB writeundospr (placer() as integer, ss as SpriteEditState, is_rotate as integ
 END SUB
 
 ' Draw sprite editor
-SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, workpal() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
- ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
+SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
+ ss.curcolor = ss.palette->col(ss.palindex)   'Is this necessary?
  rectangle 247 + ((ss.curcolor - ((ss.curcolor \ 16) * 16)) * 4), 0 + ((ss.curcolor \ 16) * 6), 5, 7, uilook(uiText), dpage
  DIM as integer i, o
  FOR i = 0 TO 15
@@ -2182,10 +2190,9 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
 
  rectangle 247 + (ss.palindex * 4), 110, 5, 7, uilook(uiText), dpage
  FOR i = 0 TO 15
-  rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
+  rectangle 248 + (i * 4), 111, 3, 5, ss.palette->col(i), dpage
  NEXT
- drawspritex placer(), 0, workpal(), (state.pt - state.top) * 16, 4, 1, dpage, ss.zoom, NO
- ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
+ drawspritex placer(), 0, ss.palette, 4, 1, dpage, ss.zoom, NO
 
  DIM select_rect as RectType
  corners_to_rect_inclusive Type(ss.x, ss.y), ss.holdpos, select_rect
@@ -2194,7 +2201,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
   rectangle 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
- drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x, ss.previewpos.y, dpage, 0
+ drawspritex placer(), 0, ss.palette, ss.previewpos.x, ss.previewpos.y, dpage, 1, NO
 
  DIM overlay as Frame ptr
  overlay = frame_new(ss.wide, ss.high, , YES)
@@ -2242,8 +2249,8 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
-  drawspritex ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage, ss.zoom
-  drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
+  drawspritex ss_save.clonebuf(), 0, ss.palette, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage, ss.zoom
+  drawspritex ss_save.clonebuf(), 0, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
  END IF
  textcolor uilook(uiMenuItem), 0
  printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
@@ -2509,7 +2516,7 @@ SUB spriteedit_export(default_name as string, placer() as integer, nulpal() as i
 
  DIM pg as integer
  pg = registerpage(img.sprite)
- drawsprite placer(), 0, nulpal(), 0, 0, 0, pg
+ drawspritex placer(), 0, nulpal(), 0, 0, 0, pg
  freepage pg
  
  '--hand off the frame and palette to the real export function
@@ -2538,7 +2545,7 @@ SUB frame_to_4bit_buffer(byval spr as Frame ptr, buf() as integer, byval wid as 
 END SUB
 
 'Load a BMP of any bitdepth into a Frame which has just 16 colours: those in pal16
-SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as integer, byval palno as integer, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
+SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
  pal16 = palette16_new()
 
  DIM bmpd as BitmapV3InfoHeader
@@ -2549,7 +2556,7 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, workpal() as intege
  DIM bmppal(255) as integer
  'Put color index hints in bmppal(), which are used if they are an exact match.
  FOR i as integer = 0 TO 15
-  bmppal(i) = peek8bit(workpal(), i + palno * 16)
+  bmppal(i) = ss.palette->col(i)
  NEXT
 
  IF bmpd.biBitCount <= 4 THEN
@@ -2893,23 +2900,18 @@ FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite a
  RETURN readpixel(impsprite, pickpos.x, pickpos.y)
 END FUNCTION
 
-'Set can_remap to whether a mapping from pal16 to workpal() exists,
+'Set can_remap to whether a mapping from pal16 to ss.palette exists,
 'and if so write it in palmapping().
-SUB spriteedit_import16_compare_palettes(workpal() as integer, byval palno as integer, byval pal16 as Palette16 ptr, palmapping() as integer, byref can_remap as bool, byref is_identical as bool)
- DIM existingpal(15) as integer
- FOR i as integer = 0 TO 15
-  existingpal(i) = peek8bit(workpal(), i + palno * 16)
- NEXT
-
+SUB spriteedit_import16_compare_palettes(byref ss as SpriteEditState, byval new_pal as Palette16 ptr, palmapping() as integer, byref can_remap as bool, byref is_identical as bool)
  can_remap = YES
  is_identical = YES
  FOR i as integer = 1 TO 15
-  'IF pal16->col(i) <> existingpal(i) THEN is_identical = NO
-  IF color_distance(master(), pal16->col(i), existingpal(i)) > 0 THEN is_identical = NO
+  'IF new_pal->col(i) <> ss.palette->col(i) THEN is_identical = NO
+  IF color_distance(master(), new_pal->col(i), ss.palette->col(i)) > 0 THEN is_identical = NO
   DIM found as bool = NO
   FOR j as integer = 1 TO 15
-   'IF pal16->col(i) = existingpal(j) THEN
-   IF color_distance(master(), pal16->col(i), existingpal(j)) = 0 THEN
+   'IF new_pal->col(i) = ss.palette->col(j) THEN
+   IF color_distance(master(), new_pal->col(i), ss.palette->col(j)) = 0 THEN
     palmapping(i) = j
     found = YES
     EXIT FOR
@@ -2921,10 +2923,10 @@ END SUB
 
 'Return value: see retval()
 'Also returns contents of palmapping()
-FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, workpal() as integer, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, palmapping() as integer) as integer
+FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, palmapping() as integer) as integer
  DIM can_remap as bool
  DIM is_identical as bool
- DIM usepal as Palette16 ptr = palette16_new()
+ DIM usepal as Palette16 ptr
  DIM ret as integer
 
  DIM pmenu(2) as string
@@ -2941,11 +2943,11 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
   IF keyval(scESC) > 1 THEN ret = 3 : EXIT DO
   IF keyval(scF1) > 1 THEN show_help "frame_import16"
   IF keyval(scLeft) > 1 OR keyval(scLeftBrace) > 1 THEN
-   changepal ss.pal_num, -1, workpal(), state.pt - state.top
+   changepal ss, -1
    palstate.need_update = YES
   END IF
   IF keyval(scRight) > 1 OR keyval(scRightBrace) > 1 THEN
-   changepal ss.pal_num, 1, workpal(), state.pt - state.top
+   changepal ss, 1
    palstate.need_update = YES
   END IF
   IF usemenu(palstate) THEN palstate.need_update = YES
@@ -2953,7 +2955,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
 
   IF palstate.need_update THEN
    palstate.need_update = NO
-   spriteedit_import16_compare_palettes workpal(), state.pt - state.top, pal16, palmapping(), can_remap, is_identical
+   spriteedit_import16_compare_palettes ss, pal16, palmapping(), can_remap, is_identical
 
    pmenu(0) = "Overwrite Current Palette"
    retval(0) = 0
@@ -2969,13 +2971,9 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
 
    IF palstate.pt = 1 AND can_remap = NO THEN
     'Preview import without palette
-    FOR i as integer = 0 TO 15
-     usepal->col(i) = peek8bit(workpal(), i + (state.pt - state.top) * 16)
-    NEXT
+    usepal = ss.palette
    ELSE
-    FOR i as integer = 0 TO 15
-     usepal->col(i) = pal16->col(i)
-    NEXT
+    usepal = pal16
    END IF
   END IF
 
@@ -2991,7 +2989,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
            & bgcol_text(CHR(26), uilook(uiDisabledItem)), 243, 100, dpage, YES
   drawbox 246, 109, 67, 8, uilook(uiText), 1, dpage
   FOR i as integer = 0 TO 15
-   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
+   rectangle 248 + (i * 4), 111, 3, 5, ss.palette->col(i), dpage
   NEXT
   printstr "Image Pal", 245, 80, dpage
   drawbox 246, 89, 67, 8, uilook(uiText), 1, dpage
@@ -3007,13 +3005,11 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
   setvispage vpage
   dowait
  LOOP
-
- palette16_unload @usepal
  RETURN ret
 END FUNCTION
 
 'state.pt is the current palette number
-SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer, workpal() as integer)
+SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer)
  DIM srcbmp as string
  STATIC default as string
 
@@ -3023,7 +3019,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
 
  DIM as Frame ptr impsprite, impsprite2
  DIM pal16 as Palette16 ptr
- spriteedit_import16_loadbmp ss, workpal(), state.pt - state.top, srcbmp, impsprite, pal16
+ spriteedit_import16_loadbmp ss, srcbmp, impsprite, pal16
  IF impsprite = NULL THEN EXIT SUB
  'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
 
@@ -3060,7 +3056,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
  DIM can_remap as bool
  DIM is_identical as bool
  DIM palmapping(15) as integer
- spriteedit_import16_compare_palettes workpal(), state.pt - state.top, pal16, palmapping(), can_remap, is_identical
+ spriteedit_import16_compare_palettes ss, pal16, palmapping(), can_remap, is_identical
 
  'Prompt about remapping palette
  DIM remap as integer
@@ -3068,13 +3064,13 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
   remap = 2
   debuginfo "spriteedit_import16: is identical"
  ELSE
-  remap = spriteedit_import16_remap_menu(ss, ss_save, state, workpal(), impsprite, pal16, palmapping())
+  remap = spriteedit_import16_remap_menu(ss, ss_save, impsprite, pal16, palmapping())
  END IF
 
  IF remap = 0 THEN
   'Overwrite current palette
   FOR i as integer = 0 TO 15
-   poke8bit workpal(), i + (state.pt - state.top) * 16, pal16->col(i)
+   ss.palette->col(i) = pal16->col(i)
   NEXT i
   'If the palette has changed, update genMaxPal
   gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
@@ -3135,15 +3131,14 @@ SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, co
 END SUB
 
 ' placer() contains the sprite to be edited, in drawsprite() format,
-' workpal() contains the palettes for all spritesets visible in the sprite browser (yuck)
 ' sprite_editor modifies all of these in-place and expects the caller to save placer()
-' and the default palette (ss.pal_num)! However, it saves workpal() itself.
+' and the default palette (ss.pal_num)! However, it saves the palette (ss.palette) itself.
 ' state.pt is the current spriteset ID
-SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, workpal() as integer, info() as string, placer() as integer)
+SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, placer() as integer)
+
+ ss.palette = palette16_load(ss.pal_num)
 
  DIM mouse as MouseInfo
-
- DIM pclip(8) as integer
 
  DIM area(25) as MouseArea
  init_sprite_zones area(), ss
@@ -3254,7 +3249,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   END IF
   ss.delay = large(ss.delay - 1, 0)
   copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
-  spriteedit_display ss, ss_save, state, placer(), workpal(), info(), toolinfo(), area(), mouse
+  spriteedit_display ss, ss_save, state, placer(), info(), toolinfo(), area(), mouse
   SWAP vpage, dpage
   setvispage vpage
   'blank the sprite area
@@ -3263,7 +3258,9 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
  defaultmousecursor
- changepal ss.pal_num, 0, workpal(), state.pt - state.top
+ palette16_save ss.palette, ss.pal_num
+ palette16_unload @ss.palette
+
 EXIT SUB
 
 sprctrl:
@@ -3275,27 +3272,31 @@ IF mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.y = -1
 END IF
 IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
+
+' Changing the index in the 16 color palette
 IF keyval(scComma) > 1 AND ss.palindex > 0 THEN
  ss.palindex -= 1
- ss.showcolnum = 18
+ ss.showcolnum = 30
 END IF
 IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN
  ss.palindex += 1
- ss.showcolnum = 18
+ ss.showcolnum = 30
 END IF
 IF ss.zonenum = 2 THEN
  IF mouse.clicks > 0 THEN
   ss.palindex = small(ss.zone.x \ 4, 15)
-  ss.showcolnum = 18
+  ss.showcolnum = 30
  END IF
 END IF
+
+' Changing to a different 16 color palette
 IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse.clicks > 0) THEN
  ' Previous palette
- changepal ss.pal_num, -1, workpal(), state.pt - state.top
+ changepal ss, -1
 END IF
 IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
  ' Next palette
- changepal ss.pal_num, 1, workpal(), state.pt - state.top
+ changepal ss, 1
 END IF
 IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
  '--write changes so far
@@ -3303,14 +3304,19 @@ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palett
  spriteedit_save_spriteset state.pt, state.top, ss
  IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
  '--save current palette
- storepal16 workpal(), state.pt - state.top, ss.pal_num
+ palette16_save ss.palette, ss.pal_num
  ss.pal_num = pal16browse(ss.pal_num, ss.fileset, state.pt)
  clearkey(scEnter)
  clearkey(scSpace)
- getpal16 workpal(), state.pt - state.top, ss.pal_num
+ palette16_unload @ss.palette
+ ss.palette = palette16_load(ss.pal_num)
 END IF
+'If the palette has changed, update genMaxPal
+gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
+
 '--UNDO
 IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN GOSUB readundospr
+
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF copy_keychord() THEN
  ss_save.clipsize.x = ss.wide
@@ -3323,56 +3329,57 @@ END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF paste_keychord() AND ss_save.paste = YES THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
- drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
- drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, 0
+ drawspritex placer(), 0, ss.nulpal(), 0, 0, 0, dpage
+ drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, 0
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.paste = YES THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
- drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
- drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
+ drawspritex placer(), 0, ss.nulpal(), 0, 0, 0, dpage
+ drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
+
 '--COPY PALETTE (ALT+C)
 IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN
- FOR i as integer = 0 TO 7
-  pclip(i) = workpal(i + (state.pt - state.top) * 8)
+ FOR i as integer = 0 TO 15
+   ss_save.pal_clipboard.col(i) = ss.palette->col(i)
  NEXT
- ss.clippedpal = YES
+ ss_save.pal_clipboard_used = YES
 END IF
 '--PASTE PALETTE (ALT+V)
 IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
- IF ss.clippedpal THEN
-  FOR i as integer = 0 TO 8
-   workpal(i + (state.pt - state.top) * 8) = pclip(i)
+ IF ss_save.pal_clipboard_used THEN
+  FOR i as integer = 0 TO 15
+   ss.palette->col(i) = ss_save.pal_clipboard.col(i)
   NEXT
  END IF
 END IF
-ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + ss.palindex)
+
+' Change master palette index for the selected palette color
+ss.curcolor = ss.palette->col(ss.palindex)
 IF keyval(scAlt) > 0 THEN
  IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16 : ss.showcolnum = 18
  IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = 18
  IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1 : ss.showcolnum = 18
  IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1 : ss.showcolnum = 18
- 'If the palette has changed, update genMaxPal
- gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
 END IF
 IF (mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
  ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
  ss.showcolnum = 18
- 'If the palette has changed, update genMaxPal
- gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
 END IF
-poke8bit workpal(), (state.pt - state.top) * 16 + ss.palindex, ss.curcolor
+ss.palette->col(ss.palindex) = ss.curcolor
+
+' Change brush position
 IF keyval(scAlt) = 0 THEN
  DIM fixmouse as integer = NO
  WITH ss
   fixmouse = NO
   IF slowkey(scUp, 100) THEN .y = large(0, .y - 1):      fixmouse = YES
-  IF slowkey(scDown, 100) THEN .y = small(ss.high - 1, .y + 1): fixmouse = YES
+  IF slowkey(scDown, 100) THEN .y = small(.high - 1, .y + 1): fixmouse = YES
   IF slowkey(scLeft, 100) THEN .x = large(0, .x - 1):      fixmouse = YES
-  IF slowkey(scRight, 100) THEN .x = small(ss.wide - 1, .x + 1): fixmouse = YES
+  IF slowkey(scRight, 100) THEN .x = small(.wide - 1, .x + 1): fixmouse = YES
  END WITH
  IF fixmouse THEN
   IF ss.zonenum = 1 THEN
@@ -3391,10 +3398,12 @@ IF keyval(scAlt) = 0 THEN
   END IF
  END IF
 END IF
+' Mouse-down on main sprite view
 IF ss.zonenum = 1 THEN
  ss.x = ss.zone.x \ ss.zoom
  ss.y = ss.zone.y \ ss.zoom
 END IF
+
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF mouse.buttons AND mouseLeft THEN
   IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - tick, 1)
@@ -3445,10 +3454,13 @@ ELSEIF ss.tool <> airbrush_tool THEN
   END IF
  END IF
 END IF
+
+' Mouse-down on thumbnail view
 IF ss.zonenum = 14 THEN
  ss.x = ss.zone.x
  ss.y = ss.zone.y
 END IF
+
 IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) OR keyval(scSpace) > 0 THEN
  SELECT CASE ss.tool
   CASE draw_tool
@@ -3503,7 +3515,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
    IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
-     drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+     drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
      getsprite ss_save.clonebuf(), 0, ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
      ss_save.clonepos.x = ss_save.clonebuf(0) \ 2
      ss_save.clonepos.y = ss_save.clonebuf(1) \ 2
@@ -3521,8 +3533,8 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       writeundospr placer(), ss
      END IF
-     drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-     drawsprite ss_save.clonebuf(), 0, ss.nulpal(), 0, ss.previewpos.x + ss.x - ss_save.clonepos.x, ss.previewpos.y + ss.y - ss_save.clonepos.y, dpage
+     drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+     drawspritex ss_save.clonebuf(), 0, ss.nulpal(), 0, ss.previewpos.x + ss.x - ss_save.clonepos.x, ss.previewpos.y + ss.y - ss_save.clonepos.y, dpage
      getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
@@ -3590,7 +3602,7 @@ IF ss.tool = clone_tool THEN
 ELSE
  ' For all other tools, pick a color
  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
-  drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+  drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
   ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
   ss.showcolnum = 18
  END IF
@@ -3612,11 +3624,11 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  spriteedit_scroll placer(), ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse.clicks > 0) THEN
- spriteedit_import16 ss, ss_save, state, placer(), workpal()
+ spriteedit_import16 ss, ss_save, state, placer()
  GOSUB spedbak
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse.clicks > 0) THEN
- changepal ss.pal_num, 0, workpal(), state.pt - state.top '--this saves the current palette in case it has changed
+ palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
  spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), ss.pal_num
 END IF
 ss.lastcpos = TYPE(ss.x, ss.y)
@@ -3647,7 +3659,7 @@ floodfill:
 writeundospr placer(), ss
 rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, ss.palindex, dpage
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 paintat vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
@@ -3655,14 +3667,14 @@ RETRACE
 replacecol:
 writeundospr placer(), ss
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 replacecolor vpages(dpage), readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage), ss.palindex, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 sprayspot:
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr placer(), ss
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 airbrush ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
@@ -3680,7 +3692,7 @@ END IF
 RETRACE
 
 putdot:
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
  writeundospr placer(), ss
  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
@@ -3694,21 +3706,21 @@ RETRACE
 
 drawoval:
 writeundospr placer(), ss
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 drawsquare:
 writeundospr placer(), ss
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 straitline:
 writeundospr placer(), ss
-drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
@@ -3721,7 +3733,7 @@ SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx 
  ss.didscroll = YES
 
  rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
- drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x + shiftx, ss.previewpos.y + shifty, dpage
+ drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x + shiftx, ss.previewpos.y + shifty, dpage
  getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 END SUB
 

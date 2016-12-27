@@ -2639,7 +2639,7 @@ function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Fra
 	return hspr
 end function
 
-sub drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer, byval trans as bool = YES)
+sub drawspritex (pic() as integer, byval picoff as integer, pal as Palette16 ptr, byval x as integer, byval y as integer, byval page as integer, byval scale as integer = 1, byval trans as bool = YES)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	if clippedframe <> vpages(page) then
 		setclip , , , , vpages(page)
@@ -2647,15 +2647,21 @@ sub drawspritex (pic() as integer, byval picoff as integer, pal() as integer, by
 
 	'convert the buffer into a Frame
 	dim hspr as frame ptr
-	dim hpal as Palette16 ptr
 	hspr = frame_new_from_buffer(pic(), picoff)
-	hpal = Palette16_new_from_buffer(pal(), po)
 
 	'now draw the image
-	frame_draw(hspr, hpal, x, y, scale, trans, page)
+	frame_draw(hspr, pal, x, y, scale, trans, page)
 	'what a waste
 	frame_unload(@hspr)
-	deallocate(hpal)
+end sub
+
+' Temp overload whichs exists to help detangle the sprite editor from its bad old ways
+sub drawspritex (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer = 1, byval trans as bool = YES)
+'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
+	dim hpal as Palette16 ptr
+	hpal = Palette16_new_from_buffer(pal(), po)
+	drawspritex pic(), picoff, hpal, x, y, page, scale, trans
+	Palette16_unload @hpal
 end sub
 
 sub wardsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
