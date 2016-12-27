@@ -2985,46 +2985,59 @@ END IF
 
 END SUB
 
+' Save palette to old .pal lump
+SUB Palette16_save_to_PAL(pal as Palette16 ptr, fname as string, pal_num as integer)
+ DIM buf(8) as integer
+ loadrecord buf(), fname, 8, 0
+
+ IF buf(0) <> 4444 THEN
+  showerror "Did not save 16-color palette: pal file appears corrupt"
+  EXIT SUB
+ END IF
+
+ DIM last as integer = buf(1)
+
+ IF pal_num > last THEN
+  '--blank out palettes before extending file
+  FOR i as integer = last + 1 TO pal_num
+   flusharray buf(), 8, 0
+   storerecord buf(), fname, 8, 1 + i
+  NEXT i
+  '--update header
+  buf(0) = 4444
+  buf(1) = pal_num
+  storerecord buf(), fname, 8, 0
+ END IF
+
+ IF pal_num >= 0 THEN '--never write a negative file offset
+  'Write palette to buffer
+  DIM colidx as integer = 0
+  FOR i as integer = 0 TO 15
+   poke8bit buf(), i, pal->col(i)
+  NEXT
+  storerecord buf(), fname, 8, 1 + pal_num
+ END IF
+END SUB
+
+SUB Palette16_save(pal as Palette16 ptr, pal_num as integer)
+ DIM fname as string = game & ".pal"
+ Palette16_save_to_PAL pal, fname, pal_num
+ Palette16_update_cache fname, pal_num
+ #IFDEF IS_CUSTOM
+  IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & pal_num
+ #ENDIF
+END SUB
+
 'array() holds multiple palettes (records). Store one of them to file.
 SUB storepal16 (array() as integer, byval array_record as integer, byval file_record as integer)
-DIM buf(8) as integer
-
-DIM f as string = game & ".pal"
-loadrecord buf(), f, 8, 0
-
-IF buf(0) <> 4444 THEN
- showerror "Did not save 16-color palette: file appears corrupt"
- EXIT SUB
-END IF
-
-DIM last as integer = buf(1)
-DIM i as integer
-
-IF file_record > last THEN
- '--blank out palettes before extending file
- FOR i = last + 1 TO file_record
-  flusharray buf(), 8, 0
-  storerecord buf(), f, 8, 1 + i
+ ' Convert to Palette16
+ DIM pal as Palette16
+ ' DIM colidx as integer = 0
+ FOR i as integer = 0 TO 15
+  pal.col(i) = peek8bit(array(), i + file_record * 16)
  NEXT i
- '--update header
- buf(0) = 4444
- buf(1) = file_record
- storerecord buf(), f, 8, 0
-END IF
 
-IF file_record >= 0 THEN '--never write a negative file offset
- 'copy palette to buffer
- FOR i = 0 TO 7
-  buf(i) = array(array_record * 8 + i)
- NEXT i
- 'write palette
- storerecord buf(), f, 8, 1 + file_record
-END IF
-
-Palette16_update_cache f, file_record
-#IFDEF IS_CUSTOM
- IF slave_channel <> NULL_CHANNEL THEN channel_write_line slave_channel, "PAL " & file_record
-#ENDIF
+ Palette16_save @pal, file_record
 END SUB
 
 
