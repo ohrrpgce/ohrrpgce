@@ -4160,6 +4160,7 @@ SUB sfunctions(byval cmdid as integer)
    IF running_on_mobile() THEN
     'Mobile with touchscreen. Player argument ignored for now.
     hide_virtual_gamepad()
+    gam.pad.being_shown = NO
     plotstr(retvals(0)).s = touch_virtual_keyboard(plotstr(retvals(0)).s, retvals(1))
     update_virtual_gamepad_display()
    ELSE
