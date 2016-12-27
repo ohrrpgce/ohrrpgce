@@ -2573,7 +2573,7 @@ sub hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x 
 	drawspritex(pic(), 0, pal(), p, x, y, page, 4, trans)
 end sub
 
-function Palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
+function Palette16_new_from_buffer(pal() as integer, byval po as integer = 0) as Palette16 ptr
 	dim ret as Palette16 ptr
 	dim word as integer
 	ret = allocate(sizeof(Palette16))
@@ -2591,7 +2591,7 @@ function Palette16_new_from_buffer(pal() as integer, byval po as integer) as Pal
 end function
 
 'Convert a (deprecated) pixel array representation of a 4 bit sprite to a Frame
-function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
+function frame_new_from_buffer(pic() as integer, byval picoff as integer = 0) as Frame ptr
 	dim sw as integer
 	dim sh as integer
 	dim hspr as frame ptr
@@ -2859,6 +2859,13 @@ sub getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 		sbase = sbase + 1 'next col
 	next
 
+end sub
+
+'Convenience wrapper around getsprite to grab an entire Frame instead of a sub-rectangle of a page
+sub frame_to_buffer(spr as Frame ptr, pic() as integer)
+	dim page as integer = registerpage(spr)
+	getsprite pic(), 0, 0, 0, spr->w, spr->h, page
+	freepage page
 end sub
 
 

@@ -204,7 +204,8 @@ DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 'new sprite functions
 declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
-declare function frame_new_from_buffer(pic() as integer, byval picoff as integer) as Frame ptr
+declare function frame_new_from_buffer(pic() as integer, byval picoff as integer = 0) as Frame ptr
+declare sub frame_to_buffer(spr as Frame ptr, pic() as integer)
 declare function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 declare function frame_load_4bit(filen as string, record as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
