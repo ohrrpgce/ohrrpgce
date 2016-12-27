@@ -2150,7 +2150,14 @@ end</example>
 		<command id="playsound">
 			<canon>play sound (num,loop,preempt)</canon>
 			<shortname>play sound</shortname>
-			<description>Plays or resumes a sound effect. Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it finishes instead of stopping. Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it. If <p>preempt</p> is <ref>false</ref>, and the sound is already playing, this command will do nothing.</description>
+			<description>
+				Plays or resumes a sound effect.
+				Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it finishes
+				instead of stopping (it defaults to false).
+				Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it.
+				If <p>preempt</p> is <ref>false</ref> (which is the default), and the sound is already playing,
+				this command will do nothing.
+			</description>
 			<seealso>
 				<ref>stopsound</ref>
 			</seealso>
