@@ -49,7 +49,7 @@ end type
 
 declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
-declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
+declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES, byval write_mask as bool = NO)
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
 declare function decode_bmp_bitmask(mask as uint32) as integer
@@ -5663,7 +5663,10 @@ end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 'warning! Make sure setclip has been called before calling this
-private sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES)
+'write_mask:
+'    If the destination has a mask, sets the mask for the destination rectangle
+'    equal to the mask (or color-key) for the source rectangle. Does not OR them.
+private sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as bool = YES, byval write_mask as bool = NO)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
@@ -5692,7 +5695,7 @@ private sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal a
 
 	if starty > endy or startx > endx then exit sub
 
-	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans)
+	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans, write_mask)
 end sub
 
 
@@ -6357,6 +6360,7 @@ private sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
 end sub
 
 'for a copy you intend to modify. Otherwise use frame_reference
+'clr: if true, return a new blank Frame with the same size.
 'note: does not copy frame arrays, only single frames
 function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 	dim ret as frame ptr, i as integer
@@ -6430,16 +6434,19 @@ end sub
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
-sub frame_draw(byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
+' write_mask:
+'    If the destination has a mask, sets the mask for the destination rectangle
+'    equal to the mask (or color-key) for the source rectangle. Does not OR them.
+sub frame_draw(byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer, write_mask as bool = NO)
 	if src = 0 then
 		debug "trying to draw null frame"
 		exit sub
 	end if
 
-	frame_draw src, pal, x, y, scale, trans, vpages(page)
+	frame_draw src, pal, x, y, scale, trans, vpages(page), write_mask
 end sub
 
-sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
+sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr, write_mask as bool = NO)
 	if dest <> clippedframe then
 		setclip , , , , dest
 	end if
@@ -6460,8 +6467,17 @@ sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	syfrom = large(clipt, y)
 	syto = small(clipb, y + (src->h * scale) - 1)
 
-	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
+	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, write_mask, scale)
 end sub
+
+'Return a copy which has been clipped or extended.
+'Can also be used to scroll (does not wrap around)
+function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0) as Frame ptr
+	dim as Frame ptr ret
+	ret = frame_new(wide, high, , YES, (spr->mask <> NULL))
+	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, YES  'trans=NO, write_mask=YES
+	return ret
+end function
 
 'Public:
 ' Returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out.

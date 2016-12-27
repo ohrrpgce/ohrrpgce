@@ -212,8 +212,8 @@ declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Rel
 declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload cdecl(byval p as frame ptr ptr)
-declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
-declare sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr)
+declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer, write_mask as bool = NO)
+declare sub frame_draw overload (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr, write_mask as bool = NO)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)
@@ -221,6 +221,7 @@ declare sub frame_flip_vert(byval spr as frame ptr)
 declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
+declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
 declare sub sprite_empty_cache(sprtype as SpriteType = -1)

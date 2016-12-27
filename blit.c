@@ -18,8 +18,10 @@ void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, 
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth);
 
 
-
-void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, int trans) {
+// write_mask:
+//    If the destination has a mask, sets the mask for the destination rectangle
+//    equal to the mask (or color-key) for the source rectangle. Does not OR them.
+void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, bool trans, bool write_mask) {
 	int i, j;
 	unsigned char *maskp, *srcp, *destp;
 	int srclineinc, destlineinc;
@@ -27,9 +29,10 @@ void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, in
 	srcp = spr->image;
 
 	maskp = spr->mask;
-	if (maskp == NULL)
+	if (maskp == NULL) {
 		//we could add an optimised version for this case, which is the 99% case
 		maskp = srcp;
+	}
 
 	srcp += startoffset;
 	maskp += startoffset;
@@ -109,20 +112,36 @@ void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, in
 			srcp += srclineinc;
 		}
 	}
+
+	// Set the destination mask
+	if (write_mask && destspr->mask) {
+		srcp = (spr->mask ? spr->mask : spr->image) + startoffset;
+		destp = destspr->mask + startx + starty * destspr->pitch;
+		for (i = starty; i <= endy; i++) {
+			memcpy(destp, srcp, endx - startx + 1);
+			srcp += spr->pitch;
+			destp += destspr->pitch;
+		}
+	}
 }
 
 //horribly slow; keep putting off doing something about it
-void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, int trans, int scale) {
-	unsigned char *sptr;
-	unsigned char *mptr;
+// write_mask:
+//    If the destination has a mask, sets the mask for the destination rectangle
+//    equal to the mask (or color-key) for the source rectangle. Does not OR them.
+void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, bool trans, bool write_mask, int scale) {
+	unsigned char *restrict destbuf;
+	unsigned char *restrict maskbuf;
 	int tx, ty;
 	int pix, spix;
 
-	sptr = destspr->image;
-
-	mptr = spr->mask;
+	destbuf = destspr->image;
+	maskbuf = spr->mask;
 	if (spr->mask == 0) {
-		mptr = spr->image;
+		maskbuf = spr->image;
+	}
+	if (destspr->mask == 0) {
+		write_mask = false;
 	}
 	
 	//ty = starty
@@ -136,9 +155,11 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 				spix = (((ty - y) / scale) * spr->pitch) + ((tx - x) / scale);
 				
 				if (pal != 0)
-					sptr[pix] = pal->col[spr->image[spix]];
+					destbuf[pix] = pal->col[spr->image[spix]];
 				else
-					sptr[pix] = spr->image[spix];
+					destbuf[pix] = spr->image[spix];
+				if (write_mask)
+					destspr->mask[pix] = maskbuf[spix];
 			}
 		}
 	} else {
@@ -151,12 +172,14 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 				spix = (((ty - y) / scale) * spr->pitch) + ((tx - x) / scale);
 					
 				//check mask
-				if (mptr[spix]) {
+				if (maskbuf[spix]) {
 					if (pal != 0)
-						sptr[pix] = pal->col[spr->image[spix]];
+						destbuf[pix] = pal->col[spr->image[spix]];
 					else
-						sptr[pix] = spr->image[spix];
+						destbuf[pix] = spr->image[spix];
 				}
+				if (write_mask)
+					destspr->mask[pix] = maskbuf[spix];
 			}
 		}
 	}
