@@ -1125,6 +1125,7 @@ IF running_on_console() THEN
  gam.hero(who).name = gamepad_virtual_keyboard(gam.hero(who).name, limit)
 ELSEIF running_on_mobile() THEN
  hide_virtual_gamepad()
+ gam.pad.being_shown = NO
  gam.hero(who).name = touch_virtual_keyboard(gam.hero(who).name, limit, prompt)
 ELSE
  'On platforms that need it (<s>currently</s> just Android) show the virtual keyboard.
