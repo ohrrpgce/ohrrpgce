@@ -10,14 +10,17 @@
 #else
 #include <alloca.h>
 #endif
+#include <stdbool.h>
+#include <limits.h>
+
 #include "common.h"
 #include "array.h"
 
 
 typedef struct _array_header {
 	typetable *typetbl;
-	unsigned int len:31;
-	unsigned int temp:1;
+	int len:31;
+	int temp:1;
 } array_header;
 
 /* ifdef VALGRIND_ARRAYS, then two bytes before the start of an array hold an id
@@ -89,7 +92,7 @@ static inline typetable *get_type(array_t array) {
 	return get_header(array)->typetbl;
 }
 
-static inline unsigned int length(array_t array) {
+static inline int length(array_t array) {
 	if (!array)
 		return 0;
 	return get_header(array)->len;
@@ -101,14 +104,34 @@ static inline void *nth_elem(array_t array, int n) {
 }
 
 
-
+// In modern GCC and clang can use __builtin_smul_overflow and
+// __builtin_sadd_overflow instead.
+// Set *res = a*b, or return true if overflows
+inline bool smul_overflow(int a, int b, int *res) {
+	*res = a * b;  // technically undefined behaviour, don't care
+	if (b && *res / b != a)
+		return true;
+	return false;
+}
+// Set *res = a+b, or return true if overflows
+inline bool sadd_overflow(int a, int b, int *res) {
+	if ((a > 0 && b > INT_MAX - a) ||
+	    (a < 0 && b < INT_MIN - a))
+		return true;
+	*res = a + b;
+	return false;
+}
 
 
 // Lowest-level alloc routine. Does not destruct/construct elements
-static array_t mem_alloc(typetable *typetbl, unsigned int len) {
-	void *mem = malloc(ARRAY_OVERHEAD + len * typetbl->element_len);
+static array_t mem_alloc(typetable *typetbl, int len) {
+	int arraysize;
+	if (smul_overflow(len, typetbl->element_len, &arraysize) ||
+	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
+		debug(errFatal, "mem_alloc: overflow; vector len=%d", len);
+	void *mem = malloc(arraysize);
 	if (!mem)
-		debug(errFatal, "out of memory");
+		debug(errFatal, "mem_alloc: out of memory");
 	array_t array = get_array_ptr(mem);
 #ifdef VALGRIND_ARRAYS
 	*(short *)mem = alloc_header();
@@ -136,11 +159,14 @@ static array_t mem_resize(array_t array, unsigned int len) warn_unused_result;
 static array_t mem_resize(array_t array, unsigned int len) {
 	void *mem = get_mem_ptr(array);
 	array_header *header = get_header(array);
-	unsigned int arraysize = ARRAY_OVERHEAD + len * header->typetbl->element_len;
+	int arraysize;
+	if (smul_overflow(len, header->typetbl->element_len, &arraysize) ||
+	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
+		debug(errFatal, "mem_resize: overflow; vector len=%d", len);
 #if 1
 	void *newmem = realloc(mem, arraysize);
 #else
-	unsigned int oldsize = ARRAY_OVERHEAD + header->len * header->typetbl->element_len;
+	int oldsize = ARRAY_OVERHEAD + header->len * header->typetbl->element_len;
 	if (oldsize > arraysize)
 		oldsize = arraysize;
 	void *newmem = malloc(arraysize);
@@ -198,7 +224,7 @@ void resize_and_init() {
 
 // Call destructor on elements [from, to)
 // Note: does not set array length or resize memory
-static void delete_elements(array_t array, unsigned int from, unsigned int to) {
+static void delete_elements(array_t array, int from, int to) {
 	typetable *typetbl = get_header(array)->typetbl;
 
 	if (typetbl->dtor) {
@@ -212,7 +238,7 @@ static void delete_elements(array_t array, unsigned int from, unsigned int to) {
 	}
 }
 
-static void copy_elements(void *dest, void *src, unsigned int len, typetable *tytbl) {
+static void copy_elements(void *dest, void *src, int len, typetable *tytbl) {
 	if (tytbl->copyctor) {
 		for (int i = 0; i < len; ++i) {
 			tytbl->copyctor(dest, src);
@@ -224,7 +250,7 @@ static void copy_elements(void *dest, void *src, unsigned int len, typetable *ty
 		memcpy(dest, src, tytbl->element_len * len);
 }
 
-static void init_elements(void *dest, unsigned int len, typetable *tytbl) {
+static void init_elements(void *dest, int len, typetable *tytbl) {
 	if (tytbl->ctor) {
 		for (int i = 0; i < len; ++i) {
 			tytbl->ctor(dest);
@@ -249,7 +275,7 @@ array_t array_append(array_t *array, void *value) {
 		throw_error("array_append: array uninitialised");
 
 	typetable *tytbl = get_type(*array);
-	unsigned int len = length(*array);
+	int len = length(*array);
 
 	if (value >= (void *)*array && value < (void *)nth_elem(*array, len)) {
 		// Special logic: you're appending an element of an array to itself, but what
@@ -292,8 +318,8 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 		throw_error("array_extend_d: trying to destructively extend array onto itself!");
 
 	typetable *tytbl = get_type(*dest);
-	unsigned int len = length(*dest);
-	unsigned int len2 = length(*src);
+	int len = length(*dest);
+	int len2 = length(*src);
 	if (get_type(*src) != tytbl)
 		throw_error("array_extend_d: these arrays have different types! %s and %s", tytbl->name, get_type(*src)->name);
 
@@ -315,8 +341,8 @@ array_t array_extend(array_t *dest, array_t *src) {
 		return array_extend_d(dest, src);
 
 	typetable *tytbl = get_type(*dest);
-	unsigned int len = length(*dest);
-	unsigned int len2 = length(*src);
+	int len = length(*dest);
+	int len2 = length(*src);
 
 	*dest = mem_resize(*dest, len + len2);
 	//If *dest == *src, then we are still OK
@@ -377,6 +403,9 @@ void array_assign_d(array_t *dest, array_t *src) {
 
 // (A)
 void array_new(array_t *array, int len, typetable *tbl) {
+	if (len < 0) {
+		throw_error("array_new: invalid length %d", len);
+	}
 	if (*array)
 		array_free(array);
 	*array = mem_alloc(tbl, len);
@@ -393,13 +422,16 @@ void array_free(array_t *array) {
 }
 
 // (E)
-void array_resize(array_t *array, unsigned int len) {
+void array_resize(array_t *array, int len) {
 	if (!*array) {
 		throw_error("array_resize: array uninitialised");
 	}
+	if (len < 0) {
+		throw_error("array_resize: invalid length %d", len);
+	}
 
 	typetable *tytbl = get_type(*array);
-	unsigned int oldlen = length(*array);
+	int oldlen = length(*array);
 
 	if (len < oldlen)
 		delete_elements(*array, len, oldlen);
@@ -411,8 +443,8 @@ void array_resize(array_t *array, unsigned int len) {
 }
 
 // (E)
-void *array_expand(array_t *array, unsigned int amount) {
-	unsigned int oldlen = length(*array);
+void *array_expand(array_t *array, int amount) {
+	int oldlen = length(*array);
 	array_resize(array, oldlen + amount);
 	return nth_elem(*array, oldlen);
 }
@@ -514,7 +546,7 @@ int array_find(array_t array, void *value) {
 		throw_error("array_find: array uninitialised");
 
 	typetable *tytbl = get_type(array);
-	unsigned int len = length(array);
+	int len = length(array);
 
 	FnCompare comp = tytbl->inequal;
 	if (!comp)
@@ -537,7 +569,7 @@ array_t array_insert(array_t *array, int pos, void *value) {
 		throw_error("array_insert: array uninitialised");
 
 	typetable *tytbl = get_type(*array);
-	unsigned int len = length(*array);
+	int len = length(*array);
 
 	if (pos < 0 || pos > len) {
 		debug(errPromptBug, "array_insert: tried to insert at position %d of array of length %d", pos, len);
@@ -575,10 +607,10 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 		throw_error("array_delete_slice: array uninitialised");
 
 	typetable *tytbl = get_type(*array);
-	unsigned int len = length(*array);
+	int len = length(*array);
 
-	// Cast is just to silence an annoying warning due to a gcc bug
-	if (from < 0 || to > len || (unsigned int)from > (unsigned int)to) {
+	// Cast, and checking to < 0, is just to silence an annoying warning due to a gcc bug
+	if (from < 0 || to < 0 || to > len || (unsigned int)from > (unsigned int)to) {
 		debug(errPromptBug, "array_delete_slice: invalid slice [%d, %d) of array of length %d", from, to, len);
 		return *array;
 	}
@@ -610,7 +642,7 @@ array_t array_reverse(array_t *array) {
 		throw_error("array_reverse: array uninitialised");
 
 	typetable *tytbl = get_type(*array);
-	unsigned int len = length(*array);
+	int len = length(*array);
 
 	array_t newmem = mem_alloc(tytbl, len);
 	char *dest = (char *)newmem, *src = nth_elem(*array, len - 1);

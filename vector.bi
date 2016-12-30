@@ -83,9 +83,9 @@ end extern
   declare sub array_assign (byref dest as any vector, byref src as any vector)
   declare sub array_assign_d (byref dest as any vector, byref src as any vector)
   declare function array_temp (byval this as any vector) as any vector
-  declare function array_length (byval this as any vector) as uint32
-  declare sub array_resize (byref this as any vector, byval len as uint32)
-  declare function array_expand (byref this as any vector, byval amount as uint32 = 1) as any ptr
+  declare function array_length (byval this as any vector) as int32
+  declare sub array_resize (byref this as any vector, byval len as int32)
+  declare function array_expand (byref this as any vector, byval amount as int32 = 1) as any ptr
   declare function array_index (byval this as any vector, byval index as int32) as any ptr
   declare function array_end (byval this as any vector) as any ptr
   declare function array_type (byval this as any vector) as TypeTable ptr
@@ -162,13 +162,13 @@ end extern
   'Convention: always mark anything you return from a function as temporary!
   declare function v_ret overload alias "array_temp" (byval this as T vector) as T vector
 
-  declare function v_len overload alias "array_length" (byval this as T vector) as uint32
+  declare function v_len overload alias "array_length" (byval this as T vector) as int32
 
   'Changes the length of a vector. Elements are deleted or constructed as needed
-  declare sub v_resize overload alias "array_resize" (byref this as T vector, byval len as uint32)
+  declare sub v_resize overload alias "array_resize" (byref this as T vector, byval len as int32)
 
   'Increases the number of elements of a vector. Returns a pointer to the first new element created
-  declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as uint32 = 1) as T ptr
+  declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as int32 = 1) as T ptr
 
   'Return pointer to some element. Throws a fatal error if out of range. Useful for polymorphism.
   declare function v_at overload alias "array_index" (byval this as T vector, byval index as int32) as T ptr
@@ -223,7 +223,7 @@ end extern
   'So use wrapper functions instead (luckily GCC can optimise these away)
 
   'Wrap just for the default argument
-  private function v_expand overload (byref this as T vector, byval amount as uint32 = 1) as T ptr
+  private function v_expand overload (byref this as T vector, byval amount as int32 = 1) as T ptr
     return cast(T ptr, array_expand(this, amount))
   end function
 
