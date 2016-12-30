@@ -52,6 +52,7 @@ DECLARE SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as inte
 DECLARE SUB spriteedit_set_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
 DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, placer() as integer)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
+DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
 DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
 DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer)
@@ -59,7 +60,9 @@ DECLARE SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
 DECLARE SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
-DECLARE SUB writeundospr (placer() as integer, ss as SpriteEditState, is_rotate as integer=NO)
+DECLARE SUB writeundospr (placer() as integer, ss as SpriteEditState)
+DECLARE SUB readundospr (placer() as integer, ss as SpriteEditState)
+DECLARE SUB readredospr (placer() as integer, ss as SpriteEditState)
 DECLARE FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as string
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, nulpal() as integer, palnum as integer)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, img as GraphicPair)
@@ -2146,19 +2149,55 @@ SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
  frame_unload @resized
 END SUB
 
-SUB writeundospr (placer() as integer, ss as SpriteEditState, is_rotate as integer=NO)
+SUB writeundospr (placer() as integer, ss as SpriteEditState)
  IF placer(0) <> ss.wide OR placer(1) <> ss.high THEN
-  IF is_rotate THEN
-   '--if we haven't done anything since the last rotate, skip this undo write entirely
-   EXIT SUB
-  END IF
   'This is a hack to compensate for the fact that the sprite buffer
   'remains in a rotated state after a rotation operation
+  '(This has nothing to do with undo, it's only here because
+  'this function is called before any edit operation.)
   spriteedit_clip placer(), ss
  END IF
- stosprite placer(), 0, ss.undoslot * ss.size, 100, 3
- ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
- ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
+
+ ' Delete any redo steps. If ss.undodepth points before the end
+ ' of history then we just undid a change before the current edit,
+ ' and the current state is probably equal to .undo_history[.undodepth],
+ ' so we could skip saving, but to be on the safe side save overwrite
+ ' the current step.
+ v_delete_slice ss.undo_history, ss.undodepth, v_len(ss.undo_history)
+ ' Trim history if too long
+ IF ss.undodepth >= ss.undomax THEN
+  v_delete_slice ss.undo_history, 0, 1
+  ss.undodepth -= 1
+ END IF
+ ' Append
+ DIM spr as Frame ptr = frame_new_from_buffer(placer())
+ v_append ss.undo_history, spr  'Increments refcount
+ ss.undodepth = v_len(ss.undo_history)
+ frame_unload @spr
+END SUB
+
+' Perform undo
+SUB readundospr (placer() as integer, ss as SpriteEditState)
+ IF ss.undodepth > 0 THEN
+  ' If there are no existing redo steps, then save current state for redo
+  IF ss.undodepth = v_len(ss.undo_history) THEN
+   DIM spr as Frame ptr = frame_new_from_buffer(placer())
+   v_append ss.undo_history, spr  'Increments refcount
+   frame_unload @spr
+  END IF
+  ss.undodepth -= 1
+  frame_to_buffer ss.undo_history[ss.undodepth], placer()
+  ss.didscroll = NO  'save a new undo block upon scrolling
+ END IF
+END SUB
+
+' Perform redo
+SUB readredospr (placer() as integer, ss as SpriteEditState)
+ IF ss.undodepth < v_len(ss.undo_history) - 1 THEN
+  ss.undodepth += 1
+  frame_to_buffer ss.undo_history[ss.undodepth], placer()
+  ss.didscroll = NO  'save a new undo block upon scrolling
+ END IF
 END SUB
 
 ' Draw sprite editor
@@ -2173,9 +2212,9 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  NEXT i
 
  ' Draw the <-Pal###-> or <-Col###-> display
- textcolor uilook(uiText), uilook( IIF(ss.zonenum = 5, uiSelectedDisabled, uiDisabledItem) )
+ textcolor_icon YES, ss.zonenum = 5
  printstr CHR(27), 243, 100, dpage
- textcolor uilook(uiText), uilook( IIF(ss.zonenum = 6, uiSelectedDisabled, uiDisabledItem) )
+ textcolor_icon YES, ss.zonenum = 6
  printstr CHR(26), 307, 100, dpage
  textcolor uilook(uiText), 0
  DIM paldisplay as string
@@ -2267,10 +2306,17 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  IF ss.undodepth = 0 THEN
   textcolor uilook(uiBackground), uilook(uiDisabledItem)
  ELSE
-  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  textcolor_icon ss.zonenum = 20, NO
  END IF
- IF ss.zonenum = 20 AND ss.undodepth > 0 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr "UNDO", 170, 182, dpage
+ printstr "UNDO", 130, 182, dpage
+ ' Both undodepth = len and undodepth = len-1 are valid and indicate
+ ' no more redo history (the later means no unsaved changes)
+ IF ss.undodepth >= v_len(ss.undo_history) - 1 THEN
+  textcolor uilook(uiBackground), uilook(uiDisabledItem)
+ ELSE
+  textcolor_icon ss.zonenum = 21, NO
+ END IF
+ printstr "REDO", 170, 182, dpage
 
  IF ss.tool = airbrush_tool THEN
   textcolor uilook(uiMenuItem), 0
@@ -2300,18 +2346,22 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  END IF
 END SUB
 
+SUB textcolor_icon(selected as bool, hover as bool)
+ DIM as integer fg = uiMenuItem, bg = uiDisabledItem
+ IF selected THEN
+  fg = uiText
+  bg = uiMenuItem
+ END IF
+ IF hover THEN
+  IF selected THEN fg = uiSelectedItem ELSE fg = uiText
+  bg = uiSelectedDisabled
+ END IF
+ textcolor uilook(fg), uilook(bg)
+END SUB
+
 'Draw one of the clickable areas (obviously this will all be replaced with slices eventually)
 SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
- DIM bgcol as integer
- DIM fgcol as integer
- fgcol = uilook(uiMenuItem)
- bgcol = uilook(uiDisabledItem)
- IF highlight THEN
-  fgcol = uilook(uiText)
-  bgcol = uilook(uiMenuItem)
- END IF
- IF ss.zonenum = areanum + 1 THEN bgcol = uilook(uiSelectedDisabled)
- textcolor fgcol, bgcol
+ textcolor_icon highlight, (ss.zonenum = areanum + 1)
  printstr icon, area(areanum).x, area(areanum).y, dpage
 END SUB
 
@@ -2400,12 +2450,17 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
  area(18).h = 8
  area(18).hidecursor = NO
  'UNDO BUTTON
- area(19).x = 170
+ area(19).x = 130
  area(19).y = 182
  area(19).w = 32
  area(19).h = 8
  area(19).hidecursor = NO
- 'area 20 is what???
+ 'REDO BUTTON
+ area(20).x = 170
+ area(20).y = 182
+ area(20).w = 32
+ area(20).h = 8
+ area(20).hidecursor = NO
  'MORE TOOLS
  FOR i = 0 TO 3
   area(21 + i).x = 140 + i * 10
@@ -3097,7 +3152,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
 END SUB
 
 SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
- writeundospr sprbuf(), ss, YES
+ writeundospr sprbuf(), ss
  spriteedit_rotate_sprite_buffer sprbuf(), ss.nulpal(), counterclockwise
 END SUB
 
@@ -3214,9 +3269,11 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
  ss.delay = 10
  ss.lastpos.x = -1
  ss.lastpos.y = -1
+
+ v_new ss.undo_history
  ss.undodepth = 0
- ss.undoslot = 0
- ss.undomax = (32000 \ ss.size) - 1
+ ss.undomax = maxSpriteHistoryMem \ (sizeof(Frame) + ss.wide * ss.high)
+
  GOSUB spedbak
  hidemousecursor
  setkeys
@@ -3254,7 +3311,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
  defaultmousecursor
  palette16_save ss.palette, ss.pal_num
  palette16_unload @ss.palette
-
+ v_free ss.undo_history
 EXIT SUB
 
 sprctrl:
@@ -3309,7 +3366,9 @@ END IF
 gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
 
 '--UNDO
-IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN GOSUB readundospr
+IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN readundospr placer(), ss
+'--REDO
+IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND mouse.clicks > 0) THEN readredospr placer(), ss
 
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF copy_keychord() THEN
@@ -3392,7 +3451,7 @@ IF keyval(scAlt) = 0 THEN
   END IF
  END IF
 END IF
-' Mouse-down on main sprite view
+' Mouse over main sprite view
 IF ss.zonenum = 1 THEN
  ss.x = ss.zone.x \ ss.zoom
  ss.y = ss.zone.y \ ss.zoom
@@ -3449,7 +3508,7 @@ ELSEIF ss.tool <> airbrush_tool THEN
  END IF
 END IF
 
-' Mouse-down on thumbnail view
+' Mouse over thumbnail view
 IF ss.zonenum = 14 THEN
  ss.x = ss.zone.x
  ss.y = ss.zone.y
@@ -3673,16 +3732,6 @@ airbrush ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize, ss.mist, ss
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
-RETRACE
-
-readundospr:
-IF ss.undodepth > 0 THEN
- ss.undodepth = ss.undodepth - 1
- ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, -1)
- loadsprite placer(), 0, ss.undoslot * ss.size, 100, ss.wide, ss.high, 3
-
- ss.didscroll = NO  'save a new undo block upon scrolling
-END IF
 RETRACE
 
 putdot:

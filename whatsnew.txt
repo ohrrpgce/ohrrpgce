@@ -22,6 +22,8 @@ WHAT IS NEW?
       [MirceaKitsune]
     * 'Silence' as an option for textbox Music setting [MirceaKitsune]
     * Removed NPC definitions limit (NPC instance limit remains) [Ralph]
+    * Added Redo (Ctrl+Y) to the sprite editor, and made the undo
+      history size a few hundred times larger [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

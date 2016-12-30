@@ -75,9 +75,12 @@ TYPE SpriteEditState
   radius as double
   ellip_minoraxis as double '--For non-circular elipses. Not implemented yet
   ellip_angle as double
-  undodepth as integer
-  undoslot as integer
-  undomax as integer
+  undodepth as integer  'A value in [0, len(undo_history)] (i.e. inclusive). Indicates
+                        'the index in the history equal to the current edit state (with
+                        'indices before being undo steps and after being redo steps); if
+                        'equal to len, indicates the current edits aren't saved in history.
+  undomax as integer    'Max allowable length of undo_history
+  undo_history as Frame ptr vector  'A stack of previous states. The most recent is at the end
   didscroll as integer  'have scrolled since selecting the scroll tool
   delay as integer
   movespeed as integer
