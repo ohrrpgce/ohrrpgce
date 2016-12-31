@@ -44,9 +44,9 @@ S Scroll tool. While this is the
   editor, pixels will be cropped
   instead of wrapping around.
 
-M Mark tool. This tool selects a
-  rectangular area to use with the
-  clone tool.
+M Mark tool. This tool selects
+  (copies) a rectangular area to use
+  with the clone tool.
 
 C Clone tool. This tool paints using
   a portion of a sprite that you have
@@ -64,7 +64,9 @@ C Clone tool. This tool paints using
   different, you may cut off the
   edges. (Note also that rotation
   does not work when using the air-
-  brush tool)
+  brush tool. Also, while the Clone
+  tool is active, the Clone brush
+  is rotated instead.)
 
 Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kind of a pain, isn't it?
 
@@ -72,9 +74,11 @@ Press I to import a 16-color BMP image. If you are in single-frame mode, this wi
 
 Press E to export the sprite to a 16-color BMP image. If you are in single-frame mode this exports an single frame, if you are in full spriteset mode this will export the full spriteset.
 
-Press CTRL+Z or click the Undo button to revert an unwanted change.
+CTRL+Z or clicking the UNDO button reverts an unwanted change.
 
-CTRL+C Copies the sprite
+CTRL+Y of clicking REDO reverses the last UNDO.
+
+CTRL+C Copies the sprite (the copy buffer is shared with the spriteset browser).
 
 CTRL+V Pastes a copy of the sprite.
 

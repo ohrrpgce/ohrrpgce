@@ -3383,7 +3383,7 @@ END IF
 IF paste_keychord() AND ss_save.paste = YES THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawspritex placer(), 0, ss.nulpal(), 0, 0, 0, dpage
- drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, 0
+ drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, , NO
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
@@ -3611,7 +3611,7 @@ FOR i as integer = 0 TO UBOUND(toolinfo)
  'Check tool selection
  'Alt is used for alt+c and alt+v
  IF (mouse.clicks > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR _
-    (keyval(scAlt) = 0 AND keyval(toolinfo(i).shortcut) > 1) THEN
+    (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(toolinfo(i).shortcut) > 1) THEN
   IF ss.tool <> i THEN ss.didscroll = NO
   ss.tool = i
   GOSUB resettool
