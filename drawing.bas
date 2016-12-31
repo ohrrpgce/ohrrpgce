@@ -14,6 +14,8 @@
 #include "cglobals.bi"
 #include "const.bi"
 
+CONST COLORNUM_SHOW_TICKS = 30
+
 'External subs and functions
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -1037,11 +1039,7 @@ DO
  END IF
  rectangle ts.tilex * 20 + 7, ts.tiley * 20 + 7, 6, 6, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ts.gotmouse THEN
-  IF tog THEN
-   textcolor uilook(uiText), 0
-  ELSE
-   textcolor uilook(uiDescription), 0
-  END IF
+  textcolor uilook(IIF(tog, uiText, uiDescription)), 0
   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
@@ -1269,7 +1267,7 @@ DO
  END IF
  IF keyval(scAlt) > 0 AND keyval(scUp) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
  IF keyval(scAlt) > 0 AND keyval(scDown) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
- IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
+ IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR YES
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
   readundoblock ts
@@ -1457,11 +1455,7 @@ DO
    c = ts.drawcursor
    IF ts.hidemouse THEN c = -2
   END IF
-  IF tog THEN
-   textcolor uilook(uiText), 0
-  ELSE
-   textcolor uilook(uiDescription), 0
-  END IF
+  textcolor uilook(IIF(tog, uiText, uiDescription)), 0
   printstr CHR(2 + c), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
@@ -1856,11 +1850,7 @@ DO
  printstr temp, 4, ypos, dpage, YES
 
  IF ts.gotmouse THEN
-  IF tog THEN
-   textcolor uilook(uiText), 0
-  ELSE
-   textcolor uilook(uiDescription), 0
-  END IF
+  textcolor uilook(IIF(tog, uiText, uiDescription)), 0
   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
@@ -2059,15 +2049,14 @@ DO
  IF copy_keychord() THEN
   spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   frame_assign @ss_save.spriteclip, frame_new_from_buffer(placer())
-  ss_save.paste = YES
  END IF
  '--pasting
  do_paste = 0
- IF paste_keychord() AND ss_save.paste = YES THEN
+ IF paste_keychord() AND ss_save.spriteclip <> NULL THEN
   do_paste = -1
   paste_transparent = 0
  END IF
- IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.paste = YES THEN
+ IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.spriteclip <> NULL THEN
   do_paste = -1
   paste_transparent = -1
  END IF
@@ -2291,7 +2280,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
   drawbox ss.previewpos.x + select_rect.x, ss.previewpos.y + select_rect.y, select_rect.wide, select_rect.high, ss.curcolor, 1, dpage
  END IF
  DIM temppos as XYPair
- IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN
+ IF ss.tool = clone_tool AND ss_save.clone_brush <> NULL AND state.tog = 0 THEN
   temppos.x = ss.x - ss_save.clonepos.x
   temppos.y = ss.y - ss_save.clonepos.y
   IF ss.readjust THEN
@@ -2346,11 +2335,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
   IF ss.zonecursor = -1 THEN
    IF ss.hidemouse THEN ss.zonecursor = -2 ELSE ss.zonecursor = ss.drawcursor
   END IF
-  IF state.tog THEN
-   textcolor uilook(uiText), 0
-  ELSE
-   textcolor uilook(uiDescription), 0
-  END IF
+  textcolor uilook(IIF(state.tog, uiText, uiDescription)), 0
   printstr CHR(2 + ss.zonecursor), mouse.x - 2, mouse.y - 2, dpage
  END IF
 END SUB
@@ -3307,21 +3292,21 @@ IF mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.x = -1
  ss.lastpos.y = -1
 END IF
-IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
+IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR YES
 
 ' Changing the index in the 16 color palette
 IF keyval(scComma) > 1 AND ss.palindex > 0 THEN
  ss.palindex -= 1
- ss.showcolnum = 30
+ ss.showcolnum = COLORNUM_SHOW_TICKS
 END IF
 IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN
  ss.palindex += 1
- ss.showcolnum = 30
+ ss.showcolnum = COLORNUM_SHOW_TICKS
 END IF
 IF ss.zonenum = 2 THEN
  IF mouse.clicks > 0 THEN
   ss.palindex = small(ss.zone.x \ 4, 15)
-  ss.showcolnum = 30
+  ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
 END IF
 
@@ -3356,16 +3341,15 @@ IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND mouse.clicks
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF copy_keychord() THEN
  frame_assign @ss_save.spriteclip, frame_duplicate(ss.sprite)
- ss_save.paste = YES
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
-IF paste_keychord() AND ss_save.paste = YES THEN
+IF paste_keychord() AND ss_save.spriteclip <> NULL THEN
  writeundospr ss
  spriteedit_clip ss
  frame_draw ss_save.spriteclip, NULL, 0, 0, , NO, ss.sprite
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
-IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.paste = YES THEN
+IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.spriteclip <> NULL THEN
  writeundospr ss
  spriteedit_clip ss
  frame_draw ss_save.spriteclip, NULL, 0, 0, , YES, ss.sprite
@@ -3373,31 +3357,28 @@ END IF
 
 '--COPY PALETTE (ALT+C)
 IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN
- FOR i as integer = 0 TO 15
-   ss_save.pal_clipboard.col(i) = ss.palette->col(i)
- NEXT
- ss_save.pal_clipboard_used = YES
+ palette16_unload @ss_save.pal_clipboard
+ ss_save.pal_clipboard = palette16_duplicate(ss.palette)
 END IF
 '--PASTE PALETTE (ALT+V)
 IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
- IF ss_save.pal_clipboard_used THEN
-  FOR i as integer = 0 TO 15
-   ss.palette->col(i) = ss_save.pal_clipboard.col(i)
-  NEXT
+ IF ss_save.pal_clipboard THEN
+  palette16_unload @ss.palette
+  ss.palette = palette16_duplicate(ss_save.pal_clipboard)
  END IF
 END IF
 
 ' Change master palette index for the selected palette color
 ss.curcolor = ss.palette->col(ss.palindex)
 IF keyval(scAlt) > 0 THEN
- IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16 : ss.showcolnum = 18
- IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = 18
- IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1 : ss.showcolnum = 18
- IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1 : ss.showcolnum = 18
+ IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1 : ss.showcolnum = COLORNUM_SHOW_TICKS
 END IF
 IF (mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
  ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
- ss.showcolnum = 18
+ ss.showcolnum = COLORNUM_SHOW_TICKS
 END IF
 ss.palette->col(ss.palindex) = ss.curcolor
 
@@ -3459,7 +3440,7 @@ END IF
 IF ss.tool = clone_tool THEN
  '--When clone tool is active, rotate the clone buffer
  IF mouse.buttons AND mouseLeft THEN
-  IF ss_save.clonemarked THEN
+  IF ss_save.clone_brush THEN
    IF ss.zonenum = 16 THEN
     frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
     ss.delay = 20
@@ -3548,7 +3529,6 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
      frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, -small(ss.x, ss.holdpos.x), -small(ss.y, ss.holdpos.y))
      ss_save.clonepos.x = ss_save.clone_brush->w \ 2
      ss_save.clonepos.y = ss_save.clone_brush->h \ 2
-     ss_save.clonemarked = YES
      ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
      ss.hold = YES
@@ -3558,7 +3538,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
    END IF
   CASE clone_tool
    IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss_save.clonemarked THEN
+    IF ss_save.clone_brush THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       writeundospr ss
      END IF
@@ -3619,7 +3599,7 @@ IF ss.tool = clone_tool THEN
   END IF
  END IF
  ' clone buffer rotation
- IF ss_save.clonemarked THEN
+ IF ss_save.clone_brush THEN
   IF keyval(scPlus) > 1 THEN
    frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
   END IF
@@ -3631,7 +3611,7 @@ ELSE
  ' For all other tools, pick a color
  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
   ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
-  ss.showcolnum = 18
+  ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
 END IF
 IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN

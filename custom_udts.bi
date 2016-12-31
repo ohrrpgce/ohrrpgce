@@ -25,15 +25,15 @@ ENUM ToolIDs
 END ENUM
 
 TYPE SpriteEditStatic
-  clonemarked as bool
-  clonepos as XYPair
+  'The clone/mark tool buffer
   clone_brush as Frame ptr
+  clonepos as XYPair   'Position of handle on the clone brush (defaults to center)
 
-  spriteclip as Frame ptr  'Used for Ctrl+C/V/T copying of sprites, by both spriteset browser and sprite editor!
-  paste as bool  'A sprite has been copied into spriteclip
+  'Used for Ctrl+C/V/T copying of sprites, by both spriteset browser and sprite editor! NULL if none.
+  spriteclip as Frame ptr
 
-  pal_clipboard_used as bool  'A palette has been copied into .pal_clipboard
-  pal_clipboard as Palette16
+  'Used for Alt+C/V copying of palettes; NULL if none
+  pal_clipboard as Palette16 ptr
 END TYPE
 
 TYPE SpriteEditState
@@ -62,14 +62,14 @@ TYPE SpriteEditState
   zonenum as integer
   zone as XYPair
   zonecursor as integer
-  gotmouse as integer
+  gotmouse as bool
   drawcursor as integer
   tool as integer
   pal_num as integer    'Palette used by current sprite
   curcolor as integer   'Index in master palette (equal to .palette->col(.palindex))
   palindex as integer   'Index in 16 color palette
   palette as Palette16 ptr 'The current palette
-  hidemouse as integer
+  hidemouse as bool
   airsize as integer
   mist as integer
   hold as integer
@@ -83,13 +83,13 @@ TYPE SpriteEditState
                         'equal to len, indicates the current edits aren't saved in history.
   undomax as integer    'Max allowable length of undo_history
   undo_history as Frame ptr vector  'A stack of previous states. The most recent is at the end
-  didscroll as integer  'have scrolled since selecting the scroll tool
+  didscroll as bool     'have scrolled since selecting the scroll tool
   delay as integer
   movespeed as integer
-  readjust as integer
+  readjust as bool
   adjustpos as XYPair
   previewpos as XYPair
-  showcolnum as integer
+  showcolnum as integer 'Ticks remaining to show the number of selected master palette color
 END TYPE
 
 TYPE TileCloneBuffer
@@ -107,11 +107,11 @@ TYPE TileEditState
   lastcpos as XYPair  '.x/.y (cursor position) last tick
   tilex as integer  'on the tileset (measured in tiles)
   tiley as integer
-  gotmouse as integer
+  gotmouse as bool
   drawcursor as integer
   tool as integer
   curcolor as integer
-  hidemouse as integer
+  hidemouse as bool
   radius as double
   airsize as integer
   mist as integer
@@ -328,7 +328,7 @@ TYPE MouseArea
   y as integer
   w as integer
   h as integer
-  hidecursor as integer
+  hidecursor as bool
 END TYPE
 
 TYPE ToolInfoType
