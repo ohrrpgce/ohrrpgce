@@ -1440,7 +1440,7 @@ SUB onetimetog(byref tagnum as integer)
  gen(genOneTimeNPC) = i
 END SUB
 
-FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval picnum as integer) as integer
+FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer) as integer
 
  DIM buf(7) as integer
  DIM sprite(9) as Frame ptr
@@ -1498,7 +1498,9 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as integer, byval pi
     frame_unload @sprite(i)
     palette16_unload @pal16(i)
     sprite(i) = frame_load(picset, picnum)
-    IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i, picset, picnum)
+    ' Pass default_blank = NO, to avoid debug spam if picnum is off the end.
+    ' (This isn't strictly necessary)
+    IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i, picset, picnum, NO)
    NEXT i
   END IF
 

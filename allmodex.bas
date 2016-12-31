@@ -7069,20 +7069,30 @@ function Palette16_new() as Palette16 ptr
 	return ret
 end function
 
-'autotype: spriteset
-function Palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as Palette16 ptr
+'Loads and returns a palette from the current game (resolving -1 to default palette),
+'returning a blank palette if it didn't exist, or returning NULL if default_blank=NO.
+'(Note that the blank palette isn't put in the cache, so if that palette is later
+'added to the game, it won't auto-update.)
+'autotype, spr: spriteset type and id, for default palette lookup.
+function Palette16_load(num as integer, autotype as SpriteType = 0, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
 	dim as Palette16 ptr ret = Palette16_load(game + ".pal", num, autotype, spr)
 	if ret = 0 then
-		if num >= 0 then
+		if num >= 0 AND default_blank then
 			' Only bother to warn if a specific palette failed to load.
 			' Avoids debug noise when default palette load fails because of a non-existant defpal file
 			debug "failed to load palette " & num
+		end if
+		if default_blank then
+			return Palette16_new()
 		end if
 	end if
 	return ret
 end function
 
-function Palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as Palette16 ptr
+'Loads and returns a palette from a file (resolving -1 to default palette),
+'Returns NULL if the palette doesn't exist!
+'autotype, spr: spriteset type and id, for default palette lookup.
+function Palette16_load(fil as string, num as integer, autotype as SpriteType = 0, spr as integer = 0) as Palette16 ptr
 	dim starttime as double = timer
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
@@ -7245,7 +7255,7 @@ sub spriteset_unload(byref ss as SpriteSet ptr)
 	ss = NULL
 end sub
 
-function sprite_load(byval ptno as integer, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
+function sprite_load(byval ptno as SpriteType, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
 	dim sprset as SpriteSet ptr = spriteset_load_from_pt(ptno, rec)
 	if sprset = NULL then return NULL
 
