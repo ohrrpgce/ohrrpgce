@@ -75,7 +75,7 @@ End Enum
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette
-	refcount as int32 'private
+	refcount as int32 'private. This is not like Frame.refcount, it is used by the palette cache.
 END TYPE
 
 TYPE SpriteCacheEntryFwd as SpriteCacheEntry

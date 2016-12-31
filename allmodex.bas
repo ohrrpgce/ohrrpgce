@@ -7194,6 +7194,14 @@ sub Palette16_unload(byval p as Palette16 ptr ptr)
 	*p = 0
 end sub
 
+function Palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
+	dim ret as Palette16 ptr = palette16_new()
+	for i as integer = 0 to ubound(pal->col)
+		ret->col(i) = pal->col(i)
+	next
+	return ret
+end function
+
 'update a .pal-loaded palette even while in use elsewhere.
 '(Won't update localpal in a cached PrintStrState... but caching isn't implemented yet)
 sub Palette16_update_cache(fil as string, byval num as integer)

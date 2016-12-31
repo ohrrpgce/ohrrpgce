@@ -238,6 +238,7 @@ declare function palette16_new_from_buffer(pal() as integer, byval po as integer
 declare function palette16_load overload(num as integer, autotype as SpriteType = 0, spr as integer = 0, default_blank as bool = YES) as palette16 ptr
 declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = 0, spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
+declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
 
