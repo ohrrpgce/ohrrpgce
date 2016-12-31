@@ -27,8 +27,9 @@ END ENUM
 TYPE SpriteEditStatic
   clonemarked as integer
   clonepos as XYPair
-  clonebuf(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
-  spriteclip(2561) as integer 'Needs to be big enough for 2+w*h*frames/4 for the largest possible sprite set
+  'These need to be big enough for 2+w*h*frames/4 for the largest possible sprite set in arbitrary-size sprite editor
+  clonebuf(102402) as integer
+  spriteclip(102402) as integer
   clipsize as XYPair
   paste as bool  'A sprite has been copied into spriteclip(). Used by both spriteset browser and sprite editor!
 
