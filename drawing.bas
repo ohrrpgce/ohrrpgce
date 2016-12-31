@@ -7,6 +7,12 @@
 #include "config.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "loading.bi"
+#include "customsubs.bi"
+#include "cglobals.bi"
+#include "const.bi"
 
 'External subs and functions
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -14,9 +20,15 @@ DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as int
 DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 
 'Local SUBs and FUNCTIONS
+
+DECLARE SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
+
 DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
+DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
+
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
+' Tileset editor
 DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
 DECLARE SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
@@ -30,56 +42,53 @@ DECLARE SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy as integer, dp as integer)
-DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
-DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
-DECLARE SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
-DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
+DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
+
+' Tileset animation editor
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
 DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
-DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
 DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
 
+' Spriteset browser (TODO: misnamed)
 DECLARE SUB spriteedit_load_spriteset(byval setnum as integer, byval top as integer, ss as SpriteEditState)
 DECLARE SUB spriteedit_save_spriteset(byval setnum as integer, byval top as integer, ss as SpriteEditState)
 DECLARE SUB spriteedit_save_all_you_see(byval top as integer, ss as SpriteEditState)
 DECLARE SUB spriteedit_load_all_you_see(byval top as integer, ss as SpriteEditState, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
 DECLARE SUB spriteedit_set_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
-DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, placer() as integer)
+
+' Sprite editor
+DECLARE SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, sprite as Frame ptr ptr)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, area() as MouseArea, byval areanum as integer, byval highlight as integer = NO)
-DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
-DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer)
-DECLARE SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
-DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
-DECLARE SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
-DECLARE SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
-DECLARE SUB writeundospr (placer() as integer, ss as SpriteEditState)
-DECLARE SUB readundospr (placer() as integer, ss as SpriteEditState)
-DECLARE SUB readredospr (placer() as integer, ss as SpriteEditState)
+DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
+DECLARE SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
+DECLARE SUB spriteedit_clip (ss as SpriteEditState)
+DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
+DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
+DECLARE SUB writeundospr (ss as SpriteEditState)
+DECLARE SUB readundospr (ss as SpriteEditState)
+DECLARE SUB readredospr (ss as SpriteEditState)
+DECLARE SUB spriteedit_save_sprite(ss as SpriteEditState, ssb_state as MenuState)
+
+' Sprite import/expotr
+DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic)
 DECLARE FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as string
-DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, nulpal() as integer, palnum as integer)
-DECLARE SUB spriteedit_export OVERLOAD (default_name as string, img as GraphicPair)
+DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, palnum as integer)
+DECLARE SUB spriteedit_export OVERLOAD (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
 
-#include "allmodex.bi"
-#include "common.bi"
-#include "loading.bi"
-#include "customsubs.bi"
-#include "cglobals.bi"
 
-#include "const.bi"
-
-SUB airbrush (byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer, byval p as integer)
+SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
 'airbrush thanks to Ironhoof (Russel Hamrick)
 
 'AirBrush this rutine works VERY well parameters as fallows:
-' AIRBRUSH x , y , diameter , mist_amount , color , page
+' AIRBRUSH sprite , x , y , diameter , mist_amount , color
 ' diameter sets the width & hight by square radius
 ' mist_amount sets how many pixels to place i put 100 and it ran fast so
 ' it works EXCELLENTLY with a mouse on the DTE =)
@@ -90,7 +99,7 @@ FOR count as integer = 1 TO randint(m)
  DIM x3 as integer = x - d / 2
  DIM y3 as integer = y - d / 2
  IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
-  putpixel x3 + x2, y3 + y2, c, p
+  putpixel spr, x3 + x2, y3 + y2, c
  END IF
 NEXT
 
@@ -1575,7 +1584,7 @@ SELECT CASE ts.tool
     putpixel 20 + i, 120 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
    NEXT j
   NEXT i
-  airbrush 20 + ts.x, 120 + ts.y, ts.airsize, ts.mist, ts.curcolor, dpage
+  airbrush vpages(dpage), 20 + ts.x, 120 + ts.y, ts.airsize, ts.mist, ts.curcolor
   FOR i as integer = 0 TO 19
    FOR j as integer = 0 TO 19
     putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(20 + i, 120 + j, dpage), 3
@@ -1992,7 +2001,11 @@ DO
   ' sprite_editor modifies placer(), ss (including ss.palette and ss.pal_num), and ss_save
   ' It also saves changes to palettes (but not default palettes (ss.pal_num)) directly to disk (but not the sprite!)
   ss.pal_num = poffset(state.pt)
-  sprite_editor ss, ss_save, state, info(), placer()
+  DIM sprite as Frame ptr
+  sprite = frame_new_from_buffer(placer())
+  sprite_editor ss, ss_save, state, info(), @sprite
+  frame_to_buffer sprite, placer()
+  frame_unload @sprite
   spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   spriteedit_save_all_you_see state.top, ss
   poffset(state.pt) = ss.pal_num
@@ -2044,10 +2057,9 @@ DO
  END IF
  '--copying
  IF copy_keychord() THEN
-  spriteedit_get_loaded_sprite ss, ss_save.spriteclip(), state.top, state.pt, ss.framenum
+  spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
+  frame_assign @ss_save.spriteclip, frame_new_from_buffer(placer())
   ss_save.paste = YES
-  ss_save.clipsize.x = ss.wide
-  ss_save.clipsize.y = ss.high
  END IF
  '--pasting
  do_paste = 0
@@ -2064,10 +2076,7 @@ DO
   spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   rectangle 0, 0, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
-  IF NOT paste_transparent THEN
-   rectangle 0, 0, ss_save.clipsize.x, ss_save.clipsize.y, 0, dpage
-  END IF
-  drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
+  frame_draw ss_save.spriteclip, NULL, 0, 0, , paste_transparent, dpage
   getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
   spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
   spriteedit_save_spriteset state.pt, state.top, ss
@@ -2077,7 +2086,7 @@ DO
  END IF
  IF keyval(scE) > 1 THEN
   spriteedit_get_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
-  spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), poffset(state.pt)
+  spriteedit_export spriteedit_export_name(ss, state), placer(), poffset(state.pt)
  END IF
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
@@ -2139,25 +2148,16 @@ END IF
 
 END SUB '----END of spriteset_editor()
 
-SUB spriteedit_clip (placer() as integer, ss as SpriteEditState)
- 'clip possibly rotated sprite buffer to sprite's frame size
- DIM as Frame ptr spr, resized
- spr = frame_new_from_buffer(placer())
- resized = frame_resized(spr, ss.wide, ss.high)
- frame_to_buffer resized, placer()
- frame_unload @spr
- frame_unload @resized
+' The sprite buffer remains in a rotated state after a rotation operation,
+' call this to clip it to the correct size.
+SUB spriteedit_clip (ss as SpriteEditState)
+ IF ss.sprite->w <> ss.wide OR ss.sprite->h <> ss.high THEN
+  frame_assign @ss.sprite, frame_resized(ss.sprite, ss.wide, ss.high)
+ END IF
 END SUB
 
-SUB writeundospr (placer() as integer, ss as SpriteEditState)
- IF placer(0) <> ss.wide OR placer(1) <> ss.high THEN
-  'This is a hack to compensate for the fact that the sprite buffer
-  'remains in a rotated state after a rotation operation
-  '(This has nothing to do with undo, it's only here because
-  'this function is called before any edit operation.)
-  spriteedit_clip placer(), ss
- END IF
-
+' Save the current edit state as an undo step
+SUB writeundospr (ss as SpriteEditState)
  ' Delete any redo steps. If ss.undodepth points before the end
  ' of history then we just undid a change before the current edit,
  ' and the current state is probably equal to .undo_history[.undodepth],
@@ -2170,38 +2170,47 @@ SUB writeundospr (placer() as integer, ss as SpriteEditState)
   ss.undodepth -= 1
  END IF
  ' Append
- DIM spr as Frame ptr = frame_new_from_buffer(placer())
+ DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
  v_append ss.undo_history, spr  'Increments refcount
  ss.undodepth = v_len(ss.undo_history)
  frame_unload @spr
 END SUB
 
+' Change the current state of the sprite editor sprite to a new
+' Frame, saving an undo step.
+SUB spriteedit_edit(ss as SpriteEditState, new_sprite as Frame ptr)
+ writeundospr ss
+ frame_assign @ss.sprite, new_sprite
+END SUB
+
 ' Perform undo
-SUB readundospr (placer() as integer, ss as SpriteEditState)
+SUB readundospr (ss as SpriteEditState)
  IF ss.undodepth > 0 THEN
   ' If there are no existing redo steps, then save current state for redo
   IF ss.undodepth = v_len(ss.undo_history) THEN
-   DIM spr as Frame ptr = frame_new_from_buffer(placer())
+   DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
    v_append ss.undo_history, spr  'Increments refcount
    frame_unload @spr
   END IF
   ss.undodepth -= 1
-  frame_to_buffer ss.undo_history[ss.undodepth], placer()
+  frame_unload @ss.sprite
+  ss.sprite = frame_duplicate(ss.undo_history[ss.undodepth])
   ss.didscroll = NO  'save a new undo block upon scrolling
  END IF
 END SUB
 
 ' Perform redo
-SUB readredospr (placer() as integer, ss as SpriteEditState)
+SUB readredospr (ss as SpriteEditState)
  IF ss.undodepth < v_len(ss.undo_history) - 1 THEN
   ss.undodepth += 1
-  frame_to_buffer ss.undo_history[ss.undodepth], placer()
+  frame_unload @ss.sprite
+  ss.sprite = frame_duplicate(ss.undo_history[ss.undodepth])
   ss.didscroll = NO  'save a new undo block upon scrolling
  END IF
 END SUB
 
 ' Draw sprite editor
-SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, placer() as integer, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
+SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state as MenuState, info() as string, toolinfo() as ToolInfoType, area() as MouseArea, mouse as MouseInfo)
  ss.curcolor = ss.palette->col(ss.palindex)   'Is this necessary?
  rectangle 247 + ((ss.curcolor - ((ss.curcolor \ 16) * 16)) * 4), 0 + ((ss.curcolor \ 16) * 6), 5, 7, uilook(uiText), dpage
  DIM as integer i, o
@@ -2212,9 +2221,9 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  NEXT i
 
  ' Draw the <-Pal###-> or <-Col###-> display
- textcolor_icon YES, ss.zonenum = 5
+ textcolor_icon NO, ss.zonenum = 5
  printstr CHR(27), 243, 100, dpage
- textcolor_icon YES, ss.zonenum = 6
+ textcolor_icon NO, ss.zonenum = 6
  printstr CHR(26), 307, 100, dpage
  textcolor uilook(uiText), 0
  DIM paldisplay as string
@@ -2232,7 +2241,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
  FOR i = 0 TO 15
   rectangle 248 + (i * 4), 111, 3, 5, ss.palette->col(i), dpage
  NEXT
- drawspritex placer(), 0, ss.palette, 4, 1, dpage, ss.zoom, NO
+ frame_draw ss.sprite, ss.palette, 4, 1, ss.zoom, NO, dpage
 
  DIM select_rect as RectType
  corners_to_rect_inclusive Type(ss.x, ss.y), ss.holdpos, select_rect
@@ -2241,7 +2250,7 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
   rectangle 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
- drawspritex placer(), 0, ss.palette, ss.previewpos.x, ss.previewpos.y, dpage, 1, NO
+ frame_draw ss.sprite, ss.palette, ss.previewpos.x, ss.previewpos.y, 1, NO, dpage
 
  DIM overlay as Frame ptr
  overlay = frame_new(ss.wide, ss.high, , YES)
@@ -2289,8 +2298,8 @@ SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic, state
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
-  drawspritex ss_save.clonebuf(), 0, ss.palette, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage, ss.zoom
-  drawspritex ss_save.clonebuf(), 0, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
+  frame_draw ss_save.clone_brush, ss.palette, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, ss.zoom, , dpage
+  frame_draw ss_save.clone_brush, ss.palette, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, , , dpage
  END IF
  textcolor uilook(uiMenuItem), 0
  printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
@@ -2478,6 +2487,16 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 
 END SUB
 
+' This is called from the sprite editor and calls into the spriteset browser
+' in order to save the current frame to file.
+SUB spriteedit_save_sprite(ss as SpriteEditState, ssb_state as MenuState)
+ DIM placer(2 + ss.setsize \ 2) as integer
+ frame_to_buffer ss.sprite, placer()
+ spriteedit_set_loaded_sprite ss, placer(), ssb_state.top, ssb_state.pt, ss.framenum
+ spriteedit_save_spriteset ssb_state.pt, ssb_state.top, ss
+ IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
+END SUB
+
 ' Copies one of the frames visible in the spriteset browser into placer()
 SUB spriteedit_get_loaded_sprite(ss as SpriteEditState, placer() as integer, top as integer, setnum as integer, framenum as integer)
  DIM offset as integer = (setnum - top) * (ss.setsize \ 2) + framenum * (ss.size \ 2)
@@ -2563,31 +2582,24 @@ FUNCTION spriteedit_export_name (ss as SpriteEditState, state as MenuState) as s
  RETURN s
 END FUNCTION
 
-SUB spriteedit_export(default_name as string, placer() as integer, nulpal() as integer, palnum as integer)
+'Wrapper, only for the spriteset browser
+SUB spriteedit_export(default_name as string, placer() as integer, palnum as integer)
  'palnum is offset into pal lump of the 16 color palette this sprite should use
 
- DIM img as GraphicPair
- img.sprite = frame_new(placer(0), placer(1), 1, YES, NO)
- img.pal = palette16_load(palnum)
-
- DIM pg as integer
- pg = registerpage(img.sprite)
- drawspritex placer(), 0, nulpal(), 0, 0, 0, pg
- freepage pg
- 
+ DIM as Frame ptr sprite = frame_new_from_buffer(placer())
+ DIM as Palette16 ptr pal = palette16_load(palnum)
  '--hand off the frame and palette to the real export function
- spriteedit_export default_name, img
- 
+ spriteedit_export default_name, sprite, pal
  '--cleanup
- frame_unload @(img.sprite)
- palette16_unload @(img.pal)
+ frame_unload @sprite
+ palette16_unload @pal
 END SUB
 
-SUB spriteedit_export(default_name as string, img as GraphicPair)
+SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palette16 ptr)
  DIM outfile as string
  outfile = inputfilename("Export to bitmap file", ".bmp", "", "input_file_export_sprite", default_name)
  IF outfile <> "" THEN
-  frame_export_bmp4 outfile & ".bmp", img.sprite, master(), img.pal
+  frame_export_bmp4 outfile & ".bmp", sprite, master(), pal
  END IF
 END SUB
 
@@ -3056,7 +3068,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
 END FUNCTION
 
 'state.pt is the current palette number
-SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref state as MenuState, placer() as integer)
+SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic)
  DIM srcbmp as string
  STATIC default as string
 
@@ -3141,51 +3153,21 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
   EXIT SUB
  END IF
 
- 'resize spr to the correct size, and put in placer()
- DIM resized as Frame ptr
- resized = frame_resized(impsprite, ss.wide, ss.high)
- frame_to_buffer resized, placer()
+ 'Set as sprite
+ frame_assign @ss.sprite, frame_resized(impsprite, ss.wide, ss.high)
 
  frame_unload @impsprite
- frame_unload @resized
  palette16_unload @pal16
-END SUB
-
-SUB spriteedit_rotate_sprite(sprbuf() as integer, ss as SpriteEditState, counterclockwise as integer=NO)
- writeundospr sprbuf(), ss
- spriteedit_rotate_sprite_buffer sprbuf(), ss.nulpal(), counterclockwise
-END SUB
-
-SUB spriteedit_rotate_sprite_buffer(sprbuf() as integer, nulpal() as integer, counterclockwise as integer=NO)
- DIM as Frame ptr spr1, spr2
- spr1 = frame_new_from_buffer(sprbuf(), 0)
-
- IF counterclockwise THEN
-  spr2 = frame_rotated_90(spr1)
- ELSE
-  spr2 = frame_rotated_270(spr1)
- END IF
- frame_unload @spr1
-
- DIM holdscreen as integer
- holdscreen = registerpage(spr2)
-
- DIM size as XYPair
- size.x = sprbuf(0)
- size.y = sprbuf(1)
- getsprite sprbuf(), 0, 0, 0, size.y, size.x, holdscreen
-
- freepage holdscreen
- frame_unload @spr2
 END SUB
 
 ' placer() contains the sprite to be edited, in drawsprite() format,
 ' sprite_editor modifies all of these in-place and expects the caller to save placer()
 ' and the default palette (ss.pal_num)! However, it saves the palette (ss.palette) itself.
 ' state.pt is the current spriteset ID
-SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, placer() as integer)
+SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, state as MenuState, info() as string, sprite as Frame ptr ptr)
 
  ss.palette = palette16_load(ss.pal_num)
+ ss.sprite = frame_duplicate(*sprite)
 
  DIM mouse as MouseInfo
 
@@ -3289,7 +3271,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
    IF ss.hold = YES THEN
     GOSUB resettool
    ELSE
-    spriteedit_clip placer(), ss
+    spriteedit_clip ss
     GOSUB resettool
     EXIT DO
    END IF
@@ -3300,7 +3282,7 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
   END IF
   ss.delay = large(ss.delay - 1, 0)
   copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
-  spriteedit_display ss, ss_save, state, placer(), info(), toolinfo(), area(), mouse
+  spriteedit_display ss, ss_save, state, info(), toolinfo(), area(), mouse
   SWAP vpage, dpage
   setvispage vpage
   'blank the sprite area
@@ -3312,6 +3294,9 @@ SUB sprite_editor(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic
  palette16_save ss.palette, ss.pal_num
  palette16_unload @ss.palette
  v_free ss.undo_history
+
+ spriteedit_clip ss
+ frame_assign sprite, ss.sprite
 EXIT SUB
 
 sprctrl:
@@ -3351,9 +3336,7 @@ IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
 END IF
 IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
  '--write changes so far
- spriteedit_set_loaded_sprite ss, placer(), state.top, state.pt, ss.framenum
- spriteedit_save_spriteset state.pt, state.top, ss
- IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
+ spriteedit_save_sprite ss, state
  '--save current palette
  palette16_save ss.palette, ss.pal_num
  ss.pal_num = pal16browse(ss.pal_num, ss.fileset, state.pt)
@@ -3366,32 +3349,26 @@ END IF
 gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
 
 '--UNDO
-IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN readundospr placer(), ss
+IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN readundospr ss
 '--REDO
-IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND mouse.clicks > 0) THEN readredospr placer(), ss
+IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND mouse.clicks > 0) THEN readredospr ss
 
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF copy_keychord() THEN
- ss_save.clipsize.x = ss.wide
- ss_save.clipsize.y = ss.high
- FOR idx as integer = 0 TO UBOUND(placer)
-  ss_save.spriteclip(idx) = placer(idx)
- NEXT
+ frame_assign @ss_save.spriteclip, frame_duplicate(ss.sprite)
  ss_save.paste = YES
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
 IF paste_keychord() AND ss_save.paste = YES THEN
- rectangle 0, 0, ss.wide, ss.high, 0, dpage
- drawspritex placer(), 0, ss.nulpal(), 0, 0, 0, dpage
- drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, , NO
- getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
+ writeundospr ss
+ spriteedit_clip ss
+ frame_draw ss_save.spriteclip, NULL, 0, 0, , NO, ss.sprite
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
 IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.paste = YES THEN
- rectangle 0, 0, ss.wide, ss.high, 0, dpage
- drawspritex placer(), 0, ss.nulpal(), 0, 0, 0, dpage
- drawspritex ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
- getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
+ writeundospr ss
+ spriteedit_clip ss
+ frame_draw ss_save.spriteclip, NULL, 0, 0, , YES, ss.sprite
 END IF
 
 '--COPY PALETTE (ALT+C)
@@ -3484,11 +3461,11 @@ IF ss.tool = clone_tool THEN
  IF mouse.buttons AND mouseLeft THEN
   IF ss_save.clonemarked THEN
    IF ss.zonenum = 16 THEN
-    spriteedit_rotate_sprite_buffer ss_save.clonebuf(), ss.nulpal(), YES
+    frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
     ss.delay = 20
    END IF
    IF ss.zonenum = 18 THEN
-    spriteedit_rotate_sprite_buffer ss_save.clonebuf(), ss.nulpal()
+    frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
     ss.delay = 20
    END IF
   END IF
@@ -3498,11 +3475,11 @@ ELSEIF ss.tool <> airbrush_tool THEN
  '--except for the airbrush tool because it's buttons collide.
  IF mouse.buttons AND mouseLeft THEN
   IF ss.zonenum = 16 THEN
-   spriteedit_rotate_sprite placer(), ss, YES
+   spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
    ss.delay = 20
   END IF
   IF ss.zonenum = 18 THEN
-   spriteedit_rotate_sprite placer(), ss
+   spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
    ss.delay = 20
   END IF
  END IF
@@ -3568,10 +3545,9 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
    IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
-     drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-     getsprite ss_save.clonebuf(), 0, ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
-     ss_save.clonepos.x = ss_save.clonebuf(0) \ 2
-     ss_save.clonepos.y = ss_save.clonebuf(1) \ 2
+     frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, -small(ss.x, ss.holdpos.x), -small(ss.y, ss.holdpos.y))
+     ss_save.clonepos.x = ss_save.clone_brush->w \ 2
+     ss_save.clonepos.y = ss_save.clone_brush->h \ 2
      ss_save.clonemarked = YES
      ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
@@ -3584,11 +3560,10 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
    IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss_save.clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
-      writeundospr placer(), ss
+      writeundospr ss
      END IF
-     drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-     drawspritex ss_save.clonebuf(), 0, ss.nulpal(), 0, ss.previewpos.x + ss.x - ss_save.clonepos.x, ss.previewpos.y + ss.y - ss_save.clonepos.y, dpage
-     getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+     spriteedit_clip ss
+     frame_draw ss_save.clone_brush, , ss.x - ss_save.clonepos.x, ss.y - ss_save.clonepos.y, , , ss.sprite
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
     ELSE
@@ -3620,10 +3595,10 @@ FOR i as integer = 0 TO UBOUND(toolinfo)
 NEXT i
 IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
  IF keyval(scPlus) > 1 THEN
-  spriteedit_rotate_sprite placer(), ss
+  spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
  END IF
  IF keyval(scMinus) > 1 THEN
-  spriteedit_rotate_sprite placer(), ss, YES
+  spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
  END IF
 END IF
 IF ss.tool = clone_tool THEN
@@ -3646,26 +3621,28 @@ IF ss.tool = clone_tool THEN
  ' clone buffer rotation
  IF ss_save.clonemarked THEN
   IF keyval(scPlus) > 1 THEN
-   spriteedit_rotate_sprite_buffer ss_save.clonebuf(), ss.nulpal()
+   frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
   END IF
   IF keyval(scMinus) > 1 THEN
-   spriteedit_rotate_sprite_buffer ss_save.clonebuf(), ss.nulpal(), YES
+   frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
   END IF
  END IF
 ELSE
  ' For all other tools, pick a color
  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
-  drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-  ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
+  ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
   ss.showcolnum = 18
  END IF
 END IF
-IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN
+ writeundospr ss
+ frame_flip_horiz ss.sprite
+END IF
 IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
  'Handle scrolling by dragging the mouse
  'Did this drag start inside the sprite box? If not, ignore
  IF mouse.dragging ANDALSO mouseover(mouse.clickstart.x, mouse.clickstart.y, 0, 0, 0, area()) = ss.zonenum THEN
-  spriteedit_scroll placer(), ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
+  spriteedit_scroll ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
  END IF
 END IF
 IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
@@ -3674,15 +3651,15 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  IF slowkey(scRight, 100) THEN scrolloff.x = 1
  IF slowkey(scUp, 100) THEN scrolloff.y = -1
  IF slowkey(scDown, 100) THEN scrolloff.y = 1
- spriteedit_scroll placer(), ss, scrolloff.x, scrolloff.y
+ spriteedit_scroll ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse.clicks > 0) THEN
- spriteedit_import16 ss, ss_save, state, placer()
+ spriteedit_import16 ss, ss_save
  GOSUB spedbak
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse.clicks > 0) THEN
  palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
- spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), ss.pal_num
+ spriteedit_export spriteedit_export_name(ss, state), ss.sprite, ss.palette
 END IF
 ss.lastcpos = TYPE(ss.x, ss.y)
 RETRACE
@@ -3709,74 +3686,62 @@ area(13).h = ss.high
 RETRACE
 
 floodfill:
-writeundospr placer(), ss
-rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, ss.palindex, dpage
-rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-paintat vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+writeundospr ss
+spriteedit_clip ss
+paintat ss.sprite, ss.x, ss.y, ss.palindex
 RETRACE
 
 replacecol:
-writeundospr placer(), ss
-rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-replacecolor vpages(dpage), readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage), ss.palindex, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+writeundospr ss
+spriteedit_clip ss
+replacecolor ss.sprite, readpixel(ss.sprite, ss.x, ss.y), ss.palindex
 RETRACE
 
 sprayspot:
-IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr placer(), ss
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-airbrush ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr ss
+spriteedit_clip ss
+airbrush ss.sprite, ss.x, ss.y, ss.airsize, ss.mist, ss.palindex
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
 
 putdot:
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
- writeundospr placer(), ss
- putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
+ writeundospr ss
+ spriteedit_clip ss
+ putpixel ss.sprite, ss.x, ss.y, ss.palindex
 ELSE
- drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.lastpos.x, ss.previewpos.y + ss.lastpos.y, ss.palindex, dpage
+ drawline ss.sprite, ss.x, ss.y, ss.lastpos.x, ss.lastpos.y, ss.palindex
 END IF
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
 
 drawoval:
-writeundospr placer(), ss
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+writeundospr ss
+spriteedit_clip ss
+ellipse ss.sprite, ss.holdpos.x, ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
 RETRACE
 
 drawsquare:
-writeundospr placer(), ss
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+writeundospr ss
+spriteedit_clip ss
+rectangle ss.sprite, small(ss.x, ss.holdpos.x), small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex
 RETRACE
 
 straitline:
-writeundospr placer(), ss
-drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.palindex, dpage
-getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+writeundospr ss
+spriteedit_clip ss
+drawline ss.sprite, ss.x, .ss.y, ss.holdpos.x, ss.holdpos.y, ss.palindex
 RETRACE
 END SUB
 
-SUB spriteedit_scroll (placer() as integer, ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
+SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
  'Save an undo before the first of a consecutive scrolls
  IF shiftx = 0 AND shifty = 0 THEN EXIT SUB
- IF ss.didscroll = NO THEN writeundospr placer(), ss
+ IF ss.didscroll = NO THEN writeundospr ss
  ss.didscroll = YES
 
- rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
- drawspritex placer(), 0, ss.nulpal(), 0, ss.previewpos.x + shiftx, ss.previewpos.y + shifty, dpage
- getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+ frame_assign @ss.sprite, frame_resized(ss.sprite, ss.wide, ss.high, shiftx, shifty)
 END SUB
 

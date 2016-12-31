@@ -25,13 +25,12 @@ ENUM ToolIDs
 END ENUM
 
 TYPE SpriteEditStatic
-  clonemarked as integer
+  clonemarked as bool
   clonepos as XYPair
-  'These need to be big enough for 2+w*h*frames/4 for the largest possible sprite set in arbitrary-size sprite editor
-  clonebuf(102402) as integer
-  spriteclip(102402) as integer
-  clipsize as XYPair
-  paste as bool  'A sprite has been copied into spriteclip(). Used by both spriteset browser and sprite editor!
+  clone_brush as Frame ptr
+
+  spriteclip as Frame ptr  'Used for Ctrl+C/V/T copying of sprites, by both spriteset browser and sprite editor!
+  paste as bool  'A sprite has been copied into spriteclip
 
   pal_clipboard_used as bool  'A palette has been copied into .pal_clipboard
   pal_clipboard as Palette16
@@ -51,8 +50,10 @@ TYPE SpriteEditState
   at_a_time as integer 'Number of sprite sets that fit on the browsing screen
   fullset as bool      'Whether editing full spritesets rather than frames
   visible_sprites as short ptr  'Stores all loaded visible sprites, as concatenated placer() arrays
+  nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
  
   '--sprite editor state
+  sprite as Frame ptr   'The current edit state
   zoom as integer
   x as integer
   y as integer
@@ -64,9 +65,9 @@ TYPE SpriteEditState
   gotmouse as integer
   drawcursor as integer
   tool as integer
-  pal_num as integer  ' Palette used by current sprite
-  curcolor as integer ' Index in master palette (equal to .palette->col(.palindex))
-  palindex as integer ' Index in 16 color palette
+  pal_num as integer    'Palette used by current sprite
+  curcolor as integer   'Index in master palette (equal to .palette->col(.palindex))
+  palindex as integer   'Index in 16 color palette
   palette as Palette16 ptr 'The current palette
   hidemouse as integer
   airsize as integer
@@ -88,7 +89,6 @@ TYPE SpriteEditState
   readjust as integer
   adjustpos as XYPair
   previewpos as XYPair
-  nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
   showcolnum as integer
 END TYPE
 
