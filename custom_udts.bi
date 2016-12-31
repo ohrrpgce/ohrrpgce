@@ -36,8 +36,10 @@ TYPE SpriteEditStatic
   pal_clipboard as Palette16 ptr
 END TYPE
 
-TYPE SpriteEditState
-  '--sprite set browser state
+TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr)
+
+'spriteset_editor state
+TYPE SpriteSetBrowseState
   spritefile as string
   fileset as SpriteType '.PT# number
   max_spriteset as integer ptr  'Maximum spriteset number, equal to e.g. gen(genMaxHeroPic)
@@ -51,10 +53,18 @@ TYPE SpriteEditState
   fullset as bool      'Whether editing full spritesets rather than frames
   visible_sprites as short ptr  'Stores all loaded visible sprites, as concatenated placer() arrays
   nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
- 
-  '--sprite editor state
+  state_pt as integer  'Copied from state
+  state_top as integer 'Copied from state
+END TYPE
+
+'sprite_editor state
+TYPE SpriteEditState
   sprite as Frame ptr   'The current edit state
   zoom as integer
+  fileset as SpriteType 'Used only by import and palette menus; would like to get rid of this
+  fullset as bool       'Whether editing full spritesets rather than frames (Used only by import menu)
+  wide as integer
+  high as integer
   x as integer
   y as integer
   lastcpos as XYPair '.x/.y (cursor position) last tick
