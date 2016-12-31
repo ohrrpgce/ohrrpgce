@@ -6433,6 +6433,16 @@ function frame_reference(byval p as frame ptr) as frame ptr
 	return p
 end function
 
+' This is a convenience function to set a Frame ptr variable, CHANGING the
+' Frame ptr it contains. Useful because many frame functions are not in-place.
+' (Use frame_draw with trans=NO, write_mask=YES to set the contents of one Frame
+' equal to another. There is no way to do so while changing the Frame size
+' (it could be implemented, but only for Frames with no views onto them).
+sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
+	frame_unload ptr_to_replace
+	*ptr_to_replace = new_value
+end sub
+
 ' This is for the Frame ptr vector typetable. Ignore.
 private sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
 	*dest = frame_reference(*src)
@@ -6810,7 +6820,8 @@ sub frame_flip_vert(byval spr as frame ptr)
 	end if
 end sub
 
-'90 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
+'90 degree (anticlockwise) rotation.
+'Unlike flipping functions, not inplace!
 function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
 
@@ -6826,7 +6837,8 @@ function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 	return ret
 end function
 
-'270 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
+'270 degree (anticlockwise) rotation, ie 90 degrees clockwise.
+'Unlike flipping functions, not inplace!
 function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
 
