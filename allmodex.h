@@ -35,7 +35,6 @@ struct Frame {
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
 
-	//used only by frames in a SpriteSet, for now, which means it's NOT used
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
 };

@@ -15,6 +15,7 @@
 #include "const.bi"
 #include "uiconst.bi"
 #include "slices.bi"
+#include "loading.bi"
 
 using Reload
 
@@ -5846,6 +5847,10 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 					pt->p->cached = 1
 					pt->p->refcount = refcount
 					pt->p->cacheentry = pt
+					if pt->p->sprset then
+						'Update cross-link
+						pt->p->sprset->frames = pt->p
+					end if
 					'Make sure we don't crash if we were using a mask (might be the wrong mask though)
 					if wantmask then frame_add_mask pt->p
 
@@ -6071,10 +6076,9 @@ private sub frame_delete_members(byval f as frame ptr)
 		f[i].mask = NULL
 		f[i].refcount = FREEDREFC  'help to detect double free
 	next
-	'spriteset_freemem also calls frame_freemem
 	if f->sprset then
-		f->sprset->frames = NULL
-		spriteset_freemem f->sprset
+		delete f->sprset
+		f->sprset = NULL
 	end if
 end sub
 
@@ -6127,6 +6131,9 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 			ret = frame_load_4bit(game + ".pt" & sprtype, record, .frames, .size.w, .size.h)
 		end with
 	end if
+
+	ret->sprset = new SpriteSet(ret)
+	init_4bit_spriteset_defaults(ret->sprset, sprtype)
 
 	debug_if_slow(starttime, 0.1, sprtype & "," & record)
 	return ret
@@ -6315,10 +6322,7 @@ end function
 function frame_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
 	dim temp as string
-	if p->sprset then
-		temp = "spriteset:<" & p->sprset->numframes & " frames: 0x" & hexptr(p->sprset->frames) _
-		       & "," & p->sprset->numanimations & " animations: 0x" & hexptr(p->sprset->animations) & ">"
-	end if
+	if p->sprset then temp = p->sprset->describe()
 	return "'(0x" & hexptr(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h _
 	       & " offset=" & p->offset.x & "," & p->offset.y  & " img=0x" & hexptr(p->image) _
 	       & " msk=0x" & hexptr(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
@@ -7233,146 +7237,217 @@ end sub
 
 
 '==========================================================================================
-'                            SpriteSet and SpriteState routines
+'                            SpriteSet/Animation/SpriteState
 '==========================================================================================
 
-' None of the following code is used, sadly.
+' This should only be called from within allmodex
+constructor SpriteSet(frameset as Frame ptr)
+	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"
+	'redim animations(0 to -1)
+	frames = frameset
+	num_frames = frameset->arraylen
+end constructor
 
-function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
+' Load a spriteset from file, or return a reference if already cached.
+' This increments the refcount, use spriteset_unload to decrement it, NOT 'DELETE'.
+function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
+	' frame_load will load a Frame array with a corresponding SpriteSet
 	dim frameset as Frame ptr
-	frameset = frame_load(ptno, rec)
+	frameset = frame_load(ptno, record)
 	if frameset = NULL then return NULL
-
-	if frameset->sprset = NULL then
-		'this Frame array was previously loaded using frame_load; add SpriteSet data
-		frameset->sprset = new SpriteSet
-		with *frameset->sprset
-			.numframes = sprite_sizes(ptno).frames
-			.frames = frameset
-			'TODO: should pt? records have default animations?
-		end with
-	end if
-
 	return frameset->sprset
 end function
 
-private sub spriteset_freemem(byval sprset as SpriteSet ptr)
-	'frame_freemem also calls spriteset_freemem
-	if sprset->frames then
-		sprset->frames->sprset = NULL
-		frame_freemem sprset->frames
-	end if
-	deallocate sprset->animations
-	delete sprset
-end sub
-
-sub spriteset_unload(byref ss as SpriteSet ptr)
+' Used to decrement refcount if was loaded with spriteset_load
+' (no need to call this when using frame_load and accessing Frame.sprset).
+sub spriteset_unload(ss as SpriteSet ptr ptr)
 	'a SpriteSet and its Frame array are never unloaded separately;
 	'frame_unload is responsible for all refcounting and unloading
-	if ss = NULL then exit sub
-	dim temp as Frame ptr = ss->frames
+	if ss = NULL ORELSE *ss = NULL then exit sub
+	dim temp as Frame ptr = (*ss)->frames
 	frame_unload @temp
-	ss = NULL
+	*ss = NULL
 end sub
 
-function sprite_load(byval ptno as SpriteType, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
-	dim sprset as SpriteSet ptr = spriteset_load_from_pt(ptno, rec)
-	if sprset = NULL then return NULL
+' Increment refcount.
+sub SpriteSet.reference()
+	if frames then frame_reference frames
+end sub
 
-	dim ret as SpriteState ptr
-	ret = allocate(sizeof(SpriteState))
-	with *ret
-		.set = sprset
-		.pal = Palette16_load(palno, ptno, rec)
-		.frame_id = 0
-		.curframe = @sprset->frames[.frame_id]
-	end with
+function SpriteSet.describe() as string
+	return "spriteset:<" & num_frames & " frames: 0x" & hexptr(frames) _
+	       & ", " & ubound(animations) & " animations>"
+end function
+
+' Searches for an animation with a certain name, or NULL if there
+' are no animations with that name.
+' variantname is either just the name of the animation, or the
+' name plus a variant separated by a space, like "walk upleft".
+' The variant is optional, and the nearest match is picked amongst animations
+' which match the name:
+'  - prefer variant as specified
+'  - then prefer an animation with blank variant
+'  - then prefer the first animation (with that name)
+function SpriteSet.find_animation(variantname as string) as Animation ptr
+	dim as string name, variant
+	dim spacepos as integer = instr(variantname, " ")
+	if spacepos then
+		name = left(variantname, spacepos - 1)
+		variant = mid(variantname, spacepos + 1)
+	else
+		name = variantname
+	end if
+
+	dim best_match as Animation ptr
+	for idx as integer = 0 to ubound(animations)
+		if animations(idx).name = name then
+			' Right name, check how good the match is
+			if animations(idx).variant = variant then
+				return @animations(idx)        'Exact match
+			elseif len(animations(idx).variant) then
+				best_match = @animations(idx)  'Prefer nonvariant animations
+			elseif best_match = NULL then
+				best_match = @animations(idx)  'Otherwise, default to the first variant
+			end if
+		end if
+	next
+	return best_match
+end function
+
+' Append a new blank animation and return pointer
+function SpriteSet.new_animation(name as string = "", variant as string = "") as Animation ptr
+	redim preserve animations(ubound(animations) + 1)
+	dim ret as Animation ptr = @animations(ubound(animations))
+	ret->name = name
+	ret->variant = variant
 	return ret
 end function
 
-sub sprite_unload(byval spr as SpriteState ptr ptr)
-	if spr = NULL then exit sub
-	if *spr = NULL then exit sub
-	spriteset_unload((*spr)->set)
-	Palette16_unload(@(*spr)->pal)
-	deallocate *spr
-	*spr = NULL
-end sub
 
-'loop is number of times to play, or <=0 for infinite
-sub sprite_play_animation(spr as SpriteState ptr, anim_name as string, byval loopcount as integer = 1)
-	spr->anim_wait = 0
-	spr->anim_step = 0
-	spr->anim_loop = loopcount - 1
-	dim animp as Animation ptr = spr->set->animations
-	for i as integer = 0 to spr->set->numanimations - 1
-		if animp->name = anim_name then
-			spr->anim = animp
-			exit sub
-		end if
-		animp += 1
-	next
-	debug "Could not find animation '" & anim_name & "'"
-end sub
+constructor Animation()
+end constructor
 
-sub sprite_animate(spr as SpriteState ptr)
-	with *spr
-		if .anim = NULL then exit sub
+constructor Animation(name as string, variant as string = "")
+	this.name = name
+	this.variant = variant
+end constructor
 
-		dim looplimit as integer = 40
-		do
-			if .anim_step >= .anim->numitems then
-				if .anim_loop = 0 then
-					.anim = NULL
-					exit sub
-				end if
-				if .anim_loop > 0 then .anim_loop -= 1
-				.anim_step = 0
-			end if
-
-			dim op as AnimationOp ptr = @.anim->ops[.anim_step]
-			select case op->type
-				case animOpWait
-					.anim_wait += 1
-					if .anim_wait > op->arg1 then
-						.anim_wait = 0
-					else
-						exit do
-					end if
-				case animOpFrame
-					if op->arg1 >= .set->numframes then
-						debug "Animation '" & .anim->name & "': illegal frame number " & op->arg1
-						.anim = NULL
-						exit sub
-					end if
-					.frame_id = op->arg1
-					.curframe = @.set->frames[.frame_id]
-				case animOpSetOffset
-					.offset.x = op->arg1
-					.offset.y = op->arg2
-				case animOpRelOffset
-					.offset.x += op->arg1
-					.offset.y += op->arg2
-				case else
-					debug "bad animation opcode " & op->type & " in '" & .anim->name & "'"
-					.anim = NULL
-					exit sub
-			end select
-			.anim_step += 1
-
-			looplimit -= 1
-			if looplimit = 0 then .anim = NULL: exit do
-		loop
+sub Animation.append(optype as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
+	redim preserve ops(ubound(ops) + 1)
+	with ops(ubound(ops))
+		.type = optype
+		.arg1 = arg1
+		.arg2 = arg2
 	end with
 end sub
 
-sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer)
-	dim as integer realx, realy
-	realx = x + spr->offset.x
-	realy = y + spr->offset.y
-	frame_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
+
+constructor SpriteState(sprset as SpriteSet ptr)
+	ss = sprset
+	ss->reference()  'Inc refcount, because dec it in destructor
+	frame_num = 0
+end constructor
+
+constructor SpriteState(ptno as SpriteType, record as integer)
+	ss = spriteset_load(ptno, record)
+	frame_num = 0
+end constructor
+
+destructor SpriteState()
+	spriteset_unload @ss
+end destructor
+
+' Lookup an animation and start it. See SpriteSet.find_animation() for documentation
+' of variantname (animation name plus optional variant).
+' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
+' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
+' times to play, or < 0 to repeat forever
+sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
+	anim_wait = 0
+	anim_step = 0
+	anim_loop = loopcount - 1
+	anim = ss->find_animation(variantname)
 end sub
 
+function SpriteState.cur_frame() as Frame ptr
+	if ss = NULL then return NULL
+	if frame_num < 0 or frame_num >= ss->num_frames then return NULL
+	return @ss->frames[frame_num]
+end function
+
+' Performs one animation step
+sub SpriteState.animate()
+	if anim = NULL then exit sub
+
+	dim looplimit as integer = 10
+	while looplimit > 0
+		' This condition only If the animation doesn't end up looping, re
+		if anim_step > ubound(anim->ops) then
+			debuginfo "anim done"
+			if anim_loop = 0 then
+				anim = NULL
+				exit sub
+			end if
+			if anim_loop > 0 then anim_loop -= 1
+			anim_step = 0
+		end if
+
+		with anim->ops(anim_step)
+			select case .type
+				case animOpWait
+					anim_wait += 1
+					if anim_wait > .arg1 then
+						anim_wait = 0
+					else
+						exit sub
+					end if
+				case animOpFrame
+					if .arg1 >= ss->num_frames then
+						debug "Animation '" & anim->name & "': illegal frame number " & .arg1
+						anim = NULL
+						exit sub
+					end if
+					frame_num = .arg1
+				case animOpRepeat
+					' If a loop count was specified when playing the animation,
+					' then only loop that many times, otherwise repeat forever
+					if anim_loop > 0 then
+						anim_loop -= 1
+						if anim_loop = 0 then
+							anim = NULL
+							exit sub
+						end if
+					end if
+					anim_step = 0
+					continue while
+				case animOpSetOffset
+					offset.x = .arg1
+					offset.y = .arg2
+				case animOpRelOffset
+					offset.x += .arg1
+					offset.y += .arg2
+				case else
+					debug "bad animation opcode " & .type & " in '" & anim->name & "'"
+					anim = NULL
+					exit sub
+			end select
+		end with
+		anim_step += 1
+	wend
+
+	' Exceeded the loop limit
+	debug "animation '" & anim->name & "' got stuck in an infinite loop"
+	anim = NULL
+end sub
+
+/'
+sub SpriteState.draw(x as integer, y as integer, scale as integer = 1, trans as bool = YES, page as integer)
+	dim as integer realx, realy
+	realx = x + offset.x
+	realy = y + offset.y
+	frame_draw(cur_frame(), pal, realx, realy, scale, trans, page)
+end sub
+'/
 
 '==========================================================================================
 '                           Platform specific wrapper functions

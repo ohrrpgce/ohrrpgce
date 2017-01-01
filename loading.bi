@@ -7,10 +7,8 @@
 #DEFINE LOADING_BI
 
 #include "reload.bi"
-#include "reloadext.bi"
 
 USING RELOAD
-USING RELOAD.EXT
 
 '*** NOTE ***
 'As documented here, some types require initialisation, done by Clean*/Clear* (same thing) or Load*,
@@ -130,6 +128,8 @@ DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer)
 DECLARE SUB getpal16 (array() as integer, byval array_record as integer, byval file_record as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DECLARE SUB storepal16 (array() as integer, byval array_record as integer, byval file_record as integer)
 DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
+
+DECLARE SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
 
 DECLARE SUB convert_mxs_to_rgfx(filename as string, outfile as string)
 DECLARE FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integer) as Frame ptr

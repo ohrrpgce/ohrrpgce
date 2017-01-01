@@ -14,6 +14,7 @@
 #include "reloadext.bi"
 #include "os.bi"
 #include "slices.bi"
+#include "battle_udts.bi"
 
 USING RELOAD
 USING RELOAD.EXT
@@ -3042,6 +3043,36 @@ END SUB
 
 
 '==========================================================================================
+'                                     Animations
+'==========================================================================================
+
+' Initialises the defaults (in particular, the animations) for a SpriteSet loaded
+' from a 4-bit .PT# file.
+' TODO: very unfinished. These could be defined in a RELOAD data file instead of by code.
+SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
+  IF ptno = sprTypeHero THEN
+    WITH *ss->new_animation("idle")
+      .append(animOpFrame, frameSTAND)    '0
+    END WITH
+    WITH *ss->new_animation("walk", "left")
+      .append(animOpFrame, frameSTAND)    '0
+      .append(animOpWait, 2)
+      .append(animOpFrame, frameSTEP)     '1
+      .append(animOpWait, 2)
+      .append(animOpRepeat)
+    END WITH
+    WITH *ss->new_animation("attack", "left")
+      .append(animOpFrame, frameATTACKA)  '2
+      .append(animOpWait, 2)
+      .append(animOpFrame, frameATTACKB)  '3
+      .append(animOpWait, 2)
+      .append(animOpFrame, frameSTAND)  '0
+    END WITH
+  END IF
+END SUB
+
+
+'==========================================================================================
 '                                   New Graphics Formats
 '==========================================================================================
 
@@ -3056,14 +3087,14 @@ SUB convert_mxs_to_rgfx(filename as string, outfile as string)
  DIM doc as DocPtr
  doc = CreateDocument()
 
- DIM as NodePtr root_node, spritesets, spriteset, frames, frame_node
+ DIM as NodePtr root_node, spritesets, sprset, frames, frame_node
  root_node = CreateNode(doc, "graphics")
  SetRootNode(doc, root_node)
  spritesets = AppendChildNode(root_node, "spritesets")
 
  FOR imnum as integer = 0 TO num_images - 1
-  spriteset = AppendChildNode(spritesets, "spriteset", imnum)
-  frames = AppendChildNode(spriteset, "frames")
+  sprset = AppendChildNode(spritesets, "spriteset", imnum)
+  frames = AppendChildNode(sprset, "frames")
 
   DIM fr as Frame ptr
   fr = frame_load_mxs(filename, imnum)

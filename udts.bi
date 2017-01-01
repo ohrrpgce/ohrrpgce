@@ -85,7 +85,7 @@ TYPE SpriteSetFwd as SpriteSet
 'Don't forget to update definition in allmodex.h when changing this!!
 'As a rather ugly hack (TODO: remove), arrays of Frames are sometimes (for sprite sets) allocated contiguously,
 'with each having pointers to separate .image and .mask buffers. All will initially have .refcount = 1,
-'.arraylen set to the length of the array, and all but first will have .arrayelem ON.
+'.arraylen set to the length of the array, and all but first will have .arrayelem = YES.
 'WARNING: don't add strings to this
 type Frame
 	w as int32
@@ -102,7 +102,6 @@ type Frame
 	arrayelem:1 as int32  'not the first frame in a frame array
 	isview:1 as int32
 
-	'used only by frames in a SpriteSet, for now, which means it's NOT used
 	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
                                     'will need to be freed at the same time
 end type
@@ -116,44 +115,63 @@ DECLARE_VECTOR_OF_TYPE(Frame ptr, Frame_ptr)
 ENUM AnimOpType
 	animOpWait	'(ticks)
 	animOpFrame	'(framenum)
+	animOpRepeat    '()     Start the animation over
 	animOpSetOffset	'(x,y)
 	animOpRelOffset	'(x,y)
 END ENUM
 
 TYPE AnimationOp
 	type as AnimOpType
-	arg1 as integer		
-	arg2 as integer		
+	arg1 as integer
+	arg2 as integer
 END TYPE
 
 TYPE Animation
 	name as string
-	numitems as integer
-	ops as AnimationOp ptr
+	variant as string
+	'numitems as integer
+	ops(any) as AnimationOp
+
+	declare constructor()
+	declare constructor(name as string, variant as string = "")
+
+	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
 END TYPE
 
-'in effect, inherits from Frame
 TYPE SpriteSet
-	numanimations as integer
-	animations as Animation ptr
-	numframes as integer  'redundant to frames->arraylen
+	animations(any) as Animation
+	num_frames as integer  'redundant to frames->arraylen
 	frames as Frame ptr
 	'uses refcount from frames
+
+	declare Constructor(frameset as Frame ptr)
+
+	declare sub reference()
+	declare function describe() as string
+	declare function find_animation(variantname as string) as Animation ptr
+	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 END TYPE
 
-'A REAL sprite; This is basically a SpriteSet object with state
-'Not refcounted. I don't currently see a reason that it should be (each the state of a single object)
-'WARNING: don't add strings to this
+declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
+declare sub spriteset_unload(ss as SpriteSet ptr ptr)
+
+' The animation state of a SpriteSet instance
 TYPE SpriteState
-	set as SpriteSet ptr
-	curframe as Frame ptr  'convenience ptr to set->frames[.frame_id]
-	pal as Palette16 ptr
-	frame_id as integer
+	ss as SpriteSet ptr
+	frame_num as integer
 	anim as Animation ptr
 	anim_step as integer
 	anim_wait as integer
 	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
 	offset as XYPair
+
+	declare constructor(sprset as SpriteSet ptr)
+	declare constructor(ptno as SpriteType, record as integer)
+	declare destructor()
+
+	declare sub start_animation(name as string, loopcount as integer = 0)
+	declare function cur_frame() as Frame ptr
+	declare sub animate()
 END TYPE
 
 TYPE GraphicPair
