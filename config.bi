@@ -5,6 +5,18 @@
 #DEFINE CONFIG_BI
 
 
+'================================== Global namespace cleanup ==============================
+
+#UNDEF name
+#UNDEF color
+#UNDEF draw
+#UNDEF out
+#UNDEF stop
+#UNDEF window
+#UNDEF width
+#UNDEF pos
+
+
 '====================================== Build string ======================================
 
 #IF __FB_DEBUG__
