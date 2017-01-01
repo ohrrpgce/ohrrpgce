@@ -518,15 +518,15 @@ SUB gfx_editor_menu()
     EXIT DO
    END IF
    IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(),  8, 4
-   IF state.pt = 3 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 4, 0
-   IF state.pt = 4 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 4, 1
-   IF state.pt = 5 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2, 2
-   IF state.pt = 6 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 2, 3
-   IF state.pt = 7 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 2, 6
-   IF state.pt = 8 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 4, 5
-   IF state.pt = 9 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 4, 7
-   IF state.pt = 10 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 2, 8
+   IF state.pt = 2 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(), 4
+   IF state.pt = 3 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 0
+   IF state.pt = 4 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 1
+   IF state.pt = 5 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2
+   IF state.pt = 6 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 3
+   IF state.pt = 7 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 6
+   IF state.pt = 8 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 5
+   IF state.pt = 9 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 7
+   IF state.pt = 10 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 8
    IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
    IF state.pt = 12 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
@@ -1657,9 +1657,8 @@ SUB arbitrary_sprite_editor ()
  size.x = 20
  size.y = 20
  DIM framecount as integer = 8
- DIM zoom as integer = 2
 
- DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Sets=", "Start Editing..."}
+ DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Sets=", "Start Editing..."}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1673,12 +1672,11 @@ SUB arbitrary_sprite_editor ()
    CASE 0: IF intgrabber(size.x, 0, 160) THEN st.need_update = YES
    CASE 1: IF intgrabber(size.y, 0, 160) THEN st.need_update = YES
    CASE 2: IF intgrabber(framecount, 0, 16) THEN st.need_update = YES
-   CASE 3: IF intgrabber(zoom, 0, 4) THEN st.need_update = YES
-   CASE 4: IF intgrabber(tempsets, 0, 32000) THEN st.need_update = YES
+   CASE 3: IF intgrabber(tempsets, 0, 32000) THEN st.need_update = YES
   END SELECT
   IF enter_space_click(st) THEN
-   IF st.pt = 5 THEN
-    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), zoom, -1
+   IF st.pt = 4 THEN
+    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), -1
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF
@@ -1689,8 +1687,7 @@ SUB arbitrary_sprite_editor ()
    menu(0) = "Width: " & size.x
    menu(1) = "Height:" & size.y
    menu(2) = "Framecount: " & framecount
-   menu(3) = "Zoom: " & zoom
-   menu(4) = "Sets: " & tempsets
+   menu(3) = "Sets: " & tempsets
    st.need_update = NO
   END IF
   clearpage vpage

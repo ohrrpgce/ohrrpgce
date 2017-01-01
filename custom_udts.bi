@@ -24,6 +24,22 @@ ENUM ToolIDs
   NUM_TOOLS
 END ENUM
 
+TYPE ToolInfoType
+  name as string
+  icon as string
+  shortcut as integer
+  cursor as integer
+  areanum as integer
+END TYPE
+
+TYPE MouseArea
+  x as integer
+  y as integer
+  w as integer
+  h as integer
+  hidecursor as bool
+END TYPE
+
 TYPE SpriteEditStatic
   'The clone/mark tool buffer
   clone_brush as Frame ptr
@@ -59,12 +75,21 @@ END TYPE
 
 'sprite_editor state
 TYPE SpriteEditState
-  sprite as Frame ptr   'The current edit state
-  zoom as integer
-  fileset as SpriteType 'Used only by import and palette menus; would like to get rid of this
-  fullset as bool       'Whether editing full spritesets rather than frames (Used only by import menu)
+  'Members which should be set by the caller to sprite_editor
   wide as integer
   high as integer
+  framename as string
+  default_export_filename as string
+  save_callback as FnSpriteSaver   'Called to save the sprite
+  save_callback_context as any ptr 'To be passed to save_callback
+  'The following are used only by import and palette menus; would like to get rid of this
+  fileset as SpriteType
+  spriteset_num as integer
+  fullset as bool       'Whether editing full spritesets rather than frames (Used only by import menu)
+
+  'Internal state
+  sprite as Frame ptr   'The current edit state
+  zoom as integer
   x as integer
   y as integer
   lastcpos as XYPair '.x/.y (cursor position) last tick
@@ -73,16 +98,19 @@ TYPE SpriteEditState
   zone as XYPair
   zonecursor as integer
   gotmouse as bool
+  mouse as MouseInfo
+  hidemouse as bool
   drawcursor as integer
   tool as integer
   pal_num as integer    'Palette used by current sprite
   curcolor as integer   'Index in master palette (equal to .palette->col(.palindex))
   palindex as integer   'Index in 16 color palette
   palette as Palette16 ptr 'The current palette
-  hidemouse as bool
   airsize as integer
   mist as integer
   hold as integer
+  tick as integer
+  tog as integer        '0/1
   holdpos as XYPair
   radius as double
   ellip_minoraxis as double '--For non-circular elipses. Not implemented yet
@@ -98,8 +126,12 @@ TYPE SpriteEditState
   movespeed as integer
   readjust as bool
   adjustpos as XYPair
-  previewpos as XYPair
   showcolnum as integer 'Ticks remaining to show the number of selected master palette color
+
+  'Fixed members
+  previewpos as XYPair
+  toolinfo(SPRITEEDITOR_NUM_TOOLS - 1) as ToolInfoType
+  area(25) as MouseArea
 END TYPE
 
 TYPE TileCloneBuffer
@@ -331,22 +363,6 @@ TYPE ShopStuffState
  menu(24) as string
  max(24) as integer
  min(24) as integer
-END TYPE
-
-TYPE MouseArea
-  x as integer
-  y as integer
-  w as integer
-  h as integer
-  hidecursor as bool
-END TYPE
-
-TYPE ToolInfoType
-  name as string
-  icon as string
-  shortcut as integer
-  cursor as integer
-  areanum as integer
 END TYPE
 
 #ENDIF
