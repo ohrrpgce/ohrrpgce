@@ -1552,7 +1552,8 @@ SUB secret_menu ()
      "Edit Spell Screen Spell List Plank", _
      "Edit Spell Screen Spell Plank", _
      "RGFX tests", _
-     "Edit Virtual Keyboard Screen" _
+     "Edit Virtual Keyboard Screen", _
+     "New Spriteset/Animation Editor" _
  }
  DIM st as MenuState
  st.size = 24
@@ -1581,6 +1582,7 @@ SUB secret_menu ()
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
    IF st.pt = 16 THEN new_graphics_tests
    IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   IF st.pt = 18 THEN new_spriteset_editor
   END IF
   usemenu st
   clearpage vpage

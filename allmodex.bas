@@ -7365,7 +7365,7 @@ end destructor
 sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
 	anim_wait = 0
 	anim_step = 0
-	anim_loop = loopcount - 1
+	anim_loop = loopcount
 	anim = ss->find_animation(variantname)
 end sub
 
@@ -7384,7 +7384,9 @@ sub SpriteState.animate()
 		' This condition only If the animation doesn't end up looping, re
 		if anim_step > ubound(anim->ops) then
 			debuginfo "anim done"
-			if anim_loop = 0 then
+			looplimit -= 1
+			' anim_loop = 0 means default number of loops
+			if anim_loop = 0 or anim_loop = 1 then
 				anim = NULL
 				exit sub
 			end if
@@ -7419,6 +7421,7 @@ sub SpriteState.animate()
 						end if
 					end if
 					anim_step = 0
+					looplimit -= 1
 					continue while
 				case animOpSetOffset
 					offset.x = .arg1

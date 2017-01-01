@@ -3053,6 +3053,7 @@ SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
   IF ptno = sprTypeHero THEN
     WITH *ss->new_animation("idle")
       .append(animOpFrame, frameSTAND)    '0
+      .append(animOpWait, 1)
     END WITH
     WITH *ss->new_animation("walk", "left")
       .append(animOpFrame, frameSTAND)    '0

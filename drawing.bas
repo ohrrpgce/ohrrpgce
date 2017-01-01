@@ -3710,3 +3710,66 @@ SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shi
  frame_assign @ss.sprite, frame_resized(ss.sprite, ss.wide, ss.high, shiftx, shifty)
 END SUB
 
+
+'==========================================================================================
+'                                   New Spriteset Editor
+'==========================================================================================
+
+TYPE SpriteSetEditor
+ ss as SpriteSet ptr
+ anim_preview as SpriteState ptr
+ pal as Palette16 ptr
+ tog as integer
+
+ DECLARE SUB display()
+ DECLARE SUB run()
+END TYPE
+
+SUB new_spriteset_editor()
+ DIM editor as SpriteSetEditor
+ editor.run()
+END SUB
+
+SUB SpriteSetEditor.run()
+ ss = spriteset_load(sprTypeHero, 1)
+ anim_preview = NEW SpriteState(ss)
+ pal = palette16_load(-1, sprTypeHero, 1)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog XOR= 1
+  anim_preview->animate()
+
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF keyval(scI) > 1 THEN anim_preview->start_animation("idle")
+  IF keyval(scA) > 1 THEN anim_preview->start_animation("attack")
+  IF keyval(scW) > 1 THEN anim_preview->start_animation("walk left")
+   
+  display()
+  dowait
+ LOOP
+ spriteset_unload @ss
+ palette16_unload @pal
+ DELETE anim_preview
+END SUB
+
+SUB SpriteSetEditor.display()
+ clearpage vpage
+
+ DIM caption as string = "(I)dle, (A)ttack, (W)alk"
+ printstr caption, vpages(vpage)->w - (LEN(caption) * 8), vpages(vpage)->h - 8, vpage
+
+ DIM as integer x, y
+ FOR idx as integer = 0 to ss->num_frames - 1
+  frame_draw @ss->frames[idx], pal, x, y, , , vpage
+  x += ss->frames[idx].w
+ NEXT
+
+ frame_draw anim_preview->cur_frame(), pal, 0, 100, , , vpage
+
+ '--screen update
+ setvispage vpage
+END SUB
