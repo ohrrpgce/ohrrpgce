@@ -67,11 +67,11 @@ DECLARE FUNCTION spriteedit_export_name (ss as SpriteSetBrowseState, state as Me
 DECLARE SUB spritebrowse_save_callback(spr as Frame ptr, context as any ptr)
 
 ' Sprite editor
-DECLARE SUB sprite_editor(ss as SpriteEditState, ss_save as SpriteEditStatic, sprite as Frame ptr)
+DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
-DECLARE SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic)
+DECLARE SUB spriteedit_display(ss as SpriteEditState)
 DECLARE SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
 DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
@@ -81,10 +81,12 @@ DECLARE SUB readundospr (ss as SpriteEditState)
 DECLARE SUB readredospr (ss as SpriteEditState)
 
 ' Sprite import/expotr
-DECLARE SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic)
+DECLARE SUB spriteedit_import16(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, palnum as integer)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
 
+' Locals
+DIM SHARED ss_save as SpriteEditStatic
 
 SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
 'airbrush thanks to Ironhoof (Russel Hamrick)
@@ -1899,7 +1901,6 @@ END SUB
 'info() is an array of names for each frame
 'fileset is the .PT# number.
 SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
-STATIC ss_save as SpriteEditStatic
 
 DIM remember_resolution as XYPair = get_resolution()
 IF fullset = NO THEN
@@ -1993,7 +1994,7 @@ DO
   ss.state_top = state.top
   DIM sprite as Frame ptr
   sprite = frame_new_from_buffer(placer())
-  sprite_editor edstate, ss_save, sprite
+  sprite_editor edstate, sprite
   frame_unload @sprite
   poffset(state.pt) = edstate.pal_num
   savedefaultpals ss.fileset, poffset(), sets  'Save default palettes immediately, only needed for live previewing
@@ -2196,7 +2197,7 @@ SUB readredospr (ss as SpriteEditState)
 END SUB
 
 ' Draw sprite editor
-SUB spriteedit_display(ss as SpriteEditState, ss_save as SpriteEditStatic)
+SUB spriteedit_display(ss as SpriteEditState)
  ss.curcolor = ss.palette->col(ss.palindex)   'Is this necessary?
  rectangle 247 + ((ss.curcolor - ((ss.curcolor \ 16) * 16)) * 4), 0 + ((ss.curcolor \ 16) * 6), 5, 7, uilook(uiText), dpage
  DIM as integer i, o
@@ -2969,7 +2970,7 @@ END SUB
 
 'Return value: see retval()
 'Also returns contents of palmapping()
-FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, palmapping() as integer) as integer
+FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, palmapping() as integer) as integer
  DIM can_remap as bool
  DIM is_identical as bool
  DIM usepal as Palette16 ptr
@@ -3055,7 +3056,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref ss_sa
 END FUNCTION
 
 'state.pt is the current palette number
-SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEditStatic)
+SUB spriteedit_import16(byref ss as SpriteEditState)
  DIM srcbmp as string
  STATIC default as string
 
@@ -3110,7 +3111,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState, byref ss_save as SpriteEdit
   remap = 2
   debuginfo "spriteedit_import16: is identical"
  ELSE
-  remap = spriteedit_import16_remap_menu(ss, ss_save, impsprite, pal16, palmapping())
+  remap = spriteedit_import16_remap_menu(ss, impsprite, pal16, palmapping())
  END IF
 
  IF remap = 0 THEN
@@ -3151,7 +3152,7 @@ END SUB
 ' sprite contains the sprite to be edited, and the result is passed back by calling ss.save_callback()
 ' before exiting, or whenever want to immediately save.
 ' Also, this expects the caller to save the default palette (ss.pal_num). However, it saves the palette (ss.palette) itself.
-SUB sprite_editor(ss as SpriteEditState, ss_save as SpriteEditStatic, sprite as Frame ptr)
+SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 
  WITH ss
   .palette = palette16_load(.pal_num)
@@ -3279,7 +3280,7 @@ SUB sprite_editor(ss as SpriteEditState, ss_save as SpriteEditStatic, sprite as 
   END IF
   ss.delay = large(ss.delay - 1, 0)
   copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
-  spriteedit_display ss, ss_save
+  spriteedit_display ss
   SWAP vpage, dpage
   setvispage vpage
   'blank the sprite area
@@ -3650,7 +3651,7 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  spriteedit_scroll ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
- spriteedit_import16 ss, ss_save
+ spriteedit_import16 ss
  GOSUB spedbak
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND ss.mouse.clicks > 0) THEN
