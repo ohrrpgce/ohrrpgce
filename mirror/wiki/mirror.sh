@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 URL="http://rpg.hamsterrepublic.com/ohrrpgce/"
 

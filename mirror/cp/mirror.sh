@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 URL="http://castleparadox.com/search-gamelist.php?mirror=true"
 

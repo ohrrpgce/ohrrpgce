@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 URL="http://HamsterRepublic.com/ohrrpgce/nightly/"
 WEBDIR="/var/www/nightly-archive"
