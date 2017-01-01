@@ -71,6 +71,8 @@ DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
+DECLARE SUB spriteedit_draw_palette(pal16 as Palette16 ptr, x as integer, y as integer, page as integer)
+DECLARE SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
 DECLARE SUB spriteedit_display(ss as SpriteEditState)
 DECLARE SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
@@ -1902,16 +1904,6 @@ END SUB
 'fileset is the .PT# number.
 SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 
-DIM remember_resolution as XYPair = get_resolution()
-IF fullset = NO THEN
- 'The sprite editor doesn't work at anything other than 320x200; graphics are corrupted
- '(Don't do this when reentering the sprite editor)
- set_resolution 320, 200
- lock_resolution
- 'Force videopage sizes to update
- setvispage vpage
-END IF
-
 DIM ss as SpriteSetBrowseState
 WITH ss
  .fileset = fileset
@@ -2123,16 +2115,6 @@ savedefaultpals ss.fileset, poffset(), sets
 'Robust against sprite leaks
 IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
 
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
-IF fullset = NO THEN
- unlock_resolution 320, 200
- set_resolution remember_resolution.w, remember_resolution.h
-END IF
-
 END SUB '----END of spriteset_editor()
 
 ' The sprite buffer remains in a rotated state after a rotation operation,
@@ -2196,8 +2178,27 @@ SUB readredospr (ss as SpriteEditState)
  END IF
 END SUB
 
+' Draw a 16-colour palette onscreen, with surrounding box
+SUB spriteedit_draw_palette(pal16 as Palette16 ptr, x as integer, y as integer, page as integer)
+ drawbox x, y, 67, 8, uilook(uiText), 1, page
+ FOR i as integer = 0 TO 15
+  rectangle x + 2 + (i * 4), y + 2, 3, 5, pal16->col(i), page
+ NEXT
+END SUB
+
+' Draw the zoomed and unzoomed sprite areas
+SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
+ drawbox ss.area(0).x - 1, ss.area(0).y - 1, ss.area(0).w + 2, ss.area(0).h + 2, uilook(uiText), 1, page
+ frame_draw sprite, pal, 4, 1, ss.zoom, NO, page
+ drawbox ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiText), 1, page
+ frame_draw sprite, pal, ss.previewpos.x, ss.previewpos.y, 1, NO, page
+END SUB
+
 ' Draw sprite editor
 SUB spriteedit_display(ss as SpriteEditState)
+ clearpage dpage
+ spriteedit_draw_sprite_area ss, ss.sprite, ss.palette, dpage
+
  ss.curcolor = ss.palette->col(ss.palindex)   'Is this necessary?
  rectangle 247 + ((ss.curcolor - ((ss.curcolor \ 16) * 16)) * 4), 0 + ((ss.curcolor \ 16) * 6), 5, 7, uilook(uiText), dpage
  DIM as integer i, o
@@ -2225,10 +2226,7 @@ SUB spriteedit_display(ss as SpriteEditState)
  printstr paldisplay, 243, 100, dpage
 
  rectangle 247 + (ss.palindex * 4), 110, 5, 7, uilook(uiText), dpage
- FOR i = 0 TO 15
-  rectangle 248 + (i * 4), 111, 3, 5, ss.palette->col(i), dpage
- NEXT
- frame_draw ss.sprite, ss.palette, 4, 1, ss.zoom, NO, dpage
+ spriteedit_draw_palette ss.palette, 246, 109, dpage
 
  DIM select_rect as RectType
  corners_to_rect_inclusive Type(ss.x, ss.y), ss.holdpos, select_rect
@@ -2237,7 +2235,6 @@ SUB spriteedit_display(ss as SpriteEditState)
   rectangle 4 + select_rect.x * ss.zoom, 1 + select_rect.y * ss.zoom, select_rect.wide * ss.zoom, select_rect.high * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(ss.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
- frame_draw ss.sprite, ss.palette, ss.previewpos.x, ss.previewpos.y, 1, NO, dpage
 
  DIM overlay as Frame ptr
  overlay = frame_new(ss.wide, ss.high, , YES)
@@ -2707,8 +2704,6 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
  STATIC direction_offset as XYPair 'Offset between direction groups
  STATIC frame_offset as XYPair     'Offset between frames for the same direction
 
- 'unlock_resolution 320, 200   'Minimum window size
-
  DIM flattened_set as Frame ptr
 
  WITH sprite_sizes(ss.fileset)
@@ -2829,8 +2824,6 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
   frame_unload @impsprite
  END WITH
 
- 'set_resolution 320, 200
- 'lock_resolution
  RETURN flattened_set
 END FUNCTION
 
@@ -3024,25 +3017,17 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
    END IF
   END IF
 
-  'Page 2 has rectangles around the sprite and preview and palette
-  copypage 2, dpage
-  frame_draw impsprite, usepal, 4, 1, ss.zoom, NO, dpage
-  frame_draw impsprite, usepal, ss.previewpos.x, ss.previewpos.y, 1, NO, dpage
+  clearpage dpage
+  spriteedit_draw_sprite_area ss, impsprite, usepal, dpage
 
   'Draw palettes
   textcolor uilook(uiText), 0
   printstr bgcol_text(CHR(27), uilook(uiDisabledItem)) _
            & "Pal" & rlpad(STR(ss.pal_num), " ", 3, 4) _
            & bgcol_text(CHR(26), uilook(uiDisabledItem)), 243, 100, dpage, YES
-  drawbox 246, 109, 67, 8, uilook(uiText), 1, dpage
-  FOR i as integer = 0 TO 15
-   rectangle 248 + (i * 4), 111, 3, 5, ss.palette->col(i), dpage
-  NEXT
+  spriteedit_draw_palette ss.palette, 246, 109, dpage
   printstr "Image Pal", 245, 80, dpage
-  drawbox 246, 89, 67, 8, uilook(uiText), 1, dpage
-  FOR i as integer = 0 TO 15
-   rectangle 248 + (i * 4), 91, 3, 5, pal16->col(i), dpage
-  NEXT
+  spriteedit_draw_palette pal16, 246, 89, dpage
 
   rectangle 4, 144, 224, 32, uilook(uiDisabledItem), dpage
   standardmenu pmenu(), palstate, 8, 148, dpage
@@ -3254,7 +3239,6 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   .areanum = 22
  END WITH
 
- GOSUB spedbak
  hidemousecursor
  setkeys
  DO
@@ -3279,7 +3263,6 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
    GOSUB sprctrl
   END IF
   ss.delay = large(ss.delay - 1, 0)
-  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
   spriteedit_display ss
   SWAP vpage, dpage
   setvispage vpage
@@ -3652,7 +3635,6 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
  spriteedit_import16 ss
- GOSUB spedbak
 END IF
 IF keyval(scE) > 1 OR (ss.zonenum = 26 AND ss.mouse.clicks > 0) THEN
  palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
@@ -3666,16 +3648,6 @@ ss.hold = NO
 ss.readjust = NO
 ss.adjustpos.x = 0
 ss.adjustpos.y = 0
-RETRACE
-
-spedbak:
-clearpage 2
-rectangle 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 2
-rectangle 4, 1, ss.wide * ss.zoom, ss.high * ss.zoom, 0, 2
-rectangle 246, 109, 67, 8, uilook(uiText), 2
-rectangle 247, 110, 65, 6, uilook(uiBackground), 2
-rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiText), 2
-rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, 2
 RETRACE
 
 floodfill:
