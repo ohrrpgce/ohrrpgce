@@ -300,6 +300,26 @@ CONST binITM = 12
 
 CONST binLASTENTRY = 12 ' *** Update this when adding binsize records ***
 
+Enum SpriteType
+	sprTypeInvalid = -1
+	sprTypeHero = 0
+	sprTypeSmallEnemy = 1
+	sprTypeMediumEnemy = 2
+	sprTypeLargeEnemy = 3
+	sprTypeWalkabout = 4
+	sprTypeWeapon = 5
+	sprTypeAttack = 6
+	sprTypeBoxBorder = 7
+	sprTypePortrait = 8
+	sprTypeLastPT = 8
+	sprTypeBackdrop = 9      'Can't change this! Saved in .slice files
+	sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
+	sprTypeTileset = 10      'Free to change this later (never saved)
+	sprTypeLastLoadable = 10 'Last type that frame_load knows about
+	sprTypeFrame = 11        'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
+	sprTypeLast = 11
+End Enum
+
 '--- Misc constants
 
 'Constants for gen(genFontType)

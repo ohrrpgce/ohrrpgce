@@ -1,5 +1,5 @@
-#ifndef YETMORE_BI
-#define YETMORE_BI
+#ifndef SCRIPTCOMMANDS_BI
+#define SCRIPTCOMMANDS_BI
 
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)

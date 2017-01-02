@@ -2694,3 +2694,13 @@ FUNCTION ini_value_int (s as string, default as integer=0) as integer
  DIM tail as string = MID(s, eqpos + 1)
  RETURN str2int(tail, default)
 END FUNCTION
+
+'----------------------------------------------------------------------
+
+' For commandline utilities. Wait for a keypress and return it.
+FUNCTION readkey () as string
+  DO
+    DIM w as string = INKEY
+    IF w <> "" THEN RETURN w
+  LOOP
+END FUNCTION

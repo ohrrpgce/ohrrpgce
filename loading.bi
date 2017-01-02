@@ -44,6 +44,7 @@ declare sub DeserNPCL(npc() as npcinst, byref z as integer, buffer() as integer,
 declare sub CleanNPCInst(inst as NPCInst)
 declare sub CleanNPCL(dat() as npcinst)
 
+
 '*** Requires construction + destruction ***
 declare sub UnloadTilemap(map as TileMap)
 declare sub UnloadTilemaps(layers() as TileMap)

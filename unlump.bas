@@ -82,7 +82,6 @@ DIM isrpg as bool = islumpfile(lumped, "browse.txt")
 IF numargs >= 2 THEN
  dest = cmdline_args(1)
 ELSE
- IF LEN(rightafter(lumped, ".")) = LEN(lumped) - 1 THEN fatalerror "please specify an output directory"
  IF isrpg THEN
   dest = trimextension(lumped) + ".rpgdir"
  ELSE

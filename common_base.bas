@@ -3,12 +3,12 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
 'This module is for code to be linked into utilities, but not Game and Custom.
-'Currently mostly replacements for common.bas functions.
+'These are replacements for common.rbas functions in a non-graphical environment.
 
+#include "config.bi"
 #include "common_base.bi"
 #include "file.bi"
 
-EXTERN workingdir as string
 DIM workingdir as string
 
 DIM cleanup_function as sub ()
@@ -41,21 +41,3 @@ SUB fatalerror (e as string)
   IF cleanup_function THEN cleanup_function()
   SYSTEM 1
 END SUB
-
-FUNCTION readkey () as string
-  DO
-    DIM w as string = INKEY
-    IF w <> "" THEN RETURN w
-  LOOP
-END FUNCTION
-
-FUNCTION rightafter (s as string, d as string) as string
-  DIM result as string
-  FOR i as integer = LEN(s) TO 1 STEP -1
-   IF MID(s, i, 1) = d THEN
-    RETURN result
-   END IF
-   result += MID(s, i, 1)
-  NEXT i
-  RETURN ""
-END FUNCTION

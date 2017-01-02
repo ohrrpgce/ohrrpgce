@@ -6,9 +6,10 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
-#include "vector.bi"
 #include "crt/stddef.bi"
+#include "file.bi"   'FB header, for FILELEN
 
+#include "vector.bi"
 
 '#ifdef __FB_ANDROID__
 '#define DEBUG_FILE_IO
@@ -525,6 +526,8 @@ declare sub invert_permutation overload (indices() as integer)
 declare function strhash (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
+
+declare function readkey () as string
 
 #macro debug_if_slow(starttime, seconds, extrainfo)
   IF TIMER > starttime + seconds THEN

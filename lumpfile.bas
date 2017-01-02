@@ -9,7 +9,7 @@
 ' handles with special OPEN calls.
 
 #include "config.bi"
-#include "common.bi"
+#include "common_base.bi"
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"
 

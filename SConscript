@@ -13,7 +13,7 @@ import itertools
 import re
 from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output, get_fb_info
 
-FBFLAGS = ['-mt']
+FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C, C++, and -gen gcc generated C source
 CFLAGS = []
 # TRUE_CFLAGS apply only to normal .c[pp] sources, NOT to those generated via gengcc=1.

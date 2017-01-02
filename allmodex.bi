@@ -3,18 +3,64 @@
 #IFNDEF ALLMODEX_BI
 #DEFINE ALLMODEX_BI
 
-#include "udts.bi"
-#include "reload.bi"
 #include "config.bi"
+#include "const.bi"
+#include "reload.bi"
 #include "bitmap.bi"
-#include "file.bi"   'FB header
-#include "lumpfile.bi"
 #include "gfx.bi"
 #include "gfx_newRenderPlan.bi"
 #include "music.bi"
 
 
-'Library routines
+'WARNING: don't add strings to this
+Type Palette16
+	col(15) as ubyte 'indices into the master palette
+	refcount as int32 'private. This is not like Frame.refcount, it is used by the palette cache.
+End Type
+
+Type SpriteCacheEntryFwd as SpriteCacheEntry
+Type SpriteSetFwd as SpriteSet
+
+'An 8 bit, single frame of a sprite.
+'Don't forget to update definition in allmodex.h when changing this!!
+'As a rather ugly hack (TODO: remove), arrays of Frames are sometimes (for sprite sets) allocated contiguously,
+'with each having pointers to separate .image and .mask buffers. All will initially have .refcount = 1,
+'.arraylen set to the length of the array, and all but first will have .arrayelem = YES.
+'WARNING: don't add strings to this
+Type Frame
+	w as int32
+	h as int32
+	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
+	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
+	image as ubyte ptr
+	mask as ubyte ptr
+	refcount as int32  'see frame_unload in particular for documentation
+	arraylen as int32  'how many frames were contiguously allocated in this frame array
+	base as Frame ptr    'if a view, the Frame which actually owns this memory
+	cacheentry as SpriteCacheEntryFwd ptr
+	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
+	arrayelem:1 as int32  'not the first frame in a frame array
+	isview:1 as int32
+
+	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
+                                    'will need to be freed at the same time
+End Type
+
+' You can declare vectors of type "Frame ptr vector".
+' When you remove a Frame ptr from the vector, frame_unload is called (decrementing the refcount),
+' so likewise when you add a Frame ptr frame_reference is called to increment the refcount.
+' ** WARNING: This means you have to call frame_unload to decrement the refcount after appending it! **
+DECLARE_VECTOR_OF_TYPE(Frame ptr, Frame_ptr)
+
+Type GraphicPair
+	sprite as Frame ptr
+	pal as Palette16 ptr
+End Type
+
+
+'==========================================================================================
+'                              Video pages and video mode
+
 DECLARE SUB modex_init ()
 DECLARE SUB setmodex ()
 DECLARE SUB modex_quit ()
@@ -48,6 +94,31 @@ DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
 
+
+'==========================================================================================
+'                                        Maps
+
+Type TileAnimState
+  cycle as integer 'Current tile offset (tile to show)
+  pt as integer    'Step number of the next step in the animation
+  skip as integer  'Number of ticks left in current wait
+End Type
+
+Type TilesetData
+  num as integer
+  spr as Frame ptr
+  anim(1) as TileAnimState
+  tastuf(40) as integer
+End Type
+
+'*** Requires construction + destruction ***
+Type TileMap
+  wide as integer
+  high as integer
+  data as ubyte ptr
+  layernum as integer
+End Type
+
 DECLARE FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer) as integer
 DECLARE SUB writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
 
@@ -58,13 +129,16 @@ DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as in
 DECLARE SUB setanim (byval cycle1 as integer, byval cycle2 as integer)
 DECLARE SUB setoutside (byval defaulttile as integer)
 
-'--box drawing
-ENUM bgType
-  bgFIRST = -2
-  bgChequer = -2       'Non-scrolling chequered pattern
-  bgChequerScroll = -1 'Scrolling chequered pattern
-  '0 - 255 are master palette colors
-END ENUM
+
+'==========================================================================================
+'                                     Drawing
+
+Enum bgType
+	bgFIRST = -2
+	bgChequer = -2       'Non-scrolling chequered pattern
+	bgChequerScroll = -1 'Scrolling chequered pattern
+	'0 - 255 are master palette colors
+End Enum
 
 DECLARE SUB drawbox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1, byval p as integer)
 DECLARE SUB drawbox OVERLOAD (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
@@ -74,12 +148,21 @@ DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w 
 DECLARE SUB fuzzyrect OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
 DECLARE SUB draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as integer = 0, y as integer = 0, wide as integer = -1, high as integer = -1)
 
+Type ClipState
+	whichframe as Frame ptr
+	clipl as integer
+	clipr as integer
+	clipt as integer
+	clipb as integer
+End Type
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
 DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 DECLARE SUB saveclip(byref buf as ClipState)
 DECLARE SUB loadclip(byref buf as ClipState)
+
+
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, byval picoff as integer, pal as Palette16 ptr, byval x as integer, byval y as integer, byval page as integer, byval scale as integer=1, byval trans as bool = YES)
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval scale as integer = 1, byval trans as bool = YES)
 DECLARE SUB drawsprite (pic() as integer, byval picoff as integer, pal() as integer, byval po as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
@@ -89,6 +172,8 @@ DECLARE SUB stosprite (pic() as integer, byval picoff as integer, byval x as int
 DECLARE SUB loadsprite (pic() as integer, byval picoff as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval page as integer)
 DECLARE SUB bigsprite  (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
 DECLARE SUB hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x as integer, byval y as integer, byval page as integer, byval trans as bool = YES)
+
+
 DECLARE SUB putpixel OVERLOAD (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 DECLARE SUB putpixel OVERLOAD (byval x as integer, byval y as integer, byval c as integer, byval p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
@@ -99,18 +184,72 @@ DECLARE SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as int
 DECLARE SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval c as integer, byval fillcol as integer = -1, byval semiminor as double = 0.0, byval angle as double = 0.0)
 DECLARE SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
 
+'==========================================================================================
+
 DECLARE SUB storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 DECLARE SUB loadmxs (filen as string, record as integer, dest as Frame ptr)
 DECLARE FUNCTION mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
+
+'==========================================================================================
 
 DECLARE SUB setwait (byval ms as double, byval flagms as double = 0)
 DECLARE FUNCTION dowait () as bool
 DECLARE SUB enable_speed_control(byval setting as bool = YES)
 DECLARE FUNCTION get_tickcount() as integer
 
-DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
+'==========================================================================================
+'                               Fonts and text rendering
 
-TYPE PrintStrStatePtr as PrintStrState Ptr
+Type FontChar
+	offset as integer  'offset into spr->image
+	offx as byte   'pixel offsets
+	offy as byte
+	w as byte      'size of sprite
+	h as byte
+End Type
+
+'WARNING: don't add strings to this
+Type FontLayer
+	spr as Frame ptr
+	refcount as integer
+	chdata(255) as FontChar
+End Type
+
+Type Font
+	initialised as bool
+	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
+	w(255) as integer	'width of each character
+	h as integer		'height of a line
+	offset as XYPair	'added to coordinates when printing
+	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 15
+	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
+	outline_col as integer  'palette entry (1 to .cols) which should be filled with uiOutline, or 0 for none.
+End Type
+
+'text_layout_dimensions returns this struct
+Type StringSize
+	h as integer         'Height (in pixels)
+	w as integer         'Greatest width of any line
+	endchar as integer   'For when maxlines is specified: one character past last line
+	lastw as integer     'Width of last line fragment
+	lasth as integer     'Height of last line fragment
+	lines as integer     'Number of lines (always at least 1)   FIXME:  not true
+	finalfont as Font ptr
+End Type
+
+Type StringCharPos
+	charnum as integer   'offset in string; equal to len(text) if off the end
+	exacthit as bool     'whether actually on this character, or just the nearest (eg. off end of line)
+	x as integer         'position is in screen coordinates
+	y as integer
+	'w as integer        'Size of the selected character (do we really need this?)
+	h as integer
+	lineh as integer     'height of containing line fragment
+End Type
+
+Type PrintStrStatePtr as PrintStrState ptr
+
+DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
 
 DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
@@ -134,13 +273,8 @@ DECLARE FUNCTION font_create_shadowed (basefont as Font ptr, xdrop as integer = 
 DECLARE FUNCTION font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
 DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 
-DECLARE SUB setupmusic
-DECLARE SUB closemusic ()
-DECLARE SUB loadsong (f as string)
-'DECLARE SUB pausesong ()
-'DECLARE SUB resumesong ()
-DECLARE FUNCTION get_music_volume () as single
-DECLARE SUB set_music_volume (byval vol as single)
+'==========================================================================================
+'                                           BMPs
 
 DECLARE SUB screenshot (f as string = "")
 DECLARE SUB bmp_screenshot(f as string)
@@ -157,7 +291,8 @@ DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval red as ubyte, byva
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
 DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integer
 
-DECLARE FUNCTION isawav(fi as string) as bool
+'==========================================================================================
+'                                          Input
 
 DECLARE FUNCTION real_keyval(byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0) as integer
 DECLARE FUNCTION keyval (byval a as integer, byval repeat_wait as integer = 0, byval repeat_rate as integer = 0, real_keys as bool = NO) as integer
@@ -182,6 +317,23 @@ DECLARE SUB resume_replaying_input
 DECLARE SUB pause_recording_input
 DECLARE SUB resume_recording_input
 
+Type MouseInfo
+	x as integer
+	y as integer
+	moved as bool         'Whether mouse has moved since last readmouse call.
+	movedtick as bool     'Whether mouse has moved since the last setkeys call
+	clicks as integer     'Button down event since last readmouse call; MouseButton bitvector (see scancodes.bi)
+	clickstick as integer 'Button down since the last setkeys call
+	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
+	wheel as integer      'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
+	dragging as integer   'MouseButton bitvector, but only one button at once can be dragged.
+	                      'A dragged button is one held down for at least 2 ticks. 
+	                      'So on the first tick, you see click=button=true, dragging=false
+	                      'And on the subsequent ticks, you see dragging=button=true, click=false
+	clickstart as XYPair  'Mouse position at start of click/drag (Note: no backend currently
+	                      'supports reporting the position of click, so currently equal to .x/.y)
+End Type
+
 DECLARE FUNCTION havemouse () as bool
 DECLARE SUB hidemousecursor ()
 DECLARE SUB showmousecursor ()
@@ -194,6 +346,20 @@ DECLARE SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin 
 
 DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, byval jnum as integer) as bool
 DECLARE FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as bool
+
+
+'==========================================================================================
+'                                  Music and Sound effects
+
+DECLARE SUB setupmusic
+DECLARE SUB closemusic ()
+DECLARE SUB loadsong (f as string)
+'DECLARE SUB pausesong ()
+'DECLARE SUB resumesong ()
+DECLARE FUNCTION get_music_volume () as single
+DECLARE SUB set_music_volume (byval vol as single)
+
+DECLARE FUNCTION isawav(fi as string) as bool
 
 DECLARE SUB resetsfx ()
 DECLARE SUB playsfx (byval num as integer, byval l as integer=0) 'l is loop count. -1 for infinite loop
@@ -208,7 +374,10 @@ DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 'DECLARE FUNCTION getsoundvol () as integer
 'DECLARE SUB setsoundvol (byval vol)
 
-'new sprite functions
+
+'==========================================================================================
+'                                          Frame
+
 declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, byval picoff as integer = 0) as Frame ptr
@@ -240,6 +409,9 @@ declare function frame_is_valid(byval p as frame ptr) as bool
 declare sub sprite_debug_cache()
 declare function frame_describe(byval p as frame ptr) as string
 
+'==========================================================================================
+'                                       Palette16
+
 declare function palette16_new() as palette16 ptr
 declare function palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
 declare function palette16_load overload(num as integer, autotype as SpriteType = 0, spr as integer = 0, default_blank as bool = YES) as palette16 ptr
@@ -248,6 +420,76 @@ declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
+
+
+'==========================================================================================
+'                                 SpriteSets and Animations
+
+Enum AnimOpType
+	animOpWait	'(ticks)
+	animOpFrame	'(framenum)
+	animOpRepeat    '()     Start the animation over
+	animOpSetOffset	'(x,y)
+	animOpRelOffset	'(x,y)
+End Enum
+
+Type AnimationOp
+	type as AnimOpType
+	arg1 as integer
+	arg2 as integer
+End Type
+
+Type Animation
+	name as string
+	variant as string
+	'numitems as integer
+	ops(any) as AnimationOp
+
+	declare constructor()
+	declare constructor(name as string, variant as string = "")
+
+	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
+End Type
+
+Type SpriteSet
+	animations(any) as Animation
+	num_frames as integer  'redundant to frames->arraylen
+	frames as Frame ptr
+	'uses refcount from frames
+
+	declare Constructor(frameset as Frame ptr)
+
+	declare sub reference()
+	declare function describe() as string
+	declare function find_animation(variantname as string) as Animation ptr
+	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
+End Type
+
+declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
+declare sub spriteset_unload(ss as SpriteSet ptr ptr)
+
+' The animation state of a SpriteSet instance
+Type SpriteState
+	ss as SpriteSet ptr
+	frame_num as integer
+	anim as Animation ptr
+	anim_step as integer
+	anim_wait as integer
+	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
+	offset as XYPair
+
+	declare constructor(sprset as SpriteSet ptr)
+	declare constructor(ptno as SpriteType, record as integer)
+	declare destructor()
+
+	declare sub start_animation(name as string, loopcount as integer = 0)
+	declare function cur_frame() as Frame ptr
+	declare sub animate()
+End Type
+
+
+'==========================================================================================
+'                                        Platforms
 
 declare sub show_virtual_keyboard()
 declare sub hide_virtual_keyboard()
@@ -276,7 +518,10 @@ declare function supports_safe_zone_margin () as bool
 
 declare sub email_files(address as string, subject as string, message as string, file1 as zstring ptr = NULL, file2 as zstring ptr = NULL, file3 as zstring ptr = NULL)
 
-'globals
+
+'==========================================================================================
+'                                         Globals
+
 extern keybdmutex as any ptr
 extern modex_initialised as bool
 extern vpages() as Frame ptr

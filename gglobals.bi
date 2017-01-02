@@ -9,6 +9,7 @@
 #include "battle_udts.bi"
 #include "slices.bi"
 #include "os.bi"
+#include "scripting.bi"
 
 'Misc game globals
 EXTERN prefsdir as string

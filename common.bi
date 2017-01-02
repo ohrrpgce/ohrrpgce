@@ -15,13 +15,10 @@
 #include "const.bi"
 #include "misc.bi"  'for nulzstr
 #include "reload.bi"
+#include "common_base.bi"
 #include "common_menus.bi"
 
 USING RELOAD
-
-#ifdef COMMON_BASE_BI
-#error Include at most one of common.bi, common_base.bi
-#endif
 
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
@@ -29,11 +26,10 @@ DECLARE SUB fadein ()
 DECLARE SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
 DECLARE SUB ensure_normal_palette ()
 DECLARE SUB restore_previous_palette ()
+
 DECLARE SUB start_new_debug ()
 DECLARE SUB end_debug ()
-DECLARE SUB debug (s as string)
-DECLARE SUB debugc CDECL ALIAS "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
-DECLARE SUB debuginfo (s as string)
+
 DECLARE FUNCTION soundfile (byval sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
 
@@ -176,8 +172,6 @@ DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
 DECLARE SUB notification (msg as string)
 DECLARE SUB visible_debug (s as string, errlvl as errorLevelEnum = errDebug)
-DECLARE SUB showerror (msg as string, byval isfatal as bool = NO)
-DECLARE SUB fatalerror (msg as string)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
 DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
 DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
@@ -298,7 +292,7 @@ DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as intege
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
 
-'Global variables
+'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
 EXTERN as string game, exename
 EXTERN game_unique_id as string
@@ -314,7 +308,6 @@ EXTERN gen_reld_doc as DocPtr
 EXTERN fmvol as integer
 EXTERN sprite_sizes() as SpriteSize
 EXTERN statnames() as string
-EXTERN workingdir as string
 EXTERN documents_dir as string
 EXTERN settings_dir as string
 EXTERN log_dir as string

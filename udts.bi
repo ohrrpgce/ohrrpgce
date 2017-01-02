@@ -4,26 +4,10 @@
 #INCLUDE "const.bi"
 #INCLUDE "util.bi"
 #INCLUDE "reload.bi"
+#INCLUDE "allmodex.bi"
 
 'Forward declarations
 TYPE SliceFwd as Slice
-
-TYPE MouseInfo
-  x as integer
-  y as integer
-  moved as bool      'Whether mouse has moved since last readmouse call.
-  movedtick as bool  'Whether mouse has moved since the last setkeys call
-  clicks as integer  'Button down event since last readmouse call; MouseButton bitvector (see scancodes.bi)
-  clickstick as integer 'Button down since the last setkeys call
-  buttons as integer 'Buttons currently down OR clicked; MouseButton bitvector
-  wheel as integer   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
-  dragging as integer 'MouseButton bitvector, but only one button at once can be dragged.
-                      'A dragged button is one held down for at least 2 ticks. 
-                      'So on the first tick, you see click=button=true, dragging=false
-                      'And on the subsequent ticks, you see dragging=button=true, click=false
-  clickstart as XYPair 'Mouse position at start of click/drag (Note: no backend currently
-                       'supports reporting the position of click, so currently equal to .x/.y)
-END TYPE
 
 ENUM CompType
   compNone
@@ -50,141 +34,6 @@ TYPE Condition
   'The following only used only in Custom and never saved
   editstate as ubyte
   lastinput as ubyte
-END TYPE
-
-Enum SpriteType
- sprTypeInvalid = -1
- sprTypeHero = 0
- sprTypeSmallEnemy = 1
- sprTypeMediumEnemy = 2
- sprTypeLargeEnemy = 3
- sprTypeWalkabout = 4
- sprTypeWeapon = 5
- sprTypeAttack = 6
- sprTypeBoxBorder = 7
- sprTypePortrait = 8
- sprTypeLastPT = 8
- sprTypeBackdrop = 9      'Can't change this! Saved in .slice files
- sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
- sprTypeTileset = 10      'Free to change this later (never saved)
- sprTypeLastLoadable = 10 'Last type that frame_load knows about
- sprTypeFrame = 11        'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
- sprTypeLast = 11
-End Enum
-
-'WARNING: don't add strings to this
-TYPE Palette16
-	col(15) as ubyte 'indices into the master palette
-	refcount as int32 'private. This is not like Frame.refcount, it is used by the palette cache.
-END TYPE
-
-TYPE SpriteCacheEntryFwd as SpriteCacheEntry
-TYPE SpriteSetFwd as SpriteSet
-
-'An 8 bit, single frame of a sprite.
-'Don't forget to update definition in allmodex.h when changing this!!
-'As a rather ugly hack (TODO: remove), arrays of Frames are sometimes (for sprite sets) allocated contiguously,
-'with each having pointers to separate .image and .mask buffers. All will initially have .refcount = 1,
-'.arraylen set to the length of the array, and all but first will have .arrayelem = YES.
-'WARNING: don't add strings to this
-type Frame
-	w as int32
-	h as int32
-	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
-	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
-	image as ubyte ptr
-	mask as ubyte ptr
-	refcount as int32  'see frame_unload in particular for documentation
-	arraylen as int32  'how many frames were contiguously allocated in this frame array
-	base as Frame ptr    'if a view, the Frame which actually owns this memory
-	cacheentry as SpriteCacheEntryFwd ptr
-	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
-	arrayelem:1 as int32  'not the first frame in a frame array
-	isview:1 as int32
-
-	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
-                                    'will need to be freed at the same time
-end type
-
-' You can declare vectors of type "Frame ptr vector".
-' When you remove a Frame ptr from the vector, frame_unload is called (decrementing the refcount),
-' so likewise when you add a Frame ptr frame_reference is called to increment the refcount.
-' ** WARNING: This means you have to call frame_unload to decrement the refcount after appending it! **
-DECLARE_VECTOR_OF_TYPE(Frame ptr, Frame_ptr)
-
-ENUM AnimOpType
-	animOpWait	'(ticks)
-	animOpFrame	'(framenum)
-	animOpRepeat    '()     Start the animation over
-	animOpSetOffset	'(x,y)
-	animOpRelOffset	'(x,y)
-END ENUM
-
-TYPE AnimationOp
-	type as AnimOpType
-	arg1 as integer
-	arg2 as integer
-END TYPE
-
-TYPE Animation
-	name as string
-	variant as string
-	'numitems as integer
-	ops(any) as AnimationOp
-
-	declare constructor()
-	declare constructor(name as string, variant as string = "")
-
-	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
-END TYPE
-
-TYPE SpriteSet
-	animations(any) as Animation
-	num_frames as integer  'redundant to frames->arraylen
-	frames as Frame ptr
-	'uses refcount from frames
-
-	declare Constructor(frameset as Frame ptr)
-
-	declare sub reference()
-	declare function describe() as string
-	declare function find_animation(variantname as string) as Animation ptr
-	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
-END TYPE
-
-declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
-declare sub spriteset_unload(ss as SpriteSet ptr ptr)
-
-' The animation state of a SpriteSet instance
-TYPE SpriteState
-	ss as SpriteSet ptr
-	frame_num as integer
-	anim as Animation ptr
-	anim_step as integer
-	anim_wait as integer
-	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
-	offset as XYPair
-
-	declare constructor(sprset as SpriteSet ptr)
-	declare constructor(ptno as SpriteType, record as integer)
-	declare destructor()
-
-	declare sub start_animation(name as string, loopcount as integer = 0)
-	declare function cur_frame() as Frame ptr
-	declare sub animate()
-END TYPE
-
-TYPE GraphicPair
-	sprite as frame ptr
-	pal as palette16 ptr
-END TYPE
-
-TYPE ClipState
-	whichframe as Frame ptr
-	clipl as integer
-	clipr as integer
-	clipt as integer
-	clipb as integer
 END TYPE
 
 'Used for menu and slice anchor points and slice align points
@@ -567,34 +416,6 @@ TYPE ScriptCommand
   args(0) as integer
 END TYPE
 
-UNION RGBcolor
-  as uint32 col
-  TYPE
-    as ubyte b, g, r, a
-  END TYPE
-END UNION
-
-Type TileAnimState
-  cycle as integer 'Current tile offset (tile to show)
-  pt as integer    'Step number of the next step in the animation
-  skip as integer  'Number of ticks left in current wait
-END Type
-
-Type TilesetData
-  num as integer
-  spr as Frame ptr
-  anim(1) as TileAnimState
-  tastuf(40) as integer
-End Type
-
-'*** Requires construction + destruction ***
-Type TileMap
-  wide as integer
-  high as integer
-  data as ubyte ptr
-  layernum as integer
-End Type
-
 TYPE TilemapInfo
   wide as integer
   high as integer
@@ -666,55 +487,6 @@ TYPE MapData
 
   Declare Sub load (map_id as integer)
 END TYPE
-
-Type FontChar
-	offset as integer  'offset into spr->image
-	offx as byte   'pixel offsets
-	offy as byte
-	w as byte      'size of sprite
-	h as byte
-End Type
-
-'WARNING: don't add strings to this
-Type FontLayer
-	spr as Frame ptr
-	refcount as integer
-	chdata(255) as FontChar
-End Type
-
-Type Font
-	initialised as bool
-	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
-	w(255) as integer	'width of each character
-	h as integer		'height of a line
-	offset as XYPair	'added to coordinates when printing
-	cols as integer		'number of used colours, not including colour 0 (transparency), so at most 15
-	pal as Palette16 ptr    '(Default) palette template to use, or NULL if this font is unpaletted (foreground colour only)
-	outline_col as integer  'palette entry (1 to .cols) which should be filled with uiOutline, or 0 for none.
-End Type
-
-'text_layout_dimensions returns this struct
-Type StringSize
-	h as integer         'Height (in pixels)
-	w as integer         'Greatest width of any line
-	endchar as integer   'For when maxlines is specified: one character past last line
-	lastw as integer     'Width of last line fragment
-	lasth as integer     'Height of last line fragment
-	lines as integer     'Number of lines (always at least 1)   FIXME:  not true
-	finalfont as Font ptr
-End Type
-
-Type StringCharPos
-	charnum as integer   'offset in string; equal to len(text) if off the end
-	exacthit as bool     'whether actually on this character, or just the nearest (eg. off end of line)
-	x as integer         'position is in screen coordinates
-	y as integer
-	'w as integer        'Size of the selected character (do we really need this?)
-	h as integer
-	lineh as integer     'height of containing line fragment
-End Type
-
-Type PrintStrStatePtr as PrintStrState ptr
 
 Union Stats
        Type
