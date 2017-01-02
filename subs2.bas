@@ -43,7 +43,8 @@ DECLARE FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuin
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
 DECLARE SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
 DECLARE SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
-DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
+DECLARE SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as integer=NO)
+DECLARE SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
 DECLARE SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditState, parent_menu() as string)
 DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem vector, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
@@ -804,7 +805,7 @@ SUB text_box_editor () 'textage
  
   '--Draw box
   clearpage dpage
-  textbox_edit_preview box, st, 96
+  textbox_edit_preview box, st, dpage, 96
 
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr "+ to copy", 248, 0, dpage
@@ -1013,7 +1014,8 @@ SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
  END SELECT
 END SUB
 
-SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, override_y as integer=-1, suppress_text as integer=NO)
+' Draw the textbox without backdrop, optionally without text or at other y position.
+SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as integer=NO)
  DIM ypos as integer
  IF override_y >= 0 THEN
   ypos = override_y
@@ -1021,7 +1023,7 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, ov
   ypos = 4 + box.vertical_offset * 4
  END IF
  IF box.no_box = NO THEN
-  edgeboxstyle 4, ypos, 312, get_text_box_height(box), box.boxstyle, dpage, (box.opaque = NO)
+  edgeboxstyle 4, ypos, 312, get_text_box_height(box), box.boxstyle, page, (box.opaque = NO)
  END IF
  IF suppress_text = NO THEN
   DIM col as integer
@@ -1029,16 +1031,33 @@ SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, ov
   FOR i as integer = 0 TO 7
    col = uilook(uiText)
    IF box.textcolor > 0 THEN col = box.textcolor
-   edgeprint box.text(i), 8, 3 + ypos + i * 10, col, dpage
+   edgeprint box.text(i), 8, 3 + ypos + i * 10, col, page
   NEXT i
  END IF
  ' Don't draw box if portrait type is NONE
  IF box.portrait_box AND box.portrait_type <> 0 THEN
-  edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
+  edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, page, YES
  END IF
  WITH st.portrait
-  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,dpage
+  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,page
  END WITH
+END SUB
+
+' Preview the textbox as it will appear in-game, portraying it with in-game window size
+SUB textbox_draw_with_background(byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr, page as integer)
+ clearpage page
+ draw_background vpages(page), uilook(uiBackground)
+
+ ' Draw the textbox
+ DIM fr as Frame ptr = vpages(page)
+ DIM viewport as Frame ptr
+ viewport = frame_new_view(fr, large(0, fr->w - gen(genResolutionX)), large(0, fr->h - gen(genResolutionY)), gen(genResolutionX), gen(genResolutionY))
+ draw_background viewport, bgChequer
+ IF backdrop THEN frame_draw backdrop, , 0, 0, , box.backdrop_trans, viewport
+ DIM viewport_page as integer = registerpage(viewport)
+ textbox_edit_preview box, st, viewport_page
+ freepage viewport_page
+ frame_unload @viewport
 END SUB
 
 SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu() as string)
@@ -1197,12 +1216,8 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scUp)    > 0 THEN box.portrait_pos.y -= speed
   IF keyval(scDown)  > 0 THEN box.portrait_pos.y += speed
 
-  clearpage dpage
-  draw_background vpages(dpage), bgChequer
-  rectangle 0, 0, gen(genResolutionX), gen(genResolutionY), uilook(uiBackground), dpage
-  frame_draw backdrop, , 0, 0, , , dpage
-  textbox_edit_preview box, st
-  edgeprint "Arrow keys to move, space to confirm", 0, 190, uilook(uiSelectedItem + tog), dpage
+  textbox_draw_with_background box, st, backdrop, dpage
+  edgeprint "Arrow keys to move, space to confirm", 0, 0, uilook(uiSelectedItem + tog), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1218,6 +1233,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  state.autosize = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
+ menuopts.itemspacing = -1
 
  'Show backdrop
  DIM backdrop as Frame ptr
@@ -1333,16 +1349,12 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    update_textbox_appearance_editor_menu menu, box, st
   END IF
 
-  clearpage dpage
-  draw_background vpages(dpage), bgChequer
-  rectangle 0, 0, gen(genResolutionX), gen(genResolutionY), uilook(uiBackground), dpage
-  IF backdrop THEN frame_draw backdrop, , 0, 0, , , dpage
-  textbox_edit_preview box, st
+  textbox_draw_with_background box, st, backdrop, dpage
   standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
 
   IF keyval(scAlt) > 0 THEN
    textcolor uilook(uiText), uilook(uiHighlight)
-   printstr "Box " & st.id, 320 - LEN("Box " & st.id) * 8, 0, dpage
+   printstr "Box " & st.id, vpages(dpage)->w - LEN("Box " & st.id) * 8, 0, dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -1576,7 +1588,7 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
   
   'Display the textbox minus the text
   clearpage dpage
-  textbox_edit_preview box, st, 4, YES
+  textbox_edit_preview box, st, dpage, 4, YES
   'Display the lines in the box
   DrawSlice textslice, dpage
   textcolor uilook(uiText), 0
@@ -1786,7 +1798,7 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
 
   '--Draw box preview
   clearpage dpage
-  textbox_edit_preview box, st, 96
+  textbox_edit_preview box, st, dpage, 96
   '--Draw previous
   IF state.last >= 0 THEN
    FOR i as integer = state.top TO small(state.last, state.top + state.size)
