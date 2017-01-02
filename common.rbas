@@ -510,17 +510,22 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  ELSEIF isdir(dest) THEN
   killdir dest, YES
  END IF
+ DIM src_is_file as bool = isfile(src)
+ IF NOT src_is_file ANDALSO NOT isdir(src) THEN
+  debug "os_shell_move: src file " & src & " does not exist"
+  RETURN NO
+ END IF
  
  DIM stderr_s as string
  DIM mv as string
  DIM args as string
  #IFDEF __UNIX__
   mv = "mv"
-  args = " -f"
+  args = " -f"  ' Overwrite without confirmation
  #ENDIF
  #IFDEF __FB_WIN32__
   mv = "move"
-  args = " /Y"
+  args = " /Y"  ' Overwrite without confirmation
  #ENDIF
  args &= " " & escape_filename(src) & " " & escape_filename(dest)
 
@@ -528,9 +533,11 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  IF run_and_get_output(mv & args, "", stderr_s) THEN
   visible_debug "os_shell_move: move failed: " & stderr_s : RETURN NO
  END IF
- IF NOT isdir(dest) THEN debug "os_shell_move: dest file not created: " & dest : RETURN NO
- 
- RETURN YES
+
+ DIM success as bool = NO
+ IF src_is_file THEN success = isfile(dest) ELSE success = isdir(dest)
+ IF NOT success THEN debug "os_shell_move: dest file not created: " & dest
+ RETURN success
 END FUNCTION
 
 FUNCTION getfixbit(byval bitnum as integer) as integer
