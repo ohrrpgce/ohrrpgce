@@ -31,8 +31,8 @@ DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, by
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
 
 ' Tileset editor
-DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
-DECLARE SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
+DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
+DECLARE SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as bgType)
 DECLARE SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DECLARE SUB refreshtileedit (state as TileEditState)
 DECLARE SUB writeundoblock (state as TileEditState)
@@ -54,7 +54,7 @@ DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integ
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
 DECLARE SUB tile_animation(byval tilesetnum as integer)
-DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
+DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
 
 ' Spriteset browser (TODO: misnamed)
 DECLARE SUB spriteedit_load_spriteset(byval setnum as integer, byval top as integer, ss as SpriteSetBrowseState)
@@ -370,17 +370,17 @@ END FUNCTION
 
 'Draw a Frame (specially a tileset) onto another Frame with the transparent
 'colour replaced either with another colour, or with a chequer pattern.
-'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
-'background), or -2 (a non-scrolling chequered background)
+'bgcolor is either between 0 and 255 (a colour), bgChequerScroll (a scrolling chequered
+'background), or bgChequer (a non-scrolling chequered background)
 'chequer_scroll is a counter variable which the calling function should increment once per tick.
-SUB frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as integer, byref chequer_scroll as integer, byval dest as Frame ptr)
- draw_background x, y, src->w * scale, src->h * scale, bgcolor, chequer_scroll, dest
+SUB frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as bgType, byref chequer_scroll as integer, byval dest as Frame ptr)
+ draw_background dest, bgcolor, chequer_scroll, x, y, src->w * scale, src->h * scale
  'Draw transparently
  frame_draw src, pal, x, y, scale, YES, dest
 END SUB
 
 SUB maptile ()
-STATIC bgcolor as integer = 0
+STATIC bgcolor as bgType = 0  'Default to first color in master palette
 DIM menu() as string
 DIM mapfile as string = game & ".til"
 DIM tilesetnum as integer
@@ -468,7 +468,7 @@ set_resolution remember_resolution.w, remember_resolution.h
 
 END SUB
  
-SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as integer)
+SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
  DIM chequer_scroll as integer
  DIM menu(6) as string
  menu(0) = "Draw Tiles"
@@ -505,11 +505,11 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
      EXIT DO
    END SELECT
   END IF
-  IF state.pt = 5 THEN intgrabber(bgcolor, -2, 255)
+  IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
   frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
-  IF bgcolor = -2 THEN
+  IF bgcolor = bgChequer THEN
    menu(5) = "Background: chequer"
-  ELSEIF bgcolor = -1 THEN
+  ELSEIF bgcolor = bgChequerScroll THEN
    menu(5) = "Background: scrolling chequer"
   ELSE
    menu(5) = "Background color: " & bgcolor
@@ -849,7 +849,7 @@ RETRACE
 
 END SUB
 
-SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as integer)
+SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
@@ -1086,7 +1086,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit state
 END SUB
 
-SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as integer)
+SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as bgType)
 STATIC clone as TileCloneBuffer
 DIM spot as XYPair
 

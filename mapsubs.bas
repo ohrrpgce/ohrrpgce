@@ -1586,7 +1586,7 @@ DO
  IF st.editmode = tile_mode THEN
   'This is to draw tile 0 as fully transparent on layer > 0
   st.menubar.layernum = st.layer
-  draw_background 0, 0, vpages(dpage)->w - 40, 20, IIF(st.layer > 0, -1, 0), chequer_scroll, vpages(dpage)
+  draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, 0), chequer_scroll, 0, 0, vpages(dpage)->w - 40, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
   'Don't show (black out) the last two tiles on the menubar, because they
   'are overlaid too much by the icons.
@@ -4313,8 +4313,8 @@ SUB mapedit_pickblock(st as MapEditState)
  DIM tog as integer
  DIM holdpos as XYPair
  DIM scrolly as integer = 0 'Y position in pixels of the camera/top of the screen
- DIM bgcolor as integer = 0
- IF st.layer > 0 THEN bgcolor = -1  'scrolling chequer pattern
+ DIM bgcolor as bgType = 0
+ IF st.layer > 0 THEN bgcolor = bgChequerScroll
 
  DIM tilesetdata as TilesetData ptr = st.tilesets(st.layer)
 
@@ -4374,7 +4374,7 @@ SUB mapedit_pickblock(st as MapEditState)
   scrolly = large(small(scrolly, tilesetview.high * 20 - vpages(vpage)->h), 0)
 
   'Draw screen
-  draw_background 0, 0, vpages(vpage)->w, vpages(vpage)->h, bgcolor, chequer_scroll, vpages(vpage)
+  draw_background vpages(vpage), bgcolor, chequer_scroll
   drawmap tilesetview, 0, scrolly, tilesetdata, vpage, YES
   DIM as integer infoline_y = 0, infoline2_y = 10
   IF tilepick.y * 20 - scrolly < vpages(vpage)->h - 80 THEN

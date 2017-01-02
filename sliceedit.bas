@@ -578,7 +578,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    usemenu state
   END IF
 
-  draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
+  draw_background vpages(dpage), bgChequer
   
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
@@ -818,7 +818,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys ses, state, sl, rules(), slicelookup(), specialcodes()
   
-  draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
+  draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END If
@@ -973,7 +973,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   IF keyval(scRight) > 0 THEN x += 1 + 9 * shift
   IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
   IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
-  draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
+  draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
   RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage

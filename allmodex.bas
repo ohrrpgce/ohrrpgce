@@ -3134,14 +3134,19 @@ sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 end sub
 
 'Draw either a rectangle or a scrolling chequer pattern.
-'bgcolor is either between 0 and 255 (a colour), -1 (a scrolling chequered
-'background), or -2 (a non-scrolling chequered background)
+'bgcolor is either between 0 and 255 (a colour), bgChequerScroll (a scrolling chequered
+'background), or bgChequer (a non-scrolling chequered background)
 'chequer_scroll is a counter variable which the calling function should increment once per tick.
-sub draw_background (x as integer, y as integer, wide as integer, high as integer, bgcolor as integer, byref chequer_scroll as integer, dest as Frame ptr)
+'(If chequer_scroll isn't provided, than bgChequerScroll acts like bgChequer.)
+'wide and high default to the whole dest Frame.
+sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as integer = 0, y as integer = 0, wide as integer = -1, high as integer = -1)
 	const zoom = 3  'Chequer pattern zoom, fixed
 	const rate = 4  'ticks per pixel scrolled, fixed
 	'static chequer_scroll as integer
 	chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
+
+	if wide = -1 then wide = dest->w
+	if high = -1 then high = dest->h
 
 	if bgcolor >= 0 then
 		rectangle dest, x, y, wide, high, bgcolor

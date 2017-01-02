@@ -59,13 +59,20 @@ DECLARE SUB setanim (byval cycle1 as integer, byval cycle2 as integer)
 DECLARE SUB setoutside (byval defaulttile as integer)
 
 '--box drawing
+ENUM bgType
+  bgFIRST = -2
+  bgChequer = -2       'Non-scrolling chequered pattern
+  bgChequerScroll = -1 'Scrolling chequered pattern
+  '0 - 255 are master palette colors
+END ENUM
+
 DECLARE SUB drawbox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1, byval p as integer)
 DECLARE SUB drawbox OVERLOAD (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
 DECLARE SUB rectangle OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
 DECLARE SUB rectangle OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
 DECLARE SUB fuzzyrect OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
-DECLARE SUB draw_background (x as integer, y as integer, wide as integer, high as integer, bgcolor as integer, byref chequer_scroll as integer, dest as Frame ptr)
+DECLARE SUB draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as integer = 0, y as integer = 0, wide as integer = -1, high as integer = -1)
 
 
 'NOTE: clipping values are global.

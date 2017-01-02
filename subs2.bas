@@ -1198,7 +1198,7 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scDown)  > 0 THEN box.portrait_pos.y += speed
 
   clearpage dpage
-  draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
+  draw_background vpages(dpage), bgChequer
   rectangle 0, 0, gen(genResolutionX), gen(genResolutionY), uilook(uiBackground), dpage
   frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
@@ -1334,7 +1334,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
   END IF
 
   clearpage dpage
-  draw_background 0, 0, vpages(dpage)->w, vpages(dpage)->h, -2, 0, vpages(dpage) 'chequer_scroll=0
+  draw_background vpages(dpage), bgChequer
   rectangle 0, 0, gen(genResolutionX), gen(genResolutionY), uilook(uiBackground), dpage
   IF backdrop THEN frame_draw backdrop, , 0, 0, , , dpage
   textbox_edit_preview box, st
