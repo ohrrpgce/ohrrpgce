@@ -5609,7 +5609,7 @@ private sub snapshot_check(force_snap as bool = NO)
 			'move our backlog of screenshots to the visible location
 			for n = 1 to ubound(backlog)
 				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
-				local_file_move backlog(n), curdir + slash + trimpath(backlog(n))
+				os_shell_move backlog(n), curdir + slash + trimpath(backlog(n))
 			next
 			redim backlog(0)
 		end if
