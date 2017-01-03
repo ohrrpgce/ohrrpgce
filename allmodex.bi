@@ -41,6 +41,7 @@ Type Frame
 	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
 	arrayelem:1 as int32  'not the first frame in a frame array
 	isview:1 as int32
+	noresize:1 as int32  '(Video pages only.) Don't resize this page to the window size
 
 	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
                                     'will need to be freed at the same time
@@ -75,6 +76,8 @@ DECLARE SUB copypage (byval src as integer, byval dest as integer)
 DECLARE SUB clearpage (byval page as integer, byval colour as integer = -1)
 DECLARE SUB resizepage (page as integer, w as integer, h as integer)
 DECLARE FUNCTION compatpage() as integer
+DECLARE SUB lock_page_size (page as integer, w as integer, h as integer)
+DECLARE SUB unlock_page_size (page as integer)
 
 DECLARE SUB unlock_resolution (byval min_w as integer, byval min_h as integer)
 DECLARE SUB lock_resolution ()
@@ -399,7 +402,7 @@ declare sub frame_flip_vert(byval spr as frame ptr)
 declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
-declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0) as Frame ptr
+declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
 declare sub sprite_empty_cache(sprtype as SpriteType = -1)

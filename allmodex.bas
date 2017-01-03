@@ -442,18 +442,13 @@ sub clearpage (byval page as integer, byval colour as integer = -1)
 	frame_clear vpages(page), colour
 end sub
 
-'The contents are either trimmed or extended with colour 0.
+'The contents are either trimmed or extended with colour uilook(uiBackground).
 sub resizepage (page as integer, w as integer, h as integer)
 	if vpages(page) = NULL then
 		showerror "resizepage called with null ptr"
 		exit sub
 	end if
-	dim newpage as Frame ptr
-	newpage = frame_new(w, h)
-	frame_clear newpage, uilook(uiBackground)
-	frame_draw vpages(page), NULL, 0, 0, 1, 0, newpage
-	frame_unload @vpages(page)
-	vpages(page) = newpage
+	frame_assign @vpages(page), frame_resized(vpages(page), w, h, 0, 0, uilook(uiBackground))
 end sub
 
 private function compatpage_internal(pageframe as Frame ptr) as Frame ptr
@@ -517,8 +512,9 @@ private sub screen_size_update ()
 	'All pages which are not meant to be the same size as the screen
 	'currently don't persist to the next frame.
 	for page as integer = 0 to ubound(vpages)
-		if vpages(page) andalso vpages(page)->isview = NO then
-			if vpages(page)->w <> windowsize.w or vpages(page)->h <> windowsize.h then
+		dim vp as Frame ptr = vpages(page)
+		if vp andalso vp->isview = NO andalso vp->noresize = NO then
+			if vp->w <> windowsize.w or vp->h <> windowsize.h then
 				'debug "screen_size_update: resizing page " & page & " -> " & windowsize.w & "*" & windowsize.h
 				resizepage page, windowsize.w, windowsize.h
 			end if
@@ -527,7 +523,7 @@ private sub screen_size_update ()
 
 	'Scan for compatpages (we're assuming all views are compatpages, which isn't true in
 	'general, but currently true when setvispage is called) and replace each with a new view
-	'onto the same page if it changed.
+	'onto the center of the same page if it changed.
 	for page as integer = 0 to ubound(vpages)
 		if vpages(page) andalso vpages(page)->isview then
 			for page2 as integer = 0 to ubound(oldvpages)
@@ -546,6 +542,20 @@ private sub screen_size_update ()
 	'This removes the need to call UpdateScreenSlice in all menus, but you can
 	'still call it to find out if the size changed.
 	UpdateScreenSlice NO  'clear_changed_flag=NO
+end sub
+
+'Set the size of a video page and keep it from being resized as the window size changes.
+'TODO: delete this after the tile editor stops using video pages
+sub lock_page_size(page as integer, w as integer, h as integer)
+	resizepage page, w, h
+	vpages(page)->noresize = 1
+end sub
+
+'Revert a video page to following the size of the window
+'TODO: delete this after the tile editor stops using video pages
+sub unlock_page_size(page as integer)
+	resizepage page, windowsize.w, windowsize.h
+	vpages(page)->noresize = 0
 end sub
 
 'Makes the window resizeable, and sets a minimum size.
@@ -6496,11 +6506,12 @@ sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, write_mask, scale)
 end sub
 
-'Return a copy which has been clipped or extended.
+'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.
 'Can also be used to scroll (does not wrap around)
-function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0) as Frame ptr
+function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 	dim as Frame ptr ret
-	ret = frame_new(wide, high, , YES, (spr->mask <> NULL))
+	ret = frame_new(wide, high, , NO, (spr->mask <> NULL))
+	frame_clear ret, bgcol
 	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, YES  'trans=NO, write_mask=YES
 	return ret
 end function

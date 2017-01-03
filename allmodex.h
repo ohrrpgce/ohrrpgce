@@ -34,6 +34,7 @@ struct Frame {
 	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool!
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
+	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
 
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
