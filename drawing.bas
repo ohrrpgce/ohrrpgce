@@ -392,15 +392,13 @@ state.top = -1
 state.pt = -1
 state.first = -1
 state.last = gen(genMaxTile)
-state.size = 20
+state.autosize = YES
+state.autosize_ignore_pixels = 4
 state.need_update = YES
 
-'The tileset editor only works at 320x200 or larger, since the tileset is stored on page 3
-DIM remember_resolution as XYPair = get_resolution()
-set_resolution 320, 200
-lock_resolution
-'Force videopage sizes to update
-setvispage vpage
+'The tileset editor stores the tileset on page 3 and undo on page 2, so lock them to 320x200
+lock_page_size 2, 320, 200
+lock_page_size 3, 320, 200
 
 clearpage 3
 setkeys
@@ -448,10 +446,11 @@ DO
   IF state.pt = -1 THEN clearpage 3 ELSE loadmxs mapfile, state.pt, vpages(3)
  END IF
 
+ clearpage dpage
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- standardmenu menu(), state, 10, 8, dpage, menuopts
+ standardmenu menu(), state, 4, 8, dpage, menuopts
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -463,8 +462,8 @@ clearpage 0
 'Robust againts tileset leaks
 sprite_update_cache sprTypeTileset
 
-unlock_resolution 320, 200
-set_resolution remember_resolution.w, remember_resolution.h
+unlock_page_size 2
+unlock_page_size 3
 
 END SUB
  
@@ -506,6 +505,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
    END SELECT
   END IF
   IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
+  clearpage dpage
   frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
   IF bgcolor = bgChequer THEN
    menu(5) = "Background: chequer"
@@ -968,7 +968,9 @@ DO
   END IF
  END IF
  IF ts.gotmouse THEN
-  bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
+  IF mouse.x < 320 AND mouse.y < 200 THEN
+   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
+  END IF
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   DIM movedcsr as integer = NO
@@ -1021,10 +1023,11 @@ DO
   IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, tilesetnum, vpages(3)
  END IF
 
+ clearpage dpage
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
-  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
+  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, vpages(dpage)->h - 10, 0), uilook(uiText), dpage
  END IF
  IF tmode = 3 THEN
   FOR o as integer = 0 TO 9
@@ -1078,7 +1081,8 @@ END SUB
 
 SUB readundoblock (state as TileEditState)
 FOR j as integer = 0 TO 5
- rectangle 270, 16 + (j * 21), 8, 8, 0, 2
+ 'Blank out the arrow pointing at the current undo step
+ rectangle 270, 16 + (j * 21), 8, 8, uilook(uiBackground), 2
 NEXT j
 copymapblock 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
 textcolor uilook(uiMenuItem), 0
@@ -1368,6 +1372,7 @@ DO
  ts.lastcpos = TYPE<XYPair>(ts.x, ts.y)
 
  '--Draw screen (Some of the editor is predrawn to page 2)
+ clearpage dpage
  copypage 2, dpage
  frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
  frame_clear overlay
@@ -1810,6 +1815,7 @@ DO
   DIM previewy as integer = bound(ts.tiley * 20 - 20, 0, 140)
   preview = frame_new_view(vpages(3), 0, previewy, vpages(3)->w, 59)
 
+  clearpage dpage  'The tileset (page 2) may be smaller
   copypage 2, dpage
   IF ts.y < 100 THEN
    'preview 59 pixels of tileset at bottom of screen
@@ -1825,6 +1831,7 @@ DO
   frame_unload @preview
   previewticks -= 1
  ELSE
+  clearpage dpage  'The tileset (page 2) may be smaller
   copypage 2, dpage
  END IF
 
