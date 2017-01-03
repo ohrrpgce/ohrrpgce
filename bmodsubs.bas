@@ -186,9 +186,6 @@ SUB control
  NEXT i
  IF proceed ANDALSO gen(genJoy) THEN
 
-  'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 0
-  'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 1
-
   IF joy(1) < joy(9) THEN
    carray(0) = 3
    IF carray(10) = 3 THEN carray(0) = 2
@@ -214,8 +211,6 @@ SUB control
    IF carray(13) = 1 THEN carray(3) = 2
   END IF
   '--Joystick buttons!
-  'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 0
-  'edgeprint XSTR$(joyuse) + XSTR$(joymenu) + XSTR$(joy(13)) + XSTR$(joy(14)), 0, 190, uilook(uiText), 1
   SELECT CASE joyuse
    CASE 0
     'IF joy(joy(13)) = 0 THEN joyuse = 1

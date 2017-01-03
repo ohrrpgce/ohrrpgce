@@ -13,7 +13,7 @@
 #include "browse.bi"
 #include "menus.bi"
 #include "const.bi"
-#include "misc.bi"  'for nulzstr
+#include "misc.bi"
 #include "reload.bi"
 #include "common_base.bi"
 #include "common_menus.bi"

@@ -876,7 +876,7 @@ IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE(11)
 ELSE
  inventory(i).text = readitemname(inventory(i).id)
- inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + RIGHT(XSTR(inventory(i).num), 2)
+ inventory(i).text = rpad(inventory(i).text, " ", 8) + CHR(1) + RIGHT(" " & inventory(i).num, 2)
 END IF
 END SUB
 

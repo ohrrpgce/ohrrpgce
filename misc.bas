@@ -258,11 +258,3 @@ Sub WriteByteStr(byval fh as integer, byval maxlen as integer, s as string)
 		if i < len(s) then writebyte(fh, cubyte(s[i])) else writebyte(fh, 0)
 	next
 end sub
-
-function xstr (byval x as integer) as string
-	if x >= 0 then
-		xstr = " " + str(x)
-	else
-		xstr = str(x)
-	end if
-end function
