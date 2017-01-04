@@ -107,14 +107,14 @@ static inline void *nth_elem(array_t array, int n) {
 // In modern GCC and clang can use __builtin_smul_overflow and
 // __builtin_sadd_overflow instead.
 // Set *res = a*b, or return true if overflows
-inline bool smul_overflow(int a, int b, int *res) {
+static bool smul_overflow(int a, int b, int *res) {
 	*res = a * b;  // technically undefined behaviour, don't care
 	if (b && *res / b != a)
 		return true;
 	return false;
 }
 // Set *res = a+b, or return true if overflows
-inline bool sadd_overflow(int a, int b, int *res) {
+static bool sadd_overflow(int a, int b, int *res) {
 	if ((a > 0 && b > INT_MAX - a) ||
 	    (a < 0 && b < INT_MIN - a))
 		return true;
