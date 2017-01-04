@@ -63,7 +63,7 @@ declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 declare function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
 
-declare sub snapshot_check(force_snap as bool = NO)
+declare sub snapshot_check()
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
@@ -5548,16 +5548,12 @@ end function
 '==========================================================================================
 
 
-'Save a snapshot. Default filename if none specified
-sub screenshot (f as string = "")
-	if f = "" then
-		snapshot_check YES  'A bit hacky
-		exit sub
-	end if
+'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
+sub screenshot (fname as string)
 	'try external first
-	if gfx_screenshot(f) = 0 then
+	if gfx_screenshot(fname) = 0 then
 		'otherwise save it ourselves
-		frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
+		frame_export_bmp8(fname & ".bmp", vpages(vpage), intpal())
 	end if
 end sub
 
@@ -5567,56 +5563,72 @@ sub bmp_screenshot(f as string)
 	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 end sub
 
-private sub snapshot_check(force_snap as bool = NO)
-'Either handle F12 key, or if force_snap is true, save a snapshot in the default location
-'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
+dim shared as string*4 screenshot_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
+
+' Find an available screenshot name in the current directory.
+' Returns filename without extension, and ensures it doesn't collide regardless of the
+' extension selected from screenshot_extns.
+private function next_unused_screenshot_filename() as string
+	static search_start as integer
+	static search_gamename as string
+
+	dim as string ret
+	dim as string gamename = trimextension(trimpath(sourcerpg))
+	if gamename = "" then
+		' If we haven't loaded a game yet
+		gamename = "ohrrpgce"
+	end if
+
+	' Reset search_start counter if needed
+	if search_gamename <> gamename then
+		search_gamename = gamename
+		search_start = 0
+	end if
+
+	for n as integer = search_start to 99999
+		ret = gamename + right("0000" & n, 4)
+		'checking curdir, which is export directory
+		for i as integer = 0 to ubound(screenshot_exts)
+			if isfile(ret + screenshot_exts(i)) then continue for, for
+		next
+		search_start = n
+		return ret
+	next
+	return ret  'This won't be reached
+end function
+
+'Take a single screenshot if F12 is pressed.
+'Holding down F12 takes a screenshot each frame, however besides
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
-'moved, to prevent littering
+'moved, in order to 'debounce' F12 if you only press it for a short while.
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
-	static as string*4 image_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
+private sub snapshot_check()
 	static as string backlog()
 	initialize_static_dynamic_array(backlog)
-	static as integer backlog_num
 
 	dim as integer n, i, F12bits
 
 	F12bits = real_keyval(scF12)
-	if force_snap then F12bits = 7
 
 	if F12bits = 0 then
-		'delete the backlog
+		' If key repeat never occurred then delete the backlog.
 		for n = 1 to ubound(backlog)
 			'debug "killing " & backlog(n)
 			safekill backlog(n)
 		next
 		redim backlog(0)
-		backlog_num = 0
 	else
-		dim as string shot
-		dim as string gamename = trimextension(trimpath(sourcerpg))
-		if gamename = "" then
-			gamename = "ohrrpgce"
-		end if
-
-		for n = backlog_num to 9999
-			shot = gamename + right("000" & n, 4)
-			'checking curdir, which is export directory
-			for i = 0 to ubound(image_exts)
-				if isfile(shot + image_exts(i)) then continue for, for
-			next
-			exit for
-		next
-		backlog_num = n + 1
+		dim as string shot = next_unused_screenshot_filename()
 
 		if F12bits = 1 then
 			shot = tmpdir + shot
 			screenshot shot
-			for i = 0 to ubound(image_exts)
-				if isfile(shot + image_exts(i)) then str_array_append(backlog(), shot + image_exts(i))
+			for i = 0 to ubound(screenshot_exts)
+				if isfile(shot + screenshot_exts(i)) then str_array_append(backlog(), shot + screenshot_exts(i))
 			next
 		else
 			screenshot shot
-			'move our backlog of screenshots to the visible location
+			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
 			for n = 1 to ubound(backlog)
 				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
 				os_shell_move backlog(n), curdir + slash + trimpath(backlog(n))
