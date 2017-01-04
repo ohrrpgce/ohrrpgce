@@ -1873,7 +1873,7 @@ SUB quad_transforms_menu ()
   gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpage32 )
   drawtime = TIMER - starttime
 
-  gfx_present( vpage32, NULL )
+  setvissurface vpage32
 
   'surface_export_bmp24 ("out.bmp", vpage32)
   dowait

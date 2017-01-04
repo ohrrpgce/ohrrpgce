@@ -75,7 +75,7 @@ declare sub record_input_tick ()
 declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
-declare sub draw_allmodex_overlays (page as integer)
+declare function draw_allmodex_overlays (page as integer) as bool
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
@@ -724,6 +724,36 @@ sub setvispage (byval page as integer)
 	screen_size_update
 	debug_if_slow(starttime, 0.1, "")
 end sub
+
+'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
+'May modify the surface.
+sub setvissurface (to_show as Surface ptr)
+	static overlays_page as integer = 0
+	if overlays_page = 0 then overlays_page = allocatepage
+
+	' Draw overlays onto to_show, first drawing them to a temp overlays_page (which starts blank)
+	dim temp_surface as Surface ptr
+	if draw_allmodex_overlays(overlays_page) then
+		gfx_surfaceFromFrame(vpages(overlays_page), @temp_surface)
+		frame_draw vpages(overlays_page), intpal(), 0, 0, NO, to_show
+		clearpage overlays_page
+	end if
+
+	dim surface_pal as BackendPalette ptr
+	if to_show->format = SF_8bit then
+		' Need to provide a palette
+		gfx_paletteFromRGB(@intpal(0), @surface_pal)
+	end if
+
+	gfx_present(to_show, surface_pal)
+
+	if surface_pal then gfx_paletteDestroy(surface_pal)
+
+	'After presenting this is a good time to check for window size changes and
+	'resize the videopages as needed before the next frame is rendered.
+	screen_size_update
+end sub
+
 
 sub setpal(pal() as RGBcolor)
 	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
@@ -2041,7 +2071,9 @@ private function ms_to_string (ms as integer) as string
 end function
 
 'Draw stuff on top of the video page about to be shown.
-private sub draw_allmodex_overlays (page as integer)
+'Returns true if something was drawn.
+private function draw_allmodex_overlays (page as integer) as bool
+	dim dirty as bool = NO
 	fpsframes += 1
 	if timer > fpstime + 1 then
 		fpsstring = "FPS:" & INT(10 * fpsframes / (timer - fpstime)) / 10
@@ -2050,6 +2082,7 @@ private sub draw_allmodex_overlays (page as integer)
 	end if
 	if showfps then
 		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
+		dirty = YES
 	end if
 
 	if overlay_replay_display then
@@ -2066,8 +2099,10 @@ private sub draw_allmodex_overlays (page as integer)
 	end if
 	if len(overlay_message) then
 		basic_textbox overlay_message, uilook(uiText), page, vpages(page)->h / 2 - 16
+		dirty = YES
 	end if
-end sub
+	return dirty
+end function
 
 
 '==========================================================================================
