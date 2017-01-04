@@ -254,14 +254,15 @@ SUB start_new_debug(title as string)
    logfile = log_dir & "c_debug.txt"
    archivefile = log_dir & "c_debug_archive.txt"
  #ENDIF
- ' Noop if we're already writing to this logfile
- IF lastlogfile = absolute_path(logfile) THEN EXIT SUB
- IF isfile(logfile) THEN
-  archive_log_file logfile, archivefile
- END IF
- IF LEN(log_buffer) THEN
-  ' Write internal buffer, which contains a lot of useful info printed during startup.
-  append_to_logfile log_buffer
+ ' Don't archive if we're already writing to this logfile
+ IF lastlogfile <> absolute_path(logfile) THEN
+  IF isfile(logfile) THEN
+   archive_log_file logfile, archivefile
+  END IF
+  IF LEN(log_buffer) THEN
+   ' Write internal buffer, which contains a lot of useful info printed during startup.
+   append_to_logfile log_buffer
+  END IF
  END IF
  debuginfo " ----" & title & "----"
 END SUB
