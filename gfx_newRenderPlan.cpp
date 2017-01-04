@@ -1,25 +1,39 @@
-#include "gfx_newRenderPlan.h"
-#include "rasterizer.h"
+#include <stdlib.h>
+#include <string.h>
 #include <list>
 
+#include "gfx_newRenderPlan.h"
+#include "rasterizer.h"
+
 QuadRasterizer g_rasterizer;
-std::list< Surface > g_surfaces;
-std::list< Palette > g_palettes;
+std::list< Surface* > g_surfaces;
+std::list< Palette* > g_palettes;
 
 int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
 	if( !ppSurfaceOut )
 		return -1;
-	Surface temp = {0, width, height, format, usage};
+	Surface *ret = new Surface {NULL, width, height, format, usage, NULL};
 	if(format == SF_8bit)
-		temp.pPaletteData = new uint8_t[width*height];
+		ret->pPaletteData = new uint8_t[width*height];
 	else
-		temp.pColorData = new uint32_t[width*height];
+		ret->pColorData = new uint32_t[width*height];
 
-	g_surfaces.push_back(temp);
+	g_surfaces.push_back(ret);
+	*ppSurfaceOut = ret;
+	return 0;
+}
 
-	*ppSurfaceOut = &g_surfaces.back();
-
+// Return a Surface which is a view onto a Frame. The Surface and Frame should both
+// be destroy as normal.
+int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
+{
+	if(pFrameIn->w != pFrameIn->pitch)
+		// Would have to make a copy of the data
+		return -1;
+	Surface *ret = new Surface {NULL, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
+	ret->pPaletteData = ret->frame->image;
+	*ppSurfaceOut = ret;
 	return 0;
 }
 
@@ -27,21 +41,20 @@ int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
 {//done
 	if(pSurfaceIn)
 	{
-		if(pSurfaceIn->pRawData)
+		if(pSurfaceIn->frame)
+		{
+			// Is a view onto a Frame, so don't delete the pixel data ourselves
+			frame_unload(&pSurfaceIn->frame);
+		}
+		else if(pSurfaceIn->pRawData)
 		{
 			if(pSurfaceIn->format == SF_8bit)
 				delete [] pSurfaceIn->pPaletteData;
 			else
 				delete [] pSurfaceIn->pColorData;
 		}
-		for(std::list< Surface >::iterator iter = g_surfaces.begin(); iter != g_surfaces.end(); iter++)
-			if(&(*iter) == pSurfaceIn)
-			{
-				g_surfaces.erase(iter);
-				break;
-			}
+		g_surfaces.remove(pSurfaceIn);
 	}
-
 	return 0;
 }
 
@@ -89,6 +102,7 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette*
 	return -1;
 }
 
+// bUseColorKey0 says whether color 0 in 8-bit source images is transparent
 int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( !pSurfaceSrc || !pSurfaceDest )
@@ -198,10 +212,20 @@ int gfx_paletteCreate_SW( Palette** ppPaletteOut )
 {//done
 	if( !ppPaletteOut )
 		return -1;
-	g_palettes.push_back(Palette());
+	*ppPaletteOut = new Palette();
+	g_palettes.push_back(*ppPaletteOut);
+	return 0;
+}
 
-	*ppPaletteOut = &g_palettes.back();
-
+// Return a Surface which is a view onto a Frame. The Surface and Frame should both
+// be destroy as normal.
+int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut )
+{
+	Palette *ret = new Palette;
+	memcpy(ret->p, pColorsIn, 256 * 4);
+	for(int i = 0; i < 256; i++)
+		ret->p[i].a = 255;   // Set to opaque (alpha in the input is unused)
+	*ppPaletteOut = ret;
 	return 0;
 }
 
@@ -209,12 +233,8 @@ int gfx_paletteDestroy_SW( Palette* pPaletteIn )
 {//done
 	if( pPaletteIn )
 	{
-		for(std::list< Palette >::iterator iter = g_palettes.begin(); iter != g_palettes.end(); iter++)
-			if(&(*iter) == pPaletteIn)
-			{
-				g_palettes.erase(iter);
-				break;
-			}
+		g_palettes.remove(pPaletteIn);
+		delete pPaletteIn;
 	}
 	return 0;
 }

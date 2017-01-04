@@ -1772,10 +1772,6 @@ SUB quad_transforms_menu ()
  DIM scale as Float2 = (2.0, 2.0)
  DIM position as Float2 = (150, 50)
 
- 'This is used to copy data from vpages(vpage) to vpage32 
- DIM vpage8 as Surface ptr
- gfx_surfaceCreate(320, 200, SF_8bit, SU_Source, @vpage8)
-
  'This is the actual render Surface
  DIM vpage32 as Surface ptr
  gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
@@ -1785,12 +1781,7 @@ SUB quad_transforms_menu ()
  DIM spriteSurface as Surface ptr
 
  DIM masterPalette as BackendPalette ptr
- gfx_paletteCreate(@masterPalette)
- memcpy(@masterPalette->col(0), @master(0), 256 * 4)
- 'Set each colour in the master palette to opaque.
- FOR i as integer = 0 TO 255
-  masterPalette->col(i).a = 255
- NEXT
+ gfx_paletteFromRGB(@master(0), @masterPalette)
 
  DO
   setwait 55
@@ -1818,9 +1809,7 @@ SUB quad_transforms_menu ()
    end select
 
    gfx_surfaceDestroy( spriteSurface )
-   gfx_surfaceCreate( testframe->w, testframe->h, SF_8bit, SU_Source, @spriteSurface )
-   memcpy(spriteSurface->pPaletteData, testframe->image, testframe->w * testframe->h - 1)
-   gfx_surfaceUpdate( spriteSurface )
+   gfx_surfaceFromFrame( testframe, @spriteSurface )
 
    DIM testframesize as Rect
    WITH testframesize
@@ -1854,11 +1843,9 @@ SUB quad_transforms_menu ()
   printstr "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec", 0, 190, vpage
   debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
 
-  'Copy from vpage (8 bit Frame) to a source Surface, and then from there to the render target surface
-  memcpy(vpage8->pPaletteData, vpages(vpage)->image, 320 * 200)
-  gfx_surfaceUpdate( vpage8 )
   pagecopytime = TIMER
-  gfx_surfaceCopy( NULL, vpage8, masterPalette, NO, NULL, vpage32)
+  'Copy from vpage (8 bit Frame) to the render target surface
+  frame_draw vpages(vpage), master(), 0, 0, NO, vpage32
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER
@@ -1894,7 +1881,6 @@ SUB quad_transforms_menu ()
  setkeys
  frame_unload @testframe
  gfx_surfaceDestroy(vpage32)
- gfx_surfaceDestroy(vpage8)
  gfx_surfaceDestroy(spriteSurface)
  gfx_paletteDestroy(masterPalette)
 END SUB

@@ -6,6 +6,7 @@
 
 //#include "FPInt.h"
 #include <stdint.h>
+#include "allmodex.h"
 
 //surfaces
 enum SurfaceFormat
@@ -26,6 +27,7 @@ struct Surface
 	uint32_t height;
 	SurfaceFormat format;
 	SurfaceUsage usage;
+	Frame *frame;       // If not NULL, is a view onto a Frame which owns the data
 	union
 	{
 		void* pRawData;
@@ -175,6 +177,7 @@ struct VertexPTC
 extern "C"
 {
 	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
+	int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
@@ -183,6 +186,7 @@ extern "C"
 	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
 	int gfx_paletteCreate_SW( Palette** ppPaletteOut );
+	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut );
 	int gfx_paletteDestroy_SW( Palette* pPaletteIn );
 	int gfx_paletteUpdate_SW( Palette* pPaletteIn );
 

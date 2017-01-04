@@ -6454,7 +6454,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 	return ret
 end function
 
-function frame_reference(byval p as frame ptr) as frame ptr
+function frame_reference cdecl(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
 		showerror "tried to reference a non-refcounted sprite!"
@@ -6469,7 +6469,7 @@ end function
 ' (Use frame_draw with trans=NO, write_mask=YES to set the contents of one Frame
 ' equal to another. There is no way to do so while changing the Frame size
 ' (it could be implemented, but only for Frames with no views onto them).
-sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
+sub frame_assign cdecl(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
 	frame_unload ptr_to_replace
 	*ptr_to_replace = new_value
 end sub
@@ -6516,6 +6516,23 @@ sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	syto = small(clipb, y + (src->h * scale) - 1)
 
 	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, write_mask, scale)
+end sub
+
+' Draw onto a Surface. Unlike other overloads, this one takes a master palette
+' (ignored if blitting to an 8-bit Surface) instead of a Palette16.
+' Also, the mask if ny is ignored is ignored.
+sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as integer, y as integer, trans as bool = YES, dest as Surface ptr)
+        dim src_surface as Surface ptr
+        if gfx_surfaceFromFrame(src, @src_surface) then debug "gfx_surfaceFromFrame failed" : return
+        dim master_pal as BackendPalette ptr
+        if gfx_paletteFromRGB(@masterpal(0), @master_pal) then debug "gfx_paletteFromRGB failed" : return
+
+        if gfx_surfaceCopy(NULL, src_surface, master_pal, trans, NULL, dest) then
+                debug "gfx_surfaceCopy error"
+        end if
+
+        gfx_surfaceDestroy(src_surface)
+        gfx_paletteDestroy(master_pal)
 end sub
 
 'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.

@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct XYPair {
 	int w;
 	int h;
@@ -42,5 +46,12 @@ struct Frame {
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
 };
+
+struct Frame* frame_reference(struct Frame *p);
+void frame_unload(struct Frame** p);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

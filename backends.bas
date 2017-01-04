@@ -98,6 +98,7 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 'New Surface-based graphics backend function pointers
 
 dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
+dim gfx_surfaceFromFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -106,6 +107,7 @@ dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pS
 dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 dim gfx_paletteCreate as function ( byval ppPaletteOut as BackendPalette ptr ptr) as integer
+dim gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as BackendPalette ptr ptr) as integer
 dim gfx_paletteDestroy as function ( byval pPaletteIn as BackendPalette ptr ) as integer
 dim gfx_paletteUpdate as function ( byval pPaletteIn as BackendPalette ptr ) as integer
 
@@ -421,6 +423,7 @@ End Function
 
 private sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
+	gfx_surfaceFromFrame = @gfx_surfaceFromFrame_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
 	gfx_surfaceGetData = @gfx_surfaceGetData_SW
@@ -428,6 +431,7 @@ private sub default_gfx_render_procs()
 	gfx_surfaceStretch = @gfx_surfaceStretch_SW
 	gfx_surfaceCopy = @gfx_surfaceCopy_SW
 	gfx_paletteCreate = @gfx_paletteCreate_SW
+	gfx_paletteFromRGB = @gfx_paletteFromRGB_SW
 	gfx_paletteDestroy = @gfx_paletteDestroy_SW
 	gfx_paletteUpdate = @gfx_paletteUpdate_SW
 	gfx_renderQuadColor = @gfx_renderQuadColor_SW

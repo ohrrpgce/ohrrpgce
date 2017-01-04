@@ -20,6 +20,8 @@ Enum SurfaceUsage
 	SU_Staging = 2      ' Surfaces that don't get sent to GPU
 End Enum
 
+Type FrameFwd as Frame
+
 Type Surface
 	handle as any ptr
 	width as int32
@@ -27,6 +29,7 @@ Type Surface
 			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
 	format as int32 ' SurfaceFormat
 	usage as int32  ' SurfaceUsage
+	frame as FrameFwd ptr  ' If not NULL, is a view onto a Frame which owns the data
 	Union
 		pRawData as any ptr
 		pColorData as RGBcolor ptr  'uint32s
@@ -78,6 +81,7 @@ End Type
 extern "C"
 
 	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
+	extern gfx_surfaceFromFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -86,6 +90,7 @@ extern "C"
 	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 	extern gfx_paletteCreate as function ( byval ppPaletteOut as BackendPalette ptr ptr) as integer
+	extern gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as BackendPalette ptr ptr) as integer
 	extern gfx_paletteDestroy as function ( byval pPaletteIn as BackendPalette ptr ) as integer
 	extern gfx_paletteUpdate as function ( byval pPaletteIn as BackendPalette ptr ) as integer
 
@@ -100,6 +105,7 @@ extern "C"
 	extern gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
 
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
+	declare function gfx_surfaceFromFrame_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceDestroy_SW ( byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceUpdate_SW ( byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceGetData_SW ( byval pSurfaceIn as Surface ptr ) as integer
@@ -108,6 +114,7 @@ extern "C"
 	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 	declare function gfx_paletteCreate_SW ( byval ppPaletteOut as BackendPalette ptr ptr ) as integer
+	declare function gfx_paletteFromRGB_SW ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as BackendPalette ptr ptr) as integer
 	declare function gfx_paletteDestroy_SW ( byval pPaletteIn as BackendPalette ptr ) as integer
 	declare function gfx_paletteUpdate_SW ( byval pPaletteIn as BackendPalette ptr ) as integer
 
