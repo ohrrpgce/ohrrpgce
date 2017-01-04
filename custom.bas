@@ -166,13 +166,13 @@ END IF
 #ENDIF
 
 'Once log_dir is set, can create debug log.
-start_new_debug
+start_new_debug "Starting OHRRPGCE Custom"
+debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo DATE & " " & TIME
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
@@ -271,7 +271,7 @@ END IF
 'Final log_dir set, no more need to remember.
 remember_debug_messages = NO
 
-start_new_debug
+start_new_debug "Loading a game"
 debuginfo DATE & " " & TIME
 debuginfo "curdir: " & CURDIR
 debuginfo "tmpdir: " & tmpdir

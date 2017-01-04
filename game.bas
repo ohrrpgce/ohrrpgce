@@ -224,13 +224,13 @@ app_dir = EXEPATH  'FreeBasic builtin
 
 'Once log_dir is set, can create debug log.
 external_log "main() started; starting debug log..."
-start_new_debug
+start_new_debug "Starting OHRRPGCE Game"
+debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo DATE & " " & TIME
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
@@ -482,8 +482,7 @@ end_debug 'delete unimportant messages generated before this point, or from prev
 CHDIR newcwd
 
 IF overrode_log_dir = NO THEN log_dir = CURDIR & SLASH
-start_new_debug
-debuginfo "Loading " & sourcerpg
+start_new_debug "Loading " & sourcerpg
 ' Initialisation is over, don't store any further debug messages in memory.
 remember_debug_messages = NO
 debuginfo "curdir: " & CURDIR

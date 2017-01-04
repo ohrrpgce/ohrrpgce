@@ -27,7 +27,7 @@ DECLARE SUB fadeout (byval red as integer, byval green as integer, byval blue as
 DECLARE SUB ensure_normal_palette ()
 DECLARE SUB restore_previous_palette ()
 
-DECLARE SUB start_new_debug ()
+DECLARE SUB start_new_debug (title as string)
 DECLARE SUB end_debug ()
 
 DECLARE FUNCTION soundfile (byval sfxnum as integer) as string

@@ -102,7 +102,7 @@ function global_setoption(opt as string, arg as string) as integer
                         if paths_equal(d, log_dir) = NO then
                                 end_debug
                                 log_dir = d
-                                start_new_debug
+                                start_new_debug "Starting log (-log option)"
                         end if
 			return 2
 		else

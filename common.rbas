@@ -244,7 +244,8 @@ FUNCTION soundfile (byval sfxnum as integer) as string
 END FUNCTION
 
 ' If c/g_debug.txt already exists, archive it and create a new one.
-SUB start_new_debug
+' title is what message to write at the top
+SUB start_new_debug(title as string)
  DIM as string logfile, archivefile
  #IFDEF IS_GAME
    logfile = log_dir & "g_debug.txt"
@@ -262,7 +263,7 @@ SUB start_new_debug
   ' Write internal buffer, which contains a lot of useful info printed during startup.
   append_to_logfile log_buffer
  END IF
- debuginfo "---start_new_debug---"
+ debuginfo " ----" & title & "----"
 END SUB
 
 ' Append logfile to archivefile and delete it.
@@ -301,7 +302,7 @@ PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
  END IF
  
  GET #dlog, , buf[0], buflen, copyamount
- PUT #archive, , LINE_END " \....----~~~~````\" LINE_END
+ PUT #archive, , LINE_END "  +++|=========>  APPLY SWORD, CUT HERE (Please send whole sections)" LINE_END LINE_END
  PUT #archive, , *buf, copyamount
  CLOSE #dlog
  CLOSE #archive
@@ -310,6 +311,7 @@ PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
  safekill logfile
 END SUB
 
+' Delete the log file if there were no important error messages.
 SUB end_debug
  DIM filename as string
  #IFDEF IS_GAME
@@ -320,7 +322,7 @@ SUB end_debug
  IF NOT importantdebug THEN
    safekill log_dir & filename
    lastlogfile = ""
-   log_buffer &= "end_debug: deleted uninteresting log file" LINE_END
+   log_buffer &= "end_debug: no debug/error messages during startup (skipping rest of startup)" LINE_END
  ELSE
    'Remember not to archive the log if we restart the log in the same directory
    lastlogfile = absolute_path(log_dir & filename)
