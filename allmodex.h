@@ -15,6 +15,9 @@ struct Palette16 {
 	int refcount; //private
 };
 
+//typedef struct {
+//	unsigned char r, g, b, a;
+//} RGBcolor;
 typedef	uint32_t RGBcolor;
 
 struct SpriteCacheEntry;

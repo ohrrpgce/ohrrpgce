@@ -38,13 +38,6 @@ struct SurfaceRect
 	int32_t left, top, right, bottom;
 };
 
-//palettes
-struct Palette
-{
-	void* handle;
-	uint32_t p[256];
-};
-
 //vertices
 struct Position
 {
@@ -103,10 +96,10 @@ struct Color
 		uint32_t dw : 32;
 		struct
 		{
-			uint8_t b : 8; //lowest; also used for palette
-			uint8_t g : 8;
 			uint8_t r : 8;
-			uint8_t a : 8; //highest
+			uint8_t g : 8;
+			uint8_t b : 8;
+			uint8_t a : 8;
 		};
 	};
 	Color& operator= (uint32_t rhs) {dw = rhs; return *this;}
@@ -132,6 +125,14 @@ struct Color
 		b = (b*weight + c2.b*(255-weight)) / 255;
 	}
 };
+
+//palettes
+struct Palette
+{
+	void* handle;
+	Color p[256];
+};
+
 struct VertexPC
 {
 	Position pos;
