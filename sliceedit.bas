@@ -257,6 +257,13 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
   .AnchorHoriz = alignMiddle
   .AnchorVert = alignMiddle
  END WITH
+ ' But the editor resolution is smaller than the game's, add an offset so that
+ ' the top left corner of the 'screen' is visible.
+ ' This is crude because the 'screen' will shift if the user resizes the window,
+ ' but we can't just recenter it every tick because then F6 won't work.
+ RefreshSliceScreenPos ret
+ ret->X = -small(0, ret->ScreenX)
+ ret->Y = -small(0, ret->ScreenY)
  RETURN ret
 END FUNCTION
 
