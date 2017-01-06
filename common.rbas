@@ -2514,7 +2514,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
    cleanup_process @handle
    IF exitcode THEN
     'Error, or the user might have killed the program some other way
-    RETURN trimpath(app) + " reported failure."
+    RETURN trimpath(app) + " reported failure, errorcode " & exitcode
    END IF
    RETURN ""
   END IF
@@ -2540,6 +2540,10 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  'os_* process handling functions only currently implemented on Windows
  'We run SHELL (aka system()) which runs sh, which runs xterm, which runs app.
  'That's a lot that can go wrong!
+
+ IF LEN(find_helper_app("xterm")) = 0 THEN
+  RETURN "Could not continue because xterm is not installed, please install it. For example run 'yum install xterm' or 'apt-get install xterm'."
+ END IF
 
  DIM cmd as string, outbuffer as string, stderr_s as string
  cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
