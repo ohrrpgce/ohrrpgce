@@ -14,8 +14,7 @@ include_windows_bi()
 #include "crt/limits.bi"
 #include "crt/stdio.bi"
 #include "crt/io.bi"
-#include "common.bi"
-#include "allmodex.bi"
+#include "common_base.bi"
 #include "util.bi"
 #include "const.bi"
 
