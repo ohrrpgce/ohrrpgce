@@ -1267,11 +1267,8 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
   NEXT i
  END IF
  
- WITH state
-  .last = index - 1
-  .pt = small(.pt, .last)
-  .top = bound(.top, .pt - .size, .pt)
- END WITH
+ state.last = index - 1
+ correct_menu_state state
 END SUB
 
 SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)

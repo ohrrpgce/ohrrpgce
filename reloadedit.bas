@@ -377,10 +377,7 @@ SUB reload_editor_focus_node(byref st as ReloadEditorState, byval node as Reload
    EXIT FOR
   END IF
  NEXT i
- WITH st.state
-  .pt = small(.pt, .last)
-  .top = bound(.top, .pt - .size, .pt)
- END WITH
+ correct_menu_state st.state
 END SUB
 
 SUB reload_editor_export(byref st as ReloadEditorState)

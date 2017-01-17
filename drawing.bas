@@ -2014,6 +2014,7 @@ DO
  IF intgrabber_with_addset(state.pt, 0, sets, 32767, "graphics", scUp, scDown) THEN
   IF state.pt > sets THEN
    sets = state.pt
+   state.last = state.pt
    '--Add a new blank sprite set
    DIM zerobuf(ss.setsize \ 2 - 1) as integer
    storerecord zerobuf(), ss.spritefile, ss.setsize \ 2, state.pt
@@ -2023,7 +2024,7 @@ DO
    poffset(state.pt) = 0
    spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
   END IF
-  state.top = bound(state.top, state.pt - state.size, state.pt)
+  correct_menu_state state
  ELSE
   state.last = sets
   usemenu state

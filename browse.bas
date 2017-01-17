@@ -811,8 +811,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   'final preference is current (bottommost) directory
   IF tree(i).kind = bkParentDir OR tree(i).kind = bkRoot THEN br.mstate.pt = i
  NEXT i
- br.mstate.top = small(br.mstate.pt - 2, br.mstate.last - br.mstate.size)
- br.mstate.top = large(br.mstate.top, 0)
+ correct_menu_state br.mstate
 
  '--don't display progress bar overtop of previous menu
  br.ranalready = YES

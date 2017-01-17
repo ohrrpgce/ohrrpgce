@@ -51,6 +51,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
   END IF
   'Menus with unselectable items have lookahead, which these +1,-1
   'attempt to simulate. Not perfect, but prevents some flickering
+  '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
@@ -77,15 +78,9 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
   END IF
   'Menus with unselectable items have lookahead, which these +1,-1
   'attempt to simulate. Not perfect, but prevents some flickering
+  '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
- END WITH
-END SUB
-
-SUB clamp_menu_state (byref state as MenuState)
- WITH state
-  IF .pt < .top THEN .top = .pt
-  IF .pt > .top + .size THEN .top = large(.top, .top + .size)
  END WITH
 END SUB
 
@@ -146,6 +141,18 @@ FUNCTION mouse_on_menustate (state as MenuState) as integer
  RETURN state.first - 1
 END FUNCTION
 
+' This does a subset of what usemenu does, call this after modifying .pt, .last, .first or .size
+' if not immediately calling usemenu.
+SUB correct_menu_state (state as MenuState)
+ WITH state
+  .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
+  ' If the bottom of the menu is above the bottom of the screen, scroll up
+  .top = large(small(.top, .last - .size), .first)
+  ' Selected item must be visible (unless the menu is empty)
+  IF .pt >= .first THEN .top = bound(.top, .pt - .size, .pt)
+ END WITH
+END SUB
+
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   IF .autosize THEN
@@ -166,11 +173,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
    IF keyval(scHome) > 1 THEN .pt = .first
    IF keyval(scEnd) > 1 THEN .pt = .last
   END IF
-  .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
-  ' If the bottom of the menu is above the bottom of the screen, scroll up
-  .top = large(small(.top, .last - .size), .first)
-  ' Selected item must be visible
-  .top = bound(.top, .pt - .size, .pt)
+  correct_menu_state state  'Update .top and .pt
  
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -262,10 +265,7 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
-  ' If the bottom of the menu is above the bottom of the screen, scroll up
-  .top = large(small(.top, .last - .size), .first)
-  ' Selected item must be visible
-  .top = bound(.top, .pt - .size, .pt)
+  correct_menu_state state  'Update .top
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -333,10 +333,7 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
    lookahead = bound(lookahead, .first, .last)
    .top = bound(.top, lookahead - .size, lookahead)
   END IF
-  ' If the bottom of the menu is above the bottom of the screen, scroll up
-  .top = large(small(.top, .last - .size), .first)
-  ' Selected item must be visible
-  .top = bound(.top, .pt - .size, .pt)
+  correct_menu_state state  'Update .top
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -867,10 +864,8 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
   .first = LBOUND(menu)
   .last = UBOUND(menu)
   .size = small(.last - .first, cint(int(get_resolution().h / 8)))
-  .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
-  IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
-  .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
+ correct_menu_state state
 END SUB
 
 '(Re-)initialise menu state, preserving .pt if valid
@@ -880,10 +875,8 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
   .last = count_menu_items(menu) - 1
   .size = menu.maxrows - 1
   IF .size = -1 THEN .size = 17
-  .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
-  IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
-  .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
+ correct_menu_state state
 END SUB
 
 FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0, byval withtags as integer=NO) as integer

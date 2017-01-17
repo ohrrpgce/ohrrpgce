@@ -145,7 +145,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
      search_cur_str = load_tag_name(i + 1)
      IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
       state.pt = i
-      clamp_menu_state state
+      correct_menu_state state
       search_found = YES
       EXIT FOR
      END IF
@@ -156,7 +156,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
       search_cur_str = load_tag_name(i + 1)
       IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
        state.pt = i
-       clamp_menu_state state
+       correct_menu_state state
        search_found = YES
        EXIT FOR
       END IF
@@ -178,7 +178,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   IF int_browsing THEN
    IF intgrabber(alt_pt, 0, gen(genMaxTagName) + 1) THEN
     state.pt = large(0, alt_pt - 1)
-    state.top = bound(state.top, state.pt - state.size, state.pt)
+    correct_menu_state state
     thisname = safe_tag_name(state.pt + 1)
    END IF
   END IF
@@ -1470,7 +1470,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.last += 1
 
  state.pt = bound(curpal, 0, state.last)
- state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
+ correct_menu_state state
 
  'reset repeat rate, needed because called from sprite editor (argh), the caller resets its own repeatrate
  setkeys
@@ -1484,7 +1484,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   DIM temppt as integer = large(state.pt, 0)
   IF intgrabber(temppt, 0, state.last, , , YES) THEN
    state.pt = temppt
-   state.top = bound(state.top, state.pt - state.size, state.pt)
+   correct_menu_state state
    state.need_update = YES
   END IF
   IF enter_space_click(state) THEN
@@ -3239,7 +3239,7 @@ SUB edit_global_text_strings()
      DIM idx as integer = (state.pt + 1 + i) MOD (state.last + 1)
      IF INSTR(LCASE(menu.text(idx)), LCASE(search)) OR INSTR(LCASE(menu.description(idx)), LCASE(search)) THEN
       state.pt = idx
-      clamp_menu_state state
+      correct_menu_state state
       EXIT FOR
      END IF
     NEXT i

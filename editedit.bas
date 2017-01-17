@@ -454,10 +454,7 @@ SUB ee_focus_widget(byref st as EEState, byval widget as Nodeptr)
    EXIT FOR
   END IF
  NEXT i
- WITH st.state
-  .pt = small(.pt, .last)
-  .top = bound(.top, .pt - .size, .pt)
- END WITH
+ correct_menu_state st.state
 END SUB
 
 SUB ee_export(byref st as EEState)
