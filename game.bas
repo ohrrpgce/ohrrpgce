@@ -1010,19 +1010,8 @@ SUB displayall()
  ' Beware that map slices behave in unique ways; see comments in DrawMapSlice.
  ' 
  ' Map layers edge handling.
- SELECT CASE gmap(5)
-  CASE 0 'Crop
-   IF readbit(gen(), genBits2, 21) THEN  'Wrap map layers over edge of Crop maps
-    setoutside -1
-   ELSE
-    'We set an edge tile on crop maps in case the map is smaller than the screen
-    setoutside gmap(6)
-   END IF
-  CASE 1 'Wrap
-   setoutside -1
-  CASE 2 'Use default edge tile
-   setoutside gmap(6)
- END SELECT
+ ' (backcompat bit: 'Wrap map layers over edge of Crop maps')
+ set_map_edge_draw_mode gmap(), readbit(gen(), genBits2, 21)
 
  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN
   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all

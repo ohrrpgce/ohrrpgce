@@ -4824,6 +4824,22 @@ SUB unloadmaptilesets (tilesets() as TilesetData ptr)
  NEXT
 END SUB
 
+SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps as bool = NO)
+ SELECT CASE gmap(5)
+  CASE 0 'Crop
+   IF wrap_layers_over_edge_of_crop_maps THEN
+    setoutside -1
+   ELSE
+    'We set an edge tile on crop maps in case the map is smaller than the screen
+    setoutside gmap(6)
+   END IF
+  CASE 1 'Wrap
+   setoutside -1
+  CASE 2 'Use default edge tile
+   setoutside gmap(6)
+ END SELECT
+END SUB
+
 FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
  'This is a wrapper for readbit that returns YES/NO and accepts a default arg of zero for the integer offset
  RETURN readbit(bitarray(), intoffset, bitoffset) <> 0 
