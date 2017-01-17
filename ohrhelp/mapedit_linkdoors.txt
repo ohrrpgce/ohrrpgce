@@ -9,3 +9,5 @@ Press ENTER or SPACE to start editing a doorlink.
 Press ESC to go back to the previous menu.
 
 To add a new doorlink, go to the very bottom of the list, and choose "Create a new Doorlink".
+
+To delete a doorlink, press DELETE or BACKSPACE. You can also set its source door to -1 to mark it "Unused".

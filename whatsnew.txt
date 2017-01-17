@@ -24,6 +24,7 @@ WHAT IS NEW?
     * Removed NPC definitions limit (NPC instance limit remains) [Ralph]
     * Added Redo (Ctrl+Y) to the sprite editor, and made the undo
       history size a few hundred times larger [Ralph]
+    * Delete key in doorlinks menu deletes a doorlink [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

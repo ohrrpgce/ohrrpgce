@@ -3615,8 +3615,7 @@ SUB mapedit_linkdoors (st as MapEditState)
  DIM state as MenuState
  state.top = 0
  state.pt = 0
- state.last = small(find_last_used_doorlink(st.map.doorlink()) + 1, UBOUND(st.map.doorlink))
- state.size = 11
+ state.spacing = 18
  state.need_update = YES
 
  DIM last_resolution as XYPair
@@ -3638,30 +3637,41 @@ SUB mapedit_linkdoors (st as MapEditState)
    IF state.pt = state.last AND st.map.doorlink(state.pt).source = -1 THEN st.map.doorlink(state.pt).source = 0
    link_one_door st, state.pt
    state.need_update = YES
-   IF state.pt = state.last AND st.map.doorlink(state.pt).source >= 0 THEN
-    state.last = small(state.last + 1, UBOUND(st.map.doorlink))
-   END IF
+  END IF
+  IF keyval(scDelete) > 1 OR keyval(scBackspace) > 1 THEN
+   st.map.doorlink(state.pt).source = -1  ' Mark unused
+   ' Shuffle the unused doorlink to the end, so that it will be hidden
+   FOR idx as integer = state.pt TO UBOUND(st.map.doorlink) - 1
+    SWAP st.map.doorlink(idx), st.map.doorlink(idx + 1)
+   NEXT
+   state.need_update = YES
   END IF
   IF last_resolution <> get_resolution() THEN state.need_update = YES
   IF state.need_update THEN
    state.need_update = NO
+   state.last = small(find_last_used_doorlink(st.map.doorlink()) + 1, UBOUND(st.map.doorlink))
+   recalc_menu_size state
+   correct_menu_state state
    DrawDoorPair st, state.pt, 2
    last_resolution = get_resolution()
   END IF
 
   '--Draw screen
   copypage 2, dpage
+  rectangle 0, vpages(dpage)->h \ 2, vpages(dpage)->w, 2, uilook(uiSelectedDisabled + state.tog), dpage
+  draw_fullscreen_scrollbar state, 0, dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
+   DIM ypos as integer = (i - state.top) * state.spacing
    IF state.pt = i THEN
     col = uilook(uiSelectedItem + state.tog)
-    edgeboxstyle 0, 1 + (i - state.top) * 16, 280, 19, 0, dpage, YES, YES
+    edgeboxstyle 0, 1 + ypos, 280, state.spacing, 0, dpage, YES, YES
    END IF
 
    WITH st.map.doorlink(i)
     IF .source >= 0 THEN
      menu_temp = "Door " & .source & " leads to door " & .dest & " on map " & .dest_map
-     edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
+     edgeprint menu_temp, 0, 2 + ypos, col, dpage
 
      IF .tag1 = 0 AND .tag2 = 0 THEN
       menu_temp = "  all the time"
@@ -3675,13 +3685,13 @@ SUB mapedit_linkdoors (st as MapEditState)
        menu_temp += ABS(.tag2) & " is " & sign_string(.tag2, "OFF", "", "ON")
       END IF
      END IF
-     edgeprint menu_temp, 0, 10 + (i - state.top) * 16, col, dpage
+     edgeprint menu_temp, 0, 10 + ypos, col, dpage
     ELSEIF i = state.last THEN
      menu_temp = "Create a new doorlink..."
-     edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
+     edgeprint menu_temp, 0, 2 + ypos, col, dpage
     ELSE
      menu_temp = "Unused Door link #" & i
-     edgeprint menu_temp, 0, 2 + (i - state.top) * 16, col, dpage
+     edgeprint menu_temp, 0, 2 + ypos, col, dpage
     END IF
    END WITH
   NEXT i
@@ -3845,8 +3855,12 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
   dmx = thisdoor.x * tilew       - (view_width - tilew) \ 2
   ' thisdoor.y is offset by 1
   dmy = (thisdoor.y - 1) * tileh - (view_height - tileh) \ 2
-  dmx = small(large(dmx, 0), map.wide * tilew - view_width)
-  dmy = small(large(dmy, 0), map.high * tileh - view_height)
+  ' Clamp to map edge if needed
+  IF map.gmap(5) = 0 THEN  'Map edge mode = Crop
+   dmx = small(large(dmx, 0), map.wide * tilew - view_width)
+   dmy = small(large(dmy, 0), map.high * tileh - view_height)
+  END IF
+  set_map_edge_draw_mode map.gmap()
   FOR i as integer = 0 TO UBOUND(map.tiles)
    IF LayerIsEnabled(map.gmap(), i) THEN
     drawmap map.tiles(i), dmx, dmy, tilesets(i), page, i <> 0, , , starty, view_height
