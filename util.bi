@@ -463,9 +463,9 @@ End Enum
 
 declare function cstring (s as string) as zstring ptr
 declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
-declare function rpad (s as string, pad_char as string, size as integer, clip as clipDir = clipRight) as string
-declare function lpad (s as string, pad_char as string, size as integer, clip as clipDir = clipLeft) as string
-declare function rlpad (s as string, pad_char as string, pad_right as integer, pad_left as integer, clip as clipDir = clipNone) as string
+declare function rpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipRight) as string
+declare function lpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipLeft) as string
+declare function rlpad (s as string, pad_char as string = " ", pad_right as integer, pad_left as integer, clip as clipDir = clipNone) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer

@@ -5591,6 +5591,9 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   END IF
   textcolor uilook(uiMenuItem), 0
   printstr STR(ret), 296, 192, dpage
+  WITH master(ret)
+   printstr "RGB" & lpad(STR(.r), , 4) & lpad(STR(.g), , 4) & lpad(STR(.b), , 4), 0, 192, dpage
+  END WITH
 
   SWAP vpage, dpage
   setvispage vpage
