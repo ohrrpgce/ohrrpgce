@@ -721,9 +721,11 @@ SUB sfunctions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) THEN
    gam.showstring = plotstr(retvals(0)).s
   END IF
- CASE 234'--load menu
+ CASE 234'--load menu (reallyload, show new game)
   stop_fibre_timing
-  scriptret = pickload() + 1
+  ' Originally only had one argument; 'show new game' should default to true
+  IF curcmd->argc < 2 THEN retvals(1) = 1
+  scriptret = pickload(retvals(1)) + 1
   IF retvals(0) THEN
    'Enact whatever the user picked
    IF scriptret = -1 THEN

@@ -1697,16 +1697,28 @@ wait for text box # wait until the player continues</example>
 		<command id="savemenu">
 			<canon>save menu (reallysave)</canon>
 			<shortname>save menu</shortname>
-			<description>Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving</description>
+			<description>Takes you directly to the save menu. Will the number from 1 to 32 of the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving.</description>
 			<seealso>
 				<ref>autosave</ref>
 				<ref>saveinslot</ref>
 			</seealso>
 		</command>
 		<command id="loadmenu">
-			<canon>load menu (reallyload)</canon>
+			<canon>load menu (reallyload, show new game)</canon>
 			<shortname>load menu</shortname>
-			<description>Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. If you want the New Game option to actually reset the game, call <ref>resetgame</ref> immediately after <p>load menu</p>. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.</description>
+			<description>
+				Displays the load game menu.
+				The player can pick a saved game to load or Exit or New Game (New Game only appears
+				if <p>show new game</p> is <p>true</p>, which is the default).
+				If the player picks New Game then the calling script continues,
+				otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded.
+				If you want the New Game option to actually reset the game,
+				call <ref>resetgame</ref> immediately after <p>load menu</p>.
+				You can optionally pass the value <ref>false</ref> as the <p>reallyload</p> argument,
+				to make the menu display without actually loading or quiting.
+				If you do this, you'll need to interpret the return value to find out which option the player selected:
+				positive values (1 to 32) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
+			</description>
 			<seealso>
 				<ref>loadfromslot</ref>
 			</seealso>

@@ -37,6 +37,7 @@ WHAT IS NEW?
       giving extra arguments to "resetgame" and "loadfromslot" [Ralph]
     * "reparent to npc" and "reparent to hero" convenience functions
       [James]
+    * Added "show new game" argument to "load menu" command [Ralph]
 
   * Changes
 
