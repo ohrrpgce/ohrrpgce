@@ -1558,7 +1558,22 @@ wait for text box # wait until the player continues</example>
 		<command id="gameover">
 			<canon>game over</canon>
 			<shortname>game over</shortname>
-			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <ref>resetgame</ref>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.
+			<description>
+				Resets the game and returns you to the title screen.
+				This command is most useful for after-you-win-the-game type scripts,
+				and for death-scripts that are triggered when you lose in battle.
+				(The script calling <tt>game over</tt> ends immediately.)
+				This command is similar to <ref>resetgame</ref>,
+				the main difference being that if the title screen and load screen have both been disabled
+				(the <tt>Skip title/load screen</tt> preference bitsets),
+				<tt>game over</tt> will completely exit the game (either taking you back to the game select screen,
+				or exiting to the operating system),
+				while <ref>resetgame</ref> starts a new game.
+				<note>
+					The game will instantly transition to the title screen (or load menu, if the title is disabled)
+					without a screen fade.
+					So you probably want to call <ref>fadescreenout</ref> beforehand.
+				</note>
 				<note>
 					By using <ref>resetgame</ref> or <ref>loadfromslot</ref> instead,
 					you can pass arguments to the newgame and loadgame scripts.
@@ -1572,7 +1587,8 @@ wait for text box # wait until the player continues</example>
 				Resets and starts a new game, skipping both title and load game screens.
 				It can be necessary to use this instead of <ref>gameover</ref> so that the
 				program will not exit if the title screen and load screen have both been disabled.
-				It always resets the game back to the beginning.
+				It always resets the game back to the beginning and runs the new-game script.
+				(The script calling <tt>reset game</tt> ends immediately.)
 				You can pass any number of optional <p>args</p>, which become the arguments
 				to the newgame script.
 				For an example, see <ref>loadfromslot</ref>, which passes its arguments
@@ -1582,6 +1598,10 @@ wait for text box # wait until the player continues</example>
 					are currently ignored.
 					If you don't pass enough <p>args</p>, then the remaining arguments default to zero.
 				</danger>
+				<note>
+					Unlike <ref>gameover</ref>, the screen will always automatically
+					fade out to black when calling <tt>reset game</tt>.
+				</note>
 			</description>
 			<seealso>
 				<ref>gameover</ref>

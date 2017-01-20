@@ -679,7 +679,11 @@ ELSEIF load_slot >= 0 THEN
 ELSE
  'New game
  refresh_purchases()
+ 'This fadeout means that resetgame fades out the screen although gameover doesn't
  fadeout 0, 0, 0
+ 'Clear the screen so that there's no garbage shown behind the prompt to rename the starting hero
+ clearpage dpage
+ clearpage vpage
  'Add initial hero to party (slot 0)
  addhero 1 + gen(genStartHero), 0
  'Trigger textbox and/or script

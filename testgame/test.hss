@@ -660,6 +660,16 @@ plotscript, send me mail, begin
 end
 
 # In 'Testing scripts' menu
+plotscript, do game over, begin
+  game over
+end
+
+# In 'Testing scripts' menu
+plotscript, do reset game, begin
+  reset game
+end
+
+# In 'Testing scripts' menu
 plotscript, run collider_rpg, begin
   run game($0="COLLIDER.RPG")
 end
