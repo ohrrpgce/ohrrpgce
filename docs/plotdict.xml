@@ -3057,7 +3057,7 @@ end
 		<command id="randomformation">
 			<canon>random formation (formation set)</canon>
 			<shortname>random formation</shortname>
-			<description>Picks a formation randomly from the given <p>formation set</p> (1 to 255).</description>
+			<description>Picks a formation randomly from the given <p>formation set</p> (1 to 255), returning the formation number.</description>
 			<seealso>
 				<ref>formationprobability</ref>
 			</seealso>
@@ -3065,9 +3065,49 @@ end
 		<command id="formationsetfrequency">
 			<canon>formation set frequency (formation set)</canon>
 			<shortname>formation set frequency</shortname>
-			<description>Returns the formation frequency (from 0 to 99) of a <p>formation set</p> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.</description>
+			<description>
+				Returns the formation frequency (from 0 to 200) of a <p>formation set</p> (1 to 255), as set in the Formation Set Editor.
+				Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step,
+				but is roughly the number of battles per 100 steps, spaced randomly.
+				The frequency is used to update the random battle countdown every step (see <ref>getbattlecountdown</ref>).
+			</description>
 			<seealso>
 				<ref>randomformation</ref>
+				<ref>getbattlecountdown</ref>
+				<ref>setbattlecountdown</ref>
+			</seealso>
+		</command>
+		<command id="getbattlecountdown">
+			<canon>get battle countdown</canon>
+			<shortname>get battle countdown</shortname>
+			<description>
+				Returns the random battle countdown value.
+				This counter starts at a random value from 40 to 160, and is reduced by the formation set
+				frequency whenever the player steps on a tile marked on the foemap.
+				When it reaches zero a formation from that formation set is triggered and it resets.
+			</description>
+			<seealso>
+				<ref>formationsetfrequency</ref>
+				<ref>getbattlecountdown</ref>
+				<ref>setbattlecountdown</ref>
+			</seealso>
+		</command>
+		<command id="setbattlecountdown">
+			<canon>set battle countdown (value)</canon>
+			<shortname>set battle countdown</shortname>
+			<description>
+				Sets the random battle countdown value (see <ref>getbattlecountdown</ref>).
+				Setting the value to 0 or less means that the next step will
+				trigger a battle (even if the frequency is 0!)
+				The counter is saved in save games, but resets
+				when fighting a battle (for any reason),
+				using a door (even to the same map) or <ref>teleporttomap</ref>,
+				or dismounting a vehicle.
+			</description>
+			<seealso>
+				<ref>formationsetfrequency</ref>
+				<ref>getbattlecountdown</ref>
+				<ref>setbattlecountdown</ref>
 			</seealso>
 		</command>
 		<command id="formationprobability">

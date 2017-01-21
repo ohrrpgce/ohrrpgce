@@ -335,7 +335,7 @@ define function, begin
 315,getformationbackground,1,0 #get formation background(formation) returns background number
 316,lastformation,0           #last formation fought
 317,randomformation,1,0       #pick a formation from a formation set
-318,formationsetfrequency,1,0 #returns (as percentage) set frequency
+318,formationsetfrequency,1,0 #returns set frequency
 319,formationprobability,2,0,0 #returns (as percentage) formation being picked from formation set probability
 320,currenttextbox,0          #currently displayed textbox or -1
 321,getherospeed,1,0          #hero walk speed (hero)
@@ -641,6 +641,8 @@ define function, begin
 618,debugmenu,0               # Opens the debug menu
 619,menuitematpixel,2,0,0     # The menu item at a screen position
 620,rungame,1,0               # Run another game (string id)
+621,getbattlecountdown,0      # Get random battle counter
+622,setbattlecountdown,1,100  # Set random battle counter
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

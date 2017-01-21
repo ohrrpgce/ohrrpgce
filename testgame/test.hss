@@ -157,9 +157,7 @@ end
 #-----------------------------------------------------------------------
 
 script,random battle,form,set,begin
-  show value(set)
-  show value(form)
-  wait for key(any key)
+  show string(string sprintf(31, $31="set=%d formation=%d", set, form))
   #greyscale palette
   fight formation(form)
   #reset palette
@@ -667,6 +665,11 @@ end
 # In 'Testing scripts' menu
 plotscript, do reset game, begin
   reset game
+end
+
+# In 'Testing scripts' menu
+plotscript, set battle counter to 0, begin
+  set battle countdown(0)
 end
 
 # In 'Testing scripts' menu

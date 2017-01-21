@@ -2278,6 +2278,10 @@ end
 script, battle tests, begin
   # there are some other battle tests in with the timer tests
   $0="battle tests"
+
+  set battle countdown (182)
+  assert(get battle countdown == 182)
+
   show value(random(1, 999999999)), w
   force random battle(1)
   show value(random(1, 999999999)), w # this should remain deterministic after battle
@@ -2316,7 +2320,7 @@ script, battle tests, begin
   assert(check tag(6)), w
 end
 
-# Formation set should be 1-3
+# Formation set should be 1-2
 script, force random battle, formation set = 1, begin
   variable(s, x, y, d)
   if (formation set == 0) then (formation set := 1)  # If run with runscriptbyid
@@ -2336,6 +2340,8 @@ script, force random battle, formation set = 1, begin
   set hero position(me, x, y)
   set hero direction(me, d)
   w
+  # Countdown should be in range 40-160 (test this here so we see multiple battles
+  assert(get battle countdown >= 40 && get battle countdown <= 160)
 end
 
 script, force non random battle, begin

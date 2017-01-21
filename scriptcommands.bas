@@ -4281,6 +4281,10 @@ SUB sfunctions(byval cmdid as integer)
   IF valid_plotpanelslice(retvals(0)) THEN
    ChangePanelSlice plotslices(retvals(0)), , , , , retvals(1)
   END IF
+ CASE 621'--get battle countdown
+  scriptret = gam.random_battle_countdown
+ CASE 622'--set battle countdown
+  gam.random_battle_countdown = large(0, retvals(0))
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

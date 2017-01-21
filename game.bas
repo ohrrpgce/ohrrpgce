@@ -41,7 +41,7 @@ DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcd
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION find_useable_npc () as integer
 DECLARE SUB interpret ()
-DECLARE SUB update_heroes(byval force_step_check as integer=NO)
+DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
@@ -1074,7 +1074,7 @@ SUB interpolatecat
  NEXT o
 END SUB
 
-SUB update_heroes(byval force_step_check as integer=NO)
+SUB update_heroes(force_step_check as bool=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left
  FOR whoi as integer = 0 TO sizeActiveParty - 1
   IF herow(whoi).speed = 0 THEN
@@ -1157,7 +1157,7 @@ SUB update_heroes(byval force_step_check as integer=NO)
  END IF
 
  'Non-caterpillar (normal [xy]go-based) hero movement
- REDIM didgo(0 TO sizeActiveParty - 1) as integer
+ DIM didgo(0 TO sizeActiveParty - 1) as bool
  FOR whoi as integer = 0 TO sizeActiveParty - 1
   'NOTE: this loop covers the max caterpillar size, and not the current
   ' return value of caterpillar_size() because empty hero slots still
