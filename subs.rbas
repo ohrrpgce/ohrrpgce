@@ -1022,7 +1022,7 @@ SUB formation_set_editor
   END IF
   menu(0) = "Previous Menu"
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
-  menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 60, 100, "-", " steps") & ")"
+  menu(2) = "Battle Frequency: " & formset.frequency & " (" & step_estimate(formset.frequency, 40, 160, "-", " steps") & ")"
   menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
   FOR i as integer = 0 TO 19
    IF formset.formations(i) = -1 THEN

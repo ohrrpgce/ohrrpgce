@@ -63,6 +63,8 @@ WHAT IS NEW?
     * Harm tiles didn't work if there are 'gaps' in the active party
       (caterpillar rank and party slots aren't equal) and caterpillar
       party was disabled [Ralph]
+    * The Battle Formation Set menu miscalculated the number of steps
+      until a battle occurs (it was too low). Also added average [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

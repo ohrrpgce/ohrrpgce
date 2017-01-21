@@ -6,6 +6,6 @@ Use the Left and Right arrow keys to change numbers.  You can also type in numbe
 
 <Formation Set #>: Change what formation set you are working on.  This number will be used in the Map Editor when assigning random battles to tiles.
 
-Battle Frequency: Change how frequently tiles that are assigned this formation set will trigger a random battle.
+Battle Frequency: Change how frequently tiles that are assigned this formation set will trigger a random battle. The number of steps that the formation will take to trigger is displayed, including minimum, maximum and average.
 
 Assign up to 20 battle formations to be included in this set. If you would like certain formations to appear more than others, you should list them more than once in the set.
