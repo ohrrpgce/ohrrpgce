@@ -1683,7 +1683,7 @@ function readmouse () as MouseInfo
 		'Test whether drag ended
 		if (info.clicks and mouse_dragmask) orelse (info.buttons and mouse_dragmask) = 0 then
 			mouse_dragmask = 0
-			mouse_clickstart = TYPE<XYPair>(0, 0)
+			mouse_clickstart = XY(0, 0)
 		end if
 	end if
 
@@ -1694,7 +1694,7 @@ function readmouse () as MouseInfo
 			dim mask as integer = 2 ^ i
 			if info.clicks and mask then
 				'Do not flag as dragging until the second tick
-				mouse_clickstart = TYPE<XYPair>(info.x, info.y)
+				mouse_clickstart = XY(info.x, info.y)
 			elseif info.buttons and mask then
 				'left mouse button down, but no new click this tick
 				mouse_dragmask = mask

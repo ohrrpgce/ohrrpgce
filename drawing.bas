@@ -254,7 +254,7 @@ DO
     'Click on a palette colour
     FOR xidx as integer = 0 TO 15
      FOR yidx as integer = 0 TO 15
-      rect.topleft = TYPE<XYPair>(xidx * 10, 8 + yidx * 10)
+      rect.topleft = XY(xidx * 10, 8 + yidx * 10)
       IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
      NEXT
     NEXT
@@ -1369,7 +1369,7 @@ DO
  IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile ts
  DIM cy as integer = (ts.curcolor \ 16) MOD 8
  DIM cx as integer = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
- ts.lastcpos = TYPE<XYPair>(ts.x, ts.y)
+ ts.lastcpos = XY(ts.x, ts.y)
 
  '--Draw screen (Some of the editor is predrawn to page 2)
  clearpage dpage

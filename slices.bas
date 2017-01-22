@@ -2836,7 +2836,7 @@ Function UpdateRootSliceSize(sl as slice ptr) as bool
  if sl = 0 then return NO
  dim changed as bool
  with *sl
-  changed = get_resolution() <> TYPE<XYPair>(.Width, .Height)
+  changed = get_resolution() <> XY(.Width, .Height)
   .Width = get_resolution().w
   .Height = get_resolution().h
  end with

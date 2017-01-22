@@ -57,6 +57,10 @@ OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
   RETURN lhs.x <> rhs.x OR lhs.y <> rhs.y
 END OPERATOR
 
+OPERATOR XYPair.CAST () as string
+  RETURN x & "," & y
+END OPERATOR
+
 OPERATOR XYPair.+= (rhs as XYPair)
   x += rhs.x
   y += rhs.y
@@ -66,8 +70,28 @@ OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
   RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
 END OPERATOR
 
+OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x + rhs, lhs.y + rhs)
+END OPERATOR
+
+OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
+END OPERATOR
+
+OPERATOR - (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x - rhs, lhs.y - rhs)
+END OPERATOR
+
+OPERATOR * (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x * rhs.x, lhs.y * rhs.y)
+END OPERATOR
+
 OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
   RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
+OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x \ rhs.x, lhs.y \ rhs.y)
 END OPERATOR
 
 OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
@@ -93,13 +117,19 @@ startTest(XYPairOperators)
 
   IF A <> A THEN fail
   IF A <> TYPE<XYPair>(1,2) THEN fail
-  IF (A = TYPE<XYPair>(1,2)) <> YES THEN fail
+  IF XY(101,-34) <> TYPE<XYPair>(101,-34) THEN fail
+  IF (A = XY(1,2)) <> YES THEN fail
   A += B
-  IF A <> TYPE<XYPair>(4,6) THEN fail
-  IF -A <> TYPE<XYPair>(-4,-6) THEN fail
-  IF A * 10 <> TYPE<XYPair>(40,60) THEN fail
-  IF A \ 3 <> TYPE<XYPair>(1,2) THEN fail
+  IF A <> XY(4,6) THEN fail
+  IF -A <> XY(-4,-6) THEN fail
+  IF A + 4 <> XY(8,10) THEN fail
+  IF A - A <> XY(0,0) THEN fail
+  IF A * 10 <> XY(40,60) THEN fail
+  IF A * B <> XY(12,24) THEN fail
+  IF A \ 3 <> XY(1,2) THEN fail
+  IF A \ XY(2,-1) <> XY(2,-6) THEN fail
   IF A * 5 \ 5 <> A THEN fail
+  IF STR(A) <> "4,6" THEN fail
 endTest
 
 startTest(RectTypeOperators)

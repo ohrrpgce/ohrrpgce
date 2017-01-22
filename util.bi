@@ -369,14 +369,22 @@ UNION XYPair
   n(1) as integer
 
   DECLARE OPERATOR += (rhs as XYPair)
+  DECLARE OPERATOR CAST () as string
 END UNION
 
 DECLARE OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
+DECLARE OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
+DECLARE OPERATOR - (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR * (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR - (lhs as XYPair) as XYPair
+
+#DEFINE XY(x, y) TYPE<XYPair>(x, y)
 
 UNION XYZTriple
   TYPE
