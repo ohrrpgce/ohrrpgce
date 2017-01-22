@@ -2716,7 +2716,7 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
  END WITH
  
  append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always")
- append_menu_item detail, tag_condition_caption(mi.tag2, "Enable if tag", "Always")
+ append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always")
  append_menu_item detail, tag_set_caption(mi.settag, "Set tag")
  append_menu_item detail, tag_toggle_caption(mi.togtag)
  append_menu_item detail, "Edit Bitsets..."

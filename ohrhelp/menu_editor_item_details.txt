@@ -65,7 +65,7 @@ This is the menu item detail editor. This is where you define what a menu item a
    script will not start until the
    menu has closed.
 
-*Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify one or more tags here, they will be checked before the menu item is enabled.  Press - to toggle between requiring a tag to be ON or OFF.
+*Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify one or more tags conditions they must all be true for the menu item to be enabled.  Depending on the "Hide if disabled" bitset, disabled items are greyed out or hidden. Press - to toggle between requiring a tag to be ON or OFF.
 
 *Set Tag - This tag will be turned ON or OFF when the menu item is used. Press ENTER or SPACE to browse tags. Press - to toggle between turning a tag ON and turning it OFF.
 
