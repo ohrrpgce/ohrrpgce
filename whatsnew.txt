@@ -38,6 +38,7 @@ WHAT IS NEW?
     * "reparent to npc" and "reparent to hero" convenience functions
       [James]
     * Added "show new game" argument to "load menu" command [Ralph]
+    * "get battle countdown" and "set battle countdown" [Ralph]
 
   * Changes
 
