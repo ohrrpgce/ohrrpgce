@@ -388,8 +388,10 @@ SUB main_editor_menu()
  
  DIM selectst as SelectTypeState
  DIM state as MenuState
- state.size = 24
  state.last = UBOUND(menu)
+ state.autosize_ignore_pixels = 24
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES
  
  setkeys YES
  DO
@@ -448,13 +450,14 @@ SUB main_editor_menu()
  
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, 0, 0, dpage, menuopts
 
   textcolor uilook(uiSelectedDisabled), 0
-  printstr version_code, 0, 176, dpage
-  printstr version_build, 0, 184, dpage
+  DIM footer_y as integer = vpages(dpage)->h - 24
+  printstr version_code, 0, footer_y, dpage
+  printstr version_build, 0, footer_y + 8, dpage
   textcolor uilook(uiText), 0
-  printstr "Press F1 for help on any menu!", 0, 192, dpage
+  printstr "Press F1 for help on any menu!", 0, footer_y + 16, dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -542,12 +545,6 @@ SUB gfx_editor_menu()
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, dpage
- 
-  textcolor uilook(uiSelectedDisabled), 0
-  printstr version_code, 0, 176, dpage
-  printstr version_build, 0, 184, dpage
-  textcolor uilook(uiText), 0
-  printstr "Press F1 for help on any menu!", 0, 192, dpage
  
   SWAP vpage, dpage
   setvispage vpage
