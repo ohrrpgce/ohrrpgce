@@ -632,14 +632,34 @@ FUNCTION sign_string(n as integer, neg_str as string, zero_str as string, pos_st
  RETURN zero_str
 END FUNCTION
 
-FUNCTION zero_default(n as integer, zerocaption as string="default", displayoffset as integer = 0) as string
- IF n = 0 THEN RETURN zerocaption
- RETURN "" & (n + displayoffset)
+'See also defaultint
+FUNCTION zero_default(n as integer, default_caption as string="default") as string
+ IF n = 0 THEN RETURN default_caption
+ RETURN STR(n)
 END FUNCTION
 
-FUNCTION blank_default(s as string, blankcaption as string="default") as string
+'See also zero_default
+FUNCTION defaultint (n as integer, default_caption as string="default", default_value as integer=-1) as string
+ IF n = default_value THEN RETURN default_caption
+ RETURN STR(n)
+END FUNCTION
+
+FUNCTION blank_default(s as string, blankcaption as string="[default]") as string
  IF s = "" THEN RETURN blankcaption
  RETURN s
+END FUNCTION
+
+FUNCTION caption_or_int (captions() as string, n as integer) as string
+ IF n >= LBOUND(captions) AND n <= UBOUND(captions) THEN RETURN captions(n)
+ RETURN STR(n)
+END FUNCTION
+
+FUNCTION safe_caption(caption_array() as string, index as integer, description as string) as string
+ IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
+  RETURN caption_array(index)
+ ELSE
+  RETURN "Invalid " & description & " " & index
+ END IF
 END FUNCTION
 
 'Returns a copy of the string with separators inserted, replacing spaces, so that there's at most 'wid'

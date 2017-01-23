@@ -1179,16 +1179,6 @@ FUNCTION xstringright (s as string, x as integer = -9999, withtags as bool = NO)
  RETURN xstring(s, x, withtags, YES)
 END FUNCTION
 
-FUNCTION defaultint (byval n as integer, default_caption as string="default", byval default_value as integer=-1) as string
- IF n = default_value THEN RETURN default_caption
- RETURN STR(n)
-END FUNCTION
-
-FUNCTION caption_or_int (byval n as integer, captions() as string) as string
- IF n >= LBOUND(captions) AND n <= UBOUND(captions) THEN RETURN captions(n)
- RETURN STR(n)
-END FUNCTION
-
 SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
  IF index \ 2 > UBOUND(array16) THEN
   debug "Dang rotten poke8bit(array(" & UBOUND(array16) & ")," & index & "," & val8 & ") out of range"
@@ -4454,7 +4444,8 @@ FUNCTION onoroff (byval n as integer) as string
 END FUNCTION
 
 'Returns a YES/NO string. Not to be confused with yesno() (in this file)
-'which asks an interactive yes/no question
+'which asks an interactive yes/no question.
+'If you want to override the defaults, why not use IIF() instead, which is identical?
 FUNCTION yesorno (byval n as integer, yes_cap as string="YES", no_cap as string="NO") as string
  IF n THEN RETURN yes_cap
  RETURN no_cap

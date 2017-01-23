@@ -1006,7 +1006,7 @@ SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
  FOR i as integer = 0 TO uiBoxLast
   m(i * 3) = "Box style " & i & " color:  " & boxes(i).bgcol
   m(i * 3 + 1) = "Box style " & i & " edge: " & boxes(i).edgecol
-  m(i * 3 + 2) = "Box style " & i & " border image: " & zero_default(boxes(i).border, "none", -1)
+  m(i * 3 + 2) = "Box style " & i & " border image: " & defaultint(boxes(i).border - 1, "none", -1)
  NEXT i
 END SUB
 
@@ -3306,14 +3306,6 @@ SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  CLOSE #fh
  loadglobalstrings
 END SUB
-
-FUNCTION safe_caption(caption_array() as string, byval index as integer, description as string) as string
- IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
-  RETURN caption_array(index)
- ELSE
-  RETURN "Invalid " & description & " " & index
- END IF
-END FUNCTION
 
 SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
  SELECT CASE mode

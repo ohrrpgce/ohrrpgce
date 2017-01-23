@@ -1061,7 +1061,7 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuo
     sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Foreground color: " & slice_color_caption(dat->fgcol)
     sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
+    str_array_append menu(), "Border: " & caption_or_int(BorderCaptions(), dat->border)
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule rules(), "rect_trans", erIntgrabber, @(dat->translucent), 0, 2

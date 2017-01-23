@@ -69,7 +69,6 @@ DECLARE SUB autofix_broken_old_scripts()
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)
-DECLARE FUNCTION safe_caption(caption_array() as string, byval index as integer, description as string) as string
 DECLARE SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
 DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer
 DECLARE FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
