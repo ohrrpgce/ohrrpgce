@@ -1378,7 +1378,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
      IF selected THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
     IF .col > 0 ANDALSO NOT selected THEN
-     col = .col
+     IF .disabled = NO OR .disabled_overrides_color = NO THEN col = .col
     END IF
     IF NOT (.disabled AND .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
