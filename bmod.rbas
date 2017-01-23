@@ -967,14 +967,12 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      END WITH
     NEXT i
     draw_menu .batmenu, .menust, dpage
-   END WITH
    
-   IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN  ' "Disable Hero's Battle Cursor"
-    'Show cursor above hero
-    WITH bslot(bat.hero_turn)
+    IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN  ' "Disable Hero's Battle Cursor"
+     'Show cursor above hero
      edgeprint CHR(24), .x + (.w / 2) - 4, .y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
-    END WITH
-   END IF
+    END IF
+   END WITH
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     centerbox 160, 53, 310, 95, 1, dpage
     IF bat.sptr < 24 THEN
@@ -1007,9 +1005,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      .pt = INT(bat.item.pt / 3)
      .last = INT(last_inv_slot() / 3)
     END WITH
-    WITH bat.inv_scroll_rect
-     .high = inv_height - 10
-    END WITH
+    bat.inv_scroll_rect.high = inv_height - 10
     edgeboxstyle 8, 4, 304, inv_height, 0, dpage
     draw_scrollbar bat.inv_scroll, bat.inv_scroll_rect, bat.inv_scroll.last, , dpage
     FOR i = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
@@ -1093,13 +1089,15 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
 
  IF bat.ticks >= bat.laststun + ideal_ticks_per_second() THEN
   FOR i = 0 TO 11
-   bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
-   bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
-   IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
-    bslot(i).ready = NO
-    IF bat.hero_turn = i THEN bat.hero_turn = -1
-    IF bat.enemy_turn = i THEN bat.enemy_turn = -1
-   END IF
+   WITH bslot(i).stat
+    .cur.mute = small(.cur.mute + 1, .max.mute)
+    .cur.stun = small(.cur.stun + 1, .max.stun)
+    IF .cur.stun < .max.stun THEN
+     bslot(i).ready = NO
+     IF bat.hero_turn = i THEN bat.hero_turn = -1
+     IF bat.enemy_turn = i THEN bat.enemy_turn = -1
+    END IF
+   END WITH
   NEXT i
   bat.laststun = bat.ticks
  END IF
@@ -2418,50 +2416,50 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
    bat.hero_turn = -1
    EXIT SUB
   END IF
- END WITH
  
- IF carray(ccMenu) > 1 THEN
-  '--skip turn
-  'debug "Requested to cancel picking attacks"
-  bat.next_hero = bat.hero_turn
-  bat.hero_turn = -1
-  IF bat.turn.mode = turnTURN THEN
-   '--wait mode switches into reverse
-   bat.turn.reverse = YES
-  END IF
-  'Don't loop the sound effect while holding down Menu to allow time to pass
-  IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
-  EXIT SUB
- END IF
- usemenusounds
- usemenu bslot(bat.hero_turn).menust
- IF carray(ccUse) > 1 THEN
-  '--use menu item
-  menusound gen(genAcceptSFX)
-  WITH *(bslot(bat.hero_turn).batmenu.items[bslot(bat.hero_turn).menust.pt])
-   IF NOT .disabled THEN
-    SELECT CASE .t
-     CASE batmenu_ATTACK:
-      bslot(bat.hero_turn).attack = .sub_t + 1
-      bat.targ.mode = targSETUP
-      flusharray carray(), 7, 0
-      EXIT SUB
-     CASE batmenu_SPELLS:
-      bat.listslot = .sub_t
-      init_spell_menu bat, bslot(), st()
-     CASE batmenu_ITEMS:
-      bat.menu_mode = batMENUITEM
-      bat.item.pt = 0
-      bat.item.top = 0
-      checkitemusability bat.iuse(), bslot(), bat.hero_turn
-      bat.item_desc = ""
-      IF inventory(bat.item.pt).used THEN
-       bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
-      END IF
-    END SELECT
+  IF carray(ccMenu) > 1 THEN
+   '--skip turn
+   'debug "Requested to cancel picking attacks"
+   bat.next_hero = bat.hero_turn
+   bat.hero_turn = -1
+   IF bat.turn.mode = turnTURN THEN
+    '--wait mode switches into reverse
+    bat.turn.reverse = YES
    END IF
-  END WITH
- END IF
+   'Don't loop the sound effect while holding down Menu to allow time to pass
+   IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
+   EXIT SUB
+  END IF
+  usemenusounds
+  usemenu .menust
+  IF carray(ccUse) > 1 THEN
+   '--use menu item
+   menusound gen(genAcceptSFX)
+   WITH *.batmenu.items[.menust.pt]
+    IF NOT .disabled THEN
+     SELECT CASE .t
+      CASE batmenu_ATTACK:
+       bslot(bat.hero_turn).attack = .sub_t + 1
+       bat.targ.mode = targSETUP
+       flusharray carray(), 7, 0
+       EXIT SUB
+      CASE batmenu_SPELLS:
+       bat.listslot = .sub_t
+       init_spell_menu bat, bslot(), st()
+      CASE batmenu_ITEMS:
+       bat.menu_mode = batMENUITEM
+       bat.item.pt = 0
+       bat.item.top = 0
+       checkitemusability bat.iuse(), bslot(), bat.hero_turn
+       bat.item_desc = ""
+       IF inventory(bat.item.pt).used THEN
+        bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
+       END IF
+     END SELECT
+    END IF
+   END WITH
+  END IF
+ END WITH
 END SUB
 
 SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
