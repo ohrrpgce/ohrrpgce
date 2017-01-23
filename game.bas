@@ -1042,6 +1042,8 @@ SUB displayall()
  IF txt.showing = YES THEN update_textbox
 
  'FIXME: Eventually we want to draw the rest of this stuff using slices, but for now draw it on top
+ 'Note: this updates .pt and .top etc for each menu, but doesn't update item visibility.
+ 'That happens on check_menu_tags, next tick
  update_menu_states
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
@@ -2183,6 +2185,7 @@ SUB tag_updates (byval npc_visibility as integer=YES)
  check_menu_tags
 END SUB
 
+' Updates which menu items are enabled (for any reason, not just tags)
 SUB check_menu_tags ()
  DIM i as integer
  DIM j as integer
@@ -2216,34 +2219,9 @@ SUB check_menu_tags ()
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i
-   'FIXME: the following is meant to be handled by init_menu_state... in fact usemenu already does this
    IF changed = YES THEN
-    IF mstates(j).pt >= 0 THEN
-     selecteditem = .items[mstates(j).pt]
-    ELSE
-     selecteditem = NULL
-    END IF
-    SortMenuItems menus(j)
-    IF selecteditem THEN
-     'first forwards look for the next visible item
-     WHILE selecteditem ANDALSO (selecteditem->disabled AND selecteditem->hide_if_disabled)
-      selecteditem = selecteditem->trueorder.next
-      FOR i = 0 TO .numitems - 1
-       IF .items[i] = selecteditem THEN mstates(j).pt = i
-      NEXT i
-     WEND
-     IF selecteditem = NULL THEN
-      'then try last visible (ie, look backwards), finally give up
-      mstates(j).pt = -1
-      FOR i = .numitems - 1 TO 0 STEP -1
-       IF (.items[i]->disabled AND .items[i]->hide_if_disabled) = 0 THEN
-        mstates(j).pt = i
-        EXIT FOR
-       END IF
-      NEXT
-     END IF
-    END IF
-    mstates(j).need_update = YES
+    ' Update .pt, .top, etc
+    init_menu_state mstates(j), menus(j)
    END IF
   END WITH
  NEXT j
@@ -2251,24 +2229,7 @@ SUB check_menu_tags ()
 END SUB
 
 FUNCTION game_usemenu (state as MenuState) as integer
- DIM oldptr as integer
- DIM oldtop as integer
-
- WITH state
-  oldptr = .pt
-  oldtop = .top
-
-  IF carray(ccUp) > 1 THEN .pt = loopvar(.pt, .first, .last, -1) 'UP
-  IF carray(ccDown) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)  'DOWN
-  IF keyval(scPageup) > 1 THEN .pt = large(.pt - .size, .first)     'PGUP
-  IF keyval(scPagedown) > 1 THEN .pt = small(.pt + .size, .last)      'PGDN
-  IF keyval(scHome) > 1 THEN .pt = .first                         'HOME
-  IF keyval(scEnd) > 1 THEN .pt = .last                          'END
-  .top = bound(.top, .pt - .size, .pt)
-
-  IF oldptr <> .pt OR oldtop <> .top THEN RETURN YES
-  RETURN NO
- END WITH
+ RETURN usemenu(state, carray(ccUp), carray(ccDown))
 END FUNCTION
 
 FUNCTION allowed_to_open_main_menu () as integer

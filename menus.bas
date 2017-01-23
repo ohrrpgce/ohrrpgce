@@ -865,10 +865,12 @@ SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as Men
   .last = UBOUND(menu)
   .size = small(.last - .first, cint(int(get_resolution().h / 8)))
  END WITH
+ ' Fix .pt and update .top
  correct_menu_state state
 END SUB
 
-'(Re-)initialise menu state, preserving .pt if valid
+'(Re-)initialise menu state, preserving .pt if valid or otherwise picking a new one.
+'Also sorts the menu.
 SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  WITH state
   .first = 0
@@ -876,9 +878,51 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
   .size = menu.maxrows - 1
   IF .size = -1 THEN .size = 17
  END WITH
+ ' Pick a suitable .pt
+ sort_menu_and_select_visible_item menu, state
+ ' Update .top
  correct_menu_state state
 END SUB
 
+' Make sure .pt is valid, move it to the next visible menu item if the current one is hidden.
+' This only works correctly if you haven't already called SortMenuItems!
+' Does no update .top (not a substitute for correct_menu_state).
+' Note that this is a substitue for what usemenu does, but is specific to MenuDef's
+' troublesome shuffling of hidden of menu items to the end.
+SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
+ WITH menu
+  DIM selecteditem as MenuDefItem ptr
+  IF state.pt >= 0 AND state.pt < .numitems THEN
+   selecteditem = .items[state.pt]
+  ELSE
+   selecteditem = NULL
+  END IF
+  SortMenuItems menu
+  ' First forwards look for the next visible item
+  WHILE selecteditem ANDALSO (selecteditem->disabled AND selecteditem->hide_if_disabled)
+   selecteditem = selecteditem->trueorder.next
+  WEND
+  IF selecteditem THEN
+   FOR i as integer = 0 TO .numitems - 1
+    IF .items[i] = selecteditem THEN
+     state.pt = i
+     EXIT SUB
+    END IF
+   NEXT i
+  END IF
+  ' otherwise pick the last visible one
+  FOR i as integer = .numitems - 1 TO 0 STEP -1
+   IF (.items[i]->disabled AND .items[i]->hide_if_disabled) = NO THEN
+    state.pt = i
+    EXIT SUB
+   END IF
+  NEXT
+  ' The menu is empty
+  state.pt = -1
+ END WITH
+END SUB
+
+' Returns index in menu.items[]
 FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0, byval withtags as integer=NO) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
