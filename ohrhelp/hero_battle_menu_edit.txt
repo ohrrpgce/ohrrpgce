@@ -8,6 +8,8 @@ You can add new battle menu items with INSERT and you can remove battle menu ite
 
 Hold SHIFT and press the up and down arrow keys to re-order the menu items.
 
+Note the preview of the menu to the right ignores tag conditions, assuming all items are enabled.
+
 The default battle menu is:
 
   Weapon

@@ -1697,7 +1697,7 @@ wait for text box # wait until the player continues</example>
 		<command id="savemenu">
 			<canon>save menu (reallysave)</canon>
 			<shortname>save menu</shortname>
-			<description>Takes you directly to the save menu. Will the number from 1 to 32 of the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving.</description>
+			<description>Takes you directly to the save menu. Will return the number from 1 to 32 of the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving.</description>
 			<seealso>
 				<ref>autosave</ref>
 				<ref>saveinslot</ref>

@@ -2656,6 +2656,8 @@ SUB hero_editor_battle_menu (her as HeroDef)
   
  DIM st as MenuState
  st.active = YES
+ st.autosize = YES
+ st.autosize_ignore_pixels = 12
  st.need_update = YES
  
  DIM prst as MenuState
@@ -2690,8 +2692,10 @@ SUB hero_editor_battle_menu (her as HeroDef)
     .maxrows = 22
    END WITH
    append_menu_item menu, "Previous menu..."
+   ' So much duplication with the in-game code :(
    READNODE hero_node."battle_menus" as batmen, ignoreall
     WITHNODE batmen."menu" as bmenu
+     DIM added_to_preview as bool = YES
      DIM k as NodePtr = bmenu."kind".ptr
      IF k."weapon".exists THEN
       append_menu_item menu, "Weapon"
@@ -2710,6 +2714,8 @@ SUB hero_editor_battle_menu (her as HeroDef)
       menu.last->dataptr = bmenu
       IF LEN(listname) THEN
        append_menu_item preview, listname
+      ELSE
+       added_to_preview = NO
       END IF
      ELSEIF k."attack".exists THEN
       append_menu_item menu, "Attack " & k."attack".integer & " " & readattackname(k."attack".integer)
@@ -2717,8 +2723,20 @@ SUB hero_editor_battle_menu (her as HeroDef)
       append_menu_item preview, readattackname(k."attack".integer)
      ELSE
       debug "Unknown battle menu item " & GetInteger(bmenu)
-      append_menu_item menu, "???"
+      append_menu_item menu, "[Invalid]"
       menu.last->dataptr = bmenu
+      added_to_preview = NO
+     END IF
+     IF added_to_preview THEN
+      ' Set up other data
+      WITH *preview.last
+       IF LEN(bmenu."caption".string) THEN .caption = bmenu."caption".string
+       .col = bmenu."color".default(0)
+      END WITH
+      'Point to associated item in the preview
+      menu.last->extra(0) = preview.numitems - 1
+     ELSE
+      menu.last->extra(0) = -1
      END IF
     END WITHNODE
    END READNODE
@@ -2729,6 +2747,13 @@ SUB hero_editor_battle_menu (her as HeroDef)
   
   menu_of_reorderable_nodes st, menu
   usemenu st
+  IF menu.items[st.pt]->extra(0) >= 0 THEN
+   prst.pt = menu.items[st.pt]->extra(0)
+   prst.active = YES
+   init_menu_state prst, preview  'Update
+  ELSE
+   prst.active = NO
+  END IF
   
   IF enter_space_click(st) THEN
    IF st.pt = 0 THEN EXIT DO
@@ -2765,7 +2790,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
   END IF
     
   clearpage dpage
-  edgeprint "INSERT=add, DEL=delete, F1=help", 0, vpages(dpage)->h - 10, uilook(uiSelectedDisabled), dpage
+  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, vpages(dpage)->h - 10, uilook(uiSelectedDisabled), dpage
   draw_menu preview, prst, dpage
   edgeprint "Preview", prst.rect.x + 10, 0, uilook(uiText), dpage
   draw_menu menu, st, dpage
@@ -2780,9 +2805,16 @@ END SUB
 CONST edbatmenu_EXIT = 0
 CONST edbatmenu_KIND = 1
 CONST edbatmenu_NUM = 2 'extra 0 = lower limit, extra 1 = upper limit
+CONST edbatmenu_STR = 3
+CONST edbatmenu_TAG = 4
+CONST edbatmenu_COLOR = 5 'extra 0 = lower limit, extra 1 = upper limit  (to reduce redundancy...)
+CONST edbatmenu_UNSELECTABLE = 6 'Does nothing
 
 SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
  IF edit_node = 0 THEN debug "edit_battle_menu_item null NodePtr": EXIT SUB
+
+ ' Initialise new defaults
+ upgrade_hero_battle_menu_item edit_node
 
  DIM holdscreen as integer
  holdscreen = allocatepage
@@ -2795,6 +2827,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
  
  DIM k as NodePtr
  DIM v as integer
+ DIM spell_list_name as string
 
  setkeys
  DO
@@ -2811,6 +2844,8 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
     .min_chars = 36
    END WITH
    append_menu_item menu, "Previous menu...", edbatmenu_EXIT
+
+   ' Kind-specific options
    k = edit_node."kind".ptr
    IF k."weapon".exists THEN
     append_menu_item menu, "Kind: Weapon's Attack", edbatmenu_KIND
@@ -2824,7 +2859,8 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    ELSEIF k."spells".exists THEN
     append_menu_item menu, "Kind: Spell List", edbatmenu_KIND
     v = k."spells".integer
-    append_menu_item menu, "List Number: " & v & " " & hero.list_name(v), edbatmenu_NUM
+    spell_list_name = safe_caption(hero.list_name(), v, "list")
+    append_menu_item menu, "List Number: " & v & " " & spell_list_name, edbatmenu_NUM
     menu.last->dataptr = k."spells".ptr
     menu.last->extra(0) = 0
     menu.last->extra(1) = 3
@@ -2833,6 +2869,43 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    ELSE
     debug "Unknown battle menu kind"
     append_menu_item menu, "Kind: ???", edbatmenu_KIND
+   END IF
+
+   ' General options
+   append_menu_item menu, "Caption: " & blank_default(edit_node."caption".string), edbatmenu_STR
+   menu.last->dataptr = edit_node."caption".ptr
+   append_menu_item menu, "Color: " & zero_default(edit_node."color"), edbatmenu_COLOR
+   menu.last->dataptr = edit_node."color".ptr
+   append_menu_item menu, tag_condition_caption(edit_node."enable_tag1", "Enabled if tag", "Always"), edbatmenu_TAG
+   menu.last->dataptr = edit_node."enable_tag1".ptr
+   append_menu_item menu, tag_condition_caption(edit_node."enable_tag2", "  and also tag", "Always"), edbatmenu_TAG
+   menu.last->dataptr = edit_node."enable_tag2".ptr
+   append_menu_item menu, "When disabled: " & IIF(edit_node."hide_disabled", "Hidden", "Unselectable"), edbatmenu_NUM
+   menu.last->dataptr = edit_node."hide_disabled".ptr
+   menu.last->extra(0) = 0
+   menu.last->extra(1) = 1
+
+   ' Other messages
+   IF k."spells".exists THEN
+    ' Provide warnings that hide_disabled doesn't override this...
+    IF LEN(spell_list_name) = 0 THEN
+     append_menu_item menu, "(Always hidden: unnamed spell list!)", edbatmenu_UNSELECTABLE
+     menu.last->disabled = YES
+    ELSEIF readbit(hero.bits(), 0, 26) THEN  '"Do not show spell lists if empty"
+     append_menu_item menu, "(Hidden if spell list empty)", edbatmenu_UNSELECTABLE
+     menu.last->disabled = YES
+    END IF
+   'This is how it actually works, but I don't want to document this dubious behaviour
+   ' ELSEIF k."attack".exists THEN
+   '  DIM atk as AttackData
+   '  loadattackdata atk, k."attack"
+   '  IF atk.check_costs_as_weapon THEN
+   '   append_menu_item menu, "(Disabled if atk costs not met)", edbatmenu_UNSELECTABLE
+   '   menu.last->disabled = YES    
+   '  END IF
+   ELSEIF k."weapon".exists OR k."attack".exists THEN
+    append_menu_item menu, "(May be disabled if costs not met)", edbatmenu_UNSELECTABLE
+    menu.last->disabled = YES    
    END IF
 
    init_menu_state st, menu
@@ -2848,15 +2921,30 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
      CASE edbatmenu_KIND:
       browse_battle_menu_kinds edit_node
       st.need_update = YES
+     CASE edbatmenu_COLOR:
+      SetContent(.dataptr, color_browser_256(GetInteger(.dataptr)))
+      st.need_update = YES
+     'edbatmenu_TAG action is handled by tag_grabber
     END SELECT
    END IF
-   IF .t = edbatmenu_NUM THEN
-    v = GetInteger(.dataptr)
-    IF intgrabber(v, .extra(0), .extra(1)) THEN
+
+   IF .dataptr THEN v = GetInteger(.dataptr)  'Doesn't matter if it's not an int
+   SELECT CASE .t
+    CASE edbatmenu_NUM
+     st.need_update OR= intgrabber(v, .extra(0), .extra(1))
      SetContent(.dataptr, v)
-     st.need_update = YES
-    END IF
-   END IF
+    CASE edbatmenu_COLOR
+     st.need_update OR= intgrabber(v, 0, 255)
+     SetContent(.dataptr, v)
+    CASE edbatmenu_TAG
+     st.need_update OR= tag_grabber(v)
+     SetContent(.dataptr, v)
+    CASE edbatmenu_STR
+     DIM strval as string
+     IF .dataptr THEN strval = GetString(.dataptr)
+     st.need_update OR= strgrabber(strval, 24)
+     SetContent(.dataptr, strval)
+   END SELECT
   END WITH
   
   copypage holdscreen, vpage

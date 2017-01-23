@@ -90,6 +90,7 @@ DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as integer
 DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
+DECLARE SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 DECLARE FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
@@ -951,21 +952,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   '--Draw menus for a hero that is currently taking a turn
   IF bat.hero_turn >= 0 THEN
    
-   DIM atk as AttackData
    WITH bslot(bat.hero_turn)
-    FOR i as integer = 0 TO .batmenu.numitems - 1
-     WITH *.batmenu.items[i]
-      IF .t = batmenu_ATTACK THEN
-       .disabled = NO
-       loadattackdata atk, .sub_t
-       IF atk.check_costs_as_weapon THEN
-        IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
-         .disabled = YES
-        END IF
-       END IF
-      END IF
-     END WITH
-    NEXT i
+    update_battle_menu bat, bslot()
     draw_menu .batmenu, .menust, dpage
    
     IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN  ' "Disable Hero's Battle Cursor"
@@ -1373,7 +1361,6 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .bequesting = NO
     .self_bequesting = NO
     populate_battle_menu_menudef i, .batmenu, st(i)
-    init_menu_state .menust, .batmenu
     .menust.active = YES
    END WITH
    
@@ -1479,6 +1466,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
  
  READNODE hero_node."battle_menus" as battle_menus
   WITHNODE battle_menus."menu" as m
+   DIM mitem as integer = -1
    k = m."kind".ptr
    IF k."weapon".exists THEN
     wep_id = eqstuf(hero_id, 0) - 1
@@ -1486,30 +1474,69 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
     atk_id = itembuf(48) - 1
     IF atk_id < 0 THEN atk_id = 0
     caption = readattackname(atk_id)
-    append_menu_item menu, caption, batmenu_ATTACK, atk_id
+    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id)
    ELSEIF k."attack".exists THEN
     atk_id = k."attack".integer
     caption = readattackname(atk_id)
-    append_menu_item menu, caption, batmenu_ATTACK, atk_id
+    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id)
    ELSEIF k."spells".exists THEN
     spells_id = k."spells".integer
     caption = hero.list_name(spells_id)
     IF LEN(caption) > 0 THEN
      '--only add the spell list if it is non-empty or if the bitset says we don't care if it is empty
      IF readbit(hero.bits(),0,26) = 0 ORELSE count_available_spells(hero_id, spells_id) THEN
-      append_menu_item menu, caption, batmenu_SPELLS, spells_id
+      mitem = append_menu_item(menu, caption, batmenu_SPELLS, spells_id)
      END IF
     END IF
    ELSEIF k."items".exists THEN
     caption = readglobalstring(34, "Item", 10)
     IF LEN(caption) > 0 THEN
-     append_menu_item menu, caption, batmenu_ITEMS
+     mitem = append_menu_item(menu, caption, batmenu_ITEMS)
     END IF
    ELSE
     debug "Unknown battle menu item kind"
    END IF
+
+   IF mitem > -1 THEN
+    ' Set up other data
+    WITH *menu.items[mitem]
+     IF LEN(m."caption".string) THEN .caption = m."caption".string
+     .col = m."color".default(0)
+     .tag1 = m."enable_tag1".default(0)
+     .tag2 = m."enable_tag2".default(0)
+     .hide_if_disabled = m."hide_disabled".default(0)
+     .disabled_overrides_color = YES
+    END WITH
+   END IF
+
   END WITHNODE
  END READNODE
+END SUB
+
+' Updates which menu items are enabled
+SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
+ WITH bslot(bat.hero_turn)
+  DIM atk as AttackData
+  FOR i as integer = 0 TO .batmenu.numitems - 1
+   WITH *.batmenu.items[i]
+    IF .t = batmenu_ATTACK THEN
+     .disabled = NO
+     loadattackdata atk, .sub_t
+     ' FIXME: isn't this bitset misnamed, since it affects all battle menu attacks?
+     IF atk.check_costs_as_weapon THEN
+      IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
+       .disabled = YES
+      END IF
+     END IF
+    END IF
+
+    IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
+   END WITH
+  NEXT i
+
+  ' Update selection, etc
+  init_menu_state .menust, .batmenu
+ END WITH
 END SUB
 
 SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)

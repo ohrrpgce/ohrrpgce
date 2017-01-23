@@ -646,7 +646,7 @@ Type AttackData
 	fail_if_targ_stun as bool
 	fail_if_targ_mute as bool
 	percent_damage_not_set as bool
-	check_costs_as_weapon as bool
+	check_costs_as_weapon as bool  'FIXME: broken/misnamed, affects all battle menu attacks
 	no_chain_on_failure as bool
 	reset_poison as bool
 	reset_regen as bool

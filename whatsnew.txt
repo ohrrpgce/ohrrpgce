@@ -25,6 +25,9 @@ WHAT IS NEW?
     * Added Redo (Ctrl+Y) to the sprite editor, and made the undo
       history size a few hundred times larger [Ralph]
     * Delete key in doorlinks menu deletes a doorlink [Ralph]
+    * The hero battle menu editor now lets you change the text (caption)
+      and color of an option, set tag conditions to disable it, and
+      specify whether to hide it if disabled [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
