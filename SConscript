@@ -760,7 +760,9 @@ game_modules = ['game',
 # The following are built only once and linked into Game and Custom
 common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
-                   'gfx_newRenderPlan.cpp']
+                   'gfx_newRenderPlan.cpp',
+                   'lib/gif.cpp']
+
 
 
 ################ ver.txt (version info) build rule

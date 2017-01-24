@@ -186,6 +186,7 @@ type ReplayState
 	repeats_done as integer    'Number of repeats already finished.
 end type
 
+'Singleton type for recording input.
 type RecordState
 	file as integer = -1       'File handle
 	active as bool             'Currently recording input and not paused.
@@ -198,6 +199,16 @@ end type
 dim shared replay as ReplayState
 dim shared record as RecordState
 dim shared macrofile as string
+
+'Singleton type for recording a .gif.
+type RecordGIFState
+	'active as bool
+	writer as GifWriter
+	fname as string
+	declare property active() as bool
+end type
+
+dim shared recordgif as RecordGIFState
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -5641,6 +5652,52 @@ end function
 
 
 '==========================================================================================
+'                                           GIF
+'==========================================================================================
+
+sub GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+	if pal then
+		' Avoid using color 0 (transparency), which gets remapped to the nearest match
+		' by using a colors 1-16 in a 32 colour palette
+		gpal.bitDepth = 5
+		for idx as integer = 0 to 16
+			' Color 0 = 16
+			dim masteridx as integer = pal->col(idx MOD 16)
+			'if masteridx = 0 then
+                        '        masteridx = uilook(uiBackground)
+			'end if
+			gpal.r(idx) = masterpal(masteridx).r
+			gpal.g(idx) = masterpal(masteridx).g
+			gpal.b(idx) = masterpal(masteridx).b
+		next
+	else
+		' Again color 0 will be remapped, but with 256 colours to choose from there's likely
+		' to be a good match
+		gpal.bitDepth = 8
+		for idx as integer = 0 to 255
+			gpal.r(idx) = masterpal(idx).r
+			gpal.g(idx) = masterpal(idx).g
+			gpal.b(idx) = masterpal(idx).b
+		next
+	end if
+end sub
+
+' Output a single-frame .gif. Ignores mask.
+sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pal as Palette16 ptr = NULL, transparent as bool = NO)
+	dim writer as GifWriter
+	dim gifpal as GifPalette
+	GifPalette_from_pal gifpal, maspal(), pal
+	if GifBegin(@writer, fopen(fname, "wb"), fr->w, fr->h, 0, transparent, @gifpal) = NO then
+		debug "GifWriter(" & fname & ") failed"
+	elseif GifWriteFrame8(@writer, fr->image, fr->w, fr->h, 0, NULL) = NO then
+		debug "GifWriteFrame8 failed"
+	elseif GifEnd(@writer) = NO then
+		debug "GifEnd failed"
+	end if
+end sub
+
+
+'==========================================================================================
 '                                        Screenshots
 '==========================================================================================
 
@@ -5660,7 +5717,7 @@ sub bmp_screenshot(f as string)
 	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 end sub
 
-dim shared as string*4 screenshot_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
+dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
 
 ' Find an available screenshot name in the current directory.
 ' Returns filename without extension, and ensures it doesn't collide regardless of the
@@ -5694,6 +5751,10 @@ private function next_unused_screenshot_filename() as string
 	return ret  'This won't be reached
 end function
 
+property RecordGIFState.active() as bool
+	return writer.f <> NULL
+end property
+
 'Take a single screenshot if F12 is pressed.
 'Holding down F12 takes a screenshot each frame, however besides
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
@@ -5706,6 +5767,53 @@ private sub snapshot_check()
 	dim as integer n, i, F12bits
 
 	F12bits = real_keyval(scF12)
+
+	' Pressing F12 ends recording a gif
+	if recordgif.active then
+		if F12bits and 4 then
+			if GifEnd(@recordgif.writer) = NO then
+				show_overlay_message "Recording failed"
+				safekill recordgif.fname
+			else
+				show_overlay_message "Recorded " & recordgif.fname, 1.2
+			end if
+			'recordgif.active = NO
+		else
+			dim gifpal as GifPalette
+			GifPalette_from_pal gifpal, intpal()
+
+			' Figure out the delay in hundreds of a second. (This is incorrect,
+			' since it uses the time for the last frame instead of the current one!) 
+			dim delay as integer
+			if replay.active then
+				delay = replay_kb.setkeys_elapsed_ms \ 10
+			else
+				delay = real_kb.setkeys_elapsed_ms \ 10
+			end if
+			
+			if GifWriteFrame8(@recordgif.writer, vpages(vpage)->image, vpages(vpage)->w, vpages(vpage)->h, delay, NULL) = NO then
+				show_overlay_message "Recording failed (WriteFrame8)"
+				debug "GifWriteFrame8 failed"
+				'recordgif.active = NO
+			end if
+		end if
+
+		exit sub
+	end if
+
+	' Check Ctrl+F12 to start recording a .gif
+	if real_keyval(scCtrl) > 0 andalso (F12bits and 4) then
+		dim gifpal as GifPalette
+		GifPalette_from_pal gifpal, master() ' intpal()
+		recordgif.fname = next_unused_screenshot_filename() + ".gif"
+		if GifBegin(@recordgif.writer, fopen(recordgif.fname, "wb"), vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) = NO then
+			show_overlay_message "Can't record, GifWriter failed"
+		else
+			show_overlay_message "F12 to stop"
+		end if
+		' Don't take a screenshot. On subsequent ticks they might get taken, but the debounce will delete them.
+		exit sub
+	end if
 
 	if F12bits = 0 then
 		' If key repeat never occurred then delete the backlog.

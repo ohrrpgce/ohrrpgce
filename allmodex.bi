@@ -9,6 +9,7 @@
 #include "bitmap.bi"
 #include "gfx.bi"
 #include "gfx_newRenderPlan.bi"
+#include "lib/gif.bi"
 #include "music.bi"
 
 
@@ -294,6 +295,10 @@ DECLARE FUNCTION color_distance(pal() as RGBcolor, byval index1 as integer, byva
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0, byval indexhint as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
 DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integer
+
+DECLARE SUB GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pal as Palette16 ptr = NULL, transparent as bool = NO)
+
 
 '==========================================================================================
 '                                          Input
