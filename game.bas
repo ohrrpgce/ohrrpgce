@@ -2229,7 +2229,7 @@ SUB check_menu_tags ()
 END SUB
 
 FUNCTION game_usemenu (state as MenuState) as integer
- RETURN usemenu(state, carray(ccUp), carray(ccDown))
+ RETURN usemenu(state, csetup(ccUp), csetup(ccDown))
 END FUNCTION
 
 FUNCTION allowed_to_open_main_menu () as integer
