@@ -321,6 +321,8 @@ DECLARE SUB resume_replaying_input
 DECLARE SUB pause_recording_input
 DECLARE SUB resume_recording_input
 
+DECLARE SUB macro_controls ()
+
 Type MouseInfo
 	x as integer
 	y as integer

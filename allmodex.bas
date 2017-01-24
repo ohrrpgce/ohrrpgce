@@ -81,7 +81,6 @@ declare sub show_replay_overlay()
 declare sub hide_overlays ()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
-declare sub macro_controls ()
 
 declare function hexptr(p as any ptr) as string
 
@@ -1905,16 +1904,19 @@ private sub allmodex_controls()
 
 	if replay.active then replay_controls()
 
-	macro_controls()
+	if real_keyval(scCtrl) > 0 and real_keyval(scF11) > 1 then
+		real_clearkey(scF11)
+		macro_controls()
+	end if
 
 	'This is a pause that doesn't show up in recorded input
 	if (replay.active or record.active) and real_keyval(scPause) > 1 then
 		real_clearkey(scPause)
-		if replay.active then pause_replaying_input
-		if record.active then pause_recording_input
+		pause_replaying_input
+		pause_recording_input
 		notification "Replaying/recording is PAUSED"
-		if replay.paused then resume_replaying_input
-		if record.paused then resume_recording_input
+		resume_replaying_input
+		resume_recording_input
 	end if
 
 	'Some debug keys for working on resolution independence
@@ -2004,49 +2006,65 @@ private sub replay_controls ()
 	reentering = NO
 end sub
 
+' Menu of options for playback/recording of macros
+private sub macro_menu ()
+	pause_replaying_input
+	pause_recording_input
+	ensure_normal_palette
+
+	redim menu(1) as string
+	menu(0) = "Cancel"
+	menu(1) = "Start recording macro"
+	if isfile(macrofile) then
+		redim preserve menu(3)
+		menu(2) = "Play back recorded macro"
+		menu(3) = "Play back recorded macro # times"
+	end if
+
+	dim choice as integer
+	dim msg as string
+	msg = !"Macro Recording & Replay\n(See F1 help file for information.)"
+	if ubound(menu) < 2 then
+		msg += !"\nNo macro recorded yet."
+	end if
+	choice = multichoice(msg, menu(), 2, 0, "share_macro_menu")
+	if choice = 1 then
+		show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
+		start_recording_input macrofile
+	elseif choice = 2 then
+		show_overlay_message "Replaying macro"
+		start_replaying_input macrofile
+	elseif choice = 3 then
+		dim repeats as string
+		prompt_for_string repeats, "Number of macro repetitions?"
+		dim repeat_count as integer = str2int(repeats, -1)
+		if repeat_count <= 0 then
+			exit sub
+		end if
+		show_overlay_message "Replaying macro " & replay.repeat_count & " time(s)"
+		start_replaying_input macrofile, repeat_count
+	end if
+
+	restore_previous_palette
+	resume_replaying_input
+	resume_recording_input
+end sub
+
+'Handles Ctrl+F11 key for macro recording and replay.
 'Called from inside setkeys, but it's OK to call setkeys from here as we disallow reentry.
+'This can also be called from the in-game debug menu.
 sub macro_controls ()
 	static reentering as bool = NO
 	if reentering then exit sub
 	reentering = YES
-
-	' Start/stop recording a macro
-	if real_keyval(scCtrl) > 0 and real_keyval(scF11) > 1 and replay.active = NO then
-		real_clearkey(scF11)
-
-		if record.active = NO then
-			show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
-			start_recording_input macrofile
-		else
-			stop_recording_input "Recorded macro, [SHIFT+]CTRL+F12 to play", errInfo
-		end if
+	if record.active then
+		stop_recording_input "Recorded macro, CTRL+F11 to play", errInfo
+	elseif replay.active then
+		show_overlay_message "Ended macro playback early", 2.
+		stop_replaying_input
+	else
+		macro_menu
 	end if
-
-	' Start/stop playing a macro
-	if real_keyval(scCtrl) > 0 and real_keyval(scF12) > 1 and record.active = NO then
-		real_clearkey(scF12)
-
-		if replay.active then
-			show_overlay_message "Ended macro playback early", 2.
-			stop_replaying_input
-		elseif isfile(macrofile) then
-			dim as integer repeat_count = 1
-			if real_keyval(scShift) > 0 then
-				dim repeats as string
-				prompt_for_string repeats, "Number of macro repetitions?"
-				repeat_count = str2int(repeats, -1)
-				if repeat_count = -1 then
-					exit sub
-				end if
-			end if
-
-			show_overlay_message "Replaying macro " & replay.repeat_count & " time(s)"
-			start_replaying_input macrofile, repeat_count
-		else
-			show_overlay_message "No macro saved. Use Ctrl+F11 to start"
-		end if
-	end if
-
 	reentering = NO
 end sub
 
@@ -2154,17 +2172,22 @@ end sub
 ' The keyboard state before pausing is restored when resuming, so it's safe to pause
 ' and resume recording anywhere.
 sub pause_recording_input
-	record.active = NO
-	record.paused = YES
-	record.last_kb = real_kb
+	if record.active then
+		record.active = NO
+		record.paused = YES
+		record.last_kb = real_kb
+	end if
 end sub
 
 sub resume_recording_input
-	record.active = YES
-	record.paused = NO
-	real_kb = record.last_kb
+	if record.paused then
+		record.active = YES
+		record.paused = NO
+		real_kb = record.last_kb
+	end if
 end sub
 
+' Start replaying again from the beginning, used for loop
 sub restart_replaying_input ()
 	replay.tick = -1
 	replay.nexttick = -1
@@ -2234,15 +2257,20 @@ end sub
 
 ' While replay is paused you can call setkeys without changing the replay state,
 ' and keyval, etc, return the real state of the keyboard.
+' (Safe to try pausing/resuming when not replaying)
 sub pause_replaying_input
         ' The replay state is preserved in replay_kb, so pausing and resuming is easy.
-	replay.active = NO
-	replay.paused = YES
+	if replay.active then
+		replay.active = NO
+		replay.paused = YES
+	end if
 end sub
 
 sub resume_replaying_input
-	replay.active = YES
-	replay.paused = NO
+	if replay.paused then
+		replay.active = YES
+		replay.paused = NO
+	end if
 end sub
 
 sub record_input_tick ()

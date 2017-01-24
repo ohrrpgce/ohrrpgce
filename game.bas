@@ -3496,7 +3496,14 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.showtext_ticks = 36
  END IF
 
- IF dbg.def(      , scF11, "Walk through walls (F11)") THEN gam.walk_through_walls XOR= YES
+ IF dbg.def(      , scF11, "Walk through walls (F11)") THEN
+  gam.walk_through_walls XOR= YES
+  gam.showtext = "Walk through walls: " & yesorno(gam.walk_through_walls)
+  gam.showtext_ticks = 36
+ END IF
+
+ 'Ctrl+F11 is handled in allmodex
+ IF dbg.def( , , "Macro record/replay menu (Ctrl-F11)") THEN macro_controls
 
  'Screenshotting with F12 is handled in allmodex
  IF dbg.def( , , "Screenshot (F12)") THEN screenshot

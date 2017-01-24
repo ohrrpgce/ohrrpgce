@@ -1,0 +1,17 @@
+This macro menu is accessed by pressing Ctrl+F11 anywhere in the game player or editor.
+
+A macro is a recording of keyboard input which can then be replayed, e.g. to repeat an editing an operation such as importing a whole series of files or quickly creating rotated copies of a tile.
+You can replay a macro at high speed (press F1 while replaying a macro for instructions).
+
+NOTE: A macro can only be replayed successfully if the starting state of program is similar to the state when you started recording the macro. Otherwise the recorded input will "desync" and stop making sense. It is very easy to accidentally desync!
+For example, record a game starting from the title screen, or record editing a map with the same tool and tile selected in the tileset.
+
+NOTE: Macros do not include mouse or joystick input, so make sure you keep the mouse off-window if trying to record an editor that uses the mouse.
+
+Currently, you can only record one macro at a time, and it is lost when you quit.
+
+You can pause recording or replaying a macro by pressing the PAUSE key.
+
+You can stop recording or replaying by pressing Ctrl+F11. Don't try to stop recording by accessing this menu via the in-game F8 debug, since that will end up in the recording!
+
+You can also use the --recordinput and --replayinput commandline options to save or playback an .ohrkeys recording file.
