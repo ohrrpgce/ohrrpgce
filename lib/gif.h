@@ -961,7 +961,7 @@ bool GifWriteFrame( GifWriter* writer, const uint8_t* image, uint32_t width, uin
     else
         GifThresholdImage(oldImage, image, writer->oldImage, width, height, &pal);
 
-    GifWriteLzwImage(writer->f, writer->oldImage, 0, 0, width, height, delay, &pal, false, true);
+    GifWriteLzwImage(writer->f, writer->oldImage, 0, 0, width, height, delay, &pal, writer->deltaCoded, true);
 
     return true;
 }
