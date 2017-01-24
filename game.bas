@@ -3508,6 +3508,9 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'Screenshotting with F12 is handled in allmodex
  IF dbg.def( , , "Screenshot (F12)") THEN screenshot
 
+ 'This is also handled in allmodex
+ IF dbg.def( , , "Record .gif video (Ctrl-F12)") THEN toggle_recording_gif
+
  IF gam.debug_showtags = NO OR dbg.menu <> NULL THEN  'Always accessible in debug menu
   IF dbg.def(scCtrl, scPlus) OR _
      dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN

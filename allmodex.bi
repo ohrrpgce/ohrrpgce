@@ -63,9 +63,7 @@ End Type
 '==========================================================================================
 '                              Video pages and video mode
 
-DECLARE SUB modex_init ()
 DECLARE SUB setmodex ()
-DECLARE SUB modex_quit ()
 DECLARE SUB restoremode ()
 DECLARE SUB mersenne_twister (byval seed as double)
 
@@ -279,10 +277,12 @@ DECLARE FUNCTION font_loadbmps (directory as string, fallback as Font ptr = null
 DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 
 '==========================================================================================
-'                                           BMPs
+'                                    BMPs/GIFs/screenshots
 
 DECLARE SUB screenshot (f as string = "")
 DECLARE SUB bmp_screenshot(f as string)
+DECLARE SUB toggle_recording_gif()
+
 DECLARE SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE SUB surface_export_bmp24 (f as string, byval surf as Surface Ptr)

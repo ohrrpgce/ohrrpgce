@@ -28,7 +28,11 @@ CTRL+F10 Enable script trigger logging. Every time a script is triggered by an e
 
 F11 Toggle walking through walls (and other obstructions)
 
-F12 Take a screenshot, saving it next to the .rpg. Hold down to take a screenshot every frame!
+CTRL+F11 Open the Macro record and replay menu, or if you're currently recording or replaying a macro, stops it.
+
+F12 Take a screenshot, saving it next to the .rpg. Hold down to take a screenshot every frame.
+
+CTRL+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files will be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
 
 CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per tick).
 

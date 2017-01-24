@@ -63,6 +63,11 @@ declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 declare function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
 
+declare sub stop_recording_gif()
+declare sub gif_record_frame8(fr as Frame ptr, palette() as RGBcolor)
+declare sub gif_record_frame32(surf as Surface ptr)
+
+declare function next_unused_screenshot_filename() as string
 declare sub snapshot_check()
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
@@ -205,7 +210,9 @@ type RecordGIFState
 	'active as bool
 	writer as GifWriter
 	fname as string
+	expected_next_frame as double
 	declare property active() as bool
+	declare function delay() as integer
 end type
 
 dim shared recordgif as RecordGIFState
@@ -274,7 +281,7 @@ dim shared remember_title as string
 '==========================================================================================
 
 
-sub modex_init()
+private sub modex_init()
 	'initialise software gfx library
 
 	redim vpages(3)
@@ -292,6 +299,7 @@ sub modex_init()
 	sprcacheB_used = 0
 end sub
 
+' Initialise this module and backends, create a window
 sub setmodex()
 	modex_init()
 
@@ -325,8 +333,11 @@ sub setmodex()
 	modex_initialised = YES
 end sub
 
-sub modex_quit()
+private sub modex_quit()
 	'clean up software gfx library
+
+	stop_recording_input
+	stop_recording_gif
 
 	for i as integer = 0 to ubound(vpages)
 		frame_unload(@vpages(i))
@@ -342,6 +353,7 @@ sub modex_quit()
 	safekill macrofile
 end sub
 
+' Deinitialise this module and backends, destroy the window
 sub restoremode()
 	if modex_initialised = NO then exit sub
 	modex_initialised = NO
@@ -693,7 +705,6 @@ end function
 '                                   setvispage and Fading
 '==========================================================================================
 
-
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 sub setvispage (byval page as integer)
@@ -708,6 +719,8 @@ sub setvispage (byval page as integer)
 			showerror "setvispage: page was not 320x200 even though gfx backend forbade it"
 		end if
 	end if
+
+	gif_record_frame8 vpages(page), intpal()
 
 	'Modifies page. This is bad if displaying a page other than vpage/dpage!
 	draw_allmodex_overlays page
@@ -740,6 +753,8 @@ end sub
 sub setvissurface (to_show as Surface ptr)
 	static overlays_page as integer = 0
 	if overlays_page = 0 then overlays_page = allocatepage
+
+	gif_record_frame32 to_show
 
 	' Draw overlays onto to_show, first drawing them to a temp overlays_page (which starts blank)
 	dim temp_surface as Surface ptr
@@ -780,6 +795,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
+		gif_record_frame8 vpages(vpage), intpal()
 		updatepal = NO
 	end if
 
@@ -811,6 +827,12 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
+
+		if i mod 4 = 0 then
+			' We're assuming that vpage hasn't been modified since the last setvispage
+			gif_record_frame8 vpages(vpage), intpal()
+		end if
+
 		dowait
 	next
 	'Make sure the palette gets set on the final pass
@@ -830,6 +852,7 @@ sub fadetopal (pal() as RGBcolor)
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
 		updatepal = NO
+		gif_record_frame8 vpages(vpage), intpal()
 	end if
 
 	for i = 1 to 32
@@ -857,6 +880,12 @@ sub fadetopal (pal() as RGBcolor)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
+
+		if i mod 4 = 0 then
+			' We're assuming that vpage hasn't been modified since the last setvispage
+			gif_record_frame8 vpages(vpage), intpal()
+		end if
+
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
@@ -5655,6 +5684,9 @@ end function
 '                                           GIF
 '==========================================================================================
 
+
+' Create a GifPalette from either the master palette or a Palette16 mapped onto
+' a master palette, as needed for calling lib/gif.bi functions directly
 sub GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
 	if pal then
 		' Avoid using color 0 (transparency), which gets remapped to the nearest match
@@ -5697,8 +5729,88 @@ sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pa
 end sub
 
 
+property RecordGIFState.active() as bool
+	return writer.f <> NULL
+end property
+
+'Returns time delay in hundreds of a second to be used for next frame
+function RecordGIFState.delay() as integer
+	' Predict the time that this frame will be shown via the setwait timer.
+	' But the actual next setvispage might happen after or before that
+	' (if there are multiple setvispage calls before dowait).
+	dim ret as integer
+	ret = (waittime - expected_next_frame) * 100
+	if ret < 0 then
+		' In this case there's no point writing the frame, but this should be rare
+		ret = 0
+	end if
+	' Instead of doing expected_next_frame = waittime, this accumulates
+	' the parts less than 0.01s, to avoid rounding error
+	expected_next_frame += ret * 0.01
+	return ret
+end function
+
+sub start_recording_gif()
+	dim gifpal as GifPalette
+	' Use master() rather than actual palette (intpal()), because
+	' intpal() is affected by fades. We want the master palette,
+	' because that's likely to be the palette for most frames.
+	GifPalette_from_pal gifpal, master()
+	recordgif.fname = next_unused_screenshot_filename() + ".gif"
+	dim file as FILE ptr = fopen(recordgif.fname, "wb")
+	if GifBegin(@recordgif.writer, file, vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) then
+		show_overlay_message "Ctrl-F12 to stop recording", 1.
+		recordgif.expected_next_frame = timer
+	else
+		show_overlay_message "Can't record, GifBegin failed"
+	end if
+end sub
+
+sub stop_recording_gif()
+	if not recordgif.active then exit sub
+	if GifEnd(@recordgif.writer) = NO then
+		show_overlay_message "Recording failed"
+		safekill recordgif.fname
+	else
+		show_overlay_message "Recorded " & recordgif.fname, 1.2
+	end if
+end sub
+
+'Perform the effect of pressing Ctrl-F12: start or stop recording a gif
+sub toggle_recording_gif()
+	if recordgif.active then
+		stop_recording_gif
+	else
+		start_recording_gif
+	end if
+end sub
+
+' Called with every frame that should be included in any ongoing recording
+private sub gif_record_frame8(fr as Frame ptr, pal() as RGBcolor)
+	if recordgif.active = NO then exit sub
+
+	dim gifpal as GifPalette
+	GifPalette_from_pal gifpal, pal()
+	if GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, recordgif.delay(), @gifpal) = NO then
+		show_overlay_message "Recording failed (GifWriteFrame8)"
+		debug "GifWriteFrame8 failed"
+	end if
+end sub
+
+' Called with every frame that should be included in any ongoing recording
+private sub gif_record_frame32(surf as Surface ptr)
+	if recordgif.active = NO then exit sub
+
+	dim image as ubyte ptr = cast(ubyte ptr, surf->pColorData)
+	if GifWriteFrame(@recordgif.writer, image, surf->width, surf->height, recordgif.delay(), 8, NO) = NO then
+		show_overlay_message "Recording failed (GifWriteFrame)"
+		debug "GifWriteFrame failed"
+	end if
+end sub
+
+
 '==========================================================================================
-'                                        Screenshots
+'                                       Screenshots
 '==========================================================================================
 
 
@@ -5751,14 +5863,11 @@ private function next_unused_screenshot_filename() as string
 	return ret  'This won't be reached
 end function
 
-property RecordGIFState.active() as bool
-	return writer.f <> NULL
-end property
-
 'Take a single screenshot if F12 is pressed.
 'Holding down F12 takes a screenshot each frame, however besides
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
 'moved, in order to 'debounce' F12 if you only press it for a short while.
+'(Hmm, now that we can record gifs directly, it probably makes sense to remove the ability to hold F12)
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
 private sub snapshot_check()
 	static as string backlog()
@@ -5768,51 +5877,9 @@ private sub snapshot_check()
 
 	F12bits = real_keyval(scF12)
 
-	' Pressing F12 ends recording a gif
-	if recordgif.active then
-		if F12bits and 4 then
-			if GifEnd(@recordgif.writer) = NO then
-				show_overlay_message "Recording failed"
-				safekill recordgif.fname
-			else
-				show_overlay_message "Recorded " & recordgif.fname, 1.2
-			end if
-			'recordgif.active = NO
-		else
-			dim gifpal as GifPalette
-			GifPalette_from_pal gifpal, intpal()
-
-			' Figure out the delay in hundreds of a second. (This is incorrect,
-			' since it uses the time for the last frame instead of the current one!) 
-			dim delay as integer
-			if replay.active then
-				delay = replay_kb.setkeys_elapsed_ms \ 10
-			else
-				delay = real_kb.setkeys_elapsed_ms \ 10
-			end if
-			
-			if GifWriteFrame8(@recordgif.writer, vpages(vpage)->image, vpages(vpage)->w, vpages(vpage)->h, delay, NULL) = NO then
-				show_overlay_message "Recording failed (WriteFrame8)"
-				debug "GifWriteFrame8 failed"
-				'recordgif.active = NO
-			end if
-		end if
-
-		exit sub
-	end if
-
-	' Check Ctrl+F12 to start recording a .gif
+	' Ctrl+F12 to start/stop recording a .gif
 	if real_keyval(scCtrl) > 0 andalso (F12bits and 4) then
-		dim gifpal as GifPalette
-		GifPalette_from_pal gifpal, master() ' intpal()
-		recordgif.fname = next_unused_screenshot_filename() + ".gif"
-		if GifBegin(@recordgif.writer, fopen(recordgif.fname, "wb"), vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) = NO then
-			show_overlay_message "Can't record, GifWriter failed"
-		else
-			show_overlay_message "F12 to stop"
-		end if
-		' Don't take a screenshot. On subsequent ticks they might get taken, but the debounce will delete them.
-		exit sub
+		toggle_recording_gif
 	end if
 
 	if F12bits = 0 then
@@ -5822,7 +5889,7 @@ private sub snapshot_check()
 			safekill backlog(n)
 		next
 		redim backlog(0)
-	else
+	elseif real_keyval(scCtrl) = 0 then
 		dim as string shot = next_unused_screenshot_filename()
 
 		if F12bits = 1 then

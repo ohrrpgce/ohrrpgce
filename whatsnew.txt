@@ -32,6 +32,9 @@ WHAT IS NEW?
       record and replay macros (recorded keyboard input). You can use
       this to record game playthroughs, but it is still quite brittle
       for that purpose (many commands can cause desyncs) [James, Ralph]
+    * Press Ctrl+F12 anywhere to start/stop recording a .gif video,
+      saved next to the F12 screenshots. Using a .gif compressor will
+      considerably shrink the files. [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
