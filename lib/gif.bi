@@ -16,9 +16,14 @@ end type
 type GifWriter
 	f as FILE ptr
 	oldImage as ubyte ptr
-	firstFrame as bool
-	deltaCoded as bool
+	firstFrame as boolean
+	deltaCoded as boolean
 	globalPal as GifPalette ptr
+        maxWidth as integer
+        maxHeight as integer
+        currentWidth as integer
+        currentHeight as integer
+        sizeChanged as boolean
 end type
 
 declare function GifBegin(byval writer as GifWriter ptr, byval file as FILE ptr, byval width as ulong, byval height as ulong, byval delay as ulong, byval transparent as boolean = false, byval globalPal as const GifPalette ptr = NULL) as bool
