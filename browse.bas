@@ -289,6 +289,7 @@ END IF
 remember = default
 music_stop
 IF br.snd >= 0 THEN sound_stop(br.snd, -1) : UnloadSound(br.snd)
+clearkey(scESC)
 RETURN ret
 
 END FUNCTION

@@ -148,8 +148,8 @@ DECLARE SUB drawbox OVERLOAD (byval x as integer, byval y as integer, byval w as
 DECLARE SUB drawbox OVERLOAD (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
 DECLARE SUB rectangle OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
 DECLARE SUB rectangle OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
-DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
-DECLARE SUB fuzzyrect OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
+DECLARE SUB fuzzyrect OVERLOAD (byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
+DECLARE SUB fuzzyrect OVERLOAD (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval fuzzfactor as integer = 50)
 DECLARE SUB draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as integer = 0, y as integer = 0, wide as integer = -1, high as integer = -1)
 
 Type ClipState

@@ -28,6 +28,10 @@ WHAT IS NEW?
     * The hero battle menu editor now lets you change the text (caption)
       and color of an option, set tag conditions to disable it, and
       specify whether to hide it if disabled [Ralph]
+    * Press Ctrl+F11 anywhere (in Game/Custom) to access a menu to
+      record and replay macros (recorded keyboard input). You can use
+      this to record game playthroughs, but it is still quite brittle
+      for that purpose (many commands can cause desyncs) [James, Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

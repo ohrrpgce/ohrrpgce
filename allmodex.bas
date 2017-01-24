@@ -2011,40 +2011,72 @@ private sub macro_menu ()
 	pause_replaying_input
 	pause_recording_input
 	ensure_normal_palette
+	dim holdscreen as integer = allocatepage
+	copypage vpage, holdscreen
 
-	redim menu(1) as string
-	menu(0) = "Cancel"
-	menu(1) = "Start recording macro"
-	if isfile(macrofile) then
-		redim preserve menu(3)
-		menu(2) = "Play back recorded macro"
-		menu(3) = "Play back recorded macro # times"
-	end if
+	dim choice as integer = 3  'Default to playback
+	do
+		'browse() and inputfilename() clobber vpage
+		copypage holdscreen, vpage
+		fuzzyrect 0, 0, , , uilook(uiBackground), vpage, 40
 
-	dim choice as integer
-	dim msg as string
-	msg = !"Macro Recording & Replay\n(See F1 help file for information.)"
-	if ubound(menu) < 2 then
-		msg += !"\nNo macro recorded yet."
-	end if
-	choice = multichoice(msg, menu(), 2, 0, "share_macro_menu")
-	if choice = 1 then
-		show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
-		start_recording_input macrofile
-	elseif choice = 2 then
-		show_overlay_message "Replaying macro"
-		start_replaying_input macrofile
-	elseif choice = 3 then
-		dim repeats as string
-		prompt_for_string repeats, "Number of macro repetitions?"
-		dim repeat_count as integer = str2int(repeats, -1)
-		if repeat_count <= 0 then
-			exit sub
+		redim menu(2) as string
+		menu(0) = "Cancel"
+		menu(1) = "Load macro from file"
+		menu(2) = "Start recording macro"
+		if isfile(macrofile) then
+			redim preserve menu(5)
+			menu(3) = "Play back last recorded macro"
+			menu(4) = "Play back last recorded macro # times"
+			menu(5) = "Save last recorded macro to file"
 		end if
-		show_overlay_message "Replaying macro " & replay.repeat_count & " time(s)"
-		start_replaying_input macrofile, repeat_count
-	end if
 
+		dim msg as string
+		msg = !"Macro Recording & Replay\n(See F1 help file for information.)"
+		if ubound(menu) < 3 then
+			msg += !"\nNo macro recorded yet."
+		end if
+		choice = multichoice(msg, menu(), choice, 0, "share_macro_menu")
+		if choice = 1 then
+			dim macfile as string
+			macfile = browse(0, "", "*.ohrkeys", tmpdir, NO, "")
+			if len(macfile) then
+				if not copyfile(macfile, macrofile) THEN
+					visible_debug "ERROR: couldn't make a copy of " & macfile
+				end if
+			end if
+			continue do
+		elseif choice = 2 then
+			show_overlay_message "Recording macro, CTRL+F11 to stop", 2.
+			start_recording_input macrofile
+		elseif choice = 3 then
+			show_overlay_message "Replaying macro"
+			start_replaying_input macrofile
+		elseif choice = 4 then
+			dim repeats as string
+			prompt_for_string repeats, "Number of macro repetitions?"
+			dim repeat_count as integer = str2int(repeats, -1)
+			if repeat_count <= 0 then
+				exit sub
+			end if
+			show_overlay_message "Replaying macro " & replay.repeat_count & " time(s)"
+			start_replaying_input macrofile, repeat_count
+		elseif choice = 5 then
+			dim macfile as string
+			macfile = inputfilename("Input a filename to save to", ".ohrkeys", "", "")
+			'setkeys
+			if len(macfile) then
+				if not copyfile(macrofile, macfile + ".ohrkeys") THEN
+					visible_debug "ERROR: couldn't write to " & macfile & ".ohrkeys"
+				end if
+			end if
+			continue do
+		end if
+		exit do
+	loop
+
+	copypage holdscreen, vpage
+	freepage holdscreen
 	restore_previous_palette
 	resume_replaying_input
 	resume_recording_input
@@ -3145,11 +3177,11 @@ sub rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	wend
 end sub
 
-sub fuzzyrect (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
 	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
 end sub
 
-sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval fuzzfactor as integer = 50)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -3164,6 +3196,8 @@ sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	end if
 
 	if fuzzfactor <= 0 then fuzzfactor = 1
+	if w = -1 then w = fr->w
+	if h = -1 then h = fr->h
 	dim grain as integer
 	dim r as integer = 0
 	dim startr as integer = 0
