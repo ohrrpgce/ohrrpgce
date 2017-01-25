@@ -211,6 +211,7 @@ type RecordGIFState
 	writer as GifWriter
 	fname as string
 	expected_next_frame as double
+	losttime as double               'Seconds since last frame not part of a setwait-dowait interval
 	declare property active() as bool
 	declare function delay() as integer
 end type
@@ -922,7 +923,9 @@ sub setwait (byval ms as double, byval flagms as double = 0)
 	ms /= fps_multiplier
 	flagms /= fps_multiplier
 	dim thetime as double = timer
-	waittime = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
+	dim target as double = waittime + ms / 1000
+	waittime = bound(target, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
+	recordgif.losttime += waittime - target
 	if flagms <= 0 then
 		flagms = ms
 	end if
@@ -947,6 +950,7 @@ function dowait () as bool
 	global_tog XOR= 1
 	dim i as integer
 	dim starttime as double = timer
+	recordgif.losttime += large(0., starttime - waittime)   ' If missed the target, account it
 	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
 		sleep i
@@ -5739,10 +5743,14 @@ function RecordGIFState.delay() as integer
 	' But the actual next setvispage might happen after or before that
 	' (if there are multiple setvispage calls before dowait).
 	dim ret as integer
+	expected_next_frame += recordgif.losttime
+	'if recordgif.losttime > 0 then print "record gif: skip " & recordgif.losttime
+	recordgif.losttime = 0.
+
 	ret = (waittime - expected_next_frame) * 100
 	if ret < 0 then
 		' In this case there's no point writing the frame, but this should be rare
-		ret = 0
+		ret = 1
 	end if
 	' Instead of doing expected_next_frame = waittime, this accumulates
 	' the parts less than 0.01s, to avoid rounding error
@@ -5756,7 +5764,8 @@ sub start_recording_gif()
 	' intpal() is affected by fades. We want the master palette,
 	' because that's likely to be the palette for most frames.
 	GifPalette_from_pal gifpal, master()
-	recordgif.fname = next_unused_screenshot_filename() + ".gif"
+	recordgif.fname = absolute_path(next_unused_screenshot_filename() + ".gif")
+	recordgif.losttime = 0.
 	dim file as FILE ptr = fopen(recordgif.fname, "wb")
 	if GifBegin(@recordgif.writer, file, vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) then
 		show_overlay_message "Ctrl-F12 to stop recording", 1.
