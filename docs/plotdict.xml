@@ -1080,7 +1080,15 @@ resume player</example>
 		<command id="checkherowall">
 			<canon>check hero wall (who,direction)</canon>
 			<shortname>check hero wall</shortname>
-			<description>Returns true if there is a wall blocking the hero from moving in the specified direction. No actual movement takes place.</description>
+			<description>
+				Returns true if there is a wall blocking the hero from moving in the specified direction.
+				No actual movement takes place.
+				<note>
+					This command should only be used when the hero is standing still and aligned with the tile grid.
+					You can use the <ref>checkwallcollisionxy</ref> commands for much
+					more flexible wall-checking, which works from any starting position on the map.
+				</note>
+			</description>
 		</command>
 		<command id="getherospeed">
 			<canon>get hero speed (who)</canon>
@@ -1333,7 +1341,15 @@ while (npcref) do (
 		<command id="checknpcwall">
 			<canon>check NPC wall (who, direction)</canon>
 			<shortname>check NPC wall</shortname>
-			<description>Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place. It does not matter whether the NPC is set to ignore walls.</description>
+			<description>
+				Returns true if there is a wall blocking the NPC from moving in the specified direction.
+				No actual movement takes place. It does not matter whether the NPC is set to ignore walls.
+				<note>
+					This command should only be used when the NPC is standing still and aligned with the tile grid.
+					You can use the <ref>checkwallcollisionxy</ref> commands for much
+					more flexible wall-checking, which works from any starting position on the map.
+				</note>
+			</description>
 		</command>
 		<command id="setnpcspeed">
 			<canon>set NPC speed (who, speed)</canon>
@@ -5276,6 +5292,7 @@ end
 				<ref>sliceismoving</ref>
 			</seealso>
 		</command>
+		<reference ref="moveslicewithwallchecking" />
 		</section>		<!--Moving Slices-->
 
 		<section title="Moving Around the Slice Tree">
@@ -6742,6 +6759,7 @@ The third argument is the total number of ticks that the animation should run. Y
 				<ref>slicecollide</ref>
 			</seealso>
 		</command>
+		<reference ref="moveslicewithwallchecking" />
 		</section>		<!--Slice Collision Testing-->
 
 	</section>		<!--Slices-->
@@ -6894,6 +6912,9 @@ The third argument is the total number of ticks that the animation should run. Y
     # this checks if the hero is standing
     # on a harm tile
   )</example>
+			<seealso>
+				<ref>checkwallcollisionxy</ref>
+			</seealso>
 		</command>
 		<command id="writepassblock">
 			<canon>write pass block (x,y,value)</canon>
@@ -6938,6 +6959,119 @@ write pass block(15,3,none)
 			<description>Sets the offset from the starting tile that an <p>animation pattern</p> (either 0 or 1) of a tileset in use by a <p>layer</p> (0 to 2) is currently at. If there is a pattern defined, it will continue to step left, right, up and down from the offset you give it, until the end of the animation is reached, when the offset is reset to 0. Because different layers can have different tilesets, you might need to specify the layer with the tileset to examine; otherwise layer 0 is assumed. <note>Layers that use the same tileset do NOT have different copies of the tileset. Layers with the same tileset will always have the same tile animation offsets, you can not change them independently.</note></description>
 		</command>
 		</section>		<!--Tile Animations-->
+
+		<section title="Wall checking">
+
+		<reference ref="readpassblock" />
+		<reference ref="checkherowall" />
+		<reference ref="checknpcwall" />
+		
+		<command id="checkwallcollisionxy">
+			<canon>check wall collision x (x, y, width, height, relative x, relative y)</canon>
+			<shortname>check wall collision x/y</shortname>
+			<description>
+				and<lb/>
+				<p>check wall collision y (x, y, width, height, relative x, relative y)</p>
+				<lb/>
+				Check how far an object (with a rectangular "hitbox") could move in a straight line on the map
+				before hitting a wall.
+				Provide the starting <p>x</p> and <p>y</p> map position in pixels of the top left
+				corner of the hitbox (relative to the top-left of the map),
+				its <p>width</p> and <p>height</p> in pixels,
+				and the <p>relative x/y</p> offset of the target position of the object
+				(for example <tt>relative x</tt> is 20 for one tile to the right).
+				<lb/>
+				The return value is the maximum x/y offset that the object could move
+				in a straight line towards the target before hitting a wall.
+				If there are no walls in the way, then the return value is <p>relative x</p> or <p>relative y</p>.
+				<lb/>
+				For example, to check whether the hero can walk a full tile north (-20 pixels in the 'y' direction), you could write
+				<example>if (check wall collision y(hero pixel x(me), hero pixel y(me), 20, 20, 0, -20) == -20) then (...)</example>
+				(The <ref>checkherowall</ref> command is a much easier way to check the same thing,
+				but only works if the hero is tile-aligned.)
+				<lb/>
+				These commands work on hitboxes of any size (as long as the size isn't negative),
+				even several tiles wide.
+				Even a one-pixel-wide overlap with the end of a wall counts as a collision,
+				and edge-on walls count as obstructions too, as do tiles past the edge of the map
+				(unless the map wraps around).
+				However, if the hitbox starting position already overlaps any walls they will be ignored.
+				<note>
+					<ref>moveslicewithwallchecking</ref> is a more convenient way to check walls
+					if you want to move a slice, e.g. when scripting a platformer.
+				</note>
+				<note>
+					If you're moving diagonally, you'll need to call both
+					<tt>check wall collision x</tt> and <tt>check wall collision y</tt> with identical
+					arguments to find the x,y position of the collision point.
+				</note>
+			</description>
+			<seealso>
+				<ref>moveslicewithwallchecking</ref>
+				<ref>findcollidingslice</ref>
+			</seealso>
+		</command>
+		<!--
+		<command id="checkwallcollisionx">
+			<alias>checkwallcollisionxy</alias>
+			<shortname>check wall collision x</shortname>
+		</command>
+		<command id="checkwallcollisiony">
+			<alias>checkwallcollisionxy</alias>
+			<shortname>check wall collision y</shortname>
+		</command>
+		-->
+		<command id="moveslicewithwallchecking">
+			<canon>move slice with wallchecking (sl, relative x, relative y)</canon>
+			<shortname>move slice with wallchecking</shortname>
+			<description>
+				Instantly moves a slice <p>sl</p> as far as possible in a straight line towards a point until
+				it hits a wall in the map's wallmap.
+				<p>relative x/y</p> provide the point to move to, relative to the slice's current position.
+				This command can be used on any slice, regardless of whether it is parented to a map layer.
+				Its position on the map is calculated based on its on-screen position (<ref>slicescreenx</ref>, etc).
+				The slice's "colliding box" is, as you expect, the same as its size.
+				<lb/>
+				It works on slices of any size (as long as the size isn't negative),
+				even several tiles wide.
+				Even a one-pixel-wide collision with the end of a wall will stop the slice,
+				and edge-on walls count as obstructions too, as do tiles past the edge of the map
+				(unless the map wraps around).
+				However, if the slice already overlaps any walls they will be ignored.
+				<lb/>
+				The return value is a bitmask giving the directions in which the slice was
+				blocked by a wall.
+				The value is 0 if there was no collision.
+				You can use the constants <ref>northwall</ref>, <ref>southwall</ref>, <ref>eastwall</ref>, <ref>westwall</ref>
+				and the bitwise-<ref>and</ref> operator to test the bitmask.
+				For example <tt>bitmask, and, northwall</tt> tells whether <p>sl</p>
+				is hit and is now resting against a wall on its north side.
+				<lb/>
+				You can check for walls without needing a slice using the alternative <ref>checkwallcollisionxy</ref> commands.
+			</description>
+			<example># This script creates a rectangle slice which follows the mouse
+# but doesn't pass through walls.
+plotscript, box follows mouse, begin
+  variable (xgo, ygo, box)
+  box := create rect(14, 14)
+  set rect border(box, border:line)
+
+  while(true) do (
+    # Calculate the offset from the center of the box to the mouse,
+    # and divide by three to move a third of the way there.
+    xgo := (mouse pixel x -- (slice screen x(box) + 7)) / 3
+    ygo := (mouse pixel y -- (slice screen y(box) + 7)) / 3
+    move slice with wallchecking(box, xgo, ygo)
+    wait
+  )
+end</example>
+			<seealso>
+				<ref>checkwallcollisionxy</ref>
+				<ref>findcollidingslice</ref>
+			</seealso>
+		</command>
+		</section>		<!--Wall checking-->
+
 		</section>		<!--Tilemap and Wallmap-->
 
 

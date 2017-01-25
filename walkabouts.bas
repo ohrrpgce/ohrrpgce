@@ -568,25 +568,25 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
  END IF
 END FUNCTION
 
-FUNCTION slide_wallmap(byval startpos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as bool
+' UNFINISHED
+' Same as check_wallmap_collision, but if it's not possible to move in a
+' straight line, then try to slide along walls if moving diagonally.
+FUNCTION slide_wallmap(byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as bool
 
- DIM pos as XYPair
  DO
   DIM moved as XYPair
   DIM blocked as integer
-  blocked = check_wallmap_collision(pos, size, xgo, ygo, isveh, walls_over_edges)
+  blocked = check_wallmap_collision(startpos, pos, size, xgo, ygo, isveh, walls_over_edges)
   IF blocked = 0 THEN RETURN NO  ' done
 
-  IF (blocked AND dirNorth) = 0 AND ygo < 0 THEN
+  IF (blocked AND (1 SHL dirNorth)) = 0 AND ygo < 0 THEN
    ' Move north to next alignment
 
    ' IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
    ' nextalign.y -= nextalign.y MOD tilesize.y
    ' IF ygo > 0 THEN nextalign.y -= size.y
 
-   
   END IF
-
  LOOP
 
 END FUNCTION
@@ -594,24 +594,22 @@ END FUNCTION
 ' Check for a collision with the wallmap of an arbitrarily sized and positioned
 ' axis-aligned box moving in a straight line.
 ' (Only used by the "check wallmap collision" command currently.)
-' Returns whether collision occurred, and sets pos to be as far as
-' possible along the line until the point of collision.
+' Returns a bitmask indicating the directions in which collision occurred, and sets pos to be as far as
+' possible along the line until the point of collision or to the target.
 ' NOTE: pos is NOT wrapped around the map (so can be used to calc distance moved).
 ' Walls already overlapping with the rectangle are ignored.
 ' Side-on walls are checked. xgo/ygo may be more than 20.
 ' walls_over_edges: true if edges of non-wrapping maps treated as walls.
-FUNCTION check_wallmap_collision (byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
+' FIXME: if 'size' is smaller than a tile, it's possible to move a few pixels inside the
+' walls of an off-map tile.
+FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
 
- DIM startpos as XYPair = pos ' (x, y)
- 'DIM pos as XYPair = (x, y)
- 'pos = (x, y)
- 'DIM size as XYPair = (wide, high)
  DIM tilesize as XYPair = (20, 20)
  DIM as XYPair nextalign, dist, TL_tile, BR_tile
 
  ' Calculate the next X and Y positions (of the topleft of the box) at which the front X/Y edges of the
  ' box will be aligned with the wallmap.
- nextalign = pos
+ nextalign = startpos
 
  IF xgo > 0 THEN nextalign.x += size.x + (tilesize.x - 1)
  nextalign.x -= nextalign.x MOD tilesize.x
@@ -677,11 +675,11 @@ FUNCTION check_wallmap_collision (byref pos as XYPair, byval size as XYPair, xgo
    END IF
    FOR ytile = TL_tile.y TO BR_tile.y
     ' Check east/west walls
-    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= whichdir
+    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
     IF ytile < BR_tile.y THEN
      ' Check edge-on tiles
-     IF check_wall_edges(xtile, ytile, dirSouth, isveh, walls_over_edges) THEN ret OR= whichdir
+     IF check_wall_edges(xtile, ytile, dirSouth, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
    NEXT
   END IF
@@ -698,11 +696,11 @@ FUNCTION check_wallmap_collision (byref pos as XYPair, byval size as XYPair, xgo
    END IF
    FOR xtile = TL_tile.x TO BR_tile.x
     ' Check north/south walls
-    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= whichdir
+    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
     IF xtile < BR_tile.x THEN
      ' Check edge-on tiles
-     IF check_wall_edges(xtile, ytile, dirEast, isveh, walls_over_edges) THEN ret OR= whichdir
+     IF check_wall_edges(xtile, ytile, dirEast, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
    NEXT
   END IF

@@ -49,6 +49,8 @@ WHAT IS NEW?
       [James]
     * Added "show new game" argument to "load menu" command [Ralph]
     * "get battle countdown" and "set battle countdown" [Ralph]
+    * "check wall collision x", "check wall collision y",
+      "move slice with wallchecking" [Ralph]
 
   * Changes
 
