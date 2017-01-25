@@ -555,14 +555,14 @@ DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
 IF running_as_slave THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
 
+'Show a warning if the versions aren't identical
+IF running_as_slave THEN check_game_custom_versions_match
+
 'Perform additional checks for future rpg files or corruption
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir
 rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
-
-'Show a warning if the versions aren't identical
-IF running_as_slave THEN check_game_custom_versions_match
 
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade

@@ -4164,13 +4164,9 @@ END SUB
 SUB future_rpg_warning ()
  'This sub displays forward-compat warnings when a new RPG file is loaded in
  'an old copy of game, or an old version of custom (ypsiliform or newer)
-
-#IFDEF IS_GAME
- IF running_as_slave THEN
-  'No version differences allowable!
-  show_wrong_spawned_version_error
- END IF
-#ENDIF
+ 'Note that if this happens while live-previewing it might be before
+ 'the versions of Game and Custom don't match (we've already shown a warning
+ 'about that), or the game is too new for Custom as well.
 
  'future_rpg_warning can get called multiple times per game
  STATIC warned_sourcerpg as string
