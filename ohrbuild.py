@@ -238,14 +238,14 @@ def android_source_actions (sourcelist, rootdir, destdir):
         if node.sources[0].name.endswith('.bas'):
             source_files.append (node.abspath[:-2] + '.c')
         else:
-            # For some reason node.sources incorrectly claims the sources are build/
-            #source_files.append (node.sources[0].abspath)
-            source_files.append (rootdir + node.sources[0].name)
+            # node.sources[0] itself is a path in build/ (to a nonexistent file)
+            source_files.append (node.sources[0].srcnode().abspath)
     # hacky. Copy the right source files to a temp directory because the Android.mk used
     # by the SDL port selects too much.
     # The more correct way to do this would be to use VariantDir to get scons
     # to automatically copy all sources to destdir, but that requires teaching it
     # that -gen gcc generates .c files.
+    # (This links lib/gif.cpp as gif.cpp, so copy lib/gif.h to gif.h)
     actions = [
         'rm -fr %s/*' % destdir,
         'mkdir -p %s/fb' % destdir,
@@ -253,6 +253,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
         'ln -s ' + ' '.join(source_files) + ' ' + destdir,
         'cp %s/*.h %s/' % (rootdir, destdir),
         'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
+        'cp %s/lib/*.h %s/' % (rootdir, destdir),
         'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
         # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
         'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
