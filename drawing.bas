@@ -450,7 +450,7 @@ DO
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- standardmenu menu(), state, 4, 8, dpage, menuopts
+ standardmenu menu(), state, 10, 4, dpage, menuopts
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -3731,6 +3731,7 @@ TYPE SpriteSetEditor
 
  DECLARE SUB display()
  DECLARE SUB run()
+ DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
 END TYPE
 
 SUB new_spriteset_editor()
@@ -3755,6 +3756,12 @@ SUB SpriteSetEditor.run()
   IF keyval(scI) > 1 THEN anim_preview->start_animation("idle")
   IF keyval(scA) > 1 THEN anim_preview->start_animation("attack")
   IF keyval(scW) > 1 THEN anim_preview->start_animation("walk left")
+
+  IF keyval(scE) > 1 THEN frame_export_gif @ss->frames[0], "hero0.gif", master(), pal
+  IF keyval(scF) > 1 THEN
+   export_gif "hero.gif", "walk left"
+   export_gif "herotrans.gif", "walk left", YES
+  END IF
    
   display()
   dowait
@@ -3780,4 +3787,41 @@ SUB SpriteSetEditor.display()
 
  '--screen update
  setvispage vpage
+END SUB
+
+' Export a certain animation as a looping gif
+SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent as bool = NO)
+  DIM writer as GifWriter
+  DIM gifpal as GifPalette
+  GifPalette_from_pal gifpal, master(), pal
+  DIM outsize as XYPair = (ss->frames[0].w, ss->frames[0].h)
+
+  IF GifBegin(@writer, fopen(fname, "wb"), outsize.w, outsize.h, 1, transparent, @gifpal) = NO THEN
+    debug "GifWriter(" & fname & ") failed"
+    safekill fname
+  END IF
+
+  CONST frameTime as integer = 5  'In hundreds of a second
+  DIM anim as SpriteState ptr
+  anim = NEW SpriteState(ss)
+  anim->start_animation(anim_name, 1)  'Loop once
+
+  ' FIXME: if animations contain loops other than repeating, this could loop forever
+  WHILE anim->anim
+    anim->animate()
+    DIM fr as Frame ptr = anim->cur_frame()
+    DIM waitticks as integer = anim->skip_wait()
+    IF waitticks > 0 THEN
+      IF GifWriteFrame8(@writer, fr->image, fr->w, fr->h, waitticks * frameTime, NULL) = NO THEN
+        debug "GifWriteFrame8 failed"
+        safekill fname
+        DELETE anim
+      END IF
+    END IF
+  WEND
+
+  IF GifEnd(@writer) = NO then
+    debug "GifEnd failed"
+  END IF
+  DELETE anim
 END SUB

@@ -499,6 +499,7 @@ Type SpriteState
 	declare sub start_animation(name as string, loopcount as integer = 0)
 	declare function cur_frame() as Frame ptr
 	declare sub animate()
+        declare function skip_wait() as integer
 End Type
 
 

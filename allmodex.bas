@@ -7717,6 +7717,21 @@ function SpriteState.cur_frame() as Frame ptr
 	return @ss->frames[frame_num]
 end function
 
+' Skip the current wait, and returns number of frames that the wait was for.
+' Returns -1 if not waiting.
+function SpriteState.skip_wait() as integer
+	if anim = NULL then return -1
+        with anim->ops(anim_step)
+                if .type <> animOpWait then
+                        return -1
+                end if
+                dim ret as integer = .arg1
+                anim_wait = .arg1
+                animate()
+                return ret
+        end with
+end function
+
 ' Performs one animation step
 sub SpriteState.animate()
 	if anim = NULL then exit sub
