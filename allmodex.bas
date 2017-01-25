@@ -5771,9 +5771,25 @@ sub stop_recording_gif()
 	if GifEnd(@recordgif.writer) = NO then
 		show_overlay_message "Recording failed"
 		safekill recordgif.fname
-	else
-		show_overlay_message "Recorded " & recordgif.fname, 1.2
+		exit sub
 	end if
+	dim msg as string = "Recorded " & trimpath(recordgif.fname)
+
+	' Compress it using gifsicle, if available
+	dim gifsicle as string = find_helper_app("gifsicle")
+	if len(gifsicle) then
+		debuginfo "Compressing " & recordgif.fname & " with gifsicle; size before = " & filelen(recordgif.fname)
+		dim handle as ProcessHandle
+		handle = open_process(gifsicle, "-O2 " & escape_filename(recordgif.fname) & " -o " & escape_filename(recordgif.fname), NO, NO)
+		if handle = 0 then
+			debug "open_process " & gifsicle & " failed"
+		else
+			msg += " (Compressing...)"
+		end if
+		cleanup_process(@handle)
+	end if
+
+	show_overlay_message msg, 1.2
 end sub
 
 'Perform the effect of pressing Ctrl-F12: start or stop recording a gif
