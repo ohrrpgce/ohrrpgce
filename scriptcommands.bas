@@ -1060,7 +1060,7 @@ SUB sfunctions(byval cmdid as integer)
   ELSE
    DIM as XYPair startpos = (retvals(0), retvals(1)), pos
    check_wallmap_collision(startpos, pos, XY(retvals(2), retvals(3)), retvals(4), retvals(5), NO)
-   IF cmdid = 621 THEN
+   IF cmdid = 623 THEN
     scriptret = pos.x - startpos.x
    ELSE
     scriptret = pos.y - startpos.y
