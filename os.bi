@@ -64,8 +64,13 @@ declare function open_document (filename as string) as string
 
 #else
 
-type ProcessHandle as any ptr  'actually FILE*
-type IPCChannel as any ptr   'actually FILE*
+type ProcessInfo
+  waitable as boolint
+  file as FILE ptr
+  pid as integer
+end type
+type ProcessHandle as ProcessInfo ptr
+type IPCChannel as FILE ptr
 #define NULL_CHANNEL NULL
 
 #endif
@@ -82,12 +87,12 @@ declare function channel_write_line (byref channel as IPCChannel, buf as string)
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
 
-declare function open_process (program as string, args as string) as ProcessHandle
+declare function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
 declare function open_piped_process (program as string, args as string, byval iopipe as IPCChannel ptr) as ProcessHandle
 ' run_process_and_get_output is Unix only
 declare function run_process_and_get_output(program as string, args as string, outdata as string) as integer
 declare function open_console_process (program as string, args as string) as ProcessHandle
-declare function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
+declare function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as boolint
 declare sub kill_process (byval process as ProcessHandle)
 declare sub cleanup_process (byval process as ProcessHandle ptr)
 

@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <stdbool.h>
 
 #include "common.h"
 #include "os.h"
@@ -667,7 +668,11 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //Partial implementation. The returned process handle can't be used for much
 //aside from passing to cleaup_process (which you should do).
 //program is an unescaped path. Any paths in the arguments should be escaped
-ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
+//graphical: if true, launch a graphical process (displays a console for commandline programs on
+//           Windows, does nothing on Unix).
+//waitable is true if you want process_cleanup to wait for the command to finish (ignored on
+//           Windows: always waitable)
+ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint graphical) {
 #ifdef __ANDROID__
 	// Early versions of the NDK don't have popen
 	return 0;
@@ -680,11 +685,25 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 	sprintf(buf, "%s %s", program_escaped, argstr);
 
 	errno = 0;
-	ProcessHandle ret;  // aka FILE*
-	ret = popen(buf, "r");  //No intention to read or write
-	int err = errno;  //errno from popen is not reliable
-	if (!ret) {
-		debug(errError, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
+	ProcessHandle ret = calloc(1, sizeof(struct ProcessInfo));
+	if (!ret) return ret;
+	ret->waitable = waitable;
+	if (waitable) {
+		// pclose waits for the program to finish, so don't use popen if don't have to.
+		ret->file = popen(buf, "r");  //No intention to read or write
+		int err = errno;  //errno from popen is not reliable
+		if (!ret->file) {
+			debug(errError, "popen(%s, %s) failed: %s", program->data, args->data, strerror(err));
+		}
+	} else {
+		// Version for fire-and-forget running of programs
+		ret->pid = fork();
+		if (ret->pid == 0) {
+			// Use system() just because it takes whole argument list as one string
+			// (popen also uses system() internally).
+			system(buf);
+			_exit(0);  // Don't flush buffers, etc, that would be bad
+		}
 	}
 
 	free(program_escaped);
@@ -698,7 +717,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args) {
 // Returns -1 if there's an error running or fetching the output. Otherwise returns the exit code of the program.
 // Anything written to stderr by the program goes to our stderr.
 // Not used: functionally identical to run_process_and_get_output in util.bas, with no
-// apparent advantages to this version, which can't pipe multiple pograms,
+// apparent advantages to this version, which can't pipe multiple programs,
 // and there is no Windows implementation of this function.
 int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output) {
 #ifdef __ANDROID__
@@ -711,17 +730,17 @@ int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *outp
 		return -1;
 	int outlen = 0;
 
-	FILE *proc = open_process(program, args);
-	if (!proc)
+	ProcessHandle proc = open_process(program, args, true, false);
+	if (!proc || !proc->file)
 		return -1;
 
 	// Read everything out of the pipe
 	int ret = 0;
 	do {
 		char buf[4096];
-		int bytes = fread(buf, 1, 4096, proc);
+		int bytes = fread(buf, 1, 4096, proc->file);
 
-		if (ferror(proc)) {
+		if (ferror(proc->file)) {
 			debug(errError, "run_process_and_get_output(%s,%s): fread error: %s", program->data, args->data, strerror(errno));
 			ret = -1;
 			break;
@@ -733,9 +752,9 @@ int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *outp
 		}
 		memcpy(output->data + outlen, buf, bytes);
 		outlen += bytes;
-	} while (!feof(proc));
+	} while (!feof(proc->file));
 
-	int exitcode = pclose(proc);
+	int exitcode = pclose(proc->file);
 	if (exitcode == -1) {
 		debug(errError, "run_process_and_get_output(%s,%s): pclose error: %s", program->data, args->data, strerror(errno));
 		ret = -1;
@@ -745,6 +764,7 @@ int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *outp
 		// bash may return 128+errno
 		ret = WEXITSTATUS(exitcode);
 	}
+	free(proc);
 	return ret;
 #endif
 }
@@ -754,21 +774,22 @@ int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *outp
 //If successful, you should call cleanup_process with the handle after you don't need it any longer.
 ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel *iopipe) {
 	//Unimplemented
-	return 0;
+	return NULL;
 }
 
 //Returns 0 on failure.
 //If successful, you should call cleanup_process with the handle after you don't need it any longer.
-//This is currently designed for running console applications. Could be
-//generalised in future as needed.
+//This is currently designed for asynchronously running console applications.
+//On Windows it displays a visible console window, on Unix it doesn't.
+//Could be generalised in future as needed.
 ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args) {
-	return open_process(program, args);
+	return open_process(program, args, true, true);
 }
 
 //If exitcode is nonnull and the process exited, the exit code will be placed in it
-int process_running (ProcessHandle process, int *exitcode) {
+boolint process_running (ProcessHandle process, int *exitcode) {
 	//Unimplemented and not yet used
-	return 0;
+	return false;
 }
 
 void kill_process (ProcessHandle process) {
@@ -779,9 +800,11 @@ void kill_process (ProcessHandle process) {
 void cleanup_process (ProcessHandle *processp) {
 	// Early versions of the NDK don't have popen
 #ifndef __ANDROID__
-	if (*processp) {
-		pclose(*processp);
-		*processp = 0;
+	if (processp && *processp) {
+		if ((*processp)->file)
+			pclose((*processp)->file);
+		free(*processp);
+		*processp = NULL;
 	}
 #endif
 }

@@ -510,12 +510,22 @@ end function
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
 'program is an unescaped path. Any paths in the arguments should be escaped
-'This is for gui processes
-function open_process (program as string, args as string) as ProcessHandle
+'If graphical=YES, launch a graphical process (displays a console for commandline programs on
+'Windows, does nothing on Unix).
+'graphical: if true, launch a graphical process (displays a console for commandline programs on
+'           Windows, does nothing on Unix).
+'waitable is true if you want process_cleanup to wait for the command to finish (ignored on
+'           Windows: always waitable)
+function open_process (program as string, args as string, waitable as boolint, graphical as boolint) as ProcessHandle
 	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)
+        if graphical = NO then
+		sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
+		'(Apparently this flag doesn't work unless you also set standard input and output handle)
+		flags or= CREATE_NO_WINDOW
+	end if
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
 		dim errstr as string = error_string
@@ -597,8 +607,9 @@ end function
 
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
-'This is currently designed for running console applications. Could be
-'generalised in future as needed.
+'This is currently designed for asynchronously running console applications.
+'On Windows it displays a visible console window, on Unix it doesn't.
+'Could be generalised in future as needed.
 function open_console_process (program as string, args as string) as ProcessHandle
 	dim argstemp as string = escape_filename(program) + " " + args
 	dim flags as integer = 0
@@ -623,7 +634,7 @@ function open_console_process (program as string, args as string) as ProcessHand
 end function
 
 'If exitcode is nonnull and the process exited, the exit code will be placed in it
-function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
+function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as boolint
 	if process = NULL then return NO
 	dim waitret as integer = WaitForSingleObject(process->hProcess, 0)
 	if waitret = WAIT_FAILED then

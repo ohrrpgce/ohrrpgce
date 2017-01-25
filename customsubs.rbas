@@ -4146,7 +4146,7 @@ FUNCTION spawn_game() as bool
  'Not a filename
  game_args = "-slave " & channel_name
 #endif
- slave_process = open_process(executable, game_args)
+ slave_process = open_process(executable, game_args, YES, YES)
  IF slave_process = 0 THEN
   notification "Couldn't run " & gameexename
   RETURN NO
