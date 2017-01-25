@@ -49,7 +49,7 @@ DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
 DECLARE SUB handshake_with_master ()
-DECLARE SUB show_wrong_spawned_version_error ()
+DECLARE SUB wrong_spawned_version_fatal_error ()
 DECLARE SUB check_game_custom_versions_match ()
 DECLARE SUB receive_file_updates ()
 DECLARE SUB try_to_reload_lumps_onmap ()

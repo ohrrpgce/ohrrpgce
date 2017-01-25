@@ -997,16 +997,16 @@ SUB set_speedcontrol ()
  END IF
 END SUB
 
-SUB show_wrong_spawned_version_error
+SUB wrong_spawned_version_fatal_error
  fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
              "Game is version " + version + " r" & version_revision & !"\n" _
              "Custom is version " + custom_version
 END SUB
 
-SUB check_game_custom_versions_match
+SUB check_game_custom_versions_match ()
  DIM game_version as string = version + " r" & version_revision
  IF game_version <> custom_version THEN
-  pop_warning !"Warning: This version of Game is not exactly identical to the version of Custom that spawned it. No differences in file format were detected, but this is a bad idea. There's no chance of corrupting your game, but something might go haywire.\n" _
+  pop_warning !"Warning: This version of Game is not exactly identical to the version of Custom that spawned it. There's no chance of corrupting your game, but something might go haywire.\n" _
                "Game is version " + game_version + !"\n" _
                "Custom is version " + custom_version
  END IF
@@ -1035,7 +1035,7 @@ SUB handshake_with_master ()
      custom_version = "<unknown>"
     END IF
     IF pieces(1) <> STR(CURRENT_TESTING_IPC_VERSION) THEN  'wrong protocol version
-     show_wrong_spawned_version_error     
+     wrong_spawned_version_fatal_error
     END IF
 
    CASE 2  'Get sourcerpg

@@ -561,11 +561,11 @@ rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
+'Show a warning if the versions aren't identical
+IF running_as_slave THEN check_game_custom_versions_match
+
 '--upgrade obsolete RPG files (if possible)
 IF NOT running_as_slave THEN upgrade
-
-'If no version mismatch error has occurred yet, show a warning if the versions aren't identical
-IF running_as_slave THEN check_game_custom_versions_match
 
 
 '======================== Stuff initialised once per .RPG =====================
