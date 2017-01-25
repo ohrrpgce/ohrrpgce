@@ -15,7 +15,7 @@
 #UNDEF window
 #UNDEF width
 #UNDEF pos
-
+#UNDEF pos  ' You need to undef POS twice! Why??
 
 '====================================== Build string ======================================
 
@@ -194,6 +194,7 @@ TYPE fb_uinteger as uinteger
 ' instances of 'integer'. Strangely there are a few random occurrences.
 ' To be safe, put 'use_native_integer' before and 'use_32bit_integer'
 ' after an 'unclean' include.
+
 
 #MACRO use_native_integer()
 # IFDEF __FB_64BIT__

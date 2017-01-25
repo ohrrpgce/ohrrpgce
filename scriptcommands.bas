@@ -7,6 +7,7 @@
 ' including functions for the various handles and references that can be passed to script commands.
 
 #include "config.bi"
+'#undef pos
 #include "allmodex.bi"
 #include "common.bi"
 #include "gglobals.bi"
@@ -1053,7 +1054,33 @@ SUB sfunctions(byval cmdid as integer)
     EXIT FOR
    END IF
   NEXT
-
+ CASE 623, 624'--check wall collision x/y (pixel x, pixel y, width, height, xgo, ygo, walls_over_edges)
+  ' It's fine for X/Y to be over the map edge, whether wrapping or not.
+  IF retvals(2) < 0 OR retvals(3) < 0 THEN
+   scripterr current_command_name() & ": negative width or height not allowed"
+  ELSE
+   DIM pos as XYPair = (retvals(0), retvals(1))
+   check_wallmap_collision(pos, XY(retvals(2), retvals(3)), retvals(4), retvals(5), NO, retvals(6))
+   IF cmdid = 621 THEN
+    scriptret = pos.x
+   ELSE
+    scriptret = pos.y
+   END IF
+  END IF
+ CASE 625'--move slice with wallchecking (sl, xgo, ygo, walls_over_edges)
+  IF valid_plotslice(retvals(0)) THEN
+   DIM sl as Slice Ptr
+   sl = plotslices(retvals(0))
+   RefreshSliceScreenPos sl
+   WITH *sl
+    ' This will work regardless of what the slice is parented to.
+    DIM as XYPair pos = (.ScreenX + mapx, .ScreenY + mapy), startpos = pos
+    scriptret = check_wallmap_collision(pos, XY(.Width, .Height), retvals(1), retvals(2), NO, retvals(3))
+    scriptret = IIF(scriptret, 1, 0)
+    .X += pos.x - startpos.x
+    .Y += pos.y - startpos.y
+   END WITH
+  END IF
 
  'End of old game.bas-sfunctions
 

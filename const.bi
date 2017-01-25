@@ -281,7 +281,7 @@ CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 622  'Max ID number of any supported script command (checked when loading game)
+CONST maxScriptCmdID = 625  'Max ID number of any supported script command (checked when loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0
@@ -372,6 +372,10 @@ CONST passVehA = 16
 CONST passVehB = 32
 CONST passHarm = 64
 CONST passOverhead = 128
+CONST dirNorth = 0
+CONST dirEast = 1
+CONST dirSouth = 2
+CONST dirWest = 3
 
 'NPC activation types
 CONST npcUse = 0

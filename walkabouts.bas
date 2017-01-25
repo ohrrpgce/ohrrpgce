@@ -531,32 +531,184 @@ FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as inte
  END IF
 END FUNCTION
 
-' Returns true if blocked by terrain
-FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
+' Checks the two facing edges (wall bits) between two adjacent tiles: the tile
+' at tilex,tiley, and the tile one step in 'direction' from there.
+' Returns true if there is a wall or vehicle obstruction.
+FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES) as bool
+ DIM wallbit as integer = 1 SHL direction
+ DIM oppositebit as integer = 1 SHL ((direction + 2) AND 3)
+ DIM defwalls as integer = IIF(walls_over_edges, 15, 0)
+
+ IF gmap(5) = 1 THEN
+  wrapxy tilex, tiley, mapsizetiles.x, mapsizetiles.y
+ END IF
+ IF readblock(pass, tilex, tiley, defwalls) AND wallbit THEN RETURN YES
+
+ DIM wallblock as integer
+ wrapaheadxy tilex, tiley, direction, 1, 1
+ wallblock = readblock(pass, tilex, tiley, defwalls)
+
+ IF isveh ANDALSO vehpass(vstate.dat.blocked_by, wallblock, 0) THEN RETURN YES
+ RETURN (wallblock AND oppositebit) = oppositebit
+END FUNCTION
+
+' Check for an NPC/hero colliding with a wall.
+' This is the old (and still used) crappy wall checking which breaks if not tile-aligned.
+' Returns 1 (not YES) if blocked by terrain, otherwise 0
+FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as bool) as integer
  wrappass = 0
- REDIM pd(3) as integer
- 
- DIM tilex as integer = x
- DIM tiley as integer = y
- DIM p as integer = readblock(pass, tilex, tiley)
- 
- FOR i as integer = 0 TO 3
-  tilex = x
-  tiley = y
-  wrapaheadxy tilex, tiley, i, 1, 1
-  IF tilex < 0 ORELSE tilex >= pass.wide ORELSE tiley < 0 ORELSE tiley >= pass.high THEN
-   pd(i) = 15
-  ELSE
-   pd(i) = readblock(pass, tilex, tiley)
+
+ IF movdivis(ygo) THEN
+  IF ygo > 0 ANDALSO check_wall_edges(x, y, dirNorth, isveh) THEN ygo = 0: wrappass = 1
+  IF ygo < 0 ANDALSO check_wall_edges(x, y, dirSouth, isveh) THEN ygo = 0: wrappass = 1
+ END IF
+ IF movdivis(xgo) THEN
+  IF xgo > 0 ANDALSO check_wall_edges(x, y, dirWest,  isveh) THEN xgo = 0: wrappass = 1
+  IF xgo < 0 ANDALSO check_wall_edges(x, y, dirEast,  isveh) THEN xgo = 0: wrappass = 1
+ END IF
+END FUNCTION
+
+FUNCTION slide_wallmap(byval startpos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as bool
+
+ DIM pos as XYPair
+ DO
+  DIM moved as XYPair
+  DIM blocked as integer
+  blocked = check_wallmap_collision(pos, size, xgo, ygo, isveh, walls_over_edges)
+  IF blocked = 0 THEN RETURN NO  ' done
+
+  IF (blocked AND dirNorth) = 0 AND ygo < 0 THEN
+   ' Move north to next alignment
+
+   ' IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
+   ' nextalign.y -= nextalign.y MOD tilesize.y
+   ' IF ygo > 0 THEN nextalign.y -= size.y
+
+   
   END IF
- NEXT i
- 
- 'debug "wrappass x=" & x & " y=" & y & " xgo=" & xgo & " ygo=" & ygo & " p=" & p & " north=" & pd(0) & " east=" & pd(1) & " south=" & pd(2) & " west=" & pd(3)
- 
- IF ygo > 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passNorthWall) = passNorthWall ORELSE (pd(0) AND passSouthWall) = passSouthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
- IF ygo < 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passSouthWall) = passSouthWall ORELSE (pd(2) AND passNorthWall) = passNorthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
- IF xgo > 0 ANDALSO movdivis(xgo) ANDALSO ((p AND passWestWall) = passWestWall   ORELSE (pd(3) AND passEastWall) = passEastWall   ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
- IF xgo < 0 ANDALSO movdivis(xgo) ANDALSO ((p AND passEastWall) = passEastWall   ORELSE (pd(1) AND passWestWall) = passWestWall   ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
+
+ LOOP
+
+END FUNCTION
+
+' Check for a collision with the wallmap of an arbitrarily sized and positioned
+' axis-aligned box moving in a straight line.
+' (Only used by the "check wallmap collision" command currently.)
+' Returns whether collision occurred, and sets pos to be as far as
+' possible along the line until the point of collision.
+' NOTE: pos is NOT wrapped around the map (so can be used to calc distance moved).
+' Walls already overlapping with the rectangle are ignored.
+' Side-on walls are checked. xgo/ygo may be more than 20.
+' walls_over_edges: true if edges of non-wrapping maps treated as walls.
+FUNCTION check_wallmap_collision (byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
+
+ DIM startpos as XYPair = pos ' (x, y)
+ 'DIM pos as XYPair = (x, y)
+ 'pos = (x, y)
+ 'DIM size as XYPair = (wide, high)
+ DIM tilesize as XYPair = (20, 20)
+ DIM as XYPair nextalign, dist, TL_tile, BR_tile
+
+ ' Calculate the next X and Y positions (of the topleft of the box) at which the front X/Y edges of the
+ ' box will be aligned with the wallmap.
+ nextalign = pos
+
+ IF xgo > 0 THEN nextalign.x += size.x + (tilesize.x - 1)
+ nextalign.x -= nextalign.x MOD tilesize.x
+ IF xgo > 0 THEN nextalign.x -= size.x
+ IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
+ nextalign.y -= nextalign.y MOD tilesize.y
+ IF ygo > 0 THEN nextalign.y -= size.y
+
+ ' This loop advances nextalign to each successive tile-aligned position until x/ygo are exceeded.
+ DO
+
+  ' Distance moved so far
+  dist = nextalign - startpos
+
+  IF ABS(dist.x) >= ABS(xgo) AND ABS(dist.y) >= ABS(ygo) THEN
+   pos = startpos + XY(xgo, ygo)
+   RETURN 0
+  END IF
+
+  ' Check whether X or Y alignment happens first and calculate that position (pos)
+
+  DIM as double xfrac = 999., yfrac = 999.
+  IF xgo <> 0 THEN xfrac = dist.x / xgo
+  IF ygo <> 0 THEN yfrac = dist.y / ygo
+
+  'debug "start = " & startpos & " size=" & size & " xygo=" & xgo & "," & ygo & " nextalign=" & nextalign & " dist=" & dist
+
+  ' min(xfrac,yfrac) is in the interval [0.0, 1.0)
+  IF xfrac < yfrac THEN
+   ' Due to rounding, pos.y might be 1 pixel past the collision point, but this
+   ' should not allow it to exceed nextalign.y.
+   pos.x = startpos.x + dist.x
+   pos.y = startpos.y + (ygo / xgo) * dist.x
+  ELSE
+   pos.x = startpos.x + (xgo / ygo) * dist.y
+   pos.y = startpos.y + dist.y
+  END IF
+
+  'debug "  x/yfrac=" & xfrac & " , " & yfrac & "    pos = " & pos
+
+  ' Tile positions of top-left/bottom-right corners
+  TL_tile = pos \ tilesize
+  BR_tile = (pos + size - 1) \ tilesize
+
+  DIM as integer xtile, ytile, whichdir
+
+  ' If both x and y sides collide at once, then must check both.
+  ' Ignore coincidental alignment if not moving in that direction.
+
+  DIM ret as integer
+
+  IF pos.x = nextalign.x AND xgo <> 0 THEN
+   ' xtile,ytile iterates over each of the tiles immediately in front of the box
+   ' and dir is direction from that tile towards the box.
+   IF xgo > 0 THEN
+    whichdir = dirEast
+    xtile = BR_tile.x + 1  'right
+    nextalign.x += tilesize.x
+   ELSE
+    whichdir = dirWest
+    xtile = TL_tile.x - 1  'left
+    nextalign.x -= tilesize.x
+   END IF
+   FOR ytile = TL_tile.y TO BR_tile.y
+    ' Check east/west walls
+    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= whichdir
+
+    IF ytile < BR_tile.y THEN
+     ' Check edge-on tiles
+     IF check_wall_edges(xtile, ytile, dirSouth, isveh, walls_over_edges) THEN ret OR= whichdir
+    END IF
+   NEXT
+  END IF
+
+  IF pos.y = nextalign.y AND ygo <> 0 THEN
+   IF ygo > 0 THEN
+    whichdir = dirSouth
+    ytile = BR_tile.y + 1  'bottom
+    nextalign.y += tilesize.y
+   ELSE
+    whichdir = dirNorth
+    ytile = TL_tile.y - 1  'top
+    nextalign.y -= tilesize.y
+   END IF
+   FOR xtile = TL_tile.x TO BR_tile.x
+    ' Check north/south walls
+    IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= whichdir
+
+    IF xtile < BR_tile.x THEN
+     ' Check edge-on tiles
+     IF check_wall_edges(xtile, ytile, dirEast, isveh, walls_over_edges) THEN ret OR= whichdir
+    END IF
+   NEXT
+  END IF
+
+  IF ret THEN RETURN ret
+ LOOP
 END FUNCTION
 
 FUNCTION wrapzonecheck (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer

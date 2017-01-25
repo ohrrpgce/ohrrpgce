@@ -122,7 +122,7 @@ Type TileMap
   layernum as integer
 End Type
 
-DECLARE FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer) as integer
+DECLARE FUNCTION readblock (map as TileMap, byval x as integer, byval y as integer, byval default as integer = 112343211) as integer
 DECLARE SUB writeblock (map as TileMap, byval x as integer, byval y as integer, byval v as integer)
 
 DECLARE SUB drawmap OVERLOAD (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)

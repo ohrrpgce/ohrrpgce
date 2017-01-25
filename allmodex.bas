@@ -2525,9 +2525,9 @@ end sub
 '                                      Map rendering
 '==========================================================================================
 
-
-function readblock (map as TileMap, byval x as integer, byval y as integer) as integer
+function readblock (map as TileMap, byval x as integer, byval y as integer, byval default as integer = 112343211) as integer
 	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
+		if default <> 112343211 then return default
 		debug "illegal readblock call " & x & " " & y
 		exit function
 	end if
