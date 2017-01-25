@@ -1,0 +1,50 @@
+
+plotscript, follow loop, begin
+  init mouse
+
+  variable (xgo, ygo, box, box center, targetx, targety, mouse slice)
+  box := create rect(15, 15)
+  #set parent(box, lookup slice(sl: map layer 0))  # no effect
+  set rect border(box, border:line)
+  box center := create container
+  set parent(box center, box)
+  center slice(box center)
+  mouse slice := create rect(1,1)
+
+  show string at($1="[Space] use moveslicewithwallchecking", 0, 180)
+  show string at($0="[R] to resize rect", 150, 190)
+
+  while(true) do (
+    if (keyval(key:R) > 1) then (
+      set slice width(box, random(1, 50))
+      set slice height(box, random(1, 50))
+    )
+
+
+    # (This is a more verbose version of the below)
+    # # Target map position
+    # targetx := camera pixel x + mouse pixel x
+    # targety := camera pixel y + mouse pixel y
+    # # xgo/ygo = target -- current
+    # xgo := (targetx -- (slice screen x(box center) + camera pixel x)) / 3
+    # ygo := (targety -- (slice screen y(box center) + camera pixel y)) / 3
+
+    put slice(mouse slice, mouse pixel x, mouse pixel y)
+
+    # Calculate the offset from the center of the box to the mouse,
+    # and divide by three to move a third of the way there.
+    xgo := (mouse pixel x -- slice screen x(box center)) / 3
+    ygo := (mouse pixel y -- slice screen y(box center)) / 3
+
+    if (key is pressed (key:space)) then (
+            show value( move slice with wallchecking(box, xgo, ygo) )
+    ) else (
+            variable(new xgo, new ygo)
+            new xgo := check wall collision x(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
+            new ygo := check wall collision y(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
+            move slice by(box, new xgo, new ygo, 1)
+            show no value
+    )
+    wait
+  )
+end
