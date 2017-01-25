@@ -35,6 +35,8 @@ WHAT IS NEW?
     * Press Ctrl+F12 anywhere to start/stop recording a .gif video,
       saved next to the F12 screenshots. Using a .gif compressor will
       considerably shrink the files. [Ralph]
+    * Map names can use the same ${} codes as textboxes, for example
+      You could name a map "${H0}'s House". [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

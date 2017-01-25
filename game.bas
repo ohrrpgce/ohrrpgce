@@ -2323,6 +2323,7 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
 
  IF afterbat = NO THEN
   gam.showtext = gam.map.name
+  embedtext gam.showtext
   gam.showtext_ticks = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
