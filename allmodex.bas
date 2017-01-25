@@ -221,6 +221,7 @@ end type
 
 dim shared recordgif as RecordGIFState
 dim gif_max_fps as integer = 30
+dim gif_record_overlays as bool = NO
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -731,10 +732,12 @@ sub setvispage (byval page as integer)
 		end if
 	end if
 
-	gif_record_frame8 vpages(page), intpal()
+	if gif_record_overlays = NO then gif_record_frame8 vpages(page), intpal()
 
 	'Modifies page. This is bad if displaying a page other than vpage/dpage!
 	draw_allmodex_overlays page
+
+	if gif_record_overlays = YES then gif_record_frame8 vpages(page), intpal()
 
 	with *vpages(page)
 		'the fb backend may freeze up if it collides with the polling thread
@@ -771,7 +774,7 @@ sub setvissurface (to_show as Surface ptr)
 	static overlays_page as integer = 0
 	if overlays_page = 0 then overlays_page = allocatepage
 
-	gif_record_frame32 to_show
+	if gif_record_overlays = NO then gif_record_frame32 to_show
 
 	' Draw overlays onto to_show, first drawing them to a temp overlays_page (which starts blank)
 	dim temp_surface as Surface ptr
@@ -780,6 +783,8 @@ sub setvissurface (to_show as Surface ptr)
 		frame_draw vpages(overlays_page), intpal(), 0, 0, NO, to_show
 		clearpage overlays_page
 	end if
+
+	if gif_record_overlays = YES then gif_record_frame32 to_show
 
 	dim surface_pal as BackendPalette ptr
 	if to_show->format = SF_8bit then
@@ -5766,7 +5771,7 @@ function RecordGIFState.delay() as integer
 	'if recordgif.losttime > 0 then print "record gif: skip " & recordgif.losttime
 	recordgif.losttime = 0.
 
-        if gif_max_fps > 0 andalso (waittime - expected_next_frame) < 1. / gif_max_fps then
+	if gif_max_fps > 0 andalso (waittime - expected_next_frame) < 1. / gif_max_fps then
 		' Wait until some more time has passed
 		return 0
 	end if

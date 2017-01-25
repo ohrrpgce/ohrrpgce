@@ -547,5 +547,6 @@ extern fonts() as Font ptr
 extern global_tog as integer
 extern showfps as bool
 extern gif_max_fps as integer
+extern gif_record_overlays as bool
 
 #ENDIF
