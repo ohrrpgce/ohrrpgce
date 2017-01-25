@@ -78,6 +78,7 @@ function global_setoption(opt as string, arg as string) as integer
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
+		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default on Linux/BSD)" & LINE_END
@@ -96,6 +97,15 @@ function global_setoption(opt as string, arg as string) as integer
 		disable_native_text_input = NO
 		debuginfo "Native text input enabled"
 		return 1
+	elseif opt = "giffps" then
+		dim fps as integer = str2int(arg, -1)
+		if fps > 0 then
+			gif_max_fps = fps
+			return 2
+		else
+			visible_debug "--giffps: invalid fps"
+			return 1
+		end if
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then

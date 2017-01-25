@@ -5,6 +5,7 @@
 
 #include "config.bi"
 #include "crt/limits.bi"
+#include "string.bi"
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
@@ -84,6 +85,7 @@ declare function draw_allmodex_overlays (page as integer) as bool
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
+declare sub update_fps_counter ()
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
@@ -145,6 +147,7 @@ dim shared resizing_enabled as bool = NO  'keeps track of backend state
 
 dim shared bordertile as integer
 
+'Tileset animation states
 dim shared anim1 as integer
 dim shared anim2 as integer
 
@@ -217,6 +220,7 @@ type RecordGIFState
 end type
 
 dim shared recordgif as RecordGIFState
+dim gif_max_fps as integer = 30
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -709,6 +713,12 @@ end function
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 sub setvispage (byval page as integer)
+	update_fps_counter
+	' Drop frames to reduce CPU usage if running above 90fps
+	static lastframe as double
+	if timer - lastframe < 1. / 90 then exit sub
+	lastframe = timer
+
 	dim starttime as double = timer
 	dim starttime2 as double
 	if gfx_supports_variable_resolution() = NO then
@@ -752,6 +762,12 @@ end sub
 'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
 'May modify the surface.
 sub setvissurface (to_show as Surface ptr)
+	update_fps_counter
+	' Drop frames to reduce CPU usage if running above 90fps
+	static lastframe as double
+	if timer - lastframe < 1. / 90 then exit sub
+	lastframe = timer
+
 	static overlays_page as integer = 0
 	if overlays_page = 0 then overlays_page = allocatepage
 
@@ -829,7 +845,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
 
-		if i mod 4 = 0 then
+		if i mod 3 = 0 then
 			' We're assuming that vpage hasn't been modified since the last setvispage
 			gif_record_frame8 vpages(vpage), intpal()
 		end if
@@ -882,7 +898,7 @@ sub fadetopal (pal() as RGBcolor)
 			end if
 		next
 
-		if i mod 4 = 0 then
+		if i mod 3 = 0 then
 			' We're assuming that vpage hasn't been modified since the last setvispage
 			gif_record_frame8 vpages(vpage), intpal()
 		end if
@@ -2045,7 +2061,7 @@ private sub replay_controls ()
 		base_fps_multiplier *= 2
 		show_replay_overlay()
 	end if
-	base_fps_multiplier = bound(base_fps_multiplier, 0.5^3, 2.^7)
+	base_fps_multiplier = bound(base_fps_multiplier, 0.5^3, 2.^9)
 
 	reentering = NO
 end sub
@@ -2164,16 +2180,19 @@ private function ms_to_string (ms as integer) as string
 	return seconds2str(cint(ms * 0.001), "%h:%M:%S")
 end function
 
+private sub update_fps_counter ()
+	fpsframes += 1
+	if timer > fpstime + 1 then
+		fpsstring = "FPS:" & format(fpsframes / (timer - fpstime), "0.0")
+		fpstime = timer
+		fpsframes = 0
+	end if
+end sub
+
 'Draw stuff on top of the video page about to be shown.
 'Returns true if something was drawn.
 private function draw_allmodex_overlays (page as integer) as bool
 	dim dirty as bool = NO
-	fpsframes += 1
-	if timer > fpstime + 1 then
-		fpsstring = "FPS:" & INT(10 * fpsframes / (timer - fpstime)) / 10
-		fpstime = timer
-		fpsframes = 0
-	end if
 	if showfps then
 		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
 		dirty = YES
@@ -5747,11 +5766,17 @@ function RecordGIFState.delay() as integer
 	'if recordgif.losttime > 0 then print "record gif: skip " & recordgif.losttime
 	recordgif.losttime = 0.
 
+        if gif_max_fps > 0 andalso (waittime - expected_next_frame) < 1. / gif_max_fps then
+		' Wait until some more time has passed
+		return 0
+	end if
+
 	ret = (waittime - expected_next_frame) * 100
-	if ret < 0 then
+	if ret <= 0 then
 		' In this case there's no point writing the frame, but this should be rare
 		ret = 1
 	end if
+
 	' Instead of doing expected_next_frame = waittime, this accumulates
 	' the parts less than 0.01s, to avoid rounding error
 	expected_next_frame += ret * 0.01
@@ -5814,9 +5839,11 @@ end sub
 private sub gif_record_frame8(fr as Frame ptr, pal() as RGBcolor)
 	if recordgif.active = NO then exit sub
 
+	dim delay as integer = recordgif.delay()
+	if delay <= 0 then exit sub
 	dim gifpal as GifPalette
 	GifPalette_from_pal gifpal, pal()
-	if GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, recordgif.delay(), @gifpal) = NO then
+	if GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, delay, @gifpal) = NO then
 		show_overlay_message "Recording failed (GifWriteFrame8)"
 		debug "GifWriteFrame8 failed"
 	end if
@@ -5826,8 +5853,10 @@ end sub
 private sub gif_record_frame32(surf as Surface ptr)
 	if recordgif.active = NO then exit sub
 
+	dim delay as integer = recordgif.delay()
+	if delay <= 0 then exit sub
 	dim image as ubyte ptr = cast(ubyte ptr, surf->pColorData)
-	if GifWriteFrame(@recordgif.writer, image, surf->width, surf->height, recordgif.delay(), 8, NO) = NO then
+	if GifWriteFrame(@recordgif.writer, image, surf->width, surf->height, delay, 8, NO) = NO then
 		show_overlay_message "Recording failed (GifWriteFrame)"
 		debug "GifWriteFrame failed"
 	end if
