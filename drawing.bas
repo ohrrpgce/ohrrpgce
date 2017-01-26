@@ -111,15 +111,15 @@ NEXT
 
 END SUB
 
-' Save current palette and load another one. When palchange=0, just saves current
 ' Overload used by spriteset browser
+' Does NOT save palette
 SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
-storepal16 workpal(), aindex, palval
 palval = bound(palval + palchange, 0, 32767)
 getpal16 workpal(), aindex, palval
 END SUB
 
 ' Overload used by sprite editor
+' Save current palette and load another one. When palchange=0, just saves current
 SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
  palette16_save ss.palette, ss.pal_num
  ss.pal_num = bound(ss.pal_num + palchange, 0, 32767)
