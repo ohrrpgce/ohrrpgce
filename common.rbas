@@ -3366,16 +3366,13 @@ IF gen(genVersion) = 4 THEN
  killfile game + ".pal"
  '--find last used palette
  DIM last as integer = 99
- DIM foundpal as integer = 0
  FOR j as integer = 99 TO 0 STEP -1
   FOR i as integer = 0 TO 7
    IF buffer(j * 8 + i) <> 0 THEN
     last = j
-    foundpal = 1
-    EXIT FOR
+    EXIT FOR, FOR
    END IF
   NEXT i
-  IF foundpal THEN EXIT FOR
  NEXT j
  upgrade_message "Last used palette is " & last
  '--write header

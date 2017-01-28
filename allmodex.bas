@@ -7507,17 +7507,13 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		return cache->p
 	end if
 
-	if not isfile(fil) then return 0
-
-	dim fh as integer = freefile
-
+	dim fh as integer
 	if openfile(fil, for_binary + access_read, fh) then return 0
 
 	dim mag as short
-
 	get #fh, 1, mag
-
 	if mag = 4444 then
+		' File is in new file format
 		get #fh, , mag
 		if num > mag then
 			close #fh
@@ -7526,6 +7522,9 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 
 		seek #fh, 17 + 16 * num
 	else
+		' .pal file is still in ancient BSAVE format, with exactly 100
+		' palettes. This shouldn't happen because upgrade() upgrades it.
+		' Skip 7-byte BSAVE header.
 		seek #fh, 8 + 16 * num
 	end if
 
@@ -7537,9 +7536,10 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		return 0
 	end if
 
-	'see, it's "mag"ic, since it's used for so many things
-	for mag = 0 to 15
-		get #fh, , ret->col(mag)
+	for idx as integer = 0 to 15
+		dim byt as ubyte
+		get #fh, , byt
+		ret->col(idx) = byt
 	next
 	ret->refcount = 1
 

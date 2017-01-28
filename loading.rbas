@@ -3029,18 +3029,6 @@ SUB Palette16_save(pal as Palette16 ptr, pal_num as integer)
  #ENDIF
 END SUB
 
-'array() holds multiple palettes (records). Store one of them to file.
-SUB storepal16 (array() as integer, byval array_record as integer, byval file_record as integer)
- ' Convert to Palette16
- DIM pal as Palette16
- ' DIM colidx as integer = 0
- FOR i as integer = 0 TO 15
-  pal.col(i) = peek8bit(array(), i + file_record * 16)
- NEXT i
-
- Palette16_save @pal, file_record
-END SUB
-
 
 '==========================================================================================
 '                                     Animations
