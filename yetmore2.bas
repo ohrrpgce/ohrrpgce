@@ -351,7 +351,11 @@ FUNCTION titlescreen () as bool
    END IF
   END IF
 
-  frame_draw backdrop, , 0, 0, , NO, vpage
+  clearpage vpage
+  dim as integer backdropx, backdropy
+  backdropx = (vpages(vpage)->w - backdrop->w) \ 2
+  backdropy = (vpages(vpage)->h - backdrop->h) \ 2
+  frame_draw backdrop, , backdropx, backdropy, , NO, vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait
