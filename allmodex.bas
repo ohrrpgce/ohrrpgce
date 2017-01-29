@@ -3811,7 +3811,7 @@ end type
 'expensive. However, .x, .y and .charnum are updated at the end.
 'If updatecharnum is true, it is updated only when .charnum jumps; you still need to
 'increment after every printing character yourself.
-private function layout_line_fragment(z as string, byval endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, byval pagewidth as integer, byval withtags as bool, byval withnewlines as bool, byval updatecharnum as bool = NO) as string
+private function layout_line_fragment(z as string, byval endchar as integer, byval state as PrintStrState, byref line_width as integer, byref line_height as integer, byval wide as integer, byval withtags as bool, byval withnewlines as bool, byval updatecharnum as bool = NO) as string
 	dim lastspace as integer = -1
 	dim lastspace_x as integer
 	dim lastspace_outbuf_len as integer
@@ -3853,7 +3853,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 				UPDATE_STATE(outbuf, charnum, ch)
 				'Reset margins for next paragraph? No.
 				'UPDATE_STATE(outbuf, leftmargin, 0)
-				'UPDATE_STATE(outbuf, rightmargin, pagewidth)
+				'UPDATE_STATE(outbuf, rightmargin, wide)
 				return outbuf
 			elseif z[ch] = 8 then ' ^H, hide tag
 				if z[ch + 1] = asc("{") then
@@ -3960,7 +3960,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 						elseif action = "LM" then
 							UPDATE_STATE(outbuf, leftmargin, intarg)
 						elseif action = "RM" then
-							UPDATE_STATE(outbuf, rightmargin, pagewidth - intarg)
+							UPDATE_STATE(outbuf, rightmargin, wide - intarg)
 						else
 							goto badtexttag
 						end if
@@ -4192,6 +4192,7 @@ end sub
 'If you specify a page width (the default is "infinite"), then text automatically wraps according
 'to current margins. Otherwise there is no limit on the right (not even the edge of the screen).
 'xpos is the left limit, and xpos+wide is the right limit from which margins are measured (inwards).
+'(FIXME: why is wide measured relative to xpos?)
 'Drawn text is NOT clipped to this region, use setclip or frame_new_view for that.
 'This region may be larger than the clip area.
 'If withnewlines is true, then newlines (ASCII character 10) are respected
