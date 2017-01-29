@@ -422,16 +422,41 @@ TYPE RectPoints
   p2 as XYPair
 END TYPE
 
+'Used for menu and slice anchor points and slice align points
+'Not to be confused with the rCenter, ancCenter, etc, constants!
+Enum AlignType
+  alignLeft = 0
+  alignTop = 0
+  alignMiddle = 1
+  alignCenter = 1
+  alignRight = 2
+  alignBottom = 2
+End Enum
+
 ' Relative coordinates, used by relative_pos() and various functions
-' Not to be confused with the alignCenter, etc, constants in udts.bi!
-CONST rLeft = 0
-CONST rTop = 0
-CONST rCenter = 1711000000
-CONST rRight = 1713000000
-CONST rBottom = 1713000000
-CONST rWidth = 1713000000
-CONST rHeight = 1713000000
-CONST _rMargin = 100000  'Max amount that can be added to an r* constant
+' such as edgebox, printstr, xstring.
+' Not to be confused with the alignCenter, etc, constants! These
+' are not usable as slice or menu positions.
+' You can add together at most one r* and one anc* constant.
+CONST _rFactor = 111100000
+' r* constants say which edge of the screen this RelPos position is relative to.
+CONST rLeft =   0
+CONST rTop =    0
+CONST rCenter = _rFactor * 3
+CONST rMiddle = _rFactor * 3
+CONST rRight =  _rFactor * 6
+CONST rBottom = _rFactor * 6
+CONST rWidth =  _rFactor * 6  ' Use this as an object width to mean "width of the dest page"
+CONST rHeight = _rFactor * 6  ' Use this as an object height to mean "height of the dest page"
+' anc* constants say which edge of the object this RelPos gives the position of
+CONST ancTop =    0
+CONST ancLeft =   0
+CONST ancCenter = _rFactor * 1
+CONST ancMiddle = _rFactor * 1
+CONST ancBottom = _rFactor * 2
+CONST ancRight =  _rFactor * 2
+' Max amount that can be added to an r* or anc* constant
+CONST _rMargin = 100000
 
 ' Type of a relative coordinate, use this to indicate whether a function supports them!
 TYPE RelPos as integer
@@ -450,7 +475,8 @@ declare function loopvar overload (byval value as longint, byval min as longint,
 declare function small overload (byval n1 as integer, byval n2 as integer) as integer
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
-declare function relative_pos (coord as RelPos, width as integer) as integer
+declare function relative_pos (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
+declare sub RelPos_decode (pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType)
 declare sub corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
 declare sub corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
 declare function rect_collide_point overload (r as RectType, p as XYPair) as bool

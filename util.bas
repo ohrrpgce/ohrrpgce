@@ -213,17 +213,65 @@ FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
-' Converts a RelPos value like "rCenter + 30" to "width\2 + 30", and so forth,
-' for rTop, rLeft, rRight, rBottom, rWidth, rHeight.
-FUNCTION relative_pos(coord as RelPos, width as integer) as integer
- IF ABS(coord - rCenter) <= _rMargin THEN
-  RETURN (coord - rCenter) + width \ 2
- ELSEIF ABS(coord - rRight) <= _rMargin THEN
-  RETURN (coord - rRight) + width
+' Split a RelPos into offset, alignment, and anchor.
+SUB RelPos_decode(pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType)
+ DIM as integer highpart, lowpart
+ lowpart = ((pos + _rMargin) MOD _rFactor) - _rMargin
+ highpart = (pos + _rMargin) \ _rFactor
+ IF highpart >= 0 AND highpart < 9 AND ABS(lowpart) <= _rMargin THEN
+  offset = lowpart
+  align = highpart \ 3
+  anchor = highpart MOD 3
  ELSE
-  RETURN coord
+  offset = pos
+  align = alignLeft
+  anchor = alignLeft
  END IF
+END SUB
+
+' Converts a RelPos value like "rCenter + 30" to "width\2 + 30", and so forth,
+' for combinations of at most one of
+'   rTop, rLeft, rRight, rCenter, rBottom, rWidth, rHeight,
+'   (which edge of the screen this position is relative to)
+' and at most one of
+'   ancTop, ancLeft, ancRight, ancCenter, ancBottom,
+'   (which edge of this object the position describes)
+' (although in some contexts, like when specifying width of a rect,
+' anchor constants don't make sense and do nothing).
+FUNCTION relative_pos(pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
+ DIM offset as integer, align as AlignType, anchor as AlignType
+ RelPos_decode pos, offset, align, anchor
+ IF align  = alignCenter THEN offset += pagewidth \ 2
+ IF align  = alignRight  THEN offset += pagewidth
+ IF anchor = alignCenter THEN offset -= objwidth \ 2
+ IF anchor = alignRight  THEN offset -= objwidth
+ RETURN offset
 END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(RelPos)
+  DIM offset as integer, align as AlignType, anchor as AlignType
+  RelPos_decode rCenter + ancRight - 12359, offset, align, anchor
+  testEqual(offset, -12359)
+  testEqual(align, alignCenter)
+  testEqual(anchor, alignRight)
+   
+  testEqual(relative_pos(0, 0, 0), 0)
+  testEqual(relative_pos(-3499, 1000), -3499)
+  testEqual(relative_pos(rLeft + 1312334, 1000), 1312334)
+  testEqual(relative_pos(rCenter + 100000, 20000), 110000)
+  testEqual(relative_pos(rCenter - 1000, 20000), 9000)
+  testEqual(relative_pos(rRight - 100000, 200042), 100042)
+  testEqual(relative_pos(rRight - 20000, 20000), 0)
+  testEqual(relative_pos(ancCenter - 90, 20000, 0), -90)
+  testEqual(relative_pos(ancCenter - 90, 20000, 100), -140)
+  testEqual(relative_pos(ancRight  - 90, 20000, 100), -190)
+  testEqual(relative_pos(rCenter + ancCenter + 9, 20100, 100), 10009)
+  testEqual(relative_pos(rCenter + ancRight + 9, 20200, 100), 10009)
+  testEqual(relative_pos(rRight + ancRight + 9, 20200, 100), 20109)
+  testEqual(relative_pos(rRight + ancCenter + 9, 20200, 100), 20159)
+endtest
+#ENDIF
 
 'Find dimensions of a rect, given opposite corners 
 SUB corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)

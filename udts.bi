@@ -36,17 +36,6 @@ TYPE Condition
   lastinput as ubyte
 END TYPE
 
-'Used for menu and slice anchor points and slice align points
-'Not to be confused with the rCenter, etc, constants in util.bi!
-Enum AlignType
-  alignLeft = 0
-  alignTop = 0
-  alignMiddle = 1
-  alignCenter = 1
-  alignRight = 2
-  alignBottom = 2
-End Enum
-
 TYPE MenuSet
   menufile as string
   itemfile as string
