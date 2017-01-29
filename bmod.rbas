@@ -351,7 +351,7 @@ END SUB
 SUB battle_pause ()
  DIM pause as string = readglobalstring(54, "PAUSE", 10)
  fuzzyrect 0, 0, , , boxlook(0).bgcol, vpage
- edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
+ edgeprint pause, pCentered, 95, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
 END SUB
@@ -950,7 +950,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     bat.caption_delay -= 1
    ELSE
     centerbox 160, 186, 310, 16, 1, page
-    edgeprint bat.caption, xstring(bat.caption, 160), 181, uilook(uiText), page
+    edgeprint bat.caption, pCentered, 181, uilook(uiText), page
    END IF
   END IF
   
@@ -1019,7 +1019,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
        cursx = bound(.x + .cursorpos.x, 10, gen(genResolutionX) - 10)
        cursy = bound(.y + .cursorpos.y - 6, 10, gen(genResolutionY) - 10)
        edgeprint CHR(24), cursx - 4, cursy, uilook(uiSelectedItem + bat.tog), page
-       edgeprint .name, xstring(.name, cursx), cursy - 10, uilook(uiSelectedItem + bat.tog), page
+       edgeprint .name, cursx + ancCenter + showLeft, cursy - 10, uilook(uiSelectedItem + bat.tog), page
       END WITH
      END IF
     NEXT i
@@ -1642,11 +1642,11 @@ SELECT CASE bat.vic.state
   IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN bat.vic.box = YES: centerfuz 160, 30, 280, 50, 1, page
   IF bat.rew.plunder > 0 THEN
    tempstr = bat.vic.gold_caption & " " & bat.rew.plunder & " " & bat.vic.gold_name & "!"
-   edgeprint tempstr, xstring(tempstr, 160), 16, uilook(uiText), page
+   edgeprint tempstr, pCentered, 16, uilook(uiText), page
   END IF
   IF bat.rew.exper > 0 THEN
    tempstr = bat.vic.exp_caption & " " & bat.rew.exper & " " & bat.vic.exp_name & "!"
-   edgeprint tempstr, xstring(tempstr, 160), 28, uilook(uiText), page
+   edgeprint tempstr, pCentered, 28, uilook(uiText), page
   END IF
   IF carray(ccUse) > 1 OR carray(ccMenu) > 1 OR (bat.rew.plunder = 0 AND bat.rew.exper = 0) THEN
    bat.vic.state = vicLEVELUP
@@ -1671,7 +1671,7 @@ SELECT CASE bat.vic.state
      tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & gam.hero(i).name
    END SELECT
    IF gam.hero(i).lev_gain > 0 THEN
-    edgeprint tempstr, xstring(tempstr, 160), 12 + o * 10, uilook(uiText), page
+    edgeprint tempstr, pCenteredLeft, 12 + o * 10, uilook(uiText), page
     o += 1
    END IF
   NEXT i
@@ -1711,7 +1711,7 @@ SELECT CASE bat.vic.state
    IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
     bat.vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
    END IF
-   edgeprint bat.vic.item_name, xstring(bat.vic.item_name, 160), 22, uilook(uiText), page
+   edgeprint bat.vic.item_name, pCenteredLeft, 22, uilook(uiText), page
   END IF
  CASE vicITEMS
   '--print found items, one at a time
@@ -1731,7 +1731,7 @@ SELECT CASE bat.vic.state
    tempstr = bat.vic.plural_item_caption & " " & bat.rew.found(bat.vic.found_index).num & " " & bat.vic.item_name
   END IF
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
-  edgeprint tempstr, xstring(tempstr, 160), 22, uilook(uiText), page
+  edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
   '--check for a keypress
   IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
    IF bat.rew.found(bat.vic.found_index).num = 0 THEN

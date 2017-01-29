@@ -83,8 +83,6 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
-DECLARE FUNCTION xstring (s as string, x as RelPos = rCenter, withtags as bool = NO, rightmost as bool = NO) as integer
-DECLARE FUNCTION xstringright (s as string, x as RelPos = rCenter, withtags as bool = NO) as integer
 
 DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
 DECLARE FUNCTION peek8bit (array16() as integer, byval index as integer) as integer

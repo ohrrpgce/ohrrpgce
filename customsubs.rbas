@@ -855,7 +855,7 @@ SUB ui_color_editor(palnum as integer)
    rectangle 0, 8 * (i - state.top), 8, 8, uilook(i), dpage
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
-  edgeprint msg, xstring(msg), vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint msg, pCentered, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -982,7 +982,7 @@ SUB ui_boxstyle_editor(palnum as integer)
    END IF
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
-  edgeprint msg, xstring(msg), vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint msg, pCentered, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1037,7 +1037,7 @@ FUNCTION pick_ogg_quality(byref quality as integer) as integer
    CASE 9: descrip = "very excessive, very wasteful"
    CASE 10: descrip = "flagrantly excessive and wasteful"
   END SELECT
-  edgeprint descrip, xstring(descrip, 160), 118, uilook(uiText), page
+  edgeprint descrip, pCentered, 118, uilook(uiText), page
   setvispage vpage
   dowait
  LOOP
@@ -2130,7 +2130,7 @@ SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as intege
   rectangle sl->ScreenX + x, sl->ScreenY + y - 2, 2, 2, col, dpage
   rectangle sl->ScreenX + x, sl->ScreenY + y + 2, 2, 2, col, dpage
 
-  edgeprint caption, xstring(caption), 0, uilook(uiText), dpage
+  wrapprint caption, pCentered, 0, uilook(uiText), dpage
   edgeprint "Position point and press Enter or SPACE", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage
@@ -2168,7 +2168,7 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   rectangle midx - wide + x * 2, midy - high + y * 2 - 2, 2, 2, col, dpage
   rectangle midx - wide + x * 2, midy - high + y * 2 + 2, 2, 2, col, dpage
 
-  edgeprint caption, xstring(caption), 0, uilook(uiText), dpage
+  wrapprint caption, pCentered, 0, uilook(uiText), dpage
   edgeprint "Position point and press Enter or SPACE", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
 
   SWAP vpage, dpage

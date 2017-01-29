@@ -1023,7 +1023,7 @@ DO
   END IF
  NEXT i
  clearpage dpage
- edgeprint "DEBUG MODE", xstring("DEBUG MODE"), rCenter - 50, uilook(uiText), dpage
+ edgeprint "DEBUG MODE", pCentered, rCenter - 50, uilook(uiText), dpage
  centerbox  , , 140, 60, 1, dpage
  DIM c as integer
  FOR i as integer = 0 TO 2
@@ -1032,9 +1032,9 @@ DO
   ELSE
    c = uilook(uiMenuItem)
   END IF
-  edgeprint num(i), xstring(num(i)), rCenter - 20 + i * 10, c, dpage
+  edgeprint num(i), pCentered, rCenter - 20 + i * 10, c, dpage
  NEXT i
- edgeprint "0123456789ABCDEF", xstring("0123456789ABCDEF"), rCenter + 10, uilook(uiSelectedDisabled), dpage
+ edgeprint "0123456789ABCDEF", pCentered, rCenter + 10, uilook(uiSelectedDisabled), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1326,10 +1326,10 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
   END IF
  NEXT i
  col = uilook(IIF(st.pt = -1, uiSelectedItem + tog, uiMenuItem))
- edgeprint menu(0), xstring(menu(0), 50), 6, col, page
+ edgeprint menu(0), ancCenter + 50, 6, col, page
  IF newgame_opt THEN
   col = uilook(IIF(st.pt = -2, uiSelectedItem + tog, uiMenuItem))
-  edgeprint menu(1), xstring(menu(1), 270), 6, col, page
+  edgeprint menu(1), ancCenter + 270, 6, col, page
  END IF
  DIM scroll_st as MenuState
  WITH scroll_st
@@ -1472,12 +1472,12 @@ DO
   printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
  NEXT i
  centerfuz 160, 180, 312, 20, 4, page
- edgeprint info, xstring(info, 160), 175, uilook(uiText), page
+ edgeprint info, pCenteredLeft, 175, uilook(uiText), page
  edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), page
  IF alert THEN
   alert = alert - 1
   centerbox 160, 178, LEN(alert_str) * 8 + 8, 14, 4, page
-  edgeprint alert_str, xstring(alert_str, 160), 173, uilook(uiSelectedItem + tog), page
+  edgeprint alert_str, pCentered, 173, uilook(uiSelectedItem + tog), page
  END IF
  setvispage vpage
  dowait
@@ -2787,7 +2787,7 @@ DO
   NEXT i
  END IF
  centerbox 160, 192, 312, 16, 4, page
- edgeprint item_info, xstring(item_info, 160), 187, uilook(uiText), page
+ edgeprint item_info, pCenteredLeft, 187, uilook(uiText), page
  setvispage vpage
  dowait
 LOOP
@@ -3122,7 +3122,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
      menusound gen(genItemLearnSFX)
      caption = gam.hero(targ).name & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name
      centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, page
-     edgeprint caption, large(xstring(caption, 160), 0), 95, uilook(uiText), page
+     edgeprint caption, pCenteredLeft, 95, uilook(uiText), page
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
      setvispage page
      waitforanykey
@@ -3173,7 +3173,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    END IF
   NEXT i
   centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, page
-  edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), page
+  edgeprint use_caption, pCentered + x_offset, 95, uilook(uiText), page
  
   setvispage vpage
   dowait
@@ -3485,8 +3485,8 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
   END IF
  END IF
 
- IF sp.last = 0 THEN edgeprint gam.hero(sp.hero).name & " " & sp.has_none_caption, xstring(gam.hero(sp.hero).name & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
- edgeprint gam.hero(sp.hero).name, xstring(gam.hero(sp.hero).name, 206), 31, uilook(uiText), sp.page
+ IF sp.last = 0 THEN edgeprint gam.hero(sp.hero).name & " " & sp.has_none_caption, pCentered, 120, uilook(uiText), sp.page
+ edgeprint gam.hero(sp.hero).name, ancCenter + 206, 31, uilook(uiText), sp.page
 END SUB
 
 '-----------------------------------------------------------------------

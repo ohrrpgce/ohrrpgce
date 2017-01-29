@@ -1420,7 +1420,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
    header = IIF(insideinterpreter, "Script Diagnostic", "Diagnostic")
   END IF
   IF LEN(header) THEN
-   printstr header, xstring(header), 7, vpage
+   printstr header, pCentered, 7, vpage
   END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)

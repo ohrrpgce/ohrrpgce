@@ -694,12 +694,12 @@ SUB hero_swap_menu_display (st as OrderTeamState)
      menu_color = uilook(uiTimeBar + ((st.reserve.pt = i) * st.party.tog))
     END IF
    END IF
-   edgeprint st.swname(i), xstring(st.swname(i), centerx), centery + (i - st.reserve.top) * 10, menu_color, st.page
+   edgeprint st.swname(i), pCentered, centery + (i - st.reserve.top) * 10, menu_color, st.page
   NEXT i
  END IF
  IF LEN(st.info) THEN
   centerbox centerx, centery - 56, (LEN(st.info) + 2) * 8, 14, 1, st.page
-  edgeprint st.info, xstring(st.info, centerx), centery - 61, uilook(uiText), st.page
+  edgeprint st.info, pCentered, centery - 61, uilook(uiText), st.page
  END IF
 END SUB
 
@@ -1044,7 +1044,7 @@ DO
   END IF
  NEXT
  edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), page
- edgeprint caption, xstring(caption, 160), 80, uilook(uiText), page
+ wrapprint caption, pCentered, 80, uilook(uiText), page
  setvispage vpage
  dowait
 LOOP
@@ -1153,9 +1153,9 @@ ELSE
   DIM centery as integer = vpages(vpage)->h \ 2
   copypage holdscreen, vpage
   centerbox centerx, centery, 168, 32, 1, vpage
-  edgeprint prompt, xstring(prompt, centerx), centery - 10, uilook(uiText), vpage
+  edgeprint prompt, pCentered, centery - 10, uilook(uiText), vpage
   rectangle centerx - entry_box_width \ 2, centery + 1, entry_box_width, 10, uilook(uiHighlight), vpage
-  edgeprint gam.hero(who).name, xstring(gam.hero(who).name, centerx), centery, uilook(uiMenuItem), vpage
+  edgeprint gam.hero(who).name, pCentered, centery, uilook(uiMenuItem), vpage
  
   setvispage vpage
   dowait
@@ -1594,10 +1594,10 @@ DO
  h = (st.last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, page
  centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, page
- edgeprint sn, xstring(sn, 160), 85, uilook(uiText), page
+ edgeprint sn, pCentered, 85, uilook(uiText), page
  FOR i as integer = 0 TO st.last
   c = uilook(uiMenuItem): IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
-  edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, page
+  edgeprint menu(i), pCentered, 109 + i * 10, c, page
  NEXT i
  setvispage vpage
  check_for_queued_fade_in

@@ -302,7 +302,7 @@ SUB verify_quit
   centerbox centerx, centery - 5, 200, 42, 15, vpage
   set_walkabout_frame herow(0).sl, direction, wtog \ 2
   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), centerx - 10 + ptr2, centery - 10, 20, 20, vpage, YES
-  edgeprint quitprompt, xstring(quitprompt, centerx), centery - 20, uilook(uiText), vpage
+  edgeprint quitprompt, pCentered, centery - 20, uilook(uiText), vpage
   col = uilook(uiMenuItem)
   IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog)
   edgeprint quityes, centerx - 90, centery - 4, col, vpage

@@ -1648,7 +1648,7 @@ DO
    tmpstr = "Tool: " & toolinfo(st.tool).name
   END IF
   textcolor uilook(uiText), 0 
-  printstr tmpstr, xstring(tmpstr, toolbarpos.x, YES), toolbarpos.y + 10, dpage, YES
+  printstr tmpstr, rRight + ancRight, toolbarpos.y + 10, dpage, YES
  ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
@@ -1762,8 +1762,7 @@ DO
 
  '--Message
  IF st.message_ticks > 0 THEN
-  centerbox rCenter, 11, LEN(st.message) * 8 + 20, 15, 1, dpage
-  edgeprint st.message, xstring(st.message), 6, uilook(uiText), dpage, YES
+  basic_textbox st.message, , dpage, 11, , YES
  END IF
 
  SWAP vpage, dpage
@@ -3880,7 +3879,7 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
  ELSE
   textcolor uilook(uiDisabledItem), 0
   DIM as string caption = "(No such door)"
-  printstr caption, xstring(caption), starty + view_height \ 2, page
+  printstr caption, pCentered, starty + view_height \ 2, page
  END IF
  
 END SUB

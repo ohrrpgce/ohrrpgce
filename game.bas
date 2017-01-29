@@ -499,8 +499,8 @@ cleanup_other_temp_files
 
 '==================================== Unlump ==================================
 
-edgeboxstyle 4, 3, 312, 14, 0, vpage  'Rectangle behind "Loading"
-edgeprint "Loading...", xstring("Loading..."), 6, uilook(uiText), vpage
+edgeboxstyle 4, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
+edgeprint "Loading...", pCentered, 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
 DIM archinym as string
@@ -1052,7 +1052,7 @@ SUB displayall()
  showplotstrings
  IF gam.showtext_ticks > 0 THEN
   gam.showtext_ticks -= 1
-  edgeprint gam.showtext, xstring(gam.showtext), rBottom - 20, uilook(uiText), dpage
+  edgeprint gam.showtext, pCenteredLeft, rBottom - 20, uilook(uiText), dpage
  END IF
  IF gam.debug_npc_info THEN npc_debug_display
  IF gam.debug_showtags THEN tagdisplay
@@ -3782,9 +3782,9 @@ SUB cleanup_other_temp_files ()
    threshhold = -1
 #ENDIF
    IF age > threshhold THEN
-    center_edgeboxstyle , 65, 25 * 8, 16, 0, vpage, NO, YES
+    center_edgeboxstyle  , 65, 25 * 8, 16, 0, vpage, NO, YES
     cap = "Cleaning up files: " & INT(100 / large(UBOUND(filelist), 1) * i) & "%"
-    edgeprint cap, xstring(cap), 60, uilook(uiText), vpage
+    edgeprint cap, pCentered, 60, uilook(uiText), vpage
     setvispage vpage
     debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
     killdir dirname_full, YES

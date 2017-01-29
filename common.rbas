@@ -1172,25 +1172,6 @@ FUNCTION shorten_to_right (text as string, byval wide as integer) as string
  RETURN LEFT(text, curspos.charnum) + "..."
 END FUNCTION
 
-'Returns left edge x coord of a string centred at given x (defaults to screen center if omitted),
-'but not going over the screen edges.
-'If the string is to long to fit the screen, positions it so the LEFT part is shown; pass showright=YES
-'to show the RIGHT-most part instead.
-'If withtags is true, calc length after processing text markup (but not newlines)
-FUNCTION xstring (s as string, x as RelPos = rCenter, withtags as bool = NO, rightmost as bool = NO) as integer
- DIM wid as integer = textwidth(s, , withtags)
- x = relative_pos(x, vpages(vpage)->w, wid)
- DIM ret as integer = x - wid \ 2
- IF rightmost THEN ret = large(ret, 0)       'Don't go over left screen edge
- ret = small(ret, vpages(vpage)->w - wid)    'Don't go over right screen edge
- IF rightmost = NO THEN RETURN large(ret, 0) 'Don't go over left screen edge
- RETURN ret
-END FUNCTION
-
-FUNCTION xstringright (s as string, x as RelPos = rCenter, withtags as bool = NO) as integer
- RETURN xstring(s, x, withtags, YES)
-END FUNCTION
-
 SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
  IF index \ 2 > UBOUND(array16) THEN
   debug "Dang rotten poke8bit(array(" & UBOUND(array16) & ")," & index & "," & val8 & ") out of range"
@@ -2338,13 +2319,13 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   copypage holdscreen, vpage
   centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
   FOR i as integer = 0 TO UBOUND(captlines)
-   DIM linex as integer
+   DIM linex as RelPos
    IF centerlines THEN
-    linex = xstring(captlines(i))
+    linex = pCentered
    ELSE
-    linex = (vpages(vpage)->w - wide) \ 2
+    linex = rCenter - wide \ 2
    END IF
-   edgeprint captlines(i), linex, vpages(vpage)->h \ 2 + boxy + i * 10, uilook(uiMenuItem), vpage
+   edgeprint captlines(i), linex, rCenter + boxy + i * 10, uilook(uiMenuItem), vpage
   NEXT
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
@@ -5206,9 +5187,8 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   clearpage dpage
   textcolor uilook(uiText), 0
 
-  DIM screenwidth as integer = vpages(dpage)->w \ 2
-  printstr query, xstring(query), 20, dpage
-  printstr "Output directory (TAB to select):", xstring("Output directory (TAB to select):"), 35, dpage
+  printstr query, pCentered, 20, dpage
+  printstr "Output directory (TAB to select):", pCentered, 35, dpage
 
   IF foldermode THEN
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
@@ -5216,14 +5196,14 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
   END IF
   DIM display_dir as string = decode_filename(directory)
-  printstr display_dir, xstringright(display_dir), 45, dpage
+  printstr display_dir, pCenteredRight, 45, dpage
   
   IF foldermode THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
   ELSE
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   END IF
-  printstr filename + fgtag(uilook(uiText)) + ext, xstringright(filename + ext), 60, dpage, YES
+  printstr filename + fgtag(uilook(uiText)) + ext, pCenteredRight, 60, dpage, YES
 
   SWAP vpage, dpage
   setvispage vpage
