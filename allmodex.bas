@@ -4236,8 +4236,8 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 	' Only pre-compute the text dimensions if required for anchoring, as it's quite expensive
 	dim as AlignType xanchor, yanchor
-	RelPos_decode xpos, 0, 0, xanchor
-	RelPos_decode ypos, 0, 0, yanchor
+	RelPos_decode xpos, 0, 0, xanchor, 0
+	RelPos_decode ypos, 0, 0, yanchor, 0
 	dim textsize as StringSize
 	if xanchor <> alignLeft or yanchor <> alignLeft then
 		text_layout_dimensions @textsize, text, endchar, , wide, state.thefont, withtags, withnewlines

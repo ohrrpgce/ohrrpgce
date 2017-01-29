@@ -214,18 +214,26 @@ FUNCTION small (byval n1 as double, byval n2 as double) as double
 END FUNCTION
 
 ' Split a RelPos into offset, alignment, and anchor.
-SUB RelPos_decode(pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType)
+SUB RelPos_decode(pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType, byref show as AlignType)
  DIM as integer highpart, lowpart
  lowpart = ((pos + _rMargin) MOD _rFactor) - _rMargin
  highpart = (pos + _rMargin) \ _rFactor
- IF highpart >= 0 AND highpart < 9 AND ABS(lowpart) <= _rMargin THEN
+ IF highpart >= 0 AND highpart < 27 AND ABS(lowpart) <= _rMargin THEN
   offset = lowpart
-  align = highpart \ 3
+  align = (highpart MOD 9) \ 3
   anchor = highpart MOD 3
+  IF highpart >= 18 THEN
+   show = alignRight
+  ELSEIF highpart >= 9 THEN
+   show = alignLeft
+  ELSE
+   show = alignCenter
+  END IF
  ELSE
   offset = pos
   align = alignLeft
   anchor = alignLeft
+  show = alignCenter  'None
  END IF
 END SUB
 
@@ -238,30 +246,43 @@ END SUB
 '   (which edge of this object the position describes)
 ' (although in some contexts, like when specifying width of a rect,
 ' anchor constants don't make sense and do nothing).
+' Finally, showLeft, showRight can be added to clip the position so that either
+' the left-most or right-most part of the object is on-screen
 FUNCTION relative_pos(pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
- DIM offset as integer, align as AlignType, anchor as AlignType
- RelPos_decode pos, offset, align, anchor
+ DIM offset as integer
+ DIM as AlignType align, anchor, show
+ RelPos_decode pos, offset, align, anchor, show
  IF align  = alignCenter THEN offset += pagewidth \ 2
  IF align  = alignRight  THEN offset += pagewidth
  IF anchor = alignCenter THEN offset -= objwidth \ 2
  IF anchor = alignRight  THEN offset -= objwidth
+ ' show = alignCenter means no clipping
+ IF show = alignRight   THEN offset = large(offset, 0)    'Don't go over left screen edge
+ IF show <> alignCenter THEN offset = small(offset, pagewidth - objwidth) 'Don't go over right screen edge
+ IF show = alignLeft    THEN offset = large(offset, 0)    'Don't go over left screen edge
  RETURN offset
 END FUNCTION
 
 #IFDEF __FB_MAIN__
 startTest(RelPos)
-  DIM offset as integer, align as AlignType, anchor as AlignType
-  RelPos_decode rCenter + ancRight - 12359, offset, align, anchor
+  DIM offset as integer
+  DIM as AlignType align, anchor, show
+  RelPos_decode rCenter + ancRight - 12359 + showLeft, offset, align, anchor, show
   testEqual(offset, -12359)
   testEqual(align, alignCenter)
   testEqual(anchor, alignRight)
+  testEqual(show, alignLeft)
+
+  testEqual(rCenter + rCenter, rRight)
+  testEqual(rRight - rLeft, rRight)
+  testEqual((rRight + 100) \ 2, rCenter + 50)
    
   testEqual(relative_pos(0, 0, 0), 0)
   testEqual(relative_pos(-3499, 1000), -3499)
   testEqual(relative_pos(rLeft + 1312334, 1000), 1312334)
-  testEqual(relative_pos(rCenter + 100000, 20000), 110000)
+  testEqual(relative_pos(rCenter + 50000, 20000), 60000)
   testEqual(relative_pos(rCenter - 1000, 20000), 9000)
-  testEqual(relative_pos(rRight - 100000, 200042), 100042)
+  testEqual(relative_pos(rRight - 50000, 200042), 150042)
   testEqual(relative_pos(rRight - 20000, 20000), 0)
   testEqual(relative_pos(ancCenter - 90, 20000, 0), -90)
   testEqual(relative_pos(ancCenter - 90, 20000, 100), -140)
@@ -270,6 +291,18 @@ startTest(RelPos)
   testEqual(relative_pos(rCenter + ancRight + 9, 20200, 100), 10009)
   testEqual(relative_pos(rRight + ancRight + 9, 20200, 100), 20109)
   testEqual(relative_pos(rRight + ancCenter + 9, 20200, 100), 20159)
+
+  testEqual(relative_pos(67 + showLeft, 100, 10), 67)
+  testEqual(relative_pos(67 + showRight, 100, 10), 67)
+  testEqual(relative_pos(rRight + showLeft, 100, 10), 90)
+  testEqual(relative_pos(rRight + showRight, 100, 10), 90)
+  testEqual(relative_pos(rRight + showRight, 100, 1000), -900)
+  testEqual(relative_pos(rRight + showLeft - 50, 100, 10), 50)
+  testEqual(relative_pos(rRight + showRight - 50, 100, 10), 50)
+  testEqual(relative_pos(rCenter + showLeft, 100, 1000), 0)
+  testEqual(relative_pos(rCenter + showRight, 100, 1000), -900)
+  testEqual(relative_pos(rRight + ancRight - 120 + showLeft, 100, 1000), 0)
+  testEqual(relative_pos(rRight + ancRight - 120 + showRight, 100, 1000), -900)
 endtest
 #ENDIF
 
