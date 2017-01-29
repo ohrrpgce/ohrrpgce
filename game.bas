@@ -1048,11 +1048,11 @@ SUB displayall()
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
- edgeprint gam.showstring, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+ wrapprint gam.showstring, 0, pBottom, uilook(uiText), dpage
  showplotstrings
  IF gam.showtext_ticks > 0 THEN
   gam.showtext_ticks -= 1
-  edgeprint gam.showtext, pCenteredLeft, rBottom - 20, uilook(uiText), dpage
+  wrapprint gam.showtext, pCentered, pBottom - 10, uilook(uiText), dpage
  END IF
  IF gam.debug_npc_info THEN npc_debug_display
  IF gam.debug_showtags THEN tagdisplay
