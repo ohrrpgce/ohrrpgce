@@ -439,18 +439,20 @@ FUNCTION bgtag(col as integer, text as string = "") as string
  END IF
 END FUNCTION
 
-'Draw a wrapped string in the middle of the page, in a box
-'yoffset: offset from centre of screen
-SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
- WITH *vpages(page)
-  DIM captlines() as string
-  split(wordwrap(msg, (.w - 20) \ 8), captlines())
-  centerbox .w \ 2, .h \ 2 + yoffset, .w - 10, 26 + 10 * UBOUND(captlines), 3, page
-  DIM y as integer = .h \ 2 + yoffset - (UBOUND(captlines) + 1) * 5
-  FOR i as integer = 0 TO UBOUND(captlines)
-   edgeprint captlines(i), 10, y + i * 10, col, page, YES
-  NEXT
- END WITH
+'Draw a wrapped string in a box, by default at the middle of the page.
+'You can optionally specify a maximum width (default whole screen)
+'If shrink=NO then the textbox extends to maximum width, otherwise its width is minimal.
+SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = rWidth - 20, shrink as bool = NO)
+ IF col = -1 THEN col = uilook(uiText)
+ DIM size as XYPair = textsize(msg, width, fontEdged)
+ ypos = relative_pos(ypos, vpages(page)->h, size.h)  'This line is necessary only to support anchor points
+ DIM text_xpos as RelPos = pCentered
+ IF shrink = NO THEN
+  size.w = relative_pos(width, vpages(page)->w)
+  text_xpos = rCenter - size.w \ 2
+ END IF
+ edgeboxstyle pCentered, ypos - 5, size.w + 10, size.h + 10, 2, page
+ wrapprint msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
 END SUB
 
 SUB notification (msg as string)
@@ -574,6 +576,7 @@ END SUB
 
 'Backwards compatibility wrapper
 'x and y default to center of the screen
+'This is equivalent to calling edgeboxstyle with ancCenter added to x/y
 SUB centerbox (x as relpos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, c as integer, p as integer)
  IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
  center_edgeboxstyle x, y, w, h, c - 1, p

@@ -171,7 +171,7 @@ DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
 DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
-DECLARE SUB basic_textbox (msg as string, byval col as integer, byval page as integer, byval yoffset as integer = 0)
+DECLARE SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = rWidth - 20, shrink as bool = NO)
 DECLARE SUB notification (msg as string)
 DECLARE SUB visible_debug (s as string, errlvl as errorLevelEnum = errDebug)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)

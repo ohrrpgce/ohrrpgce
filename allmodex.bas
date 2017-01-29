@@ -2216,7 +2216,7 @@ private function draw_allmodex_overlays (page as integer) as bool
 		overlay_message = ""
 	end if
 	if len(overlay_message) then
-		basic_textbox overlay_message, uilook(uiText), page, vpages(page)->h / 2 - 16
+		basic_textbox overlay_message, uilook(uiText), page, rBottom + ancBottom - 2
 		dirty = YES
 	end if
 	return dirty
