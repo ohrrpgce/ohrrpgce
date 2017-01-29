@@ -4248,11 +4248,11 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 	wide = relative_pos(wide, dest->w)
 
 	' Only pre-compute the text dimensions if required for anchoring, as it's quite expensive
-	dim as AlignType xanchor, yanchor
-	RelPos_decode xpos, 0, 0, xanchor, 0
-	RelPos_decode ypos, 0, 0, yanchor, 0
+	dim as AlignType xanchor, yanchor, xshow, yshow
+	RelPos_decode xpos, 0, 0, xanchor, xshow
+	RelPos_decode ypos, 0, 0, yanchor, yshow
 	dim finalsize as StringSize
-	if xanchor <> alignLeft or yanchor <> alignLeft then
+	if xanchor <> alignLeft or yanchor <> alignLeft or xshow <> alignCenter or yshow <> alignCenter then
 		text_layout_dimensions @finalsize, text, endchar, , wide, state.thefont, withtags, withnewlines
 	end if
 
@@ -4334,6 +4334,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
+'FIXME: if the text ends exactly at the screen boundary ('wide'), an extra blank line is appended
 sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
