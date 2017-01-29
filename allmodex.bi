@@ -409,9 +409,9 @@ declare function frame_reference (byval p as frame ptr) as frame ptr
 declare sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
 declare sub frame_unload (byval p as frame ptr ptr)
 end extern
-declare sub frame_draw overload (byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer, write_mask as bool = NO)
-declare sub frame_draw overload (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr, write_mask as bool = NO)
-declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as integer, y as integer, trans as bool = YES, dest as Surface ptr)
+declare sub frame_draw overload (src as frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
+declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos, y as RelPos, trans as bool = YES, dest as Surface ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)

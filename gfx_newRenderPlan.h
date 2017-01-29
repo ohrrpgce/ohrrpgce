@@ -37,6 +37,7 @@ struct Surface
 };
 struct SurfaceRect
 {
+	// right and bottom are INCLUSIVE
 	int32_t left, top, right, bottom;
 };
 

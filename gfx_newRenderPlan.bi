@@ -40,7 +40,7 @@ End Type
 Type SurfaceRect
 	left as int32
 	top as int32
-	right as int32
+	right as int32   'right and bottom are INCLUSIVE
 	bottom as int32
 End Type
 

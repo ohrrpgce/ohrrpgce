@@ -6867,7 +6867,7 @@ end sub
 ' write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-sub frame_draw(byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval page as integer, write_mask as bool = NO)
+sub frame_draw(src as frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
 	if src = 0 then
 		debug "trying to draw null frame"
 		exit sub
@@ -6876,10 +6876,13 @@ sub frame_draw(byval src as frame ptr, byval pal as Palette16 ptr = NULL, byval 
 	frame_draw src, pal, x, y, scale, trans, vpages(page), write_mask
 end sub
 
-sub frame_draw(byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as bool = YES, byval dest as Frame ptr, write_mask as bool = NO)
+sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 	if dest <> clippedframe then
 		setclip , , , , dest
 	end if
+
+	x = relative_pos(x, dest->w, src->w)
+	y = relative_pos(y, dest->h, src->h)
 
 	x += src->offset.x * scale
 	y += src->offset.y * scale
@@ -6903,18 +6906,24 @@ end sub
 ' Draw onto a Surface. Unlike other overloads, this one takes a master palette
 ' (ignored if blitting to an 8-bit Surface) instead of a Palette16.
 ' Also, the mask if ny is ignored is ignored.
-sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as integer, y as integer, trans as bool = YES, dest as Surface ptr)
-        dim src_surface as Surface ptr
-        if gfx_surfaceFromFrame(src, @src_surface) then debug "gfx_surfaceFromFrame failed" : return
-        dim master_pal as BackendPalette ptr
-        if gfx_paletteFromRGB(@masterpal(0), @master_pal) then debug "gfx_paletteFromRGB failed" : return
+sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos, y as RelPos, trans as bool = YES, dest as Surface ptr)
+	x = relative_pos(x, dest->width, src->w)
+	y = relative_pos(y, dest->height, src->h)
+	x += src->offset.x
+	y += src->offset.y
 
-        if gfx_surfaceCopy(NULL, src_surface, master_pal, trans, NULL, dest) then
-                debug "gfx_surfaceCopy error"
-        end if
+	dim src_surface as Surface ptr
+	if gfx_surfaceFromFrame(src, @src_surface) then debug "gfx_surfaceFromFrame failed" : return
+	dim master_pal as BackendPalette ptr
+	if gfx_paletteFromRGB(@masterpal(0), @master_pal) then debug "gfx_paletteFromRGB failed" : return
+	dim destRect as SurfaceRect = (x, y, dest->width - 1, dest->height - 1)
 
-        gfx_surfaceDestroy(src_surface)
-        gfx_paletteDestroy(master_pal)
+	if gfx_surfaceCopy(NULL, src_surface, master_pal, trans, @destRect, dest) then
+		debug "gfx_surfaceCopy error"
+	end if
+
+	gfx_surfaceDestroy(src_surface)
+	gfx_paletteDestroy(master_pal)
 end sub
 
 'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.
