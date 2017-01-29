@@ -3192,12 +3192,15 @@ function readpixel (byval x as integer, byval y as integer, byval p as integer) 
 	return PAGEPIXEL(x, y, p)
 end function
 
-sub drawbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1, byval p as integer)
+sub drawbox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1, p as integer)
 	drawbox vpages(p), x, y, w, h, col, thickness
 end sub
 
 'Draw a hollow box, with given edge thickness
-sub drawbox (byval dest as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval thickness as integer = 1)
+sub drawbox (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1)
+	w = relative_pos(w, dest->w)
+	h = relative_pos(h, dest->h)
+
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
 
@@ -3215,16 +3218,22 @@ sub drawbox (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 	end IF
 end sub
 
-sub rectangle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
+sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
 	rectangle vpages(p), x, y, w, h, c
 end sub
 
-sub rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer)
+sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
 
 	if fr = 0 then debug "rectangle null ptr": exit sub
+
+	' Decode relative positions/sizes to absolute
+	w = relative_pos(w, fr->w)
+	h = relative_pos(h, fr->h)
+	x = relative_pos(x, fr->w, w)
+	y = relative_pos(y, fr->h, h)
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -3245,11 +3254,11 @@ sub rectangle (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	wend
 end sub
 
-sub fuzzyrect (byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval p as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50)
 	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
 end sub
 
-sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, byval w as integer = -1, byval h as integer = -1, byval c as integer, byval fuzzfactor as integer = 50)
+sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, fuzzfactor as integer = 50)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_
@@ -3264,8 +3273,13 @@ sub fuzzyrect (byval fr as Frame Ptr, byval x as integer, byval y as integer, by
 	end if
 
 	if fuzzfactor <= 0 then fuzzfactor = 1
-	if w = -1 then w = fr->w
-	if h = -1 then h = fr->h
+
+	' Decode relative positions/sizes to absolute
+	w = relative_pos(w, fr->w)
+	h = relative_pos(h, fr->h)
+	x = relative_pos(x, fr->w, w)
+	y = relative_pos(y, fr->h, h)
+
 	dim grain as integer
 	dim r as integer = 0
 	dim startr as integer = 0
@@ -3314,14 +3328,16 @@ end sub
 'chequer_scroll is a counter variable which the calling function should increment once per tick.
 '(If chequer_scroll isn't provided, than bgChequerScroll acts like bgChequer.)
 'wide and high default to the whole dest Frame.
-sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as integer = 0, y as integer = 0, wide as integer = -1, high as integer = -1)
+sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as RelPos = 0, y as RelPos = 0, wide as RelPos = rWidth, high as RelPos = rHeight)
 	const zoom = 3  'Chequer pattern zoom, fixed
 	const rate = 4  'ticks per pixel scrolled, fixed
 	'static chequer_scroll as integer
 	chequer_scroll = POSMOD(chequer_scroll, (zoom * rate * 2))
 
-	if wide = -1 then wide = dest->w
-	if high = -1 then high = dest->h
+	wide = relative_pos(wide, dest->w)
+	high = relative_pos(high, dest->h)
+	x = relative_pos(x, dest->w, wide)
+	y = relative_pos(y, dest->h, high)
 
 	if bgcolor >= 0 then
 		rectangle dest, x, y, wide, high, bgcolor
