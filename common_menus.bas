@@ -85,8 +85,9 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
    END IF
    textcolor col, 0
    DIM drawstr as string = " " & menu(i)
-   IF state.pt = i THEN drawstr = RIGHT(drawstr, 40)
-   printstr drawstr, 0, (i - state.top) * state.spacing, dpage
+   DIM x as integer = 0
+   IF state.pt = i THEN x = small(0, vpages(dpage)->w - textwidth(drawstr))
+   printstr drawstr, x, (i - state.top) * state.spacing, dpage
   NEXT i
   SWAP vpage, dpage
   setvispage vpage

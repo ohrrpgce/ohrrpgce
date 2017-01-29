@@ -270,10 +270,6 @@ END errorout
 END SUB
 
 SUB verify_quit
- 'copypage dpage, vpage
- DIM page as integer
- page = compatpage
-
  DIM quitprompt as string = readglobalstring(55, "Quit Playing?", 20)
  DIM quityes as string = readglobalstring(57, "Yes", 10)
  DIM quitno as string = readglobalstring(58, "No", 10)
@@ -318,7 +314,6 @@ SUB verify_quit
  LOOP
  setkeys
  flusharray carray(), 7, 0
- freepage page
 END SUB
 
 FUNCTION titlescreen () as bool

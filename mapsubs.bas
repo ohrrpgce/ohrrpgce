@@ -1632,7 +1632,7 @@ DO
 
  '--Tool selection
  IF toolsbar_available THEN
-  DIM toolbarpos as XYPair = TYPE(320 - 10 * v_len(mode_tools), 0)
+  DIM toolbarpos as XYPair = XY(320 - 10 * v_len(mode_tools), 0)
   IF st.editmode = tile_mode THEN
    toolbarpos.y = 12
   END IF
@@ -1762,8 +1762,8 @@ DO
 
  '--Message
  IF st.message_ticks > 0 THEN
-  centerbox vpages(dpage)->w \ 2, 11, LEN(st.message) * 8 + 20, 15, 1, dpage
-  edgeprint st.message, vpages(dpage)->w \ 2 - LEN(st.message) * 4, 6, uilook(uiText), dpage, YES
+  centerbox rCenter, 11, LEN(st.message) * 8 + 20, 15, 1, dpage
+  edgeprint st.message, xstring(st.message), 6, uilook(uiText), dpage, YES
  END IF
 
  SWAP vpage, dpage
@@ -2877,7 +2877,7 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
   preview = createminimap(st.map.tiles(layerno), st.tilesets(layerno))
   frame_draw preview, NULL, 0, 0, , , 2
   frame_unload @preview
-  fuzzyrect 0, 0, 320, 200, uilook(uiBackground), 2
+  fuzzyrect 0, 0, , , uilook(uiBackground), 2
 
  ELSE
   'Either preview tileset, or blank background
@@ -2894,7 +2894,7 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
    clearpage 2
   ELSE
    loadmxs game + ".til", wanttileset, vpages(2)
-   fuzzyrect 0, 0, 320, 200, uilook(uiBackground), 2
+   fuzzyrect 0, 0, , , uilook(uiBackground), 2
   END IF
  END IF
 END SUB

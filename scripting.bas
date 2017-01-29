@@ -1407,8 +1407,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   clearpage vpage
 
-  DIM wid as integer = vpages(vpage)->w
-  centerbox wid\2, 12, wid - 10, 15, 3, vpage
+  centerbox  , 12, vpages(vpage)->w - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
   DIM header as string
   IF errorlevel >= serrBug THEN
@@ -1421,7 +1420,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
    header = IIF(insideinterpreter, "Script Diagnostic", "Diagnostic")
   END IF
   IF LEN(header) THEN
-   printstr header, xstring(header, wid\2), 7, vpage
+   printstr header, xstring(header), 7, vpage
   END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)
@@ -1531,10 +1530,9 @@ FUNCTION script_interrupt () as integer
 
   clearpage vpage
 
-  DIM wid as integer = vpages(vpage)->w
-  centerbox wid\2, 12, wid - 10, 15, 3, vpage
+  centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
-  printstr "A script is stuck", wid\2 - 17*4, 7, vpage
+  printstr "A script is stuck", rCenter - 17*4, 7, vpage
 
   FOR i as integer = 0 TO UBOUND(errtext)
    printstr errtext(i), 8, 25 + 10 * i, vpage
@@ -1544,8 +1542,8 @@ FUNCTION script_interrupt () as integer
 
   IF state.pt = 4 THEN
    textcolor uilook(uiSelectedItem), 0 
-   printstr "The debugger is a usability train-wreck!", 0, vpages(vpage)->h - 16, vpage
-   printstr "Press F1 inside the debugger to see help", 0, vpages(vpage)->h - 8, vpage
+   printstr "The debugger is a usability train-wreck!", 0, rBottom - 16, vpage
+   printstr "Press F1 inside the debugger to see help", 0, rBottom - 8, vpage
   END IF
   setvispage vpage
 

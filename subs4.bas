@@ -1219,8 +1219,7 @@ SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
  IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
- centerbox 160, 100, 300, 20, 4, vpage
- edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
+ basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage
  DIM ret as string = mp3_to_ogg(mp3, oggtemp, ogg_quality)
  IF LEN(ret) THEN
@@ -1242,8 +1241,7 @@ SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
- centerbox 160, 100, 300, 20, 4, vpage
- edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
+ basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage
  DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality)
  IF LEN(ret) THEN

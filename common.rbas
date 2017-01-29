@@ -2279,13 +2279,13 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  DIM result as integer
  DIM captlines() as string
  DIM maxwidth as integer  'max possible line length, in characters
- DIM wide as integer  'actually line length, in characters
+ DIM wide as integer  'max line length, in pixels
 
  'TODO: convert to text slices. This is ugly and still can't handle window resizing
  maxwidth = (vpages(vpage)->w - 24) \ 8
  split(wordwrap(capt, maxwidth), captlines())
  FOR i as integer = 0 TO UBOUND(captlines)
-  wide = large(wide, LEN(captlines(i)))
+  wide = large(wide, textwidth(captlines(i)))
  NEXT
 
  FOR i as integer = 0 TO UBOUND(choices)
@@ -2333,13 +2333,13 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   usemenu state
 
   copypage holdscreen, vpage
-  centerbox vpages(vpage)->w \ 2, vpages(vpage)->h \ 2 + boxy + boxheight \ 2, 16 + wide * 8, 6 + boxheight, 2, vpage
+  centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
   FOR i as integer = 0 TO UBOUND(captlines)
    DIM linex as integer
    IF centerlines THEN
-    linex = xstring(captlines(i), vpages(vpage)->w \ 2)
+    linex = xstring(captlines(i))
    ELSE
-    linex = (vpages(vpage)->w - wide * 8) \ 2
+    linex = (vpages(vpage)->w - wide) \ 2
    END IF
    edgeprint captlines(i), linex, vpages(vpage)->h \ 2 + boxy + i * 10, uilook(uiMenuItem), vpage
   NEXT
@@ -2525,9 +2525,10 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
   END IF
 
   dots = (dots + 1) MOD 5
-  centerbox 160, 100, 300, 36, 3, vpage
-  edgeprint "Please wait, running " & trimpath(app) & STRING(dots, "."), 15, 90, uilook(uiText), vpage
-  edgeprint "Press ESC to cancel", 15, 100, uilook(uiMenuItem), vpage
+  DIM msg as string
+  msg = "Please wait, running " & trimpath(app) & rpad(STRING(dots, "."), , 5)
+  msg += fgcol_text(!"\nPress ESC to cancel", uilook(uiMenuItem))
+  basic_textbox msg, uilook(uiText), vpage
   setvispage vpage
 
   dowait

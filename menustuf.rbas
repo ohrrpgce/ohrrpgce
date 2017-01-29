@@ -1023,8 +1023,8 @@ DO
   END IF
  NEXT i
  clearpage dpage
- edgeprint "DEBUG MODE", 120, 50, uilook(uiText), dpage
- centerbox 160, 100, 140, 60, 1, dpage
+ edgeprint "DEBUG MODE", xstring("DEBUG MODE"), rCenter - 50, uilook(uiText), dpage
+ centerbox  , , 140, 60, 1, dpage
  DIM c as integer
  FOR i as integer = 0 TO 2
   IF i = csr THEN
@@ -1032,9 +1032,9 @@ DO
   ELSE
    c = uilook(uiMenuItem)
   END IF
-  edgeprint num(i), 160 - LEN(num(i)) * 4, 80 + i * 10, c, dpage
+  edgeprint num(i), xstring(num(i)), rCenter - 20 + i * 10, c, dpage
  NEXT i
- edgeprint "0123456789ABCDEF", 96, 110, uilook(uiSelectedDisabled), dpage
+ edgeprint "0123456789ABCDEF", xstring("0123456789ABCDEF"), rCenter + 10, uilook(uiSelectedDisabled), dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
