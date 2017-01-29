@@ -3716,6 +3716,17 @@ end sub
 '==========================================================================================
 
 
+function get_font(fontnum as integer, show_err as bool = NO) as Font ptr
+	if fontnum < 0 orelse fontnum > ubound(fonts) orelse fonts(fontnum) = null then
+		if show_err then
+			debugc errPromptBug, "invalid font num " & fontnum
+		end if
+		return fonts(0)
+	else
+		return fonts(fontnum)
+	end if
+end function
+
 'Pass a string, a 0-based offset of the start of the tag (it is assumed the first two characters have already
 'been matched as ${ or \8{ as desired), and action and arg pointers, to fill with the parse results. (Action in UPPERCASE)
 'Returns 0 for an invalidly formed tag, otherwise the (0-based) offset of the closing }.
@@ -3919,7 +3930,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 								if intarg = -1 then
 									'UPDATE_STATE(outbuf, thefont, .initial_font)
 									.thefont = .initial_font
-								elseif fonts(intarg)->initialised then
+								elseif fonts(intarg) then
 									'UPDATE_STATE(outbuf, thefont, fonts(intarg))
 									.thefont = fonts(intarg)
 								else
@@ -4097,12 +4108,12 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 					if arg = -1 then
 						'UPDATE_STATE(outbuf, thefont, .initial_font)
 						.thefont = .initial_font
-					elseif fonts(arg)->initialised then
+					elseif fonts(arg) then
 						'UPDATE_STATE(outbuf, thefont, fonts(arg))
 						.thefont = fonts(arg)
 					else
 						'This should be impossible, because layout_line_fragment has already checked this
-						debugc errPromptBug, "draw_line_fragment: font not initialised!"
+						debugc errPromptBug, "draw_line_fragment: NULL font!"
 					end if
 				else
 					'This should be impossible, because layout_line_fragment has already checked this
@@ -4382,7 +4393,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
-		.thefont = fonts(fontnum)
+		.thefont = get_font(fontnum)
 		.initial_font = .thefont
 		.charnum = 0
 		.x = xpos + .thefont->offset.x
@@ -4606,7 +4617,6 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 	else
 		newfont->outline_col = basefont->outline_col
 	end if
-	newfont->initialised = YES
 
 	'Stuff currently hardcoded to keep edged font working as before
 	newfont->offset.x = 1
@@ -4668,7 +4678,6 @@ function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop
 		newfont->cols += 1
 		newfont->outline_col = newfont->cols
 	end if
-	newfont->initialised = YES
 
 	for ch as integer = 0 to 255
 		with newfont->layers(0)->chdata(ch)
@@ -4698,7 +4707,6 @@ function font_loadold1bit (fontdata as ubyte ptr) as Font ptr
 	newfont->offset.y = 0
 	newfont->cols = 1
 	newfont->outline_col = 0  'None
-	newfont->initialised = YES
 
 	'dim as ubyte ptr maskp = newfont->layers(1)->spr->mask
 	dim as ubyte ptr sptr = newfont->layers(1)->spr->image
@@ -4755,7 +4763,6 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 	newfont->layers(1)->spr = frame_new(1, 4096)
 	newfont->cols = 1  'hardcoded
 	newfont->outline_col = 0  'None
-	newfont->initialised = YES
 
 	dim maxheight as integer
 	if fallback then
@@ -4846,7 +4853,6 @@ function font_loadbmp_16x16 (filename as string) as Font ptr
 	newfont->offset.x = 0
 	newfont->offset.y = 0
 	newfont->outline_col = 0  'None
-	newfont->initialised = YES
 	newfont->layers(0) = null
 	newfont->layers(1) = fontlayer_new()
 

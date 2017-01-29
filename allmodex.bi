@@ -219,7 +219,6 @@ Type FontLayer
 End Type
 
 Type Font
-	initialised as bool
 	layers(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
 	w(255) as integer	'width of each character
 	h as integer		'height of a line
@@ -266,6 +265,8 @@ DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx 
 
 DECLARE FUNCTION fgcol_text (text as string, byval colour as integer) as string
 DECLARE FUNCTION bgcol_text (text as string, byval colour as integer) as string
+
+DECLARE FUNCTION get_font(fontnum as integer, show_err as bool = NO) as Font ptr
 
 DECLARE SUB setfont (f() as integer)
 DECLARE FUNCTION get_font_type (font() as integer) as fontTypeEnum
