@@ -1906,7 +1906,7 @@ SUB text_test_menu
   DIM pos2 as StringSize
   find_point_in_text @curspos, mouse.x - 20, mouse.y - 20, text, 280, 0, 0, 0, YES, YES
 
-  text_layout_dimensions @pos2, text, curspos.charnum, , 280, 0, YES, YES
+  text_layout_dimensions @pos2, text, curspos.charnum, , 280, fonts(0), YES, YES
 
   clearpage vpage
   edgeboxstyle 10, 10, 300, 185, 0, vpage

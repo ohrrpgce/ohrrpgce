@@ -4218,6 +4218,15 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 'debug "printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines
 
+	' Only pre-compute the text dimensions if required for anchoring, as it's quite expensive
+	dim as AlignType xanchor, yanchor
+	RelPos_decode xpos, 0, 0, xanchor
+	RelPos_decode ypos, 0, 0, yanchor
+	dim textsize as StringSize
+	if xanchor <> alignLeft or yanchor <> alignLeft then
+		text_layout_dimensions @textsize, text, endchar, , wide, state.thefont, withtags, withnewlines
+	end if
+
 	with state
 		/'
 		if cached_state <> NULL and use_cached_state then
@@ -4235,8 +4244,8 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 			.initial_bgcolor = .bgcolor
 			.initial_not_trans = .not_transparent
 			.charnum = 0
-			.x = relative_pos(xpos, dest->w) + .thefont->offset.x
-			.y = relative_pos(ypos, dest->h) + .thefont->offset.y
+			.x = relative_pos(xpos, dest->w, textsize.w) + .thefont->offset.x
+			.y = relative_pos(ypos, dest->h, textsize.h) + .thefont->offset.y
 			.startx = .x
 			'Margins are measured relative to xpos
 			.leftmargin = 0
@@ -4296,12 +4305,12 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
-sub text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
+sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
-		.thefont = fonts(fontnum)
+		.thefont = fontp
 		.initial_font = .thefont
 		.charnum = 0
 		.x = .thefont->offset.x
@@ -4346,7 +4355,7 @@ end sub
 'Returns the length in pixels of the longest line of a *non-autowrapped* string.
 function textwidth(z as string, byval fontnum as integer = 0, byval withtags as bool = YES, byval withnewlines as bool = YES) as integer
 	dim retsize as StringSize
-	text_layout_dimensions @retsize, z, len(z), , , fontnum, withtags, withnewlines
+	text_layout_dimensions @retsize, z, len(z), , , fonts(fontnum), withtags, withnewlines
 'debug "width of '" & z & "' is "
 	return retsize.w
 end function

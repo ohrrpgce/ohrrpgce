@@ -610,10 +610,10 @@ END SUB
 SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
 IF relcoords THEN
- x = relative_pos(x, fr->w)
- y = relative_pos(y, fr->h)
  w = relative_pos(w, fr->w)
  h = relative_pos(h, fr->h)
+ x = relative_pos(x, fr->w, w)
+ y = relative_pos(y, fr->h, h)
 END IF
 IF trans = transFuzzy THEN
  fuzzyrect fr, x, y, w, h, col, fuzzfactor
@@ -1175,8 +1175,8 @@ END FUNCTION
 'to show the RIGHT-most part instead.
 'If withtags is true, calc length after processing text markup (but not newlines)
 FUNCTION xstring (s as string, x as RelPos = rCenter, withtags as bool = NO, rightmost as bool = NO) as integer
- x = relative_pos(x, vpages(vpage)->w)
  DIM wid as integer = textwidth(s, , withtags)
+ x = relative_pos(x, vpages(vpage)->w, wid)
  DIM ret as integer = x - wid \ 2
  IF rightmost THEN ret = large(ret, 0)       'Don't go over left screen edge
  ret = small(ret, vpages(vpage)->w - wid)    'Don't go over right screen edge

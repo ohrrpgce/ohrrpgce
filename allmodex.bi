@@ -254,7 +254,7 @@ Type PrintStrStatePtr as PrintStrState ptr
 
 DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
 
-DECLARE SUB text_layout_dimensions (byval retsize as StringSize ptr, z as string, byval endchar as integer = 999999, byval maxlines as integer = 999999, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
+DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as RelPos, byval y as RelPos, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 DECLARE SUB printstr OVERLOAD (s as string, byval x as RelPos, byval y as RelPos, byval p as integer, byval withtags as bool = NO)
 DECLARE SUB edgeprint (s as string, byval x as RelPos, byval y as RelPos, byval c as integer, byval p as integer, byval withtags as bool = NO, byval withnewlines as bool = NO)
