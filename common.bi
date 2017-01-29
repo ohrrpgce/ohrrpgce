@@ -50,13 +50,13 @@ ENUM RectTransTypes
  transHollow
 END ENUM
 
-DECLARE SUB centerfuz (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
-DECLARE SUB centerbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
-DECLARE SUB edgeboxstyle OVERLOAD (byref rect as RectType, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
-DECLARE SUB edgeboxstyle OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
-DECLARE SUB center_edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
-DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
-DECLARE SUB edgebox OVERLOAD (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval fr as Frame Ptr, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
+DECLARE SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
+DECLARE SUB centerbox (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, c as integer, p as integer)
+DECLARE SUB center_edgeboxstyle (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (byref rect as RectType, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
@@ -83,8 +83,8 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
-DECLARE FUNCTION xstring (s as string, x as integer = -9999, withtags as bool = NO, rightmost as bool = NO) as integer
-DECLARE FUNCTION xstringright (s as string, x as integer = -9999, withtags as bool = NO) as integer
+DECLARE FUNCTION xstring (s as string, x as RelPos = rCenter, withtags as bool = NO, rightmost as bool = NO) as integer
+DECLARE FUNCTION xstringright (s as string, x as RelPos = rCenter, withtags as bool = NO) as integer
 
 DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
 DECLARE FUNCTION peek8bit (array16() as integer, byval index as integer) as integer

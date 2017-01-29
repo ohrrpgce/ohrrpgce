@@ -573,20 +573,23 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
 END SUB
 
 'Backwards compatibility wrapper
-SUB centerbox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
+'x and y default to center of the screen
+SUB centerbox (x as relpos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, c as integer, p as integer)
  IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
  center_edgeboxstyle x, y, w, h, c - 1, p
 END SUB
 
-SUB center_edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
- edgeboxstyle x - w \ 2, y - h \ 2, w, h, boxstyle, p, fuzzy, supress_borders
+SUB center_edgeboxstyle (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+ w = relative_pos(w, vpages(p)->w)
+ h = relative_pos(h, vpages(p)->h)
+ edgeboxstyle x - w \ 2, y - h \ 2, w, h, boxstyle, p, fuzzy, suppress_borders
 END SUB
 
-SUB edgeboxstyle (byref rect as RectType, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
- edgeboxstyle rect.x, rect.y, rect.wide, rect.high, boxstyle, p, fuzzy, supress_borders
+SUB edgeboxstyle (byref rect as RectType, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+ edgeboxstyle rect.x, rect.y, rect.wide, rect.high, boxstyle, p, fuzzy, suppress_borders
 END SUB
 
-SUB edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval boxstyle as integer, byval p as integer, byval fuzzy as integer=NO, byval supress_borders as integer=NO)
+SUB edgeboxstyle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
  IF boxstyle < 0 OR boxstyle > 14 THEN
   debug "edgeboxstyle: invalid boxstyle " & boxstyle
   EXIT SUB
@@ -595,17 +598,23 @@ SUB edgeboxstyle (byval x as integer, byval y as integer, byval w as integer, by
  DIM bordercol as integer = boxlook(boxstyle).edgecol
  DIM borders as integer = boxstyle
  DIM trans as RectTransTypes = transOpaque
- IF supress_borders THEN borders = -1
+ IF suppress_borders THEN borders = -1
  IF fuzzy THEN trans = transFuzzy
  edgebox x, y, w, h, col, bordercol, p, trans, borders
 END SUB
 
-SUB edgebox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol as integer, byval p as integer, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
- edgebox x, y, w, h, col, bordercol, vpages(p), trans, border, fuzzfactor
+SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+ edgebox x, y, w, h, col, bordercol, vpages(p), trans, border, fuzzfactor, relcoords
 END SUB
 
-SUB edgebox (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval col as integer, byval bordercol  as integer, byval fr as Frame Ptr, byval trans as RectTransTypes=transOpaque, byval border as integer=-1, byval fuzzfactor as integer=50)
+SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
+IF relcoords THEN
+ x = relative_pos(x, fr->w)
+ y = relative_pos(y, fr->h)
+ w = relative_pos(w, fr->w)
+ h = relative_pos(h, fr->h)
+END IF
 IF trans = transFuzzy THEN
  fuzzyrect fr, x, y, w, h, col, fuzzfactor
 ELSEIF trans = transOpaque THEN
@@ -694,7 +703,7 @@ ELSEIF border >= 0 AND border <= 14 THEN
 END IF
 END SUB
 
-SUB centerfuz (byval x as integer, byval y as integer, byval w as integer, byval h as integer, byval c as integer, byval p as integer)
+SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
  IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
  center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
@@ -1165,8 +1174,8 @@ END FUNCTION
 'If the string is to long to fit the screen, positions it so the LEFT part is shown; pass showright=YES
 'to show the RIGHT-most part instead.
 'If withtags is true, calc length after processing text markup (but not newlines)
-FUNCTION xstring (s as string, x as integer = -9999, withtags as bool = NO, rightmost as bool = NO) as integer
- IF x = -9999 THEN x = vpages(vpage)->w \ 2
+FUNCTION xstring (s as string, x as RelPos = rCenter, withtags as bool = NO, rightmost as bool = NO) as integer
+ x = relative_pos(x, vpages(vpage)->w)
  DIM wid as integer = textwidth(s, , withtags)
  DIM ret as integer = x - wid \ 2
  IF rightmost THEN ret = large(ret, 0)       'Don't go over left screen edge
@@ -1175,7 +1184,7 @@ FUNCTION xstring (s as string, x as integer = -9999, withtags as bool = NO, righ
  RETURN ret
 END FUNCTION
 
-FUNCTION xstringright (s as string, x as integer = -9999, withtags as bool = NO) as integer
+FUNCTION xstringright (s as string, x as RelPos = rCenter, withtags as bool = NO) as integer
  RETURN xstring(s, x, withtags, YES)
 END FUNCTION
 

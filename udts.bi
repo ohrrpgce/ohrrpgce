@@ -37,6 +37,7 @@ TYPE Condition
 END TYPE
 
 'Used for menu and slice anchor points and slice align points
+'Not to be confused with the rCenter, etc, constants in util.bi!
 Enum AlignType
   alignLeft = 0
   alignTop = 0

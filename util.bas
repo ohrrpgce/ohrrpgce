@@ -213,6 +213,18 @@ FUNCTION small (byval n1 as double, byval n2 as double) as double
  IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
+' Converts a RelPos value like "rCenter + 30" to "width\2 + 30", and so forth,
+' for rTop, rLeft, rRight, rBottom, rWidth, rHeight.
+FUNCTION relative_pos(coord as RelPos, width as integer) as integer
+ IF ABS(coord - rCenter) <= _rMargin THEN
+  RETURN (coord - rCenter) + width \ 2
+ ELSEIF ABS(coord - rRight) <= _rMargin THEN
+  RETURN (coord - rRight) + width
+ ELSE
+  RETURN coord
+ END IF
+END FUNCTION
+
 'Find dimensions of a rect, given opposite corners 
 SUB corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
  IF p1.x < p2.x THEN result.x = p1.x ELSE result.x = p2.x

@@ -4201,8 +4201,8 @@ end sub
 'If you want to skip some number of lines, you should clip, and draw some number of pixels
 'above the clipping rectangle.
 '
-sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as string, byval endchar as integer = 999999, byval xpos as integer, byval ypos as integer, byval wide as integer = 999999, byval pal as Palette16 ptr = NULL, byval withtags as bool = YES, byval withnewlines as bool = YES)
-', byval cached_state as PrintStrStatePtr = NULL, byval use_cached_state as bool = YES)
+sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string, endchar as integer = 999999, xpos as RelPos, ypos as RelPos, wide as integer = 999999, pal as Palette16 ptr = NULL, withtags as bool = YES, withnewlines as bool = YES)
+', cached_state as PrintStrStatePtr = NULL, use_cached_state as bool = YES)
 
 'static tog as integer = 0
 'tog xor= 1
@@ -4235,8 +4235,8 @@ sub render_text (byval dest as Frame ptr, byref state as PrintStrState, text as 
 			.initial_bgcolor = .bgcolor
 			.initial_not_trans = .not_transparent
 			.charnum = 0
-			.x = xpos + .thefont->offset.x
-			.y = ypos + .thefont->offset.y
+			.x = relative_pos(xpos, dest->w) + .thefont->offset.x
+			.y = relative_pos(ypos, dest->h) + .thefont->offset.y
 			.startx = .x
 			'Margins are measured relative to xpos
 			.leftmargin = 0
@@ -4437,7 +4437,7 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 end sub
 
 'A flexible printstr for enduser code without weird font, pal arguments
-sub printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y as integer, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
+sub printstr (dest as Frame ptr, s as string, x as RelPos, y as RelPos, wide as integer = 999999, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
 	dim state as PrintStrState
 	state.thefont = fonts(fontnum)
 	if textbg <> 0 then state.not_transparent = YES
@@ -4448,7 +4448,7 @@ sub printstr (byval dest as Frame ptr, s as string, byval x as integer, byval y 
 end sub
 
 'the old printstr -- no autowrapping
-sub printstr (s as string, byval x as integer, byval y as integer, byval p as integer, byval withtags as bool = NO)
+sub printstr (s as string, x as RelPos, y as RelPos, p as integer, withtags as bool = NO)
 	dim state as PrintStrState
 	state.thefont = fonts(0)
 	if textbg <> 0 then state.not_transparent = YES
@@ -4459,7 +4459,7 @@ sub printstr (s as string, byval x as integer, byval y as integer, byval p as in
 end sub
 
 'this doesn't autowrap either
-sub edgeprint (s as string, byval x as integer, byval y as integer, byval c as integer, byval p as integer, byval withtags as bool = NO, byval withnewlines as bool = NO)
+sub edgeprint (s as string, x as RelPos, y as RelPos, c as integer, p as integer, withtags as bool = NO, withnewlines as bool = NO)
 	'preserve the old behaviour (edgeprint used to call textcolor)
 	textfg = c
 	textbg = 0

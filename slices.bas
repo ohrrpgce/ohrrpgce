@@ -942,7 +942,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p, dat->translucent, dat->border, dat->fuzzfactor
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p, dat->translucent, dat->border, dat->fuzzfactor, NO
 end sub
 
 Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
