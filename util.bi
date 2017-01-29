@@ -465,9 +465,13 @@ CONST ancRight =  _rFactor * 2
 CONST showLeft =  _rFactor * 9
 CONST showRight = _rFactor * 18
 ' placements; used especially for printstr, etc.
+CONST pLeft =          rLeft   + ancLeft  ' =0
+CONST pTop =           rTop    + ancTop   ' =0
 CONST pCentered =      rCenter + ancCenter
 CONST pCenteredLeft =  rCenter + ancCenter + showLeft  'AKA xstring
 CONST pCenteredRight = rCenter + ancCenter + showRight 'AKA xstringright
+CONST pBottom =        rBottom + ancBottom
+CONST pRight =         rRight  + ancRight
 
 ' Type of a relative coordinate, use this to indicate whether a function supports them!
 TYPE RelPos as integer

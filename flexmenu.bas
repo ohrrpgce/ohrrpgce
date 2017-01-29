@@ -1479,8 +1479,8 @@ DO
   DIM cost_caption as string = attack_cost_info(tmp_atk, 0, 99, 99)
   ' This preview indicates that only the right-most 30 characters fit on the screen;
   ' the rest are shown dark.
-  edgeprint cost_caption, vpages(dpage)->w - textwidth(cost_caption), vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
-  edgeprint RIGHT(cost_caption, 30), vpages(dpage)->w - textwidth(RIGHT(cost_caption, 30)), vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint cost_caption, pRight, pBottom, uilook(uiDisabledItem), dpage
+  edgeprint RIGHT(cost_caption, 30), pRight, pBottom, uilook(uiText), dpage
  END IF
 
  standardmenu dispmenu(), state, 0, 0, dpage
@@ -1488,7 +1488,7 @@ DO
    show_name = large(0, show_name - 1)
    tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
-   printstr tmpstr, vpages(dpage)->w - textwidth(tmpstr), 0, dpage
+   printstr tmpstr, pRight, 0, dpage
  END IF
 
  SWAP vpage, dpage
@@ -2400,15 +2400,15 @@ DO
  IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
  IF mstate.active THEN
   draw_menu menudata, mstate, dpage
-  edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, vpages(dpage)->h - 9, uilook(uiDisabledItem), dpage
+  edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, pBottom, uilook(uiDisabledItem), dpage
   IF record = 0 THEN
-   edgeprint "CTRL+R to reload default", 0, vpages(dpage)->h - 19, uilook(uiDisabledItem), dpage
+   edgeprint "CTRL+R to reload default", 0, pBottom - 10, uilook(uiDisabledItem), dpage
   END IF
  END IF
  IF dstate.active THEN
   draw_menu detail, dstate, dpage
   IF menudata.items[mstate.pt]->t = 3 THEN '--textbox
-   edgeprint box_preview, 0, vpages(dpage)->h - 9, uilook(uiText), dpage
+   edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
   END IF
  END IF
  

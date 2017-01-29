@@ -1027,7 +1027,7 @@ DO
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
-  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, vpages(dpage)->h - 10, 0), uilook(uiText), dpage
+  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, pBottom, 0), uilook(uiText), dpage
  END IF
  IF tmode = 3 THEN
   FOR o as integer = 0 TO 9
@@ -2908,8 +2908,8 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   ELSE
    master_col = current_col
   END IF
-  rectangle vpages(dpage)->w - 50, 0, 50, 40, master_col, dpage
-  edgeprint !"Color:\n" & current_col, vpages(dpage)->w - 50, 10, uilook(uiMenuItem), dpage, YES, YES
+  rectangle rRight - 50, 0, 50, 40, master_col, dpage
+  edgeprint !"Color:\n" & current_col, rRight - 50, 10, uilook(uiMenuItem), dpage, YES, YES
 
   '--Draw the pixel cursor
   DIM col as integer
@@ -3775,7 +3775,7 @@ SUB SpriteSetEditor.display()
  clearpage vpage
 
  DIM caption as string = "(I)dle, (A)ttack, (W)alk"
- printstr caption, vpages(vpage)->w - (LEN(caption) * 8), vpages(vpage)->h - 8, vpage
+ printstr caption, pRight, pBottom, vpage
 
  DIM as integer x, y
  FOR idx as integer = 0 to ss->num_frames - 1

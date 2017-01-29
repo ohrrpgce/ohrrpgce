@@ -778,8 +778,8 @@ SUB minimap (byval x as integer, byval y as integer)
  minisize.y = mini->h
  
  DIM offset as XYPair
- offset.x = vpages(vpage)->w / 2 - minisize.x / 2
- offset.y = vpages(vpage)->h / 2 - minisize.y / 2
+ offset.x = rCenter - minisize.x / 2
+ offset.y = rCenter - minisize.y / 2
 
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
  frame_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
@@ -945,10 +945,10 @@ FUNCTION teleporttool () as bool
   'Hero cursor
   rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage
   state.pt = IIF(pickpoint, 1, 0)
-  standardmenu menu(), state, 0, vpages(vpage)->h - 27, vpage, menuopts
+  standardmenu menu(), state, 0, vpages(vpage)->h - 29, vpage, menuopts
   DIM caption as string = IIF(pickpoint, "Arrows/SHIFT move; ENTER to teleport", "Select map; ENTER to select position")
-  edgeprint caption, 0, vpages(vpage)->h - 9, uilook(uiText), vpage
-  edgeprint "+/- to zoom", vpages(vpage)->w - 90, vpages(vpage)->h - 18, uilook(uiText), vpage
+  edgeprint caption, 0, pBottom, uilook(uiText), vpage
+  edgeprint "+/- to zoom", pRight - 4, pBottom - 9, uilook(uiText), vpage
   setvispage vpage
   dowait
  LOOP
@@ -1149,13 +1149,11 @@ ELSE
   END IF
   strgrabber gam.hero(who).name, limit
 
-  DIM centerx as integer = vpages(vpage)->w \ 2
-  DIM centery as integer = vpages(vpage)->h \ 2
   copypage holdscreen, vpage
-  centerbox centerx, centery, 168, 32, 1, vpage
-  edgeprint prompt, pCentered, centery - 10, uilook(uiText), vpage
-  rectangle centerx - entry_box_width \ 2, centery + 1, entry_box_width, 10, uilook(uiHighlight), vpage
-  edgeprint gam.hero(who).name, pCentered, centery, uilook(uiMenuItem), vpage
+  centerbox rCenter, rCenter, 168, 32, 1, vpage
+  edgeprint prompt, pCentered, rCenter - 10, uilook(uiText), vpage
+  rectangle pCentered, rCenter + 1, entry_box_width, 10, uilook(uiHighlight), vpage
+  edgeprint gam.hero(who).name, pCentered, rCenter, uilook(uiMenuItem), vpage
  
   setvispage vpage
   dowait

@@ -616,7 +616,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    NEXT i
 
    standardmenu plainmenu(), state, 0, 0, dpage, menuopts
-   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, pBottom, uilook(uiText), dpage
   END IF
 
   SWAP vpage, dpage
@@ -985,7 +985,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage
   DrawSliceAnts focussl, dpage
-  edgeprint "Arrow keys to edit, SHIFT for speed", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "Arrow keys to edit, SHIFT for speed", 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait

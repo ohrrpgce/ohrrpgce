@@ -809,7 +809,7 @@ DO
   show_name = large(0, show_name - 1)
   DIM tmpstr as string = readbadbinstring(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr tmpstr, vpages(vpage)->w - textwidth(tmpstr), 0, vpage
+  printstr tmpstr, rRight, 0, vpage
  END IF
 
  setvispage vpage
@@ -1759,7 +1759,7 @@ SUB individual_item_editor(item_id as integer)
    drawline handle.x + 1, handle.y    , handle.x + 2, handle.y    , col, dpage
    drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
   END IF
-  edgeprint box_preview, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1936,7 +1936,7 @@ DO
  clearpage dpage
  FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
-  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, vpages(dpage)->w, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
+  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
   IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
   IF i = state.last THEN
@@ -2401,13 +2401,13 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   clearpage dpage
   standardmenu menu(), mstate, 0, 0, dpage
   IF listnum >= 0 THEN
-   edgeprint spell_list_types(her.list_type(listnum)), 0, vpages(dpage)->h - 20, uilook(uiSelectedDisabled), dpage
+   edgeprint spell_list_types(her.list_type(listnum)), 0, pBottom - 10, uilook(uiSelectedDisabled), dpage
    IF LEN(her.list_name(listnum)) > 0 THEN
     hint = "Press ENTER to edit spells in this list."
    ELSE
     hint = "Type a name for this spell list."
    END IF
-   edgeprint hint, 0, vpages(dpage)->h - 10, uilook(uiDisabledItem), dpage
+   edgeprint hint, 0, pBottom, uilook(uiDisabledItem), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -2790,7 +2790,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
   END IF
     
   clearpage dpage
-  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, vpages(dpage)->h - 10, uilook(uiSelectedDisabled), dpage
+  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, pBottom, uilook(uiSelectedDisabled), dpage
   draw_menu preview, prst, dpage
   edgeprint "Preview", prst.rect.x + 10, 0, uilook(uiText), dpage
   draw_menu menu, st, dpage
@@ -2948,7 +2948,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   END WITH
   
   copypage holdscreen, vpage
-  fuzzyrect 0, 0, vpages(vpage)->w, vpages(vpage)->h, uilook(uiBackground), vpage
+  fuzzyrect 0, 0, , , uilook(uiBackground), vpage
   draw_menu menu, st, vpage
   setvispage vpage
   

@@ -123,7 +123,7 @@ DECLARE SUB mapedit_insert_new_layer(st as MapEditState, byval where as integer)
 DECLARE SUB mapedit_delete_layer(st as MapEditState, byval which as integer)
 DECLARE SUB mapedit_swap_layers(st as MapEditState, byval l1 as integer, byval l2 as integer)
 DECLARE SUB mapedit_gmapdata(st as MapEditState)
-DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
+DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, x as RelPos, y as RelPos, highlight as bool = NO)
 DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
 DECLARE SUB mapedit_import_export(st as MapEditState)
@@ -1586,15 +1586,15 @@ DO
  IF st.editmode = tile_mode THEN
   'This is to draw tile 0 as fully transparent on layer > 0
   st.menubar.layernum = st.layer
-  draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, 0), chequer_scroll, 0, 0, vpages(dpage)->w - 40, 20
+  draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, 0), chequer_scroll, 0, 0, rWidth - 40, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
   'Don't show (black out) the last two tiles on the menubar, because they
   'are overlaid too much by the icons.
-  rectangle vpages(dpage)->w - 40, 0, 40, 20, uilook(uiBackground), dpage
+  rectangle rRight - 40, 0, 40, 20, uilook(uiBackground), dpage
  ELSE
-  rectangle 0, 0, vpages(dpage)->w, 20, uilook(uiBackground), dpage
+  rectangle 0, 0, rWidth, 20, uilook(uiBackground), dpage
  END IF
- rectangle 0, 19, vpages(dpage)->w, 1, uilook(uiText), dpage
+ rectangle 0, 19, rWidth, 1, uilook(uiText), dpage
 
  '--position finder--
  IF st.tiny THEN
@@ -1632,7 +1632,7 @@ DO
 
  '--Tool selection
  IF toolsbar_available THEN
-  DIM toolbarpos as XYPair = XY(320 - 10 * v_len(mode_tools), 0)
+  DIM toolbarpos as XYPair = XY(rRight - 10 * v_len(mode_tools), 0)
   IF st.editmode = tile_mode THEN
    toolbarpos.y = 12
   END IF
@@ -1648,11 +1648,11 @@ DO
    tmpstr = "Tool: " & toolinfo(st.tool).name
   END IF
   textcolor uilook(uiText), 0 
-  printstr tmpstr, rRight + ancRight, toolbarpos.y + 10, dpage, YES
+  printstr tmpstr, pRight, toolbarpos.y + 10, dpage, YES
  ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
-  printstr "Tool: Draw", 320 - 81, 22, dpage
+  printstr "Tool: Draw", pRight, 22, dpage
  END IF
 
  IF st.editmode = tile_mode THEN
@@ -1711,7 +1711,7 @@ DO
   END IF
 
   IF zoneselected THEN
-   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, vpages(dpage)->h - 20, dpage, YES
+   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, rBottom - 20, dpage, YES
   END IF
 
   IF st.zonesubmode = zone_edit_mode THEN
@@ -1719,7 +1719,7 @@ DO
 
    IF st.tool <> clone_tool THEN
     'Don't overdraw "Default Walls"
-    printstr hilite("E") + "dit zone info", 116, vpages(dpage)->h - 8, dpage, YES
+    printstr hilite("E") + "dit zone info", 116, pBottom, dpage, YES
    END IF
 
   ELSE
@@ -1732,7 +1732,7 @@ DO
     DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
     printstr hilite("E") + "dit/" _
              & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
-             & IIF(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, vpages(dpage)->h - 8, dpage, YES
+             & IIF(is_locked,"un","") + hilite("L") + "ock zone", pRight - 20, pBottom, dpage, YES
    END IF
 
    'Draw zonemenu
@@ -1846,7 +1846,7 @@ END FUNCTION
 '==========================================================================================
 
 'This is a variant on spriteedit_draw_icon
-SUB mapedit_draw_icon(st as MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as bool = NO)
+SUB mapedit_draw_icon(st as MapEditState, icon as string, x as RelPos, y as RelPos, highlight as bool = NO)
  DIM bgcol as integer
  DIM fgcol as integer
  fgcol = uilook(uiMenuItem)
@@ -3657,7 +3657,7 @@ SUB mapedit_linkdoors (st as MapEditState)
 
   '--Draw screen
   copypage 2, dpage
-  rectangle 0, vpages(dpage)->h \ 2, vpages(dpage)->w, 2, uilook(uiSelectedDisabled + state.tog), dpage
+  rectangle 0, rCenter, rWidth, 2, uilook(uiSelectedDisabled + state.tog), dpage
   draw_fullscreen_scrollbar state, 0, dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
@@ -3769,7 +3769,7 @@ SUB link_one_door(st as MapEditState, linknum as integer)
   END IF
   '--Draw screen
   copypage 2, dpage
-  rectangle 0, vpages(dpage)->h \ 2, vpages(dpage)->w, 2, uilook(uiSelectedDisabled + state.tog), dpage
+  rectangle 0, rCenter, rWidth, 2, uilook(uiSelectedDisabled + state.tog), dpage
   FOR i as integer = -1 TO 4
    menu_temp = ""
    SELECT CASE i
@@ -3792,9 +3792,9 @@ SUB link_one_door(st as MapEditState, linknum as integer)
    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i) & " " & menu_temp, 1, 1 + (i + 1) * 10, col, dpage
   NEXT i
-  edgeprint "ENTER", vpages(dpage)->w - 45, 0, uilook(uiText), dpage
-  edgeprint "EXIT", vpages(dpage)->w - 45, vpages(dpage)->h - 10, uilook(uiText), dpage
-  edgeprint outmap, 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "ENTER", pRight - 5, 0, uilook(uiText), dpage
+  edgeprint "EXIT", pRight - 5, pBottom, uilook(uiText), dpage
+  edgeprint outmap, 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -3875,7 +3875,7 @@ SUB DrawDoorPreview(map as MapData, tilesets() as TilesetData ptr, doornum as in
   edgebox door_drawx, door_drawy, tilew, tileh, uilook(uiMenuItem), uilook(uiBackground), page
   textcolor uilook(uiBackground), 0
   DIM as string caption = STR(doornum)
-  printstr caption, door_drawx + (tilew - textwidth(caption)) \ 2, door_drawy + (tileh - 8) \ 2, page
+  printstr caption, door_drawx + tilew \ 2 + ancCenter, door_drawy + tileh \ 2 + 1 + ancCenter, page
  ELSE
   textcolor uilook(uiDisabledItem), 0
   DIM as string caption = "(No such door)"
@@ -4128,7 +4128,7 @@ SUB show_minimap(st as MapEditState)
  frame_draw minimap, NULL, 0, 0, 1, NO, vpage
  frame_unload @minimap
 
- edgeprint "Press Any Key", 0, vpages(dpage)->h - 9, uilook(uiText), vpage
+ edgeprint "Press Any Key", pRight, pBottom, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
 END SUB
@@ -4399,7 +4399,7 @@ SUB mapedit_pickblock(st as MapEditState)
    edgeprint "(Animation set " & ((st.usetile(st.layer) - 160) \ 48) & ")", 0, infoline2_y, uilook(uiText), vpage
   END IF
   DIM infotext as string = "Hold to select a rectangle"
-  edgeprint infotext, vpages(vpage)->w - textwidth(infotext), infoline_y, uilook(uiText), vpage
+  edgeprint infotext, pRight, infoline_y, uilook(uiText), vpage
 
   IF dragging THEN
    DIM select_rect as RectType

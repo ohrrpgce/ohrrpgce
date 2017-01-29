@@ -294,6 +294,7 @@ startTest(RelPos)
 
   testEqual(relative_pos(67 + showLeft, 100, 10), 67)
   testEqual(relative_pos(67 + showRight, 100, 10), 67)
+  testEqual(relative_pos(showRight, 100, 110), -10)
   testEqual(relative_pos(rRight + showLeft, 100, 10), 90)
   testEqual(relative_pos(rRight + showRight, 100, 10), 90)
   testEqual(relative_pos(rRight + showRight, 100, 1000), -900)

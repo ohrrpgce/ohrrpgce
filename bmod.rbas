@@ -208,10 +208,7 @@ FUNCTION battle (byval form as integer) as bool
 
   '--display the backdrop, centered
   clearpage vpage
-  dim as integer backdropx, backdropy
-  backdropx = (vpages(vpage)->w - bat.backdrop->w) \ 2
-  backdropy = (vpages(vpage)->h - bat.backdrop->h) \ 2
-  frame_draw bat.backdrop, , backdropx, backdropy, , NO, vpage
+  frame_draw bat.backdrop, , pCentered, pCentered, , NO, vpage
   '--display the sprites
   draw_battle_sprites bslot(), page
   '--display menus and meters
@@ -4105,7 +4102,7 @@ SUB show_first_battle_timer (page as integer)
  IF readbit(gen(), genBits2, 22) <> 0 THEN EXIT SUB
  FOR i as integer = 0 to UBOUND(timers)
   IF timers(i).speed > 0 ANDALSO timers(i).st > 0 ANDALSO timers(i).flags AND TIMERFLAG_BATTLE THEN
-   edgeprint plotstr(timers(i).st-1).s, vpages(page)->w - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), page
+   edgeprint plotstr(timers(i).st-1).s, pRight - 10, pBottom - 5, uilook(uiText), page
    EXIT FOR 'Only print the first timer if there are many of them
   END IF
  NEXT i

@@ -1036,7 +1036,7 @@ SUB displayall()
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
-  rectangle 0, 0, vpages(dpage)->w, vpages(dpage)->h, gmap(10), dpage
+  rectangle 0, 0, rWidth, rHeight, gmap(10), dpage
   harmtileflash = NO
  END IF
  IF txt.showing = YES THEN update_textbox
@@ -3659,7 +3659,7 @@ SUB battle_formation_testing_menu()
 
   copypage holdscreen, vpage
   draw_menu menu, state, vpage
-  edgeprint "F1 Help", 0, vpages(vpage)->h - 10, uilook(uiMenuItem), vpage
+  edgeprint "F1 Help", 0, pBottom, uilook(uiMenuItem), vpage
   setvispage vpage
   dowait
  LOOP

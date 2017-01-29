@@ -169,7 +169,7 @@ SUB editor_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help  TAB=mode (" & IIF(st.type_data, "data node", "widget caption") & ")", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "F1=Help  TAB=mode (" & IIF(st.type_data, "data node", "widget caption") & ")", 0, pBottom, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -727,7 +727,7 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "F1=Help", 0, pBottom, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage

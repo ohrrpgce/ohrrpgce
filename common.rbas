@@ -1156,7 +1156,7 @@ FUNCTION shorten_to_left (text as string, byval wide as integer) as string
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, wide, 0, text, , , , 0  'font 0
+ find_point_in_text @curspos, wide, 0, text, , , , fontPlain
  RETURN "..." + RIGHT(text, curspos.charnum)
 END FUNCTION
 
@@ -1168,7 +1168,7 @@ FUNCTION shorten_to_right (text as string, byval wide as integer) as string
  wide -= textwidth("...")
 
  DIM curspos as StringCharPos
- find_point_in_text @curspos, wide, 0, text, , , , 0  'font 0
+ find_point_in_text @curspos, wide, 0, text, , , , fontPlain
  RETURN LEFT(text, curspos.charnum) + "..."
 END FUNCTION
 
@@ -2329,7 +2329,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   NEXT
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
-   edgeprint "F1 Help", 0, vpages(vpage)->h - 10, uilook(uiMenuItem), vpage
+   edgeprint "F1 Help", 0, pBottom, uilook(uiMenuItem), vpage
   END IF
   setvispage vpage
   dowait

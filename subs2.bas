@@ -1354,7 +1354,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
 
   IF keyval(scAlt) > 0 THEN
    textcolor uilook(uiText), uilook(uiHighlight)
-   printstr "Box " & st.id, vpages(dpage)->w - LEN("Box " & st.id) * 8, 0, dpage
+   printstr "Box " & st.id, pRight, 0, dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage

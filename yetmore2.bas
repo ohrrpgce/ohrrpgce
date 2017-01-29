@@ -305,10 +305,10 @@ SUB verify_quit
   edgeprint quitprompt, pCentered, centery - 20, uilook(uiText), vpage
   col = uilook(uiMenuItem)
   IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quityes, centerx - 90, centery - 4, col, vpage
+  edgeprint quityes, rCenter - 90, centery - 4, col, vpage
   col = uilook(uiMenuItem)
   IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog)
-  edgeprint quitno, centerx + 90 - LEN(quitno) * 8, centery - 4, col, vpage
+  edgeprint quitno, rCenter + 90 + ancRight, centery - 4, col, vpage
   setvispage vpage
   dowait
  LOOP
@@ -347,10 +347,7 @@ FUNCTION titlescreen () as bool
   END IF
 
   clearpage vpage
-  dim as integer backdropx, backdropy
-  backdropx = (vpages(vpage)->w - backdrop->w) \ 2
-  backdropy = (vpages(vpage)->h - backdrop->h) \ 2
-  frame_draw backdrop, , backdropx, backdropy, , NO, vpage
+  frame_draw backdrop, , pCentered, pCentered, , NO, vpage
   setvispage vpage
   check_for_queued_fade_in
   dowait
@@ -1650,8 +1647,9 @@ SUB live_preview_menu ()
   'Draw screen
   displayall
   draw_menu menu1, st1, dpage
-  rectangle 0, vpages(dpage)->h - 12, vpages(dpage)->w, 12, uilook(uiBackground), dpage
-  edgeprint tooltips(st1.pt), 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  IF LEN(tooltips(st1.pt)) THEN
+   basic_textbox tooltips(st1.pt), , dpage, pBottom - 2, , YES
+  END IF
   setvispage dpage
   dowait
  LOOP

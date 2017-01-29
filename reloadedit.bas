@@ -127,7 +127,7 @@ SUB reload_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, vpages(dpage)->h - 10, uilook(uiText), dpage
+  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, pBottom, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage

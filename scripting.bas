@@ -1407,7 +1407,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   clearpage vpage
 
-  centerbox  , 12, vpages(vpage)->w - 10, 15, 3, vpage
+  centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
   DIM header as string
   IF errorlevel >= serrBug THEN
@@ -1431,8 +1431,8 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   IF state.pt = 6 THEN
    textcolor uilook(uiSelectedItem), 0 
-   printstr "The debugger is a usability train-wreck!", 0, vpages(vpage)->h - 16, vpage
-   printstr "Press F1 inside the debugger to see help", 0, vpages(vpage)->h - 8, vpage
+   wrapprint !"The debugger is a usability train-wreck!\n" + _
+              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , fontPlain
   END IF
   setvispage vpage
 
@@ -1542,8 +1542,8 @@ FUNCTION script_interrupt () as integer
 
   IF state.pt = 4 THEN
    textcolor uilook(uiSelectedItem), 0 
-   printstr "The debugger is a usability train-wreck!", 0, rBottom - 16, vpage
-   printstr "Press F1 inside the debugger to see help", 0, rBottom - 8, vpage
+   wrapprint !"The debugger is a usability train-wreck!\n" + _
+              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , fontPlain
   END IF
   setvispage vpage
 
