@@ -4228,7 +4228,7 @@ end sub
 'If you want to skip some number of lines, you should clip, and draw some number of pixels
 'above the clipping rectangle.
 '
-sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string, endchar as integer = 999999, xpos as RelPos, ypos as RelPos, wide as integer = 999999, pal as Palette16 ptr = NULL, withtags as bool = YES, withnewlines as bool = YES)
+sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string, endchar as integer = 999999, xpos as RelPos, ypos as RelPos, wide as RelPos = 999999, pal as Palette16 ptr = NULL, withtags as bool = YES, withnewlines as bool = YES)
 ', cached_state as PrintStrStatePtr = NULL, use_cached_state as bool = YES)
 
 'static tog as integer = 0
@@ -4245,13 +4245,15 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 'debug "printstr '" & text & "' (len=" & len(text) & ") wide = " & wide & " tags=" & withtags & " nl=" & withnewlines
 
+	wide = relative_pos(wide, dest->w)
+
 	' Only pre-compute the text dimensions if required for anchoring, as it's quite expensive
 	dim as AlignType xanchor, yanchor
 	RelPos_decode xpos, 0, 0, xanchor, 0
 	RelPos_decode ypos, 0, 0, yanchor, 0
-	dim textsize as StringSize
+	dim finalsize as StringSize
 	if xanchor <> alignLeft or yanchor <> alignLeft then
-		text_layout_dimensions @textsize, text, endchar, , wide, state.thefont, withtags, withnewlines
+		text_layout_dimensions @finalsize, text, endchar, , wide, state.thefont, withtags, withnewlines
 	end if
 
 	with state
@@ -4271,8 +4273,8 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 			.initial_bgcolor = .bgcolor
 			.initial_not_trans = .not_transparent
 			.charnum = 0
-			.x = relative_pos(xpos, dest->w, textsize.w) + .thefont->offset.x
-			.y = relative_pos(ypos, dest->h, textsize.h) + .thefont->offset.y
+			.x = relative_pos(xpos, dest->w, finalsize.w) + .thefont->offset.x
+			.y = relative_pos(ypos, dest->h, finalsize.h) + .thefont->offset.y
 			.startx = .x
 			'Margins are measured relative to xpos
 			.leftmargin = 0
@@ -4380,16 +4382,25 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 end sub
 
 'Returns the length in pixels of the longest line of a *non-autowrapped* string.
-function textwidth(z as string, byval fontnum as integer = 0, byval withtags as bool = YES, byval withnewlines as bool = YES) as integer
+function textwidth(text as string, fontnum as integer = fontPlain, withtags as bool = YES, withnewlines as bool = YES) as integer
 	dim retsize as StringSize
-	text_layout_dimensions @retsize, z, len(z), , , fonts(fontnum), withtags, withnewlines
-'debug "width of '" & z & "' is "
+	text_layout_dimensions @retsize, text, , , , get_font(fontnum), withtags, withnewlines
 	return retsize.w
+end function
+
+'Returns the width and height of an autowrapped string.
+'Specify the wrapping width; 'wide' might include rWidth for the width of the screen
+'(which is what the page arg is for).
+function textsize(text as string, wide as RelPos, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
+	if page = -1 then page = vpage
+	wide = relative_pos(wide, vpages(page)->w)
+	dim retsize as StringSize
+	text_layout_dimensions @retsize, text, , , wide, get_font(fontnum), withtags, YES
+	return XY(retsize.w, retsize.h)
 end function
 
 'xpos and ypos passed to use same cached state
 sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
-
 	dim state as PrintStrState
 	with state
 		'.localpal/?gcolor/initial_?gcolor/transparency non-initialised
@@ -4472,39 +4483,45 @@ sub find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integ
 	end with
 end sub
 
-'A flexible printstr for enduser code without weird font, pal arguments
-sub printstr (dest as Frame ptr, s as string, x as RelPos, y as RelPos, wide as integer = 999999, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
-	dim state as PrintStrState
-	state.thefont = fonts(fontnum)
-	if textbg <> 0 then state.not_transparent = YES
-	state.bgcolor = textbg
-	state.fgcolor = textfg
-
-	render_text (dest, state, s, , x, y, wide, , withtags, withnewlines)
-end sub
-
 'the old printstr -- no autowrapping
-sub printstr (s as string, x as RelPos, y as RelPos, p as integer, withtags as bool = NO)
+sub printstr (text as string, x as RelPos, y as RelPos, page as integer, withtags as bool = NO, fontnum as integer = fontPlain)
 	dim state as PrintStrState
-	state.thefont = fonts(0)
+	state.thefont = get_font(fontnum)
 	if textbg <> 0 then state.not_transparent = YES
 	state.bgcolor = textbg
 	state.fgcolor = textfg
 
-	render_text (vpages(p), state, s, , x, y, , , withtags, NO)
+	render_text (vpages(page), state, text, , x, y, , , withtags, NO)
 end sub
 
 'this doesn't autowrap either
-sub edgeprint (s as string, x as RelPos, y as RelPos, c as integer, p as integer, withtags as bool = NO, withnewlines as bool = NO)
+sub edgeprint (text as string, x as RelPos, y as RelPos, col as integer, page as integer, withtags as bool = NO, withnewlines as bool = NO)
 	'preserve the old behaviour (edgeprint used to call textcolor)
-	textfg = c
+	textfg = col
 	textbg = 0
 
 	dim state as PrintStrState
-	state.thefont = fonts(1)
-	state.fgcolor = c
+	state.thefont = fonts(fontEdged)
+	state.fgcolor = col
 
-	render_text (vpages(p), state, s, , x, y, , , withtags, withnewlines)
+	render_text (vpages(page), state, text, , x, y, , , withtags, withnewlines)
+end sub
+
+'A flexible edgeprint/printstr replacement.
+'Either specify the colour, or omit it and use textcolor().
+'Wraps the text at 'wide'; pass "rWidth - x" to wrap at the right edge of the screen.
+sub wrapprint (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, wide as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
+	dim state as PrintStrState
+	state.thefont = fonts(fontnum)
+	if col = -1 then
+		state.fgcolor = textfg
+		state.bgcolor = textbg
+		if textbg <> 0 then state.not_transparent = YES
+	else
+		state.fgcolor = col
+		state.bgcolor = 0
+	end if
+	render_text (vpages(page), state, text, , x, y, wide, , withtags, YES)
 end sub
 
 sub textcolor (byval fg as integer, byval bg as integer)
@@ -4889,11 +4906,13 @@ function font_loadbmp_16x16 (filename as string) as Font ptr
 	return newfont
 end function
 
-sub setfont (f() as integer)
-	font_unload @fonts(0)
-	font_unload @fonts(1)
-	fonts(0) = font_loadold1bit(cast(ubyte ptr, @f(0)))
-	fonts(1) = font_create_edged(fonts(0))
+sub setfont (ohf_font() as integer)
+	font_unload @fonts(fontPlain)
+	font_unload @fonts(fontEdged)
+	font_unload @fonts(fontShadow)
+	fonts(fontPlain) = font_loadold1bit(cast(ubyte ptr, @ohf_font(0)))
+	fonts(fontEdged) = font_create_edged(fonts(fontPlain))
+	fonts(fontShadow) = font_create_shadowed(fonts(fontPlain), 1, 2)
 end sub
 
 'NOTE: the following two functions are for the old style fonts, they will
@@ -4903,19 +4922,19 @@ end sub
 '0). The default "Latin-1.ohf" and "OHRRPGCE Default.ohf" fonts are marked as Latin 1, so
 'any font derived from them will be too (ability to change the type only added in Callipygous)
 
-function get_font_type (font() as integer) as fontTypeEnum
-	if font(0) <> ftypeASCII and font(0) <> ftypeLatin1 then
-		debugc errPromptBug, "Unknown font type ID " & font(0)
+function get_font_type (ohf_font() as integer) as fontTypeEnum
+	if ohf_font(0) <> ftypeASCII and ohf_font(0) <> ftypeLatin1 then
+		debugc errPromptBug, "Unknown font type ID " & ohf_font(0)
 		return ftypeASCII
 	end if
-	return font(0)
+	return ohf_font(0)
 end function
 
-sub set_font_type (font() as integer, ty as fontTypeEnum)
+sub set_font_type (ohf_font() as integer, ty as fontTypeEnum)
 	if ty <> ftypeASCII and ty <> ftypeLatin1 then
 		debugc errPromptBug, "set_font_type: bad type " & ty
 	end if
-	font(0) = ty
+	ohf_font(0) = ty
 end sub
 
 

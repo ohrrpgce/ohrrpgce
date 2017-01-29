@@ -203,6 +203,10 @@ DECLARE FUNCTION get_tickcount() as integer
 '==========================================================================================
 '                               Fonts and text rendering
 
+CONST fontPlain = 0
+CONST fontEdged = 1
+CONST fontShadow = 2
+
 Type FontChar
 	offset as integer  'offset into spr->image
 	offx as byte   'pixel offsets
@@ -253,13 +257,14 @@ Type PrintStrStatePtr as PrintStrState ptr
 
 DECLARE FUNCTION parse_tag(z as string, byval offset as integer, byval action as string ptr, byval arg as int32 ptr) as integer
 
-DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
-DECLARE SUB printstr OVERLOAD (byval dest as Frame ptr, s as string, byval x as RelPos, byval y as RelPos, byval wide as integer = 999999, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
-DECLARE SUB printstr OVERLOAD (s as string, byval x as RelPos, byval y as RelPos, byval p as integer, byval withtags as bool = NO)
-DECLARE SUB edgeprint (s as string, byval x as RelPos, byval y as RelPos, byval c as integer, byval p as integer, byval withtags as bool = NO, byval withnewlines as bool = NO)
+DECLARE SUB printstr (text as string, x as RelPos, y as RelPos, page as integer, withtags as bool = NO, fontnum as integer = fontPlain)
+DECLARE SUB edgeprint (text as string, x as RelPos, y as RelPos, col as integer, page as integer, withtags as bool = NO, withnewlines as bool = NO)
+DECLARE SUB wrapprint (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
 DECLARE SUB textcolor (byval fg as integer, byval bg as integer)
 
-DECLARE FUNCTION textwidth (z as string, byval fontnum as integer = 0, byval withtags as bool = YES, byval withnewlines as bool = YES) as integer
+DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
+DECLARE FUNCTION textwidth(text as string, fontnum as integer = 0, withtags as bool = YES, withnewlines as bool = YES) as integer
+DECLARE FUNCTION textsize(text as string, wide as RelPos, fontnum as integer = 0, withtags as bool = YES, page as integer = -1) as XYPair
 
 DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 

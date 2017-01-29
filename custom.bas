@@ -1910,7 +1910,7 @@ SUB text_test_menu
 
   clearpage vpage
   edgeboxstyle 10, 10, 300, 185, 0, vpage
-  printstr vpages(vpage), text, 20, 20, 280, 0
+  wrapprint text, 20, 20, , vpage, 280, , fontPlain
   rectangle vpages(vpage), 20 + pos2.lastw, 20 + pos2.h - pos2.finalfont->h, 8, pos2.finalfont->h, 5
   printstr CHR(3), mouse.x - 2, mouse.y - 2, vpage
   printstr STR(curspos.charnum), 0, 190, vpage
@@ -1968,17 +1968,19 @@ SUB font_test_menu
   usemenu st
 
   clearpage vpage
-  edgeboxstyle 10, 10, 300, 185, 0, vpage
+  'edgeboxstyle 10, 10, 300, 185, 0, vpage
   standardmenu menu(), st, 0, 0, vpage
   textcolor uilook(uiText), 0
-  printstr vpages(vpage), controls, 0, 40, 140, 0
+  wrapprint controls, 0, rBottom + ancBottom, , vpage
 
   FOR i as integer = 0 TO 15
    DIM row as string
    FOR j as integer = i * 16 TO i * 16 + 15
     row &= CHR(j)
    NEXT
-   printstr vpages(vpage), row, 145, 0 + i * fonts(st.pt)->h, , st.pt, YES, NO  'without newlines
+   IF fonts(st.pt) THEN
+    printstr row, 145, 0 + i * fonts(st.pt)->h, vpage, YES, st.pt
+   END IF
   NEXT
 
   setvispage vpage

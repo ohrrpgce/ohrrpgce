@@ -1464,8 +1464,7 @@ DO
 
  'Damage preview, blank on most menus.
  'It really can get 13 lines long! *shudder*
- textcolor uilook(uiMenuItem), 0
- printstr vpages(dpage), damagepreview, 0, 77, vpages(dpage)->w, 0
+ wrapprint damagepreview, 0, 77, uilook(uiMenuItem), dpage, , , fontPlain
 
  'Cost preview
  IF helpkey = "attack_cost" THEN
