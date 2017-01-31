@@ -57,6 +57,7 @@ DIM vehicle_id as integer = 0
 DIM state as MenuState
 state.size = 24
 state.last = UBOUND(menu)
+state.need_update = YES
 
 vehbit(0) = "Pass through walls"
 vehbit(1) = "Pass through NPCs"
@@ -91,12 +92,82 @@ min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
 LoadVehicle game + ".veh", veh(), vehname, vehicle_id
-GOSUB vehmenu
 
 setkeys YES
 DO
  setwait 55
  setkeys YES
+ IF state.need_update THEN
+  state.need_update = NO
+  menu(0) = "Previous Menu"
+  menu(1) = "Vehicle " & vehicle_id
+  menu(2) = "Name: " + vehname
+
+  IF veh(offset(3)) = 3 THEN
+   menu(3) = "Speed: 10"
+  ELSE
+   menu(3) = "Speed: " & veh(8)
+  END IF
+
+  menu(4) = "Vehicle Bitsets..." '9,10
+
+  menu(5) = "Override walls: "
+  menu(6) = "Blocked by: "
+  menu(7) = "Mount from: "
+  menu(8) = "Dismount to: "
+  FOR i as integer = 0 TO 3
+   menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
+  NEXT i
+
+  DIM tmp as string
+  
+  SELECT CASE veh(offset(9))
+   CASE -1
+    tmp = "disabled"
+   CASE 0
+    tmp = "enabled"
+   CASE ELSE
+    tmp = "formation set " & veh(offset(9))
+  END SELECT
+  menu(9) = "Random Battles: " + tmp '11
+
+  FOR i as integer = 0 TO 1
+   SELECT CASE veh(offset(10 + i))
+    CASE -2
+     tmp = "disabled"
+    CASE -1
+     tmp = "menu"
+    CASE 0
+     tmp = "dismount"
+    CASE ELSE
+     tmp = "script " + scriptname(ABS(veh(offset(10 + i))))
+   END SELECT
+   IF i = 0 THEN menu(10 + i) = "Use button: " + tmp'12
+   IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp'13
+  NEXT i
+  
+  menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
+  
+  SELECT CASE veh(offset(13))
+   CASE 0
+    tmp = "[script/textbox]"
+   CASE IS < 0
+    tmp = "run script " + scriptname(ABS(veh(offset(13))))
+   CASE IS > 0
+    tmp = "text box " & veh(offset(13))
+  END SELECT
+  menu(13) = "On Mount: " + tmp
+  SELECT CASE veh(offset(14))
+   CASE 0
+    tmp = "[script/textbox]"
+   CASE IS < 0
+    tmp = "run script " + scriptname(ABS(veh(offset(14))))
+   CASE IS > 0
+    tmp = "text box " & veh(offset(14))
+  END SELECT
+  menu(14) = "On Dismount: " + tmp
+  menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
+ END IF
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
  usemenu state
@@ -116,19 +187,19 @@ DO
     ELSE
      LoadVehicle game + ".veh", veh(), vehname, vehicle_id
     END IF
-    GOSUB vehmenu
+    state.need_update = YES
    END IF
   CASE 2
    DIM oldname as string = vehname
    strgrabber vehname, 15
-   IF oldname <> vehname THEN GOSUB vehmenu
+   IF oldname <> vehname THEN state.need_update = YES
   CASE 3, 5 TO 9, 15
    IF intgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt)) THEN
-    GOSUB vehmenu
+    state.need_update = YES
    END IF
   CASE 12 '--tags
    IF tag_grabber(veh(offset(state.pt)), , , NO) THEN
-    GOSUB vehmenu
+    state.need_update = YES
    END IF
   CASE 4
    IF enter_space_click(state) THEN
@@ -138,18 +209,18 @@ DO
    IF enter_space_click(state) THEN
     veh(offset(state.pt)) = large(0, veh(offset(state.pt)))
     scriptbrowse veh(offset(state.pt)), plottrigger, "vehicle plotscript"
-    GOSUB vehmenu
+    state.need_update = YES
    ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, 1, plottrigger) THEN
-    GOSUB vehmenu
+    state.need_update = YES
    END IF
   CASE 13, 14
    IF enter_space_click(state) THEN
     DIM temptrig as integer = large(0, -veh(offset(state.pt)))
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(state.pt)) = -temptrig
-    GOSUB vehmenu
+    state.need_update = YES
    ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, -1, plottrigger) THEN
-    GOSUB vehmenu
+    state.need_update = YES
    END IF
  END SELECT
  clearpage dpage
@@ -159,80 +230,6 @@ DO
  dowait
 LOOP
 SaveVehicle game + ".veh", veh(), vehname, vehicle_id
-EXIT SUB
-
-vehmenu:
-menu(0) = "Previous Menu"
-menu(1) = "Vehicle " & vehicle_id
-menu(2) = "Name: " + vehname
-
-IF veh(offset(3)) = 3 THEN
- menu(3) = "Speed: 10"
-ELSE
- menu(3) = "Speed: " & veh(8)
-END IF
-
-menu(4) = "Vehicle Bitsets..." '9,10
-
-menu(5) = "Override walls: "
-menu(6) = "Blocked by: "
-menu(7) = "Mount from: "
-menu(8) = "Dismount to: "
-FOR i as integer = 0 TO 3
- menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
-NEXT i
-
-DIM tmp as string
-
-SELECT CASE veh(offset(9))
- CASE -1
-  tmp = "disabled"
- CASE 0
-  tmp = "enabled"
- CASE ELSE
-  tmp = "formation set " & veh(offset(9))
-END SELECT
-menu(9) = "Random Battles: " + tmp '11
-
-FOR i as integer = 0 TO 1
- SELECT CASE veh(offset(10 + i))
-  CASE -2
-   tmp = "disabled"
-  CASE -1
-   tmp = "menu"
-  CASE 0
-   tmp = "dismount"
-  CASE ELSE
-   tmp = "script " + scriptname(ABS(veh(offset(10 + i))))
- END SELECT
- IF i = 0 THEN menu(10 + i) = "Use button: " + tmp'12
- IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp'13
-NEXT i
-
-menu(12) = tag_set_caption(veh(offset(12)), "If riding set tag")
-
-SELECT CASE veh(offset(13))
- CASE 0
-  tmp = "[script/textbox]"
- CASE IS < 0
-  tmp = "run script " + scriptname(ABS(veh(offset(13))))
- CASE IS > 0
-  tmp = "text box " & veh(offset(13))
-END SELECT
-menu(13) = "On Mount: " + tmp
-
-SELECT CASE veh(offset(14))
- CASE 0
-  tmp = "[script/textbox]"
- CASE IS < 0
-  tmp = "run script " + scriptname(ABS(veh(offset(14))))
- CASE IS > 0
-  tmp = "text box " & veh(offset(14))
-END SELECT
-menu(14) = "On Dismount: " + tmp
-
-menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
-RETRACE
 
 END SUB
 
