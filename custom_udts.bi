@@ -266,7 +266,17 @@ TYPE MapEditState
   temptilemap as TileMap     'A temporary TileMap. Normally remains uninitialised
   moved as integer          'used when detecting cursor movement
   walk as integer           'used for animating NPC walking
-  
+  doorid as integer
+
+  modenames(5) as string
+  mode_tools as integer vector
+  toolsbar_available as integer  'Whether you can select the current tool
+  drawing_allowed as integer     'Whether you can actually draw
+  toolinfo(NUM_TOOLS) as ToolInfoType
+  hero_gfx as GraphicPair
+  overlaytileset as Frame ptr
+  zonetileset(2) as Frame ptr
+ 
   'Most of these could become locals after mapping gosub is broken into real subs
   tiny as bool               'whether or not to show the tiny screen relative to map area
   npc_d as integer          'used when placing npcs
@@ -319,6 +329,12 @@ TYPE MapEditState
   'Zone stuff (npc_mode)
   cur_npc_zone as integer    'Movement zone for currently selected NPC in NPC placer
   cur_npc_wall_zone as integer 'Avoidance zone for currently selected NPC in NPC placer
+
+  zonemenu as SimpleMenuItem vector
+  zonemenustate as MenuState
+  npczone_needupdate as bool
+  gauze_ticker as integer = 0  'for hidden zones animation
+
 
 END TYPE
 

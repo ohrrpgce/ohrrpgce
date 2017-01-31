@@ -21,6 +21,7 @@ CONST tileh = 20
 
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
+DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer, lockedzonelist() as integer)
 DECLARE FUNCTION addmaphow () as integer
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -55,7 +56,7 @@ DECLARE SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
 DECLARE SUB mapedit_doZoneHinting(st as MapEditState)
 DECLARE SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as integer, byval info as ZoneInfo ptr)
 DECLARE FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as integer, viszonelist() as integer) as integer
-DECLARE SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMenuItem vector, zonemenustate as MenuState, lockedzonelist() as integer)
+DECLARE SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as integer)
 DECLARE SUB mapedit_edit_zoneinfo(st as MapEditState)
 DECLARE SUB mapedit_zonespam(st as MapEditState)
 DECLARE SUB draw_zone_minimap(st as MapEditState, tmap as TileMap, byval bitnum as integer, byval col as integer)
@@ -378,11 +379,9 @@ SUB mapeditor (byval mapnum as integer)
 STATIC remember_menu_pt as integer = 0
 
 DIM st as MapEditState
-DIM modenames(5) as string
 DIM pal16(288) as integer
 DIM npcnum() as integer
 DIM her as HeroDef
-DIM hero_gfx as GraphicPair
 
 st.editmode = 0
 st.seteditmode = -1
@@ -394,19 +393,12 @@ DIM mode_tools_map(zone_mode, 10) as integer = { _
    {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
    {draw_tool, box_tool, fill_tool, paint_tool, mark_tool, clone_tool, -1} _          'zone_mode
 }
-DIM mode_tools as integer vector
-v_new mode_tools
-DIM toolsbar_available as integer  'Whether you can select the current tool
-DIM drawing_allowed as integer     'Whether you can actually draw
+
+v_new st.mode_tools
 
 REDIM lockedzonelist(-1 TO -1) as integer 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
-DIM gauze_ticker as integer = 0  'for hidden zones animation
 'The floating menu that displays a list of zones. These are created and updated in mapedit_update_visible_zones
-DIM zonemenu as SimpleMenuItem vector
-DIM zonemenustate as MenuState
 DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
-
-DIM npczone_needupdate as integer
 
 flusharray st.visible(), , -1  'Mark all layers visible (when they're enabled)
 
@@ -415,9 +407,6 @@ st.secondary_undo_buffer = NULL
 v_new st.history
 st.history_step = 0
 st.new_stroke = YES
-
-'Some temporary variables
-DIM as integer temp, doorid, doorlinkid
 
 '--create a palette for the cursor
 st.cursor.pal = palette16_new()
@@ -442,64 +431,61 @@ rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
 '--These tilesets indicate up to 8 zones at once
 '--create three alternative zone tilemaps, I can't decide!
-DIM zonetileset(2) as Frame ptr
-zonetileset(0) = frame_new(20, 20 * 256, , YES)  'large tilesets
-zonetileset(1) = frame_new(20, 20 * 256, , YES)
-zonetileset(2) = frame_new(20, 20 * 256, , YES)
-draw_zone_tileset zonetileset(0)
-draw_zone_tileset2 zonetileset(1)
-draw_zone_tileset3 zonetileset(2)
-'frame_export_bmp8 "zt3.bmp", zonetileset(2), master()
+st.zonetileset(0) = frame_new(20, 20 * 256, , YES)  'large tilesets
+st.zonetileset(1) = frame_new(20, 20 * 256, , YES)
+st.zonetileset(2) = frame_new(20, 20 * 256, , YES)
+draw_zone_tileset st.zonetileset(0)
+draw_zone_tileset2 st.zonetileset(1)
+draw_zone_tileset3 st.zonetileset(2)
+'frame_export_bmp8 "zt3.bmp", st.zonetileset(2), master()
 
-DIM overlaytileset as Frame ptr
-overlaytileset = frame_new(20, 20 * 160, , YES)
-fuzzyrect overlaytileset, 0, 1*20, 20, 20, uilook(uiHighlight)  'Zone edit mode, and NPC movement zone
-fuzzyrect overlaytileset, 0, 2*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone
-fuzzyrect overlaytileset, 0, 3*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone (overriding movement zone)
-rectangle overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)  '???
+st.overlaytileset = frame_new(20, 20 * 160, , YES)
+fuzzyrect st.overlaytileset, 0, 1*20, 20, 20, uilook(uiHighlight)  'Zone edit mode, and NPC movement zone
+fuzzyrect st.overlaytileset, 0, 2*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone
+fuzzyrect st.overlaytileset, 0, 3*20, 20, 20, uilook(uiHighlight2) 'NPC avoidance zone (overriding movement zone)
+rectangle st.overlaytileset, 0, 6*20, 20, 20, uilook(uiDisabledItem)  '???
 
 'Tiles 10 - 15 are for the 'hidden zone' animation. I think it's easier on the eyes than 2 frame flickering.
 'Leave tiles 10-12 blank
 FOR i as integer = 1 TO 3
- 'fuzzyrect overlaytileset, 0, (12 + i)*20, 20, 20, uilook(uiDisabledItem), 5 * i
- fuzzyrect overlaytileset, 0, (12 + i)*20, 20, 20, boxlook(15-i).edgecol, 5 * i
+ 'fuzzyrect st.overlaytileset, 0, (12 + i)*20, 20, 20, uilook(uiDisabledItem), 5 * i
+ fuzzyrect st.overlaytileset, 0, (12 + i)*20, 20, 20, boxlook(15-i).edgecol, 5 * i
 NEXT
 
 'Plenty of tiles left for other purposes
 
 'Note that most of this array is empty
-DIM toolinfo(NUM_TOOLS) as ToolInfoType
-WITH toolinfo(draw_tool)
+WITH st.toolinfo(draw_tool)
  .name = "Draw"
  .icon = "D"  'CHR(3)
  .shortcut = scD
 END WITH
-WITH toolinfo(box_tool)
+WITH st.toolinfo(box_tool)
  .name = "Box"
  .icon = "B"  'CHR(4)
  .shortcut = scB
 END WITH
-WITH toolinfo(fill_tool)
+WITH st.toolinfo(fill_tool)
  .name = "Fill"
  .icon = "F"
  .shortcut = scF
 END WITH
-WITH toolinfo(replace_tool)
+WITH st.toolinfo(replace_tool)
  .name = "Replace"
  .icon = "R"
  .shortcut = scR
 END WITH
-WITH toolinfo(paint_tool)
+WITH st.toolinfo(paint_tool)
  .name = "Paint Tilemap"
  .icon = "P"
  .shortcut = scP
 END WITH
-WITH toolinfo(mark_tool)
+WITH st.toolinfo(mark_tool)
  .name = "Mark (Copy)"
  .icon = "M"
  .shortcut = scM
 END WITH
-WITH toolinfo(clone_tool)
+WITH st.toolinfo(clone_tool)
  .name = "Clone (Paste)"
  .icon = "C"
  .shortcut = scC
@@ -507,15 +493,15 @@ END WITH
 
 '--load hero graphics--
 loadherodata her, 0
-load_sprite_and_pal hero_gfx, sprTypeWalkabout, her.walk_sprite, her.walk_sprite_pal
+load_sprite_and_pal st.hero_gfx, sprTypeWalkabout, her.walk_sprite, her.walk_sprite_pal
 
 
-modenames(0) = "Picture Mode"
-modenames(1) = "Passability Mode"
-modenames(2) = "Door Placement Mode"
-modenames(3) = "NPC Placement Mode"
-modenames(4) = "Foe Mapping Mode"
-modenames(5) = "Zone Mapping Mode"
+st.modenames(0) = "Picture Mode"
+st.modenames(1) = "Passability Mode"
+st.modenames(2) = "Door Placement Mode"
+st.modenames(3) = "NPC Placement Mode"
+st.modenames(4) = "Foe Mapping Mode"
+st.modenames(5) = "Zone Mapping Mode"
 
 'Due to laziness, the menubar shows all 256 tiles (including animated tiles),
 'while the tileset tile picker hides unused animated tile patterns.
@@ -600,7 +586,7 @@ DO
     npcdef st
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
-    GOSUB mapping
+    mapeditor_mapping st, mode_tools_map(), lockedzonelist()
    CASE 11
     mapedit_savemap st
     mapedit_linkdoors st
@@ -658,18 +644,18 @@ unloadtilemap st.zoneviewmap
 unloadtilemap st.zoneoverlaymap
 v_free st.defaultwalls
 unload_sprite_and_pal st.cursor
-unload_sprite_and_pal hero_gfx
-frame_unload @zonetileset(0)
-frame_unload @zonetileset(1)
-frame_unload @zonetileset(2)
-frame_unload @overlaytileset
+unload_sprite_and_pal st.hero_gfx
+frame_unload @st.zonetileset(0)
+frame_unload @st.zonetileset(1)
+frame_unload @st.zonetileset(2)
+frame_unload @st.overlaytileset
 frame_unload @st.zoneminimap
-v_free mode_tools
-v_free zonemenu
+v_free st.mode_tools
+v_free st.zonemenu
 ' Contents of st.map are freed by destructor
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
-EXIT SUB
+END SUB
 
 
 '==========================================================================================
@@ -677,7 +663,7 @@ EXIT SUB
 '==========================================================================================
 
 
-mapping:
+SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer, lockedzonelist() as integer)
 clearpage 2
 
 st.reset_tool = YES
@@ -685,9 +671,9 @@ st.defpass = YES
 IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 st.autoshow_zones = YES
 st.showzonehints = YES
-zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
+st.zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 st.zones_needupdate = YES
-npczone_needupdate = YES
+st.npczone_needupdate = YES
 DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
@@ -698,7 +684,7 @@ DO
  setkeys
  tog = tog XOR 1
  chequer_scroll += 1
- gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
+ st.gauze_ticker = (st.gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  st.message_ticks = large(0, st.message_ticks - 1) 
 
  IF keyval(scESC) > 1 THEN EXIT DO
@@ -722,14 +708,14 @@ DO
   st.seteditmode = -1
 
   'Set available tools
-  v_resize mode_tools, 0
+  v_resize st.mode_tools, 0
   DIM tools_i as integer = 0
   WHILE mode_tools_map(st.editmode, tools_i) <> -1
-   v_append mode_tools, mode_tools_map(st.editmode, tools_i)
+   v_append st.mode_tools, mode_tools_map(st.editmode, tools_i)
    tools_i += 1
   WEND
-  toolsbar_available = v_len(mode_tools) <> 0
-  drawing_allowed = YES  'if there are any tools, that is
+  st.toolsbar_available = v_len(st.mode_tools) <> 0
+  st.drawing_allowed = YES  'if there are any tools, that is
 
   st.brush = NULL
   st.reader = NULL
@@ -741,7 +727,7 @@ DO
     st.brush = @wallbitbrush
    CASE door_mode
    CASE npc_mode
-    npczone_needupdate = YES
+    st.npczone_needupdate = YES
    CASE foe_mode
     st.brush = @foebrush
     st.reader = @foereader
@@ -749,18 +735,18 @@ DO
     st.brush = @zonebrush
     st.reader = @zonereader
     IF st.zonesubmode = zone_view_mode THEN
-     toolsbar_available = NO  'No normal tool switching in view mode
+     st.toolsbar_available = NO  'No normal tool switching in view mode
      st.tool = draw_tool
-     drawing_allowed = NO
+     st.drawing_allowed = NO
     END IF
     st.zones_needupdate = YES
   END SELECT
 
   'Reset tool
-  IF v_len(mode_tools) = 0 THEN
+  IF v_len(st.mode_tools) = 0 THEN
    st.tool = -1  'None
-  ELSEIF v_find(mode_tools, st.tool) = -1 THEN
-   st.tool = mode_tools[0]
+  ELSEIF v_find(st.mode_tools, st.tool) = -1 THEN
+   st.tool = st.mode_tools[0]
   END IF
   st.reset_tool = YES
   st.tool_hold = NO
@@ -821,9 +807,9 @@ DO
     END WITH
    NEXT i
    'delete door
-   doorid = find_door_at_spot(st.x, st.y, st.map.door())
-   IF doorid >= 0 THEN
-    set_door_exists(st.map.door(), doorid, NO)
+   st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+   IF st.doorid >= 0 THEN
+    set_door_exists(st.map.door(), st.doorid, NO)
    END IF
    'zones not deleted
  END IF
@@ -971,17 +957,17 @@ DO
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scEnter) > 1 THEN ' enter to link a door
-    doorid = find_door_at_spot(st.x, st.y, st.map.door())
-    IF doorid >= 0 THEN
+    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
      mapedit_savemap st
-     doorlinkid = find_first_doorlink_by_door(doorid, st.map.doorlink())
+     DIM doorlinkid as integer = find_first_doorlink_by_door(st.doorid, st.map.doorlink())
      IF doorlinkid >= 0 THEN
       link_one_door st, doorlinkid
      ELSE
       doorlinkid = find_last_used_doorlink(st.map.doorlink()) + 1
       IF doorlinkid >= 0 AND doorlinkid <= UBOUND(st.map.doorlink) THEN
-       st.map.doorlink(doorlinkid).source = doorid
+       st.map.doorlink(doorlinkid).source = st.doorid
        link_one_door st, doorlinkid
       END IF
      END IF
@@ -995,10 +981,10 @@ DO
     END IF
    END IF
    IF keyval(scSpace) > 1 THEN ' space to place a door
-    doorid = find_door_at_spot(st.x, st.y, st.map.door())
-    IF doorid >= 0 THEN
+    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    IF st.doorid >= 0 THEN
      'clear an existing door
-     set_door_exists(st.map.door(), doorid, NO)
+     set_door_exists(st.map.door(), st.doorid, NO)
     ELSE
      'Either move the current door if it exists, or create it
      st.map.door(st.cur_door).x = st.x
@@ -1011,9 +997,9 @@ DO
     END IF
    END IF
    IF keyval(scDelete) > 1 THEN
-    doorid = find_door_at_spot(st.x, st.y, st.map.door())
-    IF doorid >= 0 THEN
-     set_door_exists(st.map.door(), doorid, NO)
+    st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
+    IF st.doorid >= 0 THEN
+     set_door_exists(st.map.door(), st.doorid, NO)
     END IF
    END IF
 
@@ -1040,7 +1026,7 @@ DO
     IF slowkey(scLeft, 660)  THEN st.npc_d = 3
    END IF
    IF keyval(scSpace) > 1 OR st.npc_d > -1 THEN
-    temp = 0
+    DIM npc_slot as integer = 0
     IF st.npc_d = -1 THEN
      DIM npci as integer = mapedit_npc_at_spot(st)
      IF npci > -1 THEN
@@ -1049,21 +1035,21 @@ DO
        .x = 0
        .y = 0
        .dir = 0
-       temp = 1
+       npc_slot = 1
       END WITH
      END IF
     END IF
     IF st.npc_d = -1 THEN st.npc_d = 2
-    IF temp = 0 THEN
-     temp = -1
+    IF npc_slot = 0 THEN
+     npc_slot = -1
      FOR i as integer = 299 TO 0 STEP -1
-      IF st.map.npc(i).id = 0 THEN temp = i
+      IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
-     IF temp >= 0 THEN
-      st.map.npc(temp).x = st.x * 20
-      st.map.npc(temp).y = st.y * 20
-      st.map.npc(temp).id = st.cur_npc + 1
-      st.map.npc(temp).dir = st.npc_d
+     IF npc_slot >= 0 THEN
+      st.map.npc(npc_slot).x = st.x * 20
+      st.map.npc(npc_slot).y = st.y * 20
+      st.map.npc(npc_slot).id = st.cur_npc + 1
+      st.map.npc(npc_slot).dir = st.npc_d
      END IF
     END IF
    END IF
@@ -1084,8 +1070,8 @@ DO
    IF keyval(scCtrl) = 0 THEN
     IF keyval(scZ) > 1 THEN
      st.zonesubmode = st.zonesubmode XOR 1
-     toolsbar_available = (st.zonesubmode = zone_edit_mode)
-     drawing_allowed = (st.zonesubmode = zone_edit_mode)
+     st.toolsbar_available = (st.zonesubmode = zone_edit_mode)
+     st.drawing_allowed = (st.zonesubmode = zone_edit_mode)
      IF st.zonesubmode = zone_view_mode THEN st.tool = draw_tool
      st.zones_needupdate = YES
     END IF
@@ -1119,9 +1105,9 @@ DO
 
    ELSE
     '--Multizone view
-    usemenu zonemenustate, cast(BasicMenuItem vector, zonemenu), scLeftCaret, scRightCaret
-    IF zonemenustate.pt > -1 THEN
-     st.cur_zone = zonemenu[zonemenustate.pt].dat
+    usemenu st.zonemenustate, cast(BasicMenuItem vector, st.zonemenu), scLeftCaret, scRightCaret
+    IF st.zonemenustate.pt > -1 THEN
+     st.cur_zone = st.zonemenu[st.zonemenustate.pt].dat
      st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
      IF keyval(scL) > 1 THEN  'Lock/Unlock
       IF int_array_find(lockedzonelist(), st.cur_zone) > -1 THEN
@@ -1139,7 +1125,7 @@ DO
      END IF
     END IF
     'You may draw if you lock the zone first to avoid weird graphical glitches
-    drawing_allowed = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
+    st.drawing_allowed = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
      st.zones_needupdate = YES
@@ -1207,12 +1193,12 @@ DO
  ' maprect.high = small(st.map.high * 20 - st.mapy, mapviewsize.h)
 
  '--Tools
- IF drawing_allowed AND v_len(mode_tools) > 0 THEN
+ IF st.drawing_allowed AND v_len(st.mode_tools) > 0 THEN
   '--Select tool
-  IF toolsbar_available THEN
-   FOR i as integer = 0 TO v_len(mode_tools) - 1
-    IF keyval(scCtrl) = 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
-     st.tool = mode_tools[i]
+  IF st.toolsbar_available THEN
+   FOR i as integer = 0 TO v_len(st.mode_tools) - 1
+    IF keyval(scCtrl) = 0 AND keyval(st.toolinfo(st.mode_tools[i]).shortcut) > 1 THEN
+     st.tool = st.mode_tools[i]
      st.reset_tool = YES
      st.tool_hold = NO
     END IF
@@ -1321,7 +1307,7 @@ DO
  END IF
 
  '--Undo/Redo
- 'IF v_len(mode_tools) THEN
+ 'IF v_len(st.mode_tools) THEN
  DIM stroke as MapEditUndoTile vector = NULL
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 THEN
   stroke = undo_stroke(st)
@@ -1357,8 +1343,8 @@ DO
    END IF
   ELSE
    IF st.zones_needupdate OR st.moved THEN
-    'Rebuilds zonemenu and st.zoneviewmap based on selected tile and lockedzonelist() 
-    mapedit_update_visible_zones st, zonemenu, zonemenustate, lockedzonelist()
+    'Rebuilds st.zonemenu and st.zoneviewmap based on selected tile and lockedzonelist() 
+    mapedit_update_visible_zones st, lockedzonelist()
    END IF
   END IF
 
@@ -1410,7 +1396,7 @@ DO
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
   IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + mapviewsize.w) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + mapviewsize.h) \ 20 THEN
-   frame_draw hero_gfx.sprite + 4, hero_gfx.pal, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, , , dpage
+   frame_draw st.hero_gfx.sprite + 4, st.hero_gfx.pal, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, , , dpage
    textcolor uilook(uiText), 0
    printstr "Hero", gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 30 - st.mapy, dpage
   END IF
@@ -1494,7 +1480,7 @@ DO
     END IF
    END WITH
   END IF
-  IF oldzone <> st.cur_npc_zone OR oldwallzone <> st.cur_npc_wall_zone OR npczone_needupdate THEN
+  IF oldzone <> st.cur_npc_zone OR oldwallzone <> st.cur_npc_wall_zone OR st.npczone_needupdate THEN
    CleanTilemap st.zoneoverlaymap, st.map.wide, st.map.high
    IF st.cur_npc_zone > 0 THEN
     ZoneToTilemap st.map.zmap, st.zoneoverlaymap, st.cur_npc_zone, 0
@@ -1502,15 +1488,15 @@ DO
    IF st.cur_npc_wall_zone > 0 THEN
     ZoneToTilemap st.map.zmap, st.zoneoverlaymap, st.cur_npc_wall_zone, 1
    END IF
-   npczone_needupdate = NO
+   st.npczone_needupdate = NO
    'We're reusing st.zoneoverlaymap
    st.zones_needupdate = YES
   END IF
   '--Draw NPC zones
-  drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
+  drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
 
   '--Draw npcs
-  REDIM npcnum(UBOUND(st.map.npc_def))  'Clear counts to 0
+  REDIM npcnum(UBOUND(st.map.npc_def)) as integer  'Clear counts to 0
   st.walk = (st.walk + 1) MOD 4
   FOR i as integer = 0 TO UBOUND(st.map.npc)
    WITH st.map.npc(i)
@@ -1535,10 +1521,10 @@ DO
   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
    FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
     IF (st.mapx \ 20) + i < st.map.wide ANDALSO (st.mapy \ 20) + o < st.map.high THEN
-     temp = readblock(st.map.foemap, st.mapx \ 20 + i, st.mapy \ 20 + o)
+     DIM foe_val as integer = readblock(st.map.foemap, st.mapx \ 20 + i, st.mapy \ 20 + o)
      DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
      DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-     IF temp > 0 THEN printstr STR(temp), pixelx - ((temp < 10) * 5), pixely + 26, dpage
+     IF foe_val > 0 THEN printstr STR(foe_val), pixelx - ((foe_val < 10) * 5), pixely + 26, dpage
     END IF
    NEXT o
   NEXT i
@@ -1548,14 +1534,14 @@ DO
  IF st.editmode = zone_mode THEN
   IF st.zonesubmode = zone_edit_mode THEN
    'Draw a single zone
-   drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
+   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
   ELSE
    'Draw all zones on this tile
-   drawmap st.zoneviewmap, st.mapx, st.mapy, zonetileset(st.zoneviewtileset), dpage, YES, , , 20, , YES
+   drawmap st.zoneviewmap, st.mapx, st.mapy, st.zonetileset(st.zoneviewtileset), dpage, YES, , , 20, , YES
    IF st.showzonehints THEN
     'Overlay 'hints' at hidden zones
-    setanim ABS(gauze_ticker \ 5 - 4), 0
-    drawmap st.zoneoverlaymap, st.mapx, st.mapy, overlaytileset, dpage, YES, , , 20
+    setanim ABS(st.gauze_ticker \ 5 - 4), 0
+    drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
    END IF
   END IF
  END IF
@@ -1628,28 +1614,28 @@ DO
  textcolor uilook(uiSelectedItem + tog), 0 
  printstr "X " & st.x & "   Y " & st.y, 0, maprect.p2.y - 8, dpage
  textcolor uilook(uiText), 0
- printstr modenames(st.editmode), 0, 24, dpage
+ printstr st.modenames(st.editmode), 0, 24, dpage
 
  '--Tool selection
- IF toolsbar_available THEN
-  DIM toolbarpos as XYPair = XY(rRight - 10 * v_len(mode_tools), 0)
+ IF st.toolsbar_available THEN
+  DIM toolbarpos as XYPair = XY(rRight - 10 * v_len(st.mode_tools), 0)
   IF st.editmode = tile_mode THEN
    toolbarpos.y = 12
   END IF
-  rectangle toolbarpos.x, toolbarpos.y, 10 * v_len(mode_tools), 8, uilook(uiBackground), dpage
-  FOR i as integer = 0 TO v_len(mode_tools) - 1
-   mapedit_draw_icon st, toolinfo(mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = mode_tools[i])
+  rectangle toolbarpos.x, toolbarpos.y, 10 * v_len(st.mode_tools), 8, uilook(uiBackground), dpage
+  FOR i as integer = 0 TO v_len(st.mode_tools) - 1
+   mapedit_draw_icon st, st.toolinfo(st.mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = st.mode_tools[i])
   NEXT
   DIM tmpstr as string
   IF st.tool = paint_tool THEN
    'Show the current layer if using the paint tool, since that depends on selected tilemap layer
    tmpstr = "Tool:Paint on " & hilite("Layer " & st.layer)
   ELSE
-   tmpstr = "Tool: " & toolinfo(st.tool).name
+   tmpstr = "Tool: " & st.toolinfo(st.tool).name
   END IF
   textcolor uilook(uiText), 0 
   printstr tmpstr, pRight, toolbarpos.y + 10, dpage, YES
- ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND drawing_allowed THEN
+ ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND st.drawing_allowed THEN
   'Nasty
   textcolor uilook(uiText), 0 
   printstr "Tool: Draw", pRight, 22, dpage
@@ -1707,7 +1693,7 @@ DO
    printstr "(" + hilite("Z") + ": Editing)", 140, 24, dpage, YES
   ELSE
    printstr "(" + hilite("Z") + ": Viewing)", 140, 24, dpage, YES
-   IF zonemenustate.pt = -1 THEN zoneselected = NO
+   IF st.zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
   IF zoneselected THEN
@@ -1747,11 +1733,11 @@ DO
    zmenuopts.edged = YES
    zmenuopts.wide = pixel_width
    zmenuopts.itemspacing = -1  'Squeeze so all zones can fit in at 320x200
-   standardmenu cast(BasicMenuItem vector, zonemenu), zonemenustate, xpos, ypos, dpage, zmenuopts
+   standardmenu cast(BasicMenuItem vector, st.zonemenu), st.zonemenustate, xpos, ypos, dpage, zmenuopts
 
-   IF zonemenustate.pt > -1 THEN
+   IF st.zonemenustate.pt > -1 THEN
     ' A little right arrow
-    edgeprint CHR(26), xpos - 8, ypos + (zonemenustate.pt - zonemenustate.top) * zonemenustate.spacing, uilook(uiText), dpage
+    edgeprint CHR(26), xpos - 8, ypos + (st.zonemenustate.pt - st.zonemenustate.top) * st.zonemenustate.spacing, uilook(uiText), dpage
    END IF
 
   END IF
@@ -1770,8 +1756,6 @@ DO
  IF dowait THEN slowtog XOR= 1
 LOOP
 st.message_ticks = 0
-RETRACE '--end of mapping GOSUB block
-
 END SUB
 
 
@@ -1945,7 +1929,7 @@ SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as
 END SUB
 
 'Rebuilds zonemenu and st.zoneviewmap based on selected tile and lockedzonelist() 
-SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMenuItem vector, zonemenustate as MenuState, lockedzonelist() as integer)
+SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as integer)
 
  REDIM tilezonelist(-1 TO -1) as integer  'The zones at the current tile (index 0 onwards, start at -1 for fake zero-length arrays)
  REDIM viszonelist(-1 TO 0) as integer    'The currently displayed zones. At most 8. (index 0 onwards, start at -1 for fake zero-length arrays)
@@ -1954,13 +1938,13 @@ SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMe
  'Find the previous selection, so can move the cursor to something appropriate
  DIM oldpt_zone as integer = -1
  DIM oldpt_waslocked as bool = NO
- IF zonemenustate.pt <> -1 THEN
-  oldpt_zone = zonemenu[zonemenustate.pt].dat
+ IF st.zonemenustate.pt <> -1 THEN
+  oldpt_zone = st.zonemenu[st.zonemenustate.pt].dat
   'Search for "Zones here:", yeah, real ugly
-  FOR i as integer = zonemenustate.pt TO v_len(zonemenu) - 1
-   IF zonemenu[i].dat = 0 THEN oldpt_waslocked = YES
+  FOR i as integer = st.zonemenustate.pt TO v_len(st.zonemenu) - 1
+   IF st.zonemenu[i].dat = 0 THEN oldpt_waslocked = YES
   NEXT
-'  oldpt_waslocked = (zonemenustate.pt <= UBOUND(lockedzonelist) + 1)
+'  oldpt_waslocked = (st.zonemenustate.pt <= UBOUND(lockedzonelist) + 1)
  END IF
 
  GetZonesAtTile st.map.zmap, tilezonelist(), st.x, st.y
@@ -1984,35 +1968,35 @@ SUB mapedit_update_visible_zones (st as MapEditState, byref zonemenu as SimpleMe
  END IF
 
  'Rebuild the menu
- v_free zonemenu
- v_new zonemenu
+ v_free st.zonemenu
+ v_new st.zonemenu
  IF UBOUND(lockedzonelist) >= 0 THEN
-  append_simplemenu_item zonemenu, "Locked zones:", YES, uilook(uiText)
+  append_simplemenu_item st.zonemenu, "Locked zones:", YES, uilook(uiText)
  END IF
  FOR i as integer = 0 TO UBOUND(lockedzonelist)
-  zonemenu_add_zone zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, lockedzonelist(i))
+  zonemenu_add_zone st.zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, lockedzonelist(i))
  NEXT
 
- append_simplemenu_item zonemenu, IIF(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES, uilook(uiText)
- DIM tileliststart as integer = v_len(zonemenu)
+ append_simplemenu_item st.zonemenu, IIF(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES, uilook(uiText)
+ DIM tileliststart as integer = v_len(st.zonemenu)
  FOR i as integer = 0 TO UBOUND(tilezonelist)
-  zonemenu_add_zone zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, tilezonelist(i))
+  zonemenu_add_zone st.zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, tilezonelist(i))
  NEXT
 
- zonemenustate.size = 15
+ st.zonemenustate.size = 15
  'sets .pt to something valid, or -1 if nothing selectable
- init_menu_state zonemenustate, cast(BasicMenuItem vector, zonemenu)
+ init_menu_state st.zonemenustate, cast(BasicMenuItem vector, st.zonemenu)
 
  'Pick a good selection automatically
- IF zonemenustate.pt <> -1 THEN
+ IF st.zonemenustate.pt <> -1 THEN
   IF oldpt_waslocked THEN
-'   zonemenustate.pt = bound(zonemenustate.pt, 1, UBOUND(lockedzonelist) + 1)
+'   st.zonemenustate.pt = bound(st.zonemenustate.pt, 1, UBOUND(lockedzonelist) + 1)
   ELSE
-   IF tileliststart < v_len(zonemenu) THEN
-    zonemenustate.pt = tileliststart
-    FOR i as integer = v_len(zonemenu) - 1 TO 0 STEP -1
-     IF zonemenu[i].dat = oldpt_zone THEN zonemenustate.pt = i: EXIT FOR
-     IF zonemenu[i].dat = 0 THEN EXIT FOR
+   IF tileliststart < v_len(st.zonemenu) THEN
+    st.zonemenustate.pt = tileliststart
+    FOR i as integer = v_len(st.zonemenu) - 1 TO 0 STEP -1
+     IF st.zonemenu[i].dat = oldpt_zone THEN st.zonemenustate.pt = i: EXIT FOR
+     IF st.zonemenu[i].dat = 0 THEN EXIT FOR
     NEXT
    END IF
   END IF
