@@ -5450,6 +5450,10 @@ end
 				<ref>nextsibling</ref>
 			</seealso>
 		</command>
+		<command id="sliceparent">
+			<alias>parentslice</alias>
+			<shortname>slice parent</shortname>
+		</command>
 		<command id="parentslice">
 			<canon>parent slice (handle)</canon>
 			<shortname>parent slice</shortname>
