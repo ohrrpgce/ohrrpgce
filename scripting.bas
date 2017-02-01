@@ -1432,7 +1432,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   IF state.pt = 6 THEN
    textcolor uilook(uiSelectedItem), 0 
    wrapprint !"The debugger is a usability train-wreck!\n" + _
-              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , fontPlain
+              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , , fontPlain
   END IF
   setvispage vpage
 
@@ -1543,7 +1543,7 @@ FUNCTION script_interrupt () as integer
   IF state.pt = 4 THEN
    textcolor uilook(uiSelectedItem), 0 
    wrapprint !"The debugger is a usability train-wreck!\n" + _
-              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , fontPlain
+              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , , fontPlain
   END IF
   setvispage vpage
 

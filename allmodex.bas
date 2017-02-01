@@ -4334,7 +4334,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 end sub
 
 'Calculate size of part of a block of text when drawn, returned in retsize
-'FIXME: if the text ends exactly at the screen boundary ('wide'), an extra blank line is appended
+'NOTE: Edged font has width 1 pixel more than Plain font, due to .offset.x.
 sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 'debug "DIMEN char " & endchar
 	dim state as PrintStrState
