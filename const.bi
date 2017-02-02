@@ -12,6 +12,13 @@ CONST CURRENT_RPG_VERSION = 20
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
 '--version history
+' 0 - Super-ancient 1998 format
+' 1 - Ancient 1998-1999 format
+' 2 - 1999-06-18
+' 3 - 1999-07-08
+' 4 - 2000-09-15
+' 5 - 2001-03-31
+' 6 - 2006-02-13 - serendipity added MIDI music, shop stuff
 ' 7 - ypsiliform wip added > 36 NPC defs (and many other features)
 ' 8 - ypsiliform wip added extended chaining data (and many other features)
 ' 9 - ypsiliform wip added text box sound effects
