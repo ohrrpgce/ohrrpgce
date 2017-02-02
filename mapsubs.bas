@@ -21,7 +21,7 @@ CONST tileh = 20
 
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
-DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer, lockedzonelist() as integer)
+DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
 DECLARE FUNCTION addmaphow () as integer
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -56,7 +56,7 @@ DECLARE SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
 DECLARE SUB mapedit_doZoneHinting(st as MapEditState)
 DECLARE SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as integer, byval info as ZoneInfo ptr)
 DECLARE FUNCTION mapedit_try_assign_colour_to_zone(byval id as integer, zonecolours() as integer, viszonelist() as integer) as integer
-DECLARE SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as integer)
+DECLARE SUB mapedit_update_visible_zones (st as MapEditState)
 DECLARE SUB mapedit_edit_zoneinfo(st as MapEditState)
 DECLARE SUB mapedit_zonespam(st as MapEditState)
 DECLARE SUB draw_zone_minimap(st as MapEditState, tmap as TileMap, byval bitnum as integer, byval col as integer)
@@ -396,7 +396,7 @@ DIM mode_tools_map(zone_mode, 10) as integer = { _
 
 v_new st.mode_tools
 
-REDIM lockedzonelist(-1 TO -1) as integer 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
+REDIM st.lockedzonelist(-1 TO -1) as integer 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 'The floating menu that displays a list of zones. These are created and updated in mapedit_update_visible_zones
 DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
 
@@ -586,7 +586,7 @@ DO
     npcdef st
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
-    mapeditor_mapping st, mode_tools_map(), lockedzonelist()
+    mapeditor_mapping st, mode_tools_map()
    CASE 11
     mapedit_savemap st
     mapedit_linkdoors st
@@ -663,7 +663,7 @@ END SUB
 '==========================================================================================
 
 
-SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer, lockedzonelist() as integer)
+SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
 clearpage 2
 
 st.reset_tool = YES
@@ -1110,22 +1110,22 @@ DO
      st.cur_zone = st.zonemenu[st.zonemenustate.pt].dat
      st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
      IF keyval(scL) > 1 THEN  'Lock/Unlock
-      IF int_array_find(lockedzonelist(), st.cur_zone) > -1 THEN
-       int_array_remove(lockedzonelist(), st.cur_zone)
-      ELSEIF UBOUND(lockedzonelist) + 1 < 8 THEN
-       int_array_append(lockedzonelist(), st.cur_zone)
+      IF int_array_find(st.lockedzonelist(), st.cur_zone) > -1 THEN
+       int_array_remove(st.lockedzonelist(), st.cur_zone)
+      ELSEIF UBOUND(st.lockedzonelist) + 1 < 8 THEN
+       int_array_append(st.lockedzonelist(), st.cur_zone)
        st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
       END IF
       st.zones_needupdate = YES
      END IF
      IF keyval(scH) > 1 THEN
       st.cur_zinfo->hidden XOR= YES
-      int_array_remove(lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
+      int_array_remove(st.lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
       st.zones_needupdate = YES
      END IF
     END IF
     'You may draw if you lock the zone first to avoid weird graphical glitches
-    st.drawing_allowed = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
+    st.drawing_allowed = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
      st.zones_needupdate = YES
@@ -1343,8 +1343,8 @@ DO
    END IF
   ELSE
    IF st.zones_needupdate OR st.moved THEN
-    'Rebuilds st.zonemenu and st.zoneviewmap based on selected tile and lockedzonelist() 
-    mapedit_update_visible_zones st, lockedzonelist()
+    'Rebuilds st.zonemenu and st.zoneviewmap based on selected tile and st.lockedzonelist() 
+    mapedit_update_visible_zones st
    END IF
   END IF
 
@@ -1715,7 +1715,7 @@ DO
             & IIF(st.showzonehints,"      ","Don't ") & hilite("S") + "how other", 0, 5, dpage, YES
 
    IF zoneselected THEN
-    DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
+    DIM is_locked as integer = (int_array_find(st.lockedzonelist(), st.cur_zone) > -1)
     printstr hilite("E") + "dit/" _
              & IIF(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
              & IIF(is_locked,"un","") + hilite("L") + "ock zone", pRight - 20, pBottom, dpage, YES
@@ -1928,8 +1928,8 @@ SUB zonemenu_add_zone (byref zonemenu as SimpleMenuItem vector, zonecolours() as
  append_simplemenu_item zonemenu, "${K" & col & "}" & info->id & "${K" & uilook(uiText) & "}" & extra, , , info->id
 END SUB
 
-'Rebuilds zonemenu and st.zoneviewmap based on selected tile and lockedzonelist() 
-SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as integer)
+'Rebuilds zonemenu and st.zoneviewmap based on selected tile and st.lockedzonelist() 
+SUB mapedit_update_visible_zones (st as MapEditState)
 
  REDIM tilezonelist(-1 TO -1) as integer  'The zones at the current tile (index 0 onwards, start at -1 for fake zero-length arrays)
  REDIM viszonelist(-1 TO 0) as integer    'The currently displayed zones. At most 8. (index 0 onwards, start at -1 for fake zero-length arrays)
@@ -1944,7 +1944,7 @@ SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as intege
   FOR i as integer = st.zonemenustate.pt TO v_len(st.zonemenu) - 1
    IF st.zonemenu[i].dat = 0 THEN oldpt_waslocked = YES
   NEXT
-'  oldpt_waslocked = (st.zonemenustate.pt <= UBOUND(lockedzonelist) + 1)
+'  oldpt_waslocked = (st.zonemenustate.pt <= UBOUND(st.lockedzonelist) + 1)
  END IF
 
  GetZonesAtTile st.map.zmap, tilezonelist(), st.x, st.y
@@ -1952,8 +1952,8 @@ SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as intege
  'Decide upon visible zones
 
  REDIM viszonelist(-1 TO -1)
- FOR i as integer = 0 TO UBOUND(lockedzonelist)
-  mapedit_try_assign_colour_to_zone lockedzonelist(i), st.zonecolours(), viszonelist()
+ FOR i as integer = 0 TO UBOUND(st.lockedzonelist)
+  mapedit_try_assign_colour_to_zone st.lockedzonelist(i), st.zonecolours(), viszonelist()
  NEXT
 
  IF st.autoshow_zones THEN
@@ -1970,11 +1970,11 @@ SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as intege
  'Rebuild the menu
  v_free st.zonemenu
  v_new st.zonemenu
- IF UBOUND(lockedzonelist) >= 0 THEN
+ IF UBOUND(st.lockedzonelist) >= 0 THEN
   append_simplemenu_item st.zonemenu, "Locked zones:", YES, uilook(uiText)
  END IF
- FOR i as integer = 0 TO UBOUND(lockedzonelist)
-  zonemenu_add_zone st.zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, lockedzonelist(i))
+ FOR i as integer = 0 TO UBOUND(st.lockedzonelist)
+  zonemenu_add_zone st.zonemenu, st.zonecolours(), GetZoneInfo(st.map.zmap, st.lockedzonelist(i))
  NEXT
 
  append_simplemenu_item st.zonemenu, IIF(UBOUND(tilezonelist) >= 0, "Zones here:", "No zones here"), YES, uilook(uiText)
@@ -1990,7 +1990,7 @@ SUB mapedit_update_visible_zones (st as MapEditState, lockedzonelist() as intege
  'Pick a good selection automatically
  IF st.zonemenustate.pt <> -1 THEN
   IF oldpt_waslocked THEN
-'   st.zonemenustate.pt = bound(st.zonemenustate.pt, 1, UBOUND(lockedzonelist) + 1)
+'   st.zonemenustate.pt = bound(st.zonemenustate.pt, 1, UBOUND(st.lockedzonelist) + 1)
   ELSE
    IF tileliststart < v_len(st.zonemenu) THEN
     st.zonemenustate.pt = tileliststart

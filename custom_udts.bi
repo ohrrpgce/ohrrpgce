@@ -276,6 +276,7 @@ TYPE MapEditState
   hero_gfx as GraphicPair
   overlaytileset as Frame ptr
   zonetileset(2) as Frame ptr
+  lockedzonelist(any) as integer
  
   'Most of these could become locals after mapping gosub is broken into real subs
   tiny as bool               'whether or not to show the tiny screen relative to map area
