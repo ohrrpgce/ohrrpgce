@@ -5131,7 +5131,7 @@ FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as s
 END FUNCTION
 
 FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
- ' :_'~? are allowed
+ ' :'_~? are allowed
  DIM to_exclude as string = !"`!@#$%^&*()-+=[]{}\\|<>,.;/\""
  IF allow_whitespace = NO THEN to_exclude &= " "
  DIM tmp as string = exclude(ident, to_exclude)

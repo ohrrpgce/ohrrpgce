@@ -125,25 +125,32 @@ def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|readnode|with
 class LanguageError(ParseError):
     def __init__(self, message, node):
         self.message, self.node = message, node
-        #1/0
 
 
 def source_lines_iter(lines):
     """
-    Joins together lines when _ precedes a newline.
+    Joins together lines when the continuation character _ precedes a newline.
+    A '... or /'...'/ comment is allowed after the _, and is stripped (only in the case that there is a _)
     Generates (lineno, line) pairs, where lineno is the real line number of the first line.
     Strips newlines.
     """
     accum = ""
     lineno = None
+    # regex to search for a _ followed by optionally comment then end of line.
+    # Also, the character before the _ must not be alphanumeric (eg don't match __UNIX__)
+    # BUG: this is a kludge, will erroneously match characters inside
+    # strings or comments like  print "_'"  or  'comment_
+    continuation = re.compile("(?<=\W)_\s*(('.*)|/'.*'/\s*)?$")
     for i, line in enumerate(lines):
         if lineno == None:
             lineno = i + 1
         line = line.rstrip("\n")
-        accum += line
-        if line.endswith("_") and line[-2] != "_":
-            accum = accum[:-1] + " "
+        match = continuation.search(line)
+        if match:
+            line = line[:match.start()]
+            accum += line
             continue
+        accum += line
         yield lineno, accum
         accum = ""
         lineno = None
