@@ -90,6 +90,15 @@ DECLARE SUB spriteedit_export OVERLOAD (default_name as string, spr as Frame ptr
 ' Locals
 DIM SHARED ss_save as SpriteEditStatic
 
+WITH ss_save
+ .tool = draw_tool
+ .airsize = 5
+ .mist = 4
+ .palindex = 1
+ .hidemouse = NO
+END WITH
+
+
 SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
 'airbrush thanks to Ironhoof (Russel Hamrick)
 
@@ -3162,10 +3171,11 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   .gotmouse = havemouse()
   .didscroll = NO
   .drawcursor = 1
-  .tool = draw_tool
-  .airsize = 5
-  .mist = 4
-  .palindex = 1
+  .tool = ss_save.tool
+  .airsize = ss_save.airsize
+  .mist = ss_save.mist
+  .palindex = ss_save.palindex
+  .hidemouse = ss_save.hidemouse
   .previewpos.x = 319 - .wide
   .previewpos.y = 119
 
@@ -3286,6 +3296,14 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
  palette16_save ss.palette, ss.pal_num
  palette16_unload @ss.palette
  v_free ss.undo_history
+
+ WITH ss_save
+  .tool = ss.tool
+  .airsize = ss.airsize
+  .mist = ss.mist
+  .palindex = ss.palindex
+  .hidemouse = ss.hidemouse
+ END WITH
 
  'Save the sprite before leaving
  spriteedit_clip ss

@@ -50,6 +50,13 @@ TYPE SpriteEditStatic
 
   'Used for Alt+C/V copying of palettes; NULL if none
   pal_clipboard as Palette16 ptr
+
+  'Minor remembered settings
+  tool as integer
+  airsize as integer
+  mist as integer
+  hidemouse as bool
+  palindex as integer
 END TYPE
 
 TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr)
@@ -100,7 +107,7 @@ TYPE SpriteEditState
   gotmouse as bool
   mouse as MouseInfo
   hidemouse as bool
-  drawcursor as integer
+  drawcursor as integer 'Icon to use for the cursor, (character in the font)
   tool as integer
   pal_num as integer    'Palette used by current sprite
   curcolor as integer   'Index in master palette (equal to .palette->col(.palindex))
