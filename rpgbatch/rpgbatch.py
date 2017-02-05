@@ -104,7 +104,7 @@ class ArchiveInfo(object):
         return self.zip.getinfo(fname).file_size
 
 class RPGIterator(object):
-    def __init__(self, things, yield_zips = False):
+    def __init__(self, things, yield_zips = False, yield_corrupt_games = False):
         """Pass in a list of paths: .rpg files, .rpgdir folders, .zip files containing the preceding, folders containing the preceding.
 
         Also, you may pass in strings prefixed with 'src:' which sets the gameinfo.src tag for the following games.
@@ -114,6 +114,8 @@ class RPGIterator(object):
         Pass yield_zips = True to also yield ArchiveInfos (interspersed with the above)
         after each .zip file is processed, regardless of whether it contains any games
         or is readable.
+        Pass yield_corrupt_games = True to also yield for corrupt games (yields None
+        in place of an RPG instance). Does not yield for completely unextractable games.
         """
 
         self.zipfiles = []   # (path, srcname) pairs
@@ -122,6 +124,7 @@ class RPGIterator(object):
         self.cleanup_dir = False
         self.current_rpg = None
         self.yield_zips = yield_zips
+        self.yield_corrupt_games = yield_corrupt_games
 
         # Stats
         self.num_zips = 0
@@ -205,12 +208,13 @@ class RPGIterator(object):
         self.current_rpg = rpg
         return proxy(rpg)
 
-    def _try_get_rpg(self, fname, game_identifier):
+    def _try_get_rpg(self, fname, game_identifier, gameinfo):
         try:
             return self._get_rpg(fname)
         except CorruptionError as e:
             self._print("%s is corrupt, skipped: %s" % (game_identifier, e))
             self.num_badrpgs += 1
+            gameinfo.error = str(e)
             # Clear last exception: it holds onto local variables in stack frames
             sys.exc_clear()
 
@@ -239,11 +243,14 @@ class RPGIterator(object):
                     gameinfo.mtime = os.stat(fname).st_mtime
                     gameinfo.size = os.stat(fname).st_size
                     gameinfo.hash = gamehash
+                    gameinfo.error = ""
                     self.bytes += gameinfo.size
-                    rpg = self._try_get_rpg(fname, fname)
+                    rpg = self._try_get_rpg(fname, fname, gameinfo)
                     if rpg:
                         gameinfo.loadname(rpg)
                         yield rpg, gameinfo, None
+                    elif self.yield_corrupt_games:
+                        yield None, gameinfo, None                       
                     self._cleanup()
 
             for zippath, src in self.zipfiles:
@@ -255,6 +262,7 @@ class RPGIterator(object):
                     zipinfo.mtime = os.stat(zippath).st_mtime
                     zipinfo.size = os.stat(zippath).st_size
                     zipinfo.zip = None
+                    zipinfo.error = ""
 
                     archive = None
                     try:
@@ -262,9 +270,9 @@ class RPGIterator(object):
                     except IOError as exception:
                         # Catch a file seek "invalid argument" error (in CP game 781 at least, which
                         # appears to be a perfectly valid zip). Probably a zipfile bug.
+                        # Also happens with some very short invalid zip files, like CP game 200.
                         self._print("%s could not be read, skipping: %s" % (zippath, exception))
-                        if self.yield_zips:
-                            yield zipinfo
+                        zipinfo.error = str(exception)
                         continue
 
                     #if archive.testzip():
@@ -316,26 +324,31 @@ class RPGIterator(object):
                         gameinfo.mtime = mtime
                         gameinfo.size = size
                         gameinfo.hash = self._hash_game(extractto)
+                        gameinfo.error = ""
                         zipinfo.rpgs[raw_fname] = gameinfo.hash
 
                         if self._nonduplicate(gameinfo.hash, gameinfo.id):
                             self.bytes += gameinfo.size
-                            rpg = self._try_get_rpg(extractto, gameinfo.id)
+                            rpg = self._try_get_rpg(extractto, gameinfo.id, gameinfo)
                             if rpg:
                                 gameinfo.loadname(rpg)
                                 yield rpg, gameinfo, zipinfo
+                            elif self.yield_corrupt_games:
+                                yield None, gameinfo, zipinfo
                             self._cleanup()
                         if path.isdir(extractto):
                             shutil.rmtree(extractto)
                         else:
                             os.remove(extractto)
 
-                except (zipfile.BadZipfile, zlib.error):
-                    self._print("%s is corrupt, skipping" % zippath)
+                except (zipfile.BadZipfile, zlib.error) as exception:
+                    self._print("%s is corrupt, skipping: %s" % (zippath, exception))
                     self.num_badzips += 1
+                    zipinfo.error = repr(exception)
                 except NotImplementedError as exception:
                     self._print("%s couldn't be read, skipping: NotImplementedError: %s" % (zippath, exception))
                     self.num_unsupported_zips += 1
+                    zipinfo.error = repr(exception)
                 finally:
                     # After we've finished processing all the rpgs in the zip, we've
                     # filled in zipinfo.rpgs. Yield (even if couldn't read the zip)
