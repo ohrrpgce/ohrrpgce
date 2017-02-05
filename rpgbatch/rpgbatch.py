@@ -288,13 +288,15 @@ class RPGIterator(object):
                         name = name.rstrip('/\\')
                         if is_rpg(name):
                             zipinfo.rpgs[name] = None
-                        elif file_ext_in(name, 'hss', 'txt'):
+                        elif file_ext_in(name, 'exe'):
+                            zipinfo.exes.append(name)
+                    # Delay reading files, which could throw, until after we've grabbed the above
+                    for name in archive.namelist():
+                        if file_ext_in(name, 'hss', 'txt'):
                             source = archive.open(name)
                             if is_script(source):
                                 zipinfo.scripts.append(name)
                             source.close()
-                        elif file_ext_in(name, 'exe'):
-                            zipinfo.exes.append(name)
 
                     # Process each rpg we found
                     for raw_fname in zipinfo.rpgs:
