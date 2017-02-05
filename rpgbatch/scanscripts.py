@@ -35,6 +35,21 @@ things = sys.argv[1:]
 # noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
 cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
 
+cmd_logging = {}
+for i in range(159,164+1) + [492,601,602]:
+    cmd_logging[i] = ''
+
+# 159,initmouse,0             # init mouse, return true if a mouse is installed
+# 160,mousepixelx,0           # returns mouse x coordinate on the screen
+# 161,mousepixely,0           # returns mouse y coordinate on the screen
+# 162,mousebutton,1,0         # returns true if the specified button is pressed
+# 163,putmouse,2,160,100      # places the mouse at a point on the screen
+# 164,mouseregion,4,-1,-1,-1,-1 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
+# 492,mouseclick,1,0            # returns true if the specified button is pressed (button)
+# 601,unhidemousecursor,0       # unhides the OS mouse cursor
+# 602,hidemousecursor,0         # hides the OS mouse cursor
+
+
 # A list of script names, either standard or not. Every version of a script matching this name
 # will be decompiled and dumped
 decompile_scripts = []
@@ -58,6 +73,7 @@ scriptuniquenum = 0
 
 strange_names = []
 
+### Crappy commandline argument parsing
 
 if things[0] == '--resume':
     with open(things[1], 'rb') as f:
@@ -95,6 +111,8 @@ else:
     cmdcounts_in_plotscrhsd = np.zeros((table_size), np.int32)
 
     rpgs = RPGIterator(things)
+
+
 
 
 def iter_script_tree2(root):
@@ -287,7 +305,9 @@ for scripts in scripthashes.itervalues():
             del script.scriptset
 
 state = {}
-for var in 'rpgidx', 'rpgs', 'cmdcounts', 'cmdcounts_in_plotscrhsd', 'standardscrs', 'scripthashes', 'commands_info', 'table_size', 'cmd_logging', 'scriptbytes', 'scriptuniquebytes', 'scriptnum', 'scriptuniquenum', 'strange_names':
+for var in ('rpgidx', 'rpgs', 'cmdcounts', 'cmdcounts_in_plotscrhsd', 'standardscrs',
+            'scripthashes', 'commands_info', 'table_size', 'cmd_logging', 'scriptbytes',
+            'scriptuniquebytes', 'scriptnum', 'scriptuniquenum', 'strange_names'):
     state[var] = locals()[var]
 with open('scriptdata.bin', 'wb') as f:
     pickle.dump(state, f, protocol = 2)
