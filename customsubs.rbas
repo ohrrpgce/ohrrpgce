@@ -1124,111 +1124,107 @@ FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsete
   RETURN ret
 END FUNCTION
 
-SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
- DIM i as integer
+TYPE NPCEditState
+ state as MenuState
+ menu(any) as string
+ itemids(any) as integer
 
- DIM itemname as string
- DIM boxpreview as string
- DIM scrname as string
- DIM vehiclename as string
+ itemname as string
+ boxpreview as string
+ scrname as string
+ vehiclename as string
+
+ movetype(any) as string
+ facetype(any) as string
+ usetype(any) as string
+ pushtype(any) as string
+
+ DECLARE SUB menu_append(id as integer, menuitem as string)
+END TYPE
+
+SUB NPCEditState.menu_append(itemid as integer, menuitem as string)
+ int_array_append itemids(), itemid
+ str_array_append menu(), menuitem
+END SUB
+
+SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
+ REDIM ed.menu(-1 TO -1)
+ REDIM ed.itemids(-1 TO -1)
+
+ ed.menu_append -1, "Previous Menu"
+ ed.menu_append 0, "Picture " & npcdata.picture
+ ed.menu_append 1, "Palette " & defaultint(npcdata.palette)
+ ed.menu_append 2, "Move Type = " & safe_caption(ed.movetype(), npcdata.movetype, "movetype")
+ ed.menu_append 3, "Move Speed " & npcdata.speed
+ ed.menu_append 4, "Display Text " & zero_default(npcdata.textbox, "[None]")
+ ed.menu_append 5, "When Activated " & safe_caption(ed.facetype(), npcdata.facetype, "facetype")
+ ed.menu_append 6, "Give Item: " & ed.itemname
+ ed.menu_append 7, "Pushability " & safe_caption(ed.pushtype(), npcdata.pushtype, "pushtype")
+ ed.menu_append 8, "Activation: " & safe_caption(ed.usetype(), npcdata.activation, "usetype")
+ ed.menu_append 9, "Appear if Tag " & tag_condition_caption(npcdata.tag1, "", "Always")
+ ed.menu_append 10, "Appear if Tag " & tag_condition_caption(npcdata.tag2, "", "Always")
+ IF npcdata.usetag THEN
+  ed.menu_append 11, "Usable Only Once (onetime " & npcdata.usetag & ")"
+ ELSE
+  ed.menu_append 11, "Usable Repeatedly"
+ END IF
+ ed.menu_append 12, "Run Script: " & ed.scrname
+ ed.menu_append 13, "Script Argument: " & IIF(npcdata.script, STR(npcdata.scriptarg), "N/A")
+ ed.menu_append 14, "Vehicle: " & IIF(npcdata.vehicle > 0, ed.vehiclename, "No")
+ ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
+ ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
+
+ ed.state.last = UBOUND(ed.menu)
+END SUB
+
+SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
+ DIM ed as NPCEditState
 
  DIM walk as integer = 0
  DIM tog as integer = 0
 
- DIM unpc(16) as integer, lnpc(16) as integer
- DIM menucaption(-1 TO 16) as string
- DIM menu_display(-1 TO 16) as string
-
  DIM selectst as SelectTypeState
- DIM state as MenuState
- state.size = 24
- state.first = -1
- state.last = UBOUND(menucaption)
- state.top = -1
- state.pt = -1
+ WITH ed.state
+  .need_update = YES
+ END WITH
 
- 'lower and upper data limits
- unpc(0) = gen(genMaxNPCPic)
- unpc(1) = 32767
- unpc(2) = 8
- unpc(3) = 5
- unpc(4) = gen(genMaxTextbox)       'max text boxes
- unpc(5) = 2
- unpc(6) = gen(genMaxItem) + 1
- unpc(7) = 7
- unpc(8) = 2
- unpc(9) = max_tag()
- unpc(10) = max_tag()
- unpc(11) = 1
- unpc(12) = gen(genMaxRegularScript)'max scripts
- unpc(13) = 32767
- unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
- unpc(15) = 9999  'zones
- unpc(16) = 9999  'zones
-
- FOR i = 0 TO UBOUND(lnpc)
-  lnpc(i) = 0
- NEXT i
- lnpc(1) = -1
- lnpc(9) = -max_tag()
- lnpc(10) = -max_tag()
- lnpc(13) = -32767
- lnpc(15) = -1
- lnpc(16) = -1
-
- menucaption(-1) = "Previous Menu"
- menucaption(0) = "Picture"
- menucaption(1) = "Palette"
- menucaption(2) = "Move Type"
- menucaption(3) = "Move Speed"
- menucaption(4) = "Display Text"
- menucaption(5) = "When Activated"
- menucaption(6) = "Give Item:"
- menucaption(7) = "Pushability"
- menucaption(8) = "Activation: "
- menucaption(9) = "Appear if Tag "
- menucaption(10) = "Appear if Tag "
- menucaption(11) = "Usable"
- menucaption(12) = "Run Script: "
- menucaption(13) = "Script Argument"
- menucaption(14) = "Vehicle: "
- menucaption(15) = "Movement Zone:"
- menucaption(16) = "Avoidance Zone:"
- DIM movetype(8) as string
- movetype(0) = "Stand Still"
- movetype(1) = "Wander"
- movetype(2) = "Pace"
- movetype(3) = "Right Turns"
- movetype(4) = "Left Turns"
- movetype(5) = "Random Turns"
- movetype(6) = "Chase You"
- movetype(7) = "Avoid You"
- movetype(8) = "Walk In Place"
- DIM pushtype(7) as string
- pushtype(0) = "Off"
- pushtype(1) = "Full"
- pushtype(2) = "Vertical"
- pushtype(3) = "Horizontal"
- pushtype(4) = "Up only"
- pushtype(5) = "Right Only"
- pushtype(6) = "Down Only"
- pushtype(7) = "Left Only"
- DIM usetype(2) as string
- usetype(0) = "Use"
- usetype(1) = "Touch"
- usetype(2) = "Step On"
- DIM facetype(2) as string
- facetype(0) = "Change Direction"
- facetype(1) = "Face Player"
- facetype(2) = "Do Not Face Player"
+ REDIM ed.movetype(8)
+ ed.movetype(0) = "Stand Still"
+ ed.movetype(1) = "Wander"
+ ed.movetype(2) = "Pace"
+ ed.movetype(3) = "Right Turns"
+ ed.movetype(4) = "Left Turns"
+ ed.movetype(5) = "Random Turns"
+ ed.movetype(6) = "Chase You"
+ ed.movetype(7) = "Avoid You"
+ ed.movetype(8) = "Walk In Place"
+ REDIM ed.pushtype(7)
+ ed.pushtype(0) = "Off"
+ ed.pushtype(1) = "Full"
+ ed.pushtype(2) = "Vertical"
+ ed.pushtype(3) = "Horizontal"
+ ed.pushtype(4) = "Up only"
+ ed.pushtype(5) = "Right Only"
+ ed.pushtype(6) = "Down Only"
+ ed.pushtype(7) = "Left Only"
+ REDIM ed.usetype(2)
+ ed.usetype(0) = "Use"
+ ed.usetype(1) = "Touch"
+ ed.usetype(2) = "Step On"
+ REDIM ed.facetype(2)
+ ed.facetype(0) = "Change Direction"
+ ed.facetype(1) = "Face Player"
+ ed.facetype(2) = "Do Not Face Player"
 
  npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
  npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
 
- itemname = load_item_name(npcdata.item, 0, 0)
- boxpreview = textbox_preview_line(npcdata.textbox)
- scrname = scriptname(npcdata.script)
- vehiclename = load_vehicle_name(npcdata.vehicle - 1)
+ ed.itemname = load_item_name(npcdata.item, 0, 0)
+ ed.boxpreview = textbox_preview_line(npcdata.textbox)
+ ed.scrname = scriptname(npcdata.script)
+ ed.vehiclename = load_vehicle_name(npcdata.vehicle - 1)
+
+ update_edit_npc npcdata, ed, gmap(), zmap
 
  setkeys YES
  DO
@@ -1238,130 +1234,90 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
-  usemenu state
-  SELECT CASE state.pt
+  usemenu ed.state
+  DIM itemid as integer = ed.itemids(ed.state.pt)
+  SELECT CASE itemid
    CASE 0'--picture
-    IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
+    IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
      frame_unload @npcdata.sprite
      palette16_unload @npcdata.pal
      npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
      npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
    CASE 1'--palette
-    IF intgrabber(npcdata.palette, lnpc(state.pt), unpc(state.pt)) THEN
+    IF intgrabber(npcdata.palette, -1, gen(genMaxPal)) THEN
      palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
-    IF enter_space_click(state) THEN
+    IF enter_space_click(ed.state) THEN
      npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture)
      palette16_unload @npcdata.pal
      npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
    CASE 2
-    intgrabber(npcdata.movetype, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.movetype, 0, ubound(ed.movetype))
    CASE 3
     'yuck.
     IF npcdata.speed = 10 THEN npcdata.speed = 3
-    intgrabber(npcdata.speed, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.speed, 0, 5)
     IF npcdata.speed = 3 THEN npcdata.speed = 10
    CASE 4
-    IF intgrabber(npcdata.textbox, lnpc(state.pt), unpc(state.pt)) THEN
-     boxpreview = textbox_preview_line(npcdata.textbox)
+    IF intgrabber(npcdata.textbox, 0, gen(genMaxTextbox)) THEN
+     ed.boxpreview = textbox_preview_line(npcdata.textbox)
     END IF
    CASE 5
-    intgrabber(npcdata.facetype, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.facetype, 0, ubound(ed.facetype))
    CASE 6
-    IF intgrabber(npcdata.item, lnpc(state.pt), unpc(state.pt)) THEN
-     itemname = load_item_name(npcdata.item, 0, 0)
+    IF intgrabber(npcdata.item, 0, gen(genMaxItem) + 1) THEN
+     ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
    CASE 7
-    intgrabber(npcdata.pushtype, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.pushtype, 0, ubound(ed.pushtype))
    CASE 8
-    intgrabber(npcdata.activation, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.activation, 0, ubound(ed.usetype))
    CASE 9'--tag conditionals
     tag_grabber npcdata.tag1
    CASE 10'--tag conditionals
     tag_grabber npcdata.tag2
    CASE 11'--one-time-use tag
-    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state) THEN
+    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(ed.state) THEN
      onetimetog npcdata.usetag
     END IF
    CASE 12'--script
-    IF enter_space_click(state) THEN
-     scrname = scriptbrowse(npcdata.script, plottrigger, "NPC use plotscript")
+    IF enter_space_click(ed.state) THEN
+     ed.scrname = scriptbrowse(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
-     scrname = scriptname(npcdata.script)
+     ed.scrname = scriptname(npcdata.script)
     END IF
    CASE 13
-    intgrabber(npcdata.scriptarg, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.scriptarg, -32768, 32767)
    CASE 14
-    IF intgrabber(npcdata.vehicle, lnpc(state.pt), unpc(state.pt)) THEN
-     vehiclename = load_vehicle_name(npcdata.vehicle - 1)
+    IF intgrabber(npcdata.vehicle, 0, gen(genMaxVehicle) + 1) THEN
+     ed.vehiclename = load_vehicle_name(npcdata.vehicle - 1)
     END IF
    CASE 15
-    intgrabber(npcdata.defaultzone, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.defaultzone, -1, 9999)
    CASE 16
-    intgrabber(npcdata.defaultwallzone, lnpc(state.pt), unpc(state.pt))
+    intgrabber(npcdata.defaultwallzone, -1, 9999)
    CASE -1' previous menu
-    IF enter_space_click(state) THEN EXIT DO
+    IF enter_space_click(ed.state) THEN EXIT DO
   END SELECT
 
+  update_edit_npc npcdata, ed, gmap(), zmap
+
   IF select_by_typing(selectst, NO) THEN
-   select_on_word_boundary menucaption(), selectst, state
+   select_on_word_boundary ed.menu(), selectst, ed.state
   END IF
 
   '--Draw screen
   clearpage dpage
-  highlight_menu_typing_selection menucaption(), menu_display(), selectst, state
-  FOR i = LBOUND(menucaption) TO UBOUND(menucaption)
-   textcolor uilook(uiMenuItem), 0
-   IF state.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   DIM caption as string
-   IF i >= 0 THEN caption = " " & read_npc_int(npcdata, i)
-   SELECT CASE i
-    CASE 1
-     caption = " " & defaultint(npcdata.palette)
-    CASE 2
-     caption = " = " & safe_caption(movetype(), npcdata.movetype, "movetype")
-    CASE 3
-     caption = " " & npcdata.speed
-    CASE 4
-     caption = " " & zero_default(npcdata.textbox, "[None]")
-    CASE 5
-     caption = " " & safe_caption(facetype(), npcdata.facetype, "facetype")
-    CASE 6
-     caption = " " & itemname
-    CASE 7
-     caption = " " & safe_caption(pushtype(), npcdata.pushtype, "pushtype")
-    CASE 8
-     caption = safe_caption(usetype(), npcdata.activation, "usetype")
-    CASE 9
-     caption = tag_condition_caption(npcdata.tag1, "", "Always")
-    CASE 10
-     caption = tag_condition_caption(npcdata.tag2, "", "Always")
-    CASE 11
-     IF npcdata.usetag THEN caption = " Only Once (onetime " & (npcdata.usetag) & ")" ELSE caption = " Repeatedly"
-    CASE 12 'script
-     caption = scrname
-    CASE 13 'script arg
-     IF npcdata.script = 0 THEN caption = " N/A"
-    CASE 14 'vehicle
-     IF npcdata.vehicle <= 0 THEN
-      caption = "No"
-     ELSE
-      caption = vehiclename
-     END IF
-    CASE 15 'default movement zone
-     caption = editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
-    CASE 16 'default avoidance zone
-     caption = editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
-   END SELECT
-   printstr menu_display(i) + caption, 0, 8 + (8 * i), dpage, YES
-  NEXT i
+  DIM menu_display(-1 TO UBOUND(ed.menu)) as string
+  highlight_menu_typing_selection ed.menu(), menu_display(), selectst, ed.state
+  standardmenu menu_display(), ed.state, 0, 0, dpage
   edgebox 9, 149, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
   frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 150, 1, YES, dpage
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
-  printstr boxpreview, 0, 177, dpage
+  printstr ed.boxpreview, 0, 177, dpage
   textcolor uilook(uiSelectedItem2), 0
   printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, 190, dpage
   SWAP vpage, dpage
