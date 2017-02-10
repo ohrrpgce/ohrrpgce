@@ -5964,22 +5964,34 @@ end sub
 '==========================================================================================
 
 
+dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
+
 'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
-sub screenshot (fname as string)
+'Returns the filename it was saved to, with extension
+function screenshot (fname as string) as string
+	dim ret as string
 	'try external first
 	if gfx_screenshot(fname) = 0 then
 		'otherwise save it ourselves
-		frame_export_bmp8(fname & ".bmp", vpages(vpage), intpal())
+		ret = fname & ".bmp"
+		frame_export_bmp8(ret, vpages(vpage), intpal())
+		return ret
 	end if
-end sub
+	' The reason for this for loop is that we don't know what extension the gfx backend
+	' might save the screenshot as; have to search for it.
+	for i as integer = 0 to ubound(screenshot_exts)
+		ret = fname & screenshot_exts(i)
+		if isfile(ret) then
+			return ret
+		end if
+	next
+end function
 
 sub bmp_screenshot(f as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
 	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 end sub
-
-dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", ".gif"}
 
 ' Find an available screenshot name in the current directory.
 ' Returns filename without extension, and ensures it doesn't collide regardless of the
@@ -6022,8 +6034,12 @@ end function
 private sub snapshot_check()
 	static as string backlog()
 	initialize_static_dynamic_array(backlog)
+	' The following are just for the overlay message
+	static as integer num_screenshots_taken
+	static as string first_screenshot
 
-	dim as integer n, i, F12bits
+	dim as integer n, F12bits
+	dim as string shot
 
 	F12bits = real_keyval(scF12)
 
@@ -6034,23 +6050,37 @@ private sub snapshot_check()
 			safekill backlog(n)
 		next
 		redim backlog(0)
+		' Tell what we did
+		if num_screenshots_taken = 1 then
+			show_overlay_message "Saved screenshot " & first_screenshot, 1.5
+		elseif num_screenshots_taken > 1 then
+			show_overlay_message "Saved " & first_screenshot & " and " & (num_screenshots_taken - 1) & " more", 1.5
+		end if
+		num_screenshots_taken = 0
 	elseif real_keyval(scCtrl) = 0 then
-		dim as string shot = next_unused_screenshot_filename()
 
 		if F12bits = 1 then
-			shot = tmpdir + shot
-			screenshot shot
-			for i = 0 to ubound(screenshot_exts)
-				if isfile(shot + screenshot_exts(i)) then str_array_append(backlog(), shot + screenshot_exts(i))
-			next
+			' Take a screenshot, but maybe delete it later
+			shot = tmpdir & get_process_id() & "_tempscreen" & ubound(backlog)
+			str_array_append(backlog(), screenshot(shot))
+			'debug "temp save " & backlog(ubound(backlog))
 		else
-			screenshot shot
 			' Key repeat has kicked in, so move our backlog of screenshots to the visible location.
 			for n = 1 to ubound(backlog)
-				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
-				os_shell_move backlog(n), curdir + slash + trimpath(backlog(n))
+				shot = next_unused_screenshot_filename() & "." & justextension(backlog(n))
+				'debug "moving " & backlog(n) & " to " & shot
+				os_shell_move backlog(n), shot
+				num_screenshots_taken += 1
 			next
 			redim backlog(0)
+
+			' Take the new screenshot
+			dim temp as string = screenshot(next_unused_screenshot_filename())
+			'debug "saved " & temp
+			if num_screenshots_taken = 0 then
+				first_screenshot = trimpath(temp)
+			end if
+			num_screenshots_taken += 1
 		end if
 		'debug "screen " & shot
 	end if
