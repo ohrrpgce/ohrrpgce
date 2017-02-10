@@ -285,7 +285,7 @@ DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 '==========================================================================================
 '                                    BMPs/GIFs/screenshots
 
-DECLARE SUB screenshot (f as string = "")
+DECLARE FUNCTION screenshot (f as string = "") as string
 DECLARE SUB bmp_screenshot(f as string)
 DECLARE SUB toggle_recording_gif()
 
@@ -319,6 +319,8 @@ DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate 
 DECLARE SUB setkeys (byval enable_inputtext as bool = NO)
 DECLARE SUB real_clearkey (byval k as integer)
 DECLARE SUB clearkey (byval k as integer)
+DECLARE SUB real_clear_newkeypress(k as integer)
+DECLARE SUB clear_newkeypress(k as integer)
 DECLARE SUB setquitflag (newstate as bool = YES)
 DECLARE FUNCTION getquitflag () as bool
 #DEFINE slowkey(key, ms) (keyval((key), (ms), (ms)) > 1)
@@ -553,6 +555,6 @@ extern fonts() as Font ptr
 extern global_tog as integer
 extern showfps as bool
 extern gif_max_fps as integer
-extern gif_record_overlays as bool
+extern screenshot_record_overlays as bool
 
 #ENDIF

@@ -82,6 +82,7 @@ declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
 declare function draw_allmodex_overlays (page as integer) as bool
+declare function draw_allmodex_overlays32 (surf as Surface ptr) as bool
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
@@ -221,7 +222,7 @@ end type
 
 dim shared recordgif as RecordGIFState
 dim gif_max_fps as integer = 30
-dim gif_record_overlays as bool = NO
+dim screenshot_record_overlays as bool = NO
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -732,12 +733,18 @@ sub setvispage (byval page as integer)
 		end if
 	end if
 
-	if gif_record_overlays = NO then gif_record_frame8 vpages(page), intpal()
+	if screenshot_record_overlays = YES then
+		'Modifies page. This is bad if displaying a page other than vpage/dpage!
+		draw_allmodex_overlays page
+	end if
 
-	'Modifies page. This is bad if displaying a page other than vpage/dpage!
-	draw_allmodex_overlays page
+	'F12 for screenshots handled here (uses real_keyval)
+	snapshot_check
+	gif_record_frame8 vpages(page), intpal()
 
-	if gif_record_overlays = YES then gif_record_frame8 vpages(page), intpal()
+	if screenshot_record_overlays = NO then
+		draw_allmodex_overlays page
+	end if
 
 	with *vpages(page)
 		'the fb backend may freeze up if it collides with the polling thread
@@ -771,20 +778,18 @@ sub setvissurface (to_show as Surface ptr)
 	if timer - lastframe < 1. / 90 then exit sub
 	lastframe = timer
 
-	static overlays_page as integer = 0
-	if overlays_page = 0 then overlays_page = allocatepage
-
-	if gif_record_overlays = NO then gif_record_frame32 to_show
-
-	' Draw overlays onto to_show, first drawing them to a temp overlays_page (which starts blank)
-	dim temp_surface as Surface ptr
-	if draw_allmodex_overlays(overlays_page) then
-		gfx_surfaceFromFrame(vpages(overlays_page), @temp_surface)
-		frame_draw vpages(overlays_page), intpal(), 0, 0, NO, to_show
-		clearpage overlays_page
+	if screenshot_record_overlays = YES then
+		'Modifies page. This is bad if displaying a page other than vpage/dpage!
+		draw_allmodex_overlays32 to_show
 	end if
 
-	if gif_record_overlays = YES then gif_record_frame32 to_show
+	'F12 for screenshots: Not implemented for surfaces
+	'snapshot_check
+	gif_record_frame32 to_show
+
+	if screenshot_record_overlays = NO then
+		draw_allmodex_overlays32 to_show
+	end if
 
 	dim surface_pal as BackendPalette ptr
 	if to_show->format = SF_8bit then
@@ -1667,10 +1672,24 @@ sub clearkey(byval k as integer)
 	end if
 end sub
 
+'Clear the new keypress flag for a key.
+sub clear_newkeypress(k as integer)
+	if replay.active then
+		replay_kb.keybd(k) and= 1
+	else
+		real_kb.keybd(k) and= 1
+	end if
+end sub
+
 'Erase a keypress from the real keyboard state even if replaying recorded input.
 sub real_clearkey(byval k as integer)
 	real_kb.keybd(k) = 0
 	real_kb.key_down_ms(k) = 0
+end sub
+
+'Clear the new keypress flag for a key. Real keyboard state even if replaying recorded input.
+sub real_clear_newkeypress(k as integer)
+	real_kb.keybd(k) and= 1
 end sub
 
 sub setquitflag (newstate as bool = YES)
@@ -1955,8 +1974,12 @@ private sub allmodex_controls()
 		*invalid = 0
 	end if
 
-	'F12 for screenshots handled here (uses real_keyval)
-	snapshot_check
+	' F12 screenshots are handled in setvispage, not here.
+
+	' Ctrl+F12 to start/stop recording a .gif
+	if real_keyval(scCtrl) > 0 andalso (real_keyval(scF12) and 4) then
+		toggle_recording_gif
+	end if
 
 	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
 		showfps xor= 1
@@ -2220,6 +2243,22 @@ private function draw_allmodex_overlays (page as integer) as bool
 		dirty = YES
 	end if
 	return dirty
+end function
+
+'32 bit version of the above
+private function draw_allmodex_overlays32 (surf as Surface ptr) as bool
+	static overlays_page as integer = 0
+	if overlays_page = 0 then overlays_page = allocatepage
+
+	' Draw overlays onto the surface, first drawing them to a temp overlays_page (which starts blank)
+	dim temp_surface as Surface ptr
+	if draw_allmodex_overlays(overlays_page) then
+		gfx_surfaceFromFrame(vpages(overlays_page), @temp_surface)
+		frame_draw vpages(overlays_page), intpal(), 0, 0, NO, surf
+		clearpage overlays_page
+		return YES
+	end if
+	return NO
 end function
 
 
@@ -5988,11 +6027,6 @@ private sub snapshot_check()
 
 	F12bits = real_keyval(scF12)
 
-	' Ctrl+F12 to start/stop recording a .gif
-	if real_keyval(scCtrl) > 0 andalso (F12bits and 4) then
-		toggle_recording_gif
-	end if
-
 	if F12bits = 0 then
 		' If key repeat never occurred then delete the backlog.
 		for n = 1 to ubound(backlog)
@@ -6020,6 +6054,11 @@ private sub snapshot_check()
 		end if
 		'debug "screen " & shot
 	end if
+
+	' This is in case this sub is called more than once before setkeys is called.
+	' Normally setkeys happens at the beginning of a tick and setvispage at the end,
+	' so this does no damage.
+	real_clear_newkeypress scF12
 end sub
 
 

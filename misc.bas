@@ -79,7 +79,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
-		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in recorded .gifs" & LINE_END
+		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default on Linux/BSD)" & LINE_END
@@ -108,7 +108,7 @@ function global_setoption(opt as string, arg as string) as integer
 			return 1
 		end if
 	elseif opt = "recordoverlays" then
-		gif_record_overlays = YES
+		screenshot_record_overlays = YES
 		return 1
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
