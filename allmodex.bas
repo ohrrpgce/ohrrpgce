@@ -7746,6 +7746,10 @@ end sub
 '                            SpriteSet/Animation/SpriteState
 '==========================================================================================
 
+' Number of loops/non-forwards branches that can occur in an animation without a
+' wait before it's considered to be stuck in an infinite loop.
+CONST ANIMATION_LOOPLIMIT = 10
+
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
 	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"
@@ -7872,6 +7876,7 @@ sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
 	anim_wait = 0
 	anim_step = 0
 	anim_loop = loopcount
+	anim_looplimit = ANIMATION_LOOPLIMIT
 	anim = ss->find_animation(variantname)
 end sub
 
@@ -7881,88 +7886,102 @@ function SpriteState.cur_frame() as Frame ptr
 	return @ss->frames[frame_num]
 end function
 
-' Skip the current wait, and returns number of frames that the wait was for.
-' Returns -1 if not waiting.
+' Advance time until the next wait, skipping the current one, and returns number of frames that the wait was for.
+' Returns -1 if not waiting, -2 on error.
 function SpriteState.skip_wait() as integer
-	if anim = NULL then return -1
-        with anim->ops(anim_step)
-                if .type <> animOpWait then
-                        return -1
-                end if
-                dim ret as integer = .arg1
-                anim_wait = .arg1
-                animate()
-                return ret
-        end with
+	if anim = NULL then return -2
+	' Look at the current op instead of anim_wait, because it might be a wait
+	' which we haven't looked at yet.
+	with anim->ops(anim_step)
+		if .type <> animOpWait then
+			return -1
+		end if
+		dim ret as integer = .arg1
+		anim_wait = .arg1
+		if animate() = NO then ret = -2  ' Until next wait
+		return ret
+	end with
 end function
 
-' Performs one animation step
-sub SpriteState.animate()
-	if anim = NULL then exit sub
+' Advance the animation by one op.
+' Returns true on success, false on an error.
+' Does not check for infinite loops; caller must do that.
+function SpriteState.animate_step() as bool
+	if anim = NULL then return NO
 
-	dim looplimit as integer = 10
-	while looplimit > 0
-		' This condition only If the animation doesn't end up looping, re
-		if anim_step > ubound(anim->ops) then
-			debuginfo "anim done"
-			looplimit -= 1
-			' anim_loop = 0 means default number of loops
-			if anim_loop = 0 or anim_loop = 1 then
-				anim = NULL
-				exit sub
-			end if
-			if anim_loop > 0 then anim_loop -= 1
-			anim_step = 0
+	' This condition only If the animation doesn't end up looping, re
+	if anim_step > ubound(anim->ops) then
+		debuginfo "anim done"
+		anim_looplimit -= 1
+		' anim_loop = 0 means default number of loops
+		if anim_loop = 0 or anim_loop = 1 then
+			anim = NULL
+			return YES
 		end if
+		if anim_loop > 0 then anim_loop -= 1
+		anim_step = 0
+	end if
 
-		with anim->ops(anim_step)
-			select case .type
-				case animOpWait
-					anim_wait += 1
-					if anim_wait > .arg1 then
-						anim_wait = 0
-					else
-						exit sub
-					end if
-				case animOpFrame
-					if .arg1 >= ss->num_frames then
-						debug "Animation '" & anim->name & "': illegal frame number " & .arg1
-						anim = NULL
-						exit sub
-					end if
-					frame_num = .arg1
-				case animOpRepeat
-					' If a loop count was specified when playing the animation,
-					' then only loop that many times, otherwise repeat forever
-					if anim_loop > 0 then
-						anim_loop -= 1
-						if anim_loop = 0 then
-							anim = NULL
-							exit sub
-						end if
-					end if
-					anim_step = 0
-					looplimit -= 1
-					continue while
-				case animOpSetOffset
-					offset.x = .arg1
-					offset.y = .arg2
-				case animOpRelOffset
-					offset.x += .arg1
-					offset.y += .arg2
-				case else
-					debug "bad animation opcode " & .type & " in '" & anim->name & "'"
+	with anim->ops(anim_step)
+		select case .type
+			case animOpWait
+				anim_wait += 1
+				if anim_wait > .arg1 then
+					anim_wait = 0
+				else
+					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+					return YES
+				end if
+			case animOpFrame
+				if .arg1 >= ss->num_frames then
+					debug "Animation '" & anim->name & "': illegal frame number " & .arg1
 					anim = NULL
-					exit sub
-			end select
-		end with
-		anim_step += 1
+					return NO
+				end if
+				frame_num = .arg1
+			case animOpRepeat
+				' If a loop count was specified when playing the animation,
+				' then only loop that many times, otherwise repeat forever
+				if anim_loop > 0 then
+					anim_loop -= 1
+					if anim_loop = 0 then
+						anim = NULL
+						return YES
+					end if
+				end if
+				anim_step = 0
+				anim_looplimit -= 1
+				return YES
+			case animOpSetOffset
+				offset.x = .arg1
+				offset.y = .arg2
+			case animOpRelOffset
+				offset.x += .arg1
+				offset.y += .arg2
+			case else
+				debug "bad animation opcode " & .type & " in '" & anim->name & "'"
+				anim = NULL
+				return NO
+		end select
+	end with
+	anim_step += 1
+	return YES
+end function
+
+' Advance time by one tick. True on success, false on an error/infinite loop
+function SpriteState.animate() as bool
+	if anim = NULL then return NO
+
+	while anim_looplimit > 0
+		if animate_step() = NO then return NO  'stop on error
+		if anim_wait > 0 then return YES  'stop if waiting
 	wend
 
 	' Exceeded the loop limit
 	debug "animation '" & anim->name & "' got stuck in an infinite loop"
 	anim = NULL
-end sub
+	return NO
+end function
 
 /'
 sub SpriteState.draw(x as integer, y as integer, scale as integer = 1, trans as bool = YES, page as integer)

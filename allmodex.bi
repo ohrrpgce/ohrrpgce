@@ -496,8 +496,10 @@ Type SpriteState
 	frame_num as integer
 	anim as Animation ptr
 	anim_step as integer
-	anim_wait as integer
+	anim_wait as integer  'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
 	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
+	anim_looplimit as integer  '(Private) Number of looping ops remaining before
+	                           'infinite loop protection is triggered.
 	offset as XYPair
 
 	declare constructor(sprset as SpriteSet ptr)
@@ -506,8 +508,14 @@ Type SpriteState
 
 	declare sub start_animation(name as string, loopcount as integer = 0)
 	declare function cur_frame() as Frame ptr
-	declare sub animate()
-        declare function skip_wait() as integer
+
+	' Three ways to advance the animation:
+	' Advance time by one tick
+	declare function animate() as bool
+	' Advance time until the next wait
+	declare function skip_wait() as integer
+	' Advance by one animation op
+	declare function animate_step() as bool
 End Type
 
 
