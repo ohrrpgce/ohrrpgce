@@ -411,6 +411,8 @@ UNION RectType
     topleft as XYPair
     size as XYPair
   END TYPE
+
+  DECLARE OPERATOR CAST () as string
 END UNION
 
 DECLARE OPERATOR = (lhs as RectType, rhs as RectType) as bool

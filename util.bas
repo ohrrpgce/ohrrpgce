@@ -111,6 +111,10 @@ OPERATOR <> (lhs as RectType, rhs as RectType) as bool
   RETURN memcmp(@lhs, @rhs, sizeof(RectType)) <> 0
 END OPERATOR
 
+OPERATOR RectType.CAST () as string
+  RETURN x & "," & y & ",w" & wide & ",h" & high
+END OPERATOR
+
 #IFDEF __FB_MAIN__
 startTest(XYPairOperators)
   DIM as XYPair A = (1,2), B = (3,4)
