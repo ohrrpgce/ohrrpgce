@@ -448,6 +448,8 @@ Sub default_status_screen (byval sl1 as Slice Ptr)
         sl8->y = 24
         sl8->width = 360
         sl8->height = 10
+        sl8->alignhoriz = 1
+        sl8->anchorhoriz = 1
         ChangeTextSlice sl8, !"${EXPNEED} ${EXPLABEL} ${FORNEXT} ${LEVLABEL}", , , , 
         SetSliceParent(sl8, sl7)
        SetSliceParent(sl7, sl6)
