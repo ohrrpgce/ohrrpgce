@@ -3311,7 +3311,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 		setclip , , , , fr
 	end if
 
-	if fuzzfactor <= 0 then fuzzfactor = 1
+	fuzzfactor = bound(fuzzfactor, 1, 99)
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
