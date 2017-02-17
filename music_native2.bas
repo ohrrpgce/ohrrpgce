@@ -686,8 +686,8 @@ sub music_close()
 	end if
 
 	if sound_song >= 0 then
-		sound_stop(sound_song, -1)
-		UnloadSound(sound_song)
+		sound_stop(sound_song, YES)
+		sound_unload(sound_song)
 	end if
 
 	CloseMidi
@@ -765,8 +765,8 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 		'debug "sound_song = " & sound_song
 		if sound_song <> -1 then
-			sound_stop(sound_song, -1)
-			UnloadSound(sound_song)
+			sound_stop(sound_song, YES)
+			sound_unload(sound_song)
 		end if
 
 		if fmt = FORMAT_MIDI then
@@ -809,8 +809,8 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 
 			PrepareNextBeat 0
 		else
-			sound_song = LoadSound(songname)
-			sound_play(sound_song,-1,-1)
+			sound_song = sound_load(songname)
+			sound_play(sound_song, -1, YES)
 		end if
 	end if
 end sub
@@ -824,7 +824,7 @@ sub music_pause()
 			end if
 		end if
 		if sound_song >= 0 then
-			sound_pause(sound_song, -1)
+			sound_pause(sound_song, YES)
 		end if
 	end if
 end sub
@@ -836,14 +836,14 @@ sub music_resume()
 			midiStreamRestart(device)
 		end if
 		if sound_song >= 0 then
-			sound_play(sound_song, -1, -1)
+			sound_play(sound_song, -1, YES)
 		end if
 	end if
 end sub
 
 sub music_stop()
 	if music_song > 0 then music_pause()
-	if sound_song >= 0 then sound_stop(sound_song, -1)
+	if sound_song >= 0 then sound_stop(sound_song, YES)
 end sub
 
 sub music_setvolume(byval vol as single)

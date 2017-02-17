@@ -53,19 +53,23 @@ declare sub sound_init()
 declare sub sound_close()
 declare sub sound_reset()
 
-'parameter s is 0 if num is an OHR sound number, -1 if it's a slot number (returned from loadSound)
-declare sub sound_play(byval num as integer, byval loopcount as integer,  byval s as integer = 0)
-declare sub sound_pause(byval num as integer,  byval s as integer = 0)
-declare sub sound_stop(byval num as integer,  byval s as integer = 0)
-declare sub sound_free(byval num as integer)'only used by custom for the importing interface
+' num_is_slot is NO if num is an OHR sound number, YES if it's a slot number (returned from sound_load)
+declare sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
+declare sub sound_pause(num as integer, num_is_slot as bool = NO)
+declare sub sound_stop(num as integer, num_is_slot as bool = NO)
 
-declare function sound_playing(byval num as integer,  byval s as integer = 0) as bool
+declare function sound_playing(num as integer, num_is_slot as bool = NO) as bool
 
-declare function LoadSound overload(byval num as integer) as integer
-declare function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
-declare function LoadSound overload(filename as string,  byval num as integer = -1) as integer
+' Normally sound_play is use to load and play a sound effect directly, but sound_load
+' can be used to do this in two steps.
+declare function sound_load overload(num as integer) as integer
+declare function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
+declare function sound_load overload(filename as string, num as integer = -1) as integer
 
-declare sub UnloadSound(byval num as integer)
+' These are only used if sound_load was used explicitly, and differ in
+' whether to unload a slot or a sound effect number.
+declare sub sound_unload(slot as integer)
+declare sub sound_free(num as integer)
 
 
 '' Functions in bam2mid.bas

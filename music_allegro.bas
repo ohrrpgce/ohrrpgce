@@ -350,10 +350,10 @@ function sound_slots as integer
 end function
 
 'UNIMPLEMENTED
-function LoadSound overload(filename as string,  byval num as integer = -1) as integer
+function sound_load overload(filename as string,  byval num as integer = -1) as integer
 	return 0
 end function
 
 'UNIMPLEMENTED
-sub UnloadSound(byval num as integer) : end sub
+sub sound_unload(byval num as integer) : end sub
 

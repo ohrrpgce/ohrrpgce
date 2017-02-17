@@ -38,28 +38,28 @@ sub sound_close() : end sub
 
 sub sound_reset() : end sub
 
-sub sound_play(byval num as integer, byval loopcount as integer,  byval s as integer = 0) : end sub
+sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO) : end sub
 
-sub sound_pause(byval num as integer,  byval s as integer = 0) : end sub
+sub sound_pause(num as integer, num_is_slot as bool = NO) : end sub
 
-sub sound_stop(byval num as integer,  byval s as integer = 0) : end sub
+sub sound_stop(num as integer, num_is_slot as bool = NO) : end sub
 
-sub sound_free(byval num as integer) : end sub
+sub sound_free(num as integer) : end sub
 
-function sound_playing(byval num as integer,  byval s as integer = 0) as bool
+function sound_playing(num as integer, num_is_slot as bool = NO) as bool
 	return NO
 end function
 
-function LoadSound overload(byval num as integer) as integer
+function sound_load overload(num as integer) as integer
 	return 0
 end function
 
-function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
+function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
 	return 0
 end function
 
-function LoadSound overload(filename as string,  byval num as integer = -1) as integer
+function sound_load overload(filename as string, num as integer = -1) as integer
 	return 0
 end function
 
-sub UnloadSound(byval num as integer) : end sub
+sub sound_unload(slot as integer) : end sub

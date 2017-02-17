@@ -288,7 +288,7 @@ ELSE
 END IF
 remember = default
 music_stop
-IF br.snd >= 0 THEN sound_stop(br.snd, -1) : UnloadSound(br.snd)
+IF br.snd >= 0 THEN sound_stop(br.snd, YES) : sound_unload(br.snd)
 clearkey(scESC)
 RETURN ret
 
@@ -336,14 +336,14 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     br.alert = .about
     IF br.snd > -1 THEN
      sound_stop(br.snd,-1)
-     UnloadSound(br.snd)
+     sound_unload(br.snd)
      br.snd = -1
     END IF
     IF .kind <> bkUnselectable THEN
      'not disabled because of size
      IF valid_audio_file(filepath, PREVIEWABLE_FX_FORMAT) THEN
-      br.snd = LoadSound(filepath)
-      sound_play(br.snd, 0, -1)
+      br.snd = sound_load(filepath)
+      sound_play(br.snd, 0, YES)
      ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
       br.alert = "Cannot preview MP3, try importing"
      END IF
