@@ -29,6 +29,7 @@ DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = N
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, page as integer)
 
 ' Tileset editor
 DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
@@ -82,7 +83,7 @@ DECLARE SUB writeundospr (ss as SpriteEditState)
 DECLARE SUB readundospr (ss as SpriteEditState)
 DECLARE SUB readredospr (ss as SpriteEditState)
 
-' Sprite import/expotr
+' Sprite import/export
 DECLARE SUB spriteedit_import16(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, placer() as integer, palnum as integer)
 DECLARE SUB spriteedit_export OVERLOAD (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
@@ -144,7 +145,7 @@ SUB copymapblock (sx as integer, sy as integer, sp as integer, dx as integer, dy
  frame_unload @srctile
 END SUB
 
-'Used inside the palette color disabler in importbmp
+'Used inside select_disabled_import_colors
 PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as integer)
  pmask(index).r xor= master(index).r
  pmask(index).g xor= master(index).g
@@ -169,14 +170,7 @@ menu(4) = "Disable palette colors for import"
 menu(5) = "Export " + cap + " as BMP"
 menu(6) = "Full screen view"
 DIM srcbmp as string
-DIM csr2 as integer
-DIM tog as integer
-DIM cx as integer
-DIM cy as integer
 DIM pt as integer = 0 'backdrop number
-DIM mouse as MouseInfo
-DIM rect as RectType
-DIM col as integer
 
 IF count = 0 THEN count = 1
 loadpalette pmask(), activepalette
@@ -221,9 +215,7 @@ DO
    loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 4 THEN
-   hidemousecursor
-   GOSUB disable
-   defaultmousecursor
+   select_disabled_import_colors pmask(), 2
   END IF
   IF mstate.pt = 5 THEN
    DIM outfile as string
@@ -241,10 +233,21 @@ DO
 LOOP
 clearpage 2
 sprite_update_cache sprtype
-EXIT SUB
+END SUB
 
-disable:
-csr2 = 0
+' Display a backdrop (on a certain page) and select which colours in a copy
+' of the master palette to set to black.
+PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, page as integer)
+DIM tog as integer
+DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
+DIM cx as integer
+DIM cy as integer
+DIM mouse as MouseInfo
+DIM rect as RectType
+DIM col as integer
+
+hidemousecursor
+
 setpal pmask()
 setkeys
 DO
@@ -255,7 +258,7 @@ DO
  WITH mouse
   IF .clickstick AND mouseleft THEN
    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
-    RETRACE
+    EXIT DO
    ELSE
     rect.wide = 10  '2 pixels wider than real squares, to avoid gaps
     rect.high = 10
@@ -274,25 +277,32 @@ DO
   END IF
  END WITH
 
- IF keyval(scESC) > 1 THEN setpal master(): RETRACE
+ IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
- IF csr2 = 0 THEN
-  IF enter_or_space() THEN setpal master(): RETRACE
-  IF keyval(scDown) > 1 THEN csr2 = 1: cy = -1
- END IF
- IF csr2 = 1 THEN
+ IF prev_menu_selected THEN
+  IF enter_or_space() THEN EXIT DO
+  IF keyval(scDown) > 1 THEN
+   cy = 0
+   prev_menu_selected = NO
+  END IF
+ ELSE
   IF keyval(scLeft) > 1 THEN cx = large(cx - 1, 0)
   IF keyval(scRight) > 1 THEN cx = small(cx + 1, 15)
   IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
-  IF keyval(scUp) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
+  IF keyval(scUp) > 1 THEN cy -= 1
+  IF cy < 0 THEN
+   cy = 0
+   prev_menu_selected = YES
+  END IF
   IF enter_or_space() THEN
    toggle_pmask pmask(), master(), cy * 16 + cx
   END IF
  END IF
- copypage 2, dpage
- textcolor uilook(uiMenuItem), 0: IF csr2 = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
+ copypage page, dpage
+ textcolor uilook(uiMenuItem), 0
+ IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
- IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
+ IF prev_menu_selected = NO THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
  FOR i as integer = 0 TO 15
   FOR o as integer = 0 TO 15
    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
@@ -303,6 +313,8 @@ DO
  setvispage vpage
  dowait
 LOOP
+setpal master()
+defaultmousecursor
 END SUB
 
 'Give the user the chance to remap a color to 0.
