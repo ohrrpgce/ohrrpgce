@@ -26,7 +26,7 @@ DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, byval x
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB recalc_menu_size (byref state as MenuState)
-DECLARE SUB set_menustate_size (state as MenuState, menuopts as MenuOptions, x as integer, y as integer)
+DECLARE SUB calc_menustate_size (state as MenuState, menuopts as MenuOptions, x as integer, y as integer, page as integer = -1, menu as BasicMenuItem vector = NULL)
 
 '' Mouse support
 DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer

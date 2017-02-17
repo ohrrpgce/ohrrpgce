@@ -73,7 +73,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
 
   ' Draw
   clearpage dpage
-  set_menustate_size state, MenuOptions(), 0, 0  ' Recalcs .size, .rect, .spacing
+  calc_menustate_size state, MenuOptions(), 0, 0  ' Recalcs .size, .rect, .spacing
   draw_fullscreen_scrollbar state, , dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN

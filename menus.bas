@@ -36,7 +36,7 @@ DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
 SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
- set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+ calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
  WITH state
   .first = 0
@@ -63,7 +63,7 @@ END SUB
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
 SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
- set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+ calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
  WITH state
   .first = 0
@@ -377,27 +377,52 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
  NEXT
 END SUB
 
-' Initialises/updates the size and position data in MenuState, including .size
-' if .autosize is true. This shouldn't be called unless you're reimplementing
-' standardmenu, otherwise call init_menu_state instead.
+' For standardmenu only. Not to be confused with recalc_menu_size, which only sets MenuState.size.
+' Initialises/updates size and position data in MenuState, including .rect, and .size
+' if .autosize is true.
+' Used if you want to calculate the size of the menu before the first call to standardmenu,
+' but unless you're using menuopts.calc_size, calling init_menu_state is sufficient.
 ' Sets .has_been_drawn=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
-SUB set_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer, y as integer)
+SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer, y as integer, page as integer = -1, menu as BasicMenuItem vector = NULL)
+ IF page = -1 THEN page = vpage
  WITH state
   .has_been_drawn = YES
   IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
   .spacing += menuopts.itemspacing
   .rect.x = x
   .rect.y = y
-  .rect.wide = get_resolution().w
-  .rect.high = small(get_resolution().h, (.size + 1) * .spacing)
- END WITH
 
- ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
- ' menu is inactive (more than one on-screen), and on the first tick with
- ' .autosize=YES before .spacing is set the correct .size won't be known either.
- ' (In that case, you should call init_menu_state, passing menuopts if used.)
- recalc_menu_size state
+  debug "calc_size:" & STR(.rect)
+
+  ' TODO: calc_menustate_size used to call recalc_menu_size unconditional. So still
+  ' need to call it if .size is 0. But would be cleaner to just default .autosize to YES
+  IF .autosize OR (.size = 0) THEN
+   ' Calculate .size.
+   ' usemenu also calls recalc_menu_size, but usemenu might not be called if the
+   ' menu is inactive (more than one on-screen), and on the first tick with
+   ' .autosize=YES before .spacing is set the correct .size won't be known either.
+   ' (In that case, you should call init_menu_state, passing menuopts if used.)
+   recalc_menu_size state
+  END IF
+
+  DIM wide as integer = menuopts.wide
+  IF menuopts.calc_size ANDALSO menu THEN
+   ' Widen the menu according to widest menu item
+   FOR i as integer = 0 TO small(v_len(menu) - 1, .last)
+    wide = large(wide, textwidth(v_at(menu, i)->text))
+   NEXT
+   IF menuopts.scrollbar THEN wide += 6
+  END IF
+  .rect.wide = small(vpages(page)->w - x, wide)
+  DIM num_menu_items as integer
+  IF menuopts.calc_size THEN
+   num_menu_items = .last - .first + 1
+  ELSE
+   num_menu_items = .size + 1
+  END IF
+  .rect.high = small(vpages(page)->h - y, num_menu_items * .spacing)
+ END WITH
 END SUB
 
 SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
@@ -449,22 +474,15 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
   EXIT SUB
  END IF
 
- set_menustate_size state, menuopts, x, y
+ calc_menustate_size state, menuopts, x, y, page, menu
+ DIM wide as integer = state.rect.wide
 
  IF state.active THEN
   state.tog XOR= 1
  END IF
 
- DIM wide as integer
- wide = small(menuopts.wide, vpages(page)->w - x)
-
- DIM rect as RectType
- rect.x = x
- rect.y = y
- rect.wide = wide
- rect.high = (state.size + 1) * state.spacing
  IF menuopts.scrollbar THEN
-  draw_scrollbar state, rect, 0, page
+  draw_scrollbar state, state.rect, 0, page
  ELSEIF menuopts.fullscreen_scrollbar THEN
   draw_fullscreen_scrollbar state, 0, page
  END IF
@@ -858,11 +876,12 @@ END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
 SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
- set_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
+ calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
  WITH state
   .first = LBOUND(menu)
   .last = UBOUND(menu)
+  'FIXME: what is this doing here? It doesn't match what calc_menustate_size does
   .size = small(.last - .first, cint(int(get_resolution().h / 8)))
  END WITH
  ' Fix .pt and update .top
@@ -1398,7 +1417,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
    END WITH
   END IF
  NEXT i
- 
+
  WITH state
   .has_been_drawn = YES
   DIM bord as integer = 8 + menu.bordersize
@@ -1427,6 +1446,7 @@ SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byre
  END WITH
 END SUB
 
+' Calculate menu.rect (not to be confused with menustate.rect, which includes the border padding)
 SUB position_menu (menu as MenuDef, byval page as integer)
  DIM i as integer
  DIM bord as integer

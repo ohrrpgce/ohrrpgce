@@ -155,7 +155,11 @@ END TYPE
 'MenuState is used for drawing MenuDefs too, which would be confusing
 TYPE MenuOptions
   edged as bool
-  wide as integer = 9999
+  calc_size as bool       'Set rect according to widest menu item and num items, otherwise
+                          'stretches to right & bottom screen edges (which might be smaller!)
+  wide as integer = 9999  'Width in pixels (but doesn't extend past screen edge).
+                          'If calc_width is true, then this is the min width
+                          '(so you MUST override the default of 9999!!)
   itemspacing as integer  'Pixels added to the default item spacing.
                           'negative shrinks, positive grows. This
                           'alters the vertical size of the whole menu!
