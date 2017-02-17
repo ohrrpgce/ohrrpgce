@@ -1550,7 +1550,8 @@ SUB secret_menu ()
      "Edit Spell Screen Spell Plank", _
      "RGFX tests", _
      "Edit Virtual Keyboard Screen", _
-     "New Spriteset/Animation Editor" _
+     "New Spriteset/Animation Editor", _
+     "New backdrop browser" _
  }
  DIM st as MenuState
  st.size = 24
@@ -1580,6 +1581,7 @@ SUB secret_menu ()
    IF st.pt = 16 THEN new_graphics_tests
    IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 18 THEN new_spriteset_editor
+   IF st.pt = 19 THEN backdrop_browser
   END IF
   usemenu st
   clearpage vpage
@@ -1999,12 +2001,14 @@ SUB new_graphics_tests
  doc = LoadDocument(ofile, optNoDelay)
  notification "Backdrop .rgfx completely loaded in " & CINT((timer - starttime) * 1000) & "ms"
  FreeDocument doc
+ doc = NULL
 
  DIM fr as Frame ptr
  DIM rgfx_time as double
  FOR i as integer = 0 TO gen(genNumBackdrops) - 1
   starttime = timer
-  fr = rgfx_get_frame(ofile, i, 0)
+  IF NOT doc THEN doc = rgfx_open(ofile)
+  fr = rgfx_get_frame(doc, i, 0)
   rgfx_time += timer - starttime
   frame_draw fr, , 0, 0, 1, NO, vpage
   setvispage vpage

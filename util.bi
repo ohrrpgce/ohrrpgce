@@ -465,7 +465,9 @@ CONST ancBottom = _rFactor * 2
 CONST ancRight =  _rFactor * 2
 ' show* constants shift so the left-most or right-most part of the object is visible
 CONST showLeft =  _rFactor * 9
+CONST showTop  =  _rFactor * 9
 CONST showRight = _rFactor * 18
+CONST showBottom = _rFactor * 18
 ' placements; used especially for printstr, etc.
 CONST pLeft =          rLeft   + ancLeft  ' =0
 CONST pTop =           rTop    + ancTop   ' =0

@@ -3122,13 +3122,11 @@ FUNCTION rgfx_open(filename as string) as DocPtr
 END FUNCTION
 
 'Given spriteset number and frame number load a single Frame
-FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integer) as Frame ptr
- DIM doc as DocPtr
+FUNCTION rgfx_get_frame(rgfx_doc as DocPtr, setnum as integer, framenum as integer) as Frame ptr
  DIM as NodePtr root_node, spriteset_node, frame_node
  DIM ret as Frame ptr
- doc = rgfx_open(filename)
- IF doc = NULL THEN RETURN NULL
- root_node = DocumentRoot(doc)
+ IF rgfx_doc = NULL THEN RETURN NULL
+ root_node = DocumentRoot(rgfx_doc)
 
  spriteset_node = ChildByIndex(root_node."spritesets".ptr, setnum)
  IF spriteset_node = NULL THEN
@@ -3142,7 +3140,6 @@ FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integ
   END IF
  END IF
 
- FreeDocument doc
  RETURN ret
 END FUNCTION
 

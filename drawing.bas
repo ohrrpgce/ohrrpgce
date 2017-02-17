@@ -13,6 +13,7 @@
 #include "customsubs.bi"
 #include "cglobals.bi"
 #include "const.bi"
+#include "custom.bi"
 
 CONST COLORNUM_SHOW_TICKS = 30
 
@@ -28,8 +29,9 @@ DECLARE SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, 
 DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 
+DECLARE FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
-DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, page as integer)
+DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 
 ' Tileset editor
 DECLARE SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
@@ -52,7 +54,6 @@ DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
 DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
-DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
 DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
@@ -215,7 +216,7 @@ DO
    loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 4 THEN
-   select_disabled_import_colors pmask(), 2
+   select_disabled_import_colors pmask(), vpages(2)
   END IF
   IF mstate.pt = 5 THEN
    DIM outfile as string
@@ -235,16 +236,133 @@ clearpage 2
 sprite_update_cache sprtype
 END SUB
 
-' Display a backdrop (on a certain page) and select which colours in a copy
+' This is the new browser/editor for backdrops.
+' TODO: imported backdrops are not saved.
+SUB backdrop_browser ()
+ STATIC default as string
+ DIM pmask(255) as RGBcolor
+ DIM srcbmp as string
+ DIM backdrop_id as integer = 0
+
+ DIM bgcolor as bgType = bgChequer
+ DIM chequer_scroll as integer
+
+ DIM menu(8) as string
+
+ DIM mstate as MenuState
+ mstate.last = UBOUND(menu)
+ mstate.need_update = YES
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+
+ DIM backdrops_file as string = workingdir + SLASH "backdrops.rgfx"
+ IF NOT isfile(backdrops_file) THEN
+  'Gives notification about time taken
+  convert_mxs_to_rgfx(game + ".mxs", backdrops_file)
+ END IF
+
+ DIM BYREF count as integer = gen(genNumBackdrops)
+ IF count = 0 THEN count = 1
+
+ loadpalette pmask(), activepalette
+
+ DIM rgfx_doc as DocPtr = rgfx_open(backdrops_file)
+ DIM backdrop as Frame ptr
+ frame_assign @backdrop, rgfx_get_frame(rgfx_doc, backdrop_id, 0)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  chequer_scroll += 1
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
+   DIM crop_this as integer = count - 1
+   ' FIXME: Not implemented
+   count = crop_this + 1
+  END IF
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "backdrop_browser"
+  usemenu mstate
+  IF mstate.pt <> 6 ANDALSO intgrabber(backdrop_id, 0, count - 1) THEN
+   ' Change selected backdrop
+   frame_assign @backdrop, rgfx_get_frame(rgfx_doc, backdrop_id, 0)
+   IF backdrop = NULL THEN debugc errPromptBug, "rgfx failed to load" : EXIT DO
+   mstate.need_update = YES
+  END IF
+  IF enter_space_click(mstate) THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt = 2 THEN
+    'Replace current
+    srcbmp = browse(2, default, "*.bmp", "", , "browse_import_backdrop")
+    IF srcbmp <> "" THEN
+     DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+     IF imported THEN frame_assign @backdrop, imported
+     mstate.need_update = YES
+    END IF
+   END IF
+   IF mstate.pt = 3 AND count < 32767 THEN
+    'Append new
+    srcbmp = browse(2, default, "*.bmp", "", , "browse_import_backdrop")
+    IF srcbmp <> "" THEN
+     DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+     IF imported THEN
+      frame_assign @backdrop, imported
+      backdrop_id = count
+      'count = backdrop_id + 1   ' FIXME: Commented because saving unimplemented
+      mstate.need_update = YES
+     END IF
+    END IF
+   END IF
+   IF mstate.pt = 4 THEN
+    select_disabled_import_colors pmask(), backdrop
+   END IF
+   IF mstate.pt = 5 THEN
+    DIM outfile as string
+    outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", _
+                            trimextension(trimpath(sourcerpg)) & " backdrop" & backdrop_id)
+    IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", backdrop, master()
+   END IF
+  END IF
+  IF mstate.pt = 6 THEN mstate.need_update OR= intgrabber(bgcolor, bgFIRST, 255)
+
+  IF mstate.need_update THEN
+   mstate.need_update = NO
+   menu(0) = "Return to Main Menu"
+   menu(1) = CHR(27) + "Backdrop " & backdrop_id & CHR(26)
+   menu(2) = "Replace current backdrop"
+   menu(3) = "Append a new backdrop"
+   menu(4) = "Disable palette colors for import"
+   menu(5) = "Export backdrop as BMP"
+   menu(6) = "Background: " & bgcolor_caption(bgcolor)
+   menu(7) = "Size: " & backdrop->w & " x " & backdrop->h
+   menu(8) = "Hide menu"
+  END IF
+
+  clearpage vpage
+  'Show the size of the backdrop by outlining it
+  drawbox pRight + 1, pBottom + 1, backdrop->w + 2, backdrop->h + 2, uilook(uiMenuItem), 1, vpage
+  frame_draw_with_background backdrop, , pRight + showLeft, pBottom + showTop, , bgcolor, chequer_scroll, vpages(vpage)
+  IF mstate.pt <> 8 THEN
+   standardmenu menu(), mstate, 0, 0, vpage, menuopts
+  END IF
+  setvispage vpage
+  dowait
+ LOOP
+ frame_unload @backdrop
+ FreeDocument rgfx_doc
+ safekill backdrops_file  ' Not live yet
+ 'sprite_update_cache sprTypeBackdrop
+END SUB
+
+' Display an image and select which colours in a copy
 ' of the master palette to set to black.
-PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, page as integer)
+PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 DIM tog as integer
 DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
 DIM cx as integer
 DIM cy as integer
 DIM mouse as MouseInfo
-DIM rect as RectType
-DIM col as integer
+DIM image_pos as XYPair
 
 hidemousecursor
 
@@ -254,15 +372,17 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ image_pos = get_resolution() - XY(image->w, image->h)
  mouse = readmouse()
  WITH mouse
   IF .clickstick AND mouseleft THEN
    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
     EXIT DO
    ELSE
+    DIM rect as RectType
     rect.wide = 10  '2 pixels wider than real squares, to avoid gaps
     rect.high = 10
-    col = -1
+    DIM col as integer = -1
     'Click on a palette colour
     FOR xidx as integer = 0 TO 15
      FOR yidx as integer = 0 TO 15
@@ -270,8 +390,8 @@ DO
       IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
      NEXT
     NEXT
-    'Click on an image pixel
-    IF col = -1 THEN col = readpixel(.x, .y, 2)
+    'Click on an image pixel (safe if the position is off the edge of the image)
+    IF col = -1 THEN col = readpixel(image, .x - image_pos.x, .y - image_pos.y)
     toggle_pmask pmask(), master(), col
    END IF
   END IF
@@ -298,7 +418,9 @@ DO
    toggle_pmask pmask(), master(), cy * 16 + cx
   END IF
  END IF
- copypage page, dpage
+
+ clearpage dpage
+ frame_draw image, , image_pos.x, image_pos.y, , NO, dpage
  textcolor uilook(uiMenuItem), 0
  IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
@@ -329,8 +451,10 @@ SUB importbmp_change_background_color(img as Frame ptr)
  END IF
 END SUB
 
-'Returns true if imported, false if cancelled
-FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+' Read a BMP file, check the bitdepth and palette and perform any necessary
+' remapping, possibly create a new master palette (and change activepalette),
+' and return the resulting (unsaved) Frame, or NULL if cancelled.
+FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
  DIM bmpd as BitmapV3InfoHeader
  DIM menu(2) as string
  DIM paloption as integer
@@ -350,7 +474,7 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
    menu(2) = "Do not remap colours"
    paloption = multichoice("This BMP's palette is not identical to your master palette", _
                            menu(), , , "importbmp_palette")
-   IF paloption = -1 THEN RETURN NO
+   IF paloption = -1 THEN RETURN NULL
    IF paloption = 1 THEN
     importmasterpal srcbmp, gen(genMaxMasterPal) + 1
     activepalette = gen(genMaxMasterPal)
@@ -382,10 +506,16 @@ FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as stri
   img = frame_import_bmp24_or_32(srcbmp, pmask(), 1)
   importbmp_change_background_color img
  END IF
+ loadpalette pmask(), activepalette
+ RETURN img
+END FUNCTION
 
+'Import a BMP file as a MXS backdrop/tileset. Returns true if imported, false if cancelled
+FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+ DIM img as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+ IF img = NULL THEN RETURN NO
  storemxs mxslump, imagenum, img
  frame_unload @img
- loadpalette pmask(), activepalette
  RETURN YES
 END FUNCTION
 
@@ -394,11 +524,22 @@ END FUNCTION
 'bgcolor is either between 0 and 255 (a colour), bgChequerScroll (a scrolling chequered
 'background), or bgChequer (a non-scrolling chequered background)
 'chequer_scroll is a counter variable which the calling function should increment once per tick.
-SUB frame_draw_with_background (byval src as Frame ptr, byval pal as Palette16 ptr = NULL, byval x as integer, byval y as integer, byval scale as integer = 1, byval bgcolor as bgType, byref chequer_scroll as integer, byval dest as Frame ptr)
+SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr)
  draw_background dest, bgcolor, chequer_scroll, x, y, src->w * scale, src->h * scale
  'Draw transparently
  frame_draw src, pal, x, y, scale, YES, dest
 END SUB
+
+' Describe a bgType value (usually append to "Background: ")
+FUNCTION bgcolor_caption(bgcolor as bgType) as string
+ IF bgcolor = bgChequer THEN
+  RETURN "chequer"
+ ELSEIF bgcolor = bgChequerScroll THEN
+  RETURN "scrolling chequer"
+ ELSE
+  RETURN "color " & bgcolor
+ END IF
+END FUNCTION
 
 SUB maptile ()
 STATIC bgcolor as bgType = 0  'Default to first color in master palette
@@ -528,13 +669,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
   clearpage dpage
   frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
-  IF bgcolor = bgChequer THEN
-   menu(5) = "Background: chequer"
-  ELSEIF bgcolor = bgChequerScroll THEN
-   menu(5) = "Background: scrolling chequer"
-  ELSE
-   menu(5) = "Background color: " & bgcolor
-  END IF
+  menu(5) = "Background: " & bgcolor_caption(bgcolor)
   standardmenu menu(), state, 10, 8, dpage, menuopt
   SWAP vpage, dpage
   setvispage vpage

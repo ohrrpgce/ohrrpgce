@@ -16,8 +16,9 @@ DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprty
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, byval fileset as integer, byval fullset as integer=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+DECLARE SUB spriteset_editor (xw as integer, yw as integer, byref sets as integer, perset as integer, info() as string, fileset as SpriteType, fullset as bool = NO, cursor_start as integer = 0, cursor_top as integer = 0)
 DECLARE SUB new_spriteset_editor()
+DECLARE SUB backdrop_browser ()
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB gendata ()
@@ -35,5 +36,7 @@ DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
 DECLARE SUB npcdef (st as MapEditState)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 
+DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr)
+DECLARE FUNCTION bgcolor_caption(bgcolor as bgType) as string
 
 #endif

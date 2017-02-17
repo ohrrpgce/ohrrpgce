@@ -3245,6 +3245,9 @@ sub drawbox (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 
 	if w = 0 or h = 0 then exit sub
 
+	x = relative_pos(x, dest->w, w)
+	y = relative_pos(y, dest->h, h)
+
 	dim as integer thickx = small(thickness, w), thicky = small(thickness, h)
 
 	rectangle dest, x, y, w, thicky, col

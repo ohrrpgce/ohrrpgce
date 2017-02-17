@@ -132,7 +132,8 @@ DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
 DECLARE SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
 
 DECLARE SUB convert_mxs_to_rgfx(filename as string, outfile as string)
-DECLARE FUNCTION rgfx_get_frame(filename as string, setnum as integer, framenum as integer) as Frame ptr
+DECLARE FUNCTION rgfx_open(filename as string) as DocPtr
+DECLARE FUNCTION rgfx_get_frame(rgfx_doc as DocPtr, setnum as integer, framenum as integer) as Frame ptr
 
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
