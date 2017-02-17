@@ -8,24 +8,28 @@
 
 #include "../lumpfile.bi"
 
+extern "C"
+
 'initing routines
-declare function AudInit cdecl alias "AudInit" () as integer
-declare sub AudClose cdecl alias "AudClose" ()
+declare function AudInit () as integer
+declare sub AudClose ()
 
 'sound management
-declare function AudLoadSound cdecl alias "AudLoadSound" (byval as ZString ptr, byval as integer) as integer
-declare function AudLoadSoundLump cdecl alias "AudLoadSoundLump" (byval as Lump ptr, byval as integer) as integer
-declare sub AudUnloadSound cdecl alias "AudUnloadSound" (byval as integer)
-declare function AudIsPlaying cdecl alias "AudIsPlaying" (byval as integer) as integer
-declare sub AudPlay cdecl alias "AudPlay" (byval as integer)
-declare sub AudPause cdecl alias "AudPause" (byval as integer)
-declare sub AudStop cdecl alias "AudStop" (byval as integer)
-declare function AudIsValidSound cdecl alias "AudIsValidSound" (byval as integer) as integer
+declare function AudLoadSound (filename as ZString ptr, streaming as bool) as integer
+declare function AudLoadSoundLump (lump as Lump ptr, streaming as bool) as integer
+declare sub AudUnloadSound (slot as integer)
+declare function AudIsPlaying (slot as integer) as bool
+declare sub AudPlay (slot as integer)
+declare sub AudPause (slot as integer)
+declare sub AudStop (slot as integer)
+declare function AudIsValidSound (slot as integer) as bool
 
 'sound settings
-declare sub AudSetVolume cdecl alias "AudSetVolume" (byval as integer, byval as single)
-declare function AudGetVolume cdecl alias "AudGetVolume" (byval as integer) as single
-declare sub AudSetRepeat cdecl alias "AudSetRepeat" (byval as integer, byval as integer)
-declare function AudGetRepeat cdecl alias "AudGetRepeat" (byval as integer) as integer
+declare sub AudSetVolume (as integer, as single)
+declare function AudGetVolume (slot as integer) as single
+declare sub AudSetRepeat (slot as integer, repeat as bool)
+declare function AudGetRepeat (slot as integer) as bool
+
+end extern
 
 #endif
