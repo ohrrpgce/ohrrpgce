@@ -8,7 +8,7 @@ Name: This is a name for the menu. It is only for your reference, and is not dis
 
 Edit Items: Press ENTER or SPACE to edit the menu items that appear in the menu.
 
-Background: Background box style. There are onlly 15 choices (0-14), but you can change them in the Graphics Editor under User Interface Colors.
+Box Style: The box style used for the background color and border. You can define these in the Box Styles editor in Edit Graphics menu.
 
 Text Color: Press ENTER or SPACE for a color browser.
 

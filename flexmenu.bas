@@ -2645,7 +2645,7 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  
  append_menu_item edmenu, "Name: " & menu.name
  append_menu_item edmenu, "Edit Items..."
- append_menu_item edmenu, "Background: " & menu.boxstyle
+ append_menu_item edmenu, "Box Style: " & menu.boxstyle
  append_menu_item edmenu, "Text color: " & zero_default(menu.textcolor)
  append_menu_item edmenu, "Max rows to display: " & zero_default(menu.maxrows)
  append_menu_item edmenu, "Edit Bitsets..."
