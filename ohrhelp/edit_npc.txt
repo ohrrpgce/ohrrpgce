@@ -6,17 +6,23 @@ Picture: This is the ID number of the walkabout sprite that the NPC will use. Yo
 
 Palette: This is the 16-color palette used for the picture. "default" is the palette you used to draw the selected sprite, so you will normally not need to change it. Besides being able to type in a palette number you can also press ENTER or SPACE to use the palette browser.
 
+
+Movement:
+
 Move Type: This determines how the NPC will move around the map. If this NPC is not supposed to move, choose "Stand Still".
 
 Move Speed: This is the speed that the NPC will move. 1 is very slow. 4 is the heroes' default speed. 10 is fast. Notice that you can't just put in any number you want? That is because move speed needs to be evenly divisible into the tile size, which is 20x20 pixels.
 
-Display Text: Here you can choose a text box that will be displayed if the player activates the NPC. A preview of the first line of the text box will be displayed at the bottom of the screen.
+Movement Zone: this restricts this NPC to only move onto tiles that are in a certain zone.
 
-When Activated: This controls whether or not the NPC changes directions to face the player when the NPC is activated. "Change Direction" leaves the NPC in the new direction after it's done talking, while "Face Player" means that the NPC will turn back to its original direction after talking.
+Avoidance Zone: the NPC treats tiles in this zone as walls. This overrides the movement zone.
 
-Give Item: Here you can choose an item which will be added to the player's inventory when they activate the NPC. This is most often useful for treasure chests. Note that there will be no visual display of the item being added. You might want to use a text box for that.
+Ignore Passmap: turning this on makes the NPC walk through walls placed on the wallmap, but it is still blocked by zones, other NPCs, the player, and the map edge (on non-wrapping maps). (You can use the "set NPC ignores walls" and "set NPC obstructs" script commands to make the NPC move through these obstacles). This might be useful for flying NPCs. Use zones to contain the NPC instead.
 
 Pushability: Here you can choose whether or not it is possible for the player to push the NPC. This is useful for barrier boxes, or for annoying townspeople who get in the players way. Be aware that pushable NPCs won't work unless you give them a "Move Speed" higher than zero.
+
+
+Activation by player:
 
 Activation: This controls how an NPC is activated. It also controls whether or not the player is allowed to walk over an NPC.
 
@@ -42,20 +48,23 @@ Activation: This controls how an NPC is activated. It also controls whether or n
   over, even though other NPCs are
   blocked by them.
 
-Appear if Tag: These two tags can be used to control when the NPC appears. You can type in a tag number, or press ENTER or SPACE to bring up the tag browser. Press - to switch between requiring the tag to be OFF or ON.
+Display Text: Here you can choose a text box that will be displayed if the player activates the NPC. A preview of the first line of the text box will be displayed at the bottom of the screen.
+
+Give Item: Here you can choose an item which will be added to the player's inventory when they activate the NPC. This is most often useful for treasure chests. Note that there will be no visual display of the item being added. You might want to use a text box for that.
+
+Run Script: A plotscript that will be run when the NPC is activated. You can press ENTER or SPACE here to open the script browser. This script will automatically receive two arguments. The script argument defined below is first, and an NPC reference number for the activating NPC is second.
+
+Script Argument: If you have specified a plotscript, you can also provide a number which will be passed as the first argument to the script.
+
+Vehicle: This allows you to turn this NPC into a vehicle. Activating the NPC will cause you to mount the vehicle. See the Edit Vehicles menu (from the Main Menu) for more info.
+
+When Activated: This controls whether or not the NPC changes directions to face the player when the NPC is activated. "Change Direction" leaves the NPC in the new direction after it's done talking, while "Face Player" means that the NPC will turn back to its original direction after talking.
 
 Usable Repeatedly/Usable Only Once: This allows you to make an NPC disappear permanently after being activated once. This is most often used for treasure chests or for one-time plotscript triggers.
 NOTE: All copies of an NPC will disappear when any of them is activated! Use multiple NPC definitions, or the "delete NPC" script command to remove a single NPC.
 "(onetime #)" indicates the ID number of the flag, which you can set or check with a script.
 
-Run Script: A plotscript that will be run when the NPC is activated. You can press ENTER or SPACE here to open the script browser. This script will automatically receive two arguments. The script argument defined below is first, and an NPC reference number for the activating NPC is second.
 
-Script Argument: If you have specified a plotscript, you can also provide a number which will be passed as an argument to the script.
+Appears when...:
 
-Vehicle: This allows you to turn this NPC into a vehicle. Activating the NPC will cause you to mount the vehicle. See the Edit Vehicles menu (from the Main Menu) for more info.
-
-Movement Zone: this restricts this NPC to only move onto tiles that are in a certain zone.
-
-Avoidance Zone: the NPC treats tiles in this zone as walls. This overrides the movement zone.
-
-Ignore Passmap: turning this on makes the NPC walk through walls placed on the wallmap, but it is still blocked by zones, other NPCs, the player, and the map edge (on non-wrapping maps). (You can use the "set NPC ignores walls" and "set NPC obstructs" script commands to make the NPC move through these obstacles). This might be useful for flying NPCs. Use zones to contain the NPC instead.
+Appear if Tag: These two tags can be used to control when the NPC appears. You can type in a tag number, or press ENTER or SPACE to bring up the tag browser. Press - to switch between requiring the tag to be OFF or ON. If either tag condition isn't met then the NPC immediately vanishes.
