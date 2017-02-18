@@ -1127,9 +1127,11 @@ END FUNCTION
 
 TYPE NPCEditState
  state as MenuState
- menu(any) as string
+ menu as SimpleMenuItem vector
+ ' IDs to match up menu items with actions. Currently equal to .N data index, but treat as meaningless.
  itemids(any) as integer
 
+ ' Preview current item/textbox/script/vechicle name
  itemname as string
  boxpreview as string
  scrname as string
@@ -1140,54 +1142,62 @@ TYPE NPCEditState
  usetype(any) as string
  pushtype(any) as string
 
- DECLARE SUB menu_append(id as integer, menuitem as string)
+ DECLARE SUB menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
 END TYPE
 
-SUB NPCEditState.menu_append(itemid as integer, menuitem as string)
- int_array_append itemids(), itemid
- str_array_append menu(), menuitem
+SUB NPCEditState.menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
+ append_simplemenu_item menu, menuitem, unselectable, , itemid
+ v_end(menu)[-1].disabled = unselectable
 END SUB
 
 SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
- REDIM ed.menu(-1 TO -1)
  REDIM ed.itemids(-1 TO -1)
+ v_new ed.menu
 
  ed.menu_append -1, "Previous Menu"
- ed.menu_append 0, "Picture " & npcdata.picture
- ed.menu_append 1, "Palette " & defaultint(npcdata.palette)
- ed.menu_append 2, "Move Type = " & safe_caption(ed.movetype(), npcdata.movetype, "movetype")
- ed.menu_append 3, "Move Speed " & npcdata.speed
- ed.menu_append 4, "Display Text " & zero_default(npcdata.textbox, "[None]")
- ed.menu_append 5, "When Activated " & safe_caption(ed.facetype(), npcdata.facetype, "facetype")
- ed.menu_append 6, "Give Item: " & ed.itemname
- ed.menu_append 7, "Pushability " & safe_caption(ed.pushtype(), npcdata.pushtype, "pushtype")
- ed.menu_append 8, "Activation: " & safe_caption(ed.usetype(), npcdata.activation, "usetype")
- ed.menu_append 9, "Appear if Tag " & tag_condition_caption(npcdata.tag1, "", "Always")
- ed.menu_append 10, "Appear if Tag " & tag_condition_caption(npcdata.tag2, "", "Always")
+ ed.menu_append  0, "Picture " & npcdata.picture
+ ed.menu_append  1, "Palette " & defaultint(npcdata.palette)
+ ed.menu_append   , "Movement", YES
+ ed.menu_append  2, "Move Type = " & safe_caption(ed.movetype(), npcdata.movetype, "movetype")
+ ed.menu_append  3, "Move Speed " & npcdata.speed
+ ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
+ ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
+ ed.menu_append  7, "Pushability " & safe_caption(ed.pushtype(), npcdata.pushtype, "pushtype")
+ ed.menu_append   , "Activation by player:", YES
+ ed.menu_append  8, "Activation: " & safe_caption(ed.usetype(), npcdata.activation, "usetype")
+ ed.menu_append  4, "Display Text " & zero_default(npcdata.textbox, "[None]")
+ ed.menu_append  6, "Give Item: " & ed.itemname
+ ed.menu_append 12, "Run Script: " & ed.scrname
+ ed.menu_append 13, "Script Argument: " & IIF(npcdata.script, STR(npcdata.scriptarg), "N/A")
+ ed.menu_append 14, "Vehicle: " & IIF(npcdata.vehicle > 0, ed.vehiclename, "No")
+ ed.menu_append  5, "When Activated " & safe_caption(ed.facetype(), npcdata.facetype, "facetype")
  IF npcdata.usetag THEN
   ed.menu_append 11, "Usable Only Once (onetime " & npcdata.usetag & ")"
  ELSE
   ed.menu_append 11, "Usable Repeatedly"
  END IF
- ed.menu_append 12, "Run Script: " & ed.scrname
- ed.menu_append 13, "Script Argument: " & IIF(npcdata.script, STR(npcdata.scriptarg), "N/A")
- ed.menu_append 14, "Vehicle: " & IIF(npcdata.vehicle > 0, ed.vehiclename, "No")
- ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
- ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
+ ed.menu_append   , "Appears when...:", YES
+ ed.menu_append  9, "Appear if Tag " & tag_condition_caption(npcdata.tag1, "", "Always")
+ ed.menu_append 10, "Appear if Tag " & tag_condition_caption(npcdata.tag2, "", "Always")
 
- ed.state.last = UBOUND(ed.menu)
+ ed.state.last = v_len(ed.menu) - 1
 END SUB
 
 SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM ed as NPCEditState
+ DIM menu_display as BasicMenuItem vector
 
  DIM walk as integer = 0
  DIM tog as integer = 0
 
  DIM selectst as SelectTypeState
  WITH ed.state
+  .autosize = YES
+  .autosize_ignore_pixels = 24
   .need_update = YES
  END WITH
+ DIM menuopts as MenuOptions
+ menuopts.fullscreen_scrollbar = YES
 
  REDIM ed.movetype(8)
  ed.movetype(0) = "Stand Still"
@@ -1232,11 +1242,11 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   setwait 55
   setkeys YES
   tog = tog XOR 1
-  IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
+  IF npcdata.movetype > 0 THEN walk = (walk + 1) MOD 4
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
-  usemenu ed.state
-  DIM itemid as integer = ed.itemids(ed.state.pt)
+  usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
+  DIM itemid as integer = ed.menu[ed.state.pt].dat
   SELECT CASE itemid
    CASE 0'--picture
     IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
@@ -1307,24 +1317,26 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   update_edit_npc npcdata, ed, gmap(), zmap
 
   IF select_by_typing(selectst, NO) THEN
-   select_on_word_boundary ed.menu(), selectst, ed.state
+   select_on_word_boundary cast(BasicMenuItem vector, ed.menu), selectst, ed.state
   END IF
 
   '--Draw screen
   clearpage dpage
-  DIM menu_display(-1 TO UBOUND(ed.menu)) as string
-  highlight_menu_typing_selection ed.menu(), menu_display(), selectst, ed.state
-  standardmenu menu_display(), ed.state, 0, 0, dpage
-  edgebox 9, 149, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
-  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 150, 1, YES, dpage
+  highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
+  edgebox pRight - 15, pBottom - 15, npcdata.sprite->w + 2, npcdata.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
+  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, pRight - 16, pBottom - 16, 1, YES, dpage
+  standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
-  printstr ed.boxpreview, 0, 177, dpage
+  printstr ed.boxpreview, 0, pBottom - 10, dpage
   textcolor uilook(uiSelectedItem2), 0
-  printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, 190, dpage
+  printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
+
+ v_free ed.menu
+ v_free menu_display
 
  frame_unload @npcdata.sprite
  palette16_unload @npcdata.pal
