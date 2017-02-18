@@ -102,31 +102,30 @@ END WITH
 
 
 SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
-'airbrush thanks to Ironhoof (Russel Hamrick)
+ 'airbrush thanks to Ironhoof (Russel Hamrick)
 
-'AirBrush this rutine works VERY well parameters as fallows:
-' AIRBRUSH sprite , x , y , diameter , mist_amount , color
-' diameter sets the width & hight by square radius
-' mist_amount sets how many pixels to place i put 100 and it ran fast so
-' it works EXCELLENTLY with a mouse on the DTE =)
+ 'AirBrush this rutine works VERY well parameters as fallows:
+ ' AIRBRUSH sprite , x , y , diameter , mist_amount , color
+ ' diameter sets the width & hight by square radius
+ ' mist_amount sets how many pixels to place i put 100 and it ran fast so
+ ' it works EXCELLENTLY with a mouse on the DTE =)
 
-FOR count as integer = 1 TO randint(m)
- DIM x2 as integer = randint(d)
- DIM y2 as integer = randint(d)
- DIM x3 as integer = x - d / 2
- DIM y3 as integer = y - d / 2
- IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
-  putpixel spr, x3 + x2, y3 + y2, c
- END IF
-NEXT
-
+ FOR count as integer = 1 TO randint(m)
+  DIM x2 as integer = randint(d)
+  DIM y2 as integer = randint(d)
+  DIM x3 as integer = x - d / 2
+  DIM y3 as integer = y - d / 2
+  IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
+   putpixel spr, x3 + x2, y3 + y2, c
+  END IF
+ NEXT
 END SUB
 
 ' Overload used by spriteset browser
 ' Does NOT save palette
 SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
-palval = bound(palval + palchange, 0, 32767)
-getpal16 workpal(), aindex, palval
+ palval = bound(palval + palchange, 0, 32767)
+ getpal16 workpal(), aindex, palval
 END SUB
 
 ' Overload used by sprite editor
@@ -155,85 +154,85 @@ PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as in
 END SUB
 
 SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
-STATIC default as string
-DIM pmask(255) as RGBcolor
-DIM menu(6) as string
-DIM mstate as MenuState
-mstate.size = 24
-mstate.last = UBOUND(menu)
-DIM menuopts as MenuOptions
-menuopts.edged = YES
-menu(0) = "Return to Main Menu"
-menu(1) = CHR(27) + "Browse 0" + CHR(26)
-menu(2) = "Replace current " + cap
-menu(3) = "Append a new " + cap
-menu(4) = "Disable palette colors for import"
-menu(5) = "Export " + cap + " as BMP"
-menu(6) = "Full screen view"
-DIM srcbmp as string
-DIM pt as integer = 0 'backdrop number
+ STATIC default as string
+ DIM pmask(255) as RGBcolor
+ DIM menu(6) as string
+ DIM mstate as MenuState
+ mstate.size = 24
+ mstate.last = UBOUND(menu)
+ DIM menuopts as MenuOptions
+ menuopts.edged = YES
+ menu(0) = "Return to Main Menu"
+ menu(1) = CHR(27) + "Browse 0" + CHR(26)
+ menu(2) = "Replace current " + cap
+ menu(3) = "Append a new " + cap
+ menu(4) = "Disable palette colors for import"
+ menu(5) = "Export " + cap + " as BMP"
+ menu(6) = "Full screen view"
+ DIM srcbmp as string
+ DIM pt as integer = 0 'backdrop number
 
-IF count = 0 THEN count = 1
-loadpalette pmask(), activepalette
-loadmxs game & f, pt, vpages(2)
+ IF count = 0 THEN count = 1
+ loadpalette pmask(), activepalette
+ loadmxs game & f, pt, vpages(2)
 
-setkeys
-DO
- setwait 55
  setkeys
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
-  DIM crop_this as integer = count - 1
-  cropafter pt, crop_this, 3, game + f, 64000
-  count = crop_this + 1
- END IF
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "importbmp"
- usemenu mstate
- IF intgrabber(pt, 0, count - 1) THEN
-  menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-  loadmxs game + f, pt, vpages(2)
- END IF
- IF enter_space_click(mstate) THEN
-  IF mstate.pt = 0 THEN EXIT DO
-  IF mstate.pt = 2 THEN
-   'Replace current
-   srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
-   IF srcbmp <> "" THEN
-    importbmp_import(game & f, pt, srcbmp, pmask())
-   END IF
-   loadmxs game + f, pt, vpages(2)
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
+   DIM crop_this as integer = count - 1
+   cropafter pt, crop_this, 3, game + f, 64000
+   count = crop_this + 1
   END IF
-  IF mstate.pt = 3 AND count < 32767 THEN
-   'Append new
-   srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
-   IF srcbmp <> "" THEN
-    IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
-     pt = count
-     count = pt + 1
-    END IF
-   END IF
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "importbmp"
+  usemenu mstate
+  IF intgrabber(pt, 0, count - 1) THEN
    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
    loadmxs game + f, pt, vpages(2)
   END IF
-  IF mstate.pt = 4 THEN
-   select_disabled_import_colors pmask(), vpages(2)
+  IF enter_space_click(mstate) THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt = 2 THEN
+    'Replace current
+    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
+    IF srcbmp <> "" THEN
+     importbmp_import(game & f, pt, srcbmp, pmask())
+    END IF
+    loadmxs game + f, pt, vpages(2)
+   END IF
+   IF mstate.pt = 3 AND count < 32767 THEN
+    'Append new
+    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
+    IF srcbmp <> "" THEN
+     IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
+      pt = count
+      count = pt + 1
+     END IF
+    END IF
+    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
+    loadmxs game + f, pt, vpages(2)
+   END IF
+   IF mstate.pt = 4 THEN
+    select_disabled_import_colors pmask(), vpages(2)
+   END IF
+   IF mstate.pt = 5 THEN
+    DIM outfile as string
+    outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
+    IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
+   END IF
   END IF
-  IF mstate.pt = 5 THEN
-   DIM outfile as string
-   outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
-   IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
+  copypage 2, dpage
+  IF mstate.pt <> 6 THEN
+   standardmenu menu(), mstate, 0, 0, dpage, menuopts
   END IF
- END IF
- copypage 2, dpage
- IF mstate.pt <> 6 THEN
-  standardmenu menu(), mstate, 0, 0, dpage, menuopts
- END IF
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-clearpage 2
-sprite_update_cache sprtype
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ clearpage 2
+ sprite_update_cache sprtype
 END SUB
 
 ' This is the new browser/editor for backdrops.
@@ -357,86 +356,86 @@ END SUB
 ' Display an image and select which colours in a copy
 ' of the master palette to set to black.
 PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
-DIM tog as integer
-DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
-DIM cx as integer
-DIM cy as integer
-DIM mouse as MouseInfo
-DIM image_pos as XYPair
+ DIM tog as integer
+ DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
+ DIM cx as integer
+ DIM cy as integer
+ DIM mouse as MouseInfo
+ DIM image_pos as XYPair
 
-hidemousecursor
+ hidemousecursor
 
-setpal pmask()
-setkeys
-DO
- setwait 55
+ setpal pmask()
  setkeys
- tog = tog XOR 1
- image_pos = get_resolution() - XY(image->w, image->h)
- mouse = readmouse()
- WITH mouse
-  IF .clickstick AND mouseleft THEN
-   IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
-    EXIT DO
-   ELSE
-    DIM rect as RectType
-    rect.wide = 10  '2 pixels wider than real squares, to avoid gaps
-    rect.high = 10
-    DIM col as integer = -1
-    'Click on a palette colour
-    FOR xidx as integer = 0 TO 15
-     FOR yidx as integer = 0 TO 15
-      rect.topleft = XY(xidx * 10, 8 + yidx * 10)
-      IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  image_pos = get_resolution() - XY(image->w, image->h)
+  mouse = readmouse()
+  WITH mouse
+   IF .clickstick AND mouseleft THEN
+    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
+     EXIT DO
+    ELSE
+     DIM rect as RectType
+     rect.wide = 10  '2 pixels wider than real squares, to avoid gaps
+     rect.high = 10
+     DIM col as integer = -1
+     'Click on a palette colour
+     FOR xidx as integer = 0 TO 15
+      FOR yidx as integer = 0 TO 15
+       rect.topleft = XY(xidx * 10, 8 + yidx * 10)
+       IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
+      NEXT
      NEXT
-    NEXT
-    'Click on an image pixel (safe if the position is off the edge of the image)
-    IF col = -1 THEN col = readpixel(image, .x - image_pos.x, .y - image_pos.y)
-    toggle_pmask pmask(), master(), col
+     'Click on an image pixel (safe if the position is off the edge of the image)
+     IF col = -1 THEN col = readpixel(image, .x - image_pos.x, .y - image_pos.y)
+     toggle_pmask pmask(), master(), col
+    END IF
+   END IF
+  END WITH
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
+  IF prev_menu_selected THEN
+   IF enter_or_space() THEN EXIT DO
+   IF keyval(scDown) > 1 THEN
+    cy = 0
+    prev_menu_selected = NO
+   END IF
+  ELSE
+   IF keyval(scLeft) > 1 THEN cx = large(cx - 1, 0)
+   IF keyval(scRight) > 1 THEN cx = small(cx + 1, 15)
+   IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
+   IF keyval(scUp) > 1 THEN cy -= 1
+   IF cy < 0 THEN
+    cy = 0
+    prev_menu_selected = YES
+   END IF
+   IF enter_or_space() THEN
+    toggle_pmask pmask(), master(), cy * 16 + cx
    END IF
   END IF
- END WITH
 
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
- IF prev_menu_selected THEN
-  IF enter_or_space() THEN EXIT DO
-  IF keyval(scDown) > 1 THEN
-   cy = 0
-   prev_menu_selected = NO
-  END IF
- ELSE
-  IF keyval(scLeft) > 1 THEN cx = large(cx - 1, 0)
-  IF keyval(scRight) > 1 THEN cx = small(cx + 1, 15)
-  IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
-  IF keyval(scUp) > 1 THEN cy -= 1
-  IF cy < 0 THEN
-   cy = 0
-   prev_menu_selected = YES
-  END IF
-  IF enter_or_space() THEN
-   toggle_pmask pmask(), master(), cy * 16 + cx
-  END IF
- END IF
-
- clearpage dpage
- frame_draw image, , image_pos.x, image_pos.y, , NO, dpage
- textcolor uilook(uiMenuItem), 0
- IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr "Previous Menu", 0, 0, dpage
- IF prev_menu_selected = NO THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
- FOR i as integer = 0 TO 15
-  FOR o as integer = 0 TO 15
-   rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
-  NEXT o
- NEXT i
- printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-setpal master()
-defaultmousecursor
+  clearpage dpage
+  frame_draw image, , image_pos.x, image_pos.y, , NO, dpage
+  textcolor uilook(uiMenuItem), 0
+  IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
+  printstr "Previous Menu", 0, 0, dpage
+  IF prev_menu_selected = NO THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
+  FOR i as integer = 0 TO 15
+   FOR o as integer = 0 TO 15
+    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
+   NEXT o
+  NEXT i
+  printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setpal master()
+ defaultmousecursor
 END SUB
 
 'Give the user the chance to remap a color to 0.
@@ -779,107 +778,103 @@ SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page
 END SUB
 
 FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
-
-FOR i as integer = UBOUND(area) TO 0 STEP -1
- IF area(i).w <> 0 AND area(i).h <> 0 THEN
-  IF mousex >= area(i).x AND mousex < area(i).x + area(i).w THEN
-   IF mousey >= area(i).y AND mousey < area(i).y + area(i).h THEN
-    zox = mousex - area(i).x
-    zoy = mousey - area(i).y
-    zcsr = area(i).hidecursor
-    mouseover = i + 1
-    EXIT FUNCTION
-   END IF 'Y OKAY---
-  END IF 'X OKAY---
- END IF 'VALID ZONE---
-NEXT i
-
+ FOR i as integer = UBOUND(area) TO 0 STEP -1
+  IF area(i).w <> 0 AND area(i).h <> 0 THEN
+   IF mousex >= area(i).x AND mousex < area(i).x + area(i).w THEN
+    IF mousey >= area(i).y AND mousey < area(i).y + area(i).h THEN
+     zox = mousex - area(i).x
+     zoy = mousey - area(i).y
+     zcsr = area(i).hidecursor
+     mouseover = i + 1
+     EXIT FUNCTION
+    END IF 'Y OKAY---
+   END IF 'X OKAY---
+  END IF 'VALID ZONE---
+ NEXT i
 END FUNCTION
 
 SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DIM menu(10) as string
-DIM menu2(1) as string
-DIM llim(7) as integer
-DIM ulim(7) as integer
-menu(0) = "Previous Menu"
-FOR i as integer = 1 TO 2
- llim(i) = 0
- ulim(i) = 9
-NEXT i
-FOR i as integer = 3 TO 4
- llim(i) = 0
- ulim(i) = 159
-NEXT i
-llim(5) = 0
-ulim(5) = 32767
-llim(6) = -max_tag()
-ulim(6) = max_tag()
+ DIM menu(10) as string
+ DIM menu2(1) as string
+ DIM llim(7) as integer
+ DIM ulim(7) as integer
+ menu(0) = "Previous Menu"
+ FOR i as integer = 1 TO 2
+  llim(i) = 0
+  ulim(i) = 9
+ NEXT i
+ FOR i as integer = 3 TO 4
+  llim(i) = 0
+  ulim(i) = 159
+ NEXT i
+ llim(5) = 0
+ ulim(5) = 32767
+ llim(6) = -max_tag()
+ ulim(6) = max_tag()
 
-DIM context as integer = 0
-DIM index as integer = 0
-DIM tog as integer
+ DIM context as integer = 0
+ DIM index as integer = 0
+ DIM tog as integer
 
-DIM state as MenuState
-init_menu_state state, menu()
-state.need_update = YES
+ DIM state as MenuState
+ init_menu_state state, menu()
+ state.need_update = YES
 
-DIM state2 as MenuState
-init_menu_state state2, menu2()
+ DIM state2 as MenuState
+ init_menu_state state2, menu2()
 
-setkeys
-DO
- setwait 55
  setkeys
- IF keyval(scF1) > 1 THEN show_help "maptile_setanimpattern"
- SELECT CASE context
-  CASE 0 '---PICK A STATEMENT---
-   IF keyval(scESC) > 1 THEN EXIT DO
-   IF usemenu(state) THEN state.need_update = YES
-   IF enter_space_click(state) THEN
-    IF state.pt = 0 THEN
-     EXIT DO
-    ELSE
-     context = 1
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "maptile_setanimpattern"
+  SELECT CASE context
+   CASE 0 '---PICK A STATEMENT---
+    IF keyval(scESC) > 1 THEN EXIT DO
+    IF usemenu(state) THEN state.need_update = YES
+    IF enter_space_click(state) THEN
+     IF state.pt = 0 THEN
+      EXIT DO
+     ELSE
+      context = 1
+     END IF
     END IF
-   END IF
-  CASE 1 '---EDIT THAT STATEMENT---
-   IF keyval(scESC) > 1 THEN
-    save_tile_anims tilesetnum, tastuf()
-    context = 0
-   END IF
-   usemenu state2
-   index = bound(state.pt - 1, 0, 8) + 20 * taset
-   IF state2.pt = 0 THEN
-    IF intgrabber(tastuf(2 + index), 0, 6) THEN state.need_update = YES
-   END IF
-   IF state2.pt = 1 THEN
-    IF tastuf(2 + index) = 6 THEN
-     IF tag_grabber(tastuf(11 + index)) THEN state.need_update = YES
-    ELSE
-     IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN state.need_update = YES
+   CASE 1 '---EDIT THAT STATEMENT---
+    IF keyval(scESC) > 1 THEN
+     save_tile_anims tilesetnum, tastuf()
+     context = 0
     END IF
-   END IF
-   IF enter_space_click(state2) THEN context = 0
- END SELECT
- IF state.need_update THEN
-  setanimpattern_refreshmenu state.pt, menu(), menu2(), tastuf(), taset, llim(), ulim()
-  state.need_update = NO
- END IF
- '--Draw screen
- clearpage dpage
- state.active = (context = 0)
- standardmenu menu(), state, 0, 0, dpage
- IF state.pt > 0 THEN
-  state2.active = (context = 1)
-  standardmenu menu2(), state2, 0, 100, dpage
- END IF
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-setanimpattern_forcebounds tastuf(), taset, llim(), ulim()
-EXIT SUB
-
+    usemenu state2
+    index = bound(state.pt - 1, 0, 8) + 20 * taset
+    IF state2.pt = 0 THEN
+     IF intgrabber(tastuf(2 + index), 0, 6) THEN state.need_update = YES
+    END IF
+    IF state2.pt = 1 THEN
+     IF tastuf(2 + index) = 6 THEN
+      IF tag_grabber(tastuf(11 + index)) THEN state.need_update = YES
+     ELSE
+      IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN state.need_update = YES
+     END IF
+    END IF
+    IF enter_space_click(state2) THEN context = 0
+  END SELECT
+  IF state.need_update THEN
+   setanimpattern_refreshmenu state.pt, menu(), menu2(), tastuf(), taset, llim(), ulim()
+   state.need_update = NO
+  END IF
+  '--Draw screen
+  clearpage dpage
+  state.active = (context = 0)
+  standardmenu menu(), state, 0, 0, dpage
+  IF state.pt > 0 THEN
+   state2.active = (context = 1)
+   standardmenu menu2(), state2, 0, 100, dpage
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ setanimpattern_forcebounds tastuf(), taset, llim(), ulim()
 END SUB
 
 SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
@@ -937,72 +932,70 @@ SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim
 END SUB
 
 SUB testanimpattern (tastuf() as integer, byref taset as integer)
+ DIM sample as TileMap
+ DIM tilesetview as TileMap
+ DIM tanim_state(1) as TileAnimState
+ DIM tileset as Frame ptr = NULL
+ DIM tog as integer
+ DIM csr as integer
+ DIM x as integer
+ DIM y as integer
 
-DIM sample as TileMap
-DIM tilesetview as TileMap
-DIM tanim_state(1) as TileAnimState
-DIM tileset as Frame ptr = NULL
-DIM tog as integer
-DIM csr as integer
-DIM x as integer
-DIM y as integer
+ tileset = mxs_frame_to_tileset(vpages(3))
 
-tileset = mxs_frame_to_tileset(vpages(3))
-
-cleantilemap tilesetview, 16, 3
-FOR y as integer = 0 TO 2
- FOR x as integer = 0 TO 15
-  writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
+ cleantilemap tilesetview, 16, 3
+ FOR y as integer = 0 TO 2
+  FOR x as integer = 0 TO 15
+   writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
+  NEXT
  NEXT
-NEXT
 
-GOSUB setupsample
+ GOSUB setupsample
 
-setkeys
-DO
- setwait 55
  setkeys
- tog = tog XOR 1
- 
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
- IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
- IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
- IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
- IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
- '--draw available animating tiles--
- clearpage dpage
- drawmap tilesetview, 0, 0, tileset, dpage, , , , 10, 60
- '--draw sample--
- setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
- cycletile tanim_state(), tastuf()
- drawmap sample, -130, 0, tileset, dpage, , , , 100, 60
- '--Draw cursor--
- y = INT(csr / 16)
- x = csr - y * 16
- rectangle 20 * x, 10 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
- rectangle 20 * x, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
- rectangle 20 * x, 29 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
- rectangle 20 * x + 19, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
- 
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-frame_unload @tileset
-unloadtilemap sample
-unloadtilemap tilesetview
-EXIT SUB
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
+  IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
+  IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
+  IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
+  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
+  '--draw available animating tiles--
+  clearpage dpage
+  drawmap tilesetview, 0, 0, tileset, dpage, , , , 10, 60
+  '--draw sample--
+  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
+  cycletile tanim_state(), tastuf()
+  drawmap sample, -130, 0, tileset, dpage, , , , 100, 60
+  '--Draw cursor--
+  y = INT(csr / 16)
+  x = csr - y * 16
+  rectangle 20 * x, 10 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
+  rectangle 20 * x, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
+  rectangle 20 * x, 29 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
+  rectangle 20 * x + 19, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ frame_unload @tileset
+ unloadtilemap sample
+ unloadtilemap tilesetview
+ EXIT SUB
 
 setupsample:
-cleantilemap sample, 3, 3
-FOR x = 0 TO 2
- FOR y = 0 TO 2
-  writeblock sample, x, y, 160 + (taset * 48) + csr
+ cleantilemap sample, 3, 3
+ FOR x = 0 TO 2
+  FOR y = 0 TO 2
+   writeblock sample, x, y, 160 + (taset * 48) + csr
+  NEXT
  NEXT
-NEXT
-RETRACE
-
+ RETRACE
 END SUB
 
 SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
@@ -1223,27 +1216,27 @@ defaultmousecursor
 END SUB
 
 SUB refreshtileedit (state as TileEditState)
-copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
-frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
+ copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
+ frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
 END SUB
 
 SUB writeundoblock (state as TileEditState)
-state.undo = loopvar(state.undo, 0, 5, 1)
-copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
-textcolor uilook(uiMenuItem), 0
-printstr ">", 270, 16 + (state.undo * 21), 2
-state.allowundo = 1
+ state.undo = loopvar(state.undo, 0, 5, 1)
+ copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
+ textcolor uilook(uiMenuItem), 0
+ printstr ">", 270, 16 + (state.undo * 21), 2
+ state.allowundo = 1
 END SUB
 
 SUB readundoblock (state as TileEditState)
-FOR j as integer = 0 TO 5
- 'Blank out the arrow pointing at the current undo step
- rectangle 270, 16 + (j * 21), 8, 8, uilook(uiBackground), 2
-NEXT j
-copymapblock 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
-textcolor uilook(uiMenuItem), 0
-printstr ">", 270, 16 + (state.undo * 21), 2
-refreshtileedit state
+ FOR j as integer = 0 TO 5
+  'Blank out the arrow pointing at the current undo step
+  rectangle 270, 16 + (j * 21), 8, 8, uilook(uiBackground), 2
+ NEXT j
+ copymapblock 280, 10 + (state.undo * 21), 2, state.tilex * 20, state.tiley * 20, 3
+ textcolor uilook(uiMenuItem), 0
+ printstr ">", 270, 16 + (state.undo * 21), 2
+ refreshtileedit state
 END SUB
 
 SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, bgcolor as bgType)
@@ -1829,29 +1822,29 @@ SUB scrolltile (ts as TileEditState, byval shiftx as integer, byval shifty as in
 END SUB
 
 SUB fliptile (ts as TileEditState)
-writeundoblock ts
-rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
-DIM flipx as integer = 0
-DIM flipy as integer = 0
-DIM tempx as integer
-DIM tempy as integer
-IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19
-IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19
-FOR i as integer = 0 TO 19
- FOR j as integer = 0 TO 19
-  tempx = ABS(i - flipx)
-  tempy = ABS(j - flipy)
-  IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(scLeftBrace) > 1 OR keyval(scRightBrace) > 1) THEN SWAP tempx, tempy
-  putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
- NEXT j
-NEXT i
-FOR i as integer = 0 TO 19
- FOR j as integer = 0 TO 19
-  putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
- NEXT j
-NEXT i
-refreshtileedit ts
-rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
+ writeundoblock ts
+ rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
+ DIM flipx as integer = 0
+ DIM flipy as integer = 0
+ DIM tempx as integer
+ DIM tempy as integer
+ IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19
+ IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
+   tempx = ABS(i - flipx)
+   tempy = ABS(j - flipy)
+   IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(scLeftBrace) > 1 OR keyval(scRightBrace) > 1) THEN SWAP tempx, tempy
+   putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+  NEXT j
+ NEXT i
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
+   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
+  NEXT j
+ NEXT i
+ refreshtileedit ts
+ rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
 SUB tilecut (ts as TileEditState, mouse as MouseInfo)
@@ -2030,34 +2023,34 @@ END IF
 END SUB
 
 SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
-FOR i as integer = 0 TO 19
- FOR j as integer = 0 TO 19
-  cutnpaste(i, j) = readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3)
- NEXT j
-NEXT i
-ts.canpaste = 1
+ FOR i as integer = 0 TO 19
+  FOR j as integer = 0 TO 19
+   cutnpaste(i, j) = readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3)
+  NEXT j
+ NEXT i
+ ts.canpaste = 1
 END SUB
 
 SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
-IF ts.canpaste THEN
- FOR i as integer = 0 TO 19
-  FOR j as integer = 0 TO 19
-   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
-  NEXT j
- NEXT i
- IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
-END IF 
+ IF ts.canpaste THEN
+  FOR i as integer = 0 TO 19
+   FOR j as integer = 0 TO 19
+    putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
+   NEXT j
+  NEXT i
+  IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
+ END IF 
 END SUB
 
 SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
-IF ts.canpaste THEN
- FOR i as integer = 0 TO 19
-  FOR j as integer = 0 TO 19
-   IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
-  NEXT j
- NEXT i
- IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
-END IF
+ IF ts.canpaste THEN
+  FOR i as integer = 0 TO 19
+   FOR j as integer = 0 TO 19
+    IF cutnpaste(i, j) THEN putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, cutnpaste(i, j), 3
+   NEXT j
+  NEXT i
+  IF slave_channel <> NULL_CHANNEL THEN storemxs game + ".til", ts.tilesetnum, vpages(3)
+ END IF
 END SUB
 
 'xw, yw is the size of a single frame.
@@ -2632,7 +2625,6 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
  area(25).w = 8
  area(25).h = 10
  area(25).hidecursor = NO
-
 END SUB
 
 ' This is called from the sprite editor and calls into the spriteset browser
