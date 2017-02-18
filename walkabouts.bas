@@ -534,7 +534,9 @@ END FUNCTION
 ' Checks the two facing edges (wall bits) between two adjacent tiles: the tile
 ' at tilex,tiley, and the tile one step in 'direction' from there.
 ' Returns true if there is a wall or vehicle obstruction.
-FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES) as bool
+' walls_over_edges: map edges are obstructions
+' ignore_passmap: map edges are obstructions but walls are not (note: walls_over_edges is ignored)
+FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
  DIM wallbit as integer = 1 SHL direction
  DIM oppositebit as integer = 1 SHL ((direction + 2) AND 3)
  DIM defwalls as integer = IIF(walls_over_edges, 15, 0)
@@ -542,29 +544,39 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integ
  IF gmap(5) = 1 THEN
   wrapxy tilex, tiley, mapsizetiles.x, mapsizetiles.y
  END IF
- IF readblock(pass, tilex, tiley, defwalls) AND wallbit THEN RETURN YES
+ IF ignore_passmap THEN    ' Check only for the map edge
+  IF tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high THEN RETURN YES
+ ELSE
+  IF readblock(pass, tilex, tiley, defwalls) AND wallbit THEN RETURN YES
+ END IF
 
  DIM wallblock as integer
  wrapaheadxy tilex, tiley, direction, 1, 1
  wallblock = readblock(pass, tilex, tiley, defwalls)
 
  IF isveh ANDALSO vehpass(vstate.dat.blocked_by, wallblock, 0) THEN RETURN YES
- RETURN (wallblock AND oppositebit) = oppositebit
+ IF ignore_passmap THEN    ' Check only for the map edge
+  RETURN tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high
+ ELSE
+  RETURN (wallblock AND oppositebit) = oppositebit
+ END IF
 END FUNCTION
 
 ' Check for an NPC/hero colliding with a wall.
 ' This is the old (and still used) crappy wall checking which breaks if not tile-aligned.
 ' Returns 1 (not YES) if blocked by terrain, otherwise 0
-FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as bool) as integer
+FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo as integer, isveh as bool, ignore_passmap as bool = NO) as integer
  wrappass = 0
 
+ ' Only check for walls at the beginning of every 20px step. Why? Well, this is
+ ' quite wrong, but we continue to do this for compatibility.
  IF movdivis(ygo) THEN
-  IF ygo > 0 ANDALSO check_wall_edges(x, y, dirNorth, isveh) THEN ygo = 0: wrappass = 1
-  IF ygo < 0 ANDALSO check_wall_edges(x, y, dirSouth, isveh) THEN ygo = 0: wrappass = 1
+  IF ygo > 0 ANDALSO check_wall_edges(x, y, dirNorth, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
+  IF ygo < 0 ANDALSO check_wall_edges(x, y, dirSouth, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
  END IF
  IF movdivis(xgo) THEN
-  IF xgo > 0 ANDALSO check_wall_edges(x, y, dirWest,  isveh) THEN xgo = 0: wrappass = 1
-  IF xgo < 0 ANDALSO check_wall_edges(x, y, dirEast,  isveh) THEN xgo = 0: wrappass = 1
+  IF xgo > 0 ANDALSO check_wall_edges(x, y, dirWest,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
+  IF xgo < 0 ANDALSO check_wall_edges(x, y, dirEast,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
  END IF
 END FUNCTION
 

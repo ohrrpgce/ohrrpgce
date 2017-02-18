@@ -600,7 +600,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 77'--show value
   gam.showstring = STR(retvals(0))
  CASE 78'--alter NPC
-  IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
+  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
    DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     DIM as integer writesafe = 1
@@ -3627,7 +3627,7 @@ SUB sfunctions(byval cmdid as integer)
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
-  IF bound_arg(retvals(1), 0, 16, "NPCstat: constant") THEN
+  IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant") THEN
    DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
    IF npcid <> -1 THEN
     scriptret = GetNPCD(npcs(npcid), retvals(1))

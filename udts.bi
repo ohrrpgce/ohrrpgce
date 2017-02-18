@@ -218,6 +218,7 @@ TYPE SelectTypeState
  remember_pt as integer       'Remember last state.pt value
 END TYPE
 
+CONST maxNPCDataField = 17  'Highest valid argument to read/write_npc_int and read/alterNPC commands
 
 'Warning: when editing NPCType, consider updating read/write_npc_int and serialization disasters
 'including updating readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
@@ -239,6 +240,7 @@ TYPE NPCType
   vehicle as integer     '+14
   defaultzone as integer '+15
   defaultwallzone as integer '+16
+  ignore_passmap as bool '+17  Can walk through walls (but not zones or map edges)
   sprite as frame ptr
   pal as palette16 ptr
 END TYPE
@@ -258,7 +260,7 @@ TYPE NPCInst
   dir as integer    'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
-  ignore_walls as bool  'ignore passmap
+  ignore_walls as bool  'ignore passmap, zones and map edges (but not NPC/hero obstructions)
   not_obstruction as bool 'can walk through npcs+heroes and vice-versa
   suspend_use as bool   'not activatable 
   suspend_ai as bool    'ignore movetype (effectively 'stand still')

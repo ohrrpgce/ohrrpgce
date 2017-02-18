@@ -461,6 +461,10 @@
 <a href="#Tile%20Animations">Tile Animations</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Wall%20checking">Wall checking</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -661,6 +665,9 @@
 		
 	
 		<a href="#about-checktag">check tag (tag)</a><br>
+		
+	
+		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y)</a><br>
 		
 	
 		<a href="#about-childcount">child count (handle)</a><br>
@@ -983,6 +990,9 @@
 	
 		
 		<a href="#about-readattackname">get attack name</a><br>
+	
+		<a href="#about-getbattlecountdown">get battle countdown</a><br>
+		
 	
 		<a href="#about-getbottompadding">get bottom padding (handle)</a><br>
 		
@@ -1557,7 +1567,7 @@
 		<a href="#about-loadmediumenemysprite">load medium enemy sprite (num, palette)</a><br>
 		
 	
-		<a href="#about-loadmenu">load menu (reallyload)</a><br>
+		<a href="#about-loadmenu">load menu (reallyload, show new game)</a><br>
 		
 	
 		<a href="#about-loadpalette">load palette (palette number)</a><br>
@@ -1678,6 +1688,9 @@
 		
 	
 		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
+		
+	
+		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y)</a><br>
 		
 	
 		<a href="#about-multiply">number * number</a><br>
@@ -2101,6 +2114,9 @@
 		
 	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
+		
+	
+		<a href="#about-setbattlecountdown">set battle countdown (value)</a><br>
 		
 	
 		<a href="#about-setbattlewaitmode">set battle wait mode (state)</a><br>
@@ -2636,6 +2652,9 @@
 	
 		<a href="#about-sliceisvalid">slice is valid (id)</a><br>
 		
+	
+		
+		<a href="#about-parentslice">slice parent</a><br>
 	
 		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
 		
@@ -4135,7 +4154,30 @@ resume hero walls # back to mortality...</pre>
 <a name="about-suspendnpcwalls"></a>
 		<h4>suspend NPC walls</h4>
 <p>
-			Allows NPCs to walk through walls, including to leave the zone they are restricted to, and to walk off the edge of the map. Use <a href="#about-resumenpcwalls" class="ref">resume NPC walls</a> to restore normal wall behavior. Use <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>(who, true) instead to allow a single NPC to walk through walls.
+			
+				Allows NPCs to walk through walls, including to leave the zone they are restricted to,
+				and to walk off the edge of the map.
+				Use <a href="#about-resumenpcwalls" class="ref">resume NPC walls</a> to restore normal wall behavior.
+				Use <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>(who, true) instead to allow a single NPC to walk through walls.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you use this command on a map with NPCs walking about normally
+					you should use <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> first, otherwise NPCs will
+					start walking into walls and get stuck there when you call
+					<a href="#about-resumenpcwalls" class="ref">resume NPC walls</a>!
+					<br>
+					Usually it is better to use <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>
+					to allow just a specific NPC to walk through walls.
+				<br clear="all">
+</div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					NPCs will still be unable to walk through each other, or to walk through
+					the hero.
+					Use <a href="#about-suspendobstruction" class="ref">suspend obstruction</a> to allow that.
+				<br clear="all">
+</div>
+			
 			
 			<pre>suspend NPC walls # npc is now a ghost
 # walk through things
@@ -4550,7 +4592,17 @@ resume player</pre>
 <a name="about-checkherowall"></a>
 		<h4>check hero wall (who,direction)</h4>
 <p>
-			Returns true if there is a wall blocking the hero from moving in the specified direction. No actual movement takes place.
+			
+				Returns true if there is a wall blocking the hero from moving in the specified direction.
+				No actual movement takes place.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					This command should only be used when the hero is standing still and aligned with the tile grid.
+					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
+					more flexible wall-checking, which works from any starting position on the map.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -4977,7 +5029,18 @@ while (npcref) do (
 <a name="about-checknpcwall"></a>
 		<h4>check NPC wall (who, direction)</h4>
 <p>
-			Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place. It does not matter whether the NPC is set to ignore walls.
+			
+				Returns true if there is a wall blocking the NPC from moving in the specified direction.
+				No actual movement takes place.
+				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					This command should only be used when the NPC is standing still and aligned with the tile grid.
+					You can use the <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands for much
+					more flexible wall-checking, which works from any starting position on the map.
+				<br clear="all">
+</div>
+			
 			
 			
 			
@@ -5390,7 +5453,24 @@ resume box advance # go back to normal</pre>
 <a name="about-gameover"></a>
 		<h4>game over</h4>
 <p>
-			Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <a href="#about-resetgame" class="ref">reset game</a>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.
+			
+				Resets the game and returns you to the title screen.
+				This command is most useful for after-you-win-the-game type scripts,
+				and for death-scripts that are triggered when you lose in battle.
+				(The script calling <span class="code">game over</span> ends immediately.)
+				This command is similar to <a href="#about-resetgame" class="ref">reset game</a>,
+				the main difference being that if the title screen and load screen have both been disabled
+				(the <span class="code">Skip title/load screen</span> preference bitsets),
+				<span class="code">game over</span> will completely exit the game (either taking you back to the game select screen,
+				or exiting to the operating system),
+				while <a href="#about-resetgame" class="ref">reset game</a> starts a new game.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					The game will instantly transition to the title screen (or load menu, if the title is disabled)
+					without a screen fade.
+					So you probably want to call <a href="#about-fadescreenout" class="ref">fade screen out</a> beforehand.
+				<br clear="all">
+</div>
 				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
 					By using <a href="#about-resetgame" class="ref">reset game</a> or <a href="#about-loadfromslot" class="ref">load from slot</a> instead,
@@ -5411,7 +5491,8 @@ resume box advance # go back to normal</pre>
 				Resets and starts a new game, skipping both title and load game screens.
 				It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> so that the
 				program will not exit if the title screen and load screen have both been disabled.
-				It always resets the game back to the beginning.
+				It always resets the game back to the beginning and runs the new-game script.
+				(The script calling <span class="code">reset game</span> ends immediately.)
 				You can pass any number of optional <span class="param">args</span>, which become the arguments
 				to the newgame script.
 				For an example, see <a href="#about-loadfromslot" class="ref">load from slot</a>, which passes its arguments
@@ -5421,6 +5502,12 @@ resume box advance # go back to normal</pre>
 					The default arguments of a newgame script (and all other triggered scripts)
 					are currently ignored.
 					If you don't pass enough <span class="param">args</span>, then the remaining arguments default to zero.
+				<br clear="all">
+</div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Unlike <a href="#about-gameover" class="ref">game over</a>, the screen will always automatically
+					fade out to black when calling <span class="code">reset game</span>.
 				<br clear="all">
 </div>
 			
@@ -5611,7 +5698,7 @@ resume box advance # go back to normal</pre>
 <a name="about-savemenu"></a>
 		<h4>save menu (reallysave)</h4>
 <p>
-			Takes you directly to the save menu. Will return a number 1-4 indicating the slot the player saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the player did not save. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually saving
+			Takes you directly to the save menu. Will return the number from 1 to 32 of the slot the player saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the player did not save. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually saving.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5624,9 +5711,21 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 <a name="about-loadmenu"></a>
-		<h4>load menu (reallyload)</h4>
+		<h4>load menu (reallyload, show new game)</h4>
 <p>
-			Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. If you want the New Game option to actually reset the game, call <a href="#about-resetgame" class="ref">reset game</a> immediately after <span class="param">load menu</span>. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.
+			
+				Displays the load game menu.
+				The player can pick a saved game to load or Exit or New Game (New Game only appears
+				if <span class="param">show new game</span> is <span class="param">true</span>, which is the default).
+				If the player picks New Game then the calling script continues,
+				otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded.
+				If you want the New Game option to actually reset the game,
+				call <a href="#about-resetgame" class="ref">reset game</a> immediately after <span class="param">load menu</span>.
+				You can optionally pass the value <a href="#about-booleanconstants" class="ref">false</a> as the <span class="param">reallyload</span> argument,
+				to make the menu display without actually loading or quiting.
+				If you do this, you'll need to interpret the return value to find out which option the player selected:
+				positive values (1 to 32) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-loadfromslot" class="ref">load from slot</a></li></ul>
@@ -6539,7 +6638,14 @@ end</pre>
 <a name="about-playsound"></a>
 		<h4>play sound (num,loop,preempt)</h4>
 <p>
-			Plays or resumes a sound effect. Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">loop</span> if you want the sound effect to start over when it finishes instead of stopping. Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">preempt</span> if you want to automatically stop the sound before playing it. If <span class="param">preempt</span> is <a href="#about-booleanconstants" class="ref">false</a>, and the sound is already playing, this command will do nothing.
+			
+				Plays or resumes a sound effect.
+				Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">loop</span> if you want the sound effect to start over when it finishes
+				instead of stopping (it defaults to false).
+				Pass <a href="#about-booleanconstants" class="ref">true</a> to <span class="param">preempt</span> if you want to automatically stop the sound before playing it.
+				If <span class="param">preempt</span> is <a href="#about-booleanconstants" class="ref">false</a> (which is the default), and the sound is already playing,
+				this command will do nothing.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-stopsound" class="ref">stop sound</a></li></ul>
@@ -7446,6 +7552,11 @@ end</pre>
 					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
 					<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
 					<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+					<li>
+						Alter NPC (who,NPCstat:ignore passmap, true or false)
+						<br>
+						This is for the NPC editor setting, not the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
+					</li>
 				</ul>
 				Normally you would only give an NPC ID number to alter NPC,
 				but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work.
@@ -7491,10 +7602,36 @@ end</pre>
 <a name="about-setnpcignoreswalls"></a>
 		<h4>set NPC ignores walls (who, value)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls, including off the edge of a map, and violating its zone restrictions. <span class="param">value</span> should be true or false.
+			
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether that NPC can walk through walls, including off the edge of a map,
+				and violating its zone restrictions.
+				<span class="param">value</span> should be true or false.
+				<br>
+				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
+				you need <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> for that.
+				<br>
+				This command is just like <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>/<a href="#about-resumenpcwalls" class="ref">resume NPC walls</a>,
+				but only affects a single npc.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Don't confuse this with <a href="#about-alternpc" class="ref">alter NPC</a><span class="code">(who, NPCstat:ignore passmap, value)</span>,
+					which sets whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				<br clear="all">
+</div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls</a>, </li>
+<li>
+<a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a>, </li>
+<li>
+<a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -7502,10 +7639,24 @@ end</pre>
 <a name="about-getnpcignoreswalls"></a>
 		<h4>get NPC ignores walls (who)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns whether that NPC can walk through walls.
+			
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				returns whether that NPC can walk through walls.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Don't confuse this with <a href="#about-readnpc" class="ref">read NPC</a><span class="code">(who, NPCstat:ignore passmap)</span>,
+					which tells whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				<br clear="all">
+</div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
+<li><a href="#about-readnpc" class="ref">read NPC</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -7513,7 +7664,22 @@ end</pre>
 <a name="about-setnpcmoves"></a>
 		<h4>set NPC moves (who, value)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC moves according to its move-type, or whether it stands still. <span class="param">value</span> should be true or false.
+			
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether that NPC moves according to its move-type, or whether it stands still
+				and waits for you to control it with <a href="#about-walknpc" class="ref">walk NPC</a>.
+				<br>
+				<span class="param">value</span> should be true or false.
+				<br>
+				This command is just like <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>/<a href="#about-resumenpcs" class="ref">resume NPCs</a>,
+				but only affects a single npc.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you set an NPC to not move by itself, it will still complete
+					its current step, moving the rest of the way to the next tile.
+				<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -7545,7 +7711,20 @@ end</pre>
 <a name="about-setnpcobstructs"></a>
 		<h4>set NPC obstructs (who, value)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. (Unlike <a href="#about-suspendobstruction" class="ref">suspend obstruction</a>, this doesn't affect activation of step-on NPCs.) <span class="param">value</span> should be true or false.
+			
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether the NPC should be an obstruction to heroes and other NPCs.
+				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
+				Heroes can always pass through Step-on NPCs.
+				<span class="param">value</span> should be true or false.
+				<br>
+				This command is almost like <a href="#about-suspendobstruction" class="ref">suspend obstruction</a>/<a href="#about-resumeobstruction" class="ref">resume obstruction</a>,
+				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
+
+				<br>
+				If you want to allow an NPC to walk through all obstacles, you also need
+				to use the <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a> command.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -7949,7 +8128,7 @@ end
 <a name="about-randomformation"></a>
 		<h4>random formation (formation set)</h4>
 <p>
-			Picks a formation randomly from the given <span class="param">formation set</span> (1 to 255).
+			Picks a formation randomly from the given <span class="param">formation set</span> (1 to 255), returning the formation number.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-formationprobability" class="ref">formation probability</a></li></ul>
@@ -7960,10 +8139,68 @@ end
 <a name="about-formationsetfrequency"></a>
 		<h4>formation set frequency (formation set)</h4>
 <p>
-			Returns the formation frequency (from 0 to 99) of a <span class="param">formation set</span> (1 to 255). Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step, but is roughly the number of battles per 80 steps, spaced semi-randomly.
+			
+				Returns the formation frequency (from 0 to 200) of a <span class="param">formation set</span> (1 to 255), as set in the Formation Set Editor.
+				Note that the frequency is not actually a probability (as a percentage) of a battle occurring each step,
+				but is roughly the number of battles per 100 steps, spaced randomly.
+				The frequency is used to update the random battle countdown every step (see <a href="#about-getbattlecountdown" class="ref">get battle countdown</a>).
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-randomformation" class="ref">random formation</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-randomformation" class="ref">random formation</a>, </li>
+<li>
+<a href="#about-getbattlecountdown" class="ref">get battle countdown</a>, </li>
+<li><a href="#about-setbattlecountdown" class="ref">set battle countdown</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getbattlecountdown"></a>
+		<h4>get battle countdown</h4>
+<p>
+			
+				Returns the random battle countdown value.
+				This counter starts at a random value from 40 to 160, and is reduced by the formation set
+				frequency whenever the player steps on a tile marked on the foemap.
+				When it reaches zero a formation from that formation set is triggered and it resets.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-formationsetfrequency" class="ref">formation set frequency</a>, </li>
+<li>
+<a href="#about-getbattlecountdown" class="ref">get battle countdown</a>, </li>
+<li><a href="#about-setbattlecountdown" class="ref">set battle countdown</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setbattlecountdown"></a>
+		<h4>set battle countdown (value)</h4>
+<p>
+			
+				Sets the random battle countdown value (see <a href="#about-getbattlecountdown" class="ref">get battle countdown</a>).
+				Setting the value to 0 or less means that the next step will
+				trigger a battle (even if the frequency is 0!)
+				The counter is saved in save games, but resets
+				when fighting a battle (for any reason),
+				using a door (even to the same map) or <a href="#about-teleporttomap" class="ref">teleport to map</a>,
+				or dismounting a vehicle.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-formationsetfrequency" class="ref">formation set frequency</a>, </li>
+<li>
+<a href="#about-getbattlecountdown" class="ref">get battle countdown</a>, </li>
+<li><a href="#about-setbattlecountdown" class="ref">set battle countdown</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -9794,7 +10031,7 @@ end</pre>
 <a name="about-getmenuanchorx"></a>
 		<h4>get menu anchor x(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -9811,7 +10048,7 @@ end</pre>
 <a name="about-getmenuanchory"></a>
 		<h4>get menu anchor y(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -9845,7 +10082,7 @@ end</pre>
 <a name="about-setmenuanchory"></a>
 		<h4>set menu anchor y(menu handle, new anchor)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -9862,7 +10099,7 @@ end</pre>
 <a name="about-getmenutextalign"></a>
 		<h4>get menu text align(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
@@ -9873,7 +10110,7 @@ end</pre>
 <a name="about-setmenutextalign"></a>
 		<h4>set menu text align(menu handle, new align)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
@@ -10884,7 +11121,7 @@ end
 <a name="about-sliceedgex"></a>
 		<h4>slice edge x (handle, edge)</h4>
 <p>
-			Returns the x position of a particular edge of a slice. use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>
+			Returns the x position of a particular edge of a slice. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10901,7 +11138,7 @@ end
 <a name="about-sliceedgey"></a>
 		<h4>slice edge y (handle, edge)</h4>
 <p>
-			Returns the y position of a particular edge of a slice. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>
+			Returns the y position of a particular edge of a slice. Use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10918,7 +11155,7 @@ end
 <a name="about-setsliceedgex"></a>
 		<h4>set slice edge x (handle, edge, value)</h4>
 <p>
-			Changes the X position of a specific edge of a slice. This is like <a href="#about-setslicex" class="ref">set slice x</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>
+			Changes the X position of a specific edge of a slice. This is like <a href="#about-setslicex" class="ref">set slice x</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10935,7 +11172,7 @@ end
 <a name="about-setsliceedgey"></a>
 		<h4>set slice edge y (handle, edge, value)</h4>
 <p>
-			Changes the Y position of a specific edge of a slice. This is like <a href="#about-setslicey" class="ref">set slice y</a>, except that you can set by any edge regardless of the slice's anchor. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>
+			Changes the Y position of a specific edge of a slice. This is like <a href="#about-setslicey" class="ref">set slice y</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10952,7 +11189,7 @@ end
 <a name="about-sethorizalign"></a>
 		<h4>set horiz align (handle, edge)</h4>
 <p>
-			Changes the horizontal alignment of any slice relative to its parent. The available edges are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. The default value is edge:left.
+			Changes the horizontal alignment of any slice relative to its parent. The available edges are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!) The default value is edge:left.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10971,7 +11208,7 @@ end
 <a name="about-setvertalign"></a>
 		<h4>set vert align (handle, edge)</h4>
 <p>
-			Changes the vertical alignment of any slice relative to its parent. The available edges are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. The default value is edge:top.
+			Changes the vertical alignment of any slice relative to its parent. The available edges are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!) The default value is edge:top.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10990,7 +11227,7 @@ end
 <a name="about-sethorizanchor"></a>
 		<h4>set horiz anchor (handle, edge)</h4>
 <p>
-			Changes the horizontal anchor of any slice. The available anchor values are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. The default value is edge:left.
+			Changes the horizontal anchor of any slice. The available anchor values are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!) The default value is edge:left.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11009,7 +11246,7 @@ end
 <a name="about-setvertanchor"></a>
 		<h4>set vert anchor (handle, edge)</h4>
 <p>
-			Changes the vertical anchor of any slice. The available anchor values are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. The default value is edge:top.
+			Changes the vertical anchor of any slice. The available anchor values are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!) The default value is edge:top.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11028,7 +11265,7 @@ end
 <a name="about-gethorizalign"></a>
 		<h4>get horiz align (handle)</h4>
 <p>
-			Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>.
+			Returns the horizontal alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11047,7 +11284,7 @@ end
 <a name="about-getvertalign"></a>
 		<h4>get vert align (handle)</h4>
 <p>
-			Returns the vertical alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>.
+			Returns the vertical alignment of any slice relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11066,7 +11303,7 @@ end
 <a name="about-gethorizanchor"></a>
 		<h4>get horiz anchor (handle)</h4>
 <p>
-			Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>.
+			Returns the horizontal anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11085,7 +11322,7 @@ end
 <a name="about-getvertanchor"></a>
 		<h4>get vert anchor (handle)</h4>
 <p>
-			Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>.
+			Returns the vertical anchor that a slice uses to position itself relative to its parent. The return value will be one of <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. (Not the <span class="code">align:</span> constants used by menus!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11647,6 +11884,10 @@ end
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+		<p><a href="#about-moveslicewithwallchecking">Defined in the Wall checking section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -11905,6 +12146,12 @@ end
 </div>
 		</p>
 </div>
+		<div class="command">
+<a name="about-sliceparent"></a>
+		
+				<h4>slice parent</h4>
+				See <a href="#about-parentslice">parent slice</a>
+			</div>
 		<div class="command">
 <a name="about-parentslice"></a>
 		<h4>parent slice (handle)</h4>
@@ -14087,6 +14334,10 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+		<p><a href="#about-moveslicewithwallchecking">Defined in the Wall checking section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -14259,6 +14510,10 @@ The third argument is the total number of ticks that the animation should run. Y
 <a href="#Tile%20Animations">Tile Animations</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Wall%20checking">Wall checking</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -14376,6 +14631,10 @@ The third argument is the total number of ticks that the animation should run. Y
 <a href="#Tile%20Animations">Tile Animations</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Wall%20checking">Wall checking</a><br>
+		<ul></ul>
+</li>
 </ul>
 <p></p>
 		
@@ -14413,7 +14672,8 @@ The third argument is the total number of ticks that the animation should run. Y
     # this checks if the hero is standing
     # on a harm tile
   )</pre>
-			
+			<div class="seealso">See also: <ul><li><a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -14493,6 +14753,139 @@ write pass block(15,3,none)
 			
 			
 			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Wall%20checking"></a>
+		<h3>
+<span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
+			<a href="#Tilemap%20and%20Wallmap">Tilemap and Wallmap</a> →
+			</span>Wall checking</h3>
+		<ul></ul>
+<p></p>
+		
+		
+		<div class="command">
+		<h4>read pass block (x,y)</h4>
+		<p><a href="#about-readpassblock">Defined in the Tilemap and Wallmap section.</a></p>
+		</div>
+		<div class="command">
+		<h4>check hero wall (who,direction)</h4>
+		<p><a href="#about-checkherowall">Defined in the Moving Heroes section.</a></p>
+		</div>
+		<div class="command">
+		<h4>check NPC wall (who, direction)</h4>
+		<p><a href="#about-checknpcwall">Defined in the Moving NPCs section.</a></p>
+		</div>
+		<div class="command">
+<a name="about-checkwallcollisionxy"></a>
+		<h4>check wall collision x (x, y, width, height, relative x, relative y)</h4>
+<p>
+			
+				and<br>
+				<span class="param">check wall collision y (x, y, width, height, relative x, relative y)</span>
+				<br>
+				Check how far an object (with a rectangular "hitbox") could move in a straight line on the map
+				before hitting a wall.
+				Provide the starting <span class="param">x</span> and <span class="param">y</span> map position in pixels of the top left
+				corner of the hitbox (relative to the top-left of the map),
+				its <span class="param">width</span> and <span class="param">height</span> in pixels,
+				and the <span class="param">relative x/y</span> offset of the target position of the object
+				(for example <span class="code">relative x</span> is 20 for one tile to the right).
+				<br>
+				The return value is the maximum x/y offset that the object could move
+				in a straight line towards the target before hitting a wall.
+				If there are no walls in the way, then the return value is <span class="param">relative x</span> or <span class="param">relative y</span>.
+				<br>
+				For example, to check whether the hero can walk a full tile north (-20 pixels in the 'y' direction), you could write
+				<pre>if (check wall collision y(hero pixel x(me), hero pixel y(me), 20, 20, 0, -20) == -20) then (...)</pre>
+				(The <a href="#about-checkherowall" class="ref">check hero wall</a> command is a much easier way to check the same thing,
+				but only works if the hero is tile-aligned.)
+				<br>
+				These commands work on hitboxes of any size (as long as the size isn't negative),
+				even several tiles wide.
+				Even a one-pixel-wide overlap with the end of a wall counts as a collision,
+				and edge-on walls count as obstructions too, as do tiles past the edge of the map
+				(unless the map wraps around).
+				However, if the hitbox starting position already overlaps any walls they will be ignored.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					<a href="#about-moveslicewithwallchecking" class="ref">move slice with wallchecking</a> is a more convenient way to check walls
+					if you want to move a slice, e.g. when scripting a platformer.
+				<br clear="all">
+</div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you're moving diagonally, you'll need to call both
+					<span class="code">check wall collision x</span> and <span class="code">check wall collision y</span> with identical
+					arguments to find the x,y position of the collision point.
+				<br clear="all">
+</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-moveslicewithwallchecking" class="ref">move slice with wallchecking</a>, </li>
+<li><a href="#about-findcollidingslice" class="ref">find colliding slice</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-moveslicewithwallchecking"></a>
+		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+<p>
+			
+				Instantly moves a slice <span class="param">sl</span> as far as possible in a straight line towards a point until
+				it hits a wall in the map's wallmap.
+				<span class="param">relative x/y</span> provide the point to move to, relative to the slice's current position.
+				This command can be used on any slice, regardless of whether it is parented to a map layer.
+				Its position on the map is calculated based on its on-screen position (<a href="#about-slicescreenx" class="ref">slice screen x</a>, etc).
+				The slice's "colliding box" is, as you expect, the same as its size.
+				<br>
+				It works on slices of any size (as long as the size isn't negative),
+				even several tiles wide.
+				Even a one-pixel-wide collision with the end of a wall will stop the slice,
+				and edge-on walls count as obstructions too, as do tiles past the edge of the map
+				(unless the map wraps around).
+				However, if the slice already overlaps any walls they will be ignored.
+				<br>
+				The return value is a bitmask giving the directions in which the slice was
+				blocked by a wall.
+				The value is 0 if there was no collision.
+				You can use the constants <a href="#about-tileconstants" class="ref">north wall</a>, <a href="#about-tileconstants" class="ref">south wall</a>, <a href="#about-tileconstants" class="ref">east wall</a>, <a href="#about-tileconstants" class="ref">west wall</a>
+				and the bitwise-<a href="#about-and" class="ref">and</a> operator to test the bitmask.
+				For example <span class="code">bitmask, and, northwall</span> tells whether <span class="param">sl</span>
+				is hit and is now resting against a wall on its north side.
+				<br>
+				You can check for walls without needing a slice using the alternative <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands.
+			
+			
+			<pre># This script creates a rectangle slice which follows the mouse
+# but doesn't pass through walls.
+plotscript, box follows mouse, begin
+  variable (xgo, ygo, box)
+  box := create rect(14, 14)
+  set rect border(box, border:line)
+
+  while(true) do (
+    # Calculate the offset from the center of the box to the mouse,
+    # and divide by three to move a third of the way there.
+    xgo := (mouse pixel x -- (slice screen x(box) + 7)) / 3
+    ygo := (mouse pixel y -- (slice screen y(box) + 7)) / 3
+    move slice with wallchecking(box, xgo, ygo)
+    wait
+  )
+end</pre>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a>, </li>
+<li><a href="#about-findcollidingslice" class="ref">find colliding slice</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -15263,7 +15656,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		
 		
 		<div class="command">
-		<h4>load menu (reallyload)</h4>
+		<h4>load menu (reallyload, show new game)</h4>
 		<p><a href="#about-loadmenu">Defined in the Opening Built-in Menus section.</a></p>
 		</div>
 		<div class="command">
@@ -16475,7 +16868,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 772 commands and 75 constants in this file, of which 57 are only references to other entries.</p>
+<p>Stats: There are 777 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

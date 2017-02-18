@@ -57,3 +57,5 @@ Vehicle: This allows you to turn this NPC into a vehicle. Activating the NPC wil
 Movement Zone: this restricts this NPC to only move onto tiles that are in a certain zone.
 
 Avoidance Zone: the NPC treats tiles in this zone as walls. This overrides the movement zone.
+
+Ignore Passmap: turning this on makes the NPC walk through walls placed on the wallmap, but it is still blocked by zones, other NPCs, the player, and the map edge (on non-wrapping maps). (You can use the "set NPC ignores walls" and "set NPC obstructs" script commands to make the NPC move through these obstacles). This might be useful for flying NPCs. Use zones to contain the NPC instead.

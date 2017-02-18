@@ -1637,6 +1637,7 @@ define constant, begin
 14,NPCstat:vehicle
 15,NPCstat:defaultmovementzone
 16,NPCstat:defaultavoidancezone
+17,NPCstat:ignorepassmap
 0,color:red
 1,color:green
 2,color:blue

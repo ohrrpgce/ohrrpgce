@@ -835,7 +835,26 @@ resume hero walls # back to mortality...</example>
 		<command id="suspendnpcwalls">
 			<canon>suspend NPC walls</canon>
 			<shortname>suspend NPC walls</shortname>
-			<description>Allows NPCs to walk through walls, including to leave the zone they are restricted to, and to walk off the edge of the map. Use <ref>resumenpcwalls</ref> to restore normal wall behavior. Use <ref>setnpcignoreswalls</ref>(who, true) instead to allow a single NPC to walk through walls.</description>
+			<description>
+				Allows NPCs to walk through walls, including to leave the zone they are restricted to,
+				and to walk off the edge of the map.
+				Use <ref>resumenpcwalls</ref> to restore normal wall behavior.
+				Use <ref>setnpcignoreswalls</ref>(who, true) instead to allow a single NPC to walk through walls.
+				<note>
+					If you use this command on a map with NPCs walking about normally
+					you should use <ref>suspendnpcs</ref> first, otherwise NPCs will
+					start walking into walls and get stuck there when you call
+					<ref>resumenpcwalls</ref>!
+					<lb/>
+					Usually it is better to use <ref>setnpcignoreswalls</ref>
+					to allow just a specific NPC to walk through walls.
+				</note>
+				<note>
+					NPCs will still be unable to walk through each other, or to walk through
+					the hero.
+					Use <ref>suspendobstruction</ref> to allow that.
+				</note>
+			</description>
 			<example>suspend NPC walls # npc is now a ghost
 # walk through things
 resume NPC walls # back to mortality...</example>
@@ -1343,7 +1362,8 @@ while (npcref) do (
 			<shortname>check NPC wall</shortname>
 			<description>
 				Returns true if there is a wall blocking the NPC from moving in the specified direction.
-				No actual movement takes place. It does not matter whether the NPC is set to ignore walls.
+				No actual movement takes place.
+				It does not matter whether the NPC is set to ignore walls or ignore the passmap.
 				<note>
 					This command should only be used when the NPC is standing still and aligned with the tile grid.
 					You can use the <ref>checkwallcollisionxy</ref> commands for much
@@ -2735,6 +2755,11 @@ end</example>
 					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
 					<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
 					<li>Alter NPC (who,NPCstat:default avoidance zone,zone ID)</li>
+					<li>
+						Alter NPC (who,NPCstat:ignore passmap, true or false)
+						<lb/>
+						This is for the NPC editor setting, not the <ref>setnpcignoreswalls</ref> command.
+					</li>
 				</ul>
 				Normally you would only give an NPC ID number to alter NPC,
 				but if you want to use an <ref>npcreference</ref> it will still work.
@@ -2767,23 +2792,64 @@ end</example>
 		<command id="setnpcignoreswalls">
 			<canon>set NPC ignores walls (who, value)</canon>
 			<shortname>set NPC ignores walls</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls, including off the edge of a map, and violating its zone restrictions. <p>value</p> should be true or false.</description>
+			<description>
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether that NPC can walk through walls, including off the edge of a map,
+				and violating its zone restrictions.
+				<p>value</p> should be true or false.
+				<lb/>
+				Turning this on doesn't let the NPC walk through the lead hero and other NPCs;
+				you need <ref>setnpcobstructs</ref> for that.
+				<lb/>
+				This command is just like <ref>suspendnpcwalls</ref>/<ref>resumenpcwalls</ref>,
+				but only affects a single npc.
+				<note>
+					Don't confuse this with <ref>alternpc</ref><tt>(who, NPCstat:ignore passmap, value)</tt>,
+					which sets whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</note>
+			</description>
 			<seealso>
 				<ref>getnpcignoreswalls</ref>
+				<ref>suspendnpcwalls</ref>
+				<ref>setnpcobstructs</ref>
+				<ref>alternpc</ref>
 			</seealso>
 		</command>
 		<command id="getnpcignoreswalls">
 			<canon>get NPC ignores walls (who)</canon>
 			<shortname>get NPC ignores walls</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns whether that NPC can walk through walls.</description>
+			<description>
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				returns whether that NPC can walk through walls.
+				<note>
+					Don't confuse this with <ref>readnpc</ref><tt>(who, NPCstat:ignore passmap)</tt>,
+					which tells whether an NPC ID can pass through walls on the wallmap,
+					but doesn't allow it to ignore zones or walk off the map.
+				</note>
+			</description>
 			<seealso>
 				<ref>setnpcignoreswalls</ref>
+				<ref>readnpc</ref>
 			</seealso>
 		</command>
 		<command id="setnpcmoves">
 			<canon>set NPC moves (who, value)</canon>
 			<shortname>set NPC moves</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC moves according to its move-type, or whether it stands still. <p>value</p> should be true or false.</description>
+			<description>
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether that NPC moves according to its move-type, or whether it stands still
+				and waits for you to control it with <ref>walknpc</ref>.
+				<lb/>
+				<p>value</p> should be true or false.
+				<lb/>
+				This command is just like <ref>suspendnpcs</ref>/<ref>resumenpcs</ref>,
+				but only affects a single npc.
+				<note>
+					If you set an NPC to not move by itself, it will still complete
+					its current step, moving the rest of the way to the next tile.
+				</note>
+			</description>
 			<seealso>
 				<ref>getnpcmoves</ref>
 				<ref>suspendnpcs</ref>
@@ -2802,7 +2868,20 @@ end</example>
 		<command id="setnpcobstructs">
 			<canon>set NPC obstructs (who, value)</canon>
 			<shortname>set NPC obstructs</shortname>
-			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. (Unlike <ref>suspendobstruction</ref>, this doesn't affect activation of step-on NPCs.) <p>value</p> should be true or false.</description>
+			<description>
+				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				set whether the NPC should be an obstruction to heroes and other NPCs.
+				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
+				Heroes can always pass through Step-on NPCs.
+				<p>value</p> should be true or false.
+				<lb/>
+				This command is almost like <ref>suspendobstruction</ref>/<ref>resumeobstruction</ref>,
+				but it only affects a single npc and it doesn't stop activation of step-on NPCs.
+
+				<lb/>
+				If you want to allow an NPC to walk through all obstacles, you also need
+				to use the <ref>setnpcignoreswalls</ref> command.
+			</description>
 			<seealso>
 				<ref>getnpcobstructs</ref>
 				<ref>suspendobstruction</ref>

@@ -37,6 +37,9 @@ WHAT IS NEW?
       considerably shrink the files. [Ralph]
     * Map names can use the same ${} codes as textboxes, for example
       You could name a map "${H0}'s House". [James]
+    * "Ignore Passmap" NPC setting, to walk through walls but not zones,
+      the map edge, or NPCs/heroes. (Unlike "set npc ignores walls",
+      which causes zones and map edge to be ignored.) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

@@ -1488,7 +1488,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
   'About to begin moving to a new tile
   IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
    '--this only happens if NPC walls on
-   IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, 0) THEN
+   IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, NO, npcdata.ignore_passmap) THEN
     npci.xgo = 0
     npci.ygo = 0
     npchitwall(npci, npcdata)
