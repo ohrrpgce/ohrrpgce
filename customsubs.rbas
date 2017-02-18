@@ -1330,8 +1330,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
-  edgebox pRight - 15, pBottom - 15, npcdata.sprite->w + 2, npcdata.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
-  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, pRight - 16, pBottom - 16, 1, YES, dpage
+  edgebox pRight - 15, pBottom - 23, npcdata.sprite->w + 2, npcdata.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
+  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, pRight - 16, pBottom - 24, 1, YES, dpage
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
   printstr ed.boxpreview, 0, pBottom - 10, dpage
@@ -1368,21 +1368,23 @@ FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) 
  RETURN result
 END FUNCTION
 
-FUNCTION textbox_preview_line(boxnum as integer) as string
+' maxwidth is in pixels
+FUNCTION textbox_preview_line(boxnum as integer, maxwidth as integer = 700) as string
  IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
  DIM box as TextBox
  LoadTextBox box, boxnum
- RETURN textbox_preview_line(box)
+ RETURN textbox_preview_line(box, maxwidth)
 END FUNCTION
 
-FUNCTION textbox_preview_line(box as TextBox) as string
- DIM s as string
- DIM i as integer
- FOR i = 0 TO 7
-  s= TRIM(box.text(i))
-  IF LEN(s) > 0 THEN RETURN s 
+FUNCTION textbox_preview_line(box as TextBox, maxwidth as integer = 700) as string
+ DIM ret as string
+ FOR i as integer = 0 TO UBOUND(box.text)
+  IF LEN(ret) THEN ret &= " "
+  ret &= TRIM(box.text(i))
+  IF textwidth(ret) >= maxwidth THEN EXIT FOR
  NEXT i
- RETURN "" 
+ ret = RTRIM(ret)  ' Remove spaces due to trailing blank lines
+ RETURN shorten_to_right(ret, maxwidth)
 END FUNCTION
 
 ' Toggle tagnum between 0 and an unused onetime tag ID (2 to max_onetime)
@@ -2576,12 +2578,12 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
   resave = NO
   IF box.instead < 0 THEN
    idtmp = -box.instead
-   resave OR= visitor(idtmp, "box " & i & " (instead)", textbox_preview_line(box))
+   resave OR= visitor(idtmp, "box " & i & " (instead)", textbox_preview_line(box, vpages(vpage)->w - 80))
    box.instead = -idtmp
   END IF
   IF box.after < 0 THEN
    idtmp = -box.after
-   resave OR= visitor(idtmp, "box " & i & " (after)", textbox_preview_line(box))
+   resave OR= visitor(idtmp, "box " & i & " (after)", textbox_preview_line(box, vpages(vpage)->w - 80))
    box.after = -idtmp
   END IF
   IF resave THEN
@@ -2785,7 +2787,7 @@ SUB script_usage_list ()
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
- state.size = 24
+ state.autosize = YES
  state.last = UBOUND(menu)
  
  setkeys YES

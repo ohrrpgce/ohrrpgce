@@ -40,8 +40,8 @@ DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integ
 DECLARE SUB keyboardsetup ()
 DECLARE FUNCTION load_vehicle_name(vehID as integer) as string
 DECLARE FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) as string
-DECLARE FUNCTION textbox_preview_line OVERLOAD (boxnum as integer) as string
-DECLARE FUNCTION textbox_preview_line OVERLOAD (box as TextBox) as string
+DECLARE FUNCTION textbox_preview_line OVERLOAD (boxnum as integer, maxwidth as integer = 700) as string
+DECLARE FUNCTION textbox_preview_line OVERLOAD (box as TextBox, maxwidth as integer = 700) as string
 DECLARE SUB onetimetog(byref tagnum as integer)
 DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 DECLARE FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer) as integer

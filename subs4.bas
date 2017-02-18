@@ -1705,7 +1705,7 @@ SUB startingdatamenu
    IF gen(genStartTextbox) = 0 THEN
     m(6) = "Starting Textbox: None"
    ELSE
-    m(6) = "Starting Textbox: " & gen(genStartTextbox) & " " & textbox_preview_line(gen(genStartTextbox))
+    m(6) = "Starting Textbox: " & gen(genStartTextbox) & " " & textbox_preview_line(gen(genStartTextbox), vpages(vpage)->w - 60)
    END IF
   END IF
 
