@@ -135,28 +135,61 @@ SUB SaveNPCD(file as string, dat() as NPCType)
   CLOSE #f
 END SUB
 
-'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
-SUB SetNPCD(npcd as NPCType, byval offset as integer, byval value as integer)
-  STATIC maxoffset as integer = -1
-  IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
-
-  IF offset >= 0 AND offset <= maxoffset THEN
-    (@npcd.picture)[offset] = value
-  ELSE
-    debug "Attempt to write NPC data out-of-range. offset=" & offset & " value=" & value
-  END IF
+SUB SetNPCD (npcdata as NPCType, intoffset as integer, value as integer)
+ '--intoffset is the integer offset, same as appears in the .N lump documentation
+ WITH npcdata
+  SELECT CASE intoffset
+   CASE 0: .picture = value
+   CASE 1: .palette = value
+   CASE 2: .movetype = value
+   CASE 3: .speed = value
+   CASE 4: .textbox = value
+   CASE 5: .facetype = value
+   CASE 6: .item = value
+   CASE 7: .pushtype = value
+   CASE 8: .activation = value
+   CASE 9: .tag1 = value
+   CASE 10: .tag2 = value
+   CASE 11: .usetag = value
+   CASE 12: .script = value
+   CASE 13: .scriptarg = value
+   CASE 14: .vehicle = value
+   CASE 15: .defaultzone = value
+   CASE 16: .defaultwallzone = value
+   CASE 17: .ignore_passmap = value
+   CASE ELSE
+    debugc errPromptBug, "SetNPCD: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
 END SUB
 
-'Prefer read_npc_int instead in the future, as it lacks pointer thoughtcrime
-FUNCTION GetNPCD(npcd as NPCType, byval offset as integer) as integer
-  STATIC maxoffset as integer = -1
-  IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
-
-  IF offset >= 0 AND offset <= maxoffset THEN
-    RETURN (@npcd.picture)[offset]
-  ELSE
-    debug "Attempt to read NPC data out-of-range. offset=" & offset
-  END IF
+FUNCTION GetNPCD (npcdata as NPCType, intoffset as integer) as integer
+ '--intoffset is the integer offset, same as appears in the .N lump documentation
+ WITH npcdata
+  SELECT CASE intoffset
+   CASE 0: RETURN .picture
+   CASE 1: RETURN .palette
+   CASE 2: RETURN .movetype
+   CASE 3: RETURN .speed
+   CASE 4: RETURN .textbox
+   CASE 5: RETURN .facetype
+   CASE 6: RETURN .item
+   CASE 7: RETURN .pushtype
+   CASE 8: RETURN .activation
+   CASE 9: RETURN .tag1
+   CASE 10: RETURN .tag2
+   CASE 11: RETURN .usetag
+   CASE 12: RETURN .script
+   CASE 13: RETURN .scriptarg
+   CASE 14: RETURN .vehicle
+   CASE 15: RETURN .defaultzone
+   CASE 16: RETURN .defaultwallzone
+   CASE 17: RETURN .ignore_passmap
+   CASE ELSE
+    debugc errPromptBug, "GetNPCD: " & intoffset & " is an invalid integer offset"
+  END SELECT
+ END WITH
+ RETURN 0
 END FUNCTION
 
 SUB CleanNPCDefinition(dat as NPCType)

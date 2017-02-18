@@ -33,8 +33,8 @@ declare sub write_map_layer_name(gmap() as integer, layernum as integer, newname
 'Sprites are not loaded by these functions; can use CleanNPCD to free them if you load them
 declare sub LoadNPCD(file as string, dat() as NPCType)
 declare sub SaveNPCD(file as string, dat() as NPCType)
-declare sub setnpcd(npcd as npctype, byval offset as integer, byval value as integer)
-declare function getnpcd(npcd as npctype, byval offset as integer) as integer
+declare sub SetNPCD(npcdata as NPCType, intoffset as integer, value as integer)
+declare function GetNPCD(npcdata as NPCType, intoffset as integer) as integer
 declare sub CleanNPCDefinition(dat as NPCType)
 declare sub CleanNPCD(dat() as NPCType)
 

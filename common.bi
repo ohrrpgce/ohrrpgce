@@ -202,9 +202,6 @@ DECLARE FUNCTION enter_or_space () as integer
 DECLARE FUNCTION copy_keychord () as integer
 DECLARE FUNCTION paste_keychord () as integer
 
-DECLARE SUB write_npc_int (npcdata as NPCType, byval intoffset as integer, byval n as integer)
-DECLARE FUNCTION read_npc_int (npcdata as NPCType, byval intoffset as integer) as integer
-
 DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
 
 DECLARE FUNCTION get_text_box_height(byref box as TextBox) as integer

@@ -218,10 +218,10 @@ TYPE SelectTypeState
  remember_pt as integer       'Remember last state.pt value
 END TYPE
 
-CONST maxNPCDataField = 17  'Highest valid argument to read/write_npc_int and read/alterNPC commands
+CONST maxNPCDataField = 17  'Highest valid argument to Get/SetNPCD and read/alterNPC commands
 
-'Warning: when editing NPCType, consider updating read/write_npc_int and serialization disasters
-'including updating readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
+'Warning: when editing NPCType, update Get/SetNPCD,
+'readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -240,7 +240,7 @@ TYPE NPCType
   vehicle as integer     '+14
   defaultzone as integer '+15
   defaultwallzone as integer '+16
-  ignore_passmap as bool '+17  Can walk through walls (but not zones or map edges)
+  ignore_passmap as integer '+17  (0 or 1) Can walk through walls (but not zones or map edges)
   sprite as frame ptr
   pal as palette16 ptr
 END TYPE
