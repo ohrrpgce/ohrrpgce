@@ -393,8 +393,6 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as intege
   .rect.x = x
   .rect.y = y
 
-  debug "calc_size:" & STR(.rect)
-
   ' TODO: calc_menustate_size used to call recalc_menu_size unconditional. So still
   ' need to call it if .size is 0. But would be cleaner to just default .autosize to YES
   IF .autosize OR (.size = 0) THEN
