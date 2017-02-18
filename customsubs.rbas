@@ -111,6 +111,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  state.autosize = YES
  state.autosize_ignore_lines = 1
  state.last = gen(genMaxTagname)
+ init_menu_state state, menu
 
  state.pt = 0
  IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
@@ -2416,8 +2417,15 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  END IF
 END FUNCTION
 
-FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as integer
- 'script side is 1 or -1: on which side of zero are the scripts
+FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as bool
+ 'Allow scrolling through scripts with the less/more keys, plus obsolete typing in of
+ 'script IDs. That is really obsolete because the script ID is no longer displayed
+ 'unless there is no script with that ID AND it's less than the last used ID, so it's
+ 'impossible to see what you're doing. Should just delete that stuff.
+ '
+ 'Returns true if n was changed.
+ 'less/more: scancodes
+ 'scriptside is 1 or -1: on which side of zero are the scripts
  'min or max on side of scripts is ignored
 
  DIM temp as integer = n
@@ -2436,7 +2444,7 @@ FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as i
   seekdir = -1
  END IF
 
- DIM scriptscroll as integer = NO
+ DIM scriptscroll as bool = NO
  IF seekdir <> 0 THEN
   scriptscroll = NO
   IF temp = min AND seekdir = -1 THEN
@@ -2462,6 +2470,9 @@ FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as i
    END IF
   ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
    intgrabber(temp, min, 0, 0, 0)
+  ELSE
+   ' Only treat Backspace this way if not typing in an ID
+   IF keyval(scBackspace) > 1 THEN temp = 0
   END IF
  END IF
 

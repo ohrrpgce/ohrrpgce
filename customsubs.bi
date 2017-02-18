@@ -60,7 +60,7 @@ DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
 DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState)
 DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
 DECLARE FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
-DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as integer
+DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as bool
 DECLARE SUB visit_scripts(byval visit as FnScriptVisitor)
 DECLARE SUB gather_script_usage(list() as string, byval id as integer, byval trigger as integer=0, byref meter as integer, byval meter_times as integer=1, box_instead_cache() as integer, box_after_cache() as integer, box_preview_cache() as string)
 DECLARE SUB script_usage_list ()
