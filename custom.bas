@@ -2007,7 +2007,7 @@ SUB new_graphics_tests
  DIM rgfx_time as double
  FOR i as integer = 0 TO gen(genNumBackdrops) - 1
   starttime = timer
-  IF NOT doc THEN doc = rgfx_open(ofile)
+  IF doc = NULL THEN doc = rgfx_open(ofile)
   fr = rgfx_get_frame(doc, i, 0)
   rgfx_time += timer - starttime
   frame_draw fr, , 0, 0, 1, NO, vpage
