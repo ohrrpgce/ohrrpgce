@@ -53,26 +53,21 @@ DECLARE function streamPosition as integer
 
 ' Module-local variables
 
-dim shared music_on as integer = 0
+dim shared music_init_count as integer = 0     'Number of of times music_init called
 dim shared music_vol as single = 0.5
-dim shared music_paused as integer
-dim shared music_playing as integer
+dim shared sound_song as integer = -1          'Sound slot for non-MIDI music, otherwise equal to -1.
 
-dim shared music_song as MIDI_EVENT ptr = NULL
+dim shared midi_paused as bool
+dim shared midi_playing as integer
+dim shared midi_song as MIDI_EVENT ptr = NULL  'Loaded MIDI file. Nonzero only when current music is MIDI
 dim shared song_ptr as MIDI_EVENT ptr = NULL
-
-dim shared orig_vol as integer = -1
-dim shared inited_once as integer = 0
 
 dim shared device as any ptr
 
-dim shared sound_song as integer = -1'if it's not a midi
 'for playback
 dim shared division as short
 
 dim shared looppoint as MIDI_EVENT ptr = NULL
-
-dim shared origvol as integer
 
 dim shared midibuffer as UByte ptr, midibufferlen as integer, midibufferused as integer
 
@@ -193,7 +188,7 @@ function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam a
 
 		SetBkMode(dc, TRANSPARENT_)
 
-		if music_song then
+		if midi_song then
 			'draw the buffer size
 			o = "Buffer size: " & str(buffer_size)
 			ExtTextOut(dc, 5, 10, 0, 0, strptr(o), len(o), 0)
@@ -208,7 +203,7 @@ function DebugWndProc(byval hwnd as HWND, byval uMsg as uinteger, byval wParam a
 			ExtTextOut(dc, 5, 10, 0, 0, strptr(o), len(o), 0)
 		end if
 
-		o = "music_song: " & hex(music_song)
+		o = "midi_song: " & hex(midi_song)
 		ExtTextOut(dc, 5, 65, 0, 0, strptr(o), len(o), 0)
 
 		EndPaint(hwnd, @ps)
@@ -236,8 +231,6 @@ function openMidi() as integer
 			if erro = MMSYSERR_INVALPARAM then debug "Doesn't like one of my parameters"
 			if erro = MMSYSERR_NOMEM then debug "Can't lock memory or something"
 		end if
-
-		origvol = music_getvolume
 
 		#IF USE_DEBUG_WINDOW
 			initDebugWindow
@@ -365,7 +358,7 @@ dim shared bufferlen as integer = 120
 
 Sub PrepareNextBeat(byval unused as any ptr)
 	dim as double prof1, prof2
-	if music_song = 0 then exit sub
+	if midi_song = 0 then exit sub
 	prof1 = timer
 
 	dim tmp as MIDIHDR ptr, tmp2 as MIDIEVENT ptr, tmp3 as integer, newflag as integer = 0
@@ -460,7 +453,7 @@ Sub PrepareNextBeat(byval unused as any ptr)
 			song_ptr = looppoint
 			song_ptr = song_ptr->next 'loop point, skip it
 		else
-			song_ptr = music_song
+			song_ptr = midi_song
 		end if
 	end if
 
@@ -586,7 +579,7 @@ Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwIns
 	case MOM_DONE
 		'debug "callback"
 		'the midi is done playing the buffer
-		if buffer_thread = NULL and music_playing <> 0 then buffer_thread = ThreadCreate(@PrepareNextBeat)
+		if buffer_thread = NULL and midi_playing <> 0 then buffer_thread = ThreadCreate(@PrepareNextBeat)
 	case MOM_OPEN
 		'debug "callback - opening!"
 	case MOM_CLOSE
@@ -595,7 +588,7 @@ Sub StreamCallback(Byval handle as HMIDIOUT, byval umsg as Uinteger, byval dwIns
 End Sub
 
 Sub ResetInternals
-	music_playing = 0
+	midi_playing = 0
 	dim erro as HRESULT
 	if device then erro = midiStreamStop(device)
 
@@ -627,11 +620,11 @@ Sub ResetInternals
 	deallocate buffer_head : buffer_head = 0
 	deallocate buffer_beat : buffer_beat = 0
 
-	FreeMidiEventList(music_song)
-	music_song = 0
+	FreeMidiEventList(midi_song)
+	midi_song = 0
 	song_ptr = 0
-	music_song = 0
-	music_paused = 0
+	midi_song = 0
+	midi_paused = 0
 end sub
 
 function streamPosition as integer
@@ -663,9 +656,9 @@ end type
 dim shared delhead as delitem ptr = null
 
 sub music_init()
-	music_on += 1
-	'debug "music init = " & music_on
-	if music_on <> 1 then exit sub
+	music_init_count += 1
+	'debug "music init = " & music_init_count
+	if music_init_count <> 1 then exit sub
 
 	openMidi
 
@@ -673,15 +666,15 @@ sub music_init()
 end sub
 
 sub music_close()
-	music_on -= 1
-	'debug "music close = " & music_on
-	if music_on <> 0 then exit sub
-	music_playing = 0
-	music_paused = 0
+	music_init_count -= 1
+	'debug "music close = " & music_init_count
+	if music_init_count <> 0 then exit sub
+	midi_playing = 0
+	midi_paused = 0
 
-	if music_song <> 0 then
-		FreeMidiEventList(music_song)
-		music_song = 0
+	if midi_song <> 0 then
+		FreeMidiEventList(midi_song)
+		midi_song = 0
 		song_ptr = 0
 	end if
 
@@ -722,7 +715,7 @@ end sub
 
 sub music_play(songname as string, byval fmt as MusicFormatEnum)
 	dim erro as MMRESULT
-	if music_on then
+	if music_init_count then
 		songname = rtrim$(songname)	'lose any added nulls
 		dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
@@ -760,7 +753,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 
 		'stop current song
-		if music_song <> 0 then
+		if midi_song <> 0 then
 			ResetInternals
 		end if
 		'debug "sound_song = " & sound_song
@@ -770,18 +763,18 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 
 		if fmt = FORMAT_MIDI then
-			music_song = CreateMidiEventList(songname,@division)
-			if music_song = 0 then
+			midi_song = CreateMidiEventList(songname,@division)
+			if midi_song = 0 then
 				'debug "Could not load song " + songname
 				exit sub
 			end if
 
-			converttorelative music_song
-			song_ptr = music_song
-			'addJumpToEnd music_song
+			converttorelative midi_song
+			song_ptr = midi_song
+			'addJumpToEnd midi_song
 
-			music_paused = 0
-			music_playing = 1
+			midi_paused = 0
+			midi_playing = 1
 			'playback_thread = threadcreate(@PlayBackThread,0)
 
 
@@ -810,16 +803,16 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 			PrepareNextBeat 0
 		else
 			sound_song = sound_load(songname)
-			sound_play(sound_song, -1)
+			sound_play(sound_song, -1, music_vol)
 		end if
 	end if
 end sub
 
 sub music_pause()
-	if music_on then
-		if music_song > 0 then
-			if music_paused = 0 then
-				music_paused = 1
+	if music_init_count then
+		if midi_song then
+			if midi_paused = 0 then
+				midi_paused = 1
 				midiStreamPause(device) 'rumours have it that this closes the device. true? not true?
 			end if
 		end if
@@ -830,9 +823,9 @@ sub music_pause()
 end sub
 
 sub music_resume()
-	if music_on then
-		if music_song > 0 then
-			music_paused = 0
+	if music_init_count then
+		if midi_song then
+			midi_paused = 0
 			midiStreamRestart(device)
 		end if
 		if sound_song >= 0 then
@@ -842,14 +835,14 @@ sub music_resume()
 end sub
 
 sub music_stop()
-	if music_song > 0 then music_pause()
+	if midi_song > 0 then music_pause()
 	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
 sub music_setvolume(byval vol as single)
 	music_vol = vol
-	if music_on then
-		'if music_song > 0 then setvolmidi vol
+	if music_init_count then
+		'if midi_song > 0 then setvolmidi vol
 		'dim v as uinteger
 		'v = &HFFFF * vol
 		'v += v SHR 16  'equal volume on both left and right

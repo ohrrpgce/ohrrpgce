@@ -44,16 +44,15 @@ DECLARE Sub UpdateDelay(byref delay as double, byval tempo as integer)
 
 ' Module-local variables
 
-dim shared music_on as integer = 0
+dim shared music_init_count as integer = 0     'Number of of times music_init called
 dim shared music_vol as single = .5
-dim shared music_paused as integer
-dim shared music_playing as integer
-dim shared music_song as MIDI_EVENT ptr = NULL
-dim shared orig_vol as integer = -1
-dim shared playback_thread as any ptr
-dim shared inited_once as integer = 0
+dim shared sound_song as integer = -1          'Sound slot for non-MIDI music, otherwise equal to -1.
 
-dim shared sound_song as integer = -1'if it's not a midi
+dim shared midi_paused as bool
+dim shared midi_playing as bool
+dim shared midi_song as MIDI_EVENT ptr = NULL  'Loaded MIDI file. Nonzero only when current music is MIDI
+dim shared playback_thread as any ptr
+
 'for playback
 dim shared division as short
 
@@ -118,8 +117,10 @@ Sub ResetMidi
 			BufferEvent(&H80 + c,n,0) 'turn off all notes
 		next
 
-		if not music_paused then BufferEvent(&HB0 + c,121,-1) 'controller reset
-		if music_paused = 0 then bufferevent(&HC0 + c,0,0) 'reset instruments
+		if midi_paused = NO then
+			BufferEvent(&HB0 + c,121,-1) 'controller reset
+			bufferevent(&HC0 + c,0,0) 'reset instruments
+		end if
 		flushmidibuffer ' to keep the buffer from growing /too/ big
 	next
 end sub
@@ -165,9 +166,9 @@ end type
 dim shared delhead as delitem ptr = null
 
 sub music_init()
-	music_on += 1
-	'debug "music init = " & music_on
-	if music_on <> 1 then exit sub
+	music_init_count += 1
+	'debug "music init = " & music_init_count
+	if music_init_count <> 1 then exit sub
 
 	openMidi
 
@@ -175,17 +176,17 @@ sub music_init()
 end sub
 
 sub music_close()
-	music_on -= 1
-	'debug "music close = " & music_on
-	if music_on <> 0 then exit sub
-	music_playing = 0
-	music_paused = 0
+	music_init_count -= 1
+	'debug "music close = " & music_init_count
+	if music_init_count <> 0 then exit sub
+	midi_playing = NO
+	midi_paused = NO
 
 	if playback_thread then threadWait playback_thread: playback_Thread = 0
 
-	if music_song then
-		FreeMidiEventList(music_song)
-		music_song = 0
+	if midi_song then
+		FreeMidiEventList(midi_song)
+		midi_song = 0
 	end if
 
 	if sound_song >= 0 then
@@ -224,7 +225,7 @@ sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 end sub
 
 sub music_play(songname as string, byval fmt as MusicFormatEnum)
-	if music_on then
+	if music_init_count then
 		songname = rtrim(songname)	'lose any added nulls
 		dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
@@ -262,12 +263,12 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 
 		'stop current song
-		if music_song <> 0 then
-			music_playing = 0
+		if midi_song <> 0 then
+			midi_playing = NO
 			if playback_thread then threadWait playback_thread: playback_Thread = 0
-			FreeMidiEventList(music_song)
-			music_song = 0
-			music_paused = 0
+			FreeMidiEventList(midi_song)
+			midi_song = 0
+			midi_paused = NO
 		end if
 		'debug "sound_song = " & sound_song
 		if sound_song <> -1 then
@@ -276,30 +277,30 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 
 		if fmt = FORMAT_MIDI then
-			music_song = CreateMidiEventList(songname,@division)
-			if music_song = 0 then
+			midi_song = CreateMidiEventList(songname,@division)
+			if midi_song = 0 then
 				'debug "Could not load song " + songname
 				exit sub
 			end if
 
-			converttorelative music_song
-			addJumpToEnd music_song
+			converttorelative midi_song
+			addJumpToEnd midi_song
 
-			music_paused = 0
-			music_playing = 1
+			midi_paused = NO
+			midi_playing = YES
 			playback_thread = threadcreate(@PlayBackThread,0)
 		else
 			sound_song = sound_load(songname)
-			sound_play(sound_song, -1)
+			sound_play(sound_song, -1, music_vol)
 		end if
 	end if
 end sub
 
 sub music_pause()
-	if music_on then
-		if music_song > 0 then
-			if music_paused = 0 then
-				music_paused = 1
+	if music_init_count then
+		if midi_song then
+			if midi_paused = NO then
+				midi_paused = YES
 			end if
 		end if
 		if sound_song >= 0 then
@@ -309,9 +310,9 @@ sub music_pause()
 end sub
 
 sub music_resume()
-	if music_on then
-		if music_song > 0 then
-			music_paused = 0
+	if music_init_count then
+		if midi_song then
+			midi_paused = NO
 		end if
 		if sound_song >= 0 then
 			sound_play(sound_song, -1)
@@ -320,17 +321,12 @@ sub music_resume()
 end sub
 
 sub music_stop()
-	if music_song > 0 then music_pause()
+	if midi_song then music_pause()
 	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
 sub music_setvolume(byval vol as single)
 	music_vol = vol
-	if music_on then
-		'Don't know what this is meant to do
-		'if music_song > 0 then music_vol = vol
-		'need sound setting...
-	end if
 end sub
 
 function music_getvolume() as single
@@ -345,28 +341,26 @@ Sub dumpdata(m as MIDI_EVENT ptr)
 	'for i = 0 to m->extralen - 1
 	'	d += hex(m->extradata[i]) + " "
 	'next
-
 	'debug d
-
 end sub
 
 Sub PlayBackThread(byval dummy as any ptr)
 	dim curtime as double, curevent as MIDI_EVENT ptr, starttime as double, delta as double, tempo as integer, delay as double
 	dim played as integer, carry as double, pauseflag as integer
 	dim labels(15) as MIDI_EVENT ptr, jumpcount(15) as integer, choruswas as MIDI_EVENT ptr
-	labels(0) = music_song
+	labels(0) = midi_song
 	for curtime = 0 to 15
 		jumpcount(curtime) = -1
 	next
 
 	tempo = 500000 'assume 120 bmp
 
-	curevent = music_song
+	curevent = midi_song
 
 	updateDelay delay, tempo
 	'debug "" & delay
 	starttime = -1
-	do while music_playing
+	do while midi_playing
 		if starttime = -1 then
 			delta = 0
 		else
@@ -375,7 +369,7 @@ Sub PlayBackThread(byval dummy as any ptr)
 		curtime += delta * delay
 
 		starttime = timer
-		if music_playing = 0 then ESCAPE_SEQUENCE
+		if midi_playing = NO then ESCAPE_SEQUENCE
 
 
 		if cint(curevent->time) - int(curtime) > 0 then
@@ -388,7 +382,7 @@ Sub PlayBackThread(byval dummy as any ptr)
 			curtime -= curevent->time
 			if curtime < 0 then curtime = 0 : exit do
 
-			if music_playing = 0 then ESCAPE_SEQUENCE
+			if midi_playing = NO then ESCAPE_SEQUENCE
 			select case as const curevent->status
 			case &HB0 to &HBF 'controller
 				if curevent->data(0) = &H6F then 'rpg maker loop point
@@ -420,7 +414,7 @@ Sub PlayBackThread(byval dummy as any ptr)
 					'debug "Music code: " + hex(curevent->extradata[p])
 					select case as const curevent->extradata[p]
 					case &H0 'stop
-						music_playing = 0
+						midi_playing = NO
 						ESCAPE_SEQUENCE
 					case &H1 'set label (should be removed to an initial scan)
 						p += 1
@@ -507,34 +501,34 @@ Sub PlayBackThread(byval dummy as any ptr)
 				'debug("Unknown status: " + hex(curevent->status))
 			end select
 			curevent = curevent->next
-		loop while music_playing
+		loop while midi_playing
 		curtime = 0
 		FlushMidiBuffer
 	skipevents:
 
-		if music_playing = 0 then ESCAPE_SEQUENCE
+		if midi_playing = NO then ESCAPE_SEQUENCE
 
 		if curevent = 0 then
-			music_playing = 0
+			midi_playing = NO
 
 			ESCAPE_SEQUENCE
 		end if
 
-		if music_playing = 0 then ESCAPE_SEQUENCE
+		if midi_playing = NO then ESCAPE_SEQUENCE
 		do
 			sleep 10,1
-			if music_playing = 0 then ESCAPE_SEQUENCE
-			if music_paused <> 0 AND pauseflag = 0 then
+			if midi_playing = NO then ESCAPE_SEQUENCE
+			if midi_paused <> NO AND pauseflag = 0 then
 				pauseflag = 1
 				resetMidi ' kill stuck notes
 			end if
-		loop while music_paused
+		loop while midi_paused
 		pauseflag = 0
 	loop
 
 
 endOfSong:
-	music_paused = 0
+	midi_paused = NO
 	resetMidi
 	playback_thread = NULL
 

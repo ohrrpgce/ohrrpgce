@@ -30,7 +30,6 @@ dim shared music_on as integer = 0
 dim shared music_vol as single
 dim shared music_paused as integer
 dim shared music_song as MIDI ptr = 0
-'dim shared orig_vol as integer = -1
 
 'The music module needs to manage a list of temporary files to
 'delete when closed, mainly for custom, so they don't get lumped
@@ -145,10 +144,6 @@ sub music_play(songname as string, fmt as MusicFormatEnum)
 		
 		play_midi(music_song, 1)			
 		music_paused = 0
-
-		'if orig_vol = -1 then
-		'	orig_vol = Mix_VolumeMusic(-1)
-		'end if
 	end if
 end sub
 

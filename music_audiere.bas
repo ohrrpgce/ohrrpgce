@@ -9,7 +9,7 @@
 TYPE SoundEffect
   used as bool        'Whether this entry contains valid data
   effectID as integer 'OHR sound effect
-  soundID as integer  'Audiere number
+  audiereID as integer 'audwrap slot number
   paused as bool
 END TYPE
 
@@ -59,16 +59,16 @@ sub sound_play(slot as integer, loopcount as integer)
   if slot < 0 or slot > ubound(SoundPool) then debug "sound_play: bad slot" : exit sub
 
   with SoundPool(slot)
-  'debug str(AudIsPlaying(.soundID))
-    if AudIsPlaying(.soundID) <> 0 and .paused = NO then
+  'debug str(AudIsPlaying(.audiereID))
+    if AudIsPlaying(.audiereID) <> 0 and .paused = NO then
       'debug "<<already playing"
       exit sub
     end if
 
-    AudPlay(.soundID)
+    AudPlay(.audiereID)
 
     'for consistency with other backends, can't change loop behaviour of a paused effect
-    if .paused = NO then AudSetRepeat(.soundID, loopcount)
+    if .paused = NO then AudSetRepeat(.audiereID, loopcount)
     .paused = NO
   end with
   'debug "<<done"
@@ -84,7 +84,7 @@ sub sound_pause(slot as integer)
     end if
 
     .paused = YES
-    AudPause(.soundID)
+    AudPause(.audiereID)
   end with
 end sub
 
@@ -93,7 +93,7 @@ sub sound_stop(slot as integer)
   if slot = -1 then exit sub
 
   with SoundPool(slot)
-    AudStop(.soundID)
+    AudStop(.audiereID)
     .paused = NO
   end with
 end sub
@@ -108,7 +108,7 @@ end sub
 
 function sound_playing(slot as integer) as bool
   if slot = -1 then return NO
-  return AudIsPlaying(SoundPool(slot).soundID) <> 0
+  return AudIsPlaying(SoundPool(slot).audiereID) <> 0
 end function
 
 
@@ -124,8 +124,8 @@ function sound_slot_with_id(num as integer) as integer
   for slot = 0 to ubound(SoundPool)
     with SoundPool(slot)
       'debug "slot = " & slot & ", used = " & .used & ", effID = " _
-      '      & .effectID & ", sndID = " & .soundID & ", AudIsValid = " & AudIsValidSound(.soundID)
-      if .used andalso (.effectID = num or num = -1) andalso AudIsValidSound(.soundID) then return slot
+      '      & .effectID & ", sndID = " & .audiereID & ", AudIsValid = " & AudIsValidSound(.audiereID)
+      if .used andalso (.effectID = num or num = -1) andalso AudIsValidSound(.audiereID) then return slot
     end with
   next
   return -1
@@ -174,7 +174,7 @@ function sound_load(fname as string, num as integer = -1) as integer
   'if we got this far, yes!
   with SoundPool(slot)
     .used = YES
-    .soundID = audslot
+    .audiereID = audslot
     .effectID = num
   end with
 
@@ -185,10 +185,10 @@ end function
 sub sound_unload(slot as integer)
   with SoundPool(slot)
     if not .used then exit sub
-    if AudIsValidSound(.soundID) then AudUnloadSound(.soundID)
+    if AudIsValidSound(.audiereID) then AudUnloadSound(.audiereID)
     .used = NO
     .paused = NO
-    .soundID = 0
+    .audiereID = 0
     .effectID = 0
   end with
 end sub
