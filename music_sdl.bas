@@ -59,7 +59,6 @@ end extern
 
 ' Local functions
 
-declare function GetSlot(byval num as integer) as integer
 declare function next_free_slot() as integer
 declare function sfx_slot_info (byval slot as integer) as string
 
@@ -345,18 +344,19 @@ end function
 
 DECLARE sub SDL_done_playing cdecl(byval channel as int32)
 
-TYPE sound_effect
+' The SDL_Mixer channel number is equal to the SoundEffectSlot index
+TYPE SoundEffectSlot
 	used as bool        'whether this slot is free
 	effectID as integer 'which sound is loaded
 
 	paused as bool
-	playing as bool
+	playing as bool     'Set to false by a callback when the channel finishes
 
 	buf as Mix_Chunk ptr
 END TYPE
 
 'music_sdl has an arbitrary limit of 16 sound effects playing at once:
-dim shared sfx_slots(15) as sound_effect
+dim shared sfx_slots(15) as SoundEffectSlot
 
 dim shared sound_inited as bool
 
@@ -420,9 +420,11 @@ sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
 	dim slot as integer
 
 	if num_is_slot = NO then
-		slot = GetSlot(num)  'Restart existing if already playing
+		' Restart existing if already loaded, even if it's still playing. This has the benefit
+		' of acting like a cache.
+		slot = sound_slot_with_id(num)
 		if slot = -1 then
-			slot = sound_load(num)
+			slot = sound_load(soundfile(num), num)
 		end if
 	else
 		slot = num
@@ -435,15 +437,15 @@ sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
 			exit sub
 		end if
 
-		if loopcount then loopcount = -1
-
 		if .paused then
 			Mix_Resume(slot)
 			.paused = NO
 		end if
 
 		if .playing = NO then
-			if mix_playchannel(slot, .buf, loopcount) = -1 then
+			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
+			' which is just a simplification.
+			if Mix_PlayChannel(slot, .buf, loopcount) = -1 then
 				exit sub
 			end if
 			.playing = YES
@@ -455,7 +457,7 @@ sub sound_pause(num as integer, num_is_slot as bool = NO)
 	dim slot as integer
 
 	if num_is_slot = NO then
-		slot = GetSlot(num)
+		slot = sound_slot_with_id(num)
 	else
 		slot = num
 	end if
@@ -474,7 +476,7 @@ sub sound_stop(num as integer, num_is_slot as bool = NO)
 	dim slot as integer
 
 	if num_is_slot = NO then
-		slot = GetSlot(num)
+		slot = sound_slot_with_id(num)
 	else
 		slot = num
 	end if
@@ -501,7 +503,7 @@ function sound_playing(num as integer, num_is_slot as bool = NO) as bool
 	dim slot as integer
 
 	if num_is_slot = NO then
-		slot = GetSlot(num)
+		slot = sound_slot_with_id(num)
 	else
 		slot = num
 	end if
@@ -512,9 +514,9 @@ function sound_playing(num as integer, num_is_slot as bool = NO) as bool
 	return sfx_slots(slot).playing
 end function
 
-'Returns the slot in the sound pool which corresponds to the given sound effect
-'if the sound is not loaded, returns -1
-function GetSlot(num as integer) as integer
+' Returns the first sound slot with the given sound effect ID (num);
+' if the sound is not loaded, returns -1.
+function sound_slot_with_id(num as integer) as integer
 	for slot as integer = 0 to ubound(sfx_slots)
 		with sfx_slots(slot)
 			if .used AND .effectID = num then return slot
@@ -524,16 +526,8 @@ function GetSlot(num as integer) as integer
 	return -1
 end function
 
-'Loads an OHR sound (num) into a slot. Returns the slot number, or -1 if an error
-'occurs
-function sound_load overload(num as integer) as integer
-	dim ret as integer
-	ret = GetSlot(num)
-	if ret >= 0 then return ret
-
-	return sound_load(soundfile(num), num)
-end function
-
+'Loads a sound into a slot, and marks its ID num (equal to OHR sfx number).
+'Returns the slot number, or -1 if an error occurs.
 function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
 	return -1
 end function
@@ -553,9 +547,11 @@ function sound_load overload(filename as string, num as integer = -1) as integer
 	'	return -1
 	'end if
 
-	sfx = Mix_LoadWav(@filename[0])
-
-	if (sfx = NULL) then return -1
+	sfx = Mix_LoadWAV(@filename[0])
+	if sfx = NULL then
+		debug "Couldn't Mix_LoadWAV " & filename
+		return -1
+	end if
 
 	slot = next_free_slot()
 

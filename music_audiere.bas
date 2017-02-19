@@ -6,8 +6,6 @@
 #include "audwrap/audwrap.bi"
 
 
-Declare Function SoundSlot(num as integer) as integer
-
 TYPE SoundEffect
   used as bool        'Whether this entry contains valid data
   effectID as integer 'OHR sound effect
@@ -63,10 +61,10 @@ sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
   if num_is_slot then
     slot = num
   else
-    slot = SoundSlot(num)
+    slot = sound_slot_with_id(num)
     if slot = -1 then
       'debug "sound not loaded, loading."
-      slot = sound_load(num)
+      slot = sound_load(soundfile(num), num)
     end if
   end if
   if slot = -1 then exit sub
@@ -91,7 +89,7 @@ end sub
 sub sound_pause(num as integer, num_is_slot as bool = NO)
   'debug ">>sound_pause(" + trim(str(slot)) + ")"
   dim slot as integer
-  slot = iif(num_is_slot, num, SoundSlot(num))
+  slot = iif(num_is_slot, num, sound_slot_with_id(num))
   if slot = -1 then exit sub
 
   with SoundPool(slot)
@@ -108,7 +106,7 @@ end sub
 sub sound_stop(num as integer, num_is_slot as bool = NO)
   'debug ">>sound_stop(" + trim(str(slot)) + ")"
   dim slot as integer
-  slot = iif(num_is_slot, num, SoundSlot(num))
+  slot = iif(num_is_slot, num, sound_slot_with_id(num))
   if slot = -1 then exit sub
 
   with SoundPool(slot)
@@ -128,7 +126,7 @@ end sub
 
 function sound_playing(num as integer, num_is_slot as bool = NO) as bool
   dim slot as integer
-  slot = iif(num_is_slot, num, SoundSlot(num))
+  slot = iif(num_is_slot, num, sound_slot_with_id(num))
   if slot = -1 then return NO
 
   return AudIsPlaying(SoundPool(slot).soundID) <> 0
@@ -140,9 +138,9 @@ end function
 
 
 
-'Returns the slot in the sound pool which corresponds to the given sound effect
-' if the sound is not loaded, returns -1
-function SoundSlot(num as integer) as integer
+' Returns the first sound slot with the given sound effect ID (num);
+' if the sound is not loaded, returns -1.
+function sound_slot_with_id(num as integer) as integer
   dim slot as integer
   for slot = 0 to ubound(SoundPool)
     with SoundPool(slot)
@@ -154,16 +152,8 @@ function SoundSlot(num as integer) as integer
   return -1
 end function
 
-'Loads an OHR sound (num) into a slot. Returns the slot number, or -1 if an error occurs
-function sound_load overload(num as integer) as integer
-  'eh... we don't really need to throw an error if the sound is already loaded...
-  dim ret as integer
-  ret = SoundSlot(num)
-  if ret >= 0 then return ret
-
-  return sound_load(soundfile(num), num)
-end function
-
+'Loads a sound into a slot, and marks its ID num (equal to OHR sfx number).
+'Returns the slot number, or -1 if an error occurs.
 function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
   return -1
 end function

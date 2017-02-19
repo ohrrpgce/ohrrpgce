@@ -242,6 +242,12 @@ end sub
 'UNIMPLEMENTED
 sub sound_reset() : end sub
 
+
+'UNIMPLEMENTED
+function sound_load overload(filename as string, byval num as integer = -1) as integer
+  return 0
+end function
+
 function sound_load(byval slot as integer, f as string) as integer
   'slot is the sfx_slots element to use, or -1 to automatically pick one
   'f is the file.
@@ -298,6 +304,7 @@ sub sound_play(byval num as integer, byval loopcount as integer, byval slot as i
     if .buf = 0 then exit sub
     
     if loopcount then
+      ' Finite loops not supported
       voice_set_playmode(.voice,PLAYMODE_LOOP)
     else
       voice_set_playmode(.voice,PLAYMODE_PLAY)
@@ -347,11 +354,6 @@ end function
 
 function sound_slots as integer
   return ubound(sfx_slots)
-end function
-
-'UNIMPLEMENTED
-function sound_load overload(filename as string,  byval num as integer = -1) as integer
-	return 0
 end function
 
 'UNIMPLEMENTED

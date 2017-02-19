@@ -1019,6 +1019,7 @@ sub closemusic ()
 end sub
 
 sub resetsfx ()
+	' Stops playback and unloads cached sound effects
 	sound_reset
 end sub
 
@@ -1136,8 +1137,25 @@ function isawav(fi as string) as bool
 	return YES
 end function
 
-sub playsfx (byval num as integer, byval l as integer=0)
-	sound_play(num, l)
+' Translate sfx number to lump name
+function soundfile (sfxnum as integer) as string
+	dim as string sfxbase
+
+	sfxbase = workingdir & SLASH & "sfx" & sfxnum
+	if isfile(sfxbase & ".ogg") THEN
+		return sfxbase & ".ogg"
+	elseif isfile(sfxbase & ".mp3") then
+		return sfxbase & ".mp3"
+	elseif isfile(sfxbase & ".wav") then
+		return sfxbase & ".wav"
+	else
+		return ""
+	end if
+end function
+
+' loopcount N to play N+1 times, -1 to loop forever
+sub playsfx (num as integer, loopcount as integer = 0)
+	sound_play(num, loopcount)
 end sub
 
 sub stopsfx (byval num as integer)

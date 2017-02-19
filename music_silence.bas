@@ -46,12 +46,12 @@ sub sound_stop(num as integer, num_is_slot as bool = NO) : end sub
 
 sub sound_free(num as integer) : end sub
 
-function sound_playing(num as integer, num_is_slot as bool = NO) as bool
-	return NO
+function sound_slot_with_id(num as integer) as integer
+	return -1
 end function
 
-function sound_load overload(num as integer) as integer
-	return 0
+function sound_playing(num as integer, num_is_slot as bool = NO) as bool
+	return NO
 end function
 
 function sound_load overload(lump as Lump ptr, num as integer = -1) as integer

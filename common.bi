@@ -30,7 +30,6 @@ DECLARE SUB restore_previous_palette ()
 DECLARE SUB start_new_debug (title as string)
 DECLARE SUB end_debug ()
 
-DECLARE FUNCTION soundfile (byval sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
 
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)

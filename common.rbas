@@ -228,21 +228,6 @@ FUNCTION filesize (file as string) as string
  END IF
 END FUNCTION
 
-FUNCTION soundfile (byval sfxnum as integer) as string
- DIM as string sfxbase
-
- sfxbase = workingdir & SLASH & "sfx" & sfxnum
- IF isfile(sfxbase & ".ogg") THEN
-  RETURN sfxbase & ".ogg"
- ELSEIF isfile(sfxbase & ".mp3") THEN
-  RETURN sfxbase & ".mp3"
- ELSEIF isfile(sfxbase & ".wav") THEN
-  RETURN sfxbase & ".wav"
- ELSE
-  RETURN ""
- END IF
-END FUNCTION
-
 ' If c/g_debug.txt already exists, archive it and create a new one.
 ' title is what message to write at the top
 SUB start_new_debug(title as string)

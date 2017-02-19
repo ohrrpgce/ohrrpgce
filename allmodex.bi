@@ -379,6 +379,7 @@ DECLARE FUNCTION get_music_volume () as single
 DECLARE SUB set_music_volume (byval vol as single)
 
 DECLARE FUNCTION isawav(fi as string) as bool
+DECLARE FUNCTION soundfile (sfxnum as integer) as string
 
 DECLARE SUB resetsfx ()
 DECLARE SUB playsfx (byval num as integer, byval l as integer=0) 'l is loop count. -1 for infinite loop
