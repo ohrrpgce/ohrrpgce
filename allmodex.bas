@@ -1170,6 +1170,7 @@ sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1
 	end if
 	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume
 	sound_play(slot, loopcount, volume_mult * global_sfx_volume)
+	sound_slotdata(slot)->original_volume = volume_mult
 end sub
 
 sub stopsfx (num as integer)
@@ -1226,6 +1227,8 @@ sub set_global_sfx_volume (volume as single)
 		dim slotdata as SFXCommonData ptr
 		slotdata = sound_slotdata(slot)
 		if slotdata = 0 then continue for
+		'debug "set_global_sfx_volume: refresh volume for " _
+		'      & slotdata->effectID & " to " & (slotdata->original_volume * global_sfx_volume)
 		sound_setvolume slot, slotdata->original_volume * global_sfx_volume
 	next
 end sub
