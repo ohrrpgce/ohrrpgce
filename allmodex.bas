@@ -1166,20 +1166,30 @@ sub playsfx (num as integer, loopcount as integer = 0)
 	sound_play(slot, loopcount)
 end sub
 
-sub stopsfx (byval num as integer)
-	sound_stop (num)
+sub stopsfx (num as integer)
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then exit sub
+	sound_stop(slot)
 end sub
 
-sub pausesfx (byval num as integer)
-	sound_pause(num)
+sub pausesfx (num as integer)
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then exit sub
+	sound_pause(slot)
 end sub
 
+' Only used by Custom's importing interface
 sub freesfx (byval num as integer)
 	sound_free(num)
 end sub
 
 function sfxisplaying(byval num as integer) as bool
-	return sound_playing(num)
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then return NO
+	return sound_playing(slot)
 end function
 
 

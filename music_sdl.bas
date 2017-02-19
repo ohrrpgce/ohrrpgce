@@ -444,17 +444,8 @@ sub sound_play(slot as integer, loopcount as integer)
 	end with
 end sub
 
-sub sound_pause(num as integer, num_is_slot as bool = NO)
-	dim slot as integer
-
-	if num_is_slot = NO then
-		slot = sound_slot_with_id(num)
-	else
-		slot = num
-	end if
-
+sub sound_pause(slot as integer)
 	if slot = -1 then exit sub
-
 	with sfx_slots(slot)
 		if .playing <> NO and .paused = NO then
 			.paused = YES
@@ -463,15 +454,7 @@ sub sound_pause(num as integer, num_is_slot as bool = NO)
 	end with
 end sub
 
-sub sound_stop(num as integer, num_is_slot as bool = NO)
-	dim slot as integer
-
-	if num_is_slot = NO then
-		slot = sound_slot_with_id(num)
-	else
-		slot = num
-	end if
-
+sub sound_stop(slot as integer)
 	if slot = -1 then exit sub
 	with sfx_slots(slot)
 		if .playing <> NO then
@@ -490,15 +473,7 @@ sub sound_free(num as integer)
 	next
 end sub
 
-function sound_playing(num as integer, num_is_slot as bool = NO) as bool
-	dim slot as integer
-
-	if num_is_slot = NO then
-		slot = sound_slot_with_id(num)
-	else
-		slot = num
-	end if
-
+function sound_playing(slot as integer) as bool
 	if slot = -1 then return NO
 	if sfx_slots(slot).used = NO then return NO
 
@@ -545,9 +520,10 @@ function sound_load overload(filename as string, num as integer = -1) as integer
 	end if
 
 	slot = next_free_slot()
+	'debuginfo "sound_load(" & filename & "," & num & ") in slot " & slot
 
 	if slot = -1 then
-		debug "sound_load(""" & filename & """, " & num & ") no more sound slots available"
+		debuginfo "sound_load(""" & filename & """, " & num & ") no more sound slots available"
 	else
 		with sfx_slots(slot)
 			.used = YES

@@ -288,7 +288,11 @@ ELSE
 END IF
 remember = default
 music_stop
-IF br.snd >= 0 THEN sound_stop(br.snd, YES) : sound_unload(br.snd)
+IF br.snd >= 0 THEN
+ sound_stop(br.snd)
+ sound_unload(br.snd)
+ br.snd = -1
+END IF
 clearkey(scESC)
 RETURN ret
 
@@ -335,7 +339,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    CASE 6 'sfx
     br.alert = .about
     IF br.snd > -1 THEN
-     sound_stop(br.snd,-1)
+     sound_stop(br.snd)
      sound_unload(br.snd)
      br.snd = -1
     END IF

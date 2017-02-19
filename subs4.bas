@@ -786,16 +786,19 @@ DO
   newsfx = sfxnum
   IF intgrabber(newsfx, 0, gen(genMaxSFX), scLeftCaret, scRightCaret) THEN
    importsfx_save_sfx_data sfxname, sfxnum
+   freesfx sfxnum
    sfxnum = newsfx
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   END IF
   IF keyval(scLeft) > 1 AND sfxnum > 0 THEN
    importsfx_save_sfx_data sfxname, sfxnum
+   freesfx sfxnum
    sfxnum -= 1
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   END IF
   IF keyval(scRight) > 1 AND sfxnum < 32767 THEN
    importsfx_save_sfx_data sfxname, sfxnum
+   freesfx sfxnum
    sfxnum += 1
    IF needaddset(sfxnum, gen(genMaxSFX), "sfx") THEN sfxname = ""
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
@@ -806,6 +809,7 @@ DO
   CASE 0   'quit
     EXIT DO
   CASE 3   'import
+    freesfx sfxnum
     importsfx_importsfxfile sfxname, sfxfile, sfxnum, file_ext
     importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
   CASE 4   'export
@@ -834,6 +838,7 @@ DO
  dowait
 LOOP
 importsfx_save_sfx_data sfxname, sfxnum
+freesfx sfxnum
 END SUB
 
 SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
@@ -881,7 +886,6 @@ SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string
 END SUB
 
 SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
- freesfx sfxnum
  DIM sfxbuf(dimbinsize(binSFXDATA)) as integer
  writebinstring sfxname, sfxbuf(), 0, 30
  storerecord sfxbuf(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, sfxnum

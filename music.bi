@@ -55,24 +55,22 @@ declare sub sound_reset()
 
 ' loopcount is N to play N+1 times, -1 to loop forever.
 declare sub sound_play(slot as integer, loopcount as integer)
-' num_is_slot is NO if num is an OHR sound number, YES if it's a slot number (returned from sound_load)
-declare sub sound_pause(num as integer, num_is_slot as bool = NO)
-declare sub sound_stop(num as integer, num_is_slot as bool = NO)
+declare sub sound_pause(slot as integer)
+declare sub sound_stop(slot as integer)
 
 ' Returns the first sound slot with the given sound effect ID (num);
 ' if the sound is not loaded, returns -1.
 declare function sound_slot_with_id(num as integer) as integer
 
-declare function sound_playing(num as integer, num_is_slot as bool = NO) as bool
+declare function sound_playing(slot as integer) as bool
 
 ' Loads a sound into a slot, and marks its ID num (equal to OHR sfx number).
 ' Returns the slot number, or -1 if an error occurs.
 declare function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
 declare function sound_load overload(filename as string, num as integer = -1) as integer
 
-' These are only used if sound_load was used explicitly, and differ in
-' whether to unload a slot or a sound effect number.
 declare sub sound_unload(slot as integer)
+' Unload all sound effects slots with a certain ID
 declare sub sound_free(num as integer)
 
 

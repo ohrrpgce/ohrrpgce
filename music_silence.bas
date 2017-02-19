@@ -40,9 +40,9 @@ sub sound_reset() : end sub
 
 sub sound_play(slot as integer, loopcount as integer) : end sub
 
-sub sound_pause(num as integer, num_is_slot as bool = NO) : end sub
+sub sound_pause(slot as integer) : end sub
 
-sub sound_stop(num as integer, num_is_slot as bool = NO) : end sub
+sub sound_stop(slot as integer) : end sub
 
 sub sound_free(num as integer) : end sub
 
@@ -50,7 +50,7 @@ function sound_slot_with_id(num as integer) as integer
 	return -1
 end function
 
-function sound_playing(num as integer, num_is_slot as bool = NO) as bool
+function sound_playing(slot as integer) as bool
 	return NO
 end function
 

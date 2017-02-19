@@ -382,17 +382,17 @@ DECLARE FUNCTION isawav(fi as string) as bool
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 
 DECLARE SUB resetsfx ()
-DECLARE SUB playsfx (byval num as integer, byval l as integer=0) 'l is loop count. -1 for infinite loop
-DECLARE SUB stopsfx (byval num as integer)
-DECLARE SUB pausesfx (byval num as integer)
-DECLARE SUB freesfx (byval num as integer) ' only used by custom's importing interface
-DECLARE FUNCTION sfxisplaying (byval num as integer) as bool
+DECLARE SUB playsfx (num as integer, loopcount as integer = 0)
+DECLARE SUB stopsfx (num as integer)
+DECLARE SUB pausesfx (num as integer)
+DECLARE SUB freesfx (num as integer)
+DECLARE FUNCTION sfxisplaying (num as integer) as bool
 DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
-'DECLARE SUB getsfxvol (byval num as integer)
-'DECLARE SUB setsfxvol (byval num as integer, byval vol as integer)
+'DECLARE SUB getsfxvol (num as integer)
+'DECLARE SUB setsfxvol (num as integer, vol as integer)
 
 'DECLARE FUNCTION getsoundvol () as integer
-'DECLARE SUB setsoundvol (byval vol)
+'DECLARE SUB setsoundvol (vol)
 
 
 '==========================================================================================

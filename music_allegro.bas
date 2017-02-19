@@ -221,7 +221,7 @@ sub sound_close
   
   dim i as integer
   
-  for i = 0 to 7
+  for i = 0 to ubound(sfx_slots)
     with sfx_slots(i)
       if .used then
         deallocate_voice(.voice)
@@ -244,11 +244,11 @@ sub sound_reset() : end sub
 
 
 'UNIMPLEMENTED
-function sound_load overload(filename as string, byval num as integer = -1) as integer
+function sound_load overload(filename as string, num as integer = -1) as integer
   return 0
 end function
 
-function sound_load(byval slot as integer, f as string) as integer
+function sound_load(slot as integer, f as string) as integer
   'slot is the sfx_slots element to use, or -1 to automatically pick one
   'f is the file.
   dim i as integer
@@ -284,7 +284,7 @@ function sound_load(byval slot as integer, f as string) as integer
   
 end function
 
-sub sound_free(byval slot as integer)
+sub sound_unload(slot as integer)
   with sfx_slots(slot)
     if .used then
       .used = 0
@@ -296,7 +296,7 @@ sub sound_free(byval slot as integer)
   end with
 end sub
 
-sub sound_play(byval slot as integer, byval loopcount as integer)
+sub sound_play(slot as integer, loopcount as integer)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing and .paused = 0 then exit sub
@@ -315,8 +315,7 @@ sub sound_play(byval slot as integer, byval loopcount as integer)
   end with
 end sub
 
-'num UNIMPLEMENTED
-sub sound_pause(byval num as integer, byval slot as integer = 0)
+sub sound_pause(slot as integer)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing = 0 then exit sub
@@ -327,8 +326,7 @@ sub sound_pause(byval num as integer, byval slot as integer = 0)
   end with
 end sub
 
-'num UNIMPLEMENTED
-sub sound_stop(byval num as integer, byval slot as integer = 0)
+sub sound_stop(slot as integer)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing = 0 then exit sub
@@ -341,13 +339,11 @@ sub sound_stop(byval num as integer, byval slot as integer = 0)
   end with
 end sub
 
-'num UNIMPLEMENTED
-function sound_playing(byval num as integer, byval slot as integer = 0) as bool
+function sound_playing(slot as integer) as bool
   with sfx_slots(slot)
     if .used = 0 then return NO
-    
+
     return voice_get_position(.voice) <> -1
-    
   end with
 end function
 
@@ -355,6 +351,7 @@ function sound_slots as integer
   return ubound(sfx_slots)
 end function
 
-'UNIMPLEMENTED
-sub sound_unload(byval num as integer) : end sub
+' UNIMPLEMENTED
+sub sound_free(num as integer)
+end sub
 

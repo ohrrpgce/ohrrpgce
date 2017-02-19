@@ -189,7 +189,7 @@ sub music_close()
 	end if
 
 	if sound_song >= 0 then
-		sound_stop(sound_song, YES)
+		sound_stop(sound_song)
 		sound_unload(sound_song)
 	end if
 
@@ -271,7 +271,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 		'debug "sound_song = " & sound_song
 		if sound_song <> -1 then
-			sound_stop(sound_song, YES)
+			sound_stop(sound_song)
 			sound_unload(sound_song)
 		end if
 
@@ -303,7 +303,7 @@ sub music_pause()
 			end if
 		end if
 		if sound_song >= 0 then
-			sound_pause(sound_song, YES)
+			sound_pause(sound_song)
 		end if
 	end if
 end sub
@@ -321,7 +321,7 @@ end sub
 
 sub music_stop()
 	if music_song > 0 then music_pause()
-	if sound_song >= 0 then sound_stop(sound_song, YES)
+	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
 sub music_setvolume(byval vol as single)
@@ -481,12 +481,12 @@ Sub PlayBackThread(byval dummy as any ptr)
 						p += 1
 						'debug "play sound (" + str(curevent->extradata[p]) + "," + str(curevent->extradata[p+1]) + ")"
 						' Either loop forever (loopcount = YES = -1) or play once (loopcount = NO = 0)
-						sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0
+						playsfx curevent->extradata[p], curevent->extradata[p + 1] <> 0
 						p += 2
 					case &H32 'stop sound
 						p += 1
 						'debug "stop sound (" + str(curevent->extradata[p]) + ")"
-						sound_stop curevent->extradata[p]
+						stopsfx curevent->extradata[p]
 						p += 1
 					'case &H33 'free sound
 						'p += 1

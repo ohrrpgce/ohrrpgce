@@ -74,34 +74,28 @@ sub sound_play(slot as integer, loopcount as integer)
   'debug "<<done"
 end sub
 
-sub sound_pause(num as integer, num_is_slot as bool = NO)
-  'debug ">>sound_pause(" + trim(str(slot)) + ")"
-  dim slot as integer
-  slot = iif(num_is_slot, num, sound_slot_with_id(num))
+sub sound_pause(slot as integer)
+  'debug ">>sound_pause(" & slot & ")"
   if slot = -1 then exit sub
 
   with SoundPool(slot)
-    if sound_playing(slot, -1) = 0 OR .paused then
+    if sound_playing(slot) = 0 OR .paused then
       exit sub
     end if
 
     .paused = YES
     AudPause(.soundID)
   end with
-  'debug "<<sound_pause"
 end sub
 
-sub sound_stop(num as integer, num_is_slot as bool = NO)
-  'debug ">>sound_stop(" + trim(str(slot)) + ")"
-  dim slot as integer
-  slot = iif(num_is_slot, num, sound_slot_with_id(num))
+sub sound_stop(slot as integer)
+  'debug ">>sound_stop(" + slot + ")"
   if slot = -1 then exit sub
 
   with SoundPool(slot)
     AudStop(.soundID)
     .paused = NO
   end with
-  'debug "<<sound_stop"
 end sub
 
 sub sound_free(num as integer)
@@ -112,11 +106,8 @@ sub sound_free(num as integer)
   next
 end sub
 
-function sound_playing(num as integer, num_is_slot as bool = NO) as bool
-  dim slot as integer
-  slot = iif(num_is_slot, num, sound_slot_with_id(num))
+function sound_playing(slot as integer) as bool
   if slot = -1 then return NO
-
   return AudIsPlaying(SoundPool(slot).soundID) <> 0
 end function
 
@@ -167,7 +158,6 @@ function sound_load(fname as string, num as integer = -1) as integer
 
   ' 2. load the sound
 
-  'TODO: abstract file name to a function or something
   'loadWaveFileToBuffer soundfile(num), @derbuffer
 
   dim extn as string = justextension(fname)

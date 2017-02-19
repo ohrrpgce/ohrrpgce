@@ -686,7 +686,7 @@ sub music_close()
 	end if
 
 	if sound_song >= 0 then
-		sound_stop(sound_song, YES)
+		sound_stop(sound_song)
 		sound_unload(sound_song)
 	end if
 
@@ -765,7 +765,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 		end if
 		'debug "sound_song = " & sound_song
 		if sound_song <> -1 then
-			sound_stop(sound_song, YES)
+			sound_stop(sound_song)
 			sound_unload(sound_song)
 		end if
 
@@ -824,7 +824,7 @@ sub music_pause()
 			end if
 		end if
 		if sound_song >= 0 then
-			sound_pause(sound_song, YES)
+			sound_pause(sound_song)
 		end if
 	end if
 end sub
@@ -843,7 +843,7 @@ end sub
 
 sub music_stop()
 	if music_song > 0 then music_pause()
-	if sound_song >= 0 then sound_stop(sound_song, YES)
+	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
 sub music_setvolume(byval vol as single)
