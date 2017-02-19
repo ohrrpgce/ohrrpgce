@@ -37,21 +37,16 @@ declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
 'The decoder enum functions are only available in SDL_mixer > 1.2.8 which is the version shipped with
 'Debian 6.0 Squeeze and hence older Ubuntu. Squeeze was superceded by 7.0 Wheezy in May 2013.
-'We distribute our own copy of SDL_mixer for Windows and Mac,
-'so we don't have to worry there.
-#ifndef __FB_LINUX__
-	#define ENUMERATE_DECODERS
-#endif
+'So don't depend on these functions.
+dim shared _Mix_GetNumMusicDecoders as function () as Sint32
+dim shared _Mix_GetNumChunkDecoders as function () as Sint32
+dim shared _Mix_GetMusicDecoder as function  (byval index as Sint32) as zstring ptr
+dim shared _Mix_GetChunkDecoder as function (byval index as Sint32) as zstring ptr
 
 ' Older FB have out of date SDL headers
 #if __FB_VERSION__ < "1.04"
 	declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
-	#ifdef ENUMERATE_DECODERS
-		declare function Mix_GetNumMusicDecoders () as Sint32
-		declare function Mix_GetNumChunkDecoders () as Sint32
-		declare function Mix_GetMusicDecoder (byval index as Sint32) as zstring ptr
-		declare function Mix_GetChunkDecoder (byval index as Sint32) as zstring ptr
-	#endif
+	' Mix_GetMusicDecoder etc also missing
 #endif
 
 end extern
@@ -99,6 +94,15 @@ function music_get_info() as string
 	dim ver as const SDL_version ptr
 	dim ret as string = "music_sdl"
 
+	dim libhandle as any ptr
+	libhandle = dylibload("libSDL_mixer.so")
+	if libhandle then
+		_Mix_GetNumMusicDecoders = dylibsymbol(libhandle, "Mix_GetNumMusicDecoders")
+		_Mix_GetNumChunkDecoders = dylibsymbol(libhandle, "Mix_GetNumChunkDecoders")
+		_Mix_GetMusicDecoder = dylibsymbol(libhandle, "Mix_GetMusicDecoder")
+		_Mix_GetChunkDecoder = dylibsymbol(libhandle, "Mix_GetChunkDecoder")
+	end if
+
 	if gfxbackend <> "sdl" then
 		ver = SDL_Linked_Version()
 		ret += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
@@ -112,23 +116,26 @@ function music_get_info() as string
 		Mix_QuerySpec(@freq, @format, @channels)
 		ret += " (" & freq & "Hz"
 
-#ifdef ENUMERATE_DECODERS
-		ret += ", Music decoders:"
-		dim i as integer
-		for i = 0 to Mix_GetNumMusicDecoders() - 1
-			if i > 0 then ret += ","
-			ret += *Mix_GetMusicDecoder(i)
-		next
+		if _Mix_GetNumMusicDecoders andalso _Mix_GetMusicDecoder then
+			ret += ", Music decoders:"
+			for i as integer = 0 to _Mix_GetNumMusicDecoders() - 1
+				if i > 0 then ret += ","
+				ret += *_Mix_GetMusicDecoder(i)
+			next
+		end if
 
-		ret += " Sample decoders:"
-		for i = 0 to Mix_GetNumChunkDecoders() - 1
-			if i > 0 then ret += ","
-			ret += *Mix_GetChunkDecoder(i)
-		next
-#endif
+		if _Mix_GetNumChunkDecoders andalso _Mix_GetChunkDecoder then
+			ret += " Sample decoders:"
+			for i as integer = 0 to _Mix_GetNumChunkDecoders() - 1
+				if i > 0 then ret += ","
+				ret += *_Mix_GetChunkDecoder(i)
+			next
+		end if
 
 		ret += ")"
 	end if
+
+	dylibfree(libhandle)
 
 	return ret
 end function
