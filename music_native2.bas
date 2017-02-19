@@ -3,6 +3,18 @@
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+'' Windows stream-based MIDI playback + Audiere. Supports loop points but not sysexs.
+''
+'' Comments from Mike (r960):
+''    Now, Windows has a couple interfaces for playing midi data, from
+''    the high-level MCI interface (set it and forget it), to the
+''    low-level raw interface (used [in music_native]). I opted for the latter,
+''    so that we could have cool things like loop points and whatnot.
+''
+''    However, Windows has a third interface, a mid-level "stream"
+''    interface. Basically, you break up your song into chunks, and feed
+''    them to windows, and it can time and play them for you. The idea is to
+''    get the best of both worlds: Control over how it's played, and good timing.
 
 #include "config.bi"
 
@@ -217,12 +229,12 @@ end function
 
 function openMidi() as integer
 	#IFDEF __FB_WIN32__
-		'dim moc as MIDIOUTCAPS
-		'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
-		'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
+		dim moc as MIDIOUTCAPS
+		midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
+		debuginfo "Midi port supports Volume changes: " & (moc.dwSupport AND MIDICAPS_VOLUME)
 
 		dim mididev as integer = 0, erro as MMRESULT
-		'debug "opening midi device"
+		debuginfo "opening midi device"
 		erro = midiStreamOpen(@device, @mididev, 1, cint(@StreamCallback), 0, CALLBACK_FUNCTION)
 
 		if erro then
@@ -388,10 +400,10 @@ Sub PrepareNextBeat(byval unused as any ptr)
 		erro = midiOutUnprepareHeader(device, current_head, len(MIDIHDR))
 
 		if erro then
-			'debug "midiOutUnprepareHeader error"
-			'if erro = MIDIERR_STILLPLAYING then debug "The buffer to be unprepared is still playing?!"
-			'if erro = MMSYSERR_INVALHANDLE then debug "The device hasn't been opened...?"
-			'if erro = MMSYSERR_INVALPARAM then debug "Doesn't like the buffer."
+			debug "midiOutUnprepareHeader error"
+			if erro = MIDIERR_STILLPLAYING then debug "The buffer to be unprepared is still playing?!"
+			if erro = MMSYSERR_INVALHANDLE then debug "The device hasn't been opened...?"
+			if erro = MMSYSERR_INVALPARAM then debug "Doesn't like the buffer."
 		end if
 	end if
 

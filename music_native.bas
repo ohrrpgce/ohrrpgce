@@ -3,6 +3,11 @@
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+'' Windows lowlevel event-based MIDI playback + Audiere. Supports loop points and sysexs.
+'' Can also be compiled for other OSes, without MIDI support.
+''
+'' Supposedly "horribly laggy" due to improper MIDI timing.
+'' Suffers from major bugs like 244: Midi voices switching to ACGPIANO randomly
 
 #include "config.bi"
 
@@ -64,7 +69,7 @@ function openMidi() as integer
 	#IFDEF __FB_WIN32__
 	dim moc as MIDIOUTCAPS
 	midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
-	'debug "Midi port supports Volume changes:" + str(moc.dwSupport AND MIDICAPS_VOLUME)
+	debuginfo "Midi port supports Volume changes:" + str(moc.dwSupport AND MIDICAPS_VOLUME)
 
 	return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
 	#ENDIF

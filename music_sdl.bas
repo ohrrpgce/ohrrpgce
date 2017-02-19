@@ -149,6 +149,9 @@ sub music_init()
 
 		' We're going to be requesting certain things from our audio
 		' device, so we set them up beforehand
+		' MIX_DEFAULT_FREQUENCY is 22050, which slightly worsens sound quality
+		' than playing at 44100, but using 44100 causes tracks between 22-44
+		' to be sped up, which sounds worse. See https://sourceforge.net/p/ohrrpgce/bugs/2026/
 		audio_rate = MIX_DEFAULT_FREQUENCY
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
@@ -336,6 +339,47 @@ sub music_stop()
 	end if
 end sub
 
+
+' Info on [Bug 843] Sound effects now affected by volume (on Windows)
+'
+' Note that Mix_VolumeMusic(-1) does not return the system
+' MIDI volume level on Windows, it just returns what was set last.
+'
+' Windows XP:
+' In Volume Control is a slider for SW Synth, the MIDI
+' synthesizer. Setting the music volume while playing a MIDI
+' sends a MIDI event which sets the SW Synth volume level,
+' which can be overridden in Volume Control (note that Volume
+' Control doesn't update the slider live).
+'
+' Windows 7+:
+' The MIDI volume control is gone. Instead, apparently trying
+' to set the MIDI volume (by midiOutSetVolume, which is what
+' SDL_mixer does), actually sets the process's volume instead
+' (waveOutSetVolume). The process volume is AFAIK not otherwise
+' modified by SDL. Meaning sfx can only be quieter than MIDI.
+' TODO: does it make sense to reset waveOutSetVolume after
+' playing a MIDI?
+' Two possible workarounds:
+' -Set volume on each MIDI note instead of on the stream
+'  (would need to patch SDL_mixer/use music_native)
+' -Use a separate process to play MIDI, see code from Eternity Engine here:
+'  https://www.doomworld.com/vb/post/1124981
+' -Maybe use some new Vista+ API:
+'  http://stackoverflow.com/a/19940489/1185152
+' See https://www.doomworld.com/vb/source-ports/63861-windows-sound-any-general-fixes/
+' for a summary
+'
+' Also even in old Windows there are problems with the MIDI
+' volume if not using the SW Synth.
+' http://forums.libsdl.org/viewtopic.php?t=949
+'
+' See also http://odamex.net/bugs/show_bug.cgi?id=863
+' about the midiOutSetVolume volume curve being logarithmic,
+' unlike SDL_mixer's internal volume.
+
+' Volume fading: see r2283
+
 sub music_setvolume(byval vol as single)
 	music_vol = bound(vol, 0., 1.) * MIX_MAX_VOLUME
 	if music_status = musicOn then
@@ -344,6 +388,7 @@ sub music_setvolume(byval vol as single)
 end sub
 
 function music_getvolume() as single
+	'return Mix_VolumeMusic(-1) / MIX_MAX_VOLUME
 	music_getvolume = music_vol / MIX_MAX_VOLUME
 end function
 
