@@ -54,9 +54,11 @@ declare sub sound_close()
 declare sub sound_reset()
 
 ' loopcount is N to play N+1 times, -1 to loop forever.
-declare sub sound_play(slot as integer, loopcount as integer)
+declare sub sound_play(slot as integer, loopcount as integer, volume as single = 1.0)
 declare sub sound_pause(slot as integer)
 declare sub sound_stop(slot as integer)
+declare sub sound_setvolume(slot as integer, volume as single)
+declare function sound_getvolume(slot as integer) as single
 
 ' Returns the first sound slot with the given sound effect ID (num);
 ' if the sound is not loaded, returns -1.

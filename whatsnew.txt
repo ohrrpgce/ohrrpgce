@@ -84,6 +84,9 @@ WHAT IS NEW?
       party was disabled [Ralph]
     * The Battle Formation Set menu miscalculated the number of steps
       until a battle occurs (it was too low). Also added average [Ralph]
+    * music_native/native2: Changing the music volume only worked for
+      MIDI, while everything else was played at 100% volume instead
+      of the default 50%. [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

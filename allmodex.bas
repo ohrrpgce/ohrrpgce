@@ -1154,7 +1154,7 @@ function soundfile (sfxnum as integer) as string
 end function
 
 ' loopcount N to play N+1 times, -1 to loop forever
-sub playsfx (num as integer, loopcount as integer = 0)
+sub playsfx (num as integer, loopcount as integer = 0, volume as single = 1.)
 	dim slot as integer
 	' If already loaded can reuse without reloading.
 	' TODO: However this preempts it if still playing.
@@ -1163,7 +1163,7 @@ sub playsfx (num as integer, loopcount as integer = 0)
 		slot = sound_load(soundfile(num), num)
 		if slot = -1 then exit sub
 	end if
-	sound_play(slot, loopcount)
+	sound_play(slot, loopcount, volume)
 end sub
 
 sub stopsfx (num as integer)
@@ -1178,6 +1178,20 @@ sub pausesfx (num as integer)
 	slot = sound_slot_with_id(num)
 	if slot = -1 then exit sub
 	sound_pause(slot)
+end sub
+
+function get_sfx_volume (num as integer) as single
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then return 0.
+	return sound_getvolume(slot)
+end function
+
+sub set_sfx_volume (num as integer, volume as single)
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then exit sub
+	sound_setvolume(slot, volume)
 end sub
 
 ' Only used by Custom's importing interface

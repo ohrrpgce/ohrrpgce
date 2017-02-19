@@ -380,19 +380,16 @@ DECLARE SUB set_music_volume (byval vol as single)
 
 DECLARE FUNCTION isawav(fi as string) as bool
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
+DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 
 DECLARE SUB resetsfx ()
-DECLARE SUB playsfx (num as integer, loopcount as integer = 0)
+DECLARE SUB playsfx (num as integer, loopcount as integer = 0, volume as single = 1.0)
 DECLARE SUB stopsfx (num as integer)
 DECLARE SUB pausesfx (num as integer)
 DECLARE SUB freesfx (num as integer)
 DECLARE FUNCTION sfxisplaying (num as integer) as bool
-DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
-'DECLARE SUB getsfxvol (num as integer)
-'DECLARE SUB setsfxvol (num as integer, vol as integer)
-
-'DECLARE FUNCTION getsoundvol () as integer
-'DECLARE SUB setsoundvol (vol)
+DECLARE FUNCTION get_sfx_volume (num as integer) as single
+DECLARE SUB set_sfx_volume (num as integer, vol as single)
 
 
 '==========================================================================================

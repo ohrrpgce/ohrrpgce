@@ -839,8 +839,8 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
-sub music_setvolume(byval vol as single)
-	music_vol = vol
+sub music_setvolume(volume as single)
+	music_vol = bound(volume, 0., 1.)
 	if music_init_count then
 		'if midi_song > 0 then setvolmidi vol
 		'dim v as uinteger
@@ -848,13 +848,15 @@ sub music_setvolume(byval vol as single)
 		'v += v SHR 16  'equal volume on both left and right
 		'midiOutSetVolume(device, v)
 	end if
+	if sound_song >= 0 then sound_setvolume(sound_song, music_vol)
 end sub
 
 function music_getvolume() as single
-	'music_getvolume = getvolmidi
-	'dim v as integer
-	'midiOutGetVolume(device, @v)
-
-	'music_vol = (v AND &HFFFF) / &HFFFF
+	if sound_song >= 0 then return sound_getvolume(sound_song)
+	if midi_song then  '???
+		'dim v as integer
+		'midiOutGetVolume(device, @v)
+		'music_vol = (v AND &HFFFF) / &HFFFF
+	end if
 	return music_vol
 end function

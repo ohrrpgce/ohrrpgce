@@ -54,9 +54,9 @@ sub sound_reset
   next
 end sub
 
-sub sound_play(slot as integer, loopcount as integer)
-  'debug ">>sound_play(" & slot & ", " & loopcount & ")"
-  if slot < 0 or slot > ubound(SoundPool) then debug "sound_play: bad slot" : exit sub
+sub sound_play(slot as integer, loopcount as integer, volume as single)
+  'debug ">>sound_play(" & slot & ", " & loopcount & "," & volume & ")"
+  if slot < 0 or slot > ubound(SoundPool) then debug "sound_play: bad slot " & slot : exit sub
 
   with SoundPool(slot)
   'debug str(AudIsPlaying(.audiereID))
@@ -66,6 +66,7 @@ sub sound_play(slot as integer, loopcount as integer)
     end if
 
     AudPlay(.audiereID)
+    AudSetVolume(.audiereID, bound(volume, 0., 1.))
 
     'for consistency with other backends, can't change loop behaviour of a paused effect
     if .paused = NO then AudSetRepeat(.audiereID, loopcount)
@@ -97,6 +98,16 @@ sub sound_stop(slot as integer)
     .paused = NO
   end with
 end sub
+
+sub sound_setvolume(slot as integer, volume as single)
+  if slot = -1 then exit sub
+  AudSetVolume(slot, bound(volume, 0., 1.))
+end sub
+
+function sound_getvolume(slot as integer) as single
+  if slot = -1 then return 0.
+  return AudGetVolume(slot)
+end function
 
 sub sound_free(num as integer)
   for slot as integer = 0 to ubound(SoundPool)

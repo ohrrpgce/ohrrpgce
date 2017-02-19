@@ -325,13 +325,17 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song)
 end sub
 
-sub music_setvolume(byval vol as single)
-	music_vol = vol
+sub music_setvolume(volume as single)
+	music_vol = bound(volume, 0., 1.)
+	if sound_song >= 0 then sound_setvolume(sound_song, music_vol)
 end sub
 
 function music_getvolume() as single
-'Note: this doesn't seem to work
-	music_getvolume = music_vol
+	if sound_song >= 0 then return sound_getvolume(sound_song)
+	if midi_song then
+		' Get the actual MIDI volume? Important on Windows?
+	end if
+	return music_vol
 end function
 
 Sub dumpdata(m as MIDI_EVENT ptr)

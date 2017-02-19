@@ -38,13 +38,19 @@ sub sound_close() : end sub
 
 sub sound_reset() : end sub
 
-sub sound_play(slot as integer, loopcount as integer) : end sub
+sub sound_play(slot as integer, loopcount as integer, volume as single) : end sub
 
 sub sound_pause(slot as integer) : end sub
 
 sub sound_stop(slot as integer) : end sub
 
 sub sound_free(num as integer) : end sub
+
+sub sound_setvolume(slot as integer, volume as single) : end sub
+
+function sound_getvolume(slot as integer) as single
+	return 0.
+end function
 
 function sound_slot_with_id(num as integer) as integer
 	return -1

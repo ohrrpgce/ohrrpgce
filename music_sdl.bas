@@ -423,7 +423,7 @@ function next_free_slot() as integer
 	return -1 ' no slot found
 end function
 
-sub sound_play(slot as integer, loopcount as integer)
+sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 	if slot = -1 then exit sub
 
 	' sfx_slots acts like a cache in this backend, since .buf
@@ -448,6 +448,12 @@ sub sound_play(slot as integer, loopcount as integer)
 			end if
 			.playing = YES
 		end if
+
+		' SDL_mixer has separate channel and chunk volumes and multiples them.
+		' We do the multiplication ourselves, only using channel volumes.
+		' Note that the built-in support for fades works by adjust channel
+		' volumes, not chunk volumes. And volumes are capped to 100%.
+		Mix_Volume(slot, volume * MIX_MAX_VOLUME)
 	end with
 end sub
 
@@ -471,6 +477,16 @@ sub sound_stop(slot as integer)
 		end if
 	end with
 end sub
+
+sub sound_setvolume(slot as integer, volume as single)
+	if slot = -1 then exit sub
+	Mix_Volume(slot, volume * MIX_MAX_VOLUME)
+end sub
+
+function sound_getvolume(slot as integer) as single
+	if slot = -1 then return 0.
+	return Mix_Volume(slot, -1) / MIX_MAX_VOLUME
+end function
 
 sub sound_free(num as integer)
 	for slot as integer = 0 to ubound(sfx_slots)
