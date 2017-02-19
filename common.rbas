@@ -3937,6 +3937,13 @@ IF gen(genMillisecPerFrame) = 0 THEN
  gen(genMillisecPerFrame) = 55
 END IF
 
+IF getfixbit(fixInitDefaultVolumes) = 0 THEN
+ upgrade_message "Initialising default volumes ..."
+ setfixbit(fixItemElementals, 1)
+ gen(genMusicVolume) = 50
+ gen(genSFXVolume) = 75
+END IF
+
 IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
  upgrade_message "Initialising equipment elemental resists..."
  setfixbit(fixItemElementals, 1)

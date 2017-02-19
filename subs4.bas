@@ -1753,11 +1753,13 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
  END IF
  m(options_start + 3) = "Framerate: " & fps & " frames/sec (" _
                          & gen(genMillisecPerFrame) & "ms/frame)"
+ m(options_start + 4) = "Initial music volume: " & gen(genMusicVolume) & "%"
+ m(options_start + 5) = "Initial sound effects volume: " & gen(genSFXVolume) & "%"
 END SUB
 
 SUB gendata ()
  STATIC shown_framerate_warning as bool = NO
- CONST maxMenu = 20
+ CONST maxMenu = 22
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1768,7 +1770,7 @@ SUB gendata ()
  DIM selectst as SelectTypeState
  DIM state as MenuState
  WITH state
-  .size = 24
+  .autosize = YES
   .last = maxMenu
   .need_update = YES
  END WITH
@@ -1806,6 +1808,12 @@ SUB gendata ()
  index(options_start + 3) = genMillisecPerFrame
  max(options_start + 3) = 200
  min(options_start + 3) = 16
+ index(options_start + 4) = genMusicVolume
+ max(options_start + 4) = 100
+ min(options_start + 4) = 0
+ index(options_start + 5) = genSFXVolume
+ max(options_start + 5) = 100
+ min(options_start + 5) = 0
 
  DIM aboutline as string = load_aboutline()
  DIM longname as string = load_gamename()
@@ -1880,4 +1888,8 @@ SUB gendata ()
  '--write long name and about line
  save_gamename longname
  save_aboutline aboutline
+
+ '--Also use the in-game setting for previewing stuff in Custom
+ set_music_volume 0.01 * gen(genMusicVolume)
+ set_global_sfx_volume 0.01 * gen(genSFXVolume)
 END SUB

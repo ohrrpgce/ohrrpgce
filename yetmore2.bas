@@ -1137,6 +1137,7 @@ SUB reload_gen()
   SELECT CASE j
    CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
     'Ignore.
+    ' Don't need to ignore genMusicVolume, genSFXVolume, since they're only read once
    CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize
     IF gen(j) <> newgen(j) THEN should_reset_window = YES
     gen(j) = newgen(j)

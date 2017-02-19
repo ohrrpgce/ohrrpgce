@@ -322,6 +322,9 @@ rpg_sanity_checks
 'upgrade obsolete RPG files
 upgrade
 
+set_music_volume 0.01 * gen(genMusicVolume)
+set_global_sfx_volume 0.01 * gen(genSFXVolume)
+
 'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette

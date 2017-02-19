@@ -180,6 +180,8 @@ CONST genStartTextbox = 207     ' ID of initial textbox, or 0 = none
 CONST genWindowSize = 208       ' Window size about X% of screen, in multiples of 10%. 10 means maximize
 CONST genLivePreviewWindowSize = 209 ' Test-Game window size about X% of screen, in multiples of 10%. 10 means maximize
 CONST genFullscreen = 210       ' Whether to start in fullscreen by default
+CONST genMusicVolume = 211      ' Initial music volume as a percentage.
+CONST genSFXVolume = 212        ' Initial global sound effects volume as a percentage.
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,
@@ -260,8 +262,9 @@ CONST fixWipeGEN = 24            'Zero out gen(199) to gen(499)
 CONST fixSetOldAttackPosBit = 25 'Turn on "Old attack positioning at bottom-left of target" backcompat bit
 CONST fixWrapCroppedMapsBit = 26 'Checked whether to turn on "Wrap map layers over edge of Crop maps" backcompat bit
 CONST fixInitNonElementalSpawning = 27 'Initialize non_elemental_for_spawning data in general.reld
+CONST fixInitDefaultVolumes = 28 'genMusicVolume and genSFXVolume have been initialised to 50, 75.
 
-CONST sizeFixBits = 28 ' *** Update this when adding fix bits (last bit + 1) ***
+CONST sizeFixBits = 29 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.)

@@ -575,6 +575,9 @@ apply_game_window_settings
 set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
 gam.user_toggled_fullscreen = NO
 
+set_music_volume 0.01 * gen(genMusicVolume)
+set_global_sfx_volume 0.01 * gen(genSFXVolume)
+
 REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
 setfont current_font()
