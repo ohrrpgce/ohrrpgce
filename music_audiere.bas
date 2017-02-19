@@ -6,9 +6,8 @@
 #include "audwrap/audwrap.bi"
 
 
-TYPE SoundEffect
+TYPE SoundEffect EXTENDS SFXCommonData
   used as bool        'Whether this entry contains valid data
-  effectID as integer 'OHR sound effect
   audiereID as integer 'audwrap slot number
   paused as bool
 END TYPE
@@ -122,7 +121,15 @@ function sound_playing(slot as integer) as bool
   return AudIsPlaying(SoundPool(slot).audiereID) <> 0
 end function
 
+function sound_slotdata(slot as integer) as SFXCommonData ptr
+  if slot < 0 or slot > ubound(SoundPool) then return NULL
+  if not SoundPool(slot).used then return NULL
+  return @SoundPool(slot)
+end function
 
+function sound_lastslot() as integer
+  return ubound(SoundPool)
+end function
 
 '-------------------------------------------------------------------------------
 

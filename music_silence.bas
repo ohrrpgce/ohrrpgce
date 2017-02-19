@@ -60,6 +60,14 @@ function sound_playing(slot as integer) as bool
 	return NO
 end function
 
+function sound_slotdata(slot as integer) as SFXCommonData ptr
+	return NULL
+end function
+
+function sound_lastslot() as integer
+	return 0
+end function
+
 function sound_load overload(lump as Lump ptr, num as integer = -1) as integer
 	return 0
 end function

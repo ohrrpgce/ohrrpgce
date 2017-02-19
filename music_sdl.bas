@@ -397,9 +397,8 @@ end function
 DECLARE sub SDL_done_playing cdecl(byval channel as int32)
 
 ' The SDL_Mixer channel number is equal to the SoundEffectSlot index
-TYPE SoundEffectSlot
+TYPE SoundEffectSlot EXTENDS SFXCommonData
 	used as bool        'whether this slot is free
-	effectID as integer 'which sound is loaded
 
 	paused as bool
 	playing as bool     'Set to false by a callback when the channel finishes
@@ -546,6 +545,16 @@ function sound_playing(slot as integer) as bool
 	if sfx_slots(slot).used = NO then return NO
 
 	return sfx_slots(slot).playing
+end function
+
+function sound_slotdata(slot as integer) as SFXCommonData ptr
+	if slot < 0 or slot > ubound(sfx_slots) then return NULL
+	if sfx_slots(slot).used = NO then return NULL
+	return @sfx_slots(slot)
+end function
+
+function sound_lastslot() as integer
+	return ubound(sfx_slots)
 end function
 
 ' Returns the first sound slot with the given sound effect ID (num);

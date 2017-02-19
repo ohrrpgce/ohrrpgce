@@ -4,7 +4,9 @@
 #INCLUDE "config.bi"
 #INCLUDE "lumpfile.bi"
 
-'' External music functions
+
+'==========================================================================================
+'                                          Music
 
 ENUM MusicFormatEnum
 	FORMAT_UNSPECIFIED = 0
@@ -48,6 +50,13 @@ declare sub music_stop()
 declare sub music_setvolume(byval vol as single)
 declare function music_getvolume() as single
 
+'==========================================================================================
+'                                            SFX
+
+TYPE SFXCommonData
+	effectID as integer        'OHR sound effect number
+	original_volume as single  'The volume without the global volume multiplied in
+END TYPE
 
 declare sub sound_init()
 declare sub sound_close()
@@ -75,7 +84,10 @@ declare sub sound_unload(slot as integer)
 ' Unload all sound effects slots with a certain ID
 declare sub sound_free(num as integer)
 
+declare function sound_slotdata(slot as integer) as SFXCommonData ptr
+declare function sound_lastslot() as integer
 
+'==========================================================================================
 '' Functions in bam2mid.bas
 
 declare sub bam2mid(infile as string, outfile as string)

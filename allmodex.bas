@@ -281,6 +281,8 @@ dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 dim shared remember_title as string
 
+dim shared global_sfx_volume as single = 1.
+
 
 
 '==========================================================================================
@@ -1154,16 +1156,20 @@ function soundfile (sfxnum as integer) as string
 end function
 
 ' loopcount N to play N+1 times, -1 to loop forever
-sub playsfx (num as integer, loopcount as integer = 0, volume as single = 1.)
+' See set_sfx_volume for description of volume_mult.
+sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1.)
 	dim slot as integer
 	' If already loaded can reuse without reloading.
-	' TODO: However this preempts it if still playing.
+	' TODO: However this preempts it if still playing; shouldn't force that
+	' NOTE: backends vary, music_sdl does nothing if too many sfx playing,
+	' music_audiere has no limit.
 	slot = sound_slot_with_id(num)
 	if slot = -1 then
 		slot = sound_load(soundfile(num), num)
 		if slot = -1 then exit sub
 	end if
-	sound_play(slot, loopcount, volume)
+	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume
+	sound_play(slot, loopcount, volume_mult * global_sfx_volume)
 end sub
 
 sub stopsfx (num as integer)
@@ -1180,19 +1186,53 @@ sub pausesfx (num as integer)
 	sound_pause(slot)
 end sub
 
-function get_sfx_volume (num as integer) as single
+' This returns the actual effective sfx volume 0. - 1., combining all volume
+' settings and any fade effects the backend might be doing (nothing like
+' that is implemented yet).
+function effective_sfx_volume (num as integer) as single
 	dim slot as integer
 	slot = sound_slot_with_id(num)
 	if slot = -1 then return 0.
 	return sound_getvolume(slot)
 end function
 
-sub set_sfx_volume (num as integer, volume as single)
+/'  Is this needed?
+function get_sfx_volume (num as integer) as single
+	dim slot as integer
+	slot = sound_slot_with_id(num)
+	if slot = -1 then return 0.
+	return sound_getslot(slot)->original_volume
+end function
+'/
+
+' Set the volume of a sfx to some multiple of its default volume,
+' which is the global sfx volume * the volume adjustment defined in Custom
+sub set_sfx_volume (num as integer, volume_mult as single)
 	dim slot as integer
 	slot = sound_slot_with_id(num)
 	if slot = -1 then exit sub
-	sound_setvolume(slot, volume)
+	sound_setvolume(slot, volume_mult * global_sfx_volume)
+	sound_slotdata(slot)->original_volume = volume_mult
 end sub
+
+' Set the global volume multiplier for sound effects.
+' The backends only support a max volume of 1.0,
+' but the global volume can be set higher, amplifying
+' any sfx with a volume less than 1.0.
+sub set_global_sfx_volume (volume as single)
+	global_sfx_volume = volume
+	' Update all SFX
+	for slot as integer = 0 to sound_lastslot()
+		dim slotdata as SFXCommonData ptr
+		slotdata = sound_slotdata(slot)
+		if slotdata = 0 then continue for
+		sound_setvolume slot, slotdata->original_volume * global_sfx_volume
+	next
+end sub
+
+function get_global_sfx_volume () as single
+	return global_sfx_volume
+end function
 
 ' Only used by Custom's importing interface
 sub freesfx (byval num as integer)

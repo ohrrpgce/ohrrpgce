@@ -183,7 +183,7 @@ function music_getvolume() as single
 	music_getvolume = music_vol
 end function
 
-TYPE sound_effect
+TYPE sound_effect EXTENDS SFXCommonData
   used as integer 'whether this slot is free
   
   paused as integer
@@ -342,7 +342,13 @@ function sound_playing(slot as integer) as bool
   end with
 end function
 
-function sound_slots as integer
+function sound_slotdata(slot as integer) as SFXCommonData ptr
+  if slot < 0 or slot > ubound(sfx_slots) then return NULL
+  if not sfx_slots(slot).used then return NULL
+  return sfx_slots(slot)
+end function
+
+function sound_lastslot as integer
   return ubound(sfx_slots)
 end function
 
