@@ -1155,7 +1155,15 @@ end function
 
 ' loopcount N to play N+1 times, -1 to loop forever
 sub playsfx (num as integer, loopcount as integer = 0)
-	sound_play(num, loopcount)
+	dim slot as integer
+	' If already loaded can reuse without reloading.
+	' TODO: However this preempts it if still playing.
+	slot = sound_slot_with_id(num)
+	if slot = -1 then
+		slot = sound_load(soundfile(num), num)
+		if slot = -1 then exit sub
+	end if
+	sound_play(slot, loopcount)
 end sub
 
 sub stopsfx (byval num as integer)

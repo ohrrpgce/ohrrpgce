@@ -290,7 +290,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 			playback_thread = threadcreate(@PlayBackThread,0)
 		else
 			sound_song = sound_load(songname)
-			sound_play(sound_song, -1, YES)
+			sound_play(sound_song, -1)
 		end if
 	end if
 end sub
@@ -314,7 +314,7 @@ sub music_resume()
 			music_paused = 0
 		end if
 		if sound_song >= 0 then
-			sound_play(sound_song, -1, YES)
+			sound_play(sound_song, -1)
 		end if
 	end if
 end sub
@@ -480,6 +480,7 @@ Sub PlayBackThread(byval dummy as any ptr)
 					case &H31 'play sound
 						p += 1
 						'debug "play sound (" + str(curevent->extradata[p]) + "," + str(curevent->extradata[p+1]) + ")"
+						' Either loop forever (loopcount = YES = -1) or play once (loopcount = NO = 0)
 						sound_play curevent->extradata[p], curevent->extradata[p + 1] <> 0
 						p += 2
 					case &H32 'stop sound

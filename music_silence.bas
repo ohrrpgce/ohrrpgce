@@ -38,7 +38,7 @@ sub sound_close() : end sub
 
 sub sound_reset() : end sub
 
-sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO) : end sub
+sub sound_play(slot as integer, loopcount as integer) : end sub
 
 sub sound_pause(num as integer, num_is_slot as bool = NO) : end sub
 

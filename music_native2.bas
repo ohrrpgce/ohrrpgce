@@ -810,7 +810,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 			PrepareNextBeat 0
 		else
 			sound_song = sound_load(songname)
-			sound_play(sound_song, -1, YES)
+			sound_play(sound_song, -1)
 		end if
 	end if
 end sub
@@ -836,7 +836,7 @@ sub music_resume()
 			midiStreamRestart(device)
 		end if
 		if sound_song >= 0 then
-			sound_play(sound_song, -1, YES)
+			sound_play(sound_song, -1)
 		end if
 	end if
 end sub

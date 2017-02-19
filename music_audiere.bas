@@ -54,22 +54,10 @@ sub sound_reset
   next
 end sub
 
-sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
-  'debug ">>sound_play(" & num & ", " & l & ")"
-  dim slot as integer
+sub sound_play(slot as integer, loopcount as integer)
+  'debug ">>sound_play(" & slot & ", " & loopcount & ")"
+  if slot < 0 or slot > ubound(SoundPool) then debug "sound_play: bad slot" : exit sub
 
-  if num_is_slot then
-    slot = num
-  else
-    slot = sound_slot_with_id(num)
-    if slot = -1 then
-      'debug "sound not loaded, loading."
-      slot = sound_load(soundfile(num), num)
-    end if
-  end if
-  if slot = -1 then exit sub
-
-  'debug "slot " & slot
   with SoundPool(slot)
   'debug str(AudIsPlaying(.soundID))
     if AudIsPlaying(.soundID) <> 0 and .paused = NO then

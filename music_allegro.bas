@@ -296,8 +296,7 @@ sub sound_free(byval slot as integer)
   end with
 end sub
 
-'num UNIMPLEMENTED
-sub sound_play(byval num as integer, byval loopcount as integer, byval slot as integer = 0)
+sub sound_play(byval slot as integer, byval loopcount as integer)
   with sfx_slots(slot)
     if .used = 0 then exit sub
     if .playing and .paused = 0 then exit sub

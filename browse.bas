@@ -343,7 +343,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      'not disabled because of size
      IF valid_audio_file(filepath, PREVIEWABLE_FX_FORMAT) THEN
       br.snd = sound_load(filepath)
-      sound_play(br.snd, 0, YES)
+      IF br.snd > -1 THEN sound_play(br.snd, 0)
      ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
       br.alert = "Cannot preview MP3, try importing"
      END IF

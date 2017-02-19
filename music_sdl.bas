@@ -187,7 +187,7 @@ sub music_close()
 			Mix_VolumeMusic(orig_vol)
 		else
 			'arbitrary medium value
-			Mix_VolumeMusic(64)
+			Mix_VolumeMusic(0.5 * MIX_MAX_VOLUME)
 		end if
 
 		music_stop()
@@ -330,14 +330,14 @@ sub music_stop()
 end sub
 
 sub music_setvolume(byval vol as single)
-	music_vol = vol * 128
+	music_vol = bound(vol, 0., 1.) * MIX_MAX_VOLUME
 	if music_status = musicOn then
 		Mix_VolumeMusic(music_vol)
 	end if
 end sub
 
 function music_getvolume() as single
-	music_getvolume = music_vol / 128
+	music_getvolume = music_vol / MIX_MAX_VOLUME
 end function
 
 '------------ Sound effects --------------
@@ -416,24 +416,14 @@ function next_free_slot() as integer
 	return -1 ' no slot found
 end function
 
-sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
-	dim slot as integer
-
-	if num_is_slot = NO then
-		' Restart existing if already loaded, even if it's still playing. This has the benefit
-		' of acting like a cache.
-		slot = sound_slot_with_id(num)
-		if slot = -1 then
-			slot = sound_load(soundfile(num), num)
-		end if
-	else
-		slot = num
-	end if
-
+sub sound_play(slot as integer, loopcount as integer)
 	if slot = -1 then exit sub
 
+	' sfx_slots acts like a cache in this backend, since .buf
+	' remains loaded after the sound effect has stopped.
 	with sfx_slots(slot)
 		if .buf = 0 then
+			debugc errPromptBug, "sound_play: not loaded"
 			exit sub
 		end if
 
@@ -446,6 +436,7 @@ sub sound_play(num as integer, loopcount as integer, num_is_slot as bool = NO)
 			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
 			' which is just a simplification.
 			if Mix_PlayChannel(slot, .buf, loopcount) = -1 then
+				debugc errPromptBug, "sound_play: Mix_PlayChannel failed"
 				exit sub
 			end if
 			.playing = YES
