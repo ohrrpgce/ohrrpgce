@@ -1322,8 +1322,8 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
 END FUNCTION
 
 'Returns true (and reloads as needed) if this file is a music file (.## or song##.xxx)
-FUNCTION try_reload_music_lump(basename as string, extn as string) as integer
- DIM songnum as integer = str2int(extn, -1)
+FUNCTION try_reload_music_lump(basename as string, extn as string) as bool
+ DIM songnum as integer = str2int(extn, -1)  'BAM songs
  IF songnum = -1 THEN
   IF LEFT(basename, 4) = "song" THEN songnum = str2int(MID(basename, 5))
  END IF
@@ -1332,6 +1332,15 @@ FUNCTION try_reload_music_lump(basename as string, extn as string) as integer
   stopsong
   playsongnum presentsong
  END IF
+ RETURN YES
+END FUNCTION
+
+'Returns true if this file is a sound effect
+FUNCTION try_reload_sfx_lump(basename as string, extn as string) as bool
+ IF LEFT(basename, 3) <> "sfx" THEN RETURN NO
+ DIM sfxnum as integer = str2int(MID(basename, 4))
+ IF sfxnum = -1 THEN RETURN NO
+ freesfx sfxnum  ' Stop & clear from cache. Don't bother to restart if playing.
  RETURN YES
 END FUNCTION
 
@@ -1394,6 +1403,9 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF try_reload_music_lump(basename, extn) THEN                       '.## and song##.xxx (music)
+   handled = YES
+
+  ELSEIF try_reload_sfx_lump(basename, extn) THEN                         'sfx##.xxx (sound effects)
    handled = YES
 
   ELSEIF extn = "itm" THEN                                                '.ITM

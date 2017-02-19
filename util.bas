@@ -2038,6 +2038,8 @@ FUNCTION killfile (filename as string) as bool
     'On Unix, you can unlink a file even when someone else has it open.
     RETURN NO
   END IF
+  ' FIXME: send a message to Game if live-previewing, or else special case all
+  ' places where it matters ie. music/sfx (like we do for RELOAD's use of local_file_move)
   RETURN YES
 END FUNCTION
 
