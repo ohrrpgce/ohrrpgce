@@ -4297,22 +4297,25 @@ ELSE
 END IF
 END FUNCTION
 
+PRIVATE SUB add_item_to_(menu as MenuDef, subtype as integer, hide_if_disabled as bool = NO)
+ append_menu_item(menu, "", mtypeSpecial, subtype)
+ menu.last->hide_if_disabled = hide_if_disabled
+END SUB
+
+' Initialise the default main menu used for old games
 SUB create_default_menu(menu as MenuDef)
  ClearMenuData menu
- FOR i as integer = 0 TO 3  ' item, spell, status, equip
-  append_menu_item(menu, "", 1, i)
- NEXT i
- append_menu_item(menu, "", 1, 6)  ' Order/Status menu
- FOR i as integer = 7 TO 8  ' map, save
-  append_menu_item(menu, "", 1, i)
-  menu.last->hide_if_disabled = YES
- NEXT
- FOR i as integer = 16 TO 17  ' fullscreen, windowed
-  append_menu_item(menu, "", 1, i)
-  menu.last->hide_if_disabled = YES
- NEXT
- append_menu_item(menu, "", 1, 11)  ' volume
- append_menu_item(menu, "", 1, 10)  ' quit
+ add_item_to_ menu, spItems
+ add_item_to_ menu, spSpells
+ add_item_to_ menu, spStatus
+ add_item_to_ menu, spEquip
+ add_item_to_ menu, spTeamOrOrder
+ add_item_to_ menu, spMapMaybe, YES
+ add_item_to_ menu, spSaveMaybe, YES
+ add_item_to_ menu, spWindowed, YES
+ add_item_to_ menu, spFullscreen, YES
+ add_item_to_ menu, spMusicVolume
+ add_item_to_ menu, spQuit
  menu.translucent = YES
  menu.min_chars = 14
 END SUB

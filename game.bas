@@ -2027,11 +2027,11 @@ SUB player_menu_keys ()
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
-  IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
+  IF mi.t = mtypeSpecial AND mi.sub_t = spMusicVolume THEN
    IF carray(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
   END IF
-  IF mi.t = 1 AND mi.sub_t = 14 THEN '--TV safe margin
+  IF mi.t = mtypeSpecial AND mi.sub_t = spMargins THEN '--TV safe margin
    IF carray(ccLeft) > 1 THEN
     set_safe_zone_margin large(get_safe_zone_margin() - 1, 0)
     save_margin = YES
@@ -2061,15 +2061,15 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
  DO 'This DO exists to allow EXIT DO
   WITH mi
    SELECT CASE .t
-    CASE 0 ' Label
+    CASE mtypeCaption
      SELECT CASE .sub_t
       CASE 0 'Selectable
       CASE 1 'Unselectable
        activated = NO
      END SELECT
-    CASE 1 ' Special
+    CASE mtypeSpecial
      SELECT CASE .sub_t
-      CASE 0 ' item
+      CASE spItems
        menu_text_box = item_screen()
        IF menu_text_box > 0 THEN
         IF mi.close_if_selected = NO THEN
@@ -2077,27 +2077,27 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
         END IF
         EXIT DO
        END IF
-      CASE 1 ' spell
+      CASE spSpells
        slot = onwho(readglobalstring(106, "Whose Spells?", 20), 0)
        IF slot >= 0 THEN old_spells_menu slot
-      CASE 2 ' status
+      CASE spStatus
        slot = onwho(readglobalstring(104, "Whose Status?", 20), 0)
        IF slot >= 0 THEN status_screen slot
-      CASE 3 ' equip
+      CASE spEquip
        slot = onwho(readglobalstring(108, "Equip Whom?", 20), 0)
        IF slot >= 0 THEN equip slot
-      CASE 4 ' order
+      CASE spOrder
        hero_swap_menu 0
-      CASE 5 ' team
+      CASE spTeam
        hero_swap_menu 1
-      CASE 6 ' order/team
+      CASE spTeamOrOrder
        hero_swap_menu readbit(gen(), genBits, 5)
-      CASE 7,12 ' map
+      CASE spMap, spMapMaybe
        minimap catx(0), caty(0)
-      CASE 8,13 ' save
+      CASE spSave, spSaveMaybe
        slot = picksave()
        IF slot >= 0 THEN savegame slot
-      CASE 9 ' load
+      CASE spLoad
        slot = pickload(NO, YES)  'No New Game option, beep if the menu doesn't display
        '(Maybe it would be better to display the load menu even if there are no saves)
        IF slot >= 0 THEN
@@ -2107,29 +2107,29 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
         NEXT i
         EXIT DO
        END IF
-      CASE 10 ' quit
+      CASE spQuit
        menusound gen(genAcceptSFX)
        verify_quit
-      CASE 11 ' volume
+      CASE spMusicVolume
        activated = NO
-      CASE 15 ' purchases
+      CASE spPurchases
        purchases_menu()
-      CASE 16 ' windowed
+      CASE spWindowed
        IF running_on_desktop() THEN
         gfx_setwindowed(YES)
         gam.user_toggled_fullscreen = YES
        END IF
-      CASE 17 ' fullscreen
+      CASE spFullscreen
        IF running_on_desktop() THEN
         gfx_setwindowed(NO)
         gam.user_toggled_fullscreen = YES
        END IF
      END SELECT
-    CASE 2 ' Menu
+    CASE mtypeMenu
      open_other_menu = .sub_t
-    CASE 3 ' Text box
+    CASE mtypeTextBox
      menu_text_box = .sub_t
-    CASE 4 ' Run Script
+    CASE mtypeScript
      DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
      trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
      IF menus(topmenu).allow_gameplay THEN
@@ -2204,18 +2204,23 @@ SUB check_menu_tags ()
      old = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
-     IF .t = 0 AND .sub_t = 1 THEN .disabled = YES
-     IF .t = 1 AND .sub_t = 7 AND gmap(2) = 0 THEN .disabled = YES 'Minimap disabled on this map
-     IF .t = 1 AND .sub_t = 8 AND gmap(3) = 0 THEN .disabled = YES 'Save anywhere disabled on this map
-     IF .t = 1 AND .sub_t = 14 AND NOT supports_safe_zone_margin() THEN .disabled = YES 'TV Safe Margin disabled on backends that don't support it
-     IF .t = 1 AND .sub_t = 15 AND NOT supports_in_app_purchases() THEN .disabled = YES 'Purchases disabled on platforms that don't have a supported store
-     IF .t = 1 AND (.sub_t = 16 OR .sub_t = 17) THEN  'Windowed/Fullscreen
-      .disabled = YES
-      IF supports_fullscreen_well() THEN
-       DIM fullscreen as bool
-       IF try_check_fullscreen(fullscreen) THEN
-        IF fullscreen ANDALSO .sub_t = 16 THEN .disabled = NO
-        IF fullscreen = NO ANDALSO .sub_t = 17 THEN .disabled = NO
+     IF .t = mtypeCaption AND .sub_t = 1 THEN .disabled = YES
+     IF .t = mtypeSpecial THEN
+      ' Minimap and Save may be disabled on this map
+      IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES
+      IF .sub_t = spSaveMaybe AND gmap(3) = 0 THEN .disabled = YES
+      ' TV Safe Margin disabled on backends that don't support it
+      IF .sub_t = spMargins AND NOT supports_safe_zone_margin() THEN .disabled = YES
+      ' Purchases disabled on platforms that don't have a supported store
+      IF .sub_t = spPurchases AND NOT supports_in_app_purchases() THEN .disabled = YES
+      IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
+       .disabled = YES
+       IF supports_fullscreen_well() THEN
+        DIM fullscreen as bool
+        IF try_check_fullscreen(fullscreen) THEN
+         IF fullscreen ANDALSO .sub_t = spWindowed THEN .disabled = NO
+         IF fullscreen = NO ANDALSO .sub_t = spFullscreen THEN .disabled = NO
+        END IF
        END IF
       END IF
      END IF

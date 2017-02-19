@@ -2389,7 +2389,7 @@ DO
   update_detail_menu detail, *menudata.items[mstate.pt]
   init_menu_state dstate, detail
   WITH *menudata.items[mstate.pt]
-   IF .t = 3 THEN '--text box
+   IF .t = mtypeTextBox THEN
     box_preview = textbox_preview_line(.sub_t)
    END IF
   END WITH
@@ -2591,22 +2591,22 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
     dstate.need_update = YES
    END IF
   CASE 2: 'type
-   IF intgrabber(mi.t, 0, 4) THEN
+   IF intgrabber(mi.t, 0, mtypeLAST) THEN
     mi.sub_t = 0
     dstate.need_update = YES
    END IF
   CASE 3:
    SELECT CASE mi.t
-    CASE 0: '--caption
+    CASE mtypeCaption:
      max = 1
-    CASE 1: '--special
-     max = 17
-    CASE 2: '--menu
+    CASE mtypeSpecial
+     max = spLAST
+    CASE mtypeMenu
      max = gen(genMaxMenu)
-    CASE 3: '--text box
+    CASE mtypeTextBox
      max = gen(genMaxTextBox)
    END SELECT
-   IF mi.t = 4 THEN '--script
+   IF mi.t = mtypeScript THEN
     IF scrintgrabber(mi.sub_t, 0, 0, scLeft, scRight, 1, plottrigger) THEN dstate.need_update = YES
     IF enter_space_click(dstate) THEN
      scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
@@ -2681,15 +2681,15 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
  append_menu_item(detail, "Type")
  WITH *detail.last
   SELECT CASE mi.t
-   CASE 0
+   CASE mtypeCaption
     .caption = "Type: " & mi.t & " Caption"
-   CASE 1
+   CASE mtypeSpecial
     .caption = "Type: " & mi.t & " Special screen"
-   CASE 2
+   CASE mtypeMenu
     .caption = "Type: " & mi.t & " Go to Menu"
-   CASE 3
+   CASE mtypeTextBox
     .caption = "Type: " & mi.t & " Show text box"
-   CASE 4
+   CASE mtypeScript
     .caption = "Type: " & mi.t & " Run script"
   END SELECT
  END WITH
@@ -2697,16 +2697,16 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
  append_menu_item(detail, "Subtype: " & mi.sub_t)
  WITH *detail.last
   SELECT CASE mi.t
-   CASE 0
+   CASE mtypeCaption
     SELECT CASE mi.sub_t
      CASE 0: .caption = .caption & " Selectable"
      CASE 1: .caption = .caption & " Not Selectable"
     END SELECT
-   CASE 1
+   CASE mtypeSpecial
     .caption = .caption & " " & get_special_menu_caption(mi.sub_t)
-   CASE 2
+   CASE mtypeMenu
     .caption = .caption & " " & getmenuname(mi.sub_t)
-   CASE 4
+   CASE mtypeScript
     .caption = "Subtype: " & scriptname(mi.sub_t)
    CASE ELSE
     .caption = "Subtype: " & mi.sub_t

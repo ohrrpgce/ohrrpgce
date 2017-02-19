@@ -1506,14 +1506,14 @@ FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
  IF LEN(cap) = 0 THEN
   'No caption, use the default
   SELECT CASE mi.t
-   CASE 1 ' special screen
+   CASE mtypeSpecial
     cap = get_special_menu_caption(mi.sub_t)
-   CASE 2 ' another menu
+   CASE mtypeMenu
     cap = getmenuname(mi.sub_t)
     IF cap = "" THEN cap = "Menu " & mi.sub_t
-   CASE 3 ' Text Box
+   CASE mtypeTextBox
     cap = "Text Box " & mi.sub_t
-   CASE 4 ' Run Script
+   CASE mtypeScript
     cap = scriptname(mi.sub_t)
   END SELECT
  END IF
@@ -1537,27 +1537,27 @@ END FUNCTION
 FUNCTION get_special_menu_caption(byval subtype as integer) as string
  DIM cap as string
  SELECT CASE subtype
-  CASE 0: cap = readglobalstring(60, "Items", 10)
-  CASE 1: cap = readglobalstring(61, "Spells", 10)
-  CASE 2: cap = readglobalstring(62, "Status", 10)
-  CASE 3: cap = readglobalstring(63, "Equip", 10)
-  CASE 4: cap = readglobalstring(64, "Order", 10)
-  CASE 5: cap = readglobalstring(65, "Team", 10)
-  CASE 6
+  CASE spItems           : cap = readglobalstring(60, "Items", 10)
+  CASE spSpells          : cap = readglobalstring(61, "Spells", 10)
+  CASE spStatus          : cap = readglobalstring(62, "Status", 10)
+  CASE spEquip           : cap = readglobalstring(63, "Equip", 10)
+  CASE spOrder           : cap = readglobalstring(64, "Order", 10)
+  CASE spTeam            : cap = readglobalstring(65, "Team", 10)
+  CASE spTeamOrOrder
    IF readbit(gen(), genBits, 5) THEN
     cap = readglobalstring(65, "Team", 10)
    ELSE
     cap = readglobalstring(64, "Order", 10)
    END IF
-  CASE 7,12: cap = readglobalstring(68, "Map", 10)
-  CASE 8,13: cap = readglobalstring(66, "Save", 10)
-  CASE 9: cap = "Load" ' FIXME: Needs a global text string
-  CASE 10: cap = readglobalstring(67, "Quit", 10)
-  CASE 11: cap = readglobalstring(69, "Volume", 10)
-  CASE 14: cap = readglobalstring(308, "Margins", 10)
-  CASE 15: cap = readglobalstring(313, "Purchases", 10)
-  CASE 16: cap = readglobalstring(314, "Windowed", 20)
-  CASE 17: cap = readglobalstring(316, "Fullscreen", 20)
+  CASE spMap,spMapMaybe  : cap = readglobalstring(68, "Map", 10)
+  CASE spSave,spSaveMaybe: cap = readglobalstring(66, "Save", 10)
+  CASE spLoad            : cap = "Load" ' FIXME: Needs a global text string
+  CASE spQuit            : cap = readglobalstring(67, "Quit", 10)
+  CASE spMusicVolume     : cap = readglobalstring(69, "Volume", 10)
+  CASE spMargins         : cap = readglobalstring(308, "Margins", 10)
+  CASE spPurchases       : cap = readglobalstring(313, "Purchases", 10)
+  CASE spWindowed        : cap = readglobalstring(314, "Windowed", 20)
+  CASE spFullscreen      : cap = readglobalstring(316, "Fullscreen", 20)
  END SELECT
  RETURN cap
 END FUNCTION
@@ -1567,19 +1567,19 @@ FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
  SELECT CASE mi.t
   CASE 1 ' special screen
    SELECT CASE mi.sub_t
-    CASE 6  'Team/Order
+    CASE spTeamOrOrder
      RETURN " [general bitset]"
-    CASE 7: 'Map (if allowed)
+    CASE spMapMaybe
      RETURN " [if allowed by map]"
-    CASE 8: 'Save (if allowed)
+    CASE spSaveMaybe
      RETURN " [if allowed by map]"
-    CASE 14: 'Margins
+    CASE spMargins
      RETURN " [if available]"
-    CASE 15: 'Purchases
+    CASE spPurchases
      RETURN " [if available]"
-    CASE 16: 'Windowed
+    CASE spWindowed
      RETURN " [if fullscreen]"
-    CASE 17: 'Fullscreen
+    CASE spFullscreen
      RETURN " [if windowed]"
    END SELECT
  END SELECT

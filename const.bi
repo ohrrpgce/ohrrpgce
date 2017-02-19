@@ -401,6 +401,37 @@ CONST ccUse = 4
 CONST ccMenu = 5
 CONST ccRun = 6
 
+' These constants are for the .t type of a MenuDefItem for user-created menus
+' (MenuDefs used elsewhere including battles are free to assign other meanings)
+CONST mtypeCaption =  0
+CONST mtypeSpecial =  1
+CONST mtypeMenu =     2
+CONST mtypeTextBox =  3
+CONST mtypeScript =   4
+CONST mtypeLAST =     4
+
+' These are for the .sub_t subtypes of mtypeSpecial MenuDefItems for
+' user-created menus.
+CONST spItems       = 0
+CONST spSpells      = 1
+CONST spStatus      = 2
+CONST spEquip       = 3
+CONST spOrder       = 4
+CONST spTeam        = 5
+CONST spTeamOrOrder = 6  'Depends on general bitset
+CONST spMapMaybe    = 7  'Only if allowed by map
+CONST spSaveMaybe   = 8  'Only if allowed by map
+CONST spLoad        = 9
+CONST spQuit        = 10
+CONST spMusicVolume = 11
+CONST spMap         = 12
+CONST spSave        = 13
+CONST spMargins     = 14
+CONST spPurchases   = 15
+CONST spWindowed    = 16
+CONST spFullscreen  = 17
+CONST spLAST        = 17
+
 'constants for lump reloading schemes
 CONST loadmodeMerge = -1
 CONST loadmodeNever = 0
