@@ -3943,7 +3943,7 @@ END IF
 
 IF getfixbit(fixInitDefaultVolumes) = 0 THEN
  upgrade_message "Initialising default volumes ..."
- setfixbit(fixItemElementals, 1)
+ setfixbit(fixInitDefaultVolumes, 1)
  gen(genMusicVolume) = 50
  gen(genSFXVolume) = 75
 END IF
