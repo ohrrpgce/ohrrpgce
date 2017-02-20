@@ -144,6 +144,15 @@ declare sub int_array_exclude (() as integer, array() as integer)
 declare sub int_array_sort (dest() as integer, src() as integer)
 '/
 
+' This macro removes the i-th element from a 1-D array by shuffling it to the end
+' and redimming. Has to be a macro since FB doesn't have templates
+#MACRO any_array_remove(array, which)
+  FOR _aidx as integer = which TO UBOUND(array) - 1
+    SWAP array(_aidx), array(_aidx + 1)
+  NEXT
+  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1) 'FB now supports zero-length arrays
+#ENDMACRO
+
 
 '--------------- Stack ----------------
 

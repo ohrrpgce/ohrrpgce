@@ -157,6 +157,7 @@ dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim shared use_speed_control as bool = YES
+dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0
 
@@ -7846,6 +7847,37 @@ end sub
 ' wait before it's considered to be stuck in an infinite loop.
 CONST ANIMATION_LOOPLIMIT = 10
 
+
+redim anim_op_names(animOpLAST) as string
+anim_op_names(animOpWait) =      "wait"
+anim_op_names(animOpWaitMS) =    "wait"
+anim_op_names(animOpFrame) =     "frame"
+anim_op_names(animOpRepeat) =    "repeat"
+anim_op_names(animOpSetOffset) = "set offset"
+anim_op_names(animOpRelOffset) = "add offset"
+
+redim anim_op_fullnames(animOpLAST) as string
+anim_op_fullnames(animOpWait) =      "Wait (num frames)"
+anim_op_fullnames(animOpWaitMS) =    "Wait (seconds)"
+anim_op_fullnames(animOpFrame) =     "Set frame"
+anim_op_fullnames(animOpRepeat) =    "Repeat animation"
+anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
+anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
+
+sub set_animation_framerate(ms as integer)
+	' We bound to 16-200 because set_speedcontrol does the same thing
+	ms_per_frame = bound(ms, 16, 200)
+end sub
+
+function ms_to_frames(ms as integer) as integer
+	return large(1, INT(ms / ms_per_frame))
+end function
+
+function frames_to_ms(frames as integer) as integer
+	return frames * ms_per_frame
+end function
+
+
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
 	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"
@@ -7989,11 +8021,11 @@ function SpriteState.skip_wait() as integer
 	' Look at the current op instead of anim_wait, because it might be a wait
 	' which we haven't looked at yet.
 	with anim->ops(anim_step)
-		if .type <> animOpWait then
+		if .type <> animOpWait and .type <> animOpWaitMS then
 			return -1
 		end if
-		dim ret as integer = .arg1
-		anim_wait = .arg1
+		dim ret as integer = ms_to_frames(.arg1)
+		anim_wait = ret
 		if animate() = NO then ret = -2  ' Until next wait
 		return ret
 	end with
@@ -8020,9 +8052,11 @@ function SpriteState.animate_step() as bool
 
 	with anim->ops(anim_step)
 		select case .type
-			case animOpWait
+			case animOpWait, animOpWaitMS
+				' These two opcodes are identical, differing only in how
+				' they are treated by the editor
 				anim_wait += 1
-				if anim_wait > .arg1 then
+				if anim_wait > ms_to_frames(.arg1) then
 					anim_wait = 0
 				else
 					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset

@@ -448,12 +448,17 @@ declare sub palette16_update_cache(fil as string, byval num as integer)
 '                                 SpriteSets and Animations
 
 Enum AnimOpType
-	animOpWait	'(ticks)
-	animOpFrame	'(framenum)
-	animOpRepeat    '()     Start the animation over
-	animOpSetOffset	'(x,y)
-	animOpRelOffset	'(x,y)
+	animOpWait      = 0 '(ms)
+	animOpWaitMS    = 1 '(ms)
+	animOpFrame     = 2 '(framenum)
+	animOpRepeat    = 3  '()     Start the animation over
+	animOpSetOffset = 4 '(x,y)
+	animOpRelOffset	= 5'(x,y)
+	animOpLAST      = 5
 End Enum
+
+extern anim_op_names() as string  ' Short names used for display and debug
+extern anim_op_fullnames() as string  ' Descriptive captions used in editor
 
 Type AnimationOp
 	type as AnimOpType
@@ -472,6 +477,10 @@ Type Animation
 
 	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
 End Type
+
+declare sub set_animation_framerate(ms as integer)
+declare function ms_to_frames(ms as integer) as integer
+declare function frames_to_ms(frames as integer) as integer
 
 Type SpriteSet
 	animations(any) as Animation
@@ -494,10 +503,10 @@ declare sub spriteset_unload(ss as SpriteSet ptr ptr)
 Type SpriteState
 	ss as SpriteSet ptr
 	frame_num as integer
-	anim as Animation ptr
-	anim_step as integer
-	anim_wait as integer  'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
-	anim_loop as integer  '-1:infinite, 0<:number of times to play after current
+	anim as Animation ptr      'The currently playing animation or NULL (Not owned)
+	anim_step as integer       'Current op index in the current animation
+	anim_wait as integer       'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
+	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
 	anim_looplimit as integer  '(Private) Number of looping ops remaining before
 	                           'infinite loop protection is triggered.
 	offset as XYPair

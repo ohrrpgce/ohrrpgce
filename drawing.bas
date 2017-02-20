@@ -14,6 +14,7 @@
 #include "cglobals.bi"
 #include "const.bi"
 #include "custom.bi"
+#include "string.bi"
 
 CONST COLORNUM_SHOW_TICKS = 30
 
@@ -3881,6 +3882,8 @@ END SUB
 '                                   New Spriteset Editor
 '==========================================================================================
 
+DECLARE SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as Palette16 ptr)
+
 TYPE SpriteSetEditor
  ss as SpriteSet ptr
  anim_preview as SpriteState ptr
@@ -3889,6 +3892,7 @@ TYPE SpriteSetEditor
 
  DECLARE SUB display()
  DECLARE SUB run()
+ DECLARE SUB export_menu()
  DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
 END TYPE
 
@@ -3915,11 +3919,8 @@ SUB SpriteSetEditor.run()
   IF keyval(scA) > 1 THEN anim_preview->start_animation("attack")
   IF keyval(scW) > 1 THEN anim_preview->start_animation("walk left")
 
-  IF keyval(scE) > 1 THEN frame_export_gif @ss->frames[0], "hero0.gif", master(), pal
-  IF keyval(scF) > 1 THEN
-   export_gif "hero.gif", "walk left"
-   export_gif "herotrans.gif", "walk left", YES
-  END IF
+  IF keyval(scE) > 1 THEN edit_animation(ss, "attack", pal)
+  IF keyval(scX) > 1 THEN export_menu()
    
   display()
   dowait
@@ -3932,7 +3933,7 @@ END SUB
 SUB SpriteSetEditor.display()
  clearpage vpage
 
- DIM caption as string = "(I)dle, (A)ttack, (W)alk"
+ DIM caption as string = "(I)dle, (A)ttack, (W)alk  (E)dit, e(X)port"
  printstr caption, pRight, pBottom, vpage
 
  DIM as integer x, y
@@ -3945,6 +3946,23 @@ SUB SpriteSetEditor.display()
 
  '--screen update
  setvispage vpage
+END SUB
+
+' Very unfinished
+SUB SpriteSetEditor.export_menu()
+ DIM choices(...) as string = { _
+  "Current frame", "Spritesheet (unimplemented)", _
+  "Animated .gif", "Transparent animated .gif" _
+ }
+ DIM choice as integer = multichoice("Export what?", choices())
+ IF choice = 0 THEN
+  frame_export_gif @ss->frames[0], "hero0.gif", master(), pal
+ ELSEIF choice = 1 THEN
+ ELSEIF choice = 2 THEN
+  export_gif "hero.gif", "walk left"
+ ELSEIF choice = 3 THEN
+  export_gif "herotrans.gif", "walk left", YES
+ END IF
 END SUB
 
 ' Export a certain animation as a looping gif
@@ -3960,20 +3978,20 @@ SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent
   END IF
 
   CONST frameTime as integer = 5  'In hundreds of a second
-  DIM anim as SpriteState ptr
-  anim = NEW SpriteState(ss)
-  anim->start_animation(anim_name, 1)  'Loop once
+  DIM sprst as SpriteState ptr
+  sprst = NEW SpriteState(ss)
+  sprst->start_animation(anim_name, 1)  'Loop once
 
   ' FIXME: if animations contain loops other than repeating, this could loop forever
-  WHILE anim->anim
-    anim->animate()
-    DIM fr as Frame ptr = anim->cur_frame()
-    DIM waitticks as integer = anim->skip_wait()
+  WHILE sprst->anim
+    sprst->animate()
+    DIM fr as Frame ptr = sprst->cur_frame()
+    DIM waitticks as integer = sprst->skip_wait()
     IF waitticks > 0 THEN
       IF GifWriteFrame8(@writer, fr->image, fr->w, fr->h, waitticks * frameTime, NULL) = NO THEN
         debug "GifWriteFrame8 failed"
         safekill fname
-        DELETE anim
+        DELETE sprst
       END IF
     END IF
   WEND
@@ -3981,5 +3999,197 @@ SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent
   IF GifEnd(@writer) = NO then
     debug "GifEnd failed"
   END IF
-  DELETE anim
+  DELETE sprst
+END SUB
+
+'==========================================================================================
+'                                     Animation Editor
+'==========================================================================================
+' Highly unfinished.
+' This is separate from the spriteset editor because it's also used by the backdrop editor
+
+TYPE AnimationEditState
+  animptr as Animation ptr
+  sprset as SpriteSet ptr
+  state as MenuState
+  anim_name as string
+  pal as Palette16 ptr
+
+  DECLARE SUB run()
+END TYPE
+
+'SUB additem(byref menu as SimpleMenuItem vector, caption as string)
+ 'append_simplemenu_item
+'END SUB
+
+SUB rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
+ v_new menu
+ FOR i as integer = 0 TO UBOUND(anim.ops)
+  WITH anim.ops(i)
+   DIM caption as string
+   SELECT CASE .type
+    CASE animOpWait
+     caption = ms_to_frames(.arg1) & " frame(s) (" & FORMAT(0.001 * .arg1, "0.000") & "sec)"
+    CASE animOpWaitMS
+     caption = FORMAT(0.001 * .arg1, "0.000") & "sec (" & ms_to_frames(.arg1) & " frame(s))"
+    CASE animOpRepeat
+     'pass
+    CASE ELSE
+     caption = STR(.arg1)   '& " " & .arg2
+   END SELECT
+   append_simplemenu_item menu, anim_op_names(.type) & " " & caption
+  END WITH
+ NEXT
+ append_simplemenu_item menu, "-" + fgcol_text(": Delete step", uilook(uiSelectedDisabled))
+ append_simplemenu_item menu, "+" + fgcol_text(": Add step", uilook(uiSelectedDisabled))
+
+ 'menu(0) = "Frame 5  wait 1 tick (0.055sec)"
+ 'menu(1) = "Repeat animation"
+END SUB
+
+SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as Palette16 ptr)
+ DIM editor as AnimationEditState
+ editor.sprset = sprset
+ editor.pal = pal
+ editor.anim_name = anim_name
+ editor.run()
+END SUB
+
+SUB AnimationEditState.run()
+ set_animation_framerate gen(genMillisecPerFrame)
+
+ DIM BYREF anim as Animation = *sprset->find_animation(anim_name)
+ IF @anim = NULL THEN
+  visible_debug "Animation Editor: animation " & anim_name & " doesn't exit"
+  EXIT SUB
+ END IF
+
+ DIM menu as SimpleMenuItem vector
+ rebuild_animation_menu menu, anim
+
+ state.last = v_len(menu) - 1
+ DIM menuopts as MenuOptions
+ menuopts.wide = 80  ' Minimum width
+ menuopts.calc_size = YES
+ DIM mpos as XYPair = (4,4)
+
+ 'Precompute the menu size
+ calc_menustate_size state, menuopts, mpos.x, mpos.y, vpage, cast(BasicMenuItem vector, menu)
+
+ DIM sprst as SpriteState ptr
+ sprst = NEW SpriteState(sprset)
+
+ DIM animating as bool = NO  'Current mode: whether playing the animation, or editing it
+ DIM framenum as integer = 0
+
+ DO
+  setwait 55
+  setkeys
+
+  DIM curop as AnimationOp ptr = NULL
+
+
+  IF animating THEN
+
+   sprst->animate()
+   framenum = sprst->frame_num
+   IF sprst->anim = NULL THEN
+    animating = NO
+    state.pt = 0
+   ELSE
+    state.pt = sprst->anim_step
+   END IF
+
+   IF keyval(scEsc) > 1 or keyval(scP) > 1 THEN
+    animating = NO
+   END IF
+
+  ELSE
+   IF keyval(scShift) = 0 THEN
+    usemenu state, cast(BasicMenuItem ptr, menu)
+   END IF
+   DIM op_idx as integer = -1
+   IF state.pt <= UBOUND(anim.ops) THEN op_idx = state.pt
+   IF op_idx > -1 THEN curop = @anim.ops(op_idx)
+
+   IF keyval(scEsc) > 1 THEN EXIT DO
+
+   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+    DIM newtype as AnimOpType
+    newtype = multichoice("Which operator?", anim_op_fullnames(), , , "animation_ops")
+    IF newtype >= 0 THEN
+     DIM newidx as integer = UBOUND(anim.ops) + 1
+     REDIM PRESERVE anim.ops(newidx)
+     anim.ops(newidx).type = newtype
+     curop = NULL
+    END IF
+   ELSEIF keyval(scDelete) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+    IF curop THEN
+     any_array_remove(anim.ops, op_idx)  'macro
+    ELSEIF UBOUND(anim.ops) > 0 THEN
+     REDIM PRESERVE anim.ops(UBOUND(anim.ops) - 1)
+    END IF
+    curop = NULL
+   ELSEIF keyval(scP) > 1 THEN  'Play
+    sprst->start_animation(anim_name)
+    animating = YES
+   ELSEIF keyval(scShift) > 0 AND op_idx >= 0 THEN
+    ' Rearranging items
+    IF keyval(scUp) > 1 AND op_idx > 0 THEN
+     SWAP anim.ops(op_idx), anim.ops(op_idx - 1)
+     state.pt -= 1
+    ELSEIF keyval(scDown) > 1 AND op_idx < UBOUND(anim.ops) THEN
+     SWAP anim.ops(op_idx), anim.ops(op_idx + 1)
+     state.pt += 1
+    END IF
+    op_idx = state.pt
+    curop = @anim.ops(op_idx)
+   END IF
+
+   IF curop THEN
+    SELECT CASE curop->type
+    CASE animOpWait
+     ' arg1 is in ms, but change number of frames
+     DIM frames as integer = ms_to_frames(curop->arg1)
+     IF intgrabber(frames, 0, 9999) THEN
+      curop->arg1 = frames_to_ms(frames)
+     END IF
+     IF keyval(scTab) > 1 THEN curop->type = animOpWaitMS
+    CASE animOpWaitMS
+     intgrabber curop->arg1, 0, 9999
+     IF keyval(scTab) > 1 THEN curop->type = animOpWait
+    CASE animOpFrame
+     intgrabber curop->arg1, 0, sprset->num_frames - 1
+     framenum = curop->arg1  ' Update visual
+    CASE ELSE
+     intgrabber curop->arg1, -9999, 9999
+    END SELECT
+   END IF
+
+   rebuild_animation_menu menu, anim
+   state.last = v_len(menu) - 1
+  END IF
+
+  ' Draw screen
+  clearpage vpage
+  draw_background vpages(vpage), bgChequer
+  frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , , vpage
+
+  WITH state.rect
+   fuzzyrect vpages(vpage), .x, .y, .wide, .high, uilook(uiBackground)
+  END WITH
+  standardmenu cast(BasicMenuItem vector, menu), state, mpos.x, mpos.y, vpage, menuopts
+
+  DIM message as string = IIF(animating, "P/ESC to Stop", "(P)lay")
+  IF curop THEN
+   ' IF the op has multiple editable fields
+   IF curop->type = animOpWait OR curop->type = animOpWaitMS THEN message += "  TAB to select arg"
+  END IF
+  edgeprint message, pLeft, pBottom, uilook(uiText), vpage
+  setvispage vpage
+  dowait
+ LOOP
+ v_free menu
+
+ set_animation_framerate 55  'Most of Custom runs at this framerate
 END SUB

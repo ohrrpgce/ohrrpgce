@@ -980,6 +980,7 @@ SUB apply_game_window_settings ()
 END SUB
 
 SUB set_speedcontrol ()
+ ' See also set_animation_framerate
  speedcontrol = bound(gen(genMillisecPerFrame), 16, 200)
  IF gfx_vsync_supported() = NO THEN
   ' 16ms and 33ms are special-cased to be exactly 60/30fps rather than 62.5/30.3
