@@ -92,6 +92,7 @@ WHAT IS NEW?
     * music_native/native2: Changing the music volume only worked for
       MIDI, while everything else was played at max volume [Ralph]
     * Reload sound effects replaced while live-previewing [Ralph]
+    * "write zone" was meant to return true on success, but didn't [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

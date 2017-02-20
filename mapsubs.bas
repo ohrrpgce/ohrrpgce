@@ -315,13 +315,9 @@ SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval
  DIM oldval as integer = CheckZoneAtTile(st.map.zmap, zone, x, y)
  IF (oldval = 0) <> (value = 0) THEN
   add_undo_step st, x, y, oldval, mapIDZone + zone
-  IF value = 0 THEN
-   UnsetZoneTile st.map.zmap, zone, x, y
-  ELSE
-   IF SetZoneTile(st.map.zmap, zone, x, y) = NO THEN
-    IF new_stroke THEN
-     pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
-    END IF
+  IF WriteZoneTile(st.map.zmap, zone, x, y, value) = NO THEN
+   IF new_stroke THEN
+    pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
    END IF
   END IF
   st.zones_needupdate = YES

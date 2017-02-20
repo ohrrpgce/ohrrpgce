@@ -3018,13 +3018,10 @@ SUB sfunctions(byval cmdid as integer)
  CASE 481'--write zone (id, x, y, value)
   IF valid_zone(retvals(0)) THEN
    IF valid_tile_pos(retvals(1), retvals(2)) THEN
-    IF retvals(3) THEN
-     IF SetZoneTile(zmap, retvals(0), retvals(1), retvals(2)) = 0 THEN
-      scriptret = 1
-      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed"
-     END IF
-    ELSE
-     UnsetZoneTile(zmap, retvals(0), retvals(1), retvals(2))
+    scriptret = 1
+    IF WriteZoneTile(zmap, retvals(0), retvals(1), retvals(2), retvals(3)) = 0 THEN
+     scriptret = 0
+     scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed"
     END IF
     lump_reloading.zonemap.dirty = YES
    END IF

@@ -913,8 +913,8 @@ FUNCTION GetZonesAtTile(zmap as ZoneMap, byval x as integer, byval y as integer)
   RETURN v_ret(zonesvec)
 END FUNCTION
 
-'Is a tile in a zone?
-FUNCTION CheckZoneAtTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
+'Is a tile in a zone? Returns a bool, not 0/1!
+FUNCTION CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as integer) as bool
   'Could call CheckZoneAtTile, but this is more efficient
   WITH zmap
     DIM bitvector as ushort = .bitmap[x + y * .wide]
@@ -1069,6 +1069,14 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
     *bitvector -= 1 SHL slot
   END WITH 
 END SUB
+
+' Writes the value (0 or nonzero) of a zone on a tile. Returns whether succeeded;
+' fails if more than 15 zones set
+FUNCTION WriteZoneTile(zmap as ZoneMap, id as integer, x as integer, y as integer, value as integer) as bool
+  IF value THEN RETURN SetZoneTile(zmap, id, x, y)
+  UnsetZoneTile(zmap, id, x, y)
+  RETURN YES
+END FUNCTION
 
 PRIVATE FUNCTION ZoneBitmaskFromIDMap(byval IDmap as ushort ptr, byval id as integer) as uinteger
   FOR i as integer = 0 TO 14
