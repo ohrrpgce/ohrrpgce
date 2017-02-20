@@ -154,7 +154,7 @@ PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as in
 END SUB
 
 SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
- STATIC default as string
+ STATIC defaultdir as string  'Import & export
  DIM pmask(255) as RGBcolor
  DIM menu(6) as string
  DIM mstate as MenuState
@@ -196,7 +196,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
+    srcbmp = browse(3, defaultdir, "*.bmp", "", , "browse_import_" & cap)
     IF srcbmp <> "" THEN
      importbmp_import(game & f, pt, srcbmp, pmask())
     END IF
@@ -204,7 +204,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(3, default, "*.bmp", "",,"browse_import_" & cap)
+    srcbmp = browse(3, defaultdir, "*.bmp", "", , "browse_import_" & cap)
     IF srcbmp <> "" THEN
      IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
       pt = count
@@ -219,7 +219,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
    IF mstate.pt = 5 THEN
     DIM outfile as string
-    outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
+    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
    END IF
   END IF
@@ -2737,8 +2737,9 @@ SUB spriteedit_export(default_name as string, placer() as integer, palnum as int
 END SUB
 
 SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palette16 ptr)
+ STATIC defaultdir as string
  DIM outfile as string
- outfile = inputfilename("Export to bitmap file", ".bmp", "", "input_file_export_sprite", default_name)
+ outfile = inputfilename("Export to bitmap file", ".bmp", defaultdir, "input_file_export_sprite", default_name)
  IF outfile <> "" THEN
   frame_export_bmp4 outfile & ".bmp", sprite, master(), pal
  END IF
