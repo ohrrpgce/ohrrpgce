@@ -165,6 +165,7 @@ DECLARE SUB show_message (s as string)
 DECLARE SUB append_message (s as string)
 
 DECLARE FUNCTION hilite (what as string, col as integer = -1) as string
+DECLARE FUNCTION ticklite(what as string, col as integer = -1) as string
 DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 

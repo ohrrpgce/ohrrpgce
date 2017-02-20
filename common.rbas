@@ -404,6 +404,26 @@ FUNCTION hilite(what as string, col as integer = -1) as string
  RETURN "${K" & col & "}" & what & "${K-1}"
 END FUNCTION
 
+' Takes "a string with `certain` parts marked to be `High`lighted" with colour 'col'
+' and returns a marked-up string.
+FUNCTION ticklite(what as string, col as integer = -1) as string
+ IF col = -1 THEN col = uilook(uiSelectedItem + global_tog)
+ DIM ret as string
+ DIM index as integer
+ DIM lastindex as integer = 1
+ DIM inside_hilite as bool = NO  ' Already opened a highlight tag
+ DO
+  index = INSTR(lastindex, what, "`")
+  IF index = 0 THEN RETURN ret & MID(what, lastindex)  'Add the final part
+  ret &= MID(what, lastindex, index - lastindex)
+  IF inside_hilite THEN ret &= "${K-1}" ELSE ret &= "${K" & col & "}"
+  inside_hilite XOR= YES
+  lastindex = index + 1
+ LOOP
+END FUNCTION
+
+'IF ticklite("`Test`f`x``") <> "${K2}Test${K-1}f${K2}x${K-1}${K2}" THEN fail
+
 'Return the markup tag to switch foreground color. -1 resets to initial.
 'Optionally, if you pass a string, wraps it with start/reset color tags.
 FUNCTION fgtag(col as integer, text as string = "") as string
