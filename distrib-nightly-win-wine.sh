@@ -34,7 +34,7 @@ function zip_and_upload {
 
   rm -f distrib/"${ZIPFILE}"
   zip -q distrib/"${ZIPFILE}" game.exe custom.exe hspeak.exe
-  zip -q distrib/"${ZIPFILE}" ohrrpgce.new
+  zip -q -r distrib/"${ZIPFILE}" data
   zip -q -r distrib/"${ZIPFILE}" ohrhelp
   zip -q distrib/"${ZIPFILE}" support/madplay.exe
   zip -q distrib/"${ZIPFILE}" support/oggenc.exe

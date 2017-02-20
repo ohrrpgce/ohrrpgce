@@ -61,7 +61,6 @@ package_for_arch() {
   cp -p hspeak tmp || return 1
 
   echo "  Including support files"
-  cp -p ohrrpgce.new tmp &&
   cp -p plotscr.hsd tmp &&
   cp -p scancode.hsi tmp || return 1
 
@@ -78,12 +77,16 @@ package_for_arch() {
   cp -pr "vikings/Vikings script files" tmp &&
   cp -p "vikings/README-vikings.txt" tmp || return 1
 
+  echo "  Including data files"
+  mkdir -p tmp/data &&
+  cp -pr data/* tmp/data || return 1
+
   echo "  Including import"
-  mkdir -p tmp/import
+  mkdir -p tmp/import &&
   cp -pr import/* tmp/import || return 1
 
   echo "  Including docs"
-  mkdir -p tmp/docs
+  mkdir -p tmp/docs &&
   cp -p docs/*.html tmp/docs &&
   cp -p docs/plotdict.xml tmp/docs &&
   cp -p docs/htmlplot.xsl tmp/docs &&

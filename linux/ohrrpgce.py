@@ -20,7 +20,6 @@ else:
     raise Exception("Can't find ohrrpgce-game and other files")
 
 files = [
-  prefix + "ohrrpgce.new",
   prefix + "README-game.txt",
   prefix + "README-custom.txt",
   prefix + "LICENSE.txt",
@@ -30,6 +29,7 @@ files = [
   prefix + "scancode.hsi",
   prefix + "unlump",
   prefix + "relump",
+  prefix + "data",
   prefix + "ohrhelp"]
 
 executables = [prefix + "ohrrpgce-game",

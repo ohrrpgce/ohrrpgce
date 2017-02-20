@@ -2918,15 +2918,19 @@ END SUB
 FUNCTION finddatafile(filename as string) as string
  'Current dir
  IF isfile(filename) THEN RETURN filename
+ IF isfile("data" & SLASH & filename) THEN RETURN "data" & SLASH & filename
  'platform-specific relative data files path (Mac OS X bundles)
  IF isfile(data_dir & SLASH & filename) THEN RETURN data_dir & SLASH & filename
  'same folder as executable
  IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
+ IF isfile(exepath & SLASH & "data" & SLASH & filename) THEN RETURN exepath & SLASH & "data" & SLASH & filename
  #IFDEF __UNIX__
   '~/.ohrrpgce/
   IF isfile(settings_dir & filename) THEN RETURN tmpdir & filename
   #IFDEF DATAFILES
    IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
+   ' In this case the packaging script could avoid put anything in a subdirectory
+   IF isfile(DATAFILES & SLASH & "data" & SLASH & filename) THEN RETURN DATAFILES & SLASH & "data" & SLASH & filename
   #ENDIF
  #ENDIF
  RETURN ""

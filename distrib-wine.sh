@@ -17,7 +17,6 @@ function ohrrpgce_common_files {
  cp game.exe tmpdist
  cp custom.exe tmpdist
  cp hspeak.exe tmpdist
- cp ohrrpgce.new tmpdist
  cp plotscr.hsd tmpdist
  cp scancode.hsi tmpdist
  cp README-game.txt tmpdist
@@ -41,6 +40,8 @@ function ohrrpgce_common_files {
  cp support/LICENSE-rcedit.txt tmpdist/support
  cp relump.exe tmpdist/support
  cp unlump.exe tmpdist/support
+ mkdir tmpdist/data
+ cp data/* tmpdist/data
  mkdir tmpdist/ohrhelp
  cp ohrhelp/*.txt tmpdist/ohrhelp
  mkdir tmpdist/docs

@@ -7,7 +7,7 @@ IF "%3"=="~" set ZIPFILE=ohrrpgce-wip-%1-%2.zip
 
 del distrib\%ZIPFILE%
 support\zip -q distrib\%ZIPFILE% game.exe custom.exe hspeak.exe
-support\zip -q distrib\%ZIPFILE% ohrrpgce.new
+support\zip -q -r distrib\%ZIPFILE% data
 support\zip -q distrib\%ZIPFILE% whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd scancode.hsi svninfo.txt
 support\zip -q -r distrib\%ZIPFILE% ohrhelp
 support\zip -q distrib\%ZIPFILE% support\madplay.exe

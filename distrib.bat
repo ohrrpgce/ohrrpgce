@@ -73,7 +73,6 @@ del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
-support\cp ohrrpgce.new tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp README-game.txt tmpdist
@@ -87,6 +86,8 @@ support\cp gfx_directx.dll tmpdist
 REM wget.exe needed to download everything else (unzip is downloaded as an .exe)
 mkdir tmpdist\support
 support\cp support\wget.exe tmpdist\support
+mkdir tmpdist\data
+support\cp data\*.* tmpdist\data
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
@@ -114,7 +115,6 @@ del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
-support\cp ohrrpgce.new tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
 support\cp IMPORTANT-nightly.txt tmpdist
@@ -126,6 +126,8 @@ support\cp scancode.hsi tmpdist
 support\cp gfx_directx.dll tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
+mkdir tmpdist\data
+support\cp data\*.* tmpdist\data
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
