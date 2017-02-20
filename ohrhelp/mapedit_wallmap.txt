@@ -85,6 +85,9 @@ CTRL+Left makes the selected tile impassable on the left side.
 
 CTRL+Right makes the selected tile impassable on the right side.
 
+Press W to turn all the walls on the current tile into one-way walls. This means that the hero and NPCS can walk through the walls when they leave the tile. If there are no walls on the tile then the one-way bit does nothing, but is still indicated with a small circle.
+One-way walls are marked with a special zone, ID 10000, which you can also see and edit in the zone editor.
+
 H marks the tile as a harm tile that can damage heroes when the player steps on it.
 
 CTRL+A marks the tile as special for Airships (or other vehicle or scripting purposes).

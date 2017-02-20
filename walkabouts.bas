@@ -540,6 +540,7 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integ
  DIM wallbit as integer = 1 SHL direction
  DIM oppositebit as integer = 1 SHL ((direction + 2) AND 3)
  DIM defwalls as integer = IIF(walls_over_edges, 15, 0)
+ DIM wallblock as integer
 
  IF gmap(5) = 1 THEN
   wrapxy tilex, tiley, mapsizetiles.x, mapsizetiles.y
@@ -547,10 +548,12 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integ
  IF ignore_passmap THEN    ' Check only for the map edge
   IF tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high THEN RETURN YES
  ELSE
-  IF readblock(pass, tilex, tiley, defwalls) AND wallbit THEN RETURN YES
+  ' Ignore walls when exiting this tile?
+  IF CheckZoneAtTile(zmap, zoneOneWayExit, tilex, tiley) = 0 THEN
+   IF readblock(pass, tilex, tiley, defwalls) AND wallbit THEN RETURN YES
+  END IF
  END IF
 
- DIM wallblock as integer
  wrapaheadxy tilex, tiley, direction, 1, 1
  wallblock = readblock(pass, tilex, tiley, defwalls)
 

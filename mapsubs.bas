@@ -308,8 +308,9 @@ SUB foebrush (st as MapEditState, byval x as integer, byval y as integer, byval 
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
-SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -1, byval zone as integer = -1)
- IF value = -1 THEN value = st.tool_value
+'(Small exception: different value is use for 'default' for value, so value can be treated as a bool)
+SUB zonebrush (st as MapEditState, byval x as integer, byval y as integer, byval value as integer = -9876, byval zone as integer = -1)
+ IF value = -9876 THEN value = st.tool_value
  IF zone = -1 THEN zone = st.cur_zone
  DIM new_stroke as bool = st.new_stroke  'Modified by add_undo_step
  DIM oldval as integer = CheckZoneAtTile(st.map.zmap, zone, x, y)
@@ -424,6 +425,17 @@ rectangle st.cursor.sprite + 1, 0, 0, 20, 20, 1
 rectangle st.cursor.sprite + 1, 1, 1, 18, 18, 0
 rectangle st.cursor.sprite + 1, 3, 3, 14, 14, 2
 rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
+
+DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
+IF LEN(datafile) = 0 THEN
+ visible_debug "wallarrows.bmp missing"
+ELSE
+ DIM arrowset as Frame ptr = frame_import_bmp_raw(datafile)
+ FOR idx as integer = 0 TO 4
+  st.arrow_icons(idx) = frame_resized(arrowset, 20, 20, idx * -20, 0)
+ NEXT
+ frame_unload @arrowset
+END IF
 
 '--These tilesets indicate up to 8 zones at once
 '--create three alternative zone tilemaps, I can't decide!
@@ -646,6 +658,9 @@ frame_unload @st.zonetileset(1)
 frame_unload @st.zonetileset(2)
 frame_unload @st.overlaytileset
 frame_unload @st.zoneminimap
+FOR idx as integer = 0 TO 4
+ frame_unload @st.arrow_icons(idx)
+NEXT
 v_free st.mode_tools
 v_free st.zonemenu
 ' Contents of st.map are freed by destructor
@@ -828,11 +843,11 @@ DO
    END IF
    IF keyval(scCtrl) = 0 THEN
     IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
-     st.usetile(st.layer) = st.usetile(st.layer) - 1
+     st.usetile(st.layer) -= 1
      update_tilepicker st
     END IF
     IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < st.menubar.wide - 1 THEN
-     st.usetile(st.layer) = st.usetile(st.layer) + 1
+     st.usetile(st.layer) += 1
      update_tilepicker st
     END IF
    END IF
@@ -909,16 +924,20 @@ DO
   CASE pass_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
 
-   'st.tool_value is passmap mode is a little bit different; it's
+   IF keyval(scCtrl) = 0 AND keyval(scW) > 1 THEN  'One-way tiles
+    zonebrush st, st.x, st.y, (CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) XOR YES), zoneOneWayExit
+   END IF
+
+   'st.tool_value in passmap mode is a little bit different; it's
    'determined on the fly by which key (space, H, etc) you press and
    'what's under the cursor. The only tool which doesn't have
    'st.tool_value determined on the fly is Ctrl+W, as well as holding
    'space down and drawing a line. That just remembers whatever the
    'last tool_value was, which is OK. +/- for changing this remembered
    'value is still supported though undocumented.
-   IF st.reset_tool THEN st.tool_value = 15  'default
+   IF st.reset_tool THEN st.tool_value = passAllWalls  '=15, default
    IF keyval(scPlus) > 1 OR keyval(scMinus) > 1 THEN
-    st.tool_value = IIF(st.tool_value, 0, 15)
+    st.tool_value = IIF(st.tool_value, 0, passAllWalls)
    END IF
 
    DIM pass_overtile as integer = readblock(st.map.pass, st.x, st.y)
@@ -1086,10 +1105,10 @@ DO
    IF st.zonesubmode = zone_edit_mode THEN
 
     '--Tiling/editing mode
-    st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
+    st.zones_needupdate OR= intgrabber(st.cur_zone, 1, zoneLASTREADABLE, scLeftCaret, scRightCaret)
     IF st.tool <> paint_tool THEN
      'Using the paint tool enables pageup/pagedown for changing selected map layer
-     st.zones_needupdate OR= keygrabber(st.cur_zone, 1, 9999, scPageDown, scPageUp)
+     st.zones_needupdate OR= keygrabber(st.cur_zone, 1, zoneLASTREADABLE, scPageDown, scPageUp)
     END IF
     st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
     IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
@@ -1401,38 +1420,61 @@ DO
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
  IF st.editmode = tile_mode AND UBOUND(st.map.tiles) > 0 THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
-   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
-    IF (st.mapx \ 20) + i < st.map.wide ANDALSO (st.mapy \ 20) + o < st.map.high THEN
-     DIM pass_overtile as integer = readblock(st.map.pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-     DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
-     DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+  FOR yidx as integer = 0 TO mapviewsize.h \ 20 + 1
+   FOR xidx as integer = 0 TO mapviewsize.w \ 20 + 1
+    DIM tilex as integer = (st.mapx \ 20) + xidx
+    DIM tiley as integer = (st.mapy \ 20) + yidx
+    IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
+     DIM pass_overtile as integer = readblock(st.map.pass, tilex, tiley)
+     DIM pixelx as integer = tilex * 20 - st.mapx
+     DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
+     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
     END IF
-   NEXT i
-  NEXT o
+   NEXT xidx
+  NEXT yidx
  END IF
 
- '--show passmode
+ '--show passmap
  IF st.editmode = pass_mode THEN
-  FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
-   FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
-    IF (st.mapx \ 20) + i < st.map.wide ANDALSO (st.mapy \ 20) + o < st.map.high THEN
-     DIM pass_overtile as integer = readblock(st.map.pass, (st.mapx \ 20) + i, (st.mapy \ 20) + o)
-     DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
-     DIM pixely as integer = (st.mapy \ 20 + o) * 20 - st.mapy
-     IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely + 20, 20, 3, uilook(uiMenuItem + tog), dpage
-     IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-     IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 37, 20, 3, uilook(uiMenuItem + tog), dpage
-     IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely + 20, 3, 20, uilook(uiMenuItem + tog), dpage
+  DIM col as integer = uilook(uiMenuItem + tog)
+  FOR yidx as integer = 0 TO mapviewsize.h \ 20 + 1
+   FOR xidx as integer = 0 TO mapviewsize.w \ 20 + 1
+    DIM tilex as integer = (st.mapx \ 20) + xidx
+    DIM tiley as integer = (st.mapy \ 20) + yidx
+    IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
+     DIM pass_overtile as integer = readblock(st.map.pass, tilex, tiley)
+     DIM pixelx as integer = tilex * 20 - st.mapx
+     DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
+
+     IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, tilex, tiley) THEN
+      ' Draw arrows leaving this tile
+      DIM temppal as Palette16
+      temppal.col(1) = col
+
+      ' Draw a circle in the center, to indicate the bit is set even if there are no walls
+      IF (pass_overtile AND passAllWalls) = 0 THEN
+       frame_draw st.arrow_icons(4), @temppal, pixelx, pixely, , , dpage
+      END IF
+
+      FOR direc as integer = 0 TO 3
+       IF (pass_overtile AND (1 SHL direc)) THEN frame_draw st.arrow_icons(direc), @temppal, pixelx, pixely, , , dpage
+      NEXT
+     ELSE
+      IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, 3, col, dpage
+      IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely     , 3, 20, col, dpage
+      IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 17, 20, 3, col, dpage
+      IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely     , 3, 20, col, dpage
+     END IF
+
      textcolor uilook(uiSelectedItem + tog), 0
-     IF (pass_overtile AND passVehA) THEN printstr "A", pixelx, pixely + 20, dpage
-     IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 10, pixely + 20, dpage
-     IF (pass_overtile AND passHarm) THEN printstr "H", pixelx, pixely + 30, dpage
-     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 10, pixely + 30, dpage
+     ' Y positions
+     IF (pass_overtile AND passVehA) THEN printstr "A", pixelx + 2, pixely + 1, dpage
+     IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 11, pixely + 1, dpage
+     IF (pass_overtile AND passHarm) THEN printstr "H", pixelx + 2, pixely + 11, dpage
+     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
     END IF
-   NEXT i
-  NEXT o
+   NEXT xidx
+  NEXT yidx
  END IF
  
  '--door display--
@@ -1659,6 +1701,14 @@ DO
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
   printstr defpass_msg, maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES
+ END IF
+
+ IF st.editmode = pass_mode THEN
+  printstr ticklite("one`W`ay  `H`arm  vehicle Ctrl-`A B`"), 0, 0, dpage, YES
+
+  IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
+   printstr hilite("W") + ": one-way walls", maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES
+  END IF
  END IF
 
  IF st.tool = clone_tool THEN
@@ -1943,7 +1993,7 @@ SUB mapedit_update_visible_zones (st as MapEditState)
 '  oldpt_waslocked = (st.zonemenustate.pt <= UBOUND(st.lockedzonelist) + 1)
  END IF
 
- GetZonesAtTile st.map.zmap, tilezonelist(), st.x, st.y
+ GetZonesAtTile st.map.zmap, tilezonelist(), st.x, st.y ', zoneLASTUSER
 
  'Decide upon visible zones
 
@@ -2136,6 +2186,11 @@ SUB draw_zone_tileset3(byval zonetileset as Frame ptr)
 END SUB
 
 'Paints the zoneoverlaymap to show tiles with nonvisible zones
+'What's happening here is that st.zoneviewmap is displaying up at 8
+'selected zones, with the 8 bits of each tile indicating whether those 8 zones
+'(recall that st.zoneviewmap is drawn with a special tileset with 256 tiles).
+'So at each tile we just compare whether the number of set bits in the zonemap is
+'greater than the number in st.zoneviewmap.
 'It may be a good idea to not show hidden zones, unfortunately that would be difficult/really slow
 SUB mapedit_doZoneHinting(st as MapEditState)
   CleanTilemap st.zoneoverlaymap, st.zoneviewmap.wide, st.zoneviewmap.high
@@ -2213,7 +2268,7 @@ SUB mapedit_edit_zoneinfo(st as MapEditState)
    CASE 0
     IF enter_space_click(state) THEN EXIT DO
    CASE 1
-    IF intgrabber(st.cur_zone, 1, 9999) THEN
+    IF intgrabber(st.cur_zone, 1, zoneLASTREADABLE) THEN
      state.need_update = YES
      st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
     END IF
@@ -2418,14 +2473,14 @@ SUB mapedit_gmapdata(st as MapEditState)
  gdmax(16) = 2:                   gdmin(16) = 0
  gdmax(17) = 2:                   gdmin(17) = 0
  gdmax(18) = 2:                   gdmin(18) = 0
- gdmax(32) = 9999:                gdmin(32) = 0
- gdmax(33) = 9999:                gdmin(33) = 0
+ gdmax(32) = zoneLASTUSER:        gdmin(32) = 0
+ gdmax(33) = zoneLASTUSER:        gdmin(33) = 0
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.pt = 0
  state.last = v_len(menu) - 1
- state.size = 24
+ state.autosize = YES
 
  'Clamp data to bounds (only the gmap() indices edited in this menu)
  FOR i as integer = 0 TO UBOUND(gdidx)
@@ -2977,6 +3032,10 @@ SUB mapedit_loadmap (st as MapEditState, mapnum as integer)
  flusharray st.visible(), , -1  'Mark all layers visible (when they're enabled)
  mapedit_load_tilesets st
  verify_map_size st
+
+ 'Initialise default zone names
+ DIM zinfo as ZoneInfo ptr = GetZoneInfo(st.map.zmap, zoneOneWayExit)
+ IF LEN(zinfo->name) = 0 THEN zinfo->name = "One-Way walls (exit only)"
 END SUB
 
 SUB mapedit_savemap (st as MapEditState)

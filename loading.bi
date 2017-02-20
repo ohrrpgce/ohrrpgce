@@ -66,8 +66,8 @@ declare function SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as in
 declare sub UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer)
 declare function WriteZoneTile(zmap as ZoneMap, id as integer, x as integer, y as integer, value as integer) as bool
 declare function CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as integer) as bool
-declare sub GetZonesAtTile OVERLOAD (zmap as ZoneMap, zones() as integer, byval x as integer, byval y as integer)
-declare function GetZonesAtTile OVERLOAD (zmap as ZoneMap, byval x as integer, byval y as integer) as integer vector
+declare sub GetZonesAtTile OVERLOAD (zmap as ZoneMap, zones() as integer, x as integer, y as integer, maxid as integer = 65535)
+declare function GetZonesAtTile OVERLOAD (zmap as ZoneMap, x as integer, y as integer, maxid as integer = 65535) as integer vector
 declare function GetZoneInfo(zmap as ZoneMap, byval id as integer) as ZoneInfo ptr
 declare sub DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = -1)
 declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, byval id as integer, byval bitnum as integer)

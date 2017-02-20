@@ -7105,6 +7105,10 @@ write pass block(15,3,none)
 					<tt>check wall collision x</tt> and <tt>check wall collision y</tt> with identical
 					arguments to find the x,y position of the collision point.
 				</note>
+				<danger>
+					This command hasn't been updated to support one-way walls yet.
+					Running into a one-way wall edge-on will give strange results.
+				</danger>
 			</description>
 			<seealso>
 				<ref>moveslicewithwallchecking</ref>
@@ -7148,6 +7152,10 @@ write pass block(15,3,none)
 				is hit and is now resting against a wall on its north side.
 				<lb/>
 				You can check for walls without needing a slice using the alternative <ref>checkwallcollisionxy</ref> commands.
+				<danger>
+					This command hasn't been updated to support one-way walls yet.
+					Running into a one-way wall edge-on will give strange results.
+				</danger>
 			</description>
 			<example># This script creates a rectangle slice which follows the mouse
 # but doesn't pass through walls.
@@ -7179,7 +7187,23 @@ end</example>
 		<command id="writezone">
 			<canon>write zone (zone id, x, y, value)</canon>
 			<shortname>write zone</shortname>
-			<description>Sets whether the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999, and <p>value</p> is interpreted as either <p>true</p> (non-zero) or <p>false</p> (zero).<note>Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <ref>false</ref>. Normally it returns <ref>true</ref>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.</note><note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
+			<description>
+				Sets whether the tile at (<p>x,y</p>) is part of the specified zone.
+				<p>zone id</p> is a valid ID number (see <ref>readzone</ref>),
+				and <p>value</p> is interpreted as either <p>true</p> (non-zero) or <p>false</p> (zero).
+				<note>
+					Only up to 15 zones may overlap at each tile.
+					If you try to place 16 zones at one tile, write zone will fail,
+					returning <ref>false</ref>. Normally it returns <ref>true</ref>.
+					If you choose to "Show all warnings" in General Game Settings in Custom,
+					you will also get a warning message.
+				</note>
+				<note>
+					Changes to zones are not stored in saved games,
+					and are erased when you leave the map unless "Tile Data State" is "saved
+					when leaving" (in the General Map Data settings).
+				</note>
+			</description>
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
@@ -7187,7 +7211,17 @@ end</example>
 		<command id="readzone">
 			<canon>read zone (zone id, x, y)</canon>
 			<shortname>read zone</shortname>
-			<description>Returns <ref>true</ref> if the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999.</description>
+			<description>
+				Returns <ref>true</ref> if the tile at (<p>x,y</p>) is part of the specified zone.
+				The <p>zone id</p> is an ID number from 1 to 9999 for zones defined in the map editor,
+				or can be the ID one of these special zones:
+				<ul>
+					<li>
+						<tt>zone:OneWayExit == 10000</tt>
+						- Marks tiles with one-way walls.
+					</li>
+				</ul>
+			</description>
 			<seealso>
 				<ref>writezone</ref>
 				<ref>zoneatspot</ref>
@@ -7204,7 +7238,9 @@ end</example>
 		<command id="getzonename">
 			<canon>get zone name (string id, zone id)</canon>
 			<shortname>get zone name</shortname>
-			<description>Places in the string with id number <p>string id</p> the name of zone <p>zone id</p> (from 1 to 9999).</description>
+			<description>
+				Places in the string with id number <p>string id</p> the name of zone <p>zone id</p>.
+			</description>
 		</command>
 		<command id="getzoneextra">
 			<canon>get zone extra (zone id, extra num)</canon>
@@ -7219,7 +7255,10 @@ end</example>
 		<command id="zonenumberoftiles">
 			<canon>zone number of tiles (zone id)</canon>
 			<shortname>zone number of tiles</shortname>
-			<description>Given a <p>zone id</p> (from 1 to 9999), returns the number of tiles that the zone contains.</description>
+			<description>
+				Given a <p>zone id</p> (from 1 to 9999 or a special id),
+				returns the number of tiles that the zone contains.
+			</description>
 		</command>
 		</section>		<!--Zone functions-->
 

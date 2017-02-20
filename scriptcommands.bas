@@ -4856,7 +4856,7 @@ FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as i
 END FUNCTION
 
 FUNCTION valid_zone(byval id as integer) as integer
- RETURN bound_arg(id, 1, 9999, "zone ID", , , serrBadOp)
+ RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_door(byval id as integer) as integer

@@ -378,6 +378,7 @@ CONST passNorthWall = 1
 CONST passEastWall = 2
 CONST passSouthWall = 4
 CONST passWestWall = 8
+CONST passAllWalls = 15
 CONST passVehA = 16
 CONST passVehB = 32
 CONST passHarm = 64
@@ -386,6 +387,13 @@ CONST dirNorth = 0
 CONST dirEast = 1
 CONST dirSouth = 2
 CONST dirWest = 3
+
+'Special zones
+CONST zoneLASTUSER = 9999      'The highest zone editable in the map editor, everything
+                               'above this is reserved for special uses.
+CONST zoneOneWayExit = 10000   'Walls are one-way, allowing exit from this tile
+CONST zoneLASTREADABLE = 10000 'The last zone that can be read/written by script commands
+
 
 'NPC activation types
 CONST npcUse = 0
