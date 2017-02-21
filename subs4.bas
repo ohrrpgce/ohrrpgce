@@ -421,7 +421,6 @@ SUB generalmusicsfxmenu ()
 
     IF keyval(scESC) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
-    IF keyval(scF2) > 1 THEN editor_volume_menu
     usemenu state
 
     IF enter_space_click(state) THEN
@@ -471,7 +470,7 @@ SUB generalmusicsfxmenu ()
     clearpage dpage
     highlight_menu_typing_selection disp(), menu_display(), selectst, state
     standardmenu menu_display(), state, 0, 0, dpage 
-    edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+    edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -479,29 +478,6 @@ SUB generalmusicsfxmenu ()
   LOOP
   music_stop
   resetsfx
-END SUB
-
-PRIVATE FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, dataptr as any ptr) as bool
- ' This code is duplicated from player_menu_keys :(
- IF keyval(scF1) > 1 THEN show_help("editor_volume")
- DIM BYREF mi as MenuDefItem = *menu.items[state.pt]
- IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
-  IF keyval(scLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
-  IF keyval(scRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
- END IF
- IF mi.t = mtypeSpecial AND mi.sub_t = spSoundVolume THEN
-  IF keyval(scLeft) > 1 THEN set_global_sfx_volume large(get_global_sfx_volume - 1/16, 0.0)
-  IF keyval(scRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
- END IF
- RETURN NO
-END FUNCTION
-
-' Allow changing the in-editor volume
-SUB editor_volume_menu
- DIM menu as MenuDef
- create_volume_menu menu
- run_MenuDef menu, @volume_controls_callback
- ClearMenuData menu
 END SUB
 
 SUB delete_song (byval songnum as integer, songfile as string)
@@ -547,7 +523,6 @@ DO
  setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
- IF keyval(scF2) > 1 THEN editor_volume_menu
 
  usemenu state, selectable()
 
@@ -603,7 +578,7 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -803,7 +778,6 @@ DO
  setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
- IF keyval(scF2) > 1 THEN editor_volume_menu
 
  usemenu state, selectable()
 
@@ -861,7 +835,7 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage

@@ -747,6 +747,42 @@ END SUB
 
 
 '==========================================================================================
+'                                       Global menus
+'==========================================================================================
+
+
+PRIVATE FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, dataptr as any ptr) as bool
+ ' This code is duplicated from player_menu_keys :(
+ IF keyval(scF1) > 1 THEN show_help("editor_volume")
+ DIM BYREF mi as MenuDefItem = *menu.items[state.pt]
+ IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
+  IF keyval(scLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
+  IF keyval(scRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
+ END IF
+ IF mi.t = mtypeSpecial AND mi.sub_t = spSoundVolume THEN
+  IF keyval(scLeft) > 1 THEN set_global_sfx_volume large(get_global_sfx_volume - 1/16, 0.0)
+  IF keyval(scRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
+ END IF
+ RETURN NO
+END FUNCTION
+
+' Allow changing the in-editor volume
+SUB editor_volume_menu
+ DIM menu as MenuDef
+ create_volume_menu menu
+ run_MenuDef menu, @volume_controls_callback
+ ClearMenuData menu
+END SUB
+
+' This is called after *every* setkeys.
+' It should be fine to call any allmodex function in here, but beware we might
+' not have loaded a game yet!
+SUB global_Custom_controls
+ IF keyval(scF9) THEN editor_volume_menu
+END SUB
+
+
+'==========================================================================================
 '                                          Shops
 '==========================================================================================
 

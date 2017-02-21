@@ -11,9 +11,6 @@
 #include "loading.bi"
 #include "reload.bi"
 #include "os.bi"
-#if IS_CUSTOM
- #include "custom.bi"
-#endif
 
 Enum BrowseEntryKind
 	bkDrive = 0       'Windows only
@@ -159,9 +156,6 @@ DO
  setkeys YES
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
- #IF IS_CUSTOM
-  IF keyval(scF2) > 1 THEN editor_volume_menu
- #ENDIF
  IF usemenu(br.mstate) THEN br.mstate.need_update = YES
  IF keyval(scSpace) > 0 AND LEN(selectst.query) > 0 THEN
   'While typing a string, space doesn't cause selection
