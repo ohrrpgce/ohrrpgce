@@ -105,6 +105,8 @@ CTRL+Y redoes an undone change.
 
 CTRL+S immediately saves, useful when live-previewing a game.
 
++ and - change the way that the walls are drawn on the map.
+
 CTRL+W paints the tiles visible in the window/screen using the last Drawing Key used.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

@@ -532,6 +532,7 @@ st.layer = 0
 st.cur_zone = 1
 st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
 st.clone_merge = YES
+st.wallthickness = 2
 
 st.cur_door = find_first_free_door(st.map.door())
 
@@ -933,11 +934,15 @@ DO
    'what's under the cursor. The only tool which doesn't have
    'st.tool_value determined on the fly is Ctrl+W, as well as holding
    'space down and drawing a line. That just remembers whatever the
-   'last tool_value was, which is OK. +/- for changing this remembered
-   'value is still supported though undocumented.
+   'last tool_value was, which is OK.
    IF st.reset_tool THEN st.tool_value = passAllWalls  '=15, default
-   IF keyval(scPlus) > 1 OR keyval(scMinus) > 1 THEN
-    st.tool_value = IIF(st.tool_value, 0, passAllWalls)
+
+   ' +/- to change the thickness walls are drawn at
+   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+    st.wallthickness = small(st.wallthickness + 1, 5)
+   END IF
+   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+    st.wallthickness = large(st.wallthickness - 1, 0)
    END IF
 
    DIM pass_overtile as integer = readblock(st.map.pass, st.x, st.y)
@@ -1459,11 +1464,16 @@ DO
       FOR direc as integer = 0 TO 3
        IF (pass_overtile AND (1 SHL direc)) THEN frame_draw st.arrow_icons(direc), @temppal, pixelx, pixely, , , dpage
       NEXT
-     ELSE
-      IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, 3, col, dpage
-      IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 17, pixely     , 3, 20, col, dpage
-      IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 17, 20, 3, col, dpage
-      IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely     , 3, 20, col, dpage
+     ELSEIF st.wallthickness > 0 THEN
+      IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, st.wallthickness, col, dpage
+      IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 19, pixely     , -st.wallthickness, 20, col, dpage
+      IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 19, 20, -st.wallthickness, col, dpage
+      IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely     , st.wallthickness, 20, col, dpage
+     ELSEIF st.wallthickness = 0 THEN
+      IF (pass_overtile AND passNorthWall) THEN drawants vpages(dpage), pixelx       , pixely       , 20, 1
+      IF (pass_overtile AND passEastWall)  THEN drawants vpages(dpage), pixelx + 20-1, pixely       , 1, 20
+      IF (pass_overtile AND passSouthWall) THEN drawants vpages(dpage), pixelx       , pixely + 20-1, 20, 1
+      IF (pass_overtile AND passWestWall)  THEN drawants vpages(dpage), pixelx       , pixely       , 1, 20
      END IF
 
      textcolor uilook(uiSelectedItem + tog), 0
@@ -1705,6 +1715,7 @@ DO
 
  IF st.editmode = pass_mode THEN
   printstr ticklite("one`W`ay  `H`arm  vehicle Ctrl-`A B`"), 0, 0, dpage, YES
+  printstr ticklite("`+`/`-`: thickness"), 0, 10, dpage, YES
 
   IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
    printstr hilite("W") + ": one-way walls", maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES

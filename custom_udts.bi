@@ -298,6 +298,9 @@ TYPE MapEditState
   message as string          'Message shown at the top of the screen
   message_ticks as integer   'Remaining ticks to display message
 
+  'Editor customisation options
+  wallthickness as integer   'How many pixels think to draw the walls in pass_mode
+
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
   brush as FnBrush           'What to draw with

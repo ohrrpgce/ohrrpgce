@@ -46,6 +46,7 @@ WHAT IS NEW?
       by pressing W in the passmap editor. All the walls on a tile are
       either normal or one-way; you can't mix them on the same tile.
       Not supported with default passability yet. [Ralph]
+    * Press +/- in wallmap mode to change the way walls are drawn [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
