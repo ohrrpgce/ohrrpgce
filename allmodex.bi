@@ -145,6 +145,7 @@ End Enum
 
 DECLARE SUB drawbox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1, p as integer)
 DECLARE SUB drawbox OVERLOAD (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, thickness as integer = 1)
+DECLARE sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high as RelPos, color as integer = -1)
 DECLARE SUB rectangle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
 DECLARE SUB rectangle OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50)

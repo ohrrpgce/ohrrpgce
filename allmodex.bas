@@ -3354,6 +3354,51 @@ sub drawbox (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	end IF
 end sub
 
+' This function is slightly different from drawbox/rectangle, in that draws boxes with
+' width/height 0 as width/height 1 instead of not at all.
+' color is the main highlight color; if -1, use default
+' FIXME: this function doesn't respect clipping!
+sub drawants(dest as Frame ptr, x as RelPos, y as RelPos, wide as RelPos, high as RelPos, color as integer = -1)
+	if color = -1 then color = uilook(uiText)
+
+	' Decode relative positions/sizes to absolute
+	wide = relative_pos(wide, dest->w)
+	high = relative_pos(high, dest->h)
+	x = relative_pos(x, dest->w, wide)
+	y = relative_pos(y, dest->h, high)
+
+	if wide < 0 then x = x + wide + 1: wide = -wide
+	if high < 0 then y = y + high + 1: high = -high
+
+	'if wide <= 0 or high <= 0 then exit sub
+
+	dim col as integer
+	'--Draw verticals
+	for idx as integer = 0 to large(high - 1, 0)
+		select case (idx + x + y + tickcount) mod 3
+			case 0: continue for
+			case 1: col = color
+			case 2: col = uilook(uiBackground)
+		end select
+		putpixel dest, x, y + idx, col
+		if wide > 0 then
+			putpixel dest, x + wide - 1, y + idx, col
+		end if
+	next idx
+	'--Draw horizontals
+	for idx as integer = 0 to large(wide - 1, 0)
+		select case (idx + x + y + tickcount) mod 3
+			case 0: continue for
+			case 1: col = color
+			case 2: col = uilook(uiBackground)
+		end select
+		putpixel dest, x + idx, y, col
+		if high > 0 then
+			putpixel dest, x + idx, y + high - 1, col
+		end if
+	next idx
+end sub
+
 sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
 	rectangle vpages(p), x, y, w, h, c
 end sub

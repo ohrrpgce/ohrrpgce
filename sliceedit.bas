@@ -1353,29 +1353,13 @@ SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as Slice P
 END SUB
 
 SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
- STATIC ant as integer = 0
  IF sl = 0 THEN EXIT SUB
- DIM col as integer
- '--Draw verticals
- FOR i as integer = small(0, sl->Height + 1) TO large(sl->Height - 1, 0)
-  SELECT CASE (i + ant) MOD 3
-   CASE 0: CONTINUE FOR
-   CASE 1: col = uiLook(uiText)
-   CASE 2: col = uiLook(uiBackground)
-  END SELECT
-  putpixel sl->ScreenX, sl->ScreenY + i, col, dpage
-  putpixel sl->ScreenX + sl->Width + iif(sl->Width > 0, -1, 1), sl->ScreenY + i, col, dpage
- NEXT i
- '--Draw horizontals
- FOR i as integer = small(0, sl->Width + 1) TO large(sl->Width - 1, 0)
-  SELECT CASE (i + ant) MOD 3
-   CASE 0: CONTINUE FOR
-   CASE 1: col = uiLook(uiText)
-   CASE 2: col = uiLook(uiBackground)
-  END SELECT
-  putpixel sl->ScreenX + i, sl->ScreenY, col, dpage
-  putpixel sl->ScreenX + i, sl->ScreenY + sl->Height + iif(sl->Height > 0, -1, 1), col, dpage
- NEXT i
+ IF sl->Width = 0 OR sl->Height = 0 THEN
+  ' A 1x1 flashing pixel is hard to spot
+  drawants vpages(dpage), sl->ScreenX - 1, sl->ScreenY - 1, 3, 3
+ END IF
+ drawants vpages(dpage), sl->ScreenX, sl->ScreenY, sl->Width, sl->Height
+
  '--Draw gridlines if this is a grid
  IF sl->SliceType = slGrid THEN
   DIM dat as GridSliceData Ptr = sl->SliceData
@@ -1383,30 +1367,15 @@ SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
    DIM w as integer = sl->Width \ large(1, dat->cols)
    DIM h as integer = sl->Height \ large(1, dat->rows)
    '--draw verticals
-   FOR i as integer = 1 TO dat->cols - 1
-    FOR y as integer = 0 TO large(ABS(sl->Height) - 1, 2)
-     SELECT CASE (y + ant) MOD 3
-      CASE 0: CONTINUE FOR
-      CASE 1: col = uiLook(uiText)
-      CASE 2: col = uiLook(uiBackground)
-     END SELECT
-     putpixel sl->ScreenX + i * w, sl->ScreenY + y, col, dpage
-    NEXT y
-   NEXT i
+   FOR idx as integer = 1 TO dat->cols - 1
+    drawants vpages(dpage), sl->ScreenX + idx * w, sl->ScreenY, 1, large(ABS(sl->Height), 3)
+   NEXT idx
    '--draw horizontals
-   FOR i as integer = 1 TO dat->rows - 1
-    FOR x as integer = 0 TO large(ABS(sl->Width) - 1, 2)
-     SELECT CASE (x + ant) MOD 3
-      CASE 0: CONTINUE FOR
-      CASE 1: col = uiLook(uiText)
-      CASE 2: col = uiLook(uiBackground)
-     END SELECT
-     putpixel sl->ScreenX + x, sl->ScreenY + i * h, col, dpage
-    NEXT x
-   NEXT i
+   FOR idx as integer = 1 TO dat->rows - 1
+    drawants vpages(dpage), sl->ScreenX, sl->ScreenY + idx * h, large(ABS(sl->Width), 3), 1
+   NEXT idx
   END IF
  END IF
- ant = loopvar(ant, 0, 2, 1)
 END SUB
 
 FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
