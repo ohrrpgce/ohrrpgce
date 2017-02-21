@@ -431,14 +431,16 @@ CONST spMapMaybe    = 7  'Only if allowed by map
 CONST spSaveMaybe   = 8  'Only if allowed by map
 CONST spLoad        = 9
 CONST spQuit        = 10
-CONST spMusicVolume = 11
+CONST spVolumeMenu  = 11
 CONST spMap         = 12
 CONST spSave        = 13
 CONST spMargins     = 14
 CONST spPurchases   = 15
 CONST spWindowed    = 16
 CONST spFullscreen  = 17
-CONST spLAST        = 17
+CONST spMusicVolume = 18
+CONST spSoundVolume = 19
+CONST spLAST        = 19
 
 'constants for lump reloading schemes
 CONST loadmodeMerge = -1

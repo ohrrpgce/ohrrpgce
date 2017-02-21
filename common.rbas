@@ -4339,9 +4339,30 @@ SUB create_default_menu(menu as MenuDef)
  add_item_to_ menu, spWindowed, YES
  add_item_to_ menu, spFullscreen, YES
  add_item_to_ menu, spMusicVolume
+ add_item_to_ menu, spSoundVolume
  add_item_to_ menu, spQuit
  menu.translucent = YES
  menu.min_chars = 14
+END SUB
+
+' Initialise the volume menu used in old games
+SUB create_volume_menu(menu as MenuDef)
+ ' Load the main menu and copy some of the styling
+ DIM menu_set as MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM mainmenu as MenuDef
+ LoadMenuData menu_set, mainmenu, 0, YES
+
+ ClearMenuData menu
+ add_item_to_ menu, spMusicVolume
+ add_item_to_ menu, spSoundVolume
+ menu.min_chars = 16
+ menu.boxstyle = mainmenu.boxstyle
+ menu.textcolor = mainmenu.textcolor
+ menu.textalign = mainmenu.textalign
+
+ ClearMenuData mainmenu
 END SUB
 
 FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer

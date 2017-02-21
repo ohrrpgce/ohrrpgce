@@ -2028,9 +2028,13 @@ SUB player_menu_keys ()
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
-  IF mi.t = mtypeSpecial AND mi.sub_t = spMusicVolume THEN
+  IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
    IF carray(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
+  END IF
+  IF mi.t = mtypeSpecial AND mi.sub_t = spSoundVolume THEN
+   IF carray(ccLeft) > 1 THEN set_global_sfx_volume large(get_global_sfx_volume - 1/16, 0.0)
+   IF carray(ccRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
   END IF
   IF mi.t = mtypeSpecial AND mi.sub_t = spMargins THEN '--TV safe margin
    IF carray(ccLeft) > 1 THEN
@@ -2059,7 +2063,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
  DIM slot as integer
  DIM activated as integer = YES
  menu_text_box = 0
- DO 'This DO exists to allow EXIT DO
+ DO 'This DO exists to allow EXIT DO  (TODO: remove, seems to be unused)
   WITH mi
    SELECT CASE .t
     CASE mtypeCaption
@@ -2111,7 +2115,11 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       CASE spQuit
        menusound gen(genAcceptSFX)
        verify_quit
-      CASE spMusicVolume
+      CASE spVolumeMenu
+       add_menu -1
+       create_volume_menu menus(topmenu)
+       init_menu_state mstates(topmenu), menus(topmenu)
+      CASE spMusicVolume, spSoundVolume
        activated = NO
       CASE spPurchases
        purchases_menu()

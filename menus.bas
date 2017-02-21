@@ -1368,7 +1368,17 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  NEXT
 
  position_menu menu, page
- 
+
+ DIM bord as integer = 8 + menu.bordersize
+ WITH state
+  .has_been_drawn = YES
+  .rect.x = menu.rect.x + bord
+  .rect.y = menu.rect.y + bord
+  .rect.wide = menu.rect.wide - bord * 2
+  .rect.high = menu.rect.high - bord * 2
+  .spacing = 10 + menu.itemspacing
+ END WITH
+
  WITH menu.rect
   IF menu.no_box = NO THEN
    edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
@@ -1402,29 +1412,24 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
      IF menu.highlight_selection ANDALSO selected THEN
       rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page
      END IF
-     IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      metermax = large(48, textwidth(.text))
-      edgeboxstyle where.x, where.y, get_music_volume * metermax, 10, menu.boxstyle, page, NO, YES
-     END IF
-     IF .t = 1 AND .sub_t = 14 THEN ' TV Safe Margin meter
-      metermax = large(48, textwidth(.text))
-      edgeboxstyle where.x, where.y, INT(get_safe_zone_margin() * metermax / 10), 10, menu.boxstyle, page, NO, YES
+     IF .t = mtypeSpecial THEN
+      ' Check for menu items with bars behind
+      DIM bar_width as integer = 0
+      metermax = large(48, textwidth(.text))  'small(state.rect.wide, 80)
+      IF .sub_t = spMusicVolume OR .sub_t = spVolumeMenu THEN
+       bar_width = get_music_volume() * metermax
+      ELSEIF .sub_t = spSoundVolume THEN
+       bar_width = get_global_sfx_volume() * metermax
+      ELSEIF .sub_t = spMargins THEN ' TV Safe Margin meter
+       bar_width = get_safe_zone_margin() * metermax \ 10
+      END IF
+      edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, where.y, bar_width, 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint .text, where.x, where.y, col, page, .withtags
     END IF
    END WITH
   END IF
  NEXT i
-
- WITH state
-  .has_been_drawn = YES
-  DIM bord as integer = 8 + menu.bordersize
-  .rect.x = menu.rect.x + bord
-  .rect.y = menu.rect.y + bord
-  .rect.wide = menu.rect.wide - bord * 2
-  .rect.high = menu.rect.high - bord * 2
-  .spacing = 10 + menu.itemspacing
- END WITH
  
 END SUB
 
@@ -1551,9 +1556,11 @@ FUNCTION get_special_menu_caption(byval subtype as integer) as string
    END IF
   CASE spMap,spMapMaybe  : cap = readglobalstring(68, "Map", 10)
   CASE spSave,spSaveMaybe: cap = readglobalstring(66, "Save", 10)
-  CASE spLoad            : cap = "Load" ' FIXME: Needs a global text string
+  CASE spLoad            : cap = readglobalstring(322, "Load", 20)
   CASE spQuit            : cap = readglobalstring(67, "Quit", 10)
-  CASE spMusicVolume     : cap = readglobalstring(69, "Volume", 10)
+  CASE spVolumeMenu      : cap = readglobalstring(69, "Volume", 10)
+  CASE spMusicVolume     : cap = readglobalstring(318, "Music Volume", 20)
+  CASE spSoundVolume     : cap = readglobalstring(320, "Sound Volume", 20)
   CASE spMargins         : cap = readglobalstring(308, "Margins", 10)
   CASE spPurchases       : cap = readglobalstring(313, "Purchases", 10)
   CASE spWindowed        : cap = readglobalstring(314, "Windowed", 20)
@@ -1581,6 +1588,8 @@ FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
      RETURN " [if fullscreen]"
     CASE spFullscreen
      RETURN " [if windowed]"
+    CASE spVolumeMenu
+     RETURN " [menu]"
    END SELECT
  END SELECT
  RETURN ""

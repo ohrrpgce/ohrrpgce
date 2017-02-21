@@ -40,6 +40,10 @@ WHAT IS NEW?
     * "Ignore Passmap" NPC setting, to walk through walls but not zones,
       the map edge, or NPCs/heroes. (Unlike "set npc ignores walls",
       which causes zones and map edge to be ignored.) [Ralph]
+    * Added "Music Volume" and "Sound Volume" menu options. These
+      replace the "Volume" option in the default main menu (which was
+      just for music); pressing Enter on the old Volume option opens a
+      menu with Music and Sound Volume options. [Ralph]
     * Add "Initial music/sound effects volume" settings to the General
       Preference Menu [Ralph]
     * One-way walls. You can turn the walls on a tile into one-way walls

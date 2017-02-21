@@ -28,7 +28,13 @@ This is the menu item detail editor. This is where you define what a menu item a
     *Save (if alowed)
     *Load
     *Quit
-    *Volume
+    *Volume [Obsolete]
+      This lets you adjust the music
+      volume, and pressing Enter
+      opens a new menu with Music
+      and Sound Volume options.
+    *Music Volume
+    *Sound Volume
     *Map (even if not allowed)
     *Save (even if not allowed)
     *Margins (if supported by the
