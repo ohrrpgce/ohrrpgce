@@ -5697,6 +5697,3 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
  END IF
  RETURN 0
 END FUNCTION
-
-
-

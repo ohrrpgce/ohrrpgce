@@ -1,0 +1,3 @@
+This menu lets you change the volume that music and sound effects are played at inside the game editor.
+
+These settings do NOT affect the in-game volume. You can change that in the Edit General Game Data menu.

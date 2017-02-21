@@ -45,7 +45,8 @@ WHAT IS NEW?
       just for music); pressing Enter on the old Volume option opens a
       menu with Music and Sound Volume options. [Ralph]
     * Add "Initial music/sound effects volume" settings to the General
-      Preference Menu [Ralph]
+      Preference Menu. Relatedly, you can now also change the volume
+      for Custom itself, in certain menus which advertise it. [Ralph]
     * One-way walls. You can turn the walls on a tile into one-way walls
       by pressing W in the passmap editor. All the walls on a tile are
       either normal or one-way; you can't mix them on the same tile.
