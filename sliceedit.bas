@@ -409,7 +409,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     menu(state.pt).handle->Visible XOR= YES
    END IF
   END IF
-  IF keyval(scF8) > 1 THEN
+  IF keyval(scF7) > 1 THEN
    'Make a sprite melt, just for a fun test
    DissolveSpriteSlice(menu(state.pt).handle, 5, 36)
   END IF

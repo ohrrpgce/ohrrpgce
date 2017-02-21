@@ -421,6 +421,7 @@ SUB generalmusicsfxmenu ()
 
     IF keyval(scESC) > 1 THEN EXIT DO
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
+    IF keyval(scF2) > 1 THEN Custom_volume_menu
     usemenu state
 
     IF enter_space_click(state) THEN
@@ -470,7 +471,7 @@ SUB generalmusicsfxmenu ()
     clearpage dpage
     highlight_menu_typing_selection disp(), menu_display(), selectst, state
     standardmenu menu_display(), state, 0, 0, dpage 
-    edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+    edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
     SWAP vpage, dpage
     setvispage vpage
@@ -523,6 +524,7 @@ DO
  setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
+ IF keyval(scF2) > 1 THEN Custom_volume_menu
 
  usemenu state, selectable()
 
@@ -578,7 +580,7 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -778,6 +780,7 @@ DO
  setkeys YES
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
+ IF keyval(scF2) > 1 THEN Custom_volume_menu
 
  usemenu state, selectable()
 
@@ -835,7 +838,7 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- edgeprint "F9: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage

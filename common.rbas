@@ -2261,7 +2261,8 @@ END SUB
 'Show a message box and a multichoice menu below it, return option number.
 'Preserves the contents of the screen.
 'centerlines: whether to center-justify everything, otherwise left-justified.
-FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
+'extra_message: shown at the bottom of the screen.
+FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer
  DIM state as MenuState
  DIM menu as MenuDef
  ClearMenuData menu
@@ -2334,8 +2335,9 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   NEXT
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
-   edgeprint "F1 Help", 0, pBottom, uilook(uiMenuItem), vpage
+   edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
   END IF
+  edgeprint extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, YES, YES
   setvispage vpage
   dowait
  LOOP

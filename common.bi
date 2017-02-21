@@ -173,7 +173,7 @@ DECLARE SUB basic_textbox (msg as string, col as integer = -1, page as integer, 
 DECLARE SUB notification (msg as string)
 DECLARE SUB visible_debug (s as string, errlvl as errorLevelEnum = errDebug)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
-DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES) as integer
+DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer
 DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
 DECLARE FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer

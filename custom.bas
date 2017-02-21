@@ -99,6 +99,7 @@ DIM activepalette as integer = -1
 DIM fadestate as integer
 DIM auto_distrib as string
 
+DIM editing_a_game as bool
 DIM game as string
 DIM sourcerpg as string
 DIM exename as string
@@ -358,8 +359,10 @@ cleanup_workingdir_on_error = NO
 
 'debuginfo "mem usage " & memory_usage_string()
 
+editing_a_game = YES
 main_editor_menu
 'Execution ends inside main_editor_menu
+
 '=======================================================================
 
 SUB main_editor_menu()
@@ -409,7 +412,7 @@ SUB main_editor_menu()
    show_help "main"
   END IF
 
-  IF keyval(scF5) > 1 THEN
+  IF keyval(scF5) > 1 THEN   'Redundant, but for people with muscle memory
    reimport_previous_scripts
   END IF
 
@@ -767,18 +770,46 @@ PRIVATE FUNCTION volume_controls_callback(menu as MenuDef, state as MenuState, d
 END FUNCTION
 
 ' Allow changing the in-editor volume
-SUB editor_volume_menu
+SUB Custom_volume_menu
  DIM menu as MenuDef
  create_volume_menu menu
  run_MenuDef menu, @volume_controls_callback
  ClearMenuData menu
 END SUB
 
-' This is called after *every* setkeys.
+' Accessible with F8 if we are editing a game
+SUB Custom_global_menu
+ DIM menu(...) as string = { _
+  "Reimport scripts", "Test Game", "Volume", "Macro record/replay (Ctrl-F11)", _
+  "Zoom 1x", "Zoom 2x", "Zoom 3x" _
+ }
+
+ DIM choice as integer = multichoice("Global Editor Options (F9)", menu())
+ IF choice = 0 THEN
+  reimport_previous_scripts
+ ELSEIF choice = 1 THEN
+  spawn_game_menu
+ ' ELSEIF choice = 2 THEN
+ '  'Warning: data in the current menu may not be saved! So figured it better to avoid this.
+ '  save_current_game
+ ELSEIF choice = 2 THEN
+  Custom_volume_menu
+ ELSEIF choice = 3 THEN
+  macro_controls
+ ELSEIF choice = 4 THEN
+  set_scale_factor 1
+ ELSEIF choice = 5 THEN
+  set_scale_factor 2
+ ELSEIF choice = 6 THEN
+  set_scale_factor 3
+ END IF
+END SUB
+
+' This is called after every setkeys unless we're already inside global_Custom_controls.
 ' It should be fine to call any allmodex function in here, but beware we might
 ' not have loaded a game yet!
 SUB global_Custom_controls
- IF keyval(scF9) THEN editor_volume_menu
+ IF keyval(scF9) > 1 AND editing_a_game THEN Custom_global_menu
 END SUB
 
 

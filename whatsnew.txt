@@ -46,7 +46,10 @@ WHAT IS NEW?
       menu with Music and Sound Volume options. [Ralph]
     * Add "Initial music/sound effects volume" settings to the General
       Preference Menu. Relatedly, you can now also change the volume
-      for Custom itself, by pressing F9 anywhere. [Ralph]
+      for Custom itself, see next... [Ralph]
+    * A Global Editor Options menu accessible by pressing F9 anywhere
+      in Custom, currently with options "Reimport Scripts", "Test Game",
+      "Volume" and "Zoom". More later :) [Ralph]
     * One-way walls. You can turn the walls on a tile into one-way walls
       by pressing W in the passmap editor. All the walls on a tile are
       either normal or one-way; you can't mix them on the same tile.

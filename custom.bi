@@ -39,6 +39,7 @@ DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, by
 DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr)
 DECLARE FUNCTION bgcolor_caption(bgcolor as bgType) as string
 
+DECLARE SUB Custom_volume_menu
 DECLARE SUB global_Custom_controls ()
 
 #endif

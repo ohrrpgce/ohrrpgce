@@ -2028,7 +2028,7 @@ SUB player_menu_keys ()
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
-  ' This is also duplicated in editor_volume_menu in Custom
+  ' This is also duplicated in Custom_volume_menu in Custom
   IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
    IF carray(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
    IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
