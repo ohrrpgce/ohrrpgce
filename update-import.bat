@@ -2,7 +2,7 @@ ECHO   Downloading import.zip
 IF NOT EXIST import.zip GOTO SKIPDELIMPORT
 DEL import.zip
 :SKIPDELIMPORT
-wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
+support\wget.exe -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
 IF NOT EXIST import.zip GOTO NOIMPORT
 
 DEL /Q import\Music\*.* > NUL
