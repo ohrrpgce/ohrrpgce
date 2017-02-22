@@ -36,7 +36,6 @@ Source: "SDL.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gfx_directx.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "ohrrpgce.new"; DestDir: "{app}"; Flags: ignoreversion
 Source: "game.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-game.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-custom.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -45,6 +44,7 @@ Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "data\*"; DestDir: "{app}\data\"; Flags: ignoreversion
 Source: "ohrhelp\*"; DestDir: "{app}\ohrhelp\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
