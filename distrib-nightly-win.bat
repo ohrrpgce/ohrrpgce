@@ -38,17 +38,17 @@ del game*.exe custom*.exe
 call scons gfx=fb+directx music=native2 debug=0
 call nightly-gfx-music fb native2 ~ audiere.dll
 
-del game*.exe custom*.exe
-call scons gfx=alleg+directx+fb+sdl music=sdl debug=0
-call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
+REM del game*.exe custom*.exe
+REM call scons gfx=alleg+directx+fb+sdl music=sdl debug=0
+REM call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
 
-del game*.exe custom*.exe
-call scons gfx=alleg+directx+fb music=native debug=0
-call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
+REM del game*.exe custom*.exe
+REM call scons gfx=alleg+directx+fb music=native debug=0
+REM call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
 
-del game*.exe custom*.exe
-call scons gfx=alleg+directx+fb music=native2 debug=0
-call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
+REM del game*.exe custom*.exe
+REM call scons gfx=alleg+directx+fb music=native2 debug=0
+REM call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
 
 del game*.exe custom*.exe
 call scons gfx=sdl+directx+fb music=sdl debug=0
