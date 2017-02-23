@@ -524,6 +524,18 @@ if not linkgcc:
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
         FBLINKFLAGS += ['-l','gcc_eh']
 
+# GCC 4.9 added the __cxa_throw_bad_array_new_length exception in new[],
+# which isn't in versions before libstdc++.so.6.0.20 (2014-04-22). To avoid this requirement,
+# disable C++ exceptions.
+# If you really want C++ exceptions, there is an alternative solution: use this workaround:
+# https://dxr.mozilla.org/mozilla-beta/source/build/unix/stdc++compat/stdc++compat.cpp
+CXXFLAGS.append('-fno-exceptions')
+# Also, as long as exceptions aren't used anywhere and don't have to be propagated between libraries,
+# we can link libgcc_s statically, which avoids one more thing that might be incompatible
+# (although I haven't seen any problems yet)
+if unix:
+    CXXLINKFLAGS += ['-static-libgcc']
+
 if android_source:
     with open(rootdir + 'android/extraconfig.cfg', 'w+') as fil:
         # Unfortunately the commandergenius port only has a single CFLAGS,
