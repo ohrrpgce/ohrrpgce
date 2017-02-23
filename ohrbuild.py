@@ -260,4 +260,109 @@ def android_source_actions (sourcelist, rootdir, destdir):
     ]
     return actions
     
-    
+def check_lib_requirements(binary):
+    """Check and print which versions of glibc and gcc dependency libraries (including libstdc++.so)
+    that an ELF binary requires"""
+
+    current_lib = None
+    req = {'CXXABI': (), 'GLIBC': (), 'GLIBCXX': (), 'GCC': ()}
+    for line in get_command_output("objdump", ["-p", binary]).split('\n'):
+        match = re.search("required from (.*):", line)
+        if match:
+            current_lib = match.group(1)
+        match = re.search("(CXXABI|GCC|GLIBC|GLIBCXX)_([0-9.]*)", line)
+        if match:
+            symbol = match.group(1)
+            version = tuple(map(int, match.group(2).split('.')))
+            #print symbol, version
+            req[symbol] = max(req[symbol], version)
+
+    # Tables giving the required version of GCC
+    GLIBCXX_to_gcc = {
+        (3,4,10): (4,3,0),
+        (3,4,11): (4,4,0),
+        (3,4,12): (4,4,1),
+        (3,4,13): (4,4,2),
+        (3,4,14): (4,5,0),
+        (3,4,15): (4,6,0),
+        (3,4,16): (4,6,1),
+        (3,4,17): (4,7,0),
+        (3,4,18): (4,8,0),
+        (3,4,19): (4,8,3),
+        (3,4,20): (4,9,0),
+        (3,4,21): (5,1,0),
+        (3,4,22): (6,1,0),
+    }
+
+    CXXABI_to_gcc = {
+        (1,3,2): (4,3,0),
+        (1,3,3): (4,4,0),
+        (1,3,3): (4,4,1),
+        (1,3,3): (4,4,2),
+        (1,3,4): (4,5,0),
+        (1,3,5): (4,6,0),
+        (1,3,5): (4,6,1),
+        (1,3,6): (4,7,0),
+        (1,3,7): (4,8,0),
+        (1,3,7): (4,8,3),
+        (1,3,8): (4,9,0),
+        (1,3,9): (5,1,0),
+        (1,3,10): (6,1,0),
+    }
+
+    gcc_release_dates = {
+        (4,3,0): 'March 5, 2008',
+        (4,4,0): 'April 21, 2009',
+        (4,4,1): 'July 22, 2009',
+        (4,4,2): 'October 15, 2009',
+        (4,5,0): 'April 14, 2010',
+        (4,6,0): 'March 25, 2011',
+        (4,6,1): 'June 27, 2011',
+        (4,7,0): 'March 22, 2012',
+        (4,8,0): 'March 22, 2013',
+        (4,8,3): 'May 22, 2014',
+        (4,9,0): 'April 22, 2014',
+        (5,1,0): 'April 22, 2015',
+        (6,1,0): 'April 27, 2016',
+    }
+
+    glibc_release_dates = {
+        (2,26): '2017-08-01',
+        (2,25): '2017-02-01',
+        (2,24): '2016-08-04',
+        (2,23): '2016-02-19',
+        (2,22): '2015-08-14',
+        (2,21): '2015-02-06',
+        (2,20): '2014-09-08',
+        (2,19): '2014-02-07',
+        (2,18): '2013-08-12',
+        (2,17): '2012-12-25',
+        (2,16): '2012-06-30',
+        (2,15): '2012-03-21',
+        (2,14,1): '2011-10-07',
+        (2,14): '2011-06-01',
+        (2,13): '2011-02-01',
+        (2,12,2): '2010-12-13',
+        (2,12,1): '2010-08-03',
+        (2,12): '2010-05-03',
+    }
+
+    if req['GLIBCXX'] > (3,4,22) or req['CXXABI'] > (1,3,10):
+        gcc_req = '>6.1.0'
+    else:
+        max_version = req['GCC']
+        if req['CXXABI']:
+            max_version = max(max_version, CXXABI_to_gcc[req['CXXABI']])
+        if req['GLIBCXX']:
+            max_version = max(max_version, GLIBCXX_to_gcc[req['GLIBCXX']])
+        gcc_req = '.'.join(map(str, max_version)) + ' released ' + gcc_release_dates[max_version]
+
+    if req['GLIBC'] < (2,11):
+        glibc_release = '<2010'
+    else:
+        glibc_release = glibc_release_dates.get(req['GLIBC'], 'unknown')
+    print "%s requires glibc %s released %s" % (binary, req['GLIBC'], glibc_release)
+    print "  and requires libs for gcc " + gcc_req
+    #print req
+
+#check_lib_requirements("ohrrpgce-game")

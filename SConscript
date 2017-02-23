@@ -532,7 +532,8 @@ if not linkgcc:
 CXXFLAGS.append('-fno-exceptions')
 # Also, as long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
-# (although I haven't seen any problems yet)
+# (although I haven't seen any problems yet). Actually it might be possible to use
+# -static-libgcc with exceptions, provided we link with g++?
 if unix:
     CXXLINKFLAGS += ['-static-libgcc']
 
