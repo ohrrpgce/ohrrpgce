@@ -3,11 +3,16 @@
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+'' NOTE: This backend is not well maintained. Currently at least the following don't work:
+'' -changing zoom (no cmdline switch, so can't work at runtime either)
+'' -hiding or showing the mouse cursor
+
 
 #include "config.bi"
 #include "backends.bi"
 #include "gfx.bi"
 #undef Font
+#undef readkey
 #include "allegro.bi"
 #include "scancodes.bi"
 

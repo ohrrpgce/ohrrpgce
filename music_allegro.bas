@@ -3,8 +3,9 @@
 ''
 '' part of OHRRPGCE - see elsewhere for license details
 ''
+'' The new sfx interface is not completely implemented.
 #print
-#print WARNING: music_allegro compiles, but the sound effects interface is unimplemented.
+#print WARNING: music_allegro can only play WAV (and sometimes MIDI/BAM) and other problems
 #print
 
 #include "config.bi"
@@ -16,6 +17,9 @@
 
 
 #undef font
+#undef readkey
+#undef bitmap
+#undef ellipse
 #include "allegro.bi"
 
 
@@ -184,7 +188,7 @@ function music_getvolume() as single
 end function
 
 TYPE sound_effect EXTENDS SFXCommonData
-  used as integer 'whether this slot is free
+  used as bool 'whether this slot is free
   
   paused as integer
   playing as integer
@@ -223,7 +227,7 @@ sub sound_close
         destroy_sample(.buf)
         .paused = 0
         .playing = 0
-        .used = 0
+        .used = NO
         .buf = 0
       end if
     end with
@@ -237,38 +241,55 @@ end sub
 'UNIMPLEMENTED
 sub sound_reset() : end sub
 
+'PARTIALLY UNIMPLEMENTED
+' Returns -1 if too many sounds already playing/loaded
+function next_free_slot() as integer
+  dim i as integer
+  dim retake_slot as integer
 
-'UNIMPLEMENTED
-function sound_load overload(filename as string, num as integer = -1) as integer
-  return 0
+  'Look for empty slots
+  for i = 0 to ubound(sfx_slots)
+    if sfx_slots(i).used = NO then
+      return i
+    end if
+  next
+
+  'Look for silent slots
+  'UNIMPLEMENTED: .playing does not automatically set to NO;
+  'we need to check each sfx
+  for i = 0 to ubound(sfx_slots)
+    retake_slot = (retake_slot + 1) mod (ubound(sfx_slots)+1)
+    with sfx_slots(retake_slot)
+      if .playing = NO and .paused = NO then
+        sound_unload retake_slot
+        return retake_slot
+      end if
+    end with
+  next
+
+  ' evict something
+  sound_unload retake_slot
+  return retake_slot
 end function
 
-function sound_load(slot as integer, f as string) as integer
-  'slot is the sfx_slots element to use, or -1 to automatically pick one
+function sound_load(slot as integer, f as string, num as integer) as integer
+  'slot is the sfx_slots element to use
   'f is the file.
   dim i as integer
-  
-  if slot = -1 then
-    for i = 0 to ubound(sfx_slots)
-    
-      if sfx_slots(i).used = 0 then
-        slot = i
-        exit for
-      end if
-    next
-    
-    if slot = ubound(sfx_slots) + 1 then return -1 'no free slots...
-  end if
   
   with sfx_slots(slot)
     if .used then
       sound_free(slot)
     end if
     
-    .used = 1
+    .used = YES
+    .effectID = num
     .buf = load_wav(f)
     
-    if .buf = NULL then return -1
+    if .buf = NULL then
+      debug "load_wav " & f & " failed"
+      return -1
+    end if
     
     .voice = allocate_voice(.buf)
     
@@ -279,10 +300,16 @@ function sound_load(slot as integer, f as string) as integer
   
 end function
 
+function sound_load overload(filename as string, num as integer = -1) as integer
+  dim slot as integer = next_free_slot()
+  sound_load slot, filename, num
+  return slot
+end function
+
 sub sound_unload(slot as integer)
   with sfx_slots(slot)
     if .used then
-      .used = 0
+      .used = NO
       .playing = 0
       .paused = 0
       deallocate_voice(.voice)
@@ -291,9 +318,10 @@ sub sound_unload(slot as integer)
   end with
 end sub
 
-sub sound_play(slot as integer, loopcount as integer)
+' UNIMPLEMENTED: volume ignored
+sub sound_play(slot as integer, loopcount as integer, volume as single)
   with sfx_slots(slot)
-    if .used = 0 then exit sub
+    if .used = NO then exit sub
     if .playing and .paused = 0 then exit sub
     if .buf = 0 then exit sub
     
@@ -310,9 +338,18 @@ sub sound_play(slot as integer, loopcount as integer)
   end with
 end sub
 
+' UNIMPLEMENTED
+sub sound_setvolume(slot as integer, volume as single)
+end sub
+
+' UNIMPLEMENTED
+function sound_getvolume(slot as integer) as single
+  return 0.
+end function
+
 sub sound_pause(slot as integer)
   with sfx_slots(slot)
-    if .used = 0 then exit sub
+    if .used = NO then exit sub
     if .playing = 0 then exit sub
     if .paused then exit sub
     
@@ -323,7 +360,7 @@ end sub
 
 sub sound_stop(slot as integer)
   with sfx_slots(slot)
-    if .used = 0 then exit sub
+    if .used = NO then exit sub
     if .playing = 0 then exit sub
     
     .playing = 0
@@ -336,7 +373,7 @@ end sub
 
 function sound_playing(slot as integer) as bool
   with sfx_slots(slot)
-    if .used = 0 then return NO
+    if .used = NO then return NO
 
     return voice_get_position(.voice) <> -1
   end with
@@ -344,8 +381,8 @@ end function
 
 function sound_slotdata(slot as integer) as SFXCommonData ptr
   if slot < 0 or slot > ubound(sfx_slots) then return NULL
-  if not sfx_slots(slot).used then return NULL
-  return sfx_slots(slot)
+  if sfx_slots(slot).used = NO then return NULL
+  return @sfx_slots(slot)
 end function
 
 function sound_lastslot as integer
@@ -356,3 +393,11 @@ end function
 sub sound_free(num as integer)
 end sub
 
+function sound_slot_with_id(num as integer) as integer
+  for slot as integer = 0 to ubound(sfx_slots)
+    if sfx_slots(slot).used andalso sfx_slots(slot).effectID = num then
+      return slot
+    end if
+  next
+  return -1
+end function
