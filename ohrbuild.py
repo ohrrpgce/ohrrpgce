@@ -346,23 +346,39 @@ def check_lib_requirements(binary):
         (2,12,1): '2010-08-03',
         (2,12): '2010-05-03',
     }
+    #print req
+
+    def verstring(version_tuple):
+        return '.'.join(map(str, version_tuple))
 
     if req['GLIBCXX'] > (3,4,22) or req['CXXABI'] > (1,3,10):
         gcc_req = '>6.1.0'
     else:
-        max_version = req['GCC']
-        if req['CXXABI']:
-            max_version = max(max_version, CXXABI_to_gcc[req['CXXABI']])
-        if req['GLIBCXX']:
-            max_version = max(max_version, GLIBCXX_to_gcc[req['GLIBCXX']])
-        gcc_req = '.'.join(map(str, max_version)) + ' released ' + gcc_release_dates[max_version]
+        max_versions = []
+        if req['GCC']:
+            max_versions.append(req['GCC'])
+        # fixme: this isn't very good
+        if req['CXXABI'] < (1,3,2):
+            pass
+        else: #if req['CXXABI'] in GLIBCXX_to_gcc:
+            max_versions.append(CXXABI_to_gcc.get(req['CXXABI'], (9, 'unknown')))
+        if req['GLIBCXX'] < (3,4,10):
+            pass
+        else: #if req['GLIBCXX'] in GLIBCXX_to_gcc:
+            max_versions.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (9, 'unknown')))
+        if len(max_versions) == 0:
+            gcc_req = None
+        else:
+            max_version = max(max_versions)
+            gcc_req = verstring(max_version) + ' (released %s)' % gcc_release_dates[max_version]
+    if gcc_req:
+        gcc_req = 'and libs for gcc ' + gcc_req
 
     if req['GLIBC'] < (2,11):
         glibc_release = '<2010'
     else:
         glibc_release = glibc_release_dates.get(req['GLIBC'], 'unknown')
-    print "%s requires glibc %s released %s" % (binary, req['GLIBC'], glibc_release)
-    print "  and requires libs for gcc " + gcc_req
-    #print req
+    print ">>  %s requires glibc %s (released %s) %s" % (
+        binary, verstring(req['GLIBC']), glibc_release, gcc_req)
 
 #check_lib_requirements("ohrrpgce-game")

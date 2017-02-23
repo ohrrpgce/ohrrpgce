@@ -12,6 +12,7 @@ import shlex
 import itertools
 import re
 from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output, get_fb_info
+import ohrbuild
 
 FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C, C++, and -gen gcc generated C source
@@ -158,6 +159,7 @@ FB_g = (debug >= 1)       # compile with -g?
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
 
+portable = int (ARGUMENTS.get ('portable', 0))
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
@@ -262,6 +264,16 @@ def translate_rb(source):
         return env.RB(source)
     return File(source)
 
+
+if portable:
+    def check_lib_reqs(source, target, env):
+        for targ in target:
+            ohrbuild.check_lib_requirements(str(targ))
+    check_binary = Action(check_lib_reqs, None)  # Action wrapper which prints nothing
+else:
+    check_binary = None
+
+
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
                         suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets,
@@ -274,7 +286,8 @@ basmaino = Builder (action = '$FBC -c $SOURCE -o $TARGET -m ${SOURCE.filebase} $
 
 # Only used when linking with fbc.
 # Because fbc ignores all but the last -Wl flag, have to concatenate them.
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
+basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
+                            check_binary],
                   suffix = exe_suffix, src_suffix = '.bas', source_factory = translate_rb)
 
 # Not used; use asm=1
@@ -480,8 +493,12 @@ if linkgcc:
             CXXLINKFLAGS += ['linux/fb_icon.c']
         # Android doesn't have ncurses, and libpthread is part of libc
         if not android:
-            # The following are required by libfb
-            CXXLINKFLAGS += ['-lncurses', '-lpthread']
+            # The following are required by libfb (not libfbgfx)
+            CXXLINKFLAGS += ['-lpthread']
+            if portable:
+                CXXLINKFLAGS += ['-l:libncurses.so.5']
+            else:
+                CXXLINKFLAGS += ['-lncurses']  # would be libncurses.so.6 since ~2015
 
     if mac:
         # -no_pie (no position-independent execution) fixes a warning
@@ -512,7 +529,9 @@ if linkgcc:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
     else:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
-    basexe_gcc = Builder (action = basexe_gcc_action, suffix = exe_suffix, src_suffix = '.bas', emitter = compile_main_module)
+
+    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary], suffix = exe_suffix,
+                          src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
 
@@ -523,6 +542,9 @@ if not linkgcc:
         # libgcc_eh (a C++ helper library) is only needed when linking/compiling with old versions of Apple g++
         # including v4.2.1; for most compiler versions and configuration I tried it is unneeded
         FBLINKFLAGS += ['-l','gcc_eh']
+    if portable:
+        # TODO: force link to libncurses.so.5 or libtinfo.so.5
+        print "WARNING: can't force libtinfo.so.5\n"
 
 # GCC 4.9 added the __cxa_throw_bad_array_new_length exception in new[],
 # which isn't in versions before libstdc++.so.6.0.20 (2014-04-22). To avoid this requirement,
@@ -534,6 +556,8 @@ CXXFLAGS.append('-fno-exceptions')
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
 # (although I haven't seen any problems yet). Actually it might be possible to use
 # -static-libgcc with exceptions, provided we link with g++?
+# NOTE: libgcc_s.so still appears in ldd output, but it's no longer listed in objdump -p
+# dependencies... hmmm...
 if unix:
     CXXLINKFLAGS += ['-static-libgcc']
 
@@ -782,7 +806,9 @@ common_modules += ['rasterizer.cpp',
 
 def version_info(source, target, env):
     verprint (gfx, music, fbc, arch, asan, builddir, rootdir)
-VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'], source = ['codename.txt'], action = version_info)
+VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
+                        source = ['codename.txt'], 
+                        action = env.Action(version_info, "Generating ver.txt"))
 AlwaysBuild(VERPRINT)
 
 
@@ -1058,6 +1084,7 @@ Experimental options:
                        64 or x86_64
                        arm/armeabi/arm5vte  Older ARM devices w/o FPUs (Android default)
                        armv7-a              Newer ARM devices w/ FPUs, like RPi2+.
+  portable=1          (For Linux) Try to build portable binaries, and test them.
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
