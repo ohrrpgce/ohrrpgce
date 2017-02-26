@@ -47,7 +47,7 @@ package_for_arch() {
   ARCH=$1
 
   echo "Building $ARCH binaries"
-  scons $NJOBS debug=0 arch=$ARCH game custom hspeak unlump relump || return 1
+  scons $NJOBS debug=0 arch=$ARCH portable=1 game custom hspeak unlump relump || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
 
@@ -125,3 +125,4 @@ if which dpkg > /dev/null; then
 fi
 
 package_for_arch x86_64
+# TODO: x86_64 .debs
