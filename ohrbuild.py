@@ -264,12 +264,14 @@ def check_lib_requirements(binary):
     """Check and print which versions of glibc and gcc dependency libraries (including libstdc++.so)
     that an ELF binary requires"""
 
+    libraries = []
     current_lib = None
     req = {'CXXABI': (), 'GLIBC': (), 'GLIBCXX': (), 'GCC': ()}
     for line in get_command_output("objdump", ["-p", binary]).split('\n'):
         match = re.search("required from (.*):", line)
         if match:
             current_lib = match.group(1)
+            libraries.append(current_lib)
         match = re.search("(CXXABI|GCC|GLIBC|GLIBCXX)_([0-9.]*)", line)
         if match:
             symbol = match.group(1)
@@ -351,10 +353,23 @@ def check_lib_requirements(binary):
     def verstring(version_tuple):
         return '.'.join(map(str, version_tuple))
 
+    def lookup_version(version_tuple, table):
+        if version_tuple < min(table):
+            return "before " + table[min(table)]
+        elif version_tuple > max(table):
+            return "after " + table[max(table)]
+        elif version_tuple in table:
+            return table[version_tuple]
+        return "unknown"
+
+    max_versions = [(0,)]
+
+    if 'libstdc++.so.6' in libraries:
+        max_versions.append((3,4,0))
+
     if req['GLIBCXX'] > (3,4,22) or req['CXXABI'] > (1,3,10):
         gcc_req = '>6.1.0'
     else:
-        max_versions = []
         if req['GCC']:
             max_versions.append(req['GCC'])
         # fixme: this isn't very good
@@ -366,18 +381,12 @@ def check_lib_requirements(binary):
             pass
         else: #if req['GLIBCXX'] in GLIBCXX_to_gcc:
             max_versions.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (9, 'unknown')))
-        if len(max_versions) == 0:
-            gcc_req = None
-        else:
-            max_version = max(max_versions)
-            gcc_req = verstring(max_version) + ' (released %s)' % gcc_release_dates[max_version]
+        max_version = max(max_versions)
+        gcc_req = verstring(max_version) + ' (released %s)' % lookup_version(max_version, gcc_release_dates)
     if gcc_req:
         gcc_req = 'and libs for gcc ' + gcc_req
 
-    if req['GLIBC'] < (2,11):
-        glibc_release = '<2010'
-    else:
-        glibc_release = glibc_release_dates.get(req['GLIBC'], 'unknown')
+    glibc_release = lookup_version(req['GLIBC'], glibc_release_dates)
     print ">>  %s requires glibc %s (released %s) %s" % (
         binary, verstring(req['GLIBC']), glibc_release, gcc_req)
 

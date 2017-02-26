@@ -1,3 +1,5 @@
+/* build/unix/stdc++compat/stdc++compat.cpp from Mozilla, commit 2677f3e14506,
+   lightly edited. */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -7,7 +9,8 @@
 #include <string>
 #include <stdarg.h>
 #include <stdio.h>
-#include <mozilla/Assertions.h>
+
+#define MOZ_EXPORT
 
 /* GLIBCXX_3.4.8  is from gcc 4.1.1 (111691)
    GLIBCXX_3.4.9  is from gcc 4.2.0 (111690)
@@ -31,6 +34,10 @@ libstdc++ 4.3.
 */
 
 #define GLIBCXX_VERSION(a, b, c) (((a) << 16) | ((b) << 8) | (c))
+
+// The libstdc++ version for the gcc compiler used.
+// I don't think this really has to be accurate
+#define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 4.9
 
 namespace std {
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 14)
@@ -168,7 +175,7 @@ namespace std MOZ_EXPORT {
 extern "C" void
 __cxa_throw_bad_array_new_length()
 {
-    MOZ_CRASH();
+    abort();
 }
 #endif
 

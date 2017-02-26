@@ -546,20 +546,14 @@ if not linkgcc:
         # TODO: force link to libncurses.so.5 or libtinfo.so.5
         print "WARNING: can't force libtinfo.so.5\n"
 
-# GCC 4.9 added the __cxa_throw_bad_array_new_length exception in new[],
-# which isn't in versions before libstdc++.so.6.0.20 (2014-04-22). To avoid this requirement,
-# disable C++ exceptions.
-# If you really want C++ exceptions, there is an alternative solution: use this workaround:
-# https://dxr.mozilla.org/mozilla-beta/source/build/unix/stdc++compat/stdc++compat.cpp
-CXXFLAGS.append('-fno-exceptions')
-# Also, as long as exceptions aren't used anywhere and don't have to be propagated between libraries,
+# As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
-# (although I haven't seen any problems yet). Actually it might be possible to use
+# (although I haven't seen any problems yet). I think we can use
 # -static-libgcc with exceptions, provided we link with g++?
 # NOTE: libgcc_s.so still appears in ldd output, but it's no longer listed in objdump -p
 # dependencies... hmmm...
-if unix:
-    CXXLINKFLAGS += ['-static-libgcc']
+# if unix:
+#     CXXLINKFLAGS += ['-static-libgcc']
 
 if android_source:
     with open(rootdir + 'android/extraconfig.cfg', 'w+') as fil:
@@ -695,7 +689,8 @@ elif android:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
 elif unix:  # Linux & BSD
-    base_modules += ['os_unix.c', 'os_unix2.bas']
+    # lib/stdc++compat.cpp to support old libstdc++.so versions
+    base_modules += ['os_unix.c', 'os_unix2.bas', 'lib/stdc++compat.cpp']
     common_modules += ['os_unix_wm.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
