@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" ; do
+for VMNAME in "Debian 64bit" "Windows 7" ; do
   echo "===Starting ${VMNAME}==="
   vboxmanage startvm "${VMNAME}"
   RUNNING="True"
