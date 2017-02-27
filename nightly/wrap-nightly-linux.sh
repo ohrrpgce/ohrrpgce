@@ -9,7 +9,7 @@ if [ -n "True" ] ; then
   echo "To: cron@rpg.hamsterrepublic.com"
   echo "Subject: OHRRPGCE Linux nightly build ($(uname -n))"
   echo ""
-  ./distrib-nightly.sh
+  ./distrib-nightly.sh 2>&1
 fi | tee ~/wrap-nightly-linux-output.txt
 /usr/sbin/sendmail < ~/wrap-nightly-linux-output.txt
 
