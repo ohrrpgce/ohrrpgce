@@ -36,8 +36,15 @@ libstdc++ 4.3.
 #define GLIBCXX_VERSION(a, b, c) (((a) << 16) | ((b) << 8) | (c))
 
 // The libstdc++ version for the gcc compiler used.
-// I don't think this really has to be accurate
-#define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 4.9
+#if (__GNUC__ >= 4)
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 5.0
+#elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 9)
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 20)  //GCC 4.9
+#elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 16)  //GCC 4.6.1
+#else
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 15)  //GCC 4.5
+#endif
 
 namespace std {
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 14)
