@@ -546,6 +546,12 @@ if not linkgcc:
         # TODO: force link to libncurses.so.5 or libtinfo.so.5
         print "WARNING: can't force libtinfo.so.5\n"
 
+if unix and not mac:
+    # For compatibility with libstdc++ before GCC 5
+    # See https://bugzilla.mozilla.org/show_bug.cgi?id=1153109
+    # and https://gcc.gnu.org/onlinedocs/libstdc%2B%2B/manual/using_dual_abi.html
+    CXXFLAGS.append ("-D_GLIBCXX_USE_CXX11_ABI=0")
+
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
 # we can link libgcc_s statically, which avoids one more thing that might be incompatible
 # (although I haven't seen any problems yet). I think we can use
