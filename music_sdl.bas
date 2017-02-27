@@ -95,7 +95,11 @@ function music_get_info() as string
 	dim ret as string = "music_sdl"
 
 	dim libhandle as any ptr
-	libhandle = dylibload("libSDL_mixer.so")
+	libhandle = dylibload("SDL_mixer")
+	' For some reason the SDL 1.2 Android port produces libsdl_mixer.so instead
+	if libhandle = NULL then
+		libhandle = dylibload("sdl_mixer")
+	end if
 	if libhandle then
 		_Mix_GetNumMusicDecoders = dylibsymbol(libhandle, "Mix_GetNumMusicDecoders")
 		_Mix_GetNumChunkDecoders = dylibsymbol(libhandle, "Mix_GetNumChunkDecoders")
@@ -135,7 +139,7 @@ function music_get_info() as string
 		ret += ")"
 	end if
 
-	dylibfree(libhandle)
+	if libhandle then dylibfree(libhandle)
 
 	return ret
 end function
