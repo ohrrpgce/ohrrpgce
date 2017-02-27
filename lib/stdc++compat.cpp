@@ -43,7 +43,7 @@ libstdc++ 4.3.
 #elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)
  #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 16)  //GCC 4.6.1
 #else
- #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 15)  //GCC 4.5
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 14)  //GCC 4.5
 #endif
 
 namespace std {
