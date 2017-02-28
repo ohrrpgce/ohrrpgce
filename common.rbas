@@ -446,6 +446,7 @@ SUB notification (msg as string)
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
+ sleep 250  'Avoid accidental advancement
  clearkey(waitforanykey())
  freepage holdpage
  restore_previous_palette
