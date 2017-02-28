@@ -102,14 +102,6 @@ dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 
-#IFDEF __X11__
- 'As a workaround for bug 2005, we disable native text input by default
- 'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
- dim disable_native_text_input as bool = YES
-#ELSE
- dim disable_native_text_input as bool = NO
-#ENDIF
-
 redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
@@ -180,6 +172,14 @@ dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard
 dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
+#IFDEF __X11__
+	'As a workaround for bug 2005, we disable native text input by default
+	'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
+	dim shared disable_native_text_input as bool = YES
+#ELSE
+	dim shared disable_native_text_input as bool = NO
+#ENDIF
+
 'Singleton type
 type ReplayState
 	active as bool             'Currently replaying input and not paused
@@ -225,8 +225,8 @@ type RecordGIFState
 end type
 
 dim shared recordgif as RecordGIFState
-dim gif_max_fps as integer = 30
-dim screenshot_record_overlays as bool = NO
+dim shared gif_max_fps as integer = 30
+dim shared screenshot_record_overlays as bool = NO
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -408,6 +408,48 @@ sub setwindowtitle (title as string)
 	gfx_windowtitle(title)
 	mutexunlock keybdmutex
 end sub
+
+function allmodex_setoption(opt as string, arg as string) as integer
+	if opt = "no-native-kbd" then
+		disable_native_text_input = YES
+		debuginfo "Native text input disabled"
+		return 1
+	elseif opt = "native-kbd" then
+		disable_native_text_input = NO
+		debuginfo "Native text input enabled"
+		return 1
+	elseif opt = "giffps" then
+		dim fps as integer = str2int(arg, -1)
+		if fps > 0 then
+			gif_max_fps = fps
+			return 2
+		else
+			visible_debug "--giffps: invalid fps"
+			return 1
+		end if
+	elseif opt = "recordoverlays" then
+		screenshot_record_overlays = YES
+		return 1
+	elseif opt = "recordinput" then
+		dim fname as string = absolute_with_orig_path(arg)
+		if fileiswriteable(fname) then
+			start_recording_input fname
+			return 2 'arg used
+		else
+			display_help_string "input cannot be recorded to """ & fname & """ because the file is not writeable." & LINE_END
+			return 1
+		end if
+	elseif opt = "replayinput" then
+		dim fname as string = absolute_with_orig_path(arg)
+		if fileisreadable(fname) then
+			start_replaying_input fname
+			return 2 'arg used
+		else
+			display_help_string "input cannot be replayed from """ & fname & """ because the file is not readable." & LINE_END
+			return 1
+		end if
+	end if
+end function
 
 
 '==========================================================================================

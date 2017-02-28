@@ -65,6 +65,7 @@ End Type
 
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
+DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
 DECLARE SUB mersenne_twister (byval seed as double)
 
 DECLARE FUNCTION allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
@@ -568,11 +569,8 @@ extern modex_initialised as bool
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
-extern disable_native_text_input as bool
 extern fonts() as Font ptr
 extern global_tog as integer
 extern showfps as bool
-extern gif_max_fps as integer
-extern screenshot_record_overlays as bool
 
 #ENDIF

@@ -90,26 +90,6 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & *gfx_describe_options() & LINE_END
 		display_help_string help
 		return 1
-	elseif opt = "no-native-kbd" then
-		disable_native_text_input = YES
-		debuginfo "Native text input disabled"
-		return 1
-	elseif opt = "native-kbd" then
-		disable_native_text_input = NO
-		debuginfo "Native text input enabled"
-		return 1
-	elseif opt = "giffps" then
-		dim fps as integer = str2int(arg, -1)
-		if fps > 0 then
-			gif_max_fps = fps
-			return 2
-		else
-			visible_debug "--giffps: invalid fps"
-			return 1
-		end if
-	elseif opt = "recordoverlays" then
-		screenshot_record_overlays = YES
-		return 1
 	elseif opt = "log" then
 		dim d as string = absolute_with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then
@@ -148,6 +128,7 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 
 	' Delegate
 	argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
+	if argsused = 0 then argsused = allmodex_setoption(opt, arg)
 	if argsused = 0 then argsused = gfx_setoption(cstring(opt), cstring(arg))
 	if argsused = 0 then argsused = global_setoption(opt, arg)
 	if argsused = 0 then argsused = common_setoption(opt, arg)  'common.rbas
