@@ -1228,7 +1228,7 @@ SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
- setvispage vpage
+ setvispage vpage, NO
  DIM ret as string = mp3_to_ogg(mp3, oggtemp, ogg_quality)
  IF LEN(ret) THEN
   visible_debug ret
@@ -1250,7 +1250,7 @@ SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
- setvispage vpage
+ setvispage vpage, NO
  DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality)
  IF LEN(ret) THEN
   visible_debug ret

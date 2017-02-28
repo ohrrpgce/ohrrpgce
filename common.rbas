@@ -1095,7 +1095,7 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
  DefaultUIColors uilook(), boxlook()
  clearpage 0
  basic_textbox msg + quitmsg, uilook(uiText), 0
- setvispage 0
+ setvispage 0, NO
 
  setwait 200  'Give user a chance to let go of keys
  dowait
@@ -2434,14 +2434,14 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
   'Sync actual and backend-internal screens
   CLS
   clearpage vpage
-  setvispage vpage
+  setvispage vpage, NO
   RETURN ""
  END IF
 
 #IFDEF __FB_DARWIN__
 
  basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
- setvispage vpage
+ setvispage vpage, NO
 
  'Wow that's a crazy amount of indirection!
  'Running Terminal.app is the only way to get a terminal, but 'open' is for opening a file with an application only,

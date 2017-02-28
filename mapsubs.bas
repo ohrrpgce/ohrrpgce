@@ -4001,7 +4001,7 @@ END SUB
 SUB resizetiledata (tmap as TileMap, x_off as integer, y_off as integer, new_width as integer, new_height as integer, byref yout as integer, page as integer)
  edgeprint "Resizing Map...", 0, yout * 10, uilook(uiText), page
  yout += 1
- setvispage page
+ setvispage page, NO
 
  dim tmp as TileMap
  cleantilemap tmp, new_width, new_height

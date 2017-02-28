@@ -949,7 +949,7 @@ SUB apply_game_window_settings ()
    set_resolution(gen(genResolutionX), gen(genResolutionY))
    'Always recenter (need to call setvispage immediately, or the hint may be lost by calling e.g. set_safe_zone_margin)
    gfx_recenter_window_hint()
-   setvispage vpage
+   setvispage vpage, NO
    'Calling this is only needed when live-previewing
    UpdateScreenSlice()
   END IF

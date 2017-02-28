@@ -147,6 +147,14 @@ dim shared bordertile as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
+type SkippedFrame
+	surf as Surface ptr
+	page as integer = -1
+
+	declare sub drop()
+	declare sub show()
+end type
+
 dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
@@ -155,6 +163,7 @@ dim shared use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0
+dim shared skipped_frame as SkippedFrame
 
 type KeyboardState
 	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
@@ -378,6 +387,8 @@ sub restoremode()
 		keybdthread = 0
 	end if
 	mutexdestroy keybdmutex
+
+	skipped_frame.drop()
 
 	gfx_close()
 
@@ -675,7 +686,7 @@ sub set_resolution (byval w as integer, byval h as integer)
 	'call to set_scale_factor would change scale and recenter window using wrong window size,
 	'requiring manual recenter.
 	'TODO: not ideal, should tell backend about size and scale at same time.
-	setvispage vpage
+	setvispage vpage, NO
 end sub
 
 'The current internal window size in pixels (actual window updated at next setvispage)
@@ -760,13 +771,34 @@ end function
 '                                   setvispage and Fading
 '==========================================================================================
 
+
+sub SkippedFrame.drop()
+	gfx_surfaceDestroy(surf)  'decrement refcount
+	surf = NULL
+	page = -1
+end sub
+
+' If the last setvispage/setvissurface was skipped, display it
+sub SkippedFrame.show ()
+	if page > -1 then
+		setvispage page
+	elseif surf then
+		setvissurface surf
+	end if
+end sub
+
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
-sub setvispage (byval page as integer)
+'skippable: if true, allowed to frameskip this frame at high framerates
+sub setvispage (page as integer, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if running above 90fps
 	static lastframe as double
-	if timer - lastframe < 1. / 90 then exit sub
+	skipped_frame.drop()
+	if skippable andalso timer - lastframe < 1. / 90 then
+		skipped_frame.page = page
+		exit sub
+	end if
 	lastframe = timer
 
 	dim starttime as double = timer
@@ -819,11 +851,16 @@ end sub
 
 'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
 'May modify the surface.
-sub setvissurface (to_show as Surface ptr)
+'skippable: if true, allowed to frameskip this frame at high framerates
+sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if running above 90fps
 	static lastframe as double
-	if timer - lastframe < 1. / 90 then exit sub
+	skipped_frame.drop()
+	if skippable andalso timer - lastframe < 1. / 90 then
+		skipped_frame.surf = gfx_surfaceReference(to_show)
+		exit sub
+	end if
 	lastframe = timer
 
 	if screenshot_record_overlays = YES then
@@ -865,6 +902,8 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
+
+	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
 		mutexlock keybdmutex
@@ -921,6 +960,8 @@ sub fadetopal (pal() as RGBcolor)
 	dim i as integer
 	dim j as integer
 	dim diff as integer
+
+	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
 		mutexlock keybdmutex
@@ -1071,14 +1112,14 @@ sub resetsfx ()
 	sound_reset
 end sub
 
-sub loadsong (f as string)
+sub loadsong (fname as string)
 	'check for extension
 	dim ext as string
 	dim songname as string
 	dim songtype as MusicFormatEnum
 
-	songname = f
-	songtype = getmusictype(f)
+	songname = fname
+	songtype = getmusictype(fname)
 
 	music_play(songname, songtype)
 end sub
@@ -1567,6 +1608,7 @@ function waitforanykey () as integer
 	dim as integer key, sleepjoy = 3
 	dim remem_speed_control as bool = use_speed_control
 	use_speed_control = YES
+	skipped_frame.show()  'If we frame-skipped last frame, better show it
 	setkeys
 	do
 		setwait 60

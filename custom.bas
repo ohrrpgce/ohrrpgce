@@ -306,7 +306,7 @@ prompt_for_password
 clearpage vpage
 textcolor uilook(uiText), 0
 printstr "UNLUMPING DATA: please wait.", 0, 0, vpage
-setvispage vpage
+setvispage vpage, NO
 
 touchfile workingdir + SLASH + "__danger.tmp"
 IF isdir(sourcerpg) THEN
@@ -632,7 +632,7 @@ SUB prompt_for_save_and_quit()
   clearpage 0
   printstr "Saving as " & lumpfile, 0, 0, 0
   printstr "LUMPING DATA: please wait...", 0, 10, 0
-  setvispage 0
+  setvispage 0, NO
   write_rpg_or_rpgdir workingdir, lumpfile
   cleanup_and_terminate
   EXIT SUB
@@ -714,10 +714,10 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
   #IFDEF __FB_WIN32__
    'On windows, can't delete workingdir until Game has closed the music. Not too serious though
    basic_textbox "Waiting for " & GAMEEXE & " to clean up...", uilook(uiText), vpage
-   setvispage vpage
+   setvispage vpage, NO
    IF channel_wait_for_msg(slave_channel, "Q", "", 2000) = 0 THEN
     basic_textbox "Waiting for " & GAMEEXE & " to clean up... giving up.", uilook(uiText), vpage
-    setvispage vpage
+    setvispage vpage, NO
     sleep 700
    END IF
   #ENDIF
@@ -725,7 +725,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
  END IF
  IF slave_process <> 0 THEN
   basic_textbox "Waiting for " & GAMEEXE & " to quit...", uilook(uiText), vpage
-  setvispage vpage
+  setvispage vpage, NO
   'Under GNU/Linux this calls pclose which will block until Game has quit.
   cleanup_process @slave_process
  END IF
@@ -1249,14 +1249,14 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 100, vpage
  printstr "Creating RPG File", 0, 110, vpage
- setvispage vpage
+ setvispage vpage, NO
  IF NOT isfile(templatefile) THEN
   notification !"Error: ohrrpgce.new not found. The OHRRPGCE is apparently not installed properly.\nPress Enter to quit"
   RETURN NO
  END IF
  writeablecopyfile templatefile, newrpg
  printstr "Unlumping", 0, 120, vpage
- setvispage vpage 'refresh
+ setvispage vpage, NO
  unlump newrpg, workingdir + SLASH
  '--create archinym information lump
  DIM fh as integer = FREEFILE
@@ -1265,7 +1265,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  PRINT #fh, version
  CLOSE #fh
  printstr "Finalumping", 0, 130, vpage
- setvispage vpage 'refresh
+ setvispage vpage, NO
  '--re-lump files as NEW rpg file
  RETURN write_rpg_or_rpgdir(workingdir, newrpg)
 END FUNCTION
@@ -1503,7 +1503,7 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
 
  printstr "Saving as " + decode_filename(destfile), 0, 180, vpage
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
- setvispage vpage
+ setvispage vpage, NO
  '--re-lump recovered files as RPG file
  IF write_rpg_or_rpgdir(sessinfo.workingdir, destfile) = NO THEN
   RETURN NO

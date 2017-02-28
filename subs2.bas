@@ -94,10 +94,7 @@ textcolor uilook(uiText), 0
 DIM pl as integer = 0
 printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
 printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
-'Need to call this quite a lot to refresh the screen for FB. Bit of a
-'compromise between showing the process and slowing things down, since
-'it will refresh the window every time.
-setvispage 0
+setvispage 0, NO
 
 DIM fh as integer = FREEFILE
 OPENFILE(outf, FOR_OUTPUT, fh)
@@ -208,7 +205,7 @@ PRINT #fh, "end"
 CLOSE #fh
 
 printstr "done", 0, pl * 8, 0: pl = pl + 1
-setvispage 0
+setvispage 0, NO
 
 RETURN outf
 END FUNCTION

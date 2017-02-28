@@ -551,7 +551,7 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as boo
 
  IF extension = "rpgdir" THEN
   basic_textbox "LUMPING DATA: please wait...", uilook(uiText), vpage
-  setvispage vpage
+  setvispage vpage, NO
   IF NOT write_rpg_or_rpgdir(src_rpg_or_rpgdir, dest_rpg) THEN
    'Already showed error
    RETURN NO

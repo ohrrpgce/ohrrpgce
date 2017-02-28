@@ -293,7 +293,7 @@ setfont current_font()
 
 ' Remove junk when using "run game"
 clearpage vpage
-setvispage vpage
+setvispage vpage, NO
 
 '-- Init joysticks
 FOR i as integer = 0 TO 1
@@ -501,7 +501,7 @@ cleanup_other_temp_files
 
 edgeboxstyle 4, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
 edgeprint "Loading...", pCentered, 6, uilook(uiText), vpage
-setvispage vpage 'refresh
+setvispage vpage, NO
 
 DIM archinym as string
 
@@ -3123,7 +3123,7 @@ FUNCTION find_useable_npc() as integer
      ny -= .ygo
      cropposition nx, ny, 20
      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-     'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
+     'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage, NO
      IF (nx = ux AND ny = uy) THEN 'check for activation
       RETURN j
      END IF
@@ -3131,7 +3131,7 @@ FUNCTION find_useable_npc() as integer
      nx = nx + SGN(.xgo) * 20
      ny = ny + SGN(.ygo) * 20
      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-     'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
+     'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage, NO
      IF (nx = ux AND ny = uy) THEN 'check for activation
       '--if activating an NPC that has just walked past us, cause it to back up
       .xgo = SGN(.xgo * -1) * (20 - ABS(.xgo))
@@ -3803,7 +3803,7 @@ SUB cleanup_other_temp_files ()
     center_edgeboxstyle  , 65, 25 * 8, 16, 0, vpage, NO, YES
     cap = "Cleaning up files: " & INT(100 / large(UBOUND(filelist), 1) * i) & "%"
     edgeprint cap, pCentered, 60, uilook(uiText), vpage
-    setvispage vpage
+    setvispage vpage, NO
     debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
     killdir dirname_full, YES
    ELSE

@@ -168,7 +168,7 @@ DO
     'this could take a while...
     rectangle 5, 32 + br.mstate.size * 9, 310, 12, boxlook(0).edgecol, vpage
     edgeprint "Reading...", 8, 34 + br.mstate.size * 9, uilook(uiText), vpage
-    setvispage vpage
+    setvispage vpage, NO
     IF hasmedia(tree(br.mstate.pt).filename) THEN
      br.nowdir = tree(br.mstate.pt).filename
      build_listing tree(), br
