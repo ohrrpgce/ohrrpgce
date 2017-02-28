@@ -1686,7 +1686,7 @@ END FUNCTION
 '
 '(There is a second implementation of this as run_process_and_get_output in os_unix.c
 ' which does't support stderr, but doesn't use temporary files or run the shell)
-FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as string) as integer
+FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as string = "") as integer
   DIM ret as integer
   DIM as string stdout_file, stderr_file, cmdline
   DIM as bool grab_stderr

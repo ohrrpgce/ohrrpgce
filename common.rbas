@@ -2594,7 +2594,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) 
 
  'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
 
- 'For windows, look in the support subdirectory
+ 'For windows, first look in the support subdirectory
  DIM support as string = find_support_dir()
  IF appname = "zip" THEN
   'A little special magic to make that if we are looking for zip.exe we find version 3.0 and not 2.3
@@ -2607,6 +2607,16 @@ FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) 
   END IF
  END IF
  IF isfile(support & SLASH & appname & ".exe") THEN RETURN support & SLASH & appname & ".exe"
+
+ #IFDEF __FB_WIN32__
+  ' Check whether appname.exe is in the $PATH
+  DIM ret as string
+  ' Prepend a _ because if its args are blank echo prints "ECHO ON."
+  run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret
+  ret = RTRIM(ret, ANY !"\n\r")
+  IF LEN(ret) > 1 THEN RETURN MID(ret, 2)  ' Trim the _.
+ #ENDIF
+
  IF try_install THEN
   DIM choice as integer
   choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util")
