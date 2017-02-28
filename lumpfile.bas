@@ -1420,8 +1420,8 @@ end sub
 'This is used to determine whether the file should be hooked.
 'writable: whether attempting to *explicitly* open with write access
 function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
-	if RIGHT(filename, 10) = "_debug.txt" then return NO
-	'if RIGHT(filename, 12) = "_archive.txt" then return NO
+	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
+	'if RIGHT(filename, 12) = "_archive.txt" then return FilterActionEnum.dont_hook
 	'Uncomment this for OPEN tracing (or you could just use strace...)
 	'debuginfo "OPEN(" & filename & ")  " & ret
 

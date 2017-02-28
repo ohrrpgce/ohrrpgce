@@ -41,9 +41,10 @@ enum OPENBits {
 
 
 enum FilterActionEnum {
-	DENY = 0,     // Don't open the file
 	HOOK = 1,     // Open and hook it
-	DONT_HOOK = 2 // Open but don't hook it
+	DONT_HOOK = 2,// Open but don't hook it
+	DENY = 3,     // Don't open the file, return illegal function call error
+	HIDE = 4,     // Don't open the file, return file not found
 };
 
 struct FileInfo {

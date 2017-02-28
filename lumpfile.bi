@@ -217,9 +217,10 @@ enum OPENBits
 end enum
 
 Enum FilterActionEnum Explicit
-	deny = 0      ' Don't open the file
 	hook = 1      ' Open and hook it
 	dont_hook = 2 ' Open but don't hook it
+	deny = 3      ' Don't open the file, return illegal function call error
+	hide = 4      ' Don't open the file, return file not found
 End Enum
 
 type FnStringPredicate as function (filename as string) as boolint

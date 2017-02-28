@@ -178,7 +178,7 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			break;
 		default:
 			fatal_error("OPENFILE: bad flags %x", openbits);
-			return 1;
+			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	switch(openbits & ACCESS_MASK) {
@@ -198,7 +198,7 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			break;
 		default:
 			fatal_error("OPENFILE: bad flags %x", openbits);
-			return 1;
+			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	switch(openbits & ENCODING_MASK) {
@@ -217,12 +217,12 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			break;
 		default:
 			fatal_error("OPENFILE: bad flags %x", openbits);
-			return 1;
+			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	if ((fnum = fb_FileFree()) == 0) {
 		fatal_error("OPENFILE: too many open files");
-		return 1;
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	FnFileOpen fnOpen;
@@ -241,7 +241,7 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		}
 		if (encod != FB_FILE_ENCOD_ASCII) {
 			fatal_error("OPENFILE: ENCODING not implemented for hooked files");
-			return 1;
+			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 		}
 		fnOpen = lump_file_opener;
 	} else if (action == DONT_HOOK) {
@@ -249,8 +249,13 @@ int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			fnOpen = fb_DevFileOpen;
 		else
 			fnOpen = fb_DevFileOpenEncod;
-	} else {  // DENY
-		return 1;
+	} else if (action == DENY) {
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
+	} else if (action == HIDE) {
+		return FB_RTERROR_FILENOTFOUND;
+	} else {
+		fatal_error("OPENFILE: Invalid action returned by filter function");
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	return fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
