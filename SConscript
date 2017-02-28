@@ -546,7 +546,7 @@ if not linkgcc:
         # TODO: force link to libncurses.so.5 or libtinfo.so.5
         print "WARNING: can't force libtinfo.so.5\n"
 
-if unix and not mac:
+if portable and (unix and not mac):
     # For compatibility with libstdc++ before GCC 5
     # See https://bugzilla.mozilla.org/show_bug.cgi?id=1153109
     # and https://gcc.gnu.org/onlinedocs/libstdc%2B%2B/manual/using_dual_abi.html
@@ -695,9 +695,11 @@ elif android:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
 elif unix:  # Linux & BSD
-    # lib/stdc++compat.cpp to support old libstdc++.so versions
-    base_modules += ['os_unix.c', 'os_unix2.bas', 'lib/stdc++compat.cpp']
+    base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
+    if portable:
+        # To support old libstdc++.so versions
+        base_modules += ['lib/stdc++compat.cpp']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
@@ -806,7 +808,7 @@ common_modules += ['rasterizer.cpp',
 ################ ver.txt (version info) build rule
 
 def version_info(source, target, env):
-    verprint (gfx, music, fbc, arch, asan, builddir, rootdir)
+    verprint (gfx, music, fbc, arch, asan, portable, builddir, rootdir)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
