@@ -665,12 +665,31 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //==========================================================================================
 
 
+// Interpret system() return value
+int checked_system(const char* cmdline) {
+	int waitstatus = system(cmdline);
+	int ret = -1;
+	if (waitstatus == -1)
+		debug(errError, "system() couldn't fork");
+	else if (WIFEXITED(waitstatus)) {
+		ret = WEXITSTATUS(waitstatus);
+		// Don't report; it's done by the caller anyway
+		// if (ret)
+		//	debug(errInfo, "system(%.30s...) exit status %d", cmdline, ret);
+	}
+	else if (WIFSIGNALED(waitstatus))
+		debug(errError, "system(%.30s...) killed by signal %d", cmdline, WTERMSIG(waitstatus));
+	else
+		debug(errError, "system(%.30s...): unknown return %d", cmdline, waitstatus);
+	return ret;
+}
+
 //Partial implementation. The returned process handle can't be used for much
-//aside from passing to cleaup_process (which you should do).
+//aside from passing to cleanup_process (which you should do).
 //program is an unescaped path. Any paths in the arguments should be escaped
 //graphical: if true, launch a graphical process (displays a console for commandline programs on
 //           Windows, does nothing on Unix).
-//waitable is true if you want process_cleanup to wait for the command to finish (ignored on
+//waitable is true if you want cleanup_process to wait for the command to finish (ignored on
 //           Windows: always waitable)
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint graphical) {
 #ifdef __ANDROID__
@@ -683,6 +702,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable,
 		argstr = "";
 	char *buf = malloc(strlen(program_escaped) + strlen(argstr) + 2);
 	sprintf(buf, "%s %s", program_escaped, argstr);
+	free(program_escaped);
 
 	errno = 0;
 	ProcessHandle ret = calloc(1, sizeof(struct ProcessInfo));
@@ -701,12 +721,14 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable,
 		if (ret->pid == 0) {
 			// Use system() just because it takes whole argument list as one string
 			// (popen also uses system() internally).
-			system(buf);
-			_exit(0);  // Don't flush buffers, etc, that would be bad
+			int status = system(buf);
+			// Calling debug() inside a fork isn't a great idea; although debug()
+			// opens and closes the log file on every call, the main program might have ended, etc.
+			//int status = checked_system(buf);
+			_exit(status);  // Don't flush buffers, etc, that would be bad
 		}
 	}
 
-	free(program_escaped);
 	free(buf);
 	return ret;
 #endif

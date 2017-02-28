@@ -1670,7 +1670,9 @@ FUNCTION safe_shell (cmd as string) as integer
   RETURN SHELL("""" & cmd & """")
 #ELSE
   ' (SHELL returns wrong exit code in FB 0.23 and earlier)
-  RETURN SHELL(cmd)
+  'RETURN SHELL(cmd)
+  ' Replacement for SHELL which checks the return code in more detail
+  RETURN checked_system(STRPTR(cmd))
 #ENDIF
 END FUNCTION
 

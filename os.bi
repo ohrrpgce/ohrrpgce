@@ -73,6 +73,8 @@ type ProcessHandle as ProcessInfo ptr
 type IPCChannel as FILE ptr
 #define NULL_CHANNEL NULL
 
+declare function checked_system (cmdline as zstring ptr) as integer
+
 #endif
 
 'IPCChannel functions will automatically close an IPCChannel and set it equal to NULL_CHANNEL if there is an error
