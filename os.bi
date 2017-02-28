@@ -101,6 +101,8 @@ declare sub cleanup_process (byval process as ProcessHandle ptr)
 declare function get_process_id () as integer
 declare function get_process_path (pid as integer) as string
 
+declare sub interrupt_self ()
+
 'Only implemented for X11 and Windows, sets to 0 otherwise or on error
 'NOTE: call get_screen_size instead of this.
 declare sub os_get_screen_size(wide as integer ptr, high as integer ptr)

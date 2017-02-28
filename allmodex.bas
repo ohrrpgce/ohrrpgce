@@ -2179,6 +2179,11 @@ private sub allmodex_controls()
 		*invalid = 0
 	end if
 
+	' A breakpoint. If not running under gdb, this will terminate the program
+	if keyval(scTab) > 0 and keyval(scShift) > 0 and keyval(scF4) > 1 then
+		interrupt_self ()
+	end if
+
 	' F12 screenshots are handled in setvispage, not here.
 
 	' Ctrl+F12 to start/stop recording a .gif

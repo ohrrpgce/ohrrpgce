@@ -834,3 +834,8 @@ void cleanup_process (ProcessHandle *processp) {
 int get_process_id () {
 	return getpid();
 }
+
+// A breakpoint
+void interrupt_self () {
+	raise(SIGINT);
+}

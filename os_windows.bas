@@ -685,6 +685,11 @@ function get_process_id () as integer
 	return GetCurrentProcessId()
 end function
 
+' A breakpoint
+sub interrupt_self ()
+	DebugBreak
+end sub
+
 'Returns full path to a process given its PID in device form, e.g.
 '\Device\HarddiskVolume1\OHRRPGCE\custom.exe
 'or "" if it doesn't exist or we don't have permission.
