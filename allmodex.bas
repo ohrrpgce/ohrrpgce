@@ -2361,8 +2361,8 @@ private function draw_allmodex_overlays32 (surf as Surface ptr) as bool
 	dim temp_surface as Surface ptr
 	if draw_allmodex_overlays(overlays_page) then
 		gfx_surfaceFromFrame(vpages(overlays_page), @temp_surface)
-		frame_draw vpages(overlays_page), intpal(), 0, 0, NO, surf
-		clearpage overlays_page
+		frame_draw vpages(overlays_page), intpal(), 0, 0, YES, surf
+		clearpage overlays_page, 0  'Must clear with colour 0, not uiBackground!
 		return YES
 	end if
 	return NO
