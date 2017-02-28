@@ -36,7 +36,7 @@ libstdc++ 4.3.
 #define GLIBCXX_VERSION(a, b, c) (((a) << 16) | ((b) << 8) | (c))
 
 // The libstdc++ version for the gcc compiler used.
-#if (__GNUC__ >= 4)
+#if (__GNUC__ >= 5)
  #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 5.0
 #elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 9)
  #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 20)  //GCC 4.9
