@@ -4095,7 +4095,7 @@ FUNCTION pick_channel_name() as string
 END FUNCTION
 
 'Returns true if successfully spawned
-FUNCTION spawn_game() as bool
+FUNCTION spawn_game(gdb as bool = NO) as bool
  IF slave_process <> 0 THEN
   'First clean up after the last time we ran Game
   cleanup_process @slave_process
@@ -4129,24 +4129,67 @@ FUNCTION spawn_game() as bool
   notification "Couldn't find " & gameexename & !"\nIt should be in the same directory as " & CUSTOMEXE
   RETURN NO
  END IF
- DIM game_args as string
-#ifdef __UNIX__
- game_args = "-slave " & escape_filename(channel_name)
-#else
- 'Not a filename
- game_args = "-slave " & channel_name
-#endif
- slave_process = open_process(executable, game_args, YES, YES)
+ DIM arguments as string
+ #IFDEF __UNIX__
+  arguments = "--slave " & escape_filename(channel_name)
+ #ELSE
+  'Not a filename
+  arguments = "--slave " & channel_name
+ #ENDIF
+
+ IF gdb THEN
+  ' Wrap in a gdb call...
+  ' channel_wait_for_client_connection is going to time out if Game isn't
+  ' allowed to run normally, so as a compromise break immediately after the
+  ' channel is connected. (You can always increase the 3sec delay instead.)
+  arguments = "-ex ""break HOOK_AFTER_ATTACH_TO_MASTER"" -ex ""run"" " _
+              "--args " & executable & " " & arguments
+  executable = find_helper_app("gdb")
+  IF LEN(executable) = 0 THEN
+   notification "Couldn't find gdb. You need to install it."
+   RETURN NO
+  END IF
+
+  #IFDEF __UNIX__
+   ' On Unix the spawned program doesn't inherit access to our tty even if we have one,
+   ' so need to spawn it inside an xterm
+   ' TODO: this isn't going to work on OSX... unless maybe you have X11 installed?
+   ' Wrap in a xterm call...
+   arguments = " -geometry 120x25 -bg black -fg gray90 -title 'gdb ohrrpgce-game' -e " _
+               """" & escape_string(executable & " " & arguments, """\") & """"
+   executable = find_helper_app("xterm")
+   IF LEN(executable) = 0 THEN
+    notification "xterm is missing; can't continue"
+    RETURN NO
+   ENDIF
+
+   slave_process = open_process(executable, arguments, YES, YES)
+
+  #ELSEIF defined(__FB_WIN32__)
+   ' Likewise on Windows need a console. But this is only implemented on Windows
+   slave_process = open_console_process(executable, arguments)
+  #ELSE
+   notification "Running under GDB not implemented on this platform"
+   RETURN NO
+  #ENDIF
+ ELSE
+
+  slave_process = open_process(executable, arguments, YES, YES)
+ END IF
+
+ 'debuginfo "Spawning: " & executable & " " & arguments
+
  IF slave_process = 0 THEN
   notification "Couldn't run " & gameexename
   RETURN NO
  END IF
- 'We currently do nothing at all with slave_process except cleanup (nothing is implemented
- 'on Unix). Instead we test Game is still running with slave_channel <> NULL_CHANNEL
+ 'We currently do nothing at all with slave_process except cleanup (on Unix
+ 'closing the channel freezes until the child finishes).
+ 'Instead we test Game is still running with slave_channel <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
  IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
-  notification "Error communicating with " & gameexename & " (couldn't connect); aborting"
+  notification "Error communicating with " & gameexename & !" (couldn't connect); aborting\n(Press a key)"
   channel_close slave_channel
   cleanup_process @slave_process
   RETURN NO
@@ -4167,7 +4210,7 @@ FUNCTION spawn_game() as bool
   'If we got this far, start sending lump updates and locking files before writing
   set_OPEN_hook @inworkingdir, YES, @slave_channel
  ELSE
-  notification "Error communicating with " & gameexename & " (channel write failure); aborting"
+  notification "Error communicating with " & gameexename & !" (channel write failure); aborting\n(Press a key)"
   channel_close slave_channel
   cleanup_process @slave_process
   RETURN NO
@@ -4175,7 +4218,7 @@ FUNCTION spawn_game() as bool
  RETURN YES
 END FUNCTION
 
-SUB spawn_game_menu
+SUB spawn_game_menu(gdb as bool = NO)
  #IFDEF __FB_WIN32__
   IF is_windows_9x() THEN
    notification "Testing your game while editing isn't supported on your version of Windows; it requires an NT-based Windows release"
@@ -4191,7 +4234,7 @@ SUB spawn_game_menu
  ELSE
   gen(genCurrentDebugMode) = 1
   xbsave game + ".gen", gen(), 1000
-  IF spawn_game THEN
+  IF spawn_game(gdb) THEN
    notification !"You're running your game in live preview mode. Please press F1 now to read the help file for this if you haven't already.\n\nPress any key"
    IF keyval(scF1) > 1 THEN show_help "test_game"
   END IF

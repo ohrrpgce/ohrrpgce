@@ -446,7 +446,7 @@ SUB main_editor_menu()
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN slice_editor
    IF state.pt = 19 THEN distribute_game
-   IF state.pt = 20 THEN spawn_game_menu
+   IF state.pt = 20 THEN spawn_game_menu(keyval(scShift) > 0)
    IF state.pt = 21 THEN
     prompt_for_save_and_quit
    END IF
@@ -788,7 +788,7 @@ SUB Custom_global_menu
  IF choice = 0 THEN
   reimport_previous_scripts
  ELSEIF choice = 1 THEN
-  spawn_game_menu
+  spawn_game_menu(keyval(scShift) > 0)
  ' ELSEIF choice = 2 THEN
  '  'Warning: data in the current menu may not be saved! So figured it better to avoid this.
  '  save_current_game
@@ -1621,10 +1621,11 @@ SUB secret_menu ()
      "RGFX tests", _
      "Edit Virtual Keyboard Screen", _
      "New Spriteset/Animation Editor", _
-     "New backdrop browser" _
+     "New backdrop browser", _
+     "Test Game under GDB" _
  }
  DIM st as MenuState
- st.size = 24
+ st.autosize = YES
  st.last = UBOUND(menu)
 
  DO
@@ -1652,6 +1653,7 @@ SUB secret_menu ()
    IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 18 THEN new_spriteset_editor
    IF st.pt = 19 THEN backdrop_browser
+   IF st.pt = 20 THEN spawn_game_menu YES
   END IF
   usemenu st
   clearpage vpage

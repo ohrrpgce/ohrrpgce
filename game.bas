@@ -255,6 +255,7 @@ DIM force_prefsdir_save as bool = NO  'Whether to put save files in prefsdir rat
 
 REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log
+' Also, this (game_setoptions) opens a channel with Custom as soon as it processes the --slave option
 processcommandline cmdline_args(), @gamecustom_setoption, orig_dir & SLASH & "ohrrpgce_arguments.txt"
 
 IF running_as_slave THEN debuginfo "Spawned from Custom (" & custom_version & ")"

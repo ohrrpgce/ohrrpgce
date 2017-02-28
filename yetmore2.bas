@@ -859,6 +859,11 @@ SUB limitcamera (byref x as integer, byref y as integer)
  END IF
 END SUB
 
+' This function exists to be hooked by gdb after we've opened
+' the channel (without which, Custom's attempt to open it times out)
+SUB hook_after_attach_to_master(success as bool)
+END SUB
+
 FUNCTION game_setoption(opt as string, arg as string) as integer
  IF opt = "errlvl" THEN
   IF is_int(arg) THEN
@@ -896,9 +901,11 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   IF channel_open_client(master_channel, arg) THEN
    running_as_slave = YES
    debuginfo "Reading commands from master channel '" & arg & "'"
+   hook_after_attach_to_master YES
    RETURN 2
   ELSE
    debug "Failed to open channel '" & arg & "'"
+   hook_after_attach_to_master NO
    SYSTEM
    RETURN 1
   END IF
