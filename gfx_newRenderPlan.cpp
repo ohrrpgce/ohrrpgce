@@ -13,7 +13,7 @@ int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format,
 {//done
 	if( !ppSurfaceOut )
 		return -1;
-	Surface *ret = new Surface {NULL, width, height, format, usage, NULL};
+	Surface *ret = new Surface {NULL, 1, width, height, format, usage, NULL};
 	if(format == SF_8bit)
 		ret->pPaletteData = new uint8_t[width*height];
 	else
@@ -31,7 +31,7 @@ int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 	if(pFrameIn->w != pFrameIn->pitch)
 		// Would have to make a copy of the data
 		return -1;
-	Surface *ret = new Surface {NULL, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
+	Surface *ret = new Surface {NULL, 1, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
 	ret->pPaletteData = ret->frame->image;
 	*ppSurfaceOut = ret;
 	return 0;
@@ -41,6 +41,8 @@ int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
 {//done
 	if(pSurfaceIn)
 	{
+		if(--pSurfaceIn->refcount > 0)
+			return 0;
 		if(pSurfaceIn->frame)
 		{
 			// Is a view onto a Frame, so don't delete the pixel data ourselves
@@ -56,6 +58,13 @@ int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
 		g_surfaces.remove(pSurfaceIn);
 	}
 	return 0;
+}
+
+Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn )
+{
+	if(pSurfaceIn)
+		pSurfaceIn->refcount++;
+	return pSurfaceIn;
 }
 
 int gfx_surfaceUpdate_SW( Surface* pSurfaceIn )

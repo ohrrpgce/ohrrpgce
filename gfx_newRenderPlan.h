@@ -23,6 +23,7 @@ enum SurfaceUsage
 struct Surface
 {
 	void* handle;
+	int refcount;
 	uint32_t width;
 	uint32_t height;
 	SurfaceFormat format;
@@ -180,6 +181,7 @@ extern "C"
 	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface* pSurfaceIn );
+	Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
 	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );

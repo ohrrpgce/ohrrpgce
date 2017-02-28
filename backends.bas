@@ -100,6 +100,7 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceFromFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
@@ -425,6 +426,7 @@ private sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
 	gfx_surfaceFromFrame = @gfx_surfaceFromFrame_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
+	gfx_surfaceReference = @gfx_surfaceReference_SW
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
 	gfx_surfaceGetData = @gfx_surfaceGetData_SW
 	gfx_surfaceFill = @gfx_surfaceFill_SW
