@@ -55,6 +55,7 @@ function global_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		return 1
 	elseif opt = "?" or opt = "help" or opt = "h" then
+		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END & LINE_END
 		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END
 		help = help & "additional command line arguments will be read from it, one per line." & LINE_END
 		help = help & "-? -h -help         Display this help screen" & LINE_END
@@ -63,7 +64,6 @@ function global_setoption(opt as string, arg as string) as integer
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (for bughunting only)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
-		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
 		help = help & "-scriptlog          Script logging initially turned on (Ctrl+F10 to toggle)" LINE_END
@@ -78,6 +78,8 @@ function global_setoption(opt as string, arg as string) as integer
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
+		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
+		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default 90)" & LINE_END
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END

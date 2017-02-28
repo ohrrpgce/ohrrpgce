@@ -583,7 +583,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0
-     game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
+     game = inputfilename("Filename of New Game?", ".rpg", rpg_browse_default, "input_file_new_game", , NO)
      IF game <> "" THEN
        IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game & ".rpg") THEN cleanup_and_terminate
        sourcerpg = game & ".rpg"

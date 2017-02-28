@@ -163,6 +163,7 @@ dim shared use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0
+dim shared max_display_fps as integer = 90  'Skip frames if drawing more than this
 dim shared skipped_frame as SkippedFrame
 
 type KeyboardState
@@ -429,13 +430,26 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		disable_native_text_input = NO
 		debuginfo "Native text input enabled"
 		return 1
+	elseif opt = "runfast" then
+		debuginfo "Running without speed control"
+		enable_speed_control NO
+		return 1
+	elseif opt = "maxfps" then
+		dim fps as integer = str2int(arg, -1)
+		if fps > 0 then
+			max_display_fps = fps
+			return 2
+		else
+			display_help_string "--maxfps: invalid fps"
+			return 1
+		end if
 	elseif opt = "giffps" then
 		dim fps as integer = str2int(arg, -1)
 		if fps > 0 then
 			gif_max_fps = fps
 			return 2
 		else
-			visible_debug "--giffps: invalid fps"
+			display_help_string "--giffps: invalid fps"
 			return 1
 		end if
 	elseif opt = "recordoverlays" then
@@ -792,10 +806,10 @@ end sub
 'skippable: if true, allowed to frameskip this frame at high framerates
 sub setvispage (page as integer, skippable as bool = YES)
 	update_fps_counter
-	' Drop frames to reduce CPU usage if running above 90fps
+	' Drop frames to reduce CPU usage if FPS too high
 	static lastframe as double
 	skipped_frame.drop()
-	if skippable andalso timer - lastframe < 1. / 90 then
+	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.page = page
 		exit sub
 	end if
@@ -854,10 +868,10 @@ end sub
 'skippable: if true, allowed to frameskip this frame at high framerates
 sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	update_fps_counter
-	' Drop frames to reduce CPU usage if running above 90fps
+	' Drop frames to reduce CPU usage if FPS too high
 	static lastframe as double
 	skipped_frame.drop()
-	if skippable andalso timer - lastframe < 1. / 90 then
+	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.surf = gfx_surfaceReference(to_show)
 		exit sub
 	end if
