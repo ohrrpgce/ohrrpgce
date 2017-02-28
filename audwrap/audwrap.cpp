@@ -6,6 +6,8 @@ elegant, so no appologies are necessary.
 */
 
 #include <stdio.h>
+#include <string>
+#include "../common.h"
 #include "audwrap.h"
 using namespace audiere;
 
@@ -34,6 +36,10 @@ AUDWRAP_API int AudInit() {
         device = 0;
         return -1;
     }
+
+    std::string formats = "Audiere: supported formats ";
+    formats += hidden::AdrGetSupportedFileFormats();
+    debug(errInfo, formats.c_str());
 
     return 0;
 }
