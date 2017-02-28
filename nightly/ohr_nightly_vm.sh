@@ -2,7 +2,7 @@
 
 for VMNAME in "Debian 64bit" "Windows 7" ; do
   echo "===Starting ${VMNAME}==="
-  vboxmanage startvm "${VMNAME}"
+  vboxmanage startvm "${VMNAME}" --type headless
   RUNNING="True"
   while [ -n "${RUNNING}" ] ; do
     sleep 5
