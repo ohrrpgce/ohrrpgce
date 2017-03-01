@@ -4130,7 +4130,7 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
   RETURN NO
  END IF
  DIM arguments as string
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
   arguments = "--slave " & escape_filename(channel_name)
  #ELSE
   'Not a filename
@@ -4150,7 +4150,7 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
    RETURN NO
   END IF
 
-  #IFDEF __UNIX__
+  #IFDEF __FB_UNIX__
    ' On Unix the spawned program doesn't inherit access to our tty even if we have one,
    ' so need to spawn it inside an xterm
    ' TODO: this isn't going to work on OSX... unless maybe you have X11 installed?

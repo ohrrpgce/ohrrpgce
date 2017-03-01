@@ -3435,10 +3435,8 @@ SUB sfunctions(byval cmdid as integer)
    scriptret = 1
   #ENDIF
  CASE 597'--running on linux
-  #IFNDEF __FB_ANDROID__
-   #IFDEF __FB_LINUX__
-    scriptret = 1
-   #ENDIF
+  #IFDEF __GNU_LINUX__
+   scriptret = 1
   #ENDIF
  CASE 618'--debug menu
   stop_fibre_timing

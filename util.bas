@@ -1475,7 +1475,7 @@ FUNCTION find_file_portably (path as string) as string
   CONST findhidden = YES
 
   DIM _path as string = path
-  #IFDEF __UNIX__
+  #IFDEF __FB_UNIX__
     replacestr _path, "\", "/"
     _path = simplify_path(_path)
 
@@ -1532,7 +1532,7 @@ END FUNCTION
 
 #IFDEF __FB_MAIN__
 ' Have to allow find_file_portably to not resolve the true capitalisation on Windows
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
   #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_unix)
 #ELSE
   #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_windows)
@@ -1547,7 +1547,7 @@ startTest(find_file_portably)
   IF makedir(tempdir2) <> 0 THEN fail
   touchfile(tempdir + "/Foo.Tmp")
   touchfile(tempdir2 + "/bar.TMP")
-  #IFDEF __UNIX__
+  #IFDEF __FB_UNIX__
     touchfile(tempdir + "/file1.TMP")
     touchfile(tempdir + "/FILE1.tmp")
     IF makedir(tempdir + "/Subdir1") <> 0 THEN fail
@@ -1590,7 +1590,7 @@ startTest(find_file_portably)
   testfileabsolute("c:\Invalid")
   testfileabsolute("/Invalid")
   ' Test multiple files with same case-collapsed path (can't happen on Windows)
-  #IFDEF __UNIX__
+  #IFDEF __FB_UNIX__
     DIM normed as string = normalize_path(tempdir + "/")
     testEqual(find_file_portably(tempdir + "/file1.tmp"), _
               "Found multiple paths (in " + normed + ") with same case-insensitive name: [""FILE1.tmp"", ""file1.TMP""]")
@@ -1627,7 +1627,7 @@ END FUNCTION
 
 FUNCTION escape_filename (filename as string) as string
   'This is intended for escaping filenames for use in shells
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
   'Don't escape '
   RETURN """" & escape_string(filename, """`\$") & """"
 #ELSE
@@ -1766,7 +1766,7 @@ END SUB
 ' along the way. This function must ONLY be used for display, as it is lossy!
 FUNCTION decode_filename(filename as string) as string
   IF LEN(filename) = 0 THEN RETURN filename
-#ifdef __UNIX__
+#ifdef __FB_UNIX__
   DIM length as integer
   DIM unicode as wstring ptr
 
@@ -1843,7 +1843,7 @@ SUB findfiles (directory as string, namemask as string = "", byval filetype as i
             & IIF(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
 #endif
 
-#ifdef __UNIX__
+#ifdef __FB_UNIX__
   DIM filenames as string vector
 
   IF filetype = fileTypeDirectory THEN
@@ -2017,7 +2017,7 @@ FUNCTION makedir (directory as string) as integer
     debug "Could not mkdir(" & directory & "): " & err_string
     RETURN 1
   END IF
-#ifdef __FB_LINUX__
+#ifdef __FB_UNIX__  ' I don't know on which OSes this is necessary
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
   SHELL "chmod +x " + escape_filename(directory)
@@ -2131,7 +2131,7 @@ FUNCTION isdir (sDir as string) as bool
 #IFDEF __FB_ANDROID__
   '[ does not work in Android 2.2. I don't know how reliable this is
   ret = SHELL("ls " + escape_filename(sDir) + "/") = 0
-#ELSEIF DEFINED(__UNIX__)
+#ELSEIF DEFINED(__FB_UNIX__)
   'Special hack for broken Linux dir() behavior
   '(FIXME: is DIR still broken? Should investigate)
   ret = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
@@ -2672,7 +2672,7 @@ FUNCTION get_tmpdir () as string
   IF isdir(tmp) = NO THEN
    tmp = ENVIRON("HOME") & "/Library/Caches/OHRRPGCE"
   END IF
- #ELSEIF DEFINED(__UNIX__)
+ #ELSEIF DEFINED(__FB_UNIX__)
   tmp = environ("HOME") + SLASH + ".ohrrpgce"
  #ELSE
   #ERROR "Unknown OS"
@@ -2699,7 +2699,7 @@ function commandline_flag(opt as string) as bool
 	dim temp as string
 	temp = left(opt, 1)
 	'/ should not be a flag under unix
-#ifdef __UNIX__
+#ifdef __FB_UNIX__
 	if temp = "-" then
 #else
 	if temp = "-" or temp = "/" then

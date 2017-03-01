@@ -410,7 +410,7 @@ ELSE  'NOT running_as_slave
 
 END IF  'NOT running_as_slave
 
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
 IF gam.autorungame = NO THEN
  IF exename <> "ohrrpgce-game" THEN
   IF starts_with(exepath, "/usr/games") ORELSE starts_with(exepath, "/usr/bin") THEN

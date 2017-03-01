@@ -884,7 +884,7 @@ DO
     END IF
    NEXT i
 
-   '#IFNDEF __UNIX__
+   '#IFNDEF __FB_UNIX__
     'common WM keys
     FOR i as integer = 0 TO UBOUND(st.map.tiles)
      IF keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 THEN

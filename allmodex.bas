@@ -765,7 +765,7 @@ function supports_fullscreen_well () as bool
 	if running_on_desktop() = NO then
 		return NO
 	end if
-#IFDEF __FB_LINUX__
+#IFDEF __GNU_LINUX__
 	' At least for me with KDE 4, fbgfx gives horrible results,
 	' turning off my 2nd monitor and lots of garbage and desktop resolution changing,
 	' and sometimes gets stuck with a fullscreen black screen.

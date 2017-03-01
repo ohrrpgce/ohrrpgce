@@ -650,7 +650,7 @@ END SUB
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
  'Returns true on success, false on failure
  IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
   '--just in case we are playing with a debug build,
   '--strip the copy of the binary that goes in the distribution file.
   SHELL "strip " & escape_filename(destdir & SLASH & basename)
@@ -736,7 +736,7 @@ FUNCTION get_linux_gameplayer() as string
  'unzip it, and return the full path.
  'Returns "" for failure.
 
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
 #IFNDEF __FB_DARWIN__
 
  '--If this is Linux, we already have the correct version of ohrrpgce-game
@@ -1118,7 +1118,7 @@ SUB write_debian_postinst_script (filename as string)
  PUT #fh, , "    update-menus" & LF
  PUT #fh, , "fi" & LF
  CLOSE #fh
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
  DIM cmd as string
  cmd = "chmod +x " & escape_filename(filename)
  debuginfo cmd
@@ -1136,7 +1136,7 @@ SUB write_debian_postrm_script (filename as string)
  PUT #fh, , "    update-menus" & LF
  PUT #fh, , "fi" & LF
  CLOSE #fh
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
  DIM cmd as string
  cmd = "chmod +x " & escape_filename(filename)
  debuginfo cmd
@@ -1145,7 +1145,7 @@ SUB write_debian_postrm_script (filename as string)
 END SUB
 
 SUB fix_deb_group_permissions(start_at_dir as string)
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
  'This is needed because the user's umask might have given group write access to the files
  DIM cmd as string
  cmd = "chmod -R g-w " & escape_filename(start_at_dir)
@@ -1251,7 +1251,7 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  DIM uncompressed as string = trimextension(tarball)
 
  DIM more_args as string = ""
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
  #IFNDEF __FB_DARWIN__
  'These arguments are broken on Windows tar.exe for some stupid reason
  more_args = " --owner=root --group=root"
@@ -1627,7 +1627,7 @@ SUB distribute_game_as_linux_tarball ()
   makedir tarballdir
   DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
   IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
   'Mac and Linux fix the permissions
   DIM cmd as string
   cmd = "chmod +x " & escape_filename(dest_gameplayer)

@@ -1,6 +1,6 @@
 #include "config.bi"
 #include "crt.bi"
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
 'Open Sound System
 #include "soundcard.bi"
 
@@ -22,13 +22,13 @@ declare function _write cdecl alias "write" (byval as integer, byval as any ptr,
 #undef createevent
 #ENDIF
 
-#IFDEF __UNIX__
+#IFDEF __FB_UNIX__
 dim shared midi_handle as integer
 #ELSE
 dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
-    #IFDEF __UNIX__
+    #IFDEF __FB_UNIX__
     midi_handle = _open("/dev/sequencer",O_WRONLY)
     return midi_handle = 0
     #ELSE
@@ -42,7 +42,7 @@ function openMidi() as integer
 end function
 
 function closeMidi() as integer
-    #IFDEF __UNIX__
+    #IFDEF __FB_UNIX__
     return _close(midi_handle)
     #ELSE
     return midiOutClose (midi_handle)
@@ -50,7 +50,7 @@ function closeMidi() as integer
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-    #IFDEF __UNIX__
+    #IFDEF __FB_UNIX__
     DIM packet(3) as UByte
     packet(0) = SEQ_MIDIPUTC
     packet(1) = event

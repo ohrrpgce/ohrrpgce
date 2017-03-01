@@ -15,7 +15,7 @@ extern "C"
 ' Returns "" if invalid or don't have permission.
 function get_process_path (pid as integer) as string
 	dim cmdname as string
-#ifdef __FB_LINUX__
+#if defined(__GNU_LINUX__) or defined(__FB_ANDROID__)  ' I'm guessing about Android...
 	' With GNU ps, "-o command" and "-o cmd" return the name and arguments it was called with,
 	' and "-o comm" is just the first 15 characters of the command name after stripping the path.
 	' It appears to be impossible to get the non-truncated command name and path without also getting

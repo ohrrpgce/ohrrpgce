@@ -513,7 +513,7 @@ FUNCTION os_shell_move(src as string, dest as string) as integer
  DIM stderr_s as string
  DIM mv as string
  DIM args as string
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
   mv = "mv"
   args = " -f"  ' Overwrite without confirmation
  #ENDIF
@@ -2577,7 +2577,7 @@ FUNCTION find_helper_app (appname as string, try_install as integer=NO) as strin
  #IFDEF __FB_DARWIN__
   IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
  #ENDIF
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
   'Use the standard util "which" to search the path
   DIM where as string
   run_and_get_output("which " & appname, where)
@@ -2937,7 +2937,7 @@ FUNCTION finddatafile(filename as string) as string
  'same folder as executable
  IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
  IF isfile(exepath & SLASH & "data" & SLASH & filename) THEN RETURN exepath & SLASH & "data" & SLASH & filename
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   IF isfile(settings_dir & filename) THEN RETURN tmpdir & filename
   #IFDEF DATAFILES
@@ -2956,7 +2956,7 @@ FUNCTION finddatadir(dirname as string) as string
  IF isdir(data_dir & SLASH & dirname) THEN RETURN data_dir & SLASH & dirname
  'same folder as executable
  IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
- #IFDEF __UNIX__
+ #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   IF isdir(settings_dir & dirname) THEN RETURN tmpdir & dirname
   #IFDEF DATAFILES
@@ -5340,7 +5340,7 @@ FUNCTION get_settings_dir () as string
   IF isdir(settings_dir) = NO THEN
    settings_dir = ENVIRON("HOME") & "/Library/Application Support/OHRRPGCE"
   END IF
- #ELSEIF DEFINED(__UNIX__)
+ #ELSEIF DEFINED(__FB_UNIX__)
   settings_dir = ENVIRON("HOME") & "/.ohrrpgce"
  #ELSEIF DEFINED(__FB_WIN32__)
   settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
@@ -5377,7 +5377,7 @@ FUNCTION get_documents_dir() as string
   'instead it only changes the "display name" of these directories. We don't support this.
   'See https://developer.apple.com/library/mac/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW10
   ret = ENVIRON("HOME") & "/Documents"
- #ELSEIF defined(__UNIX__)
+ #ELSEIF defined(__FB_UNIX__)
   ' I don't know how true this is
   ret = ENVIRON("HOME") & "/Documents"
  #ELSEIF defined(__FB_WIN32__)

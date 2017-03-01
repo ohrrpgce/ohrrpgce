@@ -106,6 +106,7 @@ WHAT IS NEW?
       MIDI, while everything else was played at max volume [Ralph]
     * Reload sound effects replaced while live-previewing [Ralph]
     * "write zone" was meant to return true on success, but didn't [Ralph]
+    * "running on linux" returned true on Mac and BSD [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

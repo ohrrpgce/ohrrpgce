@@ -18,7 +18,7 @@
 #include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
 
-#ifdef __UNIX__
+#ifdef __FB_UNIX__
 	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
 	#undef font
 #endif

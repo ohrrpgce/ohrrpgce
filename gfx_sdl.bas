@@ -18,7 +18,7 @@
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
 
-#ifdef __UNIX__
+#ifdef __FB_UNIX__
 	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
 	#undef font
 #endif
