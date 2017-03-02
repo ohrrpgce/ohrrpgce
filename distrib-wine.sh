@@ -76,16 +76,6 @@ rm -f vikings.rpg
 ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"
 
-echo "Downloading import.zip"
-rm -f import.zip
-wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
-mustexist "import.zip"
-
-rm -f "import/Music/"*
-rm -f "import/Sound Effects/"*
-echo "Unpacking import.zip"
-unzip -q -d import/ import.zip
-
 rm -f distrib/ohrrpgce-minimal.zip
 rm -f distrib/ohrrpgce.zip
 rm -f distrib/ohrrpgce-win-installer.exe

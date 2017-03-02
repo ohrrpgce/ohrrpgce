@@ -52,8 +52,6 @@ DEL vikings.rpg
 relump vikings\vikings.rpgdir vikings.rpg > NUL
 IF NOT EXIST vikings.rpg GOTO NORPG
 
-CALL update-import.bat 
-
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 

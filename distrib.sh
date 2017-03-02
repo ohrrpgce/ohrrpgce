@@ -19,20 +19,6 @@ if [ -f vikings.rpg ] ; then
 fi
 ./relump vikings/vikings.rpgdir ./vikings.rpg || exit 1
 
-echo "Downloading import media"
-if [ -f import.zip ] ; then
-  rm import.zip
-fi
-if [ -d "import/Music" ] ; then
-  rm -Rf "import/Music"
-fi
-if [ -d "import/Sound Effects" ] ; then
-  rm -Rf "import/Sound Effects"
-fi
-wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip || exit 1
-unzip -q -d import/ import.zip || exit 1
-rm import.zip
-
 echo "Erasing contents of temporary directory"
 mkdir -p tmp
 mkdir -p distrib

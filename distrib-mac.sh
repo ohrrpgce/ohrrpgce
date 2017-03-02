@@ -24,20 +24,6 @@ fi
 echo Bundling apps
 ./bundle-apps.sh
 
-echo "Downloading import media"
-if [ -f import.zip ] ; then
-  rm import.zip
-fi
-if [ -d "import/Music" ] ; then
-  rm -Rf "import/Music"
-fi
-if [ -d "import/Sound Effects" ] ; then
-  rm -Rf "import/Sound Effects"
-fi
-wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
-unzip -q -d import/ import.zip
-rm import.zip
-
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
 mkdir -p tmp
