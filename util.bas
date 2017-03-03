@@ -1668,10 +1668,6 @@ FUNCTION safe_shell (cmd as string) as integer
   'cmd.exe will remove the first and last quotes from the string and leave the rest.
   'Therefore, there need to be two quotes at the beginning of the string!
   RETURN SHELL("""" & cmd & """")
-#ELSEIF DEFINED(__FB_ANDROID__)
-  'checked_system() is going to fail on Android, so just do SHELL instead
-  '(I don't think safe_shell() even gets used on Android, because we only port the game player, not custom to Android)
-  RETURN SHELL(cmd)
 #ELSE
   ' (SHELL returns wrong exit code in FB 0.23 and earlier)
   'RETURN SHELL(cmd)

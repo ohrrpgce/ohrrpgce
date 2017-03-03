@@ -26,6 +26,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 #include <errno.h>
 #include <locale.h>
 #include <stdio.h>
@@ -665,12 +666,8 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //==========================================================================================
 
 
-// Interpret system() return value
+// Interpret system() return value. Returns exit code.
 int checked_system(const char* cmdline) {
-#ifdef __ANDROID__
-	// WIFEXITED, WEXITSTATUS, and WIFSIGNALED don't seem to compile on Android
-	return -1; //return -1 to indicate failure
-#else
 	int waitstatus = system(cmdline);
 	int ret = -1;
 	if (waitstatus == -1)
@@ -686,7 +683,6 @@ int checked_system(const char* cmdline) {
 	else
 		debug(errError, "system(%.30s...): unknown return %d", cmdline, waitstatus);
 	return ret;
-#endif
 }
 
 //Partial implementation. The returned process handle can't be used for much
