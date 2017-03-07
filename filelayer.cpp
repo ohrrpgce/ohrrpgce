@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cassert>
 #include <map>
+#include <cstring>
 #include "common.h"
 
 // When quitting FB closes all files from within a destructor, so globals may have already
@@ -258,8 +259,16 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
-	return fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
-				FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
+	errno = 0;
+	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
+	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
+
+	if (ret != FB_RTERROR_OK && ret != FB_RTERROR_FILENOTFOUND) {
+		debug(errError, "OPENFILE(%s, %d)=%d: %s",
+		      (filename && filename->data) ? filename->data : "",  // Valid empty string
+		      openbits, ret, strerror(errno));
+	}
+	return (FB_RTERROR)ret;
 }
 
 
