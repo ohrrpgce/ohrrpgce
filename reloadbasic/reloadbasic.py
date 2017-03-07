@@ -207,10 +207,11 @@ class TranslationIteratorWrapper(FileParsingIterator):
         FileParsingIterator.__init__(self, filename)
 
     def next(self):
-        while 1:
+        while True:
             lineno, line, node = FileParsingIterator.next(self)
             if self.hook:
                 self.hook.cur_filepos = "%s:%s, in %s" % (self.hook.filename, lineno, self.hook.name)
+                self.hook.cur_lineno = lineno
                 self.hook.cur_line = line
 
             if self.xml_dump:
@@ -522,17 +523,16 @@ whitespace = re.compile("\s*")
 
 def indent(text, indentwith):
     """
-    Indent one or more lines; text is either a string or a list of strings terminated with newlines.
+    Indent one or more lines; text is either a string or a list of strings,
+    which are concatenated with newlines.
     """
-    lines = []
     if isinstance(text, str):
-        text = [text]
-    for item in text:
-        bits = item.split("\n")
-        if bits[-1] == "":
-            del bits[-1]
-        lines.extend(bits)
-    return "".join(indentwith + l + "\n" for l in lines)
+        lines = text.split("\n")
+    else:
+        lines = []
+        for item in text:
+            lines.extend(item.split("\n"))
+    return "\n".join((l if len(l) == 0 or l.startswith("#") else indentwith + l) for l in lines)
 
 def reload_HashZString(string):
     """Returns the HashZString hash of a string"""
@@ -891,13 +891,13 @@ class ReloadBasicFunction(object):
 
     def node_with_replacements(self, node, replacements):
         """
-        Return the text for an ASTNode on the current line, with some descendant ASTNodes replaced with strings.
+        Return the text for an ASTNode on the current line, with some descendant ASTNodes replaced with new text.
         """
         return self._with_replacements(self.cur_line[node.start : node.end], node.start, replacements)
 
     def cur_line_with_replacements(self, replacements):
         """
-        Return a copy of the current line, with some ASTNodes replaced with strings.
+        Return a copy of the current line, with some ASTNodes replaced with new text.
         """
         return self._with_replacements(self.cur_line, 0, replacements)
 
@@ -905,9 +905,9 @@ class ReloadBasicFunction(object):
         """
         Write something to the output (optionally with prologue with added indentation to match the current line)
         """
-        if len(prologue):
-            indentwith = whitespace.match(self.cur_line)
-            prologue = indent(prologue, indentwith.group(0))
+        if prologue:
+            indentwith = whitespace.match(self.cur_line).group(0)
+            prologue = indent(prologue, indentwith) + "#line %d\n" % (self.cur_lineno - 1)
         self.outfile.write(prologue + text + "\n")
 
     def process_dim(self, node, indentwith = None):
@@ -929,10 +929,12 @@ class ReloadBasicFunction(object):
         #print list(initvals)
         replacements, prologue = self.translate_nodespecs(initvals)
 
-        if indentwith == None:
-            indentwith = whitespace.match(self.cur_line).group(0)
+        if prologue:
+            if indentwith == None:
+                indentwith = whitespace.match(self.cur_line).group(0)
+            prologue = indent(prologue, indentwith) + "#line %d\n" % (self.cur_lineno - 1)
             
-        return indent(prologue, indentwith) + self.cur_line_with_replacements(replacements)
+        return prologue + self.cur_line_with_replacements(replacements)
 
     def process_readnode_loadarray(self, node, nodespec, readnode, node_path):
         """
@@ -1047,7 +1049,7 @@ class ReloadBasicFunction(object):
         always_run = (nodespec.type == "exists" or readnode.default or nodespec.default != None)
         # Whether to record this node's presence
         if node.name != "loadArray" and not nodespec.ignore and (always_run or nodespec.warn or nodespec.required):
-            result.append("%s(%s) OR= 1 SHL %s\n" % (readnode.check_array, len(readnode.checks)/32, len(readnode.checks)%32))
+            result.append("%s(%s) OR= 1 SHL %s" % (readnode.check_array, len(readnode.checks)/32, len(readnode.checks)%32))
             readnode.checks.append((nodespec, self.cur_filepos, child, always_run))
 
         if nodespec.ignore:
@@ -1055,7 +1057,7 @@ class ReloadBasicFunction(object):
                 raise LanguageError("You can't ignore descendants, only children of " + readnode.parent_nodeptr + " inside this ReadNode block", nodespec.node)
             if readnode.ignoreall:
                 print "%s: Warning: redundant .ignore inside an ignoreall ReadNode" % self.cur_filepos
-            result.append("'ignore\n")
+            result.append("'ignore")
         else:
             # Note: invalidates nodespec._index_var_index
             del nodespec.indices[0]
@@ -1078,7 +1080,8 @@ class ReloadBasicFunction(object):
                 _, replacement, prologue_ = self.simple_nodespec_translation(nodespec)
                 if prologue_:
                     result.append(prologue_)
-                result.append(self.cur_line_with_replacements([(nodespec.node, replacement)]).lstrip() + "\n")
+                result.append("#line %d" % (self.cur_lineno - 1))
+                result.append(self.cur_line_with_replacements([(nodespec.node, replacement)]).lstrip())
             elif node.name == "loadArray":
                 # This also adds the array flushing to readnode.prologue
                 result += self.process_readnode_loadarray(node, nodespec, readnode, node_path)
@@ -1097,7 +1100,8 @@ class ReloadBasicFunction(object):
         override_nodespec may be passed to provided a modified nodespec
         """
 
-        output = ["'''" + self.cur_line.lstrip() + "\n"]
+        # Put a #line here because the following "DIM var as NodePtr..." line might throw an error
+        output = ["'''" + self.cur_line.lstrip() + "\n" + "#line %d\n" % (self.cur_lineno - 1)]
         prologue_ = ""
 
         if header[0].name == "nodeSpec":
@@ -1196,7 +1200,8 @@ class ReloadBasicFunction(object):
                          buildtable = build_table, nametbl = nametable, cases = select_cases, checks = checks_text)
             
         output.append(out)
-        output.append("'''" + self.cur_line.lstrip() + "\n")
+        output.append("#line %d\n" % (self.cur_lineno - 1))
+        output.append("'''" + self.cur_line.lstrip())   # Add the END READNODE line
 
         if indentwith == None:
             indentwith = whitespace.match(self.cur_line).group(0)
@@ -1218,14 +1223,16 @@ class ReloadBasicFunction(object):
         # returns NULL for a NULL NodePtr</s>.
         #translation, prologue = self.nodespec_translation(nodespec, True)
 
-        lines = ["'''" + self.cur_line.lstrip()]
+        lines = ["'''" + self.cur_line.lstrip(),
+                 "#line %d" % (self.cur_lineno - 1)]   # line number for the 'DIM var as NodePtr' line
 
         parent_nodeptr = get_ident(header[1])
-        lines.append(self.block_nodespec_translation(nodespec, parent_nodeptr))
+        lines.append(self.block_nodespec_translation(nodespec, parent_nodeptr).rstrip())
 
         savescope = copy(self.users_temp_vars)
 
         for lineno, line, node in iterator:
+            #print "WITHNODE line %d: " % self.cur_lineno + line
             if iterator.line_is_blank():
                 lines.append(line)
                 continue
@@ -1234,13 +1241,16 @@ class ReloadBasicFunction(object):
             #print nodetype
             if nodetype == "dimStatement":
                 lines.append(self.process_dim(node, ""))
-            elif nodetype == "tokenList":
+            elif nodetype == "tokenList":   # A normal line of code
                 replacements, prologue = self.translate_nodespecs(node)
                 #print "tokens", replacements, repr(prologue)
+                if prologue:
+                    prologue += "#line %d\n" % (self.cur_lineno - 1)
                 lines.append(prologue + self.cur_line_with_replacements(replacements))
             elif nodetype == "directive":
                 # warn_func or error_func
                 setattr(self, node[0].lower(), get_ident(node[1]))
+                self.output("'''" + line)  # Also keeps line number correct
             elif nodetype == "readNode":
                 lines.append(self.process_readnode(node, iterator, ""))
             elif nodetype == "withNode":
@@ -1255,7 +1265,7 @@ class ReloadBasicFunction(object):
 
         if indentwith == None:
             indentwith = whitespace.match(self.cur_line).group(0)
-        return "".join(indentwith + l + "\n" for l in lines)
+        return indent(lines, indentwith)
     
     def process_function(self, header, iterator):
         """
@@ -1275,6 +1285,7 @@ class ReloadBasicFunction(object):
             self.exit = "RETURN 0"
 
         self.start_mark = self.outfile.get_mark()
+        start_lineno = iterator.lineno + 1  # Line number for first line in the body
 
         iterator.hook = self
         for lineno, line, node in iterator:
@@ -1295,6 +1306,7 @@ class ReloadBasicFunction(object):
             elif nodetype == "directive":
                 # warn_func or error_func
                 setattr(self, node[0].lower(), get_ident(node[1]))
+                self.output("'''" + line)  # Also keeps line number correct
             elif nodetype == "readNode":
                 self.output(self.process_readnode(node, iterator))
             elif nodetype == "withNode":
@@ -1312,7 +1324,7 @@ class ReloadBasicFunction(object):
             out = "STATIC _nodenames(...) as RBNodeName => {%s}\n"
             nodenames = ((self.global_scope.nameindex(name), reload_HashZString(name), name) for name in self.nodenames)
             out = out % ", ".join('(%s, %s, @"%s")' % n for n in nodenames)
-            self.start_mark.write(out)
+            self.start_mark.write(out + "#line %d\n" % (start_lineno - 1))
 
 
 class ReloadBasicTranslator(object):
@@ -1346,6 +1358,7 @@ class ReloadBasicTranslator(object):
         outfile.write('\n')
         outfile.write("#define RB_SIGNATURE %s  'hopefully unique to this file\n" % self.magic_number)
         header_mark = outfile.get_mark()
+        outfile.write('#line 0\n')
         self.num_functions = 0
 
         iterator = TranslationIteratorWrapper(filename, self.xml_dump)
