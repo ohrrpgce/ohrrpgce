@@ -48,16 +48,26 @@ def genericToken():         return re.compile(r"[a-zA-Z0-9._]+|[-+=<>\\@&#$^*+[\
 
 def nodeIndex():            return "[", CHECKPNT, "$", identifier, "]" 
 
-def nodeSpec():             return (identifier, PLUS, (".", string, QUES, nodeIndex), 
+# Optimisation: check for occurrence of ." before attempting to match
+def nodeSpec():             return (AND(re.compile('.*\.\s*"')),
+                                    identifier, PLUS, (".", string, QUES, nodeIndex), 
 #                                    STAR, (".", CHECKPNT, re.compile('|'.join(attributes)),
                                     STAR, (".", CHECKPNT, re.compile('\w+'),
                                            QUES, ("(", CHECKPNT, expression, ")")))
 
 #def simpleNodeSpec():      return [nodeSpec, identifier]
 
-# tokenLists are used where we don't really want to parse the input, only find nodeSpecs.
+# tokenLists are represent an arbitrary line of code, and are used where we don't
+# really want to parse the input, only find nodeSpecs.
 # Strings are still parsed, to make sure they don't confuse the parser.
-def tokenList():            return STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
+# Optimisation: check for occurrence of ." before doing (very!) expensive splitting into tokens,
+# otherwise gulp the whole line.
+def tokenList():            return [(AND(re.compile('.*\.\s*"')),
+                                       [nodeSpecAssignment,
+                                        (STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')])]),
+                                    re.compile(".*")],
+# Unoptimised version
+#def tokenList():            return STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
 
 def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT, expression))
 
@@ -107,16 +117,18 @@ def withNodeEnd():          return "end", "withnode"
 
 def loadArray():            return "loadarray", CHECKPNT, dottedIdentifier, "(", "$", identifier, ")", "=", expression
 
+# Not implemented
 def nodeSpecAssignment():   return nodeSpec, "=", CHECKPNT, expression
 
 def directive():            return "#", re.compile("warn_func|error_func"), CHECKPNT, "=", identifier
 
 # Grammar for any line of RB source. Matches empty lines too (including those with comments)
 # The AND element requires the regex to match before most patterns are checked.
-def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim|readnode|withnode|loadarray|private|sub|function|starttest|endtest|#)', re.I)),
+# Ignore DIM lines which definitely don't declare Node ptrs
+def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim.*node|readnode|withnode|loadarray|private|sub|function|starttest|endtest|#)', re.I)),
                                      [dimStatement, readNode, readNodeEnd, withNode, withNodeEnd,
                                       functionStart, functionEnd, subStart, subEnd, loadArray, directive]),
-                                    nodeSpecAssignment, tokenList]
+                                    tokenList]
 
 
 ################################## Parsing #####################################
