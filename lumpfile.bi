@@ -228,6 +228,15 @@ type FnOpenCallback as function (filename as string, writable as boolint, writes
 
 extern "C"
 
+' Error codes returned by FB runtime functions
+Enum 'FBErrorEnum
+	fberrOK = 0
+	fberrILLEGAL_CALL = 1
+	fberrNOTFOUND = 2
+	' Plenty more error codes, see fb/fb_stub.h
+End Enum
+Type FBErrorEnum as integer  'For compatibility with C
+
 'Replacement for OPEN (and FREEFILE) which is used to hook accesses to lumps, and send messages from Custom
 'to a spawned instance of Game when a modified file is closed.
 'Sets fh to a FREEFILE file number (initial value ignored).
@@ -237,7 +246,7 @@ extern "C"
 'becomes:
 '  OPENFILE(file, FOR_BINARY + ACCESS_READ, fh)
 'All access flags are optional; you can pass 0.
-declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as integer) as integer
+declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as integer) as FBErrorEnum
 
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
 declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)

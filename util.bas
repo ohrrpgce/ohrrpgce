@@ -2620,10 +2620,13 @@ END SUB
 'Read each line of a file into a string array
 SUB lines_from_file(strarray() as string, filename as string, expect_exists as bool = YES)
  REDIM strarray(-1 TO -1)
- DIM as integer fh
- fh = FREEFILE
- IF OPENFILE(filename, FOR_INPUT, fh) THEN
-  IF expect_exists THEN debug "Could not open " & filename
+ DIM as integer fh, openerr
+ openerr = OPENFILE(filename, FOR_INPUT, fh)
+ IF openerr = fberrNOTFOUND THEN
+  IF expect_exists THEN showerror "Missing file: " & filename
+  EXIT SUB
+ ELSEIF openerr <> fberrOK THEN
+  showerror "lines_from_file: Couldn't open " & filename
   EXIT SUB
  END IF
  DO UNTIL EOF(fh)
@@ -2638,9 +2641,8 @@ END SUB
 'unix line endings will automatically be added
 SUB lines_to_file(strarray() as string, filename as string)
  DIM fh as integer
- fh = FREEFILE
  IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) THEN
-  debug "Could not open " & filename & " for writing"
+  showerror "lines_to_file: Couldn't open " & filename
   EXIT SUB
  END IF
  FOR i as integer = 0 TO UBOUND(strarray)

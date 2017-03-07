@@ -66,7 +66,7 @@ extern "C" {
 	void set_OPEN_hook(FnOpenCallback lumpfile_filter, boolint lump_writes_allowed, IPCChannel *channel);
 	void clear_OPEN_hook();
 
-	int OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fh);
+	FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fh);
 }
 
 
