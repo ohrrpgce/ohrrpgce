@@ -25,9 +25,12 @@ rest_regex = re.compile(ur".*")
 class keyword(unicode): pass
 class code(unicode): pass
 class ignore(object):
-    def __init__(self, regex_text, flags = 0):
+    def __init__(self, display, regex_text, flags = 0):
+        """display is what is used for description in error messages.
+        regex_text is compiled to the actual regex"""
         self.regex = re.compile(regex_text, flags)
         self.regex_text = regex_text
+        self.display = display
 
 class _and(object):
     def __init__(self, something):
@@ -95,7 +98,7 @@ class FatalParseError(ParseError):
         elif type(expected) == type(word_regex):
             return u"<Regex>"
         elif type(expected) == ignore:
-            return expected.regex_text
+            return expected.display
         elif callable(expected):
             return unicode(expected.__name__)
 
@@ -167,9 +170,9 @@ class parser(object):
                 makekeyword = makekeyword or whole_word_regex.match(pattern)
             if self.caseInsensitive:
                 if makekeyword:
-                    ret = ignore(re.escape(pattern) + "(?!\w)", re.I)
+                    ret = ignore("'%s'" % pattern, re.escape(pattern) + "(?!\w)", re.I)
                 else:
-                    ret = ignore(re.escape(pattern), re.I)
+                    ret = ignore("'%s'" % pattern, re.escape(pattern), re.I)
             elif makekeyword:
                 ret = keyword(pattern)
             else:

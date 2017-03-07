@@ -57,7 +57,7 @@ def nodeSpec():             return (identifier, PLUS, (".", string, QUES, nodeIn
 
 # tokenLists are used where we don't really want to parse the input, only find nodeSpecs.
 # Strings are still parsed, to make sure they don't confuse the parser.
-def tokenList():            return STAR, [nodeSpec, string, IGNORE(r'[a-zA-Z0-9._]+|[^\s"]')]
+def tokenList():            return STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
 
 def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT, expression))
 
@@ -81,7 +81,7 @@ def typedVariableDecl():    return CHECKPNT, QUES, "byref", identifier, QUES, ar
 def typelessVariableDecl(): return CHECKPNT, identifier, QUES, arrayDimension, QUES, initialValue
 
 # Inside an arg list
-def argumentDecl():         return QUES, ["byval", "byref"], identifier, QUES, arrayDimension, "as", typename, QUES, initialValue
+def argumentDecl():         return QUES, ["byval", "byref"], identifier, CHECKPNT, QUES, arrayDimension, "as", typename, QUES, initialValue
 
 def dimStatement():         return "dim", CHECKPNT, QUES, "shared", [(QUES, "byref", "as", CHECKPNT, typename, typelessVariableDecl,
                                                                       STAR, (",", typelessVariableDecl)),
