@@ -241,6 +241,8 @@ if CC:
         clang = 'clang' in CC or 'clang' in os.readlink(WhereIs(CC))
     except OSError:
         pass # readlink throws an error if the arg isn't a symlink
+    except AttributeError:
+		pass # readlink does not exist at all on Windows
     if not clang and 'GCC' not in os.environ:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
