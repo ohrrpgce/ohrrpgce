@@ -27,7 +27,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
-#include <errno.h>
+#include <errno.h>  // Linux
+#include <sys/errno.h>  // Certain OSX versions?
 #include <locale.h>
 #include <stdio.h>
 #include <sys/types.h>
