@@ -98,17 +98,21 @@ package_for_arch() {
   rm tmp/ohrrpgce-game
 }
 
-package_for_arch x86 &&
-if which dpkg > /dev/null; then
-  echo "Building x86 Debian/Ubuntu packages"
-  cd linux
-  if [ -f *.deb ] ; then
-    rm *.deb
+if [ -z "${OHR_SKIP_X86}" ] ; then
+  package_for_arch x86 &&
+  if which dpkg > /dev/null; then
+    echo "Building x86 Debian/Ubuntu packages"
+    cd linux
+    if [ -f *.deb ] ; then
+      rm *.deb
+    fi
+    ./all.sh || exit 1
+    cd ..
+    mv linux/*.deb distrib
   fi
-  ./all.sh || exit 1
-  cd ..
-  mv linux/*.deb distrib
 fi
 
-package_for_arch x86_64
-# TODO: x86_64 .debs
+if [ -z "${OHR_SKIP_X86_64}" ] ; then
+  package_for_arch x86_64
+  # TODO: x86_64 .debs
+fi
