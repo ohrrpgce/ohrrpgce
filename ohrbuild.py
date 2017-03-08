@@ -94,6 +94,8 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     import datetime
     results = []
     supported_gfx = []
+
+    # Determine branch name and svn revision
     f = open (os.path.join (rootdir, 'codename.txt'),'rb')
     lines = []
     for line in f:
@@ -104,35 +106,44 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
         exit('Expected two noncommented lines in codename.txt')
     codename = lines[0]
     branch_rev = int(lines[1])
-    # now automagically determine branch and svn
+
+    # Determine svn revision and date
+
     def missing (name, message):
-        tmp ="%r executable not found. It may not be in the PATH, or simply not installed." % name
-        tmp += '\n' + message
-        print tmp
-    def query_svn (*command):
+        print "%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message)
+
+    def query_revision (revision_regex, date_regex, ignore_error, *command):
+        "Get the SVN revision and date (YYYYMMDD format) from the output of a command using regexps"
         # Note: this is reimplemented in linux/ohr_debian.py
         from subprocess import Popen, PIPE
         import re
-        # Always use current date instead
-        #date_rex = re.compile ('Last Changed Date: ([0-9]+)-([0-9]+)-([0-9]+)')
-        rev_rex = re.compile ('Revision: ([0-9]+)')
-        date = datetime.date.today().strftime ('%Y%m%d')
         rev = 0
+        date = ''
         output = None
         try:
             f = Popen (command, stdout = PIPE, stderr = PIPE, cwd = rootdir)
             output = f.stdout.read()
+            errmsg = f.stderr.read()
+            if errmsg and not ignore_error:
+                print errmsg
         except WindowsError:
             missing (command[0], '')
             output = ''
         except OSError:
             missing (command[0], '')
             output = ''
-        #if date_rex.search (output):
-        #    date = date_rex.search (output).expand ('\\1\\2\\3')
-        if rev_rex.search (output):
-            rev = int (rev_rex.search (output).expand ('\\1'))
+        date_match = re.search (date_regex, output)
+        if date_match:
+           date = date_match.expand ('\\1\\2\\3')
+        rev_match = re.search (revision_regex, output)
+        if rev_match:
+            rev = int (rev_match.group(1))
         return date, rev
+
+    def query_svn (*command):
+        "For 'svn info' or 'git svn info'"
+        return query_revision ('Revision: (\d+)', 'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command)
+
     def query_fb ():
         from subprocess import Popen, PIPE
         import re
@@ -150,17 +161,21 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
         if rex.search (output):
             return rex.search (output).expand ('\\1')
         return '??.??.? (????-??-??)'
+
     name = 'OHRRPGCE'
-    date, rev = query_svn ('svn','info')
-    if rev == 0:
-        # On Windows, "git svn info" seems to take longer than a human lifetime
-        if platform.system () == 'Windows':
-            print "Not attempting to get SVN revision from git; takes forever"
-        else:
-            # If git config settings for git-svn have been set up but git-svn hasn't been
-            # told to initialise yet, this will take a long time before failing...
-            # but there's no good reason that should occur
+    rev = 0
+    if os.path.isdir (os.path.join (rootdir, '.git')):
+        if os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
+            # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
+            # told to initialise yet, this will take a long time before failing
             date, rev = query_svn ('git','svn','info')
+        else:
+            # Try to determine SVN revision ourselves, otherwise doing
+            # a plain git clone won't have the SVN revision info
+            date, rev = query_revision ('git-svn-id.*@(\d+)', 'Date:\s*(\d+)-(\d+)-(\d+)', False,
+                                        *'git log --grep git-svn-id --date short -n 1'.split())
+    if rev == 0:
+        date, rev = query_svn ('svn','info')
     if rev == 0:
         print "Falling back to reading svninfo.txt"
         date, rev = query_svn ('cat','svninfo.txt')
@@ -169,6 +184,9 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
         print " WARNING!!"
         print "Could not determine SVN revision, which will result in RPG files without full version info and could lead to mistakes when upgrading .rpg files. A file called svninfo.txt should have been included with the source code if you downloaded a .zip instead of using svn or git."
         print
+    # Always use current date instead
+    date = datetime.date.today().strftime ('%Y%m%d')
+
     if branch_rev <= 0:
         branch_rev = rev
     fbver = query_fb ()
