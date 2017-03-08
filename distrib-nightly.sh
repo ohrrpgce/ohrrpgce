@@ -12,24 +12,16 @@ UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 TODAY=`date "+%Y-%m-%d"`
 
+mkdir -p ~/src/nightly
 cd ~/src/nightly
 
 if [ ! -d ohrrpgce ] ; then
   echo nightly snapshot not found, checking out from svn...
-  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce
+  mkdir ohrrpgce
+  svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce/wip
 fi
 
 cd ohrrpgce
-
-svn update > ../nightly-temp.txt
-UPDATE=`wc -l < ../nightly-temp.txt`
-cat ../nightly-temp.txt
-rm ../nightly-temp.txt
-
-if [ ${UPDATE} -eq 1 -a "${1}" != "force" ] ; then
-  echo no changes, no need to update snapshot.
-  exit
-fi
 
 echo removing old nightly source snapshot...
 rm ohrrpgce-source-nightly.zip
@@ -39,7 +31,7 @@ svn info wip > wip/svninfo.txt
 zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*"
 ls -l ohrrpgce-source-nightly.zip
 
-echo uploading new nightly snapshot
+echo uploading new nightly source snapshot
 scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
 # This is duplicated in distrib-nightly-win[-wine].sh
@@ -58,15 +50,14 @@ cd ..
 
 if [ ! -d ohrrpgce-build ] ; then
   echo nightly snapshot not found, checking out from svn...
-  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce-build
+  mkdir ohrrpgce-build
+  svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce-build/wip
 fi
 
-cd ohrrpgce-build
+cd ohrrpgce-build/wip
 
 svn cleanup
 svn update
-
-cd wip
 
 ./distrib.sh
 
