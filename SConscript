@@ -237,7 +237,10 @@ CC = findtool ('CC', "gcc")
 CXX = findtool ('CXX', "g++")
 clang = False
 if CC:
-    clang = 'clang' in CC
+    try:
+        clang = 'clang' in CC or 'clang' in os.readlink(WhereIs(CC))
+    except OSError:
+        pass # readlink throws an error if the arg isn't a symlink
     if not clang and 'GCC' not in os.environ:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
@@ -406,7 +409,7 @@ else:
 # If cross compiling, do a sanity test
 if not android_source:
     gcctarget = get_command_output(GCC, "-dumpmachine")
-    print "Using target:", target, " arch:", arch, " gcc:", GCC, " gcctarget:", gcctarget, " fbcversion:", fbcversion
+    print "Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " fbcversion:", fbcversion
     # If it contains two dashes it looks like a target triple
     if target_prefix and target_prefix != gcctarget + '-':
         print "Error: This GCC doesn't target " + target_prefix
