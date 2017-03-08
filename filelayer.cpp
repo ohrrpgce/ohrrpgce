@@ -9,6 +9,7 @@
 #include <map>
 #include <cstring>
 #include "common.h"
+#include "errno.h"
 
 // When quitting FB closes all files from within a destructor, so globals may have already
 // been deleted. So it would be a bad idea to define openfiles as an object instead of pointer.
