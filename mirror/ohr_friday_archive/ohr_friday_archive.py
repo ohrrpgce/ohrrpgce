@@ -49,7 +49,7 @@ dir_list.sort(reverse=True)
 
 # Then delete the oldest ones
 while len(dir_list) > max_archives:
-    delete_me = os.path.join(archive_dir, dir_list[-1])
+    delete_me = os.path.join(archivedir, dir_list[-1])
     dir_list = dir_list[:-1]
     print "Deleting old archive {0}".format(delete_me)
     shutil.rmtree(delete_me)
