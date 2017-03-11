@@ -2288,6 +2288,8 @@ END FUNCTION
 SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
  'DEBUG debug "in preparemap"
 
+ script_log_out !"\nLoading map " & gam.map.id & IIF(afterbat, " (reloading after a battle)", "")
+
  DIM i as integer
  'save data from old map
  IF gam.map.lastmap > -1 THEN
@@ -3349,6 +3351,7 @@ SUB check_for_queued_fade_in ()
  IF gam.need_fade_in THEN
   IF gam.fade_in_delay <= 0 THEN
    gam.need_fade_in = 0
+   script_log_out !"\nFading in the screen"
    fadein
    setkeys
   ELSE

@@ -105,6 +105,8 @@ REDIM atkq(15) as AttackQueue
 
 FUNCTION battle (byval form as integer) as bool
  DIM result as bool  'Return value: whether victorious
+
+ script_log_out !"\nFighting battle (formation " & form & ")"
  
  gam.pad.in_battle = YES
  remap_virtual_gamepad "virtual_gamepad_battle"

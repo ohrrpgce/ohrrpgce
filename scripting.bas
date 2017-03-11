@@ -174,7 +174,7 @@ SUB start_script_trigger_log
  print #fh, "waiting or paused due to either another script which was triggered (indicated by a"
  print #fh, "line to its right) or while waiting for a script they called (not shown)."
  print #fh, "Dotted lines ':' show triggered scripts which have not even had a chance to start."
- print #fh, "(...) means that a script continues waiting multiple ticks for the same reason."
+ print #fh, "(...as above...) means that a script continues waiting multiple ticks for the same reason."
  print #fh,
  print #fh, " Symbols in front of script names:"
  print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished" 
@@ -316,8 +316,8 @@ SUB script_log_tick
     .wait_msg_repeats = 0
    END If
    .wait_msg_repeats += 1
-   IF .wait_msg_repeats <= 3 THEN doprint = YES
-   IF .wait_msg_repeats = 3 THEN wait_msg = "..."
+   IF .wait_msg_repeats <= 2 THEN doprint = YES
+   IF .wait_msg_repeats = 2 THEN wait_msg = "...as above..."
   END IF
 
   IF doprint THEN
