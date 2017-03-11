@@ -17,11 +17,10 @@ void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, in
 void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]);
 void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, int w, int h, int pitch, int zoom, int smooth);
 
-
 // write_mask:
 //    If the destination has a mask, sets the mask for the destination rectangle
 //    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, bool trans, bool write_mask) {
+void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask) {
 	int i, j;
 	unsigned char *maskp, *srcp, *destp;
 	int srclineinc, destlineinc;
@@ -129,7 +128,7 @@ void blitohr(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, in
 // write_mask:
 //    If the destination has a mask, sets the mask for the destination rectangle
 //    equal to the mask (or color-key) for the source rectangle. Does not OR them.
-void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, bool trans, bool write_mask, int scale) {
+void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, boolint write_mask, int scale) {
 	unsigned char *restrict destbuf;
 	unsigned char *restrict maskbuf;
 	int tx, ty;
