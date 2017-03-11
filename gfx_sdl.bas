@@ -658,6 +658,16 @@ FUNCTION gfx_sdl_supports_variable_resolution() as bool
   RETURN YES
 END FUNCTION
 
+FUNCTION gfx_sdl_vsync_supported() as bool
+  #IFDEF __FB_DARWIN__
+    ' OSX always has vsync, and drawing the screen will block until vsync, so this needs
+    ' special treatment (as opposed to most other WMs which also do vsync compositing)
+    RETURN YES
+  #ELSE
+    RETURN NO
+  #ENDIF
+END FUNCTION
+
 FUNCTION gfx_sdl_set_resizable(byval enable as bool, min_width as integer, min_height as integer) as bool
   'Ignore minimum width and height.
   'See SDL_VIDEORESIZE handling for discussing of enforcing min window size.
@@ -1338,6 +1348,7 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_getwindowstate = @gfx_sdl_getwindowstate
   gfx_get_screen_size = @gfx_sdl_get_screen_size
   gfx_supports_variable_resolution = @gfx_sdl_supports_variable_resolution
+  gfx_vsync_supported = @gfx_sdl_vsync_supported
   gfx_get_resize = @gfx_sdl_get_resize
   gfx_set_resizable = @gfx_sdl_set_resizable
   gfx_recenter_window_hint = @gfx_sdl_recenter_window_hint
