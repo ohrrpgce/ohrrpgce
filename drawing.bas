@@ -951,8 +951,6 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   NEXT
  NEXT
 
- GOSUB setupsample
-
  setkeys
  DO
   setwait 55
@@ -961,24 +959,31 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
-  IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
-  IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
-  IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
-  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
-  '--draw available animating tiles--
+  IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16)
+  IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16)
+  IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1)
+  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1)
+
   clearpage dpage
+  '--draw available animating tiles--
   drawmap tilesetview, 0, 0, tileset, dpage, , , , 10, 60
+
   '--draw sample--
   setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
   cycletile tanim_state(), tastuf()
+
+  cleantilemap sample, 3, 3
+  FOR x = 0 TO 2
+   FOR y = 0 TO 2
+    writeblock sample, x, y, 160 + (taset * 48) + csr
+   NEXT
+  NEXT
   drawmap sample, -130, 0, tileset, dpage, , , , 100, 60
+
   '--Draw cursor--
-  y = INT(csr / 16)
+  y = csr \ 16
   x = csr - y * 16
-  rectangle 20 * x, 10 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
-  rectangle 20 * x, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
-  rectangle 20 * x, 29 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
-  rectangle 20 * x + 19, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
+  drawbox 20 * x, 10 + 20 * y, 20, 20, uilook(uiSelectedItem + tog), 1, dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -987,16 +992,6 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
  frame_unload @tileset
  unloadtilemap sample
  unloadtilemap tilesetview
- EXIT SUB
-
-setupsample:
- cleantilemap sample, 3, 3
- FOR x = 0 TO 2
-  FOR y = 0 TO 2
-   writeblock sample, x, y, 160 + (taset * 48) + csr
-  NEXT
- NEXT
- RETRACE
 END SUB
 
 SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
