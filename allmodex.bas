@@ -796,15 +796,18 @@ end function
 sub SkippedFrame.drop()
 	gfx_surfaceDestroy(surf)  'decrement refcount
 	surf = NULL
+	'if page >= 0 then freepage page
 	page = -1
 end sub
 
 ' If the last setvispage/setvissurface was skipped, display it
 sub SkippedFrame.show ()
+	' Non-skippable setvis* calls.
+	' Note: setvis* will call SkippedFrame.drop() when the display page/surf
 	if page > -1 then
-		setvispage page
+		setvispage page, NO
 	elseif surf then
-		setvissurface surf
+		setvissurface surf, NO
 	end if
 end sub
 
@@ -814,9 +817,12 @@ end sub
 sub setvispage (page as integer, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
-	skipped_frame.drop()
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
+		skipped_frame.drop()
 		skipped_frame.page = page
+		' To be really cautious we could save a copy, but because page should
+		' not get modified until it's time to draw the next frame, this isn't really needed.
+		'skipped_frame.page = duplicatepage(page)
 		exit sub
 	end if
 	lastframe = timer
@@ -863,6 +869,8 @@ sub setvispage (page as integer, skippable as bool = YES)
 		mutexunlock keybdmutex
 	end with
 
+	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
+
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
@@ -875,8 +883,8 @@ end sub
 sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
-	skipped_frame.drop()
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
+		skipped_frame.drop()
 		skipped_frame.surf = gfx_surfaceReference(to_show)
 		exit sub
 	end if
@@ -904,6 +912,8 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	gfx_present(to_show, surface_pal)
 
 	if surface_pal then gfx_paletteDestroy(surface_pal)
+
+	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
 
 	'After presenting this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
