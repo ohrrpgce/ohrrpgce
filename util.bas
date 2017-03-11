@@ -1467,8 +1467,10 @@ END FUNCTION
 ' - If there are multiple files matching case insensitively, return an error
 ' - If the path would be absolute on any platform, give up, this can't be made portable
 '
-' NOTE: while on UNIX we return the path with the actual capitalisation, on Windows we don't bother
+' NOTE: while on UNIX and Mac we return the path with the actual capitalisation, on Windows we don't bother
 ' to do so, and return the original path (normalised and simplified).
+' Note that on Mac the filesystem may or may not be case sensitive, but we use the Unix/case sensitive
+' codepath to handle both cases.
 FUNCTION find_file_portably (path as string) as string
   IF is_possibly_absolute_path(path) THEN RETURN "Absolute path not allowed: " + path
 
@@ -1551,7 +1553,9 @@ startTest(find_file_portably)
     touchfile(tempdir + "/file1.TMP")
     touchfile(tempdir + "/FILE1.tmp")
     IF makedir(tempdir + "/Subdir1") <> 0 THEN fail
-    IF makedir(tempdir + "/SUBDIR1") <> 0 THEN fail
+    #IFNDEF __FB_DARWIN__
+      IF makedir(tempdir + "/SUBDIR1") <> 0 THEN fail
+    #ENDIF
   #ENDIF
 
   ' Test finding files
@@ -1590,7 +1594,8 @@ startTest(find_file_portably)
   testfileabsolute("c:\Invalid")
   testfileabsolute("/Invalid")
   ' Test multiple files with same case-collapsed path (can't happen on Windows)
-  #IFDEF __FB_UNIX__
+  ' Also skip this test on Mac because there the filesystem is usually case-insensitive, so this can't happen
+  #IF defined(__FB_UNIX__) and not defined(__FB_DARWIN__)
     DIM normed as string = normalize_path(tempdir + "/")
     testEqual(find_file_portably(tempdir + "/file1.tmp"), _
               "Found multiple paths (in " + normed + ") with same case-insensitive name: [""FILE1.tmp"", ""file1.TMP""]")
@@ -1599,6 +1604,8 @@ startTest(find_file_portably)
   #ENDIF
 
   killdir(tempdir, YES)  'recursively
+
+  IF isdir(tempdir) THEN fail
 endTest
 #ENDIF
 
