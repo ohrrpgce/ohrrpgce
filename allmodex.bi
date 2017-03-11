@@ -86,6 +86,7 @@ DECLARE SUB set_resolution (byval w as integer, byval h as integer)
 DECLARE FUNCTION get_resolution () as XYPair
 DECLARE SUB get_screen_size (byref screenwidth as integer, byref screenheight as integer)
 DECLARE SUB set_scale_factor (scale as integer)
+DECLARE SUB toggle_fps_display ()
 
 DECLARE FUNCTION supports_fullscreen_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
@@ -571,7 +572,6 @@ extern vpagesp as Frame ptr ptr
 extern key2text(3,53) as string*1
 extern fonts() as Font ptr
 extern global_tog as integer
-extern showfps as bool
 extern max_display_fps as integer
 
 #ENDIF

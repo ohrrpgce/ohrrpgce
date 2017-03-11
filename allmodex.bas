@@ -89,7 +89,7 @@ declare function draw_allmodex_overlays32 (surf as Surface ptr) as bool
 declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
-declare sub update_fps_counter ()
+declare sub update_fps_counter (skipped as bool)
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
@@ -269,10 +269,13 @@ dim shared textbg as integer
 dim shared intpal(0 to 255) as RGBcolor	 'current palette
 dim shared updatepal as bool             'setpal called, load new palette at next setvispage
 
-dim shared fpsframes as integer = 0
-dim shared fpstime as double = 0.0
-dim shared fpsstring as string
-dim showfps as bool = NO
+dim shared fps_draw_frames as integer = 0 'Frames drawn since fps_time_start
+dim shared fps_real_frames as integer = 0 'Frames sent to gfx backend since fps_time_start
+dim shared fps_time_start as double = 0.0
+dim shared draw_fps as double             'Current measured frame draw rate, per second
+dim shared real_fps as double             'Current measured frame display rate, per second
+dim shared showfps as integer = 0         'Draw on overlay? 0 (off), 1 (real fps), or 2 (draw fps)
+
 dim shared overlay_message as string      'Message to display on screen
 dim shared overlay_hide_time as double    'Time at which to hide it
 dim shared overlay_replay_display as bool
@@ -350,9 +353,10 @@ sub setmodex()
 	io_init()
 	'mouserect(-1,-1,-1,-1)
 
-	fpstime = TIMER
-	fpsframes = 0
-	fpsstring = ""
+	fps_time_start = TIMER
+	fps_draw_frames = 0
+	fps_real_frames = 0
+
 	' TODO: tmpdir is shared by all instances of Custom, but when that is fixed this can be removed
 	macrofile = tmpdir & "macro" & get_process_id() & ".ohrkeys"
 
@@ -815,7 +819,6 @@ end sub
 'Also resizes all videopages to match the window size
 'skippable: if true, allowed to frameskip this frame at high framerates
 sub setvispage (page as integer, skippable as bool = YES)
-	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
@@ -823,8 +826,10 @@ sub setvispage (page as integer, skippable as bool = YES)
 		' To be really cautious we could save a copy, but because page should
 		' not get modified until it's time to draw the next frame, this isn't really needed.
 		'skipped_frame.page = duplicatepage(page)
+		update_fps_counter YES
 		exit sub
 	end if
+	update_fps_counter NO
 	lastframe = timer
 
 	dim starttime as double = timer
@@ -881,13 +886,14 @@ end sub
 'May modify the surface.
 'skippable: if true, allowed to frameskip this frame at high framerates
 sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
-	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
 		skipped_frame.surf = gfx_surfaceReference(to_show)
+		update_fps_counter YES
 		exit sub
 	end if
+	update_fps_counter NO
 	lastframe = timer
 
 	if screenshot_record_overlays = YES then
@@ -931,8 +937,10 @@ end sub
 private sub skippable_setpal()
 	updatepal = YES
 	if timer - lastframe < 1. / max_display_fps then
+		update_fps_counter YES
 		exit sub
 	end if
+	update_fps_counter NO
 	lastframe = timer
 
 	mutexlock keybdmutex
@@ -1064,8 +1072,8 @@ end sub
 'Set number of milliseconds from now when the next call to dowait returns.
 'This number is treated as a desired framewait, so actual target wait varies from 0.5-1.5x requested.
 'ms:     number of milliseconds
-'flagms: if nonzero, is a count in milliseconds for the secondary timer, whether this has
-'        accessed as the return value from dowait.
+'flagms: if nonzero, is a count in milliseconds for the secondary timer, whether this has triggered
+'        is accessed as the return value from dowait.
 sub setwait (byval ms as double, byval flagms as double = 0)
 	if use_speed_control = NO then exit sub
 	ms /= fps_multiplier
@@ -2211,7 +2219,7 @@ private sub allmodex_controls()
 	end if
 
 	if real_keyval(scCtrl) > 0 and real_keyval(scTilde) and 4 then
-		showfps xor= 1
+		toggle_fps_display
 	end if
 
 	fps_multiplier = base_fps_multiplier
@@ -2437,12 +2445,24 @@ private function ms_to_string (ms as integer) as string
 	return seconds2str(cint(ms * 0.001), "%h:%M:%S")
 end function
 
-private sub update_fps_counter ()
-	fpsframes += 1
-	if timer > fpstime + 1 then
-		fpsstring = "FPS:" & format(fpsframes / (timer - fpstime), "0.0")
-		fpstime = timer
-		fpsframes = 0
+sub toggle_fps_display ()
+	showfps = (showfps + 1) MOD 3
+end sub
+
+' Called every time a frame is drawn.
+' skipped: true if this frame was frameskipped.
+private sub update_fps_counter (skipped as bool)
+	fps_draw_frames += 1
+	if not skipped then
+		fps_real_frames += 1
+	end if
+	if timer > fps_time_start + 1 then
+		dim nowtime as double = timer
+		draw_fps = fps_draw_frames / (nowtime - fps_time_start)
+		real_fps = fps_real_frames / (nowtime - fps_time_start)
+		fps_time_start = nowtime
+		fps_draw_frames = 0
+		fps_real_frames = 0
 	end if
 end sub
 
@@ -2451,7 +2471,15 @@ end sub
 private function draw_allmodex_overlays (page as integer) as bool
 	dim dirty as bool = NO
 	if showfps then
-		edgeprint fpsstring, vpages(page)->w - 65, vpages(page)->h - 10, uilook(uiText), page
+		dim fpsstring as string
+		if showfps = 2 then
+			fpsstring = "Draw:" & format(draw_fps, "0.0") & " FPS"
+		else
+			fpsstring = "Display:" & format(real_fps, "0.0") & " FPS"
+		end if
+		' Move the FPS a little to the left, because on OSX+gfx_sdl the handle for resizable
+		' windows is drawn in the bottom right corner by SDL (not the OS).
+		edgeprint fpsstring, pRight - 14, pBottom, uilook(uiText), page
 		dirty = YES
 	end if
 
@@ -2463,7 +2491,7 @@ private function draw_allmodex_overlays (page as integer) as bool
 		end if
 		overlay_message = "Pos: " & ms_to_string(replay.play_position_ms) & "/" & ms_to_string(replay.length_ms) & _
 		     "  " & rpad(replay.tick & "/" & replay.length_ticks, " ", 9) & repeat_str & _
-		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 7) & rpad(fpsstring, " ", 10) & "[F1 for help]"
+		     !"\nSpeed: " & rpad(fps_multiplier & "x", " ", 5) & "FPS:" & format(draw_fps, "0.0") & " [F1 for help]"
 	elseif overlay_hide_time < timer then
 		overlay_message = ""
 	end if

@@ -3553,7 +3553,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  dbg.def( , , "[Hold down to speed up:] (Shift+Tab)")
 
  'Ctrl+~ implemented in allmodex
- IF dbg.def( , , "Show frames-per-second (Ctrl ~)") THEN showfps XOR= YES
+ IF dbg.def( , , "Show frames-per-second (Ctrl ~)") THEN toggle_fps_display
 
  IF dbg.def( , , "List slices to g_debug.txt") THEN
   debug "----------------Slice Tree Dump---------------"
