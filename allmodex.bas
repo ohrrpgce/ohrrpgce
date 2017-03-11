@@ -93,6 +93,8 @@ declare sub update_fps_counter (skipped as bool)
 declare sub allmodex_controls ()
 declare sub replay_controls ()
 
+declare function time_draw_calls_from_finish() as bool
+
 declare function hexptr(p as any ptr) as string
 
 
@@ -161,17 +163,21 @@ dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim shared use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
+dim shared requested_framerate as double    'Set by last setwait
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
-dim shared fps_multiplier as double = 1.0
+dim shared fps_multiplier as double = 1.0   'Effect speed multiplier, affects all setwait/dowaits
+dim max_display_fps as integer = 90         'Skip frames if drawing more than this.
+dim shared lastframe as double              'Time at which the last frame was displayed.
+dim shared blocking_draws as bool = NO      'True if drawing the screen is a blocking call.
+dim shared skipped_frame as SkippedFrame    'Records the last setvispage/setvissurface call if it was frameskipped.
+
 #IFDEF __FB_DARWIN__
-' On OSX vsync will limit the program to the monitor refresh rate, so we need to frame skip higher than that
-' (Still doesn't work perfectly)
-dim max_display_fps as integer = 60  'Skip frames if drawing more than this
-#ELSE
-dim max_display_fps as integer = 90  'Skip frames if drawing more than this
+	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
+	' (Still doesn't work perfectly)
+	max_display_fps = 60
+	blocking_draws = YES
 #ENDIF
-dim shared lastframe as double       'Time at which the last frame was displayed
-dim shared skipped_frame as SkippedFrame
+
 
 type KeyboardState
 	setkeys_elapsed_ms as integer       'Time since last setkeys call (used by keyval)
@@ -830,7 +836,9 @@ sub setvispage (page as integer, skippable as bool = YES)
 		exit sub
 	end if
 	update_fps_counter NO
-	lastframe = timer
+	if not time_draw_calls_from_finish then
+		lastframe = timer
+	end if
 
 	dim starttime as double = timer
 	dim starttime2 as double
@@ -874,6 +882,11 @@ sub setvispage (page as integer, skippable as bool = YES)
 		mutexunlock keybdmutex
 	end with
 
+	if time_draw_calls_from_finish then
+		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
+		lastframe = timer - 0.004
+	end if
+
 	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
 
 	'After presenting the page this is a good time to check for window size changes and
@@ -894,7 +907,9 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 		exit sub
 	end if
 	update_fps_counter NO
-	lastframe = timer
+	if not time_draw_calls_from_finish then
+		lastframe = timer
+	end if
 
 	if screenshot_record_overlays = YES then
 		'Modifies page. This is bad if displaying a page other than vpage/dpage!
@@ -916,6 +931,11 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	end if
 
 	gfx_present(to_show, surface_pal)
+
+	if time_draw_calls_from_finish then
+		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
+		lastframe = timer - 0.004
+	end if
 
 	if surface_pal then gfx_paletteDestroy(surface_pal)
 
@@ -941,12 +961,19 @@ private sub skippable_setpal()
 		exit sub
 	end if
 	update_fps_counter NO
-	lastframe = timer
+	if not time_draw_calls_from_finish then
+		lastframe = timer
+	end if
 
 	mutexlock keybdmutex
 	gfx_setpal(@intpal(0))
 	mutexunlock keybdmutex
+
 	updatepal = NO
+	if time_draw_calls_from_finish then
+		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
+		lastframe = timer - 0.004
+	end if
 end sub
 
 sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
@@ -1069,6 +1096,26 @@ sub enable_speed_control(byval setting as bool = YES)
 	use_speed_control = setting
 end sub
 
+'Decides whether to time when to display the next frame (deciding whether to skip
+'a frame or not) based on when the last gfx_showpage/gfx_present returned instead
+'of when it was called.
+'Normally we should just try to display a frame every refresh-interval, but on OSX
+'presenting the window blocks until vsync, which means if we time from the call
+'time rather than the return time, then we'll always be unnecessarily waiting
+'even if speedcontrol is disabled. (If we're not trying to go fast then this waiting
+'is OK, because it only happens if we displayed a frame earlier than necessary.)
+'So this is only useful if we are frame skipping to run at more than the refresh rate!
+private function time_draw_calls_from_finish() as bool
+	if blocking_draws = NO then
+		' Normally this is undesirable
+		return NO
+	else
+		' Otherwise, only turn this on if we're trying to go FAST
+		' (But allow for 16 ms = 62.5fps)
+		return (use_speed_control = NO or requested_framerate > max_display_fps + 3)
+	end if
+end function
+
 'Set number of milliseconds from now when the next call to dowait returns.
 'This number is treated as a desired framewait, so actual target wait varies from 0.5-1.5x requested.
 'ms:     number of milliseconds
@@ -1078,6 +1125,7 @@ sub setwait (byval ms as double, byval flagms as double = 0)
 	if use_speed_control = NO then exit sub
 	ms /= fps_multiplier
 	flagms /= fps_multiplier
+	requested_framerate = 1. / ms
 	dim thetime as double = timer
 	dim target as double = waittime + ms / 1000
 	waittime = bound(target, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
