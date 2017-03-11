@@ -79,7 +79,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
-		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default 90)" & LINE_END
+		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default " & max_display_fps & ")" & LINE_END
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END

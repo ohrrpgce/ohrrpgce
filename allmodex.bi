@@ -572,5 +572,6 @@ extern key2text(3,53) as string*1
 extern fonts() as Font ptr
 extern global_tog as integer
 extern showfps as bool
+extern max_display_fps as integer
 
 #ENDIF

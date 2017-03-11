@@ -163,7 +163,14 @@ dim shared use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0
-dim shared max_display_fps as integer = 90  'Skip frames if drawing more than this
+#IFDEF __FB_DARWIN__
+' On OSX vsync will limit the program to the monitor refresh rate, so we need to frame skip higher than that
+' (Still doesn't work perfectly)
+dim max_display_fps as integer = 60  'Skip frames if drawing more than this
+#ELSE
+dim max_display_fps as integer = 90  'Skip frames if drawing more than this
+#ENDIF
+dim shared lastframe as double       'Time at which the last frame was displayed
 dim shared skipped_frame as SkippedFrame
 
 type KeyboardState
@@ -807,7 +814,6 @@ end sub
 sub setvispage (page as integer, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
-	static lastframe as double
 	skipped_frame.drop()
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.page = page
@@ -869,7 +875,6 @@ end sub
 sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 	update_fps_counter
 	' Drop frames to reduce CPU usage if FPS too high
-	static lastframe as double
 	skipped_frame.drop()
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.surf = gfx_surfaceReference(to_show)
@@ -912,6 +917,20 @@ sub setpal(pal() as RGBcolor)
 	updatepal = YES
 end sub
 
+' A gfx_setpal wrapper which may perform frameskipping to limit fps
+private sub skippable_setpal()
+	updatepal = YES
+	if timer - lastframe < 1. / max_display_fps then
+		exit sub
+	end if
+	lastframe = timer
+
+	mutexlock keybdmutex
+	gfx_setpal(@intpal(0))
+	mutexunlock keybdmutex
+	updatepal = NO
+end sub
+
 sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	dim i as integer
 	dim j as integer
@@ -920,11 +939,8 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
-		mutexlock keybdmutex
-		gfx_setpal(@intpal(0))
-		mutexunlock keybdmutex
+		skippable_setpal
 		gif_record_frame8 vpages(vpage), intpal()
-		updatepal = NO
 	end if
 
 	for i = 1 to 32
@@ -952,9 +968,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
-		mutexlock keybdmutex
-		gfx_setpal(@intpal(0))
-		mutexunlock keybdmutex
+		skippable_setpal
 
 		if i mod 3 = 0 then
 			' We're assuming that vpage hasn't been modified since the last setvispage
@@ -978,10 +992,7 @@ sub fadetopal (pal() as RGBcolor)
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
-		mutexlock keybdmutex
-		gfx_setpal(@intpal(0))
-		mutexunlock keybdmutex
-		updatepal = NO
+		skippable_setpal
 		gif_record_frame8 vpages(vpage), intpal()
 	end if
 
@@ -1016,9 +1027,7 @@ sub fadetopal (pal() as RGBcolor)
 			gif_record_frame8 vpages(vpage), intpal()
 		end if
 
-		mutexlock keybdmutex
-		gfx_setpal(@intpal(0))
-		mutexunlock keybdmutex
+		skippable_setpal
 		dowait
 	next
 

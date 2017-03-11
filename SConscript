@@ -242,7 +242,7 @@ if CC:
     except OSError:
         pass # readlink throws an error if the arg isn't a symlink
     except AttributeError:
-		pass # readlink does not exist at all on Windows
+        pass # readlink does not exist at all on Windows
     if not clang and 'GCC' not in os.environ:
         # fbc does not support -gen gcc using clang
         env['ENV']['GCC'] = CC  # fbc only checks GCC variable, not CC
@@ -990,12 +990,7 @@ if platform.system () == 'Windows':
     Alias ('gfx_directx_test', TEST)
 
 
-# --log . to smooth out inconsistencies between Windows and Unix
-tmp = ''
-if 'fb' in gfx:
-    # Use gfx_fb because it draws far less frames without speed control for some reason, runs waaaay faster
-    tmp = ' --gfx fb'
-
+################ Non-file/action targets
 
 def Phony(name, source, action):
     node = env.Alias(name, source = source, action = action)
@@ -1003,11 +998,11 @@ def Phony(name, source, action):
     return node
 
 AUTOTEST = Phony ('autotest_rpg', source = GAME, action =
-                  [GAME.abspath + tmp +  ' --log . --runfast testgame/autotest.rpg -z 2',
+                  [GAME.abspath + ' --log . --runfast testgame/autotest.rpg -z 2',
                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 env.Alias ('autotest', source = AUTOTEST)
 INTERTEST = Phony ('interactivetest', source = GAME, action =
-                   [GAME.abspath + tmp + ' --log . --runfast testgame/interactivetest.rpg -z 2'
+                   [GAME.abspath + ' --log . --runfast testgame/interactivetest.rpg -z 2'
                     ' --replayinput testgame/interactivetest.ohrkey',
                     'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 # This prevents more than one copy of Game from being run at once
