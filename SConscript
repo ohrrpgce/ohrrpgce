@@ -270,7 +270,8 @@ def translate_rb(source):
     return File(source)
 
 
-if portable:
+if portable and unix and not mac:
+    # Only implemented on GNU
     def check_lib_reqs(source, target, env):
         for targ in target:
             ohrbuild.check_lib_requirements(str(targ))
@@ -500,7 +501,8 @@ if linkgcc:
         if not android:
             # The following are required by libfb (not libfbgfx)
             CXXLINKFLAGS += ['-lpthread']
-            if portable:
+            if portable and not mac:
+                #CXXLINKFLAGS += ['/usr/lib/libncurses.5.dylib']  # Mac: -l: syntax not supported
                 CXXLINKFLAGS += ['-l:libncurses.so.5']
             else:
                 CXXLINKFLAGS += ['-lncurses']  # would be libncurses.so.6 since ~2015
