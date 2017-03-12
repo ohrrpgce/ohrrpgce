@@ -1764,7 +1764,7 @@ SUB sfunctions(byval cmdid as integer)
   END IF
  CASE 215'--concatenate strings
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
-   plotstr(retvals(0)).s = plotstr(retvals(0)).s + plotstr(retvals(1)).s
+   plotstr(retvals(0)).s += plotstr(retvals(1)).s
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 216'--string length

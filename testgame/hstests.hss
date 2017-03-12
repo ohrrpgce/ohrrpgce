@@ -2,6 +2,8 @@
 # This file contains testcases for the script interpreter and HSpeak.
 # It can compiled either as part of autotest.hss (run by autotest.rpg)
 # or independently, but compiling hstests_standalone.hss.
+#
+# These tests are very incomplete!
 
 # include a file with UTF-16 encoding
 include, "utf16 encoding test.hss"
@@ -166,8 +168,6 @@ script, hspeak tests, begin
   ÿve := 0
 
   assert(¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE == 42)
-
-  assert(that script in the other file == 91)
   
   global 5000 := 99999
   assert(global 5000 == 99999)
@@ -253,16 +253,39 @@ script, string tests, begin
   $3=" test 1abcdef ffffffff "
   string sprintf(1, 2, 28036591, -1)
   assert(string compare(1, 3))
+
+  # Tests UTF-16 encoding, but uses strings
+  assert(that script in the other file == 91)
 end
 
 ########################################################################
 
+# Very incomplete
 script, math tests, begin
-  variable(n)
-  n := 10
   $0="math tests"
-  if(abs(-10) <> n) then(crash)
-  if(abs(15) <> n + 5) then(crash)
+
+  # These tests have to be carefully written to not contain any constant
+  # expressions that HSpeak will optimise out
+  variable(n, m)
+  assert(n == 0)
+  n := 10
+  assert(n == 10)
+  assert(n + 5 == 15)
+  assert(n -- 15 == -5)
+  assert(n * -1 == -10)
+  assert(abs(-1*n) == 10)
+  assert(abs(n) == 10)
+  assert(sign(n) == 1)
+  assert(sign(n--10) == 0)
+  assert(sign(-1*n) == -1)
+
+  n += 1
+  assert(n == 11)
+  n -= 10
+  assert(n == 1)
+
+  assert((m := 3) == 3)
+  assert((m -= 6) == -3)
 
   assert(another global == 0)
   another global := 10

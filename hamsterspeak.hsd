@@ -29,7 +29,7 @@ define function, begin
 212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
 213,appendnumber,2,0,0        #adds number to string(stringID,number)
 214,copystring,2,0,0          #copies string from one to another(sourceID,destinationID)
-215,concatenatestrings,2,0,0  #adds two strings(sourceID,destinationID)
+215,concatenatestrings,2,0,0  #adds two strings(destinationID,sourceID)
 216,stringlength,1,0          #returns the length of string(stringID)
 217,deletechar,2,0,1          #deletes character from string(stringID,position)
 218,replacechar,3,0,1,0       #replaces character in the specified string(stringID,position,ascii)
