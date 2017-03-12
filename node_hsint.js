@@ -19,11 +19,22 @@ const path = require('path');
 const hspeakrt = require("hspeakrt");
 
 let commands = {
+    1: function noop(stab) {
+    },
+    73: function gameover(stab) {
+        process.exit();
+    },
     114: function readglobal(stab, index) {
         return interpreter.global[index];
     },
     115: function writeglobal(stab, index, val) {
         interpreter.global[index] = val;
+    },
+    176: function runscriptbyid(stab, id, ...args) {
+        return runscript(interpreter.call(id, ...args));
+    },
+    210: function showstring(stab, id) {
+        console.log(interpreter.plotstring[id]);
     },
     211: function clearstring(stab, id) {
         interpreter.plotstring[id] = "";
@@ -61,7 +72,7 @@ let commands = {
         return id;
     },
     273: function milliseconds(stab) {
-        return Date.prototype.getTime()|0;
+        return new Date().getTime()|0;
     },
     466: function tracevalueinternal(stab, ...args) {
         if (args.length % 2)
@@ -114,7 +125,7 @@ function runscript(script) {
         let cmdid = res.value[0];
         if (!(cmdid in commands))
             throw new RangeError("Command " + cmdid + " not implemented")
-        console.log("cmd", cmdid, commands[cmdid].name);
+        //console.log("cmd", cmdid, commands[cmdid].name);
         let scriptret = commands[cmdid](...res.value.slice(1))
         res = script.next(scriptret);
     }

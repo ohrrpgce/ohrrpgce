@@ -474,7 +474,6 @@ end
 script, benchmark: milliseconds, begin
   variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
-    # a command with trivial implementation, in sfunctions
     milliseconds
     milliseconds
     milliseconds
