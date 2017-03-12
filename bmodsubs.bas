@@ -354,25 +354,25 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = randint(100) < (acc * (100 - dog)) / 100 
   IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = randint(100) < acc
   IF attackhit = NO THEN
-   target.harm.text = readglobalstring$(120, "miss", 20)
+   target.harm.text = readglobalstring(120, "miss", 20)
    RETURN NO
   END IF
  
   WITH target
    IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
-    .harm.text = readglobalstring$(122, "fail", 20)
+    .harm.text = readglobalstring(122, "fail", 20)
     RETURN NO
    END IF
    IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
-    .harm.text = readglobalstring$(122, "fail", 20)
+    .harm.text = readglobalstring(122, "fail", 20)
     RETURN NO
    END IF
    IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
-    .harm.text = readglobalstring$(122, "fail", 20)
+    .harm.text = readglobalstring(122, "fail", 20)
     RETURN NO
    END IF
    IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
-    .harm.text = readglobalstring$(122, "fail", 20)
+    .harm.text = readglobalstring(122, "fail", 20)
     RETURN NO
    END IF
   END WITH
@@ -454,7 +454,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     END IF
     IF .type = compGt THEN fail = (target.elementaldmg(i) > .value + 0.000005)
     IF fail THEN
-     target.harm.text = readglobalstring$(122, "fail", 20)
+     target.harm.text = readglobalstring(122, "fail", 20)
      RETURN NO
     END IF
    END WITH

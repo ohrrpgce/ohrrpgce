@@ -34,7 +34,7 @@ function openMidi() as integer
     #ELSE
     'dim moc as MIDIOUTCAPS
     'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
-    'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
+    'debug "Midi port supports Volume changes:" + str(moc.dwSupport AND MIDICAPS_VOLUME)
 
     return midiOutOpen (@midi_handle,MIDI_MAPPER,0,0,0)
 

@@ -1721,7 +1721,7 @@ SELECT CASE bat.vic.state
    '--if not, check to see if there are any more gotten items to display
    IF bat.rew.found(bat.vic.found_index).num = 0 THEN bat.vic.state = vicEXITDELAY: EXIT SUB
    '--get the item name
-   bat.vic.item_name = readitemname$(bat.rew.found(bat.vic.found_index).id)
+   bat.vic.item_name = readitemname(bat.rew.found(bat.vic.found_index).id)
    '--actually acquire the item
    getitem bat.rew.found(bat.vic.found_index).id, bat.rew.found(bat.vic.found_index).num
   END IF
@@ -1839,15 +1839,15 @@ SUB reset_victory_state (byref vic as VictoryState)
   .item_name = ""
   .found_index = 0
   '--Cache some global strings here
-  .gold_caption = readglobalstring$(125, "Found", 10)
-  .exp_caption  = readglobalstring$(126, "Gained", 10)
-  .item_caption = readglobalstring$(139, "Found a", 20)
-  .plural_item_caption = readglobalstring$(141, "Found", 20)
+  .gold_caption = readglobalstring(125, "Found", 10)
+  .exp_caption  = readglobalstring(126, "Gained", 10)
+  .item_caption = readglobalstring(139, "Found a", 20)
+  .plural_item_caption = readglobalstring(141, "Found", 20)
   .gold_name    = readglobalstring(32, "Gold", 10)
   .exp_name     = readglobalstring(33, "Exp", 10)
-  .level_up_caption  = readglobalstring$(149, "Level up for", 20)
-  .levels_up_caption = readglobalstring$(151, "levels for", 20)
-  .learned_caption = " " + readglobalstring$(124, "learned", 10) + " "
+  .level_up_caption  = readglobalstring(149, "Level up for", 20)
+  .levels_up_caption = readglobalstring(151, "levels for", 20)
+  .learned_caption = " " + readglobalstring(124, "learned", 10) + " "
  END WITH
 END SUB
 

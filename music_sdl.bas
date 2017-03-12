@@ -237,7 +237,7 @@ end sub
 
 sub music_play(songname as string, byval fmt as MusicFormatEnum)
 	if music_status = musicOn then
-		songname = rtrim$(songname)	'lose any added nulls
+		songname = rtrim(songname)	'lose any added nulls
 
 		if fmt = FORMAT_BAM then
 			dim midname as string

@@ -697,12 +697,6 @@ SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer,
  center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
 
-FUNCTION read32bitstring (array() as integer, byval offset as integer) as string
- DIM as string result = SPACE(array(offset))
- memcpy(STRPTR(result), @array(offset + 1), array(offset))
- return result
-END FUNCTION
-
 FUNCTION read32bitstring (stringptr as integer ptr) as string
  DIM as string result = SPACE(stringptr[0])
  memcpy(STRPTR(result), @stringptr[1], stringptr[0])

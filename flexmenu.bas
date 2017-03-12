@@ -2063,15 +2063,15 @@ SELECT CASE menutype(nowindex)
  CASE 21' set tag (non-special)
   changed = tag_grabber(datablock(menuoff(nowindex)), -max_tag(), max_tag(), NO)
  CASE 3' string
-  s = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
+  s = readbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
   writebinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex))
  CASE 4' badly stored string
-  s = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
+  s = readbadbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0
  CASE 6' extra badly stored string
-  s = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
+  s = readbadbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
  CASE 4000 TO 4999' elemental condition

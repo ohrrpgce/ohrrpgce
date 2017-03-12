@@ -728,7 +728,7 @@ end sub
 sub music_play(songname as string, byval fmt as MusicFormatEnum)
 	dim erro as MMRESULT
 	if music_init_count then
-		songname = rtrim$(songname)	'lose any added nulls
+		songname = rtrim(songname)	'lose any added nulls
 		dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
 			dim midname as string
@@ -737,7 +737,7 @@ sub music_play(songname as string, byval fmt as MusicFormatEnum)
 			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
-			midname = tmpdir & trimpath$(songname) & "-" & lcase(hex(flen)) & ".bmd"
+			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
 			'check if already converted
 			if isfile(midname) = 0 then
 				bam2mid(songname, midname)
