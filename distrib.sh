@@ -103,10 +103,9 @@ if [ -z "${OHR_SKIP_X86}" ] ; then
   if which dpkg > /dev/null; then
     echo "Building x86 Debian/Ubuntu packages"
     cd linux
-    if [ -f *.deb ] ; then
-      rm *.deb
-    fi
-    ./all.sh || exit 1
+    rm -f *.deb
+    rm -Rf ohrrpgce
+    python2.7 ./ohrrpgce.py || exit 1
     cd ..
     mv linux/*.deb distrib
   fi

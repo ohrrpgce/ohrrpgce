@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# This script compiles and uploads linux nightly builds (both x86 and x86_64 by
+# default, unless skipped by $OHR_SKIP_X86 and $OHR_SKIP_X86_64) and also all
+# platform-independent nightly files, like the plotdict.
+
 # Scheduling this script to run automatically is equivalent to giving the other devs
 # write access to your automatic build machine. Don't do it unless you trust them all.
 # (which James fortunately does, and the build machine is reasonably sandboxed, so!)
@@ -59,6 +63,7 @@ cd ohrrpgce-build/wip
 svn cleanup
 svn update
 
+# Compile and create .bz2 and .deb files
 ./distrib.sh
 
 mv distrib/ohrrpgce-linux-*-wip-x86.tar.bz2 distrib/ohrrpgce-linux-wip-x86.tar.bz2 &&
@@ -73,8 +78,14 @@ mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip distrib/ohrrpgce-play
 scp -p distrib/ohrrpgce-player-linux-bin-minimal.zip $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-player-linux-bin-minimal.zip
 
-ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.deb"
-scp -p distrib/ohrrpgce_*.wip-*_i386.deb $UPLOAD_DEST/ohrrpgce/nightly/
-rm distrib/ohrrpgce_*.deb
+for arch in i386 amd64 ; do
+  if [ -f distrib/ohrrpgce_*.wip-*_$arch.deb ] ; then
+    # The deb packages are named ohrrpgce_$YYYY.$MM.$DD.$codename-$revision_$arch.deb,
+    # so we need to delete the previous package from the same arch but different filename.
+    ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.wip-*_$arch.deb"
+    scp -p distrib/ohrrpgce_*.wip-*_$arch.deb $UPLOAD_DEST/ohrrpgce/nightly/
+    rm distrib/ohrrpgce_*_$arch.deb
+  fi
+done
 
 scp -p IMPORTANT-nightly.txt $UPLOAD_DEST/ohrrpgce/nightly/
