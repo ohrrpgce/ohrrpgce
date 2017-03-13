@@ -4,8 +4,11 @@
 #include "reload.bi"
 
 DECLARE SUB defaultc
+DECLARE sub control
+
 DECLARE SUB apply_game_window_settings ()
 DECLARE SUB set_speedcontrol ()
+
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore ()
 DECLARE SUB setmapxy
@@ -16,7 +19,6 @@ DECLARE SUB make_map_backups
 DECLARE SUB update_backdrop_slice
 DECLARE FUNCTION checkfordeath () as bool
 DECLARE SUB exitprogram (byval need_fade_out as bool = NO, byval errorout as integer = 0)
-DECLARE SUB keyboardsetup
 DECLARE SUB verify_quit
 DECLARE FUNCTION titlescreen () as bool
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string

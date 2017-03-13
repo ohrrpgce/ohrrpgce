@@ -18,6 +18,7 @@
 #include "bmodsubs.bi"
 #include "bcommon.bi"
 #include "game.bi"
+#include "yetmore2.bi"
 #include "moresubs.bi"
 #include "allmodex.bi"
 #include "scriptcommands.bi"

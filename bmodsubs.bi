@@ -17,7 +17,6 @@ declare function is_weapon(byval who as integer) as integer
 declare sub anim_advance (byval who as integer, attack as AttackData, bslot() as battlesprite, t() as integer)
 declare function atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as integer
 declare function checktheftchance (byval item as integer, byval itemp as integer, byval rareitem as integer, byval rareitemp as integer) as integer
-declare sub control
 declare function countai (byval ai as integer, byval them as integer, bslot() as BattleSprite) as integer
 declare function enemycount (bslot() as battlesprite) as integer
 declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=0) as integer

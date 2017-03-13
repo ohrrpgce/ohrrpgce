@@ -26,10 +26,6 @@
 #include "bmod.bi"
 #include "bmodsubs.bi"
 
-'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
-'Mike: why? it's already wrapped in gfx_*.bas
-#include "gfx.bi"
-
 ''''' Local functions
 DECLARE SUB run_game ()
 

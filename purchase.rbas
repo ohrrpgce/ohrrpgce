@@ -11,10 +11,10 @@
 #include "const.bi"
 #include "uiconst.bi"
 #include "game_udts.bi"
+#include "yetmore2.bi"
 
 #include "game.bi"
 #include "moresubs.bi"
-#include "bmodsubs.bi"
 
 #include "purchase.bi"
 
