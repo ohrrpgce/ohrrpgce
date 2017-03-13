@@ -1303,9 +1303,9 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer,
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
+  IF sl->EditorHideChildren THEN caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
   caption = caption & SliceTypeName(sl)
   caption = caption & " " & slice_caption(sl, slicelookup(), ses.draw_root, edslice)
-  IF sl->EditorHideChildren THEN caption &= "[" & sl->NumChildren & " children]"
   IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
