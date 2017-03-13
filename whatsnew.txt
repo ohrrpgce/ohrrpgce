@@ -55,6 +55,9 @@ WHAT IS NEW?
       either normal or one-way; you can't mix them on the same tile.
       Not supported with default passability yet. [Ralph]
     * Press +/- in wallmap mode to change the way walls are drawn [Ralph]
+    * Press H in the slice collection editor to toggle whether the
+      children of a slice are shown in the menu (does not affect slice
+      visibility) [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

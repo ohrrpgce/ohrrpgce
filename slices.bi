@@ -158,6 +158,7 @@ TYPE Slice
   Lookup as integer
 
   EditorColor as integer 'Not saved, used only by slice editor
+  EditorHideChildren as bool 'Saved, but only matters for the editor
 
   AutoSort as AutoSortModes
   Sorter as integer 'Only used by CustomSortChildSlices

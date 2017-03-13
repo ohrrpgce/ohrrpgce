@@ -409,6 +409,17 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     menu(state.pt).handle->Visible XOR= YES
    END IF
   END IF
+  IF keyval(scH) > 1 THEN
+   'Toggle editor visibility of children
+   IF menu(state.pt).handle THEN
+    IF menu(state.pt).handle->NumChildren > 0 THEN
+     menu(state.pt).handle->EditorHideChildren XOR= YES
+    ELSE
+     menu(state.pt).handle->EditorHideChildren = NO
+    END IF
+    state.need_update = YES
+   END IF
+  END IF
   IF keyval(scF7) > 1 THEN
    'Make a sprite melt, just for a fun test
    DissolveSpriteSlice(menu(state.pt).handle, 5, 36)
@@ -1294,16 +1305,19 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer,
   caption = STRING(indent, " ")
   caption = caption & SliceTypeName(sl)
   caption = caption & " " & slice_caption(sl, slicelookup(), ses.draw_root, edslice)
+  IF sl->EditorHideChildren THEN caption &= "[" & sl->NumChildren & " children]"
   IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
   END IF
-  'Now append the children
-  DIM ch as slice ptr = .FirstChild
-  DO WHILE ch <> 0
-   slice_editor_refresh_recurse ses, index, menu(), indent, edslice, ch, hidden_slice, slicelookup()
-   ch = ch->NextSibling
-  LOOP
+  IF NOT sl->EditorHideChildren THEN
+   'Now append the children
+   DIM ch as slice ptr = .FirstChild
+   DO WHILE ch <> 0
+    slice_editor_refresh_recurse ses, index, menu(), indent, edslice, ch, hidden_slice, slicelookup()
+    ch = ch->NextSibling
+   LOOP
+  END IF
   IF sl <> hidden_slice THEN
    indent -= 1
   END IF
