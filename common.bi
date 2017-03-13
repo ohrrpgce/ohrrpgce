@@ -169,7 +169,7 @@ DECLARE FUNCTION fgtag(col as integer, text as string = "") as string
 DECLARE FUNCTION bgtag(col as integer, text as string = "") as string
 
 DECLARE SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = rWidth - 20, shrink as bool = NO)
-DECLARE SUB notification (msg as string)
+DECLARE FUNCTION notification (msg as string) as integer
 DECLARE SUB visible_debug (s as string, errlvl as errorLevelEnum = errDebug)
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
 DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer

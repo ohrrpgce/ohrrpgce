@@ -440,17 +440,21 @@ SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as 
  wrapprint msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
 END SUB
 
-SUB notification (msg as string)
+' Show a message in a box and wait for the user to advance with a keypress.
+' Returns the scancode of the keypress (it is cleared!)
+FUNCTION notification (msg as string) as integer
  ensure_normal_palette
  dim holdpage as integer = allocatepage
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
  sleep 250  'Avoid accidental advancement
- clearkey(waitforanykey())
+ DIM scancode as integer = waitforanykey()
+ clearkey(scancode)
  freepage holdpage
  restore_previous_palette
-END SUB
+ RETURN scancode
+END FUNCTION
 
 SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
  debugc errlvl, msg

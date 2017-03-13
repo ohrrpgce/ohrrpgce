@@ -4229,16 +4229,20 @@ SUB spawn_game_menu(gdb as bool = NO)
  'Prod the channel to see whether it's still up (send ping)
  channel_write_line(slave_channel, "P ")
 
+ DIM scancode as integer
  IF slave_channel <> NULL_CHANNEL THEN
-  notification "Game is already running! Running multiple test copies of a game is not yet supported."
+  scancode = notification(!"Game is already running! Running multiple test copies of a game is not yet supported.\n" _
+                           "Press F1 to see the help file for Test Game.")
  ELSE
   gen(genCurrentDebugMode) = 1
   xbsave game + ".gen", gen(), 1000
   IF spawn_game(gdb) THEN
-   notification !"You're running your game in live preview mode. Please press F1 now to read the help file for this if you haven't already.\n\nPress any key"
-   IF keyval(scF1) > 1 THEN show_help "test_game"
+   scancode = notification( "You're running your game in live preview mode." _
+                           !"Please press F1 now to read the help file for this if you haven't already.\n\n" _
+                            "Press any key")
   END IF
  END IF
+ IF scancode = scF1 THEN show_help "test_game"
 END SUB
 
 'Return true on success
