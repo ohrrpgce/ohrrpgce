@@ -1,3 +1,4 @@
+#define RELOADINTERNAL
 #include "reload.bi"
 #include "cutil.bi"
 

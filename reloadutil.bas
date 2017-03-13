@@ -59,7 +59,7 @@ wend
 
 if filename1 = "" then
 	print "Usage:"
-	print "Time RELOAD loadtime:  " & command(0) & " filename.rld"
+	print "Time RELOAD load/save: " & command(0) & " filename.rld"
 	print "Compare two documents: " & command(0) & " [--pedantic] filename1.rld filename2.rld"
 	print "Use --pedantic to count 8 and ""8"" or Null and """" as inequal."
 	end
@@ -70,11 +70,23 @@ dim as Reload.Docptr doc1, doc2
 doc1 = verboseload(filename1)
 
 if filename2 <> "" then
+	' Compare docs
 	doc2 = verboseload(filename2)
 
 	if Reload.Ext.CompareNodes(Reload.DocumentRoot(doc1), Reload.DocumentRoot(doc2), pedantic) = 0 then
 		print "* Documents compare " & iif(pedantic, "exactly ", "effectively ") & "equal. *"
 	end if
+else
+	' Just timing
+	tmpdir = get_tmpdir()
+	dim outfname as string = tmpdir + SLASH + "reloadutil.reload.tmp"
+
+	startTime = timer
+	Reload.SerializeBin(outfname, doc1)
+	endTime = timer
+	print "Serialized in " & timedisp(startTime, endTime)
+
+	killfile outfname
 end if
 
 startTime = timer
