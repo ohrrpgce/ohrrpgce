@@ -1155,6 +1155,20 @@ SUB reload_gen()
  IF should_reset_window THEN apply_game_window_settings
 END SUB
 
+'Live-previewing.
+SUB reload_general_reld()
+ ' Do not call close_general_reld(), that writes it, which is an error.
+ FreeDocument gen_reld_doc
+ gen_reld_doc = 0
+
+ LoadUIColors uilook(), boxlook(), gam.current_master_palette
+ ' Possible to change color of script plotstrings with default colours?
+
+ load_non_elemental_elements gam.non_elemental_elements()
+
+ 'Not bothering to reload: button codenames, purchases, default safe zone margin, arrowsets/gamepad settings
+END SUB
+
 'Ignores changes to tilesets. That is handled by try_reload_map_lump and happens only when .T changes.
 SUB reload_MAP_lump()
  WITH lump_reloading
@@ -1376,6 +1390,10 @@ SUB try_reload_lumps_anywhere ()
    reload_gen()
    handled = YES
 
+  ELSEIF modified_lumps[i] = "general.reld" THEN                          'GENERAL.RELD
+   reload_general_reld()
+   handled = YES
+
   ELSEIF modified_lumps[i] = "binsize.bin" THEN                           'BINSIZE.BIN
    'We correctly handle an update to binsize.bin, but there's no good reason for it
    'to happen while live previewing
@@ -1389,8 +1407,8 @@ SUB try_reload_lumps_anywhere ()
    handled = YES
 
   ELSEIF modified_lumps[i] = "uicolors.bin" THEN                          'UICOLORS.BIN
-   LoadUIColors uilook(), boxlook(), gam.current_master_palette
-   'Change color of script strings
+   'UI colors are now stored in general.reld, but still written to uicolors.bin
+   'for forwards-compatibility. So ignore this file.
    handled = YES
 
   ELSEIF modified_lumps[i] = "menus.bin" THEN                             'MENUS.BIN

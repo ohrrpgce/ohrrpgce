@@ -104,7 +104,8 @@ WHAT IS NEW?
       until a battle occurs (it was too low). Also added average [Ralph]
     * music_native/native2: Changing the music volume only worked for
       MIDI, while everything else was played at max volume [Ralph]
-    * Reload sound effects replaced while live-previewing [Ralph]
+    * Reload sound effects replaced while live-previewing. And
+      reloading of UI colors & box styles had stopped working. [Ralph]
     * "write zone" was meant to return true on success, but didn't [Ralph]
     * "running on linux" returned true on Mac and BSD [Ralph]
     * Bug 2022: Can't run faster than 60fps under OSX [Ralph]
