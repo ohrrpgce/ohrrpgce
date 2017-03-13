@@ -339,6 +339,9 @@ DECLARE SUB resume_recording_input
 
 DECLARE SUB macro_controls ()
 
+' This SUB is implemented in Game/Custom and called from allmodex.
+DECLARE SUB global_setkeys_hook ()
+
 Type MouseInfo
 	x as integer
 	y as integer

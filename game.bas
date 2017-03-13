@@ -656,6 +656,8 @@ reset_vehicle vstate
 
 '========================== Title and loadgame menu ============================
 
+gam.ingame = YES
+
 DIM load_slot as integer = -1
 '.resetgame is YES when resetgame was called so we are skipping straight to launching the game
 IF gam.want.resetgame = NO THEN
@@ -900,6 +902,7 @@ END SUB
 SUB reset_game_final_cleanup()
  'WARNING: It's a bug to call anything in here that causes something to be cached after
  'the cache has been emptied (such as anything that calls getbinsize after clear_binsize_cache)
+ gam.ingame = NO
  save_game_config 'Call before cleaning up everything.
  cleanup_text_box
  resetinterpreter 'unload scripts

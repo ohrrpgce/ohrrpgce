@@ -115,6 +115,7 @@ TYPE GameState
   debug_npc_info as bool
   autorungame as bool                'Game was autorun, not selected from RPG browser
   return_to_browser as bool          'Return to browser when quitting the game
+  ingame as bool                     'Have loaded a game and done initialisations. True from titlescreen onwards
   need_fade_in as bool
   fade_in_delay as integer
   fade_in_script_overridable as bool 'If true, the fade in can be cancelled by a fadescreenout command

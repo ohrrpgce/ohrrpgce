@@ -805,10 +805,10 @@ SUB Custom_global_menu
  END IF
 END SUB
 
-' This is called after every setkeys unless we're already inside global_Custom_controls.
+' This is called after every setkeys unless we're already inside global_setkeys_hook
 ' It should be fine to call any allmodex function in here, but beware we might
 ' not have loaded a game yet!
-SUB global_Custom_controls
+SUB global_setkeys_hook
  IF keyval(scF9) > 1 AND editing_a_game THEN Custom_global_menu
 END SUB
 

@@ -68,10 +68,6 @@ SUB control
  STATIC joyuse as integer
  STATIC joymenu as integer
 
- 'Since this sub is called from lots of places, sticking this here is a stop-gap so
- 'that messages from Custom are usually processed promptly
- IF running_as_slave THEN try_reload_lumps_anywhere
-
  FOR i as integer = 0 TO 7
   carray(i) = 0
  NEXT i
@@ -164,6 +160,14 @@ SUB control
   NEXT i
 
  END IF  'joystick input
+END SUB
+
+' This is called after every setkeys unless we're already inside global_setkeys_hook
+' It should be fine to call any allmodex function in here, but beware we might
+' not have loaded a game yet!
+SUB global_setkeys_hook
+ ' Process messages from Custom
+ IF gam.ingame ANDALSO running_as_slave THEN try_reload_lumps_anywhere
 END SUB
 
 SUB initgamedefaults
@@ -361,6 +365,9 @@ END FUNCTION
 'Note that this is called both from reset_game_final_cleanup(), in which case lots of stuff
 'has already been deallocated, or from exit_gracefully(), in which case no cleanup has been done!
 SUB exitprogram(byval need_fade_out as bool = NO, byval errorout as integer = 0)
+
+gam.ingame = NO
+
 'uncomment for slice debugging
 'DestroyGameSlices YES
 
@@ -1287,7 +1294,6 @@ SUB reload_general_reld()
  gen_reld_doc = 0
 
  LoadUIColors uilook(), boxlook(), gam.current_master_palette
- ' Possible to change color of script plotstrings with default colours?
 
  load_non_elemental_elements gam.non_elemental_elements()
 

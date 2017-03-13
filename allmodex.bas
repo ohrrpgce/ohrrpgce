@@ -23,9 +23,6 @@ using Reload
 #ifdef IS_GAME
  #include "game.bi"  'For exit_gracefully
 #endif
-#ifdef IS_CUSTOM
- #include "custom.bi"
-#endif
 
 #ifdef __FB_ANDROID__
 'This is gfx_sdl specific, of course, but a lot of the stuff in our fork of the android fork
@@ -1930,15 +1927,13 @@ sub setkeys (byval enable_inputtext as bool = NO)
 	mouse_moved_since_setkeys = NO
 	mouse_clicks_since_setkeys = 0
 
-	' Custom-specific controls, done last so that there can't be interference
-	#ifdef IS_CUSTOM
-		static entered as bool
-		if entered = NO then
-			entered = YES
-			global_Custom_controls
-			entered = NO
-		end if
-	#endif
+	' Custom/Game-specific global controls, done last so that there can't be interference
+	static entered as bool
+	if entered = NO then
+		entered = YES
+		global_setkeys_hook
+		entered = NO
+	end if
 end sub
 
 'Erase a keypress from the keyboard state.
