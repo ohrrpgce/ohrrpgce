@@ -9,38 +9,14 @@
 //   ./hspeak -b testgame/hstests_standalone.hss
 //   ./node_hsint.js testgame/hstests_standalone.hs
 //
-// Not all commands in hamsterspeak.hsd are implemented. And some
-// currently can't be supported by hspeakrt.
+// Not all commands in hamsterspeak.hsd are implemented yet. Other commands
+// are ignored with a warning.
 
 "use strict";
 
 const fs = require("fs");
 const path = require('path');
 const hspeakrt = require("hspeakrt");
-
-hspeakrt.prototype.command_names = function() {
-    if (this._commands) return this._commands;
-    this._commands = [];
-    let li = this._arc.get("COMMANDS.BIN");
-    if (li) {
-        let offtable = li.readUInt16LE(0);
-        let version = li.readUInt16LE(2);
-        let nrecords = li.readUInt16LE(4);
-        if (version != 0) {
-            console.error("Unsupported commands.bin version");
-            return this._commands;
-        }
-        for (let idx = 0; idx < nrecords; idx++) {
-            let off = li.readUInt16LE(offtable + 2*idx);
-            if (off) {
-                let nargs = li.readUInt16LE(off);  // unused
-                let name = li.toString("binary", off + 4, off + 4 + li.readUInt16LE(off + 2));
-                this._commands[idx] = name;
-            }
-        }
-    }
-    return this._commands;
-}
 
 let commands = {
     0: function noop(stab) {
@@ -151,7 +127,7 @@ function runscript(script) {
         let cmdid = res.value[0];
         if (!(cmdid in commands)) {
             //throw new RangeError("Command " + cmdid + " not implemented")
-            console.error("Command", cmdid, interpreter.command_names()[cmdid], "not implemented");
+            console.error("Command", cmdid, commandNames[cmdid], "not implemented");
             // Ignore future errors by mapping to noop
             commands[cmdid] = commands[0];
         }
@@ -177,6 +153,7 @@ if (process.argv.length != 3) {
 } else {
 
     var interpreter = new hspeakrt(process.argv[2], 8192);
+    var commandNames = interpreter.commandNames() || [];
 
     interpreter.plotstring = []
     for (let idx = 0; idx < 100; idx++)
