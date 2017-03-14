@@ -18,8 +18,34 @@ const fs = require("fs");
 const path = require('path');
 const hspeakrt = require("hspeakrt");
 
+hspeakrt.prototype.command_names = function() {
+    if (this._commands) return this._commands;
+    this._commands = [];
+    let li = this._arc.get("COMMANDS.BIN");
+    if (li) {
+        let offtable = li.readUInt16LE(0);
+        let version = li.readUInt16LE(2);
+        let nrecords = li.readUInt16LE(4);
+        if (version != 0) {
+            console.error("Unsupported commands.bin version");
+            return this._commands;
+        }
+        for (let idx = 0; idx < nrecords; idx++) {
+            let off = li.readUInt16LE(offtable + 2*idx);
+            if (off) {
+                let nargs = li.readUInt16LE(off);  // unused
+                let name = li.toString("binary", off + 4, off + 4 + li.readUInt16LE(off + 2));
+                this._commands[idx] = name;
+            }
+        }
+    }
+    return this._commands;
+}
+
 let commands = {
-    1: function noop(stab) {
+    0: function noop(stab) {
+    },
+    1: function wait(stab, ticks) {
     },
     73: function gameover(stab) {
         process.exit();
@@ -119,18 +145,29 @@ let commands = {
 // Execute a script instance returned by interpreter.call()
 function runscript(script) {
     let res = script.next();
-    while(true) {
+    while (true) {
         if (res.done)
             return res.value;
         let cmdid = res.value[0];
-        if (!(cmdid in commands))
-            throw new RangeError("Command " + cmdid + " not implemented")
-        //console.log("cmd", cmdid, commands[cmdid].name);
-        let scriptret = commands[cmdid](...res.value.slice(1))
+        if (!(cmdid in commands)) {
+            //throw new RangeError("Command " + cmdid + " not implemented")
+            console.error("Command", cmdid, interpreter.command_names()[cmdid], "not implemented");
+            // Ignore future errors by mapping to noop
+            commands[cmdid] = commands[0];
+        }
+        //console.log("Command", cmdid, commands[cmdid].name);
+        let scriptret = commands[cmdid](...res.value.slice(1));
         res = script.next(scriptret);
     }
 }
 
+function benchmark_script(scrname) {
+    for (let i = 0; i < 10; i++) {
+        console.time(scrname);
+        runscript(interpreter.call(scrname));
+        console.timeEnd(scrname);
+    }
+}
 
 if (process.argv.length != 3) {
     console.error("  Usage: " + path.basename(process.argv[1]) + " scripts.hs\n" +
