@@ -107,6 +107,7 @@ TYPE SpriteEditState
   gotmouse as bool
   mouse as MouseInfo
   hidemouse as bool
+  number_typing_deadline as double  'Deadline for typing more digits of a color idx
   drawcursor as integer 'Icon to use for the cursor, (character in the font)
   tool as integer
   pal_num as integer    'Palette used by current sprite

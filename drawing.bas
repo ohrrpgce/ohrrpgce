@@ -1375,10 +1375,13 @@ DO
  IF keyval(scAlt) = 0 THEN
   DIM fixmouse as integer = NO
   IF ts.tool <> scroll_tool THEN
-   IF slowkey(scLeft, 100) THEN ts.x = large(ts.x - 1, 0): fixmouse = YES
-   IF slowkey(scRight, 100) THEN ts.x = small(ts.x + 1, 19): fixmouse = YES
-   IF slowkey(scUp, 100) THEN ts.y = large(ts.y - 1, 0): fixmouse = YES
-   IF slowkey(scDown, 100) THEN ts.y = small(ts.y + 1, 19): fixmouse = YES
+   DIM stepsize as integer = IIF(keyval(scShift) > 0, 4, 1)
+   IF slowkey(scUp, 100)    THEN ts.y -= stepsize: fixmouse = YES
+   IF slowkey(scDown, 100)  THEN ts.y += stepsize: fixmouse = YES
+   IF slowkey(scLeft, 100)  THEN ts.x -= stepsize: fixmouse = YES
+   IF slowkey(scRight, 100) THEN ts.x += stepsize: fixmouse = YES
+   ts.x = bound(ts.x, 0, 19)
+   ts.y = bound(ts.y, 0, 19)
   ELSE
    DIM scrolloff as XYPair
    IF slowkey(scLeft, 100) THEN scrolloff.x = -1
@@ -3549,10 +3552,13 @@ IF keyval(scAlt) = 0 THEN
  DIM fixmouse as integer = NO
  WITH ss
   fixmouse = NO
-  IF slowkey(scUp, 100) THEN .y = large(0, .y - 1):      fixmouse = YES
-  IF slowkey(scDown, 100) THEN .y = small(.high - 1, .y + 1): fixmouse = YES
-  IF slowkey(scLeft, 100) THEN .x = large(0, .x - 1):      fixmouse = YES
-  IF slowkey(scRight, 100) THEN .x = small(.wide - 1, .x + 1): fixmouse = YES
+  DIM stepsize as integer = IIF(keyval(scShift) > 0, large(4, .wide \ 10), 1)
+  IF slowkey(scUp, 100)    THEN .y -= stepsize: fixmouse = YES
+  IF slowkey(scDown, 100)  THEN .y += stepsize: fixmouse = YES
+  IF slowkey(scLeft, 100)  THEN .x -= stepsize: fixmouse = YES
+  IF slowkey(scRight, 100) THEN .x += stepsize: fixmouse = YES
+  .x = bound(.x, 0, .wide - 1)
+  .y = bound(.y, 0, .high - 1)
  END WITH
  IF fixmouse THEN
   IF ss.zonenum = 1 THEN
@@ -3576,6 +3582,23 @@ IF ss.zonenum = 1 THEN
  ss.x = ss.zone.x \ ss.zoom
  ss.y = ss.zone.y \ ss.zoom
 END IF
+
+' Select palette colour by typing in a number with 0-9 keys (numpad not supported)
+FOR idx as integer = 1 TO 10
+ IF keyval(sc1 + idx - 1) > 1 THEN
+  IF TIMER < ss.number_typing_deadline THEN
+   DIM index as integer = ss.palindex + 1   '1-based index, because 1 is the first key
+   DIM digit as integer = IIF(idx = 10, 0, idx)
+   index = index * 10 + digit
+   ss.palindex = small(index - 1, 15)
+  ELSE
+   ss.palindex = idx - 1
+  END IF
+  ' Show the colour index for exactly how long the user has to type in a 2-digit palette index
+  ss.showcolnum = 30  ' equal to COLORNUM_SHOW_TICKS anyway
+  ss.number_typing_deadline = TIMER + ss.showcolnum / 60
+ END IF
+NEXT idx
 
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF ss.mouse.buttons AND mouseLeft THEN
