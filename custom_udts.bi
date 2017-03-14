@@ -101,6 +101,7 @@ TYPE SpriteEditState
   y as integer
   lastcpos as XYPair '.x/.y (cursor position) last tick
   lastpos as XYPair  'something totally different
+  fastmovestep as integer 'How fast to move when holding Shift
   zonenum as integer
   zone as XYPair
   zonecursor as integer
@@ -155,6 +156,7 @@ TYPE TileEditState
   x as integer
   y as integer
   lastcpos as XYPair  '.x/.y (cursor position) last tick
+  fastmovestep as integer   'How fast to move when holding Shift
   tilex as integer  'on the tileset (measured in tiles)
   tiley as integer
   gotmouse as bool

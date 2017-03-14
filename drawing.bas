@@ -1325,6 +1325,7 @@ ts.didscroll = NO
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 10
+ts.fastmovestep = 4
 DIM zox as integer = ts.x * 8 + 4
 DIM zoy as integer = ts.y * 8 + 4
 DIM zcsr as integer
@@ -1373,9 +1374,13 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "editmaptile"
  IF keyval(scAlt) = 0 THEN
+  IF keyval(scShift) > 0 THEN
+   IF keyval(scF) > 1 THEN ts.fastmovestep = small(ts.fastmovestep + 1, 19)
+   IF keyval(scS) > 1 THEN ts.fastmovestep = large(ts.fastmovestep - 1, 2)
+  END IF
   DIM fixmouse as integer = NO
+  DIM stepsize as integer = IIF(keyval(scShift) > 0, ts.fastmovestep, 1)
   IF ts.tool <> scroll_tool THEN
-   DIM stepsize as integer = IIF(keyval(scShift) > 0, 4, 1)
    IF slowkey(scUp, 100)    THEN ts.y -= stepsize: fixmouse = YES
    IF slowkey(scDown, 100)  THEN ts.y += stepsize: fixmouse = YES
    IF slowkey(scLeft, 100)  THEN ts.x -= stepsize: fixmouse = YES
@@ -1384,14 +1389,14 @@ DO
    ts.y = bound(ts.y, 0, 19)
   ELSE
    DIM scrolloff as XYPair
-   IF slowkey(scLeft, 100) THEN scrolloff.x = -1
-   IF slowkey(scRight, 100) THEN scrolloff.x = 1
-   IF slowkey(scUp, 100) THEN scrolloff.y = -1
-   IF slowkey(scDown, 100) THEN scrolloff.y = 1
+   IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
+   IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
+   IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
+   IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
    scrolltile ts, scrolloff.x, scrolloff.y
    IF scrolloff.x OR scrolloff.y THEN fixmouse = YES
-   ts.x = (ts.x + scrolloff.x + 20) MOD 20
-   ts.y = (ts.y + scrolloff.y + 20) MOD 20
+   ts.x = POSMOD(ts.x + scrolloff.x, 20)
+   ts.y = POSMOD(ts.y + scrolloff.y, 20)
   END IF
   IF fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 8 + 4
@@ -1405,7 +1410,7 @@ DO
   storemxs game + ".til", ts.tilesetnum, vpages(3)
  END IF
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
- IF keyval(scCtrl) = 0 THEN
+ IF keyval(scCtrl) = 0 AND  keyval(scShift) = 0 THEN
   FOR i as integer = 0 TO UBOUND(toolinfo)
    IF keyval(toolinfo(i).shortcut) > 1 THEN
     tileedit_set_tool ts, toolinfo(), i
@@ -3304,6 +3309,7 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   .y = 0
   .lastpos.x = -1
   .lastpos.y = -1
+  .fastmovestep = large(4, .wide \ 10)
   .zone.x = 0
   .zone.y = 0
   .hold = NO
@@ -3536,10 +3542,10 @@ END IF
 ' Change master palette index for the selected palette color
 ss.curcolor = ss.palette->col(ss.palindex)
 IF keyval(scAlt) > 0 THEN
- IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1 : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scUp) > 1    AND ss.curcolor > 15  THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scDown) > 1  AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
 END IF
 IF (ss.mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
  ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
@@ -3547,12 +3553,18 @@ IF (ss.mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
 END IF
 ss.palette->col(ss.palindex) = ss.curcolor
 
+' Change Shift-move speed
+IF keyval(scShift) > 0 THEN
+ IF keyval(scF) > 1 THEN ss.fastmovestep += 1
+ IF keyval(scS) > 1 THEN ss.fastmovestep = large(ss.fastmovestep - 1, 2)
+END IF
+
 ' Change brush position
 IF keyval(scAlt) = 0 THEN
  DIM fixmouse as integer = NO
  WITH ss
   fixmouse = NO
-  DIM stepsize as integer = IIF(keyval(scShift) > 0, large(4, .wide \ 10), 1)
+  DIM stepsize as integer = IIF(keyval(scShift) > 0, .fastmovestep, 1)
   IF slowkey(scUp, 100)    THEN .y -= stepsize: fixmouse = YES
   IF slowkey(scDown, 100)  THEN .y += stepsize: fixmouse = YES
   IF slowkey(scLeft, 100)  THEN .x -= stepsize: fixmouse = YES
@@ -3751,7 +3763,8 @@ FOR i as integer = 0 TO UBOUND(ss.toolinfo)
  'Check tool selection
  'Alt is used for alt+c and alt+v
  IF (ss.mouse.clicks > 0 AND ss.zonenum = ss.toolinfo(i).areanum + 1) OR _
-    (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(ss.toolinfo(i).shortcut) > 1) THEN
+    (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(scShift) = 0 AND _
+     keyval(ss.toolinfo(i).shortcut) > 1) THEN
   IF ss.tool <> i THEN ss.didscroll = NO
   ss.tool = i
   GOSUB resettool
@@ -3812,10 +3825,11 @@ IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
 END IF
 IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  DIM scrolloff as XYPair
- IF slowkey(scLeft, 100) THEN scrolloff.x = -1
- IF slowkey(scRight, 100) THEN scrolloff.x = 1
- IF slowkey(scUp, 100) THEN scrolloff.y = -1
- IF slowkey(scDown, 100) THEN scrolloff.y = 1
+ DIM stepsize as integer = IIF(keyval(scShift) > 0, ss.fastmovestep, 1)
+ IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
+ IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
+ IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
+ IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
  spriteedit_scroll ss, scrolloff.x, scrolloff.y
 END IF
 IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
