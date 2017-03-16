@@ -1427,63 +1427,90 @@ SUB update_npcs ()
  NEXT o
 END SUB
 
+
+SUB npcmove_random_wander(npci as NPCInst)
+ DIM percent_chance_to_move as integer = 25
+ IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN
+  'Far more likely to hold still while touching the hero
+  percent_chance_to_move = 5
+ END IF
+ IF randint(100) < percent_chance_to_move THEN
+  DIM dir_to_go as integer = randint(4)
+  npci.dir = dir_to_go
+  IF dir_to_go = 0 THEN npci.ygo = 20
+  IF dir_to_go = 2 THEN npci.ygo = -20
+  IF dir_to_go = 3 THEN npci.xgo = 20
+  IF dir_to_go = 1 THEN npci.xgo = -20
+ END IF
+END SUB
+
+SUB npcmove_walk_ahead(npci as NPCInst)
+ IF npci.dir = 0 THEN npci.ygo = 20
+ IF npci.dir = 2 THEN npci.ygo = -20
+ IF npci.dir = 3 THEN npci.xgo = 20
+ IF npci.dir = 1 THEN npci.xgo = -20
+END SUB
+
+SUB npcmove_random_chase(npci as NPCInst, byval flee_instead as bool = NO)
+ DIM d as integer
+ IF randint(100) < 50 THEN
+  'Vertical movement
+  IF caty(0) < npci.y THEN d = 0
+  IF caty(0) > npci.y THEN d = 2
+  IF gmap(5) = 1 THEN
+   'Special handling for wraparound maps
+   IF caty(0) - mapsizetiles.y * 10 > npci.y THEN d = 0
+   IF caty(0) + mapsizetiles.y * 10 < npci.y THEN d = 2
+  END IF
+  IF caty(0) = npci.y THEN d = randint(4)
+ ELSE
+  'Horizontal movement
+  IF catx(0) < npci.x THEN d = 3
+  IF catx(0) > npci.x THEN d = 1
+  IF gmap(5) = 1 THEN
+   'Special handling for wraparound maps
+   IF catx(0) - mapsizetiles.x * 10 > npci.x THEN d = 3
+   IF catx(0) + mapsizetiles.x * 10 < npci.x THEN d = 1
+  END IF
+  IF catx(0) = npci.x THEN d = randint(4)
+ END IF
+ IF flee_instead THEN d = loopvar(d, 0, 3, 2) 'invert the direction
+ npci.dir = d
+ npcmove_walk_ahead(npci)
+END SUB
+
+SUB npcmove_random_flee(npci as NPCInst)
+ npcmove_random_chase(npci, YES)
+END SUB
+
+SUB npcmove_walk_in_place(npci as NPCInst)
+ npci.frame = loopvar(npci.frame, 0, 3, 1)
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in perform_npc_move
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
- DIM as integer movetype = npcdata.movetype
- DIM as integer speedset = npcdata.speed
- DIM as integer temp, rand
- IF movetype > 0 AND (speedset > 0 OR movetype = 8) THEN
-  'RANDOM WANDER---
-  IF movetype = 1 THEN
-   rand = 25
-   IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN rand = 5
-   IF randint(100) < rand THEN
-    temp = randint(4)
-    npci.dir = temp
-    IF temp = 0 THEN npci.ygo = 20
-    IF temp = 2 THEN npci.ygo = -20
-    IF temp = 3 THEN npci.xgo = 20
-    IF temp = 1 THEN npci.xgo = -20
-   END IF
-  END IF '---RANDOM WANDER
-  'ASSORTED PACING---
-  IF movetype >= 2 AND movetype <= 5 THEN
-   IF npci.dir = 0 THEN npci.ygo = 20
-   IF npci.dir = 2 THEN npci.ygo = -20
-   IF npci.dir = 3 THEN npci.xgo = 20
-   IF npci.dir = 1 THEN npci.xgo = -20
-  END IF '---ASSORTED PACING
-  'CHASE/FLEE---
-  IF movetype = 6 OR movetype = 7 THEN
-   rand = 100
-   IF randint(100) < rand THEN
-    IF randint(100) < 50 THEN
-     IF caty(0) < npci.y THEN temp = 0
-     IF caty(0) > npci.y THEN temp = 2
-     IF gmap(5) = 1 AND caty(0) - mapsizetiles.y * 10 > npci.y THEN temp = 0
-     IF gmap(5) = 1 AND caty(0) + mapsizetiles.y * 10 < npci.y THEN temp = 2
-     IF caty(0) = npci.y THEN temp = randint(4)
-    ELSE
-     IF catx(0) < npci.x THEN temp = 3
-     IF catx(0) > npci.x THEN temp = 1
-     IF gmap(5) = 1 AND catx(0) - mapsizetiles.x * 10 > npci.x THEN temp = 3
-     IF gmap(5) = 1 AND catx(0) + mapsizetiles.x * 10 < npci.x THEN temp = 1
-     IF catx(0) = npci.x THEN temp = randint(4)
-    END IF
-    IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)  'Flee
-    npci.dir = temp
-    IF temp = 0 THEN npci.ygo = 20
-    IF temp = 2 THEN npci.ygo = -20
-    IF temp = 3 THEN npci.xgo = 20
-    IF temp = 1 THEN npci.xgo = -20
-   END IF
-  END IF '---CHASE/FLEE
-  'WALK IN PLACE---
-  IF movetype = 8 THEN
-   npci.frame = loopvar(npci.frame, 0, 3, 1)
-  END IF '---WALK IN PLACE
+ 
+ IF npcdata.movetype <> 8 ANDALSO npcdata.speed = 0 THEN
+  ' Do nothing for most movetypes when walking speed is 0
+  EXIT SUB
  END IF
+ 
+ SELECT CASE npcdata.movetype
+  CASE 1:
+   npcmove_random_wander(npci)
+  CASE 2,3,4,5:
+   'This handles the movement part of pacing.
+   'See also the collision detection in perform_npc_move()
+   npcmove_walk_ahead(npci)
+  CASE 6:
+   npcmove_random_chase(npci)
+  CASE 7:
+   npcmove_random_flee(npci)
+  CASE 8:
+   npcmove_walk_in_place(npci)
+ END SELECT
+
 END SUB
 
 FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
