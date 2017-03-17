@@ -6,7 +6,7 @@ The big block of small colored boxes at the top right is the "master palette". R
 
 Press [ and ] to change which 16 color palette you are working with. You can also press P to open the palette browser.
 
-Hold SHIFT to move faster with the arrow keys. Press SHIFT+S to slow down the SHIFT-move speed and SHIFT+F to make ti faster.
+Hold SHIFT to move faster with the arrow keys. Press SHIFT+S to slow down the SHIFT-move speed and SHIFT+F to make it faster.
 
 The row of icons along the bottom are your drawing tools.
 

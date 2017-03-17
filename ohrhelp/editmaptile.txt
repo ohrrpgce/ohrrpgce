@@ -7,7 +7,7 @@ Left click on a color in the palette at the bottom to select it. (ALT + arrow ke
 
 See the "Undo" bar along the right? Click there to revert to an earlier state, or press CTRL+Z to go back one step, so to speak.
 
-Hold SHIFT to move faster with the arrow keys.
+Hold SHIFT to move faster with the arrow keys. Press SHIFT+S to slow down the SHIFT-move speed and SHIFT+F to make it faster.
 
 On the left is a panel of tool buttons. Each of them can also be triggered with a keypress.
 

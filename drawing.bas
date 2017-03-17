@@ -3595,22 +3595,22 @@ IF ss.zonenum = 1 THEN
  ss.y = ss.zone.y \ ss.zoom
 END IF
 
-' Select palette colour by typing in a number with 0-9 keys (numpad not supported)
-FOR idx as integer = 1 TO 10
- IF keyval(sc1 + idx - 1) > 1 THEN
-  IF TIMER < ss.number_typing_deadline THEN
-   DIM index as integer = ss.palindex + 1   '1-based index, because 1 is the first key
+IF keyval(scAlt) = 0 AND keyval(scShift) = 0 THEN
+ ' Select palette colour by typing in a number with 0-9 keys (numpad not supported)
+ FOR idx as integer = 1 TO 10
+  IF keyval(sc1 + idx - 1) > 1 THEN
    DIM digit as integer = IIF(idx = 10, 0, idx)
-   index = index * 10 + digit
-   ss.palindex = small(index - 1, 15)
-  ELSE
-   ss.palindex = idx - 1
+   IF TIMER < ss.number_typing_deadline THEN
+    ss.palindex = small(ss.palindex * 10 + digit, 15)
+   ELSE
+    ss.palindex = digit
+   END IF
+   ' Show the colour index for exactly how long the user has to type in a 2-digit palette index
+   ss.showcolnum = 30  ' equal to COLORNUM_SHOW_TICKS anyway
+   ss.number_typing_deadline = TIMER + ss.showcolnum / 60
   END IF
-  ' Show the colour index for exactly how long the user has to type in a 2-digit palette index
-  ss.showcolnum = 30  ' equal to COLORNUM_SHOW_TICKS anyway
-  ss.number_typing_deadline = TIMER + ss.showcolnum / 60
- END IF
-NEXT idx
+ NEXT idx
+END IF
 
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
  IF ss.mouse.buttons AND mouseLeft THEN
