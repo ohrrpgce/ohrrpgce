@@ -128,7 +128,7 @@ CONST scF15 = 96
 
 CONST scShift = 97
 CONST scLeftAlt = 98
-CONST scRightAlt = 99
+CONST scRightAlt = 99   ' Also Alt Gr mapped to this
 CONST scLeftCtrl = 100
 CONST scRightCtrl = 101
 

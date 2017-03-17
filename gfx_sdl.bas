@@ -145,8 +145,16 @@ DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
 DIM SHARED last_used_bitdepth as integer = 0
 
-END EXTERN 'weirdness
+END EXTERN ' Can't put assignment statements in an extern block
+
 'Translate SDL scancodes into a OHR scancodes
+'Of course, scancodes can only be correctly mapped to OHR scancodes on a US keyboard.
+'SDL scancodes say what's the unmodified character on a key. For example
+'on a German keyboard the +/*/~ key is SDLK_PLUS, gets mapped to
+'scPlus, which is the same as scEquals, so you get = when you press
+'it.
+'If there is no ASCII equivalent character, the key has a SDLK_WORLD_## scancode.
+
 DIM SHARED scantrans(0 to 322) as integer
 scantrans(SDLK_UNKNOWN) = 0
 scantrans(SDLK_BACKSPACE) = scBackspace
@@ -274,7 +282,7 @@ scantrans(SDLK_RMETA) = scRightCommand
 scantrans(SDLK_LMETA) = scLeftCommand
 scantrans(SDLK_LSUPER) = scLeftWinLogo
 scantrans(SDLK_RSUPER) = scRightWinLogo
-scantrans(SDLK_MODE) = 0
+scantrans(SDLK_MODE) = scRightAlt   'Alt Gr, but treat it as alt
 scantrans(SDLK_COMPOSE) = 0
 scantrans(SDLK_HELP) = 0
 scantrans(SDLK_PRINT) = scPrintScreen
