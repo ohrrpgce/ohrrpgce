@@ -50,6 +50,11 @@ DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
+DECLARE SUB npcmove_random_wander(npci as NPCInst)
+DECLARE SUB npcmove_walk_ahead(npci as NPCInst)
+DECLARE SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
+DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
+DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
 
 
 '=================================== Globals ==================================
@@ -1426,7 +1431,6 @@ SUB update_npcs ()
   END IF
  NEXT o
 END SUB
-
 
 SUB npcmove_random_wander(npci as NPCInst)
  DIM percent_chance_to_move as integer = 25
