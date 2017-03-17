@@ -3553,6 +3553,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    gam.showtext = "Timings will be printed to g_debug.txt"
   ELSE
    print_script_profiling
+   clear_profiling_stats
    gam.showtext = "Script timings printed to g_debug.txt"
   END IF
   gam.showtext_ticks = 36

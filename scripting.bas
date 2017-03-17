@@ -509,7 +509,7 @@ WITH scriptinsts(index)
   scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), serrError
   EXIT FUNCTION
  END IF
- .scr->totaluse += 1
+ IF scriptprofiling THEN .scr->numcalls += 1
  scriptctr += 1
  .scr->lastuse = scriptctr
  IF newcall THEN .scr->trigger_type = *scripttype
@@ -548,8 +548,8 @@ WITH scriptinsts(index)
  END IF
 
  'debug "running " & .id & " " & scriptname(.id) & " in slot " & nowscript & " newcall = " _
- '      & newcall & " type " & *scripttype & ", parent = " & .scr->parent & " totaluse = " _
- '      & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
+ '      & newcall & " type " & *scripttype & ", parent = " & .scr->parent & " numcalls = " _
+ '      & .scr->numcalls & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
 IF scriptprofiling THEN
@@ -870,9 +870,9 @@ FUNCTION freescripts_script_scorer(byref script as ScriptData) as double
  'this formula has only been given some testing, and doesn't do all that well
  DIM score as integer
  IF script.refcount THEN RETURN 1000000000
- score = small(script.lastuse - scriptctr, 1000000000)  'Handle overflow
+ score = script.lastuse - scriptctr
+ score = iif(score > 0, -1000000000, score)  'Handle overflow
  score = iif(score > -400, score, -400) _
-       + iif(script.totaluse < 100, script.totaluse, iif(script.totaluse < 1700, 94 + script.totaluse\16, 200)) _
        - iif(script.ptr, script.size, 0) \ (scriptmemMax \ 1024)
  IF script.id < 0 THEN
   'Stale script
@@ -903,6 +903,8 @@ SUB freescripts (byval mem as integer)
  NEXT
 END SUB
 
+' No longer used (used to be used when memory used by loaded scripts was strictly bounded,
+' so even running scripts could be unloaded)
 SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as bool = YES)
  WITH si
   IF .scr = NULL THEN
@@ -911,7 +913,7 @@ SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as 
    oss.scr = .scr
    oss.scrdata = .scr->ptr
    .scr->refcount += 1
-   IF updatestats THEN .scr->totaluse += 1
+   IF updatestats AND scriptprofiling THEN .scr->numcalls += 1
   END IF
   IF updatestats THEN
    'a rather hackish and not very good attempt to give .lastuse a qualitative use
@@ -1163,15 +1165,15 @@ SUB print_script_profiling
    debug RIGHT("  " & format(100 * .totaltime / entiretime, "0.00"), 6) _
        & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
        & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
-       & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
-       & RIGHT(SPACE(11) & .totaluse, 12) _
+       & RIGHT(SPACE(10) & format(.totaltime*1000000/.numcalls, "0"), 11) & "us" _
+       & RIGHT(SPACE(11) & .numcalls, 12) _
        & RIGHT(SPACE(11) & .entered, 12) _
        & "  " & scriptname(ABS(.id))
        '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
 
  '  debug "id = " & .id & " " & scriptname(ABS(.id))
  '  debug "refcount = " & .refcount
- '  debug "totaluse = " & .totaluse
+ '  debug "numcalls = " & .numcalls
  '  debug "lastuse = " & .lastuse
  '  debug "size = " & .size
   END WITH
@@ -1188,13 +1190,30 @@ SUB print_script_profiling
    DIM percall as string
    debug RIGHT("  " & format(100 * .childtime / entiretime, "0.00"), 6)  _
        & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
-       & RIGHT(SPACE(11) & format(.childtime*1000/.totaluse, "0.0"), 12) & "ms" _
-       & RIGHT(SPACE(9) & .totaluse, 10) _
+       & RIGHT(SPACE(11) & format(.childtime*1000/.numcalls, "0.0"), 12) & "ms" _
+       & RIGHT(SPACE(9) & .numcalls, 10) _
        & RIGHT(SPACE(20) & .trigger_type, 20) _
        & "  " & scriptname(ABS(.id))
   END WITH
  NEXT
  debug ""
+END SUB
+
+' Normally when you do multiple profiling runs, the stats are cumulative.
+' This should not be called from inside the interpreter, at least not while profiling.
+SUB clear_profiling_stats
+ IF insideinterpreter AND scriptprofiling THEN EXIT SUB
+
+ FOR i as integer = 0 TO UBOUND(script)
+  DIM scrp as ScriptData Ptr = script(i)
+  WHILE scrp
+   scrp->numcalls = 0
+   scrp->totaltime = 0.
+   scrp->childtime = 0.
+   scrp->entered = 0
+   scrp = scrp->next
+  WEND
+ NEXT
 END SUB
 
 

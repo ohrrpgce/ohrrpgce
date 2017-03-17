@@ -331,17 +331,17 @@ TYPE ScriptData
   trigger_type as string 'The type of the last trigger (eg "new game") of this script, or blank
                         '(A script is considered to be a fibre root if it has a non-blank trigger_type)
   refcount as integer   'number of ScriptInst pointing to this data
-  totaluse as integer   'total number of times this script has been requested since loading
   lastuse as uinteger
   'For script profiling. The following are filled in and used only if SCRIPTPROFILE is defined.
   calls_in_stack as integer 'Number of times this script appears in the call chain for the current
                         'executing fibre. Needed to account child running time when recursing.
+  numcalls as integer   'Total number of times this script has been started (since loading)
   laststart as double   'Timer when the first instance of this script in the currently executing
                         'fibre was started. If not used in the current fibre, is garbage.
                         'Used for tracking time spent in self and children.
   totaltime as double   'time spent in here, in seconds. If currently executing, subtract start time.
   childtime as double   'time spent in here and all descendents, in seconds
-  entered as integer    'number of times entered
+  entered as integer    'number of times entered (started/switched to)
   'End profiling.
 
   next as ScriptData ptr 'next in linked list, for hashtable

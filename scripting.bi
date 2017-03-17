@@ -18,6 +18,7 @@ DECLARE SUB watched_script_resumed ()
 DECLARE SUB watched_script_finished ()
 
 DECLARE SUB print_script_profiling ()
+DECLARE SUB clear_profiling_stats ()
 DECLARE SUB start_fibre_timing ()
 DECLARE SUB stop_fibre_timing ()
 DECLARE SUB script_call_timing ()
