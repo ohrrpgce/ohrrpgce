@@ -1451,7 +1451,7 @@ SUB npcmove_walk_ahead(npci as NPCInst)
  IF npci.dir = 1 THEN npci.xgo = -20
 END SUB
 
-SUB npcmove_meandering_chase(npci as NPCInst, byval flee_instead as bool = NO)
+SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
  DIM d as integer
  IF randint(100) < 50 THEN
   'Vertical movement
@@ -1474,12 +1474,12 @@ SUB npcmove_meandering_chase(npci as NPCInst, byval flee_instead as bool = NO)
   END IF
   IF catx(0) = npci.x THEN d = randint(4)
  END IF
- IF flee_instead THEN d = loopvar(d, 0, 3, 2) 'invert the direction
+ IF avoid_instead THEN d = loopvar(d, 0, 3, 2) 'invert the direction
  npci.dir = d
  npcmove_walk_ahead(npci)
 END SUB
 
-SUB npcmove_meandering_flee(npci as NPCInst)
+SUB npcmove_meandering_avoid(npci as NPCInst)
  npcmove_meandering_chase(npci, YES)
 END SUB
 
@@ -1506,7 +1506,7 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
   CASE 6:
    npcmove_meandering_chase(npci)
   CASE 7:
-   npcmove_meandering_flee(npci)
+   npcmove_meandering_avoid(npci)
   CASE 8:
    npcmove_walk_in_place(npci)
  END SELECT
