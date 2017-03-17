@@ -55,8 +55,8 @@ DECLARE SUB npcmove_walk_ahead(npci as NPCInst)
 DECLARE SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
 DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
-DECLARE FUNCTION npc_collision_check OVERLOAD (byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
-DECLARE FUNCTION npc_collision_check OVERLOAD (byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
 
 '=================================== Globals ==================================
 
@@ -1528,7 +1528,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
   'This check only happens when the NPC is about to start moving to a new tile
   DIM was_hero_collision as bool
-  IF npc_collision_check(npcnum, npci, npcdata, npci.xgo, npci.ygo, was_hero_collision) THEN
+  IF npc_collision_check(npci, npcdata, npci.xgo, npci.ygo, was_hero_collision) THEN
    npci.xgo = 0
    npci.ygo = 0
    IF was_hero_collision THEN
@@ -1574,12 +1574,12 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  RETURN didgo
 END FUNCTION
 
-FUNCTION npc_collision_check(byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
  DIM throwaway_hero_exception as bool
- RETURN npc_collision_check(npcnum, npci, npcdata, xgo, ygo, throwaway_hero_exception)
+ RETURN npc_collision_check(npci, npcdata, xgo, ygo, throwaway_hero_exception)
 END FUNCTION
 
-FUNCTION npc_collision_check(byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
  'Returns true if the NPC would collide with a wall, zone, npc, hero, etc
  
  'This indicates whether the collision that happened was with a hero
@@ -1614,7 +1614,7 @@ FUNCTION npc_collision_check(byval npcnum as integer, npci as NPCInst, npcdata a
   '--this only happens if obstruction is on
   '---Check for NPC-NPC collision
   FOR i as integer = 0 TO UBOUND(npc)
-   IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
+   IF npc(i).id > 0 AND @npci <> @npc(i) AND npc(i).not_obstruction = 0 THEN
     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
      RETURN YES
     END IF
