@@ -395,6 +395,8 @@ DECLARE OPERATOR - (lhs as XYPair) as XYPair
 
 #DEFINE XY(x, y) TYPE<XYPair>(x, y)
 
+DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
+
 UNION XYZTriple
   TYPE
    x as integer

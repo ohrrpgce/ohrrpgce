@@ -115,6 +115,17 @@ OPERATOR RectType.CAST () as string
   RETURN x & "," & y & ",w" & wide & ",h" & high
 END OPERATOR
 
+FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
+ IF axis = 0 THEN
+  IF v.x < 0 THEN RETURN 3
+  IF v.x > 0 THEN RETURN 1
+ ELSEIF axis = 1 THEN
+  IF v.y < 0 THEN RETURN 0
+  IF v.y > 0 THEN RETURN 2
+ END IF
+ RETURN default
+END FUNCTION
+
 #IFDEF __FB_MAIN__
 startTest(XYPairOperators)
   DIM as XYPair A = (1,2), B = (3,4)
