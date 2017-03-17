@@ -1451,7 +1451,7 @@ SUB npcmove_walk_ahead(npci as NPCInst)
  IF npci.dir = 1 THEN npci.xgo = -20
 END SUB
 
-SUB npcmove_random_chase(npci as NPCInst, byval flee_instead as bool = NO)
+SUB npcmove_meandering_chase(npci as NPCInst, byval flee_instead as bool = NO)
  DIM d as integer
  IF randint(100) < 50 THEN
   'Vertical movement
@@ -1479,8 +1479,8 @@ SUB npcmove_random_chase(npci as NPCInst, byval flee_instead as bool = NO)
  npcmove_walk_ahead(npci)
 END SUB
 
-SUB npcmove_random_flee(npci as NPCInst)
- npcmove_random_chase(npci, YES)
+SUB npcmove_meandering_flee(npci as NPCInst)
+ npcmove_meandering_chase(npci, YES)
 END SUB
 
 SUB npcmove_walk_in_place(npci as NPCInst)
@@ -1504,9 +1504,9 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
    'See also the collision detection in perform_npc_move()
    npcmove_walk_ahead(npci)
   CASE 6:
-   npcmove_random_chase(npci)
+   npcmove_meandering_chase(npci)
   CASE 7:
-   npcmove_random_flee(npci)
+   npcmove_meandering_flee(npci)
   CASE 8:
    npcmove_walk_in_place(npci)
  END SELECT
