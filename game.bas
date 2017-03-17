@@ -55,7 +55,8 @@ DECLARE SUB npcmove_walk_ahead(npci as NPCInst)
 DECLARE SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
 DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
-
+DECLARE FUNCTION npc_collision_check OVERLOAD (byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
 
 '=================================== Globals ==================================
 
@@ -1492,7 +1493,7 @@ SUB npcmove_walk_in_place(npci as NPCInst)
 END SUB
 
 'A currently stationary NPC decides what to do.
-'Most move types are implemented here, but some are handled upon collision in perform_npc_move
+'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
  
  IF npcdata.movetype <> 8 ANDALSO npcdata.speed = 0 THEN
@@ -1523,81 +1524,45 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  '--Return true if we finished a step (didgo)
  DIM didgo as integer = NO
  npci.frame = loopvar(npci.frame, 0, 3, 1)
+ DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
-  'About to begin moving to a new tile
-  IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
-   '--this only happens if NPC walls on
-   IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, NO, npcdata.ignore_passmap) THEN
-    npci.xgo = 0
-    npci.ygo = 0
-    npchitwall(npci, npcdata)
-    GOTO nogo
-   END IF
-   '--Check for movement zones (treat the edges as walls)
-   DIM zone as integer = npcdata.defaultzone
-   IF zone = 0 THEN zone = gmap(32)  'fallback to default
-   IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) = 0 THEN
-    npci.xgo = 0
-    npci.ygo = 0
-    npchitwall(npci, npcdata)
-    GOTO nogo
-   END IF
-   '--Check for avoidance zones (treat as walls)
-   zone = npcdata.defaultwallzone
-   IF zone = 0 THEN zone = gmap(33)  'fallback to default
-   IF zone > 0 ANDALSO wrapzonecheck(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
-    npci.xgo = 0
-    npci.ygo = 0
-    npchitwall(npci, npcdata)
-    GOTO nogo
-   END IF
-  END IF
-  IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
-   '--this only happens if obstruction is on
-   '---Check for NPC-NPC collision
-   FOR i as integer = 0 TO UBOUND(npc)
-    IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
-     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
-      npci.xgo = 0
-      npci.ygo = 0
-      npchitwall(npci, npcdata)
-      GOTO nogo
-     END IF
+  'This check only happens when the NPC is about to start moving to a new tile
+  DIM was_hero_collision as bool
+  IF npc_collision_check(npcnum, npci, npcdata, npci.xgo, npci.ygo, was_hero_collision) THEN
+   npci.xgo = 0
+   npci.ygo = 0
+   IF was_hero_collision THEN
+    '--a 0-3 tick delay before pacing enemies bounce off hero
+    'James: "This delay feels like something I must have done by mistake in the late 90's"
+    IF npci.frame = 3 THEN
+     npchitwall(npci, npcdata)
+     hit_something = YES
     END IF
-   NEXT i
-   '---Check for hero-NPC collision
-   IF npcdata.activation <> 2 THEN  'Not step-on activated
-    IF wrapcollision (npci.x, npci.y, npci.xgo, npci.ygo, catx(0), caty(0), herow(0).xgo, herow(0).ygo) THEN
-     npci.xgo = 0
-     npci.ygo = 0
-     '--a 0-3 tick delay before pacing enemies bounce off hero
-     IF npci.frame = 3 THEN
-      npchitwall(npci, npcdata)
-      GOTO nogo
-     END IF
-    END IF
+   ELSE
+    npchitwall(npci, npcdata)
+    hit_something = YES
    END IF
   END IF
  END IF
 
- 'If we didn't hit any obstacle, actually move
- IF npcdata.speed THEN
-  '--change x,y and decrement wantgo by speed
-  IF npci.xgo OR npci.ygo THEN
-   IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
-   IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
-   IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
-   IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
-   IF (npci.xgo MOD 20) = 0 AND (npci.ygo MOD 20) = 0 THEN didgo = YES
+ IF NOT hit_something THEN
+  'If we didn't hit any obstacle, actually move
+  IF npcdata.speed THEN
+   '--change x,y and decrement wantgo by speed
+   IF npci.xgo OR npci.ygo THEN
+    IF npci.xgo > 0 THEN npci.xgo -= npcdata.speed: npci.x -= npcdata.speed
+    IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
+    IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
+    IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
+    IF (npci.xgo MOD 20) = 0 AND (npci.ygo MOD 20) = 0 THEN didgo = YES
+   END IF
+  ELSE
+   '--no speed, kill wantgo
+   npci.xgo = 0
+   npci.ygo = 0
   END IF
- ELSE
-  '--no speed, kill wantgo
-  npci.xgo = 0
-  npci.ygo = 0
+  IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
  END IF
- IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
-
- nogo:
 
  '--Check touch activation (always happens). I have no idea why this is here!
  IF npcdata.activation = 1 AND txt.showing = NO THEN
@@ -1607,6 +1572,66 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  END IF
 
  RETURN didgo
+END FUNCTION
+
+FUNCTION npc_collision_check(byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
+ DIM throwaway_hero_exception as bool
+ RETURN npc_collision_check(npcnum, npci, npcdata, xgo, ygo, throwaway_hero_exception)
+END FUNCTION
+
+FUNCTION npc_collision_check(byval npcnum as integer, npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
+ 'Returns true if the NPC would collide with a wall, zone, npc, hero, etc
+ 
+ 'This indicates whether the collision that happened was with a hero
+ hero_collision_exception = NO
+
+ DIM tilepos as XYPair 'Which tile is the center of the NPC on?
+ tilepos.x = (npci.x + 10) \ 20
+ tilepos.y = (npci.y + 10) \ 20
+ DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
+ pixelpos.x = tilepos.x * 20
+ pixelpos.y = tilepos.y * 20
+
+ IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
+  '--this only happens if NPC walls on
+  IF wrappass(tilepos.x, tilepos.y, xgo, ygo, NO, npcdata.ignore_passmap) THEN
+   RETURN YES
+  END IF
+  '--Check for movement zones (treat the edges as walls)
+  DIM zone as integer = npcdata.defaultzone
+  IF zone = 0 THEN zone = gmap(32)  'fallback to default
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) = 0 THEN
+   RETURN YES
+  END IF
+  '--Check for avoidance zones (treat as walls)
+  zone = npcdata.defaultwallzone
+  IF zone = 0 THEN zone = gmap(33)  'fallback to default
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) THEN
+   RETURN YES
+  END IF
+ END IF
+ IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
+  '--this only happens if obstruction is on
+  '---Check for NPC-NPC collision
+  FOR i as integer = 0 TO UBOUND(npc)
+   IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
+    IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
+     RETURN YES
+    END IF
+   END IF
+  NEXT i
+  '---Check for hero-NPC collision
+  IF npcdata.activation <> 2 THEN  'Not step-on activated
+   IF wrapcollision (npci.x, npci.y, xgo, ygo, catx(0), caty(0), herow(0).xgo, herow(0).ygo) THEN
+    hero_collision_exception = YES
+    RETURN YES
+   END IF
+  END IF
+ END IF
+ 
+ 'Did not collide with anything
+ RETURN NO
+ 
 END FUNCTION
 
 SUB npchitwall(npci as NPCInst, npcdata as NPCType)
