@@ -1,6 +1,6 @@
 -- HamsterSpeak Compiler
 
---(C) Copyright 2002 James Paige and Hamster Republic Productions
+--(C) Copyright 2001-2017 James Paige and Hamster Republic Productions
 -- Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Sd 2017-03-17 --incdir option; check ../share/games/ohrrpgce/ instead
 --3Sc 2016-04-11 Check /usr/share/games/ohrrpgce/ for include files
 --3Sb 2014-11-11 Better 'include' line lexing & garbage detection
 --3Sa 2014-08-23 Fix printing of a lexer error message
@@ -159,8 +160,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Sc"
-constant COPYRIGHT_DATE="2016"
+constant COMPILER_SUB_VERSION="Sd"
+constant COPYRIGHT_DATE="2017"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
 --increment this whenever using an older plotscr.hsd means you're missing out
@@ -292,6 +293,7 @@ constant MAX_NEST_DEPTH=4
 ---------------------------------------------------------------------------
 --globals--               --initializations--
 string compiler_dir       compiler_dir=""
+string include_dir        include_dir=""
 string source_file        source_file=""
 string dest_file          dest_file=""
 sequence optlist          optlist={}
@@ -833,23 +835,25 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%s%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-abcdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-abcdfknstwuyz] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
     color_print("   -k do not wait for a keypress when finished\n",{})
     color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
+    color_print("   --incdir <path>\n" &
+                "      also search this directory for include files\n",{})
+    color_print("   --include <filename>\n" &
+                "      include an additional file\n",{})
     color_print("\nAdvanced options (not intended for normal use):\n",{})
     color_print("   -b don't include plotscr.hsd automatically\n",{})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
-    color_print("   -s print the name of each script as it is compiled\n",{})
-    color_print("     -a same as -s, but including autonumbered scripts\n",{})
+    color_print("   -s print the name of each plotscript as it is compiled\n",{})
+    color_print("     -a same as -s, but printing all scripts\n",{})
     color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
     color_print("   -z write error messages to hs_error.htm\n",{})
-    color_print("   --include filename\n" &
-                "      include an additional file\n",{})
     --Undocumented arguments:
     --              --unicode-cols
     --                 used by Hamster Whisper for piped output
@@ -866,7 +870,7 @@ end procedure
 
 --Build the lexer tables, which for each code point 0<=i<256, contains the type
 --of that character in entry i+1 (have to handle NUL)
---Other characters are always LEX_CHAR
+--Other characters above code 255 are always LEX_CHAR
 procedure init_lexer()
   sequence table_insert
 
@@ -927,6 +931,9 @@ procedure init()
       args=delete_slice(args,index,index+1)
     elsif equal(args[index],"--include") and index+1<=length(args) then
       additional_includes&={args[index+1]}
+      args=delete_slice(args,index,index+1)
+    elsif equal(args[index],"--incdir") and index+1<=length(args) then
+      include_dir=args[index+1]
       args=delete_slice(args,index,index+1)
     elsif args[index][1]='-' then
       optlist=optlist&hs_lower(args[index][2..length(args[index])])
@@ -1277,24 +1284,23 @@ function find_include_file(string include_name)
   --try source directory
   if file_exists(path_only(source_file)&include_name) then
     return normalize_filename(path_only(source_file)&include_name)
-  else
-    --try current directory
-    if file_exists(include_name) then
-      return include_name
-    else
-      --try compiler_directory
-      if file_exists(compiler_dir&include_name) then
-        return normalize_filename(compiler_dir&include_name)
-      else
-        --try /usr/share/games/ohrrpgce/
-        if file_exists("/usr/share/games/ohrrpgce/"&include_name) then
-          return normalize_filename("/usr/share/games/ohrrpgce/"&include_name)
-        end if
-        --give up
-        return include_name
-      end if
-    end if
   end if
+  if file_exists(include_dir&include_name) then
+    return include_dir&include_name
+  end if
+  --try current directory
+  if file_exists(include_name) then
+    return include_name
+  end if
+  if file_exists(compiler_dir&include_name) then
+    return normalize_filename(compiler_dir&include_name)
+  end if
+  --in case we're installed at $prefix/games, try $prefix/share/games/ohrrpgce/
+  if file_exists(compiler_dir&"../share/games/ohrrpgce/"&include_name) then
+    return normalize_filename(compiler_dir&"../share/games/ohrrpgce/"&include_name)
+  end if
+  --give up
+  return include_name
 end function
 
 ---------------------------------------------------------------------------
