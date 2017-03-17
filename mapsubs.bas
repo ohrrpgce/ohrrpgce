@@ -428,7 +428,7 @@ rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
 DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
 IF LEN(datafile) = 0 THEN
- visible_debug "wallarrows.bmp missing"
+ visible_debug "arrows2.bmp missing"
 ELSE
  DIM arrowset as Frame ptr = frame_import_bmp_raw(datafile)
  FOR idx as integer = 0 TO 4
