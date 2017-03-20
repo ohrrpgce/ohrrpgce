@@ -134,6 +134,7 @@ end function
 '==========================================================================================
 
 function get_file_type (fname as string) as FileTypeEnum
+	if len(fname) = 0 then return fileTypeDirectory
 	dim res as DWORD = GetFileAttributes(strptr(fname))
 	if res = INVALID_FILE_ATTRIBUTES then
 		dim errc as integer = GetLastError()

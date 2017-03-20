@@ -2012,7 +2012,7 @@ SUB show_help(helpkey as string)
    END IF
 
    IF keyval(scE) > 1 THEN
-    IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
+    IF diriswriteable(get_help_dir()) THEN
      editing = YES
      dat->show_insert = YES
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0

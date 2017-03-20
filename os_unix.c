@@ -98,7 +98,10 @@ int checked_stat(const char *filename, struct stat *finfo) {
 	if (!filename) return EINVAL;
 	// stat follows symlinks recursively
 	if (stat(filename, finfo)) {
-		// ENOENT (path not found) indicates a broken symlink, nothing to write home about
+		// While scanning with readdir(), ENOENT (path not found) indicates a broken symlink,
+		// nothing to write home about.
+		// Given an arbitrary path, get either ENOENT (doesn't exist) or ENOTDIR (component
+		// of the path is a file, not a dir).
 		if (errno != ENOENT)
 			debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
 		return errno;
@@ -107,10 +110,12 @@ int checked_stat(const char *filename, struct stat *finfo) {
 }
 
 FileTypeEnum get_file_type (FBSTRING *fname) {
+	if (!fname->data)
+		return fileTypeDirectory;  // The current directory
 	struct stat finfo;
 	int err;
 	if ((err = checked_stat(fname->data, &finfo))) {
-		if (err == ENOENT)
+		if (err == ENOENT || err == ENOTDIR)
 			return fileTypeNonexistent;
 		else
 			return fileTypeError;

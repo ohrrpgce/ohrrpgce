@@ -1228,12 +1228,7 @@ sub set_music_volume (byval vol as single)
 end sub
 
 function getmusictype (file as string) as MusicFormatEnum
-	if file = "" then
-		'no further checking for blank names
-		return 0
-	end if
-
-	if isdir(file) OR right(file, 1) = SLASH then
+	if real_isfile(file) = NO then
 		'no further checking if this is a directory
 		return 0
 	end if

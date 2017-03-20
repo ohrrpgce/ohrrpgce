@@ -1538,7 +1538,7 @@ FUNCTION find_file_portably (path as string) as string
   #ELSE
     ' On Windows, no searching needed
     _path = simplify_path(path)
-    IF isfile(_path) OR isdir(_path) THEN RETURN _path
+    IF isfile(_path) ORELSE isdir(_path) THEN RETURN _path
     RETURN "Can't find " + _path
   #ENDIF
 END FUNCTION
@@ -2074,7 +2074,7 @@ END FUNCTION
 'True on success or didn't exist, false if couldn't delete.
 'Call this instead of killfile if you're not sure the file exists, it avoid error messages if it doesn't.
 FUNCTION safekill (filename as string) as bool
-  DIM exists as bool = isfile(filename)
+  DIM exists as bool = real_isfile(filename)
   IF exists THEN RETURN killfile(filename)
 #ifdef DEBUG_FILE_IO
   debuginfo "safekill(" & filename & ") exists = NO"
@@ -2098,15 +2098,18 @@ END FUNCTION
 FUNCTION fileisreadable(filename as string) as integer
   dim ret as bool = NO
   dim fh as integer, err_code as integer
-  fh = freefile
-  err_code = openfile(filename, for_binary + access_read, fh)
-  if err_code = 2 then
-    'Doesn't exist
-  elseif err_code <> 0 then
-    debuginfo "fileisreadable: Error " & err_code & " reading " & filename
-  else
-    close #fh
-    ret = YES
+
+  ' Check this first, to exclude directories on Linux (you can open a directory read-only)
+  if get_file_type(filename) = fileTypeFile then
+    err_code = openfile(filename, for_binary + access_read, fh)
+    if err_code = fberrNOTFOUND then
+      'Doesn't exist (shouldn't happen)
+    elseif err_code <> fberrOK then
+      debuginfo "fileisreadable: Error " & err_code & " reading " & filename
+    else
+      close #fh
+      ret = YES
+    end if
   end if
 #ifdef DEBUG_FILE_IO
   debuginfo "fileisreadable(" & filename & ") = " & ret
@@ -2118,8 +2121,12 @@ END FUNCTION
 FUNCTION fileiswriteable(filename as string) as integer
   dim ret as bool = NO
   dim fh as integer
+  dim exists as bool = (get_file_type(filename) <> fileTypeNonexistent)
+  ' Attempting to open read-write means that opening directories fails on Linux, unlike read-only
   if openfile(filename, for_binary + access_read_write, fh) = fberrOK then
     close #fh
+    ' Delete the file we just created
+    if exists = NO then killfile(filename)
     ret = YES
   end if
 #ifdef DEBUG_FILE_IO
@@ -2128,48 +2135,54 @@ FUNCTION fileiswriteable(filename as string) as integer
   return ret
 END FUNCTION
 
-FUNCTION diriswriteable(d as string) as bool
-  if isfile(d + SLASH + "archinym.lmp") then
-   'Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
-   'able to mark a folder read-only, instead it makes the contents read-only.
-    if fileiswriteable(d + SLASH + "archinym.lmp") = NO then return NO
+FUNCTION diriswriteable(filename as string) as bool
+  dim ret as bool = NO
+  dim testfile as string
+  if filename = "" then filename = curdir
+
+  ' Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
+  ' able to mark a folder read-only, instead it makes the contents read-only.
+  testfile = filename + SLASH + "archinym.lmp"
+  if real_isfile(testfile) = NO then
+    ' If archinym.lmp doesn't exist, then ohrrpgce.gen does
+    testfile = filename + SLASH + "ohrrpgce.gen"
+    if real_isfile(testfile) = NO then testfile = ""
   end if
-  dim testfile as string = d & SLASH & "__testwrite_" & randint(100000) & ".tmp"
-  if fileiswriteable(testfile) then
-    killfile testfile
-    return YES
+  ' In the case of an .rpgdir, we test both an existing file and a new one for writability.
+  if len(testfile) andalso fileiswriteable(testfile) = NO then
+    ret = NO
+  else
+    testfile = filename & SLASH & "__testwrite_" & randint(100000) & ".tmp"
+    if fileiswriteable(testfile) then
+      ret = YES
+    end if
   end if
-  return NO
+  #ifdef DEBUG_FILE_IO
+    debuginfo "diriswriteable(" & filename & ") = " & ret
+  #endif
+  return ret
 END FUNCTION
 
+' This is a simple wrapper for fileisreadable, and there's now a lot of code
+' that might depend on that. If you want to *really* test if something is a file, use real_isfile
 FUNCTION isfile (filename as string) as bool
-  ' directories don't count as files
-  ' FIXME: Returns true if passed a directory on Linux.
-  ' this is a simple wrapper for fileisreadable
-  if filename = "" then return NO
   return fileisreadable(filename)
 END FUNCTION
 
-FUNCTION isdir (sDir as string) as bool
-  dim ret as bool
-  ' Returning true for "" would help to hide bugs.
-  if sDir = "" then return NO
-#IFDEF __FB_ANDROID__
-  '[ does not work in Android 2.2. I don't know how reliable this is
-  ret = SHELL("ls " + escape_filename(sDir) + "/") = 0
-#ELSEIF DEFINED(__FB_UNIX__)
-  'Special hack for broken Linux dir() behavior
-  '(FIXME: is DIR still broken? Should investigate)
-  ret = SHELL("[ -d " + escape_filename(sDir) + " ]") = 0
-#ELSE
-  'Windows just uses dir (ugh)
-  'Have to remove trailing slash, otherwise dir always returns nothing
-  dim temp as string = rtrim(sdir, any "\/")
-  ret = dir(temp, 55) <> "" AND dir(temp, 39) = ""
-#ENDIF
-#IFDEF DEBUG_FILE_IO
-  debuginfo "isdir(" & sDir & ") = " & ret
-#ENDIF
+FUNCTION real_isfile(filename as string) as bool
+  dim ret as bool = (get_file_type(filename) = fileTypeFile)
+  #ifdef DEBUG_FILE_IO
+    debuginfo "real_isfile(" & filename & ") = " & ret
+  #endif
+  return ret
+END FUNCTION
+
+' Is a directory. Return true for "" (the current directory)
+FUNCTION isdir (filename as string) as bool
+  dim ret as bool = (get_file_type(filename) = fileTypeDirectory)
+  #ifdef DEBUG_FILE_IO
+    debuginfo "isdir(" & filename & ") = " & ret
+  #endif
   return ret
 END FUNCTION
 

@@ -9,6 +9,9 @@
 dim shared fh as integer
 dim shared num_errors as integer = 0
 
+#define DBG(x)
+'#define DBG(x) ?x
+
 startTest(OPEN)
 	fh = freefile
 	' Need to be in a writable dir
@@ -18,9 +21,9 @@ endTest
 
 ' Hook everything
 function openhook_filter(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
-	? "openhook_filter(" & filename & ", " & writable & ", " & writes_allowed & ")"
+	DBG("openhook_filter(" & filename & ", " & writable & ", " & writes_allowed & ")")
 	if writes_allowed = NO and writable then
-		? "(disallowed)"
+		DBG("(disallowed)")
 		num_errors += 1
 		return FilterActionEnum.deny
 	end if
@@ -31,6 +34,9 @@ end function
 set_OPEN_hook @openhook_filter, YES, NULL
 
 startTest(explicitReadNonexistentFiles)
+	' Cleanup from previous failure
+	safekill "_nonexistent_file.tmp"
+
 	if openfile("_nonexistent_file.tmp", for_binary + access_read, fh) = 0 then
 		? "Opening nonexistent file should have failed"
 		fail
@@ -63,8 +69,10 @@ startTest(makeReadOnly)
 	' setwriteable only implemented on Windows
 	#ifdef __FB_WIN32__
 		' Cleanup previous run
-		setwriteable("_testreadonly.tmp", YES)
-		safekill("_testreadonly.tmp")
+		if isfile("_testreadonly.tmp") then
+			setwriteable("_testreadonly.tmp", YES)
+			safekill("_testreadonly.tmp")
+		end if
 
 		if openfile("_testreadonly.tmp", for_binary, fh) then fail
 		if close(fh) then fail
@@ -73,6 +81,7 @@ startTest(makeReadOnly)
 endTest
 
 startTest(get_file_type)
+	if get_file_type("") <> fileTypeDirectory then fail  ' "" is the current directory
 	if get_file_type("_testfile.tmp") <> fileTypeFile then fail
 	if get_file_type(curdir & SLASH & "_testfile.tmp") <> fileTypeFile then fail
 	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail
@@ -81,6 +90,8 @@ startTest(get_file_type)
 	if get_file_type(curdir) <> fileTypeDirectory then fail
 	if get_file_type(curdir & SLASH & "..") <> fileTypeDirectory then fail
 	if get_file_type("/foo/bar/") <> fileTypeNonexistent then fail  ' Not a valid path
+	' Will print an error message on Unix (is a file, not a dir)
+	if get_file_type("_testfile.tmp" SLASH "file") <> fileTypeNonexistent then fail
 	' Read-only and special files/dirs
 	#ifdef __FB_UNIX__
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
@@ -150,7 +161,7 @@ endTest
 
 'This exercises opening files for write and deleting them
 startTest(diriswriteable)
-	if diriswriteable("_testfile.tmp") then fail
+	if diriswriteable("_testfile.tmp") then fail   ' Will print two error messages on Unix
 	if diriswriteable("/tmp/doesnt/exist/surely") then fail
 	' We already checked curdir is writable
 	if diriswriteable(".") = NO then fail
@@ -169,6 +180,7 @@ startTest(diriswriteable)
 endTest
 
 startTest(isdir)
+	if isdir("") = NO then fail  'Current directory
 	if isdir("_testfile.tmp") then fail
 	if isdir("/tmp/doesnt/exist/surely") then fail
 	if isdir(".") = NO then fail
@@ -197,7 +209,7 @@ startTest(makeWritable)
 endTest
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
-	? "(error reported: " & *msg & ")"
+	DBG("(error reported: " & *msg & ")")
 	if errorlevel > errPromptBug then
 		? "unexpected error (errlvl=" & errorlevel & "): " & *msg
 		end 1
