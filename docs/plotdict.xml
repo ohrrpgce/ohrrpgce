@@ -1371,6 +1371,13 @@ while (npcref) do (
 				</note>
 			</description>
 		</command>
+		<command id="getnpcspeed">
+			<canon>get NPC speed (who)</canon>
+			<shortname>get NPC speed</shortname>
+			<description>
+				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+			</description>
+		</command>
 		<command id="setnpcspeed">
 			<canon>set NPC speed (who, speed)</canon>
 			<shortname>set NPC speed</shortname>

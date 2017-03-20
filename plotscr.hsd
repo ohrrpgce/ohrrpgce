@@ -673,8 +673,12 @@ if (hsd:n<<NPCY(hsd:who)) then(walk NPC(hsd:who,north,NPCY(hsd:who)--hsd:n))
 if (hsd:n>>NPCY(hsd:who)) then(walk NPC(hsd:who,south,hsd:n--NPCY(hsd:who)))
 end
 
+script,getNPCspeed,hsd:who,begin
+ readNPC(hsd:who,NPCstat:movespeed)
+end
+
 script,setNPCspeed,hsd:who,hsd:newspeed=4,begin
-alterNPC(hsd:who,NPCstat:movespeed,hsd:newspeed)
+ alterNPC(hsd:who,NPCstat:movespeed,hsd:newspeed)
 end
 
 script,swapbyname,hsd:hero1,hsd:hero2,begin
