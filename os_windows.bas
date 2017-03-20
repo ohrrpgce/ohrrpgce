@@ -248,18 +248,22 @@ function hasmedia (drive as string) as integer
 end function
 
 'True on success
-function setwriteable (fname as string) as bool
+function setwriteable (fname as string, towhat as bool) as bool
 	dim attr as integer = GetFileAttributes(strptr(fname))
 	if attr = INVALID_FILE_ATTRIBUTES then
 		dim errstr as string = error_string
 		debug "GetFileAttributes(" & fname & ") failed: " & errstr
 		return NO
 	end if
-	attr = attr and not FILE_ATTRIBUTE_READONLY
+	if towhat then
+		attr and= not FILE_ATTRIBUTE_READONLY
+	else
+		attr or= FILE_ATTRIBUTE_READONLY
+	end if
 	'attr = attr or FILE_ATTRIBUTE_TEMPORARY  'Try to avoid writing to harddisk
 	if SetFileAttributes(strptr(fname), attr) = 0 then
 		dim errstr as string = error_string
-		debug "SetFileAttributes(" & fname & ") failed: " & errstr
+		debug "SetFileAttributes(" & fname & ", " & towhat & ") failed: " & errstr
 		return NO
 	end if
 	return YES

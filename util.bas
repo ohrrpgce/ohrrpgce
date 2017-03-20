@@ -1941,7 +1941,11 @@ END SUB
 
 'Returns true on success
 FUNCTION writeablecopyfile(src as string, dest as string) as bool
- RETURN copyfile(src, dest) ANDALSO setwriteable(dest)
+ IF copyfile(src, dest) = NO THEN RETURN NO
+ #IFDEF __FB_WIN32__
+  IF setwriteable(dest, YES) = NO THEN RETURN NO
+ #ENDIF
+ RETURN YES
 END FUNCTION
 
 'Copy files in one directory to another (ignores directories)

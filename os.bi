@@ -51,7 +51,7 @@ declare function drivelabel (drive as string) as string
 declare function isremovable (drive as string) as integer
 declare function hasmedia (drive as string) as integer
 
-declare function setwriteable (fname as string) as bool
+declare function setwriteable (fname as string, towhat as bool) as bool
 
 'C FILE* type. Can be retrieved with FILEATTR from a FB filehandle
 type CFILE_ptr as any ptr

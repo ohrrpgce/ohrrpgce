@@ -208,12 +208,13 @@ int hasmedia (FBSTRING *drive) {
 	return 0;
 }
 
+/*
 boolint setwriteable (FBSTRING *fname) {
 	// Under Unix, FB's fb_FileCopy and copy_file_replacing do not copy file permissions, so this isn't needed;
 	// we assume that a reasonable umask which allows writable files is in effect.
 	return -1;
 }
-
+*/
 
 //(setq c-basic-offset 8)
 //(setq indent-tabs-mode t)
