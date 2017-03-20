@@ -55,8 +55,7 @@ DECLARE SUB npcmove_walk_ahead(npci as NPCInst)
 DECLARE SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
 DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
+DECLARE FUNCTION npc_collision_check (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool=NO) as bool
 
 '=================================== Globals ==================================
 
@@ -1572,11 +1571,6 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  END IF
 
  RETURN didgo
-END FUNCTION
-
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer) as bool
- DIM throwaway_hero_exception as bool
- RETURN npc_collision_check(npci, npcdata, xgo, ygo, throwaway_hero_exception)
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
