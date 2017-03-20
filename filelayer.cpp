@@ -233,9 +233,14 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	// pfnLumpfileFilter is responsible for showing an error if allow_lump_writes = NO.
 	bool explicit_write = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE);
 
+	// Create a temp copy of filename, so that the filter function can modify it
+	FBSTRING file_to_open;
+	init_fbstring_copy(&file_to_open, filename);
+
 	FilterActionEnum action = DONT_HOOK;
 	if (pfnLumpfileFilter)
-		action = pfnLumpfileFilter(filename, explicit_write ? -1 : 0, allow_lump_writes ? -1 : 0);
+		action = pfnLumpfileFilter(&file_to_open, explicit_write ? -1 : 0, allow_lump_writes ? -1 : 0);
+
 	if (action == HOOK) {
 		if (!allow_lump_writes) {
 			// If we implicitly asked for writing, then reduce to read access.
@@ -261,7 +266,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 	}
 
 	errno = 0;
-	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), filename, mode, access,
+	int ret = fb_FileOpenVfsEx(FB_FILE_TO_HANDLE(fnum), &file_to_open, mode, access,
 	                           FB_FILE_LOCK_SHARED, 0, encod, fnOpen);
 
 	if (ret != FB_RTERROR_OK && ret != FB_RTERROR_FILENOTFOUND) {
@@ -269,6 +274,8 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		      (filename && filename->data) ? filename->data : "",  // Valid empty string
 		      openbits, ret, strerror(errno));
 	}
+	delete_fbstring(&file_to_open);
+
 	return (FB_RTERROR)ret;
 }
 

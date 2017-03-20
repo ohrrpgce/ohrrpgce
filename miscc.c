@@ -62,6 +62,13 @@ void init_fbstring(FBSTRING *fbstr, char *cstr) {
 	fb_StrInit(fbstr, -1, cstr, strlen(cstr), 0);
 }
 
+// Initialise an FBSTRING to a copy of an existing string.
+// If the src string is marked temp, then it is deleted (its contents are moved rather than copied).
+// *fbstr is assumed to be garbage.
+void init_fbstring_copy(FBSTRING *fbstr, FBSTRING *src) {
+	fb_StrInit(fbstr, -1, src, -1, 0);
+}
+
 // Set an existing FBSTRING to a C string
 // *fbstr must already initialised!
 void set_fbstring(FBSTRING *fbstr, char *cstr) {
@@ -81,7 +88,7 @@ FBSTRING *empty_fbstring() {
 	return &__fb_ctx.null_desc;
 }
 
-// Delete and free a temp string descriptor, or delete a non-temp string
+// Delete and free a temp string descriptor, or delete a non-temp string (but not its descriptor)
 void delete_fbstring(FBSTRING *str) {
 	if (FB_ISTEMP(str)) {
 		// You simply assign to NULL. This is equivalent to calling nonpublic function fb_hStrDelTemp.
