@@ -1844,12 +1844,16 @@ END FUNCTION
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
-SUB findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
+SUB findfiles (directory as string, namemask as string = "", filetype as FileTypeEnum = fileTypeFile, findhidden as bool = NO, filelist() as string)
   REDIM filelist(-1 TO -1)
   IF directory = "" THEN
    ' For safety and bug catching: for example deletetemps() calls findfiles
    ' and then deletes everything.
    showerror "findfiles called with empty directory"
+   EXIT SUB
+  END IF
+  IF filetype <> fileTypeDirectory and filetype <> fileTypeFile THEN
+   showerror "findfiles: bad filetype"
    EXIT SUB
   END IF
   DIM as string searchdir = directory

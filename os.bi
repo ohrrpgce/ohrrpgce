@@ -8,7 +8,7 @@
 #ifndef OS_BI
 #define OS_BI
 
-#include "util.bi"
+#include "vector.bi"
 
 #ifdef __FB_WIN32__
 declare function is_windows_9x () as bool
@@ -26,6 +26,18 @@ declare function memory_usage_string() as string
 
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as boolint
+
+declare function copy_file_replacing(source as zstring ptr, destination as zstring ptr) as bool
+
+enum FileTypeEnum
+  fileTypeNonexistent ' Doesn't exist (or parent directory doesn't exist)
+  fileTypeFile        ' Regular file or a symlink to one
+  fileTypeDirectory   ' Directory or a symlink to one
+  fileTypeOther       ' A device, fifo, or other special file type
+  fileTypeError       ' Something unreadable (including broken symlinks)
+end enum
+
+declare function get_file_type (fname as string) as FileTypeEnum
 
 declare function list_files_or_subdirs (searchdir as string, nmask as string, showhidden as bool, whichtype as integer) as string vector
 declare function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector

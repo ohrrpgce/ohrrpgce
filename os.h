@@ -39,6 +39,16 @@ FBSTRING *memory_usage_string();
 
 int copy_file_replacing(const char *source, const char *destination);
 
+typedef enum {
+	fileTypeNonexistent, // Doesn't exist
+	fileTypeFile,        // Regular file or a symlink to one
+	fileTypeDirectory,   // Directory (or mount point) or a symlink to one
+	fileTypeOther,       // A device, fifo, or other special file type
+	fileTypeError,       // Something unreadable (including broken symlinks)
+} FileTypeEnum;
+
+FileTypeEnum get_file_type(FBSTRING *fname);
+
 //Advisory locking (actually mandatory on Windows)
 int lock_file_for_write(FILE *fh, int timeout_ms);
 int lock_file_for_read(FILE *fh, int timeout_ms);

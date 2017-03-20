@@ -59,6 +59,28 @@ startTest(readFile)
 	if line_in <> "hello" then fail
 endTest
 
+startTest(get_file_type)
+	if get_file_type("_testfile.tmp") <> fileTypeFile then fail
+	if get_file_type(curdir & SLASH & "_testfile.tmp") <> fileTypeFile then fail
+	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail
+	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail  ' Didn't create it
+	if get_file_type("_nonexistent_file.tmp" SLASH) <> fileTypeNonexistent then fail
+	if get_file_type(curdir) <> fileTypeDirectory then fail
+	if get_file_type(curdir & SLASH & "..") <> fileTypeDirectory then fail
+	if get_file_type("/foo/bar/") <> fileTypeNonexistent then fail  ' Not a valid path
+	' Read-only and special files/dirs
+	#ifdef __FB_UNIX__
+		if get_file_type("/bin/sh") <> fileTypeFile then fail
+		if get_file_type("/bin/") <> fileTypeDirectory then fail
+		if get_file_type("/dev/tty") <> fileTypeOther then fail
+	#elseif defined(__FB_WIN32__)
+		if get_file_type("C:\windows\notepad.exe") <> fileTypeFile then fail
+		if get_file_type("C:\windows\") <> fileTypeDirectory then fail
+		' Oops, this doesn't actually work, guess GetFileAttributes can't be used for devices
+		'if get_file_type("\\.\C:") <> fileTypeOther then fail  ' Drive device
+	#endif
+endTest
+
 startTest(fileisreadable)
 	if fileisreadable("_testfile.tmp") = NO then fail
 endTest

@@ -133,6 +133,42 @@ end function
 '                                       Filesystem
 '==========================================================================================
 
+function get_file_type (fname as string) as FileTypeEnum
+	dim res as DWORD = GetFileAttributes(strptr(fname))
+	if res = INVALID_FILE_ATTRIBUTES then
+		dim errc as integer = GetLastError()
+		' Path not found if the parent directory isn't valid either
+		if errc = ERROR_FILE_NOT_FOUND or errc = ERROR_PATH_NOT_FOUND then
+			return fileTypeNonexistent
+		else
+			' Returns an error for folders which are network shares (but not subdirs thereof)
+			dim errstr as string = error_string
+			debug "get_file_type: " & errc & " " & errstr
+			return fileTypeError
+		end if
+	elseif res and FILE_ATTRIBUTE_DIRECTORY then
+		return fileTypeDirectory
+	elseif res and FILE_ATTRIBUTE_DEVICE then
+		' Note: This doesn't actually happen when opening a device like \\.\C:. An error occurs instead.
+		return fileTypeOther
+	else
+		return fileTypeFile
+	end if
+end function
+
+/'  Start of an alternative impl that can detect devices.
+function get_file_type2 (fname as string) as bool
+	dim hdl as HANDLE
+	hdl = CreateFile(strptr(fname), 0, FILE_SHARE_READ + FILE_SHARE_WRITE + FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)
+	if hdl = INVALID_HANDLE_VALUE then
+		? error_string
+		return NO
+	end if
+	CloseHandle hdl
+	return YES
+end function
+'/
+
 function list_files (searchdir as string, nmask as string, byval showhidden as bool) as string vector
 	'This function is only used on unix! see os_unix.c
 	dim ret as string vector

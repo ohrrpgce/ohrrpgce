@@ -9,6 +9,7 @@
 #include "crt/stddef.bi"
 #include "file.bi"   'FB header, for FILELEN
 
+#include "os.bi"
 #include "vector.bi"
 
 '#ifdef __FB_ANDROID__
@@ -278,10 +279,6 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 '----------------------------------------------------------------------
 '                          File Functions
 
-'Constants for findfiles
-CONST fileTypeDirectory = 0
-CONST fileTypeFile = 1
-
 declare function hash_file(filename as string) as unsigned integer
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
@@ -306,7 +303,7 @@ declare function fixfilename (filename as string) as string
 declare function decode_filename (filename as string) as string
 declare sub touchfile (filename as string)
 declare sub extendfile (byval fh as integer, byval length as integer)
-declare sub findfiles (directory as string, namemask as string = "", byval filetype as integer = fileTypeFile, byval findhidden as integer = 0, filelist() as string)
+declare sub findfiles (directory as string, namemask as string = "", filetype as FileTypeEnum = fileTypeFile, findhidden as bool = NO, filelist() as string)
 declare function find_file_portably (path as string) as string
 declare function writeablecopyfile (src as string, dest as string) as bool
 declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)

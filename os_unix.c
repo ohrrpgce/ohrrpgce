@@ -93,6 +93,35 @@ FBSTRING *memory_usage_string() {
 //                                       Filesystem
 //==========================================================================================
 
+// Returns 0 on success, or error code
+int checked_stat(const char *filename, struct stat *finfo) {
+	if (!filename) return EINVAL;
+	// stat follows symlinks recursively
+	if (stat(filename, finfo)) {
+		// ENOENT (path not found) indicates a broken symlink, nothing to write home about
+		if (errno != ENOENT)
+			debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
+		return errno;
+	}
+	return 0;
+}
+
+FileTypeEnum get_file_type (FBSTRING *fname) {
+	struct stat finfo;
+	int err;
+	if ((err = checked_stat(fname->data, &finfo))) {
+		if (err == ENOENT)
+			return fileTypeNonexistent;
+		else
+			return fileTypeError;
+	}
+	if (S_ISREG(finfo.st_mode))
+		return fileTypeFile;
+	if (S_ISDIR(finfo.st_mode))
+		return fileTypeDirectory;
+	return fileTypeOther;
+}
+
 // Returns a string vector
 // whichtype: 0 for files, 1 for directory, other for either
 array_t list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden, int whichtype) {
@@ -124,13 +153,8 @@ array_t list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhid
 				if (snprintf(filename, 512, "%s/%s", dirpath, ep->d_name) > 511)
 					continue;
 				struct stat finfo;
-				// stat follows symlinks recursively
-				if (stat(filename, &finfo)) {
-					// ENOENT (path not found) indicates a broken symlink, nothing to write home about
-					if (errno != ENOENT)
-						debug(errInfo, "Could not stat(%s): %s", filename, strerror(errno));
-					continue;
-				}
+				if (checked_stat(filename, &finfo))
+					continue;  // error
 				if (S_ISREG(finfo.st_mode)) {
 					if (whichtype == 1) continue;
 				} else if (S_ISDIR(finfo.st_mode)) {

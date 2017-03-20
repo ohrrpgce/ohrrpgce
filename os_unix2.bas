@@ -7,6 +7,7 @@
 
 #include "config.bi"
 #include "os.bi"
+#include "util.bi"
 
 extern "C"
 
