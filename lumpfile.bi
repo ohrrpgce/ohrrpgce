@@ -193,9 +193,9 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 enum OPENBits
 	' FOR RANDOM (fixed sized records) not supported. Use load/storerecord() instead.
 	FOR_BINARY =        &h0010000  ' default
-	FOR_INPUT =         &h0020000
-	FOR_OUTPUT =        &h0040000
-	FOR_APPEND =        &h0080000
+	FOR_INPUT =         &h0020000  ' Text files only!
+	FOR_OUTPUT =        &h0040000  ' Text files only!
+	FOR_APPEND =        &h0080000  ' Text files only! Start at the end; can't be read from
 	FOR_MASK =          &h00F0000
 	' For files, ACCESS ANY (FB's default) means try READ_WRITE, failing that use READ.
 	' Which sounds like a misfeature to me, so let's default to ACCESS_READ_WRITE instead.

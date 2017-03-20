@@ -2106,11 +2106,11 @@ FUNCTION fileisreadable(filename as string) as integer
   return ret
 END FUNCTION
 
+' Whether an existing file can be opened for writing, or else if a new file can be written.
 FUNCTION fileiswriteable(filename as string) as integer
   dim ret as bool = NO
   dim fh as integer
-  fh = freefile
-  if openfile(filename, for_binary + access_read_write, fh) = 0 then
+  if openfile(filename, for_binary + access_read_write, fh) = fberrOK then
     close #fh
     ret = YES
   end if
@@ -2124,7 +2124,7 @@ FUNCTION diriswriteable(d as string) as bool
   if isfile(d + SLASH + "archinym.lmp") then
    'Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
    'able to mark a folder read-only, instead it makes the contents read-only.
-    if fileiswriteable(d + SLASH + "archinym.lmp") = 0 then return NO
+    if fileiswriteable(d + SLASH + "archinym.lmp") = NO then return NO
   end if
   dim testfile as string = d & SLASH & "__testwrite_" & randint(100000) & ".tmp"
   if fileiswriteable(testfile) then

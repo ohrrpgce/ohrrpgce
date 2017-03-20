@@ -227,12 +227,10 @@ function Lump_unlumpfile(byref this as Lump, whereto as string) as integer
 	end if
 
 	dest = whereto + this.lumpname
-	if fileiswriteable(dest) = 0 then
+	if openfile(dest, for_binary + access_write, of) <> fberrOK then
 		debug "Could not unlump to " + dest
 		return NO
 	end if
-	of = freefile
-	open dest for binary access write as #of   'Truncates
 	lumpvtable(this.type).writetofile(this, of, 1)
 	close of
 	return YES

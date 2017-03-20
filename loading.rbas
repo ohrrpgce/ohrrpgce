@@ -1383,14 +1383,13 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 End SUB
 
 Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
-	dim as integer f = freefile, i
-	
-	if not fileiswriteable(filename) then exit sub
-	
-	safekill(filename)
-	
-	openfile(filename, for_binary, f)
-	
+	dim as integer f, i
+
+	if openfile(filename, for_output + access_write, f) <> fberrOK then  'truncates
+		showerror "Couldn't save " & filename
+		exit sub
+	end if
+
 	if withhead then
 		dim stupid as ubyte = 253
 		put #f, , stupid
@@ -1398,8 +1397,8 @@ Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool
 		writeshort f, -1, 0
 		writeshort f, -1, 2000
 	end if
-	
-	
+
+
 	for i = 0 to 199
 		WriteShort f, -1, array(i).source
 	next
@@ -1415,7 +1414,7 @@ Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool
 	for i = 0 to 199
 		WriteShort f, -1, array(i).tag2
 	next
-	
+
 	close #f
 end sub
 
@@ -1431,11 +1430,11 @@ sub CleanDoorLinks(array() as doorlink)
 end sub
 
 Sub DeSerDoors(filename as string, array() as door, byval record as integer)
-	if not fileisreadable(filename) then exit sub
+	dim as integer f, i
 	
-	dim as integer f = freefile, i
-	
-	openfile(filename, for_binary + access_read, f)
+	if openfile(filename, for_binary + access_read, f) <> fberrOK then
+		exit sub
+	end if
 	
 	seek #f, record * 600 + 1
 	
@@ -1453,13 +1452,15 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 End Sub
 
 Sub SerDoors(filename as string, array() as door, byval record as integer)
-	if not fileiswriteable(filename) then exit sub
-	dim as integer f = freefile, i
-	
-	openfile(filename, for_binary, f)
-	
+	dim as integer f, i
+
+	if openfile(filename, for_binary + access_read_write, f) <> fberrOK then
+		showerror "Couldn't save " & filename
+		exit sub
+	end if
+
 	seek #f, record * 600 + 1
-	
+
 	for i = 0 to 99
 		writeshort f, -1, array(i).x
 	next
@@ -1469,9 +1470,8 @@ Sub SerDoors(filename as string, array() as door, byval record as integer)
 	for i = 0 to 99
 		writeshort f, -1, array(i).bits(0)
 	next
-	
+
 	close #f
-	
 End Sub
 
 Sub CleanDoors(array() as door)
