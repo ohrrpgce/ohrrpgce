@@ -95,7 +95,7 @@ startTest(get_file_type)
 	' Read-only and special files/dirs
 	#ifdef __FB_UNIX__
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
-		if get_file_type("/etc/shadow") <> fileTypeFile then fail
+		if get_file_type("/etc/sudoers") <> fileTypeFile then fail
 		if get_file_type("/bin/") <> fileTypeDirectory then fail
 		if get_file_type("/dev/tty") <> fileTypeOther then fail
 	#elseif defined(__FB_WIN32__)
@@ -115,7 +115,7 @@ startTest(fileisreadable)
 	' Read-only and unreadable files
 	#ifdef __FB_UNIX__
 		if fileisreadable("/bin/sh") = NO then fail
-		if fileisreadable("/etc/shadow") then fail
+		if fileisreadable("/etc/sudoers") then fail
 	#elseif defined(__FB_WIN32__)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 		' Don't have an easy example of an unreadable file
@@ -123,7 +123,7 @@ startTest(fileisreadable)
 
 	' isfile is just an alias for fileisreadable, so should behave the same
 	#ifdef __FB_UNIX__
-		if isfile("/etc/shadow") then fail
+		if isfile("/etc/sudoers") then fail
 	#elseif defined(__FB_WIN32__)
 		' Don't have an easy example of an unreadable file
 	#endif
@@ -138,7 +138,7 @@ startTest(real_isfile)
 	' Read-only and unreadable files
 	#ifdef __FB_UNIX__
 		if fileisreadable("/bin/sh") = NO then fail
-		if fileisreadable("/etc/shadow") then fail
+		if fileisreadable("/etc/sudoers") then fail
 	#elseif defined(__FB_WIN32__)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 		' Don't have an easy example of an unreadable file
