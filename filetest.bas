@@ -59,6 +59,19 @@ startTest(readFile)
 	if line_in <> "hello" then fail
 endTest
 
+startTest(makeReadOnly)
+	' setwriteable only implemented on Windows
+	#ifdef __FB_WIN32__
+		' Cleanup previous run
+		setwriteable("_testreadonly.tmp", YES)
+		safekill("_testreadonly.tmp")
+
+		if openfile("_testreadonly.tmp", for_binary, fh) then fail
+		if close(fh) then fail
+		if setwriteable("_testreadonly.tmp", NO) = NO then fail
+	#endif
+endTest
+
 startTest(get_file_type)
 	if get_file_type("_testfile.tmp") <> fileTypeFile then fail
 	if get_file_type(curdir & SLASH & "_testfile.tmp") <> fileTypeFile then fail
@@ -71,25 +84,116 @@ startTest(get_file_type)
 	' Read-only and special files/dirs
 	#ifdef __FB_UNIX__
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
+		if get_file_type("/etc/shadow") <> fileTypeFile then fail
 		if get_file_type("/bin/") <> fileTypeDirectory then fail
 		if get_file_type("/dev/tty") <> fileTypeOther then fail
 	#elseif defined(__FB_WIN32__)
-		if get_file_type("C:\windows\notepad.exe") <> fileTypeFile then fail
-		if get_file_type("C:\windows\") <> fileTypeDirectory then fail
-		' Oops, this doesn't actually work, guess GetFileAttributes can't be used for devices
+		if get_file_type("_testreadonly.tmp") <> fileTypeFile then fail
+		if get_file_type("C:\windows\") <> fileTypeDirectory then fail   'Note: not actually readonly
+		' Oops, this doesn't actually work, I guess GetFileAttributes can't be used for devices
 		'if get_file_type("\\.\C:") <> fileTypeOther then fail  ' Drive device
 	#endif
 endTest
 
 startTest(fileisreadable)
+	if fileisreadable("") then fail
 	if fileisreadable("_testfile.tmp") = NO then fail
+	if fileisreadable("_nonexistent_file.tmp") then fail
+	if fileisreadable(CURDIR) then fail   ' OPENing a directory works on Linux
+	if fileisreadable("_nonexistent_dir.tmp" & SLASH) then fail
+	' Read-only and unreadable files
+	#ifdef __FB_UNIX__
+		if fileisreadable("/bin/sh") = NO then fail
+		if fileisreadable("/etc/shadow") then fail
+	#elseif defined(__FB_WIN32__)
+		if fileisreadable("_testreadonly.tmp") = NO then fail
+		' Don't have an easy example of an unreadable file
+	#endif
+
+	' isfile is just an alias for fileisreadable, so should behave the same
+	#ifdef __FB_UNIX__
+		if isfile("/etc/shadow") then fail
+	#elseif defined(__FB_WIN32__)
+		' Don't have an easy example of an unreadable file
+	#endif
+endTest
+
+startTest(real_isfile)
+	if real_isfile("") then fail
+	if real_isfile("_testfile.tmp") = NO then fail
+	if real_isfile("_nonexistent_file.tmp") then fail
+	if real_isfile(CURDIR) then fail   ' OPENing a directory works on Linux
+	if real_isfile("_nonexistent_dir.tmp" & SLASH) then fail
+	' Read-only and unreadable files
+	#ifdef __FB_UNIX__
+		if fileisreadable("/bin/sh") = NO then fail
+		if fileisreadable("/etc/shadow") then fail
+	#elseif defined(__FB_WIN32__)
+		if fileisreadable("_testreadonly.tmp") = NO then fail
+		' Don't have an easy example of an unreadable file
+	#endif
+endTest
+
+startTest(fileiswriteable)
+	if fileiswriteable("") then fail
+	if fileiswriteable("_testfile.tmp") = NO then fail
+	if fileiswriteable("_nonexistent_file.tmp") = NO then fail
+	if isfile("_nonexistent_file.tmp") then fail   ' Should not have created it
+	if fileiswriteable(CURDIR) then fail
+	' A read-only file
+	#ifdef __FB_UNIX__
+		if fileiswriteable("/bin/sh") then fail
+	#elseif defined(__FB_WIN32__)
+		if fileiswriteable("_testreadonly.tmp") then fail
+	#endif
 endTest
 
 'This exercises opening files for write and deleting them
 startTest(diriswriteable)
+	if diriswriteable("_testfile.tmp") then fail
 	if diriswriteable("/tmp/doesnt/exist/surely") then fail
 	' We already checked curdir is writable
 	if diriswriteable(".") = NO then fail
+	if diriswriteable("") = NO then fail
+	if diriswriteable("_nonexistent_file.tmp") then fail  ' Shouldn't work if not created yet
+	if diriswriteable("_nonexistent_file.tmp" SLASH) then fail
+	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail  ' Shouldn't have created
+	' A read-only directory
+	#ifdef __FB_UNIX__
+		if diriswriteable("/bin/") then fail
+	#elseif defined(__FB_WIN32__)
+		' On NTFS under Windows, the readonly attribute on a folder does nothing, have to use ACLs
+		' or a different filesystem to prevent new files!
+		'if diriswriteable("C:\windows") then fail
+	#endif
+endTest
+
+startTest(isdir)
+	if isdir("_testfile.tmp") then fail
+	if isdir("/tmp/doesnt/exist/surely") then fail
+	if isdir(".") = NO then fail
+	if isdir(absolute_path(CURDIR)) = NO then fail
+	if isdir("_nonexistent_file.tmp") then fail
+	if isdir("_nonexistent_file.tmp" SLASH) then fail
+	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail  ' Shouldn't have created
+	' Read-only directories
+	#ifdef __FB_UNIX__
+		if isdir("/bin/") = NO then fail
+		if isdir("/") = NO then fail
+	#elseif defined(__FB_WIN32__)
+		' Under Windows, these aren't readonly, don't have any examples of read-only directories!
+		if isdir("C:\windows") = NO then fail
+		if isdir("C:\") = NO then fail
+	#endif
+endTest
+
+startTest(makeWritable)
+	' setwriteable only implemented on Windows
+	#ifdef __FB_WIN32__
+		if setwriteable("_testreadonly.tmp", YES) = NO then fail
+		if fileisreadable("_testreadonly.tmp") = NO then fail
+		if safekill("_testreadonly.tmp") = NO then fail
+	#endif
 endTest
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
