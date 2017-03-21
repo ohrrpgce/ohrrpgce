@@ -1615,8 +1615,12 @@ define constant, begin
   4,NPCmovetype:leftturns
   5,NPCmovetype:randomturns
   6,NPCmovetype:chaseyou
+  6,NPCmovetype:chaseyoumeandering
   7,NPCmovetype:avoidyou
+  7,NPCmovetype:avoidyoumeandering
   8,NPCmovetype:walkinplace
+  9,NPCmovetype:chaseyoudirect
+  10,NPCmovetype:avoidyoudirect
 3,NPCstat:movespeed
 4,NPCstat:displaytext
 5,NPCstat:whenactivated

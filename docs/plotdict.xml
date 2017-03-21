@@ -2729,7 +2729,11 @@ end</example>
 							<li>NPCmovetype:leftturns</li>
 							<li>NPCmovetype:randomturns</li>
 							<li>NPCmovetype:chaseyou</li>
+							<li>NPCmovetype:chaseyoumeandering</li>
+							<li>NPCmovetype:chaseyoudirect</li>
 							<li>NPCmovetype:avoidyou</li>
+							<li>NPCmovetype:avoidyoumeandering</li>
+							<li>NPCmovetype:avoidyoudirect</li>
 							<li>NPCmovetype:walkinplace</li>
 						</ul>
 					</li>

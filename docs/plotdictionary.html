@@ -1231,6 +1231,9 @@
 		<a href="#about-getnpcslice">get npc slice (npc)</a><br>
 		
 	
+		<a href="#about-getnpcspeed">get NPC speed (who)</a><br>
+		
+	
 		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
 		
 	
@@ -5047,6 +5050,18 @@ while (npcref) do (
 		</p>
 </div>
 		<div class="command">
+<a name="about-getnpcspeed"></a>
+		<h4>get NPC speed (who)</h4>
+<p>
+			
+				Returns the walking speed of the specified NPC (either NPC reference or ID number) in pixels per tick.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-setnpcspeed"></a>
 		<h4>set NPC speed (who, speed)</h4>
 <p>
@@ -6442,9 +6457,22 @@ end</pre>
 <a name="about-setmusicvolume"></a>
 		<h4>set music volume (volume)</h4>
 <p>
-			Sets the volume at which music is played, <span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original volume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.<br clear="all">
+			
+				Sets the volume at which music is played,
+				<span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest.
+				This is the same as the Volume setting in the in-game menu.
+				If you want to manipulate the sound (e.g. fading out the music)
+				you should take note of the original volume that the player has set and return to this later.
+				The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					The actual resolution at which the volume is set is not necessarily 1/255th
+					of full volume but depends on the engine version.
+					For example, music_sdl only supports 128 different volume levels.
+					So if you set the volume and then read it back, it might change slightly.
+				<br clear="all">
 </div>
+			
 			
 			
 			
@@ -6454,7 +6482,11 @@ end</pre>
 <a name="about-getmusicvolume"></a>
 		<h4>get music volume</h4>
 <p>
-			Returns the volume at which music is played, on a scale of 0 to 255, 0 being silent, 255 loudest.
+			
+				Returns the volume at which music is played, on a scale of 0 to 255,
+				0 being silent, 255 loudest.
+				This is the same as the Volume setting in the in-game menu.
+			
 			
 			
 			
@@ -7502,7 +7534,11 @@ end</pre>
 							<li>NPCmovetype:leftturns</li>
 							<li>NPCmovetype:randomturns</li>
 							<li>NPCmovetype:chaseyou</li>
+							<li>NPCmovetype:chaseyoumeandering</li>
+							<li>NPCmovetype:chaseyoudirect</li>
 							<li>NPCmovetype:avoidyou</li>
+							<li>NPCmovetype:avoidyoumeandering</li>
+							<li>NPCmovetype:avoidyoudirect</li>
 							<li>NPCmovetype:walkinplace</li>
 						</ul>
 					</li>
@@ -14823,6 +14859,12 @@ write pass block(15,3,none)
 					arguments to find the x,y position of the collision point.
 				<br clear="all">
 </div>
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					This command hasn't been updated to support one-way walls yet.
+					Running into a one-way wall edge-on will give strange results.
+				<br clear="all">
+</div>
 			
 			
 			
@@ -14862,6 +14904,12 @@ write pass block(15,3,none)
 				is hit and is now resting against a wall on its north side.
 				<br>
 				You can check for walls without needing a slice using the alternative <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands.
+				<div style="background-color:#FEE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					This command hasn't been updated to support one-way walls yet.
+					Running into a one-way wall edge-on will give strange results.
+				<br clear="all">
+</div>
 			
 			
 			<pre># This script creates a rectangle slice which follows the mouse
@@ -14903,11 +14951,27 @@ end</pre>
 <a name="about-writezone"></a>
 		<h4>write zone (zone id, x, y, value)</h4>
 <p>
-			Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999, and <span class="param">value</span> is interpreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.<br clear="all">
-</div><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.<br clear="all">
+			
+				Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone.
+				<span class="param">zone id</span> is a valid ID number (see <a href="#about-readzone" class="ref">read zone</a>),
+				and <span class="param">value</span> is interpreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Only up to 15 zones may overlap at each tile.
+					If you try to place 16 zones at one tile, write zone will fail,
+					returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>.
+					If you choose to "Show all warnings" in General Game Settings in Custom,
+					you will also get a warning message.
+				<br clear="all">
 </div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Changes to zones are not stored in saved games,
+					and are erased when you leave the map unless "Tile Data State" is "saved
+					when leaving" (in the General Map Data settings).
+				<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
@@ -14918,7 +14982,17 @@ end</pre>
 <a name="about-readzone"></a>
 		<h4>read zone (zone id, x, y)</h4>
 <p>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999.
+			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the tile at (<span class="param">x,y</span>) is part of the specified zone.
+				The <span class="param">zone id</span> is an ID number from 1 to 9999 for zones defined in the map editor,
+				or can be the ID one of these special zones:
+				<ul>
+					<li>
+						<span class="code">zone:OneWayExit == 10000</span>
+						- Marks tiles with one-way walls.
+					</li>
+				</ul>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14946,7 +15020,9 @@ end</pre>
 <a name="about-getzonename"></a>
 		<h4>get zone name (string id, zone id)</h4>
 <p>
-			Places in the string with id number <span class="param">string id</span> the name of zone <span class="param">zone id</span> (from 1 to 9999).
+			
+				Places in the string with id number <span class="param">string id</span> the name of zone <span class="param">zone id</span>.
+			
 			
 			
 			
@@ -14978,7 +15054,10 @@ end</pre>
 <a name="about-zonenumberoftiles"></a>
 		<h4>zone number of tiles (zone id)</h4>
 <p>
-			Given a <span class="param">zone id</span> (from 1 to 9999), returns the number of tiles that the zone contains.
+			
+				Given a <span class="param">zone id</span> (from 1 to 9999 or a special id),
+				returns the number of tiles that the zone contains.
+			
 			
 			
 			
@@ -16868,7 +16947,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 777 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 778 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
