@@ -28,6 +28,10 @@
 Using Reload
 Using Reload.Ext
 
+'Local subs and functions
+DECLARE SUB drawants_for_tile(tile as XYPair, byval direction as integer)
+
+
 SUB defaultc
  DIM cconst(12) as integer = {scUp,scDown,scLeft,scRight,scSpace,scEnter,scCtrl,scEsc,scAlt,scEsc,scTab,scJ,scComma}
  DIM joyconst(3) as integer = {150,650,150,650}
@@ -952,14 +956,35 @@ SUB npc_debug_display ()
      printstr MID(temp, 1, 1), drawX, drawY + 12, dpage
      printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
-     IF npc_collision_check(npc(i), dirNorth) THEN drawants vpages(dpage), drawX       , drawY       , 20, 1
-     IF npc_collision_check(npc(i), dirEast)  THEN drawants vpages(dpage), drawX + 20-1, drawY       , 1, 20
-     IF npc_collision_check(npc(i), dirSouth) THEN drawants vpages(dpage), drawX       , drawY + 20-1, 20, 1
-     IF npc_collision_check(npc(i), dirWest)  THEN drawants vpages(dpage), drawX       , drawY       , 1, 20
+     FOR yoff as integer = -1 TO 1
+      FOR xoff as integer = -1 TO 1
+       DIM tile as XYPair
+       tile.x = npc(i).x / 20 + xoff
+       tile.y = npc(i).y / 20 + yoff
+       IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
+       IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
+       IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
+       IF npc_collision_check_at(npc(i), tile, dirWest)  THEN drawants_for_tile tile, dirWest
+      NEXT xoff
+     NEXT yoff
     END IF
    END IF
   END WITH
  NEXT
+END SUB
+
+SUB drawants_for_tile(tile as XYPair, byval direction as integer)
+ DIM as integer drawX, drawY
+ IF framewalkabout(tile.x * 20, tile.y * 20, drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
+  SELECT CASE direction
+   CASE dirNorth: drawants vpages(dpage), drawX       , drawY       , 20, 1
+   CASE dirEast:  drawants vpages(dpage), drawX + 20-1, drawY       , 1, 20
+   CASE dirSouth: drawants vpages(dpage), drawX       , drawY + 20-1, 20, 1
+   CASE dirWest:  drawants vpages(dpage), drawX       , drawY       , 1, 20
+   CASE ELSE
+    debuginfo "drawants_for_tile: " & tile.x & " " & tile.y & " invalid direction " & direction
+  END SELECT
+ END IF
 END SUB
 
 SUB limitcamera (byref x as integer, byref y as integer)

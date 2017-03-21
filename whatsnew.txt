@@ -63,6 +63,8 @@ WHAT IS NEW?
     * New NPC movement types: "Chase You (Direct)" and "Avoid You
       (Direct)" which contain no randomization. The other Chase/Avoid
       movement types are now captioned "(Meandering)" [James]
+    * New NP movement types: "Follow Walls (right)" and "Follow Walls
+      (Left)" [James]
     * When displaying NPC debug info with F6, NPC collision information
       is displayed [James]
 

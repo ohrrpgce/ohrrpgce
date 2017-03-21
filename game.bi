@@ -102,5 +102,6 @@ DECLARE FUNCTION top_menu_allows_controls() as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as integer) as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer) as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool=NO) as bool
+DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
 
 #ENDIF

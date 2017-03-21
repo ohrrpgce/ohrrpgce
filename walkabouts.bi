@@ -40,6 +40,8 @@ DECLARE FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval 
 DECLARE FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval distance as integer) as integer
 DECLARE SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
 
+DECLARE FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
+
 'Vehicles
 DECLARE FUNCTION vehicle_is_animating() as bool
 DECLARE SUB reset_vehicle(v as vehicleState)

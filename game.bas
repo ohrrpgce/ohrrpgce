@@ -57,6 +57,9 @@ DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
 DECLARE SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
 DECLARE SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
+DECLARE SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as integer)
+DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer, byval amount as integer = 1)
+DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
 
 '=================================== Globals ==================================
 
@@ -1578,6 +1581,50 @@ SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
  npcmove_walk_ahead(npci)
 END SUB
 
+SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as integer)
+ npci.dir = new_dir
+ npcmove_walk_ahead(npci)
+END SUB
+
+SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer, byval amount as integer = 1)
+ 'rota 1=clockwise -1=counterclockwise
+ npcmove_change_dir_and_walk_ahead(npci, walkrotate(npci.dir, rota, amount))
+END SUB
+
+SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval side as integer)
+ 'side is 1 for right-hand walls and -1 for left-hand walls
+ DIM d as integer = npci.dir
+ d = walkrotate(d, side)
+ IF NOT npc_collision_check(npci, npcdata, d) THEN
+  'No side-wall present, we might want to turn
+  DIM tile as XYPair
+  tile.x = npci.x / 20
+  tile.y = npci.y / 20
+  xypair_move tile, d
+  IF npc_collision_check_at(npci, tile, walkrotate(d, side)) THEN
+   'A wall is present in this direction for us to follow
+   npcmove_change_dir_and_walk_ahead(npci, d)
+   EXIT SUB
+  END IF
+  'Look to see if a narrow wall is present to do a u-turn around
+  d = walkrotate(d, side)
+  xypair_move tile, d
+  IF npc_collision_check_at(npci, tile, walkrotate(d, side)) THEN
+   'A wall is present for us to u-turn around, so start the first half of the u-turn
+   npcmove_change_dir_and_walk_ahead(npci, walkrotate(d, side * -1))
+   EXIT SUB
+  END IF
+ END IF
+ d = npci.dir
+ IF npc_collision_check(npci, npcdata, d) THEN
+  'Blocked ahead, turn.
+  npcmove_change_dir_and_walk_ahead(npci, walkrotate(d, side * -1))
+  EXIT SUB
+ END IF
+ 'No walls present that would motivate us to turn, so just keep going forward
+ npcmove_walk_ahead(npci)
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
@@ -1604,6 +1651,10 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
    npcmove_direct_chase(npci, npcdata)
   CASE 10:
    npcmove_direct_avoid(npci, npcdata)
+  CASE 11:
+   npcmove_follow_walls(npci, npcdata, 1)
+  CASE 12:
+   npcmove_follow_walls(npci, npcdata, -1)
  END SELECT
 
 END SUB
@@ -1662,6 +1713,29 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  END IF
 
  RETURN didgo
+END FUNCTION
+
+FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+ 'Returns an NPC collision check as if the NPC was at a different location that it really is
+ DIM savepos as XYPair
+ savepos.x = npci.x
+ savepos.y = npci.y
+ DIM savego as XYPair
+ savego.x = npci.xgo
+ savego.y = npci.ygo
+ 'Temporarily override NPC position and movement
+ npci.x = tile.x * 20
+ npci.y = tile.y * 20
+ npci.xgo = 0
+ npci.ygo = 0
+ DIM result as bool
+ result = npc_collision_check(npci, direction)
+ 'Restore real NPC position and movement
+ npci.x = savepos.x
+ npci.y = savepos.y
+ npci.xgo = savego.x
+ npci.ygo = savego.y
+ RETURN result
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer) as bool

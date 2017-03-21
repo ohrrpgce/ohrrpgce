@@ -1089,3 +1089,10 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
  END IF
  RETURN NO
 END FUNCTION
+
+FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
+ 'rota: 1 is a clockwise right turn.
+ '    -1 is a counterclockwise left turn.
+ RETURN loopvar(d, 0, 3, amount * rota)
+END FUNCTION
+
