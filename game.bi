@@ -99,4 +99,8 @@ DECLARE FUNCTION loop_active_party_slot(byval slot as integer, byval direction a
 
 DECLARE FUNCTION top_menu_allows_controls() as bool
 
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool=NO) as bool
+
 #ENDIF

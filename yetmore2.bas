@@ -952,6 +952,10 @@ SUB npc_debug_display ()
      printstr MID(temp, 1, 1), drawX, drawY + 12, dpage
      printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
+     IF npc_collision_check(npc(i), dirNorth) THEN drawants vpages(dpage), drawX       , drawY       , 20, 1
+     IF npc_collision_check(npc(i), dirEast)  THEN drawants vpages(dpage), drawX + 20-1, drawY       , 1, 20
+     IF npc_collision_check(npc(i), dirSouth) THEN drawants vpages(dpage), drawX       , drawY + 20-1, 20, 1
+     IF npc_collision_check(npc(i), dirWest)  THEN drawants vpages(dpage), drawX       , drawY       , 1, 20
     END IF
    END IF
   END WITH

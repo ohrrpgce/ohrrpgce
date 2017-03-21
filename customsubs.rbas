@@ -1203,16 +1203,18 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM menuopts as MenuOptions
  menuopts.fullscreen_scrollbar = YES
 
- REDIM ed.movetype(8)
+ REDIM ed.movetype(10)
  ed.movetype(0) = "Stand Still"
  ed.movetype(1) = "Wander"
  ed.movetype(2) = "Pace"
  ed.movetype(3) = "Right Turns"
  ed.movetype(4) = "Left Turns"
  ed.movetype(5) = "Random Turns"
- ed.movetype(6) = "Chase You"
- ed.movetype(7) = "Avoid You"
+ ed.movetype(6) = "Chase You (Meandering)"
+ ed.movetype(7) = "Avoid You (Meandering)"
  ed.movetype(8) = "Walk In Place"
+ ed.movetype(9) = "Chase You (Direct)"
+ ed.movetype(10) = "Avoid You (Direct)"
  REDIM ed.pushtype(7)
  ed.pushtype(0) = "Off"
  ed.pushtype(1) = "Full"

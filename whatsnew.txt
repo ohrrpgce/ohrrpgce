@@ -60,6 +60,11 @@ WHAT IS NEW?
     * Press H in the slice collection editor to toggle whether the
       children of a slice are shown in the menu (does not affect slice
       visibility) [James]
+    * New NPC movement types: "Chase You (Direct)" and "Avoid You
+      (Direct)" which contain no randomization. The other Chase/Avoid
+      movement types are now captioned "(Meandering)" [James]
+    * When displaying NPC debug info with F6, NPC collision information
+      is displayed [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

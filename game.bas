@@ -55,7 +55,8 @@ DECLARE SUB npcmove_walk_ahead(npci as NPCInst)
 DECLARE SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
 DECLARE SUB npcmove_meandering_avoid(npci as NPCInst)
 DECLARE SUB npcmove_walk_in_place(npci as NPCInst)
-DECLARE FUNCTION npc_collision_check (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool=NO) as bool
+DECLARE SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
+DECLARE SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
 
 '=================================== Globals ==================================
 
@@ -1491,6 +1492,92 @@ SUB npcmove_walk_in_place(npci as NPCInst)
  npci.frame = loopvar(npci.frame, 0, 3, 1)
 END SUB
 
+SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
+ DIM t1 as XYPair
+ t1.x = npci.x / 20
+ t1.y = npci.y / 20
+ DIM t2 as XYPair
+ t2.x = catx(0) / 20
+ t2.y = caty(0) / 20
+ DIM dist as XYPair
+ dist.x = t2.x - t1.x
+ dist.y = t2.y - t1.y
+ DIM axis as integer '0=horizontal, 1=vertical
+ IF dist.x = 0 THEN
+  'Lined up horizontally
+  axis = 1
+ ELSEIF dist.y = 0 THEN
+  'Lined up vertically
+  axis = 0
+ ELSE
+  'All diagonals
+  IF ABS(dist.x) < ABS(dist.y) THEN
+   'Horizontal first
+   'Prefers closing the shortest distance first
+   axis = 0
+  ELSEIF ABS(dist.y) < ABS(dist.x) THEN
+   'Vertical first
+   'Prefers closing the shortest distance first
+   axis = 1
+  ELSE
+   'Exactly diagonal, use manhattan distance modulo 1 as a non-random tiebreaker
+   axis = (ABS(dist.x) + ABS(dist.y)) MOD 1
+  END IF
+  'Check for walls
+  DIM obstructed(1) as bool
+  FOR i as integer = 0 TO 1
+   obstructed(i) = npc_collision_check(npci, npcdata, xypair_direction(dist, i, npci.dir))
+  NEXT i
+  'There is a wall in the preferred direction, go the other way
+  IF obstructed(axis) THEN axis = axis XOR 1
+ END IF
+ npci.dir = xypair_direction(dist, axis, npci.dir)
+ npcmove_walk_ahead(npci)
+END SUB
+
+SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
+ DIM t1 as XYPair
+ t1.x = npci.x / 20
+ t1.y = npci.y / 20
+ DIM t2 as XYPair
+ t2.x = catx(0) / 20
+ t2.y = caty(0) / 20
+ DIM dist as XYPair
+ dist.x = t2.x - t1.x
+ dist.y = t2.y - t1.y
+ DIM axis as integer '0=horizontal, 1=vertical
+ IF dist.x = 0 THEN
+  'Lined up horizontally
+  axis = 1
+ ELSEIF dist.y = 0 THEN
+  'Lined up vertically
+  axis = 0
+ ELSE
+  'All diagonals
+  IF ABS(dist.x) > ABS(dist.y) THEN
+   'Horizontal first
+   'Prefers fleeing in the longest distance first
+   axis = 0
+  ELSEIF ABS(dist.y) > ABS(dist.x) THEN
+   'Vertical first
+   'Prefers fleeing the longest distance first
+   axis = 1
+  ELSE
+   'Exactly diagonal, use manhattan distance modulo 1 as a non-random tiebreaker
+   axis = (ABS(dist.x) + ABS(dist.y)) MOD 1
+  END IF
+  'Check for walls
+  DIM obstructed(1) as bool
+  FOR i as integer = 0 TO 1
+   obstructed(i) = npc_collision_check(npci, npcdata, xypair_direction(dist * -1, i, npci.dir))
+  NEXT i
+  'There is a wall in the preferred direction, go the other way
+  IF obstructed(axis) THEN axis = axis XOR 1
+ END IF
+ npci.dir = xypair_direction(dist * -1, axis, npci.dir)
+ npcmove_walk_ahead(npci)
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
@@ -1513,6 +1600,10 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
    npcmove_meandering_avoid(npci)
   CASE 8:
    npcmove_walk_in_place(npci)
+  CASE 9:
+   npcmove_direct_chase(npci, npcdata)
+  CASE 10:
+   npcmove_direct_avoid(npci, npcdata)
  END SELECT
 
 END SUB
@@ -1573,8 +1664,25 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  RETURN didgo
 END FUNCTION
 
+FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer) as bool
+ RETURN npc_collision_check(npci, npcs(npci.id - 1), direction)
+END FUNCTION
+
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer) as bool
+ DIM go as XYPair
+ xypair_move go, direction, 20
+ 'NPC xgo and ygo are backwards, so we invert the value we got from xypair_move()
+ RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1)
+END FUNCTION
+
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
  'Returns true if the NPC would collide with a wall, zone, npc, hero, etc
+ 
+ 'This function works with local copies of xgo and ygo because it calls functions that modify
+ 'the xgo and ygo passed in, but we don't want to alter npci.xgo and npci.ygo if we are just
+ 'checking whether collision could possibly happen.
+
+ 'NPC xgo and ygo are backwards from what you might expect! xgo=-1 means the hero wants to 1 pixel right
  
  'This indicates whether the collision that happened was with a hero
  hero_collision_exception = NO
