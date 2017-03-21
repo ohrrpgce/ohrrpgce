@@ -98,6 +98,14 @@ OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
   RETURN TYPE(lhs.x \ rhs, lhs.y \ rhs)
 END OPERATOR
 
+OPERATOR / (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x / rhs.x, lhs.y / rhs.y)
+END OPERATOR
+
+OPERATOR / (lhs as XYPair, rhs as double) as XYPair
+  RETURN TYPE(lhs.x / rhs, lhs.y / rhs)
+END OPERATOR
+
 OPERATOR - (lhs as XYPair) as XYPair
   RETURN TYPE(-lhs.x, -lhs.y)
 END OPERATOR
@@ -155,6 +163,10 @@ startTest(XYPairOperators)
   IF A \ 3 <> XY(1,2) THEN fail
   IF A \ XY(2,-1) <> XY(2,-6) THEN fail
   IF A * 5 \ 5 <> A THEN fail
+  IF A / 3 <> XY(1,2) THEN fail
+  IF A / 4 <> XY(1,2) THEN fail
+  IF A / 1.5 <> XY(3,4) THEN fail
+  IF A / XY(-1,4) <> XY(-4,2) THEN fail
   IF STR(A) <> "4,6" THEN fail
 endTest
 
