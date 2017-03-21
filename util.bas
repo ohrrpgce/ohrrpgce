@@ -126,6 +126,17 @@ FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as 
  RETURN default
 END FUNCTION
 
+SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)
+ SELECT CASE direction
+  CASE 0: v.y -= amount
+  CASE 1: v.x += amount
+  CASE 2: v.y += amount
+  CASE 3: v.x -= amount
+  CASE ELSE
+   debug "xypair_move: invalid direction " & direction 
+ END SELECT
+END SUB
+
 #IFDEF __FB_MAIN__
 startTest(XYPairOperators)
   DIM as XYPair A = (1,2), B = (3,4)
