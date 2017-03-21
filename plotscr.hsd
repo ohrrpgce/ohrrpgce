@@ -1621,6 +1621,8 @@ define constant, begin
   8,NPCmovetype:walkinplace
   9,NPCmovetype:chaseyoudirect
   10,NPCmovetype:avoidyoudirect
+  11,NPCmovetype:followwallsright
+  12,NPCmovetype:followwallsleft
 3,NPCstat:movespeed
 4,NPCstat:displaytext
 5,NPCstat:whenactivated

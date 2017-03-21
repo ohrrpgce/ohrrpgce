@@ -2735,6 +2735,8 @@ end</example>
 							<li>NPCmovetype:avoidyoumeandering</li>
 							<li>NPCmovetype:avoidyoudirect</li>
 							<li>NPCmovetype:walkinplace</li>
+							<li>NPCmovetype:followwallsright</li>
+							<li>NPCmovetype:followwallsleft</li>
 						</ul>
 					</li>
 					<li>Alter NPC (who,NPCstat:move speed,speed)</li>
