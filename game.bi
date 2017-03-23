@@ -108,9 +108,9 @@ Enum WalkaboutCollisionType
   collideHero = 5
 End Enum
 
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as integer) as bool
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
-DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
 
 #ENDIF

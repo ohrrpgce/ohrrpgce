@@ -1715,7 +1715,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  RETURN didgo
 END FUNCTION
 
-FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
  'Returns an NPC collision check as if the NPC was at a different location that it really is
  DIM savepos as XYPair
  savepos.x = npci.x
@@ -1729,7 +1729,7 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  npci.xgo = 0
  npci.ygo = 0
  DIM result as bool
- result = npc_collision_check(npci, direction)
+ result = npc_collision_check(npci, direction, collision_type)
  'Restore real NPC position and movement
  npci.x = savepos.x
  npci.y = savepos.y
@@ -1738,15 +1738,15 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer) as bool
- RETURN npc_collision_check(npci, npcs(npci.id - 1), direction)
+FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
+ RETURN npc_collision_check(npci, npcs(npci.id - 1), direction, collision_type)
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
  DIM go as XYPair
  xypair_move go, direction, 20
  'NPC xgo and ygo are backwards, so we invert the value we got from xypair_move()
- RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1)
+ RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1, collision_type)
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
