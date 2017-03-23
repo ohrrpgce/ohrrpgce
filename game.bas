@@ -1668,11 +1668,11 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
   'This check only happens when the NPC is about to start moving to a new tile
-  DIM was_hero_collision as bool
-  IF npc_collision_check(npci, npcdata, npci.xgo, npci.ygo, was_hero_collision) THEN
+  DIM collision_type as WalkaboutCollisionType
+  IF npc_collision_check(npci, npcdata, npci.xgo, npci.ygo, collision_type) THEN
    npci.xgo = 0
    npci.ygo = 0
-   IF was_hero_collision THEN
+   IF collision_type = collideHero THEN
     '--a 0-3 tick delay before pacing enemies bounce off hero
     'James: "This delay feels like something I must have done by mistake in the late 90's"
     IF npci.frame = 3 THEN
@@ -1749,7 +1749,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval directio
  RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1)
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref hero_collision_exception as bool) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
  'Returns true if the NPC would collide with a wall, zone, npc, hero, etc
  
  'This function works with local copies of xgo and ygo because it calls functions that modify
@@ -1757,9 +1757,9 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  'checking whether collision could possibly happen.
 
  'NPC xgo and ygo are backwards from what you might expect! xgo=-1 means the hero wants to 1 pixel right
- 
- 'This indicates whether the collision that happened was with a hero
- hero_collision_exception = NO
+
+ 'Collision type optionally communicates which type of collision was detected first.
+ 'If two types of collision are possible for a single move, only the first will ever be indicated 
 
  DIM tilepos as XYPair 'Which tile is the center of the NPC on?
  tilepos.x = (npci.x + 10) \ 20
@@ -1771,18 +1771,21 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
   '--this only happens if NPC walls on
   IF wrappass(tilepos.x, tilepos.y, xgo, ygo, NO, npcdata.ignore_passmap) THEN
+   collision_type = collideWall
    RETURN YES
   END IF
   '--Check for movement zones (treat the edges as walls)
   DIM zone as integer = npcdata.defaultzone
   IF zone = 0 THEN zone = gmap(32)  'fallback to default
   IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) = 0 THEN
+   collision_type = collideMoveZone
    RETURN YES
   END IF
   '--Check for avoidance zones (treat as walls)
   zone = npcdata.defaultwallzone
   IF zone = 0 THEN zone = gmap(33)  'fallback to default
   IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) THEN
+   collision_type = collideAvoidZone
    RETURN YES
   END IF
  END IF
@@ -1792,6 +1795,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id > 0 AND @npci <> @npc(i) AND npc(i).not_obstruction = 0 THEN
     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
+     collision_type = collideNPC
      RETURN YES
     END IF
    END IF
@@ -1799,13 +1803,14 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   '---Check for hero-NPC collision
   IF npcdata.activation <> 2 THEN  'Not step-on activated
    IF wrapcollision (npci.x, npci.y, xgo, ygo, catx(0), caty(0), herow(0).xgo, herow(0).ygo) THEN
-    hero_collision_exception = YES
+    collision_type = collideHero
     RETURN YES
    END IF
   END IF
  END IF
  
  'Did not collide with anything
+ collision_type = collideNone
  RETURN NO
  
 END FUNCTION
