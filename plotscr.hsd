@@ -1623,6 +1623,8 @@ define constant, begin
   10,NPCmovetype:avoidyoudirect
   11,NPCmovetype:followwallsright
   12,NPCmovetype:followwallsleft
+  13,NPCmovetype:followwallsrightstopsforothers
+  14,NPCmovetype:followwallsleftstopsforothers
 3,NPCstat:movespeed
 4,NPCstat:displaytext
 5,NPCstat:whenactivated

@@ -1625,6 +1625,40 @@ SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval side as inte
  npcmove_walk_ahead(npci)
 END SUB
 
+SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, byval side as integer)
+ 'side is 1 for right-hand walls and -1 for left-hand walls
+ DIM d as integer = npci.dir
+ d = walkrotate(d, side)
+ IF NOT npc_collision_check_walls_and_zones(npci, d) THEN
+  'No side-wall present, we might want to turn
+  DIM tile as XYPair
+  tile.x = npci.x / 20
+  tile.y = npci.y / 20
+  xypair_move tile, d
+  IF npc_collision_check_at_walls_and_zones(npci, tile, walkrotate(d, side)) THEN
+   'A wall is present in this direction for us to follow
+   npcmove_change_dir_and_walk_ahead(npci, d)
+   EXIT SUB
+  END IF
+  'Look to see if a narrow wall is present to do a u-turn around
+  d = walkrotate(d, side)
+  xypair_move tile, d
+  IF npc_collision_check_at_walls_and_zones(npci, tile, walkrotate(d, side)) THEN
+   'A wall is present for us to u-turn around, so start the first half of the u-turn
+   npcmove_change_dir_and_walk_ahead(npci, walkrotate(d, side * -1))
+   EXIT SUB
+  END IF
+ END IF
+ d = npci.dir
+ IF npc_collision_check_walls_and_zones(npci, d) THEN
+  'Blocked ahead, turn.
+  npcmove_change_dir_and_walk_ahead(npci, walkrotate(d, side * -1))
+  EXIT SUB
+ END IF
+ 'No walls present that would motivate us to turn, so just keep going forward
+ npcmove_walk_ahead(npci)
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
@@ -1655,6 +1689,10 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
    npcmove_follow_walls(npci, npcdata, 1)
   CASE 12:
    npcmove_follow_walls(npci, npcdata, -1)
+  CASE 13:
+   npcmove_follow_walls_stop_for_others(npci, npcdata, 1)
+  CASE 14:
+   npcmove_follow_walls_stop_for_others(npci, npcdata, -1)
  END SELECT
 
 END SUB
@@ -1713,6 +1751,20 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  END IF
 
  RETURN didgo
+END FUNCTION
+
+FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
+ DIM collide_type as WalkaboutCollisionType
+ DIM result as bool = npc_collision_check(npci, direction, collide_type)
+ IF collide_type = collideNPC ORELSE collide_type = collideHero THEN RETURN NO
+ RETURN result
+END FUNCTION
+
+FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+ DIM collide_type as WalkaboutCollisionType
+ DIM result as bool = npc_collision_check_at(npci, tile, direction, collide_type)
+ IF collide_type = collideNPC ORELSE collide_type = collideHero THEN RETURN NO
+ RETURN result
 END FUNCTION
 
 FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool

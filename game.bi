@@ -112,5 +112,7 @@ DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction 
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
 DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
+DECLARE FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
 
 #ENDIF
