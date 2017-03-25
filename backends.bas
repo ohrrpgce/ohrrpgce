@@ -335,7 +335,7 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	TRYLOAD (gfx_ouya_receipts_result)
 
 	'New rendering API (FIXME: complete this)
-	TRYLOAD (gfx_present)
+	MUSTLOAD (gfx_present)
 	'End of new API
 
 	MUSTLOAD(io_init)
@@ -442,7 +442,6 @@ private sub default_gfx_render_procs()
 	gfx_renderTriangleColor = @gfx_renderTriangleColor_SW
 	gfx_renderTriangleTexture = @gfx_renderTriangleTexture_SW
 	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
-	gfx_present = @gfx_present_SW
 end sub
 
 private sub prefer_backend(b as GfxBackendStuff ptr)

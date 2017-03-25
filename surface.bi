@@ -4,9 +4,12 @@
 #IFNDEF SURFACE_BI
 #DEFINE SURFACE_BI
 
-#INCLUDE "gfx.bi"
-
-'Surfaces
+Union RGBcolor
+	as uint32 col
+	type
+		as ubyte b, g, r, a
+	end type
+End Union
 
 Enum SurfaceFormat
 	SF_8bit = 0
@@ -103,7 +106,6 @@ extern "C"
 	extern gfx_renderTriangleTexture as function ( byval pTriangle as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	extern gfx_renderTriangleTextureColor as function ( byval pTriangle as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
-	extern gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
 
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
 	declare function gfx_surfaceFromFrame_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
@@ -127,8 +129,6 @@ extern "C"
 	declare function gfx_renderTriangleColor_SW ( byval pTriangle as VertexPC ptr, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	declare function gfx_renderTriangleTexture_SW ( byval pTriangle as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	declare function gfx_renderTriangleTextureColor_SW ( byval pTriangle as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-
-	declare function gfx_present_SW ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
 
 end extern
 

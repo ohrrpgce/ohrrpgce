@@ -116,6 +116,11 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 
 end sub
 
+'NOT IMPLEMENTED
+function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
+	return 1
+end function
+
 sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 	'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
 	for i as integer = 0 to 255
@@ -267,6 +272,7 @@ function gfx_alleg_setprocptrs() as integer
 	gfx_close = @gfx_alleg_close
 	gfx_getversion = @gfx_alleg_getversion
 	gfx_showpage = @gfx_alleg_showpage
+	gfx_present = @gfx_alleg_present
 	gfx_setpal = @gfx_alleg_setpal
 	gfx_screenshot = @gfx_alleg_screenshot
 	gfx_setwindowed = @gfx_alleg_setwindowed

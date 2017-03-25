@@ -14,6 +14,7 @@
 
 #include "const.bi"
 #include "backends.bi"
+#include "surface.bi"
 #include "util.bi"  'For XYPair
 
 ' Forward declarations
@@ -21,13 +22,6 @@ type FrameFwd as Frame
 type Palette16Fwd as Palette16
 
 extern "C"
-
-union RGBcolor
-	as uint32 col
-	type
-		as ubyte b, g, r, a
-	end type
-end union
 
 type WindowState
 	structsize as integer  'number of members in the struct, set to WINDOWSTATE_SZ
@@ -76,7 +70,12 @@ extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as E
 'Not used by compiled-in backends. Dynamically linked backends must support version 1.
 extern Gfx_getversion as function () as integer
 
+' Tell backend to display an 8-bit screen buffer
 extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
+
+' Tell backend to display a 32-bit screen buffer
+' Returns 0 on success
+extern Gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
 
 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!
 extern Gfx_setpal as sub (byval pal as RGBcolor ptr)

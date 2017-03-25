@@ -327,8 +327,3 @@ int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, 
 	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
 	return 0;
 }
-
-int gfx_present_SW( Surface* pSurfaceIn, Palette* pPalette )
-{//done
-	return 0;
-}

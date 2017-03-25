@@ -67,8 +67,6 @@ extern "C"
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut );
 	int gfx_paletteDestroy_SW( Palette* pPaletteIn );
 	int gfx_paletteUpdate_SW( Palette* pPaletteIn );
-
-	int gfx_present_SW( Surface* pSurfaceIn, Palette* pPalette );
 #ifdef __cplusplus
 };
 #endif
