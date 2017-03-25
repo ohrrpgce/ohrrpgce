@@ -1,10 +1,6 @@
-//gfx_newRenderPlan.h
-//exposes the proposed functions to the engine
+#ifndef SURFACE_H
+#define SURFACE_H
 
-#ifndef GFX_NEWRENDERPLAN_H
-#define GFX_NEWRENDERPLAN_H
-
-//#include "FPInt.h"
 #include <stdint.h>
 #include "allmodex.h"
 

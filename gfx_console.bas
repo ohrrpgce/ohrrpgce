@@ -7,7 +7,7 @@
 
 
 #include "config.bi"
-#include "gfx_newRenderPlan.bi"
+#include "surface.bi"
 #include "gfx.bi"
 #include "common.bi"
 #include "allmodex.bi"

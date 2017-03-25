@@ -9,7 +9,7 @@
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
-#include "gfx_newRenderPlan.bi"
+#include "surface.bi"
 #include "music.bi"
 #include "reload.bi"
 #include "util.bi"

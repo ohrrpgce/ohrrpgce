@@ -8,7 +8,7 @@
 #include "gfx.bi"
 #include "music.bi"
 #include "gfx.new.bi"
-#include "gfx_newRenderPlan.bi"
+#include "surface.bi"
 
 extern "C"
 

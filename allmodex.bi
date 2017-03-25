@@ -8,7 +8,7 @@
 #include "reload.bi"
 #include "bitmap.bi"
 #include "gfx.bi"
-#include "gfx_newRenderPlan.bi"
+#include "surface.bi"
 #include "lib/gif.bi"
 #include "music.bi"
 

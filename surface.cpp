@@ -2,8 +2,8 @@
 #include <string.h>
 #include <list>
 
-#include "gfx_newRenderPlan.h"
-#include "rasterizer.h"
+#include "surface.hpp"
+#include "rasterizer.hpp"
 
 QuadRasterizer g_rasterizer;
 std::list< Surface* > g_surfaces;

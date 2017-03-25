@@ -1,9 +1,7 @@
-'gfx_newRenderPlan.bi
-'7/3/11
-'presents the structures, software implementation, and function pointers of the new render plan
+'Surface struct, and the software implementation and function pointers of the new render plan
 
-#IFNDEF GFX_NEWRENDERPLAN_BI
-#DEFINE GFX_NEWRENDERPLAN_BI
+#IFNDEF SURFACE_BI
+#DEFINE SURFACE_BI
 
 #INCLUDE "gfx.bi"
 

@@ -5,9 +5,8 @@
 #ifndef RASTERIZER_H
 #define RASTERIZER_H
 
-#include "fpInt.h"
-//#include "surface.h"
-#include "gfx_newRenderPlan.h"
+#include "fpInt.hpp"
+#include "surface.hpp"
 #include <queue>
 
 //samples a surface; might want to expand this functionality later,

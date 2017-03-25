@@ -13,7 +13,7 @@
 
 #include "crt.bi"
 #include "gfx.bi"
-#include "gfx_newRenderPlan.bi"
+#include "surface.bi"
 #include "common.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
