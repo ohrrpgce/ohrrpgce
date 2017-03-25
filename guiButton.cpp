@@ -1,4 +1,4 @@
-#include "guiButton.h"
+#include "guiButton.hpp"
 
 CGuiButton::CGuiButton()
 : CGuiObject()

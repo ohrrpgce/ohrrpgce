@@ -2,8 +2,8 @@
  * Copyright 2011. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
  */
 
-//fb_stub.h (included by filelayer.h) MUST be included first, to ensure fb_off_t is 64 bit
-#include "filelayer.h"
+//fb_stub.h (included by filelayer.hpp) MUST be included first, to ensure fb_off_t is 64 bit
+#include "filelayer.hpp"
 #include <cstdio>
 #include <cassert>
 #include <map>

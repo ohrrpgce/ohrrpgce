@@ -1,4 +1,4 @@
-#include "mouse.h"
+#include "mouse.hpp"
 
 using namespace gfx;
 

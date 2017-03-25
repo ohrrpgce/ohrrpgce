@@ -7,7 +7,7 @@
 #include <windows.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
-#include "smartptr.h"
+#include "smartptr.hpp"
 #include <list>
 
 namespace gfx

@@ -1,5 +1,5 @@
-#include "keyboard.h"
-#include "..\\scancodes.h"
+#include "keyboard.hpp"
+#include "../scancodes.h"
 using namespace gfx;
 
 #define VK_NUMPAD_ENTER 0xCA //reserved in windows, but recommended on a site

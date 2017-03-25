@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "guiBase.h"
-#include "guiText.h"
+#include "guiBase.hpp"
+#include "guiText.hpp"
 
 enum GUI_BUTTON_STYLE
 {

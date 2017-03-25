@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "guiBase.h"
-#include "font2.h"
+#include "guiBase.hpp"
+#include "font2.h"  // doesn't exist
 
 enum GUI_TEXT_STYLE
 {

@@ -5,8 +5,8 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "../gfx_common/gfx.h"
-#include "keyboard.h"
+#include "../gfx_common/gfx.hpp"
+#include "keyboard.hpp"
 #include "../scancodes.h"
 
 BYTE g_frameTest[320 * 200];

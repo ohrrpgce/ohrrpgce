@@ -1,5 +1,5 @@
 #include "gui.h"
-#include "guiBase.h"
+#include "guiBase.hpp"
 
 GuiManager g_guiManager;
 GuiMouse g_guiMouse;

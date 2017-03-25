@@ -1,5 +1,5 @@
-#include "window.h"
-#include "debugmsg.h"
+#include "window.hpp"
+#include "debugmsg.hpp"
 using namespace gfx;
 
 LRESULT CALLBACK gfx::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

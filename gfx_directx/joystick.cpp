@@ -1,7 +1,7 @@
 #include <string>
-#include "joystick.h"
-#include "debugmsg.h"
-#include "ohrstring.h"
+#include "joystick.hpp"
+#include "debugmsg.hpp"
+#include "ohrstring.hpp"
 
 #pragma comment (lib, "dxguid.lib")
 using namespace gfx;

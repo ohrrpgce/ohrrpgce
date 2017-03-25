@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <string>
 #include <cstdlib>
-#include "ohrstring.h"
+#include "ohrstring.hpp"
 
 using namespace std;
 

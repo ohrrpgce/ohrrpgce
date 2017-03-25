@@ -1,4 +1,4 @@
-#include "gfx_osmouse.h"
+#include "gfx_osmouse.hpp"
 using namespace gfx;
 
 OSMouse::OSMouse() : m_bInitialized(false), m_bOHRMouseActive(false), m_bFullscreen(false), m_bHidden(false), m_nPushCount(0)

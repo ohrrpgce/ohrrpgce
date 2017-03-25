@@ -1,4 +1,4 @@
-#include "guiBase.h"
+#include "guiBase.hpp"
 
 GuiManager::GuiManager()
 : m_objectIDGeneratorCounter(1), m_focusedObject(GUIC_INVALID), m_movingObject(GUIC_INVALID)

@@ -7,14 +7,14 @@
 #include <windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
-#include "smartptr.h"
+#include "smartptr.hpp"
 #include <string>
 #include <tchar.h>
-#include "Tstring.h"
+#include "Tstring.hpp"
 
-#include "window.h"
-#include "palette.h"
-#include "midsurface.h"
+#include "window.hpp"
+#include "palette.hpp"
+#include "midsurface.hpp"
 #include "DllFunctionInterface.h"
 
 

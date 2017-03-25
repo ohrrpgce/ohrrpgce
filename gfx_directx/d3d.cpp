@@ -1,6 +1,6 @@
 #define DFI_UNIQUE
-#include "debugmsg.h"
-#include "d3d.h"
+#include "debugmsg.hpp"
+#include "d3d.hpp"
 using namespace gfx;
 
 D3D::D3D() 

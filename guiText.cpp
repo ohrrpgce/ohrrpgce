@@ -1,5 +1,5 @@
 #include <string.h>
-#include "guiText.h"
+#include "guiText.hpp"
 
 enum TextCodes
 {

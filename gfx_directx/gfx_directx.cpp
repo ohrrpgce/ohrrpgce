@@ -1,12 +1,12 @@
 #define ISOLATION_AWARE_ENABLED 1
 
-#include "../gfx_common/gfx.h"
-#include "debugmsg.h"
-#include "window.h"
-#include "d3d.h"
-#include "keyboard.h"
-#include "mouse.h"
-#include "joystick.h"
+#include "../gfx_common/gfx.hpp"
+#include "debugmsg.hpp"
+#include "window.hpp"
+#include "d3d.hpp"
+#include "keyboard.hpp"
+#include "mouse.hpp"
+#include "joystick.hpp"
 #include "version.h"
 #include <dbt.h>
 

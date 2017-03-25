@@ -1,16 +1,17 @@
 //BackendDebugger.h
 //by Jay Tennant 12/12/10
 //defines backend debugger as an accessor
+// NOTE: can no longer be compiled, gfx_directx_cls_* headers don't exist
 
 #pragma once
 
 #include <windows.h>
-#include "gfx_directx_cls_window.h"
-#include "gfx_directx_cls_d3d.h"
-#include "gfx_directx_cls_keyboard.h"
-#include "gfx_directx_cls_mouse.h"
-#include "gfx_directx_cls_joystick.h"
-#include "defptr.h"
+#include "gfx_directx_cls_window.hpp"
+#include "gfx_directx_cls_d3d.hpp"
+#include "gfx_directx_cls_keyboard.hpp"
+#include "gfx_directx_cls_mouse.hpp"
+#include "gfx_directx_cls_joystick.hpp"
+#include "DefPtr.hpp"
 
 class IAppHook
 {
