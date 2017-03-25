@@ -9,15 +9,15 @@
 extern "C" {
 #endif
 
-struct XYPair {
+typedef struct {
 	int w;
 	int h;
-};
+} XYPair;
 
-struct Palette16 {
+typedef struct {
 	unsigned char col[16];  //indicies into the master palette
 	int refcount; //private
-};
+} Palette16;
 
 //typedef struct {
 //	unsigned char r, g, b, a;
@@ -27,16 +27,16 @@ typedef	uint32_t RGBcolor;
 struct SpriteCacheEntry;
 struct SpriteSet;
 
-struct Frame {
+typedef struct _Frame {
 	int w;
 	int h;
-	struct XYPair offset; //Draw offset from the position passed to frame_draw. Used by frame_dissolve
+	XYPair offset; //Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	int pitch;     //pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	unsigned char *image;
 	unsigned char *mask;
 	int refcount;  //see sprite_unload in particular for documentation
 	int arraylen;  //how many frames were contiguously allocated in this frame array
-	struct Frame *base;   //the Frame which actually owns this memory
+	struct _Frame *base;   //the Frame which actually owns this memory
 	struct SpriteCacheEntry *cacheentry;
 	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool!
 	int arrayelem:1;  //not the first frame in a frame array
@@ -45,10 +45,10 @@ struct Frame {
 
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
-};
+} Frame;
 
-struct Frame* frame_reference(struct Frame *p);
-void frame_unload(struct Frame** p);
+Frame* frame_reference(Frame *p);
+void frame_unload(Frame** p);
 
 #ifdef __cplusplus
 }
