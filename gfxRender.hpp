@@ -75,21 +75,21 @@ struct Color
 	Color() : dw(0) {}
 	Color(uint32_t col) : dw(col) {}
 	Color(RGBcolor col) : dw(col.col) {}
-	Color(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : dw(0) {a=A;r=R;g=G;b=B;}
+	Color(uint8_t R, uint8_t G, uint8_t B, uint8_t A) : dw(0) {r=R;g=G;b=B;a=A;}
 	// Color(uint8_t palette) : dw(0) {b=palette;}
 	void scale(Color argbModifier)
 	{
-		a = a * argbModifier.a / 255;
 		r = r * argbModifier.r / 255;
 		g = g * argbModifier.g / 255;
 		b = b * argbModifier.b / 255;
+		a = a * argbModifier.a / 255;
 	}
 	void scale(Color c2, uint8_t weight)
 	{
-		a = (a*weight + c2.a*(255-weight)) / 255;
 		r = (r*weight + c2.r*(255-weight)) / 255;
 		g = (g*weight + c2.g*(255-weight)) / 255;
 		b = (b*weight + c2.b*(255-weight)) / 255;
+		a = (a*weight + c2.a*(255-weight)) / 255;
 	}
 };
 
