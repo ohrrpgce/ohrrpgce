@@ -1,4 +1,5 @@
 'Surface struct, and the software implementation and function pointers of the new render plan
+'Note: this header corresponds to surface.h plus gfxRender.h
 
 #IFNDEF SURFACE_BI
 #DEFINE SURFACE_BI

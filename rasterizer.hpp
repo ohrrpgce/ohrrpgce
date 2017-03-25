@@ -1,12 +1,14 @@
 //rasterizer.h
 //by Jay Tennant 5/30/11
 //exposes method of triangle rasterization on software surfaces
+//I think all this stuff is internal to rasterizer.cpp, and shouldn't be exposed. --tmc
 
 #ifndef RASTERIZER_H
 #define RASTERIZER_H
 
 #include "fpInt.hpp"
-#include "surface.hpp"
+#include "surface.h"
+#include "gfxRender.hpp"
 #include <queue>
 
 //samples a surface; might want to expand this functionality later,

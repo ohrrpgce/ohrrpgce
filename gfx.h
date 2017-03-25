@@ -1,13 +1,16 @@
 // Definition of the OHRRPGCE graphics backend API (both old and new).
 // Any C/C++ program exporting or importing the API can include this file.
 
-#pragma once
+#ifndef GFX_H
+#define GFX_H
+
+#include "stdint.h"
 
 #include "gfx_common/DllFunctionInterface.h"
 #include "gfx_msg.h"
 #include "errorlevel.h"
 
-#include "stdint.h"
+#include "surface.h"
 
 struct WindowState
 {
@@ -33,44 +36,6 @@ enum CursorVisibility {
 	CV_Hidden = 0,   // (cursorHidden)  Cursor always hidden
 	CV_Visible = -1, // (cursorVisible) Cursor always shown, except on touch screens
 	CV_Default = -2  // (cursorDefault) Cursor shown when windowed, hidden in fullscreen
-};
-
-//surfaces
-enum SurfaceFormat
-{
-	SF_8bit = 0,
-	SF_32bit = 1,
-};
-enum SurfaceUsage
-{
-	SU_Source = 0,
-	SU_RenderTarget = 1,
-	//SU_Backbuffer = 2,
-};
-struct Surface
-{
-	void* handle;
-	uint32_t width;
-	uint32_t height;
-	enum SurfaceFormat format;
-	enum SurfaceUsage usage;
-	union
-	{
-		void* pRawData;
-		uint32_t* pColorData;
-		uint8_t* pPaletteData;
-	};
-};
-struct SurfaceRect
-{
-	int32_t left, top, right, bottom;
-};
-
-//palettes
-struct Palette
-{
-	void* handle;
-	uint32_t p[256];
 };
 
 
@@ -161,3 +126,4 @@ DFI_DECLARE_CDECL( int, gfx_GetJoystickCount ); //returns the number of joystick
 
 DFI_CLASS_END( GfxBackendDll );
 
+#endif

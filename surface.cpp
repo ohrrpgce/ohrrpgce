@@ -1,8 +1,11 @@
+/* Contains implementation of surface.h and gfxRender.hpp routines */
+
 #include <stdlib.h>
 #include <string.h>
 #include <list>
 
-#include "surface.hpp"
+#include "surface.h"
+#include "gfxRender.hpp"
 #include "rasterizer.hpp"
 
 QuadRasterizer g_rasterizer;
