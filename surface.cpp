@@ -10,7 +10,7 @@
 
 QuadRasterizer g_rasterizer;
 std::list< Surface* > g_surfaces;
-std::list< Palette* > g_palettes;
+std::list< RGBPalette* > g_palettes;
 
 int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
@@ -109,13 +109,13 @@ int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfac
 	return 0;
 }
 
-int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//needs work
 	return -1;
 }
 
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( !pSurfaceSrc || !pSurfaceDest )
 		return -1;
@@ -220,20 +220,20 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pP
 	return 0;
 }
 
-int gfx_paletteCreate_SW( Palette** ppPaletteOut )
+int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut )
 {//done
 	if( !ppPaletteOut )
 		return -1;
-	*ppPaletteOut = new Palette();
+	*ppPaletteOut = new RGBPalette();
 	g_palettes.push_back(*ppPaletteOut);
 	return 0;
 }
 
 // Return a Surface which is a view onto a Frame. The Surface and Frame should both
 // be destroy as normal.
-int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut )
+int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut )
 {
-	Palette *ret = new Palette;
+	RGBPalette *ret = new RGBPalette;
 	memcpy(ret->col, pColorsIn, 256 * 4);
 	for(int i = 0; i < 256; i++)
 		ret->col[i].a = 255;   // Set to opaque (alpha in the input is unused)
@@ -241,7 +241,7 @@ int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut )
 	return 0;
 }
 
-int gfx_paletteDestroy_SW( Palette* pPaletteIn )
+int gfx_paletteDestroy_SW( RGBPalette* pPaletteIn )
 {//done
 	if( pPaletteIn )
 	{
@@ -251,7 +251,7 @@ int gfx_paletteDestroy_SW( Palette* pPaletteIn )
 	return 0;
 }
 
-int gfx_paletteUpdate_SW( Palette* pPaletteIn )
+int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn )
 {//done
 	return 0;
 }
@@ -268,7 +268,7 @@ int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect*
 	return 0;
 }
 
-int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -280,7 +280,7 @@ int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, Palette* pPale
 	return 0;
 }
 
-int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -304,7 +304,7 @@ int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, Surf
 	return 0;
 }
 
-int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -316,7 +316,7 @@ int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, Palett
 	return 0;
 }
 
-int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, RGBPalette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination

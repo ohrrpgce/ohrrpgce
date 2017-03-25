@@ -921,7 +921,7 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 		draw_allmodex_overlays32 to_show
 	end if
 
-	dim surface_pal as BackendPalette ptr
+	dim surface_pal as RGBPalette ptr
 	if to_show->format = SF_8bit then
 		' Need to provide a palette
 		gfx_paletteFromRGB(@intpal(0), @surface_pal)
@@ -7327,7 +7327,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos,
 
 	dim src_surface as Surface ptr
 	if gfx_surfaceFromFrame(src, @src_surface) then debug "gfx_surfaceFromFrame failed" : return
-	dim master_pal as BackendPalette ptr
+	dim master_pal as RGBPalette ptr
 	if gfx_paletteFromRGB(@masterpal(0), @master_pal) then debug "gfx_paletteFromRGB failed" : return
 	dim destRect as SurfaceRect = (x, y, dest->width - 1, dest->height - 1)
 

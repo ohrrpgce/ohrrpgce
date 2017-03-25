@@ -551,7 +551,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
   RETURN 0
 END FUNCTION
 
-FUNCTION gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
+FUNCTION gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
   WITH *surfaceIn
     IF .format = SF_8bit AND pal <> NULL THEN
       FOR i as integer = 0 TO 255

@@ -222,7 +222,7 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pS
 	}
 }
 
-void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const Palette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -298,7 +298,7 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 	}
 }
 
-void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &range, const Surface *pTexture, const Palette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
 {//needs revision
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -365,7 +365,7 @@ void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &ran
 	}
 }
 
-void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const Palette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -433,7 +433,7 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 	}
 }
 
-void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const Palette *pPalette, Surface *pSurfaceDest)
+void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest)
 {//done
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -540,7 +540,7 @@ void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, Color argbModifier, S
 	}
 }
 
-void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTexture, const Palette *pPalette, int bUseColorKey0, SurfaceRect *pRectDest, Surface *pSurfaceDest)
+void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTexture, const RGBPalette *pPalette, int bUseColorKey0, SurfaceRect *pRectDest, Surface *pSurfaceDest)
 {//done
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL)
 		return;
@@ -586,7 +586,7 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 	}
 }
 
-void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface *pTexture, const Palette *pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect *pRectDest, Surface *pSurfaceDest)
+void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface *pTexture, const RGBPalette *pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect *pRectDest, Surface *pSurfaceDest)
 {//done
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL)
 		return;
@@ -669,7 +669,7 @@ void QuadRasterizer::drawQuadColor(const VertexPC *pQuad, Color argbModifier, Su
 		drawTriangleColor(&triangles[i*3], argbModifier, pRectDest, pSurfaceDest);
 }
 
-void QuadRasterizer::drawQuadTexture(const VertexPT *pQuad, const Surface *pTexture, const Palette *pPalette, int bUseColorKey0, SurfaceRect *pRectDest, Surface *pSurfaceDest)
+void QuadRasterizer::drawQuadTexture(const VertexPT *pQuad, const Surface *pTexture, const RGBPalette *pPalette, int bUseColorKey0, SurfaceRect *pRectDest, Surface *pSurfaceDest)
 {//done
 	if( pQuad == NULL )
 		return;
@@ -680,7 +680,7 @@ void QuadRasterizer::drawQuadTexture(const VertexPT *pQuad, const Surface *pText
 		drawTriangleTexture(&triangles[i*3], pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
 }
 
-void QuadRasterizer::drawQuadTextureColor(const VertexPTC *pQuad, const Surface *pTexture, const Palette *pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect *pRectDest, Surface *pSurfaceDest)
+void QuadRasterizer::drawQuadTextureColor(const VertexPTC *pQuad, const Surface *pTexture, const RGBPalette *pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect *pRectDest, Surface *pSurfaceDest)
 {//done
 	if( pQuad == NULL )
 		return;

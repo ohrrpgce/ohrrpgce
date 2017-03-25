@@ -75,7 +75,7 @@ extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h 
 
 ' Tell backend to display a 32-bit screen buffer
 ' Returns 0 on success
-extern Gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
+extern Gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as RGBPalette ptr ) as integer
 
 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!
 extern Gfx_setpal as sub (byval pal as RGBcolor ptr)

@@ -1851,7 +1851,7 @@ SUB quad_transforms_menu ()
 
  DIM spriteSurface as Surface ptr
 
- DIM masterPalette as BackendPalette ptr
+ DIM masterPalette as RGBPalette ptr
  gfx_paletteFromRGB(@master(0), @masterPalette)
 
  DO

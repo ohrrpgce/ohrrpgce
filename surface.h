@@ -53,7 +53,7 @@ typedef struct
 {
 	void* handle;
 	RGBcolor col[256];
-} Palette;
+} RGBPalette;
 
 //interfaces
 #ifdef __cplusplus
@@ -68,13 +68,13 @@ extern "C"
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
 	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
-	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
-	int gfx_paletteCreate_SW( Palette** ppPaletteOut );
-	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut );
-	int gfx_paletteDestroy_SW( Palette* pPaletteIn );
-	int gfx_paletteUpdate_SW( Palette* pPaletteIn );
+	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
+	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
+	int gfx_paletteDestroy_SW( RGBPalette* pPaletteIn );
+	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
 #ifdef __cplusplus
 };
 #endif

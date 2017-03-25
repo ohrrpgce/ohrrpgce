@@ -289,7 +289,7 @@ sub gfx_console_printchar (byval ch as integer, byval x as integer, byval y as i
 	'debug x & "," & y & " " & chr(ch)
 end sub
 
-function gfx_console_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
+function gfx_console_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 	gfx_console_showpage(NULL, 0, 0)
 	return 0
 end function

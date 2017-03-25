@@ -158,7 +158,7 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	'accessible.
 end sub
 
-function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
+function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 '320x200 Surfaces supported only!
 	screenlock
 

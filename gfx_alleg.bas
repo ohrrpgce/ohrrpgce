@@ -117,7 +117,7 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 end sub
 
 'NOT IMPLEMENTED
-function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
+function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 	return 1
 end function
 
