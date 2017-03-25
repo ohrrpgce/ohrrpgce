@@ -94,25 +94,25 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 
 	if(Direct3DCreate9 == NULL)
 	{
-		Debug(errError, "Direct3DCreate9() failed to load! Possibly d3d9.dll missing.");
+		debugc(errError, "Direct3DCreate9() failed to load! Possibly d3d9.dll missing.");
 		return E_FAIL;
 	}
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 	{
-		Debug(errError, "IDirect3D9 object failed to be created! (Header and runtime version mismatch?)");
+		debugc(errError, "IDirect3D9 object failed to be created! (Header and runtime version mismatch?)");
 		return E_FAIL;
 	}
 
 	D3DADAPTER_IDENTIFIER9 adapterID;
 	hr = m_d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterID);
 	if(FAILED(hr)) {
-		Debug(errError, "Unable to query adapter information! Error %s", HRESULTString(hr));
+		debugc(errError, "Unable to query adapter information! Error %s", HRESULTString(hr));
 	}
 	else
 	{
-		Debug(errInfo, "Adapter: %s", adapterID.Description);
-		Debug(errInfo, "Driver: %s", adapterID.Driver);
+		debugc(errInfo, "Adapter: %s", adapterID.Description);
+		debugc(errInfo, "Driver: %s", adapterID.Driver);
 	}
 
 	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
@@ -131,17 +131,17 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 								 &m_d3ddev);
 		if(FAILED(hr))
 		{
-			Debug(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Error %s", HRESULTString(hr));
+			debugc(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Error %s", HRESULTString(hr));
 			return hr;
 		}
 		else
-			Debug(errInfo, "IDirect3DDevice9 object created as software device.");
+			debugc(errInfo, "IDirect3DDevice9 object created as software device.");
 	}
 	else
-		Debug(errInfo, "IDirect3DDevice9 object created as hardware device.");
+		debugc(errInfo, "IDirect3DDevice9 object created as hardware device.");
 	if(FAILED(m_surface.initialize(m_d3ddev, 320, 200)))
 	{
-		Debug(errError, "IDirect3DSurface9 object failed to be created! Error %s", HRESULTString(hr));
+		debugc(errError, "IDirect3DSurface9 object failed to be created! Error %s", HRESULTString(hr));
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;
@@ -154,9 +154,9 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 
 	if(D3DXSaveSurfaceToFile == NULL)
 		// Not an interesting error
-		Debug(errInfo, "D3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
+		debugc(errInfo, "D3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
 	else
-		Debug(errInfo, "D3DXSaveSurfaceToFile() successfully loaded.");
+		debugc(errInfo, "D3DXSaveSurfaceToFile() successfully loaded.");
 
 	return S_OK;
 }

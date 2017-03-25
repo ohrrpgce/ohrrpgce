@@ -45,7 +45,7 @@ void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 }
 
 // For informative messages use errInfo
-void gfx::Debug(ErrorLevel errlvl, const char* szMessage, ...)
+void ::debugc(ErrorLevel errlvl, const char* szMessage, ...)
 {
 	if (g_State.DebugMsg)
 	{
@@ -326,17 +326,17 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_State.DebugMsg = pCreationData->DebugMsg;
 
 	if(g_State.PostTerminateSignal == NULL || g_State.DebugMsg == NULL) {
-		Debug(errError, "Required GfxInitData callbacks missing!");
+		debugc(errError, "Required GfxInitData callbacks missing!");
 		return FALSE;
 	}
-	Debug(errInfo, "gfx_Initialize()...");
+	debugc(errInfo, "gfx_Initialize()...");
 
 	HRESULT hr;
 	if(FAILED(hr = g_Window.initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
 								   (WNDPROC)OHRWndProc)))
 	{
-		Debug(errError, "Window initialization failed! %s", HRESULTString(hr));
+		debugc(errError, "Window initialization failed! %s", HRESULTString(hr));
 		return FALSE;
 	}
 
@@ -344,15 +344,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
-		Debug(errError, "Failed at d3d initialization!");
+		debugc(errError, "Failed at d3d initialization!");
 		return FALSE;
 	}
 
 	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
-		Debug(errError, "Joystick support failed!");
+		debugc(errError, "Joystick support failed!");
 	else
 	{
-		Debug(errInfo, "Joysticks supported.");
+		debugc(errInfo, "Joysticks supported.");
 
 		/* Ask for more detailed WM_DEVICECHANGE messages (WinXP+)
 		DEV_BROADCAST_DEVICEINTERFACE notificationFilter = {0};
@@ -360,7 +360,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 		notificationFilter.dbcc_size = sizeof(notificationFilter);
 		if(!RegisterDeviceNotification( g_Window.getWindowHandle(), &notificationFilter,
 						DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES))
-			Debug(errError, "RegisterDeviceNotification failed");
+			debugc(errError, "RegisterDeviceNotification failed");
 		*/
 	}
 
@@ -373,18 +373,18 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_Window.showWindow();
 	g_Window.setClientSize(640, 400);
 
-	Debug(errInfo, "Initialization success");
+	debugc(errInfo, "Initialization success");
 	return TRUE;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
-	Debug(errInfo, "gfx_Shutdown()...");
+	debugc(errInfo, "gfx_Shutdown()...");
 	g_Joystick.shutdown();
 	g_DirectX.shutdown();
 	g_Window.shutdown();
 	gfx_PumpMessages();
-	Debug(errInfo, "Shutdown complete");
+	debugc(errInfo, "Shutdown complete");
 	CoUninitialize();
 }
 

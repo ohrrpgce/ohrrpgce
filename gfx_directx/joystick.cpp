@@ -78,7 +78,7 @@ void Joystick::filterAttachedDevices()
 		if(iter->bRefreshed == false)
 		{
 			std::string name = TstringToOHR(iter->info.tszInstanceName);
-			Debug(errInfo, " Device %s disappeared", name.c_str());
+			debugc(errInfo, " Device %s disappeared", name.c_str());
 			m_devices.erase(iter);
 		}
 		else
@@ -99,7 +99,7 @@ void Joystick::configNewDevices()
 		std::string name = TstringToOHR(iter->info.tszInstanceName);
 
 		if(iter->bNewDevice) // || iter->bRefreshed)
-			Debug(errInfo, " Found %s type=0x%x", name.c_str(), iter->info.dwDevType);
+			debugc(errInfo, " Found %s type=0x%x", name.c_str(), iter->info.dwDevType);
 		if(iter->bNewDevice)
 		{
 			iter->bNewDevice = false;
@@ -130,12 +130,12 @@ void Joystick::configNewDevices()
 			}
 			// Don't attempt to acquire yet; won't work if the Options menu is open
 
-			Debug(errInfo, " ...initialised successfully.");
+			debugc(errInfo, " ...initialised successfully.");
 			iter = iterNext;
 			continue;
 
 		  error:
-			Debug(errError, " ...but initialisation failed: %s %s", errsrc, HRESULTString(hr));
+			debugc(errError, " ...but initialisation failed: %s %s", errsrc, HRESULTString(hr));
 			m_devices.erase(iter);
 		}
 		iter = iterNext;
@@ -150,14 +150,14 @@ HRESULT Joystick::initialize(HINSTANCE hInstance, HWND hWnd)
 	hr = CoCreateInstance( CLSID_DirectInput8, NULL, CLSCTX_INPROC_SERVER, IID_IDirectInput8, (void**)&m_dinput );
 	if(FAILED(hr))
 	{
-		Debug(errError, "Failed to DirectInput8 for joystick. Possibly lacking dinput8.dll: %s", HRESULTString(hr));
+		debugc(errError, "Failed to DirectInput8 for joystick. Possibly lacking dinput8.dll: %s", HRESULTString(hr));
 		return hr;
 	}
 
 	hr = m_dinput->Initialize(hInstance, DIRECTINPUT_VERSION);
 	if(FAILED(hr))
 	{
-		Debug(errError, "IDirectInput8->Initialize failed: %s", HRESULTString(hr));
+		debugc(errError, "IDirectInput8->Initialize failed: %s", HRESULTString(hr));
 		return hr;
 	}
 
@@ -180,7 +180,7 @@ void Joystick::refreshEnumeration()
 	if(m_dinput == NULL)
 		return;
 	m_bRefreshRequest = FALSE;
-	Debug(errInfo, "Scanning for newly-attached joysticks");
+	debugc(errInfo, "Scanning for newly-attached joysticks");
 	m_dinput->EnumDevices( DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)EnumDevices, (void*)&m_devices, DIEDFL_ATTACHEDONLY );
 	configNewDevices();
 	filterAttachedDevices();
@@ -238,11 +238,11 @@ void Joystick::poll()
 			{
 				// Only attempt to acquire if this is the active window, otherwise it will fail.
 				// (Note: we can't acquire, and aren't active, while the Options window is shown!)
-				//Debug(errInfo, "Acquiring device %s", name);
+				//debugc(errInfo, "Acquiring device %s", name);
 				hr = iter->pDevice->Acquire();
 				if(hr == DIERR_UNPLUGGED)
 				{
-					Debug(errInfo, "Acquiring device %s failed: no longer plugged in", name);
+					debugc(errInfo, "Acquiring device %s failed: no longer plugged in", name);
 					refreshEnumeration();
 					return;
 				}
@@ -253,20 +253,20 @@ void Joystick::poll()
 				}
 				else if(FAILED(hr))
 				{
-					Debug(errInfo, "Acquiring device %s failed; dropping it: %s", name, HRESULTString(hr));
+					debugc(errInfo, "Acquiring device %s failed; dropping it: %s", name, HRESULTString(hr));
 					m_devices.erase(iter);
 				}
 			}
 			break;
 		case DIERR_NOTINITIALIZED:
-			Debug(errError, "Poll(%s) error: Not initialized", name);
+			debugc(errError, "Poll(%s) error: Not initialized", name);
 			refreshEnumeration();
 			return;
 		default:
 			hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
 			if(FAILED(hr))
 			{
-				Debug(errError, "GetDeviceState(%s) failed: %s", name, HRESULTString(hr));
+				debugc(errError, "GetDeviceState(%s) failed: %s", name, HRESULTString(hr));
 				break;
 			}
 			iter->nButtons = 0x0;
@@ -274,7 +274,7 @@ void Joystick::poll()
 				iter->nButtons |= (js.rgbButtons[i] & 0x80) ? (0x1 << i) : 0x0;
 			iter->xPos = js.lX;
 			iter->yPos = js.lY;
-			//Debug(errInfo, "%s x %d y %d buttons %d", name, iter->xPos, iter->yPos, iter->nButtons);
+			//debugc(errInfo, "%s x %d y %d buttons %d", name, iter->xPos, iter->yPos, iter->nButtons);
 		}
 		iter = iterNext;
 	}
