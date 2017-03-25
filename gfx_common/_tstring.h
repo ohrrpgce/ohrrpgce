@@ -1,6 +1,8 @@
 //_tstring.h
 //by Jay Tennant 12/8/09; updated 1/5/10
 //typedef's a string template of type T_CHAR
+// Windows specific. This is redundant to, but a different implementation from,
+// gfx_directx\Tstring.h
 
 #ifndef _TSTRING_H
 #define _TSTRING_H

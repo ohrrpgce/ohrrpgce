@@ -923,6 +923,7 @@ if platform.system () == 'Windows':
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
+    directx_sources += ['gfx_common/ohrstring.cpp']
 
     # Create environment for compiling gfx_directx.dll
     w32_env = Environment ()
@@ -934,6 +935,7 @@ if platform.system () == 'Windows':
     if 'DXSDK_DIR' in os.environ:
         w32_env.Append(CPPPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Include')])
         w32_env.Append(LIBPATH = [os.path.join(os.environ['DXSDK_DIR'], 'Lib', 'x86')])
+    w32_env.Append(CPPPATH = "gfx_common")
 
     if profile:
         # Profile using MicroProfiler, which uses instrumentation (counting function calls)

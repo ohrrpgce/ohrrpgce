@@ -1,5 +1,8 @@
+#include <string>
 #include "joystick.h"
 #include "debugmsg.h"
+#include "ohrstring.h"
+
 #pragma comment (lib, "dxguid.lib")
 using namespace gfx;
 
@@ -74,7 +77,8 @@ void Joystick::filterAttachedDevices()
 		iterNext++;
 		if(iter->bRefreshed == false)
 		{
-			Debug(errInfo, " Device %S disappeared", iter->info.tszInstanceName);
+			std::string name = TstringToOHR(iter->info.tszInstanceName);
+			Debug(errInfo, " Device %s disappeared", name.c_str());
 			m_devices.erase(iter);
 		}
 		else
@@ -92,8 +96,10 @@ void Joystick::configNewDevices()
 	{
 		iterNext = iter;
 		iterNext++;
+		std::string name = TstringToOHR(iter->info.tszInstanceName);
+
 		if(iter->bNewDevice) // || iter->bRefreshed)
-			Debug(errInfo, " Found %S type=0x%x", iter->info.tszInstanceName, iter->info.dwDevType);
+			Debug(errInfo, " Found %s type=0x%x", name.c_str(), iter->info.dwDevType);
 		if(iter->bNewDevice)
 		{
 			iter->bNewDevice = false;
@@ -217,7 +223,8 @@ void Joystick::poll()
 	{
 		iterNext = iter;
 		iterNext++;
-		TCHAR *name = iter->info.tszInstanceName;
+		std::string name_s = TstringToOHR(iter->info.tszInstanceName);
+		const char *name = name_s.c_str();
 		hr = iter->pDevice->Poll();
 
 		switch(hr)
@@ -231,34 +238,35 @@ void Joystick::poll()
 			{
 				// Only attempt to acquire if this is the active window, otherwise it will fail.
 				// (Note: we can't acquire, and aren't active, while the Options window is shown!)
-				//Debug(errInfo, "Acquiring device %S", name);
+				//Debug(errInfo, "Acquiring device %s", name);
 				hr = iter->pDevice->Acquire();
 				if(hr == DIERR_UNPLUGGED)
 				{
-					Debug(errInfo, "Acquiring device %S failed: no longer plugged in", name);
+					Debug(errInfo, "Acquiring device %s failed: no longer plugged in", name);
 					refreshEnumeration();
 					return;
 				}
 				else if(hr == DIERR_OTHERAPPHASPRIO)
 				{
 					// In use by another program; keep trying
+					// (Seems this does sometimes happen even when active window)
 				}
 				else if(FAILED(hr))
 				{
-					Debug(errInfo, "Acquiring device %S failed; dropping it: %s", name, HRESULTString(hr));
+					Debug(errInfo, "Acquiring device %s failed; dropping it: %s", name, HRESULTString(hr));
 					m_devices.erase(iter);
 				}
 			}
 			break;
 		case DIERR_NOTINITIALIZED:
-			Debug(errError, "Poll(%S) error: Not initialized", name);
+			Debug(errError, "Poll(%s) error: Not initialized", name);
 			refreshEnumeration();
 			return;
 		default:
 			hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
 			if(FAILED(hr))
 			{
-				Debug(errError, "GetDeviceState(%S) failed: %s", name, HRESULTString(hr));
+				Debug(errError, "GetDeviceState(%s) failed: %s", name, HRESULTString(hr));
 				break;
 			}
 			iter->nButtons = 0x0;
@@ -266,7 +274,7 @@ void Joystick::poll()
 				iter->nButtons |= (js.rgbButtons[i] & 0x80) ? (0x1 << i) : 0x0;
 			iter->xPos = js.lX;
 			iter->yPos = js.lY;
-			//Debug(errInfo, "%S x %d y %d buttons %d", name, iter->xPos, iter->yPos, iter->nButtons);
+			//Debug(errInfo, "%s x %d y %d buttons %d", name, iter->xPos, iter->yPos, iter->nButtons);
 		}
 		iter = iterNext;
 	}
