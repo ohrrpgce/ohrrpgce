@@ -21,6 +21,12 @@ extern "C" {
 */
 typedef int boolint;
 
+#ifdef _MSC_VER
+ // TODO: bool is only available when compiling as C++, otherwise need typedef it...
+#else
+# include <stdbool.h>
+#endif
+
 #if defined(_WIN32) || defined(WIN32)
 # define SLASH '\\'
 # define ispathsep(chr) ((chr) == '/' || (chr) == '\\')
@@ -47,6 +53,10 @@ typedef int boolint;
 # define _noreturn __attribute__ ((__noreturn__))
 #else
 # define _noreturn
+#endif
+
+#ifdef _MSC_VER
+# define restrict __restrict
 #endif
 
 // warn_unused_result: like [[nodiscard]] in C++11

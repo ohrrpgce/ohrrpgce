@@ -1,12 +1,15 @@
 #ifndef __FB_CONFIG_H__
 #define __FB_CONFIG_H__
 
-// Edited to comment out NO_OLDNAMES declarations
+// Edited to comment out NO_OLDNAMES declarations and add _MSC_VER
 
 #if defined HOST_XBOX
 #elif defined __DJGPP__
 	#define HOST_DOS
 	#define HOST_DJGPP
+#elif defined _MSC_VER  /* MS Visual C++ */
+	#define HOST_WIN32
+	#define WIN32_LEAN_AND_MEAN
 #elif defined __MINGW32__ /* MinGW, MinGW-w64, TDM-GCC */
 	#define HOST_MINGW
 	#define HOST_WIN32

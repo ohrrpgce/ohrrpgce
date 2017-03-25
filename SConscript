@@ -969,8 +969,8 @@ if platform.system () == 'Windows':
     Depends (RESFILE, ['gfx_directx/help.txt', 'gfx_directx/Ohrrpgce.bmp'])
     directx_sources.append (RESFILE)
 
-    # Enable exceptions, most warnings, unicode
-    w32_env.Append (CPPFLAGS = ['/EHsc', '/W3'], CPPDEFINES = ['UNICODE', '_UNICODE'])
+    # Enable exceptions, most warnings, treat .c files are C++, unicode/wide strings
+    w32_env.Append (CPPFLAGS = ['/EHsc', '/W3', '/TP'], CPPDEFINES = ['UNICODE', '_UNICODE', 'FBCVERSION=%d' % fbcversion])
 
     if profile:
         # debug info, static link VC9.0 runtime lib, but no link-time code-gen

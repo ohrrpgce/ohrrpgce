@@ -115,6 +115,21 @@ extern "C" {
 	#define ftello(stream)                 ftello64(stream)
 	#endif
 
+
+	// TMC: Added
+	#if defined(_MSC_VER) || ( defined(__BORLANDC__) && (__BORLANDC__ <= 0x0560) )
+		// MSVC++ and earlier versions of the Borland C++ Builder are missing ssize_t
+		#if defined _WIN64
+			typedef __int64 ssize_t;
+		#else
+			typedef __int32 ssize_t;
+		#endif
+	#endif
+	#if defined _MSC_VER
+		// #defining to inline only works in C++, not C
+		#define __inline__  __inline
+	#endif
+
 #elif defined HOST_UNIX
 
 	// Copied from rtlib/unix/fb_unix.h

@@ -33,7 +33,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
-#include <stdbool.h>
 
 #include "common.h"
 #include "os.h"

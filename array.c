@@ -10,7 +10,6 @@
 #else
 #include <alloca.h>
 #endif
-#include <stdbool.h>
 #include <limits.h>
 
 #include "common.h"
