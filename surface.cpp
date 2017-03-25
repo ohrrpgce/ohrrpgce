@@ -201,7 +201,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pP
 				{
 					value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
 					if( value )
-						pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[value];
+						pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->col[value].col;
 				}
 			}
 		}
@@ -211,7 +211,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pP
 			{
 				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
 				{
-					pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[ pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)] ];
+					pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->col[ pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)] ].col;
 				}
 			}
 		}
@@ -234,9 +234,9 @@ int gfx_paletteCreate_SW( Palette** ppPaletteOut )
 int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, Palette** ppPaletteOut )
 {
 	Palette *ret = new Palette;
-	memcpy(ret->p, pColorsIn, 256 * 4);
+	memcpy(ret->col, pColorsIn, 256 * 4);
 	for(int i = 0; i < 256; i++)
-		ret->p[i].a = 255;   // Set to opaque (alpha in the input is unused)
+		ret->col[i].a = 255;   // Set to opaque (alpha in the input is unused)
 	*ppPaletteOut = ret;
 	return 0;
 }

@@ -4,6 +4,7 @@
 #define ALLMODEX_H
 
 #include <stdint.h>
+#include "surface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,11 +19,6 @@ typedef struct {
 	unsigned char col[16];  //indicies into the master palette
 	int refcount; //private
 } Palette16;
-
-//typedef struct {
-//	unsigned char r, g, b, a;
-//} RGBcolor;
-typedef	uint32_t RGBcolor;
 
 struct SpriteCacheEntry;
 struct SpriteSet;

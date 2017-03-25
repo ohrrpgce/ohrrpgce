@@ -284,7 +284,7 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
 
 			//alpha blending
-			srcColor = pPalette->p[ m_sampler.sample8bit(pTexture, texel.u, texel.v) ];
+			srcColor = Color(pPalette->col[ m_sampler.sample8bit(pTexture, texel.u, texel.v) ]);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
 			//integer method of blending
@@ -351,7 +351,7 @@ void TriRasterizer::rasterTextureWithColorKey0(const DrawingRange<VertexPT> &ran
 			if( !colorKey )
 				continue;
 
-			srcColor = pPalette->p[colorKey];
+			srcColor = Color(pPalette->col[colorKey]);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
 			//integer method of blending
@@ -418,7 +418,7 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 			vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
 
 			//alpha blending
-			srcColor = pPalette->p[m_sampler.sample8bit(pTexture, texel.u, texel.v)];
+			srcColor = Color(pPalette->col[m_sampler.sample8bit(pTexture, texel.u, texel.v)]);
 			srcColor.scale(vertexColor);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
@@ -491,7 +491,7 @@ void TriRasterizer::rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC
 			if( !colorKey )
 				continue;
 
-			srcColor = pPalette->p[colorKey];
+			srcColor = Color(pPalette->col[colorKey]);
 			srcColor.scale(vertexColor);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 

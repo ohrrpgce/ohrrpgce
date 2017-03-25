@@ -4,7 +4,13 @@
 #include <stdint.h>
 #include "allmodex.h"
 
-//surfaces
+typedef union {
+	uint32_t col;
+	struct {
+		unsigned char r, g, b, a;
+	};
+} RGBcolor;
+
 enum SurfaceFormat
 {
 	SF_8bit = 0,
@@ -17,6 +23,8 @@ enum SurfaceUsage
 	SU_RenderTarget = 1,
 	SU_Staging = 2,      // Surfaces that don't get sent to GPU
 };
+
+typedef struct _Frame Frame;
 
 typedef struct
 {

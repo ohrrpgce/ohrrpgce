@@ -74,6 +74,7 @@ struct Color
 	// operator uint8_t () const {return b;}
 	Color() : dw(0) {}
 	Color(uint32_t col) : dw(col) {}
+	Color(RGBcolor col) : dw(col.col) {}
 	Color(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : dw(0) {a=A;r=R;g=G;b=B;}
 	// Color(uint8_t palette) : dw(0) {b=palette;}
 	void scale(Color argbModifier)
