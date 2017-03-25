@@ -1,4 +1,4 @@
-#include "gfx_common/gfx.h"
+#include "gfx.h"
 #include "Video.hpp"
 #include "Input.hpp"
 #include "Window.hpp"

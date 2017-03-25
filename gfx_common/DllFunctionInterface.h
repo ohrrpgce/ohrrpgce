@@ -195,12 +195,21 @@
 //
 #pragma once
 
+#include "config.h"
+
 #define _DFI_MASHER(a, b) a##b
 #define _DFI_STRINGER(arg) #arg
 
 //defining call types
 #define _DFI_STDCALL __stdcall
 #define _DFI_CDECL __cdecl
+
+#ifdef __cplusplus
+#define EXTERN_C  extern "C"
+#else
+#define EXTERN_C
+#endif
+
 
 //defining function types
 #define _DFI_FNPTR_TYPE_NAME_GEN( function ) _DFI_MASHER(FNPTR_TYPE_, function)
@@ -209,7 +218,7 @@
 
 //exporting functions
 #define _DFI_EXPORT_DECLARE( returnType, callMethod, function, ... ) \
-	extern "C" __declspec(dllexport) returnType callMethod function(__VA_ARGS__)
+	EXTERN_C DLLEXPORT returnType callMethod function(__VA_ARGS__)
 
 //loading functions
 #define DFI_LOAD_LIBRARY( dllName ) \

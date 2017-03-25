@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <stdio.h>
 
-#include "../gfx_common/gfx.hpp"
+#include "../gfx.h"
 #include "keyboard.hpp"
 #include "../scancodes.h"
 

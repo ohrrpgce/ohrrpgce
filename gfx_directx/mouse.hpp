@@ -8,7 +8,7 @@
 #include <stack>
 
 #include "d3d.hpp"
-#include "../gfx_common/gfx.hpp" // for CursorVisibility
+#include "../gfx.h" // for CursorVisibility
 
 namespace gfx
 {

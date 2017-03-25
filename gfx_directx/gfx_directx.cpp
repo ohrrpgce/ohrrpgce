@@ -1,6 +1,6 @@
 #define ISOLATION_AWARE_ENABLED 1
 
-#include "../gfx_common/gfx.hpp"
+#include "../gfx.h"
 #include "debugmsg.hpp"
 #include "window.hpp"
 #include "d3d.hpp"
@@ -258,7 +258,7 @@ DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, CursorVisibility visibility)
 	return 1;
 }
 
-DFI_IMPLEMENT_CDECL(void, io_getmouse, int& mx, int& my, int& mwheel, int& mbuttons)
+DFI_IMPLEMENT_CDECL(void, io_getmouse, int* mx, int* my, int* mwheel, int* mbuttons)
 {
 	gfx_GetMouse(mx, my, mwheel, mbuttons);
 }
@@ -273,7 +273,7 @@ DFI_IMPLEMENT_CDECL(void, io_mouserect, int xmin, int xmax, int ymin, int ymax)
 	gfx_ClipCursor(xmin, ymin, xmax, ymax);
 }
 
-DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int& button, int& x, int& y)
+DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int* button, int* x, int* y)
 {
 	return gfx_GetJoystick(joynum, x, y, button);
 }
@@ -625,12 +625,12 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetText, wchar_t *buffer, int bufferLen)
 	g_Keyboard.clearText();
 }
 
-DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
+DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int* x, int* y, int* wheel, int* buttons)
 {
-	x = g_Mouse.getCursorPos().x;
-	y = g_Mouse.getCursorPos().y;
-	wheel = g_Mouse.getWheel();
-	buttons = g_Mouse.getButtonState().getData();
+	*x = g_Mouse.getCursorPos().x;
+	*y = g_Mouse.getCursorPos().y;
+	*wheel = g_Mouse.getWheel();
+	*buttons = g_Mouse.getButtonState().getData();
 	return TRUE;
 }
 
@@ -639,10 +639,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 	return g_Mouse.setPosition(x, y);
 }
 
-DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int& x, int& y, int& buttons)
+DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int* x, int* y, int* buttons)
 {
 	g_Joystick.poll();
-	return g_Joystick.getState(nDevice, buttons, x, y);
+	return g_Joystick.getState(nDevice, *buttons, *x, *y);
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_SetJoystick, int nDevice, int x, int y)
