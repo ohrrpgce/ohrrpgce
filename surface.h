@@ -7,7 +7,7 @@
 typedef union {
 	uint32_t col;
 	struct {
-		unsigned char r, g, b, a;
+		unsigned char b, g, r, a;
 	};
 } RGBcolor;
 

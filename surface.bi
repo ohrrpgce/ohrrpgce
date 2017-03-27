@@ -7,7 +7,7 @@
 Union RGBcolor
 	as uint32 col
 	type
-		as ubyte r, g, b, a
+		as ubyte b, g, r, a
 	end type
 End Union
 
