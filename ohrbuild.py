@@ -271,6 +271,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
         # This actually creates the symlinks before the C/C++ files are generated, but that's OK
         'ln -s ' + ' '.join(source_files) + ' ' + destdir,
         'cp %s/*.h %s/' % (rootdir, destdir),
+        'cp %s/*.hpp %s/' % (rootdir, destdir),
         'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
         'cp %s/lib/*.h %s/' % (rootdir, destdir),
         'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
