@@ -445,8 +445,6 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
       RETURN 0
     END IF
-    'debuginfo "gfx_sdl: created screensurface with size " & screensurface->w & "*" & screensurface->h & " depth " _
-    '          & screensurface->format->BitsPerPixel & " flags " & HEX(screensurface->flags)
     EXIT DO
   LOOP
   'Don't recenter the window as the user resizes it
@@ -460,6 +458,13 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
 #ENDIF
 
 #ENDIF  ' Not __FB_ANDROID__
+
+  WITH *screensurface->format
+   debuginfo "gfx_sdl: created screensurface size=" & screensurface->w & "*" & screensurface->h _
+             & " depth=" & .BitsPerPixel & " flags=0x" & HEX(screensurface->flags) _
+             & " R=0x" & hex(.Rmask) & " G=0x" & hex(.Gmask) & " B=0x" & hex(.Bmask)
+   'FIXME: should handle the screen surface not being BGRA, or ask SDL for a surface in that encoding
+  END WITH
 
 #IFDEF __FB_DARWIN__
   ' SDL on OSX forgets the Unicode input state after a setvideomode
