@@ -2,33 +2,28 @@ include, plotscr.hsd
 include, scancode.hsi
 
 global variable (1, tick)
-global variable (2, input hash)
-global variable (3, show hash)
-
-#Removed from plotscr.hsd
-script, set extended scancodes enabled, hsd:bit=1, begin
-  if(hsd:bit) then (hsd:bit := 256)
-  write general(177,(read general(177),and,-257)+hsd:bit)
-end
+global variable (2, button)
+global variable (3, hold)
+global variable (4, hold start tick)
+global variable (5, hold caption)
+define constant (18, second)
 
 plotscript, main, begin
   suspend player
   load slice collection (1)
   set slice lookups (sprite layer)
+  
+  init mouse
+  show mouse cursor
+  button := lookup slice(999)
+  
+  hold := 10
+  hold caption := lookup slice(998)
 
   while (1) do, begin
     tick += 1
-    if (keyval(key:ctrl)>>0 && keyval(key:t)>>1) then (
-      enable input text (not (input text enabled))
-      $4=""
-    )
-    if (keyval(key:ctrl)>>0 && keyval(key:e)>>1) then (
-      set extended scancodes enabled (extended scancodes enabled, xor, 1)
-    )
-    if (keyval(key:ctrl)>>0 && keyval(key:h)>>1) then (
-      show hash := true
-    )
     update keyboard
+    update click
     wait
   end
 end
@@ -49,15 +44,63 @@ script, set slice lookups, sl, begin
 end
 
 script, update keyboard, begin
-  variable (i, sl, st)
+  variable (i, sl, st, gotkey)
+  gotkey := false
   for (i, 0, 127) do, begin
     sl := lookup slice (i)
     if (sl == 0) then (continue)
-
     set rect style(sl, keyval(i) + 1)
-
-	if (keyval(i)) then (
-      input hash += (input hash * 333667), xor, (tick * 367 + i * 336667 + keyval(i) * 3336677)  # primes
+    if(keyval(i) > 0) then(
+      gotkey := true
     )
   end
+  if(gotkey) then(
+    if(hold start tick == 0) then(hold start tick := tick)
+    if((tick -- hold start tick) > second) then(
+      hold -= 1
+      update hold caption
+      if(hold == 0) then(
+        try to email logs
+        reset hold
+      )else(
+        hold start tick := tick
+      )
+    )
+  )else(
+    # no key being held
+    reset hold
+  )
 end
+
+script, reset hold, begin
+  hold := 10
+  hold start tick := 0
+  update hold caption
+end
+
+script, update click, begin
+  if(mouse click(left button)) then(
+    if(slice collide point(button, mouse pixel x, mouse pixel y)) then(
+      try to email logs
+    )
+  )  
+end
+
+script, try to email logs, begin
+  variable(box)
+  box := create rect(320, 200)
+  set rect fuzziness(box, 50)
+  show text box(1)
+  wait(7)
+  save in slot(1)
+  send email(1, $1="OHRRPGCE input test feedback", $2="This e-mail contains debugging logs for the OHRRPGCE input testing App. It does not contain personal data of any kind. You can add your comments to this e-mail before sending.")
+  wait for text box
+  free slice(box)
+end
+
+script, update hold caption, begin
+  set slice text(hold caption, string sprintf(0, $1="(Or press and hold any button for %d seconds)", hold))
+end
+
+
+
