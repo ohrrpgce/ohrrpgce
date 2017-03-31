@@ -532,6 +532,8 @@ DO
  clearpage dpage
  highlight_menu_typing_selection menu(), menu_display(), selectst, state
  standardmenu menu_display(), state, 0, 0, dpage
+ edgeprint "Press F9 to Compile & Import your", 20, 160, uilook(uiText), dpage
+ edgeprint "scripts anywhere from any menu.", 20, 170, uilook(uiText), dpage
 
  SWAP vpage, dpage
  setvispage vpage
