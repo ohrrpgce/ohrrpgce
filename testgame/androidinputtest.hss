@@ -16,6 +16,10 @@ plotscript, main, begin
   init mouse
   show mouse cursor
   button := lookup slice(999)
+  if(running on console()) then(
+    free slice(button)
+    button := false
+  )
   
   hold := 10
   hold caption := lookup slice(998)
@@ -60,6 +64,7 @@ script, update keyboard, begin
       hold -= 1
       update hold caption
       if(hold == 0) then(
+        if(keyval(key:B) > 0 || keyval(key:M) > 0) then(game over)
         try to email logs
         reset hold
       )else(
@@ -79,6 +84,7 @@ script, reset hold, begin
 end
 
 script, update click, begin
+  if(not(button)) then(exit script)
   if(mouse click(left button)) then(
     if(slice collide point(button, mouse pixel x, mouse pixel y)) then(
       try to email logs
@@ -91,15 +97,17 @@ script, try to email logs, begin
   box := create rect(320, 200)
   set rect fuzziness(box, 50)
   show text box(1)
-  wait(7)
+  wait(8)
   save in slot(1)
   send email(1, $1="OHRRPGCE input test feedback", $2="This e-mail contains debugging logs for the OHRRPGCE input testing App. It does not contain personal data of any kind. You can add your comments to this e-mail before sending.")
-  wait for text box
+  wait(7)
+  advance text box
+  wait(1)
   free slice(box)
 end
 
 script, update hold caption, begin
-  set slice text(hold caption, string sprintf(0, $1="(Or press and hold any button for %d seconds)", hold))
+  set slice text(hold caption, string sprintf(0, $1="E-mail log file by holding a button for %d seconds. Hold BACK or MENU to quit.", hold))
 end
 
 
