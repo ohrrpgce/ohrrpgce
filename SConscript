@@ -899,7 +899,7 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw -verbose')
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -con -gcc hspeak.exw -verbose')
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:

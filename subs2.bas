@@ -559,7 +559,7 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
  RETURN hsversion
 END FUNCTION
 
-'Returns filename of .hs file
+'Returns filename of .hs file, or "" on failure
 FUNCTION compilescripts(fname as string, hsifile as string) as string
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
@@ -572,8 +572,10 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  hspeak_ver = get_hspeak_version(hspeak)
  debuginfo "hspeak version '" & hspeak_ver & "'"
  IF hspeak_ver = "" THEN
-  'If get_hspeak_version failed (returning ""), then spawn_and_wait should as well
-  hspeak_ver = "0"
+  'If get_hspeak_version failed (returning ""), then spawn_and_wait usually will too.
+  'However if hspeak isn't compiled as a console program then we can run it but not get its output.
+  notification "Your copy of HSpeak is faulty or not supported. You should download a copy of HSpeak from http://rpg.hamsterrepublic.com/ohrrpgce/Downloads"
+  RETURN ""
  ELSEIF strcmp(STRPTR(hspeak_ver), @RECOMMENDED_HSPEAK_VERSION) < 0 THEN
   IF version_branch = "wip" THEN
    notification "Your copy of HSpeak is out of date. You should download a nightly build of HSpeak from http://rpg.hamsterrepublic.com/ohrrpgce/Downloads"
