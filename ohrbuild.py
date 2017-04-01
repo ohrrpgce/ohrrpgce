@@ -6,6 +6,8 @@ import fnmatch
 import sys
 import itertools
 
+host_win32 = platform.system() == 'Windows'
+
 def get_command_output(cmd, args, shell = True):
     """Runs a shell command and returns stdout as a string"""
     import subprocess
@@ -165,7 +167,8 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     name = 'OHRRPGCE'
     rev = 0
     if os.path.isdir (os.path.join (rootdir, '.git')):
-        if os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
+        # git svn info is really slow on Windows
+        if not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
             # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
             # told to initialise yet, this will take a long time before failing
             date, rev = query_svn ('git','svn','info')
