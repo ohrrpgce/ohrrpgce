@@ -553,6 +553,7 @@ declare function str2int (stri as string, default as integer=0) as integer
 declare function rotascii (s as string, o as integer) as string
 declare function escape_string(s as string, chars as string) as string
 declare function replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
+declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
 declare function scancodename (byval k as integer) as string

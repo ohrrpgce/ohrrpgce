@@ -618,6 +618,28 @@ FUNCTION replacestr (buffer as string, replacewhat as string, withwhat as string
  RETURN count
 END FUNCTION
 
+' Change the type of newline in a string, which might contain mixed win/unix line endings
+' (but doesn't current support Mac style \r line endings)
+' newline is usually either !"\n" or !"\r\n", but could be anything. eg. " ".
+FUNCTION normalize_newlines (buffer as string, newline as string = LINE_END) as string
+ DIM ret as string = buffer
+ IF newline = !"\n" THEN
+  replacestr(ret, !"\r\n", newline)
+ ELSE
+  replacestr(ret, !"\r\n", !"\n")
+  replacestr(ret, !"\n", newline)
+ END IF
+ RETURN ret
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(normalize_newlines)
+ IF normalize_newlines(!"a\n b\r\n", !"\n") <> !"a\n b\n" THEN fail
+ IF normalize_newlines(!"a\n b\r\n", !"\r\n") <> !"a\r\n b\r\n" THEN fail
+ IF normalize_newlines(!"a\n b\r\n", " ") <> !"a  b " THEN fail
+endTest
+#ENDIF
+
 FUNCTION exclude (s as string, x as string) as string
  DIM ret as string = ""
  FOR i as integer = 1 TO LEN(s)

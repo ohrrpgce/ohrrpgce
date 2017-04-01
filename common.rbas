@@ -373,7 +373,7 @@ PRIVATE SUB append_to_logfile(s as string)
   EXIT SUB
  END IF
  sizeerror = 0
- PRINT #fh, s
+ PRINT #fh, normalize_newlines(s, LINE_END)
  CLOSE #fh
 END SUB
 
