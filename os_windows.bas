@@ -3,6 +3,10 @@
 
 #include "config.bi"
 include_windows_bi()
+' This define is needed in C code to compile binaries on Win7+ that use certain
+' psapi.dll functions so they will work on older Windows.
+' It's not currently used by FB's headers, but might in future.
+#define PSAPI_VERSION 1
 #include once "win/psapi.bi"
 '#include "win/shellapi.bi"
 '#include "win/objbase.bi"
@@ -120,12 +124,34 @@ extern "C"
 sub external_log (msg as string)
 end sub
 
+#macro GET_MEMORY_INFO(memctrs, on_error)
+	' This requires psapi.dll
+	if GetProcessMemoryInfo(GetCurrentProcess(), @memctrs, sizeof(memctrs)) = 0 then
+		debug "GetProcessMemoryInfo failed: " & error_string
+		return on_error
+	end if
+#endmacro
+
+' Return an approximation of the total amount of memory allocated by this process, in bytes:
+' the amount of space reserved in the pagefile, plus unpageable memory. Does not include
+' memory mapped files (like the .exe itself), but those are probably constant.
+' Often also more than the actual amount of memory used, especially when using gfx_directx
 function memory_usage() as integer
-	return 0
+	dim memctrs as PROCESS_MEMORY_COUNTERS
+	GET_MEMORY_INFO(memctrs, 0)
+	return memctrs.PagefileUsage
 end function
 
 function memory_usage_string() as string
-	return ""
+	dim memctrs as PROCESS_MEMORY_COUNTERS
+	if GetProcessMemoryInfo(GetCurrentProcess(), @memctrs, sizeof(memctrs)) = 0 then
+		debug "GetProcessMemoryInfo failed: " & error_string
+		return ""
+	end if
+	GET_MEMORY_INFO(memctrs, "")
+	return "workingset=" & memctrs.WorkingSetSize & " peak workingset=" & memctrs.PeakWorkingSetSize _
+	       & " commit=" & memctrs.PagefileUsage & " peak commit=" & memctrs.PeakPagefileUsage _
+	       & " nonpaged=" & memctrs.QuotaNonPagedPoolUsage
 end function
 
 
