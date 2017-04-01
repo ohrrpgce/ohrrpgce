@@ -685,7 +685,10 @@ IF gam.want.resetgame = NO THEN
 END IF
 gam.want.resetgame = NO
 'DEBUG debug "picked save slot " & load_slot
-queue_music_change -1  'stop music
+
+IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
+ queue_music_change -1  'stop music (unless initial map has same music)
+END IF
 IF load_slot = -2 THEN
  fadeout 0, 0, 0
  EXIT DO
@@ -815,8 +818,12 @@ DO
   gam.want.loadgame = 0
   resetgame
   initgamedefaults
-  stopsong
-  resetsfx
+  IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
+   queue_music_change -1  'stop music (unless new map has same music)
+  END IF
+  ' Don't stop sound effects, because if used from the Load menu this would cut off
+  ' the Accept sfx unplesantly. (However, would be ideal to stop longer ones)
+  'resetsfx
   fadeout 0, 0, 0
   queue_fade_in 1, YES
   doloadgame load_slot
@@ -1950,7 +1957,7 @@ SUB interpret()
  'before the map autorun or any other scripts can make changes. This transition is hidden by screen fades
  'and now by the delayed music change. But if the map change happens without a fade (teleporttomap, or
  'if we make fades customisable) that one tick delay is undesired.
- 'So consider delaying all calls to preparemap (and doloadgame) until the start of the next tick.
+ 'So consider delaying all calls to prepare_map (and doloadgame) until the start of the next tick.
 
  IF gam.want.box > 0 THEN
   loadsay gam.want.box
@@ -2861,6 +2868,7 @@ SUB loadsay (byval box_id as integer)
   txt.remember_music = presentsong
   wrappedsong txt.box.music - 1
  ELSEIF txt.box.music < 0 THEN
+  ' Silence
   txt.remember_music = presentsong
   stopsong
  END IF
@@ -2901,6 +2909,11 @@ SUB advance_text_box ()
   ELSEIF gmap(1) = 0 THEN
    stopsong
   ELSE
+   ' Map music is set to "same as previous map".
+   ' It is not a bug that we only restore the actual previously playing music in
+   ' this case and otherwise use the map setting, because a chain of textboxes
+   ' might play some music and then want to restore the map music at the end.
+   ' It's even documented that way.
    IF txt.remember_music > -1 THEN
     wrappedsong txt.remember_music
    ELSE
@@ -3612,6 +3625,7 @@ END FUNCTION
 
 SUB queue_music_change (byval song as integer)
  'Delay map ambient music to give scripts a chance to override it.
+ 'Use song = -1 to queue stopping the music.
  'A delay of two is actually a single tick delay, because it will be decremented
  'the same tick that this is called, at the bottom of the main loop.
  gam.music_change_delay = 2

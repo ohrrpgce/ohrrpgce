@@ -159,6 +159,7 @@ SUB edit_general_bitsets()
  bitname(30) = "Don't divide experience between heroes"
  bitname(31) = "Don't reset max stats after OOB attack"
  bitname(38) = "Never show script timers during battles"
+ bitname(40) = "Don't stop music when starting/loading game"
  edit_global_bitsets bitname(), "general_game_bitsets"
 END SUB
 

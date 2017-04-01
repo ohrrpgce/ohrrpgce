@@ -993,14 +993,17 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
 END SUB
 
-FUNCTION onwho (caption as string, byval alone as integer) as integer
+FUNCTION onwho (caption as string, byval alone as bool) as integer
 
 '-- pre-select the first hero
 DIM w as integer = rank_to_party_slot(0)
 
 '-- if there is only one hero, return immediately
 '--unless we are in alone-mode
-IF alone = 0 AND herocount() <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
+IF alone = NO AND herocount() <= 1 THEN
+ setkeys
+ RETURN w
+END IF
 
 menusound gen(genAcceptSFX)
 copypage vpage, dpage

@@ -67,6 +67,7 @@ WHAT IS NEW?
       (Left)" as well as "Stops for others" variants of both. [James]
     * When displaying NPC debug info with F6, NPC collision information
       is displayed [James]
+    * General bitset "Don't stop music when starting/loading game" [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
