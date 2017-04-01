@@ -3854,10 +3854,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   notification "Dumped entire slice tree to g_debug.txt"
  END IF
 
+ IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
  IF dbg.def( , , "Show/test battle formations") THEN battle_formation_testing_menu
- IF dbg.def( , , "Manipulate gen() array") THEN patcharray gen(), "gen"
- IF dbg.def( , , "Manipulate gmap() array") THEN patcharray gmap(), "gmap"
+ IF dbg.def( , , "(Advanced) Manipulate gen() array") THEN patcharray gen(), "gen"
+ IF dbg.def( , , "(Advanced) Manipulate gmap() array") THEN patcharray gmap(), "gmap"
  'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
  #IFDEF __FB_ANDROID__
   IF dbg.def( , , "Email saved game") THEN
