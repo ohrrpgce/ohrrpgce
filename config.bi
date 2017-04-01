@@ -315,7 +315,10 @@ use_32bit_integer()
 'use a setjmp/longjmp kludge
 
 '#include "crt/setjmp.bi"
-' setjmp.bi is incorrect. Actual size is 148 bytes on 64 bit OSX, so be conservative
+#define __crt_setjmp_bi__   'Don't allow crt/setjmp.bi to be included
+
+' setjmp.bi is incorrect (on OSX anyway; actual size is 148 bytes on 64 bit OSX)
+' 64 bit windows uses a 256byte buffer.
 type crt_jmp_buf:dummy(255) as byte:end type
 #ifdef __FB_WIN32__
 declare function setjmp cdecl alias "_setjmp" (byval as any ptr) as integer

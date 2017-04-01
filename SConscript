@@ -225,10 +225,17 @@ for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'GCC', 'AS', 'CC', 'CXX':
 
 def findtool(envvar, toolname):
     if os.environ.get (envvar):
-        return os.environ.get (envvar)
-    if WhereIs (target_prefix + toolname):
-        return target_prefix + toolname
-    return toolname
+        ret = os.environ.get (envvar)
+    elif WhereIs (target_prefix + toolname):
+        ret = target_prefix + toolname
+    else:
+        ret = toolname
+    # standalone builds of FB on Windows do not search $PATH for binaries,
+    # so we have to do so for it!
+    if win32:
+        ret = WhereIs (ret)
+    return ret
+
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If using gengcc=1, CC will not be used by fbc, set GCC envar instead.
@@ -450,7 +457,8 @@ if linkgcc:
 
     # Find the directory where the FB libraries are kept.
     if fbcversion >= 1030:
-        libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS)
+        # Take the last line, in case -v is in FBFLAGS
+        libpath = get_command_output (fbc, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
         checkfile = os.path.join (libpath, 'fbrt0.o')
         if not os.path.isfile (checkfile):
             print "Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + repr(checkfile) + " is missing."
@@ -1048,6 +1056,7 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
+  gengcc=1            Compile using GCC emitter (faster binaries, longer compiles).
   debug=0|1|2|3       Debug level:
                                   -exx |  debug info  | optimisation
                                  ------+--------------+--------------
@@ -1078,7 +1087,6 @@ Options:
   v=1                 Be verbose.
 
 Experimental options:
-  gengcc=1            Compile using GCC emitter.
   linkgcc=0           Link using fbc instead of g++ (only works for a few targets)
   android-source=1    Used as part of the Android build process for Game/Custom (see wiki)
   glibc=1             Enable memory_usage function
