@@ -5338,7 +5338,16 @@ end
 		<command id="movesliceto">
 			<canon>move slice to (handle, x, y, ticks)</canon>
 			<shortname>move slice to</shortname>
-			<description>Instruct slice <p>handle</p> to move in a straight line to a specific <p>x</p> and <p>y</p> position over a given number of <p>ticks</p>. If you change the slice's position manually during that time (eg. with <ref>putslice</ref>), it'll continue to move towards the original target in a straight line.</description>
+			<description>
+				Instruct slice <p>handle</p> to move in a straight line to a specific
+				<p>x</p> and <p>y</p> position over a given number of <p>ticks</p>.
+				(As always, the position is an offset relative to its parent.)
+				<note>
+					If you change the slice's position manually during that time (eg. with <ref>putslice</ref>),
+					it'll continue to move towards the original target in a straight line.
+					Use <ref>setslicevelocity</ref> instead if you don't want this.
+				</note>
+			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -5355,7 +5364,20 @@ end
 		<command id="movesliceby">
 			<canon>move slice by (handle, relative x, relative y, ticks)</canon>
 			<shortname>move slice by</shortname>
-			<description>Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p> offset relative to its current position over a given number of <p>ticks</p>. A negative <p>relative x</p> moves left. A positive <p>relative x</p> moves right. A negative <p>relative y</p> moves up. A positive <p>relative y</p> moves down. If you change the slice's position manually during that time (eg. with <ref>putslice</ref>), it'll continue to move towards the original target in a straight line.</description>
+			<description>
+				Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p>
+				offset relative to its current position over a given number of <p>ticks</p>.
+				(As always, the position is an offset relative to its parent.)
+				A negative <p>relative x</p> moves left.
+				A positive <p>relative x</p> moves right.
+				A negative <p>relative y</p> moves up.
+				A positive <p>relative y</p> moves down.
+				<note>
+					If you change the slice's position manually during that time (eg. with <ref>putslice</ref>),
+					it'll continue to move towards the original target in a straight line.
+					Use <ref>setslicevelocity</ref> instead if you don't want this.
+				</note>
+</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
