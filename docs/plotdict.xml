@@ -5304,7 +5304,15 @@ end
 		<command id="setslicevelocity">
 			<canon>set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</canon>
 			<shortname>set slice velocity</shortname>
-			<description>Cause slice <p>handle</p> to start moving. This is similar to using both <ref>setslicevelocityx</ref> and <ref>setslicevelocityy</ref> at the same time. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<description>
+				Cause slice <p>handle</p> to start moving.
+				This is similar to using both <ref>setslicevelocityx</ref> and
+				<ref>setslicevelocityy</ref> at the same time.
+				The <p>ticks</p> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set back to
+				zero automatically after that number of ticks has passed.
+			</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -7267,7 +7275,16 @@ end</example>
 		<command id="zoneatspot">
 			<canon>zone at spot (x, y, count)</canon>
 			<shortname>zone at spot</shortname>
-			<description>Used to get the set of all IDs of zones that contain the tile at (<p>x,y</p>). Since zones may overlap, <p>count</p> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <p>count</p> may also be the constant <ref>getcount</ref>, in which case the total number of zones which overlap there is returned. If <p>count</p> too large (greater than or equal to the number of zones), 0 (<ref>false</ref>) is returned. <note>The order in which the ID numbers are returned is completely arbitrary.</note></description>
+			<description>
+				Used to get the set of all IDs of zones that contain the tile at (<p>x,y</p>).
+				Since zones may overlap, <p>count</p> is used to specify which zone ID to return:
+				0 is the first, 1 the second, and so on.
+				<p>count</p> may also be the constant <ref>getcount</ref>,
+				in which case the total number of zones which overlap there is returned.
+				If <p>count</p> too large (greater than or equal to the number of zones),
+				0 (<ref>false</ref>) is returned.
+				<note>The order in which the ID numbers are returned is completely arbitrary.</note>
+			</description>
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
@@ -7282,12 +7299,26 @@ end</example>
 		<command id="getzoneextra">
 			<canon>get zone extra (zone id, extra num)</canon>
 			<shortname>get zone extra</shortname>
-			<description>Returns the value in a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. You can set a zone's extra data in the Zone Info editor.</description>
+			<description>
+				Returns the value in a zone's "extra data" field numbered <p>extra num</p>,
+				which is a number from 0 to 2.
+				You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.
+				You can set a zone's extra data in the Zone Info editor.
+			</description>
 		</command>
 		<command id="setzoneextra">
 			<canon>set zone extra (zone id, extra num, value)</canon>
 			<shortname>set zone extra</shortname>
-			<description>Sets the value of a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.<note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
+			<description>
+				Sets the value of a zone's "extra data" field numbered <p>extra num</p>,
+				which is a number from 0 to 2.
+				You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.
+				<note>
+					Changes to zones are not stored in saved games,
+					and are erased when you leave the map unless "Tile Data State" is saved when
+					leaving in the General Map Data settings.
+				</note>
+			</description>
 		</command>
 		<command id="zonenumberoftiles">
 			<canon>zone number of tiles (zone id)</canon>
@@ -7304,7 +7335,11 @@ end</example>
 		<command id="allowminimap">
 			<canon>allow minimap (setting)</canon>
 			<shortname>allow minimap</shortname>
-			<description>Sets whether the Map option appears in the menu. Give no argument or <ref>true</ref> to enable, or <ref>false</ref> to disable. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets whether the Map option appears in the menu.
+				Give no argument or <ref>true</ref> to enable, or <ref>false</ref> to disable.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 			<seealso>
 				<ref>showminimap</ref>
 			</seealso>
@@ -7312,7 +7347,12 @@ end</example>
 		<command id="allowsaveanywhere">
 			<canon>allow save anywhere (setting)</canon>
 			<shortname>allow save anywhere</shortname>
-			<description>Sets whether the Save option appears in the menu. Give no argument or <ref>true</ref> to enable, or <ref>false</ref> to disable. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets whether the Save option appears in the menu.
+				Give no argument or <ref>true</ref> to enable,
+				or <ref>false</ref> to disable.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 			<seealso>
 				<ref>savemenu</ref>
 			</seealso>
@@ -7320,17 +7360,28 @@ end</example>
 		<command id="setharmtiledamage">
 			<canon>set harm tile damage (amount)</canon>
 			<shortname>set harm tile damage</shortname>
-			<description>Sets the amount of damage taken when you step on a harm tile. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets the amount of damage taken when you step on a harm tile.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="setharmtileflash">
 			<canon>set harm tile flash (color)</canon>
 			<shortname>set harm tile flash</shortname>
-			<description>Sets the color (from the master palette) which the screen flashes when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets the color (from the master palette) which the screen flashes when you step on a harm tile.
+				Call with no argument to disable the flash.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="setfootoffset">
 			<canon>set foot offset (offset)</canon>
 			<shortname>set foot offset</shortname>
-			<description>Sets the foot offset in pixels, the vertical displacement of npc and hero sprites from the base of the tiles on which they stand. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets the foot offset in pixels, the vertical displacement of npc and hero sprites
+				from the base of the tiles on which they stand.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="getfootoffset">
 			<canon>get foot offset</canon>
@@ -7340,17 +7391,30 @@ end</example>
 		<command id="drawnpcsaboveheroes">
 			<canon>draw NPCs above heroes (setting)</canon>
 			<shortname>draw NPCs above heroes</shortname>
-			<description>Sets whether NPCs are drawn above heroes or the default of beneath. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets whether NPCs are drawn above heroes or the default of beneath.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="setmapedgemode">
 			<canon>set map edge mode (mode, default tile)</canon>
 			<shortname>set map edge mode</shortname>
-			<description>Sets the behaviour at the edge of the map. Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref>. When the behaviour is default tile, you should give a second argument specifying which tile should be displayed off the boundaries of the map, otherwise ignore the second argument. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Sets the behaviour at the edge of the map.
+				Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref>.
+				When the behaviour is default tile, you should give a second argument specifying which tile
+				should be displayed off the boundaries of the map, otherwise ignore the second argument.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="getmapedgemode">
 			<canon>get map edge mode</canon>
 			<shortname>get map edge mode</shortname>
-			<description>Returns the map's edge mode. Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref> to compare with the value returned.</description>
+			<description>
+				Returns the map's edge mode.
+				Use the constants <ref>crop</ref>, <ref>wrap</ref> and <ref>defaulttile</ref>
+				to compare with the value returned.
+			</description>
 		</command>
 		</section>		<!--General Map Data-->
 
@@ -7538,12 +7602,18 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setdeathscript">
 			<canon>set death script (id)</canon>
 			<shortname>set death script</shortname>
-			<description>Changes the script that is run when you die in battle. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set death script with no argument disables the death script.</description>
+			<description>
+				Changes the script that is run when you die in battle.
+				The argument is the script&apos;s ID number, NOT the script&apos;s name.
+				Calling set death script with no argument disables the death script.
+			</description>
 		</command>
 		<command id="getdeathscript">
 			<canon>get death script</canon>
 			<shortname>get death script</shortname>
-			<description>Returns the ID number of script that is run when you die in battle.</description>
+			<description>
+				Returns the ID number of script that is run when you die in battle.
+			</description>
 		</command>
 		<command id="setloadscript">
 			<canon>set load script (id)</canon>
@@ -7570,7 +7640,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setonkeypressscript">
 			<canon>set on keypress script (id)</canon>
 			<shortname>set on keypress script</shortname>
-			<description>Changes the script that is run when you press a key. The argument is the script&apos;s name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Changes the script that is run when you press a key.
+				The argument is the script&apos;s name preceded by an @ sign.
+				You can also use the ID number for old-style scripts.
+				Calling set on keypress script with no argument disables the keypress script.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 			<example>set on keypress script(@keyhandlerscript)</example>
 		</command>
 		<command id="getonkeypressscript">
@@ -7581,7 +7657,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="seteachstepscript">
 			<canon>set each step script (id)</canon>
 			<shortname>set each step script</shortname>
-			<description>Changes the script that is run when you take a step. The argument is the script&apos;s name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Changes the script that is run when you take a step.
+				The argument is the script&apos;s name preceded by an @ sign.
+				You can also use the ID number for old-style scripts.
+				Calling set each step script with no argument disables the each step script.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="geteachstepscript">
 			<canon>get each step script</canon>
@@ -7591,7 +7673,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setinsteadofbattlescript">
 			<canon>set instead of battle script (id)</canon>
 			<shortname>set instead of battle script</shortname>
-			<description>Changes the script that is run instead of a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.</description>
+			<description>
+				Changes the script that is run instead of a random battle when one is triggered.
+				The argument is a reference to the script in the form @scriptname.
+				Calling set instead of battle script with no argument disables the instead of battle script.
+				The effect goes away if you change maps or fight a battle.
+			</description>
 		</command>
 		<command id="getinsteadofbattlescript">
 			<canon>get instead of battle script</canon>
@@ -7605,70 +7692,128 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setbattlewaitmode">
 			<canon>set battle wait mode (state)</canon>
 			<shortname>set battle wait mode</shortname>
-			<description>Set whether or not battles pause on spell and item menus. If the argument is <ref>off</ref> then enemies continue to attack while menus are up, if the argument is <ref>on</ref> then enemies wait while menus are up.</description>
+			<description>
+				Set whether or not battles pause on spell and item menus.
+				If the argument is <ref>off</ref> then enemies continue to attack while menus are up,
+				if the argument is <ref>on</ref> then enemies wait while menus are up.
+			</description>
 		</command>
 		<command id="setcaterpillarmode">
 			<canon>set caterpillar mode (state)</canon>
 			<shortname>set caterpillar mode</shortname>
-			<description>Sets whether or not to display the whole party in "caterpillar" style. This sets the "Enable Caterpillar Party" general preference bitset. If the argument is <ref>off</ref> then only the leader will be displayed. If the argument is <ref>on</ref> then the whole active (battle) party will be displayed and will normally walk behind the leader. <note>Do not confuse this with the <ref>suspendcaterpillar</ref> and <ref>resumecaterpillar</ref> commands, which only apply when caterpillar mode is ON.</note></description>
+			<description>
+				Sets whether or not to display the whole party in "caterpillar" style.
+				This sets the "Enable Caterpillar Party" general preference bitset.
+				If the argument is <ref>off</ref> then only the leader will be displayed.
+				If the argument is <ref>on</ref> then the whole active (battle) party will be
+				displayed and will normally walk behind the leader.
+				<note>
+					Do not confuse this with the <ref>suspendcaterpillar</ref>
+					and <ref>resumecaterpillar</ref> commands,
+					which only apply when caterpillar mode is ON.
+				</note>
+			</description>
 		</command>
 		<command id="setnohpleveluprestore">
 			<canon>set no HP level up restore (state)</canon>
 			<shortname>set no HP level up restore</shortname>
-			<description>Sets whether or not a hero regains full HP after a level-up. If the argument is <ref>off</ref> then HP is restored on a level-up. If the argument is <ref>on</ref> then the hero&apos;s HP is not restored on a level-up.</description>
+			<description>
+				Sets whether or not a hero regains full HP after a level-up.
+				If the argument is <ref>off</ref> then HP is restored on a level-up.
+				If the argument is <ref>on</ref> then the hero's HP is not restored on a level-up.
+			</description>
 		</command>
 		<command id="setnompleveluprestore">
 			<canon>set no MP level up restore (state)</canon>
 			<shortname>set no MP level up restore</shortname>
-			<description>Sets whether or not a hero regains full MP after a level-up. If the argument is <ref>off</ref> then MP is restored on a level-up. If the argument is <ref>on</ref> then the hero&apos;s MP is not restored on a level-up.</description>
+			<description>
+				Sets whether or not a hero regains full MP after a level-up.
+				If the argument is <ref>off</ref> then MP is restored on a level-up.
+				If the argument is <ref>on</ref> then the hero's MP is not restored on a level-up.
+			</description>
 		</command>
 		<command id="setinnnorevivemode">
 			<canon>set inn no revive mode (state)</canon>
 			<shortname>set inn no revive mode</shortname>
-			<description>Sets whether or not inns restore dead heroes to life. If the argument is <ref>off</ref> then dead heroes are restored by inns. If the argument is <ref>on</ref> then dead heroes remain dead in inns.</description>
+			<description>
+				Sets whether or not inns restore dead heroes to life.
+				If the argument is <ref>off</ref> then dead heroes are restored by inns.
+				If the argument is <ref>on</ref> then dead heroes remain dead in inns.
+			</description>
 		</command>
 		<command id="setfullheroswapmode">
 			<canon>set full hero swap mode (state)</canon>
 			<shortname>set full hero swap mode</shortname>
-			<description>Sets whether or not you can swap heroes in and out of your active party from the menu. If the argument is <ref>off</ref> then the "Order" menu will be available. If the argument is <ref>on</ref> then the "Team" menu will be available.</description>
+			<description>
+				Sets whether or not you can swap heroes in and out of your active party from the menu.
+				If the argument is <ref>off</ref> then the "Order" menu will be available.
+				If the argument is <ref>on</ref> then the "Team" menu will be available.
+			</description>
 		</command>
 
 		<command id="getactivebattlepauseonallmenus">
 			<canon>get active battle pause on all menus</canon>
 			<shortname>get active battle pause on all menus</shortname>
-			<description>Returns true if active-time battles are configured to pause on all menus</description>
+			<description>
+				Returns true if active-time battles are configured to pause on all menus.
+			</description>
 			<seealso><ref>setactivebattlepauseonallmenus</ref></seealso>
 		</command>
 		<command id="setactivebattlepauseonallmenus">
 			<canon>set active battle pause on all menus (value)</canon>
 			<shortname>set active battle pause on all menus</shortname>
-			<description>Changes whether active-time battles will pause on all menus. The argument should be <p>true</p> to pause, or <p>false</p> to not pause. This option has no effect on turn-based battles. This option is not stored in save-games, so changing it only lasts until the game is quit and reloaded.</description>
+			<description>
+				Changes whether active-time battles will pause on all menus.
+				The argument should be <p>true</p> to pause, or <p>false</p> to not pause.
+				This option has no effect on turn-based battles.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			</description>
 			<seealso><ref>getactivebattlepauseonallmenus</ref></seealso>
 		</command>
 		<command id="hidebattlereadymeter">
 			<canon>hide battle ready meter (state)</canon>
 			<shortname>hide battle ready meter</shortname>
-			<description>Sets whether or not the ready meter appears in battle. If the argument is <ref>off</ref> then the ready meter appears. If the argument is <ref>on</ref> then the ready meter will be hidden.</description>
+			<description>
+				Sets whether or not the ready meter appears in battle.
+				If the argument is <ref>off</ref> then the ready meter appears.
+				If the argument is <ref>on</ref> then the ready meter will be hidden.
+			</description>
 		</command>
 		<command id="hidebattlehealthmeter">
 			<canon>hide battle health meter (state)</canon>
 			<shortname>hide battle health meter</shortname>
-			<description>Sets whether or not the health meter appears in battle. If the argument is <ref>off</ref> then the health meter appears. If the argument is <ref>on</ref> then the health meter will be hidden.</description>
+			<description>
+				Sets whether or not the health meter appears in battle.
+				If the argument is <ref>off</ref> then the health meter appears.
+				If the argument is <ref>on</ref> then the health meter will be hidden.
+			</description>
 		</command>
 		<command id="setdebugkeysdisable">
 			<canon>set debug keys disable (state)</canon>
 			<shortname>set debug keys disable</shortname>
-			<description>Sets whether or not the debugging keys are allowed. If the argument is <ref>off</ref> then debugging keys are allowed. If the argument is <ref>on</ref> then debugging keys are disabled.</description>
+			<description>
+				Sets whether or not the debugging keys are allowed.
+				If the argument is <ref>off</ref> then debugging keys are allowed.
+				If the argument is <ref>on</ref> then debugging keys are disabled.
+			</description>
 		</command>
 		<command id="setdeadheroesgainexperience">
 			<canon>set dead heroes gain experience (state)</canon>
 			<shortname>set dead heroes gain experience</shortname>
-			<description>Sets whether or not dead heroes gain experience from battles. If the argument is <ref>off</ref> then only living heroes gain experience. If the argument is <ref>on</ref> then dead heroes get it too.</description>
+			<description>
+				Sets whether or not dead heroes gain experience from battles.
+				If the argument is <ref>off</ref> then only living heroes gain experience.
+				If the argument is <ref>on</ref> then dead heroes get it too.
+			</description>
 		</command>
 		<command id="extendedscancodesenabled">
 			<canon>extended scancodes enabled</canon>
 			<shortname>extended scancodes enabled</shortname>
-			<description>Returns the state of the "Enable better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.</description>
+			<description>
+				Returns the state of the "Enable better scancodes" general bitset:
+				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+			</description>
 			<seealso>
 				<ref>keyispressed</ref>
 			</seealso>
@@ -7693,7 +7838,16 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="setlevelcap">
 			<canon>set level cap (cap)</canon>
 			<shortname>set level cap</shortname>
-			<description>Sets the level cap. <p>cap</p> must be a value from 0 to 99. Heroes with level equal to or greater than the level cap can't gain experience through battles, <ref>giveexperience</ref>, or <ref>setexperience</ref>, and the status screen doesn't show their experience to next level. You however can use <ref>setherolevel</ref> to set a hero's level above the level cap. The level cap does not change the amount of experience needed to gain a level, nor the stat increases at level-up.</description>
+			<description>
+				Sets the level cap.
+				<p>cap</p> must be a value from 0 to 99.
+				Heroes with level equal to or greater than the level cap can't gain experience
+				through battles, <ref>giveexperience</ref>, or <ref>setexperience</ref>,
+				and the status screen doesn't show their experience to next level.
+				You however can use <ref>setherolevel</ref> to set a hero's level above the level cap.
+				The level cap does not change the amount of experience needed to gain a level,
+				nor the stat increases at level-up.
+			</description>
 		</command>
 		</section>		<!-- Caps-->
 	</section>
@@ -7770,7 +7924,8 @@ end</example>
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
 			<description>
-				Deletes a saved game in the specified save slot (1 to 32, regardless of how many are displayed on the Load and Save menus).
+				Deletes a saved game in the specified save slot (1 to 32,
+				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>.
 				However, <ref>importglobals</ref> can still be used to read globals out of the slot.
 			</description>
@@ -7782,8 +7937,10 @@ end</example>
 			<canon>last save slot</canon>
 			<shortname>last save slot</shortname>
 			<description>
-				Returns the last save slot saved to using the save menu, if the player hasn't saved the game since starting/loading the game.
-				Otherwise, returns the save slot the game was loaded from, or <ref>false</ref> if this is an unsaved new game.
+				Returns the last save slot saved to using the save menu,
+				if the player hasn't saved the game since starting/loading the game.
+				Otherwise, returns the save slot the game was loaded from,
+				or <ref>false</ref> if this is an unsaved new game.
 				Save slots are numbered starting at 1.
 				<ref>saveinslot</ref> does not change the value returned by this command!
 				If you need it to, you need to track it with a global variable.
@@ -7808,16 +7965,22 @@ end</example>
 				and<lb/><p>import globals (slot, id)</p>
 				<lb/>
 				Loads a range of globals from a saved game, overwriting the current globals in that range.
-				<p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear by default on the save/load menus.
-				<p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range.
+				<p>slot</p> is the save slot number, from 1 to 32.
+				Note that only slots 1-4 appear by default on the save/load menus.
+				<p>first</p> and <p>last</p> are the id numbers of the globals at
+				the beginning and end of the range.
 				If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported.
 				<lb/>
-				To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'
+				To read a single global from a save slot without modifying any of your globals,
+				use the form 'var := import globals (slot, id)'
 				<lb/>
-				This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.
+				This is NOT the same thing as 'import globals (slot, id, id)',
+				which does modify the global variable.
 				<lb/>
-				import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it,
-				and also to store variables that any game the player starts can use, like in the following example:
+				import globals and <ref>exportglobals</ref> can be used to save and
+				retrieve info about a saved game without loading it,
+				and also to store variables that any game the player starts can use,
+				like in the following example:
 			</description>
 			<example>global variable (100, game completed)
 global variable (101, hours to complete)
@@ -7869,14 +8032,17 @@ end</example>
 				A run-time error is displayed and -1 is returned if the script does not exist.
 				You can pass up to 31 arguments to the script.
 				<lb/>
-				The advantage of this command as opposed to just calling the script directly is that the ID may be stored in a variable,
+				The advantage of this command as opposed to just calling the script
+				directly is that the ID may be stored in a variable,
 				or it could be the function return value of another script.
 				For example, using <ref>setsliceextra</ref> you might want to store the ID
 				of a script that should be run when the player clicks on a slice.
 				<note>
-					If you pass too few arguments, the unspecified ones will have value zero <b>regardless</b> of any default values given in the script declaration.
+					If you pass too few arguments, the unspecified ones will have value zero
+					<b>regardless</b> of any default values given in the script declaration.
 					<lb/>
-					If you pass too many (which does not cause an error), the extra ones are ignored.
+					If you pass too many (which does not cause an error),
+					the extra ones are ignored.
 				</note>
 			</description>
 			<example>plotscript,scriptcallingtest,begin

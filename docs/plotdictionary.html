@@ -11742,7 +11742,15 @@ end
 <a name="about-setslicevelocity"></a>
 		<h4>set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</h4>
 <p>
-			Cause slice <span class="param">handle</span> to start moving. This is similar to using both <a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> and <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> at the same time. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.
+			
+				Cause slice <span class="param">handle</span> to start moving.
+				This is similar to using both <a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> and
+				<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> at the same time.
+				The <span class="param">ticks</span> argument is optional.
+				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you specify the number of ticks, the velocity will expire and be set back to
+				zero automatically after that number of ticks has passed.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11804,7 +11812,18 @@ end
 <a name="about-movesliceto"></a>
 		<h4>move slice to (handle, x, y, ticks)</h4>
 <p>
-			Instruct slice <span class="param">handle</span> to move in a straight line to a specific <span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>. If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>), it'll continue to move towards the original target in a straight line.
+			
+				Instruct slice <span class="param">handle</span> to move in a straight line to a specific
+				<span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.
+				(As always, the position is an offset relative to its parent.)
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
+					it'll continue to move towards the original target in a straight line.
+					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
+				<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11835,7 +11854,22 @@ end
 <a name="about-movesliceby"></a>
 		<h4>move slice by (handle, relative x, relative y, ticks)</h4>
 <p>
-			Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span> offset relative to its current position over a given number of <span class="param">ticks</span>. A negative <span class="param">relative x</span> moves left. A positive <span class="param">relative x</span> moves right. A negative <span class="param">relative y</span> moves up. A positive <span class="param">relative y</span> moves down. If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>), it'll continue to move towards the original target in a straight line.
+			
+				Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span>
+				offset relative to its current position over a given number of <span class="param">ticks</span>.
+				(As always, the position is an offset relative to its parent.)
+				A negative <span class="param">relative x</span> moves left.
+				A positive <span class="param">relative x</span> moves right.
+				A negative <span class="param">relative y</span> moves up.
+				A positive <span class="param">relative y</span> moves down.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
+					it'll continue to move towards the original target in a straight line.
+					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
+				<br clear="all">
+</div>
+
 			
 			
 			<div class="seealso">See also: <ul>
@@ -15011,9 +15045,18 @@ end</pre>
 <a name="about-zoneatspot"></a>
 		<h4>zone at spot (x, y, count)</h4>
 <p>
-			Used to get the set of all IDs of zones that contain the tile at (<span class="param">x,y</span>). Since zones may overlap, <span class="param">count</span> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <span class="param">count</span> may also be the constant <a href="#about-getcount" class="ref">get count</a>, in which case the total number of zones which overlap there is returned. If <span class="param">count</span> too large (greater than or equal to the number of zones), 0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned. <div style="background-color:#EFF;" class="note">
+			
+				Used to get the set of all IDs of zones that contain the tile at (<span class="param">x,y</span>).
+				Since zones may overlap, <span class="param">count</span> is used to specify which zone ID to return:
+				0 is the first, 1 the second, and so on.
+				<span class="param">count</span> may also be the constant <a href="#about-getcount" class="ref">get count</a>,
+				in which case the total number of zones which overlap there is returned.
+				If <span class="param">count</span> too large (greater than or equal to the number of zones),
+				0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned.
+				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The order in which the ID numbers are returned is completely arbitrary.<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
@@ -15036,7 +15079,12 @@ end</pre>
 <a name="about-getzoneextra"></a>
 		<h4>get zone extra (zone id, extra num)</h4>
 <p>
-			Returns the value in a zone's "extra data" field numbered <span class="param">extra num</span>, which is a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. You can set a zone's extra data in the Zone Info editor.
+			
+				Returns the value in a zone's "extra data" field numbered <span class="param">extra num</span>,
+				which is a number from 0 to 2.
+				You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.
+				You can set a zone's extra data in the Zone Info editor.
+			
 			
 			
 			
@@ -15046,9 +15094,18 @@ end</pre>
 <a name="about-setzoneextra"></a>
 		<h4>set zone extra (zone id, extra num, value)</h4>
 <p>
-			Sets the value of a zone's "extra data" field numbered <span class="param">extra num</span>, which is a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.<br clear="all">
+			
+				Sets the value of a zone's "extra data" field numbered <span class="param">extra num</span>,
+				which is a number from 0 to 2.
+				You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Changes to zones are not stored in saved games,
+					and are erased when you leave the map unless "Tile Data State" is saved when
+					leaving in the General Map Data settings.
+				<br clear="all">
 </div>
+			
 			
 			
 			
@@ -15082,7 +15139,11 @@ end</pre>
 <a name="about-allowminimap"></a>
 		<h4>allow minimap (setting)</h4>
 <p>
-			Sets whether the Map option appears in the menu. Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable, or <a href="#about-booleanconstants" class="ref">false</a> to disable. The effect goes away if you change maps or fight a battle.
+			
+				Sets whether the Map option appears in the menu.
+				Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable, or <a href="#about-booleanconstants" class="ref">false</a> to disable.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-showminimap" class="ref">show mini map</a></li></ul>
@@ -15093,7 +15154,12 @@ end</pre>
 <a name="about-allowsaveanywhere"></a>
 		<h4>allow save anywhere (setting)</h4>
 <p>
-			Sets whether the Save option appears in the menu. Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable, or <a href="#about-booleanconstants" class="ref">false</a> to disable. The effect goes away if you change maps or fight a battle.
+			
+				Sets whether the Save option appears in the menu.
+				Give no argument or <a href="#about-booleanconstants" class="ref">true</a> to enable,
+				or <a href="#about-booleanconstants" class="ref">false</a> to disable.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-savemenu" class="ref">save menu</a></li></ul>
@@ -15104,7 +15170,10 @@ end</pre>
 <a name="about-setharmtiledamage"></a>
 		<h4>set harm tile damage (amount)</h4>
 <p>
-			Sets the amount of damage taken when you step on a harm tile. The effect goes away if you change maps or fight a battle.
+			
+				Sets the amount of damage taken when you step on a harm tile.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15114,7 +15183,11 @@ end</pre>
 <a name="about-setharmtileflash"></a>
 		<h4>set harm tile flash (color)</h4>
 <p>
-			Sets the color (from the master palette) which the screen flashes when you step on a harm tile. Call with no argument to disable the flash. The effect goes away if you change maps or fight a battle.
+			
+				Sets the color (from the master palette) which the screen flashes when you step on a harm tile.
+				Call with no argument to disable the flash.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15124,7 +15197,11 @@ end</pre>
 <a name="about-setfootoffset"></a>
 		<h4>set foot offset (offset)</h4>
 <p>
-			Sets the foot offset in pixels, the vertical displacement of npc and hero sprites from the base of the tiles on which they stand. The effect goes away if you change maps or fight a battle.
+			
+				Sets the foot offset in pixels, the vertical displacement of npc and hero sprites
+				from the base of the tiles on which they stand.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15144,7 +15221,10 @@ end</pre>
 <a name="about-drawnpcsaboveheroes"></a>
 		<h4>draw NPCs above heroes (setting)</h4>
 <p>
-			Sets whether NPCs are drawn above heroes or the default of beneath. The effect goes away if you change maps or fight a battle.
+			
+				Sets whether NPCs are drawn above heroes or the default of beneath.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15154,7 +15234,13 @@ end</pre>
 <a name="about-setmapedgemode"></a>
 		<h4>set map edge mode (mode, default tile)</h4>
 <p>
-			Sets the behaviour at the edge of the map. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a>. When the behaviour is default tile, you should give a second argument specifying which tile should be displayed off the boundaries of the map, otherwise ignore the second argument. The effect goes away if you change maps or fight a battle.
+			
+				Sets the behaviour at the edge of the map.
+				Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a>.
+				When the behaviour is default tile, you should give a second argument specifying which tile
+				should be displayed off the boundaries of the map, otherwise ignore the second argument.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15164,7 +15250,11 @@ end</pre>
 <a name="about-getmapedgemode"></a>
 		<h4>get map edge mode</h4>
 <p>
-			Returns the map's edge mode. Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a> to compare with the value returned.
+			
+				Returns the map's edge mode.
+				Use the constants <a href="#about-crop" class="ref">crop</a>, <a href="#about-wrap" class="ref">wrap</a> and <a href="#about-defaulttile" class="ref">default tile</a>
+				to compare with the value returned.
+			
 			
 			
 			
@@ -15415,7 +15505,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setdeathscript"></a>
 		<h4>set death script (id)</h4>
 <p>
-			Changes the script that is run when you die in battle. The argument is the script's ID number, NOT the script's name. Calling set death script with no argument disables the death script.
+			
+				Changes the script that is run when you die in battle.
+				The argument is the script's ID number, NOT the script's name.
+				Calling set death script with no argument disables the death script.
+			
 			
 			
 			
@@ -15425,7 +15519,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-getdeathscript"></a>
 		<h4>get death script</h4>
 <p>
-			Returns the ID number of script that is run when you die in battle.
+			
+				Returns the ID number of script that is run when you die in battle.
+			
 			
 			
 			
@@ -15471,7 +15567,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setonkeypressscript"></a>
 		<h4>set on keypress script (id)</h4>
 <p>
-			Changes the script that is run when you press a key. The argument is the script's name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set on keypress script with no argument disables the keypress script. The effect goes away if you change maps or fight a battle.
+			
+				Changes the script that is run when you press a key.
+				The argument is the script's name preceded by an @ sign.
+				You can also use the ID number for old-style scripts.
+				Calling set on keypress script with no argument disables the keypress script.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			<pre>set on keypress script(@keyhandlerscript)</pre>
 			
@@ -15491,7 +15593,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-seteachstepscript"></a>
 		<h4>set each step script (id)</h4>
 <p>
-			Changes the script that is run when you take a step. The argument is the script's name preceded by an @ sign. You can also use the ID number for old-style scripts. Calling set each step script with no argument disables the each step script. The effect goes away if you change maps or fight a battle.
+			
+				Changes the script that is run when you take a step.
+				The argument is the script's name preceded by an @ sign.
+				You can also use the ID number for old-style scripts.
+				Calling set each step script with no argument disables the each step script.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15511,7 +15619,12 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setinsteadofbattlescript"></a>
 		<h4>set instead of battle script (id)</h4>
 <p>
-			Changes the script that is run instead of a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.
+			
+				Changes the script that is run instead of a random battle when one is triggered.
+				The argument is a reference to the script in the form @scriptname.
+				Calling set instead of battle script with no argument disables the instead of battle script.
+				The effect goes away if you change maps or fight a battle.
+			
 			
 			
 			
@@ -15546,7 +15659,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setbattlewaitmode"></a>
 		<h4>set battle wait mode (state)</h4>
 <p>
-			Set whether or not battles pause on spell and item menus. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then enemies continue to attack while menus are up, if the argument is <a href="#about-booleanconstants" class="ref">on</a> then enemies wait while menus are up.
+			
+				Set whether or not battles pause on spell and item menus.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then enemies continue to attack while menus are up,
+				if the argument is <a href="#about-booleanconstants" class="ref">on</a> then enemies wait while menus are up.
+			
 			
 			
 			
@@ -15556,9 +15673,20 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setcaterpillarmode"></a>
 		<h4>set caterpillar mode (state)</h4>
 <p>
-			Sets whether or not to display the whole party in "caterpillar" style. This sets the "Enable Caterpillar Party" general preference bitset. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only the leader will be displayed. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the whole active (battle) party will be displayed and will normally walk behind the leader. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Do not confuse this with the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> and <a href="#about-resumecaterpillar" class="ref">resume caterpillar</a> commands, which only apply when caterpillar mode is ON.<br clear="all">
+			
+				Sets whether or not to display the whole party in "caterpillar" style.
+				This sets the "Enable Caterpillar Party" general preference bitset.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only the leader will be displayed.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the whole active (battle) party will be
+				displayed and will normally walk behind the leader.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Do not confuse this with the <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a>
+					and <a href="#about-resumecaterpillar" class="ref">resume caterpillar</a> commands,
+					which only apply when caterpillar mode is ON.
+				<br clear="all">
 </div>
+			
 			
 			
 			
@@ -15568,7 +15696,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setnohpleveluprestore"></a>
 		<h4>set no HP level up restore (state)</h4>
 <p>
-			Sets whether or not a hero regains full HP after a level-up. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then HP is restored on a level-up. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's HP is not restored on a level-up.
+			
+				Sets whether or not a hero regains full HP after a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then HP is restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's HP is not restored on a level-up.
+			
 			
 			
 			
@@ -15578,7 +15710,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setnompleveluprestore"></a>
 		<h4>set no MP level up restore (state)</h4>
 <p>
-			Sets whether or not a hero regains full MP after a level-up. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then MP is restored on a level-up. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's MP is not restored on a level-up.
+			
+				Sets whether or not a hero regains full MP after a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then MP is restored on a level-up.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the hero's MP is not restored on a level-up.
+			
 			
 			
 			
@@ -15588,7 +15724,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setinnnorevivemode"></a>
 		<h4>set inn no revive mode (state)</h4>
 <p>
-			Sets whether or not inns restore dead heroes to life. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heroes are restored by inns. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes remain dead in inns.
+			
+				Sets whether or not inns restore dead heroes to life.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then dead heroes are restored by inns.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes remain dead in inns.
+			
 			
 			
 			
@@ -15598,7 +15738,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setfullheroswapmode"></a>
 		<h4>set full hero swap mode (state)</h4>
 <p>
-			Sets whether or not you can swap heroes in and out of your active party from the menu. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the "Order" menu will be available. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the "Team" menu will be available.
+			
+				Sets whether or not you can swap heroes in and out of your active party from the menu.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the "Order" menu will be available.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the "Team" menu will be available.
+			
 			
 			
 			
@@ -15608,7 +15752,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-getactivebattlepauseonallmenus"></a>
 		<h4>get active battle pause on all menus</h4>
 <p>
-			Returns true if active-time battles are configured to pause on all menus
+			
+				Returns true if active-time battles are configured to pause on all menus.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setactivebattlepauseonallmenus" class="ref">set active battle pause on all menus</a></li></ul>
@@ -15619,7 +15765,13 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setactivebattlepauseonallmenus"></a>
 		<h4>set active battle pause on all menus (value)</h4>
 <p>
-			Changes whether active-time battles will pause on all menus. The argument should be <span class="param">true</span> to pause, or <span class="param">false</span> to not pause. This option has no effect on turn-based battles. This option is not stored in save-games, so changing it only lasts until the game is quit and reloaded.
+			
+				Changes whether active-time battles will pause on all menus.
+				The argument should be <span class="param">true</span> to pause, or <span class="param">false</span> to not pause.
+				This option has no effect on turn-based battles.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getactivebattlepauseonallmenus" class="ref">get active battle pause on all menus</a></li></ul>
@@ -15630,7 +15782,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-hidebattlereadymeter"></a>
 		<h4>hide battle ready meter (state)</h4>
 <p>
-			Sets whether or not the ready meter appears in battle. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the ready meter appears. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the ready meter will be hidden.
+			
+				Sets whether or not the ready meter appears in battle.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the ready meter appears.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the ready meter will be hidden.
+			
 			
 			
 			
@@ -15640,7 +15796,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-hidebattlehealthmeter"></a>
 		<h4>hide battle health meter (state)</h4>
 <p>
-			Sets whether or not the health meter appears in battle. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the health meter appears. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the health meter will be hidden.
+			
+				Sets whether or not the health meter appears in battle.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then the health meter appears.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then the health meter will be hidden.
+			
 			
 			
 			
@@ -15650,7 +15810,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setdebugkeysdisable"></a>
 		<h4>set debug keys disable (state)</h4>
 <p>
-			Sets whether or not the debugging keys are allowed. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then debugging keys are allowed. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then debugging keys are disabled.
+			
+				Sets whether or not the debugging keys are allowed.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then debugging keys are allowed.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then debugging keys are disabled.
+			
 			
 			
 			
@@ -15660,7 +15824,11 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setdeadheroesgainexperience"></a>
 		<h4>set dead heroes gain experience (state)</h4>
 <p>
-			Sets whether or not dead heroes gain experience from battles. If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only living heroes gain experience. If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes get it too.
+			
+				Sets whether or not dead heroes gain experience from battles.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then only living heroes gain experience.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then dead heroes get it too.
+			
 			
 			
 			
@@ -15670,7 +15838,10 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-extendedscancodesenabled"></a>
 		<h4>extended scancodes enabled</h4>
 <p>
-			Returns the state of the "Enable better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+			
+				Returns the state of the "Enable better scancodes" general bitset:
+				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
@@ -15722,7 +15893,16 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <a name="about-setlevelcap"></a>
 		<h4>set level cap (cap)</h4>
 <p>
-			Sets the level cap. <span class="param">cap</span> must be a value from 0 to 99. Heroes with level equal to or greater than the level cap can't gain experience through battles, <a href="#about-giveexperience" class="ref">give experience</a>, or <a href="#about-setexperience" class="ref">set experience</a>, and the status screen doesn't show their experience to next level. You however can use <a href="#about-setherolevel" class="ref">set hero level</a> to set a hero's level above the level cap. The level cap does not change the amount of experience needed to gain a level, nor the stat increases at level-up.
+			
+				Sets the level cap.
+				<span class="param">cap</span> must be a value from 0 to 99.
+				Heroes with level equal to or greater than the level cap can't gain experience
+				through battles, <a href="#about-giveexperience" class="ref">give experience</a>, or <a href="#about-setexperience" class="ref">set experience</a>,
+				and the status screen doesn't show their experience to next level.
+				You however can use <a href="#about-setherolevel" class="ref">set hero level</a> to set a hero's level above the level cap.
+				The level cap does not change the amount of experience needed to gain a level,
+				nor the stat increases at level-up.
+			
 			
 			
 			
@@ -15831,7 +16011,8 @@ end</pre>
 		<h4>delete save (slot)</h4>
 <p>
 			
-				Deletes a saved game in the specified save slot (1 to 32, regardless of how many are displayed on the Load and Save menus).
+				Deletes a saved game in the specified save slot (1 to 32,
+				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>.
 				However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.
 			
@@ -15846,8 +16027,10 @@ end</pre>
 		<h4>last save slot</h4>
 <p>
 			
-				Returns the last save slot saved to using the save menu, if the player hasn't saved the game since starting/loading the game.
-				Otherwise, returns the save slot the game was loaded from, or <a href="#about-booleanconstants" class="ref">false</a> if this is an unsaved new game.
+				Returns the last save slot saved to using the save menu,
+				if the player hasn't saved the game since starting/loading the game.
+				Otherwise, returns the save slot the game was loaded from,
+				or <a href="#about-booleanconstants" class="ref">false</a> if this is an unsaved new game.
 				Save slots are numbered starting at 1.
 				<a href="#about-saveinslot" class="ref">save in slot</a> does not change the value returned by this command!
 				If you need it to, you need to track it with a global variable.
@@ -15892,16 +16075,22 @@ end</pre>
 				and<br><span class="param">import globals (slot, id)</span>
 				<br>
 				Loads a range of globals from a saved game, overwriting the current globals in that range.
-				<span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear by default on the save/load menus.
-				<span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range.
+				<span class="param">slot</span> is the save slot number, from 1 to 32.
+				Note that only slots 1-4 appear by default on the save/load menus.
+				<span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at
+				the beginning and end of the range.
 				If you leave out both of <span class="param">first</span> and <span class="param">last</span> all global variables will be imported.
 				<br>
-				To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'
+				To read a single global from a save slot without modifying any of your globals,
+				use the form 'var := import globals (slot, id)'
 				<br>
-				This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.
+				This is NOT the same thing as 'import globals (slot, id, id)',
+				which does modify the global variable.
 				<br>
-				import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and retrieve info about a saved game without loading it,
-				and also to store variables that any game the player starts can use, like in the following example:
+				import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and
+				retrieve info about a saved game without loading it,
+				and also to store variables that any game the player starts can use,
+				like in the following example:
 			
 			
 			<pre>global variable (100, game completed)
@@ -15980,15 +16169,18 @@ end</pre>
 				A run-time error is displayed and -1 is returned if the script does not exist.
 				You can pass up to 31 arguments to the script.
 				<br>
-				The advantage of this command as opposed to just calling the script directly is that the ID may be stored in a variable,
+				The advantage of this command as opposed to just calling the script
+				directly is that the ID may be stored in a variable,
 				or it could be the function return value of another script.
 				For example, using <a href="#about-setsliceextra" class="ref">set slice extra</a> you might want to store the ID
 				of a script that should be run when the player clicks on a slice.
 				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
-					If you pass too few arguments, the unspecified ones will have value zero <b>regardless</b> of any default values given in the script declaration.
+					If you pass too few arguments, the unspecified ones will have value zero
+					<b>regardless</b> of any default values given in the script declaration.
 					<br>
-					If you pass too many (which does not cause an error), the extra ones are ignored.
+					If you pass too many (which does not cause an error),
+					the extra ones are ignored.
 				<br clear="all">
 </div>
 			
