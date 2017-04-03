@@ -1362,7 +1362,7 @@ loadshopstuf b(), id
 ' Initialise state of the shop stock (if we haven't visited the shop before, or if
 ' new items have been added to it since last time)
 FOR slot as integer = 0 TO storebuf(16)
- DIM stockidx as integer = b(slot * recordsize + 37)
+ DIM stockidx as integer = b(slot * recordsize + 37) - 1
  IF gam.stock(id, stockidx) = 0 THEN
   DIM stockamount as integer = b(stockidx * recordsize + 19)
   gam.stock(id, stockidx) = IIF(stockamount < 0, stockamount, stockamount + 1)
@@ -1411,7 +1411,7 @@ DO
      IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28) - 1, b(i * recordsize + 29) + 1
      'INCREMENT STOCK-------
      IF b(i * recordsize + 26) > 0 THEN
-      DIM stockidx as integer = b(i * recordsize + 37)
+      DIM stockidx as integer = b(i * recordsize + 37) - 1
       IF b(i * recordsize + 26) = 1 THEN gam.stock(id, stockidx) = -1
       IF b(i * recordsize + 26) = 2 AND gam.stock(id, stockidx) > 0 THEN gam.stock(id, stockidx) += 1
      END IF
