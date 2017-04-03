@@ -425,7 +425,6 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  
  ret->SliceType = slSpecial
  ret->Visible = YES
- ret->Mobile = YES
  ret->Attached = 0
  ret->Attach = slSlice
  
@@ -881,8 +880,8 @@ End Function
 Function SliceIsVisible( byval s as Slice ptr ) as integer
  return s->Visible
 End Function
-Function SliceIsMobile( byval s as Slice ptr ) as integer
- return s->Mobile
+Function SliceIsPaused( byval s as Slice ptr ) as integer
+ return s->Paused
 End Function
 Function SliceIsClipping( byval s as Slice ptr ) as integer
  return s->Clip
@@ -903,8 +902,8 @@ End Sub
 Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
  s->Visible = b
 End Sub
-Sub SliceSetMobility( byval s as Slice ptr, byval b as integer )
- s->Mobile = b
+Sub SliceSetPaused( byval s as Slice ptr, byval b as integer )
+ s->Paused = b
 End Sub
 Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
  s->Clip = b
@@ -2709,7 +2708,7 @@ end sub
 ' Apply slice movement to this slice and descendants
 Sub AdvanceSlice(byval s as slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
- if s->Mobile then
+ if s->Paused = NO then
   SeekSliceTarg s
   ApplySliceVelocity s
   'advance the slice's children
@@ -3073,7 +3072,7 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
   .Width = sl->Width
   .Height = sl->Height
   .Visible = sl->Visible
-  .Mobile = sl->Mobile
+  .Paused = sl->Paused
   .Clip = sl->Clip
   .Velocity.X = sl->Velocity.X
   .Velocity.Y = sl->Velocity.Y
@@ -3146,7 +3145,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "h", sl->Height
  SaveProp node, "vis", sl->Visible
  SaveProp node, "edithidechildren", sl->EditorHideChildren
- SaveProp node, "mobile", sl->Mobile
+ SaveProp node, "paused", sl->Paused
  SaveProp node, "clip", sl->Clip
  SaveProp node, "vx", sl->Velocity.X
  SaveProp node, "vy", sl->Velocity.Y
@@ -3263,7 +3262,7 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  sl->Height = LoadProp(node, "h")
  sl->Visible = LoadPropBool(node, "vis")
  sl->EditorHideChildren = LoadPropBool(node, "editorhidechildren")
- sl->Mobile = LoadPropBool(node, "mobile", YES)
+ sl->Paused = LoadPropBool(node, "paused")
  sl->Clip = LoadPropBool(node, "clip")
  sl->Velocity.X = LoadProp(node, "vx")
  sl->Velocity.Y = LoadProp(node, "vy")

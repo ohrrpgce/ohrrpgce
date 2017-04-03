@@ -140,7 +140,7 @@ TYPE Slice
   Width as integer
   Height as integer
   Visible as bool
-  Mobile as bool  'Whether to apply target and velocity movement to this slice tree (default true)
+  Paused as bool  'Whether to not apply target and velocity movement to this slice tree
   Clip as bool
   
   'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
@@ -393,7 +393,7 @@ DECLARE Function SliceGetY( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetWidth( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetHeight( byval s as Slice ptr ) as integer
 DECLARE Function SliceIsVisible( byval s as Slice ptr ) as integer
-DECLARE Function SliceIsMobile( byval s as Slice ptr ) as integer
+DECLARE Function SliceIsPaused( byval s as Slice ptr ) as integer
 DECLARE Function SliceIsClipping( byval s as Slice ptr ) as integer
 'slice mutators
 DECLARE Sub SliceSetX( byval s as Slice ptr, byval x as integer )

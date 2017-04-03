@@ -35,7 +35,7 @@ int SliceGetScreenY( SlicePtr s );
 int SliceGetWidth( SlicePtr s );
 int SliceGetHeight( SlicePtr s );
 int SliceIsVisible( SlicePtr s );
-int SliceIsMobile( SlicePtr s );
+int SliceIsPaused( SlicePtr s );
 int SliceIsClipping( SlicePtr s );
 
 void SliceSetX( SlicePtr s, int x );
@@ -43,7 +43,7 @@ void SliceSetY( SlicePtr s, int y );
 void SliceSetWidth( SlicePtr s, int w );
 void SliceSetHeight( SlicePtr s, int h );
 void SliceSetVisibility( SlicePtr s, int b );
-void SliceSetMobility( SlicePtr s, int b );
+void SliceSetPaused( SlicePtr s, int b );
 void SliceSetClipping( SlicePtr s, int b );
 
 #ifdef __cplusplus

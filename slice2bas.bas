@@ -104,7 +104,7 @@ Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as in
   WrInt fh, n, d, "width", "w"
   WrInt fh, n, d, "height", "h"
  end if
- WrInt fh, n, d, "mobile", , YES
+ WrInt fh, n, d, "paused"
  WrInt fh, n, d, "clip"
  WrInt fh, n, d, "velocity.x", "vx"
  WrInt fh, n, d, "velocity.y", "vy"
