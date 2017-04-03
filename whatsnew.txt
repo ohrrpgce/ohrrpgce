@@ -68,6 +68,7 @@ WHAT IS NEW?
     * When displaying NPC debug info with F6, NPC collision information
       is displayed [James]
     * General bitset "Don't stop music when starting/loading game" [Ralph]
+    * Ability to reorder shop items/things [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

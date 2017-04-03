@@ -61,10 +61,11 @@ DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
 
 DECLARE SUB shopdata ()
-DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
+DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
-DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
+DECLARE SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
+DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
 DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
@@ -990,7 +991,7 @@ SUB shop_add_new (shopst as ShopEditState)
   LOOP
 END SUB
 
-SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
+SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
  DIM stuf as ShopStuffState
 
  stuf.max(3) = 1
@@ -1028,7 +1029,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
  shop_load_stf shop_id, stuf, stufbuf()
  
  update_shop_stuff_type stuf, stufbuf()
- update_shop_stuff_menu stuf, stufbuf(), thing_total
+ update_shop_stuff_menu stuf, stufbuf(), thing_last_id
  
  setkeys YES
  DO
@@ -1042,19 +1043,31 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
   SELECT CASE stuf.st.pt
    CASE 1 'browse shop stuff
     DIM newthing as integer = stuf.thing
-    IF intgrabber_with_addset(newthing, 0, thing_total, 49, "Shop Thing") THEN
-     shop_save_stf shop_id, stuf, stufbuf()
-     stuf.thing = newthing
-     IF stuf.thing > thing_total THEN
-      thing_total = stuf.thing
-      flusharray stufbuf(), dimbinsize(binSTF), 0
-      stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-      update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
+    IF keyval(scShift) > 0 THEN
+     ' While holding Shift, can swap a thing with the one before/after it.
+     IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
+      IF keyval(scLeft) > 1 AND stuf.thing > 0 THEN newthing -= 1
+      IF keyval(scRight) > 1 AND stuf.thing < thing_last_id THEN newthing += 1
       shop_save_stf shop_id, stuf, stufbuf()
+      shop_swap_stf shop_id, stuf.thing, newthing
+      stuf.thing = newthing
+      stuf.st.need_update = YES
      END IF
-     shop_load_stf shop_id, stuf, stufbuf()
-     update_shop_stuff_type stuf, stufbuf()
-     stuf.st.need_update = YES
+    ELSE
+     IF intgrabber_with_addset(newthing, 0, thing_last_id, 49, "Shop Thing") THEN
+      shop_save_stf shop_id, stuf, stufbuf()
+      stuf.thing = newthing
+      IF stuf.thing > thing_last_id THEN
+       thing_last_id = stuf.thing
+       flusharray stufbuf(), dimbinsize(binSTF), 0
+       stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
+       update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
+       shop_save_stf shop_id, stuf, stufbuf()
+      END IF
+      shop_load_stf shop_id, stuf, stufbuf()
+      update_shop_stuff_type stuf, stufbuf()
+      stuf.st.need_update = YES
+     END IF
     END IF
    CASE 2 'name
     IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
@@ -1093,11 +1106,16 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_total as integer)
   usemenu stuf.st
 
   IF stuf.st.need_update THEN
-   update_shop_stuff_menu stuf, stufbuf(), thing_total
+   update_shop_stuff_menu stuf, stufbuf(), thing_last_id
   END IF
-   
+
   clearpage dpage
   standardmenu stuf.menu(), stuf.st, 0, 0, dpage
+
+  IF stuf.st.pt = 1 THEN  'thing ID selection
+   textcolor uilook(uiDisabledItem), 0
+   printstr "SHIFT + Left/Right to reorder", pRight, pBottom, dpage
+  END IF
  
   SWAP vpage, dpage
   setvispage vpage
@@ -1145,10 +1163,11 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
  END SELECT
 END SUB
 
-SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_total as integer)
+SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
 
  stuf.menu(0) = "Previous Menu"
- stuf.menu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & thing_total & CHR(26)
+ ' This is inaccurate; if there are 11 things we write "X of 10".
+ stuf.menu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & thing_last_id & CHR(26)
  stuf.menu(2) = "Name: " & stuf.thingname
  stuf.menu(3) = "Type: "
 
@@ -1218,6 +1237,7 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
  stuf.st.need_update = NO
 END SUB
 
+' Read the selected shop thing record from .stf, with error checking
 SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
  flusharray stufbuf(), dimbinsize(binSTF), 0
  loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + stuf.thing
@@ -1232,9 +1252,20 @@ SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufb
  NEXT
 END SUB
 
+' Write the selected shop thing record to .stf
 SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
  writebadbinstring stuf.thingname, stufbuf(), 0, 16
  storerecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + stuf.thing
+END SUB
+
+' Swap two shop thing records
+SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
+ dim size as integer = getbinsize(binSTF) \ 2
+ dim as integer stufbuf1(size), stufbuf2(size)
+ loadrecord stufbuf1(), game & ".stf", size, shop_id * 50 + thing_id1
+ loadrecord stufbuf2(), game & ".stf", size, shop_id * 50 + thing_id2
+ storerecord stufbuf1(), game & ".stf", size, shop_id * 50 + thing_id2
+ storerecord stufbuf2(), game & ".stf", size, shop_id * 50 + thing_id1
 END SUB
 
 
