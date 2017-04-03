@@ -224,9 +224,10 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
   EXIT SUB
  END IF
 
- 'deduct stock from gam.stock() (-1 is infinite, 0 is unloaded, 1+ is actual stock -1)
- IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
-  gam.stock(buyst.shop_id, thing_slot) -= 1
+ 'deduct stock from gam.stock() (-1 is infinite, 0 is unloaded, 1+ is actual stock +1)
+ DIM stockidx as integer = thing."stockidx".default(thing_slot)
+ IF gam.stock(buyst.shop_id, stockidx) > 1 THEN
+  gam.stock(buyst.shop_id, stockidx) -= 1
  END IF
  
  DIM set_tag as integer = buy."set_tag".default(0).integer
@@ -250,6 +251,7 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
  evalitemtags
 END SUB
 
+'thing is either "hero" or "item" node of a shop thing, in the new RELOAD respresentation of STF
 SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "Money", 10)
  
@@ -345,12 +347,10 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  END IF
 
  '--show stock
- DIM thing_parent as NodePtr = NodeParent(thing)
- IF thing_parent THEN
-  DIM thing_slot as integer = GetInteger(thing_parent)
-  IF gam.stock(buyst.shop_id, thing_slot) > 1 THEN
-   append_menu_item buyst.info, gam.stock(buyst.shop_id, thing_slot) - 1 & " " & readglobalstring(97, "in stock", 20)
-  END IF
+ ' There's no real need to provide a default for stockidx; it should always exist
+ DIM stockamount as integer = gam.stock(buyst.shop_id, thing."stockidx")
+ IF stockamount > 1 THEN
+  append_menu_item buyst.info, stockamount - 1 & " " & readglobalstring(97, "in stock", 20)
  END IF
  
  IF buy THEN
@@ -449,14 +449,15 @@ FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
   RETURN NO
  END IF
 
- DIM slotnum as integer = GetInteger(slot)
- 'Load stock data if unloaded.
- IF gam.stock(buyst.shop_id, slotnum) = 0 THEN
+ 'There's no real need to provide a default for stockidx, it should always exist
+ DIM stockidx as integer = thing."stockidx".default(GetInteger(slot))
+ 'Load stock data if uninitialised.
+ IF gam.stock(buyst.shop_id, stockidx) = 0 THEN
   IF thing."stock".exists THEN
-   gam.stock(buyst.shop_id, slotnum) = thing."stock".integer + 1
+   gam.stock(buyst.shop_id, stockidx) = thing."stock" + 1
   END IF
  END IF
- IF gam.stock(buyst.shop_id, slotnum) = 1 THEN
+ IF gam.stock(buyst.shop_id, stockidx) = 1 THEN
   'This item is out of stock
   RETURN NO
  END IF
@@ -1357,12 +1358,16 @@ copypage page, holdscreen
 DIM sold as string = readglobalstring(84, "Sold", 10)
 
 loadshopstuf b(), id
-FOR i as integer = 0 TO storebuf(16)
- IF gam.stock(id, i) = 0 THEN
-  gam.stock(id, i) = b(i * recordsize + 19)
-  IF gam.stock(id, i) > -1 THEN gam.stock(id, i) = gam.stock(id, i) + 1
+
+' Initialise state of the shop stock (if we haven't visited the shop before, or if
+' new items have been added to it since last time)
+FOR slot as integer = 0 TO storebuf(16)
+ DIM stockidx as integer = b(slot * recordsize + 37)
+ IF gam.stock(id, stockidx) = 0 THEN
+  DIM stockamount as integer = b(stockidx * recordsize + 19)
+  gam.stock(id, stockidx) = IIF(stockamount < 0, stockamount, stockamount + 1)
  END IF
-NEXT i
+NEXT slot
 
 DIM ic as integer = 0
 DIM top as integer = 0
@@ -1406,8 +1411,9 @@ DO
      IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28) - 1, b(i * recordsize + 29) + 1
      'INCREMENT STOCK-------
      IF b(i * recordsize + 26) > 0 THEN
-      IF b(i * recordsize + 26) = 1 THEN gam.stock(id, i) = -1
-      IF b(i * recordsize + 26) = 2 AND gam.stock(id, i) > 0 THEN gam.stock(id, i) = gam.stock(id, i) + 1
+      DIM stockidx as integer = b(i * recordsize + 37)
+      IF b(i * recordsize + 26) = 1 THEN gam.stock(id, stockidx) = -1
+      IF b(i * recordsize + 26) = 2 AND gam.stock(id, stockidx) > 0 THEN gam.stock(id, stockidx) += 1
      END IF
     END IF
    NEXT i
@@ -2531,11 +2537,13 @@ SUB loadshopstuf (array() as integer, byval id as integer)
  'load shop data from STF lump
  loadrecord buffer(), game + ".stf", ol * 50, id
  'in case shop data has been resized, scale records to new size
- FOR o as integer = 0 to 49  'shop item
+ FOR thingidx as integer = 0 to 49  'shop item
   FOR i as integer = 0 TO ol - 1  'field in shop item record
-   array(o * nw + i) = buffer(o * ol + i)
+   array(thingidx * nw + i) = buffer(thingidx * ol + i)
   NEXT i
- NEXT o
+  ' Format upgrade: initialise stockidx
+  IF array(thingidx * nw + 37) = 0 THEN array(thingidx * nw + 37) = 1 + thingidx
+ NEXT thingidx
 END SUB
 
 FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer

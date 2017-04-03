@@ -853,6 +853,7 @@ SUB shopdata ()
    '--only allow adding shops up to 99
    'FIXME: This is because of the limitation on remembering shop stock in the SAV format
    '       when the SAV format has changed, this limit can easily be lifted.
+   'FIXME: SAV is gone, someone please increase this now :)
    new_shop_id = shopst.id
    IF intgrabber_with_addset(new_shop_id, 0, gen(genMaxShop), 99, "Shop") THEN
     shop_save shopst, shopbuf()
@@ -1061,6 +1062,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
        thing_last_id = stuf.thing
        flusharray stufbuf(), dimbinsize(binSTF), 0
        stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
+       stufbuf(37) = 1 + stuf.thing  'Set stockidx to next unused stock slot
        update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
        shop_save_stf shop_id, stuf, stufbuf()
       END IF
@@ -1250,6 +1252,8 @@ SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufb
  FOR i as integer = 32 TO 41
   stufbuf(i) = large(stufbuf(i), 0)
  NEXT
+ '--Upgrades
+ IF stufbuf(37) = 0 THEN stufbuf(37) = stuf.thing + 1  'Initialise stockidx
 END SUB
 
 ' Write the selected shop thing record to .stf
@@ -1260,8 +1264,8 @@ END SUB
 
 ' Swap two shop thing records
 SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
- dim size as integer = getbinsize(binSTF) \ 2
- dim as integer stufbuf1(size), stufbuf2(size)
+ DIM size as integer = getbinsize(binSTF) \ 2
+ DIM as integer stufbuf1(size), stufbuf2(size)
  loadrecord stufbuf1(), game & ".stf", size, shop_id * 50 + thing_id1
  loadrecord stufbuf2(), game & ".stf", size, shop_id * 50 + thing_id2
  storerecord stufbuf1(), game & ".stf", size, shop_id * 50 + thing_id2
