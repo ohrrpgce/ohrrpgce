@@ -3305,8 +3305,8 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   .sprite = frame_duplicate(sprite)
   .delay = 10
   .zoom = large(1, small(240 \ ss.wide, 170 \ ss.high))
-  .x = 0
-  .y = 0
+  .x = small(ss_save.cursor.x, ss.wide - 1)
+  .y = small(ss_save.cursor.y, ss.high - 1)
   .lastpos.x = -1
   .lastpos.y = -1
   .fastmovestep = large(4, .wide \ 10)
@@ -3443,6 +3443,7 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
  v_free ss.undo_history
 
  WITH ss_save
+  .cursor = XY(ss.x, ss.y)
   .tool = ss.tool
   .airsize = ss.airsize
   .mist = ss.mist

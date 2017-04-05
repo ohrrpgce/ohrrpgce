@@ -52,6 +52,7 @@ TYPE SpriteEditStatic
   pal_clipboard as Palette16 ptr
 
   'Minor remembered settings
+  cursor as XYPair    'Last drawing cursor position
   tool as integer
   airsize as integer
   mist as integer
