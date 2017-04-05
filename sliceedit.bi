@@ -36,6 +36,10 @@ DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFIN
 DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
 DECLARE SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
 
+DECLARE FUNCTION align_caption(align as AlignType, vertical as bool) as string
+DECLARE FUNCTION anchor_and_align_string(anchor as AlignType, align as AlignType, vertical as bool) as string
+DECLARE FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align as AlignType) as bool
+
 'Globals
 EXTERN HorizCaptions(2) as string
 EXTERN VertCaptions(2) as string

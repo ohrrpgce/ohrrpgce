@@ -173,6 +173,26 @@ FillModeCaptions(2) = "Vertical"
 
 '==============================================================================
 
+FUNCTION align_caption(align as AlignType, vertical as bool) as string
+ IF vertical THEN RETURN VertCaptions(align) ELSE RETURN HorizCaptions(align)
+END FUNCTION
+
+FUNCTION anchor_and_align_string(anchor as AlignType, align as AlignType, vertical as bool) as string
+ IF anchor = align THEN RETURN align_caption(anchor, vertical)
+ RETURN align_caption(anchor, vertical) & "-" & align_caption(align, vertical)
+END FUNCTION
+
+'Grabber to switch between all 9 anchor-align combinations
+FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align as AlignType) as bool
+ DIM temp as integer = anchor * 3 + align
+ DIM ret as bool = intgrabber(temp, 0, 8)
+ anchor = temp \ 3
+ align = temp MOD 3
+ RETURN ret
+END FUNCTION
+
+'==============================================================================
+
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer, specialcodes() as SpecialLookupCode)
  ses.collection_group_number = group
  SELECT CASE group
