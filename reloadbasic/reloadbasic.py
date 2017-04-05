@@ -142,24 +142,26 @@ class LanguageError(ParseError):
 def source_lines_iter(lines):
     """
     Joins together lines when the continuation character _ precedes a newline.
-    A '... or /'...'/ comment is allowed after the _, and is stripped (only in the case that there is a _)
+    A '... or /'...'/ comment is allowed after the _, but is stripped (only in the case that there is a _)
+    so that continuations are normalised to  '_\n'. All other newlines are stripped.
     Generates (lineno, line) pairs, where lineno is the real line number of the first line.
-    Strips newlines.
     """
     accum = ""
     lineno = None
-    # regex to search for a _ followed by optionally comment then end of line.
+    # regex to search for _ (not after alphanum) followed by optionally comment then end of line.
     # Also, the character before the _ must not be alphanumeric (eg don't match __UNIX__)
     # BUG: this is a kludge, will erroneously match characters inside
     # strings or comments like  print "_'"  or  'comment_
+    # So it would be better to implement this in pyPEG's whitespace stripping code.
     continuation = re.compile("(?<=\W)_\s*(('.*)|/'.*'/\s*)?$")
     for i, line in enumerate(lines):
         if lineno == None:
-            lineno = i + 1
+            lineno = i + 1   # Lines counted from 1
         line = line.rstrip("\n")
         match = continuation.search(line)
         if match:
-            line = line[:match.start()]
+            # Strip any comment and replace with '_\n'
+            line = line[:match.start()] + '_\n'
             accum += line
             continue
         accum += line
@@ -193,6 +195,9 @@ class FileParsingIterator(object):
             if self.starting_in_comment:
                 parse_line = "/'..." + parse_line
                 offset = -5
+            # Remove any line continuations (source_lines_iter already scanned for continuations
+            # and rewrote them into this form)
+            parse_line = parse_line.replace('_\n', '')
             ast, rest = self.parser.parse_line(parse_line, lineGrammar, matchAll = True, offset = offset)
             self.ast = ast[0]  # This is a lineGrammar ASTNode
             last_comment = self.parser.last_comment()
@@ -1370,7 +1375,7 @@ class ReloadBasicTranslator(object):
         outfile.write('\n')
         outfile.write("#define RB_SIGNATURE %s  'hopefully unique to this file\n" % self.magic_number)
         header_mark = outfile.get_mark()
-        outfile.write('#line 0\n')
+        outfile.write('#line 0 "%s"\n' % filename.replace('\\', '\\\\'))
         self.num_functions = 0
 
         iterator = TranslationIteratorWrapper(filename, self.xml_dump)
