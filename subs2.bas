@@ -1201,7 +1201,6 @@ FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
 END FUNCTION
 
 SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
- DIM speed as integer = 1
  DIM tog as integer = 0
  setkeys
  DO
@@ -1211,15 +1210,17 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_position_portrait"
   IF enter_or_space() THEN EXIT DO
-  speed = 1
-  IF keyval(scLeftShift) OR keyval(scRightShift) THEN speed = 10
-  IF keyval(scLeft)  > 0 THEN box.portrait_pos.x -= speed
-  IF keyval(scRight) > 0 THEN box.portrait_pos.x += speed
-  IF keyval(scUp)    > 0 THEN box.portrait_pos.y -= speed
-  IF keyval(scDown)  > 0 THEN box.portrait_pos.y += speed
+  DIM as integer speed = 1
+  DIM as integer delay = 90
+  IF keyval(scLeftShift) OR keyval(scRightShift) THEN speed = 10 : delay = 55
+  IF slowkey(scLeft, delay)  THEN box.portrait_pos.x -= speed
+  IF slowkey(scRight, delay) THEN box.portrait_pos.x += speed
+  IF slowkey(scUp, delay)    THEN box.portrait_pos.y -= speed
+  IF slowkey(scDown, delay)  THEN box.portrait_pos.y += speed
 
   textbox_draw_with_background box, st, backdrop, dpage
   edgeprint "Arrow keys to move, space to confirm", 0, 0, uilook(uiSelectedItem + tog), dpage
+  edgeprint "Offset " & box.portrait_pos, pLeft, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
