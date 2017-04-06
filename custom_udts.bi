@@ -290,7 +290,7 @@ TYPE MapEditState
   arrow_icons(4) as Frame ptr
   lockedzonelist(any) as integer
  
-  'Most of these could become locals after mapping gosub is broken into real subs
+  'Most of these could become locals now that the mapping gosub is broken into real subs
   tiny as bool               'whether or not to show the tiny screen relative to map area
   npc_d as integer          'used when placing npcs
   oldpos as XYPair           'used when detecting cursor movement

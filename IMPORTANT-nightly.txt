@@ -16,6 +16,13 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2017-04-06:
+64 bit builds of Custom are now (hopefully) safe to use, thanks to Wendigo
+completing a 12 year cleanup project!
+
+Also notable: the old archive of nightly builds is now gone; instead
+old builds are only archived once a week, with the last 10 weeks kept.
+
 2016-12-28:
 Back to doing some major work on sprite editor internals, so once again
 there's a risk of serious bugs appearing. 

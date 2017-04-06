@@ -25,9 +25,6 @@ dim overrode_default_zoom as bool = NO
 dim overrode_default_fullscreen as bool = NO
 dim overrode_log_dir as bool = NO
 
-'Gosub workaround global variables
-dim gosubbuf(31) as crt_jmp_buf
-dim gosubptr as integer = 0
 #ifdef timer_variables
 dim timer_variables
 #endif

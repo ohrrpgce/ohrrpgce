@@ -94,6 +94,9 @@ WHAT IS NEW?
       newly created games the defaults are both 75%. [Ralph]
 
   * Bugfixes
+    * 64-bit builds of Custom work now... for real this time! They
+      would crash in several menus. 64 bit Linux builds now available.
+      [James, Ralph, Wendigo]
     * In old games, attacks with enemy type-killer bits wrongly counted
       as elemental for the purpose of spawning. This fix is only
       applied if the game has not been edited since Ypsiliform. [James]
@@ -130,6 +133,8 @@ WHAT IS NEW?
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
     * Cross-compiling support using "scons target=..." [Ralph]
+    * After 12 years of cleanup, the source is now free of GOSUBs!
+      [James, Mike, Ralph, Wendigo]
 
 June 06 2016 [Callipygous+1]
 
