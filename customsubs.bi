@@ -20,7 +20,7 @@ DECLARE FUNCTION tag_choice_caption(byval n as integer, prefix as string="", byv
 DECLARE FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
 DECLARE FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as integer, byval tag1 as integer, byval tag2 as integer) as string
 
-DECLARE FUNCTION cond_grabber (cond as Condition, byval default as integer = 0, byval alwaysedit as integer) as integer
+DECLARE FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bool, st as MenuState) as bool
 DECLARE FUNCTION condition_string (cond as Condition, byval selected as integer, default as string = "Always", byval wide as integer = 40) as string
 
 DECLARE FUNCTION charpicker() as string

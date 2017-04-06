@@ -1829,13 +1829,13 @@ SUB condition_test_menu ()
   IF st.pt = 0 THEN
    IF enter_space_click(st) THEN EXIT DO
   ELSEIF st.pt = 2 THEN
-   tmp = cond_grabber(cond1, YES , NO)
+   tmp = cond_grabber(cond1, YES , NO, st)
   ELSEIF st.pt = 3 THEN
-   tmp = cond_grabber(cond2, NO, NO)
+   tmp = cond_grabber(cond2, NO, NO, st)
   ELSEIF st.pt = 5 THEN
-   tmp = cond_grabber(cond3, YES, YES)
+   tmp = cond_grabber(cond3, YES, YES, st)
   ELSEIF st.pt = 6 THEN
-   tmp = cond_grabber(cond4, NO, YES)
+   tmp = cond_grabber(cond4, NO, YES, st)
   ELSEIF st.pt = 7 THEN
    tmp = percent_cond_grabber(atkcond, atkcond_repr, ": Never", -9.99, 9.99, 5)
   ELSEIF st.pt = 8 THEN

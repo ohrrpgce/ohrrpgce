@@ -382,6 +382,7 @@ END SUB
 ' if .autosize is true.
 ' Used if you want to calculate the size of the menu before the first call to standardmenu,
 ' but unless you're using menuopts.calc_size, calling init_menu_state is sufficient.
+' (Note: 'menu' is optional, needed only to calculate width.)
 ' Sets .has_been_drawn=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
 SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer, y as integer, page as integer = -1, menu as BasicMenuItem vector = NULL)

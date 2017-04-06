@@ -22,7 +22,7 @@
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
-DECLARE SUB cond_editor (cond as Condition, byval default as integer = 0)
+DECLARE SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuState)
 DECLARE SUB platform_options_append_gamepad_button_menu_items (byval gamepad as NodePtr, menu as MenuDef, byval use_dpad as bool, buttons() as string, default_scancodes() as integer)
 DECLARE SUB edit_button_name_strings()
 DECLARE FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
@@ -250,7 +250,7 @@ END FUNCTION
 'default: meaning of the null condition (true: ALWAYS, false: NEVER)
 'alwaysedit: experimental parameter, changes behaviour of enter/space
 'Return value is currently very unreliable.
-FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval alwaysedit as integer) as integer
+FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bool, st as MenuState) as bool
 
  DIM intxt as string = getinputtext
  DIM entered_operator as integer = NO
@@ -269,7 +269,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   IF .type = compTag AND .tag = 0 THEN .type = 0
 
   'enter_or_space
-  IF .type = compTag AND alwaysedit = 0 THEN
+  IF .type = compTag AND alwaysedit = NO THEN
    IF enter_or_space() THEN
     DIM browse_tag as integer
     browse_tag = tags_menu(.tag, YES, YES)
@@ -282,8 +282,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     END IF
    END IF
   ELSE
-   'I tend to hit space while typing an expression...
-   IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
+   IF keyval(scEnter) > 1 THEN cond_editor(cond, default, st)
   END IF
 
   CONST compare_chars as string = "=<>!"
@@ -321,6 +320,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
 
      IF newtype = -1 THEN
       'This _temp variable is to work around a FB bug, https://sourceforge.net/p/fbc/bugs/816/
+      '(Fixed in FB 1.06.)
       'It only occurs when compiling with debug=0 (without -exx. Whether adding/removing -exx causes
       'the bug to occur depends on the surrounding context in the function).
       DIM _temp as integer = charnum - 1
@@ -351,6 +351,9 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     .type = compTag
    END IF
   ELSEIF .type = compTag THEN
+   'editstate meaning (asterisks indicate highlighting)
+   '0: Tag #=OFF/ON  (no highlight)
+   '1: Tag *#*=OFF/ON
    'No need to check for entered_operator
    IF INSTR(intxt, "!") THEN
     .tag = -.tag
@@ -358,8 +361,9 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     intgrabber(.tag, -max_tag(), max_tag())
    END IF
   ELSE  'Globals
+   .varnum = bound(.varnum, 0, maxScriptGlobals)  'Could be negative if it was a tag condition
    'editstate is just a state id, defining the way the condition is edited and displayed
-   '(below, asterixes indicate highlighting)
+   '(below, asterisks indicate highlighting)
    '0: Global # .. #  (initial)
    '1: Global *#*
    '2: Global # *..*
@@ -440,31 +444,35 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   END IF
 
  END WITH
+
+ 'FIXME: check if anything changed, and return YES if so
 END FUNCTION
 
 'default: meaning of the null condition (true: ALWAYS, false: NEVER)
-SUB cond_editor (cond as Condition, byval default as integer = NO)
+SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuState)
  DIM menu(10) as string
- menu(0) = "Cancel"
- menu(1) = "Always"
- menu(2) = "Never"
- menu(3) = "Tag # ON"
- menu(4) = "Tag # OFF"
- menu(5) = "Global # = #"
- menu(6) = "Global # <> #"
- menu(7) = "Global # < #"
- menu(8) = "Global # <= #"
- menu(9) = "Global # > #"
- menu(10) = "Global # >= #"
+ DIM compty(10) as integer  'CompType (can't pass that to int_array_find)
+ menu(0)  = "Cancel"
+ menu(1)  = "Always"
+ menu(2)  = "Never"
+ menu(3)  = "Tag # ON"        : compty(3)  = compTag
+ menu(4)  = "Tag # OFF"       : compty(4)  = compTag
+ menu(5)  = "Global # = #"    : compty(5)  = compEq
+ menu(6)  = "Global # <> #"   : compty(6)  = compNe
+ menu(7)  = "Global # < #"    : compty(7)  = compLt
+ menu(8)  = "Global # <= #"   : compty(8)  = compLe
+ menu(9)  = "Global # > #"    : compty(9)  = compGt
+ menu(10) = "Global # >= #"   : compty(10) = compGe
 
  DIM st as MenuState
  st.last = UBOUND(menu)
- st.size = 18
+ st.size = st.last + 1
  DIM starttag as integer = 1
 
+ ' Determine initial menu selection
  IF cond.type = compTag AND cond.tag = 0 THEN cond.type = compNone
  IF cond.type = compNone THEN
-  st.pt = iif(default, 1, 2)
+  st.pt = IIF(default, 1, 2)
  ELSEIF cond.type = compTag THEN
   starttag = ABS(cond.tag)
   IF cond.tag = 1 THEN
@@ -476,16 +484,62 @@ SUB cond_editor (cond as Condition, byval default as integer = NO)
   ELSE
    st.pt = 4
   END IF
- ELSEIF cond.type >= compEq AND cond.type <= compGe THEN
-  st.pt = cond.type - compEq + 5
+ ELSE
+  st.pt = int_array_find(compty(), cond.type)
+  IF st.pt = -1 THEN st.pt = 1   'If cond.type is invalid
  END IF
+
+ DIM menuopts as MenuOptions
+ menuopts.wide = 13 * 8  ' Minimum width
+ menuopts.calc_size = YES
+
+ ' Position to draw the menu (calculated next)
+ DIM mpos as XYPair = (60, 0)
+
+ ' Precompute the menu size
+ calc_menustate_size st, menuopts, mpos.x, mpos.y, vpage
+
+ ' Calculate screen position of the outer menu
+ ' (Note: MenuState doesn't tell where the menu will be drawn; we have to assume 0,0!)
+ WITH outer_state
+  ' Position the new menu so that the initially selected menu item
+  ' is at the same y position as the current item in the previous menu
+  mpos.y = (.pt - .top) * .spacing - (st.pt - st.top) * st.spacing
+  ' Make sure the new position is fully onscreen (and leave extra space at the bottom of the screen)
+  mpos.y = bound(mpos.y, 0, vpages(vpage)->h - .spacing)
+  IF mpos.y + st.rect.high > vpages(vpage)->h - 15 THEN mpos.y -= st.rect.high - st.spacing
+ END WITH
+
+ DIM holdpage as integer = allocatepage
+ copypage vpage, holdpage
 
  DO
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "cond_editor"
-  IF enter_space_click(st) THEN
+
+  ' Typing a number could be any type. Select what's under the cursor
+  IF compty(st.pt) <> 0 AND INSTR(getinputtext, ANY "0123456789") > 0 THEN
+   cond.type = compty(st.pt)
+   cond.varnum = 0  'Clear ID so you can type it in
+   cond.editstate = 6  'Editing global ID. Also valid editstate for tags.
+   EXIT DO
+  END IF
+
+  ' If you start typing a relation, exit to cond_grabber which will handle it
+  ' FIXME: regardless of editstate, the cond_grabber ignores the keypress
+  IF INSTR(getinputtext, ANY "=<>!") > 0 THEN
+   IF cond.type = compTag OR cond.type = compNone THEN cond.type = compEq
+   cond.editstate = 6
+   EXIT DO
+  END IF
+
+  ' Exit on TAB so that you simultaneously change to the selected comparison
+  ' and cond_grabber processes the TAB.
+  ' Also, press TAB to select a tag option but skip the tag browser.
+  IF enter_space_click(st) OR keyval(scTab) > 1 THEN
+   IF compty(st.pt) THEN cond.type = compty(st.pt)
    SELECT CASE st.pt
     CASE 0:
      EXIT DO
@@ -497,49 +551,75 @@ SUB cond_editor (cond as Condition, byval default as integer = NO)
       cond.tag = -1
      END IF
     CASE 2:
-     IF default = 0 THEN
+     IF default = NO THEN
       cond.type = compNone
      ELSE
       cond.type = compTag
       cond.tag = 1
      END IF
-    CASE 3:
-     cond.type = compTag
-     cond.tag = tags_menu(starttag, YES, YES)
-    CASE 4:
-     cond.type = compTag
-     cond.tag = tags_menu(-1 * starttag, YES, YES)
+    CASE 3, 4:
+     IF st.pt = 4 THEN starttag *= -1  'tag=OFF
+     IF keyval(scTab) > 1 THEN
+      cond.tag = starttag
+     ELSE
+      cond.tag = tags_menu(starttag, YES, YES)
+     END IF
     CASE ELSE:
      'TODO: global variable browser
-     cond.type = (st.pt - 5) + compEq
      cond.editstate = 6  'start by entering global variable number
    END SELECT
    EXIT DO
   END IF
+
   usemenu st
 
-  clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
+  copypage holdpage, vpage
+  edgeboxstyle mpos.x - 5, mpos.y - 5, st.rect.wide + 10, st.rect.high + 10, 2, vpage
+  DIM msg as string
+  IF compty(st.pt) = compNone THEN
+  ELSEIF compty(st.pt) = compTag THEN
+   msg = "ENTER to pick tag/TAB confirm"
+  ELSE
+   msg = "Type expression, TAB to switch"
+  END IF
+  edgeprint "F1 Help  " + msg, pLeft, pBottom, uilook(uiText), vpage
+  standardmenu menu(), st, mpos.x, mpos.y, vpage, menuopts
   setvispage vpage
   dowait
  LOOP
+ freepage holdpage
 END SUB
 
 'Returns a printable representation of a Condition with lots of ${K} colours
 'default: the text displayed for a null Condition
 'selected: whether this menu item is selected
 'wide: max string length to return (not implemented yet)
-FUNCTION condition_string (cond as Condition, byval selected as integer, default as string = "Always", byval wide as integer = 40) as string
+FUNCTION condition_string (cond as Condition, selected as bool, default as string = "Always", wide as integer = 40) as string
  DIM ret as string = default
  DIM hlcol as integer = uilook(uiHighlight2)
 
- IF selected = NO THEN cond.editstate = 0: cond.lastinput = 0
+ IF selected = NO THEN
+  cond.editstate = 0
+  cond.lastinput = 0
+ ELSEIF cond.editstate = 0 THEN
+  ' Set initial edit state to highlight the relevant part
+  IF cond.type = compTag THEN
+   cond.editstate = 1
+  ELSEIF cond.type <> compNone THEN
+   cond.editstate = 6   ' Initially, the global ID is edited
+  END IF
+ END IF
 
  IF cond.type = compNone THEN
  ELSEIF cond.type = compTag THEN
   IF cond.tag = 0 THEN
   ELSE
-   ret = "Tag " & ABS(cond.tag) & IIF(cond.tag >= 0, "=ON", "=OFF")
+   IF cond.editstate = 0 THEN
+    ret = "Tag " & ABS(cond.tag)
+   ELSE
+    ret = "Tag " & hilite(STR(ABS(cond.tag)), hlcol)
+   END IF
+   ret += IIF(cond.tag >= 0, "=ON", "=OFF")
    IF cond.tag = 1 THEN
     ret += " [Never]"
    ELSEIF cond.tag = -1 THEN
@@ -559,7 +639,7 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
    CASE 3
     ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & hilite(" " & cond.value, hlcol)
    CASE 4
-    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol) & cond.value
+    ret = "Global #" & cond.varnum & " " & hilite(comp_strings(cond.type), hlcol) & " " & cond.value
    CASE 5
     'FIXME: a tag for text background colour hasn't been implemented yet
     ret = "Global #" & cond.varnum & hilite(" ? ", hlcol) & cond.value
@@ -569,6 +649,12 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
  ELSE
   ret = "[Corrupt condition data]"
  END IF
+
+ IF selected THEN
+  ' Provide an indication that you can press Enter
+  ret += "..."
+ END IF
+
  RETURN ret
 END FUNCTION
 
