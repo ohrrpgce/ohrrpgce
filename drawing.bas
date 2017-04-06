@@ -78,6 +78,15 @@ DECLARE SUB spriteedit_draw_palette(pal16 as Palette16 ptr, x as integer, y as i
 DECLARE SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
 DECLARE SUB spriteedit_display(ss as SpriteEditState)
 DECLARE SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
+DECLARE SUB spriteedit_reset_tool(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_strait_line(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_draw_square(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_draw_oval(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_put_dot(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_spray_spot(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_replace_col(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_flood_fill(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_sprctrl(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
 DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
@@ -3414,16 +3423,16 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   END IF
   IF keyval(scESC) > 1 THEN
    IF ss.hold = YES THEN
-    GOSUB resettool
+    spriteedit_reset_tool(ss)
    ELSE
     spriteedit_clip ss
-    GOSUB resettool
+    spriteedit_reset_tool(ss)
     EXIT DO
    END IF
   END IF
   IF keyval(scF1) > 1 THEN show_help "sprite_editor"
   IF ss.delay = 0 THEN
-   GOSUB sprctrl
+   spriteedit_sprctrl(ss)
   END IF
   ss.delay = large(ss.delay - 1, 0)
   spriteedit_display ss
@@ -3454,451 +3463,452 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
  'Save the sprite before leaving
  spriteedit_clip ss
  ss.save_callback(ss.sprite, ss.save_callback_context)
-EXIT SUB
+END SUB
 
-sprctrl:
-'Debug keys
-IF keyval(scCtrl) > 0 AND keyval(sc3) > 1 THEN setvispage 3: waitforanykey
-'Normal keys
-IF ss.mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
- ss.lastpos.x = -1
- ss.lastpos.y = -1
-END IF
-IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR YES
+SUB spriteedit_sprctrl(byref ss as SpriteEditState)
+ 'Debug keys
+ IF keyval(scCtrl) > 0 AND keyval(sc3) > 1 THEN setvispage 3: waitforanykey
+ 'Normal keys
+ IF ss.mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
+  ss.lastpos.x = -1
+  ss.lastpos.y = -1
+ END IF
+ IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR YES
 
-' Changing the index in the 16 color palette
-IF keyval(scComma) > 1 AND ss.palindex > 0 THEN
- ss.palindex -= 1
- ss.showcolnum = COLORNUM_SHOW_TICKS
-END IF
-IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN
- ss.palindex += 1
- ss.showcolnum = COLORNUM_SHOW_TICKS
-END IF
-IF ss.zonenum = 2 THEN
- IF ss.mouse.clicks > 0 THEN
-  ss.palindex = small(ss.zone.x \ 4, 15)
+ ' Changing the index in the 16 color palette
+ IF keyval(scComma) > 1 AND ss.palindex > 0 THEN
+  ss.palindex -= 1
   ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
-END IF
+ IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN
+  ss.palindex += 1
+  ss.showcolnum = COLORNUM_SHOW_TICKS
+ END IF
+ IF ss.zonenum = 2 THEN
+  IF ss.mouse.clicks > 0 THEN
+   ss.palindex = small(ss.zone.x \ 4, 15)
+   ss.showcolnum = COLORNUM_SHOW_TICKS
+  END IF
+ END IF
 
-' Changing to a different 16 color palette
-IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND ss.mouse.clicks > 0) THEN
- ' Previous palette
- changepal ss, -1
-END IF
-IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND ss.mouse.clicks > 0) THEN
- ' Next palette
- changepal ss, 1
-END IF
-IF keyval(scP) > 1 OR (ss.zonenum = 19 AND ss.mouse.clicks > 0) THEN '--call palette browser
- '--write changes so far
- ss.save_callback(ss.sprite, ss.save_callback_context)
- '--save current palette
- palette16_save ss.palette, ss.pal_num
- ss.pal_num = pal16browse(ss.pal_num, ss.fileset, ss.spriteset_num)
- clearkey(scEnter)
- clearkey(scSpace)
- palette16_unload @ss.palette
- ss.palette = palette16_load(ss.pal_num)
-END IF
-'If the palette has changed, update genMaxPal
-gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
-
-'--UNDO
-IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND ss.mouse.clicks > 0) THEN readundospr ss
-'--REDO
-IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND ss.mouse.clicks > 0) THEN readredospr ss
-
-'--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
-IF copy_keychord() THEN
- frame_assign @ss_save.spriteclip, frame_duplicate(ss.sprite)
-END IF
-'--PASTE (SHIFT+INS,CTRL+V)
-IF paste_keychord() AND ss_save.spriteclip <> NULL THEN
- writeundospr ss
- spriteedit_clip ss
- frame_draw ss_save.spriteclip, NULL, 0, 0, , NO, ss.sprite
-END IF
-'--TRANSPARENT PASTE (CTRL+T)
-IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.spriteclip <> NULL THEN
- writeundospr ss
- spriteedit_clip ss
- frame_draw ss_save.spriteclip, NULL, 0, 0, , YES, ss.sprite
-END IF
-
-'--COPY PALETTE (ALT+C)
-IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN
- palette16_unload @ss_save.pal_clipboard
- ss_save.pal_clipboard = palette16_duplicate(ss.palette)
-END IF
-'--PASTE PALETTE (ALT+V)
-IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
- IF ss_save.pal_clipboard THEN
+ ' Changing to a different 16 color palette
+ IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND ss.mouse.clicks > 0) THEN
+  ' Previous palette
+  changepal ss, -1
+ END IF
+ IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND ss.mouse.clicks > 0) THEN
+  ' Next palette
+  changepal ss, 1
+ END IF
+ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND ss.mouse.clicks > 0) THEN '--call palette browser
+  '--write changes so far
+  ss.save_callback(ss.sprite, ss.save_callback_context)
+  '--save current palette
+  palette16_save ss.palette, ss.pal_num
+  ss.pal_num = pal16browse(ss.pal_num, ss.fileset, ss.spriteset_num)
+  clearkey(scEnter)
+  clearkey(scSpace)
   palette16_unload @ss.palette
-  ss.palette = palette16_duplicate(ss_save.pal_clipboard)
+  ss.palette = palette16_load(ss.pal_num)
  END IF
-END IF
+ 'If the palette has changed, update genMaxPal
+ gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
 
-' Change master palette index for the selected palette color
-ss.curcolor = ss.palette->col(ss.palindex)
-IF keyval(scAlt) > 0 THEN
- IF keyval(scUp) > 1    AND ss.curcolor > 15  THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scDown) > 1  AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
- IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
-END IF
-IF (ss.mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
- ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
- ss.showcolnum = COLORNUM_SHOW_TICKS
-END IF
-ss.palette->col(ss.palindex) = ss.curcolor
+ '--UNDO
+ IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND ss.mouse.clicks > 0) THEN readundospr ss
+ '--REDO
+ IF (keyval(scCtrl) > 0 AND keyval(scY) > 1) OR (ss.zonenum = 21 AND ss.mouse.clicks > 0) THEN readredospr ss
 
-' Change Shift-move speed
-IF keyval(scShift) > 0 THEN
- IF keyval(scF) > 1 THEN ss.fastmovestep += 1
- IF keyval(scS) > 1 THEN ss.fastmovestep = large(ss.fastmovestep - 1, 2)
-END IF
+ '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
+ IF copy_keychord() THEN
+  frame_assign @ss_save.spriteclip, frame_duplicate(ss.sprite)
+ END IF
+ '--PASTE (SHIFT+INS,CTRL+V)
+ IF paste_keychord() AND ss_save.spriteclip <> NULL THEN
+  writeundospr ss
+  spriteedit_clip ss
+  frame_draw ss_save.spriteclip, NULL, 0, 0, , NO, ss.sprite
+ END IF
+ '--TRANSPARENT PASTE (CTRL+T)
+ IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND ss_save.spriteclip <> NULL THEN
+  writeundospr ss
+  spriteedit_clip ss
+  frame_draw ss_save.spriteclip, NULL, 0, 0, , YES, ss.sprite
+ END IF
 
-' Change brush position
-IF keyval(scAlt) = 0 THEN
- DIM fixmouse as integer = NO
- WITH ss
-  fixmouse = NO
-  DIM stepsize as integer = IIF(keyval(scShift) > 0, .fastmovestep, 1)
-  IF slowkey(scUp, 100)    THEN .y -= stepsize: fixmouse = YES
-  IF slowkey(scDown, 100)  THEN .y += stepsize: fixmouse = YES
-  IF slowkey(scLeft, 100)  THEN .x -= stepsize: fixmouse = YES
-  IF slowkey(scRight, 100) THEN .x += stepsize: fixmouse = YES
-  .x = bound(.x, 0, .wide - 1)
-  .y = bound(.y, 0, .high - 1)
- END WITH
- IF fixmouse THEN
-  IF ss.zonenum = 1 THEN
-   ss.zone.x = ss.x * ss.zoom + (ss.zoom \ 2)
-   ss.zone.y = ss.y * ss.zoom + (ss.zoom \ 2)
-   ss.mouse.x = ss.area(0).x + ss.zone.x 
-   ss.mouse.y = ss.area(0).y + ss.zone.y
-   movemouse ss.mouse.x, ss.mouse.y
-  END IF 
-  IF ss.zonenum = 14 THEN
-   ss.zone.x = ss.x
-   ss.zone.y = ss.y
-   ss.mouse.x = ss.area(13).x + ss.zone.x 
-   ss.mouse.y = ss.area(13).y + ss.zone.y
-   movemouse ss.mouse.x, ss.mouse.y
+ '--COPY PALETTE (ALT+C)
+ IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN
+  palette16_unload @ss_save.pal_clipboard
+  ss_save.pal_clipboard = palette16_duplicate(ss.palette)
+ END IF
+ '--PASTE PALETTE (ALT+V)
+ IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
+  IF ss_save.pal_clipboard THEN
+   palette16_unload @ss.palette
+   ss.palette = palette16_duplicate(ss_save.pal_clipboard)
   END IF
  END IF
-END IF
-' Mouse over main sprite view
-IF ss.zonenum = 1 THEN
- ss.x = ss.zone.x \ ss.zoom
- ss.y = ss.zone.y \ ss.zoom
-END IF
 
-IF keyval(scAlt) = 0 AND keyval(scShift) = 0 THEN
- ' Select palette colour by typing in a number with 0-9 keys (numpad not supported)
- FOR idx as integer = 1 TO 10
-  IF keyval(sc1 + idx - 1) > 1 THEN
-   DIM digit as integer = IIF(idx = 10, 0, idx)
-   IF TIMER < ss.number_typing_deadline THEN
-    ss.palindex = small(ss.palindex * 10 + digit, 15)
-   ELSE
-    ss.palindex = digit
+ ' Change master palette index for the selected palette color
+ ss.curcolor = ss.palette->col(ss.palindex)
+ IF keyval(scAlt) > 0 THEN
+  IF keyval(scUp) > 1    AND ss.curcolor > 15  THEN ss.curcolor -= 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(scDown) > 1  AND ss.curcolor < 240 THEN ss.curcolor += 16 : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(scLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
+  IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
+ END IF
+ IF (ss.mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
+  ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
+  ss.showcolnum = COLORNUM_SHOW_TICKS
+ END IF
+ ss.palette->col(ss.palindex) = ss.curcolor
+
+ ' Change Shift-move speed
+ IF keyval(scShift) > 0 THEN
+  IF keyval(scF) > 1 THEN ss.fastmovestep += 1
+  IF keyval(scS) > 1 THEN ss.fastmovestep = large(ss.fastmovestep - 1, 2)
+ END IF
+
+ ' Change brush position
+ IF keyval(scAlt) = 0 THEN
+  DIM fixmouse as integer = NO
+  WITH ss
+   fixmouse = NO
+   DIM stepsize as integer = IIF(keyval(scShift) > 0, .fastmovestep, 1)
+   IF slowkey(scUp, 100)    THEN .y -= stepsize: fixmouse = YES
+   IF slowkey(scDown, 100)  THEN .y += stepsize: fixmouse = YES
+   IF slowkey(scLeft, 100)  THEN .x -= stepsize: fixmouse = YES
+   IF slowkey(scRight, 100) THEN .x += stepsize: fixmouse = YES
+   .x = bound(.x, 0, .wide - 1)
+   .y = bound(.y, 0, .high - 1)
+  END WITH
+  IF fixmouse THEN
+   IF ss.zonenum = 1 THEN
+    ss.zone.x = ss.x * ss.zoom + (ss.zoom \ 2)
+    ss.zone.y = ss.y * ss.zoom + (ss.zoom \ 2)
+    ss.mouse.x = ss.area(0).x + ss.zone.x 
+    ss.mouse.y = ss.area(0).y + ss.zone.y
+    movemouse ss.mouse.x, ss.mouse.y
+   END IF 
+   IF ss.zonenum = 14 THEN
+    ss.zone.x = ss.x
+    ss.zone.y = ss.y
+    ss.mouse.x = ss.area(13).x + ss.zone.x 
+    ss.mouse.y = ss.area(13).y + ss.zone.y
+    movemouse ss.mouse.x, ss.mouse.y
    END IF
-   ' Show the colour index for exactly how long the user has to type in a 2-digit palette index
-   ss.showcolnum = 30  ' equal to COLORNUM_SHOW_TICKS anyway
-   ss.number_typing_deadline = TIMER + ss.showcolnum / 60
   END IF
- NEXT idx
-END IF
+ END IF
+ ' Mouse over main sprite view
+ IF ss.zonenum = 1 THEN
+  ss.x = ss.zone.x \ ss.zoom
+  ss.y = ss.zone.y \ ss.zoom
+ END IF
 
-IF ss.tool = airbrush_tool THEN '--adjust airbrush
- IF ss.mouse.buttons AND mouseLeft THEN
-  IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - ss.tick, 1)
-  IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + ss.tick, 80)
-  IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - ss.tick, 1)
-  IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + ss.tick, 99)
+ IF keyval(scAlt) = 0 AND keyval(scShift) = 0 THEN
+  ' Select palette colour by typing in a number with 0-9 keys (numpad not supported)
+  FOR idx as integer = 1 TO 10
+   IF keyval(sc1 + idx - 1) > 1 THEN
+    DIM digit as integer = IIF(idx = 10, 0, idx)
+    IF TIMER < ss.number_typing_deadline THEN
+     ss.palindex = small(ss.palindex * 10 + digit, 15)
+    ELSE
+     ss.palindex = digit
+    END IF
+    ' Show the colour index for exactly how long the user has to type in a 2-digit palette index
+    ss.showcolnum = 30  ' equal to COLORNUM_SHOW_TICKS anyway
+    ss.number_typing_deadline = TIMER + ss.showcolnum / 60
+   END IF
+  NEXT idx
  END IF
- IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
-  IF keyval(scCtrl) > 0 THEN
-   ss.mist = large(ss.mist - 1, 1)
-  ELSE
-   ss.airsize = large(ss.airsize - 1, 1)
+
+ IF ss.tool = airbrush_tool THEN '--adjust airbrush
+  IF ss.mouse.buttons AND mouseLeft THEN
+   IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - ss.tick, 1)
+   IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + ss.tick, 80)
+   IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - ss.tick, 1)
+   IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + ss.tick, 99)
+  END IF
+  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+   IF keyval(scCtrl) > 0 THEN
+    ss.mist = large(ss.mist - 1, 1)
+   ELSE
+    ss.airsize = large(ss.airsize - 1, 1)
+   END IF
+  END IF
+  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+   IF keyval(scCtrl) > 0 THEN
+    ss.mist = small(ss.mist + 1, 99)
+   ELSE
+    ss.airsize = small(ss.airsize + 1, 80)
+   END IF
   END IF
  END IF
- IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
-  IF keyval(scCtrl) > 0 THEN
-   ss.mist = small(ss.mist + 1, 99)
-  ELSE
-   ss.airsize = small(ss.airsize + 1, 80)
+ IF ss.tool = clone_tool THEN
+  '--When clone tool is active, rotate the clone buffer
+  IF ss.mouse.buttons AND mouseLeft THEN
+   IF ss_save.clone_brush THEN
+    IF ss.zonenum = 16 THEN
+     frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
+     ss.delay = 20
+    END IF
+    IF ss.zonenum = 18 THEN
+     frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
+     ss.delay = 20
+    END IF
+   END IF
   END IF
- END IF
-END IF
-IF ss.tool = clone_tool THEN
- '--When clone tool is active, rotate the clone buffer
- IF ss.mouse.buttons AND mouseLeft THEN
-  IF ss_save.clone_brush THEN
+ ELSEIF ss.tool <> airbrush_tool THEN
+  '--when other tools are active, rotate the whole buffer
+  '--except for the airbrush tool because it's buttons collide.
+  IF ss.mouse.buttons AND mouseLeft THEN
    IF ss.zonenum = 16 THEN
-    frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
+    spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
     ss.delay = 20
    END IF
    IF ss.zonenum = 18 THEN
-    frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
+    spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
     ss.delay = 20
    END IF
   END IF
  END IF
-ELSEIF ss.tool <> airbrush_tool THEN
- '--when other tools are active, rotate the whole buffer
- '--except for the airbrush tool because it's buttons collide.
- IF ss.mouse.buttons AND mouseLeft THEN
-  IF ss.zonenum = 16 THEN
-   spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
-   ss.delay = 20
-  END IF
-  IF ss.zonenum = 18 THEN
-   spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
-   ss.delay = 20
-  END IF
+
+ ' Mouse over thumbnail view
+ IF ss.zonenum = 14 THEN
+  ss.x = ss.zone.x
+  ss.y = ss.zone.y
  END IF
-END IF
 
-' Mouse over thumbnail view
-IF ss.zonenum = 14 THEN
- ss.x = ss.zone.x
- ss.y = ss.zone.y
-END IF
-
-IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (ss.mouse.buttons AND mouseLeft)) OR keyval(scSpace) > 0 THEN
- SELECT CASE ss.tool
-  CASE draw_tool
-   GOSUB putdot
-  CASE box_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss.hold THEN
-     ss.hold = NO: GOSUB drawsquare
-    ELSE
-     ss.hold = YES
-     ss.holdpos.x = ss.x
-     ss.holdpos.y = ss.y
-    END IF
-   END IF
-  CASE line_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss.hold = YES THEN
-     ss.hold = NO
-     GOSUB straitline
-    ELSE
-     ss.hold = YES
-     ss.holdpos.x = ss.x
-     ss.holdpos.y = ss.y
-    END IF
-   END IF
-  CASE fill_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    GOSUB floodfill
-   END IF
-  CASE replace_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    GOSUB replacecol
-   END IF
-  CASE oval_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss.hold = NO THEN
-     '--start oval
-     ss.holdpos.x = ss.x
-     ss.holdpos.y = ss.y
-     ss.ellip_angle = 0.0
-     ss.ellip_minoraxis = 0.0
-     ss.radius = 0.0
-     ss.hold = YES
-    ELSE
-     GOSUB drawoval
-     ss.hold = NO
-    END IF
-   END IF
-  CASE airbrush_tool
-   GOSUB sprayspot
-  CASE mark_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss.hold THEN
-     ss.hold = NO
-     frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, -small(ss.x, ss.holdpos.x), -small(ss.y, ss.holdpos.y))
-     ss_save.clonepos.x = ss_save.clone_brush->w \ 2
-     ss_save.clonepos.y = ss_save.clone_brush->h \ 2
-     ss.tool = clone_tool ' auto-select the clone tool after marking
-    ELSE
-     ss.hold = YES
-     ss.holdpos.x = ss.x
-     ss.holdpos.y = ss.y
-    END IF
-   END IF
-  CASE clone_tool
-   IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
-    IF ss_save.clone_brush THEN
-     IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
-      writeundospr ss
+ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (ss.mouse.buttons AND mouseLeft)) OR keyval(scSpace) > 0 THEN
+  SELECT CASE ss.tool
+   CASE draw_tool
+    spriteedit_put_dot(ss)
+   CASE box_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     IF ss.hold THEN
+      ss.hold = NO: spriteedit_draw_square(ss)
+     ELSE
+      ss.hold = YES
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
      END IF
-     spriteedit_clip ss
-     frame_draw ss_save.clone_brush, , ss.x - ss_save.clonepos.x, ss.y - ss_save.clonepos.y, , , ss.sprite
-     ss.lastpos.x = ss.x
-     ss.lastpos.y = ss.y
-    ELSE
-     ss.tool = mark_tool ' select selection tool if clone is not available
-     ss.hold = YES
-     ss.holdpos.x = ss.x
-     ss.holdpos.y = ss.y
     END IF
-   END IF
- END SELECT
-END IF
-IF ss.hold = YES AND ss.tool = oval_tool THEN
- ss.radius = SQR((ss.x - ss.holdpos.x)^2 + (ss.y - ss.holdpos.y)^2)
- IF ss.zonenum = 1 THEN
-  'Use mouse pointer instead of draw cursor for finer grain control of radius
-  ss.radius = SQR( (ss.holdpos.x + 0.5 - ss.zone.x / ss.zoom)^2 + (ss.holdpos.y + 0.5 - ss.zone.y / ss.zoom)^2 )
+   CASE line_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     IF ss.hold = YES THEN
+      ss.hold = NO
+      spriteedit_strait_line(ss)
+     ELSE
+      ss.hold = YES
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
+     END IF
+    END IF
+   CASE fill_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     spriteedit_flood_fill(ss)
+    END IF
+   CASE replace_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     spriteedit_replace_col(ss)
+    END IF
+   CASE oval_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     IF ss.hold = NO THEN
+      '--start oval
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
+      ss.ellip_angle = 0.0
+      ss.ellip_minoraxis = 0.0
+      ss.radius = 0.0
+      ss.hold = YES
+     ELSE
+      spriteedit_draw_oval(ss)
+      ss.hold = NO
+     END IF
+    END IF
+   CASE airbrush_tool
+    spriteedit_spray_spot(ss)
+   CASE mark_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     IF ss.hold THEN
+      ss.hold = NO
+      frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, -small(ss.x, ss.holdpos.x), -small(ss.y, ss.holdpos.y))
+      ss_save.clonepos.x = ss_save.clone_brush->w \ 2
+      ss_save.clonepos.y = ss_save.clone_brush->h \ 2
+      ss.tool = clone_tool ' auto-select the clone tool after marking
+     ELSE
+      ss.hold = YES
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
+     END IF
+    END IF
+   CASE clone_tool
+    IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
+     IF ss_save.clone_brush THEN
+      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
+       writeundospr ss
+      END IF
+      spriteedit_clip ss
+      frame_draw ss_save.clone_brush, , ss.x - ss_save.clonepos.x, ss.y - ss_save.clonepos.y, , , ss.sprite
+      ss.lastpos.x = ss.x
+      ss.lastpos.y = ss.y
+     ELSE
+      ss.tool = mark_tool ' select selection tool if clone is not available
+      ss.hold = YES
+      ss.holdpos.x = ss.x
+      ss.holdpos.y = ss.y
+     END IF
+    END IF
+  END SELECT
  END IF
-END IF
-FOR i as integer = 0 TO UBOUND(ss.toolinfo)
- 'Check tool selection
- 'Alt is used for alt+c and alt+v
- IF (ss.mouse.clicks > 0 AND ss.zonenum = ss.toolinfo(i).areanum + 1) OR _
-    (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(scShift) = 0 AND _
-     keyval(ss.toolinfo(i).shortcut) > 1) THEN
-  IF ss.tool <> i THEN ss.didscroll = NO
-  ss.tool = i
-  GOSUB resettool
-  ss.drawcursor = ss.toolinfo(i).cursor + 1
- END IF
-NEXT i
-IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
- IF keyval(scPlus) > 1 THEN
-  spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
- END IF
- IF keyval(scMinus) > 1 THEN
-  spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
- END IF
-END IF
-IF ss.tool = clone_tool THEN
- ' For clone brush tool, enter/right-click moves the handle point
- IF ss.readjust THEN
-  IF keyval(scEnter) = 0 AND ss.mouse.buttons = 0 THEN ' click or key release
-   ss.readjust = NO
-   ss_save.clonepos.x += (ss.x - ss.adjustpos.x)
-   ss_save.clonepos.y += (ss.y - ss.adjustpos.y)
-   ss.adjustpos.x = 0
-   ss.adjustpos.y = 0
+ IF ss.hold = YES AND ss.tool = oval_tool THEN
+  ss.radius = SQR((ss.x - ss.holdpos.x)^2 + (ss.y - ss.holdpos.y)^2)
+  IF ss.zonenum = 1 THEN
+   'Use mouse pointer instead of draw cursor for finer grain control of radius
+   ss.radius = SQR( (ss.holdpos.x + 0.5 - ss.zone.x / ss.zoom)^2 + (ss.holdpos.y + 0.5 - ss.zone.y / ss.zoom)^2 )
   END IF
- ELSE
-  IF (keyval(scEnter) AND 5) OR ss.mouse.buttons = mouseRight THEN
-   ss.readjust = YES
-   ss.adjustpos.x = ss.x
-   ss.adjustpos.y = ss.y
-  END IF
  END IF
- ' clone buffer rotation
- IF ss_save.clone_brush THEN
+ FOR i as integer = 0 TO UBOUND(ss.toolinfo)
+  'Check tool selection
+  'Alt is used for alt+c and alt+v
+  IF (ss.mouse.clicks > 0 AND ss.zonenum = ss.toolinfo(i).areanum + 1) OR _
+     (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(scShift) = 0 AND _
+      keyval(ss.toolinfo(i).shortcut) > 1) THEN
+   IF ss.tool <> i THEN ss.didscroll = NO
+   ss.tool = i
+   spriteedit_reset_tool(ss)
+   ss.drawcursor = ss.toolinfo(i).cursor + 1
+  END IF
+ NEXT i
+ IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
   IF keyval(scPlus) > 1 THEN
-   frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
+   spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
   END IF
   IF keyval(scMinus) > 1 THEN
-   frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
+   spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
   END IF
  END IF
-ELSE
- ' For all other tools, pick a color
- IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND ss.mouse.buttons = mouseRight) THEN
-  ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
-  ss.showcolnum = COLORNUM_SHOW_TICKS
+ IF ss.tool = clone_tool THEN
+  ' For clone brush tool, enter/right-click moves the handle point
+  IF ss.readjust THEN
+   IF keyval(scEnter) = 0 AND ss.mouse.buttons = 0 THEN ' click or key release
+    ss.readjust = NO
+    ss_save.clonepos.x += (ss.x - ss.adjustpos.x)
+    ss_save.clonepos.y += (ss.y - ss.adjustpos.y)
+    ss.adjustpos.x = 0
+    ss.adjustpos.y = 0
+   END IF
+  ELSE
+   IF (keyval(scEnter) AND 5) OR ss.mouse.buttons = mouseRight THEN
+    ss.readjust = YES
+    ss.adjustpos.x = ss.x
+    ss.adjustpos.y = ss.y
+   END IF
+  END IF
+  ' clone buffer rotation
+  IF ss_save.clone_brush THEN
+   IF keyval(scPlus) > 1 THEN
+    frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
+   END IF
+   IF keyval(scMinus) > 1 THEN
+    frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
+   END IF
+  END IF
+ ELSE
+  ' For all other tools, pick a color
+  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND ss.mouse.buttons = mouseRight) THEN
+   ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
+   ss.showcolnum = COLORNUM_SHOW_TICKS
+  END IF
  END IF
-END IF
-IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND ss.mouse.clicks > 0) THEN
- writeundospr ss
- frame_flip_horiz ss.sprite
-END IF
-IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
- 'Handle scrolling by dragging the mouse
- 'Did this drag start inside the sprite box? If not, ignore
- IF ss.mouse.dragging ANDALSO mouseover(ss.mouse.clickstart.x, ss.mouse.clickstart.y, 0, 0, 0, ss.area()) = ss.zonenum THEN
-  spriteedit_scroll ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
+ IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND ss.mouse.clicks > 0) THEN
+  writeundospr ss
+  frame_flip_horiz ss.sprite
  END IF
-END IF
-IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
- DIM scrolloff as XYPair
- DIM stepsize as integer = IIF(keyval(scShift) > 0, ss.fastmovestep, 1)
- IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
- IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
- IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
- IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
- spriteedit_scroll ss, scrolloff.x, scrolloff.y
-END IF
-IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
- spriteedit_import16 ss
-END IF
-IF keyval(scE) > 1 OR (ss.zonenum = 26 AND ss.mouse.clicks > 0) THEN
- palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
- spriteedit_export ss.default_export_filename, ss.sprite, ss.palette
-END IF
-ss.lastcpos = TYPE(ss.x, ss.y)
-RETRACE
+ IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
+  'Handle scrolling by dragging the mouse
+  'Did this drag start inside the sprite box? If not, ignore
+  IF ss.mouse.dragging ANDALSO mouseover(ss.mouse.clickstart.x, ss.mouse.clickstart.y, 0, 0, 0, ss.area()) = ss.zonenum THEN
+   spriteedit_scroll ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
+  END IF
+ END IF
+ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
+  DIM scrolloff as XYPair
+  DIM stepsize as integer = IIF(keyval(scShift) > 0, ss.fastmovestep, 1)
+  IF slowkey(scUp, 100)    THEN scrolloff.y -= stepsize
+  IF slowkey(scDown, 100)  THEN scrolloff.y += stepsize
+  IF slowkey(scLeft, 100)  THEN scrolloff.x -= stepsize
+  IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
+  spriteedit_scroll ss, scrolloff.x, scrolloff.y
+ END IF
+ IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
+  spriteedit_import16 ss
+ END IF
+ IF keyval(scE) > 1 OR (ss.zonenum = 26 AND ss.mouse.clicks > 0) THEN
+  palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
+  spriteedit_export ss.default_export_filename, ss.sprite, ss.palette
+ END IF
+ ss.lastcpos = TYPE(ss.x, ss.y)
+END SUB
 
-resettool:
-ss.hold = NO
-ss.readjust = NO
-ss.adjustpos.x = 0
-ss.adjustpos.y = 0
-RETRACE
-
-floodfill:
-writeundospr ss
-spriteedit_clip ss
-paintat ss.sprite, ss.x, ss.y, ss.palindex
-RETRACE
-
-replacecol:
-writeundospr ss
-spriteedit_clip ss
-replacecolor ss.sprite, readpixel(ss.sprite, ss.x, ss.y), ss.palindex
-RETRACE
-
-sprayspot:
-IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr ss
-spriteedit_clip ss
-airbrush ss.sprite, ss.x, ss.y, ss.airsize, ss.mist, ss.palindex
-ss.lastpos.x = ss.x
-ss.lastpos.y = ss.y
-RETRACE
-
-putdot:
-IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
+SUB spriteedit_flood_fill(byref ss as SpriteEditState)
  writeundospr ss
  spriteedit_clip ss
- putpixel ss.sprite, ss.x, ss.y, ss.palindex
-ELSE
- drawline ss.sprite, ss.x, ss.y, ss.lastpos.x, ss.lastpos.y, ss.palindex
-END IF
-ss.lastpos.x = ss.x
-ss.lastpos.y = ss.y
-RETRACE
+ paintat ss.sprite, ss.x, ss.y, ss.palindex
+END SUB
 
-drawoval:
-writeundospr ss
-spriteedit_clip ss
-ellipse ss.sprite, ss.holdpos.x, ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
-RETRACE
+SUB spriteedit_replace_col(byref ss as SpriteEditState)
+ writeundospr ss
+ spriteedit_clip ss
+ replacecolor ss.sprite, readpixel(ss.sprite, ss.x, ss.y), ss.palindex
+END SUB
 
-drawsquare:
-writeundospr ss
-spriteedit_clip ss
-rectangle ss.sprite, small(ss.x, ss.holdpos.x), small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex
-RETRACE
+SUB spriteedit_spray_spot(byref ss as SpriteEditState)
+ IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr ss
+ spriteedit_clip ss
+ airbrush ss.sprite, ss.x, ss.y, ss.airsize, ss.mist, ss.palindex
+ ss.lastpos.x = ss.x
+ ss.lastpos.y = ss.y
+END SUB
 
-straitline:
-writeundospr ss
-spriteedit_clip ss
-drawline ss.sprite, ss.x, .ss.y, ss.holdpos.x, ss.holdpos.y, ss.palindex
-RETRACE
+SUB spriteedit_put_dot(byref ss as SpriteEditState)
+ IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
+  writeundospr ss
+  spriteedit_clip ss
+  putpixel ss.sprite, ss.x, ss.y, ss.palindex
+ ELSE
+  drawline ss.sprite, ss.x, ss.y, ss.lastpos.x, ss.lastpos.y, ss.palindex
+ END IF
+ ss.lastpos.x = ss.x
+ ss.lastpos.y = ss.y
+END SUB
+
+SUB spriteedit_draw_oval(byref ss as SpriteEditState)
+ writeundospr ss
+ spriteedit_clip ss
+ ellipse ss.sprite, ss.holdpos.x, ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
+END SUB
+
+
+SUB spriteedit_draw_square(byref ss as SpriteEditState)
+ writeundospr ss
+ spriteedit_clip ss
+ rectangle ss.sprite, small(ss.x, ss.holdpos.x), small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex
+END SUB
+
+
+SUB spriteedit_strait_line(byref ss as SpriteEditState)
+ writeundospr ss
+ spriteedit_clip ss
+ drawline ss.sprite, ss.x, .ss.y, ss.holdpos.x, ss.holdpos.y, ss.palindex
+END SUB
+
+SUB spriteedit_reset_tool(byref ss as SpriteEditState)
+ ss.hold = NO
+ ss.readjust = NO
+ ss.adjustpos.x = 0
+ ss.adjustpos.y = 0
 END SUB
 
 SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shifty as integer)
