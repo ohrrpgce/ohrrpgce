@@ -1524,6 +1524,10 @@ END FUNCTION
 
 'This sub does lump reloading which is safe to do from anywhere
 SUB try_reload_lumps_anywhere ()
+ ' This is called from global_setkeys_hook but is not reentrant
+ STATIC entered as bool = NO
+ IF entered THEN EXIT SUB
+ entered = YES
 
  'pal handled with special message
  STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal", "sng", "efs"}
@@ -1631,6 +1635,7 @@ SUB try_reload_lumps_anywhere ()
   END IF
 
  WEND
+ entered = NO
 END SUB
 
 SUB try_to_reload_lumps_onmap ()

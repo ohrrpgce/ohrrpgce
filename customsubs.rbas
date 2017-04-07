@@ -4329,7 +4329,7 @@ SUB spawn_game_menu(gdb as bool = NO)
   gen(genCurrentDebugMode) = 1
   xbsave game + ".gen", gen(), 1000
   IF spawn_game(gdb) THEN
-   scancode = notification( "You're running your game in live preview mode." _
+   scancode = notification( "You're running your game in live preview mode. " _
                            !"Please press F1 now to read the help file for this if you haven't already.\n\n" _
                             "Press any key")
   END IF
