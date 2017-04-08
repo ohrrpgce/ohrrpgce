@@ -139,7 +139,7 @@ DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED as int32 privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
 DIM SHARED input_buffer as wstring * 128
-DIM SHARED mouseclicks as integer
+DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked, in SDL order, not OHR
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
@@ -1177,12 +1177,15 @@ END SUB
 'Change from SDL to OHR mouse button numbering (swap middle and right)
 FUNCTION fix_buttons(byval buttons as integer) as integer
   DIM mbuttons as integer = 0
-  IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
-  IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
-  IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR 4
+  IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR mouseLeft
+  IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR mouseRight
+  IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR mouseMiddle
+  IF SDL_BUTTON(SDL_BUTTON_WHEELUP) AND buttons THEN mbuttons = mbuttons OR mouseWheelUp
+  IF SDL_BUTTON(SDL_BUTTON_WHEELDOWN) AND buttons THEN mbuttons = mbuttons OR mouseWheelDown
   RETURN mbuttons
 END FUNCTION
 
+' Returns currently down mouse buttons, in SDL order, not OHR order
 FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32

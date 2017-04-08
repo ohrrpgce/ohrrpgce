@@ -45,6 +45,11 @@ script, update mouse, begin
   if(mouse button(middle button)) then ($3+" mid")
   if(mouse click(right button)) then ($3+" RIGHT")
   if(mouse button(right button)) then ($3+" right")
+  # Currently undocumented
+  if(mouse click(3)) then ($3+" UP")
+  if(mouse button(3)) then ($3+" up")
+  if(mouse click(4)) then ($3+" DOWN")
+  if(mouse button(4)) then ($3+" down")
   show string at(3, 212, 180)
 end
 

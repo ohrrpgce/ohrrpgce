@@ -170,6 +170,8 @@ ENUM MouseButton
   mouseLeft = 1
   mouseRight = 2
   mouseMiddle = 4
+  mouseWheelUp = 8
+  mouseWheelDown = 16
 END ENUM
 
 #ENDIF

@@ -1136,7 +1136,7 @@ SUB sfunctions(byval cmdid as integer)
  CASE 161'--get mouse y
   scriptret = gam.mouse.y
  CASE 162'--mouse button
-  IF retvals(0) <= 2 THEN
+  IF retvals(0) <= 4 THEN
    IF gam.mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
@@ -1170,7 +1170,7 @@ SUB sfunctions(byval cmdid as integer)
    lump_reloading.gmap.dirty = YES
   END IF
  CASE 492'--mouse click
-  IF retvals(0) <= 2 THEN
+  IF retvals(0) <= 4 THEN
    IF gam.mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
 
