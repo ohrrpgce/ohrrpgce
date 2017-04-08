@@ -87,6 +87,7 @@ DECLARE SUB spriteedit_spray_spot(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_replace_col(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_flood_fill(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_sprctrl(byref ss as SpriteEditState)
+DECLARE SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
 DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
@@ -1537,6 +1538,10 @@ DO
  clearpage dpage
  copypage 2, dpage
  frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
+ 
+ '--Draw neighboring tiles preview
+ spriteedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
+ 
  frame_clear overlay
  overlay_use_palette = YES  'OK, this is a bit of a hack
  overlaypal->col(1) = ts.curcolor
@@ -1643,6 +1648,59 @@ IF ts.gotmouse THEN
 END IF
 frame_unload @overlay
 palette16_unload @overlaypal
+END SUB
+
+SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+ ' draw neighboring tiles preview area on the left of the tile-editor
+ DIM AS Integer row = -1, column = -1
+ DIM tssize as XYPair ' tileset size
+ DIM tilesize As Integer = 20
+ DIM temp_tilepos as XYPair ' current tile position
+ DIM temp_frame as Frame ptr
+ DIM area As MouseArea
+ 
+ tssize.x = 16
+ tssize.y = 10
+ 
+ ' area for the neighbouring tiles
+ area.x = 10
+ area.y = 90
+ area.w = 61
+ area.h = 61
+ 
+ ' temporary blitting target for neighbouring tiles
+ temp_frame = frame_new(tilesize, tilesize, , YES)
+
+ ' draw white background square (plus a border of 1px)
+ rectangle area.x-1, area.y-1, area.w+1, area.h+1, uilook(uiText), 2
+ ' draw the edited tile as preview at the centre
+ frame_draw_with_background ts.drawframe, NULL, area.x+tilesize, area.y+tilesize, 1, bgcolor, chequer_scroll, vpages(dpage)
+ 
+ ' draw neighboring tiles in a circle around the middle tile 
+ For column = -1 To 1
+  For row = -1 To 1
+   If (row = 0 And column = 0) Then
+    ' don't draw the centre tile as it already exists
+    Continue For
+   End If
+   
+   temp_tilepos.x = (ts.tilex + column) * tilesize
+   temp_tilepos.y = (ts.tiley + row) * tilesize
+   
+   If temp_tilepos.x < 0 Then temp_tilepos.x = tssize.x*tilesize - tilesize
+   If temp_tilepos.y < 0 Then temp_tilepos.y = tssize.y*tilesize - tilesize
+   If temp_tilepos.x >= 320 Then temp_tilepos.x = 0
+   If temp_tilepos.y >= 200 Then temp_tilepos.y = 0
+   
+   ' create a temporary copy of the tile from the tile page
+   frame_draw vpages(3), NULL, -temp_tilepos.x, -temp_tilepos.y, , NO, temp_frame
+   ' draw the tile on the display page
+   frame_draw_with_background temp_frame, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), 1, bgcolor, chequer_scroll, vpages(dpage)
+   
+  Next row
+ Next column
+ 
+ frame_unload @temp_frame
 END SUB
 
 SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
