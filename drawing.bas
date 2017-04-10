@@ -1667,9 +1667,7 @@ END SUB
 SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
  ' draw current tile tiled as preview on the left of the tile-editor
  DIM as integer row = -1, column = -1
- DIM tssize as XYPair = (16,10) ' tileset size
  DIM tilesize as integer = 20
- DIM temp_tilepos as XYPair ' current tile position
  DIM area as RectType = (10,90,60,60)
  
  ' draw white background square (plus a border of 1px)
