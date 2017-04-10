@@ -88,6 +88,7 @@ DECLARE SUB spriteedit_replace_col(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_flood_fill(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_sprctrl(byref ss as SpriteEditState)
 DECLARE SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+DECLARE SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
 DECLARE SUB spriteedit_clip (ss as SpriteEditState)
 DECLARE SUB changepal OVERLOAD (byref palval as integer, byval palchange as integer, workpal() as integer, byval aindex as integer)
 DECLARE SUB changepal OVERLOAD (ss as SpriteEditState, palchange as integer)
@@ -1339,6 +1340,7 @@ ts.fastmovestep = 4
 DIM zox as integer = ts.x * 8 + 4
 DIM zoy as integer = ts.y * 8 + 4
 DIM zcsr as integer
+DIM preview_content as integer = 1 'tile preview (1=neighbours/-1=tiled)
 DIM overlay_use_palette as integer
 DIM fgcol as integer
 DIM bgcol as integer
@@ -1507,6 +1509,14 @@ DO
    END IF
   NEXT i
  END IF
+ '--mouse over preview
+  IF mouse.x >= 10 AND mouse.x <= 70 THEN
+   IF mouse.y >= 90 AND mouse.y <= 150 THEN
+    IF mouse.clicks AND mouseLeft THEN
+     preview_content = preview_content * -1
+    END IF
+   END IF
+  END IF
  IF ts.tool = airbrush_tool THEN '--adjust airbrush
   IF mouse.buttons AND mouseLeft THEN
    IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - tick, 1)
@@ -1539,8 +1549,12 @@ DO
  copypage 2, dpage
  frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
  
- '--Draw neighboring tiles preview
- spriteedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
+ '--Draw tile preview (1=neighbours/-1=tiled)
+ IF preview_content = 1 THEN 
+  spriteedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
+ ELSE
+  spriteedit_show_tile_tiled(ts, bgcolor, chequer_scroll)
+ END IF
  
  frame_clear overlay
  overlay_use_palette = YES  'OK, this is a bit of a hack
@@ -1648,6 +1662,29 @@ IF ts.gotmouse THEN
 END IF
 frame_unload @overlay
 palette16_unload @overlaypal
+END SUB
+
+SUB spriteedit_show_tile_tiled(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)
+ ' draw current tile tiled as preview on the left of the tile-editor
+ DIM as integer row = -1, column = -1
+ DIM tssize as XYPair = (16,10) ' tileset size
+ DIM tilesize as integer = 20
+ DIM temp_tilepos as XYPair ' current tile position
+ DIM area as RectType = (10,90,60,60)
+ 
+ ' draw white background square (plus a border of 1px)
+ rectangle area.x-1, area.y-1, area.wide+2, area.high+2, uilook(uiText), dpage
+
+ ' draw neighboring tiles in a circle around the middle tile 
+ FOR column = -1 TO 1
+  FOR row = -1 TO 1
+  
+   ' draw the edited tile as a block of 9
+   frame_draw_with_background ts.drawframe, NULL, area.x+((1+column)*tilesize), area.y+((1+row)*tilesize), 1, bgcolor, chequer_scroll, vpages(dpage)
+   
+  NEXT row
+ NEXT column
+ 
 END SUB
 
 SUB spriteedit_show_neighbouring_tiles(byref ts as TileEditState, byval bgcolor as bgType, byval chequer_scroll as integer)

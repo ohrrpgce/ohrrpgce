@@ -71,4 +71,6 @@ CTRL+Backspace flips the tile
 ] Rotates the tile 90 degrees
   clockwise.
 
+Click on the preview area at the bottom left to switch between neighbouring tiles and single tile preview.
+
 CTRL+S saves the tile immediately without exiting, which is useful if you are live-previewing the game.
