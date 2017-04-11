@@ -1509,14 +1509,15 @@ DO
    END IF
   NEXT i
  END IF
- '--mouse over preview
-  IF mouse.x >= 10 AND mouse.x <= 70 THEN
-   IF mouse.y >= 90 AND mouse.y <= 150 THEN
-    IF mouse.clicks AND mouseLeft THEN
-     preview_content = preview_content * -1
-    END IF
+ '--toggle preview
+ IF keyval(scP) > 1 THEN preview_content = preview_content * -1
+ IF mouse.x >= 10 AND mouse.x <= 70 THEN
+  IF mouse.y >= 90 AND mouse.y <= 150 THEN
+   IF mouse.clicks AND mouseLeft THEN
+    preview_content = preview_content * -1
    END IF
   END IF
+ END IF
  IF ts.tool = airbrush_tool THEN '--adjust airbrush
   IF mouse.buttons AND mouseLeft THEN
    IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - tick, 1)
