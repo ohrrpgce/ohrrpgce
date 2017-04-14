@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-???? ?? 2016 [Dwimmercrafty]
+???? ?? 2017 [Dwimmercrafty]
 
   * New Features
     * Mark Non-elemental Elementals menu lets you define which elements
@@ -1614,7 +1614,7 @@ Sept 21 2007 [ubersetzung]
     * "npc extra", "set npc extra" [Mike Caron]
     * "load sound", "free sound", "play sound", "stop sound", "pause sound"
       [Mike Caron]
-    * "search string", "trim string"[Yuriy]
+    * "search string", "trim string" [Yuriy]
     * "joystick button" and "joystick axis" [Mike Caron]
     * new built-in logic command not() [James]
     * new math operators "&&", "||", "^^" (and, or and xor respectively). These
@@ -1684,7 +1684,7 @@ July 09 2006 [hasta-la-qb]
 
   * New Features
     * Input string gets 3 new arguments, center, positionx, positiony.
-      It also behaves a little different now.(Yuriy)
+      It also behaves a little different now. [Yuriy]
     * Hspeak.exe now waits for a keypress when finished, which should avoid
       a lot of confusion for new plotscripters who are unfamiliar with
       command-line tools. Also added -k option to supress this new
