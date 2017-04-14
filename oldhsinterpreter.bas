@@ -832,9 +832,13 @@ SUB scriptmath
    writescriptvar retvals(0), retvals(1)
    scriptret = retvals(1)
   CASE 17'increment
-   writescriptvar retvals(0), readscriptvar(retvals(0)) + retvals(1)
+   DIM ret as integer = readscriptvar(retvals(0)) + retvals(1)
+   writescriptvar retvals(0), ret
+   scriptret = ret
   CASE 18'decrement
-   writescriptvar retvals(0), readscriptvar(retvals(0)) - retvals(1)
+   DIM ret as integer = readscriptvar(retvals(0)) - retvals(1)
+   writescriptvar retvals(0), ret
+   scriptret = ret
   CASE 19'not
    IF retvals(0) = 0 THEN
     scriptret = 1

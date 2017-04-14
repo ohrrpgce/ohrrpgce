@@ -287,6 +287,17 @@ script, math tests, begin
   assert((m := 3) == 3)
   assert((m -= 6) == -3)
 
+  # This brackets are mandatory, := is left-associative
+  n := (m := 9)
+  assert(m == 9)
+  assert(n == 9)
+  n += (m += 3)
+  assert(m == 12)
+  assert(n == 21)
+  n -= (m -= 1)
+  assert(m == 11)
+  assert(n == 10)
+
   assert(another global == 0)
   another global := 10
   assert(another global == 10)

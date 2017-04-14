@@ -92,6 +92,8 @@ WHAT IS NEW?
     * "get npc speed"
     * Added "textbox whole text" to read all lines from a textbox 
       into a string variable at once [Matthias]
+    * -= and += now return their result, like := does, so they can be
+      used as expressions [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

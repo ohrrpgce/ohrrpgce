@@ -252,17 +252,42 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<command id="setvariable">
 			<canon>variable := value</canon>
 			<shortname>:=</shortname>
-			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.</description>
+			<description>
+				This command assigns a new value to a variable.
+				If you do not specify the new value, the variable will be reset to zero.
+				This command works exactly the same for global and local variables.
+				<lb/>
+				The <tt>:=</tt> operation actually returns <p>value</p>, so you can use it
+				as an expression, for example in <tt>temp1 := (temp2 := 1)</tt>.
+			</description>
 		</command>
 		<command id="increment">
 			<canon>increment (variable,amount)</canon>
 			<shortname>increment</shortname>
-			<description>This command adds an amount to the current value of a variable. If you do not specify the amount, then the variable will be incremented by one. This command works exactly the same for global and local variables.<lb/>You can also increment variables by writing variable += amount</description>
+			<description>
+				or<lb/><p>variable += amount</p>
+				<lb/>
+				This command adds an amount to the current value of a variable.
+				If you do not specify the amount, then the variable will be incremented by one.
+				This command works exactly the same for global and local variables.
+				<lb/>
+				The <tt>+=</tt> operation actually returns the new value of <p>variable</p>,
+				so you can use it as an expression, for example in <tt>while ((index += 1) &lt; 10)</tt>.
+			</description>
 		</command>
 		<command id="decrement">
 			<canon>decrement (variable,amount)</canon>
 			<shortname>decrement</shortname>
-			<description>This command subtracts an amount from the current value of a variable. If you do not specify the amount, then the variable will be decremented by one. This command works exactly the same for global and local variables.<lb/>You can also decrement variables by writing variable -= amount</description>
+			<description>
+				or<lb/><p>variable -= amount</p>
+				<lb/>
+				This command subtracts an amount from the current value of a variable.
+				If you do not specify the amount, then the variable will be decremented by one.
+				This command works exactly the same for global and local variables.
+				<lb/>
+				The <tt>-=</tt> operation actually returns the new value of <p>variable</p>,
+				so you can use it as an expression, for example in <tt>while (index -= 1)</tt>.
+			</description>
 		</command>
 		<command id="readglobal">
 			<canon>read global (id)</canon>
