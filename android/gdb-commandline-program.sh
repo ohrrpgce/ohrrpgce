@@ -24,22 +24,29 @@
 # Run compile-using-toolchain.sh to generate this, or you can probably
 # point it inside the NDK without needing a standalone toolchain.
 #TOOLCHAIN=~/local/android-toolchain-r8
-TOOLCHAIN=~/local/android-toolchain
+#TOOLCHAIN=~/local/android-toolchain-r8e-api4-arm
+#TOOLCHAIN=$HOME/local/android-toolchain-r12b-api17-x86
+TOOLCHAIN=$HOME/local/android-toolchain-r8e-api9-x86
 
-NDK=/opt/android-ndk-r12b
-#NDK=/opt/android-ndk-r8e
+#NDK=/opt/android-ndk-r12b
+NDK=/opt/android-ndk-r8e
 
 # For new NDKs, e.g. r12
-OLDNDK=
-# For older NDKs, e.g. r8
-#OLDNDK=YES
+#OLDNDK=
+# For older NDKs, e.g. r8, need to give the name of the gdb binary:
+# for ARM
+OLDNDK=arm-linux-androideabi-gdb
+# for x86
+#OLDNDK=i686-linux-android-gdb
 
 # DESTDIR is the location on the device/emulator where files will be pushed to
 DESTDIR=/data/HWUserData/freebasic
 #DESTDIR=/storage/freebasic
 
-DEBUG_PORT=5011
+# This can be set to -e or -d if necessary to disambiguate the device
 ADB_FLAGS=
+
+DEBUG_PORT=5011
 GDBTEMP=gdbtemp
 
 ########## End of config
@@ -51,8 +58,9 @@ if [ $# -ne 1 ]; then
 fi
 PROG=$1
 
+
 if [ $OLDNDK ]; then
-    GDBCLIENT=$TOOLCHAIN/bin/arm-linux-androideabi-gdb
+    GDBCLIENT=$TOOLCHAIN/bin/$OLDNDK
 else
     GDBCLIENT=$TOOLCHAIN/bin/gdb-orig
 fi
@@ -81,7 +89,17 @@ adb_cmd ()
     adb $ADB_FLAGS "$@"
 }
 
-adb shell mkdir -p $DESTDIR
+# Check the ADB command, and that we can connect to the device/emulator
+ADB_TEST=`adb_cmd shell ls`
+if [ $? != 0 ] ; then
+    echo "ERROR: Could not connect to device or emulator!"
+    echo "       Please check that an emulator is running or a device is connected"
+    echo "       through USB to this machine. You can set ADB_FLAGS to -e, -d or -s <serial>"
+    echo "       in case of multiple ones."
+    exit 1
+fi
+
+adb_cmd shell mkdir -p $DESTDIR
 
 # Return the PID of a given package or program, or 0 if it doesn't run
 # $1: Package name ("com.example.hellojni") or program name ("/lib/gdbserver")
@@ -92,7 +110,7 @@ get_pid_of ()
 }
 
 log "Pushing $PROG"
-adb push $PROG $DESTDIR/
+adb_cmd push $PROG $DESTDIR/
 
 # Check that there is no other instance of gdbserver running
 GDBSERVER_PID=$(get_pid_of gdbserver)

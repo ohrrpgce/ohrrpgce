@@ -3,7 +3,7 @@
 # and some examples of compiling commandline FB or C programs for android.
 # It is NOT used to create an .apk
 
-echo "Please edit the config variables at the top of this file"
+echo "Please edit the config variables at the top of this file and the stuff to be compiled at the bottom of the file"
 exit
 
 ########################## Config
@@ -21,15 +21,17 @@ ARCH=arm
 NDK=/opt/android-ndk-r8e
 #NDK=/opt/android-ndk-r12b
 
-# Comment out this to NOT install and use a standalone toolchain
-# Note: compiling OHR programs (with scons) won't work.
+# Comment out this to NOT install and use a standalone toolchain (which is a copy of part
+# of the NDK, requires ~450MB!).
+# Note: compiling OHR programs with scons won't work without a standalone toolchain.
 STANDALONE=1
 
 HOST=linux-$(uname -m)
 
 # If STANDALONE, Android standalone toolchain will be placed here (stuff is copied from NDK directory)
-TOOLCHAIN=$HOME/local/android-toolchain-r8-x86
-#TOOLCHAIN=$HOME/local/android-toolchain-r8
+TOOLCHAIN=$HOME/local/android-toolchain-r8e-api4-arm
+#TOOLCHAIN=$HOME/local/android-toolchain-r8e-api8-x86
+#TOOLCHAIN=$HOME/local/android-toolchain-r12b-api17-x86
 # Otherwise, set to location of toolchain inside the NDK, e.g.
 #TOOLCHAIN=$NDK/toolchains/arm-linux-androideabi-4.6/prebuilt/$HOST
 #TOOLCHAIN=$NDK/toolchains/x86-4.6/prebuilt/$HOST
@@ -37,9 +39,9 @@ TOOLCHAIN=$HOME/local/android-toolchain-r8-x86
 echo $TOOLCHAIN
 
 # For new NDKs, e.g. r12
-OLDNDK=
+#OLDNDK=
 # For older NDKs, e.g. r8
-#OLDNDK=YES
+OLDNDK=YES
 
 ########################## Install stand-alone toolchain if it hasn't been already
 
@@ -101,9 +103,10 @@ export OBJDUMP=$TOOLCHAIN/bin/$TARGET-objdump
 #$CC hello.c -static -o hello.o -g $CFLAGS -march=armv7-a
 
 # An example of compiling a commandline FB program for android:
-#$FBC -target $TARGET -g test.bas
+#$FBC -target $TARGET -g test.bas -v
 
 # An example of compiling a commandline FB program for android and manually linking it:
-#$FBC -target $TARGET -g test.bas -m test -r
-#LIBDIR=$(dirname $FBC)/../lib/freebasic/android-$ARCH
-#$CC -g $LIBDIR/fbrt0.o test.c -o test -L$LIBDIR -lfbmt -llog $CFLAGS
+#BASFILE=test
+#$FBC -target $TARGET -g $BASFILE.bas -m $BASFILE -r
+#LIBDIR=$(dirname $(realpath $(which $FBC)))/../lib/freebasic/android-$ARCH
+#$CC -g $LIBDIR/fbrt0pic.o $BASFILE.c -o $BASFILE -L$LIBDIR -lfbmtpic -llog $CFLAGS
