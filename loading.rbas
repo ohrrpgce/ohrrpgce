@@ -2696,6 +2696,20 @@ SUB ClearTextBox (byref box as TextBox)
  END WITH
 END SUB
 
+'Concatenate textbox lines into a string
+FUNCTION textbox_lines_to_string(byref box as TextBox) as string
+ DIM lastline as integer
+ FOR lastline = UBOUND(box.text) TO 0 STEP -1
+  IF LEN(box.text(lastline)) THEN EXIT FOR
+ NEXT
+ DIM ret as string
+ FOR idx as integer = 0 TO lastline
+  IF idx > 0 THEN ret &= !"\n"
+  ret &= box.text(idx)
+ NEXT
+ RETURN ret
+END FUNCTION
+
 
 '==========================================================================================
 '                                         Attacks

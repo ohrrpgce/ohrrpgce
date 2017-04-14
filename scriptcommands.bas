@@ -1892,7 +1892,7 @@ SUB sfunctions(byval cmdid as integer)
     END IF
    END IF
   END IF
- CASE 240'-- string from textbox (string, box, line, ignored)
+ CASE 240'-- string from textbox (string, box, line, ignored)   [obsolete]
   IF valid_plotstr(retvals(0)) THEN
    DIM box as TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
@@ -4301,17 +4301,14 @@ SUB sfunctions(byval cmdid as integer)
   scriptret = gam.random_battle_countdown
  CASE 622'--set battle countdown
   gam.random_battle_countdown = large(0, retvals(0))
- CASE 626 '-- textbox whole text (string, box, expand, strip)
-  IF valid_plotstr(retvals(0), 4) ANDALSO _
+ CASE 626 '--textbox text (string, box, expand, strip)
+  IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
      bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , serrBadOp) THEN
-    DIM box as TextBox
-    FOR row as integer = 0 TO 6
-     LoadTextBox box, retvals(1)
-     plotstr(retvals(0)).s = plotstr(retvals(0)).s + box.text(row) + " "
-    NEXT row
-    plotstr(retvals(0)).s = LEFT(plotstr(retvals(0)).s,LEN(plotstr(retvals(0)).s)-1)
-    IF retvals(3) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
-    IF retvals(2) THEN embedtext plotstr(retvals(0)).s
+   DIM box as TextBox
+   LoadTextBox box, retvals(1)
+   plotstr(retvals(0)).s = textbox_lines_to_string(box)
+   IF retvals(3) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
+   IF retvals(2) THEN embedtext plotstr(retvals(0)).s
   END IF
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

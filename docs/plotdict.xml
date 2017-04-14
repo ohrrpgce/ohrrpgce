@@ -1576,12 +1576,17 @@ wait for text box # wait until the player continues</example>
 			<description>Loads one of the <p>line</p>s of a <p>textbox</p> into a <p>string ID</p>. Valid numbers for <p>line</p> are 0-7. If <p>expand</p> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <p>strip</p> is true (which is NOT the default), white space at the beginning and end of the string are removed.</description>
 			<seealso>
 				<ref>expandstring</ref>
+				<ref>textboxtext</ref>
 			</seealso>
 		</command>
-  <command id="textboxline">
-			<canon>textbox whole text (string ID, textbox, expand, strip)</canon>
-			<shortname>textbox whole text</shortname>
-			<description>Loads all <p>line</p>s of a <p>textbox</p> into a single <p>string ID</p>. If <p>expand</p> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <p>strip</p> is true (which is NOT the default), white space at the beginning and end of the string are removed.</description>
+		<command id="textboxtext">
+			<canon>textbox text (string ID, textbox, expand, strip)</canon>
+			<shortname>textbox text</shortname>
+			<description>
+				Loads all lines of a <p>textbox</p> into a single <p>string ID</p>.
+				If <p>expand</p> is true (which is the default) codes such as ${H1} in the string will be substituted automatically.
+				If <p>strip</p> is true (which is NOT the default), white space at the beginning and end of the string are removed.
+			</description>
 			<seealso>
 				<ref>textboxline</ref>
 			</seealso>

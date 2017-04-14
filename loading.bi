@@ -108,6 +108,7 @@ declare Function UiColorCaption(byval n as integer) as string
 declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
 declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
 declare Sub ClearTextBox (byref box as TextBox)
+declare Function textbox_lines_to_string(byref box as TextBox) as string
 
 DECLARE SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
 DECLARE SUB loadoldattackdata (array() as integer, byval index as integer)

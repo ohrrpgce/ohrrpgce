@@ -1507,22 +1507,9 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
  END WITH
 END SUB
 
-'Concatenate textbox lines into a string
-FUNCTION textbox_lines_to_string(byref box as TextBox) as string
- DIM lastline as integer
- FOR lastline = UBOUND(box.text) TO 0 STEP -1
-  IF LEN(box.text(lastline)) THEN EXIT FOR
- NEXT
- DIM ret as string
- FOR idx as integer = 0 TO lastline
-  IF idx > 0 THEN ret &= !"\n"
-  ret &= box.text(idx)
- NEXT
- RETURN ret
-END FUNCTION
-
 'Wrap and split up a string and stuff it into box.text, possibly editing 'text'
 'by trimming unneeded whitespace at the end.
+'(Opposite of textbox_lines_to_string.)
 'Returns true if it did fit, and does nothing and returns false if it didn't.
 FUNCTION textbox_string_to_lines(byref box as TextBox, byref text as string) as bool
  DIM lines() as string
