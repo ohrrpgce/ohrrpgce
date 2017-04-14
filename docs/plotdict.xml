@@ -1553,6 +1553,14 @@ wait for text box # wait until the player continues</example>
 				<ref>expandstring</ref>
 			</seealso>
 		</command>
+  <command id="textboxline">
+			<canon>textbox whole text (string ID, textbox, expand, strip)</canon>
+			<shortname>textbox whole text</shortname>
+			<description>Loads all <p>line</p>s of a <p>textbox</p> into a single <p>string ID</p>. If <p>expand</p> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <p>strip</p> is true (which is NOT the default), white space at the beginning and end of the string are removed.</description>
+			<seealso>
+				<ref>textboxline</ref>
+			</seealso>
+		</command>
 	</section>
 
 	<section title="Triggering Stuff">

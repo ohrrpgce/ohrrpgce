@@ -90,6 +90,8 @@ WHAT IS NEW?
       "move slice with wallchecking" [Ralph]
     * "slice parent" alias to "parent slice"
     * "get npc speed"
+    * Added "textbox whole text" to read all lines from a textbox 
+      into a string variable at once [Matthias]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed
