@@ -1286,6 +1286,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
  with *dat
  
   if .loaded = NO then
+   if .spritetype = sprTypeFrame then fatalerror "sprTypeFrame not loaded"  'Can't happen
    load_sprite_and_pal .img, .spritetype, .record, .pal
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
@@ -1353,28 +1354,40 @@ Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
  return sl->SliceData
 End Function
 
-'Make no mistake, this is just a hack currently
-'(and it only accepts 4 bit graphics). Default palettes not allowed.
-Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
+' Provide an external image for this sprite slice, instead of one of the game's sprites.
+' fr will be unloaded when the sprite is deleted. Use frame_reference() to avoid this.
+' Either pass pal16: an already loaded Palette16 (which will be freed when the slice is deleted),
+' or pal: a palette number, or neither if the Frame is not paletted (indexes the master palette directly).
+Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
  if sl = 0 then debug "SetSpriteToFrame null ptr": exit sub
  dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
- if pal < 0 then showerror "SetSpriteToFrame: default palettes verboten!"
+ if pal = -1 then showerror "SetSpriteToFrame: a default palette can't be used"
 
  with *dat
-  'Should not matter whether the sprite is loaded; however if we set .loaded=YES, have to have a palette
-  'if this is 4-bit.
   frame_unload(@.img.sprite)
-  .img.sprite = fr  'frame_reference(fr)
+  .img.sprite = fr
+  .record = -1
+  .frame = 0
+  .trans = YES
+  .spritetype = sprTypeFrame
+
   palette16_unload(@.img.pal)
-  .img.pal = palette16_load(pal)
+  if pal16 then
+   .img.pal = pal16
+   .paletted = YES
+  elseif pal <> -2 then
+   .img.pal = palette16_load(pal)
+   .paletted = YES
+  else
+   .paletted = NO
+  end if
+  .pal = pal
 
   sl->Width = fr->w
   sl->Height = fr->h
   .loaded = YES
 
-  .spritetype = sprTypeFrame
-  .paletted = YES
  end with
 End Sub
 
@@ -1410,7 +1423,7 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if dat->spritetype = sprTypeFrame then showerror "SaveSpriteSlice: tried to save Frame sprite": exit sub  'programmer error
  SaveProp node, "sprtype", dat->spritetype
  SaveProp node, "rec", dat->record
- if dat->paletted then
+ if dat->paletted and dat->pal <> -2 then  'sprTypeFrame may have an Palette16 without an ID
   SaveProp node, "pal", dat->pal
  end if
  SaveProp node, "frame", dat->frame

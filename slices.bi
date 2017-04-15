@@ -255,7 +255,8 @@ Type SpriteSliceData
  record as integer  'Meaningless if spritetype is sptTypeFrame
  frame as integer   'Currently displaying frame number. Must be 0 if spritetype is sptTypeFrame
  paletted as bool   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
- pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
+ pal as integer     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted.
+                    '-2 if using a custom Palette16 ptr (sprTypeFrame only).
  trans as bool      'Draw transparently?
  flipHoriz as bool  'NO normal, YES horizontally flipped
  flipVert as bool   'NO normal, YES vertically flipped
@@ -437,7 +438,7 @@ DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
-DECLARE Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
+DECLARE Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval spritetype as SpriteType = sprTypeInvalid,_

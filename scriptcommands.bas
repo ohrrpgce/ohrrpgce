@@ -3685,7 +3685,7 @@ SUB sfunctions(byval cmdid as integer)
   IF valid_plotsprite(retvals(0)) THEN
    DIM dat as SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
-   IF dat->paletted = NO THEN
+   IF dat->paletted = NO OR dat->spritetype = sprTypeFrame THEN
     'Only paletted sprites have default palettes
     scriptret = -1
    ELSE

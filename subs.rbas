@@ -785,7 +785,7 @@ DO
    state.need_update = YES
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
-    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), _
+    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), , _
                      abs_pal_num(recbuf(EnDatPal), sprTypeSmallEnemy + recbuf(EnDatPicSize), recbuf(EnDatPic))
    END IF
   END IF
