@@ -7961,20 +7961,16 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 	dim starttime as double = timer
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
-	if num > -1 then
-		hashstring = trimpath(fil) & "#" & num
-	else
+	if num <= -1 then
 		num = getdefaultpal(autotype, spr)
-		if num <> -1 then
-			hashstring = trimpath(fil) & "#" & num
-		else
+		if num = -1 then
 			return 0
 		end if
 	end if
+	hashstring = trimpath(fil) & "#" & num
 
 	'debug "Loading: " & hashstring
 	cache = Palette16_find_cache(hashstring)
-
 	if cache <> 0 then
 		cache->p->refcount += 1
 		return cache->p
@@ -8014,19 +8010,11 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		get #fh, , byt
 		ret->col(idx) = byt
 	next
-	ret->refcount = 1
 
 	close #fh
 
+	ret->refcount = 1
 	Palette16_add_cache(hashstring, ret)
-
-	'dim d as string
-	'd = hex(ret->col(0))
-	'for mag = 1 to 15
-	'	d &= "," & hex(ret->col(mag))
-	'next
-
-	'debug d
 
 	debug_if_slow(starttime, 0.1, fil)
 	return ret
@@ -8083,6 +8071,17 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 		cache->p = oldpal
 	end if
 end sub
+
+function Palette16_describe(pal as Palette16 ptr) as string
+	if pal = 0 then return "'(null)'"
+	dim temp as string
+	temp = hex(pal->col(0))
+	for idx as integer = 1 to 15
+		temp &= "," & hex(pal->col(idx))
+	next
+	return temp
+end function
+
 
 
 '==========================================================================================
