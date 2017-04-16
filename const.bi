@@ -311,7 +311,10 @@ CONST binITM = 12
 CONST binLASTENTRY = 12 ' *** Update this when adding binsize records ***
 
 Enum SpriteType
-	sprTypeInvalid = -1
+	sprTypeInvalid = -2
+	sprTypeFirst = -1
+	sprTypeFrame = -1        'A sprite created from a Frame or an engine asset
+	' Many functions only accept a type between 0 and sprTypeLastPT
 	sprTypeHero = 0
 	sprTypeSmallEnemy = 1
 	sprTypeMediumEnemy = 2
@@ -326,7 +329,7 @@ Enum SpriteType
 	sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
 	sprTypeTileset = 10      'Free to change this later (never saved)
 	sprTypeLastLoadable = 10 'Last type that frame_load knows about
-	sprTypeFrame = 11        'A sprite not loaded from file, but from a Frame. Free to change this later (never saved)
+	sprTypeOther = 11        'Used only by the arbitrary-size spriteset editor (free to change, never saved)
 	sprTypeLast = 11
 End Enum
 

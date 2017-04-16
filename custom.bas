@@ -1784,7 +1784,7 @@ SUB arbitrary_sprite_editor ()
   END SELECT
   IF enter_space_click(st) THEN
    IF st.pt = 4 THEN
-    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), -1
+    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), sprTypeOther
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF
@@ -1869,7 +1869,7 @@ SUB quad_transforms_menu ()
  st.size = 22
  st.need_update = YES
  
- DIM spritemode as integer = -1
+ DIM spritemode as integer = -1  ' Not a SpriteType. A .PT# number or -1 to show master palette
 
  DIM testframe as Frame ptr
  DIM vertices(3) as Float3

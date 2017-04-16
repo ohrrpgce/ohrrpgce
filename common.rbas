@@ -60,7 +60,7 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 DIM game_unique_id as string
 
 'Allocate sprite size table
-REDIM sprite_sizes(-1 TO sprTypeLast) as SpriteSize
+REDIM sprite_sizes(sprTypeFirst TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
 'The directory to write logs like g/c_debug[_archive].txt
@@ -4831,6 +4831,14 @@ END FUNCTION
 
 SUB setup_sprite_sizes ()
  'Populates the global sprite_sizes
+ WITH sprite_sizes(sprTypeFrame)   '-1
+  .name = "Pixel array"
+  .size.x = 16
+  .size.y = 16
+  .frames = 1
+  .directions = 1
+  .genmax = -1
+ END WITH
  WITH sprite_sizes(sprTypeHero)  '0
   .name = "Hero"
   .size.x = 32
@@ -4920,13 +4928,8 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxTile
  END WITH
- WITH sprite_sizes(sprTypeFrame)   '11
-  .name = "Pixel array"
-  .frames = 1
-  .directions = 1
- END WITH
  
- WITH sprite_sizes(-1) '--Only use for temporary use in the secret desting/debugging menu
+ WITH sprite_sizes(sprTypeOther)   '11, only for temporary use in the test arbitrary-size spriteset editor
   .name = "Experimental"
   .frames = 1
   .directions = 1

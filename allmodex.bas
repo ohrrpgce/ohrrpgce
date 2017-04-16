@@ -6692,8 +6692,8 @@ end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
 'By default, remove everything. With an argument: remove specific type
-sub sprite_empty_cache(sprtype as SpriteType = -1)
-	if sprtype = -1 then
+sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
+	if sprtype = sprTypeInvalid then
 		sprite_empty_cache_range(INT_MIN, INT_MAX, "leaked sprite ")
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
@@ -7939,7 +7939,7 @@ end function
 '(Note that the blank palette isn't put in the cache, so if that palette is later
 'added to the game, it won't auto-update.)
 'autotype, spr: spriteset type and id, for default palette lookup.
-function Palette16_load(num as integer, autotype as SpriteType = 0, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
+function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
 	dim as Palette16 ptr ret = Palette16_load(game + ".pal", num, autotype, spr)
 	if ret = 0 then
 		if num >= 0 AND default_blank then
@@ -7957,11 +7957,14 @@ end function
 'Loads and returns a palette from a file (resolving -1 to default palette),
 'Returns NULL if the palette doesn't exist!
 'autotype, spr: spriteset type and id, for default palette lookup.
-function Palette16_load(fil as string, num as integer, autotype as SpriteType = 0, spr as integer = 0) as Palette16 ptr
+function Palette16_load(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as Palette16 ptr
 	dim starttime as double = timer
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
 	if num <= -1 then
+		if autotype = sprTypeInvalid then
+			return 0
+		end if
 		num = getdefaultpal(autotype, spr)
 		if num = -1 then
 			return 0

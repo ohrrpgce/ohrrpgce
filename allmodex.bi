@@ -430,7 +430,7 @@ declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bo
 declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
-declare sub sprite_empty_cache(sprtype as SpriteType = -1)
+declare sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
 declare sub sprite_update_cache(sprtype as SpriteType)
 declare sub tileset_empty_cache()
 declare function frame_is_valid(byval p as frame ptr) as bool
@@ -442,8 +442,8 @@ declare function frame_describe(byval p as frame ptr) as string
 
 declare function palette16_new() as palette16 ptr
 declare function palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
-declare function palette16_load overload(num as integer, autotype as SpriteType = 0, spr as integer = 0, default_blank as bool = YES) as palette16 ptr
-declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = 0, spr as integer = 0) as palette16 ptr
+declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as palette16 ptr
+declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 declare sub palette16_empty_cache()
