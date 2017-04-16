@@ -62,7 +62,7 @@ declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
-declare function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
+declare function quantize_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparent as RGBcolor = TYPE(-1)) as Frame ptr
 
 declare sub stop_recording_gif()
 declare sub gif_record_frame8(fr as Frame ptr, palette() as RGBcolor)
@@ -5481,14 +5481,14 @@ private function write_bmp_header(filen as string, w as integer, h as integer, b
 	return of
 end function
 
-'Open a BMP file, read its headers, and return a file handle.
+'Open a BMP file, read its headers, and return a file handle (>= 0),
+'or -1 if invalid, or -2 if unsupported.
 'Only 1, 4, 8, 24, and 32 bit BMPs are accepted
 'Afterwards, the file is positioned at the start of the palette, if there is one
-'Returns -1 is invalid, -2 if unsupported
 function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER) as integer
 	dim bf as integer = freefile
 	if openfile(bmp, for_binary + access_read, bf) then
-		debuginfo "open_bmp_and_read_header: couldn't open " & bmp
+		debug "open_bmp_and_read_header: couldn't open " & bmp
 		return -1
 	end if
 
@@ -5596,8 +5596,7 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 	return bf
 end function
 
-
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0) as Frame ptr
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
 'The alpha channel if any is ignored
 'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
@@ -5628,10 +5627,50 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex a
 	end if
 
 	dim ret as Frame ptr
-	ret = quantise_surface(surf, pal(), firstindex, options)
+	ret = quantize_surface(surf, pal(), firstindex, options, transparency)
 
 	close #bf
 	return ret
+end function
+
+'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
+'remapped to the given master palette; NULL on error.
+'24 and 32 bit BMPs will have pixels equal to the 'transparency' color
+'mapped to masterpal() index 0 (by default nothing); 'keep_col0' is ignored.
+'8-or-fewer-bit BMPs get palette index 0 mapped to color 0 if 'keep_col0' is true,
+'otherwise they have no color 0 pixels; 'transparency' is ignored.
+function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+	dim info as BITMAPV3INFOHEADER
+
+	if bmpinfo(bmpfile, info) <> 2 then
+		' Unreadable, invalid, or unsupported
+		return NULL
+	end if
+
+	if info.biBitCount <= 8 then
+		dim ret as Frame ptr
+
+		ret = frame_import_bmp_raw(bmpfile)
+		if ret = NULL then return NULL
+
+		' Drop the palette, remapping to the master palette
+		' (Can't use frame_draw, since we have an array instead of a Palette16)
+		dim palindices(255) as integer
+		convertbmppal(bmpfile, masterpal(), palindices(), 1)
+		if keep_col0 then
+			palindices(0) = 0
+		end if
+		for y as integer = 0 to ret->h - 1
+			dim pixptr as ubyte ptr = @FRAMEPIXEL(0, y, ret)
+			for x as integer = 0 to ret->w - 1
+				pixptr[x] = palindices(pixptr[x])
+			next
+		next
+
+		return ret
+	else
+		return frame_import_bmp24_or_32(bmpfile, masterpal(), 1, , transparency)
+	end if
 end function
 
 sub bitmap2pal (bmp as string, pal() as RGBcolor)
@@ -5769,7 +5808,7 @@ private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as 
 			sptr += 1
 		next
 	next
-END SUB
+end sub
 
 'Takes an open file handle pointing at start of pixel data and an already sized Surface to load into
 private sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
@@ -5920,7 +5959,7 @@ private sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 end sub
 
-PRIVATE SUB loadbmprle8(byval bf as integer, byval fr as Frame ptr)
+private sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
@@ -6000,9 +6039,9 @@ private sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 	next
 end sub
 
+'Loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal().
+'Returns the number of bits, or 0 if the file can't be read.
 function loadbmppal (f as string, pal() as RGBcolor) as integer
-'loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal
-'returns the number of bits
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPV3INFOHEADER
 	dim col3 as RGBTRIPLE
@@ -6121,8 +6160,10 @@ end function
 
 'Convert a 32 bit Surface to a paletted Frame.
 'Frees surf.
-'Only colours firstindex..255 in pal() are used
-private function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0) as Frame ptr
+'Only colours firstindex..255 in pal() are used.
+'Optionally, any colour matching 'transparency' gets mapped to index 0.
+'options isn't used yet.
+private function quantize_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 	dim ret as Frame ptr
 	ret = frame_new(surf->width, surf->height)
 
@@ -6132,7 +6173,11 @@ private function quantise_surface(surf as Surface ptr, pal() as RGBcolor, firsti
 		inptr = surf->pColorData + y * surf->width
 		outptr = ret->image + y * ret->pitch
 		for x as integer = 0 to surf->width - 1
-			*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, firstindex)
+			if inptr->col = transparency.col then
+				*outptr = 0
+			else
+				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, firstindex)
+			end if
 			inptr += 1
 			outptr += 1
 		next
