@@ -330,6 +330,20 @@ Enum SpriteType
 	sprTypeLast = 11
 End Enum
 
+'Names for hero battle sprite frames
+CONST frameSTAND = 0
+CONST frameVICTORYB = 0
+CONST frameSTEP = 1
+CONST frameLAND = 2
+CONST frameVICTORYA = 2
+CONST frameATTACKA = 2
+CONST frameATTACKB = 3
+CONST frameCAST = 4
+CONST frameJUMP = 4
+CONST frameHURT = 5
+CONST frameWEAK = 6
+CONST frameDEAD = 7
+
 '--- Misc constants
 
 'Constants for gen(genFontType)

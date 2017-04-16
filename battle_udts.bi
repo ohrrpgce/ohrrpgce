@@ -39,20 +39,6 @@ TYPE HarmText 'FIXME: when battle display is converted to slices, this can go aw
  ticks as integer
 END TYPE
 
-'Names for hero battle sprite frames
-CONST frameSTAND = 0
-CONST frameVICTORYB = 0
-CONST frameSTEP = 1
-CONST frameLAND = 2
-CONST frameVICTORYA = 2
-CONST frameATTACKA = 2
-CONST frameATTACKB = 3
-CONST frameCAST = 4
-CONST frameJUMP = 4
-CONST frameHURT = 5
-CONST frameWEAK = 6
-CONST frameDEAD = 7
-
 TYPE BattleSprite
   name as string
   basex as integer
@@ -164,9 +150,17 @@ TYPE AttackState
  has_consumed_costs as integer 'YES or NO, prevents multi-hit attacks from consuming MP more than once
 END TYPE
 
+'For TargettingState.mode
+ENUM TargetMode
+ targNONE   = 0 'means hero not currently picking a target
+ targSETUP  = 1 'means targetting needs set-up
+ targMANUAL = 2 'means normal manual targetting
+ targAUTO   = 3 'means autotargeting
+END ENUM
+
 'This type stores the state of target selection.
 TYPE TargettingState
-  mode as integer         'targNONE targSETUP targMANUAL targAUTO
+  mode as TargetMode      '<> targNONE means hero picking a target
   pointer as integer      'Slot number of the currently selected (but not yet chosen) target slot
   hit_dead as integer     'YES if this is a "Life" spell, or NO for all other attacks
   mask(11) as integer     'For the currently targetting hero, a list of 1/0 values indicating
@@ -180,15 +174,22 @@ TYPE TargettingState
   atk as AttackData        'Loaded in setup_targeting()
                            'and should only be trusted while mode=targMANUAL
 END TYPE
-'.mode > 0 means hero picking a target
-CONST targNONE   = 0 'means hero not currently picking a target
-CONST targSETUP  = 1 'means targetting needs set-up
-CONST targMANUAL = 2 'means normal manual targetting
-CONST targAUTO   = 3 'means autotargeting
+
+'For VictoryState.state
+ENUM VictoryStateEnum
+ vicNONE = 0     'Victory hasn't happened
+ vicGOLDEXP = 1
+ vicLEVELUP = 2
+ vicSPELLS  = 3
+ vicITEMS   = 4
+ 'negative are non-displaying exit states
+ vicEXITDELAY = -1
+ vicEXIT    = -2
+END ENUM
 
 'This type stores the visual state of the victory display
 TYPE VictoryState
- state as integer 'vicSTATENAME or 0 for none
+ state as VictoryStateEnum
  box as integer   'NO when not displaying a box, YES when displaying a box
  showlearn as integer 'NO when not showing spell learning, YES when already showing a learned spell
  learnwho as integer 'battle slot of hero currently displaying learned spells
@@ -206,13 +207,25 @@ TYPE VictoryState
  levels_up_caption as string
  learned_caption as string
 END TYPE
-CONST vicGOLDEXP = 1
-CONST vicLEVELUP = 2
-CONST vicSPELLS  = 3
-CONST vicITEMS   = 4
-'negative are non-displaying exit states
-CONST vicEXITDELAY = -1
-CONST vicEXIT    = -2
+
+'--Used by BattleState.death_mode
+ENUM DeathMode
+ deathNOBODY  = 0
+ deathENEMIES = 1
+ deathHEROES  = 2
+END ENUM
+
+'--Used by BattleState.menu_mode
+ENUM BattleMenuMode
+ batMENUHERO = 0 
+ batMENUSPELL = 1
+ batMENUITEM = 2
+END ENUM
+
+'--used by the .t member of the menu items in the .batmenu member
+CONST batmenu_ATTACK = -1000
+CONST batmenu_SPELLS = -1001
+CONST batmenu_ITEMS  = -1002
 
 'This type is just used by RewardState
 TYPE RewardsStateItem
@@ -267,8 +280,8 @@ TYPE BattleState
  enemy_turn as integer '(MOVEME) Enemy currently selecting an attack
  next_hero as integer  '(MOVEME) counter that controls which ready hero will get their turn next
  next_enemy as integer 'counter that controls which ready enemy will get their turn next
- menu_mode as integer  'batMENUHERO batMENUSPELL or batMENUITEM
- death_mode as integer 'deathNOBODY deathENEMIES deathHEROES
+ menu_mode as BattleMenuMode
+ death_mode as DeathMode
  targ as TargettingState
  atk as AttackState
  listslot as integer   'currently active hero spell list slot
@@ -311,18 +324,6 @@ TYPE BattleState
  test_future as integer    'used for debugging new display stuff with F12
 END TYPE
 
-'--Used by the .menu_mode member
-CONST batMENUHERO = 0 
-CONST batMENUSPELL = 1
-CONST batMENUITEM = 2
-'--Used by the .deathmode member
-CONST deathNOBODY  = 0
-CONST deathENEMIES = 1
-CONST deathHEROES  = 2
-'--used by the .t member of the menu items in the .batmenu member
-CONST batmenu_ATTACK = -1000
-CONST batmenu_SPELLS = -1001
-CONST batmenu_ITEMS  = -1002
 
 TYPE AttackQueue
  used     as integer 'YES when used, NO when recycleable
