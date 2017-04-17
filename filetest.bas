@@ -12,6 +12,15 @@ dim shared num_errors as integer = 0
 #define DBG(x)
 '#define DBG(x) ?x
 
+#if defined(__FB_FREEBSD__) or defined(__FB_OPENBSD__) or defined(__FB_NETBSD__)
+        ' Only tested on FreeBSD
+        #define UNREADABLE_FILE "/etc/master.passwd"
+#elseif defined(__FB_UNIX__)
+        #define UNREADABLE_FILE "/etc/sudoers"
+#elseif defined(__FB_WIN32__)
+	' Don't have an easy example of an unreadable file
+#endif
+
 startTest(OPEN)
 	fh = freefile
 	' Need to be in a writable dir
@@ -91,11 +100,16 @@ startTest(get_file_type)
 	if get_file_type(curdir & SLASH & "..") <> fileTypeDirectory then fail
 	if get_file_type("/foo/bar/") <> fileTypeNonexistent then fail  ' Not a valid path
 	' Will print an error message on Unix (is a file, not a dir)
+	#ifdef __FB_UNIX__
+		? !"\nIgnore 1 error:"
+	#endif
 	if get_file_type("_testfile.tmp" SLASH "file") <> fileTypeNonexistent then fail
 	' Read-only and special files/dirs
+	#ifdef UNREADABLE_FILE
+		if get_file_type(UNREADABLE_FILE) <> fileTypeFile then fail
+	#endif
 	#ifdef __FB_UNIX__
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
-		if get_file_type("/etc/sudoers") <> fileTypeFile then fail
 		if get_file_type("/bin/") <> fileTypeDirectory then fail
 		if get_file_type("/dev/tty") <> fileTypeOther then fail
 	#elseif defined(__FB_WIN32__)
@@ -115,17 +129,13 @@ startTest(fileisreadable)
 	' Read-only and unreadable files
 	#ifdef __FB_UNIX__
 		if fileisreadable("/bin/sh") = NO then fail
-		if fileisreadable("/etc/sudoers") then fail
 	#elseif defined(__FB_WIN32__)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
-		' Don't have an easy example of an unreadable file
 	#endif
 
 	' isfile is just an alias for fileisreadable, so should behave the same
-	#ifdef __FB_UNIX__
-		if isfile("/etc/sudoers") then fail
-	#elseif defined(__FB_WIN32__)
-		' Don't have an easy example of an unreadable file
+	#ifdef UNREADABLE_FILE
+		if isfile(UNREADABLE_FILE) then fail
 	#endif
 endTest
 
@@ -138,10 +148,11 @@ startTest(real_isfile)
 	' Read-only and unreadable files
 	#ifdef __FB_UNIX__
 		if fileisreadable("/bin/sh") = NO then fail
-		if fileisreadable("/etc/sudoers") then fail
 	#elseif defined(__FB_WIN32__)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
-		' Don't have an easy example of an unreadable file
+	#endif
+	#ifdef UNREADABLE_FILE
+		if fileisreadable(UNREADABLE_FILE) then fail
 	#endif
 endTest
 
@@ -161,7 +172,10 @@ endTest
 
 'This exercises opening files for write and deleting them
 startTest(diriswriteable)
-	if diriswriteable("_testfile.tmp") then fail   ' Will print two error messages on Unix
+	#ifdef __FB_UNIX__
+		? !"\nIgnore 3 errors:"
+	#endif
+	if diriswriteable("_testfile.tmp") then fail   ' Will print three error messages on Unix
 	if diriswriteable("/tmp/doesnt/exist/surely") then fail
 	' We already checked curdir is writable
 	if diriswriteable(".") = NO then fail

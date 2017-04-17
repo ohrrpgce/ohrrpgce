@@ -2187,6 +2187,8 @@ FUNCTION diriswriteable(filename as string) as bool
 
   ' Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
   ' able to mark a folder read-only, instead it makes the contents read-only.
+  ' (If filename isn't a directory, these checks will print debug messages,
+  ' which I think is a good thing.)
   testfile = filename + SLASH + "archinym.lmp"
   if real_isfile(testfile) = NO then
     ' If archinym.lmp doesn't exist, then ohrrpgce.gen does
