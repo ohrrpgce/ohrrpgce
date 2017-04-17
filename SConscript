@@ -85,7 +85,7 @@ elif 'win32' in target or 'windows' in target or 'mingw' in target:
     win32 = True
 elif 'darwin' in target or 'mac' in target:
     mac = True
-elif 'linux' in target or 'unix' in target:
+elif 'linux' in target or 'bsd' in target or 'unix' in target:
     unix = True
 else:
     print "!! WARNING: target '%s' not recognised!" % target

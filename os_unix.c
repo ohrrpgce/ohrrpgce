@@ -1,7 +1,9 @@
 //OHRRPGCE COMMON - Generic Unix versions of OS-specific routines
 //Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
-#ifndef __APPLE__
+// defining _POSIX_SOURCE on FreeBSD prevents use of sys/ headers (an error about u_int)
+//#if !defined(__APPLE__) && !defined(__FreeBSD__)
+#ifdef __gnu_linux__
 #define _POSIX_SOURCE  // for fdopen
 //#define _BSD_SOURCE  // for usleep
 //#define _DEFAULT_SOURCE  // replaces _BSD_SOURCE in recent glibc

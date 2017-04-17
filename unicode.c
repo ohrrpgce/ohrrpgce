@@ -68,10 +68,10 @@ static uint32_t decode_utf8_char(uint32_t* state, uint32_t* codep, uint32_t byte
 }
 
 // In codepoints. Returns negative value if invalid (actually position of bad character)
-ssize_t utf8_length(unsigned char* s) {
+int utf8_length(unsigned char* s) {
 	uint32_t codepoint = 0;
 	uint32_t state = UTF8_ACCEPT;
-	ssize_t count = 0;
+	int count = 0;
 
 	for (count = 0; *s; ++s) {
 		if (decode_utf8_char(&state, &codepoint, *s) == UTF8_ACCEPT)
@@ -87,8 +87,8 @@ ssize_t utf8_length(unsigned char* s) {
 
 // Returns NULL on failure, otherwise returns an allocated UCS2 or UTF32, depending on system, string
 // If length is not NULL and there was no error, then it is filled with the length
-wchar_t *utf8_decode(unsigned char *input, ssize_t *length) {
-	ssize_t len = utf8_length(input);
+wchar_t *utf8_decode(unsigned char *input, int *length) {
+	int len = utf8_length(input);
 	if (len <= -1)
 		return NULL;
 	if (length)
@@ -214,10 +214,10 @@ static wchar_t compose_char(wchar_t src1, wchar_t src2) {
 // into the canonical order, and then apply them (that's the intention of
 // table I am using is intended for).  (Full, optimised tables to compute NFC
 // form are ~45kB)
-ssize_t partially_normalise_unicode(wchar_t *input, wchar_t *output, ssize_t outsize) {
+int partially_normalise_unicode(wchar_t *input, wchar_t *output, int outsize) {
 	if (outsize <= 0) return 0;
 
-	ssize_t ret = 0;
+	int ret = 0;
 	while (*input && outsize-- > 1) {
 		wchar_t composed = compose_char(input[0], input[1]);
 		if (composed) {
@@ -234,10 +234,10 @@ ssize_t partially_normalise_unicode(wchar_t *input, wchar_t *output, ssize_t out
 
 // Process a nul-terminated wstring into a char* buffer of size 'outsize' bytes
 // (the result may be shorter than the input, but not longer). Returns length in chars.
-ssize_t wstring_to_latin1(wchar_t *input, unsigned char *output, ssize_t outsize) {
+int wstring_to_latin1(wchar_t *input, unsigned char *output, int outsize) {
 	if (outsize <= 0) return 0;
 
-	ssize_t ret = 0;
+	int ret = 0;
 	while (*input && outsize-- > 1) {
 		wchar_t composed = compose_char(input[0], input[1]);
 		if (composed) {
