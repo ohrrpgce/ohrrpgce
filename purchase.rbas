@@ -143,11 +143,9 @@ SUB purchases_menu ()
 
  LOOP
  
- '--How the heck am I supposed to make sure the ESC keypress does not close
- '  the calling menu too? Why am I having so mych trouble with something I have done
- '  so many times before? :(
- carray(ccMenu) = 0
-
+ ' Clear keypresses
+ setkeys
+ flusharray carray(), 7, 0
 
  freepage holdscreen
  DeleteSlice @root

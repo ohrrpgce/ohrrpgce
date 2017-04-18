@@ -1939,6 +1939,8 @@ SUB status_screen (byval slot as integer)
 
  freepage holdscreen
  DeleteSlice @(st.sl)
+ setkeys
+ flusharray carray(), 7
  
 END SUB
 
@@ -2269,6 +2271,8 @@ FUNCTION item_screen () as integer
 
  freepage holdscreen
  DeleteSlice @(st.ps.m)
+ setkeys
+ flusharray carray(), 7, 0
 
  RETURN st.textbox
 END FUNCTION
