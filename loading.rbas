@@ -2719,6 +2719,16 @@ SUB initattackdata OVERLOAD (recbuf() as integer)
  flusharray recbuf(), UBOUND(recbuf)
  recbuf(1) = -1    '.pal = -1        (AtkDatPal)
  recbuf(314) = -1  '.wep_pal = -1    (AtkDatWepPal)
+ IF getfixbit(fixAttackMultipliers) = 1 THEN
+  'Only initialise these data fields if we are using the new format!
+  recbuf(337) = 20               '.randomization = 20
+  SerSingle(recbuf(), 325, 1.0)  '.acc_mult = 1.0
+  SerSingle(recbuf(), 327, 1.0)  '.dog_mult = 1.0
+  SerSingle(recbuf(), 329, 1.0)  '.atk_mult = 1.0
+  SerSingle(recbuf(), 331, 1.0)  '.def_mult = 1.0
+  SerSingle(recbuf(), 333, 1.0)  '.aim_extra = 1.0
+  SerSingle(recbuf(), 335, 1.0)  '.absorb_rate = 1.0
+ END IF
 END SUB
 
 SUB initattackdata OVERLOAD (byref atkdat as AttackData)
@@ -2788,7 +2798,7 @@ SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as i
     .type = compGt  '> 100% damage from "enemytype#-killer"
     .value = 1.00
    ELSE
-    .type = compNone     
+    .type = compNone
    END IF
   ELSE
    .type = compNone
@@ -2959,6 +2969,16 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .force_battle_exit              = xreadbit(buf(), 22, 65)
   .never_trigger_elemental_counterattacks = xreadbit(buf(), 23, 65)
   .poison_is_negative_regen       = xreadbit(buf(), 24, 65)
+
+  ' If didn't do a full upgrade, then these aren't initialised
+  IF getfixbit(fixAttackMultipliers) = 0 THEN
+   .randomization = IIF(.do_not_randomize, 0, 20)
+   .acc_mult = 1.0
+   .dog_mult = 1.0
+   .atk_mult = 1.0
+   .def_mult = 1.0
+   .absorb_rate = 1.0
+  END IF
  END WITH
 END SUB
 

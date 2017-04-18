@@ -645,7 +645,7 @@ Type AttackData
 	allow_cure_to_exceed_maximum as bool
 	useable_outside_battle as bool
 	obsolete_damage_mp as bool
-	do_not_randomize as bool
+	do_not_randomize as bool       'Obsolete, replaced by .randomization
 	damage_can_be_zero as bool
 	force_run as bool
 	force_victory as bool

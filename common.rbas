@@ -920,7 +920,7 @@ END FUNCTION
 
 FUNCTION curbinsize (byval id as integer) as integer
  'returns the native size in BYTES of the records for the version you are running
- IF id = 0 THEN RETURN 562 'attack.bin
+ IF id = 0 THEN RETURN 596 'attack.bin (size of combined attack data as documented on DT6 page minus 80)
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
@@ -3683,7 +3683,12 @@ END IF
 DIM fix_stun as integer = (getfixbit(fixStunCancelTarg) = 0)
 DIM fix_dam_mp as integer = (getfixbit(fixRemoveDamageMP) = 0) AND full_upgrade
 DIM fix_elem_fails as integer = (getfixbit(fixAttackElementFails) = 0) AND full_upgrade
-IF fix_stun OR fix_dam_mp OR fix_elem_fails THEN
+' Temporarily disable upgrade to new damage/aim attack data, so that the format can still
+' be changed if we desire, since the editor doesn't support it yet.
+' (Instead, loadattackdata will perform these upgrades, since we don't set the fixbit.)
+'DIM fix_multipliers as integer = (getfixbit(fixAttackMultipliers) = 0) AND full_upgrade
+DIM fix_multipliers as integer = NO
+IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
  IF fix_stun THEN
   upgrade_message "Target disabling old stun attacks..."
   setfixbit(fixStunCancelTarg, 1)
@@ -3693,8 +3698,12 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails THEN
   setfixbit(fixRemoveDamageMP, 1)
  END IF
  IF fix_elem_fails THEN
-  upgrade_message "Initialised attack elemental failure conditions..."
+  upgrade_message "Init attack elemental failure conditions..."
   setfixbit(fixAttackElementFails, 1)
+ END IF
+ IF fix_multipliers THEN
+  upgrade_message "Init new attack aim & damage data..."
+  setfixbit(fixAttackMultipliers, 1)
  END IF
  REDIM dat(40 + dimbinsize(binATTACK)) as integer
  DIM cond as AttackElementCondition
@@ -3726,6 +3735,19 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails THEN
     loadoldattackelementalfail cond, dat(), j
     SerAttackElementCond cond, dat(), 121 + j * 3
    NEXT
+   saveattack = YES
+  END IF
+
+  IF fix_multipliers THEN
+   '.randomization = IIF(.do_not_randomize, 0, 20)
+   dat(337) = IIF(readbit(dat(), 20, 61), 0, 20)
+   setbit dat(), 20, 61, NO  'Clear "do not randomize"
+   SerSingle(dat(), 325, 1.0)  '.acc_mult
+   SerSingle(dat(), 327, 1.0)  '.dog_mult
+   SerSingle(dat(), 329, 1.0)  '.atk_mult
+   SerSingle(dat(), 331, 1.0)  '.def_mult
+   SerSingle(dat(), 333, 1.0)  '.aim_extra
+   SerSingle(dat(), 335, 1.0)  '.absorb_rate
    saveattack = YES
   END IF
 
