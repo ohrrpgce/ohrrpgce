@@ -23,18 +23,6 @@ ENUM HideMode
  hideMenu = 2
 END ENUM
 
-TYPE SliceEditState
- collection_number as integer
- collection_group_number as integer
- collection_file as string
- use_index as bool
- last_non_slice as integer
- clipboard as Slice Ptr
- draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
- hide_mode as HideMode
- show_root as bool         'Whether to show edslice
-END TYPE
-
 TYPE SliceEditMenuItem
  s as string
  handle as Slice Ptr
@@ -44,6 +32,23 @@ TYPE SpecialLookupCode
  code as integer
  caption as string
  kindlimit as integer
+END TYPE
+
+TYPE SliceEditState
+ collection_number as integer
+ collection_group_number as integer
+ collection_file as string
+ use_index as bool         'Whether this is the indexed collection editor or the
+                           'non-indexed single-collection editor.
+ last_non_slice as integer
+ clipboard as Slice Ptr
+ draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
+ hide_mode as HideMode
+ show_root as bool         'Whether to show edslice
+
+ slicelookup(any) as string
+ specialcodes(any) as SpecialLookupCode
+ slicemenu(any) as SliceEditMenuItem
 END TYPE
 
 CONST kindlimitANYTHING = 0
@@ -101,7 +106,7 @@ CONST slgrEDITSWITCHINDEX = 256
 
 '==============================================================================
 
-DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
+DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
@@ -113,25 +118,25 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
-DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
-DECLARE SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
-DECLARE SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
-DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
-DECLARE SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
-DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
+DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
+DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
+DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
+DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
+DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
+DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
+DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
-DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, specialcodes() as SpecialLookupCode)
+DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
 DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
-DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
+DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
-DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer, specialcodes() as SpecialLookupCode)
-DECLARE SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
+DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
+DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
@@ -193,66 +198,67 @@ END FUNCTION
 
 '==============================================================================
 
-SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer, specialcodes() as SpecialLookupCode)
+SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
  ses.collection_group_number = group
+ REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
   CASE SL_COLLECT_STATUSSCREEN:
-   append_specialcode specialcodes(), SL_STATUS_STATLIST, kindlimitGRID
-   append_specialcode specialcodes(), SL_STATUS_PAGE_SELECT, kindlimitSELECT
-   append_specialcode specialcodes(), SL_STATUS_PORTRAIT, kindlimitSPRITE
-   append_specialcode specialcodes(), SL_STATUS_WALKABOUT, kindlimitSPRITE
-   append_specialcode specialcodes(), SL_STATUS_BATTLESPRITE, kindlimitSPRITE
-   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_STATUS_HIDE_IF_NO_PORTRAIT, kindlimitANYTHING
+   append_specialcode ses, SL_STATUS_STATLIST, kindlimitGRID
+   append_specialcode ses, SL_STATUS_PAGE_SELECT, kindlimitSELECT
+   append_specialcode ses, SL_STATUS_PORTRAIT, kindlimitSPRITE
+   append_specialcode ses, SL_STATUS_WALKABOUT, kindlimitSPRITE
+   append_specialcode ses, SL_STATUS_BATTLESPRITE, kindlimitSPRITE
+   append_specialcode ses, SL_STATUS_HIDE_IF_NO_MP, kindlimitANYTHING
+   append_specialcode ses, SL_STATUS_HIDE_IF_NO_LMP, kindlimitANYTHING
+   append_specialcode ses, SL_STATUS_HIDE_IF_MAX_LEV, kindlimitANYTHING
+   append_specialcode ses, SL_STATUS_HIDE_IF_NO_PORTRAIT, kindlimitANYTHING
   CASE SL_COLLECT_STATUSSTATPLANK:
-   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
   CASE SL_COLLECT_ITEMSCREEN:
-   append_specialcode specialcodes(), SL_ITEM_ITEMLIST, kindlimitGRID
-   append_specialcode specialcodes(), SL_ITEM_EXITBUTTON, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_ITEM_SORTBUTTON, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_ITEM_TRASHBUTTON, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_ITEM_ITEMLIST, kindlimitGRID
+   append_specialcode ses, SL_ITEM_EXITBUTTON, kindlimitANYTHING
+   append_specialcode ses, SL_ITEM_SORTBUTTON, kindlimitANYTHING
+   append_specialcode ses, SL_ITEM_TRASHBUTTON, kindlimitANYTHING
+   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_ITEMPLANK:
-   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_SPELLSCREEN:
-   append_specialcode specialcodes(), SL_SPELL_LISTLIST, kindlimitGRID
-   append_specialcode specialcodes(), SL_SPELL_SPELLLIST, kindlimitGRID
-   append_specialcode specialcodes(), SL_SPELL_HIDE_IF_NO_LIST, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_SPELL_CANCELBUTTON, kindlimitANYTHING
+   append_specialcode ses, SL_SPELL_LISTLIST, kindlimitGRID
+   append_specialcode ses, SL_SPELL_SPELLLIST, kindlimitGRID
+   append_specialcode ses, SL_SPELL_HIDE_IF_NO_LIST, kindlimitANYTHING
+   append_specialcode ses, SL_SPELL_CANCELBUTTON, kindlimitANYTHING
   CASE SL_COLLECT_SPELLLISTPLANK:
-   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_SPELLPLANK:
-   append_specialcode specialcodes(), SL_PLANK_HOLDER, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
+   append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
   CASE SL_COLLECT_VIRTUALKEYBOARDSCREEN:
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_BUTTON, kindlimitANYTHING
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_BUTTONTEXT, kindlimitTEXT
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SELECT, kindlimitSELECT
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_ENTRYTEXT, kindlimitTEXT
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SHIFT, kindlimitPLANKSELECTABLE
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_SYMBOLS, kindlimitPLANKSELECTABLE
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_DEL, kindlimitPLANKSELECTABLE
-   append_specialcode specialcodes(), SL_VIRTUAL_KEYBOARD_ENTER, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_BUTTON, kindlimitANYTHING
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_BUTTONTEXT, kindlimitTEXT
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_SELECT, kindlimitSELECT
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_ENTRYTEXT, kindlimitTEXT
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_SHIFT, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_SYMBOLS, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_DEL, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_VIRTUAL_KEYBOARD_ENTER, kindlimitPLANKSELECTABLE
  END SELECT
 END SUB
 
-SUB append_specialcode (specialcodes() as SpecialLookupCode, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
+SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
  DIM index as integer = -1
- FOR i as integer = 0 TO UBOUND(specialcodes)
-  IF specialcodes(i).code = 0 THEN
+ FOR i as integer = 0 TO UBOUND(ses.specialcodes)
+  IF ses.specialcodes(i).code = 0 THEN
    index = i
    EXIT FOR
   END IF
  NEXT i
  IF index = -1 THEN
-  REDIM PRESERVE specialcodes(UBOUND(specialcodes) + 1) as SpecialLookupCode
-  index = UBOUND(specialcodes)
+  REDIM PRESERVE ses.specialcodes(UBOUND(ses.specialcodes) + 1) as SpecialLookupCode
+  index = UBOUND(ses.specialcodes)
  END IF
- WITH specialcodes(index)
+ WITH ses.specialcodes(index)
   .code = code
   .caption = SliceLookupCodeName(code)
   .kindlimit = kindlimit
@@ -291,8 +297,7 @@ END FUNCTION
 SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
 
  DIM ses as SliceEditState
- REDIM specialcodes(0) as SpecialLookupCode
- init_slice_editor_for_collection_group(ses, group, specialcodes())
+ init_slice_editor_for_collection_group(ses, group)
 
  DIM edslice as Slice Ptr
  edslice = NewSlice
@@ -308,7 +313,8 @@ SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
  ses.draw_root = create_draw_root()
  SetSliceParent edslice, ses.draw_root
 
- slice_editor_main ses, edslice, YES, specialcodes()
+ ses.use_index = YES
+ slice_editor_main ses, edslice
 
  slice_editor_save edslice, slice_editor_filename(ses)
  
@@ -320,8 +326,7 @@ END SUB
 SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
  DIM ses as SliceEditState
  DIM rootslice as Slice ptr
- REDIM specialcodes(0) as SpecialLookupCode
- init_slice_editor_for_collection_group(ses, group, specialcodes())
+ init_slice_editor_for_collection_group(ses, group)
 
  IF recursive THEN
   'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunate
@@ -335,7 +340,8 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
   SetSliceParent rootslice, ses.draw_root
  END IF
 
- slice_editor_main ses, edslice, NO, specialcodes()
+ ses.use_index = NO  'Can't browse collections
+ slice_editor_main ses, edslice
 
  IF recursive = NO THEN
   OrphanSlice rootslice
@@ -344,21 +350,16 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
 END SUB
 
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
-SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, byval use_index as bool=NO, specialcodes() as SpecialLookupCode)
- '--use_index controls the display of the collection number index
-
- '--use_index controls whether or not this is the indexed collection editor
- '--or the non-indexed single-collection editor
- ses.use_index = use_index
+SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
  '--user-defined slice lookup codes
- REDIM slicelookup(10) as string
- load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
- IF UBOUND(slicelookup) < 1 THEN
-  REDIM slicelookup(1) as string
+ REDIM ses.slicelookup(10) as string
+ load_string_list ses.slicelookup(), workingdir & SLASH & "slicelookup.txt"
+ IF UBOUND(ses.slicelookup) < 1 THEN
+  REDIM ses.slicelookup(1) as string
  END IF
 
- REDIM menu(0) as SliceEditMenuItem
+ REDIM ses.slicemenu(0) as SliceEditMenuItem
  REDIM plainmenu(0) as string 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
 
  DIM state as MenuState
@@ -411,7 +412,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF5) > 1 THEN
    ses.show_root = NOT ses.show_root
-   cursor_seek = menu(state.pt).handle
+   cursor_seek = ses.slicemenu(state.pt).handle
    state.need_update = YES
   END IF
   IF keyval(scF6) > 1 THEN
@@ -425,32 +426,32 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   END IF
   IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
    'Toggle visibility (does nothing on Select slice children)
-   IF menu(state.pt).handle THEN
-    menu(state.pt).handle->Visible XOR= YES
+   IF ses.slicemenu(state.pt).handle THEN
+    ses.slicemenu(state.pt).handle->Visible XOR= YES
    END IF
   END IF
   IF keyval(scH) > 1 THEN
    'Toggle editor visibility of children
-   IF menu(state.pt).handle THEN
-    IF menu(state.pt).handle->NumChildren > 0 THEN
-     menu(state.pt).handle->EditorHideChildren XOR= YES
+   IF ses.slicemenu(state.pt).handle THEN
+    IF ses.slicemenu(state.pt).handle->NumChildren > 0 THEN
+     ses.slicemenu(state.pt).handle->EditorHideChildren XOR= YES
     ELSE
-     menu(state.pt).handle->EditorHideChildren = NO
+     ses.slicemenu(state.pt).handle->EditorHideChildren = NO
     END IF
     state.need_update = YES
    END IF
   END IF
   IF keyval(scF7) > 1 THEN
    'Make a sprite melt, just for a fun test
-   DissolveSpriteSlice(menu(state.pt).handle, 5, 36)
+   DissolveSpriteSlice(ses.slicemenu(state.pt).handle, 5, 36)
   END IF
 
   IF state.need_update = NO AND enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
-    cursor_seek = menu(state.pt).handle
-    slice_edit_detail ses, menu(state.pt).handle, slicelookup(), specialcodes()
+    cursor_seek = ses.slicemenu(state.pt).handle
+    slice_edit_detail ses, ses.slicemenu(state.pt).handle
     state.need_update = YES
    END IF 
   END IF
@@ -461,7 +462,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
      slice_editor_save edslice, slice_editor_filename(ses)
      ses.collection_number = jump_to_collection
-     slice_editor_load ses, edslice, slice_editor_filename(ses), specialcodes()
+     slice_editor_load ses, edslice, slice_editor_filename(ses)
      state.need_update = YES
     END IF
    END IF
@@ -486,7 +487,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
     DIM filename as string = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
      source_filename = filename
-     slice_editor_load ses, edslice, filename, specialcodes()
+     slice_editor_load ses, edslice, filename
      cursor_seek = NULL
      state.need_update = YES
     END IF
@@ -496,8 +497,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF menu(state.pt).handle <> NULL ANDALSO menu(state.pt).handle <> edslice THEN
-     InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
+    IF ses.slicemenu(state.pt).handle <> NULL ANDALSO ses.slicemenu(state.pt).handle <> edslice THEN
+     InsertSliceBefore ses.slicemenu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
     END IF
@@ -508,62 +509,62 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF state.need_update = NO THEN
    IF copy_keychord() THEN
     #IFDEF IS_GAME
-     IF menu(state.pt).handle ANDALSO menu(state.pt).handle->Lookup < 0 THEN
+     IF ses.slicemenu(state.pt).handle ANDALSO ses.slicemenu(state.pt).handle->Lookup < 0 THEN
       notification "Can't copy special slices!"
       CONTINUE DO
      END IF
     #ENDIF
-    slice_editor_copy ses, menu(state.pt).handle, edslice
+    slice_editor_copy ses, ses.slicemenu(state.pt).handle, edslice
    ELSEIF paste_keychord() THEN
-    slice_editor_paste ses, menu(state.pt).handle, edslice
+    slice_editor_paste ses, ses.slicemenu(state.pt).handle, edslice
     state.need_update = YES
    END IF
   END IF
 
   'Special handling for the currently selected slice
-  DIM cur_sl as slice ptr = menu(state.pt).handle
+  DIM cur_sl as slice ptr = ses.slicemenu(state.pt).handle
   preview_SelectSlice_parents cur_sl
 
-  IF state.need_update = NO ANDALSO menu(state.pt).handle <> NULL THEN
+  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).handle <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
     #IFDEF IS_GAME
-     IF menu(state.pt).handle->Lookup < 0 THEN
+     IF ses.slicemenu(state.pt).handle->Lookup < 0 THEN
       notification "Can't delete special slices!"
       CONTINUE DO
      END IF
     #ENDIF
-    IF menu(state.pt).handle = edslice THEN
+    IF ses.slicemenu(state.pt).handle = edslice THEN
      notification "Can't delete the root slice!"
      CONTINUE DO
     ELSE
-     IF yesno("Delete this " & SliceTypeName(menu(state.pt).handle) & " slice?", NO) THEN
-      slice_editor_refresh_delete state.pt, menu()
+     IF yesno("Delete this " & SliceTypeName(ses.slicemenu(state.pt).handle) & " slice?", NO) THEN
+      slice_editor_refresh_delete state.pt, ses.slicemenu()
       state.need_update = YES
      END IF
     END IF
    ELSEIF keyval(scF) > 1 THEN
-    slice_editor menu(state.pt).handle, , YES
+    slice_editor ses.slicemenu(state.pt).handle, , YES
     state.need_update = YES
 
    ELSEIF keyval(scShift) > 0 THEN
 
     IF keyval(scUp) > 1 THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
-     cursor_seek = menu(state.pt).handle
+     SwapSiblingSlices ses.slicemenu(state.pt).handle, ses.slicemenu(state.pt).handle->PrevSibling
+     cursor_seek = ses.slicemenu(state.pt).handle
      state.need_update = YES
     ELSEIF keyval(scDown) > 1 AND state.pt < state.last THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
-     cursor_seek = menu(state.pt).handle
+     SwapSiblingSlices ses.slicemenu(state.pt).handle, ses.slicemenu(state.pt).handle->NextSibling
+     cursor_seek = ses.slicemenu(state.pt).handle
      state.need_update = YES
     ELSEIF keyval(scRight) > 1 THEN
-     SliceAdoptSister menu(state.pt).handle
-     cursor_seek = menu(state.pt).handle
+     SliceAdoptSister ses.slicemenu(state.pt).handle
+     cursor_seek = ses.slicemenu(state.pt).handle
      state.need_update = YES
     ELSEIF keyval(scLeft) > 1 THEN
-     IF (menu(state.pt).handle)->parent <> edslice THEN
-      SliceAdoptNiece menu(state.pt).handle
-      cursor_seek = menu(state.pt).handle
+     IF (ses.slicemenu(state.pt).handle)->parent <> edslice THEN
+      SliceAdoptNiece ses.slicemenu(state.pt).handle
+      cursor_seek = ses.slicemenu(state.pt).handle
       state.need_update = YES
      END IF
     END IF
@@ -571,34 +572,34 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
 
     IF keyval(scUp) > 1 THEN
-     cursor_seek = menu(state.pt).handle->prevSibling
+     cursor_seek = ses.slicemenu(state.pt).handle->prevSibling
      state.need_update = YES
     ELSEIF keyval(scDown) > 1 THEN
-     cursor_seek = menu(state.pt).handle->nextSibling
+     cursor_seek = ses.slicemenu(state.pt).handle->nextSibling
      state.need_update = YES
     ELSEIF keyval(scLeft) > 1 THEN
-     cursor_seek = menu(state.pt).handle->parent
+     cursor_seek = ses.slicemenu(state.pt).handle->parent
      state.need_update = YES
     ELSEIF keyval(scRight) > 1 THEN
-     cursor_seek = menu(state.pt).handle->firstChild
+     cursor_seek = ses.slicemenu(state.pt).handle->firstChild
      state.need_update = YES
     END IF
 
    ELSE '--neither shift nor ctrl
 
     IF keyval(scLeft) > 1 THEN
-     cursor_seek = (menu(state.pt).handle)->parent
+     cursor_seek = (ses.slicemenu(state.pt).handle)->parent
      state.need_update = YES
     END IF
 
    END IF
 
-  END IF '--end IF state.need_update = NO AND menu(state.pt).handle
+  END IF '--end IF state.need_update = NO AND ses.slicemenu(state.pt).handle
 
   ' Highlighting and selecting slices with the mouse
   DIM topmost as Slice ptr = 0
   IF state.need_update = NO THEN
-   topmost = slice_editor_mouse_over(edslice, menu(), state)
+   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
    DIM mouse as MouseInfo = readmouse()
    IF topmost ANDALSO (mouse.clickstick AND mouseLeft) THEN
     cursor_seek = topmost
@@ -610,7 +611,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
-   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
+   slice_editor_refresh(ses, state, edslice, cursor_seek)
    state.need_update = NO
   ELSE
    usemenu state
@@ -621,8 +622,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
-  IF menu(state.pt).handle THEN
-   DrawSliceAnts menu(state.pt).handle, dpage
+  IF ses.slicemenu(state.pt).handle THEN
+   DrawSliceAnts ses.slicemenu(state.pt).handle, dpage
   END IF
   IF topmost THEN
    DrawSliceAnts topmost, dpage
@@ -631,14 +632,15 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, 
    'Determine the colour for each menu item
    REDIM plainmenu(state.last) as string
    FOR i as integer = 0 TO UBOUND(plainmenu)
-    plainmenu(i) = menu(i).s
+    plainmenu(i) = ses.slicemenu(i).s
+    DIM sl as Slice ptr = ses.slicemenu(i).handle
     DIM col as integer = -1
-    IF menu(i).handle THEN
-     IF menu(i).handle->Visible = NO THEN
+    IF sl THEN
+     IF sl->Visible = NO THEN
       col = uilook(uiSelectedDisabled + IIF(state.pt = i, global_tog, 0))
-     ELSEIF menu(i).handle->EditorColor ANDALSO state.pt <> i THEN
+     ELSEIF sl->EditorColor ANDALSO state.pt <> i THEN
       'Don't override normal highlight
-      col = menu(i).handle->EditorColor
+      col = sl->EditorColor
      END IF
      IF col > -1 THEN
       plainmenu(i) = fgcol_text(plainmenu(i), col)
@@ -686,10 +688,10 @@ END SUB
 
 'Sets ->EditorColor for each slice in menu() to highlight the slices that the mouse is over.
 'Returns the topmost non-ignored slice that the mouse is over, or NULL if none.
-FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
- FOR idx as integer = 0 TO UBOUND(menu)
-  IF menu(idx).handle THEN
-   menu(idx).handle->EditorColor = uilook(uiMenuItem)
+FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEditMenuItem, state as MenuState) as Slice ptr
+ FOR idx as integer = 0 TO UBOUND(slicemenu)
+  IF slicemenu(idx).handle THEN
+   slicemenu(idx).handle->EditorColor = uilook(uiMenuItem)
   END IF
  NEXT
 
@@ -742,7 +744,7 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
  RETURN slice_editor_forbidden_search(sl->NextSibling, specialcodes())
 END FUNCTION
 
-SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, specialcodes() as SpecialLookupCode)
+SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection  'Defaults only
@@ -755,7 +757,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection, specialcodes()) THEN
+ IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) THEN
   notification "The slice collection you are trying to load includes special " _
                "slices (either due to their type or lookup code), probably " _
                "because it has been exported from a game. You aren't allowed " _
@@ -783,6 +785,7 @@ SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
  END IF
 END SUB
 
+'Copy a slice to the internal clipboard
 SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
  DIM sl as Slice Ptr
@@ -813,7 +816,8 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, by
  END IF
 END SUB
 
-SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup() as string, specialcodes() as SpecialLookupCode)
+'Editor for an individual slice
+SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 
  STATIC remember_pt as integer
 
@@ -848,13 +852,13 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
    'Invisible slices won't be updated by DrawSlice
    RefreshSliceTreeScreenPos sl
 
-   slice_edit_detail_refresh state, menu(), menuopts, sl, rules(), slicelookup()
+   slice_edit_detail_refresh ses, state, menu(), menuopts, sl, rules()
    state.need_update = NO
   END IF
 
   usemenu state
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
-  slice_edit_detail_keys ses, state, sl, rules(), slicelookup(), specialcodes()
+  slice_edit_detail_keys ses, state, sl, rules()
   
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
@@ -874,7 +878,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr, slicelookup
  
 END SUB
 
-SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, slicelookup() as string, specialcodes() as SpecialLookupCode)
+SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule)
  DIM rule as EditRule = rules(state.pt)
  SELECT CASE rule.mode
   CASE erIntgrabber
@@ -950,7 +954,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  IF rule.group AND slgrPICKLOOKUP THEN
   IF enter_space_click(state) THEN
    DIM n as integer ptr = rule.dataptr
-   *n = edit_slice_lookup_codes(slicelookup(), *n, specialcodes(), sl->SliceType)
+   *n = edit_slice_lookup_codes(ses, ses.slicelookup(), *n, sl->SliceType)
    state.need_update = YES
   END IF
  END IF
@@ -998,6 +1002,7 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
  RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
 END FUNCTION
 
+'Editor to visually edit an x/y position or a width/height
 SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
  DIM shift as integer = 0
  setkeys
@@ -1023,6 +1028,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
  LOOP
 END SUB
 
+'Add a menu item to edit a piece of data (EditRule) to rules()
 SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
  DIM index as integer = UBOUND(rules) + 1
  REDIM PRESERVE rules(index) as EditRule
@@ -1044,7 +1050,7 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as in
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
-SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule, slicelookup() as string)
+SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
  REDIM menu(6) as string
  REDIM rules(0) as EditRule
  rules(0).helpkey = "detail"
@@ -1069,14 +1075,14 @@ SUB slice_edit_detail_refresh (byref state as MenuState, menu() as string, menuo
   sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
-  menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, slicelookup())
+  menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   #IFDEF IS_CUSTOM
-   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
+   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(ses.slicelookup), slgrPICKLOOKUP
   #ELSE
    IF .Lookup >= 0 THEN
-    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
+    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(ses.slicelookup), slgrPICKLOOKUP
    ELSE
-    '--Not allow to change lookup code at all
+    '--Not allowed to change lookup code at all
     sliceed_rule_none rules(), "lookup"
    END IF
    str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
@@ -1265,9 +1271,10 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slic
  RETURN s
 END FUNCTION
 
-SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as SliceEditMenuItem, edslice as Slice Ptr, byref cursor_seek as Slice Ptr, slicelookup() as string)
- FOR i as integer = 0 TO UBOUND(menu)
-  menu(i).s = ""
+'Update slice states and the menu listing the slices
+SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
+ FOR i as integer = 0 TO UBOUND(ses.slicemenu)
+  ses.slicemenu(i).s = ""
  NEXT i
  DIM index as integer = 0
 
@@ -1275,22 +1282,22 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  RefreshSliceTreeScreenPos ses.draw_root
 
  DIM indent as integer = 0
- slice_editor_refresh_append index, menu(), "Previous Menu"
+ slice_editor_refresh_append index, ses.slicemenu(), "Previous Menu"
  ses.last_non_slice = 0
  IF ses.use_index THEN
-  slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
+  slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  END IF
  'Normally, hide the root
  DIM hidden_slice as Slice Ptr = edslice
  IF ses.show_root THEN hidden_slice = NULL
- slice_editor_refresh_recurse ses, index, menu(), indent, edslice, edslice, hidden_slice, slicelookup()
+ slice_editor_refresh_recurse ses, index, indent, edslice, edslice, hidden_slice
 
- REDIM PRESERVE menu(index - 1)
+ REDIM PRESERVE ses.slicemenu(index - 1)
 
  IF cursor_seek <> 0 THEN
   FOR i as integer = 0 TO index - 1
-   IF menu(i).handle = cursor_seek THEN
+   IF ses.slicemenu(i).handle = cursor_seek THEN
     state.pt = i
     cursor_seek = 0
     EXIT FOR
@@ -1310,31 +1317,31 @@ SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenu
  REDIM PRESERVE menu(UBOUND(menu) - 1)
 END SUB
 
-SUB slice_editor_refresh_append (byref index as integer, menu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
- IF index > UBOUND(menu) THEN
-  REDIM PRESERVE menu(index + 10) as SliceEditMenuItem
+SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
+ IF index > UBOUND(slicemenu) THEN
+  REDIM PRESERVE slicemenu(index + 10) as SliceEditMenuItem
  END IF
- menu(index).s = caption
- menu(index).handle = sl
+ slicemenu(index).s = caption
+ slicemenu(index).handle = sl
  index += 1
 END SUB
 
-SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, menu() as SliceEditMenuItem, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr, slicelookup() as string)
+SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
  WITH *sl
   DIM caption as string
   caption = STRING(indent, " ")
   IF sl->EditorHideChildren THEN caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
   caption = caption & SliceTypeName(sl)
-  caption = caption & " " & slice_caption(sl, slicelookup(), ses.draw_root, edslice)
+  caption = caption & " " & slice_caption(sl, ses.slicelookup(), ses.draw_root, edslice)
   IF sl <> hidden_slice THEN
-   slice_editor_refresh_append index, menu(), caption, sl
+   slice_editor_refresh_append index, ses.slicemenu(), caption, sl
    indent += 1
   END IF
   IF NOT sl->EditorHideChildren THEN
    'Now append the children
    DIM ch as slice ptr = .FirstChild
    DO WHILE ch <> 0
-    slice_editor_refresh_recurse ses, index, menu(), indent, edslice, ch, hidden_slice, slicelookup()
+    slice_editor_refresh_recurse ses, index, indent, edslice, ch, hidden_slice
     ch = ch->NextSibling
    LOOP
   END IF
@@ -1448,7 +1455,7 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
  RETURN NO
 END FUNCTION
 
-FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as integer, specialcodes() as SpecialLookupCode, byval slicekind as SliceTypes) as integer
+FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
 
  DIM result as integer
  result = start_at_code
@@ -1458,8 +1465,8 @@ FUNCTION edit_slice_lookup_codes(slicelookup() as string, byval start_at_code as
  append_simplemenu_item menu, "Previous Menu...", , , 0
 
  DIM special_header as bool = NO 
- FOR i as integer = 0 TO UBOUND(specialcodes)
-  WITH specialcodes(i)
+ FOR i as integer = 0 TO UBOUND(ses.specialcodes)
+  WITH ses.specialcodes(i)
    IF .code <> 0 THEN
     IF special_code_kindlimit_check(.kindlimit, slicekind) THEN
      IF NOT special_header THEN
