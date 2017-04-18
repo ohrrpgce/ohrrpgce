@@ -42,7 +42,10 @@ DIM orig_dir as string
 
 DIM tmpdir as string
 
-'This is needed for mbstowcs. Placing it here seems like the simplest way to ensure it's run in all utilities
+' This sets the locale (LC_ALL) according to the environment, while the FB
+' runtime only sets the LC_CTYPE locale (needed for mbstowcs).
+' Placing it here seems like the simplest way to ensure it's run in all utilities.
+' (I'm not aware of any reason we need to load other locale settings, but it might not hurt.)
 init_runtime
 
 
@@ -478,6 +481,13 @@ END FUNCTION
 FUNCTION cstring (s as string) as zstring ptr
  DIM ret as zstring ptr = strptr(s)
  IF ret = NULL THEN RETURN strptr("")
+ RETURN ret
+END FUNCTION
+
+'Allocate a copy of a null-terminated zstring. In case you don't want to use FB strings for some reason.
+FUNCTION copy_zstring (str_ptr as zstring ptr) as zstring ptr
+ DIM ret as zstring ptr = allocate(strlen(str_ptr) + 1)
+ strcpy(ret, str_ptr)
  RETURN ret
 END FUNCTION
 

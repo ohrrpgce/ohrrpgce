@@ -1268,12 +1268,19 @@ End Function
 
 '--Sprite-----------------------------------------------------------------
 
-Sub DisposeSpriteSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
+' Frees any memory held by a sprite, leaving in a consistent state, but does not reset its type and other data
+Sub ClearSpriteSlice(byval sl as slice ptr)
+ dim dat as SpriteSliceData ptr = sl->SliceData
  unload_sprite_and_pal dat->img
- delete dat
+ if dat->assetfile then deallocate dat->assetfile
+ dat->assetfile = NULL
+ dat->loaded = NO
+End Sub
+
+Sub DisposeSpriteSlice(byval sl as slice ptr)
+ if sl = 0 orelse sl->SliceData = 0 then exit sub
+ ClearSpriteSlice sl
+ delete cast(SpriteSliceData ptr, sl->SliceData)
  sl->SliceData = 0
 end sub
 
@@ -1354,6 +1361,53 @@ Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
  return sl->SliceData
 End Function
 
+' Actually load the asset for a sprite slice
+Private Sub LoadAssetSprite(sl as Slice ptr)
+ if sl = 0 then fatalerror "LoadSpriteasset null ptr"
+
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  frame_unload(@.img.sprite)
+  palette16_unload(@.img.pal)
+  .record = -1
+  .pal = -1  'No palette anyway
+  .paletted = NO
+  .frame = 0
+  .trans = YES
+  .loaded = YES  'Even if an error occurs, we create a Frame
+
+  dim filename as string = finddatafile(*.assetfile)
+  if len(filename) then
+   .img.sprite = frame_import_bmp_raw(filename)
+  end if
+  if .img.sprite then
+   sl->Width = .img.sprite->w
+   sl->Height = .img.sprite->h
+  else
+   visible_debug !"Data file " & iif(len(filename), "corrupt", "missing") _
+                 & " (the OHRRPGCE isn't installed correctly?):\ndata/" & .assetfile
+   ' Draw an X (the width and height were hopefully loaded from a .slice file)
+   .img.sprite = frame_new(sl->Width, sl->Height, , YES)
+   drawline .img.sprite, 0, 0, sl->Width - 1, sl->Height - 1, uilook(uiSelectedItem)
+   drawline .img.sprite, sl->Width - 1, 0, 0, sl->Height - 1, uilook(uiSelectedItem)
+  end if
+ end with
+End Sub
+
+' Turn a sprite slice into an 'asset' sprite, meaning it is loaded from an image in the data/ dir.
+' assetname should be the name of a file in data/
+Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string)
+ if sl = 0 then fatalerror "SetSpriteToAsset null ptr"
+
+ ClearSpriteSlice sl
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  .spritetype = sprTypeFrame
+  .assetfile = copy_zstring(assetfile)
+ end with
+ LoadAssetSprite sl
+End Sub
+
 ' Provide an external image for this sprite slice, instead of one of the game's sprites.
 ' fr will be unloaded when the sprite is deleted. Use frame_reference() to avoid this.
 ' Either pass pal16: an already loaded Palette16 (which will be freed when the slice is deleted),
@@ -1364,15 +1418,14 @@ Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
 
  if pal = -1 then showerror "SetSpriteToFrame: a default palette can't be used"
 
+ ClearSpriteSlice sl
  with *dat
-  frame_unload(@.img.sprite)
+  .spritetype = sprTypeFrame
   .img.sprite = fr
   .record = -1
   .frame = 0
   .trans = YES
-  .spritetype = sprTypeFrame
 
-  palette16_unload(@.img.pal)
   if pal16 then
    .img.pal = pal16
    .paletted = YES
@@ -1420,13 +1473,18 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
- if dat->spritetype = sprTypeFrame then showerror "SaveSpriteSlice: tried to save Frame sprite": exit sub  'programmer error
  SaveProp node, "sprtype", dat->spritetype
- SaveProp node, "rec", dat->record
- if dat->paletted and dat->pal <> -2 then  'sprTypeFrame may have an Palette16 without an ID
-  SaveProp node, "pal", dat->pal
+ if dat->spritetype = sprTypeFrame then
+  ' If it's not an asset sprite, then the Frame came from an unknown source and can't be saved
+  if dat->assetfile = NULL then reporterr "SaveSpriteSlice: tried to save Frame sprite", serrBug : exit sub
+  SaveProp node, "asset", *dat->assetfile
+ else
+  SaveProp node, "rec", dat->record
+  if dat->paletted then
+   SaveProp node, "pal", dat->pal
+  end if
+  SaveProp node, "frame", dat->frame
  end if
- SaveProp node, "frame", dat->frame
  SaveProp node, "fliph", dat->flipHoriz
  SaveProp node, "flipv", dat->flipVert
  SaveProp node, "trans", dat->trans
@@ -1443,6 +1501,9 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  dat->spritetype = LoadProp(node, "sprtype")
+ if dat->spritetype < sprTypeFirst or dat->spritetype > sprTypeLast then
+  reporterr "LoadSpriteSlice: Unknown type " & dat->spritetype, serrError
+ end if
  dat->record     = LoadProp(node, "rec")
  dat->pal        = LoadProp(node, "pal", -1)
  dat->frame      = LoadProp(node, "frame")
@@ -1456,6 +1517,11 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->d_tick     = bound(LoadProp(node, "d_tick"), -1, large(dat->d_time + 1, 0))
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
+
+ if dat->spritetype = sprTypeFrame then
+  dat->assetfile = copy_zstring(LoadPropStr(node, "asset"))
+  LoadAssetSprite sl
+ end if
 End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
@@ -1499,6 +1565,8 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   if spritetype <> sprTypeInvalid then
+   ' This should never happen
+   if spritetype < 0 or sprTypeFirst > sprTypeLastLoadable then reporterr "Invalid sprite type " & spritetype, serrBug : exit sub
    .spritetype = spritetype
    .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO

@@ -314,7 +314,7 @@ CONST binLASTENTRY = 12 ' *** Update this when adding binsize records ***
 Enum SpriteType
 	sprTypeInvalid = -2
 	sprTypeFirst = -1
-	sprTypeFrame = -1        'A sprite created from a Frame or an engine asset
+	sprTypeFrame = -1        'A sprite created either from a Frame or an engine asset
 	' Many functions only accept a type between 0 and sprTypeLastPT
 	sprTypeHero = 0
 	sprTypeSmallEnemy = 1

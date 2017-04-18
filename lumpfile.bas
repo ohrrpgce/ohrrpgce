@@ -1308,8 +1308,7 @@ function Buffered_open (filename as string) as BufferedFile ptr
 		end if
 
 		.buf = allocate(BF_BUFSIZE)
-		.filename = allocate(len(filename) + 1)
-		strcpy(.filename, strptr(filename))
+		.filename = copy_zstring(filename)
 	end with
 
 	return bfile
