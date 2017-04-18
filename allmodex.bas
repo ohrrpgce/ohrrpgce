@@ -1119,9 +1119,9 @@ end function
 'flagms: if nonzero, is a count in milliseconds for the secondary timer, whether this has triggered
 '        is accessed as the return value from dowait.
 sub setwait (byval ms as double, byval flagms as double = 0)
-	if use_speed_control = NO then exit sub
+	if use_speed_control = NO then ms = 0.001
 	ms /= fps_multiplier
-	flagms /= fps_multiplier
+	'flagms /= fps_multiplier
 	requested_framerate = 1. / ms
 	dim thetime as double = timer
 	dim target as double = waittime + ms / 1000
@@ -1147,7 +1147,6 @@ function dowait () as bool
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	tickcount += 1
-	if use_speed_control = NO then return YES
 	global_tog XOR= 1
 	dim i as integer
 	dim starttime as double = timer
