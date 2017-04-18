@@ -82,7 +82,7 @@ function spamCallBack($editor, $text, $section, &$error, $summary){
 
     //Create a diff, for better filtering
     $old_page = new WikiPage($title);
-    $old = $old_page->getContent();
+    $old = ContentHandler::getContentText($old_page->getContent());
     $diff = getDiff($old,$body);
     $diff = implode("\n",$diff);
     unset($old_page);
