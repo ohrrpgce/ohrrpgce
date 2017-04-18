@@ -110,6 +110,8 @@ declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
 declare Sub ClearTextBox (byref box as TextBox)
 declare Function textbox_lines_to_string(byref box as TextBox) as string
 
+DECLARE SUB initattackdata OVERLOAD (recbuf() as integer)
+DECLARE SUB initattackdata OVERLOAD (byref atk as AttackData)
 DECLARE SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
 DECLARE SUB loadoldattackdata (array() as integer, byval index as integer)
 DECLARE SUB saveoldattackdata (array() as integer, byval index as integer)

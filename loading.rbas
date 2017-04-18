@@ -2715,6 +2715,17 @@ END FUNCTION
 '                                         Attacks
 '==========================================================================================
 
+SUB initattackdata OVERLOAD (recbuf() as integer)
+ flusharray recbuf(), UBOUND(recbuf)
+ recbuf(1) = -1    '.pal = -1        (AtkDatPal)
+ recbuf(314) = -1  '.wep_pal = -1    (AtkDatWepPal)
+END SUB
+
+SUB initattackdata OVERLOAD (byref atkdat as AttackData)
+ DIM buf(40 + dimbinsize(binATTACK)) as integer
+ initattackdata buf()
+ convertattackdata buf(), atkdat
+END SUB
 
 SUB loadoldattackdata (array() as integer, byval index as integer)
  loadrecord array(), game & ".dt6", 40, index

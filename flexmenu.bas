@@ -1546,9 +1546,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
           RETURN NO
         CASE 1 ' blank
           gen(genMaxAttack) = recindex
-          flusharray recbuf(), UBOUND(recbuf)
-          recbuf(AtkDatPal) = -1
-          recbuf(AtkDatWepPal) = -1
+          initattackdata recbuf()
           RETURN YES
         CASE 2 ' copy
           gen(genMaxAttack) = recindex
