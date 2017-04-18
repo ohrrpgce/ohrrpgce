@@ -238,8 +238,7 @@ type RecordGIFState
 	'active as bool
 	writer as GifWriter
 	fname as string
-	expected_next_frame as double
-	losttime as double               'Seconds since last frame not part of a setwait-dowait interval
+	last_frame_end_time as double    'Nominal time when the delay for the last frame we wrote ends
 	declare property active() as bool
 	declare function delay() as integer
 end type
@@ -1126,7 +1125,6 @@ sub setwait (byval ms as double, byval flagms as double = 0)
 	dim thetime as double = timer
 	dim target as double = waittime + ms / 1000
 	waittime = bound(target, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
-	recordgif.losttime += waittime - target
 	if flagms <= 0 then
 		flagms = ms
 	end if
@@ -1150,7 +1148,6 @@ function dowait () as bool
 	global_tog XOR= 1
 	dim i as integer
 	dim starttime as double = timer
-	recordgif.losttime += large(0., starttime - waittime)   ' If missed the target, account it
 	do while timer <= waittime - 0.0005
 		i = bound((waittime - timer) * 1000, 1, 5)
 		sleep i
@@ -6240,29 +6237,30 @@ property RecordGIFState.active() as bool
 end property
 
 'Returns time delay in hundreds of a second to be used for next frame
+'(We have to say how long the frame will be displayed when we write it, rather than
+'just telling how long the last frame was on-screen for.)
 function RecordGIFState.delay() as integer
 	' Predict the time that this frame will be shown via the setwait timer.
 	' But the actual next setvispage might happen after or before that
 	' (if there are multiple setvispage calls before dowait).
-	dim ret as integer
-	expected_next_frame += recordgif.losttime
-	'if recordgif.losttime > 0 then print "record gif: skip " & recordgif.losttime
-	recordgif.losttime = 0.
+	dim as double next_frame_time = waittime
+	'next_next_frame_time = waittime + 1 / requested_framerate
 
-	if gif_max_fps > 0 andalso (waittime - expected_next_frame) < 1. / gif_max_fps then
+	if gif_max_fps > 0 andalso next_frame_time - last_frame_end_time < 1. / gif_max_fps then
 		' Wait until some more time has passed
 		return 0
 	end if
 
-	ret = (waittime - expected_next_frame) * 100
+	dim ret as integer
+	ret = (next_frame_time - last_frame_end_time) * 100
 	if ret <= 0 then
 		' In this case there's no point writing the frame, but this should be rare
-		ret = 1
+		return 0
 	end if
 
-	' Instead of doing expected_next_frame = waittime, this accumulates
+	' Instead of doing last_frame_end_time = waittime, this accumulates
 	' the parts less than 0.01s, to avoid rounding error
-	expected_next_frame += ret * 0.01
+	last_frame_end_time += ret * 0.01
 	return ret
 end function
 
@@ -6273,11 +6271,10 @@ sub start_recording_gif()
 	' because that's likely to be the palette for most frames.
 	GifPalette_from_pal gifpal, master()
 	recordgif.fname = absolute_path(next_unused_screenshot_filename() + ".gif")
-	recordgif.losttime = 0.
 	dim file as FILE ptr = fopen(recordgif.fname, "wb")
 	if GifBegin(@recordgif.writer, file, vpages(vpage)->w, vpages(vpage)->h, 6, NO, @gifpal) then
 		show_overlay_message "Ctrl-F12 to stop recording", 1.
-		recordgif.expected_next_frame = timer
+		recordgif.last_frame_end_time = timer
 	else
 		show_overlay_message "Can't record, GifBegin failed"
 	end if
