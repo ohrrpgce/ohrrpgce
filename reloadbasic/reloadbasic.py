@@ -99,7 +99,7 @@ def dimStatement():         return "dim", CHECKPNT, QUES, "shared", [(QUES, "byr
 
 def argList():              return "(", CHECKPNT, [")", (argumentDecl, STAR, (",", argumentDecl), ")")]
 
-def functionDecorators():   return QUES, "cdecl"
+def functionDecorators():   return QUES, ["cdecl", "overload", "pascal", "stdcall", ("alias", identifier)]
 
 # starttest/endtest are special cases for the macros defined in testing.bi
 def functionStart():        return QUES, "private", [("function", CHECKPNT, dottedIdentifier, functionDecorators, QUES, argList, "as", typename),
