@@ -371,8 +371,8 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
      'But we can't 100% safely apply it to compGt, because we didn't used to do that in the past.)
      IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
     END IF
-    IF t = compLe THEN fail = (effectiveval < .value - 0.000005)
-    IF t = compLt THEN fail = (effectiveval <= .value + 0.000005)
+    IF t = compLt THEN fail = (effectiveval < .value - 0.000005)
+    IF t = compLe THEN fail = (effectiveval <= .value + 0.000005)
     IF t = compGt THEN fail = (effectiveval > .value + 0.000005)
     IF t = compGe THEN fail = (effectiveval >= .value - 0.000005)
     IF fail THEN
