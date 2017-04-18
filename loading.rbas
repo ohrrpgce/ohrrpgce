@@ -2726,7 +2726,6 @@ SUB initattackdata OVERLOAD (recbuf() as integer)
   SerSingle(recbuf(), 327, 1.0)  '.dog_mult = 1.0
   SerSingle(recbuf(), 329, 1.0)  '.atk_mult = 1.0
   SerSingle(recbuf(), 331, 1.0)  '.def_mult = 1.0
-  SerSingle(recbuf(), 333, 1.0)  '.aim_extra = 1.0
   SerSingle(recbuf(), 335, 1.0)  '.absorb_rate = 1.0
  END IF
 END SUB

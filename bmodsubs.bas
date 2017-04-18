@@ -240,7 +240,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    END SELECT
    SELECT CASE attack.base_dog_stat
     CASE -1
-     acc = 1
+     dog = 1
     CASE 0 TO 11
      dog = attacker.stat.cur.sta(attack.base_acc_stat)
     CASE 256 TO 267

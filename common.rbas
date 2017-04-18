@@ -3746,7 +3746,6 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
    SerSingle(dat(), 327, 1.0)  '.dog_mult
    SerSingle(dat(), 329, 1.0)  '.atk_mult
    SerSingle(dat(), 331, 1.0)  '.def_mult
-   SerSingle(dat(), 333, 1.0)  '.aim_extra
    SerSingle(dat(), 335, 1.0)  '.absorb_rate
    saveattack = YES
   END IF
