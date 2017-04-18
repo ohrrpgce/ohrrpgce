@@ -214,6 +214,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   'accuracy
   DIM acc as integer = attacker.stat.cur.acc
   DIM dog as integer = target.stat.cur.dog
+  DIM accm as single = 1
   DIM dogm as single = .25 'dodge modifier
   IF attack.aim_math = 1 THEN dogm = 0.5
   IF attack.aim_math = 2 THEN dogm = 1.0
@@ -221,13 +222,43 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
    acc = attacker.stat.cur.mag
    dog = target.stat.cur.wil
+  ELSEIF attack.aim_math > 8 THEN
+   accm = attack.acc_mult
+   dogm = attack.dog_mult
+   SELECT CASE attack.base_acc_stat
+    CASE 0 TO 11
+     acc = attacker.stat.cur.sta(attack.base_acc_stat)
+    CASE 256 TO 267
+     acc = target.stat.cur.sta(attack.base_acc_stat - 256)
+    CASE 512 TO 523
+     acc = attacker.stat.cur.sta(attack.base_acc_stat - 512)
+     accm = accm / tcount
+    CASE -1
+     acc = 1
+    CASE ELSE
+     debug "Invalid aim stat"
+   END SELECT
+   SELECT CASE attack.base_dog_stat
+    CASE 0 TO 11
+     dog = attacker.stat.cur.sta(attack.base_acc_stat)
+    CASE 256 TO 267
+     dog = target.stat.cur.sta(attack.base_acc_stat - 256)
+    CASE -1
+     dog = 1
+    CASE ELSE
+     debug "Invalid aim stat"
+   END SELECT
   END IF
  
   DIM attackhit as integer
   attackhit = range(acc, 75) >= range(dog * dogm, 75)
   IF attack.aim_math = 3 THEN attackhit = YES
-  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = randint(100) < (acc * (100 - dog)) / 100 
+  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = randint(100) < (acc * (100 - dog)) / 100
   IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = randint(100) < acc
+  IF attack.aim_math = 9 THEN attackhit = range(acc * accm + attack.aim_extra, 75) >= range(dog * dogm, 75)
+  IF attack.aim_math = 10 THEN attackhit = randint(100) < attack.aim_extra + (acc * accm * (100 - dog * dogm)) / 100
+  IF attack.aim_math = 11 THEN attackhit = rando() < (1+erf(acc*accm-dog*dogm+attack.aim_extra))/2
+  IF attack.aim_math = 12 THEN attackhit = randint(100) < ((attack.aim_extra + acc * accm) * (100 - dog * dogm)) / 100
   IF attackhit = NO THEN
    target.harm.text = readglobalstring(120, "miss", 20)
    RETURN NO
@@ -285,7 +316,15 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     ap = attacker.stat.max.sta(attack.base_atk_stat - 35)
    CASE 47 TO 58
     ap = target.stat.max.sta(attack.base_atk_stat - 47)
-   CASE IS >= 59
+   CASE 59
+    ap = tcount * 100
+   CASE 60
+    ap = attacker.stat.max.mp - attacker.stat.cur.mp
+   CASE 61
+    ap = target.stat.max.mp - target.stat.cur.mp
+   CASE 62
+    ap = target.stat.cur.hp - target.stat.max.hp
+   CASE IS >= 63
     debug "Unknown base stat " & attack.base_atk_stat & " for attack " & attack.id
   END SELECT
  
@@ -295,9 +334,10 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   'calc defense
   DIM am as single = 1.0
   DIM dm as single = 0.5                    'atk-def*.5
-  IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.5
+  IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.1
   IF attack.damage_math = 2 THEN am = 1.3 : dm = 1.0  'atk-1.3-def
   IF attack.damage_math = 3 THEN am = 1.0 : dm = 0.0  'atk
+  IF attack.damage_math = 9 THEN am = attack.atk_mult : dm = attack.def_mult
  
   'calc harm
   h = (ap * am) - (dp * dm)
@@ -320,16 +360,26 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    END IF
    WITH attack.elemental_fail_conds(i)
     DIM fail as integer = NO
-    IF .type = compLt THEN
-     DIM effectiveval as single = target.elementaldmg(i)
+    DIM effectiveval as single = target.elementaldmg(i)
+    DIM t as integer = .type AND 15
+    IF .type AND 16 THEN effectiveval = ABS(effectiveval)
+    IF .type AND 64 THEN effectiveval = rando() * effectiveval
+    IF t = compLt THEN
      'Simulate old fail vs element resist bit:
      'The old bit checked only the target's Strong bits, ignoring their Absorb bits
      IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
      fail = (effectiveval < .value - 0.000005)
     END IF
-    IF .type = compGt THEN fail = (target.elementaldmg(i) > .value + 0.000005)
+    IF t = compLe THEN
+     'For consistency, the Simulate old fail vs element resist bit is checked here too.
+     IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
+     fail = (effectiveval <= .value + 0.000005)
+    END IF
+    IF t = compGt THEN fail = (effectiveval > .value + 0.000005)
+    IF t = compGe THEN fail = (effectiveval >= .value - 0.000005)
     IF fail THEN
      target.harm.text = readglobalstring(122, "fail", 20)
+     IF .type AND 32 THEN target.harm.text = readglobalstring(120, "miss", 20)
      RETURN NO
     END IF
    END WITH
@@ -346,10 +396,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
    'This check just prevents overflow; actual 0 damage cap is below.
    h = 0
   ELSE
-   h = harmf
-
-   'randomize +/- 20%
-   IF attack.do_not_randomize = NO THEN h = range(h, 20)
+   h = range(harmf, attack.randomization)
   END IF
  
   'spread damage
@@ -442,14 +489,14 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     WITH attacker
      '--drain
      IF attack.do_not_display_damage = NO THEN
-      .harm.text = STR(ABS(h))
+      .harm.text = STR(ABS(h * attack.absorb_rate))
       IF h > 0 THEN .harm.text = "+" + .harm.text
      END IF
      .harm.ticks = gen(genDamageDisplayTicks)
      .harm.col = 12 'FIXME: pink
      .harm.pos.x = .x + (.w * .5)
      .harm.pos.y = .y + (.h * .5)
-     .stat.cur.sta(targstat) += h
+     .stat.cur.sta(targstat) += h * attack.absorb_rate
     END WITH
    END IF
 

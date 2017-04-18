@@ -536,10 +536,11 @@ Type AttackDataChain
 	no_delay as bool
 	nonblocking as bool
 	dont_retarget as bool
+	invert_condition as bool
 End Type
 
 Type AttackElementCondition
-	type as CompType  'Only compNone, compLt, compGt supported!
+	type as integer
 	value as single
 End Type
 
@@ -614,6 +615,15 @@ Type AttackData
 	transmog_enemy as integer ' ID +1, 0 no change
 	transmog_hp as integer
 	transmog_stats as integer
+	base_acc_stat as integer
+	base_dog_stat as integer
+	acc_mult as single
+	dog_mult as single
+	atk_mult as single
+	def_mult as single
+	aim_extra as single
+	randomization as integer
+	absorb_rate as single
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool

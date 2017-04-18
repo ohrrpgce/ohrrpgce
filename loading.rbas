@@ -2771,6 +2771,7 @@ SUB loadattackchain (byref ch as AttackDataChain, buf() as integer, byval id_off
  ch.no_delay    = xreadbit(buf(), 1, bits_offset)
  ch.nonblocking = xreadbit(buf(), 2, bits_offset)
  ch.dont_retarget = xreadbit(buf(), 3, bits_offset)
+ ch.invert_condition = xreadbit(buf(), 4, bits_offset)
 END SUB
 
 SUB loadoldattackelementalfail (byref cond as AttackElementCondition, buf() as integer, byval element as integer)
@@ -2882,6 +2883,15 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
     .wep_handle(i).y = buf(316 + i * 2)
    NEXT i
   END IF
+  .base_acc_stat = buf(323)
+  .base_dog_stat = buf(324)
+  .acc_mult = DeSerSingle(buf(), 325)
+  .dog_mult = DeSerSingle(buf(), 327)
+  .atk_mult = DeSerSingle(buf(), 329)
+  .def_mult = DeSerSingle(buf(), 331)
+  .aim_extra = DeSerSingle(buf(), 333)
+  .absorb_rate = DeSerSingle(buf(), 335)
+  .randomization = buf(337)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110
