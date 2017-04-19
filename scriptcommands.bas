@@ -63,10 +63,11 @@ SUB embedtext (text as string, byval limit as integer=0)
  END IF
 END SUB
 
-FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
-' The callback is a sub that accepts 2 strings and 3 integers. It should have the following signature
-' SUB MyCallback(code as string, result as string, n0 as any ptr, n1 as any ptr, n2 as any ptr)
-
+' Expand embed codes like ${H0}.
+' The optional callback can be passed to process additional codes.
+' It should set its result string if it recognised the code, and otherwise
+' leave it alone. arg0, arg1, arg2 are forwarded to it.
+FUNCTION embed_text_codes (text_in as string, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
  DIM text as string = text_in
  DIM start as integer = 1
  DIM insert as string
@@ -136,10 +137,8 @@ FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval
     END SELECT
    END IF
   END IF
-  IF callback <> 0 THEN
-   DIM runner as SUB(code as string, result as string, byval arg0 as any ptr, byval arg1 as any ptr, byval arg2 as any ptr)
-   runner = callback
-   runner(code, insert, arg0, arg1, arg2)
+  IF callback <> NULL THEN
+   callback(code, insert, arg0, arg1, arg2)
   END IF
   '--skip past this embed
   text = before & insert & after

@@ -1,11 +1,14 @@
 #ifndef SCRIPTCOMMANDS_BI
 #define SCRIPTCOMMANDS_BI
 
+' Used by embed_text_codes to 
+TYPE FnEmbedCode as SUB(code as string, result as string, arg0 as any ptr, arg1 as any ptr, arg2 as any ptr)
+
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)
 
 DECLARE SUB embedtext (text as string, byval limit as integer = 0)
-DECLARE FUNCTION embed_text_codes (text_in as string, byval callback as ANY Ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
+DECLARE FUNCTION embed_text_codes (text_in as string, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as string
 
 DECLARE FUNCTION herobyrank (byval slot as integer) as integer
 DECLARE FUNCTION rank_to_party_slot (byval rank as integer) as integer

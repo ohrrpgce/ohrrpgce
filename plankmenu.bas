@@ -91,16 +91,15 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
  NEXT i
 
  ps.cur = best_sl
- 
 END SUB
 
 FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
- IF carray(ccLeft) > 1  THEN IF plank_menu_move_cursor(ps, 0, -1) THEN result = YES
- IF carray(ccRight) > 1 THEN IF plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
- IF carray(ccUp) > 1    THEN IF plank_menu_move_cursor(ps, 1, -1) THEN result = YES
- IF carray(ccDown) > 1  THEN IF plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+ IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1) THEN result = YES
+ IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
+ IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1) THEN result = YES
+ IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1 : result = YES
  IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1 : result = YES
  RETURN result
@@ -130,7 +129,6 @@ FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as in
  NEXT i
  
  RETURN best_sl
-
 END FUNCTION
 
 FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
@@ -153,12 +151,17 @@ FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
  RETURN best
 END FUNCTION
 
+FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
+ IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ RETURN sl->Lookup = SL_PLANK_HOLDER
+END FUNCTION
+
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
  IF m = 0 THEN debug "plank_menu_move_cursor: null m ptr" : EXIT SUB
 
- DIM plank_checker as FUNCTION (byval s as Slice Ptr) as bool
+ DIM plank_checker as FnIsPlank
  plank_checker = ps.is_plank_callback
- IF plank_checker = 0 THEN plank_checker = @is_plank
+ IF plank_checker = 0 THEN plank_checker = @default_is_plank
 
  DIM sl as Slice Ptr
  sl = m->FirstChild
@@ -174,10 +177,9 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
   find_all_planks ps, sl, planks()
   sl = sl->NextSibling
  LOOP
- 
 END SUB
 
-SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as integer)
+SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as PlankItemState)
  SELECT CASE sl->SliceType
   CASE slText:
    SELECT CASE state
@@ -201,14 +203,15 @@ SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as inte
  END SELECT
 END SUB
 
-SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as integer=plankNORMAL)
+SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as PlankItemState = plankNORMAL)
  IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
  'First evaluate the current slice
  IF sl->Lookup = SL_PLANK_MENU_SELECTABLE THEN
-  DIM runner as SUB (byval sl as Slice Ptr, byval state as integer)
-  runner = ps.state_callback
-  IF runner = 0 THEN runner = @set_plank_state_default_callback
-  runner(sl, state)
+  IF ps.state_callback THEN
+   ps.state_callback(sl, state)
+  ELSE
+   set_plank_state_default_callback(sl, state)
+  END IF
  END IF
  
  'Now repeat for each child
@@ -217,10 +220,9 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
   set_plank_state ps, ch, state
   ch = ch->NextSibling
  LOOP
- 
 END SUB
 
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as Slice Ptr
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  DIM collection as Slice Ptr = NewSliceOfType(slRoot)
  load_slice_collection collection, collection_kind
  IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
@@ -230,7 +232,7 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  RETURN result
 END FUNCTION
 
-FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as Slice Ptr
+FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
  DIM m as Slice ptr = LookupSlice(lookup, sl)
  IF m = 0 THEN debug "plank_menu_append: menu not found " & lookup : RETURN 0
@@ -253,7 +255,6 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
  
  RETURN cl
- 
 END FUNCTION
 
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
@@ -266,7 +267,7 @@ SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
  DeleteSliceChildren m
 END SUB
 
-SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as ANY ptr=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0)
  'Starting with children of the given container slice, iterate through
  ' all children and expand any ${} codes found in any TextSlice
  ' Do not descend into child slices marked with SL_PLANK_HOLDER because planks are responsible for their own text codes
@@ -316,12 +317,6 @@ SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
  LOOP
 END SUB
 
-FUNCTION is_plank(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
- IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
- RETURN NO 
-END FUNCTION
-
 FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
  IF sl = 0 THEN debug "find_plank_scroll: null slice ptr" : RETURN 0
  IF sl->SliceType = slScroll THEN RETURN sl
@@ -344,7 +339,6 @@ SUB update_plank_scrolling (byref ps as PlankState)
  IF scroll ANDALSO ps.cur THEN
   ScrollToChild scroll, ps.cur
  END IF
- 
 END SUB
 
 SUB save_plank_selection (byref ps as PlankState)
