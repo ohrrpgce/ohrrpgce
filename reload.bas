@@ -321,17 +321,14 @@ end sub
 'If force_recurse is true, load recursively even if document marked for delayed loading.
 '
 Function LoadNode(byval f as FILE ptr, byval doc as DocPtr, byval force_recursive as bool) as NodePtr
-	dim ret as NodePtr
-	
 	dim size as integer
-	
-	dim as integer here, here2
 	fread(@size, 4, 1, f)
 	
+	dim as integer here, here2
 	here = ftell(f)
 	
+	dim ret as NodePtr
 	ret = CreateNode(doc, "")
-	
 	ret->namenum = cshort(ReadVLI(f))
 	
 	if ret->namenum < 0 or ret->namenum >= doc->numStrings then
@@ -424,7 +421,7 @@ Function LoadNode(byval ret as nodeptr, byval recursive as bool = YES) as bool
 		dim nod as nodeptr = LoadNode(f, ret->doc, recursive)
 		if nod = null then
 			debug "LoadNode: node @" & ret->fileLoc & " child " & i & " node load failed"
-			return no
+			return NO
 		end if
 		ret->numChildren -= 1
 		AddChild(ret, nod)
@@ -549,37 +546,25 @@ End Function
 'Internal function
 'Locates a string in the string table. If it's not there, returns -1
 Function FindStringInTable (st as string, byval doc as DocPtr) as integer
-	'if st = "" then return 0
-	'for i as integer = 0 to doc->numStrings - 1
-	'	if *doc->strings[i].str = st then return i
-	'next
-	
 	if st = "" then return 0
-	
+
 	dim ret as integer = FindItem(doc->stringhash, st)
-	
+
 	if ret = 0 then return -1
 	return ret
 end function
 
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
-Function AddStringToTable(st as string, byval doc as DocPtr) as integer
+Function AddStringToTable(name as string, byval doc as DocPtr) as integer
 	dim ret as integer
-	
-	ret = cint(FindStringInTable(st, doc))
-	
+	ret = FindStringInTable(name, doc)
 	if ret <> -1 then
 		return ret
 	end if
 	
 	if doc->numAllocStrings = 0 then 'This should never run.
-		debugc errBug, "ERROR! Unallocated string table!"
-		doc->strings = RCallocate(16 * sizeof(StringTableEntry), doc)
-		doc->numAllocStrings = 16
-		
-		doc->strings[0].str = RCallocate(1, doc)
-		*doc->strings[0].str = ""
+		fatalerror "ERROR! Unallocated string table!"
 	end if
 	
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
@@ -597,15 +582,14 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 		doc->numAllocStrings = doc->numAllocStrings * 2
 	end if
 	
-	
-	doc->strings[doc->numStrings].str = RCallocate(len(st) + 1, doc)
-	*doc->strings[doc->numStrings].str = st
-	
-	AddItem(doc->stringHash, doc->strings[doc->numStrings].str, doc->numStrings)
-	
+	ret = doc->numStrings
 	doc->numStrings += 1
+	doc->strings[ret].str = RCallocate(len(name) + 1, doc)
+	*doc->strings[ret].str = name
 	
-	return doc->numStrings - 1
+	AddItem(doc->stringHash, doc->strings[ret].str, ret)
+
+	return ret
 end function
 
 'RELOADBASIC internal function
@@ -683,13 +667,12 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	
 	dim f as BufferedFile ptr
 	f = Buffered_open(file & ".tmp")
-	
 	if f = NULL then
 		debug "SerializeBin: Unable to open " & file & ".tmp"
 		exit sub
 	end if
 	
-	dim i as uinteger, b as ubyte
+	dim i as uinteger
 	
 	Buffered_write(f, @"RELD", 4) 'magic signature
 	
@@ -705,13 +688,14 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	serializeBin(doc->root, f, doc)
 	
 	'this is the location of the string table (immediately after the data)
-	i = Buffered_tell(f)
+	dim table_loc as integer
+	table_loc = Buffered_tell(f)
 	
 	Buffered_seek(f, 9)
-	Buffered_write(f, @i, 4) 'filling in the string table position
+	Buffered_write(f, @table_loc, 4) 'filling in the string table position
 	
 	'jump back to the string table
-	Buffered_seek(f, i)
+	Buffered_seek(f, table_loc)
 	
 	'first comes the number of strings
 	writeVLI(f, doc->numStrings - 1)
@@ -749,82 +733,67 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 		debug "serializeBin null node ptr"
 		exit sub
 	end if
-	dim i as integer, strno as longint, ub as ubyte
-	
+
 	'first, if a node isn't loaded, we need to do so.
 	if nod->flags AND nfNotLoaded then
 		LoadNode(nod, YES)
 	end if
-	
-	dim as integer siz, here = 0, here2, dif
-	'siz = seek(f)
-	siz = Buffered_tell(f)
-	'put #f, , here 'will fill this in later, this is node content size
-	Buffered_write(f, @here, 4)
-	
-	'here = seek(f)
-	here = Buffered_tell(f)
-	
-	'strno = FindStringInTable(nod->name, doc)
-	strno = nod->namenum
-	if strno = -1 then
-		debug "failed to find string " & *nod->name & " in string table"
+
+	dim as integer size_loc, content_start_loc = 0, content_end_loc
+	size_loc = Buffered_tell(f)
+	' Will fill this in later, this is the node content size
+	Buffered_write(f, @content_start_loc, 4)
+
+	content_start_loc = Buffered_tell(f)
+
+	if nod->namenum = -1 then
+		debug *nod->name & " node without valid name index"
 		exit sub
 	end if
-	
-	WriteVLI(f, strno)
-	
+	WriteVLI(f, nod->namenum)
+
 	select case nod->nodeType
 		case rltNull
 			'Nulls have no data, but convey information by existing or not existing.
 			'They can also have children.
-			ub = rliNull
-			Buffered_putc(f, ub)
+			Buffered_putc(f, rliNull)
 		case rltInt 'this is good enough, don't need VLI for this
 			if nod->num > 2147483647 or nod->num < -2147483648 then
-				ub = rliLong
-				Buffered_putc(f, ub)
+				Buffered_putc(f, rliLong)
 				Buffered_write(f, @(nod->num), 8)
 			elseif nod->num > 32767 or nod->num < -32768 then
-				ub = rliInt
-				Buffered_putc(f, ub)
-				i = nod->num
-				Buffered_write(f, @i, 4)
+				Buffered_putc(f, rliInt)
+				dim temp as long = nod->num
+				Buffered_write(f, @temp, 4)
 			elseif nod->num > 127 or nod->num < -128 then
-				ub = rliShort
-				Buffered_putc(f, ub)
-				dim s as short = nod->num
-				Buffered_write(f, @s, 2)
+				Buffered_putc(f, rliShort)
+				dim temp as short = nod->num
+				Buffered_write(f, @temp, 2)
 			else
-				ub = rliByte
-				Buffered_putc(f, ub)
-				dim b as byte = nod->num
-				Buffered_putc(f, b)
+				Buffered_putc(f, rliByte)
+				Buffered_putc(f, nod->num)
 			end if
 		case rltFloat
-			ub = rliFloat
-			Buffered_putc(f, ub)
+			Buffered_putc(f, rliFloat)
 			Buffered_write(f, @(nod->flo), 8)
 		case rltString
-			ub = rliString
-			Buffered_putc(f, ub)
+			Buffered_putc(f, rliString)
 			WriteVLI(f, nod->strSize)
 			Buffered_write(f, nod->str, nod->strSize)
 	end select
-	
+
 	WriteVLI(f, nod->numChildren)
-	dim n as NodePtr
-	n = nod->children
+	dim n as NodePtr = nod->children
 	do while n <> null
 		serializeBin(n, f, doc)
 		n = n->nextSib
 	loop
-	
-	here2 = Buffered_tell(f)
-	dif = here2 - here
-	Buffered_seek(f, siz)
-	Buffered_write(f, @dif, 4)
-	Buffered_seek(f, here2)
+
+	content_end_loc = Buffered_tell(f)
+	dim size as long = content_end_loc - content_start_loc
+	Buffered_seek(f, size_loc)
+	Buffered_write(f, @size, 4)
+	Buffered_seek(f, content_end_loc)
 end sub
 
 'For each provisional node in the given subtree:
@@ -849,6 +818,8 @@ sub RemoveProvisionalNodes(byval nod as NodePtr)
 	loop
 end sub
 
+'Make a node provisional, which means it will be deleted before the doc is
+'serialised if it has no children.
 sub MarkProvisional(byval nod as NodePtr)
 	if nod = NULL then
 		debug "MarkProvisional null node ptr"
@@ -1981,6 +1952,7 @@ end sub
 #endmacro
 
 'This reads the number back in again
+'Returns 0 on error.
 function ReadVLI(infile as FILE ptr) as longint
         _ReadVLI(READBYTE_stdio)
 end function
