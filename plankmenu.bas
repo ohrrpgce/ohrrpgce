@@ -27,8 +27,7 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
 
  DIM result as integer = NO
 
- ps.planks_found = 0
- REDIM planks(10) as Slice Ptr
+ REDIM planks(any) as Slice Ptr
  find_all_planks ps, ps.m, planks()
  
  DIM old as XYPair
@@ -40,7 +39,7 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  DIM dist as integer
  
  DIM sl as Slice Ptr
- FOR i as integer = 0 TO ps.planks_found - 1
+ FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
   p.x = sl->ScreenX + sl->Width / 2
   p.y = sl->ScreenY + sl->Height / 2
@@ -71,17 +70,16 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
  targpos.x = ps.cur->ScreenX + ps.cur->Width / 2
  targpos.y = ps.cur->ScreenY + ps.cur->Height / 2 + scroll->Height * scrolldir
 
- ps.planks_found = 0
- REDIM planks(10) as Slice Ptr
+ REDIM planks(any) as Slice Ptr
  find_all_planks ps, ps.m, planks()
 
- IF ps.planks_found = 0 THEN EXIT SUB
+ IF UBOUND(planks) < 0 THEN EXIT SUB
 
  DIM best_sl as Slice Ptr = ps.cur
  DIM best as integer = (best_sl->ScreenX + best_sl->Width / 2 - targpos.x) ^ 2 + (best_sl->ScreenY + best_sl->Height / 2 - targpos.y) ^ 2
  DIM dist as integer
  DIM sl as Slice Ptr
- FOR i as integer = 0 TO ps.planks_found - 1
+ FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
   dist = (sl->ScreenX + sl->Width / 2 - targpos.x) ^ 2 + (sl->ScreenY + sl->Height / 2 - targpos.y) ^ 2
   IF dist < best THEN
@@ -106,9 +104,7 @@ FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
 END FUNCTION
 
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as integer, byval targy as integer) as Slice Ptr
-
- ps.planks_found = 0
- REDIM planks(10) as Slice Ptr
+ REDIM planks(any) as Slice Ptr
  find_all_planks ps, ps.m, planks()
 
  DIM best_sl as Slice Ptr = 0
@@ -117,7 +113,7 @@ FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as in
  DIM dist as integer
  
  DIM sl as Slice Ptr
- FOR i as integer = 0 TO ps.planks_found - 1
+ FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
   p.x = sl->ScreenX + sl->Width / 2
   p.y = sl->ScreenY + sl->Height / 2
@@ -132,16 +128,14 @@ FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as in
 END FUNCTION
 
 FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
-
- ps.planks_found = 0
- REDIM planks(10) as Slice Ptr
+ REDIM planks(any) as Slice Ptr
  find_all_planks ps, ps.m, planks()
 
- IF ps.planks_found = 0 THEN RETURN 0
+ IF UBOUND(planks) < 0 THEN RETURN 0
 
  DIM best as Slice Ptr = planks(0)
  DIM sl as Slice Ptr
- FOR i as integer = 0 TO ps.planks_found - 1
+ FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
   IF sl->ScreenX <= best->ScreenX ANDALSO sl->ScreenY <= best->ScreenY THEN
    best = sl
@@ -156,6 +150,7 @@ FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
  RETURN sl->Lookup = SL_PLANK_HOLDER
 END FUNCTION
 
+' Fill planks() with all descendents of m that are planks (according to the callback)
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
  IF m = 0 THEN debug "plank_menu_move_cursor: null m ptr" : EXIT SUB
 
@@ -163,20 +158,20 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
  plank_checker = ps.is_plank_callback
  IF plank_checker = 0 THEN plank_checker = @default_is_plank
 
- DIM sl as Slice Ptr
- sl = m->FirstChild
- DO WHILE sl
-  IF plank_checker(sl) THEN
+ DIM planks_found as integer = 0
+ DIM desc as Slice ptr = m->FirstChild
+ DO WHILE desc
+  IF plank_checker(desc) THEN
    'This is a plank.
-   IF ps.planks_found > UBOUND(planks) THEN
-    REDIM PRESERVE planks(UBOUND(planks) + 10) as Slice Ptr
+   IF planks_found > UBOUND(planks) THEN
+    REDIM PRESERVE planks(UBOUND(planks) + 10)
    END IF
-   planks(ps.planks_found) = sl
-   ps.planks_found += 1
+   planks(planks_found) = desc
+   planks_found += 1
   END IF
-  find_all_planks ps, sl, planks()
-  sl = sl->NextSibling
+  desc = NextDescendent(desc, m)
  LOOP
+ REDIM PRESERVE planks(planks_found - 1)
 END SUB
 
 SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as PlankItemState)

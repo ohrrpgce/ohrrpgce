@@ -23,7 +23,6 @@ TYPE PlankState
  cur as Slice Ptr                  'Currently selected plank
  is_plank_callback as FnIsPlank
  state_callback as FnPlankSetState
- planks_found as integer           'Used by find_all_planks()
  selection_saved as bool           'Position has been saved by save_plank_selection()
  _saved_pos as XYPair              'Saved by save_plank_selection()
  '_saved_scroll as XYPair
