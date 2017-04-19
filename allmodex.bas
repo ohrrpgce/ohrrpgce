@@ -6969,6 +6969,19 @@ function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 	return ret
 end function
 
+private function graphics_file(extn as string) as string
+	if len(game) = 0 then
+		' Haven't loaded a game, fallback to the engine's default graphics
+		dim gfxdir as string = finddatadir("defaultgfx")
+		if len(gfxdir) = 0 then
+			showerror "Can't find graphic or palette " & extn & ": no game loaded and no default"
+			return ""
+		end if
+		return gfxdir & SLASH "ohrrpgce" & extn
+	end if
+	return game & extn
+end function
+
 ' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump. See frame_load.
 private function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 	if sprtype < 0 or sprtype > sprTypeLastLoadable or record < 0 then
@@ -6980,23 +6993,25 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	dim starttime as double = timer
 
 	if sprtype = sprTypeBackdrop then
-		ret = frame_load_mxs(game + ".mxs", record)
+		ret = frame_load_mxs(graphics_file(".mxs"), record)
 	elseif sprtype = sprTypeTileset then
 		dim mxs as Frame ptr
-		mxs = frame_load_mxs(game + ".til", record)
+		mxs = frame_load_mxs(graphics_file(".til"), record)
 		if mxs = NULL then return NULL
 		ret = mxs_frame_to_tileset(mxs)
 		frame_unload @mxs
 	else
 		with sprite_sizes(sprtype)
-			'debug "loading " & ptno & "  " & rec
+			'debug "loading " & sprtype & "  " & record
 			'cachemiss += 1
-			ret = frame_load_4bit(game + ".pt" & sprtype, record, .frames, .size.w, .size.h)
+			ret = frame_load_4bit(graphics_file(".pt" & sprtype), record, .frames, .size.w, .size.h)
 		end with
 	end if
 
-	ret->sprset = new SpriteSet(ret)
-	init_4bit_spriteset_defaults(ret->sprset, sprtype)
+	if ret then
+		ret->sprset = new SpriteSet(ret)
+		init_4bit_spriteset_defaults(ret->sprset, sprtype)
+	end if
 
 	debug_if_slow(starttime, 0.1, sprtype & "," & record)
 	return ret
@@ -7981,7 +7996,7 @@ end function
 'added to the game, it won't auto-update.)
 'autotype, spr: spriteset type and id, for default palette lookup.
 function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
-	dim as Palette16 ptr ret = Palette16_load(game + ".pal", num, autotype, spr)
+	dim as Palette16 ptr ret = Palette16_load(graphics_file(".pal"), num, autotype, spr)
 	if ret = 0 then
 		if num >= 0 AND default_blank then
 			' Only bother to warn if a specific palette failed to load.

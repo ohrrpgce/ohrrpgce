@@ -327,6 +327,10 @@ upgrade
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
 
+'Unload any default graphics (from data/defaultgfx) that might have been cached
+sprite_empty_cache
+palette16_empty_cache
+
 'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
