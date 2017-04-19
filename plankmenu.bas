@@ -203,22 +203,20 @@ SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as Plan
  END SELECT
 END SUB
 
+' Set the state (using the callback) of each descendent of sl with lookup=SL_PLANK_MENU_SELECTABLE
 SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state as PlankItemState = plankNORMAL)
  IF sl = 0 THEN debug "set_plank_state: null slice ptr": EXIT SUB
- 'First evaluate the current slice
- IF sl->Lookup = SL_PLANK_MENU_SELECTABLE THEN
-  IF ps.state_callback THEN
-   ps.state_callback(sl, state)
-  ELSE
-   set_plank_state_default_callback(sl, state)
+
+ DIM desc as Slice ptr = sl
+ DO WHILE desc
+  IF desc->Lookup = SL_PLANK_MENU_SELECTABLE THEN
+   IF ps.state_callback THEN
+    ps.state_callback(desc, state)
+   ELSE
+    set_plank_state_default_callback(desc, state)
+   END IF
   END IF
- END IF
- 
- 'Now repeat for each child
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch
-  set_plank_state ps, ch, state
-  ch = ch->NextSibling
+  desc = NextDescendent(desc, sl)
  LOOP
 END SUB
 
@@ -287,17 +285,16 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
  LOOP
 END SUB
 
-SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval cond as bool)
- 'Starting with children of the given container slice, iterate through
- ' all children and toggle the visibility of any slices with a specific lookup code
+SUB hide_slices_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, byval hide as bool)
+ ' Starting with a given container slice, iterate through
+ ' all descendents and set the visibility of any slices with a specific lookup code
+ ' (Note: the argument is whether to set hidden, opposite of Slice.Visible)
  IF sl = 0 THEN debug "hide_slices_by_lookup_code: null slice ptr": EXIT SUB
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch <> 0
-  IF ch->Lookup = lookup THEN
-   ch->Visible = NOT cond
-  END IF
-  hide_slices_by_lookup_code ch, lookup, cond
-  ch = ch->NextSibling
+
+ DIM desc as Slice ptr = sl
+ DO WHILE desc
+  IF desc->Lookup = lookup THEN desc->Visible = NOT hide
+  desc = NextDescendent(desc, sl)
  LOOP
 END SUB
 
@@ -305,30 +302,24 @@ SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as integer, 
  'Starting with children of the given container slice, iterate through
  ' all children and change any sprites matching the lookup code
  IF sl = 0 THEN debug "set_sprites_by_lookup_code: null slice ptr": EXIT SUB
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch <> 0
-  IF ch->Lookup = lookup THEN
-   IF ch->SliceType = slSprite THEN
-    ChangeSpriteSlice ch, sprtype, picnum, palnum
-   END IF
+
+ DIM desc as Slice ptr = sl
+ DO WHILE desc
+  IF desc->Lookup = lookup AND desc->SliceType = slSprite THEN
+   ChangeSpriteSlice desc, sprtype, picnum, palnum
   END IF
-  set_sprites_by_lookup_code ch, lookup, sprtype, picnum, palnum
-  ch = ch->NextSibling
+  desc = NextDescendent(desc, sl)
  LOOP
 END SUB
 
 FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
  IF sl = 0 THEN debug "find_plank_scroll: null slice ptr" : RETURN 0
- IF sl->SliceType = slScroll THEN RETURN sl
 
- DIM result as Slice Ptr
- DIM ch as slice ptr = sl->FirstChild
- DO WHILE ch
-  result = find_plank_scroll(ch)
-  IF result <> 0 THEN RETURN result
-  ch = ch->NextSibling
+ DIM desc as Slice ptr = sl
+ DO WHILE desc
+  IF desc->SliceType = slScroll THEN RETURN desc
+  desc = NextDescendent(desc, sl)
  LOOP
-
  RETURN 0
 END FUNCTION
 

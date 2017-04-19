@@ -804,7 +804,7 @@ Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr =
   WEND
 End Function
 
-'Return the root of the tree.
+'Return the root of the tree by going up.
 Function FindRootSlice(slc as Slice ptr) as Slice ptr
  dim root as Slice ptr
  while slc <> 0
@@ -814,8 +814,24 @@ Function FindRootSlice(slc as Slice ptr) as Slice ptr
  return root
 End Function
 
+' Implements depth-first pre-order traversal of a slice tree rooted at 'parent'
+' (pre-order meaning a parent is visited before its childen).
+' Initialise 'desc' to 'parent' (or parent->FirstChild to skip the parent),
+' and then call NextDescendent repeatedly to get the next descendent.
+' Returns NULL after the last one.
+Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
+ if desc = NULL then return NULL
+ ' First try to go down, then across, otherwise up as far as needed.
+ if desc->FirstChild then return desc->FirstChild
+ while desc->NextSibling = NULL
+  desc = desc->Parent
+  if desc = parent or desc = NULL then return NULL
+ wend
+ return desc->NextSibling
+End Function
+
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
-Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
+Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
  dim s as slice ptr
  if sl = 0 then return no
  s = parent

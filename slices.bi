@@ -348,6 +348,7 @@ DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
+DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
