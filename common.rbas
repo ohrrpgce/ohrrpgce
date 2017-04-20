@@ -795,16 +795,19 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
   debugc errBug, "getdefaultpal: bad fileset " & fileset
   RETURN -1
  END IF
- DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
- DIM fh as integer = FREEFILE
- IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
+ DIM lumpsdir as string = workingdir, fname as string
+ ' Use a default if no game has been loaded
+ IF LEN(game) = 0 THEN lumpsdir = finddatadir("defaultgfx")
+ fname = lumpsdir & SLASH & "defpal" & fileset & ".bin"
+ DIM fh as integer
+ IF OPENFILE(fname, FOR_BINARY, fh) = 0 THEN
   DIM v as short
   GET #fh, 1 + index * 2, v
   CLOSE #fh
   RETURN v
  ELSE
   'currently extended NPCs palettes are initialised to -1, which means lots of debug spam in old games
-  'debug "Default palette file " & f & " does not exist"
+  'debug "Default palette file " & fname & " does not exist"
   RETURN -1
  END IF
 END FUNCTION
