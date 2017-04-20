@@ -34,12 +34,19 @@ TYPE SpecialLookupCode
  kindlimit as integer
 END TYPE
 
+' The slice editor has three different modes:
+' -editing a slice group in the .rpg. use_index = YES, collection_file = ""
+' -editing an external slice (.collection_file). use_index = NO.
+' -editing an exiting slice tree. editing_existing = YES, use_index = NO, collection_file = ""
 TYPE SliceEditState
- collection_number as integer
- collection_group_number as integer
- collection_file as string
- use_index as bool         'Whether this is the indexed collection editor or the
-                           'non-indexed single-collection editor.
+ collection_group_number as integer  'Which special lookup codes are available, and part of filename if use_index = YES
+ collection_number as integer  'Used only if use_index = YES
+ collection_file as string     'Used only if use_index = NO: the file we are currently editing (will be autosaved)
+ editing_existing as bool  'True if editor was given an existing slice tree to edit
+ use_index as bool         'If this is the indexed collection editor; if NO then we are editing
+                           'either an external file (collection_file), or some given slice tree (collection_file = "").
+                           'When true, the collections are always re-saved when quitting.
+ recursive as bool
  last_non_slice as integer
  clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
@@ -128,7 +135,7 @@ DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as 
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
-DECLARE SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
+DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
@@ -199,7 +206,6 @@ END FUNCTION
 '==============================================================================
 
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
- ses.collection_group_number = group
  REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
   CASE SL_COLLECT_STATUSSCREEN:
@@ -294,10 +300,12 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
 END FUNCTION
 
 ' Edit a group of slice collections - this is the overload used by the slice editor menus in Custom.
-SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
-
+' In this mode, the editor loads and saves collections to disk when you
+SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string = "")
  DIM ses as SliceEditState
- init_slice_editor_for_collection_group(ses, group)
+ ses.collection_group_number = group
+ ses.collection_file = filename
+ ses.use_index = (filename = "")
 
  DIM edslice as Slice Ptr
  edslice = NewSlice
@@ -313,20 +321,21 @@ SUB slice_editor (byval group as integer = SL_COLLECT_USERDEFINED)
  ses.draw_root = create_draw_root()
  SetSliceParent edslice, ses.draw_root
 
- ses.use_index = YES
  slice_editor_main ses, edslice
 
- slice_editor_save edslice, slice_editor_filename(ses)
- 
  DeleteSlice @ses.draw_root
 END SUB
 
 ' Edit an existing slice tree.
-' recursive is true if using Ctrl+F.
+' recursive is true if using Ctrl+F. Probably should not use otherwise.
 SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
  DIM ses as SliceEditState
+ ses.collection_group_number = group
+ ses.use_index = NO  'Can't browse collections
+ ses.editing_existing = YES
+ ses.recursive = recursive
+
  DIM rootslice as Slice ptr
- init_slice_editor_for_collection_group(ses, group)
 
  IF recursive THEN
   'Note that we don't call create_draw_root() to create a temp root slice; this is a bit unfortunate
@@ -340,7 +349,6 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
   SetSliceParent rootslice, ses.draw_root
  END IF
 
- ses.use_index = NO  'Can't browse collections
  slice_editor_main ses, edslice
 
  IF recursive = NO THEN
@@ -351,6 +359,7 @@ END SUB
 
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
+ init_slice_editor_for_collection_group(ses, ses.collection_group_number)
 
  '--user-defined slice lookup codes
  REDIM ses.slicelookup(10) as string
@@ -377,9 +386,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  END WITH
 
  DIM cursor_seek as Slice Ptr = 0
-
- 'File the collection was loaded from
- DIM source_filename as string
  
  DIM jump_to_collection as integer
 
@@ -460,7 +466,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     '--Browse collections
     jump_to_collection = ses.collection_number
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
-     slice_editor_save edslice, slice_editor_filename(ses)
+     slice_editor_save_when_leaving ses, edslice
+     ses.collection_file = ""
      ses.collection_number = jump_to_collection
      slice_editor_load ses, edslice, slice_editor_filename(ses)
      state.need_update = YES
@@ -468,25 +475,37 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
   IF keyval(scF2) > 1 THEN
+   '--Export
    DIM filename as string
-   IF keyval(scCtrl) > 0 AND LEN(source_filename) THEN
-    IF yesno("Save, overwriting " & simplify_path_further(source_filename, CURDIR) & "?", NO, NO) THEN
-     filename = trimextension(source_filename)
+   IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
+    IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", NO, NO) THEN
+     filename = ses.collection_file
     END IF
    ELSE
-    filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
+    filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices")
+    IF filename <> "" THEN filename &= ".slice"
    END IF
    IF filename <> "" THEN
-    SliceSaveToFile edslice, filename & ".slice"
+    SliceSaveToFile edslice, filename
    END IF
   END IF
 #IFDEF IS_CUSTOM
-  IF ses.use_index THEN
-   '--import is only allowed when regular index editing mode is enabled, and not in Game...
-   IF keyval(scF3) > 1 THEN
+  '--Overwriting import can't be allowed when there are certain slices expected by the engine,
+  '--and no point allowing editing external files in-game, so just disable in-game.
+  '--Furthermore, loading new collections when .editing_existing is unimplemented anyway.
+  IF keyval(scF3) > 1 AND ses.editing_existing = NO THEN
+   DIM choice as integer
+   DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
+   choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices())
+   IF choice >= 0 THEN
     DIM filename as string = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
-     source_filename = filename
+     IF choice = 1 THEN
+      ' We are no longer editing whatever we were before
+      slice_editor_save_when_leaving ses, edslice
+      ses.collection_file = filename
+      ses.use_index = NO
+     END IF
      slice_editor_load ses, edslice, filename
      cursor_seek = NULL
      state.need_update = YES
@@ -657,6 +676,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   dowait
  LOOP
 
+ slice_editor_save_when_leaving ses, edslice
+
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
@@ -745,6 +766,8 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
 END FUNCTION
 
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
+ ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
+ IF ses.editing_existing THEN showerror "slice_editor_load does work when existing existing collection"
  DIM newcollection as Slice Ptr
  newcollection = NewSlice
  WITH *newcollection  'Defaults only
@@ -775,13 +798,26 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  END IF
 END SUB
 
-SUB slice_editor_save(byval edslice as Slice Ptr, filename as string)
- IF edslice->NumChildren > 0 THEN
-  '--save non-empty slice collections
-  SliceSaveToFile edslice, filename
- ELSE
-  '--erase empty slice collections
-  safekill filename
+' Called when you leave the editor or switch to a different collection: saves if necessary.
+SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
+ IF ses.use_index THEN
+  ' Autosave on quit, unless the collection is empty
+  DIM filename as string = slice_editor_filename(ses)
+  IF edslice->NumChildren > 0 THEN
+   '--save non-empty slice collections
+   SliceSaveToFile edslice, filename
+  ELSE
+   '--erase empty slice collections
+   safekill filename
+  END IF
+ ELSEIF LEN(ses.collection_file) THEN
+  'Prevent attempt to quit the program, stop and wait for response first
+  DIM quitting as bool = getquitflag()
+  setquitflag NO
+  IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", YES, NO) THEN
+   SliceSaveToFile edslice, ses.collection_file
+  END IF
+  IF quitting THEN setquitflag
  END IF
 END SUB
 
@@ -999,7 +1035,12 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
 END SUB
 
 FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
- RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
+ IF LEN(ses.collection_file) THEN
+  ' An external file
+  RETURN ses.collection_file
+ ELSE
+  RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
+ END IF
 END FUNCTION
 
 'Editor to visually edit an x/y position or a width/height
@@ -1286,6 +1327,10 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  ses.last_non_slice = 0
  IF ses.use_index THEN
   slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
+  ses.last_non_slice += 1
+ ELSEIF LEN(ses.collection_file) THEN
+  DIM msg as string = "Editing " & simplify_path_further(ses.collection_file, CURDIR)
+  slice_editor_refresh_append index, ses.slicemenu(), msg
   ses.last_non_slice += 1
  END IF
  'Normally, hide the root
