@@ -1117,11 +1117,12 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
+  DIM minlookup as integer = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, -999999999, 0)
   #IFDEF IS_CUSTOM
-   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(ses.slicelookup), slgrPICKLOOKUP
+   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, minlookup, UBOUND(ses.slicelookup), slgrPICKLOOKUP
   #ELSE
    IF .Lookup >= 0 THEN
-    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(ses.slicelookup), slgrPICKLOOKUP
+    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, minlookup, UBOUND(ses.slicelookup), slgrPICKLOOKUP
    ELSE
     '--Not allowed to change lookup code at all
     sliceed_rule_none rules(), "lookup"

@@ -2967,6 +2967,20 @@ FUNCTION finddatadir(dirname as string) as string
  RETURN finddatafile_internal(dirname, fileTypeDirectory)
 END FUNCTION
 
+' Return the location of the data/ dir, in case you want to create a new file there
+' or browse for files. Otherwise, always use finddatafile or finddatadir instead!
+FUNCTION get_data_dir() as string
+ DIM temp as string
+ DIM searchtype as FileTypeEnum = fileTypeDirectory
+ 'Unlike finddatafile, try exepath first
+ try_data_path(exepath & SLASH & "data")
+ try_data_path("data")
+ 'Contents of data/ are copied into Resources dir in Mac OS X app bundles
+ IF LEN(app_resources_dir) THEN try_data_path(app_resources_dir)
+ 'Don't bother with DATAFILES, probably read-only
+ IF makedir("data") = 0 THEN RETURN "data"
+END FUNCTION
+
 SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
  'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
  'Note: does not create a lump if it doesn't exist.

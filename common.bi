@@ -103,6 +103,7 @@ DECLARE SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_c
 
 DECLARE FUNCTION finddatafile(filename as string) as string
 DECLARE FUNCTION finddatadir(dirname as string) as string
+DECLARE FUNCTION get_data_dir() as string
 DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
 DECLARE SUB clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
 

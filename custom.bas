@@ -1657,10 +1657,11 @@ SUB secret_menu ()
      "Edit Spell Screen", _
      "Edit Spell Screen Spell List Plank", _
      "Edit Spell Screen Spell Plank", _
-     "RGFX tests", _
      "Edit Virtual Keyboard Screen", _
+     "Editor Slice Editor", _
      "New Spriteset/Animation Editor", _
      "New backdrop browser", _
+     "RGFX tests", _
      "Test Game under GDB" _
  }
  DIM st as MenuState
@@ -1688,11 +1689,12 @@ SUB secret_menu ()
    IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
-   IF st.pt = 16 THEN new_graphics_tests
-   IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   IF st.pt = 17 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice"
    IF st.pt = 18 THEN new_spriteset_editor
    IF st.pt = 19 THEN backdrop_browser
-   IF st.pt = 20 THEN spawn_game_menu YES
+   IF st.pt = 20 THEN new_graphics_tests
+   IF st.pt = 21 THEN spawn_game_menu YES
   END IF
   usemenu st
   clearpage vpage
