@@ -1288,8 +1288,11 @@ End Function
 Sub ClearSpriteSlice(byval sl as slice ptr)
  dim dat as SpriteSliceData ptr = sl->SliceData
  unload_sprite_and_pal dat->img
- if dat->assetfile then deallocate dat->assetfile
- dat->assetfile = NULL
+ if dat->assetfile then
+  *dat->assetfile = ""      ' Frees the string contents
+  deallocate dat->assetfile ' Free the string descriptor
+  dat->assetfile = NULL
+ END IF
  dat->loaded = NO
 End Sub
 
@@ -1378,7 +1381,7 @@ Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
 End Function
 
 ' Actually load the asset for a sprite slice
-Private Sub LoadAssetSprite(sl as Slice ptr)
+Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "LoadSpriteasset null ptr"
 
  dim dat as SpriteSliceData Ptr = sl->SliceData
@@ -1400,8 +1403,10 @@ Private Sub LoadAssetSprite(sl as Slice ptr)
    sl->Width = .img.sprite->w
    sl->Height = .img.sprite->h
   else
-   visible_debug !"Data file " & iif(len(filename), "corrupt", "missing") _
-                 & " (the OHRRPGCE isn't installed correctly?):\ndata/" & .assetfile
+   if warn_if_missing then
+    visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
+                  & !" (the OHRRPGCE isn't installed correctly?):\ndata/" & *.assetfile
+   end if
    ' Draw an X (the width and height were hopefully loaded from a .slice file)
    .img.sprite = frame_new(sl->Width, sl->Height, , YES)
    drawline .img.sprite, 0, 0, sl->Width - 1, sl->Height - 1, uilook(uiSelectedItem)
@@ -1412,16 +1417,17 @@ End Sub
 
 ' Turn a sprite slice into an 'asset' sprite, meaning it is loaded from an image in the data/ dir.
 ' assetname should be the name of a file in data/
-Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string)
+Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "SetSpriteToAsset null ptr"
 
  ClearSpriteSlice sl
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   .spritetype = sprTypeFrame
-  .assetfile = copy_zstring(assetfile)
+  .assetfile = callocate(sizeof(string))
+  *.assetfile = assetfile
  end with
- LoadAssetSprite sl
+ LoadAssetSprite sl, warn_if_missing
 End Sub
 
 ' Provide an external image for this sprite slice, instead of one of the game's sprites.
@@ -1535,8 +1541,7 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->d_auto     = LoadPropBool(node, "d_auto")
 
  if dat->spritetype = sprTypeFrame then
-  dat->assetfile = copy_zstring(LoadPropStr(node, "asset"))
-  LoadAssetSprite sl
+  SetSpriteToAsset sl, LoadPropStr(node, "asset")
  end if
 End Sub
 

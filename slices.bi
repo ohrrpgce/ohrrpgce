@@ -252,11 +252,11 @@ End Type
 'FIXME: Support for modifying sprites and flipping is pretty tacked on; generalise!
 Type SpriteSliceData
  spritetype as SpriteType
- assetfile as zstring ptr  '(sprTypeFrame only, ignored for other sprites)
+ assetfile as string ptr   '(sprTypeFrame only, ignored for other sprites)
                            'Optionally name of the file in data/ from which to load this sprite
                            '(as an 8-bit image). If this is NULL, then a sprTypeFrame was
                            'created from a Frame loaded from elsewhere, and can't be saved.
-                           '(The string memory is owned by this slice. Used a zstring ptr
+                           '(The string memory is owned by this slice. Used a string ptr
                            'to minimise overhead for non-asset slices.)
  record as integer  'Spriteset number. Meaningless if spritetype is sprTypeFrame
  frame as integer   'Currently displaying frame number. Must be 0 if spritetype is sptTypeFrame
@@ -445,7 +445,7 @@ DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
-DECLARE Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string)
+DECLARE Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
 DECLARE Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
