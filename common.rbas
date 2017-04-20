@@ -71,7 +71,7 @@ DIM log_dir as string
 DIM remember_debug_messages as bool = YES
 
 'Used on Mac to point to the app bundle Resources directory
-DIM data_dir as string
+DIM app_resources_dir as string
 
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
@@ -2937,18 +2937,18 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
  try_data_path(filename)
  try_data_path("data" & SLASH & filename)
  'platform-specific relative data files path (Mac OS X bundles)
- try_data_path(data_dir & SLASH & filename)
+ try_data_path(app_resources_dir & SLASH & filename)
  'same folder as executable
  try_data_path(exepath & SLASH & filename)
  try_data_path(exepath & SLASH & "data" & SLASH & filename)
  #IFDEF __FB_UNIX__
   '~/.ohrrpgce/
   try_data_path(settings_dir & filename)
-  #IFDEF DATAFILES
-   try_data_path(DATAFILES & SLASH & filename)
-   ' In this case the packaging script could avoid put anything in a subdirectory
-   try_data_path(DATAFILES & SLASH & "data" & SLASH & filename)
-  #ENDIF
+ #ENDIF
+ #IFDEF DATAFILES
+  try_data_path(DATAFILES & SLASH & filename)
+  ' In this case the packaging script could avoid put anything in a subdirectory
+  try_data_path(DATAFILES & SLASH & "data" & SLASH & filename)
  #ENDIF
  RETURN ""
 END FUNCTION
@@ -5430,7 +5430,7 @@ FUNCTION get_help_dir(helpfile as string="") as string
  IF help_dir_helper(documents_dir & SLASH & "ohrhelp", helpfile) THEN RETURN documents_dir & SLASH & "ohrhelp"
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
  'platform-specific relative data files path (Mac OS X bundles)
- IF help_dir_helper(data_dir & SLASH & "ohrhelp", helpfile) THEN RETURN data_dir & SLASH & "ohrhelp"
+ IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
  #IFDEF DATAFILES
   IF help_dir_helper(DATAFILES & SLASH & "ohrhelp", helpfile) THEN RETURN DATAFILES & SLASH & "ohrhelp"
  #ENDIF

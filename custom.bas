@@ -136,7 +136,7 @@ app_dir = EXEPATH  'FreeBasic builtin
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
  IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
-  data_dir = parentdir(exepath, 1) + "Resources"
+  app_resources_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
  'FIXME: why are we changing app_dir??

@@ -211,7 +211,7 @@ app_dir = EXEPATH  'FreeBasic builtin
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
  IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
-  data_dir = parentdir(exepath, 1) + "Resources"
+  app_resources_dir = parentdir(exepath, 1) + "Resources"
   app_dir = parentdir(exepath, 3)
  END IF
  'FIXME: why are we changing app_dir??
@@ -437,10 +437,10 @@ END IF
 #IFDEF __FB_DARWIN__
 IF gam.autorungame = NO THEN
  IF ends_with(exepath, ".app/Contents/MacOS") THEN
-  IF isfile(data_dir & "/bundledgame") THEN
+  IF isfile(app_resources_dir & "/bundledgame") THEN
    DIM bundledname as string
-   bundledname = TRIM(string_from_first_line_of_file(data_dir & "/bundledgame"), ANY !" \t\r\n")
-   IF seek_rpg_or_rpgdir_and_select_it(data_dir, bundledname) THEN
+   bundledname = TRIM(string_from_first_line_of_file(app_resources_dir & "/bundledgame"), ANY !" \t\r\n")
+   IF seek_rpg_or_rpgdir_and_select_it(app_resources_dir, bundledname) THEN
     force_prefsdir_save = YES
    END IF
   END IF
