@@ -1285,7 +1285,7 @@ End Function
 '--Sprite-----------------------------------------------------------------
 
 ' Frees any memory held by a sprite, leaving in a consistent state, but does not reset its type and other data
-Sub ClearSpriteSlice(byval sl as slice ptr)
+Sub UnloadSpriteSlice(byval sl as slice ptr)
  dim dat as SpriteSliceData ptr = sl->SliceData
  unload_sprite_and_pal dat->img
  if dat->assetfile then
@@ -1298,7 +1298,7 @@ End Sub
 
 Sub DisposeSpriteSlice(byval sl as slice ptr)
  if sl = 0 orelse sl->SliceData = 0 then exit sub
- ClearSpriteSlice sl
+ UnloadSpriteSlice sl
  delete cast(SpriteSliceData ptr, sl->SliceData)
  sl->SliceData = 0
 end sub
@@ -1397,7 +1397,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
 
   dim filename as string = finddatafile(*.assetfile)
   if len(filename) then
-   .img.sprite = frame_import_bmp_raw(filename)
+   .img.sprite = frame_import_bmp_as_8bit(filename, master())
   end if
   if .img.sprite then
    sl->Width = .img.sprite->w
@@ -1416,16 +1416,18 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
 End Sub
 
 ' Turn a sprite slice into an 'asset' sprite, meaning it is loaded from an image in the data/ dir.
-' assetname should be the name of a file in data/
+' assetname should be the name of a file in data/, or can be blank if that isn't decided yet (in slice editor).
 Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
  if sl = 0 then fatalerror "SetSpriteToAsset null ptr"
 
- ClearSpriteSlice sl
+ 'Create temp copy, in cast assetfile is dat->assetfile, which we're about to delete
+ dim filename as string = assetfile
+ UnloadSpriteSlice sl
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   .spritetype = sprTypeFrame
   .assetfile = callocate(sizeof(string))
-  *.assetfile = assetfile
+  *.assetfile = filename
  end with
  LoadAssetSprite sl, warn_if_missing
 End Sub
@@ -1440,7 +1442,7 @@ Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
 
  if pal = -1 then showerror "SetSpriteToFrame: a default palette can't be used"
 
- ClearSpriteSlice sl
+ UnloadSpriteSlice sl
  with *dat
   .spritetype = sprTypeFrame
   .img.sprite = fr
