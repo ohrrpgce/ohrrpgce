@@ -47,11 +47,14 @@ TYPE SliceEditState
                            'either an external file (collection_file), or some given slice tree (collection_file = "").
                            'When true, the collections are always re-saved when quitting.
  recursive as bool
- last_non_slice as integer
  clipboard as Slice Ptr
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
+
+ ' Indices of menu items in slicemenu()
+ collection_name_pt as integer  'The "Editing <collection name>" title, or -1
+ last_non_slice as integer
 
  slicelookup(any) as string
  specialcodes(any) as SpecialLookupCode
@@ -135,6 +138,7 @@ DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as 
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
+DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, byref state as MenuState, edit_separately as bool)
 DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
@@ -455,6 +459,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO AND enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
+   ELSEIF state.pt = ses.collection_name_pt THEN
+    ' Selected the 'Editing <collection file>' menu item
+    slice_editor_import_file ses, edslice, state, YES
    ELSE
     cursor_seek = ses.slicemenu(state.pt).handle
     slice_edit_detail ses, ses.slicemenu(state.pt).handle
@@ -498,18 +505,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
    choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices())
    IF choice >= 0 THEN
-    DIM filename as string = browse(0, "", "*.slice", "",, "browse_import_slices")
-    IF filename <> "" THEN
-     IF choice = 1 THEN
-      ' We are no longer editing whatever we were before
-      slice_editor_save_when_leaving ses, edslice
-      ses.collection_file = filename
-      ses.use_index = NO
-     END IF
-     slice_editor_load ses, edslice, filename
-     cursor_seek = NULL
-     state.need_update = YES
-    END IF
+    slice_editor_import_file ses, edslice, state, (choice = 1)
    END IF
   END IF
 #ENDIF
@@ -632,6 +628,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update THEN
    slice_editor_refresh(ses, state, edslice, cursor_seek)
    state.need_update = NO
+   cursor_seek = NULL
   ELSE
    usemenu state
   END IF
@@ -798,6 +795,23 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  END IF
 END SUB
 
+' Browse for a slice collection to import or edit.
+' If edit_separately, then we save the current collection and switch to editing the new one,
+' otherwise it's imported overwriting the current one.
+SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, byref state as MenuState, edit_separately as bool)
+ DIM filename as string = browse(0, "", "*.slice", "",, "browse_import_slices")
+ IF filename <> "" THEN
+  IF edit_separately THEN
+   ' We are no longer editing whatever we were before
+   slice_editor_save_when_leaving ses, edslice
+   ses.collection_file = filename
+   ses.use_index = NO
+  END IF
+  slice_editor_load ses, edslice, filename
+  state.need_update = YES
+ END IF
+END SUB
+
 ' Called when you leave the editor or switch to a different collection: saves if necessary.
 SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
  IF ses.use_index THEN
@@ -814,7 +828,7 @@ SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice
   'Prevent attempt to quit the program, stop and wait for response first
   DIM quitting as bool = getquitflag()
   setquitflag NO
-  IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", YES, NO) THEN
+  IF yesno("Save collection before leaving, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", YES, NO) THEN
    SliceSaveToFile edslice, ses.collection_file
   END IF
   IF quitting THEN setquitflag
@@ -1326,11 +1340,13 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  DIM indent as integer = 0
  slice_editor_refresh_append index, ses.slicemenu(), "Previous Menu"
  ses.last_non_slice = 0
+ ses.collection_name_pt = -1  'Not present
  IF ses.use_index THEN
   slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  ELSEIF LEN(ses.collection_file) THEN
   DIM msg as string = "Editing " & simplify_path_further(ses.collection_file, CURDIR)
+  ses.collection_name_pt = index
   slice_editor_refresh_append index, ses.slicemenu(), msg
   ses.last_non_slice += 1
  END IF
