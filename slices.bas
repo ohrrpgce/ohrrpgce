@@ -1388,7 +1388,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  with *dat
   frame_unload(@.img.sprite)
   palette16_unload(@.img.pal)
-  .record = -1
+  .record = 0
   .pal = -1  'No palette anyway
   .paletted = NO
   .frame = 0

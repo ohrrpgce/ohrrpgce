@@ -2981,6 +2981,22 @@ FUNCTION get_data_dir() as string
  IF makedir("data") = 0 THEN RETURN "data"
 END FUNCTION
 
+' Given a path to a file or subdir inside the data/ directory, return a portable
+' relative path to it that can be passed to finddatafile, or "" if not possible.
+' This function is only really intended for use for engine development,
+' so we assume exepath & "/data/" specifically.
+' (Also converts to Unix / path separators)
+FUNCTION filename_relative_to_datadir(filename as string) as string
+ DIM ret as string
+ ret = simplify_path_further(filename, get_data_dir())
+ replacestr(ret, "\", "/")
+ IF is_absolute_path(ret) OR LEFT(ret, 2) = ".." THEN
+  notification "Not a valid asset file: not inside " & get_data_dir()
+  RETURN ""
+ END IF
+ RETURN ret
+END FUNCTION
+
 SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
  'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
  'Note: does not create a lump if it doesn't exist.
@@ -4870,7 +4886,7 @@ END FUNCTION
 SUB setup_sprite_sizes ()
  'Populates the global sprite_sizes
  WITH sprite_sizes(sprTypeFrame)   '-1
-  .name = "Pixel array"
+  .name = "Frame or Asset"
   .size.x = 16
   .size.y = 16
   .frames = 1

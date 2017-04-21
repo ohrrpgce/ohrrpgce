@@ -73,7 +73,8 @@ CONST kindlimitTEXT = 5
 ENUM EditRuleMode
   erNone              'Used for labels and links
   erIntgrabber
-  erStrgrabber
+  erShortStrgrabber   'No full-screen text editor
+  erStrgrabber        'Press ENTER for full-screen text editor
   erToggle
   erPercentgrabber
 END ENUM
@@ -112,6 +113,7 @@ CONST slgrUPDATERECTCOL = 32
 CONST slgrUPDATERECTSTYLE = 64
 CONST slgrPICKLOOKUP = 128
 CONST slgrEDITSWITCHINDEX = 256
+CONST slgrBROWSESPRITEASSET = 512
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -942,6 +944,9 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
     state.need_update = YES
    END IF
    IF enter_space_click(state) THEN *n = NOT *n : state.need_update = YES
+  CASE erShortStrgrabber
+   DIM s as string ptr = rule.dataptr
+   state.need_update OR= strgrabber(*s, rule.upper)
   CASE erStrgrabber
    DIM s as string ptr = rule.dataptr
    IF keyval(scENTER) > 1 THEN
@@ -1013,12 +1018,37 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    'state.need_update is cleared at the top of the loop
    DIM dat as SpriteSliceData Ptr
    dat = sl->SliceData
-   dat->loaded = NO
    dat->paletted = (dat->spritetype <> sprTypeBackdrop)
-   WITH sprite_sizes(dat->spritetype)
-    dat->record = small(dat->record, gen(.genmax) + .genmax_offset)
-    dat->frame = small(dat->frame, .frames - 1)
-   END WITH
+   IF dat->spritetype = sprTypeFrame THEN
+    ' Aside from reloading if edited, dat->assetfile is initially NULL
+    ' when switching to sprTypeFrame, so needs to be initialised to "".
+    ' Note that if you change to a different sprite type, dat->assetfile
+    ' will still be there, but won't be used or saved
+    DIM assetfile as string = IIF(dat->assetfile, *dat->assetfile, "")
+    SetSpriteToAsset sl, assetfile, NO
+   ELSE
+    dat->loaded = NO
+    WITH sprite_sizes(dat->spritetype)
+     dat->record = small(dat->record, gen(.genmax) + .genmax_offset)
+     dat->frame = small(dat->frame, .frames - 1)
+    END WITH
+   END IF
+  END IF
+ END IF
+ IF rule.group AND slgrBROWSESPRITEASSET THEN
+  DIM dat as SpriteSliceData ptr = sl->SliceData
+  IF enter_space_click(state) THEN
+   ' Browse for an asset. Only paths inside data/ are allowed.
+   DIM as string filename = finddatafile(*dat->assetfile)
+   IF LEN(filename) = 0 THEN filename = get_data_dir()
+   filename = browse(2, filename, "*.bmp", "", , "browse_import_sprite")
+   IF LEN(filename) THEN
+    filename = filename_relative_to_datadir(filename)
+    IF LEN(filename) THEN  'The file was valid
+     SetSpriteToAsset sl, filename, NO
+     state.need_update = YES
+    END IF
+   END IF
   END IF
  END IF
  IF rule.group AND slgrUPDATERECTCOL THEN
@@ -1181,19 +1211,26 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM size as SpriteSize Ptr
     size = @sprite_sizes(dat->spritetype)
     str_array_append menu(), "Sprite Type: " & size->name
-    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, sprTypeLastPickable, slgrUPDATESPRITE
-    str_array_append menu(), "Sprite Number: " & dat->record
-    sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
-    IF dat->paletted THEN
-     str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
-     sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+    DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
+    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
+    IF dat->spritetype = sprTypeFrame THEN
+     IF dat->assetfile = NULL THEN fatalerror "sliceedit: null dat->assetfile"
+     str_array_append menu(), "Asset file: " & *dat->assetfile
+     sliceed_rule rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 0, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
+    ELSE
+     str_array_append menu(), "Sprite Number: " & dat->record
+     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
+     IF dat->paletted THEN
+      str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
+      sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+     END IF
+     str_array_append menu(), "Sprite Frame: " & dat->frame
+     sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, size->frames - 1
     END IF
-    str_array_append menu(), "Sprite Frame: " & dat->frame
-    sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, size->frames - 1
     str_array_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
-    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz), slgrUPDATESPRITE
+    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz),   'slgrUPDATESPRITE
     str_array_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
-    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipVert), slgrUPDATESPRITE
+    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipVert),   'slgrUPDATESPRITE
     str_array_append menu(), "Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans)
     str_array_append menu(), "Dissolving: " & yesorno(dat->dissolving)
