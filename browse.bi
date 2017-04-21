@@ -6,6 +6,6 @@
 #ifndef BROWSE_BI
 #define BROWSE_BI
 
-DECLARE FUNCTION browse (byval special as integer, default as string, fmask as string, tmp as string, byref needf as integer = 0, helpkey as string) as string
+DECLARE FUNCTION browse (special as integer, default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 
 #ENDIF

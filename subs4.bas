@@ -599,7 +599,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, byval s
  'setupmusic
 
  'browse for new song
- DIM sourcesong as string = browse(5, default, "", "",, "browse_import_song")
+ DIM sourcesong as string = browse(5, default, "", "browse_import_song")
 
  'Get song name
  DIM newname as string = decode_filename(trimextension(trimpath(sourcesong)))
@@ -851,7 +851,7 @@ END SUB
 SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
  STATIC default as string
 
- DIM sourcesfx as string = browse(6, default, "", "",, "browse_import_sfx")
+ DIM sourcesfx as string = browse(6, default, "", "browse_import_sfx")
 
  '-- get name (before sourcesfx is modified)
  DIM newname as string = decode_filename(trimextension(trimpath(sourcesfx)))
@@ -1123,7 +1123,7 @@ END SUB
 FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 STATIC default as string
 DIM bmpd as BitmapV3InfoHeader
-IF f = "" THEN f = browse(4, default, "", "",, "browse_import_master_palette")
+IF f = "" THEN f = browse(4, default, "", "browse_import_master_palette")
 IF f <> "" THEN
  IF LCASE(justextension(f)) = "mas" THEN
   xbload f, buffer(), "MAS load error"

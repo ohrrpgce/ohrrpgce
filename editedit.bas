@@ -468,7 +468,7 @@ END SUB
 
 FUNCTION ee_browse(byref st as EEState) as integer
  DIM filename as string
- filename = browse(0, "", "*.editor", "",, "browse_import_ee")
+ filename = browse(0, "", "*.editor", "browse_import_ee")
  IF filename = "" THEN RETURN NO
  RETURN ee_load(filename, st)
 END FUNCTION

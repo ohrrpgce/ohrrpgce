@@ -466,7 +466,7 @@ SUB reimport_previous_scripts ()
  DIM fname as string
  'isfile currently broken, returns true for directories
  IF script_import_defaultdir = "" ORELSE isfile(script_import_defaultdir) = NO ORELSE isdir(script_import_defaultdir) THEN
-  fname = browse(9, script_import_defaultdir, "", "", , "browse_hs")
+  fname = browse(9, script_import_defaultdir, "", "browse_hs")
  ELSE
   fname = script_import_defaultdir
  END IF
@@ -513,7 +513,7 @@ DO
     EXIT DO
    CASE 1
     DIM fname as string
-    fname = browse(9, script_import_defaultdir, "", "", , "browse_hs")
+    fname = browse(9, script_import_defaultdir, "", "browse_hs")
     IF fname <> "" THEN
      'clearkey scEnter
      'clearkey scSpace
@@ -764,7 +764,7 @@ SUB text_box_editor () 'textage
    END IF
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-     box_text_file = browse(0, browse_default, "*.txt", tmpdir, 0, "browse_import_textbox")
+     box_text_file = browse(0, browse_default, "*.txt", "browse_import_textbox")
      clearpage vpage
      backup_say = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump

@@ -2233,7 +2233,7 @@ SUB import_string_from_file(s as string)
  END IF
 
  DIM filename as string
- filename = browse(0, "", "*.txt", tmpdir, 0, "import_string_from_file")
+ filename = browse(0, "", "*.txt", "import_string_from_file")
  IF filename = "" THEN RETURN
  
  s = prefix & string_from_file(filename)
@@ -5192,7 +5192,7 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   IF keyval(scUp) > 1 ORELSE keyval(scDown) > 1 THEN foldermode = NOT foldermode
   IF (foldermode AND enter_or_space()) OR keyval(scTAB) > 1 THEN
    DIM newdir as string
-   newdir = browse(11, directory, "", "", 0, "browse_for_folder")
+   newdir = browse(11, directory, "", "browse_for_folder")
    IF isdir(newdir) ANDALSO diriswriteable(newdir) THEN
     directory = newdir
     foldermode = NO

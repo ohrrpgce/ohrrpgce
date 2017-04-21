@@ -32,7 +32,6 @@ End type
 
 Type BrowseMenuState
 	nowdir as string
-	tmp as string
 	mstate as MenuState
 	special as integer
 	ranalready as bool
@@ -59,17 +58,22 @@ DECLARE FUNCTION valid_audio_file (filepath as string, byval typemask as integer
 DECLARE FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
 DECLARE FUNCTION check_for_plotscr_inclusion(filepath as string) as bool
 
-FUNCTION browse (byval special as integer, default as string, fmask as string, tmp as string, byref needf as integer, helpkey as string) as string
+' Returns an absolute path, or "" if the user cancelled.
+' special: file type, see below
+' default: initially selected file or a directory.
+' fmask:   may not be used, depending on special
+' needf:   whether to fade screen in
+FUNCTION browse (special as integer, default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 STATIC remember as string
 DIM ret as string
 
 DIM selectst as SelectTypeState
 DIM br as BrowseMenuState
-br.tmp = tmp
 br.special = special
 br.fmask = fmask
 br.snd = -1
 
+' Note: I don't think all specials that ignore fmask are documented; many assume it is correctly given
 'special=0   no preview
 'special=1   just BAM
 'special=2   any BMP (sprite import)
@@ -103,7 +107,7 @@ catfg(4) = boxlook(0).edgecol   : catbg(4) = uilook(uiDisabledItem) 'root of cur
 catfg(5) = boxlook(1).edgecol   : catbg(5) = uilook(uiDisabledItem) 'special (never used???)
 catfg(6) = uilook(uiDisabledItem): catbg(6) = uilook(uiBackground)  'disabled
 
-IF needf = 1 THEN
+IF needf THEN
  ' An entirely black palette
  DIM temppal(255) as RGBcolor
  setpal temppal()
@@ -117,11 +121,11 @@ setfont browser_font()
 
 'remember/default may be either empty or a file (if one was selected last call), or directory (if not)
 DIM startfile as string
-IF remember = "" THEN remember = curdir & SLASH
+IF remember = "" THEN remember = CURDIR & SLASH
 IF default = "" THEN
  default = remember
 END IF
-default = simplify_path(default)
+default = simplify_path(absolute_path(default))
 IF isdir(default) THEN
  br.nowdir = default & SLASH
  startfile = ""
@@ -281,8 +285,11 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- IF needf = 1 THEN fadein: setkeys
- IF needf THEN needf -= 1
+ IF needf THEN
+  fadein
+  setkeys
+  needf = NO
+ END IF
  dowait
 LOOP
 
@@ -488,10 +495,10 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    END IF
    '--RPG files
    IF br.special = 7 THEN
-    copylump filepath, "browse.txt", br.tmp, YES
-    .caption = load_gamename(br.tmp & "browse.txt")
-    .about = load_aboutline(br.tmp & "browse.txt")
-    safekill br.tmp & "browse.txt"
+    copylump filepath, "browse.txt", tmpdir, YES
+    .caption = load_gamename(tmpdir & "browse.txt")
+    .about = load_aboutline(tmpdir & "browse.txt")
+    safekill tmpdir & "browse.txt"
    END IF
    '--RELOAD files
    IF br.special = 8 THEN

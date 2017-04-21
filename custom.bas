@@ -422,7 +422,7 @@ SUB main_editor_menu()
   END IF
 
   IF select_by_typing(selectst) THEN
-   IF selectst.buffer = "spam" THEN
+   IF RIGHT(selectst.buffer, 4) = "spam" THEN
     select_clear selectst
     secret_menu
    ELSE
@@ -596,7 +596,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
        EXIT DO
      END IF
     CASE 1
-     sourcerpg = browse(7, rpg_browse_default, "*.rpg", tmpdir, 0, "custom_browse_rpg")
+     sourcerpg = browse(7, rpg_browse_default, "*.rpg", "custom_browse_rpg")
      game = trimextension(trimpath(sourcerpg))
      IF game <> "" THEN EXIT DO
     CASE 2
@@ -2055,7 +2055,7 @@ SUB font_test_menu
   END IF
   IF keyval(sc2) > 1 THEN
    DIM filen as string
-   filen = browse(10, "", "*.bmp", tmpdir, 0, "")
+   filen = browse(10, "", "*.bmp")
    IF LEN(filen) THEN
     font_unload @fonts(st.pt)
     fonts(st.pt) = font_loadbmp_16x16(filen)
