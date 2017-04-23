@@ -1135,16 +1135,16 @@ SUB script_functions(byval cmdid as integer)
    IF gam.mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
-  movemouse bound(retvals(0), 0, 319), bound(retvals(1), 0, 199)
+  movemouse bound(retvals(0), 0, get_resolution().w - 1), bound(retvals(1), 0, get_resolution().h - 1)
   gam.mouse = readmouse
  CASE 164'--mouse region(xmin, xmax, ymin, ymax)
   IF retvals(0) = -1 AND retvals(1) = -1 AND retvals(2) = -1 AND retvals(3) = -1 THEN
    mouserect -1, -1, -1, -1
   ELSE
-   retvals(0) = bound(retvals(0), 0, 319)
-   retvals(1) = bound(retvals(1), retvals(0), 319)
-   retvals(2) = bound(retvals(2), 0, 199)
-   retvals(3) = bound(retvals(3), retvals(2), 199)
+   retvals(0) = bound(retvals(0), 0, get_resolution().w - 1)
+   retvals(1) = bound(retvals(1), retvals(0), get_resolution().w - 1)
+   retvals(2) = bound(retvals(2), 0, get_resolution().h - 1)
+   retvals(3) = bound(retvals(3), retvals(2), get_resolution().h - 1)
    mouserect retvals(0), retvals(1), retvals(2), retvals(3)
   END IF
   gam.mouse = readmouse
