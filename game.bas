@@ -756,7 +756,7 @@ DO
  IF menus_allow_gameplay() THEN
 
  '--Scripts
- IF gmap(15) THEN onkeyscript gmap(15)
+ trigger_onkeypress_script
  'breakpoint : called after keypress script is run, but don't get called by wantimmediate
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
  'DEBUG debug "enter script interpreter"
@@ -804,6 +804,7 @@ DO
   'DEBUG debug "evaluate vehicles"
   update_vehicle_state()
  END IF
+ 'You can still move the cursor of a textbox choice box when box advance is suspended
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
   usemenusounds
   usemenu txt.choicestate

@@ -413,7 +413,7 @@ SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
 END SUB
 
 ' Cause a script fibre to start waiting for some number of ticks.
-' Unlike script_start_waiting this can be called from outside sfunctions.
+' Unlike script_start_waiting this can be called from outside script_functions.
 ' This is NOT the implementation of the wait(x) command, but it has the same effect
 ' whichscript is scriptinsts() index.
 SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)

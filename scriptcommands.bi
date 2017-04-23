@@ -16,10 +16,9 @@ DECLARE FUNCTION party_slot_to_rank (byval slot as integer) as integer
 DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer
 DECLARE SUB interpolatecat
 
-DECLARE SUB onkeyscript (byval scriptnum as integer)
-
+DECLARE SUB trigger_onkeypress_script ()
 DECLARE SUB process_wait_conditions ()
-DECLARE SUB sfunctions (byval cmdid as integer)
+DECLARE SUB script_functions (cmdid as integer)
 
 DECLARE SUB wrappedsong (byval songnumber as integer)
 DECLARE SUB stopsong

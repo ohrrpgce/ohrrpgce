@@ -177,7 +177,7 @@ DO
        scriptmath
        '.state = streturn
       ELSE
-       sfunctions(curcmd->value)
+       script_functions(curcmd->value)
        '--nowscript might be changed
        '--unless you have switched to wait mode, return
        'IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return

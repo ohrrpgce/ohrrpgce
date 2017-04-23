@@ -320,8 +320,9 @@ FUNCTION script_keyval (byval key as integer, byval joynum as integer = 0) as in
  RETURN ret
 END FUNCTION
 
-SUB onkeyscript (byval scriptnum as integer)
- DIM doit as integer = NO
+' Trigger the on-keypress script if appropriate
+SUB trigger_onkeypress_script ()
+ DIM doit as bool = NO
 
  'carray is checked just for joystick movement
  FOR i as integer = 0 TO 5
@@ -347,9 +348,8 @@ SUB onkeyscript (byval scriptnum as integer)
  END IF
 
  IF doit THEN
-  trigger_script scriptnum, 1, YES, "on-key", "", mainFibreGroup
+  trigger_script gmap(15), 1, YES, "on-key", "", mainFibreGroup
  END IF
-
 END SUB
 
 
@@ -491,7 +491,7 @@ END SUB
 'DIM SHARED used_script_commands(maxScriptCmdID) as bool
 
 ' This entry point is called from the script interpreter.
-SUB sfunctions(byval cmdid as integer)
+SUB script_functions(byval cmdid as integer)
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
  DIM npcref as integer = ANY
@@ -504,8 +504,6 @@ SUB sfunctions(byval cmdid as integer)
  'END IF
 
  SELECT CASE as CONST cmdid
-
- 'old sfunctions
 
  CASE 11'--show textbox (box)
   'showtextbox(0) does nothing
@@ -1074,8 +1072,6 @@ SUB sfunctions(byval cmdid as integer)
     .Y += pos.y - startpos.y
    END WITH
   END IF
-
- 'End of old game.bas-sfunctions
 
  CASE 135'--puthero
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
@@ -1679,7 +1675,7 @@ SUB sfunctions(byval cmdid as integer)
    stopsfx retvals(0)
    scriptret = -1
   END IF
- CASE 200'--system hour (time is always hh:mm:ss)
+ CASE 200'--system hour (TIME is always hh:mm:ss)
   scriptret = str2int(MID(TIME, 1, 2))
  CASE 201'--system minute
   scriptret = str2int(MID(TIME, 4, 2))
@@ -4309,6 +4305,7 @@ SUB sfunctions(byval cmdid as integer)
    IF retvals(3) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
    IF retvals(2) THEN embedtext plotstr(retvals(0)).s
   END IF
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
