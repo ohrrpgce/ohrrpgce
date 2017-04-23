@@ -331,22 +331,23 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   '--defense base
   IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(target.stat.cur.sta) + 1 THEN dp = target.stat.cur.sta(attack.base_def_stat - 1)
  
-  'calc defense
-  DIM am as single = 1.0
-  DIM dm as single = 0.5                    'atk-def*.5
-  IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.1
-  IF attack.damage_math = 2 THEN am = 1.3 : dm = 1.0  'atk-1.3-def
-  IF attack.damage_math = 3 THEN am = 1.0 : dm = 0.0  'atk
-  IF attack.damage_math = 9 THEN am = attack.atk_mult : dm = attack.def_mult
+  'Attack and Defense multipliers
+  DIM as double atkmult, defmult
+  IF attack.damage_math = 0 THEN atkmult = 1.0 : defmult = 0.5  'atk*.8-def*.1
+  IF attack.damage_math = 1 THEN atkmult = 0.8 : defmult = 0.1  'atk*.8-def*.1
+  IF attack.damage_math = 2 THEN atkmult = 1.3 : defmult = 1.0  'atk-1.3-def
+  IF attack.damage_math = 3 THEN atkmult = 1.0 : defmult = 0.0  'atk
+  ' damage_math = 4 is No Damage
+  ' damage_math = 5 is set/damage % of max (special handling)
+  ' damage_math = 6 is set/damage % of current (special handling)
+  IF attack.damage_math = 7 THEN atkmult = attack.atk_mult : defmult = attack.def_mult
  
-  'calc harm
-  h = (ap * am) - (dp * dm)
-  'Temporarily use floating point
-  DIM harmf as single = h
-  DIM cure as integer = NO
-  DIM immune as integer = NO
+  'Temporarily use floating point for damage
+  DIM harmf as double = ap * atkmult - dp * defmult
+  DIM elemental_absorb as bool = NO
+  DIM immune as bool = NO
  
-  'elementals
+  'elemental damage, and also failure conditions
   FOR i as integer = 0 TO gen(genNumElements) - 1
    IF attack.elemental_damage(i) = YES THEN
     harmf *= ABS(target.elementaldmg(i))
@@ -355,7 +356,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     IF ABS(target.elementaldmg(i)) < 0.000005 THEN
      immune = YES
     ELSEIF target.elementaldmg(i) < 0.0 THEN
-     cure = YES  'absorb
+     elemental_absorb = YES  'absorb
     END IF
    END IF
    WITH attack.elemental_fail_conds(i)
@@ -419,21 +420,24 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   DIM mhp as integer = target.stat.max.sta(targstat)
   IF attack.percent_damage_not_set = YES THEN
    'percentage attacks do damage
-   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
+   'Note that even with this bitset, these damage types ignore lots of stuff like randomization.
+   'It was once suggested (see bug 134) to move this block up the function, but
+   'we decided to just leave it as it is; you should use a different damage type
+   'with the target's stat as Base ATK Stat instead.
    SELECT CASE attack.damage_math
     CASE 5'% of max
      h = mhp + (attack.extra_damage * mhp / 100)
-     cure = NO
+     elemental_absorb = NO
     CASE 6'% of cur
      h = chp + (attack.extra_damage * chp / 100)
-     cure = NO
+     elemental_absorb = NO
    END SELECT
   END IF
 
   'h should always be nonnegative at this point
   IF h < 0 THEN debug "inflict: negative h!"
 
-  IF cure THEN
+  IF elemental_absorb THEN
    h *= -1      'elemental absorb
   ELSEIF attack.cure_instead_of_harm = YES AND target.harmed_by_cure = NO THEN
    h *= -1      'cure bit
