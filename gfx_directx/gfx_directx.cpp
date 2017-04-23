@@ -8,6 +8,7 @@
 #include "mouse.hpp"
 #include "joystick.hpp"
 #include "version.h"
+#include "util.hpp"
 #include <dbt.h>
 
 using namespace gfx;
@@ -27,6 +28,7 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
+bool input_debug = false;   // --input-debug flag
 
 struct gfx_BackendState
 {
@@ -145,6 +147,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 
 DFI_IMPLEMENT_CDECL(void, gfx_setwindowed, int iswindow)
 {
+	debugc(errInfo, "setwindowed(%d)", iswindow);
 	gfx_SendMessage(OM_GFX_SETWINDOWED, iswindow, 0);
 }
 
@@ -165,6 +168,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 {
 	if(!opt || !arg)
 		return 0;
+	INPUTDEBUG("gfx_setoption(%s, %s)", opt, arg);
 	if(::strcmp(opt, "w") == 0 || ::strcmp(opt, "width") == 0)
 		{
 			gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
@@ -214,6 +218,11 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 		else
 			gfx_SendMessage(OM_GFX_SETSSFORMAT, 0, 0);
 	}
+	else if(::strcmp(opt, "input-debug") == 0)
+	{
+		input_debug = true;
+		return 1;
+	}
 	else
 		return 0;
 	return 2;
@@ -230,6 +239,7 @@ DFI_IMPLEMENT_CDECL(const char*, gfx_describe_options)
 		"-s -smooth [0* | 1]  toggles smooth linear interpolation of display\n" \
 		"-ss -screenshot [jpg | bmp | png* | dds | ohr]\n" \
 		"     the above sets the screen shot format";
+		"-input-debug        Print extra debug info to c/g_debug.txt";
 }
 
 DFI_IMPLEMENT_CDECL(void, io_init)
@@ -390,6 +400,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 
 DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
+	debugc(errInfo, "gfx_SendMessage %d %d %d", msg, dwParam, (int)pvParam);
 	switch(msg)
 	{
 	case OM_GFX_SETWIDTH:
@@ -739,7 +750,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			switch(wParam)
 			{
 			case ID_MENU_OPTIONS:
-				{//run dialog
+				{// 'Options' dialog
 					if(::IsWindow(g_hWndDlg))
 						return 0;
 					g_hWndDlg = ::CreateDialog(::GetModuleHandle(MODULENAME), TEXT("DialogOptions"), hWnd, (DLGPROC)OHROptionsDlgModeless);
@@ -770,12 +781,14 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 						if(g_DirectX.isViewFullscreen())
 						{
+							// Make window topmost
 							//SetForegroundWindow(hWnd);
 							//LockSetForegroundWindow(LSFW_LOCK);
 							SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 						}
 						else
 						{
+							// Make window no longer topmost
 							//LockSetForegroundWindow(LSFW_UNLOCK);
 							SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 						}
@@ -793,6 +806,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 				if(g_DirectX.isViewFullscreen())
 				{
+					// Make window no longer topmost
 					//LockSetForegroundWindow(LSFW_UNLOCK);
 					SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 					ShowWindow(hWnd, SW_MINIMIZE);
@@ -804,6 +818,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				g_Mouse.popState();
 				if(g_DirectX.isViewFullscreen())
 				{
+					// Make window topmost
 					//SetForegroundWindow(hWnd);
 					//LockSetForegroundWindow(LSFW_LOCK);
 					ShowWindow(hWnd, SW_RESTORE);
@@ -826,6 +841,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		} break;
 	case WM_SIZE:
 		{
+			// The window size changed, whether for external reason, or because Window::setClientSize/setWindowSize was called
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
@@ -834,6 +850,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
+				// r is the new size of the client area
 				SIZE r = {LOWORD(lParam), HIWORD(lParam)};
 				g_DirectX.setResolution(r);
 				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
@@ -843,8 +860,11 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		} break;
 	case WM_SIZING:
 		{
+			// The window is being resized by the user dragging an edge/corner
+			// If they're dragging by a corner, cause the size to snap to nearest multiple of native.
 			if(!g_DirectX.isViewFullscreen())
 			{
+				// Find out how much padding is needed to get the window size from the client area size
 				RECT rWindowTest = {0,0,400,400};
 				SIZE sPadding = {0,0};
 				::AdjustWindowRectEx(&rWindowTest, WS_OVERLAPPEDWINDOW, FALSE, 0);
@@ -854,46 +874,25 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				switch(wParam)
 				{
 				case WMSZ_BOTTOMLEFT:
-					{
-						RECT r = *(RECT*)lParam;
-						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
-						{
-							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
-							r.bottom = r.top + (resolution.cy + sPadding.cy);
-							r.left = r.right - (resolution.cx + sPadding.cx);
-							*(RECT*)lParam = r;
-						}
-					} break;
 				case WMSZ_BOTTOMRIGHT:
-					{
-						RECT r = *(RECT*)lParam;
-						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
-						{
-							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
-							r.bottom = r.top + (resolution.cy + sPadding.cy);
-							r.right = r.left + (resolution.cx + sPadding.cx);
-							*(RECT*)lParam = r;
-						}
-					} break;
 				case WMSZ_TOPLEFT:
-					{
-						RECT r = *(RECT*)lParam;
-						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
-						{
-							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
-							r.top = r.bottom - (resolution.cy + sPadding.cy);
-							r.left = r.right - (resolution.cx + sPadding.cx);
-							*(RECT*)lParam = r;
-						}
-					} break;
 				case WMSZ_TOPRIGHT:
 					{
-						RECT r = *(RECT*)lParam;
+						RECT r = *(RECT*)lParam;  // The drag rectangle
 						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
 						{
 							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
-							r.top = r.bottom - (resolution.cy + sPadding.cy);
-							r.right = r.left + (resolution.cx + sPadding.cx);
+
+							if(wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_TOPLEFT)
+								r.left = r.right - (resolution.cx + sPadding.cx);
+							else
+								r.right = r.left + (resolution.cx + sPadding.cx);
+
+							if(wParam == WMSZ_BOTTOMLEFT || wParam == WMSZ_BOTTOMRIGHT)
+								r.bottom = r.top + (resolution.cy + sPadding.cy);
+							else
+								r.top = r.bottom - (resolution.cy + sPadding.cy);
+
 							*(RECT*)lParam = r;
 						}
 					} break;

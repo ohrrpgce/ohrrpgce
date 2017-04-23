@@ -10,6 +10,8 @@ namespace gfx
 {
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
+	// Note: a lot of the window handling is actually in D3D. Window doesn't even
+	// know whether we're currently windowed or fullscreen!!
 	class Window
 	{
 	protected:

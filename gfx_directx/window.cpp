@@ -99,17 +99,23 @@ void Window::setWindowTitle(const TCHAR *strTitle)
 	::SetWindowText(m_hWnd, strTitle);
 }
 
+// This changes the size of the window, used when we are windowed
 void Window::setClientSize(int width, int height)
 {
+	INPUTDEBUG("setClientSize %d*%d", width, height);
 	m_rWindow.right = m_rWindow.left + width;
 	m_rWindow.bottom = m_rWindow.top + height;
 	::AdjustWindowRectEx(&m_rWindow, WS_OVERLAPPEDWINDOW, 0, 0);
+	// Generates a WM_SIZE, which causes g_DirectX and g_Mouse to be updated
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, m_rWindow.right - m_rWindow.left, m_rWindow.bottom - m_rWindow.top, SWP_NOMOVE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
+// This changes the size of the window, used when we are fullscreen
 void Window::setWindowSize(int width, int height)
 {
+	INPUTDEBUG("setWindowSize %d*%d", width, height);
+	// Generates a WM_SIZE, which causes g_DirectX and g_Mouse to be updated
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOMOVE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
