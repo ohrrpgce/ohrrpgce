@@ -474,9 +474,7 @@ FUNCTION titlescreen () as bool
    IF running_on_mobile() ANDALSO should_disable_virtual_gamepad() THEN
     'Special case for Android games that don't use the virtual gamepad
     'Allow them to click past the title screen without having to script their own title screen
-    DIM mouse as MouseInfo
-    mouse = readmouse()
-    IF (mouse.clickstick AND mouseLeft) THEN
+    IF (readmouse().clicks AND mouseLeft) THEN
      EXIT DO
     END IF
    END IF

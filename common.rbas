@@ -4692,7 +4692,7 @@ FUNCTION enter_space_click (state as MenuState) as integer
  DIM mouse as MouseInfo
  mouse = readmouse()
  IF state.has_been_drawn THEN
-  IF (mouse.clickstick AND mouseleft) THEN
+  IF (mouse.clicks AND mouseleft) THEN
    DIM r as RectType
    r.x = state.rect.x
    r.y = state.rect.y + (state.pt - state.top) * state.spacing

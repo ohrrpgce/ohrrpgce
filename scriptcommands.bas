@@ -420,9 +420,7 @@ SUB process_wait_conditions()
      IF txt.showing ANDALSO use_touch_textboxes() THEN
       'If a touch textbox is currently being displayed, we make a special
       'exception and treat any touch as the key we are waiting for
-      DIM mouse as MouseInfo
-      mouse = readmouse()
-      IF (mouse.clickstick AND mouseLeft) THEN
+      IF (gam.mouse.clicks AND mouseLeft) THEN
        script_stop_waiting()
       END IF
      ELSE
@@ -1124,14 +1122,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 159'--init mouse
   IF havemouse() THEN scriptret = 1 ELSE scriptret = 0
   hidemousecursor
-  gam.mouse = readmouse  'Why do we do this?
   gam.mouse_enabled = YES
  CASE 160'--mouse pixel x
   scriptret = gam.mouse.x
  CASE 161'--mouse pixel y
   scriptret = gam.mouse.y
  CASE 162'--mouse button
-  IF retvals(0) <= 4 THEN
+  IF retvals(0) <= 31 THEN
    IF gam.mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse

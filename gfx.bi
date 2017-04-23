@@ -169,7 +169,8 @@ extern Io_running_on_console as function () as bool
 extern Io_running_on_ouya as function () as bool
 
 '(optional) Primary mouse state function
-'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask ofnew clicks since last call.
+'All of the arguments should be overwritten with new values:
+'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask of new clicks since last call.
 'left, right, middle buttons are bits 0, 1, 2
 'Mouse wheel not commonly implemented yet.
 extern Io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)

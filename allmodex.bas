@@ -75,6 +75,7 @@ declare function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 
 declare sub pollingthread(byval as any ptr)
 declare function read_inputtext () as string
+declare sub update_mouse_state ()
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -258,12 +259,8 @@ dim shared mouseflags as integer
 dim shared mouselastflags as integer
 dim shared cursorvisibility as CursorVisibility = cursorDefault
 
-'State saved from one readmouse call to the next
-dim shared mouse_lastpos as XYPair       'Position at last readmouse call
-dim shared mouse_clickstart as XYPair
-dim shared mouse_dragmask as integer
-dim shared mouse_moved_since_setkeys as bool
-dim shared mouse_clicks_since_setkeys as integer
+'State of the mouse (set when setkeys is called), includes persistent state
+dim shared mouse_state as MouseInfo
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -1917,8 +1914,8 @@ sub setkeys (byval enable_inputtext as bool = NO)
 		record_input_tick ()
 	end if
 
-	mouse_moved_since_setkeys = NO
-	mouse_clicks_since_setkeys = 0
+	' Call io_mousebits
+	update_mouse_state()
 
 	' Custom/Game-specific global controls, done last so that there can't be interference
 	static entered as bool
@@ -2016,12 +2013,14 @@ function getcursorvisibility () as CursorVisibility
 	return cursorvisibility
 end function
 
-function readmouse () as MouseInfo
+' Called from setkeys to update the internal mouse state
+sub update_mouse_state ()
 	dim starttime as double = timer
-	dim info as MouseInfo
 
-	mutexlock keybdmutex   'is this necessary?
-	io_mousebits(info.x, info.y, info.wheel, info.buttons, info.clicks)
+	dim lastpos as XYPair = XY(mouse_state.x, mouse_state.y)
+
+	mutexlock keybdmutex   'Just in case
+	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	mutexunlock keybdmutex
 
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
@@ -2030,57 +2029,54 @@ function readmouse () as MouseInfo
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
-	if mouse_dragmask then
-		'Test whether drag ended
-		if (info.clicks and mouse_dragmask) orelse (info.buttons and mouse_dragmask) = 0 then
-			mouse_dragmask = 0
-			mouse_clickstart = XY(0, 0)
-		end if
-	end if
+	mouse_state.moved = (lastpos.x <> mouse_state.x OR lastpos.y <> mouse_state.y)
 
-	if mouse_dragmask = 0 then
+	if mouse_state.dragging then
+		'Test whether drag ended
+		if (mouse_state.clicks and mouse_state.dragging) orelse (mouse_state.buttons and mouse_state.dragging) = 0 then
+			mouse_state.dragging = 0
+			mouse_state.clickstart = XY(0, 0)
+		end if
+	else
 		'Dragging is only tracked for a single button at a time, and clickstart is not updated
 		'while dragging either. So we may now test for new drags or clicks.
-		for i as integer = 0 to 2
+		for i as integer = 0 to 31
 			dim mask as integer = 2 ^ i
-			if info.clicks and mask then
+			if mouse_state.clicks and mask then
 				'Do not flag as dragging until the second tick
-				mouse_clickstart = XY(info.x, info.y)
-			elseif info.buttons and mask then
-				'left mouse button down, but no new click this tick
-				mouse_dragmask = mask
+				mouse_state.clickstart = XY(mouse_state.x, mouse_state.y)
+			elseif mouse_state.buttons and mask then
+				'Button still down
+				mouse_state.dragging = mask
 				exit for
 			end if
 		next
 	end if
 
-	info.moved = (mouse_lastpos.x <> info.x OR mouse_lastpos.y <> info.y)
-	mouse_lastpos = Type(info.x, info.y)
-	info.dragging = mouse_dragmask
-	info.clickstart = mouse_clickstart
-
-	if mouse_moved_since_setkeys ORELSE info.moved then
-		mouse_moved_since_setkeys = YES
-		info.movedtick = YES
-	end if
-
-	if mouse_clicks_since_setkeys ORELSE info.clicks then
-		mouse_clicks_since_setkeys OR= info.clicks
-		info.clickstick = mouse_clicks_since_setkeys
-	end if
-
-	if info.clicks <> 0 then
+	' If you released a mouse grab (mouserect) and then click on the
+	' window, resume the mouse grab.
+	if mouse_state.clicks <> 0 then
 		if mouse_grab_requested andalso mouse_grab_overridden then
 			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
 		end if
 	end if
 
-	debug_if_slow(starttime, 0.005, info.clicks)
-	return info
+	debug_if_slow(starttime, 0.005, mouse_state.clicks)
+end sub
+
+' Get the state of the mouse at the last setkeys call (or after putmouse, mouserect).
+' So make sure you call this AFTER setkeys.
+function readmouse () as MouseInfo
+	return mouse_state
 end function
 
 sub movemouse (byval x as integer, byval y as integer)
 	io_setmouse(x, y)
+
+	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
+	' and is difficult to support in .ohrkeys.
+	mouse_state.x = x
+	mouse_state.y = y
 end sub
 
 sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
@@ -2107,6 +2103,11 @@ sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integ
 	mutexlock keybdmutex
 	io_mouserect(xmin, xmax, ymin, ymax)
 	mutexunlock keybdmutex
+
+	' Don't call io_mousebits to get the new state, since that will cause clicks and movements to get lost,
+	' and is difficult to support in .ohrkeys.
+	mouse_state.x = bound(mouse_state.x, xmin, xmax)
+	mouse_state.y = bound(mouse_state.y, ymin, ymax)
 end sub
 
 function readjoy (joybuf() as integer, byval jnum as integer) as bool

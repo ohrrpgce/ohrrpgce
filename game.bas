@@ -789,9 +789,7 @@ DO
  END IF
  IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
   IF use_touch_textboxes() THEN
-   DIM mouse as MouseInfo
-   mouse = readmouse()
-   IF (mouse.clickstick AND mouseLeft) THEN
+   IF gam.mouse.clicks AND mouseLeft THEN
     advance_text_box
    END IF
   END IF

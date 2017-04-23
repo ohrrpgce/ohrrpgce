@@ -2240,7 +2240,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
   DIM statnum as integer = mstate.pt - 4
   
   mouse = readmouse
-  IF mouse.movedtick THEN
+  IF mouse.moved THEN
    IF mouse.x > 160 AND twomenus THEN
     activemenu = 1
    ELSE

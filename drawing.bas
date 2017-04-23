@@ -386,7 +386,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   image_pos = get_resolution() - XY(image->w, image->h)
   mouse = readmouse()
   WITH mouse
-   IF .clickstick AND mouseleft THEN
+   IF .clicks AND mouseleft THEN
     IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
      EXIT DO
     ELSE
@@ -755,7 +755,7 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
   mouse = readmouse()
   WITH mouse
-   IF .clickstick AND mouseleft THEN
+   IF .clicks AND mouseleft THEN
     IF rect_collide_point(str_rect("ESC when done", 0, 0), .x, .y) THEN
      EXIT DO
     ELSE
@@ -1112,9 +1112,7 @@ setkeys
 DO
  setwait 17, 70
  setkeys
- IF ts.gotmouse THEN
-  mouse = readmouse
- END IF
+ mouse = readmouse
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN
   IF tmode = 3 THEN
@@ -3114,7 +3112,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   IF keyval(scESC) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
 
-  IF enter_or_space() OR (mouse.clickstick AND mouseleft) THEN
+  IF enter_or_space() OR (mouse.clicks AND mouseleft) THEN
    ret = YES
    EXIT DO
   END IF

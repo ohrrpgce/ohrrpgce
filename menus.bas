@@ -135,7 +135,7 @@ FUNCTION mouse_on_menustate (state as MenuState) as integer
  'Return a value < state.first if the mouse is not on any menu item.
  DIM mouse as MouseInfo
  mouse = readmouse()
- IF mouse.movedtick ORELSE (mouse.clickstick AND mouseleft) THEN
+ IF mouse.moved ORELSE (mouse.clicks AND mouseleft) THEN
   RETURN find_menu_item_at_point(state, mouse.x, mouse.y)
  END IF
  RETURN state.first - 1
