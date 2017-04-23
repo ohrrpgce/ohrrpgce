@@ -22,13 +22,15 @@ struct WindowState
 };
 #define WINDOWSTATE_SZ 5
 
+typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
+
 struct GfxInitData
 {
 	int structsize;    // Number of members
 	const char* windowtitle;
 	const char* windowicon;
 	void (__cdecl *PostTerminateSignal)(void);
-	void (__cdecl *DebugMsg)(enum ErrorLevel errlvl, const char* message);
+	FnDebug DebugMsg;
 };
 #define GFXINITDATA_SZ 5
 
@@ -47,6 +49,7 @@ DFI_DECLARE_CDECL( int, gfx_init, void (__cdecl *terminate_signal_handler)(void)
 DFI_DECLARE_CDECL( void, gfx_close );
 
 DFI_DECLARE_CDECL( int, gfx_getversion );
+DFI_DECLARE_CDECL( void, gfx_setdebugfunc, FnDebug DebugMsg );
 
 DFI_DECLARE_CDECL( void, gfx_showpage, unsigned char *raw, int w, int h ); //the main event
 DFI_DECLARE_CDECL( void, gfx_showpage32, unsigned int *raw, int w, int h ); //32bit main event

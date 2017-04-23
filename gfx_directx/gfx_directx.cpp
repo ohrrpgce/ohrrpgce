@@ -145,6 +145,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 	return gfx_ScreenShot(fname);
 }
 
+// FIXME: this doesn't work when -fullscreen passed on commandline, because
+// its recieved before gfx_Initialize
 DFI_IMPLEMENT_CDECL(void, gfx_setwindowed, int iswindow)
 {
 	debugc(errInfo, "setwindowed(%d)", iswindow);
@@ -320,6 +322,12 @@ void LoadHelpText()
 	g_State.szHelpText = pText;
 }
 
+// Used to receive DebugMsg before gfx_setoption calls (which happen before gfx_Initialize)
+DFI_IMPLEMENT_CDECL(void, gfx_setdebugfunc, FnDebug DebugMsg)
+{
+	g_State.DebugMsg = DebugMsg;
+}
+
 DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 {
 	if(pCreationData == NULL)
@@ -343,8 +351,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 
 	HRESULT hr;
 	if(FAILED(hr = g_Window.initialize(::GetModuleHandle(MODULENAME), 
-								   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
-								   (WNDPROC)OHRWndProc)))
+	                                   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
+	                                   (WNDPROC)OHRWndProc)))
 	{
 		debugc(errError, "Window initialization failed! %s", HRESULTString(hr));
 		return FALSE;
