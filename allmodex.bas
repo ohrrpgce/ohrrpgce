@@ -870,11 +870,13 @@ sub setvispage (page as integer, skippable as bool = YES)
 			debug_if_slow(starttime2, 0.05, "gfx_setpal")
 			updatepal = NO
 		end if
+		starttime += timer  'Stop timer
 		starttime2 = timer
 		gfx_showpage(.image, .w, .h)
 		' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
 		' although in gfx_fb it freezes readmouse instead)
 		debug_if_slow(starttime2, 0.05, "gfx_showpage")
+		starttime -= timer  'Restart timer
 		mutexunlock keybdmutex
 	end with
 
@@ -888,7 +890,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
-	debug_if_slow(starttime, 0.1, "")
+	debug_if_slow(starttime, 0.05, "")
 end sub
 
 'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
@@ -2197,7 +2199,7 @@ private sub pollingthread(byval unused as any ptr)
 
 		mutexunlock keybdmutex
 
-		debug_if_slow(starttime, 0.005, "io_getmouse")
+		debug_if_slow(starttime, 0.01, "io_getmouse")
 
 		'25ms was found to be sufficient
 		sleep 25
@@ -2513,7 +2515,7 @@ private function draw_allmodex_overlays (page as integer) as bool
 		end if
 		' Move the FPS a little to the left, because on OSX+gfx_sdl the handle for resizable
 		' windows is drawn in the bottom right corner by SDL (not the OS).
-		edgeprint fpsstring, pRight - 14, pBottom, uilook(uiText), page
+		edgeprint fpsstring, pRight - 14, iif(overlay_replay_display, pTop, pBottom), uilook(uiText), page
 		dirty = YES
 	end if
 
@@ -2529,10 +2531,12 @@ private function draw_allmodex_overlays (page as integer) as bool
 	elseif overlay_hide_time < timer then
 		overlay_message = ""
 	end if
+
 	if len(overlay_message) then
 		basic_textbox overlay_message, uilook(uiText), page, rBottom + ancBottom - 2, , YES
 		dirty = YES
 	end if
+
 	return dirty
 end function
 
