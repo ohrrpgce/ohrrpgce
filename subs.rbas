@@ -1222,22 +1222,23 @@ SUB individual_formation_editor ()
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-   DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
+   DIM as integer movespeed = 1
    IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
    WITH form.slots(slot)
     DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
-    IF sprite THEN
-     thiswidth = sprite->Width
-     thisheight = sprite->Height
-    END IF
+    DIM size as XYPair
+    IF sprite THEN size = SliceSize(sprite)
     ' Note that enemy positions are the top-left corner of the sprite
     ' (which needs to be changed)
     IF keyval(scUp) > 0 THEN .pos.y -= movespeed
     IF keyval(scDown) > 0 THEN .pos.y += movespeed
     IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
     IF keyval(scRight) > 0 THEN .pos.x += movespeed
-    .pos.x = bound(.pos.x, -thiswidth\2, gen(genResolutionX) - thiswidth\2)
-    .pos.y = bound(.pos.y, -thisheight\2, gen(genResolutionY) - thisheight\2)
+    ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
+    ' .pos.x = bound(.pos.x, -size.w\2, gen(genResolutionX) - size.w\2)
+    ' .pos.y = bound(.pos.y, -size.h\2, gen(genResolutionY) - size.h\2)
+    .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
+    .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
    END WITH
   END IF
   IF positioning_mode = NO THEN

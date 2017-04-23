@@ -2029,14 +2029,21 @@ SUB script_functions(byval cmdid as integer)
    END IF
    IF slot >= 0 THEN
     DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
-    DIM size as integer
-    IF szindex = 0 THEN size = 34
-    IF szindex = 1 THEN size = 50
-    IF szindex = 2 THEN size = 80
+    DIM size as XYPair
+    IF szindex = 0 THEN size = XY(34, 34)
+    IF szindex = 1 THEN size = XY(50, 50)
+    IF szindex = 2 THEN size = XY(80, 80)
     WITH form.slots(slot)
      .id = retvals(1)
-     .pos.x = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
-     .pos.y = large( (small(retvals(3), 199) - size) , 0)
+     ' Convert to top-left coord
+     .pos.x = retvals(2) - size.w \ 2
+     .pos.x = retvals(3) - size.h
+     ' These are the same limits as used in the formation editor
+     ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
+     ' .pos.x = bound(.pos.x, -size.w\2, get_resolution().w - size.w\2)
+     ' .pos.y = bound(.pos.y, -size.h\2, get_resolution().h - size.h\2)
+     .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
+     .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
     END WITH
    END IF
    SaveFormation form, retvals(0)

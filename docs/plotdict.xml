@@ -3106,7 +3106,20 @@ end</example>
 		<command id="addenemytoformation">
 			<canon>add enemy to formation (formation, enemy id, x, y, slot)</canon>
 			<shortname>add enemy to formation</shortname>
-			<description>Adds an enemy with given <p>enemy id</p> (use the constants of the form <p>enemy:name</p> in your exported .hsi file) to the specified <p>formation</p>. <p>x</p> (up to 230) and <p>y</p> (up to 199) give the position of the center of the bottom edge of the enemy - approximately where it appears to stand. <p>slot</p> (0 to 7) is an optional argument, if given then the enemy is created in the suggested slot if empty. Otherwise it's put in the first empty slot. The actual slot number used is returned, or -1 if the enemy couldn't be added.<note>Changes to enemy formations are temporary: they are not saved in save files.</note></description>
+			<description>
+				Adds an enemy with given <p>enemy id</p>
+				(use the constants of the form <p>enemy:name</p> in your exported .hsi file) to the specified <p>formation</p>.
+				<p>x</p> (0 to 320) and <p>y</p> (from roughly 17 to 240, depending on enemy size)
+				give the position of the center of the bottom edge of the enemy
+				- approximately where it appears to stand.
+				<p>slot</p> (0 to 7) is an optional argument,
+				if you specify it, then the enemy is created in the suggested slot if empty.
+				If you omit <p>slot</p> or <p>slot</p> isn't empty, the enemy is put in the first empty slot.
+				The actual slot number used is returned, or -1 if the enemy couldn't be added.
+				<note>
+					Changes to enemy formations are temporary: they are not saved in save files.
+				</note>
+			</description>
 			<seealso>
 				<ref>deleteenemyfromformation</ref>
 			</seealso>
