@@ -1073,45 +1073,45 @@ SUB script_functions(byval cmdid as integer)
    END WITH
   END IF
 
- CASE 135'--puthero
+ CASE 135'--put hero
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cropposition retvals(1), retvals(2), 20
    catx(retvals(0) * 5) = retvals(1)
    caty(retvals(0) * 5) = retvals(2)
   END IF
- CASE 136'--putnpc
+ CASE 136'--put npc
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
    npc(npcref).y = retvals(2)
   END IF
- CASE 137'--putcamera
+ CASE 137'--put camera
   gen(genCameraMode) = stopcam
   mapx = retvals(0)
   mapy = retvals(1)
   limitcamera mapx, mapy
- CASE 138'--heropixelx
+ CASE 138'--hero pixel x
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = catx(retvals(0) * 5)
   END IF
- CASE 139'--heropixely
+ CASE 139'--hero pixel y
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = caty(retvals(0) * 5)
   END IF
- CASE 140'--npcpixelx
+ CASE 140'--npc pixel x
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).x
   END IF
- CASE 141'--npcpixely
+ CASE 141'--npc pixel y
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).y
   END IF
- CASE 142'--camerapixelx
+ CASE 142'--camera pixel x
   scriptret = mapx
- CASE 143'--camerapixely
+ CASE 143'--camera pixel y
   scriptret = mapy
  CASE 147'--read general
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(gen) THEN
@@ -1126,9 +1126,9 @@ SUB script_functions(byval cmdid as integer)
   hidemousecursor
   gam.mouse = readmouse  'Why do we do this?
   gam.mouse_enabled = YES
- CASE 160'--get mouse x
+ CASE 160'--mouse pixel x
   scriptret = gam.mouse.x
- CASE 161'--get mouse y
+ CASE 161'--mouse pixel y
   scriptret = gam.mouse.y
  CASE 162'--mouse button
   IF retvals(0) <= 4 THEN
@@ -1183,7 +1183,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    script_start_waiting(retvals(0))
   END IF
- CASE 4'--waitforNPC
+ CASE 4'--wait for NPC
   IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npcs) THEN
    script_start_waiting(retvals(0), gam.map.id)
   END IF
@@ -1997,7 +1997,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 265'--rgb
   scriptret = RGB(bound(retvals(0),0,255), bound(retvals(1),0,255), bound(retvals(2),0,255))
- CASE 266'--extractcolor
+ CASE 266'--extract color
   dim c as rgbcolor
   c.col = retvals(0)
   SELECT CASE retvals(1)
@@ -4076,17 +4076,17 @@ SUB script_functions(byval cmdid as integer)
    NEXT
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
- CASE 269'--totalexperience
+ CASE 269'--total experience
   IF valid_hero_party(retvals(0)) THEN
    scriptret = hero_total_exp(retvals(0))
   END IF
  CASE 270'--experience to level
   scriptret = total_exp_to_level(retvals(0))
- CASE 271'--experiencetonextlevel
+ CASE 271'--experience to next level
   IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).exp_next - gam.hero(retvals(0)).exp_cur
   END IF
- CASE 272'--setexperience  (who, what, allowforget)
+ CASE 272'--set experience  (who, what, allowforget)
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN
    setheroexperience retvals(0), retvals(1), retvals(2)
   END IF
