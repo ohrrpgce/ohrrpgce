@@ -387,28 +387,24 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
   'extra damage
   harmf *= (1.0 + attack.extra_damage / 100)
  
-  'convert to integer -- do this now as using an accurate floating point
-  'version of range causes up to 1 more average damage to be done
-  IF harmf > 2147483647 THEN
-   h = 2147483647
-  ELSEIF harmf < 0 THEN
-   'This check just prevents overflow; actual 0 damage cap is below.
-   h = 0
-  ELSE
-   h = range(harmf, attack.randomization)
-  END IF
+  'Now we convert damage back to integer (for backcompat)
+  h = bound(harmf, 1. * LONG_MIN, 1. * LONG_MAX)
+
+  ' + or - some amount. (Note: due to how range is programmed, the average
+  ' result is 0.5 less than h)
+  h = range(h, attack.randomization)
  
   'spread damage
   IF attack.divide_spread_damage = YES THEN h = h / tcount
  
   'cap under
   IF immune ANDALSO readbit(gen(), genBits2, 10) THEN
-   'zero damage from elemental immunity, even without attack bit
+   'zero damage from elemental immunity, even without attack.damage_can_be_zero
    h = 0
   ELSEIF h <= 0 THEN
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
   END IF
- 
+
   IF attack.show_damage_without_inflicting = NO THEN
    'resetting
    IF attack.reset_targ_stat_before_hit = YES THEN

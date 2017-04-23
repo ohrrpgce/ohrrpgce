@@ -434,10 +434,15 @@ END FUNCTION
  frame_unload @tframe
 '/
 
+' Returns number +/- up to percent%
+' Note that the average value returned is number - 0.5! Don't change this
+' without adjusting attack damage calculation
 FUNCTION range (number as integer, percent as integer) as integer
- DIM a as integer
+ DIM a as longint
  a = (number / 100) * percent
- RETURN number + randint((a * 2)) - a
+ ' number - a <= RETURN < number + a
+ a = number + INT((rando() * a) * 2) - a
+ RETURN bound(a, -2147483648LL, 2147483647LL)
 END FUNCTION
 
 FUNCTION isnan (byval value as double) as integer
