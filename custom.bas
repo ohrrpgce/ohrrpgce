@@ -60,7 +60,7 @@ DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
 
-DECLARE SUB shopdata ()
+DECLARE SUB shop_editor ()
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
@@ -435,10 +435,10 @@ SUB main_editor_menu()
    IF state.pt = 1 THEN map_picker
    IF state.pt = 2 THEN edit_global_text_strings
    IF state.pt = 3 THEN hero_editor
-   IF state.pt = 4 THEN enemydata
-   IF state.pt = 5 THEN attackdata
+   IF state.pt = 4 THEN enemy_editor
+   IF state.pt = 5 THEN attack_editor
    IF state.pt = 6 THEN item_editor
-   IF state.pt = 7 THEN shopdata
+   IF state.pt = 7 THEN shop_editor
    IF state.pt = 8 THEN formation_editor
    IF state.pt = 9 THEN text_box_editor
    IF state.pt = 10 THEN menu_editor
@@ -447,7 +447,7 @@ SUB main_editor_menu()
    IF state.pt = 13 THEN importsong
    IF state.pt = 14 THEN importsfx
    IF state.pt = 15 THEN fontedit current_font()
-   IF state.pt = 16 THEN gendata
+   IF state.pt = 16 THEN general_data_editor
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN slice_editor
    IF state.pt = 19 THEN distribute_game
@@ -823,7 +823,7 @@ END SUB
 '==========================================================================================
 
 
-SUB shopdata ()
+SUB shop_editor ()
  DIM shopbuf(20) as integer
 
  DIM sbit(-1 TO 7) as string

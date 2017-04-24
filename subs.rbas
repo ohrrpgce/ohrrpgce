@@ -86,7 +86,7 @@ SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string,
  NEXT
 END SUB
 
-SUB enemydata
+SUB enemy_editor ()
 
 DIM elementnames() as string
 getelementnames elementnames()

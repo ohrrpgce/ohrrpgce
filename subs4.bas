@@ -1764,7 +1764,7 @@ SUB generate_gen_menu(m() as string, longname as string, aboutline as string, op
  m(options_start + 5) = "Initial sound effects volume: " & gen(genSFXVolume) & "%"
 END SUB
 
-SUB gendata ()
+SUB general_data_editor ()
  STATIC shown_framerate_warning as bool = NO
  CONST maxMenu = 22
  DIM m(maxMenu) as string
