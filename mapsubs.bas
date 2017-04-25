@@ -33,6 +33,7 @@ DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
+DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 
 'Undo
@@ -592,7 +593,7 @@ DO
     mapedit_layers st
    CASE 4
     'This may delete NPC instances, and write npc definitions to disk
-    npcdef st
+    npcdef_editor st
    CASE 5 TO 10
     st.seteditmode = st.menustate.pt - 5
     mapeditor_mapping st, mode_tools_map()
@@ -4804,4 +4805,135 @@ SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as inte
  mapviewsize.h = vpages(dpage)->h - 20  '20 pixels for menubar
  st.mapx = bound(x * 20 - mapviewsize.w \ 2, 0, st.map.wide * 20 - mapviewsize.w)
  st.mapy = bound(y * 20 - mapviewsize.h \ 2, 0, st.map.high * 20 - mapviewsize.h)
+END SUB
+
+
+'======================================= NPC Editor =======================================
+
+
+SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as NPCInst)
+
+ '--Count number of uses
+ DIM as integer uses = 0
+ FOR i as integer = 0 to UBOUND(npc_insts)
+  IF npc_insts(i).id = id + 1 THEN uses += 1
+ NEXT
+
+ IF uses > 0 THEN
+  IF yesno("There are " & uses & " copies of NPC ID " & id & " on the map. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
+
+  '--Delete instances of this ID
+  FOR i as integer = 0 to UBOUND(npc_insts)
+   IF npc_insts(i).id = id + 1 THEN npc_insts(i).id = 0
+  NEXT
+ END IF
+
+ '--Wiping a definition clear, or completely deleting it?
+ DIM as bool deleting = NO
+ '--Can't delete ID 0; must always have at least one NPC
+ IF id > 0 AND id = UBOUND(npc) THEN deleting = YES
+
+ IF yesno(IIF(uses, "Done. ", "") & "Really " & IIF(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
+
+ CleanNPCDefinition npc(id)
+ IF deleting THEN
+  REDIM PRESERVE npc(UBOUND(npc) - 1)
+ END IF
+
+END SUB
+
+SUB npcdef_editor (st as MapEditState)
+DIM byref map as MapData = st.map
+
+DIM boxpreview(UBOUND(map.npc_def)) as string
+DIM need_update_selected as bool = NO
+
+DIM state as MenuState
+
+state.last = UBOUND(map.npc_def)
+'--Add "Add new NPC" option to end
+state.last += 1
+
+FOR i as integer = 0 TO UBOUND(map.npc_def)
+ boxpreview(i) = npc_preview_text(map.npc_def(i))
+NEXT i
+setkeys YES
+DO
+ setwait 55
+ setkeys YES
+ state.size = vpages(dpage)->h \ 25 - 1
+ state.tog = state.tog XOR 1
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
+ intgrabber state.pt, 0, state.last
+ usemenu state
+ IF enter_space_click(state) THEN
+  IF state.pt = state.last THEN
+   '--Add new NPC option
+   REDIM PRESERVE map.npc_def(UBOUND(map.npc_def) + 1)
+   CleanNPCDefinition map.npc_def(UBOUND(map.npc_def))
+  ELSE
+   '--An NPC
+   'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
+   SaveNPCD maplumpname(map.id, "n"), map.npc_def()
+   edit_npc map.npc_def(state.pt), map.gmap(), map.zmap
+  END IF
+  need_update_selected = YES
+ END IF
+ IF keyval(scPlus) > 1 THEN
+  '--Fast add button (for people who really want ID 134 for a task)
+  state.pt = UBOUND(map.npc_def) + 1
+  REDIM PRESERVE map.npc_def(state.pt)
+  CleanNPCDefinition map.npc_def(state.pt)
+  need_update_selected = YES
+ END IF
+ IF keyval(scDelete) > 1 THEN
+  '--This updates arrays, but not state.pt
+  handle_npc_def_delete map.npc_def(), state.pt, map.npc()
+  IF state.pt > UBOUND(map.npc_def) THEN
+   '--Deleted last NPC def
+   state.pt = UBOUND(map.npc_def)
+  END IF
+  need_update_selected = YES
+ END IF
+
+ IF need_update_selected THEN
+  '--Note not all, or even any, of these updates will be required in a given case
+  load_npc_graphics map.npc_def(), st.npc_img()
+  '--Update box preview line
+  REDIM PRESERVE boxpreview(UBOUND(map.npc_def))
+  boxpreview(state.pt) = npc_preview_text(map.npc_def(state.pt))
+  '--Update menu size (including Add NPC option) and scroll up if needed
+  state.last = UBOUND(map.npc_def) + 1
+  usemenu state
+
+  need_update_selected = NO
+ END IF
+
+ clearpage dpage
+ FOR i as integer = state.top TO state.top + state.size
+  IF i > state.last THEN EXIT FOR
+  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
+  textcolor uilook(uiMenuItem), 0
+  IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
+  IF i = state.last THEN
+   '--Add new NPC option
+   printstr "Add new NPC", 0, ((i - state.top) * 25) + 5, dpage
+  ELSE
+   '--An NPC
+   printstr "" & i, 0, ((i - state.top) * 25) + 5, dpage
+   WITH st.npc_img(i)
+    '--Down A frame
+    frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
+   END WITH
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF state.pt = i THEN textcolor uilook(uiText), uilook(uiHighlight)
+   printstr boxpreview(i), 56, ((i - state.top) * 25) + 5, dpage
+  END IF
+ NEXT i
+ SWAP vpage, dpage
+ setvispage vpage
+ dowait
+LOOP
+
 END SUB

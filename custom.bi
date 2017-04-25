@@ -35,7 +35,6 @@ DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
 
 DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
-DECLARE SUB npcdef (st as MapEditState)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 
 DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr)
