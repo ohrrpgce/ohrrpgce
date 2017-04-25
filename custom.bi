@@ -34,6 +34,7 @@ DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
 
+DECLARE SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
 DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
 DECLARE SUB tile_anim_draw_range(tastuf() as integer, byval taset as integer, byval page as integer)
 

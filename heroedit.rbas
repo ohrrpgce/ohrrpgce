@@ -1,0 +1,1438 @@
+'OHRRPGCE CUSTOM - Hero Editor
+'(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
+'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'
+#include "config.bi"
+#include "const.bi"
+#include "udts.bi"
+#include "custom.bi"
+#include "allmodex.bi"
+#include "common.bi"
+#include "loading.bi"
+#include "customsubs.bi"
+#include "slices.bi"
+#include "cglobals.bi"
+
+'--Local SUBs
+DECLARE SUB enforce_hero_data_limits(her as HeroDef)
+DECLARE SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her as HeroDef)
+DECLARE SUB update_hero_preview_pics(byref st as HeroEditState, her as HeroDef)
+DECLARE SUB animate_hero_preview(byref st as HeroEditState)
+DECLARE SUB clear_hero_preview_pics(byref st as HeroEditState)
+DECLARE SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
+
+DECLARE FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref hero_id as integer) as bool
+DECLARE SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
+DECLARE SUB hero_editor_stats_menu (her as HeroDef)
+DECLARE SUB hero_editor_spell_lists_toplevel (her as HeroDef)
+DECLARE SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
+DECLARE SUB hero_editor_spell_list_names (her as HeroDef)
+DECLARE SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
+DECLARE SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
+DECLARE SUB hero_editor_appearance (byref st as HeroEditState, byref her as HeroDef)
+DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
+DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
+DECLARE SUB hero_editor_elementals(byref her as HeroDef)
+DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
+DECLARE SUB hero_editor_battle_menu (her as HeroDef)
+DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
+DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
+DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
+DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
+
+
+
+SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
+ loadherodata her, hero_id
+ enforce_hero_data_limits her
+ update_hero_preview_pics st, her
+END SUB
+
+SUB hero_editor
+ DIM hero_id as integer = 0
+ DIM her as HeroDef
+ DIM st as HeroEditState
+ WITH st
+  .preview_walk_direction = 1
+  .preview_steps = 0
+  .preview_walk_pos.x = 0
+  .preview_walk_pos.y = 0
+  .previewframe = -1
+ END WITH
+
+ DIM menu(10) as string
+ menu(0) = "Return to Main Menu"
+ menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
+ menu(2) = "Name:"
+ menu(3) = "Appearance and Misc..."
+ menu(4) = "Edit Stats..."
+ menu(5) = "Edit Spell Lists..."
+ menu(6) = "Edit Battle Menu..."
+ menu(7) = "Bitsets..."
+ menu(8) = "Elemental Resistances..."
+ menu(9) = "Hero Tags..."
+ menu(10) = "Equipment..."
+
+ DIM mstate as MenuState
+ WITH mstate
+  .pt = 1
+  .size = 22
+  .last = UBOUND(menu)
+ END WITH
+
+ DIM hbit(-1 TO 26) as string
+ 'Lots of obsolete elemental bits
+ hbit(24) = "Rename when added to party"
+ hbit(25) = "Permit renaming on status screen"
+ hbit(26) = "Do not show spell lists if empty"
+
+ hero_editor_load_hero st, her, hero_id
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  animate_hero_preview st
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_editor"
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+   cropafter hero_id, gen(genMaxHero), -1, game + ".dt0", getbinsize(binDT0)
+   load_special_tag_caches
+  END IF
+  usemenu mstate
+  IF enter_space_click(mstate) THEN
+   SELECT CASE mstate.pt
+    CASE 0: EXIT DO
+    CASE 3: hero_editor_appearance st, her
+    CASE 4: hero_editor_stats_menu her
+    CASE 5: hero_editor_spell_lists_toplevel her
+    CASE 6: hero_editor_battle_menu her
+    CASE 7: editbitset her.bits(), 0, 26, hbit()
+    CASE 8: hero_editor_elementals her
+    CASE 9: hero_editor_tags hero_id, her
+    CASE 10: hero_editor_equipment_list hero_id, her
+   END SELECT
+  END IF
+
+  IF mstate.pt = 1 THEN
+   DIM remem_hero_id as integer = hero_id
+   IF intgrabber(hero_id, 0, gen(genMaxHero), scLeftCaret, scRightCaret) THEN
+    saveherodata her, remem_hero_id
+    hero_editor_load_hero st, her, hero_id
+   END IF
+   IF keyval(scLeft) > 1 AND hero_id > 0 THEN
+    saveherodata her, hero_id
+    hero_id -= 1
+    hero_editor_load_hero st, her, hero_id
+   END IF
+   IF keyval(scRight) > 1 AND hero_id < 59 THEN
+    saveherodata her, hero_id
+    hero_id += 1
+    IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
+     gen(genMaxHero) -= 1  'Incremented by both needaddset and hero_editor_add_new
+     IF hero_editor_add_new(st, her, hero_id) THEN
+      saveherodata her, hero_id
+     END IF
+    END IF
+    hero_editor_load_hero st, her, hero_id
+   END IF
+  END IF
+  IF mstate.pt = 2 THEN
+   strgrabber her.name, 16
+  END IF
+
+  menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
+  menu(2) = "Name:" & her.name
+
+  '--Draw screen
+  clearpage dpage
+  standardmenu menu(), mstate, 0, 0, dpage
+
+  draw_hero_preview st, her
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ saveherodata her, hero_id
+ clear_hero_preview_pics st
+END SUB
+
+FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer) as bool
+ 'Returns YES if a new hero was added, or NO if the add was cancelled
+  DIM menu(2) as string
+  DIM herotocopy as integer = 0
+  DIM state as MenuState
+  state.last = UBOUND(menu)
+  state.size = 24
+  state.pt = 1
+
+  state.need_update = YES
+  setkeys
+  DO
+    setwait 55
+    animate_hero_preview st
+    setkeys
+    IF keyval(scESC) > 1 THEN  'cancel
+      recindex -= 1
+      EXIT DO
+    END IF
+    IF keyval(scF1) > 1 THEN show_help "hero_new"
+    usemenu state
+    IF state.pt = 2 THEN
+      IF intgrabber(herotocopy, 0, gen(genMaxHero)) THEN state.need_update = YES
+    END IF
+    IF state.need_update THEN
+      state.need_update = NO
+      loadherodata her, herotocopy
+      update_hero_preview_pics st, her
+      menu(0) = "Cancel"
+      menu(1) = "New Blank Hero"
+      menu(2) = "Copy of Hero " & herotocopy & " " & her.name
+    END IF
+    IF enter_space_click(state) THEN
+      SELECT CASE state.pt
+        CASE 0 ' cancel
+          recindex -= 1
+          RETURN NO
+        CASE 1 ' blank
+          gen(genMaxHero) += 1
+          ClearHeroData her
+          RETURN YES
+        CASE 2 ' copy
+          gen(genMaxHero) += 1
+          RETURN YES
+      END SELECT
+    END IF
+
+    clearpage dpage
+    standardmenu menu(), state, 0, 0, dpage
+    IF state.pt = 2 THEN
+      draw_hero_preview st, her
+    END IF
+    setvispage dpage
+    dowait
+  LOOP
+END FUNCTION
+
+SUB hero_editor_stat_visibility (hero as HeroDef)
+ DIM tmpbits(0) as integer
+ REDIM menu(statLast) as string
+ getstatnames menu()
+ FOR i as integer = 0 TO statLast
+  menu(i) = "Hide " & menu(i)
+ NEXT i
+ 
+ DIM hero_node as NodePtr
+ hero_node = hero.reld
+ READNODE hero_node."stat_options" as opt
+  WITHNODE opt."stat" as stat
+   DIM i as integer = GetInteger(stat)
+   IF stat."hide".exists THEN setbit tmpbits(), 0, i, YES
+  END WITHNODE
+ END READNODE
+
+ editbitset tmpbits(), 0, statLast, menu(), "hero_stat_visibility"
+ 
+ DIM stat_options as NodePtr
+ stat_options = hero_node."stat_options".ptr
+ IF stat_options = 0 THEN stat_options = SetChildNode(hero_node, "stat_options")
+
+ DIM stat as NodePtr
+ FOR i as integer = 0 TO statLast
+  stat = NodeByPath(stat_options, "/stat[" & i & "]")
+  IF stat = 0 THEN
+   'Node does not exist yet
+   IF xreadbit(tmpbits(), i) THEN
+    stat = AppendChildNode(stat_options, "stat", i)
+    SetChildNode(stat, "hide")
+   END IF
+  ELSE
+   'Node already exists
+   IF xreadbit(tmpbits(), i) THEN
+    SetChildNode(stat, "hide")
+   ELSE
+    IF stat."hide".exists THEN FreeNode stat."hide".ptr
+   END IF
+  END IF
+ NEXT i
+ 
+END SUB
+
+SUB hero_editor_stats_menu (her as HeroDef)
+ DIM i as integer
+ DIM activemenu as integer = 0  '0 or 1 indicating left or rightmenu
+ DIM twomenus as bool = (gen(genMaxLevel) > 0)  'whether to draw the second menu
+
+ '.unselectable attribute only used from leftmenu
+ DIM as BasicMenuItem vector leftmenu, rightmenu, middlemenu
+ v_new leftmenu, 4 + 12
+ v_new rightmenu, 4 + 12
+ v_new middlemenu, 4 + 12
+ leftmenu[0].text = "Previous Menu"
+ leftmenu[1].text = "Stat Visibility..."
+ leftmenu[2].unselectable = YES
+ leftmenu[3].text = "LEVEL ZERO"
+ leftmenu[3].unselectable = YES
+ leftmenu[3].col = uilook(uiDescription)
+ 'Middlemenu is not editable, it just shows experience at Max level, if the max is not 99
+ middlemenu[3].text = "LEVEL " & gen(genMaxLevel)
+ middlemenu[3].col = uilook(uiDescription)
+ ' FIXME: the rightmost column is always the level 99 stats rather than gen(genMaxLevel)
+ rightmenu[3].text = "LEVEL 99"
+ rightmenu[3].col = uilook(uiDescription)
+
+ DIM mstate as MenuState
+ WITH mstate
+  .last = v_len(leftmenu) - 1
+  .size = 22
+  .need_update = YES
+  .active = YES
+ END WITH
+ DIM inactive_state as MenuState
+ WITH inactive_state
+  .last = mstate.last
+  .size = mstate.size
+  .active = NO
+ END WITH
+
+ DIM min(11) as integer, max(11) as integer
+ FOR i as integer = 0 TO UBOUND(min)
+  min(i) = 0
+  max(i) = 999
+ NEXT
+ max(statHP) = 9999
+ max(statMP) = 9999
+ max(statFocus) = 100
+ max(statHitX) = 10
+ 
+ DIM mouse as MouseInfo
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_stats"
+
+  usemenu mstate, leftmenu
+  DIM statnum as integer = mstate.pt - 4
+  
+  mouse = readmouse
+  IF mouse.moved THEN
+   IF mouse.x > 160 AND twomenus THEN
+    activemenu = 1
+   ELSE
+    activemenu = 0
+   END IF
+  END IF
+
+  IF enter_space_click(mstate) THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt = 1 THEN
+    hero_editor_stat_visibility her
+    mstate.need_update = YES
+   END IF
+  END IF
+  IF statnum < 0 THEN
+   activemenu = 0
+  ELSE
+   IF twomenus AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN activemenu XOR= 1
+   IF activemenu = 0 THEN
+    IF intgrabber(her.Lev0.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+   ELSE
+    IF intgrabber(her.LevMax.sta(statnum), min(statnum), max(statnum), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+   END IF
+  END IF
+
+  IF mstate.need_update THEN
+   mstate.need_update = NO
+   middlemenu[3].text = "LEVEL " & gen(genMaxLevel)
+   FOR i as integer = 0 TO UBOUND(her.Lev0.sta)
+    WITH leftmenu[4 + i]
+     .text = statnames(i) & " " & her.Lev0.sta(i)
+     .col = uiLook(uiMenuItem)
+     IF should_hide_hero_stat(her, i) THEN .col = uiLook(uiDisabledItem)
+    END WITH
+    WITH rightmenu[4 + i]
+     .text = statnames(i) & " " & her.LevMax.sta(i)
+     .col = uiLook(uiMenuItem)
+     IF should_hide_hero_stat(her, i) THEN .col = uiLook(uiDisabledItem)
+    END WITH
+    WITH middlemenu[4 + i]
+     .text = statnames(i) & " " & atlevel(gen(genMaxLevel), her.Lev0.sta(i), her.LevMax.sta(i))
+     .col = uiLook(uiSelectedDisabled)
+    END WITH
+   NEXT i
+  END IF
+
+  '--Draw screen
+  clearpage dpage
+  'Note that exactly one of the following two standardmenus should be active, since they share 'state'
+  IF activemenu = 0 THEN
+   standardmenu leftmenu, mstate, 0, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, inactive_state, 216, 0, dpage
+  ELSE 'activemenu = 1
+   standardmenu leftmenu, inactive_state, 0, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, mstate, 216, 0, dpage
+  END IF
+  IF gen(genMaxLevel) <> 99 ANDALSO gen(genMaxLevel) > 0 THEN
+   standardmenu middlemenu, inactive_state, 108, 0, dpage
+  END IF
+
+  IF statnum >= 0 THEN  '--Draw graph
+   textcolor uilook(uiMenuItem), 0
+   printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 160, dpage
+   IF twomenus THEN
+    DIM levelmsg as string
+    levelmsg = "Levels 0-" & gen(genMaxLevel)
+    printstr levelmsg, 310 - LEN(levelmsg) * 8, 170, dpage
+   END IF
+   DIM as integer n0, nMax, numbars, barwidth
+   IF gen(genMaxLevel) < 25 THEN
+    numbars = gen(genMaxLevel) + 1
+    barwidth = 25 \ numbars
+   ELSE
+    numbars = 25
+    barwidth = 1
+   END IF
+   n0 = her.Lev0.sta(statnum)
+   nMax = her.LevMax.sta(statnum)
+   FOR i as integer = 0 TO numbars - 1
+    DIM as integer level, ordinate
+    level = INT(i * gen(genMaxLevel) / large(1, numbars - 1))  'round result to avoid error
+    ordinate = atlevel(level, n0, nMax) * (100 / max(statnum))
+    rectangle 290 + i * barwidth, 156 - ordinate, barwidth, ordinate + 1, uilook(uiMenuItem), dpage
+   NEXT i
+
+   'Experimental stuff
+   IF keyval(scLeftShift) > 1 THEN
+    debug "0=" & atlevel(0, n0, nMax) & " max(" & gen(genMaxLevel) & ")=" & atlevel(gen(genMaxLevel), n0, nMax) & " 99=" & atlevel(99, n0, nMax)
+   END IF
+   IF keyval(scF6) > 1 AND gen(genMaxLevel) > 0 THEN
+    gen(genMaxLevel) -= 1
+    debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+    mstate.need_update = YES
+   END IF
+   IF keyval(scF7) > 1 THEN
+    gen(genMaxLevel) += 1
+    debug "gen(genMaxLevel)=" & gen(genMaxLevel)
+    mstate.need_update = YES
+   END IF
+  END IF
+
+  IF statnum = statSpeed THEN
+   textcolor uilook(uiDescription), 0
+   printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
+   IF twomenus THEN
+    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, 190, dpage
+   END IF
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ v_free leftmenu
+ v_free rightmenu
+END SUB
+
+SUB hero_editor_spell_lists_toplevel (her as HeroDef)
+ DIM spell_list_types(3) as string
+ spell_list_types(0) = ""
+ spell_list_types(1) = "Level-MP (FF1 Style)"
+ spell_list_types(2) = "Random Effects"
+
+ DIM menu(4) as string
+ menu(0) = "Previous Menu"
+
+ DIM mstate as MenuState
+ WITH mstate
+  .pt = 0
+  .first = 0
+  .last = UBOUND(menu)
+  .size = 24
+ END WITH
+
+ DIM hint as string
+ 
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
+  usemenu mstate
+  DIM listnum as integer = mstate.pt - 1
+  IF mstate.pt >= 1 THEN
+   strgrabber her.list_name(listnum), 10
+  END IF
+  IF keyval(scEnter) > 1 THEN
+   IF mstate.pt = 0 THEN EXIT DO
+   IF mstate.pt >= 1 AND mstate.pt <= 4 THEN
+    IF LEN(her.list_name(listnum)) > 0 THEN
+     hero_editor_edit_spell_list her, listnum
+    END IF
+   END IF
+  END IF
+
+  FOR i as integer = 0 TO 3
+   menu(1 + i) =  "Spell list " & i & ": " & her.list_name(i)
+  NEXT i
+  clearpage dpage
+  standardmenu menu(), mstate, 0, 0, dpage
+  IF listnum >= 0 THEN
+   edgeprint spell_list_types(her.list_type(listnum)), 0, pBottom - 10, uilook(uiSelectedDisabled), dpage
+   IF LEN(her.list_name(listnum)) > 0 THEN
+    hint = "Press ENTER to edit spells in this list."
+   ELSE
+    hint = "Type a name for this spell list."
+   END IF
+   edgeprint hint, 0, pBottom, uilook(uiDisabledItem), dpage
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
+
+ DIM menu(2) as string
+ DIM spellnames(23) as string
+ DIM col as integer
+ DIM bgcol as integer
+
+ DIM root as Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Fill = YES
+ END WITH
+ DIM spellbox as Slice Ptr
+ spellbox = NewSliceOfType(slRectangle, root)
+ WITH *spellbox
+  .x = 6
+  .y = 34
+  .width = 308
+  .height = 80
+  ChangeRectangleSlice spellbox, 1
+ END WITH
+ DIM infobox as Slice Ptr
+ RefreshSliceScreenPos root
+ infobox = NewSliceOfType(slText, root)
+ ChangeTextSlice infobox, "", , , YES ' make wrapping
+ WITH *infobox
+  .Width = root->Width
+  .AlignVert = alignBottom
+  .AnchorVert = alignBottom
+ END WITH
+ 
+ DIM info as string
+
+ DIM mstate as MenuState
+ WITH mstate
+  .first = -3
+  .pt = -3
+  .top = -3
+  .last = UBOUND(spellnames)
+  .need_update = YES
+ END WITH
+ menu(0) = "Previous Menu..."
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "hero_spells"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  IF mstate.pt >= 0 THEN
+   IF usemenu(mstate, scLeft, scRight) THEN
+    mstate.need_update = YES
+   ELSE
+    IF keyval(scUp) > 1 THEN
+     mstate.pt -= 3
+     IF mstate.pt < 0 THEN mstate.pt = -1
+     mstate.need_update = YES
+    ELSEIF keyval(scDown) > 1 THEN
+     mstate.pt += 3
+     IF mstate.pt > mstate.last THEN mstate.pt = mstate.first
+     mstate.need_update = YES
+    END IF
+   END IF
+  ELSE
+   IF usemenu(mstate) THEN mstate.need_update = YES
+  END IF
+
+  IF enter_space_click(mstate) THEN
+   IF mstate.pt = -3 THEN
+    EXIT DO
+   END IF
+   IF mstate.pt >= 0 THEN
+    hero_editor_edit_spell_list_slot her.spell_lists(listnum, mstate.pt)
+    mstate.need_update = YES
+   END IF
+  END IF
+  
+  IF mstate.pt = -2 THEN
+   IF strgrabber(her.list_name(listnum), 10) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.pt = -1 THEN
+   IF intgrabber(her.list_type(listnum), 0, 2) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.pt >= 0 THEN
+   IF zintgrabber(her.spell_lists(listnum, mstate.pt).attack, -1, gen(genMaxAttack), scLeftCaret, scRightCaret) THEN mstate.need_update = YES
+  END IF
+
+  IF mstate.need_update THEN
+   menu(1) = "Spell list name: " & her.list_name(listnum)
+   menu(2) = "List Type: "
+   SELECT CASE her.list_type(listnum)
+    CASE 0: menu(2) &= "Normal"
+    CASE 1: menu(2) &= "Use Level-MP (FF1-Style)"
+    CASE 2: menu(2) &= "Random Effects"
+    CASE ELSE: menu(2) &= "???Unknown " & her.list_type(listnum)
+   END SELECT
+   FOR i as integer = 0 TO UBOUND(spellnames)
+    WITH her.spell_lists(listnum, i)
+     IF .attack > 0 THEN
+      spellnames(i) = readattackname(.attack - 1)
+     ELSE
+      spellnames(i) = ""
+     END IF
+     spellnames(i) = rpad(spellnames(i), " ",  10)
+    END WITH
+   NEXT i
+   info = ""
+   IF mstate.pt >= 0 THEN
+    WITH her.spell_lists(listnum, mstate.pt)
+     IF .attack > 0 THEN
+      info &= "Attack ID = " & (.attack - 1) & !"\n"
+      IF .learned > 0 THEN
+       info &= "Learned at level " & (.learned - 1) & !"\n"
+      ELSE
+       info &= "Learned from an item" & !"\n"
+      END IF
+     END IF
+    END WITH
+    IF her.list_type(listnum) = 1 THEN
+     info &= "1 point of level " & INT(mstate.pt / 3) + 1 & " " & readglobalstring(160, "Level MP", 20)
+    END IF
+   END IF
+   ChangeTextSlice infobox, info
+   mstate.need_update = NO
+  END IF
+
+  '--Draw screen
+  mstate.tog XOR= 1
+  clearpage dpage
+  drawslice root, dpage
+  FOR i as integer = 0 TO 2
+   col = uiLook(uiMenuItem)
+   IF mstate.pt + 3 = i THEN col = uiLook(uiSelectedItem) + mstate.tog
+   edgeprint menu(i), 0, 10 * i, col, dpage
+  NEXT i
+  FOR i as integer = 0 TO mstate.last
+   col = uiLook(uiMenuItem)
+   bgcol = 0
+   IF mstate.pt = i THEN
+    col = uiLook(uiSelectedItem) + mstate.tog
+    bgcol = uilook(uiHighlight)
+   END IF
+   textcolor col, bgcol
+   printstr spellnames(i), 12 + (i MOD 3) * 104, 40 + (i \ 3) * 8, dpage
+  NEXT i
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ 
+ DeleteSlice @root
+END SUB
+
+SUB hero_editor_edit_spell_list_slot (slot as SpellList)
+
+ DIM menu as MenuDef
+ ClearMenuData menu
+ append_menu_item menu, "Previous menu..."
+ append_menu_item menu, "Attack:"
+ append_menu_item menu, "Learned at level:"
+ append_menu_item menu, "Learned from an item:"
+ menu.textalign = alignLeft
+ 
+ DIM st as MenuState
+ init_menu_state st, menu
+ st.pt = 1
+ st.need_update = YES
+ st.active = YES
+
+ DIM cap as string = ""
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_spells_slot"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  usemenu st
+
+  SELECT CASE st.pt
+   CASE 0:
+    IF enter_space_click(st) THEN
+     EXIT DO
+    END IF
+   CASE 1:
+    IF zintgrabber(slot.attack, -1, gen(genMaxAttack)) THEN st.need_update = YES
+   CASE 2:
+    IF zintgrabber(slot.learned, -1, 99) THEN st.need_update = YES
+   CASE 3:
+    IF enter_space_click(st) ORELSE keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     IF slot.learned > 0 THEN
+      slot.learned = 0
+     ELSE
+      slot.learned = 1
+     END IF
+     st.need_update = YES
+    END IF
+  END SELECT
+  
+  IF st.need_update THEN
+   cap = ""
+   IF slot.attack > 0 THEN cap = (slot.attack - 1) & " " & readattackname(slot.attack - 1)
+   menu.items[1]->caption = "Attack: " & cap
+
+   cap = ""
+   IF slot.learned > 0 THEN cap = STR(slot.learned - 1)
+   menu.items[2]->caption = "Learned at level: " & cap
+
+   cap = "NO"
+   IF slot.learned = 0 THEN cap = "YES"
+   menu.items[3]->caption = "Learned from an item: " & cap
+   
+   st.need_update = NO
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB hero_editor_battle_menu (her as HeroDef)
+ DIM menu as MenuDef
+ DIM preview as MenuDef
+  
+ DIM st as MenuState
+ st.active = YES
+ st.autosize = YES
+ st.autosize_ignore_pixels = 12
+ st.need_update = YES
+ 
+ DIM prst as MenuState
+ 
+ DIM hero_node as NodePtr = her.reld
+ DIM edit_node as NodePtr
+
+ DIM itembuf(dimbinsize(binITM)) as integer
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_edit"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   InitLikeStandardMenu menu
+   ClearMenuData preview
+   WITH preview
+    .textalign = alignLeft
+    .alignhoriz = alignRight
+    .alignvert = alignTop
+    .anchorhoriz = alignRight
+    .anchorvert = alignTop
+    .offset.x = -6
+    .offset.y = 16
+    .bordersize = -5
+    .itemspacing = -2
+    .highlight_selection = YES
+    .min_chars = 10
+    .maxrows = 22
+   END WITH
+   append_menu_item menu, "Previous menu..."
+   ' So much duplication with the in-game code :(
+   READNODE hero_node."battle_menus" as batmen, ignoreall
+    WITHNODE batmen."menu" as bmenu
+     DIM added_to_preview as bool = YES
+     DIM k as NodePtr = bmenu."kind".ptr
+     IF k."weapon".exists THEN
+      append_menu_item menu, "Weapon"
+      menu.last->dataptr = bmenu
+      loaditemdata itembuf(), her.def_weapon
+      DIM atk_id as integer = itembuf(48) - 1
+      IF atk_id < 0 THEN atk_id = 0
+      append_menu_item preview, readattackname(atk_id)
+     ELSEIF k."items".exists THEN
+      append_menu_item menu, "Items"
+      menu.last->dataptr = bmenu
+      append_menu_item preview, readglobalstring(34, "Item", 10)
+     ELSEIF k."spells".exists THEN
+      DIM listname as string = her.list_name(k."spells".integer)
+      append_menu_item menu, "Spell List " & k."spells".integer & " " & listname
+      menu.last->dataptr = bmenu
+      IF LEN(listname) THEN
+       append_menu_item preview, listname
+      ELSE
+       added_to_preview = NO
+      END IF
+     ELSEIF k."attack".exists THEN
+      append_menu_item menu, "Attack " & k."attack".integer & " " & readattackname(k."attack".integer)
+      menu.last->dataptr = bmenu
+      append_menu_item preview, readattackname(k."attack".integer)
+     ELSE
+      debug "Unknown battle menu item " & GetInteger(bmenu)
+      append_menu_item menu, "[Invalid]"
+      menu.last->dataptr = bmenu
+      added_to_preview = NO
+     END IF
+     IF added_to_preview THEN
+      ' Set up other data
+      WITH *preview.last
+       IF LEN(bmenu."caption".string) THEN .caption = bmenu."caption".string
+       .col = bmenu."color".default(0)
+      END WITH
+      'Point to associated item in the preview
+      menu.last->extra(0) = preview.numitems - 1
+     ELSE
+      menu.last->extra(0) = -1
+     END IF
+    END WITHNODE
+   END READNODE
+   init_menu_state st, menu
+   init_menu_state prst, preview
+   st.need_update = NO
+  END IF
+  
+  menu_of_reorderable_nodes st, menu
+  usemenu st
+  IF menu.items[st.pt]->extra(0) >= 0 THEN
+   prst.pt = menu.items[st.pt]->extra(0)
+   prst.active = YES
+   init_menu_state prst, preview  'Update
+  ELSE
+   prst.active = NO
+  END IF
+  
+  IF enter_space_click(st) THEN
+   IF st.pt = 0 THEN EXIT DO
+   edit_node = menu.items[st.pt]->dataptr
+   edit_battle_menu_item her, edit_node
+   st.need_update = YES
+  END IF
+
+  IF keyval(scPlus) > 1  ORELSE keyval(scNumPadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
+   DIM ins_node as NodePtr
+   ins_node = AppendChildNode(hero_node."battle_menus".ptr, "menu")
+   DIM other_node as NodePtr
+   other_node = menu.items[st.pt]->dataptr
+   IF other_node = 0 THEN other_node = FirstChild(hero_node."battle_menus".ptr)
+   IF other_node THEN
+    'FIXME: why doesn't this work??
+    AddSiblingAfter(other_node, ins_node)
+   END IF
+   DIM k as NodePtr
+   k = SetChildNode(ins_node, "kind")
+   SetChildNode(k, "attack", 0)
+   st.need_update = YES
+  END IF
+  
+  IF keyval(scDelete) > 1 THEN
+   DIM del_node as NodePtr
+   del_node = menu.items[st.pt]->dataptr
+   IF del_node THEN
+    IF yesno("Really delete this menu item?", NO, NO) THEN
+     FreeNode del_node
+     st.need_update = YES
+    END IF
+   END IF
+  END IF
+    
+  clearpage dpage
+  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, pBottom, uilook(uiSelectedDisabled), dpage
+  draw_menu preview, prst, dpage
+  edgeprint "Preview", prst.rect.x + 10, 0, uilook(uiText), dpage
+  draw_menu menu, st, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+ 
+END SUB
+
+CONST edbatmenu_EXIT = 0
+CONST edbatmenu_KIND = 1
+CONST edbatmenu_NUM = 2 'extra 0 = lower limit, extra 1 = upper limit
+CONST edbatmenu_STR = 3
+CONST edbatmenu_TAG = 4
+CONST edbatmenu_COLOR = 5 'extra 0 = lower limit, extra 1 = upper limit  (to reduce redundancy...)
+CONST edbatmenu_UNSELECTABLE = 6 'Does nothing
+
+SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
+ IF edit_node = 0 THEN debug "edit_battle_menu_item null NodePtr": EXIT SUB
+
+ ' Initialise new defaults
+ upgrade_hero_battle_menu_item edit_node
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM menu as MenuDef
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ DIM k as NodePtr
+ DIM v as integer
+ DIM spell_list_name as string
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_item"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   ClearMenuData menu
+   WITH menu
+    .boxstyle = 1
+    .textalign = alignLeft
+    .min_chars = 36
+   END WITH
+   append_menu_item menu, "Previous menu...", edbatmenu_EXIT
+
+   ' Kind-specific options
+   k = edit_node."kind".ptr
+   IF k."weapon".exists THEN
+    append_menu_item menu, "Kind: Weapon's Attack", edbatmenu_KIND
+   ELSEIF k."attack".exists THEN
+    append_menu_item menu, "Kind: Specific Attack", edbatmenu_KIND
+    v = k."attack".integer
+    append_menu_item menu, "Attack: " & v & " " & readattackname(v), edbatmenu_NUM
+    menu.last->dataptr = k."attack".ptr
+    menu.last->extra(0) = 0
+    menu.last->extra(1) = gen(genMaxAttack)
+   ELSEIF k."spells".exists THEN
+    append_menu_item menu, "Kind: Spell List", edbatmenu_KIND
+    v = k."spells".integer
+    spell_list_name = safe_caption(hero.list_name(), v, "list")
+    append_menu_item menu, "List Number: " & v & " " & spell_list_name, edbatmenu_NUM
+    menu.last->dataptr = k."spells".ptr
+    menu.last->extra(0) = 0
+    menu.last->extra(1) = 3
+   ELSEIF k."items".exists THEN
+    append_menu_item menu, "Kind: Items Menu", edbatmenu_KIND
+   ELSE
+    debug "Unknown battle menu kind"
+    append_menu_item menu, "Kind: ???", edbatmenu_KIND
+   END IF
+
+   ' General options
+   append_menu_item menu, "Caption: " & blank_default(edit_node."caption".string), edbatmenu_STR
+   menu.last->dataptr = edit_node."caption".ptr
+   append_menu_item menu, "Color: " & zero_default(edit_node."color"), edbatmenu_COLOR
+   menu.last->dataptr = edit_node."color".ptr
+   append_menu_item menu, tag_condition_caption(edit_node."enable_tag1", "Enabled if tag", "Always"), edbatmenu_TAG
+   menu.last->dataptr = edit_node."enable_tag1".ptr
+   append_menu_item menu, tag_condition_caption(edit_node."enable_tag2", "  and also tag", "Always"), edbatmenu_TAG
+   menu.last->dataptr = edit_node."enable_tag2".ptr
+   append_menu_item menu, "When disabled: " & IIF(edit_node."hide_disabled", "Hidden", "Unselectable"), edbatmenu_NUM
+   menu.last->dataptr = edit_node."hide_disabled".ptr
+   menu.last->extra(0) = 0
+   menu.last->extra(1) = 1
+
+   ' Other messages
+   IF k."spells".exists THEN
+    ' Provide warnings that hide_disabled doesn't override this...
+    IF LEN(spell_list_name) = 0 THEN
+     append_menu_item menu, "(Always hidden: unnamed spell list!)", edbatmenu_UNSELECTABLE
+     menu.last->disabled = YES
+    ELSEIF readbit(hero.bits(), 0, 26) THEN  '"Do not show spell lists if empty"
+     append_menu_item menu, "(Hidden if spell list empty)", edbatmenu_UNSELECTABLE
+     menu.last->disabled = YES
+    END IF
+   'This is how it actually works, but I don't want to document this dubious behaviour
+   ' ELSEIF k."attack".exists THEN
+   '  DIM atk as AttackData
+   '  loadattackdata atk, k."attack"
+   '  IF atk.check_costs_as_weapon THEN
+   '   append_menu_item menu, "(Disabled if atk costs not met)", edbatmenu_UNSELECTABLE
+   '   menu.last->disabled = YES    
+   '  END IF
+   ELSEIF k."weapon".exists OR k."attack".exists THEN
+    append_menu_item menu, "(May be disabled if costs not met)", edbatmenu_UNSELECTABLE
+    menu.last->disabled = YES    
+   END IF
+
+   init_menu_state st, menu
+   st.need_update = NO
+  END IF
+  
+  usemenu st
+  
+  WITH *menu.items[st.pt]
+   IF enter_space_click(st) THEN
+    SELECT CASE .t
+     CASE edbatmenu_EXIT: EXIT DO
+     CASE edbatmenu_KIND:
+      browse_battle_menu_kinds edit_node
+      st.need_update = YES
+     CASE edbatmenu_COLOR:
+      SetContent(.dataptr, color_browser_256(GetInteger(.dataptr)))
+      st.need_update = YES
+     'edbatmenu_TAG action is handled by tag_grabber
+    END SELECT
+   END IF
+
+   IF .dataptr THEN v = GetInteger(.dataptr)  'Doesn't matter if it's not an int
+   SELECT CASE .t
+    CASE edbatmenu_NUM
+     st.need_update OR= intgrabber(v, .extra(0), .extra(1))
+     SetContent(.dataptr, v)
+    CASE edbatmenu_COLOR
+     st.need_update OR= intgrabber(v, 0, 255)
+     SetContent(.dataptr, v)
+    CASE edbatmenu_TAG
+     st.need_update OR= tag_grabber(v)
+     SetContent(.dataptr, v)
+    CASE edbatmenu_STR
+     DIM strval as string
+     IF .dataptr THEN strval = GetString(.dataptr)
+     st.need_update OR= strgrabber(strval, 24)
+     SetContent(.dataptr, strval)
+   END SELECT
+  END WITH
+  
+  copypage holdscreen, vpage
+  fuzzyrect 0, 0, , , uilook(uiBackground), vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
+ IF menu_node = 0 THEN debug "browse_battle_menu_kinds null NodePtr": EXIT SUB
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM menu as MenuDef
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "browse_battle_menu_kinds"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  IF st.need_update THEN
+   ClearMenuData menu
+   append_menu_item menu, "Previous Menu...", 0
+   append_menu_item menu, "Weapon's Attack", 1
+   append_menu_item menu, "Specific Attack", 2
+   append_menu_item menu, "Spell List", 3
+   append_menu_item menu, "Items Menu", 4
+   init_menu_state st, menu
+   st.need_update = NO
+  END IF
+
+  usemenu st
+  
+  IF enter_space_click(st) THEN
+   WITH *menu.items[st.pt]
+    SELECT CASE .t
+     CASE 1: change_battle_menu_kind menu_node, "weapon"
+     CASE 2: change_battle_menu_kind menu_node, "attack", YES
+     CASE 3: change_battle_menu_kind menu_node, "spells", YES
+     CASE 4: change_battle_menu_kind menu_node, "items"
+    END SELECT
+   END WITH
+   EXIT DO
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
+ IF menu_node = 0 THEN debug "change_battle_menu_kind null NodePtr": EXIT SUB
+ SELECT CASE new_kind
+  CASE "weapon":
+  CASE "attack":
+  CASE "spells":
+  CASE "items":
+  CASE ELSE:
+   debug "change_battle_menu_kind attempted to set invalid kind: """ & new_kind & """"
+   EXIT SUB
+ END SELECT
+ DIM k as NodePtr
+ k = menu_node."kind".ptr
+ IF k."weapon".exists THEN FreeNode k."weapon".ptr
+ IF k."attack".exists THEN FreeNode k."attack".ptr
+ IF k."spells".exists THEN FreeNode k."spells".ptr
+ IF k."items".exists THEN FreeNode k."items".ptr
+ DIM n as NodePtr
+ n = SetChildNode(k, new_kind)
+ IF init_integer THEN
+  SetContent n, 0
+ END IF
+END SUB
+
+SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string)
+ WITH hero
+  menu(0) = "Previous Menu: "
+  menu(1) = "have hero: " + tag_condition_caption(.have_tag, "set tag", "NONE", "Not usable")
+  menu(2) = "is alive: " + tag_condition_caption(.alive_tag, "set tag", "NONE", "Not usable")
+  menu(3) = "is leader: " + tag_condition_caption(.leader_tag, "set tag", "NONE", "Not usable")
+  menu(4) = "is in party now: " + tag_condition_caption(.active_tag, "set tag", "NONE", "Not usable")
+ END WITH
+END SUB
+
+SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
+ DIM menu(5) as string
+ DIM st as MenuState
+ st.need_update = YES
+ st.last = 4
+ st.size = 24
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_tags"
+  usemenu st
+  WITH hero
+   SELECT CASE st.pt
+    CASE 0
+     IF enter_space_click(st) THEN EXIT DO
+    CASE 1
+     tag_grabber .have_tag, 0
+    CASE 2
+     tag_grabber .alive_tag, 0
+    CASE 3
+     tag_grabber .leader_tag, 0
+    CASE 4
+     tag_grabber .active_tag, 0
+   END SELECT
+
+   'Update cached hero tags
+   herotags(hero_id).have_tag = .have_tag
+   herotags(hero_id).alive_tag = .alive_tag
+   herotags(hero_id).leader_tag = .leader_tag
+   herotags(hero_id).active_tag = .active_tag
+  END WITH
+
+  clearpage dpage
+  update_hero_tags_menu hero, menu()
+  standardmenu menu(), st, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+'This is not complete; it exists just to prevent crashes due to data
+'corruption (eg. bug 871)
+SUB enforce_hero_data_limits(her as HeroDef)
+ clamp_value her.sprite, 0, gen(genMaxHeroPic), "hero sprite"
+ clamp_value her.sprite_pal, -1, gen(genMaxPal), "hero sprite pal"
+ clamp_value her.walk_sprite, 0, gen(genMaxNPCPic), "hero walkabout sprite"
+ clamp_value her.walk_sprite_pal, -1, gen(genMaxPal), "hero walkabout sprite pal"
+ clamp_value her.portrait, -1, gen(genMaxPortrait), "hero portrait"
+ clamp_value her.portrait_pal, -1, gen(genMaxPal), "hero portrait pal"
+ FOR i as integer = 0 TO 3
+  clamp_value her.list_type(i), 0, 2, "hero spell list " & i & " type"
+ NEXT i
+END SUB
+
+SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her as HeroDef)
+ menu(1) = "Battle Picture: " & her.sprite
+ menu(2) = "Battle Palette: " & defaultint(her.sprite_pal)
+ menu(3) = "Walkabout Picture: " & her.walk_sprite
+ menu(4) = "Walkabout Palette: " & defaultint(her.walk_sprite_pal)
+ menu(5) = "Base Level: " & her.def_level
+ IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
+ menu(6) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
+ menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
+ menu(8) = "Hand position A..."
+ menu(9) = "Hand position B..."
+ menu(10) = "Portrait Picture: " & defaultint(her.portrait, "None")
+ menu(11) = "Portrait Palette: " & defaultint(her.portrait_pal)
+ update_hero_preview_pics st, her
+ st.changed = NO
+END SUB
+
+SUB update_hero_preview_pics(byref st as HeroEditState, her as HeroDef)
+ clear_hero_preview_pics st
+ WITH st
+  .battle.sprite    = frame_load(sprTypeHero, her.sprite)
+  .battle.pal       = palette16_load(her.sprite_pal, sprTypeHero, her.sprite)
+  .walkabout.sprite = frame_load(sprTypeWalkabout, her.walk_sprite)
+  .walkabout.pal    = palette16_load(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite)
+  IF her.portrait >= 0 THEN
+   .portrait.sprite = frame_load(sprTypePortrait, her.portrait)
+   .portrait.pal    = palette16_load(her.portrait_pal, sprTypePortrait, her.portrait)
+  END IF
+ END WITH
+END SUB
+
+SUB clear_hero_preview_pics(byref st as HeroEditState)
+ WITH st
+  IF .battle.sprite    THEN frame_unload    @.battle.sprite
+  IF .battle.pal       THEN palette16_unload @.battle.pal
+  IF .walkabout.sprite THEN frame_unload    @.walkabout.sprite
+  IF .walkabout.pal    THEN palette16_unload @.walkabout.pal
+  IF .portrait.sprite  THEN frame_unload    @.portrait.sprite
+  IF .portrait.pal     THEN palette16_unload @.portrait.pal
+ END WITH
+END SUB
+
+SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
+ STATIC tog as integer
+ tog = loopvar(tog, 0, 3)
+ 
+ DIM frame as integer
+ IF st.previewframe <> -1 THEN
+  frame = st.previewframe + 2
+ ELSE
+  frame = tog \ 2
+ END IF
+ frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
+ frame = st.preview_walk_direction * 2 + tog \ 2
+ frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , , dpage
+ DIM hand as XYPair
+ DIM col as integer = uilook(uiSelectedItem + tog \ 2)
+ IF st.previewframe <> -1 THEN
+  hand.x = her.hand_pos(st.previewframe).x
+  hand.y = her.hand_pos(st.previewframe).y
+  drawline 248 + hand.x,25 + hand.y,249 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x,23 + hand.y,250 + hand.x, 24 + hand.y, col, dpage
+  drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y, col, dpage
+  drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y, col, dpage
+ END IF
+ IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110, , , dpage
+END SUB
+
+SUB animate_hero_preview(byref st as HeroEditState)
+ WITH st
+  .preview_steps += 1
+  IF .preview_steps >= 15 THEN
+   .preview_steps = 0
+   .preview_walk_direction = loopvar(.preview_walk_direction, 0, 3, 1)
+  END IF
+  IF .preview_walk_direction = 0 THEN .preview_walk_pos.y -= 4
+  IF .preview_walk_direction = 1 THEN .preview_walk_pos.x += 4
+  IF .preview_walk_direction = 2 THEN .preview_walk_pos.y += 4
+  IF .preview_walk_direction = 3 THEN .preview_walk_pos.x -= 4
+ END WITH
+END SUB
+
+SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
+ 
+ DIM menu(11) as string
+ DIM min(11) as integer
+ DIM max(11) as integer
+ menu(0) = "Previous Menu"
+ min(1) = 0: max(1) = gen(genMaxHeroPic)
+ min(2) = -1: max(2) = 32767
+ min(3) = 0: max(3) = gen(genMaxNPCPic)
+ min(4) = -1: max(4) = 32767
+ min(5) = -1: max(5) = 99
+ min(6) = 0: max(6) = gen(genMaxItem)
+ min(7) = 0: max(7) = 16
+ min(8) = -100:max(8) = 100
+ min(9) = -100:max(9) = 100
+ min(10) = -1:max(10) = gen(genMaxPortrait)
+ min(11) = -1:max(11) = 32767
+
+ DIM state as MenuState
+ WITH state
+  .pt = 0
+  .last = UBOUND(menu)
+  .size = 24
+ END WITH
+
+ update_hero_appearance_menu st, menu(), her
+ st.changed = NO
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  animate_hero_preview st
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_appearance"
+  usemenu state
+  st.previewframe = -1
+  IF state.pt = 8 THEN st.previewframe = 0
+  IF state.pt = 9 THEN st.previewframe = 1
+  IF enter_space_click(state) AND state.pt = 0 THEN EXIT DO
+  IF state.pt > 0 THEN
+   SELECT CASE state.pt
+    CASE 1
+     IF intgrabber(her.sprite, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 2
+     IF intgrabber(her.sprite_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 3
+     IF intgrabber(her.walk_sprite, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 4
+     IF intgrabber(her.walk_sprite_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 5
+     IF intgrabber(her.def_level, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 6
+     IF intgrabber(her.def_weapon, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 7
+     IF intgrabber(her.max_name_len, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 10
+     IF intgrabber(her.portrait, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 11
+     IF intgrabber(her.portrait_pal, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+   END SELECT
+   IF enter_space_click(state) THEN
+    SELECT CASE state.pt
+     CASE 2
+      her.sprite_pal = pal16browse(her.sprite_pal, sprTypeHero, her.sprite)
+     CASE 4
+      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite)
+     CASE 8
+      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+     CASE 9
+      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+     CASE 11
+      her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait)
+    END SELECT
+    st.changed = YES
+   END IF
+  END IF
+
+  IF st.changed THEN update_hero_appearance_menu st, menu(), her
+
+  clearpage dpage
+  standardmenu menu(), state, 8, 0, dpage
+  draw_hero_preview st, her
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+ st.previewframe = -1
+END SUB
+
+SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
+ DIM menu(5) as string
+ DIM state as MenuState
+ WITH state
+  .last = 5
+  .size = 22
+ END WITH
+ menu(0) = "Previous menu"
+ menu(1) = her.name & "'s " & readglobalstring(38, "Weapon", 10) & " items"
+ FOR i as integer = 0 TO 3
+  menu(2+i) = her.name & "'s " & readglobalstring(25+i, "Armor " & (1+i), 10) & " items"
+ NEXT i
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_equipment"
+  usemenu state
+  IF enter_space_click(state) THEN
+   IF state.pt = 0 THEN
+    EXIT DO
+   ELSE
+    hero_editor_equipbits hero_id, state.pt
+   END IF
+  END IF
+  clearpage dpage
+  standardmenu menu(), state, 0, 0, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
+ '--equip_type is 0 for none (which would be silly) 1 for weapons and 2-5 for armor
+ DIM tempbits(gen(genMaxItem) \ 16 + 1) as integer 
+ DIM itemname(gen(genMaxItem)) as string
+ DIM item_id(gen(genMaxItem)) as integer
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM nextbit as integer = 0
+ FOR i as integer = 0 TO gen(genMaxItem)
+  loaditemdata itembuf(), i
+  IF itembuf(49) = equip_type THEN
+   itemname(nextbit) = readitemname(i)
+   item_id(nextbit) = i
+   setbit tempbits(), 0, nextbit, readbit(itembuf(), 66, hero_id)
+   nextbit += 1
+  END IF
+ NEXT i
+ editbitset tempbits(), 0, nextbit-1, itemname()
+ FOR i as integer = 0 TO nextbit-1
+  loaditemdata itembuf(), item_id(i)
+  setbit itembuf(), 66, hero_id, readbit(tempbits(), 0, i)
+  saveitemdata itembuf(), item_id(i)
+ NEXT i
+END SUB
+
+SUB hero_editor_elementals(byref her as HeroDef)
+ common_elementals_editor her.elementals(), "hero_elementals"
+END SUB
