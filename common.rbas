@@ -408,7 +408,7 @@ END FUNCTION
 'Optionally, if you pass a string, wraps it with start/reset color tags.
 FUNCTION fgtag(col as integer, text as string = "") as string
  IF LEN(text) THEN
-  RETURN "${K" & col & "}" & text & "$K{-1}"
+  RETURN "${K" & col & "}" & text & "${K-1}"
  ELSE
   RETURN "${K" & col & "}"
  END IF

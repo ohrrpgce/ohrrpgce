@@ -72,6 +72,8 @@ WHAT IS NEW?
     * Preview of the surrounding tiles, or tiling of the current tile
       while drawing a maptile (click on the preview to toggle or hit P)
       [Matthias]
+    * You can now also remap the background color from the Import/Export
+      Backdrop/Tileset menu; also added 'View with background' [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
@@ -103,7 +105,7 @@ WHAT IS NEW?
   * Bugfixes
     * 64-bit builds of Custom work now... for real this time! They
       would crash in several menus. 64 bit Linux builds now available.
-      [James, Ralph, Wendigo]
+      [James, Ralph, Matthias]
     * In old games, attacks with enemy type-killer bits wrongly counted
       as elemental for the purpose of spawning. This fix is only
       applied if the game has not been edited since Ypsiliform. [James]

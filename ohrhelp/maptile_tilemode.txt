@@ -6,4 +6,4 @@ Choose "Set Default Passability" if you want to define default walls for each ti
 
 Choose "Define Tile Animation" to create patterns for animated tiles.
 
-"Background color" specifies how color 0 is drawn, and affects the tileset editor only. For tilesets used map layers other than layer 0, color 0 is transparent.
+"View with background" specifies how color 0 is drawn, and affects the tileset editor only (it does nothing in-game!) When a tileset is used for map layer 1 and higher, color 0 is transparent, but on layer 0 it isn't!

@@ -32,6 +32,7 @@ DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, by
 
 DECLARE FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
+DECLARE SUB importbmp_change_background_color(img as Frame ptr)
 DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 
 ' Tileset editor
@@ -165,10 +166,14 @@ PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as in
  setpal pmask()
 END SUB
 
+' This is the OLD "Import/Export {Screens,Full Maptile Sets}" menu.
+' backdrop_browser() is the new (unfinished) one
 SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
  STATIC defaultdir as string  'Import & export
+ STATIC bgcolor as bgType = 0 'Default to not transparent (color 0)
+ DIM chequer_scroll as integer = 0
  DIM pmask(255) as RGBcolor
- DIM menu(6) as string
+ DIM menu(8) as string
  DIM mstate as MenuState
  mstate.size = 24
  mstate.last = UBOUND(menu)
@@ -180,7 +185,9 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
  menu(3) = "Append a new " + cap
  menu(4) = "Disable palette colors for import"
  menu(5) = "Export " + cap + " as BMP"
- menu(6) = "Full screen view"
+ menu(6) = "View with background: " & bgcolor_caption(bgcolor)
+ menu(7) = "Remap transparent color"
+ menu(8) = "Full screen view"
  DIM srcbmp as string
  DIM pt as integer = 0 'backdrop number
 
@@ -194,7 +201,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
 
  setkeys
  DO
-  setwait 55
+  setwait 55, 110
   setkeys
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    DIM crop_this as integer = count - 1
@@ -204,9 +211,14 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "importbmp"
   usemenu mstate
-  IF intgrabber(pt, 0, count - 1) THEN
-   menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-   loadmxs game + f, pt, vpages(2)
+  IF mstate.pt = 6 THEN
+   intgrabber(bgcolor, bgFIRST, 255)
+   menu(6) = "View with background: " & bgcolor_caption(bgcolor)
+  ELSE
+   IF intgrabber(pt, 0, count - 1) THEN
+    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
+    loadmxs game + f, pt, vpages(2)
+   END IF
   END IF
   IF enter_space_click(mstate) THEN
    IF mstate.pt = 0 THEN EXIT DO
@@ -238,14 +250,23 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
     outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
    END IF
-  END IF
-  copypage 2, dpage
-  IF mstate.pt <> 6 THEN
+   IF mstate.pt = 6 THEN
+    bgcolor = color_browser_256(large(bgcolor, 0))
+    menu(6) = "View with background: " & bgcolor_caption(bgcolor)
+   END IF
+   IF mstate.pt = 7 THEN
+    importbmp_change_background_color vpages(2)
+    storemxs game + f, pt, vpages(2)
+   END IF
+  END IF  '--end enter_space_click()
+  clearpage dpage
+  frame_draw_with_background vpages(2), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+  IF mstate.pt <> 8 THEN
    standardmenu menu(), mstate, 0, 0, dpage, menuopts
   END IF
   SWAP vpage, dpage
   setvispage vpage
-  dowait
+  IF dowait THEN chequer_scroll += 1
  LOOP
  unlock_page_size 2
  clearpage 2
@@ -260,10 +281,10 @@ SUB backdrop_browser ()
  DIM srcbmp as string
  DIM backdrop_id as integer = 0
 
- DIM bgcolor as bgType = bgChequer
+ DIM bgcolor as bgType = 0 'bgChequer
  DIM chequer_scroll as integer
 
- DIM menu(8) as string
+ DIM menu(9) as string
 
  DIM mstate as MenuState
  mstate.last = UBOUND(menu)
@@ -338,7 +359,11 @@ SUB backdrop_browser ()
                             trimextension(trimpath(sourcerpg)) & " backdrop" & backdrop_id)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", backdrop, master()
    END IF
-  END IF
+   IF mstate.pt = 7 THEN
+    importbmp_change_background_color backdrop
+    'TODO: write backdrop
+   END IF
+  END IF  '--end enter_space_click()
   IF mstate.pt = 6 THEN mstate.need_update OR= intgrabber(bgcolor, bgFIRST, 255)
 
   IF mstate.need_update THEN
@@ -349,9 +374,10 @@ SUB backdrop_browser ()
    menu(3) = "Append a new backdrop"
    menu(4) = "Disable palette colors for import"
    menu(5) = "Export backdrop as BMP"
-   menu(6) = "Background: " & bgcolor_caption(bgcolor)
-   menu(7) = "Size: " & backdrop->w & " x " & backdrop->h
+   menu(6) = "View with background: " & bgcolor_caption(bgcolor)
+   menu(7) = "Remap transparent color"
    menu(8) = "Hide menu"
+   menu(9) = "Size: " & backdrop->w & " x " & backdrop->h
   END IF
 
   clearpage vpage
@@ -459,10 +485,30 @@ END SUB
 SUB importbmp_change_background_color(img as Frame ptr)
  DIM pickpos as XYPair
  DIM ret as bool
- DIM message as string = !"Pick the background (transparent) color\nor press ESC to skip remapping"
+ DIM message as string = !"Pick the background (transparent) color\nor press ESC to leave color 0 as it is"
  ret = pick_image_pixel(img, , pickpos, , , , message, "importbmp_pickbackground")
+
  IF ret THEN
   DIM bgcol as integer = readpixel(img, pickpos.x, pickpos.y)
+  IF bgcol = 0 THEN EXIT SUB  'Boring!
+
+  IF countcolor(img, 0) > 0 THEN
+   DIM nearest as integer = nearcolor(master(), 0, 1)
+   DIM choice as integer
+   choice = twochoice("What should I do with the existing color 0 (transparent) pixels? (This is probably irreversible! ESC to cancel)", _
+                      "Leave them alone", "Remap to nearest match (color " & fgtag(nearest, STR(nearest)) & ")")
+   IF choice = -1 THEN EXIT SUB
+   IF choice = 1 THEN
+    ' If we want to map 0 to nearest and nearest to 0, need to do an atomic swap
+    IF nearest = bgcol THEN
+     replacecolor img, bgcol, 0, YES  'swapcols=YES
+     EXIT SUB
+    ELSE
+     replacecolor img, 0, nearest
+    END IF
+   END IF
+  END IF
+
   replacecolor img, bgcol, 0
  END IF
 END SUB
@@ -477,6 +523,7 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
  DIM img as Frame ptr
  DIM temppal(255) as RGBcolor
  DIM palmapping(255) as integer
+ DIM remap_background as bool = YES
 
  bmpinfo(srcbmp, bmpd)
  IF bmpd.biBitCount <= 8 THEN
@@ -488,7 +535,8 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
    menu(0) = "Remap to current Master Palette"
    menu(1) = "Import with new Master Palette"
    menu(2) = "Do not remap colours"
-   paloption = multichoice("This BMP's palette is not identical to your master palette", _
+   paloption = multichoice("This BMP's palette is not identical to your master palette." _
+                           !"\nHint: you should probably remap to the master palette (see F1 help).", _
                            menu(), , , "importbmp_palette")
    IF paloption = -1 THEN RETURN NULL
    IF paloption = 1 THEN
@@ -497,6 +545,10 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
     setpal master()
     LoadUIColors uilook(), boxlook(), activepalette
    END IF
+   IF paloption = 2 THEN remap_background = NO
+  ELSE
+   ' Palettes are identical (but note pmask() is still respected)
+   remap_background = NO
   END IF
   img = frame_import_bmp_raw(srcbmp)
   IF paloption = 0 THEN
@@ -521,8 +573,11 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
   img = frame_import_bmp24_or_32(srcbmp, pmask(), TYPE(1, -1))
+ END IF
+ IF remap_background THEN
   importbmp_change_background_color img
  END IF
+ ' Throw away pmask() (why?)
  loadpalette pmask(), activepalette
  RETURN img
 END FUNCTION
@@ -686,7 +741,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
   clearpage dpage
   frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
-  menu(5) = "Background: " & bgcolor_caption(bgcolor)
+  menu(5) = "View with background: " & bgcolor_caption(bgcolor)
   standardmenu menu(), state, 10, 8, dpage, menuopt
   SWAP vpage, dpage
   setvispage vpage

@@ -1,5 +1,42 @@
-When you import an 1-, 4-, or 8-bit BMP file with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette.
-
-You usually don't want to import a new master palette, since you can't have different things on screen at once using different master palettes. Importing a new master palette will immediately change the active master palette to the new one; go to `General Game Data->Master Palettes'  to change it back.
+When you import an 1-, 4-, or 8-bit BMP file with a palette different from the master palette, then you need to decide how to handle the palette.
 
 Press ESC to cancel.
+
+The options are:
+
+- Remap to current Master Palette
+  (This is nearly always the option
+  you want.)
+  Each color is mapped to the nearest
+  match in the master palette,
+  ignoring colors that have been
+  disabled with the "Disabled palette
+  colors for import" menu.
+
+- Import with new Master Palette
+  Creates a new master palette. You
+  usually don't want this, since you
+  can't have different things on
+  screen at once using different
+  master palettes! And the only way
+  to use multiple master palettes in
+  your game is to use the "load
+  palette" script command. Importing
+  a new master palette will
+  immediately change the active
+  master palette to the new one; go
+  to `General Game Data->Master
+  Palettes' to change it back.
+  (See the help screen for info
+  about master palettes.)
+
+- Do not remap colours
+  The palette is ignored, instead the
+  color indices (numbers) in the
+  image are treated as color indices
+  in your master palette.  For
+  example, use this option if you
+  changed color 0 from black to
+  pink. Then you don't want 0 to get
+  remapped to a pink in the master
+  palette.
