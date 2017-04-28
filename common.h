@@ -58,6 +58,10 @@ typedef int boolint;
 #ifdef _MSC_VER
 # define restrict __restrict
 #endif
+#ifdef __cplusplus
+  // restrict is not a keyword, but GCC accepts __restrict and __restrict__
+# define restrict __restrict
+#endif
 
 // warn_unused_result: like [[nodiscard]] in C++11
 #if __has_attribute(warn_unused_result)

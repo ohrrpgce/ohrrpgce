@@ -41,6 +41,11 @@ typedef struct
 		uint32_t* pColorData;
 		uint8_t* pPaletteData;
 	};
+
+#ifdef __cplusplus
+	uint8_t& pixel8(int x, int y) { return pPaletteData[width * y + x]; }
+	uint32_t& pixel32(int x, int y) { return pColorData[width * y + x]; }
+#endif
 } Surface;
 
 typedef struct

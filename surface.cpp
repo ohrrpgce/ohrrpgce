@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <list>
+#include <algorithm>
 
 #include "surface.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
 #include "common.h"
+
+#define bound(x, low, high)  std::max(std::min(x, high), low)
 
 QuadRasterizer g_rasterizer;
 std::list< Surface* > g_surfaces;
@@ -124,105 +127,127 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalet
 	return -1;
 }
 
+// (Not used.) Modify rect inplace
+void clampRectToSurface( SurfaceRect* pRect, Surface* pSurf ) {
+	pRect->top = bound(pRect->top, 0, (int)pSurf->height - 1);
+	pRect->left = bound(pRect->left, 0, (int)pSurf->width - 1);
+	pRect->bottom = bound(pRect->bottom, pRect->top, (int)pSurf->height - 1);
+	pRect->right = bound(pRect->right, pRect->left, (int)pSurf->width - 1);
+}
+
+// The src and dest rectangles may be different sizes; the image is not
+// stretched over the rectangle.  Instead the top-left corner of the source rect
+// is drawn at the top-left corner of the dest rect.  The rectangles may be over
+// the edge of the respective Surfaces; they are clamped. Negative width or
+// height means the draw is a noop.
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
-{//done
-	if( !pSurfaceSrc || !pSurfaceDest )
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest ) {
+	if (!pSurfaceSrc || !pSurfaceDest) {
+		debug(errPromptBug, "surfaceCopy_SW: NULL ptr %p %p", pSurfaceSrc, pSurfaceDest);
 		return -1;
-	if( pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit )
-		return -1; //cannot copy 32bit images to palette-types
-
-	int32_t srcWidth = 0, srcHeight = 0, srcX = 0, srcY = 0;
-	int32_t destWidth = 0, destHeight = 0, destX = 0, destY = 0;
-	
-	if( !pRectSrc )
-	{//copy entire surface
-		srcWidth = pSurfaceSrc->width-1;
-		srcHeight = pSurfaceSrc->height-1;
 	}
-	else
-	{//copy region
-		srcWidth = pRectSrc->right - pRectSrc->left;
-		srcHeight = pRectSrc->bottom - pRectSrc->top;
-		srcX = pRectSrc->left;
-		srcY = pRectSrc->top;
+	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {
+		debug(errPromptBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
+		return -1;
 	}
 
-	if( !pRectDest )
-	{//copy to entire surface
-		destWidth = pSurfaceDest->width-1;
-		destHeight = pSurfaceDest->height-1;
-	}
-	else
-	{//copy to region
-		destWidth = pRectDest->right - pRectDest->left;
-		destHeight = pRectDest->bottom - pRectDest->top;
-		destX = pRectDest->left;
-		destY = pRectDest->top;
-	}
-	
-	int8_t value = 0; //used for 8bit to 8bit, or 8bit to 32bit when using a colorkey
+	SurfaceRect rectDest, rectSrc;
+	if (!pRectDest)
+		pRectDest = &(rectDest = {0, 0, (int)pSurfaceDest->width - 1, (int)pSurfaceDest->height - 1});
+	if (!pRectSrc)
+		pRectSrc = &(rectSrc = {0, 0, (int)pSurfaceSrc->width - 1, (int)pSurfaceSrc->height - 1});
 
-	if( pSurfaceSrc->format == SF_32bit ) //both are 32bit (since already validated destination target)
-	{
-		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-		{
-			for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
-			{
-				pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pSurfaceSrc->pColorData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-			}
+	// Determine the top-left pixel on the src and dest surfaces which is copied.
+	int srcX = pRectSrc->left, srcY = pRectSrc->top;
+	int destX = pRectDest->left, destY = pRectDest->top;
+	if (destX < 0) {
+		srcX -= destX;
+		destX = 0;
+	}
+	if (destY < 0) {
+		srcY -= destY;
+		destY = 0;
+	}
+	if (srcX < 0) {
+		destX -= srcX;
+		srcX = 0;
+	}
+	if (srcY < 0) {
+		destY -= srcY;
+		srcY = 0;
+	}
+
+	// Clamp right/bottom to surface edges and find src/dest rect size (may be negative)
+	int srcWidth   = std::min(pRectSrc->right,   (int)pSurfaceSrc->width - 1)   - srcX  + 1;
+	int srcHeight  = std::min(pRectSrc->bottom,  (int)pSurfaceSrc->height - 1)  - srcY  + 1;
+	int destWidth  = std::min(pRectDest->right,  (int)pSurfaceDest->width - 1)  - destX + 1;
+	int destHeight = std::min(pRectDest->bottom, (int)pSurfaceDest->height - 1) - destY + 1;
+
+	int itX_max = std::min(srcWidth, destWidth);
+	int itY_max = std::min(srcHeight, destHeight);
+	if (itX_max <= 0 || itY_max <= 0)
+		return 0;
+
+	// Number of pixels skipped from the end of one row to start of next
+	int srcLineEnd = pSurfaceSrc->width - itX_max;
+	int destLineEnd = pSurfaceDest->width - itX_max;
+
+	// Two of these are invalid
+	uint8_t *restrict srcp8 = &pSurfaceSrc->pixel8(srcX, srcY);
+	uint8_t *restrict destp8 = &pSurfaceDest->pixel8(destX, destY);
+	uint32_t *restrict srcp32 = &pSurfaceSrc->pixel32(srcX, srcY);
+	uint32_t *restrict destp32 = &pSurfaceDest->pixel32(destX, destY);
+
+	if (pSurfaceSrc->format == SF_32bit) { //both are 32bit (since already validated destination target)
+		for (int itY = 0; itY < itY_max; itY++) {
+			memcpy(destp32, srcp32, 4 * itX_max);
+			srcp32 += pSurfaceSrc->width;
+			destp32 += pSurfaceDest->width;
 		}
-	}
-	else if( pSurfaceDest->format == SF_8bit ) //both are 8bit
-	{
-		if( bUseColorKey0 )
-		{
-			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-			{
-				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
-				{
-					value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-					if( value )
-						pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = value;
+	} else if (pSurfaceDest->format == SF_8bit) { //both are 8bit
+		if (bUseColorKey0) {
+			for (int itY = 0; itY < itY_max; itY++) {
+				for (int itX = 0; itX < itX_max; itX++) {
+					if (*srcp8)
+						*destp8 = *srcp8;
+					srcp8++;
+					destp8++;
 				}
+				srcp8 += srcLineEnd;
+				destp8 += destLineEnd;
+			}
+		} else {
+			for (int itY = 0; itY < itY_max; itY++) {
+				memcpy(destp8, srcp8, 1 * itX_max);
+				srcp8  += pSurfaceSrc->width;
+				destp8+= pSurfaceDest->width;
 			}
 		}
-		else
-		{
-			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-			{
-				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
-				{
-					pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-				}
-			}
-		}
-	}
-	else //source is 8bit, dest is 32bit
-	{
-		if( !pPalette )
+	} else { //source is 8bit, dest is 32bit
+		if (!pPalette) {
+			debug(errPromptBug, "surfaceCopy_SW: NULL palette");
 			return -1;
-
-		if( bUseColorKey0 )
-		{
-			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-			{
-				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
-				{
-					value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-					if( value )
-						pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->col[value].col;
-				}
-			}
 		}
-		else
-		{
-			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-			{
-				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+
+		if (bUseColorKey0) {
+			for (int itY = 0; itY < itY_max; itY++) {
+				for (int itX = 0; itX < itX_max; itX++)
 				{
-					pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->col[ pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)] ].col;
+					if (*srcp8)
+						*destp32 = pPalette->col[*srcp8].col;
+					srcp8++;
+					destp32++;
 				}
+				srcp8 += srcLineEnd;
+				destp32 += destLineEnd;
+			}
+		} else {
+			for (int itY = 0; itY < itY_max; itY++) {
+				for (int itX = 0; itX < itX_max; itX++) {
+					*destp32++ = pPalette->col[*srcp8++].col;
+				}
+				srcp8 += srcLineEnd;
+				destp32 += destLineEnd;
 			}
 		}
 	}
