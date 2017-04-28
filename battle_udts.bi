@@ -288,10 +288,10 @@ TYPE BattleState
  sptr as integer       'menu cursor for hero spell list menu
  item as MenuState     'menu cursor for items menu
  item_desc as string   'description of currently selected item in item menu
- caption as string     'currently displaying caption
- caption_time as integer 'time for the currently displaying caption
- caption_delay as integer 'delay before current caption displays
- anim_ready as integer 'YES or NO indicating whether the current animation has ben generated
+ caption as string          'Currently displaying caption
+ caption_time as integer    'Remaining ticks before the caption is removed (0 if no caption)
+ caption_delay as integer   'Remaining ticks to delay before .caption is actually made visible
+ anim_ready as bool         'Indicates whether the current animation has been generated
  anim_t(11) as integer 'targets for currently animating attack
  anim_blocking_delay as integer 'whether the currently animating attack had a blocking delay (to make chains inherit non-blocking)
  animpat(3) as AttackAnimationPattern = _
@@ -306,11 +306,11 @@ TYPE BattleState
  level_mp_caption as string
  cannot_run_caption as string
  cancel_spell_caption as string
- flee as integer 'used by the crappy running system, not to be confused with BattleSprite.flee
- away as integer 'used by the crappy running system.
- alert_ticks as integer
- alert as string
- tog as integer 'alternates 0,1,0,1 tick by tick
+ flee as integer            'Used by the crappy running system, not to be confused with BattleSprite.flee
+ away as integer            'Used by the crappy running system.
+ alert_ticks as integer     'Number of ticks remaining to display .alert
+ alert as string            'Separate message from caption, used only for 'CANNOT RUN'
+ tog as integer             'Alternates 0,1,0,1 tick by tick
  laststun as integer
  vic as VictoryState
  rew as RewardsState

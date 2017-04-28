@@ -245,11 +245,12 @@ FUNCTION battle (byval form as integer) as bool
    result = NO
    EXIT DO
   END IF
-  
+
+  ' Display CANNOT RUN message (attack captions are drawn in battle_display!)
   IF bat.alert_ticks > 0 THEN
    bat.alert_ticks -= 1
-   centerfuz 160, 190, 100, 16, 3, page
-   edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + bat.tog), page
+   centerfuz rCenter, rBottom - 10, textwidth(bat.alert) + 16, 16, 3, page
+   edgeprint bat.alert, pCentered, rBottom - 15, uilook(uiSelectedItem + bat.tog), page
   END IF
  
   IF dotimerbattle THEN
@@ -946,13 +947,15 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     END WITH
    END IF
   NEXT i
+
+  '--Display caption and count-down time
   IF bat.caption_time > 0 THEN
    bat.caption_time -= 1
    IF bat.caption_delay > 0 THEN
     bat.caption_delay -= 1
    ELSE
-    centerbox 160, 186, 310, 16, 1, page
-    edgeprint bat.caption, pCentered, 181, uilook(uiText), page
+    centerbox rCenter, rBottom - 14, 310, 16, 1, page
+    edgeprint bat.caption, pCentered, rBottom - 19, uilook(uiText), page
    END IF
   END IF
   
@@ -2239,7 +2242,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  END IF
 
  '--Do not proceed unless the target is dead
- IF bslot(deadguy).stat.cur.hp <> 0 THEN EXIT SUB
+ IF bslot(deadguy).stat.cur.hp > 0 THEN EXIT SUB
 
  '--deadguy is really dead (includes already dead and empty hero slots??)
  'Death animation is not done yet here, so be cautious about what gets cleaned up here.
@@ -3300,18 +3303,15 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   bslot(i).anim_pattern = attack.anim_pattern
  NEXT i
  
- '--if caption has length and is set to display
+ '--if there is a caption and display time isn't "Not at all"
  IF attack.caption <> "" AND attack.caption_time >= 0 THEN
-  '--load caption
-  setbatcap bat, attack.caption, 0, attack.caption_delay
-  SELECT CASE attack.caption_time
-   CASE 0
-    '--full duration
-    bat.caption_time = 16383 + attack.caption_delay
-   CASE IS > 0
-    '--timed
-    bat.caption_time = attack.caption_time + attack.caption_delay
-  END SELECT
+  DIM ticks as integer = attack.caption_delay
+  IF attack.caption_time = 0 THEN
+   ticks += 16383  '--full duration
+  ELSE
+   ticks += attack.caption_time  '--timed
+  END IF
+  setbatcap bat, attack.caption, ticks, attack.caption_delay
  END IF
  
  'DEBUG debug "stackpos = " & (stackpos - bstackstart)
@@ -3820,7 +3820,7 @@ FUNCTION battle_time_can_pass(bat as BattleState) as bool
  ' Return YES if time is allowed to pass in active mode
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
  IF bat.vic.state <> 0 THEN RETURN NO 'victory has already happened
- IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
+ IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO ' "Attack captions pause battle meters"
  RETURN YES
 END FUNCTION
 
