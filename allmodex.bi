@@ -289,6 +289,12 @@ DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
 '==========================================================================================
 '                                    BMPs/GIFs/screenshots
 
+' Options to quantize_surface
+TYPE QuantizeOptions
+	firstindex as integer    'Pass firstindex = 1 to prevent anything from getting mapped to colour 0. (Default 0)
+	transparency as RGBcolor 'Color to map to 0 (should have .a=0) (Default -1, meaning none)
+END TYPE
+
 DECLARE FUNCTION screenshot (f as string = "") as string
 DECLARE SUB bmp_screenshot(f as string)
 DECLARE SUB toggle_recording_gif()
@@ -298,7 +304,7 @@ DECLARE SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as R
 DECLARE SUB surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 DECLARE FUNCTION surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
-DECLARE FUNCTION frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+DECLARE FUNCTION frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 
@@ -312,6 +318,7 @@ DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integ
 DECLARE FUNCTION color_distance(pal() as RGBcolor, byval index1 as integer, byval index2 as integer) as integer
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte, byval firstindex as integer = 0, byval indexhint as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
+DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 
 'Export .gifs
 DECLARE SUB GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)

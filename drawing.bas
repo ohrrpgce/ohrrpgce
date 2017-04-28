@@ -519,7 +519,8 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
   'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
   'then let the user pick.
-  img = frame_import_bmp24_or_32(srcbmp, pmask(), 1)
+  '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
+  img = frame_import_bmp24_or_32(srcbmp, pmask(), TYPE(1, -1))
   importbmp_change_background_color img
  END IF
  loadpalette pmask(), activepalette

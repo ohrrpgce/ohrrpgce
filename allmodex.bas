@@ -62,7 +62,6 @@ declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
-declare function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparent as RGBcolor = TYPE(-1)) as Frame ptr
 
 declare sub stop_recording_gif()
 declare sub gif_record_frame8(fr as Frame ptr, palette() as RGBcolor)
@@ -5644,17 +5643,16 @@ end function
 
 'Loads and palettises the 24-bit or 32-bit bitmap BMP, mapped to palette pal().
 'If there is an alpha channel, fully transparent pixels are mapped to index 0.
-'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 	dim surf as Surface ptr
 	surf = surface_import_bmp(bmp, YES)
 	if surf = NULL then return NULL
-	return quantize_surface(surf, pal(), firstindex, options, transparency)
+	return quantize_surface(surf, pal(), options)
 end function
 
 'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
 'remapped to the given master palette; NULL on error.
-'24 and 32 bit BMPs will have RGB pixels (transparency.a should be 0) equal to the 'transparency' color
+'24 and 32 bit BMPs will have RGB pixels equal to the 'transparency' color (transparency.a should be 0)
 'mapped to masterpal() index 0 (by default nothing); 'keep_col0' is ignored.
 'Also, in 32 bit BMPs with an alpha channel, fully transparent pixels are mapped to index 0.
 '8-or-fewer-bit BMPs get palette index 0 mapped to color 0 if 'keep_col0' is true,
@@ -5689,7 +5687,8 @@ function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, ke
 
 		return ret
 	else
-		return frame_import_bmp24_or_32(bmpfile, masterpal(), 1, , transparency)
+		dim options as QuantizeOptions = (1, transparency)
+		return frame_import_bmp24_or_32(bmpfile, masterpal(), options)
 	end if
 end function
 
@@ -6182,9 +6181,8 @@ end function
 'Only colours firstindex..255 in pal() are used.
 'Any pixels with alpha=0 are mapped to 0; otherwise alpha is ignored.
 'Optionally, any RGB colour matching 'transparency' gets mapped to index 0 (by default none);
-'alpha is ignored and transparency.a must be 0 or it won't be matched.
-'options isn't used yet.
-private function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+'the Surface's alpha is ignored and transparency.a must be 0 or it won't be matched.
+function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 	if surf->format <> SF_32bit then
 		showerror "quantize_surface only works on 32 bit Surfaces (bad frame_import_bmp24_or_32 call?)"
 		gfx_surfaceDestroy(@surf)
@@ -6201,12 +6199,12 @@ private function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, 
 		outptr = ret->image + y * ret->pitch
 		for x as integer = 0 to surf->width - 1
 			' Ignore alpha
-			if inptr->col and &h00ffffff = transparency.col then
+			if inptr->col and &h00ffffff = options.transparency.col then
 				*outptr = 0
 			elseif inptr->a = 0 then
 				*outptr = 0
 			else
-				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, firstindex)
+				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, options.firstindex)
 			end if
 			inptr += 1
 			outptr += 1
