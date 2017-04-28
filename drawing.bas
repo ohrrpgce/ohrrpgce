@@ -1800,7 +1800,9 @@ SELECT CASE ts.tool
  CASE replace_tool
   IF newkeypress THEN
    writeundoblock ts
-   replacecolor vpages(3), readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), ts.curcolor, ts.tilex * 20, ts.tiley * 20, 20, 20
+   setclip ts.tilex * 20, ts.tiley * 20, ts.tilex * 20 + 19, ts.tiley * 20 + 19, vpages(3)
+   replacecolor vpages(3), readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), ts.curcolor
+   setclip
    refreshtileedit ts
   END IF
  CASE oval_tool

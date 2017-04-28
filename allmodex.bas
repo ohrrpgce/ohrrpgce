@@ -4059,41 +4059,38 @@ sub ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 	next
 end sub
 
-'Replaces one colour with another within a rectangular region.
-'Specifying the region is optional (all four args x,y,w,h must be given if any of them are)
-'w and h may be negative to 'grow' a rectangle from the opposite edge
-sub replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
+'Replaces one colour with another, OR if swapcols is true, swaps the two colours.
+sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
 
-	if (x and y and w and h) = -1 then
-		'Default to whole clipped region
-		x = clipl
-		y = clipt
-		w = clipr - clipl + 1
-		h = clipb - clipt + 1
-	else
-		if w < 0 then x = x + w + 1: w = -w
-		if h < 0 then y = y + h + 1: h = -h
-
-		'clip
-		if x + w > clipr then w = (clipr - x) + 1
-		if y + h > clipb then h = (clipb - y) + 1
-		if x < clipl then w -= (clipl - x) : x = clipl
-		if y < clipt then h -= (clipt - y) : y = clipt
-	end if
-
-	if w <= 0 or h <= 0 then exit sub
-
-	dim as integer xi, yi
-	for yi = y to y + h - 1
+	for yi as integer = clipt to clipb
 		dim sptr as ubyte ptr = fr->image + (yi * fr->pitch)
-		for xi = x to x + w - 1
-			if sptr[xi] = c_old then sptr[xi] = c_new
+		for xi as integer = clipl to clipr
+			if sptr[xi] = c_old then
+				sptr[xi] = c_new
+			elseif swapcols and (sptr[xi] = c_new) then
+				sptr[xi] = c_old
+			end if
 		next
 	next
 end sub
+
+' Count the number of occurrences of a color in a Frame (just the clipped region)
+function countcolor (fr as Frame ptr, col as integer) as integer
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
+
+	dim ret as integer = 0
+	for yi as integer = clipt to clipb
+		for xi as integer = clipl to clipr
+			if FRAMEPIXEL(xi, yi, fr) = col then ret += 1
+		next
+	next
+	return ret
+end function
 
 
 '==========================================================================================

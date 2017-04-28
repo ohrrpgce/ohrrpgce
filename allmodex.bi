@@ -188,7 +188,8 @@ DECLARE SUB drawline OVERLOAD (byval dest as Frame ptr, byval x1 as integer, byv
 DECLARE SUB drawline OVERLOAD (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval c as integer, byval p as integer)
 DECLARE SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 DECLARE SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval c as integer, byval fillcol as integer = -1, byval semiminor as double = 0.0, byval angle as double = 0.0)
-DECLARE SUB replacecolor (byval fr as Frame ptr, byval c_old as integer, byval c_new as integer, byval x as integer = -1, byval y as integer = -1, byval w as integer = -1, byval h as integer = -1)
+DECLARE SUB replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
+DECLARE FUNCTION countcolor (fr as Frame ptr, col as integer) as integer
 
 '==========================================================================================
 
