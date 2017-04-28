@@ -387,7 +387,7 @@ SUB ee_refresh (byref st as EEState, byval widget as NodePtr)
  s = STRING(st.indent, " ") & ee_widget_string(st, widget)
  
  DIM index as integer
- index = append_menu_item(st.menu, s, , , , YES)
+ index = append_menu_item(st.menu, s)
  
  DIM mi as MenuDefItem Ptr
  mi = st.menu.items[index]

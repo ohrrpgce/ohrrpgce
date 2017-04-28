@@ -805,6 +805,7 @@ SUB InitLikeStandardMenu(menu as MenuDef)
   'border should be -8 to be like standardmenu, but drawing the menu at 4,4 looks better
   .bordersize = -4
   .itemspacing = -1
+  .withtags = YES
  END WITH
 END SUB
 
@@ -941,7 +942,7 @@ SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
 END SUB
 
 ' Returns index in menu.items[]
-FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0, byval withtags as integer=NO) as integer
+FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as integer=0, byval sub_t as integer=0, byval dataptr as ANY ptr=0) as integer
  DIM i as integer
  DIM item as MenuDefItem ptr
  item = NEW MenuDefItem
@@ -950,7 +951,6 @@ FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as i
   .t = t
   .sub_t = sub_t
   .dataptr = dataptr
-  .withtags = withtags 'FIXME: menu auto-width stuff is not smart about texttags yet
  END WITH
 
  dlist_append(menu.itemlist, item) 'updates .numitems
@@ -1426,7 +1426,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
       END IF
       edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, where.y, bar_width, 10, menu.boxstyle, page, NO, YES
      END IF
-     edgeprint .text, where.x, where.y, col, page, .withtags
+     edgeprint .text, where.x, where.y, col, page, menu.withtags
     END IF
    END WITH
   END IF

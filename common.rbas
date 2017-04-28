@@ -2270,6 +2270,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  menu.offset.Y = boxy + boxheight + 5
  menu.anchorvert = alignTop
  menu.maxrows = (vpages(vpage)->h \ 2 - menu.offset.Y - 20) \ 10
+ menu.withtags = YES
 
  state.active = YES
  init_menu_state state, menu
