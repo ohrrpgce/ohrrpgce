@@ -3085,7 +3085,9 @@ end sub
 function Palette16_new_from_buffer(pal() as integer, byval po as integer = 0) as Palette16 ptr
 	dim ret as Palette16 ptr
 	dim word as integer
-	ret = allocate(sizeof(Palette16))
+	ret = callocate(sizeof(Palette16))
+	'--noncached palettes should be deleted when they are unloaded
+	ret->refcount = NOREFC
 
 	for i as integer = 0 to 15
 		'palettes are interleaved like everything else
