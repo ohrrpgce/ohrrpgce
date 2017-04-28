@@ -162,6 +162,7 @@ TYPE TileEditState
   tiley as integer
   gotmouse as bool
   drawcursor as integer
+  preview_content as integer   'tile preview mode (0=neighbours/1=tiled)
   tool as integer
   curcolor as integer
   hidemouse as bool

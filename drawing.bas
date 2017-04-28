@@ -1343,7 +1343,6 @@ ts.fastmovestep = 4
 DIM zox as integer = ts.x * 8 + 4
 DIM zoy as integer = ts.y * 8 + 4
 DIM zcsr as integer
-DIM preview_content as integer = 1 'tile preview (1=neighbours/-1=tiled)
 DIM overlay_use_palette as integer
 DIM fgcol as integer
 DIM bgcol as integer
@@ -1513,11 +1512,11 @@ DO
   NEXT i
  END IF
  '--toggle preview
- IF keyval(scP) > 1 THEN preview_content = preview_content * -1
+ IF keyval(scP) > 1 THEN ts.preview_content XOR= 1
  IF mouse.x >= 10 AND mouse.x <= 70 THEN
   IF mouse.y >= 90 AND mouse.y <= 150 THEN
    IF mouse.clicks AND mouseLeft THEN
-    preview_content = preview_content * -1
+    ts.preview_content XOR= 1
    END IF
   END IF
  END IF
@@ -1553,8 +1552,8 @@ DO
  copypage 2, dpage
  frame_draw_with_background ts.drawframe, NULL, 80, 0, 8, bgcolor, chequer_scroll, vpages(dpage)  'Draw the tile, at 8x zoom with background
  
- '--Draw tile preview (1=neighbours/-1=tiled)
- IF preview_content = 1 THEN 
+ '--Draw tile preview
+ IF ts.preview_content = 0 THEN
   spriteedit_show_neighbouring_tiles(ts, bgcolor, chequer_scroll)
  ELSE
   spriteedit_show_tile_tiled(ts, bgcolor, chequer_scroll)
