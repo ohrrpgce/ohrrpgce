@@ -86,7 +86,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx XYX -help to see others)" & LINE_END
-		help = help & *gfx_describe_options() & LINE_END
+		help = help & *gfx_describe_options()
 		display_help_string help
 		return 1
 	elseif opt = "log" then
@@ -146,8 +146,12 @@ sub display_help_string(help as string)
 	print help    ' display to text console (doesn't work under Windows unless compiled without -s gui)
 #ifdef __FB_WIN32__
 	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
-	screen 11     ' create a graphical fake text console
-	print help    ' display the help on the graphical console
+	if len(help) > 500 then
+		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
+	else
+		screen 11
+	end if
+	print help,   ' display the help on the graphical console
 	k = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
 #endif
 	SYSTEM        ' terminate the program
