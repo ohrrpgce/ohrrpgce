@@ -184,6 +184,10 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
  DIM srcbmp as string
  DIM pt as integer = 0 'backdrop number
 
+ ' FIXME: We still use vpages(2) to store the tileset, and also if it is resized
+ ' the pointer passed to importbmp_change_background_color would become invalid!
+ lock_page_size 2, 320, 200
+
  IF count = 0 THEN count = 1
  loadpalette pmask(), activepalette
  loadmxs game & f, pt, vpages(2)
@@ -243,6 +247,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
   setvispage vpage
   dowait
  LOOP
+ unlock_page_size 2
  clearpage 2
  sprite_update_cache sprtype
 END SUB
