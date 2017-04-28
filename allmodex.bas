@@ -5596,11 +5596,11 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 	return bf
 end function
 
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
-'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
+'Loads any supported .bmp file as a Surface, returning NULL on error.
+'always_32bit: load paletted BMPs as 32 bit Surfaces instead of 8-bit ones
+'(in the latter case, you have to load the palette yourself).
 'The alpha channel if any is ignored
-'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
-
+function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPV3INFOHEADER
 	dim bf as integer
@@ -5608,29 +5608,48 @@ function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex a
 	bf = open_bmp_and_read_header(bmp, header, info)
 	if bf <= -1 then return 0
 
-	if info.biBitCount <> 24 and info.biBitCount <> 32 then
-		debugc errPromptBug, "frame_import_bmp24_or_32 should not have been called!"
-		close #bf
-		return NULL
-	end if
-
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
-	dim surf as Surface ptr
-	gfx_surfaceCreate(info.biWidth, info.biHeight, SF_32bit, SU_Staging, @surf)
+	dim ret as Surface ptr
 
-	if info.biBitCount = 24 then
-		loadbmp24(bf, surf)
-	elseif info.biBitCount = 32 then
-		loadbmp32(bf, surf, info)
+	if info.biBitCount < 24 then
+		dim paletted as Frame ptr
+		paletted = frame_import_bmp_raw(bmp)
+		if paletted then
+			if always_32bit then
+				dim bmppal(255) as RGBcolor
+				loadbmppal(bmp, bmppal())
+				' Convert it to 32bit
+				gfx_surfaceCreate(info.biWidth, info.biHeight, SF_32bit, SU_Staging, @ret)
+				frame_draw paletted, bmppal(), 0, 0, NO, ret
+			else
+				' Keep 8-bit. We don't load the palette
+				gfx_surfaceFromFrame(paletted, @ret)
+			end if
+			frame_unload @paletted
+		end if
+	else
+		gfx_surfaceCreate(info.biWidth, info.biHeight, SF_32bit, SU_Staging, @ret)
+		if info.biBitCount = 24 then
+			loadbmp24(bf, ret)
+		elseif info.biBitCount = 32 then
+			loadbmp32(bf, ret, info)
+		end if
 	end if
-
-	dim ret as Frame ptr
-	ret = quantize_surface(surf, pal(), firstindex, options, transparency)
 
 	close #bf
 	return ret
+end function
+
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
+'The alpha channel if any is ignored
+'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
+	dim surf as Surface ptr
+	surf = surface_import_bmp(bmp, YES)
+	if surf = NULL then return NULL
+	return quantize_surface(surf, pal(), firstindex, options, transparency)
 end function
 
 'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),

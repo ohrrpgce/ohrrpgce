@@ -296,6 +296,7 @@ DECLARE SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as R
 DECLARE SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE SUB surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
+DECLARE FUNCTION surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 DECLARE FUNCTION frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
