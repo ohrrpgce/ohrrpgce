@@ -1408,7 +1408,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     IF .col > 0 ANDALSO NOT selected THEN
      IF .disabled = NO OR .disabled_overrides_color = NO THEN col = .col
     END IF
-    IF NOT (.disabled AND .hide_if_disabled) THEN
+    IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
      IF menu.highlight_selection ANDALSO selected THEN
       rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page

@@ -1511,7 +1511,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
      .col = m."color".default(0)
      .tag1 = m."enable_tag1".default(0)
      .tag2 = m."enable_tag2".default(0)
-     .hide_if_disabled = m."hide_disabled".default(0)
+     .hide_if_disabled = m."hide_disabled".bool.default(NO)
      .disabled_overrides_color = YES
     END WITH
    END IF
