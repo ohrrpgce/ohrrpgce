@@ -34,7 +34,7 @@ DECLARE SUB hero_editor_equipment_list (byval hero_id as integer, byref her as H
 DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer)
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
-DECLARE SUB hero_editor_battle_menu (her as HeroDef)
+DECLARE SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
 DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
 DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
@@ -106,12 +106,14 @@ SUB hero_editor
     CASE 3: hero_editor_appearance st, her
     CASE 4: hero_editor_stats_menu her
     CASE 5: hero_editor_spell_lists_toplevel her
-    CASE 6: hero_editor_battle_menu her
+    CASE 6: hero_editor_battle_menu hero_id, her
     CASE 7: editbitset her.bits(), 0, 26, hbit()
     CASE 8: hero_editor_elementals her
     CASE 9: hero_editor_tags hero_id, her
     CASE 10: hero_editor_equipment_list hero_id, her
    END SELECT
+   ' For the benefit of live-previewing
+   saveherodata her, hero_id
   END IF
 
   IF mstate.pt = 1 THEN
@@ -729,7 +731,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
  setkeys
 END SUB
 
-SUB hero_editor_battle_menu (her as HeroDef)
+SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  DIM menu as MenuDef
  DIM preview as MenuDef
   
@@ -821,6 +823,7 @@ SUB hero_editor_battle_menu (her as HeroDef)
    END READNODE
    init_menu_state st, menu
    init_menu_state prst, preview
+   IF slave_channel <> NULL_CHANNEL THEN saveherodata her, hero_id
    st.need_update = NO
   END IF
   
