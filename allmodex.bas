@@ -5642,10 +5642,10 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 	return ret
 end function
 
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
-'loads and palettises the 24-bit or 32-bit bitmap bmp, mapped to palette pal()
-'The alpha channel if any is ignored
+'Loads and palettises the 24-bit or 32-bit bitmap BMP, mapped to palette pal().
+'If there is an alpha channel, fully transparent pixels are mapped to index 0.
 'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
+function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, firstindex as integer = 0, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 	dim surf as Surface ptr
 	surf = surface_import_bmp(bmp, YES)
 	if surf = NULL then return NULL
@@ -5654,8 +5654,9 @@ end function
 
 'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
 'remapped to the given master palette; NULL on error.
-'24 and 32 bit BMPs will have pixels equal to the 'transparency' color
+'24 and 32 bit BMPs will have RGB pixels (transparency.a should be 0) equal to the 'transparency' color
 'mapped to masterpal() index 0 (by default nothing); 'keep_col0' is ignored.
+'Also, in 32 bit BMPs with an alpha channel, fully transparent pixels are mapped to index 0.
 '8-or-fewer-bit BMPs get palette index 0 mapped to color 0 if 'keep_col0' is true,
 'otherwise they have no color 0 pixels; 'transparency' is ignored.
 function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
@@ -5796,7 +5797,7 @@ private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as 
 	dim sptr as RGBcolor ptr
 	dim tempcol as RGBcolor
 	dim as integer rshift, gshift, bshift, ashift
-	tempcol.a = 0
+	tempcol.a = 255  'Opaque
 
 	if infohd.biCompression = BI_BITFIELDS then
 		' The bitmasks have already been verified to be supported, except
@@ -5846,8 +5847,7 @@ private sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 			get #bf, , pix
 			'First 3 bytes of RGBTRIPLE are the same as RGBcolor
 			*sptr = *cast(RGBcolor ptr, @pix)
-			'We haven't yet defined whether opaque is 0 or 255
-			sptr->a = 0
+			sptr->a = 255
 			sptr += 1
 		next
 		'padding to dword boundary
@@ -6168,7 +6168,7 @@ function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, 
 		end if
 	next
 
-	nearcolor = save
+	return save
 end function
 
 function nearcolor(pal() as RGBcolor, byval index as integer, byval firstindex as integer = 0) as ubyte
@@ -6180,9 +6180,17 @@ end function
 'Convert a 32 bit Surface to a paletted Frame.
 'Frees surf.
 'Only colours firstindex..255 in pal() are used.
-'Optionally, any colour matching 'transparency' gets mapped to index 0.
+'Any pixels with alpha=0 are mapped to 0; otherwise alpha is ignored.
+'Optionally, any RGB colour matching 'transparency' gets mapped to index 0 (by default none);
+'alpha is ignored and transparency.a must be 0 or it won't be matched.
 'options isn't used yet.
 private function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+	if surf->format <> SF_32bit then
+		showerror "quantize_surface only works on 32 bit Surfaces (bad frame_import_bmp24_or_32 call?)"
+		gfx_surfaceDestroy(@surf)
+		return NULL
+	end if
+
 	dim ret as Frame ptr
 	ret = frame_new(surf->width, surf->height)
 
@@ -6192,7 +6200,10 @@ private function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, 
 		inptr = surf->pColorData + y * surf->width
 		outptr = ret->image + y * ret->pitch
 		for x as integer = 0 to surf->width - 1
-			if inptr->col = transparency.col then
+			' Ignore alpha
+			if inptr->col and &h00ffffff = transparency.col then
+				*outptr = 0
+			elseif inptr->a = 0 then
 				*outptr = 0
 			else
 				*outptr = nearcolor(pal(), inptr->r, inptr->g, inptr->b, firstindex)

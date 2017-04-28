@@ -7,6 +7,8 @@
 typedef union {
 	uint32_t col;
 	struct {
+		// Opaque is a=255. Not pre-multiplied. However, only the rasterizer
+		// and BMP import uses the alpha channel, all other code ignores it.
 		unsigned char b, g, r, a;
 	};
 } RGBcolor;
