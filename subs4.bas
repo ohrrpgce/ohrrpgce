@@ -951,7 +951,7 @@ SUB export_master_palette ()
   outsurf->pColorData[i] = master(i)
  NEXT
  surface_export_bmp24(filename, outsurf)
- gfx_surfaceDestroy(outsurf)
+ gfx_surfaceDestroy(@outsurf)
 END SUB
 
 SUB masterpalettemenu

@@ -1920,7 +1920,7 @@ SUB quad_transforms_menu ()
      NEXT
    end select
 
-   gfx_surfaceDestroy( spriteSurface )
+   gfx_surfaceDestroy( @spriteSurface )
    gfx_surfaceFromFrame( testframe, @spriteSurface )
 
    DIM testframesize as Rect
@@ -1992,9 +1992,9 @@ SUB quad_transforms_menu ()
  LOOP
  setkeys
  frame_unload @testframe
- gfx_surfaceDestroy(vpage32)
- gfx_surfaceDestroy(spriteSurface)
- gfx_paletteDestroy(masterPalette)
+ gfx_surfaceDestroy(@vpage32)
+ gfx_surfaceDestroy(@spriteSurface)
+ gfx_paletteDestroy(@masterPalette)
 END SUB
 
 SUB text_test_menu

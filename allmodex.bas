@@ -62,7 +62,7 @@ declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp1(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
-declare function quantize_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparent as RGBcolor = TYPE(-1)) as Frame ptr
+declare function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparent as RGBcolor = TYPE(-1)) as Frame ptr
 
 declare sub stop_recording_gif()
 declare sub gif_record_frame8(fr as Frame ptr, palette() as RGBcolor)
@@ -797,8 +797,7 @@ end function
 
 
 sub SkippedFrame.drop()
-	gfx_surfaceDestroy(surf)  'decrement refcount
-	surf = NULL
+	gfx_surfaceDestroy(@surf)  'decrement refcount
 	'if page >= 0 then freepage page
 	page = -1
 end sub
@@ -932,7 +931,7 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 		lastframe = timer - 0.004
 	end if
 
-	if surface_pal then gfx_paletteDestroy(surface_pal)
+	gfx_paletteDestroy(@surface_pal)
 
 	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
 
@@ -6166,7 +6165,7 @@ end function
 'Only colours firstindex..255 in pal() are used.
 'Optionally, any colour matching 'transparency' gets mapped to index 0.
 'options isn't used yet.
-private function quantize_surface(surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+private function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, firstindex as integer, options as integer = 0, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 	dim ret as Frame ptr
 	ret = frame_new(surf->width, surf->height)
 
@@ -6185,7 +6184,7 @@ private function quantize_surface(surf as Surface ptr, pal() as RGBcolor, firsti
 			outptr += 1
 		next
 	next
-	gfx_surfaceDestroy(surf)
+	gfx_surfaceDestroy(@surf)
 	return ret
 end function
 
@@ -7389,7 +7388,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos,
 	y += src->offset.y
 
 	dim src_surface as Surface ptr
-	if gfx_surfaceFromFrame(src, @src_surface) then debug "gfx_surfaceFromFrame failed" : return
+	if gfx_surfaceFromFrame(src, @src_surface) then return
 	dim master_pal as RGBPalette ptr
 	if gfx_paletteFromRGB(@masterpal(0), @master_pal) then debug "gfx_paletteFromRGB failed" : return
 	dim destRect as SurfaceRect = (x, y, dest->width - 1, dest->height - 1)
@@ -7398,8 +7397,8 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos,
 		debug "gfx_surfaceCopy error"
 	end if
 
-	gfx_surfaceDestroy(src_surface)
-	gfx_paletteDestroy(master_pal)
+	gfx_surfaceDestroy(@src_surface)
+	gfx_paletteDestroy(@master_pal)
 end sub
 
 'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.

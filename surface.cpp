@@ -7,6 +7,7 @@
 #include "surface.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
+#include "common.h"
 
 QuadRasterizer g_rasterizer;
 std::list< Surface* > g_surfaces;
@@ -14,8 +15,10 @@ std::list< RGBPalette* > g_palettes;
 
 int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
-	if( !ppSurfaceOut )
+	if (!ppSurfaceOut) {
+		debug(errPromptBug, "surfaceCreate_SW: NULL out ptr");
 		return -1;
+	}
 	Surface *ret = new Surface {NULL, 1, width, height, format, usage, NULL};
 	if(format == SF_8bit)
 		ret->pPaletteData = new uint8_t[width*height];
@@ -28,22 +31,28 @@ int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format,
 }
 
 // Return a Surface which is a view onto a Frame. The Surface and Frame should both
-// be destroy as normal.
+// be destroyed as normal.
+// (The Frame refcount is incremented)
 int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 {
-	if(pFrameIn->w != pFrameIn->pitch)
-		// Would have to make a copy of the data
+	if (pFrameIn->w != pFrameIn->pitch) {
+		debug(errPromptBug, "gfx_surfaceFromFrame_SW: pitch != width"); // Unimplemented: Would have to make a copy of the data
 		return -1;
+	}
 	Surface *ret = new Surface {NULL, 1, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
 	ret->pPaletteData = ret->frame->image;
 	*ppSurfaceOut = ret;
 	return 0;
 }
 
-int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
-{//done
-	if(pSurfaceIn)
-	{
+int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
+	if (!ppSurfaceIn) {
+		debug(errPromptBug, "surfaceDestroy_SW: NULL in ptr");
+		return -1;
+	}
+	Surface *pSurfaceIn = *ppSurfaceIn;
+	*ppSurfaceIn = NULL;
+	if (pSurfaceIn) {
 		if(--pSurfaceIn->refcount > 0)
 			return 0;
 		if(pSurfaceIn->frame)
@@ -59,6 +68,7 @@ int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
 				delete [] pSurfaceIn->pColorData;
 		}
 		g_surfaces.remove(pSurfaceIn);
+		delete pSurfaceIn;
 	}
 	return 0;
 }
@@ -241,13 +251,12 @@ int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut )
 	return 0;
 }
 
-int gfx_paletteDestroy_SW( RGBPalette* pPaletteIn )
-{//done
-	if( pPaletteIn )
-	{
-		g_palettes.remove(pPaletteIn);
-		delete pPaletteIn;
+int gfx_paletteDestroy_SW (RGBPalette** ppPaletteIn) {
+	if (*ppPaletteIn) {
+		g_palettes.remove(*ppPaletteIn);
+		delete *ppPaletteIn;
 	}
+	*ppPaletteIn = NULL;
 	return 0;
 }
 

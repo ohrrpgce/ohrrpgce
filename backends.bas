@@ -99,7 +99,7 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 
 dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceFromFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
-dim gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 dim gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -109,7 +109,7 @@ dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurf
 
 dim gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
 dim gfx_paletteFromRGB as function ( byval pColorsIn as RGBcolor ptr, byval ppPaletteOut as RGBPalette ptr ptr) as integer
-dim gfx_paletteDestroy as function ( byval pPaletteIn as RGBPalette ptr ) as integer
+dim gfx_paletteDestroy as function ( byval ppPaletteIn as RGBPalette ptr ptr ) as integer
 dim gfx_paletteUpdate as function ( byval pPaletteIn as RGBPalette ptr ) as integer
 
 dim gfx_renderQuadColor as function ( byval pQuad as VertexPC ptr, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer

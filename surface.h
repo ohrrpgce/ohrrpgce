@@ -63,7 +63,7 @@ extern "C"
 
 	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
-	int gfx_surfaceDestroy_SW( Surface* pSurfaceIn );
+	int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn );
 	Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
@@ -73,7 +73,7 @@ extern "C"
 
 	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
-	int gfx_paletteDestroy_SW( RGBPalette* pPaletteIn );
+	int gfx_paletteDestroy_SW( RGBPalette** ppPaletteIn );
 	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
 #ifdef __cplusplus
 };
