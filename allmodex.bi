@@ -13,10 +13,11 @@
 #include "music.bi"
 
 
-'WARNING: don't add strings to this
+'This Type is misnamed. But currently, a Palette16 virtually always has numcolors=16
 Type Palette16
-	col(15) as ubyte 'indices into the master palette
+	numcolors as int32
 	refcount as int32 'private. This is not like Frame.refcount, it is used by the palette cache.
+	col(255) as ubyte 'indices into the master palette
 End Type
 
 Type SpriteCacheEntryFwd as SpriteCacheEntry
@@ -454,7 +455,8 @@ declare function frame_describe(byval p as frame ptr) as string
 '==========================================================================================
 '                                       Palette16
 
-declare function palette16_new() as palette16 ptr
+declare function palette16_new(numcolors as integer = 16) as Palette16 ptr
+declare function palette16_new_from_indices(pal() as integer) as Palette16 ptr
 declare function palette16_new_from_buffer(pal() as integer, byval po as integer) as Palette16 ptr
 declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as palette16 ptr
 declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as palette16 ptr

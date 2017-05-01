@@ -16,8 +16,9 @@ typedef struct {
 } XYPair;
 
 typedef struct {
-	unsigned char col[16];  //indicies into the master palette
-	int refcount; //private
+	int numcolors;
+	int refcount;            //private
+	unsigned char col[256];  //indices into the master palette
 } Palette16;
 
 struct SpriteCacheEntry;

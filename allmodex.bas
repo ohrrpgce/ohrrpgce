@@ -3081,12 +3081,10 @@ sub hugesprite (pic() as integer, pal() as integer, byval p as integer, byval x 
 	drawspritex(pic(), 0, pal(), p, x, y, page, 4, trans)
 end sub
 
+'Create a palette from a record in .PAL
 function Palette16_new_from_buffer(pal() as integer, byval po as integer = 0) as Palette16 ptr
-	dim ret as Palette16 ptr
+	dim ret as Palette16 ptr = Palette16_new()
 	dim word as integer
-	ret = callocate(sizeof(Palette16))
-	'--noncached palettes should be deleted when they are unloaded
-	ret->refcount = NOREFC
 
 	for i as integer = 0 to 15
 		'palettes are interleaved like everything else
@@ -7946,11 +7944,11 @@ end type
 
 redim shared palcache(50) as Palette16Cache
 
-sub Palette16_delete(byval f as Palette16 ptr ptr)
+private sub Palette16_delete(byval f as Palette16 ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
 	(*f)->refcount = FREEDREFC  'help detect double frees
-	deallocate(*f)
+	delete *f
 	*f = 0
 end sub
 
@@ -8013,12 +8011,25 @@ sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integ
 	Palette16_add_cache(s, p, i)
 end sub
 
-function Palette16_new() as Palette16 ptr
+'Create a new palette which is not connected to any data file
+function Palette16_new(numcolors as integer = 16) as Palette16 ptr
 	dim ret as Palette16 ptr
-	'--create a new palette which is not connected to any data file
-	ret = callocate(sizeof(Palette16))
+	ret = new Palette16
+	ret->numcolors = numcolors
 	'--noncached palettes should be deleted when they are unloaded
 	ret->refcount = NOREFC
+	return ret
+end function
+
+'pal() is an array of master palette indices, to convert into a Palette16
+function Palette16_new_from_indices(pal() as integer) as Palette16 ptr
+	if ubound(pal) > 255 then
+		fatalerror "Palette indices pal() too long!"
+	end if
+	dim ret as Palette16 ptr = Palette16_new(ubound(pal) + 1)
+	for idx as integer = 0 to ubound(pal)
+		ret->col(idx) = pal(idx)
+	next
 	return ret
 end function
 
@@ -8088,8 +8099,7 @@ function Palette16_load(fil as string, num as integer, autotype as SpriteType = 
 		seek #fh, 8 + 16 * num
 	end if
 
-	dim ret as Palette16 ptr
-	ret = callocate(sizeof(Palette16))
+	dim ret as Palette16 ptr = Palette16_new()
 	if ret = 0 then
 		close #fh
 		debug "Could not create palette, no memory"
@@ -8165,12 +8175,12 @@ end sub
 
 function Palette16_describe(pal as Palette16 ptr) as string
 	if pal = 0 then return "'(null)'"
-	dim temp as string
-	temp = hex(pal->col(0))
-	for idx as integer = 1 to 15
-		temp &= "," & hex(pal->col(idx))
+	dim temp as string = "<Palette16 numcolors=" & pal->numcolors & " ref=" & pal->refcount & " "
+	for idx as integer = 0 to pal->numcolors - 1
+		if idx then temp &= ","
+		temp &= hex(pal->col(idx))
 	next
-	return temp
+	return temp & ">"
 end function
 
 
