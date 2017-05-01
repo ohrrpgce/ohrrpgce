@@ -779,15 +779,17 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) THEN
-  notification "The slice collection you are trying to load includes special " _
-               "slices (either due to their type or lookup code), probably " _
-               "because it has been exported from a game. You aren't allowed " _
-               "to import this collection, but it will be now be opened in " _
-               "the slice collection editor so that you may view, edit, and reexport " _
-               "it. Exit that editor to go back to your previous slice collection. " _
-               "Try removing the special slices and exporting the collection; " _
-               "you'll then be able to import normally."
+ IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
+    AND ses.collection_file = "" THEN
+  DIM msg as string
+  msg = "The slice collection you are trying to load includes special " _
+        "slices (either due to their type or lookup code), probably " _
+        "because it has been exported from a game. You can't import this " _
+        "collection, but it will be now be opened in a new copy of the " _
+        "slice collection editor so that you may view, edit, and reexport " _
+        "it. Exit the editor to go back to your previous slice collection. " _
+        "Try removing the special slices and exporting the collection; " _
+        "you'll then be able to import normally."
   slice_editor newcollection
  ELSE
   DeleteSlice @ses.draw_root
@@ -808,6 +810,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
    slice_editor_save_when_leaving ses, edslice
    ses.collection_file = filename
    ses.use_index = NO
+   ses.editing_existing = NO
   END IF
   slice_editor_load ses, edslice, filename
   state.need_update = YES
