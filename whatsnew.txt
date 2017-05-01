@@ -101,6 +101,8 @@ WHAT IS NEW?
     * Sound effects used to play at max volume, which has now changed
       to a default of 80% (because music defaulted to just 50%). In
       newly created games the defaults are both 75%. [Ralph]
+    * When importing a BMP, unless the palette is identical, color 0
+      won't be used unless you explicitly pick it [Ralph]
 
   * Bugfixes
     * 64-bit builds of Custom work now... for real this time! They

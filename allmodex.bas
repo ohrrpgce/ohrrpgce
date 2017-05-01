@@ -6175,7 +6175,7 @@ function nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, 
 'A perfect match against pal(indexhint) is tried first
 	dim as integer i, diff, best, save, rdif, bdif, gdif
 
-	if indexhint > -1 and indexhint <= UBOUND(pal) then
+	if indexhint > -1 and indexhint <= UBOUND(pal) and indexhint >= firstindex then
 		with pal(indexhint)
 			if red = .r and green = .g and blue = .b then return indexhint
 		end with

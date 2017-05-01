@@ -32,7 +32,7 @@ DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, by
 
 DECLARE FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
 DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
-DECLARE SUB importbmp_change_background_color(img as Frame ptr)
+DECLARE FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
 DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 
 ' Tileset editor
@@ -482,59 +482,62 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
 END SUB
 
 'Give the user the chance to remap a color to 0.
-SUB importbmp_change_background_color(img as Frame ptr)
+'Returns true if they picked a color (even 0), rather than skipping/cancelling
+FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
  DIM pickpos as XYPair
  DIM ret as bool
  DIM message as string = !"Pick the background (transparent) color\nor press ESC to leave color 0 as it is"
- ret = pick_image_pixel(img, , pickpos, , , , message, "importbmp_pickbackground")
+ ret = pick_image_pixel(img, pal, pickpos, , , , message, "importbmp_pickbackground")
+ IF ret = NO THEN RETURN NO
 
- IF ret THEN
-  DIM bgcol as integer = readpixel(img, pickpos.x, pickpos.y)
-  IF bgcol = 0 THEN EXIT SUB  'Boring!
+ DIM bgcol as integer = readpixel(img, pickpos.x, pickpos.y)
+ IF bgcol = 0 THEN RETURN YES  'Boring!
 
-  IF countcolor(img, 0) > 0 THEN
-   DIM nearest as integer = nearcolor(master(), 0, 1)
-   DIM choice as integer
-   choice = twochoice("What should I do with the existing color 0 (transparent) pixels? (This is probably irreversible! ESC to cancel)", _
-                      "Leave them alone", "Remap to nearest match (color " & fgtag(nearest, STR(nearest)) & ")")
-   IF choice = -1 THEN EXIT SUB
-   IF choice = 1 THEN
-    ' If we want to map 0 to nearest and nearest to 0, need to do an atomic swap
-    IF nearest = bgcol THEN
-     replacecolor img, bgcol, 0, YES  'swapcols=YES
-     EXIT SUB
-    ELSE
-     replacecolor img, 0, nearest
-    END IF
+ IF countcolor(img, 0) > 0 THEN
+  DIM nearest as integer = nearcolor(master(), 0, 1)
+  DIM choice as integer
+  choice = twochoice("What should I do with the existing color 0 (transparent) pixels? (This is probably irreversible! ESC to cancel)", _
+                     "Leave them alone", "Remap to nearest match (color " & fgtag(nearest, STR(nearest)) & ")")
+  IF choice = -1 THEN RETURN NO
+  IF choice = 1 THEN
+   ' If we want to map 0 to nearest and nearest to 0, need to do an atomic swap
+   IF nearest = bgcol THEN
+    replacecolor img, bgcol, 0, YES  'swapcols=YES
+    RETURN YES
+   ELSE
+    replacecolor img, 0, nearest
    END IF
   END IF
-
-  replacecolor img, bgcol, 0
  END IF
-END SUB
+ replacecolor img, bgcol, 0
+ RETURN YES
+END FUNCTION
 
 ' Read a BMP file, check the bitdepth and palette and perform any necessary
 ' remapping, possibly create a new master palette (and change activepalette),
 ' and return the resulting (unsaved) Frame, or NULL if cancelled.
 FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
  DIM bmpd as BitmapV3InfoHeader
- DIM menu(2) as string
- DIM paloption as integer
  DIM img as Frame ptr
- DIM temppal(255) as RGBcolor
- DIM palmapping(255) as integer
- DIM remap_background as bool = YES
 
  bmpinfo(srcbmp, bmpd)
  IF bmpd.biBitCount <= 8 THEN
-  paloption = 0  'Perform remapping, otherwise disabling colors won't work
+  DIM palmapping(255) as integer
+  DIM remapping_pal as Palette16 ptr
+  DIM remap_nearest_match as bool = NO
+  DIM remap_background as bool = NO
+  DIM remap_0_to_0 as bool
+
+  DIM temppal(255) as RGBcolor
   loadbmppal srcbmp, temppal()
   IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
    'the palette is inequal to the master palette
    clearpage vpage
+   DIM menu(2) as string
    menu(0) = "Remap to current Master Palette"
    menu(1) = "Import with new Master Palette"
    menu(2) = "Do not remap colours"
+   DIM paloption as integer
    paloption = multichoice("This BMP's palette is not identical to your master palette." _
                            !"\nHint: you should probably remap to the master palette (see F1 help).", _
                            menu(), , , "importbmp_palette")
@@ -544,28 +547,48 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
     activepalette = gen(genMaxMasterPal)
     setpal master()
     LoadUIColors uilook(), boxlook(), activepalette
+    ' For consistency, even when we add a new palette, don't use color 0 unless the
+    ' user explicitly picks it as background (palmapping will be 1-to-1 except for color 0)
+    loadpalette pmask(), activepalette  'Throw away pmask
    END IF
-   IF paloption = 2 THEN remap_background = NO
+   remap_nearest_match = (paloption <> 2)
+   remap_background = (paloption <> 2)
+   remap_0_to_0 = NO  'If the user doesn't pick a transparent color, there won't be one
   ELSE
-   ' Palettes are identical (but note pmask() is still respected)
-   remap_background = NO
+   ' Palettes are identical
+   remap_nearest_match = YES  'Perform remapping, otherwise disabling colors (pmask()) won't work
+   remap_0_to_0 = YES
   END IF
-  img = frame_import_bmp_raw(srcbmp)
-  IF paloption = 0 THEN
+
+  IF remap_nearest_match THEN
    'Put hint values in palmapping(), which will used if an exact match
    FOR idx as integer = 0 TO 255
     palmapping(idx) = idx
    NEXT
-   ' Disallow anything other than colour 0 from being mapped to colour 0 to prevent accidental transparency,
-   ' and force 0 to be mapped to 0.
+   ' Disallow anything from being mapped to colour 0 to prevent accidental transparency
    convertbmppal srcbmp, pmask(), palmapping(), 1  'firstindex = 1
-   palmapping(0) = 0
+   remapping_pal = palette16_new_from_indices(palmapping())
+  END IF
+
+  img = frame_import_bmp_raw(srcbmp)
+  IF remap_background THEN
+   'Note img doesn't contain any 0 pixels, so the user will never get asked what to do with them.
+   IF importbmp_change_background_color(img, remapping_pal) THEN
+    'The background color has now been converted to 0, so preserve it rather than using nearest match
+    remap_0_to_0 = YES
+   END IF
+  END IF
+
+  IF remap_nearest_match THEN
+   palette16_unload @remapping_pal
+   IF remap_0_to_0 THEN palmapping(0) = 0
    FOR y as integer = 0 TO img->h - 1
     FOR x as integer = 0 TO img->w - 1
      putpixel img, x, y, palmapping(readpixel(img, x, y))
     NEXT
    NEXT
   END IF
+
  ELSE
   'Since the source image is not paletted, we don't know what the background colour
   'is (if any: not all backdrops and tilesets are transparent). Import it, disallowing anything to
@@ -573,10 +596,9 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
   img = frame_import_bmp24_or_32(srcbmp, pmask(), TYPE(1, -1))
- END IF
- IF remap_background THEN
   importbmp_change_background_color img
  END IF
+
  ' Throw away pmask() (why?)
  loadpalette pmask(), activepalette
  RETURN img
@@ -3148,7 +3170,7 @@ END FUNCTION
 'Can restrict the selected pixel to the top left corner of the image by passing maxx, maxy args
 'Returns NO if user cancelled, otherwise YES and the pixel coordinate is returned in pickpos
 FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
- DIM ret as bool = YES
+ DIM ret as bool
  DIM tog as integer
  DIM picksize as XYPair
  'pickpos will be set to mouse cursor position
@@ -3189,7 +3211,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
    initialise_pickpos = NO
   ELSE
    DIM movespeed as integer
-   IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
+   IF keyval(scShift) THEN movespeed = 9 ELSE movespeed = 1
    DIM moved as bool = NO
    IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0) : moved = YES
    IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1) : moved = YES
@@ -3209,14 +3231,16 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
 
   '--Draw info box at top right
   DIM current_col as integer = readpixel(image, pickpos.x, pickpos.y)
+  DIM msg as string = !"Color:\n" & current_col
   DIM master_col as integer  ' Index in master()
   IF pal16 THEN
    master_col = pal16->col(current_col)
+   msg &= !"\nMapped\nto " & master_col
   ELSE
    master_col = current_col
   END IF
-  rectangle rRight - 50, 0, 50, 40, master_col, dpage
-  edgeprint !"Color:\n" & current_col, rRight - 50, 10, uilook(uiMenuItem), dpage, YES, YES
+  rectangle pRight, 0, 50, 40, master_col, dpage
+  edgeprint msg, pRight, ancCenter + 20, uilook(uiMenuItem), dpage, YES, YES
 
   '--Draw the pixel cursor
   DIM col as integer
@@ -3234,8 +3258,8 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
    printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
   END IF
 
-  edgeprint message, 0, 180, uilook(uiMenuItem), dpage, YES, YES
-  'edgeprint "ALT: move faster", 320 - 16*8, 190, uilook(uiMenuItem), dpage, YES, YES
+  edgeprint message, 0, pBottom, uilook(uiText), dpage, YES, YES
+  'edgeprint "SHIFT: move faster", pRight, pBottom, uilook(uiMenuItem), dpage, YES, YES
   SWAP vpage, dpage
   setvispage vpage
   dowait
