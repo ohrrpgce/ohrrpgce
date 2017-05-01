@@ -122,6 +122,10 @@ dim key2text(3,53) as string*1 => { _
 	{"", "", !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176"}, _
 	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
 }
+' Translate scancodes scNumpadSlash and up to ASCII.
+' Again, Enter is skipped.
+' *, -, + are missing, since their scancodes aren't contiguous with the others.
+dim shared numpad2text(...) as string*1 => {"7","8","9","","4","5","6","","1","2","3","0","."}
 
 ' Frame type table
 DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unload)
@@ -1514,8 +1518,29 @@ function get_ascii_inputtext () as string
 		end if
 	next i
 
-	'Space missing from key2text
+	' A few keys missing from key2text
 	if real_keyval(scSpace) > 1 then ret &= " "
+	if real_keyval(scNumpadAsterisk) > 1 then ret &= "*"
+	if real_keyval(scNumpadMinus) > 1 then ret &= "-"
+	if real_keyval(scNumpadPlus) > 1 then ret &= "+"
+	' (Bug: gfx_fb reports both scSlash and scNumpadSlash)
+	if gfxbackend <> "fb" and real_keyval(scNumpadSlash) > 1 then ret &= "/"
+
+	' Numpad is missing from key2text
+	' (Bug: gfx_fb on Windows never reports scNumpad5 at all!)
+	for i as integer = 0 to ubound(numpad2text)
+		if real_keyval(scNumpad7 + i) > 1 then
+			ret &= numpad2text(i)
+		end if
+        next
+	' Note, we ignore numlock/shift, because backends/OSes differ on when
+	' they report text input from numpad keys anyway:
+	' X11 (both FB and SDL): when numlock XOR shift is pressed
+	' Windows (both FB and SDL): only when numlock on and shift not pressed
+	' gfx_directx: when numlock is on
+	' (Also, on Windows, status of numlock is buggy: for gfx_sdl and gfx_directx,
+	' after user turns it off, state doesn't update until next keypress,
+	' while gfx_fb doesn't report it at all)
 
 	return ret
 end function
