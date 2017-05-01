@@ -1564,7 +1564,8 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  DIM menu as SimpleMenuItem vector
  v_new menu, 0
- append_simplemenu_item menu, "Previous Menu...", , , 0
+ append_simplemenu_item menu, "Previous Menu...", , , -1
+ append_simplemenu_item menu, "None", , , 0
 
  DIM special_header as bool = NO 
  FOR i as integer = 0 TO UBOUND(ses.specialcodes)
@@ -1605,15 +1606,15 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
  DO
   setwait 55
   setkeys YES
-  IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
-  IF keyval(scEnter) > 1 THEN
-   result = v_at(menu, st.pt)->dat
-   EXIT DO
-  END IF
 
   usemenu st, cast(BasicMenuItem vector, menu)
   curcode = v_at(menu, st.pt)->dat
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
+  IF keyval(scEnter) > 1 THEN
+   IF curcode <> -1 THEN result = curcode  'Not 'Previous Menu'
+   EXIT DO
+  END IF
   
   'Special handling that only happens for the user-defined lookup codes
   IF st.pt > userdef_start THEN
