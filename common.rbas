@@ -1390,7 +1390,7 @@ END FUNCTION
 
 'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
 'number keys, page up/down, copy/paste, minus, etc.
-FUNCTION keygrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight) as bool
+FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
  IF keyval(more) > 1 THEN
   n = loopvar(n, min, max, 1)
   RETURN YES
@@ -1405,17 +1405,17 @@ END FUNCTION
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
 'If autoclamp is false, n is clamped within allowable range only if a key is pressed
-FUNCTION intgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
- DIM as LONGINT temp = n
+FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
+ DIM as longint temp = n
  intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONGINT, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
- STATIC clip as LONGINT
- DIM old as LONGINT = n
- DIM typed as integer = NO
+FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
+ STATIC clip as longint
+ DIM old as longint = n
+ DIM typed as bool = NO
 
  ' Mapping from scNumpad7 and up to scNumpad0 to values
  STATIC numpad_nums(...) as integer = {7, 8, 9, -1, 4, 5, 6, -1, 1, 2, 3, 0}
@@ -1497,7 +1497,7 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
  END IF
 END FUNCTION
 
-FUNCTION zintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77) as integer
+FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=75, more as integer=77) as bool
  '--adjust for entries that are offset by +1
  '--what a hack!
  '--all entries <= 0 are special options not meant to be enumerated
@@ -1518,7 +1518,7 @@ FUNCTION zintgrabber (byref n as integer, byval min as integer, byval max as int
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION xintgrabber (byref n as integer, byval pmin as integer, byval pmax as integer, byval nmin as integer=1, byval nmax as integer=1, byval less as integer=scLeft, byval more as integer=scRight) as integer
+FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
  '--quite a bit of documentation required:
  '--like zintgrabber, but for cases where positive values mean one thing, negatives
  '--another, and 0 means none.
@@ -1606,7 +1606,7 @@ FUNCTION xintgrabber (byref n as integer, byval pmin as integer, byval pmax as i
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
+FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numlines as integer = 1, line_length as integer = 1) as integer
  'Return value is the line that the cursor is on, or 0 if numlines=1
  'insert is the 0-based position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
  'maxl is maximum length in characters.

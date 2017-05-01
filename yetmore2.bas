@@ -313,7 +313,7 @@ SUB showplotstrings
 END SUB
 
 'Returns whether the string has changed
-FUNCTION strgrabber (s as string, byval maxl as integer) as integer
+FUNCTION strgrabber (s as string, maxl as integer) as bool
  DIM old as string = s
 
  '--BACKSPACE support

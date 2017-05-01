@@ -155,11 +155,15 @@ DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval qualit
 DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
 DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
 
-DECLARE FUNCTION keygrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, byval min as integer, byval max as integer, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as LONGINT, byval min as LONGINT, byval max as LONGINT, byval less as integer=scLeft, byval more as integer=scRight, byval returninput as integer=NO, byval use_clipboard as integer=YES, byval autoclamp as integer=YES) as integer
-DECLARE FUNCTION zintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77) as integer
-DECLARE FUNCTION xintgrabber (byref n as integer, byval pmin as integer, byval pmax as integer, byval nmin as integer=1, byval nmax as integer=1, byval less as integer=scLeft, byval more as integer=scRight) as integer
+DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
+'strgrabber has separate versions in customsubs.bas and yetmore2.bas
+DECLARE FUNCTION strgrabber (s as string, maxl as integer) as bool
+
+DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
+DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=75, more as integer=77) as bool
+DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
 
 DECLARE SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
 DECLARE SUB show_message (s as string)
@@ -240,10 +244,6 @@ DECLARE FUNCTION filenum(byval n as integer) as string
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
 DECLARE SUB unload_sprite_and_pal (byref img as GraphicPair)
-
-DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
-'strgrabber has separate versions in customsubs.bas and yetmore2.bas
-DECLARE FUNCTION strgrabber (s as string, byval maxl as integer) as integer
 
 DECLARE FUNCTION exptolevel (byval level as integer) as integer
 DECLARE FUNCTION total_exp_to_level (byval level as integer) as integer

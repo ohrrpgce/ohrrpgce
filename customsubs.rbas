@@ -659,7 +659,7 @@ FUNCTION condition_string (cond as Condition, selected as bool, default as strin
 END FUNCTION
 
 'Returns true if the string has changed
-FUNCTION strgrabber (s as string, byval maxl as integer) as integer
+FUNCTION strgrabber (s as string, maxl as integer) as bool
  STATIC clip as string
  DIM old as string = s
 
