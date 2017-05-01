@@ -104,6 +104,7 @@ WHAT IS NEW?
       newly created games the defaults are both 75%. [Ralph]
     * When importing a BMP, unless the palette is identical, color 0
       won't be used unless you explicitly pick it [Ralph]
+    * Can input ID of unnamed lookup codes in slice editor [Ralph]
 
   * Bugfixes
     * 64-bit builds of Custom work now... for real this time! They

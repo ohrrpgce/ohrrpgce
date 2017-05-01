@@ -2,4 +2,8 @@ Lookup codes are names that you can give to slices to make it possible to easily
 
 Press Enter to browse and edit the list of available slice lookup codes.
 
+You can also type in the ID of a lookup code, or switch with LEFT and RIGHT.
+
+Also, you can edit the name of a lookup code by typing, without needing to enter the code browser.
+
 For more information, check out the plotscripting documentation for the "lookup slice" command.

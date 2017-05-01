@@ -77,6 +77,7 @@ ENUM EditRuleMode
   erStrgrabber        'Press ENTER for full-screen text editor
   erToggle
   erPercentgrabber
+  erLookupgrabber
 END ENUM
 
 TYPE EditRule
@@ -143,6 +144,7 @@ DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slic
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, byref state as MenuState, edit_separately as bool)
 DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
+DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
 DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
@@ -965,6 +967,9 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    IF percent_grabber(*n, format_percent(*n), 0.0, 1.0) THEN
     state.need_update = YES
    END IF
+  CASE erLookupgrabber
+   DIM n as integer ptr = rule.dataptr
+   state.need_update OR= lookup_code_grabber(*n, ses, rule.lower, rule.upper)
  END SELECT
  IF rule.group AND slgrPICKTYPE THEN
   DIM switchtype as integer = NO
@@ -1010,7 +1015,8 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   END IF
  END IF
  IF rule.group AND slgrPICKLOOKUP THEN
-  IF enter_space_click(state) THEN
+  ' Ignore scSpace, which is captured by lookup_code_grabber
+  IF enter_space_click(state) AND keyval(scSpace) = 0 THEN
    DIM n as integer ptr = rule.dataptr
    *n = edit_slice_lookup_codes(ses, ses.slicelookup(), *n, sl->SliceType)
    state.need_update = YES
@@ -1166,10 +1172,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   DIM minlookup as integer = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, -999999999, 0)
   #IFDEF IS_CUSTOM
-   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, minlookup, UBOUND(ses.slicelookup), slgrPICKLOOKUP
+   sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
   #ELSE
    IF .Lookup >= 0 THEN
-    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, minlookup, UBOUND(ses.slicelookup), slgrPICKLOOKUP
+    sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
    ELSE
     '--Not allowed to change lookup code at all
     sliceed_rule_none rules(), "lookup"
@@ -1531,6 +1537,8 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
   s = STR(code)
   IF code <= UBOUND(slicelookup) THEN
    s = s & " " & slicelookup(code)
+  ELSE
+   s &= " (Unnamed)"
   END IF
  END IF
  RETURN s
@@ -1555,6 +1563,48 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
    debug "Unknown slice lookup code kindlimit constant " & kindlimit
  END SELECT
  RETURN NO
+END FUNCTION
+
+' Delete blank lookup codes from the end of the list, leaving one blank name
+SUB shrink_lookup_list(slicelookup() as string)
+ DIM last as integer = 0
+ FOR i as integer = UBOUND(slicelookup) TO 0 STEP -1
+  IF TRIM(slicelookup(i)) <> "" THEN
+   last = i
+   EXIT FOR
+  END IF
+ NEXT i
+ last += 1  ' Leave (or add) one blank name
+ IF UBOUND(slicelookup) <> last THEN
+  REDIM PRESERVE slicelookup(last) as string 
+ END IF
+END SUB
+
+' Allows typing in either a lookup code number, or naming the selected lookup code
+' (You have to go into the proper editor to type in numbers!)
+' You can only rename lookup coes already existing, but the final entry in
+' ses.slicelookup() should normally be blank.
+' Returns true if the code was modified.
+FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
+ ' Kludge: To determine whether Backspace deletes part of the name or a
+ ' digit of the code we keep the following state:
+ STATIC just_typed_name as bool = NO
+ IF (keyval(scBackspace) <= 1 OR just_typed_name = NO) _
+    ANDALSO intgrabber(code, lowerlimit, upperlimit, , , , , NO) THEN  'autoclamp=NO
+  ' Another kludge: Don't wrap around to INT_MAX!
+  IF code = upperlimit AND keyval(scLeft) > 0 THEN code = UBOUND(ses.slicelookup)
+  just_typed_name = NO
+  RETURN YES
+ ELSEIF code > 0 AND code <= UBOUND(ses.slicelookup) THEN
+  ' Don't allow naming code 0.
+  IF strgrabber(ses.slicelookup(code), 40) THEN
+   ses.slicelookup(code) = sanitize_script_identifier(ses.slicelookup(code))
+   shrink_lookup_list ses.slicelookup()
+   save_string_list ses.slicelookup(), workingdir & SLASH & "slicelookup.txt"
+   just_typed_name = YES
+   RETURN YES
+  END IF
+ END IF
 END FUNCTION
 
 FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
@@ -1644,16 +1694,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
  LOOP
  
  '--shrink the end of the list to exclude blank ones.
- DIM last as integer = UBOUND(slicelookup)
- FOR i as integer = UBOUND(slicelookup) TO 0 STEP -1
-  IF TRIM(slicelookup(i)) <> "" THEN
-   last = i
-   EXIT FOR
-  END IF
- NEXT i
- IF UBOUND(slicelookup) <> last THEN
-  REDIM PRESERVE slicelookup(last) as string 
- END IF
+ shrink_lookup_list slicelookup()
 
  '--Make sure the 0 string is blank
  slicelookup(0) = ""
