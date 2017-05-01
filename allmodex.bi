@@ -190,7 +190,10 @@ DECLARE SUB drawline OVERLOAD (byval x1 as integer, byval y1 as integer, byval x
 DECLARE SUB paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 DECLARE SUB ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval radius as double, byval c as integer, byval fillcol as integer = -1, byval semiminor as double = 0.0, byval angle as double = 0.0)
 DECLARE SUB replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
+DECLARE SUB swapcolors(fr as Frame ptr, col1 as integer, col2 as integer)
 DECLARE FUNCTION countcolor (fr as Frame ptr, col as integer) as integer
+DECLARE SUB remap_to_palette OVERLOAD (fr as Frame ptr, pal as Palette16 ptr)
+DECLARE SUB remap_to_palette OVERLOAD (fr as Frame ptr, palmapping() as integer)
 
 '==========================================================================================
 
@@ -444,7 +447,6 @@ declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
-declare sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
 declare sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
 declare sub sprite_update_cache(sprtype as SpriteType)
 declare sub tileset_empty_cache()

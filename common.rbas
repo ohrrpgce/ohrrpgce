@@ -5827,9 +5827,7 @@ FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectTy
  DIM r as RectType
  r.x = x
  r.y = y
- 'FIXME: different font size support!
- r.wide = LEN(s) * 8
- r.high = 8
+ r.size = textsize(s, rWidth)  'Wrapped to screen size
  RETURN r
 END FUNCTION
 

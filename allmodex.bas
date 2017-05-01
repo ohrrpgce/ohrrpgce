@@ -4076,6 +4076,28 @@ sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols 
 	next
 end sub
 
+sub swapcolors(fr as Frame ptr, col1 as integer, col2 as integer)
+	replacecolor fr, col1, col2, YES
+end sub
+
+'Changes a Frame in-place, applying a remapping
+sub remap_to_palette (fr as Frame ptr, pal as Palette16 ptr)
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
+	for y as integer = clipt to clipb
+		for x as integer = clipl to clipr
+			FRAMEPIXEL(x, y, fr) = pal->col(FRAMEPIXEL(x, y, fr))
+		next
+	next
+end sub
+
+sub remap_to_palette (fr as Frame ptr, palmapping() as integer)
+	dim pal as Palette16 ptr = Palette16_new_from_indices(palmapping())
+	remap_to_palette fr, pal
+	Palette16_unload @pal
+end sub
+
 ' Count the number of occurrences of a color in a Frame (just the clipped region)
 function countcolor (fr as Frame ptr, col as integer) as integer
 	if clippedframe <> fr then
@@ -7848,18 +7870,6 @@ sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 			next
 		end if
 	end if
-end sub
-
-sub frame_swap_colors(byval spr as Frame ptr, byval col1 as integer, byval col2 as integer)
-	for xx as integer = 0 to spr->w - 1
-		for yy as integer = 0 to spr->h - 1
-			if readpixel(spr, xx, yy) = col1 then
-				putpixel spr, xx, yy, col2
-			elseif readpixel(spr, xx, yy) = col2 then
-				putpixel spr, xx, yy, col1
-			end if
-		next
-	next
 end sub
 
 'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.

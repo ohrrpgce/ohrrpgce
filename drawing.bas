@@ -502,7 +502,7 @@ FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 pt
   IF choice = 1 THEN
    ' If we want to map 0 to nearest and nearest to 0, need to do an atomic swap
    IF nearest = bgcol THEN
-    replacecolor img, bgcol, 0, YES  'swapcols=YES
+    swapcolors img, bgcol, 0
     RETURN YES
    ELSE
     replacecolor img, 0, nearest
@@ -582,11 +582,7 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   IF remap_nearest_match THEN
    palette16_unload @remapping_pal
    IF remap_0_to_0 THEN palmapping(0) = 0
-   FOR y as integer = 0 TO img->h - 1
-    FOR x as integer = 0 TO img->w - 1
-     putpixel img, x, y, palmapping(readpixel(img, x, y))
-    NEXT
-   NEXT
+   remap_to_palette img, palmapping()
   END IF
 
  ELSE
@@ -3412,7 +3408,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  END IF
 
  'Swap the transparent pixels to 0
- frame_swap_colors impsprite, 0, bgcol
+ swapcolors impsprite, 0, bgcol
  SWAP pal16->col(0), pal16->col(bgcol)
 
  'Trim or expand the image to final dimensions (only for spritedit_import16_remap_menu)
@@ -3448,12 +3444,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
 
  ELSEIF remap = 1 THEN
   'Remap into current palette
-  FOR x as integer = 0 TO impsprite->w - 1
-   FOR y as integer = 0 TO impsprite->h - 1
-    DIM col as integer = palmapping(readpixel(impsprite, x, y))
-    putpixel(impsprite, x, y, col)
-   NEXT
-  NEXT
+  remap_to_palette impsprite, palmapping()
 
  ELSEIF remap = 2 THEN
   'Import without palette
