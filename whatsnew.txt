@@ -74,6 +74,7 @@ WHAT IS NEW?
       [Matthias]
     * You can now also remap the background color from the Import/Export
       Backdrop/Tileset menu; also added 'View with background' [Ralph]
+    * Numbers can be typed with Numpad keys (I never even tried!) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

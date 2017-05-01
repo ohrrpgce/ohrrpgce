@@ -1417,10 +1417,15 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
  DIM old as LONGINT = n
  DIM typed as integer = NO
 
- IF more <> 0 AND keyval(more) > 1 THEN
+ ' Mapping from scNumpad7 and up to scNumpad0 to values
+ STATIC numpad_nums(...) as integer = {7, 8, 9, -1, 4, 5, 6, -1, 1, 2, 3, 0}
+
+ IF more <> 0 ANDALSO keyval(more) > 1 THEN
+  n = bound(n, min, max)  'If it's out of range, loopvar would return garbage
   n = loopvar(n, min, max, 1)
   typed = YES
- ELSEIF less <> 0 AND keyval(less) > 1 THEN
+ ELSEIF less <> 0 ANDALSO keyval(less) > 1 THEN
+  n = bound(n, min, max)
   n = loopvar(n, min, max, -1)
   typed = YES
  ELSE
@@ -1428,19 +1433,32 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
   n = ABS(n)
   IF keyval(scBackspace) > 1 THEN n \= 10: typed = YES
 
-  FOR i as integer = 1 TO 9
-   IF keyval(sc1 - 1 + i) > 1 THEN
-    n = n * 10 + i
+  ' Make sure you're not typing something else with shift
+  IF keyval(scShift) = 0 THEN
+   FOR i as integer = 1 TO 9
+    IF keyval(sc1 - 1 + i) > 1 THEN
+     n = n * 10 + i
+     typed = YES
+    END IF
+   NEXT
+   IF keyval(sc0) > 1 THEN
+    n = n * 10
     typed = YES
    END IF
-  NEXT
-  IF keyval(sc0) > 1 THEN
-   n = n * 10
-   typed = YES
   END IF
+  ' However, allow Shift while using numpad keys: under gfx_fb on X11,
+  ' numpad keys aren't converted to Left, End, etc IF shift XOR numlock
+  FOR i as integer = 0 TO UBOUND(numpad_nums)
+   IF keyval(scNumpad7 + i) > 1 THEN
+    IF numpad_nums(i) > -1 THEN
+     n = n * 10 + numpad_nums(i)
+     typed = YES
+    END IF
+   END IF
+  NEXT
 
+  ' Handle negatives
   IF old = 0 ANDALSO n <> 0 ANDALSO negative_zero THEN sign = -1
-
   IF min < 0 AND max > 0 THEN
    IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
     IF n = 0 THEN
@@ -1455,7 +1473,8 @@ FUNCTION intgrabber (byref n as LONGINT, byval min as LONGINT, byval max as LONG
     typed = YES
    END IF
   END IF
-  IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
+  IF sign < 0 OR (min < 0 AND max = 0) THEN n = -n
+
   'CLIPBOARD
   IF use_clipboard THEN
    IF copy_keychord() THEN clip = n
