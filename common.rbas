@@ -5256,7 +5256,8 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   ELSE
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
   END IF
-  printstr filename + fgtag(uilook(uiText)) + ext, pCenteredRight, 60, dpage, YES
+  DIM display_fname as string = IIF(LEN(filename), filename, "<type filename>")
+  printstr display_fname + fgtag(uilook(uiText)) + ext, pCenteredRight, 60, dpage, YES
 
   SWAP vpage, dpage
   setvispage vpage
