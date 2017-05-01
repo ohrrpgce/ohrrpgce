@@ -105,6 +105,7 @@ dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_surfaceShrink as function ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 dim gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
@@ -431,6 +432,7 @@ private sub default_gfx_render_procs()
 	gfx_surfaceGetData = @gfx_surfaceGetData_SW
 	gfx_surfaceFill = @gfx_surfaceFill_SW
 	gfx_surfaceStretch = @gfx_surfaceStretch_SW
+	gfx_surfaceShrink = @gfx_surfaceShrink_SW
 	gfx_surfaceCopy = @gfx_surfaceCopy_SW
 	gfx_paletteCreate = @gfx_paletteCreate_SW
 	gfx_paletteFromRGB = @gfx_paletteFromRGB_SW

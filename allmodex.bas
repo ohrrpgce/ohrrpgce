@@ -7411,6 +7411,12 @@ sub frame_assign cdecl(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
 	*ptr_to_replace = new_value
 end sub
 
+' See frame_assign.
+sub surface_assign cdecl(ptr_to_replace as Surface ptr ptr, new_value as Surface ptr)
+	gfx_surfaceDestroy(ptr_to_replace)
+	*ptr_to_replace = new_value
+end sub
+
 ' This is for the Frame ptr vector typetable. Ignore.
 private sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
 	*dest = frame_reference(*src)

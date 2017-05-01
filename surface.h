@@ -5,12 +5,12 @@
 #include "allmodex.h"
 
 typedef union {
-	uint32_t col;
 	struct {
 		// Opaque is a=255. Not pre-multiplied. However, only the rasterizer
 		// and BMP import uses the alpha channel, all other code ignores it.
 		unsigned char b, g, r, a;
 	};
+	uint32_t col;
 } RGBcolor;
 
 enum SurfaceFormat
@@ -46,7 +46,7 @@ typedef struct
 
 #ifdef __cplusplus
 	uint8_t& pixel8(int x, int y) { return pPaletteData[width * y + x]; }
-	uint32_t& pixel32(int x, int y) { return pColorData[width * y + x]; }
+	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[width * y + x]; }
 #endif
 } Surface;
 
@@ -76,6 +76,7 @@ extern "C"
 	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
 	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
 	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	Surface* gfx_surfaceShrink_SW( Surface *surf, int destWidth, int destHeight );
 	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
 	int gfx_paletteCreate_SW( RGBPalette** ppPaletteOut );
