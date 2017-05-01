@@ -29,8 +29,13 @@ Type FrameFwd as Frame
 Type Surface
 	handle as any ptr
 	refcount as int32
-	width as int32
-	height as int32
+	Union
+		Type
+			width as int32
+			height as int32
+		End Type
+		size as XYPair
+	End Union
 			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
 	format as int32 ' SurfaceFormat
 	usage as int32  ' SurfaceUsage

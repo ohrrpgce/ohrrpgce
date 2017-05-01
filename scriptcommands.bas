@@ -1064,10 +1064,9 @@ SUB script_functions(byval cmdid as integer)
    RefreshSliceScreenPos sl
    WITH *sl
     ' This will work regardless of what the slice is parented to.
-    DIM as XYPair startpos = (.ScreenX + mapx, .ScreenY + mapy), pos
-    scriptret = check_wallmap_collision(startpos, pos, XY(.Width, .Height), retvals(1), retvals(2), NO)
-    .X += pos.x - startpos.x
-    .Y += pos.y - startpos.y
+    DIM as XYPair startpos = .ScreenPos + XY(mapx, mapy), pos
+    scriptret = check_wallmap_collision(startpos, pos, .Size, retvals(1), retvals(2), NO)
+    .Pos += pos - startpos
    END WITH
   END IF
 

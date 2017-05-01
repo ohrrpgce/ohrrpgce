@@ -30,8 +30,14 @@ Type SpriteSetFwd as SpriteSet
 '.arraylen set to the length of the array, and all but first will have .arrayelem = YES.
 'WARNING: don't add strings to this
 Type Frame
-	w as int32
-	h as int32
+	Union
+		Type
+			w as int32
+			h as int32
+		End Type
+		size as XYPair
+	End Union
+
 	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr
@@ -363,8 +369,13 @@ DECLARE SUB macro_controls ()
 DECLARE SUB global_setkeys_hook ()
 
 Type MouseInfo
-	x as integer
-	y as integer
+	Union
+		Type
+			x as integer
+			y as integer
+		End Type
+		pos as XYPair
+	End Union
 	moved as bool         'Whether mouse has moved since the last setkeys call
 	clicks as integer     'Button down since the last setkeys call; MouseButton bitvector (see scancodes.bi)
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector

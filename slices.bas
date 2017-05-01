@@ -2879,11 +2879,9 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer
    NumDrawnSlices += 1
    'translate screenX/Y by the position difference between page (due to it
    'potentially being a view on the screen) and the screen.
-   s->ScreenX += GlobalCoordOffset.X
-   s->ScreenY += GlobalCoordOffset.Y
+   s->ScreenPos += GlobalCoordOffset
    s->Draw(s, page)
-   s->ScreenX -= GlobalCoordOffset.X
-   s->ScreenY -= GlobalCoordOffset.Y
+   s->ScreenPos -= GlobalCoordOffset
   end if
   AutoSortChildren(s)
   s->ChildDraw(s, page)
@@ -2909,8 +2907,7 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
   dummyparent->Height = h
   DIM oldpos as XYPair
   if ignore_offset then
-   oldpos.X = s->X
-   oldpos.Y = s->Y
+   oldpos = s->Pos
    s->X = 0
    s->Y = 0
   end if
@@ -2924,8 +2921,7 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
   s->ChildDraw(s, page)
 
   if ignore_offset then
-   s->X = oldpos.X
-   s->Y = oldpos.Y
+   s->Pos = oldpos
   end if
   DeleteSlice @dummyparent
  end if
@@ -2939,9 +2935,8 @@ Function UpdateRootSliceSize(sl as slice ptr) as bool
  if sl = 0 then return NO
  dim changed as bool
  with *sl
-  changed = get_resolution() <> XY(.Width, .Height)
-  .Width = get_resolution().w
-  .Height = get_resolution().h
+  changed = get_resolution() <> .Size
+  .Size = get_resolution()
  end with
  return changed
 end function

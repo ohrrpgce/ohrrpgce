@@ -133,12 +133,30 @@ TYPE Slice
   PrevSibling as Slice Ptr
   NumChildren as integer
   
-  X as integer 'the X,Y relative to whatever the slice is attached to
-  Y as integer
-  ScreenX as integer 'the actual X,Y, updated every frame
-  ScreenY as integer
-  Width as integer
-  Height as integer
+  Union
+    Type
+      X as integer       'The X,Y relative to whatever the slice is attached to
+      Y as integer
+    End Type
+    Pos as XYPair
+  End Union
+
+  Union
+    Type
+      ScreenX as integer 'The actual X,Y, updated every frame
+      ScreenY as integer
+    End Type
+    ScreenPos as XYPair
+  End Union
+
+  Union
+    Type
+      Width as integer
+      Height as integer
+    End Type
+    Size as XYPair
+  End Union
+
   Visible as bool
   Paused as bool  'Whether to not apply target and velocity movement to this slice tree
   Clip as bool

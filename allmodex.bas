@@ -2020,7 +2020,7 @@ end function
 sub update_mouse_state ()
 	dim starttime as double = timer
 
-	dim lastpos as XYPair = XY(mouse_state.x, mouse_state.y)
+	dim lastpos as XYPair = mouse_state.pos
 
 	mutexlock keybdmutex   'Just in case
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
@@ -2032,7 +2032,7 @@ sub update_mouse_state ()
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
-	mouse_state.moved = (lastpos.x <> mouse_state.x OR lastpos.y <> mouse_state.y)
+	mouse_state.moved = lastpos <> mouse_state.pos
 
 	if mouse_state.dragging then
 		'Test whether drag ended
@@ -2047,7 +2047,7 @@ sub update_mouse_state ()
 			dim mask as integer = 2 ^ i
 			if mouse_state.clicks and mask then
 				'Do not flag as dragging until the second tick
-				mouse_state.clickstart = XY(mouse_state.x, mouse_state.y)
+				mouse_state.clickstart = mouse_state.pos
 			elseif mouse_state.buttons and mask then
 				'Button still down
 				mouse_state.dragging = mask

@@ -5561,7 +5561,8 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   END IF
   IF keyval(scF1) > 1 THEN show_help "color_browser"
 
-  DIM mousecursor as XYPair = ((mouse.x - gridpos.x) \ tilesize.x, (mouse.y - gridpos.y) \ tilesize.y)
+  DIM mousecursor as XYPair
+  mousecursor = (mouse.pos - gridpos) \ tilesize
   DIM mouse_over_grid as bool = in_bound(mousecursor.x, 0, 15) AND in_bound(mousecursor.y, 0, 15)
 
   'Ignore mouse movement first tick to preserve start_color selection
