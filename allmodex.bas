@@ -94,6 +94,8 @@ declare function time_draw_calls_from_finish() as bool
 
 declare function hexptr(p as any ptr) as string
 
+declare sub Palette16_delete(byval f as Palette16 ptr ptr)
+
 
 '------------ Global variables ------------
 
@@ -4154,11 +4156,38 @@ type PrintStrState
 	as long charnum
 
 	'Internal members used only if drawing, as opposed to laying out/measuring
-	as Palette16 localpal
+	as Palette16 ptr localpal  'NULL if not initialised
 	as long initial_fgcolor  'Used when resetting fgcolor
 	as long initial_bgcolor  'Used when resetting bgcolor
 	as bool initial_not_trans 'Used when resetting bgcolor
+
+	declare constructor()
+	declare constructor(rhs as PrintStrState)
+	declare destructor()
 end type
+
+' Need a default ctor just because there is a copy ctor
+constructor PrintStrState()
+end constructor
+
+constructor PrintStrState(rhs as PrintStrState)
+	memcpy(@this, @rhs, sizeof(PrintStrState))
+	if localpal then
+		this.localpal->refcount += 1
+	end if
+end constructor
+
+destructor PrintStrState()
+	' Palette16_unload wouldn't actually delete localpal, because it thinks
+	' it's cached, so sadly we reimplement it
+	'Palette16_unload @localpal
+	if localpal then
+		localpal->refcount -= 1
+		if localpal->refcount <= 0 then
+			Palette16_delete @localpal
+		end if
+	end if
+end destructor
 
 'Special signalling characters
 #define tcmdFirst      15
@@ -4170,7 +4199,6 @@ end type
 
 'Invisible argument: state. (member should not be . prefixed, unfortunately)
 'Modifies state, and appends a control sequence to the string outbuf to duplicate the change
-'Assumes 32 bit.
 'Note: in order to support members that are less than 4 bytes (eg palette colours) some hackery is done, and
 'members greater than 4 bytes aren't supported
 #macro UPDATE_STATE(outbuf, member, value)
@@ -4450,12 +4478,19 @@ end function
 'Build state.localpal
 sub build_text_palette(byref state as PrintStrState, byval srcpal as Palette16 ptr)
 	with state
-		if srcpal then
-			memcpy(@.localpal, srcpal, sizeof(Palette16))
+		if state.localpal = NULL then
+			' FIXME: This returns a non-refcounted palette16, but we want
+			' a refcount, which we're forced to manage ourselves (see destructor)
+			state.localpal = Palette16_new()
+			state.localpal->refcount = 1
 		end if
-		.localpal.col(0) = .bgcolor
+		if srcpal then
+			memcpy(@.localpal->col(0), @srcpal->col(0), srcpal->numcolors)
+			.localpal->numcolors = srcpal->numcolors
+		end if
+		.localpal->col(0) = .bgcolor
 		if .fgcolor > -1 then
-			.localpal.col(1) = .fgcolor
+			.localpal->col(1) = .fgcolor
 		end if
 		if srcpal = NULL and .fgcolor = -1 then
 			debug "render_text: Drawing a font without a palette or foreground colour!"
@@ -4463,7 +4498,7 @@ sub build_text_palette(byref state as PrintStrState, byval srcpal as Palette16 p
 'debug "build_text_palette: bg = " & .bgcolor & " fg = "& .fgcolor & " outline = " & .thefont->outline_col
 		'Outline colours are a hack, hopefully temp.
 		if .thefont->outline_col > 0 then
-			.localpal.col(.thefont->outline_col) = uilook(uiOutline)
+			.localpal->col(.thefont->outline_col) = uilook(uiOutline)
 		end if
 	end with
 end sub
@@ -4549,7 +4584,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 							'(2-layer fonts would need layer 0 to be opaque)
 							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
-							drawohr(@charframe, dest, @state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
+							drawohr(@charframe, dest, state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans)
 						end with
 					end if
 				end if
@@ -6608,7 +6643,6 @@ end sub
 'not to be used outside of the sprite functions
 declare sub frame_delete_members(byval f as frame ptr)
 declare sub frame_freemem(byval f as frame ptr)
-declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 declare sub spriteset_freemem(byval sprset as SpriteSet ptr)
 'Assumes pitch == w
 declare sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
