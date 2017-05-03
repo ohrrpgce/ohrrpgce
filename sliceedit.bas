@@ -52,6 +52,10 @@ TYPE SliceEditState
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
 
+ ' Internal state of lookup_code_grabber
+ editing_lookup_name as bool
+ last_lookup_name_edit as double  'Time of last edit
+
  ' Indices of menu items in slicemenu()
  collection_name_pt as integer  'The "Editing <collection name>" title, or -1
  last_non_slice as integer
@@ -137,7 +141,7 @@ DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as 
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
-DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule)
+DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
@@ -877,6 +881,7 @@ END SUB
 SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 
  STATIC remember_pt as integer
+ DIM usemenu_flag as bool
 
  IF sl = 0 THEN EXIT SUB
 
@@ -913,9 +918,9 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
    state.need_update = NO
   END IF
 
-  usemenu state
+  usemenu_flag = usemenu(state)
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
-  slice_edit_detail_keys ses, state, sl, rules()
+  slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
   
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
@@ -935,7 +940,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
  
 END SUB
 
-SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule)
+SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
  DIM rule as EditRule = rules(state.pt)
  SELECT CASE rule.mode
   CASE erIntgrabber
@@ -1085,6 +1090,15 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  IF state.need_update AND sl->SliceType = slText THEN
   UpdateTextSlice sl
  END IF
+
+ ' Update transient editing state
+ IF ses.last_lookup_name_edit THEN
+  ' Don't stay in name-editing mode unexpectantly
+  IF ses.last_lookup_name_edit < TIMER - 2.5 OR usemenu_flag THEN
+   ses.editing_lookup_name = NO
+   state.need_update = YES
+  END IF
+ END IF
 END SUB
 
 FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
@@ -1170,6 +1184,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
+  IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
   DIM minlookup as integer = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, -999999999, 0)
   #IFDEF IS_CUSTOM
    sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
@@ -1581,19 +1596,17 @@ SUB shrink_lookup_list(slicelookup() as string)
 END SUB
 
 ' Allows typing in either a lookup code number, or naming the selected lookup code
-' (You have to go into the proper editor to type in numbers!)
-' You can only rename lookup coes already existing, but the final entry in
+' You can only rename lookup codes already existing, but the final entry in
 ' ses.slicelookup() should normally be blank.
 ' Returns true if the code was modified.
 FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
- ' Kludge: To determine whether Backspace deletes part of the name or a
- ' digit of the code we keep the following state:
- STATIC just_typed_name as bool = NO
- IF (keyval(scBackspace) <= 1 OR just_typed_name = NO) _
+ ' To determine whether Backspace and numerals edit the name or the ID code,
+ ' we use ses.editing_lookup_name
+ IF (ses.editing_lookup_name = NO OR keyval(scLeft) > 0 OR keyval(scRight)) _
     ANDALSO intgrabber(code, lowerlimit, upperlimit, , , , , NO) THEN  'autoclamp=NO
   ' Another kludge: Don't wrap around to INT_MAX!
   IF code = upperlimit AND keyval(scLeft) > 0 THEN code = UBOUND(ses.slicelookup)
-  just_typed_name = NO
+  ses.editing_lookup_name = NO
   RETURN YES
  ELSEIF code > 0 AND code <= UBOUND(ses.slicelookup) THEN
   ' Don't allow naming code 0.
@@ -1601,7 +1614,8 @@ FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState,
    ses.slicelookup(code) = sanitize_script_identifier(ses.slicelookup(code))
    shrink_lookup_list ses.slicelookup()
    save_string_list ses.slicelookup(), workingdir & SLASH & "slicelookup.txt"
-   just_typed_name = YES
+   ses.editing_lookup_name = YES
+   ses.last_lookup_name_edit = TIMER
    RETURN YES
   END IF
  END IF
