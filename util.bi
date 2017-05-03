@@ -364,6 +364,12 @@ declare function run_and_get_output(cmd as string, stdout_s as string, stderr_s 
   #define FLT_MAX 3.40282347e+38F
 #ENDIF
 
+' Don't use this directly.
+TYPE XYSimple
+  x as integer
+  y as integer
+END TYPE
+
 UNION XYPair
   TYPE
    x as integer
@@ -374,6 +380,8 @@ UNION XYPair
    h as integer
   END TYPE
   n(1) as integer
+  xy as XYSimple  'This is to allow LET(posx,posy) = pos.xy
+  wh as XYSimple
 
   DECLARE OPERATOR += (rhs as XYPair)
   DECLARE OPERATOR CAST () as string
