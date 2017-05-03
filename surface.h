@@ -83,6 +83,12 @@ extern "C"
 	int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	int gfx_paletteDestroy_SW( RGBPalette** ppPaletteIn );
 	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
+
+
+	// Convenience wrappers not specific to any Surface implementation
+	void surface_assign( Surface** ptr_to_replace, Surface* new_value );
+	Surface* surface_scale( Surface *surf, int destWidth, int destHeight );
+
 #ifdef __cplusplus
 };
 #endif

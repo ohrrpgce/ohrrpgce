@@ -100,7 +100,6 @@ extern "C"
 	extern gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-	extern gfx_surfaceShrink as function ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 	extern gfx_paletteCreate as function ( byval ppPaletteOut as RGBPalette ptr ptr) as integer
@@ -118,6 +117,7 @@ extern "C"
 
 	'' Convenience wrappers not specific to any Surface implementation
 	declare sub surface_assign (ptr_to_replace as Surface ptr ptr, new_value as Surface ptr)  'In allmodex.bas
+	declare function surface_scale ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
@@ -128,7 +128,6 @@ extern "C"
 	declare function gfx_surfaceGetData_SW ( byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceFill_SW ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceStretch_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
-	declare function gfx_surfaceShrink_SW ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
 	declare function gfx_paletteCreate_SW ( byval ppPaletteOut as RGBPalette ptr ptr ) as integer

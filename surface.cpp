@@ -135,47 +135,53 @@ typedef unsigned int fixedpoint;  // A number multipled by FIXEDPNT
 // srcp[i * srcpstep] are the input RGBcolor pixels, destp[i * destpstep] are
 // the output pixels, i varies in [0, num_out_pixels).
 // runlen is the number of input pixels to mix into each output pixel.
-static void shrinkrow(RGBcolor *srcp, int srcpstep, RGBcolor *destp, int destpstep, int num_out_pixels, fixedpoint runlen) {
+static void scalerow(RGBcolor *srcp, int srcpstep, RGBcolor *destp, int destpstep, int num_out_pixels, fixedpoint runlen) {
 	// Accumulators
 	fixedpoint Racc = 0, Gacc = 0, Bacc = 0;
-	fixedpoint run = runlen;  // Number of pixels left to mix into the accumulators
+	fixedpoint run;  // Number of pixels left to mix into the accumulators
+	fixedpoint pos = 0;   // Position within the current src pixel; a remainder in range [0, FIXEDPNT)
 
 	for (int outpix = 0; outpix < num_out_pixels; outpix++) {
-		for (int i = run / FIXEDPNT; i; i--) {
-			Racc += srcp->r * FIXEDPNT;
-			Gacc += srcp->g * FIXEDPNT;
-			Bacc += srcp->b * FIXEDPNT;
+		run = runlen;
+		// Length of the dest pixel that overlaps the current src pixel
+		fixedpoint overlap = std::min(runlen, FIXEDPNT - pos);
+		Racc = srcp->r * overlap;
+		Gacc = srcp->g * overlap;
+		Bacc = srcp->b * overlap;
+		run -= overlap;
+		pos = (pos + overlap) % FIXEDPNT;
+		if (!pos)
 			srcp += srcpstep;
-			run -= FIXEDPNT;
-		}
-		// Split the last pixel between two dest pixels
-		if (run) {  // In case this was the last pixel, don't keep reading
+		if (run) {
+			// Read any whole pixels
+			for (int i = run / FIXEDPNT; i; i--) {
+				Racc += srcp->r * FIXEDPNT;
+				Gacc += srcp->g * FIXEDPNT;
+				Bacc += srcp->b * FIXEDPNT;
+				run -= FIXEDPNT;
+				srcp += srcpstep;
+			}
+			// Read the remainder from the final src pixel
 			Racc += srcp->r * run;
 			Gacc += srcp->g * run;
 			Bacc += srcp->b * run;
+			pos = run;
 		}
 		*destp = {{ uint8_t(Bacc/runlen), uint8_t(Gacc/runlen), uint8_t(Racc/runlen), 255}};
 		destp += destpstep;
-		if (outpix == num_out_pixels - 1) break;  // Again, avoid reading *srcp
-		Racc = srcp->r * (FIXEDPNT - run);
-		Gacc = srcp->g * (FIXEDPNT - run);
-		Bacc = srcp->b * (FIXEDPNT - run);
-
-		srcp += srcpstep;
-		run += runlen - FIXEDPNT;
 	}
 }
 
-// Shrink a 32bit Surface to a given size using the 'pixel mixing' method (I don't
+// Scale a 32bit Surface to a given size using the 'pixel mixing' method (I don't
 // know a standard name); basically the inverse of bilinear interpolation.
 // Ignores alpha.
-Surface* gfx_surfaceShrink_SW(Surface *surf, int destWidth, int destHeight) {
+Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 	if (surf->format != SF_32bit) {
-		debug(errPromptBug, "surfaceShrink_SW: input must be 32-bit Surface");
+		debug(errPromptBug, "surface_scale: input must be 32-bit Surface");
 		return NULL;
 	}
-	if (destWidth > (int)surf->width || destWidth < 1 || destHeight > (int)surf->height || destHeight < 1) {
-		debug(errError, "surfaceShrink_SW: invalid dest size %d*%d (src size %d*%d)",
+	if (destWidth < 1 || destHeight < 1) {
+		debug(errError, "surface_scale: invalid dest size %d*%d (src size %d*%d)",
 		      destWidth, destWidth, surf->width, surf->height);
 		return NULL;
 	}
@@ -186,16 +192,16 @@ Surface* gfx_surfaceShrink_SW(Surface *surf, int destWidth, int destHeight) {
 	if (gfx_surfaceCreate_SW(destWidth, surf->height, SF_32bit, SU_Staging, &temp))
 		return NULL;  // Memory leak; I don't care
 
-	// Shrink surf horizontally, put result in temp
+	// Scale surf horizontally, put result in temp
 	fixedpoint runlen = surf->width * FIXEDPNT / destWidth;  // Rounds down, so we will never read off the end
 	for (unsigned int y = 0; y < surf->height; y++) {
-		shrinkrow(&surf->pixel32(0, y), 1, &temp->pixel32(0, y), 1, dest->width, runlen);
+		scalerow(&surf->pixel32(0, y), 1, &temp->pixel32(0, y), 1, dest->width, runlen);
 	}
 
-	// Shrink temp vertically, put result in dest
+	// Scale temp vertically, put result in dest
 	runlen = surf->height * FIXEDPNT / destHeight;
 	for (unsigned int x = 0; x < temp->width; x++) {
-		shrinkrow(&temp->pixel32(x, 0), temp->width, &dest->pixel32(x, 0), dest->width, dest->height, runlen);
+		scalerow(&temp->pixel32(x, 0), temp->width, &dest->pixel32(x, 0), dest->width, dest->height, runlen);
 	}
 
 	gfx_surfaceDestroy_SW(&temp);
