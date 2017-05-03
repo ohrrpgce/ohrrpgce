@@ -1700,33 +1700,44 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
  DIM pre as string = LEFT(s, insert)
  DIM post as string = RIGHT(s, LEN(s) - insert)
 
- '--BACKSPACE support
- IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
-  pre = LEFT(pre, LEN(pre) - 1)
-  insert = large(0, insert - 1)
- END IF
+ ' Ctrl-Backspace or Option-Delete (on a Mac; Option is Alt) to delete previous word
+ IF (keyval(scCtrl) > 0 AND keyval(scBackspace) > 1) OR _
+    (keyval(scAlt) > 0 AND keyval(scDelete) > 1) THEN
+  DIM lastspace as integer
+  ' First remove any whitespace at the end
+  pre = RTRIM(pre, ANY !" \n")
+  ' Find whitespace character before the last word, but don't delete it
+  lastspace = INSTRREV(pre, ANY !" \n", -1)  '-1: search from end
+  pre = LEFT(pre, lastspace)
+ ELSE
 
- '--DEL support
- IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
+  '--BACKSPACE support
+  IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
+   pre = LEFT(pre, LEN(pre) - 1)
+  END IF
+
+  '--DEL support
+  IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN
+   post = RIGHT(post, LEN(post) - 1)
+  END IF
+ END IF
 
  '--adding chars
  IF LEN(pre) + LEN(post) < maxl THEN
-  DIM oldlen as integer = LEN(pre)
   IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
 #IFDEF IS_CUSTOM
    '--charlist support
-   pre = pre & charpicker()
+   pre &= charpicker()
 #ENDIF
   ELSEIF keyval(scEnter) > 1 THEN
    IF numlines > 1 THEN
-    pre = pre & CHR(10)
+    pre &= CHR(10)
    END IF
   ELSE
-   pre = pre & getinputtext
+   pre &= getinputtext
   END IF
-  insert += (LEN(pre) - oldlen)
  END IF
-
+ insert = LEN(pre)
  s = LEFT(pre & post, maxl)
  
 END FUNCTION

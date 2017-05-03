@@ -11,3 +11,5 @@ Press CTRL+SPACE to choose special characters to insert at the current cursor lo
 CTRL+C Copies the current line.
 
 CTRL+V Pastes the previously copied line, replacing the line that the cursor is on.
+
+CTRL+BACKSPACE or ALT/OPTION+DELETE deletes the previous word.
