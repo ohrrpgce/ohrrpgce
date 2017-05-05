@@ -2979,11 +2979,11 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
   '~/.ohrrpgce/
   try_data_path(settings_dir & filename)
  #ENDIF
- #IFDEF DATAFILES
+ IF LEN(DATAFILES) THEN
   try_data_path(DATAFILES & SLASH & filename)
   ' In this case the packaging script could avoid put anything in a subdirectory
   try_data_path(DATAFILES & SLASH & "data" & SLASH & filename)
- #ENDIF
+ END IF
  RETURN ""
 END FUNCTION
 
@@ -5496,9 +5496,9 @@ FUNCTION get_help_dir(helpfile as string="") as string
  IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
  'platform-specific relative data files path (Mac OS X bundles)
  IF help_dir_helper(app_resources_dir & SLASH & "ohrhelp", helpfile) THEN RETURN app_resources_dir & SLASH & "ohrhelp"
- #IFDEF DATAFILES
+ IF LEN(DATAFILES) THEN
   IF help_dir_helper(DATAFILES & SLASH & "ohrhelp", helpfile) THEN RETURN DATAFILES & SLASH & "ohrhelp"
- #ENDIF
+ END IF
  '-- if all else fails, use exepath even if invalid
  RETURN exepath & SLASH & "ohrhelp"
 END FUNCTION

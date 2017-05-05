@@ -44,6 +44,7 @@ envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
+DATAFILES = ''
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
@@ -718,7 +719,7 @@ elif unix:  # Linux & BSD
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
-    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"' + prefix + '/share/games/ohrrpgce"\'']
+    DATAFILES = prefix + '/share/games/ohrrpgce'
 
 
 ################ Add the libraries to env and commonenv
@@ -827,7 +828,7 @@ common_modules += ['rasterizer.cpp',
 ################ ver.txt (version info) build rule
 
 def version_info(source, target, env):
-    verprint (gfx, music, fbc, arch, asan, portable, builddir, rootdir)
+    verprint (gfx, music, fbc, arch, asan, portable, builddir, rootdir, DATAFILES)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
