@@ -349,8 +349,6 @@ load_script_triggers_and_names
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 
 IF auto_distrib <> "" THEN
- xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
- upgrade 'needed because it has not already happened because we are doing command-line import
  auto_export_distribs auto_distrib
  cleanup_workingdir_on_exit = YES
  cleanup_and_terminate NO
@@ -704,8 +702,6 @@ END SUB
 
 SUB import_scripts_and_terminate (scriptfile as string)
  debuginfo "Importing scripts from " & scriptfile
- xbload game & ".gen", gen(), "general data is missing, RPG file corruption is likely"
- upgrade 'needed because it has not already happened because we are doing command-line import
  compile_andor_import_scripts absolute_with_orig_path(scriptfile)
  xbsave game & ".gen", gen(), 1000
  save_current_game
