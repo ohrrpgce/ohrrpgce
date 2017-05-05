@@ -126,7 +126,7 @@ IF default = "" THEN
  default = remember
 END IF
 default = simplify_path(absolute_path(default))
-IF isdir(default) THEN
+IF isdir(default) AND justextension(default) <> "rpgdir" THEN
  br.nowdir = default & SLASH
  startfile = ""
 ELSE
