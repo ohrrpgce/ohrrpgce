@@ -116,6 +116,9 @@ TYPE GameState
   autorungame as bool                'Game was autorun, not selected from RPG browser
   return_to_browser as bool          'Return to browser when quitting the game
   ingame as bool                     'Have loaded a game and done initialisations. True from titlescreen onwards
+  started_by_run_game as bool        'True if this game was started with "run game"
+  shared_fullscreen_setting as bool  'If true, preserve current fullscreen state when loading a game.
+  fullscreen_config_file as string   '.ini file in which to save "gfx.fullscreen". Usually config_file
   need_fade_in as bool
   fade_in_delay as integer
   fade_in_script_overridable as bool 'If true, the fade in can be cancelled by a fadescreenout command

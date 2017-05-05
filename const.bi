@@ -182,6 +182,7 @@ CONST genLivePreviewWindowSize = 209 ' Test-Game window size about X% of screen,
 CONST genFullscreen = 210       ' Whether to start in fullscreen by default
 CONST genMusicVolume = 211      ' Initial music volume as a percentage.
 CONST genSFXVolume = 212        ' Initial global sound effects volume as a percentage.
+CONST genRungameFullscreenIndependent = 213  ' If false, fullscreen settings/config for games spawned by rungame are ignored
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,

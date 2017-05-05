@@ -1098,14 +1098,14 @@ END FUNCTION
 
 'Set the game resolution and size of the window.
 'This can be called when live-previewing when resolution settings change
-SUB apply_game_window_settings ()
+SUB apply_game_window_settings (reloading as bool = NO)
  'This can happen while live-previewing, or maybe messing around with writegeneral
  IF gen(genResolutionX) < 10 OR gen(genResolutionY) < 10 THEN EXIT SUB
 
  IF XY(gen(genResolutionX), gen(genResolutionY)) <> get_resolution() THEN
   'get_resolution() will be 320x200 if the backend doesn't support anything else
   IF gfx_supports_variable_resolution() = NO THEN
-   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. The game will probably be unplayable!"
+   notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. Continuing anyway, but the game will probably be unplayable!"
   ELSE
    'Changes video page size, but not window size immediately
    set_resolution(gen(genResolutionX), gen(genResolutionY))
@@ -1131,13 +1131,27 @@ SUB apply_game_window_settings ()
   set_scale_factor scale
  END IF
 
+ IF gam.shared_fullscreen_setting = NO THEN
+  gam.fullscreen_config_file = config_file
+ END IF
+
  IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
-    user_toggled_fullscreen = NO AND running_as_slave = NO THEN
-  DIM fullscreen as bool = read_ini_int(config_file, "gfx.fullscreen", -2)
+    user_toggled_fullscreen = NO AND running_as_slave = NO AND _
+    gam.shared_fullscreen_setting = NO THEN
+  DIM fullscreen as bool = read_ini_int(gam.fullscreen_config_file, "gfx.fullscreen", -2)
   ' genFullscreen is used only if the player has never customised the setting.
-  debuginfo "Config gfx.fullscreen = " & fullscreen & ", genFullscreen = " & gen(genFullscreen)
+  debuginfo gam.fullscreen_config_file & " : gfx.fullscreen = " & fullscreen & ", genFullscreen = " & gen(genFullscreen)
   IF fullscreen = -2 THEN fullscreen = gen(genFullscreen)
   gfx_setwindowed(fullscreen = NO)
+ ELSE
+  debuginfo "Preserving fullscreen/windowed state"
+ END IF
+
+ IF gam.started_by_run_game THEN
+  debuginfo "A previous game set shared_fullscreen_setting"
+ ELSE
+  debuginfo "genRungameFullscreenIndependent: " & gen(genRungameFullscreenIndependent)
+  gam.shared_fullscreen_setting = (gen(genRungameFullscreenIndependent) = 0)
  END IF
 END SUB
 
@@ -1301,7 +1315,7 @@ SUB reload_gen()
    CASE 44 TO 54, genTextboxBackdrop, genJoy  '44-54, 58, 60
     'Ignore.
     ' Don't need to ignore genMusicVolume, genSFXVolume, since they're only read once
-   CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize
+   CASE genResolutionX, genResolutionY, genWindowSize, genLivePreviewWindowSize, genRungameFullscreenIndependent
     IF gen(j) <> newgen(j) THEN should_reset_window = YES
     gen(j) = newgen(j)
    CASE ELSE
@@ -1311,7 +1325,7 @@ SUB reload_gen()
  'FIXME: does anything else need to be reloaded when gen() changes?
  'Number of elements maybe?
 
- IF should_reset_window THEN apply_game_window_settings
+ IF should_reset_window THEN apply_game_window_settings YES
 END SUB
 
 'Live-previewing.

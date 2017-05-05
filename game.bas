@@ -363,6 +363,7 @@ END IF
 '=============================== Select a game ================================
 
 gam.autorungame = NO
+gam.started_by_run_game = NO
 usepreunlump = NO
 DIM rpg_browse_default as string = ""  'local variable
 
@@ -395,6 +396,7 @@ ELSE  'NOT running_as_slave
    fatalerror gam.want.rungame + " disappeared!"
   END IF
 
+  gam.started_by_run_game = YES
   gam.want.rungame = ""
 
  ELSE
@@ -581,9 +583,8 @@ IF NOT running_as_slave THEN upgrade
 '======================== Stuff initialised once per .RPG =====================
 
 'Recreate/resize/reposition the window as needed
-apply_game_window_settings
+apply_game_window_settings NO
 set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
-user_toggled_fullscreen = NO
 
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
@@ -907,21 +908,30 @@ LOOP ' This is the end of the DO that encloses the entire program.
 '==========================================================================================
 '==========================================================================================
 
+' Save config changes to gameconfig.ini
 SUB save_game_config()
  ' Save the fullscreen/windowed state, if the player customised it.
  IF user_toggled_fullscreen THEN
   DIM fullscreen as bool
   IF try_check_fullscreen(fullscreen) THEN
-   write_ini_value config_file, "gfx.fullscreen", fullscreen
+   debuginfo "write " & gam.fullscreen_config_file & " : gfx.fullscreen = " & fullscreen
+   write_ini_value gam.fullscreen_config_file, "gfx.fullscreen", fullscreen
   END IF
  END IF
 END SUB
 
+' Unload all data for the current game and either quit, or return if we're going
+' back to the file browser or loading another game (with rungame).
 SUB reset_game_final_cleanup()
  'WARNING: It's a bug to call anything in here that causes something to be cached after
  'the cache has been emptied (such as anything that calls getbinsize after clear_binsize_cache)
  gam.ingame = NO
  save_game_config 'Call before cleaning up everything.
+ ' This sticky bit is cleared when returning to the file browser
+ IF LEN(gam.want.rungame) = 0 THEN gam.shared_fullscreen_setting = NO
+ ' OK to reset this even after "run game", because we already
+ ' called save_game_config to save "gfx.fullscreen"
+ user_toggled_fullscreen = NO
  cleanup_text_box
  resetinterpreter 'unload scripts
  unloadmaptilesets tilesets()

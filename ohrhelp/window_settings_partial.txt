@@ -8,4 +8,7 @@ Note that the size is a percentage width or height of the screen, not area. 10% 
 
 Test-Game window size: This setting is used instead of "Default window size" when using the Test Game option, so that you can set a more convenient smaller window size.
 
+rungame fullscreen state: Affects the "run game" script command which switches .rpg file. If set to "independent", a game started by "run game" has its own fullscreen/windowed state (so the engine might switch state when starting the game). If set to "shared with this game", then the two games share the same remembered fullscreen state (so the default fullscreen setting in the later game is totally ignored).
+This setting only does something in the initial game (that first calls "run game").
+
 Press ESC to go back.
