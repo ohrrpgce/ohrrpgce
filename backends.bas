@@ -589,7 +589,7 @@ sub init_gfx_backend()
 				if gfx_Initialize then
 					dim initdata as GfxInitData = ( _
 						GFXINITDATA_SZ, @"O.H.R.RPG.C.E.", @"FB_PROGRAM_ICON", _
-						@post_terminate_signal, @debugc _
+						@post_terminate_signal, @debugc, @post_event _
 					)
 					if gfx_Initialize(@initdata) then
 						exit sub

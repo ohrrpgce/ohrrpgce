@@ -24,7 +24,6 @@ dim shared screenbuf as BITMAP ptr = null
 dim shared mouse_hidden as bool = NO
 dim shared baroffset as integer = 0
 dim shared windowed as bool = YES
-dim shared user_toggled_fullscreen as bool = NO
 dim shared alpal(255) as RGB
 
 'Translate an allegro scancode into a normal one
@@ -170,7 +169,6 @@ function gfx_alleg_getwindowstate() as WindowState ptr
 	state.focused = YES  'Don't know
 	state.minimised = NO  'Don't know
 	state.fullscreen = (windowed = NO)
-	state.user_toggled_fullscreen = user_toggled_fullscreen
 	return @state
 end function
 
@@ -207,12 +205,12 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 	'FIXME: This crashes inside X11, because io_updatekeys is called from
 	'the polling thread rather than the main thread.
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
-		user_toggled_fullscreen = YES
 		if windowed = NO then
 			gfx_alleg_setwindowed(1)
 		else
 			gfx_alleg_setwindowed(0)
 		end if
+		post_event(eventFullscreened, windowed = NO)
 	end if
 end sub
 

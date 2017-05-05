@@ -583,7 +583,7 @@ IF NOT running_as_slave THEN upgrade
 'Recreate/resize/reposition the window as needed
 apply_game_window_settings
 set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
-gam.user_toggled_fullscreen = NO
+user_toggled_fullscreen = NO
 
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
@@ -909,8 +909,7 @@ LOOP ' This is the end of the DO that encloses the entire program.
 
 SUB save_game_config()
  ' Save the fullscreen/windowed state, if the player customised it.
- gam.user_toggled_fullscreen OR= check_user_toggled_fullscreen()
- IF gam.user_toggled_fullscreen THEN
+ IF user_toggled_fullscreen THEN
   DIM fullscreen as bool
   IF try_check_fullscreen(fullscreen) THEN
    write_ini_value config_file, "gfx.fullscreen", fullscreen
@@ -2430,12 +2429,12 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
       CASE spWindowed
        IF running_on_desktop() THEN
         gfx_setwindowed(YES)
-        gam.user_toggled_fullscreen = YES
+        user_toggled_fullscreen = YES
        END IF
       CASE spFullscreen
        IF running_on_desktop() THEN
         gfx_setwindowed(NO)
-        gam.user_toggled_fullscreen = YES
+        user_toggled_fullscreen = YES
        END IF
      END SELECT
     CASE mtypeMenu

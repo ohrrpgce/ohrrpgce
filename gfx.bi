@@ -5,7 +5,7 @@
 
 ' NOTE:
 '  If a function is marked as optional, that means it may do nothing (either unimplemented
-'  to irrelevant to the backend) and that a backend doesn't need to set the function pointer:
+'  or irrelevant to the backend) and that a backend doesn't need to set the function pointer:
 '  instead the pointer must be valid and set to a default in set_default_gfx_function_ptrs.
 '  On the other hand "(optional, ptr may be NULL)", means the default is a NULL pointer.
 '  Possibly-NULL function pointers are very much discouraged. They're used as a simple way
@@ -17,18 +17,21 @@
 #include "surface.bi"
 #include "util.bi"  'For XYPair
 
+
+extern "C"
+
+'==================================== Types ===================================
+
 ' Forward declarations
 type FrameFwd as Frame
 type Palette16Fwd as Palette16
-
-extern "C"
 
 type WindowState
 	structsize as integer  'number of members in the struct, set to WINDOWSTATE_SZ
 	focused as integer
 	minimised as integer
 	fullscreen as integer
-	user_toggled_fullscreen as integer  'The user changed from windowed to fullscreen or vice-versa
+	unused as integer      'Obsolete, used to be user_toggled_fullscreen
 end type
 #define WINDOWSTATE_SZ 5
 
@@ -57,7 +60,34 @@ enum
 	cursorDefault = -2 'Cursor shown when windowed, hidden in fullscreen
 end enum
 
+type EventEnum as integer
+enum
+	eventTerminate = 0        'Window or application close request event
+	eventFullscreened = 1     'Windowed/fullscreen state changed by WM/user. arg1 is new fullscreen state
+end enum
 
+'Allowed to be called from another thread.
+'Maybe ought to guarantee backend won't be reentered.
+'Return value is INT_MIN if the event wasn't understood, and event-specific but generally 0 if it was.
+type FnEventHandler as function (event as EventEnum, arg1 as intptr_t = 0, arg2 as intptr_t = 0) as integer
+
+
+'============================== Engine Functions ==============================
+
+'The following are in allmodex.bas, called by backend.
+'Allowed to be called from another thread.
+'Maybe ought to guarantee backend won't be reentered.
+
+'Used by backend to send events to the engine. GfxInitData.PostEvent is a pointer to it.
+'See FnEventHandler.
+declare function post_event(event as EventEnum, arg1 as intptr_t = 0, arg2 as intptr_t = 0) as integer
+'Call on window or application close request event (redundant to post_event)
+declare sub post_terminate_signal ()
+
+
+'============================== gfx Backend API ===============================
+
+'(Obsolete, still supported but replaced by gfx_initialize)
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
 extern Gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
@@ -125,6 +155,9 @@ extern Gfx_ouya_receipts_request as sub (dev_id as string, key_der as string)
 extern Gfx_ouya_receipts_are_ready as function () as bool
 extern Gfx_ouya_receipts_result as function () as string
 
+
+'=============================== io Backend API ===============================
+
 extern Io_init as sub ()
 
 '(optional) called in loops where gfx_showpage is not.
@@ -186,15 +219,14 @@ extern Io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval 
 extern Io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
 
+'=========================== Backend API wrappers =============================
 ' functions in allmodex.bas
-
-'Call on window or application close request event. Maybe ought to guarantee backend won't be reentered
-'Allowed to be called from another thread.
-declare sub post_terminate_signal ()
 
 declare sub Io_amx_keybits (byval keybdarray as integer ptr)
 declare sub Io_amx_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 
+
+'=============================== Blitting API =================================
 ' functions in blit.c
 
 declare sub blitohr(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval startoffset as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byval write_mask as boolint)

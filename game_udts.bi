@@ -128,7 +128,6 @@ TYPE GameState
   want as ScriptWantSignals
   quit as bool                       'Quit back to titlescreen
   pad as VirtualGamePadState
-  user_toggled_fullscreen as bool    'User changed the default for this game
   non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
 END TYPE
 

@@ -1,3 +1,10 @@
+5/5/17
+v1.22
+
+-Added --input-debug and gfx_setdebugfunc
+-Support GfxInitData.PostEvent
+
+--------------------------------------------------
 3/25/17
 v1.21
 

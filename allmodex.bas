@@ -103,6 +103,10 @@ dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 
+'Whether the player has at any point toggled fullscreen/windowed in some low-level way
+'like alt+enter or window buttons.
+dim user_toggled_fullscreen as bool = NO
+
 redim fonts(3) as Font ptr
 
 'Toggles 0-1 every time dowait is called
@@ -760,17 +764,6 @@ function try_check_fullscreen(byref fullscreen as bool) as bool
 	if winstate andalso winstate->structsize >= 4 then
 		fullscreen = winstate->fullscreen
 		return YES
-	end if
-	return NO
-end function
-
-'Whether the player has at any point toggled fullscreen/windowed in some low-level way
-'like alt+enter or window buttons.
-'Like try_check_fullscreen(), the backend may not support this, but we don't care.
-function check_user_toggled_fullscreen() as bool
-	dim winstate as WindowState ptr = gfx_getwindowstate()
-	if winstate andalso winstate->structsize >= 5 then
-		return winstate->user_toggled_fullscreen
 	end if
 	return NO
 end function
@@ -1991,6 +1984,22 @@ end sub
 
 function getquitflag () as bool
 	return closerequest
+end function
+
+' This callback is used by backends.
+' Returns INT_MIN if the event was not understood, otherwise return value is event-dependent.
+function post_event cdecl (event as EventEnum, arg1 as intptr_t = 0, arg2 as intptr_t = 0) as integer
+	select case event
+	case eventTerminate
+		closerequest = YES
+		return 0
+	case eventFullscreened
+		'arg1 is the new state
+		user_toggled_fullscreen = YES
+		return 0
+	end select
+	debuginfo "post_event: unknown event " & event & " " & arg1 & " " & arg2
+	return INT_MIN
 end function
 
 sub post_terminate_signal cdecl ()

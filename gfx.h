@@ -18,11 +18,21 @@ struct WindowState
 	int focused;
 	int minimised;
 	int fullscreen;
-	int user_toggled_fullscreen;
+	int unused;        // Obsolete, used to be user_toggled_fullscreen
 };
 #define WINDOWSTATE_SZ 5
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
+
+enum EventEnum {
+	eventTerminate = 0,        //Window or application close request event
+	eventFullscreened = 1,     //Windowed/fullscreen state changed by WM/user. arg1 is new fullscreen state
+};
+
+//Allowed to be called from another thread.
+//Maybe ought to guarantee backend won't be reentered.
+//Return value is INT_MIN if the event wasn't understood, and event-specific but generally 0 if it was.
+typedef intptr_t (*FnEventHandler)(EventEnum event, intptr_t arg1, intptr_t arg2);
 
 struct GfxInitData
 {
@@ -31,8 +41,9 @@ struct GfxInitData
 	const char* windowicon;
 	void (__cdecl *PostTerminateSignal)(void);
 	FnDebug DebugMsg;
+	FnEventHandler PostEvent;
 };
-#define GFXINITDATA_SZ 5
+#define GFXINITDATA_SZ 6
 
 enum CursorVisibility {
 	CV_Hidden = 0,   // (cursorHidden)  Cursor always hidden

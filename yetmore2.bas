@@ -1132,7 +1132,7 @@ SUB apply_game_window_settings ()
  END IF
 
  IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
-    check_user_toggled_fullscreen() = NO AND running_as_slave = NO THEN
+    user_toggled_fullscreen = NO AND running_as_slave = NO THEN
   DIM fullscreen as bool = read_ini_int(config_file, "gfx.fullscreen", -2)
   ' genFullscreen is used only if the player has never customised the setting.
   debuginfo "Config gfx.fullscreen = " & fullscreen & ", genFullscreen = " & gen(genFullscreen)

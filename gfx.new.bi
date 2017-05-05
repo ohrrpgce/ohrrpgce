@@ -5,16 +5,19 @@
 'gfx_GetVersion() and gfx_getversion(), and gfx_ScreenShot() and gfx_screenshot()
 'collide, so are disabled for now
 
+#include "gfx.bi"
+
 extern "C"
 
 type GfxInitData
 	structsize as integer    ' Number of members
 	windowtitle as zstring ptr
 	windowicon as zstring ptr
-	PostTerminateSignal as sub cdecl()
+	PostTerminateSignal as sub cdecl()   'Obsolete/redundant to PostEvent
 	DebugMsg as sub cdecl(errlvl as integer, byval message as zstring ptr)
+	PostEvent as FnEventHandler
 end type
-#define GFXINITDATA_SZ 5
+#define GFXINITDATA_SZ 6
 
 extern gfx_Initialize as function (byval pCreationData as const GfxInitData ptr) as integer 'initializes the backend; if failed, returns 0
 extern gfx_Shutdown as sub () 'shuts down the backend--does not post the termination signal

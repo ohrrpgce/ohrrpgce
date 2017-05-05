@@ -97,7 +97,6 @@ DECLARE SUB toggle_fps_display ()
 
 DECLARE FUNCTION supports_fullscreen_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
-DECLARE FUNCTION check_user_toggled_fullscreen() as bool
 
 DECLARE SUB setvispage (page as integer, skippable as bool = YES)
 DECLARE SUB setvissurface (surface as Surface ptr, skippable as bool = YES)
@@ -605,5 +604,6 @@ extern key2text(3,53) as string*1
 extern fonts() as Font ptr
 extern global_tog as integer
 extern max_display_fps as integer
+extern user_toggled_fullscreen as bool
 
 #ENDIF

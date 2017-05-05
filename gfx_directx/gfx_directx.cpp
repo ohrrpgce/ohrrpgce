@@ -34,12 +34,11 @@ struct gfx_BackendState
 {
 	Tstring szWindowTitle;
 	Tstring szWindowIcon;
-	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *DebugMsg)(ErrorLevel errlvl, const char* szMessage);
+	FnEventHandler PostEvent;  //Send a message to the engine
 	bool bClosing; //flagged when shutting down
 	Tstring szHelpText;
 	BOOL bDisableSysMsg;
-	BOOL bUserToggledFullscreen;
 } g_State;
 
 void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
@@ -340,10 +339,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 
 	TCHAR buffer[256] = TEXT("");
 	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->windowicon);
-	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
 	g_State.DebugMsg = pCreationData->DebugMsg;
+	g_State.PostEvent = pCreationData->PostEvent;
 
-	if(g_State.PostTerminateSignal == NULL || g_State.DebugMsg == NULL) {
+	if(g_State.PostEvent == NULL || g_State.DebugMsg == NULL) {
 		debugc(errError, "Required GfxInitData callbacks missing!");
 		return FALSE;
 	}
@@ -600,8 +599,6 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	pState->minimised = IsIconic(g_Window.getWindowHandle());
 	if (pState->structsize >= 4)
 		pState->fullscreen = g_DirectX.isViewFullscreen();
-	if (pState->structsize >= 5)
-		pState->user_toggled_fullscreen = g_State.bUserToggledFullscreen;
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 
@@ -784,8 +781,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
-						g_State.bUserToggledFullscreen = true;
 						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
+						g_State.PostEvent(eventFullscreened, g_DirectX.isViewFullscreen(), 0);
 						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 						if(g_DirectX.isViewFullscreen())
 						{
@@ -952,7 +949,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
 			g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
 			g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
-			g_State.PostTerminateSignal();
+			g_State.PostEvent(eventTerminate, 0, 0);
 			g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 			g_Mouse.popState();
 		} break;

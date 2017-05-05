@@ -67,7 +67,6 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	window_state.focused = YES
 	window_state.minimised = NO
 	window_state.fullscreen = NO
-	window_state.user_toggled_fullscreen = NO
 	return 1
 end function
 
@@ -386,7 +385,7 @@ sub process_events()
 	'And FB has no way to check whether we're fullscreen.
 /'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
 		window_state.fullscreen xor= YES
-		window_state.user_toggled_fullscreen = YES
+		post_event(eventFullscreened, window_state.fullscreen)
 		update_mouse_visibility()
 	end if
 	last_enter_state = multikey(SC_ENTER)
