@@ -4440,17 +4440,21 @@ SUB mapedit_pickblock(st as MapEditState)
   'Draw screen
   draw_background vpages(vpage), bgcolor, chequer_scroll
   drawmap tilesetview, 0, scrolly, tilesetdata, vpage, YES
-  DIM as integer infoline_y = 0, infoline2_y = 10
+  DIM as RelPos infoline_y = pTop
   IF tilepick.y * 20 - scrolly < vpages(vpage)->h - 80 THEN
-   infoline_y = vpages(vpage)->h - 10
-   infoline2_y = vpages(vpage)->h - 20
+   infoline_y = pBottom
   END IF
-  edgeprint "Tile " & st.usetile(st.layer), 0, infoline_y, uilook(uiText), vpage
+  DIM infotext as string
+  infotext = "Tile " & st.usetile(st.layer)
   IF st.usetile(st.layer) >= 160 THEN
-   edgeprint "(Animation set " & ((st.usetile(st.layer) - 160) \ 48) & ")", 0, infoline2_y, uilook(uiText), vpage
+   infotext & = !"\nAnimation set " & ((st.usetile(st.layer) - 160) \ 48)
   END IF
-  DIM infotext as string = "Hold to select a rectangle"
-  edgeprint infotext, pRight, infoline_y, uilook(uiText), vpage
+  edgeprint infotext, 0, infoline_y, uilook(uiText), vpage, YES, YES
+  infotext = " Hold to select a rectangle"
+  IF show_animated_tiles = NO THEN
+   infotext &= !"\nCtrl+A: show animated tiles"
+  END IF
+  edgeprint infotext, pRight, infoline_y, uilook(uiText), vpage, YES, YES
 
   IF dragging THEN
    DIM select_rect as RectType
