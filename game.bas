@@ -511,7 +511,9 @@ cleanup_other_temp_files
 
 '==================================== Unlump ==================================
 
-edgeboxstyle 4, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
+' If coming from the browser, this is drawn on top of the file path at the top.
+rectangle 0, 0, rWidth, 17, uilook(uiBackground), vpage
+'edgeboxstyle pCentered, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
 edgeprint "Loading...", pCentered, 6, uilook(uiText), vpage
 setvispage vpage, NO
 
@@ -577,14 +579,10 @@ rpg_sanity_checks
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
-IF NOT running_as_slave THEN upgrade
+IF NOT running_as_slave THEN upgrade gam.started_by_run_game = NO
 
 
 '======================== Stuff initialised once per .RPG =====================
-
-'Recreate/resize/reposition the window as needed
-apply_game_window_settings NO
-set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
 
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
@@ -619,7 +617,13 @@ SetupGameSlices
 'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
 reset_game_state
 
+'Fade out before resizing the window
 fadeout 0, 0, 0
+
+'Recreate/resize/reposition the window as needed
+apply_game_window_settings NO
+set_safe_zone_margin read_ini_int(config_file, "gfx.margin", default_margin_for_game())
+
 
 '===================== Stuff reinitialised each new/load-game ==================
 

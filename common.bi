@@ -112,7 +112,7 @@ DECLARE SUB writepassword (pass as string)
 DECLARE FUNCTION checkpassword (pass as string) as integer
 DECLARE FUNCTION getpassword () as string
 
-DECLARE SUB upgrade ()
+DECLARE SUB upgrade (show_messages as bool)
 DECLARE SUB future_rpg_warning ()
 DECLARE SUB rpg_sanity_checks ()
 DECLARE SUB fix_sprite_record_count(byval pt_num as integer)

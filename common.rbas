@@ -92,8 +92,9 @@ TYPE ConsoleData
 END TYPE
 DIM SHARED console as ConsoleData
 
-'don't black out the screen to show upgrade messages if there aren't any
-DIM SHARED upgrademessages as integer
+DIM SHARED show_upgrade_messages as bool
+'Whether any upgrade messages have been shown yet
+DIM SHARED got_upgrade_messages as bool
 
 'upgrading timing stuff
 DIM SHARED time_rpg_upgrade as integer = NO  'Change to YES, or pass --time-upgrade
@@ -2832,8 +2833,9 @@ FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as int
 END FUNCTION
 
 SUB upgrade_message (s as string)
- IF NOT upgrademessages THEN
-  upgrademessages = -1
+ ' Don't black out the screen to show upgrade messages if there aren't any
+ IF show_upgrade_messages AND got_upgrade_messages = NO THEN
+  got_upgrade_messages = YES
   reset_console 20, vpages(vpage)->h - 20
   show_message("Auto-Updating obsolete RPG file")
  END IF
@@ -2846,7 +2848,7 @@ SUB upgrade_message (s as string)
   END IF
  END IF
  debuginfo "rpgfix:" & s
- show_message(s)
+ IF show_upgrade_messages THEN show_message(s)
  IF time_rpg_upgrade THEN
   temptime = TIMER
   last_upgrade_time = temptime
@@ -3223,7 +3225,7 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB upgrade ()
+SUB upgrade (show_messages as bool)
 DIM o as integer
 DIM p as integer
 DIM y as integer
@@ -3231,7 +3233,8 @@ DIM temp as integer
 DIM fh as integer
 DIM master_temp(255) as RGBcolor
 
-upgrademessages = 0
+show_upgrade_messages = show_messages
+got_upgrade_messages = NO
 last_upgrade_time = 0.0
 upgrade_start_time = TIMER
 upgrade_overhead_time = 0.0

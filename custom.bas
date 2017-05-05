@@ -322,7 +322,7 @@ safekill workingdir + SLASH + "__danger.tmp"
 rpg_sanity_checks
 
 'upgrade obsolete RPG files
-upgrade
+upgrade YES
 
 set_music_volume 0.01 * gen(genMusicVolume)
 set_global_sfx_volume 0.01 * gen(genSFXVolume)
