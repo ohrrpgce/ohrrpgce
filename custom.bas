@@ -847,7 +847,7 @@ SUB shop_editor ()
   setkeys YES
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "shop_main"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
+  IF cropafter_keycombo(shopst.st.pt = 1) THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
   usemenu shopst.st
   IF shopst.st.pt = 1 THEN
    '--only allow adding shops up to 99

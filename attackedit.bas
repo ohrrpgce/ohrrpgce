@@ -1205,14 +1205,14 @@ DO
 
  IF keyval(scF1) > 1 THEN show_help helpkey
 
- '--CTRL+BACKSPACE
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+ '--ALT+BACKSPACE
+ IF cropafter_keycombo(workmenu(state.pt) = AtkChooseAct) THEN
   cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file
   IF recindex = gen(genMaxAttack) THEN
    '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, gen(genMaxAttack), 0, workingdir + SLASH + "attack.bin", getbinsize(binATTACK), 0
+   cropafter recindex, gen(genMaxAttack), 0, workingdir + SLASH + "attack.bin", getbinsize(binATTACK), NO
   END IF
  END IF
 
@@ -1514,6 +1514,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
   state.last = UBOUND(menu)
   state.autosize = YES
   state.pt = 1
+  state.size = 3
 
   state.need_update = YES
   setkeys
@@ -1554,11 +1555,11 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
     END IF
 
     clearpage vpage
-    standardmenu menu(), state, 0, 0, vpage
+    standardmenu menu(), state, 20, 20, vpage
     IF state.pt = 2 THEN
       textcolor uilook(uiMenuItem), 0
-      printstr " Name: " & attack.name, 0, 28, vpage
-      printstr RIGHT(" Description: " & attack.description, 40), 0, 36, vpage
+      printstr " Name: " & attack.name, 20, 48, vpage
+      printstr RIGHT(" Description: " & attack.description, 40), 20, 56, vpage
       atk_edit_preview recbuf(AtkDatAnimPattern), preview
       DrawSlice preview_box, vpage
     END IF

@@ -32,6 +32,7 @@ SUB item_editor
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.autosize = YES
+ state.size = 20  'Temp to avoid glitch when size=0
  state.first = -1
  state.top = -1
  state.last = gen(genMaxItem) + 1
@@ -43,7 +44,7 @@ SUB item_editor
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND state.pt >= 0 THEN
+  IF cropafter_keycombo(YES) AND state.pt >= 0 THEN
    cropafter state.pt, gen(genMaxItem), 0, game + ".itm", getbinsize(binITM)
    load_special_tag_caches
    state.need_update = YES

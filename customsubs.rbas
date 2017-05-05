@@ -3904,16 +3904,23 @@ SUB fontedit_import_font(font() as integer)
  END IF
 END SUB
 
-SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as integer, lump as string, byval bytes as integer, byval prompt as integer=YES)
- 'flushafter -1 = flush records
- 'flushafter 0 = trim file
+' Pressed Alt+Backspace, or Delete on the "<- Record # ->" line
+FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
+ IF index_selected AND keyval(scDelete) > 1 THEN RETURN YES
+ RETURN keyval(scAlt) > 0 AND keyval(scBackspace) > 1
+END FUNCTION
+
+SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as bool=YES)
+ 'flushafter YES = flush records (set to zero)
+ 'flushafter NO = trim file
  DIM i as integer
 
  IF prompt THEN
   DIM menu(1) as string
-  menu(0) = "No do not delete anything"
-  menu(1) = "Yes, delete all records after this one"
-  IF sublist(menu(), "cropafter") < 1 THEN
+  menu(0) = "No, do not delete anything"
+  menu(1) = "Yes, DELETE!"
+  IF multichoice("Do you want to delete ALL records AFTER this one?", menu()) < 1 _
+     ORELSE yesno("Are you SURE?", NO, NO) = NO THEN
    setkeys
    EXIT SUB
   ELSE
@@ -3931,6 +3938,7 @@ SUB cropafter (byval index as integer, byref limit as integer, byval flushafter 
   ' out of fear that some code with read hero data past the end of the file.
   ' after cleanup of all hero code has confurmed this fear is unfounded, we can
   ' eliminate this hack entirely
+  'Also, if we're not doing flushing, all of this can be replaced with a truncation
   flusharray buf()
   FOR i = index + 1 TO limit
    storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i

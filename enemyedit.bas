@@ -625,8 +625,8 @@ DO
   END IF
  END IF
 
- '--CTRL+BACKSPACE
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+ '--ALT+BACKSPACE
+ IF cropafter_keycombo(workmenu(state.pt) = EnMenuChooseAct) THEN
   cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", getbinsize(binDT1)
  END IF
 
@@ -886,7 +886,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, pre
     END IF
 
     clearpage vpage
-    standardmenu menu(), state, 0, 0, vpage
+    standardmenu menu(), state, 20, 20, vpage
     IF state.pt = 2 THEN DrawSlice preview_box, vpage
     setvispage vpage
     dowait
@@ -1212,7 +1212,7 @@ SUB individual_formation_editor ()
     EXIT DO
    END IF
    IF keyval(scF1) > 1 THEN show_help "formation_editor"
-   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
+   IF cropafter_keycombo(state.pt = 1) THEN cropafter form_id, gen(genMaxFormation), 0, game + ".for", 80
    usemenu state
    slot = state.pt - first_enemy_item
    IF slot < 0 THEN slot = -1

@@ -104,7 +104,7 @@ SUB text_box_editor()
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+  IF cropafter_keycombo(state.pt = 1) THEN
    cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY)
    textbox_edit_load box, st, menu()
   END IF
@@ -231,9 +231,6 @@ SUB text_box_editor()
   END IF
 
   '--Draw screen
-  textcolor uilook(uiMenuItem), 0
-  IF state.pt = 1 THEN textcolor uilook(uiSelectedItem + state.tog), 0
-
   IF st.id = 0 THEN
     menu(1) = "Text Box 0 [template]"
   ELSE

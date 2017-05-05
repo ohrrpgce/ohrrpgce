@@ -203,7 +203,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
  DO
   setwait 55, 110
   setkeys
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
+  IF cropafter_keycombo(mstate.pt = 1) THEN
    DIM crop_this as integer = count - 1
    cropafter pt, crop_this, 3, game + f, 64000
    count = crop_this + 1
@@ -660,7 +660,7 @@ DO
  setkeys
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 AND state.pt > -1 THEN
+ IF cropafter_keycombo(YES) AND state.pt > -1 THEN
   cropafter state.pt, gen(genMaxTile), 3, game + ".til", 64000
   state.last = gen(genMaxTile)
   state.need_update = YES
@@ -2300,7 +2300,7 @@ DO
    show_help "sprite_pickset"
   END IF
  END IF
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
+ IF cropafter_keycombo(YES) THEN
   spriteedit_save_all_you_see state.top, ss
   cropafter state.pt, sets, 0, ss.spritefile, ss.setsize
   clearpage 3
@@ -4050,13 +4050,11 @@ SUB spriteedit_draw_oval(byref ss as SpriteEditState)
  ellipse ss.sprite, ss.holdpos.x, ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
 END SUB
 
-
 SUB spriteedit_draw_square(byref ss as SpriteEditState)
  writeundospr ss
  spriteedit_clip ss
  rectangle ss.sprite, small(ss.x, ss.holdpos.x), small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex
 END SUB
-
 
 SUB spriteedit_strait_line(byref ss as SpriteEditState)
  writeundospr ss

@@ -79,7 +79,8 @@ DECLARE SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState
 DECLARE SUB fontedit (font() as integer)
 DECLARE SUB fontedit_export_font(font() as integer)
 DECLARE SUB fontedit_import_font(font() as integer)
-DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as integer, lump as string, byval bytes as integer, byval prompt as integer=YES)
+DECLARE FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
+DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
 DECLARE FUNCTION numbertail (s as string) as string
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE SUB experience_chart ()

@@ -95,7 +95,7 @@ SUB hero_editor
   animate_hero_preview st
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+  IF cropafter_keycombo(mstate.pt = 1) THEN
    cropafter hero_id, gen(genMaxHero), -1, game + ".dt0", getbinsize(binDT0)
    load_special_tag_caches
   END IF
