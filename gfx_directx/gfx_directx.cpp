@@ -173,22 +173,28 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 	if(!opt || !arg)
 		return 0;
 	INPUTDEBUG("gfx_setoption(%s, %s)", opt, arg);
-	if(::strcmp(opt, "w") == 0 || ::strcmp(opt, "width") == 0)
+	if(::strcmp(opt, "width") == 0)
 		{
 			gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
 		}
-	else if(::strcmp(opt, "h") == 0 || ::strcmp(opt, "height") == 0)
+	else if(::strcmp(opt, "height") == 0)
 		{
 			gfx_SendMessage(OM_GFX_SETHEIGHT, ::atoi(arg), 0);
 		}
+	else if(::strcmp(opt, "z") == 0 || ::strcmp(opt, "zoom") == 0)
+		{
+			int zoom = ::atoi(arg);
+			gfx_SendMessage(OM_GFX_SETCLIENTAREA, 320 * zoom, (void*)(200 * zoom));
+		}
 	else if(::strcmp(opt, "f") == 0 || ::strcmp(opt, "fullscreen") == 0)
 	{
+		// NOTE: gfx_directx usually never recieves -f, it's handled in backends.bas
 		if(*arg == '0')
 			gfx_SendMessage(OM_GFX_SETWINDOWED, 0, 0);
 		else
 			gfx_SendMessage(OM_GFX_SETWINDOWED, 1, 0);
 	}
-	else if(::strcmp(opt, "v") == 0 || ::strcmp(opt, "vsync") == 0)
+	else if(::strcmp(opt, "vsync") == 0)
 	{
 		if(*arg == '0')
 			gfx_SendMessage(OM_GFX_SETVSYNC, 0, 0);
@@ -234,15 +240,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 
 DFI_IMPLEMENT_CDECL(const char*, gfx_describe_options)
 {
-	return "-w -width [x]  sets the width of the client area\n" \
-		"-h -height [x]  sets the height of the client area\n" \
-		"-f -fullscreen [0* | 1]  toggles fullscreen on startup\n" \
-		"    the above may NOT be called before width and height\n" \
-		"-v -vsync [0 | 1*]  toggles vsync\n" \
-		"-a -aspect [0 | 1*]  toggles aspect ratio preservation\n" \
-		"-s -smooth [0* | 1]  toggles smooth linear interpolation of display\n" \
+	return  "   -width [x]       Sets the width of the window (client area)\n" \
+		"   -height [x]      Sets the height of the window (client area)\n" \
+		"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x native size (2x default)\n" \
+		"                    The above may NOT be called after -fullscreen\n" \
+		"   -vsync [0|1*]    Toggles vsync\n" \
+		"-a -aspect [0|1*]   Toggles aspect ratio preservation\n" \
+		"-s -smooth [0*|1]   Toggles smooth linear interpolation of display\n" \
 		"-ss -screenshot [jpg | bmp | png* | dds | ohr]\n" \
-		"     the above sets the screen shot format";
+		"                    Sets the screen shot format\n" \
 		"-input-debug        Print extra debug info to c/g_debug.txt";
 }
 

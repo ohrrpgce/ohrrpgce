@@ -748,12 +748,10 @@ sub set_scale_factor (scale as integer)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
 	debuginfo "Setting graphics scaling to x" & scale
-	if gfxbackend = "directx" then
-		'Doesn't support "zoom"
+	if gfx_setoption("zoom", str(scale)) = 0 then
+		' Old versions of gfx_directx don't support zoom (TODO: delete this)
 		gfx_setoption("width", str(windowsize.w * scale))
 		gfx_setoption("height", str(windowsize.h * scale))
-	else
-		gfx_setoption("zoom", str(scale))
 	end if
 end sub
 

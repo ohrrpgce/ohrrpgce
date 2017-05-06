@@ -142,6 +142,8 @@ WHAT IS NEW?
     * Bug 2022: Can't run faster than 60fps under OSX [Ralph]
     * Script profiling "time/call" stats were wrong: now #calls only
       counts the number of calls while profiling enabled [Ralph]
+    * gfx_directx: commandline args -f/--fullscreen, --width, --height
+      and -z/--zoom now work [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

@@ -2,6 +2,8 @@
 v1.23
 
 -Fixed --fullscreen, --width, --height to work before gfx_Initialize
+-Added --zoom/-z
+-Changed cmdline args (removed -v, -w, -f)
 -Fixed changing window size (zoom) while fullscreened
 
 --------------------------------------------------
