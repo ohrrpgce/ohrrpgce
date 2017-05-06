@@ -141,6 +141,8 @@ namespace gfx
 
 		void updateCursorVisibility();
 		void updatePosition();
+		void startClickInducedClipping();
+		void endClickInducedClipping();
 
 	public:
 		Mouse2();

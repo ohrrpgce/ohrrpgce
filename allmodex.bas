@@ -2068,6 +2068,14 @@ sub update_mouse_state ()
 
 	mouse_state.moved = lastpos <> mouse_state.pos
 
+	'Behaviour of clicking and dragging from inside the window to outside:
+	'gfx_fb:  Mouse input goes dead while outside until moved back into window.
+	'         When button is released, the cursor reappears at actual position on-screen
+	'gfx_sdl: Mouse acts as if clipped to the window while button is down; but when it's released
+	'         it appears at its actual position on-screen
+	'directx: Mouse is truely clipped to the window while button is down.
+	'gfx_alleg:Unknown.
+
 	if mouse_state.dragging then
 		'Test whether drag ended
 		if (mouse_state.clicks and mouse_state.dragging) orelse (mouse_state.buttons and mouse_state.dragging) = 0 then

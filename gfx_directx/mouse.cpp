@@ -322,6 +322,24 @@ void Mouse2::initialize(gfx::D3D *pDirectX)
 	m_pDirectX = pDirectX;
 }
 
+void Mouse2::startClickInducedClipping()
+{
+	if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
+	{
+		m_state.buttonClipped = CS_ON;
+		ClipCursor(&ScaleRectClient(hWnd, m_state.rButtonClippedArea));
+	}
+}
+
+void Mouse2::endClickInducedClipping()
+{
+	if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
+	{
+		m_state.buttonClipped = CS_OFF;
+		ClipCursor(NULL);
+	}
+}
+
 bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {//if m_state.clipped == CS_ON, mouse clicks do not engage the m_state.buttonClipped
 	m_hWnd = hWnd;
@@ -350,170 +368,76 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return false;
 		}
 	case WM_NCMOUSEMOVE:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_MOUSEMOVE:
 		{
 			updatePosition();
 		} break;
 	case WM_NCLBUTTONDOWN:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_LBUTTONDOWN:
 		{
 			if(!m_buttons.isLeftDown())
 			{
 				m_buttons.setLeftDown();
-				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
-				{
-					m_state.buttonClipped = CS_ON;
-					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
-				}
+				startClickInducedClipping();
 			}
 		} break;
 	case WM_NCLBUTTONUP:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_LBUTTONUP:
 		{
 			if(m_buttons.isLeftDown())
 			{
 				m_buttons.setLeftUp();
-				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
-				{
-					m_state.buttonClipped = CS_OFF;
-					ClipCursor(NULL);
-				}
+				endClickInducedClipping();
 			}
 		} break;
 	case WM_NCRBUTTONDOWN:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_RBUTTONDOWN:
 		{
 			if(!m_buttons.isRightDown())
 			{
 				m_buttons.setRightDown();
-				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
-				{
-					m_state.buttonClipped = CS_ON;
-					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
-				}
+				startClickInducedClipping();
 			}
 		} break;
 	case WM_NCRBUTTONUP:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_RBUTTONUP:
 		{
 			if(m_buttons.isRightDown())
 			{
 				m_buttons.setRightUp();
-				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
-				{
-					m_state.buttonClipped = CS_OFF;
-					ClipCursor(NULL);
-				}
+				endClickInducedClipping();
 			}
 		} break;
 	case WM_NCMBUTTONDOWN:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_MBUTTONDOWN:
 		{
 			if(!m_buttons.isMiddleDown())
 			{
 				m_buttons.setMiddleDown();
-				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
-				{
-					m_state.buttonClipped = CS_ON;
-					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
-				}
+				startClickInducedClipping();
 			}
 		} break;
 	case WM_NCMBUTTONUP:
-		{
 			if(m_state.mode == VM_WINDOWED)
-			{
-				//if(m_state.clipped == CS_ON)
-				//{
-				//	if(m_inputState.top() == IS_DEAD)
-				//		return false;
-				//}
-				//else
 					return false;
-			}
-		}
 	case WM_MBUTTONUP:
 		{
 			if(m_buttons.isMiddleDown())
 			{
 				m_buttons.setMiddleUp();
-				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
-				{
-					m_state.buttonClipped = CS_OFF;
-					ClipCursor(NULL);
-				}
+				endClickInducedClipping()
 			}
 		} break;
 	case WM_MOUSEWHEEL:
@@ -565,6 +489,7 @@ void Mouse2::setInputState(InputState state)
 	updateCursorVisibility();
 }
 
+// Called when (possibly) switching between windowed/fullscreen
 void Mouse2::setVideoMode(VideoMode mode)
 {//VideoMode has precedence over InputState for the cursor visibility and certain clipping
 	if(m_state.mode == mode)
