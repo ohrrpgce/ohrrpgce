@@ -256,49 +256,6 @@ using namespace gfx;
 //////////////////////////////
 //rewrite of Mouse
 
-//scales rect from range inside (0,0,319,199) to the window's client rect
-RECT ScaleRectClient(HWND hWnd, const RECT& rSrc)
-{
-	RECT rWin;
-	//GetWindowRect(hWnd, &rWin);
-	GetClientRect(hWnd, &rWin);
-	POINT pnt1 = {1,1}, pnt2 = {rWin.right-1,rWin.bottom-1};
-	ClientToScreen(hWnd, &pnt1);
-	//ScreenToClient(hWnd, &pnt2);
-
-	FLOAT l,t,r,b;
-	l = (FLOAT)rSrc.left / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
-	t = (FLOAT)rSrc.top / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
-	r = (FLOAT)rSrc.right / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
-	b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
-
-	rWin.left = (LONG)l;
-	rWin.top = (LONG)t;
-	rWin.right = (LONG)r;
-	rWin.bottom = (LONG)b;
-	return rWin;
-}
-//scales rect from range inside (0,0,319,199) to the window rect
-RECT ScaleRectWindow(HWND hWnd, const RECT& rSrc)
-{
-	return ScaleRectClient(hWnd, rSrc); //this is better anyways
-
-	//RECT rWin;
-	//GetWindowRect(hWnd, &rWin);
-	//FLOAT l,t,r,b;
-
-	//l = (FLOAT)rSrc.left / 319.0f * (FLOAT)rWin.left;
-	//t = (FLOAT)rSrc.top / 199.0f * (FLOAT)rWin.top;
-	//r = (FLOAT)rSrc.right / 319.0f * (FLOAT)rWin.right;
-	//b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)rWin.bottom;
-	//
-	//rWin.left = (LONG)l;
-	//rWin.top = (LONG)t;
-	//rWin.right = (LONG)r;
-	//rWin.bottom = (LONG)b;
-	//return rWin;
-}
-
 Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL), m_pDirectX(NULL)
 {
 	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
@@ -327,7 +284,7 @@ void Mouse2::startClickInducedClipping()
 	if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 	{
 		m_state.buttonClipped = CS_ON;
-		ClipCursor(&ScaleRectClient(hWnd, m_state.rButtonClippedArea));
+		ClipCursor(&ScaleRectClient(m_state.rButtonClippedArea));
 	}
 }
 
@@ -345,6 +302,9 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	m_hWnd = hWnd;
 	if(m_inputState.top() == IS_DEAD)
 		return false;
+
+	// I don't know whether it is actually necessary to ignore non-client area click events
+	// (e.g. WM_NCLBUTTONDOWN) while windowed; preserving previous logic
 
 	static bool bWasOverClient = true, bWasHidingCursor = true;
 	switch(msg)
@@ -437,7 +397,7 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if(m_buttons.isMiddleDown())
 			{
 				m_buttons.setMiddleUp();
-				endClickInducedClipping()
+				endClickInducedClipping();
 			}
 		} break;
 	case WM_MOUSEWHEEL:
@@ -461,17 +421,17 @@ void Mouse2::setInputState(InputState state)
 		if(m_state.mode == VM_FULLSCREEN)
 		{
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 			else
 			{
 				RECT r = {0,0,319,199};
-				ClipCursor(&ScaleRectClient(m_hWnd, r));
+				ClipCursor(&ScaleRectClient(r));
 			}
 		}
 		else
 		{
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 		}
 	}
 	else
@@ -479,7 +439,7 @@ void Mouse2::setInputState(InputState state)
 		if(m_state.mode == VM_FULLSCREEN)
 		{
 			RECT r = {0,0,319,199};
-			ClipCursor(&ScaleRectClient(m_hWnd, r));
+			ClipCursor(&ScaleRectClient(r));
 		}
 		else
 		{
@@ -500,16 +460,16 @@ void Mouse2::setVideoMode(VideoMode mode)
 		if(m_inputState.top() == IS_DEAD)
 		{
 			RECT r = {0,0,319,199};
-			ClipCursor(&ScaleRectClient(m_hWnd, r));
+			ClipCursor(&ScaleRectClient(r));
 		}
 		else
 		{
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 			else
 			{
 				RECT r = {0,0,319,199};
-				ClipCursor(&ScaleRectClient(m_hWnd, r));
+				ClipCursor(&ScaleRectClient(r));
 			}
 		}
 	}
@@ -522,7 +482,7 @@ void Mouse2::setVideoMode(VideoMode mode)
 		else
 		{
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 			else
 				ClipCursor(NULL);
 		}
@@ -535,7 +495,7 @@ LONG _round(double v)
 	return (LONG)floor(v + .5);
 }
 
-// WM_MOUSEMOVE event
+// WM_MOUSEMOVE event, convert mouse position to engine coords
 void Mouse2::updatePosition()
 {
 	POINT pos;
@@ -555,7 +515,7 @@ void Mouse2::updatePosition()
 	m_cursorPos.y = min(max(m_cursorPos.y, 0), rGameRes.cy - 1);
 }
 
-// client changes
+// Client changes the mouse cursor position
 int Mouse2::setPosition(int x, int y)
 {
 	DWORD xPos, yPos;
@@ -588,6 +548,29 @@ int Mouse2::setPosition(int x, int y)
 	if(0 == SendInput( 1, &mouseEvent, sizeof(mouseEvent) ))
 		return FALSE;
 	return TRUE;
+}
+
+//scales rect from range inside (0,0,319,199) to the window's client rect
+RECT Mouse2::ScaleRectClient(const RECT& rSrc)
+{
+	RECT rWin;
+	//GetWindowRect(m_hWnd, &rWin);
+	GetClientRect(m_hWnd, &rWin);
+	POINT pnt1 = {1,1}, pnt2 = {rWin.right-1,rWin.bottom-1};
+	ClientToScreen(m_hWnd, &pnt1);
+	//ScreenToClient(m_hWnd, &pnt2);
+
+	FLOAT l,t,r,b;
+	l = (FLOAT)rSrc.left / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
+	t = (FLOAT)rSrc.top / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
+	r = (FLOAT)rSrc.right / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
+	b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
+
+	rWin.left = (LONG)l;
+	rWin.top = (LONG)t;
+	rWin.right = (LONG)r;
+	rWin.bottom = (LONG)b;
+	return rWin;
 }
 
 // Decide whether the cursor should be visible, and enact.
@@ -646,19 +629,19 @@ void Mouse2::setClipState(ClipState state)
 	{
 		if(m_state.clipped == CS_ON)
 		{
-			ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+			ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 		}
 		else
 		{
 			RECT r = {0,0,319,199};
-			ClipCursor(&ScaleRectClient(m_hWnd, r));
+			ClipCursor(&ScaleRectClient(r));
 		}
 	}
 	else
 	{
 		if(m_state.clipped == CS_ON)
 		{
-			ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+			ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 		}
 		else
 		{
@@ -681,17 +664,17 @@ void Mouse2::setClippingRect(RECT *pRect)
 	if(m_state.mode == VM_FULLSCREEN)
 	{
 		if(m_state.clipped == CS_ON)
-			ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+			ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 		else
 		{
 			RECT r = {0,0,319,199};
-			ClipCursor(&ScaleRectClient(m_hWnd, r));
+			ClipCursor(&ScaleRectClient(r));
 		}
 	}
 	else
 	{
 		if(m_state.clipped == CS_ON)
-			ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+			ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 	}
 }
 
@@ -702,27 +685,29 @@ void Mouse2::updateClippingRect()
 		if(m_inputState.top() == IS_LIVE)
 		{
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 			else
 			{
 				RECT r = {0,0,319,199};
-				ClipCursor(&ScaleRectClient(m_hWnd, r));
+				ClipCursor(&ScaleRectClient(r));
 			}
 		}
 		else
 		{
 			RECT r = {0,0,319,199};
-			ClipCursor(&ScaleRectClient(m_hWnd, r));
+			ClipCursor(&ScaleRectClient(r));
 		}
 	}
 	else
 	{
 		if(m_inputState.top() == IS_LIVE)
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_state.rClippedArea));
 	}
 }
 
+// This is called when some on-going condition (e.g. losing focus) causes the mouse state
+// to be forced to dead/alive (in practice always called with IS_DEAD).
 void Mouse2::pushState(InputState state)
 {
 	InputState prevState = m_inputState.top();
@@ -742,6 +727,7 @@ void Mouse2::pushState(InputState state)
 	}
 }
 
+// Called when a condition that changed mouse state ends.
 void Mouse2::popState()
 {
 	if(m_inputState.size() == 1)

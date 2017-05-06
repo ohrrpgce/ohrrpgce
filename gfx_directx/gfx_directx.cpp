@@ -726,6 +726,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 			case VK_SCROLL:  // scroll lock: disable mouse input and clipping
 				{
+					// Technically this is wrong: assumes pushState only called with IS_DEAD
+					// (currently true))
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{
 						if(g_Mouse.isInputLive())

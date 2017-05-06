@@ -139,6 +139,7 @@ namespace gfx
 		std::stack<InputState> m_inputState;
 		State m_state;
 
+		RECT ScaleRectClient(const RECT& rSrc);
 		void updateCursorVisibility();
 		void updatePosition();
 		void startClickInducedClipping();
