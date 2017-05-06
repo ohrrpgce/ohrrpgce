@@ -1896,7 +1896,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) THEN
    embedtext plotstr(retvals(0)).s
   END IF
- CASE 242'-- joystick button
+ CASE 242'-- joystick button(button, joystick)
   retvals(0) = bound(retvals(0)-1,0,15)
   retvals(1) = bound(retvals(1),0,7)
   DIM b as integer
@@ -1905,7 +1905,7 @@ SUB script_functions(byval cmdid as integer)
   ELSE
    scriptret = 0
   END IF
- CASE 243'-- joystick axis
+ CASE 243'-- joystick axis(axis, scale, joystick)
   retvals(0) = bound(retvals(0),0,1)
   retvals(2) = bound(retvals(2),0,7)
   DIM as integer xaxis, yaxis

@@ -89,7 +89,7 @@ SUB control
  carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
  IF keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN  'ctrl + J
   calibrate
-  FOR i as integer = 0 TO 1
+  FOR i as integer = 0 TO UBOUND(gotj)
    gotj(i) = readjoy(joy(), i)
   NEXT i
  END IF
@@ -98,7 +98,7 @@ SUB control
  'Joystick
 
  DIM proceed as integer = NO
- FOR i as integer = 0 TO 1
+ FOR i as integer = 0 TO UBOUND(gotj)
   IF gotj(i) THEN
    gotj(i) = readjoy(joy(), i)
    proceed = YES

@@ -2148,8 +2148,10 @@ sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integ
 end sub
 
 function readjoy (joybuf() as integer, byval jnum as integer) as bool
-'Return false if joystick is not present, or true if joystick is present
-'jnum is the joystick to read (QB implementation supports 0 and 1)
+'Return false if joystick is not present, or true if joystick is present.
+'(Warning: if gfx_directx can't read a joystick, it is removed and the others
+'are renumbered)
+'jnum is the joystick to read
 'joybuf(0) = Analog X axis (scaled to -100 to 100)
 'joybuf(1) = Analog Y axis
 'joybuf(2) = button 1: 0=pressed nonzero=not pressed

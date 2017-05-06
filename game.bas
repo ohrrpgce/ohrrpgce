@@ -162,7 +162,7 @@ DIM topmenu as integer = -1
 REDIM csetup(12) as integer
 REDIM carray(13) as integer
 REDIM joy(14) as integer
-REDIM gotj(2) as bool
+REDIM gotj(7) as bool
 
 'Script interpreter
 DIM nowscript as integer = -1
@@ -306,7 +306,11 @@ clearpage vpage
 setvispage vpage, NO
 
 '-- Init joysticks
-FOR i as integer = 0 TO 1
+'-- Find which joysticks are present (this is a DOS-ism, the active joysticks are probably
+'-- numbered 0 through n-1).
+'-- FIXME: Also, this is definitely wrong for gfx_directx, which removes a joystick, renumbering the
+'-- others, if it can't read it.
+FOR i as integer = 0 TO UBOUND(gotj)
  gotj(i) = readjoy(joy(), i)
 NEXT i
 
