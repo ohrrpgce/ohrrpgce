@@ -1,6 +1,6 @@
 This is the text box line editor.
 
-Use the arrow keys to move the cursor, and CTRL+Left or CTRL+Right to move by word.
+Use the arrow keys to move the cursor, and CTRL+Left/Right or ALT+Left/Right to move by word. CTRL+Home/End moves to the start/end.
 
 Type to edit the lines.
 
@@ -12,4 +12,4 @@ CTRL+C Copies the current line.
 
 CTRL+V Pastes the previously copied line, replacing the line that the cursor is on.
 
-CTRL+BACKSPACE or ALT/OPTION+DELETE deletes the previous word.
+CTRL+BACKSPACE or ALT+BACKSPACE deletes the previous word, and CTRL+DELETE or ALT+DELETE deletes the next word.

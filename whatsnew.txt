@@ -75,6 +75,11 @@ WHAT IS NEW?
     * You can now also remap the background color from the Import/Export
       Backdrop/Tileset menu; also added 'View with background' [Ralph]
     * Numbers can be typed with Numpad keys (I never even tried!) [Ralph]
+    * Text editing: Ctrl-Backspace/Delete to delete the previous/next word
+      (and for Mac, Option(aka Alt)-Delete/ForwardDelete, and move by word
+      with Option-Left/Right).  The old Ctrl-Backspace key to delete all
+      records after the current has changed to Shift-Backspace.  You can
+      also press Delete on the <-- Record # --> line instead. [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

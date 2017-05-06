@@ -1607,6 +1607,72 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
  RETURN (old <> n)
 END FUNCTION
 
+' Handle all key combinations for deleting a character or word forward or backwards:
+' Backspace, Delete, Alt/Ctrl-Backspace/Delete
+' On Mac, Option- (which is Alt) Backspace/Delete are used instead of Ctrl-Backspace/Delete
+' so we support that too. (Note Backspace and Delete are called Delete and Forward Delete on Mac).
+' pre is the part of the text before the insert point, and post is after.
+PRIVATE SUB stredit_delete_keys(pre as string, post as string)
+ IF keyval(scCtrl) > 0 OR keyval(scAlt) > 0 THEN
+  DIM spacepos as integer
+
+  ' Delete prev word
+  IF keyval(scBackspace) > 1 THEN
+   ' First remove any whitespace at the end
+   pre = RTRIM(pre, ANY !" \n")
+   ' Find whitespace character before the last word, but don't delete it
+   spacepos = INSTRREV(pre, ANY !" \n", -1)  '-1: search from end
+   pre = LEFT(pre, spacepos)
+  END IF
+
+  ' Delete next word
+  IF keyval(scDelete) > 1 THEN
+   ' First remove any whitespace
+   post = LTRIM(post, ANY !" \n")
+   ' Find whitespace character after the next word, but don't delete it
+   spacepos = INSTR(post, ANY !" \n")
+   post = MID(post, spacepos)
+  END IF
+
+ ELSE
+
+  IF keyval(scBackspace) > 1 THEN
+   pre = LEFT(pre, LEN(pre) - 1)
+  END IF
+  IF keyval(scDelete) > 1 THEN
+   post = RIGHT(post, LEN(post) - 1)
+  END IF
+ END IF
+END SUB
+
+'Returns true if the string has changed
+FUNCTION strgrabber (text as string, maxl as integer) as bool
+ STATIC clip as string
+ DIM original as string = text
+
+ stredit_delete_keys text, ""
+
+ #IFDEF IS_CUSTOM
+  '--copy+paste support
+  IF copy_keychord() THEN clip = text
+  IF paste_keychord() THEN text = LEFT(clip, maxl)
+ #ENDIF
+
+ '--adding chars
+ IF LEN(text) < maxl THEN
+  #IFDEF IS_CUSTOM
+   IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
+    '--charlist support
+    text &= charpicker()
+   END IF
+  #ENDIF
+  'Note: never returns newlines; and we don't check either
+  text = LEFT(text + getinputtext, maxl)
+ END IF
+
+ RETURN (text <> original)
+END FUNCTION
+
 FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numlines as integer = 1, line_length as integer = 1) as integer
  'Return value is the line that the cursor is on, or 0 if numlines=1
  'insert is the 0-based position of the cursor (range 0..LEN(s)-1), and is modified byref. Set to -1 to move automatically to end of string
@@ -1625,7 +1691,9 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
  insert = bound(insert, 0, LEN(s))
 
  '--insert cursor movement
- IF keyval(scCtrl) = 0 THEN 'not CTRL
+ ' (Mac uses Option (ie ALT) instead of CTRL for moving by word, so accept that too.
+ ' Doesn't use Option-Home/End though.)
+ IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
   IF keyval(scLeft) > 1 THEN insert = large(0, insert - 1)
   IF keyval(scRight) > 1 THEN insert = small(LEN(s), insert + 1)
  ELSE 'CTRL
@@ -1701,27 +1769,8 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
  DIM pre as string = LEFT(s, insert)
  DIM post as string = RIGHT(s, LEN(s) - insert)
 
- ' Ctrl-Backspace or Option-Delete (on a Mac; Option is Alt) to delete previous word
- IF (keyval(scCtrl) > 0 AND keyval(scBackspace) > 1) OR _
-    (keyval(scAlt) > 0 AND keyval(scDelete) > 1) THEN
-  DIM lastspace as integer
-  ' First remove any whitespace at the end
-  pre = RTRIM(pre, ANY !" \n")
-  ' Find whitespace character before the last word, but don't delete it
-  lastspace = INSTRREV(pre, ANY !" \n", -1)  '-1: search from end
-  pre = LEFT(pre, lastspace)
- ELSE
-
-  '--BACKSPACE support
-  IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
-   pre = LEFT(pre, LEN(pre) - 1)
-  END IF
-
-  '--DEL support
-  IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN
-   post = RIGHT(post, LEN(post) - 1)
-  END IF
- END IF
+ '--BACKSPACE, DELETE, ALT/CTRL+BACKSPACE/DELETE
+ stredit_delete_keys pre, post
 
  '--adding chars
  IF LEN(pre) + LEN(post) < maxl THEN

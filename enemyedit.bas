@@ -625,7 +625,7 @@ DO
   END IF
  END IF
 
- '--ALT+BACKSPACE
+ '--SHIFT+BACKSPACE
  IF cropafter_keycombo(workmenu(state.pt) = EnMenuChooseAct) THEN
   cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", getbinsize(binDT1)
  END IF

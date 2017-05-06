@@ -312,19 +312,6 @@ SUB showplotstrings
  NEXT i
 END SUB
 
-'Returns whether the string has changed
-FUNCTION strgrabber (s as string, maxl as integer) as bool
- DIM old as string = s
-
- '--BACKSPACE support
- IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
-
- '--adding chars
- s = LEFT(s + getinputtext, maxl)
-
- RETURN (s <> old)
-END FUNCTION
-
 SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, and then only edit the copy. The original is never used directly.

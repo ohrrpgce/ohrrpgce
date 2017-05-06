@@ -658,32 +658,6 @@ FUNCTION condition_string (cond as Condition, selected as bool, default as strin
  RETURN ret
 END FUNCTION
 
-'Returns true if the string has changed
-FUNCTION strgrabber (s as string, maxl as integer) as bool
- STATIC clip as string
- DIM old as string = s
-
- '--BACKSPACE support
- IF keyval(scBackspace) > 1 THEN s = LEFT(s, LEN(s) - 1)
-
- '--copy+paste support
- IF copy_keychord() THEN clip = s
- IF paste_keychord() THEN s = LEFT(clip, maxl)
-
- '--adding chars
- IF LEN(s) < maxl THEN
-  IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
-   '--charlist support
-   s = s + charpicker()
-  ELSE
-   'Note: never returns newlines; and we don't check either
-   s = LEFT(s + getinputtext, maxl)
-  END IF
- END IF
-
- RETURN (s <> old)
-END FUNCTION
-
 FUNCTION charpicker() as string
  STATIC pt as integer
 
@@ -3904,10 +3878,10 @@ SUB fontedit_import_font(font() as integer)
  END IF
 END SUB
 
-' Pressed Alt+Backspace, or Delete on the "<- Record # ->" line
+' Pressed Shift+Backspace, or Delete on the "<- Record # ->" line
 FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
  IF index_selected AND keyval(scDelete) > 1 THEN RETURN YES
- RETURN keyval(scAlt) > 0 AND keyval(scBackspace) > 1
+ RETURN keyval(scShift) > 0 AND keyval(scBackspace) > 1
 END FUNCTION
 
 SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as bool=YES)
