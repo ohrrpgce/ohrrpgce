@@ -24,7 +24,7 @@ namespace gfx
 		Window();
 		~Window();
 
-		HRESULT initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc);
+		HRESULT initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc, SIZE size);
 		void shutdown();
 		void pumpMessages();
 		void setWindowTitle(const TCHAR* strTitle);

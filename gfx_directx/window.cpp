@@ -2,6 +2,15 @@
 #include "debugmsg.hpp"
 using namespace gfx;
 
+/* Window is largely subservient to the D3D class, which also
+   does a lot of window handling (e.g. fullscreening is done by
+   Reset()'ing the DirectX state, which indirectly causes the window
+   state to change).
+   Window doesn't even know whether we're currently windowed or fullscreen!!
+   Also, before the backend is initialised, g_Window shouldn't be accessed,
+   while g_DirectX collects parameters to use for startup.
+*/
+
 LRESULT CALLBACK gfx::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
@@ -18,7 +27,6 @@ LRESULT CALLBACK gfx::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 Window::Window() : m_hInst(NULL), m_hWnd(NULL), m_bRunning(false)
 {
-	::ZeroMemory(&m_rWindow, sizeof(m_rWindow));
 }
 
 Window::~Window()
@@ -26,7 +34,7 @@ Window::~Window()
 	shutdown();
 }
 
-HRESULT Window::initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc)
+HRESULT Window::initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc, SIZE size)
 {
 	m_hInst = hInstance;
 	WNDCLASSEX wc = {0};
@@ -55,10 +63,14 @@ HRESULT Window::initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WND
 
 	if(!::RegisterClassEx(&wc))
 		return HRESULT_FROM_WIN32(GetLastError());
-	m_rWindow.right = 800;
-	m_rWindow.bottom = 600;
+
+	m_rWindow.left = 0;
+	m_rWindow.top = 0;
+	m_rWindow.right = size.cx;
+	m_rWindow.bottom = size.cy;
 	// Compute the size of the window from the size of the client area
 	::AdjustWindowRectEx(&m_rWindow, WS_OVERLAPPEDWINDOW, 0, 0);
+
 	m_hWnd = ::CreateWindowEx(0, TEXT("gfx_directx window class"), TEXT(""), WS_OVERLAPPEDWINDOW, 
 							  m_rWindow.left, m_rWindow.top, 
 							  m_rWindow.right - m_rWindow.left, m_rWindow.bottom - m_rWindow.top, 
@@ -100,21 +112,29 @@ void Window::setWindowTitle(const TCHAR *strTitle)
 }
 
 // This changes the size of the window, used when we are windowed
+// (Also called before initialisation)
 void Window::setClientSize(int width, int height)
 {
 	INPUTDEBUG("setClientSize %d*%d", width, height);
 	m_rWindow.right = m_rWindow.left + width;
 	m_rWindow.bottom = m_rWindow.top + height;
+	// Compute window rect from client area rect
 	::AdjustWindowRectEx(&m_rWindow, WS_OVERLAPPEDWINDOW, 0, 0);
+	INPUTDEBUG("  adjusted to [SetWindowPos] %d*%d", m_rWindow.right - m_rWindow.left, m_rWindow.bottom - m_rWindow.top);
+	if(!m_bRunning)
+		return;
 	// Generates a WM_SIZE, which causes g_DirectX and g_Mouse to be updated
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, m_rWindow.right - m_rWindow.left, m_rWindow.bottom - m_rWindow.top, SWP_NOMOVE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
 // This changes the size of the window, used when we are fullscreen
+// (Also called before initialisation)
 void Window::setWindowSize(int width, int height)
 {
-	INPUTDEBUG("setWindowSize %d*%d", width, height);
+	INPUTDEBUG("setWindowSize [SetWindowPos] %d*%d", width, height);
+	if(!m_bRunning)
+		return;
 	// Generates a WM_SIZE, which causes g_DirectX and g_Mouse to be updated
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOMOVE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
@@ -122,12 +142,16 @@ void Window::setWindowSize(int width, int height)
 
 void Window::setWindowPosition(int left, int top)
 {
+	if(!m_bRunning)
+		return;
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, left, top, 0, 0, SWP_NOSIZE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
 void Window::centerWindow()
 {
+	if(!m_bRunning)
+		return;
 	HWND hParent = ::GetParent(m_hWnd);
 	if(hParent == NULL)
 		hParent = ::GetDesktopWindow();

@@ -81,6 +81,8 @@ namespace gfx
 		} m_image;
 
 		RECT calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
+		HRESULT updateWindow();
+
 	public:
 		D3D();
 		virtual ~D3D();
@@ -107,8 +109,10 @@ namespace gfx
 		void setSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
 		void setAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
 		void setImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
+		void setWindowedSize(SIZE size); //Set size of the client area, while windowed
 
 		//// Info
+		SIZE getWindowedSize(); //Size of the client area, while windowed
 		SIZE getResolution(); //returns size of back buffer (client area) in pixels
 		// The part of the client window on which the image is actually drawn,
 		// excluding black spacing bars. In client coordinates, ie. 0,0 is top-left.

@@ -30,6 +30,9 @@ using namespace gfx;
 
 bool input_debug = false;   // --input-debug flag
 
+// Note: g_DirectX is responsible for all the important state of the
+// backend, such as the current fullscreen state, window size, resolution,
+// not g_Window.
 struct gfx_BackendState
 {
 	Tstring szWindowTitle;
@@ -351,7 +354,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	HRESULT hr;
 	if(FAILED(hr = g_Window.initialize(::GetModuleHandle(MODULENAME), 
 	                                   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
-	                                   (WNDPROC)OHRWndProc)))
+	                                   (WNDPROC)OHRWndProc, g_DirectX.getWindowedSize())))
 	{
 		debugc(errError, "Window initialization failed! %s", HRESULTString(hr));
 		return FALSE;
@@ -385,10 +388,8 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 
 	gfx_SetWindowTitle(pCreationData->windowtitle);
 
-	g_Window.setClientSize(640, 400);
-	g_Window.centerWindow();
+	// At this point, the window is still hidden
 	g_Window.showWindow();
-	g_Window.setClientSize(640, 400);
 
 	debugc(errInfo, "Initialization success");
 	return TRUE;
@@ -411,15 +412,14 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 	switch(msg)
 	{
 	case OM_GFX_SETWIDTH:
-		g_Window.setClientSize(dwParam, g_Window.getClientSize().cy);
-		g_Window.centerWindow();
+		g_DirectX.setWindowedSize(SZ(dwParam, g_DirectX.getWindowedSize().cy));
 		break;
 	case OM_GFX_SETHEIGHT:
-		g_Window.setClientSize(g_Window.getClientSize().cx, dwParam);
-		g_Window.centerWindow();
+		g_DirectX.setWindowedSize(SZ(g_DirectX.getWindowedSize().cx, dwParam));
 		break;
 	case OM_GFX_SETCLIENTAREA:
-		g_Window.setClientSize(dwParam, (int)pvParam);
+		g_DirectX.setWindowedSize(SZ(dwParam, (int)pvParam));
+//		g_Window.setClientSize(dwParam, (int)pvParam);
 		break;
 	case OM_GFX_SETLEFT:
 		g_Window.setWindowPosition(dwParam, g_Window.getWindowRect().top);
@@ -782,8 +782,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
 						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
-						g_State.PostEvent(eventFullscreened, g_DirectX.isViewFullscreen(), 0);
 						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+						g_State.PostEvent(eventFullscreened, g_DirectX.isViewFullscreen(), 0);
 						if(g_DirectX.isViewFullscreen())
 						{
 							// Make window topmost
@@ -847,6 +847,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		{
 			// The window size changed, whether for external reason, or because Window::setClientSize/setWindowSize was called
+			INPUTDEBUG("WM_SIZE: %d*%d", LOWORD(lParam), HIWORD(lParam));
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
@@ -865,6 +866,9 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		} break;
 	case WM_SIZING:
 		{
+			RECT r = *(RECT*)lParam;  // The drag rectangle
+			INPUTDEBUG("WM_SIZING drag size: %d*%d", r.right - r.left, r.bottom - r.top);
+
 			// The window is being resized by the user dragging an edge/corner
 			// If they're dragging by a corner, cause the size to snap to nearest multiple of native.
 			if(!g_DirectX.isViewFullscreen())
@@ -883,7 +887,6 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case WMSZ_TOPLEFT:
 				case WMSZ_TOPRIGHT:
 					{
-						RECT r = *(RECT*)lParam;  // The drag rectangle
 						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
 						{
 							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
@@ -904,6 +907,18 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 			::DefWindowProc(hWnd, msg, wParam, lParam);
+		} break;
+	case WM_NCCALCSIZE:
+		{
+			// This WM message is only intercepted for debugging.
+			// If wParam = 0 then lParam is a RECT*, otherwise it is a NCCALCSIZE_PARAMS*;
+			// either way the first sizeof(RECT) bytes is the proposed window rectangle,
+			// and it get filled with the corresponding window client area.
+			RECT *r = (RECT*)lParam;
+			INPUTDEBUG("WM_NCCALCSIZE(%d): window rect size %d*%d", wParam, r->right - r->left, r->bottom - r->top);
+			LRESULT ret = ::DefWindowProc(hWnd, msg, wParam, lParam);
+			INPUTDEBUG("              ->ret=%x, client rect size %d*%d", ret, r->right - r->left, r->bottom - r->top);
+			return ret;
 		} break;
 	case WM_POWERBROADCAST:
 		{
