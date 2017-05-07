@@ -332,7 +332,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
     hero_id = gam.hero(i).id
     IF hero_id >= 0 THEN
-     IF xreadbit(itembuf(), hero_id, 66) THEN
+     IF item_read_equipbit(itembuf(), hero_id) THEN
       buyst.party_sl(i)->Extra(0) = YES
       ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
      END IF
@@ -2888,7 +2888,7 @@ SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
    eq_slot = itembuf(49) - 1
    IF eq_slot >= 0 THEN
     '--if this item is equipable
-    IF readbit(itembuf(), 66, gam.hero(st.who).id) THEN
+    IF item_read_equipbit(itembuf(), gam.hero(st.who).id) THEN
      '--if this item is equipable by this hero
      WITH st.eq(eq_slot)
       .offset(.count) = i

@@ -80,6 +80,7 @@ WHAT IS NEW?
       with Option-Left/Right).  The old Ctrl-Backspace key to delete all
       records after the current has changed to Shift-Backspace.  You can
       also press Delete on the <-- Record # --> line instead. [Ralph]
+    * Raised the limit on hero definitions from 60 to 512 [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

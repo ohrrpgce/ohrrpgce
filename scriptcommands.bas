@@ -1330,7 +1330,8 @@ SUB script_functions(byval cmdid as integer)
     loaditemdata buffer(), retvals(1)
     DIM hero_id as integer = gam.hero(retvals(0)).id
     IF hero_id >= 0 THEN
-     IF readbit(buffer(), 66, hero_id) THEN
+     IF item_read_equipbit(buffer(), hero_id) THEN
+      ' It's equippable; return slot+1
       scriptret = buffer(49)
      END IF
     END IF

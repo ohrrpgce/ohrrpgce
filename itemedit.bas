@@ -341,12 +341,20 @@ FUNCTION item_attack_name(n as integer) as string
  RETURN n - 1 & " " & readattackname(n - 1)
 END FUNCTION
 
+' Who Can Equip? menu
 SUB item_editor_equipbits(itembuf() as integer)
- DIM ibit(-1 TO maxMaxHero) as string
- FOR i as integer = 0 TO gen(genMaxHero)
-  ibit(i) = "Equipable by " & getheroname(i)
- NEXT i
- editbitset itembuf(), 66, gen(genMaxHero), ibit()
+ DIM hero_id as integer
+ ' The equippable bits are discontinuous
+ DIM combined_bits(maxMaxHero \ 16) as integer
+ DIM bitnames(-1 TO maxMaxHero) as string
+ FOR hero_id = 0 TO gen(genMaxHero)
+  bitnames(hero_id) = "Equippable by " & getheroname(hero_id)
+  setbit combined_bits(), 0, hero_id, item_read_equipbit(itembuf(), hero_id)
+ NEXT
+ editbitset combined_bits(), 0, gen(genMaxHero), bitnames()
+ FOR hero_id = 0 TO gen(genMaxHero)
+  item_write_equipbit(itembuf(), hero_id, xreadbit(combined_bits(), hero_id))
+ NEXT
 END SUB
 
 'This elemental resistance editor is shared by the hero and item editors

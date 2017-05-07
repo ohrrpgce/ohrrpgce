@@ -91,7 +91,7 @@ REDIM master(255) as RGBcolor
 REDIM uilook(uiColorLast) as integer
 REDIM boxlook(uiBoxLast) as BoxStyle
 DIM statnames() as string
-REDIM herotags(59) as HeroTagsCache
+REDIM herotags(maxMaxHero) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
 DIM joy(4) as integer
 DIM vpage as integer = 0

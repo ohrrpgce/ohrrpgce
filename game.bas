@@ -75,7 +75,7 @@ DIM persist_reld_doc as DocPtr
 REDIM tag(1000) as integer '16000 bitsets
 REDIM onetime(1000) as integer '16000 bitsets
 
-REDIM herotags(59) as HeroTagsCache
+REDIM herotags(maxMaxHero) as HeroTagsCache
 REDIM itemtags(maxMaxItems) as ItemTagsCache
 REDIM statnames() as string
 

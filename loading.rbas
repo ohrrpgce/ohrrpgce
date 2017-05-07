@@ -3296,6 +3296,24 @@ FUNCTION get_item_stack_size (byval item_id as integer) as integer
  RETURN stacksize
 END FUNCTION
 
+' Read one of the 'Equippable by' bits
+FUNCTION item_read_equipbit(itembuf() as integer, hero_id as integer) as bool
+ IF hero_id < 64 THEN
+  RETURN xreadbit(itembuf(), hero_id, 66)
+ ELSE
+  RETURN xreadbit(itembuf(), hero_id - 64, 211)
+ END IF
+END FUNCTION
+
+' Write one of the 'Equippable by' bits
+SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value as bool)
+ IF hero_id < 64 THEN
+  setbit itembuf(), 66, hero_id, value
+ ELSE
+  setbit itembuf(), 211, hero_id - 64, value
+ END IF
+END SUB
+
 
 '==========================================================================================
 '                                         Enemies

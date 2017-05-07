@@ -127,7 +127,7 @@ SUB hero_editor
     hero_id -= 1
     hero_editor_load_hero st, her, hero_id
    END IF
-   IF keyval(scRight) > 1 AND hero_id < 59 THEN
+   IF keyval(scRight) > 1 AND hero_id < maxMaxHero THEN
     saveherodata her, hero_id
     hero_id += 1
     IF needaddset(hero_id, gen(genMaxHero), "hero") THEN
@@ -1425,14 +1425,14 @@ SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer
   IF itembuf(49) = equip_type THEN
    itemname(nextbit) = readitemname(i)
    item_id(nextbit) = i
-   setbit tempbits(), 0, nextbit, readbit(itembuf(), 66, hero_id)
+   setbit tempbits(), 0, nextbit, item_read_equipbit(itembuf(), hero_id)
    nextbit += 1
   END IF
  NEXT i
  editbitset tempbits(), 0, nextbit-1, itemname()
  FOR i as integer = 0 TO nextbit-1
   loaditemdata itembuf(), item_id(i)
-  setbit itembuf(), 66, hero_id, readbit(tempbits(), 0, i)
+  item_write_equipbit itembuf(), hero_id, readbit(tempbits(), 0, i)
   saveitemdata itembuf(), item_id(i)
  NEXT i
 END SUB

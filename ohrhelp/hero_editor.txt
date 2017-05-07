@@ -1,4 +1,4 @@
-This is the Hero Editor.  Every single character that the player will have control of at some point throughout the game needs to be defined as a separate hero.
+This is the Hero Editor.  Every single character that the player will have control of at some point throughout the game needs to be defined here. (It's also possible to have multiple copies of a hero in the party.)
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
