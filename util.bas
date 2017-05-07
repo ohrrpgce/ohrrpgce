@@ -2448,7 +2448,8 @@ SUB array2str (arr() as integer, byval o as integer, dest as string)
 'String dest is already filled out with spaces to the requisite size
 'o is the offset in bytes from the start of the buffer
 'the buffer will be packed 2 bytes to an int, for compatibility, even
-'though FB ints are 4 bytes long  ** leave like this? not really wise
+'though FB ints are 4 bytes long.
+'TODO: this sub is redundant to readbinstring
 	dim i as integer
 	dim bi as integer
 	dim bp as integer ptr

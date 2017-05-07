@@ -1495,10 +1495,9 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.first = -1
  state.size = 9
 
- '--get last pal
+ '--Find last palette which is not blank
  loadrecord buf(), game + ".pal", 8, 0
- state.last = buf(1) + 1
- FOR i = state.last TO 0 STEP -1
+ FOR i = buf(1) TO 0 STEP -1
   state.last = i
   loadrecord buf(), game + ".pal", 8, 1 + i
   FOR j = 0 TO 7
@@ -1512,7 +1511,6 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.pt = bound(curpal, 0, state.last)
  correct_menu_state state
 
- 'reset repeat rate, needed because called from sprite editor (argh), the caller resets its own repeatrate
  setkeys
  DO
   setwait 55
