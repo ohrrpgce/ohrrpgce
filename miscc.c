@@ -58,8 +58,8 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 
 // Initialise an FBSTRING to a C string
 // *fbstr is assumed to be garbage
-void init_fbstring(FBSTRING *fbstr, char *cstr) {
-	fb_StrInit(fbstr, -1, cstr, strlen(cstr), 0);
+void init_fbstring(FBSTRING *fbstr, const char *cstr) {
+	fb_StrInit(fbstr, -1, (char*)cstr, strlen(cstr), 0);
 }
 
 // Initialise an FBSTRING to a copy of an existing string.
@@ -71,8 +71,8 @@ void init_fbstring_copy(FBSTRING *fbstr, FBSTRING *src) {
 
 // Set an existing FBSTRING to a C string
 // *fbstr must already initialised!
-void set_fbstring(FBSTRING *fbstr, char *cstr) {
-	fb_StrAssign(fbstr, -1, cstr, strlen(cstr), 0);
+void set_fbstring(FBSTRING *fbstr, const char *cstr) {
+	fb_StrAssign(fbstr, -1, (char*)cstr, strlen(cstr), 0);
 }
 
 // Use this function to return a FB string from C.
@@ -109,7 +109,7 @@ void delete_fbstring(FBSTRING *str) {
 // Actually it turns out this can distribute nonideally for non-text,
 // proving it really was a bad idea.
 // strp may be NULL iif length is 0
-uint32_t stringhash(unsigned char *strp, int length) {
+uint32_t stringhash(const unsigned char *strp, int length) {
 	uint32_t hash = 0xbaad1dea;
 	int extra_bytes = length & 3;
 

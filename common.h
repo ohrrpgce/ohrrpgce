@@ -98,14 +98,14 @@ void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const cha
 #define throw_error(...) _throw_error(errFatalBug, __FILE__, __LINE__, __VA_ARGS__)
 #define fatal_error(...) _throw_error(errFatal, __FILE__, __LINE__, __VA_ARGS__)
 
-void init_fbstring(FBSTRING *fbstr, char *cstr);
+void init_fbstring(FBSTRING *fbstr, const char *cstr);
 void init_fbstring_copy(FBSTRING *fbstr, FBSTRING *src);
-void set_fbstring(FBSTRING *fbstr, char *cstr);
+void set_fbstring(FBSTRING *fbstr, const char *cstr);
 FBSTRING *return_fbstring(FBSTRING *fbstr);
 FBSTRING *empty_fbstring();
 void delete_fbstring(FBSTRING *str);
 
-uint32_t stringhash(unsigned char *strp, int length);
+uint32_t stringhash(const unsigned char *strp, int length);
 
 #ifdef __cplusplus
 }

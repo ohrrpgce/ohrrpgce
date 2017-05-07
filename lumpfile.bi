@@ -145,7 +145,7 @@ declare function Lump_unlumpfile(byref this as Lump, whereto as string) as integ
 declare function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr 
-declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as zstring ptr = nulzstr, partial_retval as bool = NO) as bool
+declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, partial_retval as bool = NO) as bool
 declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0, expectfile as bool = YES, partial_retval as bool = NO) as bool
 declare sub storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 declare sub storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
@@ -251,6 +251,7 @@ declare function OPENFILE(filename as string, open_bits as OPENBits, byref fh as
 declare sub send_lump_modified_msg(byval filename as zstring ptr)
 declare sub set_OPEN_hook(lumpfile_filter as FnOpenCallback, lump_writes_allowed as boolint, channel as IPCChannel ptr)
 declare sub clear_OPEN_hook()
+declare function get_filename(fnum as integer) as string
 
 end extern
 

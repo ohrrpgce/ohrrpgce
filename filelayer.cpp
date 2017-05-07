@@ -15,6 +15,12 @@
 // been deleted. So it would be a bad idea to define openfiles as an object instead of pointer.
 map<FB_FILE *, FileInfo> *openfiles;
 
+// Mapping from file handles to names.  We don't update this when the file is
+// closed, so don't need to use a pointer like openfiles. And handles get
+// reused, so it's not a memory leak.  (Note openfiles also stores the filename,
+// more robustly, but only includes hooked files)
+map<int, string> filenames;
+
 IPCChannel *lump_updates_channel;
 
 bool lock_lumps = false;
@@ -274,6 +280,9 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 		      (filename && filename->data) ? filename->data : "",  // Valid empty string
 		      openbits, ret, strerror(errno));
 	}
+	if (ret == FB_RTERROR_OK) {
+		filenames[fnum] = string(file_to_open.data);
+	}
 	delete_fbstring(&file_to_open);
 
 	return (FB_RTERROR)ret;
@@ -311,4 +320,14 @@ void clear_OPEN_hook() {
 	lock_lumps = false;
 	allow_lump_writes = true;
 	lump_updates_channel = NULL_CHANNEL;
+}
+
+// Lookup the name of a file from its handle (as returned by FREEFILE).
+// Only works if it was opened with OPENFILE. Returns previous filename if not open.
+// This is just intended for debugging.
+FBSTRING *get_filename(int fnum) {
+	FBSTRING ret;
+	// If fnum isn't in filenames, this inserts an empty string
+	init_fbstring(&ret, filenames[fnum].c_str());
+	return return_fbstring(&ret);
 }

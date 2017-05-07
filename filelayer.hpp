@@ -67,6 +67,8 @@ extern "C" {
 	void clear_OPEN_hook();
 
 	FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fh);
+
+	FBSTRING *get_filename(int fnum);
 }
 
 
