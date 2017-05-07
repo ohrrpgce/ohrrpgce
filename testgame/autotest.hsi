@@ -10,13 +10,73 @@ define constant, begin
 8,tag:textbox 14 happened
 9,tag:textbox 15 happened
 10,tag:Victory
-0,hero:Freki
+0,hero:UNUSED
 1,hero:Helga
 2,hero:Olaf
 3,hero:Frumpy
 4,hero:Styrge
 5,hero:Kitt
 6,hero:Bram
+7,hero:UNUSED 2
+8,hero:UNUSED 3
+9,hero:UNUSED 4
+10,hero:UNUSED 5
+11,hero:UNUSED 6
+12,hero:UNUSED 7
+13,hero:UNUSED 8
+14,hero:UNUSED 9
+15,hero:UNUSED 10
+16,hero:UNUSED 11
+17,hero:UNUSED 12
+18,hero:UNUSED 13
+19,hero:UNUSED 14
+20,hero:UNUSED 15
+21,hero:UNUSED 16
+22,hero:UNUSED 17
+23,hero:UNUSED 18
+24,hero:UNUSED 19
+25,hero:UNUSED 20
+26,hero:UNUSED 21
+27,hero:UNUSED 22
+28,hero:UNUSED 23
+29,hero:UNUSED 24
+30,hero:UNUSED 25
+31,hero:UNUSED 26
+32,hero:UNUSED 27
+33,hero:UNUSED 28
+34,hero:UNUSED 29
+35,hero:UNUSED 30
+36,hero:UNUSED 31
+37,hero:UNUSED 32
+38,hero:UNUSED 33
+39,hero:UNUSED 34
+40,hero:UNUSED 35
+41,hero:UNUSED 36
+42,hero:UNUSED 37
+43,hero:UNUSED 38
+44,hero:UNUSED 39
+45,hero:UNUSED 40
+46,hero:UNUSED 41
+47,hero:UNUSED 42
+48,hero:UNUSED 43
+49,hero:UNUSED 44
+50,hero:UNUSED 45
+51,hero:UNUSED 46
+52,hero:UNUSED 47
+53,hero:UNUSED 48
+54,hero:UNUSED 49
+55,hero:UNUSED 50
+56,hero:UNUSED 51
+57,hero:UNUSED 52
+58,hero:UNUSED 53
+59,hero:UNUSED 54
+60,hero:UNUSED 55
+61,hero:UNUSED 56
+62,hero:UNUSED 57
+63,hero:UNUSED 58
+64,hero:UNUSED 59
+65,hero:Freki
+66,hero:UNUSED 60
 0,item:DefltWep
 3,item:Boots
 4,item:SteelSho
