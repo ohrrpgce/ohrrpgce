@@ -508,6 +508,9 @@ SUB evalitemtags
  NEXT j
 END SUB
 
+' Find hero by ID, returning party slot or -1.
+' NOTE: 'id' is the hero ID + 1!
+' Pass id = -1 to find any hero.
 FUNCTION findhero (byval id as integer, byval first as integer, byval last as integer, byval direction as integer, errlvl as scriptErrEnum = serrIgnore) as integer
  FOR i as integer = first TO last STEP direction
   IF gam.hero(i).id + 1 = id ORELSE (id = -1 ANDALSO gam.hero(i).id >= 0) THEN

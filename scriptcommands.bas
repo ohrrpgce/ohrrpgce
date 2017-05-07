@@ -3888,9 +3888,9 @@ SUB script_functions(byval cmdid as integer)
    END IF
    scriptret = slot
   END IF
- CASE 67'--delete hero
-  IF herocount(40) > 1 THEN
-   DIM i as integer = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1, serrWarn)
+ CASE 67'--delete hero (hero ID)
+  IF herocount(40) > 1 AND retvals(0) >= 0 THEN
+   DIM i as integer = findhero(retvals(0) + 1, 0, 40, 1, serrWarn)
    IF i > -1 THEN gam.hero(i).id = -1
    IF herocount(3) = 0 THEN forceparty
    party_change_updates
