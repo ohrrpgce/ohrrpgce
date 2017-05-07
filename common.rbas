@@ -3319,24 +3319,81 @@ IF auto_upgrader_version.recorded THEN
 END IF
 debuginfo "archinym creation info: " & read_archinym_version()
 
+'----------------------------------------
+'Update record-count for all fixed-length lumps.
+'WARNING: we haven't done fixWipeGEN yet, so don't initialise anything in gen(199) and up!
+
+IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
+FOR i as integer = 0 TO 8
+ fix_sprite_record_count i
+NEXT i
+fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
+fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
+'FIXME: .dt0 lump is always padded up to 60 records
+IF isfile(workingdir & SLASH & "heroes.reld") THEN
+ 'TODO: genMaxHero fix-up for heroes.reld is unimplemented
+ELSE
+ fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
+END IF
+fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
+fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
+' Because the .pal file format changed in Format 5, we should skip it to avoid errors (genMaxPal fixed below).
+' Note: there is a second record count in the header, which is respected by Palette16_load,
+' and may not match gen(genMaxPal)!
+IF gen(genVersion) >= 5 THEN
+ fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
+END IF
+fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"
+'.veh may not exist yet
+fix_record_count gen(genMaxVehicle),   80, game & ".veh", "Vehicles"
+fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note: no records for tags 0 and 1, so we handle that with a negative header size.
+'In older versions menus.bin is always 2 bytes short... except when it's zero length or missing.
+'In fact, it might be zero length even if the menu has been modified (menuitem.bin contains the modified items)!!
+fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
+fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menuitem.bin", "Menu Items"
+fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
+'palettes.bin may not exist yet
+fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & SLASH & "palettes.bin", "Master Palettes", 4
+fix_record_count gen(genMaxSong),      getbinsize(binSONGDATA), workingdir & SLASH "songdata.bin", "Songs"
+'Warning: don't deduce number of maps from length of .MAP or .MN: may be appended with garbage
+
+'FIXME: Attack data is split over two lumps. Must handle mismatch. In the meantime, a quick fix (increase only)
+DIM dt6_records as integer = (filelen(game & ".dt6") + 79) \ 80
+IF dt6_records > gen(genMaxAttack) + 1 THEN
+ upgrade_message "Increasing number of attacks from " & (gen(genMaxAttack) + 1) & " to " & dt6_records
+ gen(genMaxAttack) = dt6_records - 1
+END IF
+
+'Check the number of maps, updating gen(genMaxMap), and check all lumps are present
+check_map_count
+
+'----------------------------------------
+
+'--make sure binsize.bin is full. why are we doing this? Otherwise as lumps are upgraded
+'--and binsize.bin is extended, records in binsize which are meant to default
+'--because they don't exist would become undefined instead
+FOR i as integer = 0 TO binLASTENTRY
+ setbinsize i, getbinsize(i)
+NEXT
 
 IF getfixbit(fixNumElements) = 0 THEN
  setfixbit(fixNumElements, 1)
- 'This has to be set before we start loading and saving things
+ 'This has to be set before we start loading and saving heroes, enemies, and items
  gen(genNumElements) = 16
 END IF
-
 IF gen(genNumElements) < 1 THEN
  upgrade_message "genNumElements was " & gen(genNumElements) & ", fixing"
  gen(genNumElements) = 1
 END IF
+
+'----------------------------------------
 
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
  upgrade_message "Flushing New Text Data..."
  DIM box as TextBox
- FOR o as integer = 0 TO 999
+ FOR o as integer = 0 TO gen(genMaxTextbox)
   LoadTextBox box, o
   'Zero out the data members that contained random garbage before 1999
   WITH box
@@ -3401,7 +3458,7 @@ IF gen(genVersion) = 1 THEN
   buffer(2 + o + 3) = 4
   buffer(11 + o + 3) = 1
  NEXT i
- FOR i as integer = 0 TO 14
+ FOR i as integer = 0 TO gen(genMaxTile)
   save_tile_anims i, buffer()
  NEXT i
  DIM tx as integer, ty as integer
@@ -3434,6 +3491,8 @@ IF gen(genVersion) = 2 THEN
  'No need to remove the old password: we just overwrote it with
  'a back-compat PW3 blank/garbage password
 
+ /' This is should no longer be needed, since these are all set by fix_record_count
+ '(Some of these are maximum possible values, some are off-by-one, others are correct)
  upgrade_message "Put record count defaults in GEN..."
  gen(genMaxHeroPic)   = 40
  gen(genMaxEnemy1Pic) = 149
@@ -3449,6 +3508,7 @@ IF gen(genVersion) = 2 THEN
  gen(genMaxFormation) = 1000
  gen(genMaxPal)       = 99
  gen(genMaxTextbox)   = 999
+ '/
  
 END IF
 '--VERSION 4--
@@ -3481,8 +3541,8 @@ IF gen(genVersion) = 4 THEN
  xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
  killfile game + ".pal"
  '--find last used palette
- DIM last as integer = 99
- FOR j as integer = 99 TO 0 STEP -1
+ DIM last as integer = gen(genMaxPal)
+ FOR j as integer = gen(genMaxPal) TO 0 STEP -1
   FOR i as integer = 0 TO 7
    IF buffer(j * 8 + i) <> 0 THEN
     last = j
@@ -3491,6 +3551,7 @@ IF gen(genVersion) = 4 THEN
   NEXT i
  NEXT j
  upgrade_message "Last used palette is " & last
+ gen(genMaxPal) = last
  '--write header
  temppal16(0) = 4444
  temppal16(1) = last
@@ -3545,6 +3606,7 @@ END IF
 
 'Zero out the PW2 scattertable (almost all games) as well as some other explained garbage (a few games) in gen()
 IF getfixbit(fixWipeGEN) = NO THEN
+ upgrade_message "Wiping gen(199...)"
  setfixbit(fixWipeGEN, YES)
  FOR i as integer = 199 TO 499
   gen(i) = 0
@@ -3582,16 +3644,10 @@ IF NOT isfile(game + ".veh") THEN
   'Recall it's best to avoid moving files across filesystems
   copyfile tmpdir & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & "ohrrpgce.veh"
-  gen(genMaxVehicle) = 2
+  'gen(genMaxVehicle) = 2
+  fix_record_count gen(genMaxVehicle),   80, game & ".veh", "Vehicles"
  END IF
 END IF
-
-'--make sure binsize.bin is full. why are we doing this? Otherwise as lumps are upgraded
-'--and binsize.bin is extended, records in binsize which are meant to default
-'--because they don't exist would become undefined instead
-FOR i as integer = 0 TO binLASTENTRY
- setbinsize i, getbinsize(i)
-NEXT
 
 IF NOT isfile(workingdir + SLASH + "attack.bin") THEN
  upgrade_message "Init extended attack data..."
@@ -3628,6 +3684,7 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
   CLOSE #fh
  END IF
 
+ gen(genMaxSong) = 99
  FOR i as integer = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
   IF song(i) <> "" OR isfile(game + "." + STR(i)) OR isfile(workingdir + SLASH + "song" + STR(i) + ".mid") THEN
@@ -3645,9 +3702,6 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  ERASE song
 END IF
 
-'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
-gen(genMasterPal) = large(0, gen(genMasterPal))
-
 IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  upgrade_message "Upgrading Master Palette format..."
  IF NOT isfile(game + ".mas") THEN
@@ -3657,10 +3711,14 @@ IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
   loadpalette master(), 0  'Loads from .mas
  END IF
  savepalette master(), 0  'Saves to palettes.bin
+ gen(genMaxMasterPal) = 0
 END IF
 'This is not necessary in the slightest, but we copy the default master palette
 'back to the .MAS lump, to give old graphics utilities some chance of working
 unconvertpalette()
+
+'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
+gen(genMasterPal) = bound(gen(genMasterPal), 0, gen(genMaxMasterPal))
 
 IF gen(genHeroWeakHP) = 0 THEN
  gen(genHeroWeakHP) = 20
@@ -3675,6 +3733,7 @@ IF NOT isfile(game + ".stf") THEN touchfile game + ".stf"
 
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
+'--...except for menu lumps
 updaterecordlength workingdir + SLASH + "attack.bin", binATTACK
 updaterecordlength game + ".stf", binSTF
 updaterecordlength workingdir + SLASH + "songdata.bin", binSONGDATA
@@ -4134,36 +4193,6 @@ IF getfixbit(fixInitNonElementalSpawning) = 0 THEN
  NEXT i
 END IF
 
-'Update record-count for all fixed-length lumps.
-IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
-FOR i as integer = 0 TO 8
- fix_sprite_record_count i
-NEXT i
-fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
-fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
-'FIXME: .dt0 lump is always padded up to 60 records
-'fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
-fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
-fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
-fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
-fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"
-fix_record_count gen(genMaxVehicle),   80, game & ".veh", "Vehicles"
-fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note: no records for tags 0 and 1, so we handle that with a negative header size.
-'In older versions menus.bin is always 2 bytes short... except when it's zero length or missing.
-'In fact, it might be zero length even if the menu has been modified (menuitem.bin contains the modified items)!!
-fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
-fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menuitem.bin", "Menu Items"
-fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
-fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & SLASH & "palettes.bin", "Master Palettes", 4
-'Warning: don't deduce number of maps from length of .MAP or .MN: may be appended with garbage
-
-'FIXME: Attack data is split over two lumps. Must handle mismatch. In the meantime, a quick fix (increase only)
-DIM dt6_records as integer = (filelen(game & ".dt6") + 79) \ 80
-IF dt6_records > gen(genMaxAttack) + 1 THEN
- upgrade_message "Increasing number of attacks from " & (gen(genMaxAttack) + 1) & " to " & dt6_records
- gen(genMaxAttack) = dt6_records - 1
-END IF
-
 IF gen(genStartHero) < 0 OR gen(genStartHero) > gen(genMaxHero) THEN
  upgrade_message "genStartHero invalid: " & gen(genStartHero)
  gen(genStartHero) = 0
@@ -4172,9 +4201,6 @@ IF gen(genStartTextbox) < 0 OR gen(genStartTextbox) > gen(genMaxTextbox) THEN
  upgrade_message "genStartTextbox invalid: " & gen(genStartTextbox)
  gen(genStartTextbox) = 0
 END IF
-
-'Check the number of maps, updating gen(genMaxMap), and check all lumps are present
-check_map_count
 
 IF time_rpg_upgrade THEN
  upgrade_message "Upgrades complete."
@@ -4255,6 +4281,8 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
  DIM rec_count as integer = last_rec_index + 1 + count_offset
  IF NOT isfile(lumpname) THEN
   debuginfo "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist."
+  'Setting the record count to 1; see below
+  last_rec_index = 0 - count_offset
   EXIT SUB
  END IF
  DIM total_bytes as integer = filelen(lumpname) - skip_header_bytes
