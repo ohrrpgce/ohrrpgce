@@ -110,7 +110,6 @@ SUB individual_item_editor(item_id as integer)
  DIM shaded(menusize) as bool
  DIM wep_img as GraphicPair
  DIM box_preview as string = ""
- 'DIM ibitnames(-1 TO 59) as string
 
  DIM eqst(5) as string
  eqst(0) = "NEVER EQUIPPED"
@@ -200,10 +199,6 @@ SUB individual_item_editor(item_id as integer)
     IF state.pt = 20 THEN
      item_editor_elementals itembuf()
     END IF
-    'IF state.pt = 20 THEN
-    ' editbitset itembuf(), 70, 23, ibitnames()
-    ' state.need_update = YES
-    'END IF
     IF state.pt = 21 THEN
      item_editor_equipbits itembuf()
      state.need_update = YES

@@ -821,7 +821,7 @@ FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, byval sp
 END FUNCTION
 
 SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
- DIM v as SHORT
+ DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
  IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
@@ -836,7 +836,7 @@ SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval set
 END SUB
 
 SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
- DIM v as SHORT
+ DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer = FREEFILE
  OPENFILE(f, FOR_BINARY, fh)
@@ -904,39 +904,40 @@ SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer, byval se
  END SELECT
 END SUB
 
+' Returns the default record size in BYTES to use for getbinsize() when binsize.bin is missing
 FUNCTION defbinsize (byval id as integer) as integer
- 'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
- IF id = 0 THEN RETURN 0  'attack.bin
- IF id = 1 THEN RETURN 64 '.stf
- IF id = 2 THEN RETURN 0  'songdata.bin
- IF id = 3 THEN RETURN 0  'sfxdata.bin
- IF id = 4 THEN RETURN 40 '.map
- IF id = 5 THEN RETURN 0  'menus.bin
- IF id = 6 THEN RETURN 0  'menuitem.bin
- IF id = 7 THEN RETURN 0  'uicolors.bin
- IF id = 8 THEN RETURN 400  '.say
- IF id = 9 THEN RETURN 30   '.n##
- IF id = 10 THEN RETURN 636 '.dt0
- IF id = 11 THEN RETURN 320 '.dt1
- IF id = 12 THEN RETURN 200 '.itm
+ IF id = binATTACK     THEN RETURN 0   'attack.bin
+ IF id = binSTF        THEN RETURN 64  '.stf
+ IF id = binSONGDATA   THEN RETURN 0   'songdata.bin
+ IF id = binSFXDATA    THEN RETURN 0   'sfxdata.bin
+ IF id = binMAP        THEN RETURN 40  '.map
+ IF id = binMENUS      THEN RETURN 0   'menus.bin
+ IF id = binMENUITEM   THEN RETURN 0   'menuitem.bin
+ IF id = binUICOLORS   THEN RETURN 0   'uicolors.bin
+ IF id = binSAY        THEN RETURN 400 '.say
+ IF id = binN          THEN RETURN 30  '.n##
+ IF id = binDT0        THEN RETURN 636 '.dt0
+ IF id = binDT1        THEN RETURN 320 '.dt1
+ IF id = binITM        THEN RETURN 200 '.itm
  RETURN 0
 END FUNCTION
 
+' Returns the native size in BYTES of the records for the version you are running
 FUNCTION curbinsize (byval id as integer) as integer
- 'returns the native size in BYTES of the records for the version you are running
- IF id = 0 THEN RETURN 596 'attack.bin (size of combined attack data as documented on DT6 page minus 80)
- IF id = 1 THEN RETURN 84  '.stf
- IF id = 2 THEN RETURN 32  'songdata.bin
- IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 404 '.map
- IF id = 5 THEN RETURN 54  'menus.bin
- IF id = 6 THEN RETURN 64  'menuitem.bin
- IF id = 7 THEN RETURN 126 'uicolors.bin
- IF id = 8 THEN RETURN 414 '.say
- IF id = 9 THEN RETURN 36  '.n##
- IF id = 10 THEN RETURN 858 '.dt0
- IF id = 11 THEN RETURN 738 '.dt1
- IF id = 12 THEN RETURN 422 '.itm
+ IF id = binATTACK     THEN RETURN 596 'attack.bin
+                                       '(size of combined attack data as on DT6 page minus 80)
+ IF id = binSTF        THEN RETURN 84  '.stf
+ IF id = binSONGDATA   THEN RETURN 32  'songdata.bin
+ IF id = binSFXDATA    THEN RETURN 34  'sfxdata.bin
+ IF id = binMAP        THEN RETURN 404 '.map
+ IF id = binMENUS      THEN RETURN 54  'menus.bin
+ IF id = binMENUITEM   THEN RETURN 64  'menuitem.bin
+ IF id = binUICOLORS   THEN RETURN 126 'uicolors.bin
+ IF id = binSAY        THEN RETURN 414 '.say
+ IF id = binN          THEN RETURN 36  '.n##
+ IF id = binDT0        THEN RETURN 858 '.dt0
+ IF id = binDT1        THEN RETURN 738 '.dt1
+ IF id = binITM        THEN RETURN 422 '.itm
  RETURN 0
 END FUNCTION
 
@@ -1205,8 +1206,8 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
   xbload game + ".mas", oldpalbuf(), "master palette missing from " + sourcerpg
   convertpalette oldpalbuf(), pal()
  ELSE
-  DIM as SHORT headsize, recsize
-  DIM palbuf(767) as UBYTE
+  DIM as short headsize, recsize
+  DIM palbuf(767) as ubyte
 
   DIM fh as integer = FREEFILE
   OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
@@ -1225,7 +1226,7 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 END SUB
 
 SUB savepalette(pal() as RGBcolor, byval palnum as integer)
- DIM as SHORT headsize = 4, recsize = 768  'Defaults
+ DIM as short headsize = 4, recsize = 768  'Defaults
 
  DIM fh as integer = FREEFILE
  OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
@@ -3374,7 +3375,9 @@ IF gen(genVersion) = 1 THEN
  DIM font(1023) as integer
  getdefaultfont font()
  xbsave game + ".fnt", font(), 2048
- upgrade_message "rpgfix:Making AniMaptiles Backward Compatible"
+ upgrade_message "rpgfix: Upgrading to customisable tile animations"
+ ' The last two tiles in the tileset used to auto-toggle. Add a default
+ ' tile animation and replace those tiles with animated tiles.
  FOR i as integer = 0 TO 39
   buffer(i) = 0
  NEXT i
@@ -3751,7 +3754,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
   setfixbit(fixAttackitems, 1)
   fh = freefile
   OPENFILE(workingdir + SLASH + "attack.bin", FOR_BINARY, fh)
-  REDIM dat(curbinsize(binATTACK)/2 - 1) as SHORT
+  REDIM dat(curbinsize(binATTACK)/2 - 1) as short
   p = 1
   FOR i as integer = 0 to gen(genMaxAttack)
 
@@ -3772,7 +3775,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
   setfixbit(fixWeapPoints, 1)
   fh = freefile
   OPENFILE(game + ".dt0", FOR_BINARY, fh)
-  REDIM dat(dimbinsize(binDT0)) as SHORT
+  REDIM dat(dimbinsize(binDT0)) as short
   FOR i as integer = 0 to gen(genMaxHero)
    GET #fh,,dat()
    IF dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
@@ -4281,14 +4284,14 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
  END IF
  DIM records as integer = total_bytes \ record_byte_size
  IF records <> rec_count THEN
-  upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (" & records - rec_count & ")"
+  upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (diff " & records - rec_count & ")"
   last_rec_index = records - 1 - count_offset
  END IF
 END SUB
 
 SUB fix_sprite_record_count(byval pt_num as integer)
  WITH sprite_sizes(pt_num)
-  DIM bytes as integer = .size.x * .size.y * .frames / 2 '--we divide by 2 because there are 2 pixels per byte
+  DIM bytes as integer = .size.x * .size.y * .frames \ 2 '--we divide by 2 because there are 2 pixels per byte
   DIM lump as string = game & ".pt" & pt_num
   '.pt7 and .pt8 don't exist in old games
   fix_recordless_lump lump, bytes
@@ -4527,7 +4530,7 @@ END SUB
 
 SUB load_special_tag_caches()
  DIM her as herodef
- FOR i as integer = 0 TO small(gen(genMaxHero), 59)
+ FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
   loadherodata her, i
   herotags(i).have_tag = her.have_tag
   herotags(i).alive_tag = her.alive_tag
@@ -4535,7 +4538,7 @@ SUB load_special_tag_caches()
   herotags(i).active_tag = her.active_tag
  NEXT i
  REDIM item_data(dimbinsize(binITM)) as integer
- FOR i as integer = 0 TO gen(genMaxItem)
+ FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
   loaditemdata item_data(), i
   itemtags(i).have_tag = item_data(74)
   itemtags(i).in_inventory_tag = item_data(75)
@@ -4545,7 +4548,7 @@ SUB load_special_tag_caches()
 END SUB
 
 'Return whether a tag is automatically set by consulting herotags(), itemtags() arrays
-FUNCTION tag_is_autoset(byval tag_id as integer) as integer
+FUNCTION tag_is_autoset(byval tag_id as integer) as bool
  DIM count as integer = 0
  tag_id = ABS(tag_id)
 
@@ -4575,7 +4578,7 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
 
  IF tag_id <= 1 THEN RETURN ""
 
- FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
+ FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero
   IF tag_id = herotags(i).have_tag THEN ret += "Hero " & i & !" in party tag\n"
   IF tag_id = herotags(i).alive_tag THEN ret += "Hero " & i & !" is alive tag\n"
   IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"

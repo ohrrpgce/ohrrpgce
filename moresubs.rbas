@@ -448,7 +448,7 @@ SUB evalherotags ()
  DIM as integer id
  DIM leaderid as integer = herobyrank(0)
 
- FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags, 1)) '--for each available hero
+ FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero
   'unset all tags, including ones used on heroes not in the party 
   settag herotags(i).have_tag, NO
   settag herotags(i).alive_tag, NO

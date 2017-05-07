@@ -1377,6 +1377,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  st.previewframe = -1
 END SUB
 
+' Selection of equip slots; you're then taken to the menu for that slot
 SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
  DIM menu(5) as string
  DIM state as MenuState
