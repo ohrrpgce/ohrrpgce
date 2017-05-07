@@ -183,69 +183,8 @@ HRESULT D3D::shutdown()
 	return S_OK;
 }
 
-//HRESULT D3D::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
-//{
-//	if(!m_bInitialized)
-//		return E_FAIL;
-//	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
-//	if(hrCoopLevel == D3DERR_DEVICELOST)
-//	{
-//		OnLostDevice();
-//		return S_OK;
-//	}
-//	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
-//	{
-//		OnResetDevice();
-//		return S_OK;
-//	}
-//	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
-//	{
-//		if(IDYES == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
-//			return Shutdown();
-//		Shutdown();
-//		return initialize(m_pWindow);
-//	}
-//	if(pRawPage != NULL)
-//	{
-//		if(m_image.pSurface == NULL)
-//			m_image.AllocateSurface(width, height);
-//		if(m_image.pSurface != NULL)
-//		{
-//			for(UINT i = 0; i < width * height; i++)
-//				m_image.pSurface[i] = pRawPage[i];
-//		}
-//	}
-//	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
-//
-//	//Clear needs to happen outside of BeginScene()/EndScene() block
-//	HRESULT hr = S_OK;
-//	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
-//	if(FAILED(hr))
-//		return hr;
-//
-//	RECT rAspectRatio = {0};
-//	if(m_bPreserveAspectRatio)
-//		rAspectRatio = CalculateAspectRatio(m_surface.GetDimensions().cx, m_surface.GetDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
-//	SmartPtr<IDirect3DSurface9> pBackBuffer;
-//	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-//	if(FAILED(hr))
-//		return hr;
-//	hr = m_d3ddev->StretchRect(m_surface.GetSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-//	if(FAILED(hr))
-//		return hr;
-//
-//	hr = m_d3ddev->Present(0,0,0,0);
-//	return hr;
-//}
-//
-//HRESULT D3D::SetPalette(gfx::Palette<UINT> *pPalette)
-//{
-//	if(pPalette == NULL)
-//		return E_POINTER;
-//	m_image.palette = *pPalette;
-//	return S_OK;
-//}
-
+// Updates either the image, the palette, or both.
+// (Saves an internal copy of both to allow doing so)
 HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
 {
 	if(!m_bInitialized)
@@ -268,6 +207,22 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	}
 	m_surface.copySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
 
+	return presentInternal();
+}
+
+HRESULT D3D::present32(unsigned int *pRawPage, UINT width, UINT height)
+{
+	if(!m_bInitialized)
+		return E_FAIL;
+
+	//page copy
+	m_surface.copySystemPage32(pRawPage, width, height);
+
+	return presentInternal();
+}
+
+HRESULT D3D::presentInternal()
+{
 	//coop-level test
 	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
 	if(hrCoopLevel == D3DERR_DEVICELOST)
@@ -282,6 +237,7 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	}
 	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
 	{
+		debugc(errError, "presentInternal: D3DERR_DRIVERINTERNALERROR");
 		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 			return shutdown();
 		shutdown();
@@ -308,61 +264,6 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 		return hr;
 
 	// srcSurface, srcRect, destSurface, destRect
-	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-	if(FAILED(hr))
-		return hr;
-
-	hr = m_d3ddev->Present(0,0,0,0);
-	return hr;
-}
-
-HRESULT D3D::present32(unsigned int *pRawPage, UINT width, UINT height)
-{
-	if(!m_bInitialized)
-		return E_FAIL;
-
-	//page copy
-	m_surface.copySystemPage32(pRawPage, width, height);
-
-	//coop-level test
-	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
-	if(hrCoopLevel == D3DERR_DEVICELOST)
-	{
-		onLostDevice();
-		return S_OK;
-	}
-	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
-	{
-		onResetDevice();
-		return S_OK;
-	}
-	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
-	{
-		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
-			return shutdown();
-		shutdown();
-		return initialize(m_pWindow);
-	}
-
-	//present
-	HRESULT hr = S_OK;
-	//doesn't work; apparently calling only Clear(), no BeginScene()/EndScene() pair, then Present() without any additional
-	//rendering causes Clear() to stop functioning correctly. Oi!
-	//hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
-
-	RECT rAspectRatio = {0};
-	if(m_bPreserveAspectRatio)
-		rAspectRatio = calculateAspectRatio(m_surface.getDimensions().cx, m_surface.getDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
-
-	SmartPtr<IDirect3DSurface9> pBackBuffer;
-	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
-	if(FAILED(hr))
-		return hr;
-
-	hr = m_d3ddev->ColorFill(pBackBuffer, NULL, 0x0);
-	if(FAILED(hr))
-		return hr;
-
 	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 	if(FAILED(hr))
 		return hr;
@@ -430,10 +331,11 @@ void D3D::onLostDevice()
 
 void D3D::onResetDevice()
 {
+	INPUTDEBUG("d3ddev->Reset()");
 	if(!m_bInitialized)
 		return;
+
 	HRESULT hr;
-	INPUTDEBUG("d3ddev->Reset()");
 	if(FAILED(hr = m_d3ddev->Reset(&m_d3dpp)))
 	{
 		debugc(errError, "d3ddev->Reset() failed: %s", HRESULTString(hr));

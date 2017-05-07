@@ -82,6 +82,7 @@ namespace gfx
 
 		RECT calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
 		HRESULT updateWindow();
+		HRESULT presentInternal();
 
 	public:
 		D3D();
@@ -89,8 +90,7 @@ namespace gfx
 
 		HRESULT initialize(Window *pWin); //starts up the engine
 		HRESULT shutdown(); //shuts down the engine
-		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
-		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
+
 		// Draws the raw page (array of indices into palette), and sets the palette;
 		// if pPalette is NULL, the page is presented with the previous palette;
 		// if pRawpage is NULL, the page is presented with the new palette;

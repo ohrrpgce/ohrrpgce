@@ -2,261 +2,7 @@
 
 using namespace gfx;
 
-//Mouse::Mouse() : m_wheel(0)
-//{
-//	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
-//	LiveState ns;
-//	ns.bClipEnable = false;
-//	ns.bCursorVisible = true;
-//	ns.mode = VM_WINDOWED;
-//	ns.state = IS_DEAD;
-//	m_liveState.push(ns);
-//}
-//
-//bool Mouse::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-//{
-//	if(m_liveState.top().state == IS_DEAD)
-//		return false;
-//
-//	switch(msg)
-//	{
-//	case WM_NCMOUSEMOVE:
-//	case WM_MOUSEMOVE:
-//		{
-//			::GetCursorPos(&m_cursorPos);
-//			ScreenToClient(hWnd, &m_cursorPos);
-//			RECT *clientRect = &m_liveState.top().rClip;
-//			GetClientRect(hWnd, clientRect);
-//
-//			if(m_cursorPos.x < clientRect->left) m_cursorPos.x = 0;
-//			else if(m_cursorPos.x > clientRect->right) m_cursorPos.x = clientRect->right;
-//			if(m_cursorPos.y < clientRect->top) m_cursorPos.y = 0;
-//			else if(m_cursorPos.y > clientRect->bottom) m_cursorPos.y = clientRect->bottom;
-//
-//			m_cursorPos.x = (LONG)(320.0f * (float)m_cursorPos.x / (float)clientRect->right);
-//			m_cursorPos.y = (LONG)(200.0f * (float)m_cursorPos.y / (float)clientRect->bottom);
-//		} break;
-//	case WM_NCLBUTTONDOWN:
-//	case WM_LBUTTONDOWN:
-//		{
-//			if(!m_buttons.IsLeftDown())
-//			{
-//				m_buttons.SetLeftDown();
-//				if(m_liveState.top().mode == VM_WINDOWED)
-//				{
-//					RECT* pr = &m_liveState.top().rClip;
-//					//GetClientRect(hWnd, pr);
-//					GetWindowRect(hWnd, pr);
-//					ClipCursor(pr);
-//					m_liveState.top().bClipEnable = true;
-//				}
-//			}
-//		} break;
-//	case WM_NCLBUTTONUP:
-//	case WM_LBUTTONUP:
-//		{
-//			if(m_buttons.IsLeftDown())
-//			{
-//				m_buttons.SetLeftUp();
-//				if(!m_buttons.IsAnyDown() && m_liveState.top().bClipEnable)
-//				{
-//					ClipCursor(NULL);
-//					m_liveState.top().bClipEnable = false;
-//				}
-//			}
-//		} break;
-//	case WM_NCRBUTTONDOWN:
-//	case WM_RBUTTONDOWN:
-//		{
-//			if(!m_buttons.IsRightDown())
-//			{
-//				m_buttons.SetRightDown();
-//				if(m_liveState.top().mode == VM_WINDOWED)
-//				{
-//					RECT* pr = &m_liveState.top().rClip;
-//					//GetClientRect(hWnd, pr);
-//					GetWindowRect(hWnd, pr);
-//					ClipCursor(pr);
-//					m_liveState.top().bClipEnable = true;
-//				}
-//			}
-//		} break;
-//	case WM_NCRBUTTONUP:
-//	case WM_RBUTTONUP:
-//		{
-//			if(m_buttons.IsRightDown())
-//			{
-//				m_buttons.SetRightUp();
-//				if(!m_buttons.IsAnyDown() && m_liveState.top().bClipEnable)
-//				{
-//					ClipCursor(NULL);
-//					m_liveState.top().bClipEnable = false;
-//				}
-//			}
-//		} break;
-//	case WM_NCMBUTTONDOWN:
-//	case WM_MBUTTONDOWN:
-//		{
-//			if(!m_buttons.IsMiddleDown())
-//			{
-//				m_buttons.SetMiddleDown();
-//				if(m_liveState.top().mode == VM_WINDOWED)
-//				{
-//					RECT* pr = &m_liveState.top().rClip;
-//					//GetClientRect(hWnd, pr);
-//					GetWindowRect(hWnd, pr);
-//					ClipCursor(pr);
-//					m_liveState.top().bClipEnable = true;
-//				}
-//			}
-//		} break;
-//	case WM_NCMBUTTONUP:
-//	case WM_MBUTTONUP:
-//		{
-//			if(m_buttons.IsMiddleDown())
-//			{
-//				m_buttons.SetMiddleUp();
-//				if(!m_buttons.IsAnyDown() && m_liveState.top().bClipEnable)
-//				{
-//					ClipCursor(NULL);
-//					m_liveState.top().bClipEnable = false;
-//				}
-//			}
-//		} break;
-//	case WM_MOUSEWHEEL:
-//		{
-//			m_wheel += GET_WHEEL_DELTA_WPARAM(wParam);
-//		} break;
-//	default:
-//		return false;
-//	}
-//
-//	GetWindowRect(hWnd, &m_liveState.top().rClip);
-//	return true;
-//}
-//
-//void Mouse::SetInputState(InputState state)
-//{
-//	if(m_liveState.top().state != state)
-//	{
-//		LiveState &ls = m_liveState.top();
-//		ls.state = state;
-//		if(ls.state == IS_LIVE)
-//		{
-//			if(ls.bCursorVisible)
-//			{
-//				ShowCursor(FALSE);
-//				ls.bCursorVisible = false;
-//			}
-//			if(ls.mode == VM_WINDOWED)
-//			{
-//				if(ls.bClipEnable)
-//					ClipCursor(&ls.rClip);
-//			}
-//			else
-//				ClipCursor(NULL);
-//		}
-//		else
-//		{
-//			if(ls.bClipEnable == true)
-//			{
-//				ClipCursor(NULL);
-//				ls.bClipEnable = false;
-//			}
-//			if(ls.mode == VM_WINDOWED)
-//			{
-//				if(!ls.bCursorVisible)
-//				{
-//					ShowCursor(TRUE);
-//					ls.bCursorVisible = true;
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//void Mouse::SetVideoMode(VideoMode mode)
-//{
-//	if(m_liveState.top().mode != mode)
-//	{
-//		LiveState &ls = m_liveState.top();
-//		ls.mode = mode;
-//		if(ls.mode == VM_WINDOWED)
-//		{
-//			if(ls.bClipEnable)
-//				ClipCursor(&ls.rClip);
-//			if(ls.state == IS_DEAD)
-//			{
-//				if(!ls.bCursorVisible)
-//				{
-//					ShowCursor(TRUE);
-//					ls.bCursorVisible = true;
-//				}
-//			}
-//			else
-//			{
-//				if(ls.bCursorVisible)
-//				{
-//					ShowCursor(FALSE);
-//					ls.bCursorVisible = false;
-//				}
-//			}
-//		}
-//		else
-//		{
-//			if(ls.bClipEnable)
-//			{
-//				ClipCursor(NULL);
-//			}
-//			if(ls.bCursorVisible)
-//			{
-//				ShowCursor(FALSE);
-//				ls.bCursorVisible = false;
-//			}
-//		}
-//	}
-//}
-//
-//void Mouse::PushState()
-//{
-//	LiveState ns(m_liveState.top());
-//	m_liveState.push(ns);
-//}
-//
-//void Mouse::PopState()
-//{
-//	if(m_liveState.size() == 1)
-//		return;
-//	LiveState os(m_liveState.top());
-//	m_liveState.pop();
-//	LiveState &ls = m_liveState.top();
-//
-//	ls.rClip = os.rClip;
-//	ls.bClipEnable = os.bClipEnable;
-//	ls.bCursorVisible = os.bCursorVisible;
-//
-//	if(ls.state != os.state)
-//	{
-//		ls.state = os.state;
-//		if(ls.state == IS_LIVE)
-//			SetInputState(IS_DEAD);
-//		else
-//			SetInputState(IS_LIVE);
-//	}
-//	if(ls.mode != os.mode)
-//	{
-//		ls.mode = os.mode;
-//		if(ls.mode == VM_WINDOWED)
-//			SetVideoMode(VM_FULLSCREEN);
-//		else
-//			SetVideoMode(VM_WINDOWED);
-//	}
-//}
-//
-//////////////////////////////
-//rewrite of Mouse
-
-Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL), m_pDirectX(NULL)
+Mouse::Mouse() : m_wheel(0), m_hWnd(NULL), m_pDirectX(NULL)
 {
 	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
 	State ns;
@@ -274,12 +20,12 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL), m_pDirectX(NULL)
 	m_inputState.push(IS_LIVE);
 }
 
-void Mouse2::initialize(gfx::D3D *pDirectX)
+void Mouse::initialize(gfx::D3D *pDirectX)
 {
 	m_pDirectX = pDirectX;
 }
 
-void Mouse2::startClickInducedClipping()
+void Mouse::startClickInducedClipping()
 {
 	if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 	{
@@ -288,7 +34,7 @@ void Mouse2::startClickInducedClipping()
 	}
 }
 
-void Mouse2::endClickInducedClipping()
+void Mouse::endClickInducedClipping()
 {
 	if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
 	{
@@ -297,7 +43,7 @@ void Mouse2::endClickInducedClipping()
 	}
 }
 
-bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+bool Mouse::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {//if m_state.clipped == CS_ON, mouse clicks do not engage the m_state.buttonClipped
 	m_hWnd = hWnd;
 	if(m_inputState.top() == IS_DEAD)
@@ -411,7 +157,7 @@ bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
-void Mouse2::setInputState(InputState state)
+void Mouse::setInputState(InputState state)
 {//this should be the ultimate adjuster!
 	if(m_inputState.top() == state)
 		return;
@@ -450,7 +196,7 @@ void Mouse2::setInputState(InputState state)
 }
 
 // Called when (possibly) switching between windowed/fullscreen
-void Mouse2::setVideoMode(VideoMode mode)
+void Mouse::setVideoMode(VideoMode mode)
 {//VideoMode has precedence over InputState for the cursor visibility and certain clipping
 	if(m_state.mode == mode)
 		return;
@@ -496,7 +242,7 @@ LONG _round(double v)
 }
 
 // WM_MOUSEMOVE event, convert mouse position to engine coords
-void Mouse2::updatePosition()
+void Mouse::updatePosition()
 {
 	POINT pos;
 	::GetCursorPos(&pos);
@@ -516,7 +262,7 @@ void Mouse2::updatePosition()
 }
 
 // Client changes the mouse cursor position
-int Mouse2::setPosition(int x, int y)
+int Mouse::setPosition(int x, int y)
 {
 	DWORD xPos, yPos;
 	RECT rDesktop;
@@ -551,7 +297,7 @@ int Mouse2::setPosition(int x, int y)
 }
 
 //scales rect from range inside (0,0,319,199) to the window's client rect
-RECT Mouse2::ScaleRectClient(const RECT& rSrc)
+RECT Mouse::ScaleRectClient(const RECT& rSrc)
 {
 	RECT rWin;
 	//GetWindowRect(m_hWnd, &rWin);
@@ -574,7 +320,7 @@ RECT Mouse2::ScaleRectClient(const RECT& rSrc)
 }
 
 // Decide whether the cursor should be visible, and enact.
-void Mouse2::updateCursorVisibility()
+void Mouse::updateCursorVisibility()
 {
 	bool bCurrent = m_state.bCursorVisible;
 	bool bNew;
@@ -608,7 +354,7 @@ void Mouse2::updateCursorVisibility()
 	m_state.bCursorVisible = bNew;
 }
 
-void Mouse2::setCursorVisibility(CursorVisibility visibility)
+void Mouse::setCursorVisibility(CursorVisibility visibility)
 {
 	if(m_state.visibility == visibility)
 		return;
@@ -618,7 +364,7 @@ void Mouse2::setCursorVisibility(CursorVisibility visibility)
 	updateCursorVisibility();
 }
 
-void Mouse2::setClipState(ClipState state)
+void Mouse::setClipState(ClipState state)
 {
 	if(m_state.clipped == state)
 		return;
@@ -650,7 +396,7 @@ void Mouse2::setClipState(ClipState state)
 	}
 }
 
-void Mouse2::setClippingRect(RECT *pRect)
+void Mouse::setClippingRect(RECT *pRect)
 {
 	if(pRect == NULL)
 		return;
@@ -678,7 +424,7 @@ void Mouse2::setClippingRect(RECT *pRect)
 	}
 }
 
-void Mouse2::updateClippingRect()
+void Mouse::updateClippingRect()
 {
 	if(m_state.mode == VM_FULLSCREEN)
 	{
@@ -708,7 +454,7 @@ void Mouse2::updateClippingRect()
 
 // This is called when some on-going condition (e.g. losing focus) causes the mouse state
 // to be forced to dead/alive (in practice always called with IS_DEAD).
-void Mouse2::pushState(InputState state)
+void Mouse::pushState(InputState state)
 {
 	InputState prevState = m_inputState.top();
 	m_inputState.push(state);
@@ -728,7 +474,7 @@ void Mouse2::pushState(InputState state)
 }
 
 // Called when a condition that changed mouse state ends.
-void Mouse2::popState()
+void Mouse::popState()
 {
 	if(m_inputState.size() == 1)
 		return;

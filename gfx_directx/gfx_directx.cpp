@@ -308,7 +308,7 @@ DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int* button, int* x, int* y
 Window g_Window;
 HWND g_hWndDlg;
 Keyboard g_Keyboard;
-Mouse2 g_Mouse;
+Mouse g_Mouse;
 Joystick g_Joystick;
 
 
@@ -425,7 +425,6 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 		break;
 	case OM_GFX_SETCLIENTAREA:
 		g_DirectX.setWindowedSize(SZ(dwParam, (int)pvParam));
-//		g_Window.setClientSize(dwParam, (int)pvParam);
 		break;
 	case OM_GFX_SETLEFT:
 		g_Window.setWindowPosition(dwParam, g_Window.getWindowRect().top);
@@ -616,12 +615,12 @@ DFI_IMPLEMENT_CDECL(void, gfx_SetCursorVisibility, CursorVisibility visibility)
 DFI_IMPLEMENT_CDECL(void, gfx_ClipCursor, int left, int top, int right, int bottom)
 {
 	if(left == -1 && top == -1 && right == -1 && bottom == -1)
-		g_Mouse.setClipState(gfx::Mouse2::CS_OFF);
+		g_Mouse.setClipState(gfx::Mouse::CS_OFF);
 	else
 	{
 		RECT r = {left, top, right, bottom};
 		g_Mouse.setClippingRect(&r);
-		g_Mouse.setClipState(gfx::Mouse2::CS_ON);
+		g_Mouse.setClipState(gfx::Mouse::CS_ON);
 	}
 	char buffer[256] = "";
 	gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
@@ -738,7 +737,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						if(g_Mouse.isInputLive())
 						{
-							g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+							g_Mouse.pushState(gfx::Mouse::IS_DEAD);
 						}
 						else
 						{
@@ -790,7 +789,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
 						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
-						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
 						g_State.PostEvent(eventFullscreened, g_DirectX.isViewFullscreen(), 0);
 						if(g_DirectX.isViewFullscreen())
 						{
@@ -815,8 +814,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
 			{
-				g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+				g_Mouse.setVideoMode(gfx::Mouse::VM_WINDOWED);
+				g_Mouse.pushState(gfx::Mouse::IS_DEAD);
 				if(g_DirectX.isViewFullscreen())
 				{
 					// Make window no longer topmost
@@ -827,7 +826,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
 				g_Mouse.popState();
 				if(g_DirectX.isViewFullscreen())
 				{
@@ -842,7 +841,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		} break;
 	case WM_ENTERSIZEMOVE:
 		{
-			g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+			g_Mouse.pushState(gfx::Mouse::IS_DEAD);
 		} break;
 	case WM_EXITSIZEMOVE:
 		{
@@ -859,15 +858,15 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
-				g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+				g_Mouse.setVideoMode(gfx::Mouse::VM_WINDOWED);
+				g_Mouse.pushState(gfx::Mouse::IS_DEAD);
 			}
 			else
 			{
 				// r is the new size of the client area
 				SIZE r = {LOWORD(lParam), HIWORD(lParam)};
 				g_DirectX.setResolution(r);
-				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
 				g_Mouse.updateClippingRect();
 				g_Mouse.popState();
 			}
@@ -938,7 +937,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					g_DirectX.initialize(&g_Window);
 					g_Joystick.initialize(g_Window.getAppHandle(), g_Window.getWindowHandle());
-					g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
+					g_Mouse.setVideoMode(gfx::Mouse::VM_WINDOWED);
 					g_Mouse.updateClippingRect();
 				} break;
 			case PBT_APMSUSPEND:
@@ -970,10 +969,10 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(g_State.bClosing)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
-			g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
-			g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
+			g_Mouse.setVideoMode(gfx::Mouse::VM_WINDOWED);
+			g_Mouse.setInputState(gfx::Mouse::IS_DEAD);
 			g_State.PostEvent(eventTerminate, 0, 0);
-			g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+			g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
 			g_Mouse.popState();
 		} break;
 	case WM_CREATE:
@@ -1079,7 +1078,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 		} break;
 	case WM_INITDIALOG:
 		{
-			g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+			g_Mouse.pushState(gfx::Mouse::IS_DEAD);
 
 			bVsyncEnabled = g_DirectX.isVsyncEnabled() ? TRUE : FALSE;
 			bSmoothEnabled = g_DirectX.isSmooth() ? TRUE : FALSE;
