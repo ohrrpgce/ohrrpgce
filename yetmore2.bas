@@ -1845,11 +1845,11 @@ SUB live_preview_menu ()
 
   'Draw screen
   displayall
-  draw_menu menu1, st1, dpage
+  draw_menu menu1, st1, vpage
   IF LEN(tooltips(st1.pt)) THEN
-   basic_textbox tooltips(st1.pt), , dpage, pBottom - 2, , YES
+   basic_textbox tooltips(st1.pt), , vpage, pBottom - 2, , YES
   END IF
-  setvispage dpage
+  setvispage vpage
   dowait
  LOOP
  setkeys

@@ -206,12 +206,12 @@ FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recinde
       END SELECT
     END IF
 
-    clearpage dpage
-    standardmenu menu(), state, 0, 0, dpage
+    clearpage vpage
+    standardmenu menu(), state, 0, 0, vpage
     IF state.pt = 2 THEN
       draw_hero_preview st, her
     END IF
-    setvispage dpage
+    setvispage vpage
     dowait
   LOOP
 END FUNCTION

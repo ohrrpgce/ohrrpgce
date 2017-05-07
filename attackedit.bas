@@ -1205,7 +1205,7 @@ DO
 
  IF keyval(scF1) > 1 THEN show_help helpkey
 
- '--ALT+BACKSPACE
+ '--SHIFT+BACKSPACE
  IF cropafter_keycombo(workmenu(state.pt) = AtkChooseAct) THEN
   cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80
   '--this is a hack to detect if it is safe to erase the extended data
