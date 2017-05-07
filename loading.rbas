@@ -3255,7 +3255,7 @@ END FUNCTION
 SUB loaditemdata (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
- IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = 0 THEN
+ IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = NO THEN
   debug "loaditemdata:" & index & " loadrecord failed"
   EXIT SUB
  END IF
@@ -3606,7 +3606,7 @@ END SUB
 
 SUB LoadFormation (form as Formation, filename as string, byval index as integer)
  DIM formdata(39) as integer
- IF loadrecord(formdata(), filename, 40, index) = 0 THEN
+ IF loadrecord(formdata(), filename, 40, index) = NO THEN
   debug "LoadFormation: invalid index " & index
   ClearFormation form
   EXIT SUB
@@ -3876,7 +3876,7 @@ FUNCTION load_gamename (filename as string="") as string
  IF loadrecord(tempbuf(), f, 40) THEN
   RETURN readbinstring(tempbuf(), 0, 38)
  END IF
- debug "Couldn't open browse.txt"
+ debug "Couldn't read browse.txt"
  RETURN ""
 END FUNCTION
 
@@ -3893,7 +3893,7 @@ FUNCTION load_aboutline (filename as string="") as string
  IF loadrecord(tempbuf(), f, 40) THEN
   RETURN readbinstring(tempbuf(), 20, 38)
  END IF
- debug "Couldn't open browse.txt"
+ debug "Couldn't read browse.txt"
  RETURN ""
 END FUNCTION
 

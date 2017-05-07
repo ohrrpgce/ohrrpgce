@@ -251,7 +251,7 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as zstring ptr = nulzstr) as bool
+function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, context as zstring ptr = nulzstr, partial_retval as bool = NO) as bool
 'loads 16bit records in an array
 'buf() = buffer to load shorts into, starting at buf(0)
 'fh = open file handle
@@ -259,8 +259,9 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'record = record number, defaults to read from current file position
 'context = filename if known. For debug only.
 'Returns true if successful, false if failure (eg. file too short,
-'in which case buf() is filled with zeroes.)
-'Even if the file is too short, reads as much as possible
+'in which case buf() is filled with zeroes.). If the record is partially
+'off the end of the file, the return value is partial_retval.
+'Even if the file is too short, reads as much as possible, regardless of partial_retval.
 
 	dim starttime as double = timer
 	dim idx as integer
@@ -275,7 +276,17 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		seek #fh, recordsize * 2 * record + 1
 	end if
 	dim ret as bool = YES
-	if seek(fh) + 2 * recordsize > lof(fh) + 1 then ret = NO
+	if seek(fh) - 1 + 2 * recordsize > lof(fh) then
+		' The record is at least partially missing
+		dim partially as string
+		if seek(fh) - 1 < lof(fh) then
+			partially = "partially "
+			ret = partial_retval
+		else
+			ret = NO
+		end if
+		debug "loadrecord: record " & record & " is " & partially & "off the end of " & trimpath(filen)
+	end if
 	get #fh, , readbuf()
 	for idx = 0 to small(recordsize - 1, ubound(buf))
 		buf(idx) = readbuf(idx)
@@ -284,7 +295,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	return ret
 end function
 
-function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as bool = YES) as bool
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as bool = YES, partial_retval as bool = NO) as bool
 'wrapper for above
 'set expectfile = NO to suppress errors
 	if recordsize <= 0 then return NO
@@ -298,7 +309,7 @@ function loadrecord (buf() as integer, filen as string, recordsize as integer, r
 		return NO
 	end if
 
-	loadrecord = loadrecord (buf(), fh, recordsize, record, filen)
+	loadrecord = loadrecord (buf(), fh, recordsize, record, filen, partial_retval)
 	close #fh
 end function
 
