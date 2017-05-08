@@ -127,6 +127,7 @@ TYPE GameState
   showtext_ticks as integer          'Remaining number of ticks
   showstring as string               'The text shown by showvalue/showstring commands
   getinputtext_enabled as bool
+  timer_offset as double             'Amount to shift TIMER by, used only by the milliseconds command
   script_log as ScriptLoggingState
   want as ScriptWantSignals
   quit as bool                       'Quit back to titlescreen

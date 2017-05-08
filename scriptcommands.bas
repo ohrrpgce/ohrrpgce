@@ -2011,7 +2011,11 @@ SUB script_functions(byval cmdid as integer)
    LoadUIColors uilook(), boxlook(), retvals(0)
   END IF
  CASE 273'--milliseconds
-  scriptret = fmod((TIMER * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
+  ' We shift the zero point so that negative return values don't occur unless the
+  ' game has been open 24 days. Do this because on Windows TIMER seems to reset when
+  ' you reboot, making it unlikely that people will ever test their game with negative
+  ' milliseconds.
+  scriptret = fmod(((TIMER - gam.timer_offset) * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 308'--add enemy to formation (formation, enemy id, x, y, slot = -1)
   scriptret = -1
   IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
@@ -3349,6 +3353,9 @@ SUB script_functions(byval cmdid as integer)
    tag_updates
   END IF
  CASE 542 '--microseconds
+  ' TIMER, as a double, only has 53 bits of precision, and on Unix the first ~31
+  ' bits are used up with the seconds since the Epoch, leaving barely enough
+  ' bits for microsecond precision.
   scriptret = fmod((TIMER * 1e6) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 543 '--enemy elemental resist as int (enemy, element)
   IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy id", , , serrBadOp) THEN

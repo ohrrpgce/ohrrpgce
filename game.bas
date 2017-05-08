@@ -68,6 +68,7 @@ DIM SHARED harmtileflash as integer = NO
 
 'global variables
 DIM gam as GameState
+gam.timer_offset = TIMER
 DIM txt as TextBoxState
 REDIM gen(499) as integer
 DIM gen_reld_doc as DocPtr
