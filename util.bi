@@ -644,9 +644,6 @@ DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 '              Globals (think twice before adding more)
 
 
-'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
-EXTERN nulzstr as zstring ptr
-
 EXTERN tmpdir as string
 'Ideally would not be in this module
 EXTERN orig_dir as string

@@ -4527,7 +4527,7 @@ SUB create_volume_menu(menu as MenuDef)
  ClearMenuData mainmenu
 END SUB
 
-FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=NULL, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN

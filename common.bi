@@ -9,7 +9,6 @@
 
 #include "util.bi"
 #include "udts.bi"
-#include "music.bi"
 #include "browse.bi"
 #include "menus.bi"
 #include "const.bi"
@@ -188,7 +187,7 @@ DECLARE FUNCTION os_shell_move(src as string, dest as string) as integer
 DECLARE SUB create_default_menu(menu as MenuDef)
 DECLARE SUB create_volume_menu(menu as MenuDef)
 
-DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=nulzstr, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr = NULL, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
 DECLARE SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
