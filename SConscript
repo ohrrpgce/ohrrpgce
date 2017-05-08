@@ -1007,7 +1007,10 @@ if platform.system () == 'Windows':
 
 ################ Non-file/action targets
 
-def Phony(name, source, action):
+def Phony(name, source, action, message = None):
+    """Define a target which performs some action (e.g. a Python function) unconditionally"""
+    if message:
+        action = env.Action(action, message)
     node = env.Alias(name, source = source, action = action)
     AlwaysBuild(node)  # Run even if there happens to be a file of the same name
     return node
@@ -1042,8 +1045,8 @@ def packager(target, source, env):
     import ohrrpgce
     getattr(ohrrpgce, action)(destdir, prefix, dry_run = dry_run)
 
-Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = packager)
-Phony ('uninstall', source = [GAME, CUSTOM, HSPEAK], action = packager)
+Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = packager, message = "Installing...")
+Phony ('uninstall', source = [], action = packager, message = "Uninstalling..." + (dry_run and " (dry run)" or ""))
 
 Default (GAME)
 Default (CUSTOM)

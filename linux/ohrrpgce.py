@@ -81,6 +81,9 @@ def install(destdir = '', prefix = '/usr', dry_run = False):
 def uninstall(destdir = '', prefix = '/usr', dry_run = False):
     """Uninstalls the OHRRPGCE from the local machine (not including Vikings of Midgard).
     Pass destdir to remove a staging area instead of writing to / (probably useless)"""
+    if not os.path.isdir(destdir + prefix + "/share/games/" + package_name):
+        # We might still remove other files, if it's partially installed for some reason
+        print "uninstall: " + package_name + " doesn't seem to be installed. Did you specify the right prefix and destdir?"
     rm_tree(destdir, package_name, files, executables, icons, prefix = prefix, dry_run=dry_run)
     remove_menu_entry(destdir, package_name, desktop_file_suffix="-game", prefix=prefix, dry_run=dry_run)
     remove_menu_entry(destdir, package_name, desktop_file_suffix="-custom", prefix=prefix, dry_run=dry_run)
