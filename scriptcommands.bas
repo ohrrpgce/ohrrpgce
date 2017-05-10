@@ -28,6 +28,7 @@
 
 ''''' Local functions
 DECLARE SUB run_game ()
+DECLARE FUNCTION check_game_exists () as integer
 
 
 ''''' Global variables
@@ -3444,8 +3445,10 @@ SUB script_functions(byval cmdid as integer)
   stop_fibre_timing
   debug_menu
   start_fibre_timing
- CASE 620'--run game (string id, load slot)
+ CASE 620'--run game (string id)
   run_game
+ CASE 627'--check game exists (string id)
+  scriptret = check_game_exists
 
 'old scriptnpc
 
@@ -4929,6 +4932,19 @@ SUB write_checkpoint ()
  bmp_screenshot f
  n += 1
 END SUB
+
+' Implementation of "check game exists"
+PRIVATE FUNCTION check_game_exists () as integer
+ IF valid_plotstr(retvals(0), serrError) = NO THEN RETURN 0
+ ' Parse the path
+ DIM path as string = plotstr(retvals(0)).s
+ ' find_file_portably returns either an error message or a path
+ path = find_file_portably(path)
+ 
+ IF is_rpg(path) ORELSE is_rpgdir(path) THEN
+  RETURN 1
+ END IF
+END FUNCTION
 
 ' Implementation of "run game".
 PRIVATE SUB run_game ()

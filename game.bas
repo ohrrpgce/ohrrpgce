@@ -3689,25 +3689,33 @@ END SUB
 
 '==========================================================================================
 
+' Check if the given path is an rpg file
+FUNCTION is_rpg(path as string) as bool
+ RETURN (LCASE(RIGHT(path, 4)) = ".rpg" ANDALSO isfile(path))
+END FUNCTION
+
+' Check if the given path is an rpgdir
+FUNCTION is_rpgdir(path as string) as bool
+ 'Perhaps it's an unlumped folder?
+ 'Check for essentials (archinym.lmp was added long before .rpgdir support)
+ RETURN (isdir(path) ANDALSO isfile(path & SLASH & "archinym.lmp"))
+END FUNCTION
+
 ' Check if the given path/string is an rpg file or an rpgdir
 ' and if so, select it for playing (the browse screen will not appear).
 ' Returns YES if found, NO if not found.
 FUNCTION select_rpg_or_rpgdir(path as string) as bool
- IF LCASE(RIGHT(path, 4)) = ".rpg" ANDALSO isfile(path) THEN
+ IF is_rpg(path) THEN
   sourcerpg = absolute_path(path)
   gam.autorungame = YES
   usepreunlump = NO
   RETURN YES
- ELSEIF isdir(path) THEN
-  'Perhaps it's an unlumped folder?
-  'Check for essentials (archinym.lmp was added long before .rpgdir support)
-  IF isfile(path & SLASH & "archinym.lmp") THEN
-   sourcerpg = trim_trailing_slashes(absolute_path(path))
-   workingdir = sourcerpg
-   gam.autorungame = YES
-   usepreunlump = YES
-   RETURN YES
-  END IF
+ ELSEIF is_rpgdir(path) THEN
+  sourcerpg = trim_trailing_slashes(absolute_path(path))
+  workingdir = sourcerpg
+  gam.autorungame = YES
+  usepreunlump = YES
+  RETURN YES
  END IF
  RETURN NO
 END FUNCTION

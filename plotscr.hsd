@@ -648,6 +648,7 @@ define function, begin
 624,checkwallcollisiony,6,0,0,0,0,20,20  # Check for wall collision (pixel x, pixel y, width, height, xgo, ygo)
 625,moveslicewithwallchecking,3,0,0,0    # Move a slice by xgo,ygo or until it hits a wall (sl, xgo, ygo)
 626,textboxtext,4,0,0,1,0                # Get whole text from a textbox (string, box, expand, strip)
+627,checkgameexists,1,-1      # Check an .rpg/.rpgdir exists (string id)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

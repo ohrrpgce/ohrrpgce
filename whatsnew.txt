@@ -88,7 +88,7 @@ WHAT IS NEW?
       by pressing Ctrl+F9. (Before, you had to download a special build
       to profile scripts.) More useful stats are now collected. [Ralph]
     * "run game" quits the current game and loads a different game
-      (.rpg file/.rpgdir) [Ralph]
+      (.rpg file/.rpgdir), and "check game exists" [Ralph]
     * You can now pass arguments to the newgame and loadgame scripts by
       giving extra arguments to "resetgame" and "loadfromslot" [Ralph]
     * "reparent to npc" and "reparent to hero" convenience functions

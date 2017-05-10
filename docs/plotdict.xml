@@ -8123,6 +8123,21 @@ end</example>
 $0 = "part2.rpg"
 run game(0)</example>
 		</command>
+		<command id="checkgameexists">
+			<canon>check game exists (file string id)</canon>
+			<shortname>check game exists</shortname>
+			<description>
+				Check whether an .rpg file/.rpgdir directory exists, returning true or false.
+				This is useful before calling <ref>rungame</ref>, which will show an error if the game doesn't exist.
+				<!--If you give it a file with an .rpg extension it will also check for an .rpgdir if the .rpg
+				doesn't exist, and vice-vesa, just like <ref>rungame</ref> does;
+				see that command for more information about the filename.-->
+				See <ref>rungame</ref> for more information about the filename.
+			</description>
+			<seealso>
+				<ref>rungame</ref>
+			</seealso>
+		</command>
 		<command id="milliseconds">
 			<canon>milliseconds</canon>
 			<shortname>milliseconds</shortname>
