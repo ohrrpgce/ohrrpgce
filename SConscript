@@ -827,8 +827,11 @@ common_modules += ['rasterizer.cpp',
 
 ################ ver.txt (version info) build rule
 
+archinfo = arch
+if arch == '(see target)':
+    archinfo = target
 def version_info(source, target, env):
-    verprint (gfx, music, fbc, arch, asan, portable, builddir, rootdir, DATAFILES)
+    verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir, DATAFILES)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
@@ -1099,14 +1102,17 @@ Experimental options:
   android-source=1    Used as part of the Android build process for Game/Custom (see wiki)
   glibc=1             Enable memory_usage function
   target=...          Set cross-compiling target. Passed through to fbc. Either
-                      a toolchain prefix triplet such as arm-linux-androideabi or
-                      a target name supported by fbc (e.g. darwin, android) or
+                      a toolchain prefix triplet such as arm-linux-androideabi
+                      (will be prefixed to tool names, e.g. arm-linux-androideabi-gcc)
+                      or a target name supported by fbc (e.g. darwin, android) or
                       a platform-cpu pair (e.g. linux-arm).
-  arch=ARCH           Specify CPU type. Overrides 'target'. Options include:
-                       32 or x86            (Default, even on x86_64 systems!)
-                       64 or x86_64
+                      Current (default) value: """ + target + """
+  arch=ARCH           Specify target CPU type. Overrides 'target'. Options include:
+                       x86, x86_64
                        arm/armeabi/arm5vte  Older ARM devices w/o FPUs (Android default)
                        armv7-a              Newer ARM devices w/ FPUs, like RPi2+.
+                       32 or 64             32 or 64 bit variant of the default arch.
+                      Current (default) value: """ + arch + """
   portable=1          (For Linux) Try to build portable binaries, and test them.
 
 The following environmental variables are also important:

@@ -68,7 +68,7 @@ def get_fb_info(env, fbc):
     if len(fbtarget) == 0:
         # New versions of fbc. Format is os-cpufamily, and it is the
         # directory name where libraries are kept in non-standalone builds.
-        fbtarget = re.findall(" built for ([a-z0-9-]+)", fbcinfo)
+        fbtarget = re.findall(" built for ([a-zA-Z0-9-_]+)", fbcinfo)
         if len(fbtarget) == 0:
             raise Exception("Couldn't determine fbc default target")
     fbtarget = fbtarget[0]
