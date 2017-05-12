@@ -77,6 +77,7 @@ CONST kindlimitTEXT = 5
 ENUM EditRuleMode
   erNone              'Used for labels and links
   erIntgrabber
+  erEnumgrabber       'Must be used for anything that's an Enum
   erShortStrgrabber   'No full-screen text editor
   erStrgrabber        'Press ENTER for full-screen text editor
   erToggle
@@ -162,9 +163,12 @@ DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE FUNCTION LowColorCode () as integer
 
 'Slice EditRule convenience functions
-DECLARE SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
-DECLARE SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer ptr, byval group as integer=0)
-DECLARE SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval group as integer = 0)
+DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_tog (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
+DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as string, group as integer = 0)
 
 '==============================================================================
 
@@ -948,6 +952,12 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    IF intgrabber(*n, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
     state.need_update = YES
    END IF
+  CASE erEnumgrabber
+   ' In 64 bit builds, enums are 64 bit.
+   DIM n as ssize_t ptr = rule.dataptr
+   IF intgrabber(*n, cast(ssize_t, rule.lower), cast(ssize_t, rule.upper), , , , , NO) THEN  'Don't autoclamp
+    state.need_update = YES
+   END IF
   CASE erToggle
    DIM n as integer ptr = rule.dataptr
    IF intgrabber(*n, -1, 0) THEN
@@ -963,7 +973,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
     *s = multiline_string_editor(*s, "sliceedit_text_multiline", NO)
     state.need_update = YES
    ELSE
-    IF strgrabber(*s, 32767) THEN 'FIXME: this limit is totally arbitrary.
+    IF strgrabber(*s, rule.upper) THEN
      state.need_update = YES
     END IF
    END IF
@@ -1137,7 +1147,7 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
 END SUB
 
 'Add a menu item to edit a piece of data (EditRule) to rules()
-SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, byval dataptr as any ptr, byval lower as integer=0, byval upper as integer=0, byval group as integer = 0)
+SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
  DIM index as integer = UBOUND(rules) + 1
  REDIM PRESERVE rules(index) as EditRule
  WITH rules(index)
@@ -1150,11 +1160,29 @@ SUB sliceed_rule(rules() as EditRule, helpkey as String, mode as EditRuleMode, b
  END WITH 
 END SUB
 
-SUB sliceed_rule_none(rules() as EditRule, helpkey as String, byval group as integer = 0)
+'We have a lot of apparently redundant functions to allow error compile-
+'and possibly also run-time error checking. In particular, in 64 bit builds,
+'enums are 64 bit, so to catch errors we shouldn't allow passing them to sliceed_rule
+'by giving it "dataptr as any ptr" argument.
+
+SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+ sliceed_rule rules(), helpkey, erEnumgrabber, cast(integer ptr, dataptr), lower, upper, group
+END SUB
+
+SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+ sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
+END SUB
+
+' upper is the maximum string length
+SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
+ sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), 0, upper, group
+END SUB
+
+SUB sliceed_rule_none(rules() as EditRule, helpkey as string, group as integer = 0)
  sliceed_rule rules(), helpkey, erNone, 0, 0, 0, group
 END SUB
 
-SUB sliceed_rule_tog(rules() as EditRule, helpkey as String, byval dataptr as integer ptr, byval group as integer=0)
+SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
@@ -1211,7 +1239,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     str_array_append menu(), "Border: " & caption_or_int(BorderCaptions(), dat->border)
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
-    sliceed_rule rules(), "rect_trans", erIntgrabber, @(dat->translucent), 0, 2
+    sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, 2
     IF dat->translucent = 1 THEN
      str_array_append menu(), "Fuzziness: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
@@ -1220,7 +1248,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM dat as TextSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Text: " & dat->s
-    sliceed_rule rules(), "text_text", erStrgrabber, @(dat->s), 0, 0
+    sliceed_rule_str rules(), "text_text", erStrgrabber, @(dat->s), 128000  'Arbitrary limit
     str_array_append menu(), "Color: " & slice_color_caption(dat->col, "Default")
     sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), LowColorCode(), 255, slgrPICKCOL
     str_array_append menu(), "Outline: " & yesorno(dat->outline)
@@ -1236,11 +1264,11 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     size = @sprite_sizes(dat->spritetype)
     str_array_append menu(), "Sprite Type: " & size->name
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
-    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
+    sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
      IF dat->assetfile = NULL THEN fatalerror "sliceedit: null dat->assetfile"
      str_array_append menu(), "Asset file: " & *dat->assetfile
-     sliceed_rule rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 0, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
+     sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
     ELSE
      str_array_append menu(), "Sprite Number: " & dat->record
      sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
@@ -1307,7 +1335,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     str_array_append menu(), "Primary Child Pixels: " & dat->pixels
     sliceed_rule rules(), "panel_pixels", erIntgrabber, @(dat->pixels), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
     str_array_append menu(), "Primary Child Percent: " & format_percent(dat->percent)
-    sliceed_rule rules(), "panel_percent", erPercentgrabber, @(dat->percent)
+    sliceed_rule_double rules(), "panel_percent", erPercentgrabber, @(dat->percent)
     str_array_append menu(), "Padding Between Children: " & dat->padding
     sliceed_rule rules(), "panel_padding", erIntgrabber, @(dat->padding), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
 
@@ -1317,25 +1345,25 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   str_array_append menu(), "Fill Type: " & FillModeCaptions(.FillMode)
-  sliceed_rule rules(), "FillMode", erIntGrabber, @.FillMode, 0, 2
+  sliceed_rule_enum rules(), "FillMode", @.FillMode, 0, 2
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
   IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
    IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
     str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
-    sliceed_rule rules(), "align", erIntgrabber, @.AlignHoriz, 0, 2
+    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
    END IF
    IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
     str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
-    sliceed_rule rules(), "align", erIntgrabber, @.AlignVert, 0, 2
+    sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
    END IF
    IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
     str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
-    sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorHoriz, 0, 2
+    sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
    END IF
    IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
     str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
-    sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorVert, 0, 2
+    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
    END IF
   END IF
   str_array_append menu(), "Padding Top: " & .PaddingTop
@@ -1350,7 +1378,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), "Extra Data " & i & ": " & .Extra(i)
    sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
   NEXT
-  sliceed_rule rules(), "autosort", erIntgrabber, @.AutoSort, 0, 5
+  sliceed_rule_enum rules(), "autosort", @.AutoSort, 0, 5
   str_array_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
  END WITH
 
