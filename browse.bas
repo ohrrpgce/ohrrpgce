@@ -56,7 +56,7 @@ DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuS
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE FUNCTION valid_audio_file (filepath as string, byval typemask as integer) as bool
 DECLARE FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
-DECLARE FUNCTION check_for_plotscr_inclusion(filepath as string) as bool
+DECLARE FUNCTION check_is_scripts_file(filepath as string) as bool
 
 ' Returns an absolute path, or "" if the user cancelled.
 ' special: file type, see below
@@ -509,8 +509,8 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    '--script files
    IF br.special = 9 THEN
     IF wildcard = "*.txt" THEN
-     IF NOT check_for_plotscr_inclusion(filepath) THEN
-      'Don't display .txt files unless they include plotscr.hsd
+     ' Only add .txt files that seem to be HS scripts
+     IF NOT check_is_scripts_file(filepath) THEN
       br.mstate.last -= 1
       ' WARNING: WITH pointer now invalid
      END IF
@@ -850,7 +850,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 
 END SUB
 
-FUNCTION check_for_plotscr_inclusion(filepath as string) as bool
+FUNCTION check_is_scripts_file(filepath as string) as bool
  'This script is a hack to allow people who name their scripts .txt to use the import
  'feature without cluttering the browse interface with non-plotscript .txt files
  'Note that scanscripts.py uses a completely different autodetection method
@@ -858,15 +858,20 @@ FUNCTION check_for_plotscr_inclusion(filepath as string) as bool
 
  'We check whether these form the beginning of any line near the top of the file
  DIM indicators(...) as string = { _
-  "include,plotscr.hsd", "script,", "plotscript,", "globalvariable", "defineconstant" _
+  "include,", "script,", "plotscript,", "globalvariable", "defineconstant" _
  }
 
  DIM fh as integer = FREEFILE
  IF OPENFILE(filepath, FOR_INPUT, fh) THEN RETURN NO
  DIM s as string
- FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines
+ FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines uncommented lines
   LINE INPUT #fh, s
+  IF EOF(fh) THEN EXIT FOR
   s = exclude(LCASE(s), !" \t")
+  IF LEFT(s, 1) = "#" OR LEN(s) = 0 THEN
+   i -= 1  'Don't count commented/blank lines, since they may be many of them
+   CONTINUE FOR
+  END IF
   FOR j as integer = 0 TO UBOUND(indicators)
    IF MID(s, 1, LEN(indicators(j))) = indicators(j) THEN
     result = YES
