@@ -1,0 +1,62 @@
+## Automated HSpeak tests. See hspeaktest.py
+
+## Including just this is faster than all of plotscr.hsd
+include, hamsterspeak.hsd
+
+define function, begin
+  1,noop4,4,0,0,0,0
+end
+
+## Check for errors given extra commas, and for operators in illegal positions
+script, comma tests, begin
+  variable(xx)
+  +,                     # ERROR
+  + ,                    # ERROR
+  <<,                    # ERROR
+  << ,                   # ERROR
+  ,<<1                   # ERROR
+  , <<2                  # ERROR
+  ,<3                    # ERROR
+  , <4                   # ERROR
+  1,-2                   # WARN
+  ,-2                    # WARN
+  -2,                    # WARN
+  noop4(1,-2)            # OK
+  1,:=2                  # ERROR
+  1,--2                  # ERROR
+  2--1                   # WARN
+  ## FIXME: This is major lexer bug
+  2-1                    # ERROR
+  noop4(1,mod,2)         # OK
+  #if,(xx) then()         # WARN
+  if(xx), then()         # OK
+  #if(xx) then,()         # WARN
+  noop4((1), (2))        # OK
+  noop4(-2)              # OK
+  noop4((2) -- (1))      # OK
+  ## These error checks aren't implemented; they're hard to catch
+  noop(),                # ERROR
+  noop,()                # ERROR
+  noop4(noop,())         # ERROR
+  ## This fails because parsed as noop(0), but noop takes no args
+  noop4(noop,(0))        # OK
+  noop4( --2)            # ERROR
+  noop4(,--2)            # ERROR
+  noop4( ,  , 0)         # ERROR
+  noop4( , 0)            # ERROR
+  ## This probably doesn't particularly need to be disallowed
+  noop4(0 ,)             # OK
+  ## $ is treated as a unary operator
+  $,0=""                 # ERROR
+  $0,=""                 # ERROR
+  $0=,""                 # ERROR
+  noop4($0="")           # OK
+  noop4(1,$0="")         # OK
+  noop4(,$0="")          # ERROR
+end
+
+script, string tests, begin
+  $0="", 232             # WARN
+  $0="" 232              # ERROR
+  "asdasd"               # ERROR
+end

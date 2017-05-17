@@ -1031,6 +1031,10 @@ INTERTEST = Phony ('interactivetest', source = GAME, action =
 # The Alias prevents scons . from running the tests.
 SideEffect (Alias ('g_debug.txt'), [AUTOTEST, INTERTEST])
 
+HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
+                    [rootdir + 'hspeaktest.py testgame/parser_tests.hss'])
+
+# Note: does not include hspeaktest, because compiling hspeak is very slow and Euphoria may not be installed
 # There has to be some better way to do this...
 tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST])]
 TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
@@ -1145,6 +1149,8 @@ Targets (executables to build):
   filetest
   vectortest
   rbtest
+ Non-default automated test targets (not run by "scons test"):
+  hspeaktest
  Nonautomated test programs:
   gfx_directx_test    gfx_directx.dll test
   miditest
