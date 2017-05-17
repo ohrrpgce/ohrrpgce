@@ -83,7 +83,6 @@ declare sub read_replay_length ()
 
 declare function draw_allmodex_overlays (page as integer) as bool
 declare function draw_allmodex_overlays32 (surf as Surface ptr) as bool
-declare sub show_overlay_message(msg as string, seconds as double = 3.)
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
 declare sub update_fps_counter (skipped as bool)
@@ -2507,7 +2506,10 @@ sub macro_controls ()
 	reentering = NO
 end sub
 
-private sub show_overlay_message (msg as string, seconds as double = 3.)
+'Display a message above everything else; by default doesn't appear in screenshots.
+'Intended for use here in allmodex, but pragmaticlly, can be used in Custom too.
+'Note that in-game, you should set gam.showtext/gam.showtext_ticks instead.
+sub show_overlay_message (msg as string, seconds as double = 3.)
 	overlay_message = msg
 	overlay_hide_time = timer + seconds
 	overlay_replay_display = NO

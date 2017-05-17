@@ -344,6 +344,8 @@ SUB importscripts (f as string, quickimport as bool)
    CLOSE fptr
    EXIT SUB
   END IF
+
+  show_message "Imported:  "
   DO
    IF EOF(fptr) THEN EXIT DO
    IF dotbin THEN 
@@ -407,15 +409,22 @@ SUB importscripts (f as string, quickimport as bool)
   load_script_triggers_and_names
 
   '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
-  append_message " ...autofix broken triggers..."
+  show_message ""
+  show_message "Autofixing broken triggers..."
   autofix_broken_old_scripts
 
   '--erase the temporary backup copy of plotscr.lst
   safekill tmpdir & "plotscr.lst.tmp"
-  
+
   textcolor uilook(uiText), 0
-  show_message "imported " & viscount & " scripts"
-  IF quickimport = NO THEN waitforanykey
+  show_message "Imported " & viscount & " plotscripts."
+
+  IF quickimport THEN
+   ' The show_messages above will be gone before the user can see them
+   show_overlay_message "Imported " & viscount & " plotscripts from " & trimpath(f), 2.5
+  ELSE
+   waitforanykey
+  END IF
  ELSE
   pop_warning f + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _
@@ -537,6 +546,11 @@ END FUNCTION
 
 'Returns filename of .hs file, or "" on failure
 FUNCTION compilescripts(fname as string, hsifile as string) as string
+
+ clearpage vpage
+ wrapprint "Compiling " & simplify_path_further(fname, CURDIR) & !"...\nPlease wait for HSpeak to finish, then close it.", pCentered, pCentered, uilook(uiText), vpage, rWidth - 40
+ setvispage vpage, NO
+
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN

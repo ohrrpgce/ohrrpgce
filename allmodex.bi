@@ -105,6 +105,7 @@ DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (byval red as integer, byval green as integer, byval blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
 
+DECLARE SUB show_overlay_message(msg as string, seconds as double = 3.)
 
 '==========================================================================================
 '                                        Maps

@@ -88,7 +88,7 @@ reload.SetRootNode(global_reload_doc, reload.CreateNode(global_reload_doc, ""))
 
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
- as integer x = 0, y = 0, top = 0, h = 200, c = 0
+ as integer x = 0, y = 0, top = 0, h = 200, c = 0, margin = 4
 END TYPE
 DIM SHARED console as ConsoleData
 
@@ -2913,10 +2913,11 @@ END SUB
 SUB reset_console (byval top as integer = 0, byval h as integer = 200, byval c as integer = -1)
  IF c = -1 THEN c = uilook(uiBackground)
  WITH console
+  .margin = 4
   .top = top
   .h = h
-  .x = 0
-  .y = top
+  .x = .margin
+  .y = top + .margin
   .c = c
   DIM tempfr as Frame ptr
   tempfr = frame_new_view(vpages(vpage), 0, .top, vpages(vpage)->w, .h)
@@ -2927,7 +2928,7 @@ END SUB
 
 SUB show_message (s as string)
  WITH console
-  IF .x > 0 THEN .x = 0 : .y += 8
+  IF .x > .margin THEN .x = .margin : .y += 8
   append_message s
  END WITH
 END SUB
@@ -2936,8 +2937,12 @@ SUB append_message (s as string)
  DIM as integer display = YES
  IF RIGHT(TRIM(s), 1) = "," THEN display = NO
  WITH console
-  IF .x > 0 AND LEN(s) * 8 + .x > vpages(vpage)->w THEN .x = 0 : .y += 8: display = YES
-  IF .y >= .top + .h - 8 THEN
+  IF .x > .margin AND textwidth(s) + .x > vpages(vpage)->w - .margin THEN
+   .x = .margin
+   .y += 8
+   display = YES
+  END IF
+  IF .y >= .top + .h - 8 - .margin THEN
    'scroll page up 2 lines
    DIM as Frame ptr tempfr, copied
    tempfr = frame_new_view(vpages(vpage), 0, .top + 16, vpages(vpage)->w, .h - 16)
@@ -2949,7 +2954,7 @@ SUB append_message (s as string)
    frame_unload @tempfr
   END IF
   printstr s, .x, .y, vpage
-  .x += LEN(s) * 8
+  .x += textwidth(s)
   IF display THEN setvispage vpage
  END WITH
 END SUB
