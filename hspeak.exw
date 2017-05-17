@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Se 2017-05-17 Disallow extra commas
 --3Sd 2017-03-17 --incdir option; check ../share/games/ohrrpgce/ instead
 --3Sc 2016-04-11 Check /usr/share/games/ohrrpgce/ for include files
 --3Sb 2014-11-11 Better 'include' line lexing & garbage detection
@@ -160,7 +161,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Sd"
+constant COMPILER_SUB_VERSION="Se"
 constant COPYRIGHT_DATE="2017"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -185,14 +186,15 @@ constant LEX_CHAR=0
 constant LEX_SPACE=1
 constant LEX_BEGIN=2
 constant LEX_END=3
-constant LEX_KEYWORD=4
+constant LEX_OPERATOR=4
 constant LEX_COMMENT=5
 constant LEX_STRING=6
 constant LEX_COMMA=7
 constant LEX_WARN=8
 constant LEX_BINARY=9
 constant LEX_DIGIT=10
-constant LEX_KEYWORD2=11
+constant LEX_OPERATOR2=11
+constant LEX_NEWLINE=12
 constant FILE_NAME=1
 constant FILE_TEXT=2
 constant FILE_LINE_EXTENTS=3
@@ -876,7 +878,7 @@ procedure init_lexer()
 
   --main table
   table_insert={" (),\n#\t\"[]{}.",
-                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
+                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_NEWLINE,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
   lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,127-32) & repeat(LEX_BINARY,#A1-127) & repeat(LEX_CHAR,256-#A1)
@@ -888,7 +890,7 @@ procedure init_lexer()
   end for
   --add the one-character prefix of each operator
   for i=1 to length(separator_list) do
-    lexer_table[separator_list[i][1]+1]=LEX_KEYWORD
+    lexer_table[separator_list[i][1]+1]=LEX_OPERATOR
   end for
 
   --keyword suffix parsing table
@@ -898,7 +900,7 @@ procedure init_lexer()
   --2nd character of each operator
   for i=1 to length(separator_list) do
     if length(separator_list[i])=2 then
-      lexer_table_key2[separator_list[i][2]+1]=LEX_KEYWORD2
+      lexer_table_key2[separator_list[i][2]+1]=LEX_OPERATOR2
     end if
   end for
 
@@ -1405,7 +1407,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       text&=s[i]
       val=val*10+s[i]-'0'
     elsif state=LEX_SPACE then  --yes, allowed in numbers too
-    elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_KEYWORD or state=LEX_COMMENT or state=LEX_BINARY then
+    elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_OPERATOR or state=LEX_COMMENT or state=LEX_BINARY or state=LEX_NEWLINE then
       --backtrack one character
       --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
       i-=1
@@ -1500,9 +1502,13 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
   integer remem_textstart
   integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
   integer backtracked
+  integer last_state   --A LEX_* constant; the last state that was not LEX_SPACE
+  integer last_state_i --Value at i where last_state was set
 
   ident=""
   nonnumeral=false
+  last_state=LEX_NEWLINE
+  last_state_i=0
   textstart=0
   tokens={}
 
@@ -1542,6 +1548,8 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       nonnumeral=true
       src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is reserved and not allowed in names (identifiers)!", {s[i]}), pos+i)
     else
+      --We've reached the end of a token... unless it's only the first character
+      --of a two-character operator.
       remem_ident=ident  --for backtracking
       remem_textstart=textstart
       backtracked=false
@@ -1554,30 +1562,45 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       if state=LEX_BEGIN then
         tokens=append(tokens,{"begin",pos+i})
       elsif state=LEX_END then
+        if last_state=LEX_COMMA then
+          --foo(1,). This probably doesn't particularly need to be disallowed
+          --Could also check for <op>) but that will be caught later
+        end if
         tokens=append(tokens,{"end",pos+i})
       elsif state=LEX_COMMA then
+        if last_state=LEX_COMMA or last_state=LEX_BEGIN or last_state=LEX_OPERATOR or last_state=LEX_OPERATOR2 then
+          --foo(, 1) or foo(1, , 2) or <op>,
+          src_error(
+            sprintf_utf("Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",{}),
+            pos+i)
+        end if
+      elsif state=LEX_NEWLINE then
       elsif state=LEX_COMMENT then
         exit
       elsif state=LEX_STRING then
         temp=lexer_read_string(s,i+1,stop,pos)
         tokens=append(tokens,{temp[2],pos+i})
         i=temp[1]
-      elsif state=LEX_KEYWORD then
-        --the following mess is in order to allow whitespace in the middle of separators
+      elsif state=LEX_OPERATOR then
+        --Read the next non-space character. If it's LEX_OPERATOR2 we greedily
+        --add it, otherwise we do nothing (we only support length 1 and 2
+        --separators).  However, we might have have been too greedy (not a value
+        --two-char separator), and need to put it back.
         textstart=i
         masked=s[i..i]
-        --we only support length 1 and 2 separators
+        integer lookahead_state
+        --This while loop is in order to allow whitespace in the middle of separators.
         while i<length(s) do
           i+=1
           if s[i]<256 then
-            state=lexer_table_key2[s[i]+1]
+            lookahead_state=lexer_table_key2[s[i]+1]
           else
-            state=LEX_CHAR
+            lookahead_state=LEX_CHAR
           end if
-          if state=LEX_KEYWORD2 then
+          if lookahead_state=LEX_OPERATOR2 then
             masked&=s[i]
             exit
-          elsif state=LEX_CHAR then
+          elsif lookahead_state=LEX_CHAR then
             --includes binary gunk, warning characters and comments
             i-=1
             exit
@@ -1617,6 +1640,16 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           end if
         else
           textstart=0
+          if last_state=LEX_COMMA then
+            -- ,<op>
+            --(Could check for (<op> but that will be detected later anyway.)
+            --Allowed if it's a unary operator. There's only one, since - is not an operator.
+            if s[i]!='$' then
+              src_error(
+                sprintf_utf("Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",{}),
+                pos+last_state_i)
+            end if
+          end if
         end if
       elsif state=LEX_BINARY then
         lexer_binary_error(pos+i)
@@ -1630,6 +1663,11 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           return lexer_read_include_line(tokens,s,i,stop,pos)
         end if
       end if
+      --End of a complete token
+    end if
+    if state!=LEX_SPACE then
+      last_state_i=i
+      last_state=state
     end if
     i+=1
   end while
