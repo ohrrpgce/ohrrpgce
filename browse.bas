@@ -769,6 +769,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.editor", filetype, br, tree()
   ELSEIF br.special = 9 THEN
    browse_add_files "*.hs", filetype, br, tree()
+   browse_add_files "*.hsp", filetype, br, tree()
    browse_add_files "*.hss", filetype, br, tree()
    browse_add_files "*.txt", filetype, br, tree()
   ELSEIF br.special = 11 THEN

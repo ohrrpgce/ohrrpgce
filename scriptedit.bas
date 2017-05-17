@@ -216,8 +216,10 @@ SUB addtrigger (scrname as string, byval id as integer, triggers as TriggerSet)
  END WITH
 END SUB
 
+' If quickimport is true, doesn't display the names of imported scripts
 SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
- IF justextension(f) <> "hs" THEN
+ DIM extn as string = LCASE(justextension(f))
+ IF extn <> "hs" AND extn <> "hsp" THEN
   DIM hsifile as string = exportnames
   f = compilescripts(f, hsifile)
   IF f <> "" THEN
