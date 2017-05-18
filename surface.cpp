@@ -167,7 +167,10 @@ static void scalerow(RGBcolor *srcp, int srcpstep, RGBcolor *destp, int destpste
 			Bacc += srcp->b * run;
 			pos = run;
 		}
-		*destp = {{ uint8_t(Bacc/runlen), uint8_t(Gacc/runlen), uint8_t(Racc/runlen), 255}};
+		destp->b = uint8_t(Bacc/runlen);
+		destp->g = uint8_t(Gacc/runlen);
+		destp->r = uint8_t(Racc/runlen);
+		destp->a = 255;
 		destp += destpstep;
 	}
 }
