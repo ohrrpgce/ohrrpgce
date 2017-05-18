@@ -64,7 +64,7 @@ script, update keyboard, begin
       hold -= 1
       update hold caption
       if(hold == 0) then(
-        if(keyval(key:B) > 0 || keyval(key:M) > 0) then(game over)
+        if(keyval(key:K) > 0 || keyval(key:M) > 0) then(game over)
         try to email logs
         reset hold
       )else(
