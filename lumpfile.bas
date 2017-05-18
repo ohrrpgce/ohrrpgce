@@ -916,7 +916,7 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 end sub
 
 ' Unlump all lumps
-' Returns false if there was an error an the user decided to cancel (Unimplemented)
+' <s>Returns false if there was an error an the user decided to cancel</s> (Unimplemented)
 function unlump (lumpfile as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO) as bool
 	unlumpfile(lumpfile, "", ulpath, showerrors, verbose)
         RETURN YES  'TODO
