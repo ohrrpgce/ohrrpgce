@@ -916,9 +916,11 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 end sub
 
 ' Unlump all lumps
-sub unlump (lumpfile as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO)
+' Returns false if there was an error an the user decided to cancel (Unimplemented)
+function unlump (lumpfile as string, ulpath as string, showerrors as bool = YES, verbose as bool = NO) as bool
 	unlumpfile(lumpfile, "", ulpath, showerrors, verbose)
-end sub
+        RETURN YES  'TODO
+end function
 
 ' Unlump certain lumps, defined by fmask, to directory path
 sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO)

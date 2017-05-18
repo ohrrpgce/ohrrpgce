@@ -3727,6 +3727,7 @@ SUB load_hsp_header(filename as string, header as HSHeader)
    'Old format
    'Next two characters are major version as a short: take one byte, skip the next
    'Then append minor version (as a string)
+   '(Note, the minor version is only written by 3H and newer, so the version code is either 1 or 3 characters
    .hspeak_version = CAST(integer, buf[12]) & MID(buf, 15)
    .plotscr_version = ""
    .script_format = 0

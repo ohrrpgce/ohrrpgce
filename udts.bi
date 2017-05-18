@@ -299,7 +299,7 @@ END TYPE
 
 Type HSHeader
   valid as bool
-  hspeak_version as string
+  hspeak_version as string    'Usually 3 characters, but minor version is missing for versions before 3H
   hsp_format as integer
   script_format as integer    'Same as the .HSZ format number, or 0 if not known
   max_function_id as integer  'Maximum ID of a used function, or 0 if not known

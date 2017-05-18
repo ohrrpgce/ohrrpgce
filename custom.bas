@@ -302,7 +302,7 @@ IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  future_rpg_warning
 END IF
 
-prompt_for_password
+'prompt_for_password
 
 clearpage vpage
 textcolor uilook(uiText), 0

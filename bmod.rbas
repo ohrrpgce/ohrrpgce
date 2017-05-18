@@ -974,7 +974,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     centerbox 160, 53, 310, 95, 1, page
     IF bat.sptr < 24 THEN
-     IF bat.spell.slot(bat.sptr).desc <> "" THEN rectangle 5, 74, 311, 1, boxlook(0).edgecol, page
+     IF bat.spell.slot(bat.sptr).desc <> "" THEN rectangle 5, 74, 310, 1, boxlook(0).edgecol, page
     END IF
     rectangle 5, 87, 310, 1, boxlook(0).edgecol, page
     FOR i = 0 TO 23

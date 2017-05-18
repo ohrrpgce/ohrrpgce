@@ -1208,9 +1208,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   menu(3) = "Y: " & .Y
   sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
   menu(4) = "Width: " & .Width
-  sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Width, -9999, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
-  sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Height, -9999, 9999, slgrPICKWH
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
   DIM minlookup as integer = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, -999999999, 0)

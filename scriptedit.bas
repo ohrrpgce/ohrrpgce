@@ -31,6 +31,7 @@ DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
 DECLARE SUB importscripts (f as string, quickimport as bool)
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames () as string
+DECLARE SUB export_scripts()
 DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TriggerSet)
 
 
@@ -463,14 +464,15 @@ SUB reimport_previous_scripts ()
 END SUB
 
 SUB scriptman ()
- DIM menu(4) as string
- DIM menu_display(4) as string
+ DIM menu(5) as string
+ DIM menu_display(5) as string
 
  menu(0) = "Previous Menu"
  menu(1) = "Compile and/or Import scripts (.hss/.hs)"
  menu(2) = "Export names for scripts (.hsi)"
  menu(3) = "Check where scripts are used..."
  menu(4) = "Find broken script triggers..."
+ menu(5) = "Export scripts"
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -511,14 +513,16 @@ SUB scriptman ()
      script_usage_list()
     CASE 4
      script_broken_trigger_list()
+    CASE 5
+     export_scripts()
    END SELECT
   END IF
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
   standardmenu menu_display(), state, 0, 0, dpage
-  edgeprint "Press F9 to Compile & Import your", 20, 160, uilook(uiText), dpage
-  edgeprint "scripts anywhere from any menu.", 20, 170, uilook(uiText), dpage
+  wrapprint "Press F9 to Compile & Import your scripts anywhere from any menu.", _
+            20, pBottom - 12, uilook(uiText), dpage, rWidth - 40
 
   SWAP vpage, dpage
   setvispage vpage
@@ -604,3 +608,63 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  END IF
  RETURN outfile
 END FUNCTION
+
+SUB export_scripts()
+ DIM hsp as string = game & ".hsp"
+ IF NOT isfile(hsp) THEN
+  notification "Game has no imported scripts"
+  EXIT SUB
+ END IF
+ DIM header as HSHeader
+ unlumpfile(hsp, "hs", tmpdir)
+ load_hsp_header tmpdir & "hs", header
+ IF header.valid = NO THEN
+  pop_warning hsp & " appears to be corrupt."
+  EXIT SUB
+ END IF
+
+ IF islumpfile(hsp, "source.lumped") THEN
+  ' Extract to folder
+  ' unlumpfile shows a message on error
+  unlumpfile(hsp, "source.lumped", tmpdir)
+  DIM lumpedsources as string = tmpdir & SLASH "source.lumped"
+  IF NOT isfile(lumpedsources) THEN
+   notification "Couldn't extract scripts; corruption?"
+   EXIT SUB
+  END IF
+
+  DIM dest as string
+  dest = trimextension(sourcerpg) & " scripts"
+  
+  IF isdir(dest) THEN
+   IF yesno("Destination directory `" + dest + "' already exists. Delete it?", NO, NO) = NO THEN EXIT SUB
+   killdir dest
+  ELSEIF isfile(dest) THEN
+   notification "destination directory `" + dest + "' already exists as a file"
+   EXIT SUB
+  END IF
+  IF makedir(dest) <> 0 THEN
+   notification "Couldn't create directory " & dest
+   EXIT SUB
+  END IF
+
+  IF unlump(lumpedsources, dest) THEN
+   notification "Extracted scripts to " & dest
+  END IF
+
+ ELSEIF islumpfile(hsp, "source.txt") THEN
+  ' Extract as a single file
+  unlumpfile(hsp, "source.txt", tmpdir)
+  DIM dest as string = trimextension(sourcerpg) & " extracted.hss"
+  copyfile tmpdir & "source.txt", dest
+  safekill tmpdir & "source.txt"
+  notification "Extracted scripts as " & dest
+
+ ELSE
+  IF strcmp(STRPTR(header.hspeak_version), STRPTR("3I ")) < 0 THEN
+   notification "The scripts are old. Try decompiling them with HSDECMPL or nohrio. (Ask for help by email/on the forums)"
+  ELSE
+   notification "Original script source was omitted. You could try decompiling the scripts with nohrio."
+  END IF
+ END IF
+END SUB

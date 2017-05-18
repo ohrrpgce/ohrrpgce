@@ -3606,7 +3606,7 @@ FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integ
  namesl->Y = 10
 
  DIM capsl as Slice Ptr = NewSliceOfType(slText, box)
- ChangeTextSlice capsl, caption, , -1
+ ChangeTextSlice capsl, caption, , YES
  capsl->AnchorHoriz = 1
  capsl->AlignHoriz = 1
  capsl->AnchorVert = 2
