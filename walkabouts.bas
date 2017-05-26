@@ -487,10 +487,25 @@ SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer,
  IF direction = 3 THEN x = x - distance
 END SUB
 
+SUB aheadxy (byref p as XYPair, byval direction as integer, byval distance as integer)
+ '--alters the input X and Y, moving them "ahead" by distance in direction
+
+ IF direction = 0 THEN p.y = p.y - distance
+ IF direction = 1 THEN p.x = p.x + distance
+ IF direction = 2 THEN p.y = p.y + distance
+ IF direction = 3 THEN p.x = p.x - distance
+END SUB
+
 SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
  '--wraps the given X and Y values within the bounds of width and height
  x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
  y = ((y MOD high) + high) MOD high
+END SUB
+
+SUB wrapxy (byref p as XYPair, byval wide as integer, byval high as integer)
+ '--wraps the given X and Y values within the bounds of width and height
+ p.x = ((p.x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
+ p.y = ((p.y MOD high) + high) MOD high
 END SUB
 
 'alters X and Y ahead by distance in direction, wrapping if neccisary
@@ -500,6 +515,16 @@ SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as inte
  
  IF gmap(5) = 1 THEN
   wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+ END IF
+END SUB
+
+'alters X and Y ahead by distance in direction, wrapping if neccisary
+'unitsize is 20 for pixels, 1 for tiles
+SUB wrapaheadxy (byref p as XYPair, byval direction as integer, byval distance as integer, byval unitsize as integer)
+ aheadxy p, direction, distance
+ 
+ IF gmap(5) = 1 THEN
+  wrapxy p, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
  END IF
 END SUB
 

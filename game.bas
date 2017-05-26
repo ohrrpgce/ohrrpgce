@@ -29,6 +29,7 @@
 #include "purchase.bi"
 #include "game.bi"
 #include "gfx.bi"
+#include "pathfinding.bi"
 
 
 'local subs and functions
@@ -60,6 +61,7 @@ DECLARE SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
 DECLARE SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as integer)
 DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer, byval amount as integer = 1)
 DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
+DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 
 '=================================== Globals ==================================
 
@@ -1687,6 +1689,25 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
  npcmove_walk_ahead(npci)
 END SUB
 
+SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
+ DIM t1 as XYPair
+ t1.x = npci.x / 20
+ t1.y = npci.y / 20
+ DIM t2 as XYPair
+ t2.x = catx(0) / 20
+ t2.y = caty(0) / 20
+
+ DIM pf as AStarPathfinder = AStarPathfinder(t1, t2)
+ pf.calculate()
+ 'pf.debug_path()
+ if v_len(pf.path) > 1 then
+  'Don't move unless a path is found that is longer than one tile
+
+  npci.dir = xypair_direction_to(pf.path[0], pf.path[1], npci.dir)
+  npcmove_walk_ahead(npci)
+ end if
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
@@ -1721,6 +1742,8 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
    npcmove_follow_walls_stop_for_others(npci, npcdata, 1)
   CASE 14:
    npcmove_follow_walls_stop_for_others(npci, npcdata, -1)
+  CASE 15:
+   npcmove_pathfinding_chase(npci, npcdata)
  END SELECT
 
 END SUB

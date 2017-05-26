@@ -815,7 +815,8 @@ game_modules = ['game',
                 'scripting',
                 'oldhsinterpreter',
                 'purchase.rbas',
-                'plankmenu.bas']
+                'plankmenu.bas',
+                'pathfinding.bas']
 
 # The following are built only once and linked into Game and Custom
 common_modules += ['rasterizer.cpp',

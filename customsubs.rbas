@@ -1263,7 +1263,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM menuopts as MenuOptions
  menuopts.fullscreen_scrollbar = YES
 
- REDIM ed.movetype(14)
+ REDIM ed.movetype(15)
  ed.movetype(0) = "Stand Still"
  ed.movetype(1) = "Wander"
  ed.movetype(2) = "Pace"
@@ -1279,6 +1279,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  ed.movetype(12) = "Follow walls (Left)"
  ed.movetype(13) = "Follow walls (R) stop for others"
  ed.movetype(14) = "Follow walls (L) stop for others"
+ ed.movetype(15) = "Chase You (EXPERIMENTAL Pathfinding)"
  REDIM ed.pushtype(7)
  ed.pushtype(0) = "Off"
  ed.pushtype(1) = "Full"

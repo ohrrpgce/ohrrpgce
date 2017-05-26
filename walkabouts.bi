@@ -28,17 +28,23 @@ DECLARE FUNCTION npc_layer() as Slice Ptr
 
 'Movement/collision/wrapping
 DECLARE FUNCTION movdivis (byval xygo as integer) as bool
-DECLARE SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
 DECLARE FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
 DECLARE FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
-DECLARE SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
 DECLARE SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo as integer, isveh as bool, ignore_passmap as bool = NO) as bool
 DECLARE FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
 DECLARE FUNCTION wrapzonecheck (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer
 DECLARE FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer
 DECLARE FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval distance as integer) as integer
-DECLARE SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
+DECLARE FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
+
+DECLARE SUB aheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
+DECLARE SUB wrapxy OVERLOAD (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
+DECLARE SUB wrapaheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
+
+DECLARE SUB aheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer)
+DECLARE SUB wrapxy OVERLOAD (byref p as XYPair, byval wide as integer, byval high as integer)
+DECLARE SUB wrapaheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer, byval unitsize as integer)
 
 DECLARE FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
 
