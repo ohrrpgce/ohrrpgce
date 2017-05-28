@@ -54,17 +54,6 @@ DECLARE FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as str
 DECLARE FUNCTION str2bool(q as string, default as integer = NO, invert as integer = NO) as integer
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
-DECLARE SUB edit_menu_bits (menu as MenuDef)
-DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
-DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState)
-DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
-DECLARE FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
-DECLARE FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as bool
-DECLARE SUB visit_scripts(byval visit as FnScriptVisitor)
-DECLARE SUB gather_script_usage(list() as string, byval id as integer, byval trigger as integer=0, byref meter as integer, byval meter_times as integer=1, box_instead_cache() as integer, box_after_cache() as integer, box_preview_cache() as string)
-DECLARE SUB script_usage_list ()
-DECLARE SUB script_broken_trigger_list()
-DECLARE SUB autofix_broken_old_scripts()
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)

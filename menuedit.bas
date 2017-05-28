@@ -9,6 +9,7 @@
 #include "cglobals.bi"
 #include "scrconst.bi"
 #include "sliceedit.bi"
+#include "custom.bi"
 
 '--Local SUBs
 DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
@@ -16,6 +17,10 @@ DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as Men
 DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
+DECLARE SUB edit_menu_bits (menu as MenuDef)
+DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
+DECLARE SUB reposition_menu (menu as MenuDef, mstate as MenuState)
+DECLARE SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
 
 
 SUB menu_editor ()
@@ -443,4 +448,103 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
  FOR i = 0 TO 2
   append_menu_item detail, "Extra data " & i & ": " & mi.extra(i), 9 + i
  NEXT i
+END SUB
+
+
+SUB edit_menu_bits (menu as MenuDef)
+ DIM bitname(9) as string
+ DIM bits(0) as integer
+ 
+ bitname(0) = "Translucent box"
+ bitname(1) = "Never show scrollbar"
+ bitname(2) = "Allow gameplay & scripts"
+ bitname(3) = "Suspend player even if gameplay allowed"
+ bitname(4) = "No box"
+ bitname(5) = "Disable cancel button"
+ bitname(6) = "No player control of menu"
+ bitname(7) = "Prevent main menu activation"
+ bitname(8) = "Advance text box when menu closes"
+ bitname(9) = "Highlight selection background"
+
+ MenuBitsToArray menu, bits()
+ editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_bitsets"
+ MenuBitsFromArray menu, bits()  
+END SUB
+
+SUB edit_menu_item_bits (mi as MenuDefItem)
+ DIM bitname(2) as string
+ DIM bits(0) as integer
+ 
+ bitname(0) = "Hide if disabled"
+ bitname(1) = "Close menu if selected"
+ bitname(2) = "Don't run on-close script"
+
+ MenuItemBitsToArray mi, bits()
+ editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_item_bitsets"
+ MenuItemBitsFromArray mi, bits()  
+END SUB
+
+SUB reposition_menu (menu as MenuDef, mstate as MenuState)
+ DIM shift as integer
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+ 
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "reposition_menu"
+  
+  shift = ABS(keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
+  WITH menu.offset
+   IF keyval(scUp) > 1 THEN .y -= 1 + 9 * shift
+   IF keyval(scDown) > 1 THEN .y += 1 + 9 * shift
+   IF keyval(scLeft) > 1 THEN .x -= 1 + 9 * shift
+   IF keyval(scRight) > 1 THEN .x += 1 + 9 * shift
+  END WITH
+ 
+  clearpage dpage
+  draw_menu menu, mstate, dpage
+  edgeprint "Offset=" & menu.offset, 0, 0, uilook(uiDisabledItem), dpage
+  edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiDisabledItem), dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+SUB reposition_anchor (menu as MenuDef, mstate as MenuState)
+ DIM tog as integer = 0
+ DIM x as integer
+ DIM y as integer
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+ 
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
+  
+  WITH menu
+   IF keyval(scUp) > 1 THEN .anchorvert = bound(.anchorvert - 1, alignTop, alignBottom)
+   IF keyval(scDown) > 1 THEN .anchorvert = bound(.anchorvert + 1, alignTop, alignBottom)
+   IF keyval(scLeft) > 1 THEN .anchorhoriz = bound(.anchorhoriz - 1, alignLeft, alignRight)
+   IF keyval(scRight) > 1 THEN .anchorhoriz = bound(.anchorhoriz + 1, alignLeft, alignRight)
+  END WITH
+ 
+  clearpage dpage
+  draw_menu menu, mstate, dpage
+  WITH menu
+   x = .rect.x - 2 + anchor_point(.anchorhoriz, .rect.wide)
+   y = .rect.y - 2 + anchor_point(.anchorvert, .rect.high)
+   rectangle x, y, 5, 5, 2 + tog, dpage 
+  END WITH
+  edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiDisabledItem), dpage
+  
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END SUB

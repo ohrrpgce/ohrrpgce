@@ -13,6 +13,7 @@
 #include "customsubs.bi"
 #include "loading.bi"
 #include "scrconst.bi"
+#include "custom.bi"
 
 '--Local subs and functions
 DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string

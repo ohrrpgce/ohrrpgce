@@ -34,7 +34,30 @@ DECLARE FUNCTION exportnames () as string
 DECLARE SUB export_scripts()
 DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TriggerSet)
 DECLARE SUB decompile_scripts()
+DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
 
+DECLARE SUB visit_scripts(byval visit as FnScriptVisitor)
+DECLARE SUB gather_script_usage(list() as string, byval id as integer, byval trigger as integer=0, byref meter as integer, byval meter_times as integer=1, box_instead_cache() as integer, box_after_cache() as integer, box_preview_cache() as string)
+DECLARE SUB script_usage_list ()
+DECLARE SUB script_broken_trigger_list()
+DECLARE SUB autofix_broken_old_scripts()
+
+'==========================================================================================
+'                                       Export HSI
+'==========================================================================================
+
+
+FUNCTION isunique (s as string, set() as string) as bool
+ DIM key as string
+ key = sanitize_script_identifier(LCASE(s), NO)
+
+ FOR i as integer = 1 TO UBOUND(set)
+  IF key = set(i) THEN RETURN NO
+ NEXT i
+
+ str_array_append set(), key
+ RETURN YES
+END FUNCTION
 
 'Prints a hamsterspeak constant to already-open filehandle
 SUB writeconstant (byval filehandle as integer, byval num as integer, names as string, unique() as string, prefix as string)
@@ -185,6 +208,12 @@ FUNCTION exportnames () as string
 
  RETURN outf
 END FUNCTION
+
+
+'==========================================================================================
+'                                   Import scripts
+'==========================================================================================
+
 
 SUB addtrigger (scrname as string, byval id as integer, triggers as TriggerSet)
  WITH triggers
@@ -437,18 +466,6 @@ SUB importscripts (f as string, quickimport as bool)
  game_unique_id = STR(randint(INT_MAX))
 END SUB
 
-FUNCTION isunique (s as string, set() as string) as bool
- DIM key as string
- key = sanitize_script_identifier(LCASE(s), NO)
-
- FOR i as integer = 1 TO UBOUND(set)
-  IF key = set(i) THEN RETURN NO
- NEXT i
-
- str_array_append set(), key
- RETURN YES
-END FUNCTION
-
 SUB reimport_previous_scripts ()
  DIM fname as string
  'isfile currently broken, returns true for directories
@@ -463,6 +480,10 @@ SUB reimport_previous_scripts ()
  clearkey scEnter
  clearkey scSpace
 END SUB
+
+
+'==========================================================================================
+
 
 SUB scriptman ()
  DIM menu(5) as string
@@ -530,6 +551,12 @@ SUB scriptman ()
   dowait
  LOOP
 END SUB
+
+
+'==========================================================================================
+'                                   Compile scripts
+'==========================================================================================
+
 
 FUNCTION get_hspeak_version(hspeak_path as string) as string
  'Note this will momentarily pop up a console window on Windows, unpleasant.
@@ -609,6 +636,12 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  END IF
  RETURN outfile
 END FUNCTION
+
+
+'==========================================================================================
+'                                     Export scripts
+'==========================================================================================
+
 
 SUB export_scripts()
  DIM hsp as string = game & ".hsp"
@@ -706,4 +739,681 @@ SUB decompile_scripts()
  IF LEN(spawn_ret) THEN
   notification "Running HSDECMPL failed: " & spawn_ret
  END IF
+END SUB
+
+
+'==========================================================================================
+'                              Script browsing & selecting
+'==========================================================================================
+
+
+'Modifies 'trigger' (a script trigger) and returns the display name of the selected script (which might "[none]")
+FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
+ DIM localbuf(20) as integer
+ REDIM scriptnames(0) as string
+ REDIM scriptids(0) as integer
+ DIM numberedlast as integer = 0
+ DIM firstscript as integer = 0
+ DIM scriptmax as integer = 0
+ 
+ DIM chara as integer
+ DIM charb as integer
+ 
+ DIM fh as integer
+ DIM i as integer
+ DIM j as integer
+
+ DIM missing_script_name as string
+ missing_script_name = scriptname(trigger)
+ 'If trigger is a script that isn't imported, either numbered or a plotscript, then
+ 'show it as a special option at the top of the menu, equivalent to cancelling
+ IF missing_script_name <> "[none]" AND LEFT(missing_script_name, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
+
+ 'Look through lists of definescript scripts too
+ fh = FREEFILE
+ OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, fh)
+ 'numberedlast = firstscript + LOF(fh) \ 40 - 1
+ numberedlast = firstscript + gen(genNumPlotscripts) - 1
+
+ REDIM scriptnames(numberedlast) as string, scriptids(numberedlast)
+
+ i = firstscript
+ FOR j as integer = firstscript TO numberedlast
+  loadrecord localbuf(), fh, 20
+  IF localbuf(0) < 16384 THEN
+   scriptids(i) = localbuf(0)
+   scriptnames(i) = STR(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
+   i += 1
+  END IF
+ NEXT
+ numberedlast = i - 1
+
+ CLOSE #fh
+
+ fh = FREEFILE
+ OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh)
+ scriptmax = numberedlast + LOF(fh) \ 40
+
+ IF scriptmax < firstscript THEN
+  RETURN "[no scripts]"
+ END IF
+
+ ' 0 to firstscript - 1 are special options (none, current script)
+ ' firstscript to numberedlast are oldstyle numbered scripts
+ ' numberedlast + 1 to scriptmax are newstyle trigger scripts
+ REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
+ scriptnames(0) = "[none]"
+ scriptids(0) = 0
+ IF firstscript = 2 THEN
+  scriptnames(1) = missing_script_name
+  scriptids(1) = trigger
+ END IF
+
+ i = numberedlast + 1
+ FOR j as integer = numberedlast + 1 TO scriptmax
+  loadrecord localbuf(), fh, 20
+  IF localbuf(0) <> 0 THEN
+   scriptids(i) = 16384 + j - (numberedlast + 1)
+   scriptnames(i) = readbinstring(localbuf(), 1, 36)
+   i += 1
+  END IF
+ NEXT
+ scriptmax = i - 1
+ REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
+ DIM scriptnames_display(scriptmax) as string
+
+ CLOSE #fh
+
+ 'insertion sort numbered scripts by id
+ FOR i = firstscript + 1 TO numberedlast
+  FOR j as integer = i - 1 TO firstscript STEP -1
+   IF scriptids(j + 1) < scriptids(j) THEN
+    SWAP scriptids(j + 1), scriptids(j)
+    SWAP scriptnames(j + 1), scriptnames(j)
+   ELSE
+    EXIT FOR
+   END IF
+  NEXT
+ NEXT
+
+ 'sort trigger scripts by name
+ FOR i = numberedlast + 1 TO scriptmax - 1
+  FOR j as integer = scriptmax TO i + 1 STEP -1
+   FOR k as integer = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
+    chara = ASC(LCASE(CHR(scriptnames(i)[k])))
+    charb = ASC(LCASE(CHR(scriptnames(j)[k])))
+    IF chara < charb THEN
+     EXIT FOR
+    ELSEIF chara > charb THEN
+     SWAP scriptids(i), scriptids(j)
+     SWAP scriptnames(i), scriptnames(j)
+     EXIT FOR
+     END IF
+   NEXT
+  NEXT
+ NEXT
+
+ DIM selectst as SelectTypeState
+ DIM state as MenuState
+ WITH state
+  .pt = 0
+  .autosize = YES
+  .autosize_ignore_lines = 2
+ END WITH
+ init_menu_state state, scriptnames()
+ IF firstscript = 2 THEN
+  state.pt = 1
+ ELSE
+  FOR i = 1 TO scriptmax
+   IF trigger = scriptids(i) THEN state.pt = i: EXIT FOR
+  NEXT
+ END IF
+ state.top = large(0, small(state.pt - 10, scriptmax - 21))
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scESC) > 1 THEN RETURN missing_script_name
+  IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
+  IF enter_space_click(state) THEN EXIT DO
+  usemenu state
+
+  IF select_by_typing(selectst) THEN
+   select_instr scriptnames(), selectst, state
+  END IF
+
+  clearpage dpage
+  draw_fullscreen_scrollbar state, , dpage
+  textcolor uilook(uiText), 0
+  printstr "Pick a " & scrtype, 0, 0, dpage
+  highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
+  standardmenu scriptnames_display(), state, 8, 10, dpage
+  SWAP dpage, vpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ trigger = scriptids(state.pt)
+ IF scriptids(state.pt) < 16384 THEN
+  RETURN MID(scriptnames(state.pt), INSTR(scriptnames(state.pt), " ") + 1)
+ ELSE
+  RETURN scriptnames(state.pt)
+ END IF
+END FUNCTION
+
+FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as integer, byval less as integer=75, byval more as integer=77, byval scriptside as integer, byval triggertype as integer) as bool
+ 'Allow scrolling through scripts with the less/more keys, plus obsolete typing in of
+ 'script IDs. That is really obsolete because the script ID is no longer displayed
+ 'unless there is no script with that ID AND it's less than the last used ID, so it's
+ 'impossible to see what you're doing. Should just delete that stuff.
+ '
+ 'Returns true if n was changed.
+ 'less/more: scancodes
+ 'scriptside is 1 or -1: on which side of zero are the scripts
+ 'min or max on side of scripts is ignored
+
+ DIM temp as integer = n
+ IF scriptside < 0 THEN
+  temp = -n
+  SWAP less, more
+  min = -min
+  max = -max
+  SWAP min, max
+ END IF
+
+ DIM seekdir as integer = 0
+ IF keyval(more) > 1 THEN
+  seekdir = 1
+ ELSEIF keyval(less) > 1 THEN
+  seekdir = -1
+ END IF
+
+ DIM scriptscroll as bool = NO
+ IF seekdir <> 0 THEN
+  scriptscroll = NO
+  IF temp = min AND seekdir = -1 THEN
+   temp = -1
+   scriptscroll = YES
+  ELSEIF (temp = 0 AND seekdir = 1) OR temp > 0 THEN
+   scriptscroll = YES
+  END IF
+  IF scriptscroll THEN
+   'scroll through scripts
+   seekscript temp, seekdir, triggertype
+   IF temp = -1 THEN temp = min
+  ELSE
+   'regular scroll
+   temp += seekdir
+  END IF
+ ELSE
+  IF (temp > 0 AND temp < 16384) OR (temp = 0 AND scriptside = 1) THEN
+   'if a number is entered, don't seek to the next script, allow "[id]" to display instead
+   IF intgrabber(temp, 0, 16383, 0, 0) THEN
+    'if temp starts off greater than gen(genMaxRegularScript) then don't disturb it
+    temp = small(temp, gen(genMaxRegularScript))
+   END IF
+  ELSEIF temp < 0 OR (temp = 0 AND scriptside = -1) THEN
+   intgrabber(temp, min, 0, 0, 0)
+  ELSE
+   ' Only treat Backspace this way if not typing in an ID
+   IF keyval(scBackspace) > 1 THEN temp = 0
+  END IF
+ END IF
+
+ IF keyval(scDelete) > 1 THEN temp = 0
+ IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN temp = bound(-temp, min, gen(genMaxRegularScript))
+
+ temp = temp * SGN(scriptside)
+ scrintgrabber = (temp <> n) ' Returns true if byref n has changed
+ n = temp
+END FUNCTION
+
+PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
+ 'Helper function to find the next script ID/trigger assigned to a script that exists.
+ 'temp = -1 means scroll to last script
+ 'returns 0 when scrolled past first script, -1 when went past last
+ 'triggertype not used (yet?)
+
+ DIM buf(19) as integer
+ DIM plotids(gen(genMaxRegularScript)) as integer
+ DIM recordsloaded as integer = 0
+ DIM screxists as integer = NO
+
+ DIM fh as integer = FREEFILE
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
+ DIM num_triggers as integer = LOF(fh) \ 40
+ IF temp = -1 THEN temp = num_triggers + 16384
+
+ DO
+  temp += seekdir
+  IF temp > gen(genMaxRegularScript) AND temp < 16384 THEN
+   IF seekdir > 0 THEN
+    temp = 16384
+   ELSE
+    temp = gen(genMaxRegularScript)
+   END IF
+  END IF
+  IF temp <= 0 THEN EXIT DO
+  IF temp >= num_triggers + 16384 THEN
+   temp = -1
+   EXIT DO
+  END IF
+  'check script exists, else keep looking
+  IF temp < 16384 THEN
+   IF plotids(temp) THEN
+    screxists = YES
+   ELSE
+    ' Find out which script IDs < 16384 are used (do this just once)
+    WHILE recordsloaded < gen(genNumPlotscripts)
+     loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
+     recordsloaded += 1
+     IF buf(0) = temp THEN screxists = YES: EXIT WHILE
+     IF buf(0) <= gen(genMaxRegularScript) THEN plotids(buf(0)) = YES
+    WEND
+   END IF
+  END IF
+  IF temp >= 16384 THEN
+   loadrecord buf(), fh, 20, temp - 16384
+   IF buf(0) THEN screxists = YES
+  END IF
+  IF screxists THEN EXIT DO
+ LOOP
+
+ CLOSE fh
+END SUB
+
+
+'==========================================================================================
+'                             Script usage visiter & autofix
+'==========================================================================================
+
+
+'--For each script trigger datum in the game, call visitor (whether or not there
+'--is a script set there; however fields which specify either a script or
+'--something else, eg. either a script or a textbox, may be skipped)
+SUB visit_scripts(byval visitor as FnScriptVisitor)
+ DIM as integer i, j, idtmp, resave
+
+ '--global scripts
+ visitor(gen(genNewGameScript), "new game", "")
+ visitor(gen(genLoadGameScript), "load game", "")
+ visitor(gen(genGameoverScript), "game over", "")
+ visitor(gen(genEscMenuScript), "esc menu", "")
+
+ '--Text box scripts
+ DIM box as TextBox
+ FOR i as integer = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, i
+  resave = NO
+  IF box.instead < 0 THEN
+   idtmp = -box.instead
+   resave OR= visitor(idtmp, "box " & i & " (instead)", textbox_preview_line(box, vpages(vpage)->w - 80))
+   box.instead = -idtmp
+  END IF
+  IF box.after < 0 THEN
+   idtmp = -box.after
+   resave OR= visitor(idtmp, "box " & i & " (after)", textbox_preview_line(box, vpages(vpage)->w - 80))
+   box.after = -idtmp
+  END IF
+  IF resave THEN
+   SaveTextBox box, i
+  END IF
+ NEXT i
+ 
+ '--Map scripts and NPC scripts
+ DIM gmaptmp(dimbinsize(binMAP)) as integer
+ REDIM npctmp(0) as NPCType
+ FOR i = 0 TO gen(genMaxMap)
+  resave = NO
+  loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
+  resave OR= visitor(gmaptmp(7), "map " & i & " autorun", "")
+  resave OR= visitor(gmaptmp(12), "map " & i & " after-battle", "")
+  resave OR= visitor(gmaptmp(13), "map " & i & " instead-of-battle", "")
+  resave OR= visitor(gmaptmp(14), "map " & i & " each-step", "")
+  resave OR= visitor(gmaptmp(15), "map " & i & " on-keypress", "")
+  IF resave THEN
+   storerecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
+  END IF
+  'loop through NPC's
+  LoadNPCD maplumpname(i, "n"), npctmp()
+  resave = NO
+  FOR j = 0 TO UBOUND(npctmp)
+   resave OR= visitor(npctmp(j).script, "map " & i & " NPC " & j, "")
+  NEXT j
+  IF resave THEN
+   SaveNPCD maplumpname(i, "n"), npctmp()
+  END IF
+ NEXT i
+ 
+ '--vehicle scripts
+ DIM vehicle as VehicleData
+ FOR i = 0 TO gen(genMaxVehicle)
+  resave = NO
+  LoadVehicle game & ".veh", vehicle, i
+  IF vehicle.use_button > 0 THEN
+   resave OR= visitor(vehicle.use_button, "use button veh " & i, """" & vehicle.name & """")
+  END IF
+  IF vehicle.menu_button > 0 THEN
+   resave OR= visitor(vehicle.menu_button, "menu button veh " & i, """" & vehicle.name & """")
+  END IF
+  IF vehicle.on_mount < 0 THEN
+   idtmp = -(vehicle.on_mount)
+   resave OR= visitor(idtmp, "mount vehicle " & i, """" & vehicle.name & """")
+   vehicle.on_mount = -idtmp
+  END IF
+  IF vehicle.on_dismount < 0 THEN
+   idtmp = -(vehicle.on_dismount)
+   resave OR= visitor(idtmp, "dismount vehicle " & i,  """" & vehicle.name & """")
+   vehicle.on_dismount = -idtmp
+  END IF
+  IF resave THEN
+   SaveVehicle game & ".veh", vehicle, i
+  END IF
+ NEXT i
+ 
+ '--shop scripts
+ DIM shoptmp(19) as integer
+ DIM shopname as string
+ FOR i = 0 TO gen(genMaxShop)
+  loadrecord shoptmp(), game & ".sho", 20, i
+  shopname = readbadbinstring(shoptmp(), 0, 15)
+  IF visitor(shoptmp(19), "show inn " & i, """" & shopname & """") THEN
+   storerecord shoptmp(), game & ".sho", 20, i
+  END IF
+ NEXT i
+ 
+ '--menu scripts
+ DIM menu_set as MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM menutmp as MenuDef
+ FOR i = 0 TO gen(genMaxMenu)
+  resave = NO
+  LoadMenuData menu_set, menutmp, i
+  FOR j = 0 TO menutmp.numitems - 1
+   WITH *menutmp.items[j]
+    IF .t = 4 THEN
+     resave OR= visitor(.sub_t, "menu " & i & " item " & j, """" & .caption & """")
+    END IF
+   END WITH
+  NEXT j
+  resave OR= visitor(menutmp.on_close, "menu " & i & " on-close", """" & menutmp.name & """")
+  IF resave THEN
+   SaveMenuData menu_set, menutmp, i
+  END IF
+  ClearMenuData menutmp
+ NEXT i
+
+END SUB
+
+'For script_usage_list and script_usage_visitor
+DIM SHARED plotscript_order() as integer
+DIM SHARED script_usage_menu() as IntStrPair
+
+PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as integer
+ IF trig = 0 THEN RETURN NO
+ '--See script_usage_list about rank calculation
+ DIM rank as integer = trig
+ IF trig >= 16384 THEN rank = 100000 + plotscript_order(trig - 16384)
+ intstr_array_append script_usage_menu(), rank, "  " & description & " " & caption
+ RETURN NO  'trig not modified
+END FUNCTION
+
+SUB script_usage_list ()
+ DIM buf(20) as integer
+ DIM id as integer
+ DIM s as string
+ DIM fh as integer
+ DIM i as integer
+ 'DIM t as double = TIMER
+
+ 'Build script_usage_menu, which is an list of menu items, initially out of order.
+ 'The integer in each pair is used to sort the menu items into the right order:
+ 'items for old-style scripts have rank = id
+ 'all plotscripts are ordered by name and given rank = 100000 + alphabetic rank
+ 'Start by adding all the script names to script_usage_menu (so that they'll
+ 'appear first when we do a stable sort), then add script instances.
+
+ REDIM script_usage_menu(0)
+ script_usage_menu(0).i = -1
+ script_usage_menu(0).s = "back to previous menu..."
+
+ 'Loop through old-style non-autonumbered scripts
+ fh = FREEFILE
+ OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
+ FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
+  loadrecord buf(), fh, 20, i
+  id = buf(0)
+  IF id <= 16383 THEN
+   s = id & ":" & readbinstring(buf(), 1, 38)
+   intstr_array_append script_usage_menu(), id, s
+  END IF
+ NEXT i
+ CLOSE #fh
+
+ 'Loop through new-style plotscripts
+
+ 'First, a detour: determine the alphabetic rank of each plotscript
+ fh = FREEFILE
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
+ REDIM plotscripts(0) as string
+ WHILE loadrecord(buf(), fh, 20)
+  s = readbinstring(buf(), 1, 38)
+  str_array_append plotscripts(), s
+ WEND
+
+ 'Have to skip if no plotscripts
+ IF UBOUND(plotscripts) > 0 THEN
+  'We must skip plotscripts(0)
+  REDIM plotscript_order(UBOUND(plotscripts) - 1)
+  qsort_strings_indices plotscript_order(), @plotscripts(1), UBOUND(plotscripts), sizeof(string)
+  invert_permutation plotscript_order()
+
+  'OK, now that we can calculate ranks, we can add new-style scripts
+  SEEK #fh, 1
+  i = 0
+  WHILE loadrecord(buf(), fh, 20)
+   id = buf(0)
+   IF id <> 0 THEN
+    s = readbinstring(buf(), 1, 38)
+    intstr_array_append script_usage_menu(), 100000 + plotscript_order(i), s
+   END IF
+   i += 1
+  WEND 
+ END IF
+ CLOSE #fh
+
+ 'add script instances to script_usage_menu
+ visit_scripts @script_usage_visitor
+
+ 'sort, and build menu() (for standardmenu)
+ DIM indices(UBOUND(script_usage_menu)) as integer
+ REDIM menu(UBOUND(script_usage_menu)) as string
+ sort_integers_indices indices(), @script_usage_menu(0).i, UBOUND(script_usage_menu) + 1, sizeof(IntStrPair)
+
+ DIM currentscript as integer = -1
+ DIM j as integer = 0
+ FOR i as integer = 0 TO UBOUND(script_usage_menu)
+  WITH script_usage_menu(indices(i))
+   IF MID(.s, 1, 1) = " " THEN
+    'script trigger
+    'Do not add triggers which are missing their scripts; those go in the other menu
+    IF .i <> currentscript THEN CONTINUE FOR
+   END IF
+   menu(j) = .s
+   j += 1
+   currentscript = .i
+  END WITH
+ NEXT
+ REDIM PRESERVE menu(j - 1)
+ DIM menu_display(j - 1) as string
+
+ 'Free memory
+ REDIM plotscript_order(0)
+ REDIM script_usage_menu(0)
+
+ 'debug "script usage in " & ((TIMER - t) * 1000) & "ms"
+
+ DIM selectst as SelectTypeState
+ DIM state as MenuState
+ state.autosize = YES
+ state.last = UBOUND(menu)
+ 
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "script_usage_list"
+  IF enter_space_click(state) THEN
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  usemenu state
+  IF select_by_typing(selectst) THEN
+   select_on_word_boundary menu(), selectst, state
+  END IF
+
+  clearpage dpage
+  draw_fullscreen_scrollbar state, , dpage
+  highlight_menu_typing_selection menu(), menu_display(), selectst, state
+  standardmenu menu_display(), state, 0, 0, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP 
+END SUB
+
+'--This could be used in more places; makes sense to load plotscr.lst into a global
+DIM SHARED script_ids_list() as integer
+
+SUB load_script_ids_list()
+ REDIM script_ids_list(large(0, gen(genNumPlotscripts) - 1))
+ DIM buf(19) as integer
+ DIM fh as integer
+ fh = FREEFILE
+ OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
+ FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
+  loadrecord buf(), fh, 20, i
+  script_ids_list(i) = buf(0)
+ NEXT i
+ CLOSE #fh
+END SUB
+
+'--For script_broken_trigger_list and check_broken_script_trigger
+DIM SHARED missing_script_trigger_list() as string
+
+PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as integer
+ IF trig <= 0 THEN RETURN NO ' No script trigger
+ '--decode script trigger
+ DIM id as integer
+ id = decodetrigger(trig)
+ '--Check for missing new-style script
+ IF id = 0 THEN
+  str_array_append missing_script_trigger_list(), description & " " & scriptname(trig) & " missing. " & caption 
+ ELSEIF id < 16384 THEN
+  '--now check for missing old-style scripts
+  IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+
+  str_array_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
+ ELSEIF id >= 16384 AND id = trig THEN
+  '--The trigger was not decoded, which should not happen since you can't select autonumbered scripts!
+  '--Prehaps a lump was copied from a different .rpg file
+  visible_debug description & " (" & caption & ") script trigger " & (trig - 16384) & " is invalid"
+ END IF
+ RETURN NO
+END FUNCTION
+
+SUB script_broken_trigger_list()
+ 'Cache plotscr.lst
+ load_script_ids_list
+
+ REDIM missing_script_trigger_list(0) as string
+ missing_script_trigger_list(0) = "back to previous menu..."
+
+ visit_scripts @check_broken_script_trigger
+
+ IF UBOUND(missing_script_trigger_list) = 0 THEN
+  str_array_append missing_script_trigger_list(), "No broken triggers found!"
+ END IF
+
+ DIM state as MenuState
+ state.size = 24
+ state.last = UBOUND(missing_script_trigger_list)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "script_broken_trigger_list"
+  IF enter_space_click(state) THEN
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  usemenu state
+
+  clearpage dpage
+  draw_fullscreen_scrollbar state, , dpage 
+  standardmenu missing_script_trigger_list(), state, 0, 0, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP 
+ 'Free memory
+ REDIM missing_script_trigger_list(0)
+END SUB
+
+FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as integer
+ '--returns true if a fix has occured
+ IF id = 0 THEN RETURN NO ' not a trigger
+ IF id >= 16384 THEN RETURN NO 'New-style script
+ IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+
+ DIM buf(19) as integer
+ DIM fh as integer
+  
+ DIM found_name as string = ""
+ 
+ fh = FREEFILE
+ OPENFILE(tmpdir & "plotscr.lst.tmp", FOR_BINARY + ACCESS_READ, fh)
+ FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
+  loadrecord buf(), fh, 20, i
+  IF buf(0) = id THEN '--Yay! found it in the old file!
+   found_name = readbinstring(buf(), 1, 38)
+   EXIT FOR
+  END IF
+ NEXT i
+ CLOSE #fh
+ 
+ IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
+
+ fh = FREEFILE
+ OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
+ FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
+  loadrecord buf(), fh, 20, i
+  IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
+   id = 16384 + i
+   CLOSE #fh
+   RETURN YES '--fixed it, report a change!
+  END IF
+ NEXT i
+ CLOSE #fh 
+
+ RETURN NO '--broken but unfixable (no matching new name)
+ 
+END FUNCTION
+
+SUB autofix_broken_old_scripts()
+ '--sanity test
+ IF NOT isfile(tmpdir & "plotscr.lst.tmp") THEN
+  debug "can't autofix broken old scripts, can't find: " & tmpdir & "plotscr.lst.tmp"
+  EXIT SUB
+ END IF
+
+ 'Cache plotscr.lst
+ load_script_ids_list()
+
+ visit_scripts @autofix_old_script_visitor
 END SUB
