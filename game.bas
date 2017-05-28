@@ -2487,17 +2487,15 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
      DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
      trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
      IF menus(topmenu).allow_gameplay THEN
-      IF .close_if_selected THEN
-       'The menu item handle would be useless, so as a special case pass 0
-       '(rather than having confusing special case behaviour)
-       trigger_script_arg 0, 0, "dummy"
-      ELSE
-       'Normally, pass a menu item handle
-       trigger_script_arg 0, .handle, "item handle"
-      END IF
+      '0 is passed instead of the menu item handle if it would be invalid
+      trigger_script_arg 0, IIF(mi.close_if_selected, 0, .handle), "item handle"
+      trigger_script_arg 1, .extra(0), "extra0"
+      trigger_script_arg 2, .extra(1), "extra1"
+      trigger_script_arg 3, .extra(2), "extra2"
      ELSE
       'but if the topmost menu suspends gameplay, then a handle will always be invalid
       'by the time the script runs, so pass the extra values instead.
+      'Sadly, for back-compatibility, leave out the handle instead of passing zero.
       trigger_script_arg 0, .extra(0), "extra0"
       trigger_script_arg 1, .extra(1), "extra1"
       trigger_script_arg 2, .extra(2), "extra2"

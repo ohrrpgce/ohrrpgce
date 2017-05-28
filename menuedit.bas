@@ -12,7 +12,7 @@
 
 '--Local SUBs
 DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
-DECLARE SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
+DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
 DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
@@ -88,7 +88,7 @@ DO
  END IF
  IF dstate.need_update THEN
   dstate.need_update = NO
-  update_detail_menu detail, *menudata.items[mstate.pt]
+  update_detail_menu detail, menudata, *menudata.items[mstate.pt]
   init_menu_state dstate, detail
   WITH *menudata.items[mstate.pt]
    IF .t = mtypeTextBox THEN
@@ -281,7 +281,8 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
 
  usemenu dstate
 
- SELECT CASE dstate.pt
+ DIM editaction as integer = detail.items[dstate.pt]->t
+ SELECT CASE editaction
   CASE 0
    IF enter_space_click(dstate) THEN
     dstate.active = NO
@@ -297,7 +298,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
     mi.sub_t = 0
     dstate.need_update = YES
    END IF
-  CASE 3:
+  CASE 3: 'subtype
    SELECT CASE mi.t
     CASE mtypeCaption:
      max = 1
@@ -328,9 +329,10 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
   CASE 8: ' bitsets
    IF enter_space_click(dstate) THEN
     edit_menu_item_bits mi
+    dstate.need_update = YES
    END IF
-  CASE 9 TO 11:
-   IF intgrabber(mi.extra(dstate.pt - 9), -32767, 32767) THEN dstate.need_update = YES
+  CASE 9 TO 11: 'extra data
+   IF intgrabber(mi.extra(editaction - 9), -32768, 32767) THEN dstate.need_update = YES
  END SELECT
 
 END SUB
@@ -368,19 +370,21 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  append_menu_item edmenu, "Cancel button: " & cap
 END SUB
 
-SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
+SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
  DIM i as integer
  DIM cap as string
  DIM index as integer
  DeleteMenuItems detail
- 
- append_menu_item detail, "Go Back"
+
+ ' Set .t of each menu item to indicate what menu_editor_detail_keys should do
+
+ append_menu_item detail, "Go Back", 0
  
  cap = mi.caption
  IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
- append_menu_item detail, "Caption: " & cap
+ append_menu_item detail, "Caption: " & cap, 1
  
- append_menu_item(detail, "Type")
+ append_menu_item(detail, "Type", 2)
  WITH *detail.last
   SELECT CASE mi.t
    CASE mtypeCaption
@@ -396,7 +400,7 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
   END SELECT
  END WITH
  
- append_menu_item(detail, "Subtype: " & mi.sub_t)
+ append_menu_item(detail, "Subtype: " & mi.sub_t, 3)
  WITH *detail.last
   SELECT CASE mi.t
    CASE mtypeCaption
@@ -410,18 +414,33 @@ SUB update_detail_menu(detail as MenuDef, mi as MenuDefItem)
     .caption = .caption & " " & getmenuname(mi.sub_t)
    CASE mtypeScript
     .caption = "Subtype: " & scriptname(mi.sub_t)
+    IF mi.sub_t THEN
+     ' Indicate which script arguments are passed
+     ' (It's safe to call append_menu_item, because WITH saves a reference to *detail.last)
+     DIM argsinfo as string = "Args: "
+     IF menudata.allow_gameplay THEN
+      '0 is passed instead of the menu item handle if it would be invalid
+      argsinfo &= IIF(mi.close_if_selected, "0, ", "handle, ")
+     ELSE
+      'Sadly, for back-compatibility, leave out the handle instead of passing zero.
+     END IF
+     argsinfo &= "extra0, extra1, extra2"
+     append_menu_item(detail, argsinfo, -1)   'type: does nothing
+     detail.last->disabled = YES
+     detail.last->unselectable = YES  'Does nothing, yet
+    END IF
    CASE ELSE
     .caption = "Subtype: " & mi.sub_t
   END SELECT
   .caption &= get_menu_item_editing_annotation(mi)
  END WITH
  
- append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always")
- append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always")
- append_menu_item detail, tag_set_caption(mi.settag, "Set tag")
- append_menu_item detail, tag_toggle_caption(mi.togtag)
- append_menu_item detail, "Edit Bitsets..."
+ append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always"), 4
+ append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always"), 5
+ append_menu_item detail, tag_set_caption(mi.settag, "Set tag"), 6
+ append_menu_item detail, tag_toggle_caption(mi.togtag), 7
+ append_menu_item detail, "Edit Bitsets...", 8
  FOR i = 0 TO 2
-  append_menu_item detail, "Extra data " & i & ": " & mi.extra(i)
+  append_menu_item detail, "Extra data " & i & ": " & mi.extra(i), 9 + i
  NEXT i
 END SUB

@@ -67,8 +67,8 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   handle    as integer
   caption   as string  ' This is the caption as set in the menu editor/set menu item caption
   trueorder as DListItem(MenuDefItem) ' contains next, prev
-  t         as integer
-  sub_t     as integer
+  t         as integer ' Item type; of type MenuItemType in-game, except in battles. You're free to assign own meaning.
+  sub_t     as integer ' Sub-type. Free to assign own meaning. See const.bi.
   tag1      as integer
   tag2      as integer
   settag    as integer

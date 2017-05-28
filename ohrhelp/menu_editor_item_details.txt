@@ -70,6 +70,13 @@ This is the menu item detail editor. This is where you define what a menu item a
    scripts" bitset is OFF then the
    script will not start until the
    menu has closed.
+   If you select a script, then the
+   arguments that will be passed to
+   it are displayed underneath. Note
+   that the arguments change based
+   on the "Allow Gameplay & Scripts"
+   menu bitset and "Close menu if
+   selected" menu item bitset!
 
 *Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify one or more tags conditions they must all be true for the menu item to be enabled.  Depending on the "Hide if disabled" bitset, disabled items are greyed out or hidden. Press - to toggle between requiring a tag to be ON or OFF.
 
