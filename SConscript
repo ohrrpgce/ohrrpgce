@@ -908,7 +908,12 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -con -gcc hspeak.exw -verbose')
+hspeak_builddir = builddir + "hspeak"
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'), action = [
+    # maxsize: cause euc to split hspeak.exw to multiple .c files
+    "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s" % hspeak_builddir,
+    "make -j%d -C %s -f hspeak.mak" % (GetOption('num_jobs'), hspeak_builddir)
+])
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
