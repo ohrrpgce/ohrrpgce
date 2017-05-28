@@ -1,4 +1,5 @@
-## Automated HSpeak tests. See hspeaktest.py
+## Automated HSpeak tests. See documentation in hspeaktest.py
+## Run these tests with "scons hspeaktest -j4"
 
 ## Including just this is faster than all of plotscr.hsd
 include, hamsterspeak.hsd
@@ -39,7 +40,8 @@ script, comma tests, begin
   noop,()                # ERROR
   noop4(noop,())         # ERROR
   ## This fails because parsed as noop(0), but noop takes no args
-  noop4(noop,(0))        # OK
+  ## Let's say this should be a warning, because the behaviour would have changed
+  noop4(noop,(0))        # WARN
   noop4( --2)            # ERROR
   noop4(,--2)            # ERROR
   noop4( ,  , 0)         # ERROR
@@ -59,4 +61,17 @@ script, string tests, begin
   $0="", 232             # WARN
   $0="" 232              # ERROR
   "asdasd"               # ERROR
+end
+
+script, flow tests, dummy, begin
+  if(dummy) then() else()
+  else()                 # ERROR
+  then()                 # ERROR
+  break                  # ERROR
+  continue               # ERROR
+  if () then()           # ERROR
+  if(dummy,dummy) then() # ERROR
+  if(dummy) if(dummy) then() # ERROR
+  if(dummy) else()           # OK
+  if(dummy) else() then()    # ERROR
 end

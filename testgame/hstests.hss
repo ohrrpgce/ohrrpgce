@@ -136,6 +136,24 @@ script, bad continue, begin
   continue(1)
 end
 
+# HSpeak used to allow orphaned then/else blocks, which act like do(),
+# except for the purpose of break/continue.
+# This can't actually be compiled without commenting out the
+# '{then/else} should follow an if' checks in normalize_flow_control
+script, orphaned blocks, begin
+  # variable(dummytrue, dummyfalse, happened)
+  # dummytrue := true
+  # if(dummytrue) then (assert(true), happened += 1)
+  # else (assert(false))
+  # else (happened += 10)
+  # assert(happened == 11)
+  # if(dummyfalse) then (assert(false))
+  # else (happened += 100)
+  # else (happened += 1000)
+  # then(happened += 10000)
+  # assert(happened == 11111)
+end
+
 script, flow tests, begin
   variable(var1)
   # for loop creates some state which can be corrupted
@@ -147,6 +165,7 @@ script, flow tests, begin
 
   elseif tests
   switch tests
+  orphaned blocks
 end
 
 ########################################################################

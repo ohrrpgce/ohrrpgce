@@ -1,6 +1,8 @@
 ########################################################################
 # This file is a wrapper to allow separately compiling hstests.hss,
 # which contains testcases for the script interpreter and HSpeak.
+#
+# To compile:  ./hspeak testgame/hstests_standalone.hss -yb
 
 include, hamsterspeak.hsd
 include, hstests.hss

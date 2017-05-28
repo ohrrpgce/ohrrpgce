@@ -17,7 +17,8 @@ import os
 import re
 import subprocess
 
-show_all = False        # Always print stdout
+quiet = True            # Don't print tests that pass
+show_all = False        # Always print hspeak's stdout
 show_failures = False   # Print stdout on failure
 
 def command_output_and_exitcode(cmd, args):
@@ -79,23 +80,33 @@ def test_line(lines, lineno):
     (stdout, exitcode), expected_lineno = run_with_line(lines, lineno)
     tag = lines[lineno][0]
     expected = {None: 0, 'OK': 0, 'ERROR': 1, 'WARN': 2}[tag]
+    def describe_code(exitcode):
+        return {0: 'OK', 1: 'ERROR', 2: 'WARN'}.get(int(exitcode), 'exitcode %s' % exitcode)
 
-    def printout():
+    def print_line():
+        print("Testing line %d: %s" % (lineno, lines[lineno][1]))
+
+    if not quiet:
+        print_line()
+
+    def print_stdout():
+        if quiet:
+            print_line()
         if show_failures or show_all:
             print('%s\n%s\n%s' % ('-'*40, stdout, '-'*40))
 
-    print("Testing: %d: %s" % (lineno, lines[lineno][1]))
     if expected != exitcode:
-        printout()
-        print("Test on line %d FAILED: expected exitcode %d got %d" % (lineno, expected, exitcode))
+        print_stdout()
+        print("Test on line %d FAILED: expected %s got %s" %
+              (lineno, describe_code(expected), describe_code(exitcode)))
         return False
     elif expected > 0 and ('n line %d ' % expected_lineno) not in stdout:
         # Some errors say 'on line X', others say 'in line X'
-        printout()
+        print_stdout()
         print("Test on line %d FAILED: didn't print an error/warning for line %d" % (lineno, expected_lineno))
         return False
     if show_all:
-        printout()
+        print_stdout()
     return True
 
 def run_all_tests(inputfile):
