@@ -135,7 +135,7 @@ type GfxBackendStuff
 	name as string * 7
 	libname as string * 15
 	load as function () as integer
-	wantpolling as integer  'run the polling thread?
+	wantpolling as bool  'run the polling thread?
 	dylib as any ptr  'handle on a loaded library
 end type
 
@@ -270,14 +270,14 @@ end function
 	if procedure = NULL then
 		debug filename & " - Could not load required procedure " & #procedure
 		dylibfree(hFile)
-		return 0
+		return NO
 	end if
 #endmacro
 
 'Load a dynamically linked gfx backend. Returns true on success
 private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as bool
 	dim hFile as any ptr = backendinfo->dylib
-	dim needpolling as integer = NO
+	dim needpolling as bool = NO
 	if hFile <> NULL then return YES
 
 	IF backendinfo->name = "directx" THEN

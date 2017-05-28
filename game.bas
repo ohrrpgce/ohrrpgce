@@ -1,5 +1,5 @@
 'OHRRPGCE GAME - Main module
-'(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
+'(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
@@ -38,14 +38,14 @@ DECLARE SUB usedoor (byval door_id as integer)
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as bool
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
-DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
+DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION find_useable_npc () as integer
-DECLARE SUB interpret ()
+DECLARE SUB interpret_scripts ()
 DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
-DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) as integer
+DECLARE FUNCTION should_skip_this_timer(timercontext as TimerContextEnum, tmr as PlotTimer) as bool
 DECLARE SUB update_menu_states ()
 DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
@@ -66,7 +66,7 @@ DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 '=================================== Globals ==================================
 
 'shared module variables
-DIM SHARED harmtileflash as integer = NO
+DIM SHARED harmtileflash as bool = NO
 
 'global variables
 DIM gam as GameState
@@ -125,9 +125,9 @@ REDIM current_font(1023) as integer
 
 REDIM buffer(16384) as integer 'FIXME: when can we get rid of this?
 
-DIM fadestate as integer
+DIM fadestate as bool
 DIM presentsong as integer
-DIM backcompat_sound_slot_mode as integer
+DIM backcompat_sound_slot_mode as bool
 REDIM backcompat_sound_slots(7) as integer
 
 DIM fatal as bool
@@ -185,7 +185,7 @@ REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
 DIM timing_fibre as bool
 DIM scriptprofiling as bool
-DIM wantimmediate as integer
+DIM wantimmediate as integer  'Equal to 0, -1 or -2
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
@@ -257,7 +257,7 @@ refresh_keepalive_file
 DIM autotestmode as bool = NO
 DIM always_enable_debug_keys as bool = NO
 DIM speedcontrol as double = 55
-DIM autosnap as integer = 0
+DIM autosnap as integer = 0   'Number of ticks
 DIM running_as_slave as bool = NO
 DIM custom_version as string  'when running as slave
 DIM master_channel as IPCChannel = NULL_CHANNEL  'when running as slave
@@ -772,7 +772,7 @@ DO
  'breakpoint : called after keypress script is run, but don't get called by wantimmediate
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
  'DEBUG debug "enter script interpreter"
- interpret
+ interpret_scripts
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
 
@@ -1452,7 +1452,7 @@ SUB update_npcs ()
     END IF
    END IF
 
-   DIM finished_step as integer = NO
+   DIM finished_step as bool = NO
    IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npcs(id))
 
    'Recalculate current zones every tick (see update_heroes for rationale)
@@ -1748,11 +1748,11 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 
 END SUB
 
-FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as integer
+FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
  '--npcnum is the npc() index of npci.
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
  '--Return true if we finished a step (didgo)
- DIM didgo as integer = NO
+ DIM didgo as bool = NO
  npci.frame = loopvar(npci.frame, 0, 3, 1)
  DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
@@ -1915,7 +1915,6 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  'Did not collide with anything
  collision_type = collideNone
  RETURN NO
- 
 END FUNCTION
 
 SUB npchitwall(npci as NPCInst, npcdata as NPCType)
@@ -1972,7 +1971,7 @@ SUB execute_script_fibres
  WEND
 END SUB
 
-SUB interpret()
+SUB interpret_scripts()
  'It seems like it would be good to call this immediately before scriptinterpreter so that
  'the return values of fightformation and waitforkey are correct, however doing so might
  'break something?
@@ -2165,7 +2164,7 @@ END SUB
 '==========================================================================================
 
 
-FUNCTION should_skip_this_timer(byval timercontext as integer, tmr as PlotTimer) as integer
+FUNCTION should_skip_this_timer(timercontext as TimerContextEnum, tmr as PlotTimer) as bool
  IF timercontext = TIMER_BATTLE THEN
   'This is happening in battle!
   IF (tmr.flags AND TIMERFLAG_BATTLE) = 0 THEN
@@ -2180,7 +2179,8 @@ FUNCTION should_skip_this_timer(byval timercontext as integer, tmr as PlotTimer)
  RETURN NO
 END FUNCTION
 
-SUB dotimer(byval timercontext as integer)
+' Countdown timers, applying effects (except TIMERFLAG_CRITICAL)
+SUB dotimer(timercontext as TimerContextEnum)
   dim i as integer
   for i = 0 to ubound(timers)
     with timers(i)
@@ -2227,19 +2227,20 @@ SUB dotimer(byval timercontext as integer)
   next
 end sub
 
+'Update timers from within a battle
 'Returns true if the battle should be exited immediately
-function dotimerbattle() as integer
+function dotimerbattle() as bool
   dotimer TIMER_BATTLE  'no sense duplicating code
 
   dim i as integer
   for i = 0 to ubound(timers)
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
-        if .flags AND TIMERFLAG_CRITICAL then return -1
+        if .flags AND TIMERFLAG_CRITICAL then return YES
       end if
     end with
   next
-  return 0
+  return NO
 end function
 
 
@@ -2248,7 +2249,8 @@ end function
 '==========================================================================================
 
 
-FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO) as integer
+'Returns the menu handle
+FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as integer
  IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
   DIM menuslot as integer
@@ -2260,7 +2262,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO)
   END IF
  END IF
  'Load the menu into a new menu slot
- topmenu = topmenu + 1
+ topmenu += 1
  IF topmenu > UBOUND(menus) THEN
   REDIM PRESERVE menus(topmenu) as MenuDef
   REDIM PRESERVE mstates(topmenu) as MenuState
@@ -2279,7 +2281,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as integer=NO)
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
+SUB remove_menu (byval slot as integer, byval run_on_close as bool=YES)
  IF slot < 0 OR slot > UBOUND(menus) THEN
   debugc errBug, "remove_menu: invalid slot " & slot
   EXIT SUB
@@ -2307,25 +2309,24 @@ SUB remove_menu (byval slot as integer, byval run_on_close as integer=YES)
 END SUB
 
 SUB bring_menu_forward (byval slot as integer)
- DIM i as integer
  IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN
   scripterr "bring_menu_forward: invalid slot " & slot, serrBound
   EXIT SUB
  END IF
  mstates(topmenu).active = NO
- FOR i = slot TO topmenu - 1
+ FOR i as integer = slot TO topmenu - 1
   SWAP menus(i), menus(i + 1)
   SWAP mstates(i), mstates(i + 1)
  NEXT i
  mstates(topmenu).active = YES
 END SUB
 
-FUNCTION menus_allow_gameplay () as integer
+FUNCTION menus_allow_gameplay () as bool
  IF topmenu < 0 THEN RETURN YES
  RETURN menus(topmenu).allow_gameplay
 END FUNCTION
 
-FUNCTION menus_allow_player () as integer
+FUNCTION menus_allow_player () as bool
  IF topmenu < 0 THEN RETURN YES
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
@@ -2340,20 +2341,14 @@ SUB update_menu_states ()
 END SUB
 
 SUB player_menu_keys ()
- DIM i as integer
- DIM activated as integer
- DIM menu_handle as integer
- DIM esc_menu as integer
- DIM save_margin as bool = NO
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
-  menu_handle = menus(topmenu).handle 'store handle for later use
   'Following controls useable on empty menus too
 
   IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
    carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
-   esc_menu = menus(topmenu).esc_menu - 1
+   DIM esc_menu as integer = menus(topmenu).esc_menu - 1
    remove_menu topmenu
    menusound gen(genCancelSFX)
    IF esc_menu >= 0 THEN
@@ -2368,7 +2363,6 @@ SUB player_menu_keys ()
   IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
-  activated = NO
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
@@ -2382,6 +2376,7 @@ SUB player_menu_keys ()
    IF carray(ccRight) > 1 THEN set_global_sfx_volume small(get_global_sfx_volume + 1/16, 1.0)
   END IF
   IF mi.t = mtypeSpecial AND mi.sub_t = spMargins THEN '--TV safe margin
+   DIM save_margin as bool = NO
    IF carray(ccLeft) > 1 THEN
     set_safe_zone_margin large(get_safe_zone_margin() - 1, 0)
     save_margin = YES
@@ -2401,109 +2396,103 @@ SUB player_menu_keys ()
  END IF
 END SUB
 
-FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as integer
- DIM open_other_menu as integer = -1
- DIM menu_text_box as integer = 0
- DIM updatetags as integer = NO
- DIM slot as integer
- DIM activated as integer = YES
- menu_text_box = 0
- DO 'This DO exists to allow EXIT DO  (TODO: remove, seems to be unused)
-  WITH mi
-   SELECT CASE .t
-    CASE mtypeCaption
-     SELECT CASE .sub_t
-      CASE 0 'Selectable
-      CASE 1 'Unselectable
-       activated = NO
-     END SELECT
-    CASE mtypeSpecial
-     SELECT CASE .sub_t
-      CASE spItems
-       menu_text_box = item_screen()
-       IF menu_text_box > 0 THEN
-        IF mi.close_if_selected = NO THEN
-         remove_menu menuslot, (mi.skip_close_script = NO)
-        END IF
-        EXIT DO
+FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as bool
+ DIM open_other_menu as integer = -1 'Menu ID to open
+ DIM menu_text_box as integer = 0    'Textbox to open
+ DIM updatetags as bool = NO         'Whether to do tag updates
+ DIM slot as integer   'Party slot (temp)
+ DIM activated as bool = YES
+ WITH mi
+  SELECT CASE .t
+   CASE mtypeCaption
+    SELECT CASE .sub_t
+     CASE 0 'Selectable
+     CASE 1 'Unselectable
+      activated = NO
+    END SELECT
+   CASE mtypeSpecial
+    SELECT CASE .sub_t
+     CASE spItems
+      menu_text_box = item_screen()
+      IF menu_text_box > 0 THEN
+       IF mi.close_if_selected = NO THEN
+        remove_menu menuslot, (mi.skip_close_script = NO)
        END IF
-      CASE spSpells
-       slot = onwho(readglobalstring(106, "Whose Spells?", 20), 0)
-       IF slot >= 0 THEN old_spells_menu slot
-      CASE spStatus
-       slot = onwho(readglobalstring(104, "Whose Status?", 20), 0)
-       IF slot >= 0 THEN status_screen slot
-      CASE spEquip
-       slot = onwho(readglobalstring(108, "Equip Whom?", 20), 0)
-       IF slot >= 0 THEN equip slot
-      CASE spOrder
-       hero_swap_menu 0
-      CASE spTeam
-       hero_swap_menu 1
-      CASE spTeamOrOrder
-       hero_swap_menu readbit(gen(), genBits, 5)
-      CASE spMap, spMapMaybe
-       minimap catx(0), caty(0)
-      CASE spSave, spSaveMaybe
-       slot = picksave()
-       IF slot >= 0 THEN savegame slot
-      CASE spLoad
-       slot = pickload(NO, YES)  'No New Game option, beep if the menu doesn't display
-       '(Maybe it would be better to display the load menu even if there are no saves)
-       IF slot >= 0 THEN
-        gam.want.loadgame = slot + 1
-        FOR i as integer = topmenu TO 0 STEP -1
-         remove_menu i, NO
-        NEXT i
-        EXIT DO
-       END IF
-      CASE spQuit
-       menusound gen(genAcceptSFX)
-       verify_quit
-      CASE spVolumeMenu
-       add_menu -1
-       create_volume_menu menus(topmenu)
-       init_menu_state mstates(topmenu), menus(topmenu)
-      CASE spMusicVolume, spSoundVolume
-       activated = NO
-      CASE spPurchases
-       purchases_menu()
-      CASE spWindowed
-       IF running_on_desktop() THEN
-        gfx_setwindowed(YES)
-        user_toggled_fullscreen = YES
-       END IF
-      CASE spFullscreen
-       IF running_on_desktop() THEN
-        gfx_setwindowed(NO)
-        user_toggled_fullscreen = YES
-       END IF
-     END SELECT
-    CASE mtypeMenu
-     open_other_menu = .sub_t
-    CASE mtypeTextBox
-     menu_text_box = .sub_t
-    CASE mtypeScript
-     DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
-     trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
-     IF menus(topmenu).allow_gameplay THEN
-      '0 is passed instead of the menu item handle if it would be invalid
-      trigger_script_arg 0, IIF(mi.close_if_selected, 0, .handle), "item handle"
-      trigger_script_arg 1, .extra(0), "extra0"
-      trigger_script_arg 2, .extra(1), "extra1"
-      trigger_script_arg 3, .extra(2), "extra2"
-     ELSE
-      'but if the topmost menu suspends gameplay, then a handle will always be invalid
-      'by the time the script runs, so pass the extra values instead.
-      'Sadly, for back-compatibility, leave out the handle instead of passing zero.
-      trigger_script_arg 0, .extra(0), "extra0"
-      trigger_script_arg 1, .extra(1), "extra1"
-      trigger_script_arg 2, .extra(2), "extra2"
-     END IF
-   END SELECT
-  END WITH
-  EXIT DO
- LOOP
+      END IF
+     CASE spSpells
+      slot = onwho(readglobalstring(106, "Whose Spells?", 20), NO)
+      IF slot >= 0 THEN old_spells_menu slot
+     CASE spStatus
+      slot = onwho(readglobalstring(104, "Whose Status?", 20), NO)
+      IF slot >= 0 THEN status_screen slot
+     CASE spEquip
+      slot = onwho(readglobalstring(108, "Equip Whom?", 20), NO)
+      IF slot >= 0 THEN equip slot
+     CASE spOrder
+      hero_swap_menu 0
+     CASE spTeam
+      hero_swap_menu 1
+     CASE spTeamOrOrder
+      hero_swap_menu readbit(gen(), genBits, 5)
+     CASE spMap, spMapMaybe
+      minimap catx(0), caty(0)
+     CASE spSave, spSaveMaybe
+      slot = picksave()
+      IF slot >= 0 THEN savegame slot
+     CASE spLoad
+      slot = pickload(NO, YES)  'No New Game option, beep if the menu doesn't display
+      '(Maybe it would be better to display the load menu even if there are no saves)
+      IF slot >= 0 THEN
+       gam.want.loadgame = slot + 1
+       FOR i as integer = topmenu TO 0 STEP -1
+        remove_menu i, NO
+       NEXT i
+      END IF
+     CASE spQuit
+      menusound gen(genAcceptSFX)
+      verify_quit
+     CASE spVolumeMenu
+      add_menu -1
+      create_volume_menu menus(topmenu)
+      init_menu_state mstates(topmenu), menus(topmenu)
+     CASE spMusicVolume, spSoundVolume
+      activated = NO
+     CASE spPurchases
+      purchases_menu()
+     CASE spWindowed
+      IF running_on_desktop() THEN
+       gfx_setwindowed(YES)
+       user_toggled_fullscreen = YES
+      END IF
+     CASE spFullscreen
+      IF running_on_desktop() THEN
+       gfx_setwindowed(NO)
+       user_toggled_fullscreen = YES
+      END IF
+    END SELECT
+   CASE mtypeMenu
+    open_other_menu = .sub_t
+   CASE mtypeTextBox
+    menu_text_box = .sub_t
+   CASE mtypeScript
+    DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
+    trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
+    IF menus(topmenu).allow_gameplay THEN
+     '0 is passed instead of the menu item handle if it would be invalid
+     trigger_script_arg 0, IIF(mi.close_if_selected, 0, .handle), "item handle"
+     trigger_script_arg 1, .extra(0), "extra0"
+     trigger_script_arg 2, .extra(1), "extra1"
+     trigger_script_arg 3, .extra(2), "extra2"
+    ELSE
+     'but if the topmost menu suspends gameplay, then a handle will always be invalid
+     'by the time the script runs, so pass the extra values instead.
+     'Sadly, for back-compatibility, leave out the handle instead of passing zero.
+     trigger_script_arg 0, .extra(0), "extra0"
+     trigger_script_arg 1, .extra(1), "extra1"
+     trigger_script_arg 2, .extra(2), "extra2"
+    END IF
+  END SELECT
+ END WITH
  IF activated THEN
   IF ABS(mi.settag) > 1 THEN settag mi.settag : updatetags = YES
   IF mi.togtag > 1 THEN settag mi.togtag, NOT istag(mi.togtag, 0) : updatetags = YES
@@ -2524,7 +2513,6 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   loadsay menu_text_box
-  menu_text_box = 0
  END IF
  IF updatetags THEN
   evalherotags
@@ -2535,25 +2523,19 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as int
 END FUNCTION
 
 'Call this any time a tag is changed!
-SUB tag_updates (byval npc_visibility as integer=YES)
+SUB tag_updates (npc_visibility as bool=YES)
  IF npc_visibility THEN visnpc
  check_menu_tags
 END SUB
 
 ' Updates which menu items are enabled (for any reason, not just tags)
 SUB check_menu_tags ()
- DIM i as integer
- DIM j as integer
- DIM old as integer
- DIM changed as integer
- DIM remember as integer
- DIM selecteditem as MenuDefItem ptr
- FOR j = 0 TO topmenu
-  WITH menus(j)
-   changed = NO
-   FOR i = 0 TO .numitems - 1
-    WITH *.items[i]
-     old = .disabled
+ FOR menunum as integer = 0 TO topmenu
+  WITH menus(menunum)
+   DIM changed as bool = NO
+   FOR idx as integer = 0 TO .numitems - 1
+    WITH *.items[idx]
+     DIM old as bool = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
      IF .t = mtypeCaption AND .sub_t = 1 THEN .disabled = YES
@@ -2578,21 +2560,21 @@ SUB check_menu_tags ()
      END IF
      IF old <> .disabled THEN changed = YES
     END WITH
-   NEXT i
+   NEXT idx
    IF changed = YES THEN
     ' Update .pt, .top, etc
-    init_menu_state mstates(j), menus(j)
+    init_menu_state mstates(menunum), menus(menunum)
    END IF
   END WITH
- NEXT j
+ NEXT menunum
  update_menu_states
 END SUB
 
-FUNCTION game_usemenu (state as MenuState) as integer
+FUNCTION game_usemenu (state as MenuState) as bool
  RETURN usemenu(state, csetup(ccUp), csetup(ccDown))
 END FUNCTION
 
-FUNCTION allowed_to_open_main_menu () as integer
+FUNCTION allowed_to_open_main_menu () as bool
  DIM i as integer
  IF find_menu_id(0) >= 0 THEN RETURN NO 'Already open
  FOR i = topmenu TO 0 STEP -1
@@ -2624,14 +2606,17 @@ FUNCTION random_formation (byval set as integer) as integer
  RETURN formset.formations(foenext)
 END FUNCTION
 
+
+'==========================================================================================
+'                                        Map setup
 '==========================================================================================
 
-SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
+
+SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  'DEBUG debug "in preparemap"
 
  script_log_out !"\nLoading map " & gam.map.id & IIF(afterbat, " (reloading after a battle)", "")
 
- DIM i as integer
  'save data from old map
  IF gam.map.lastmap > -1 THEN
   'NPC Data: Remember state when leaving
@@ -2706,7 +2691,7 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   forcedismount catd()
  END IF
  IF afterbat = NO AND afterload = NO THEN
-  FOR i = 0 TO 15
+  FOR i as integer = 0 TO 15
    catx(i) = catx(0)
    caty(i) = caty(0)
    catd(i) = catd(0)
@@ -2720,7 +2705,7 @@ SUB prepare_map (byval afterbat as integer=NO, byval afterload as integer=NO)
   herow(0).speed = 4
  END IF
  IF vstate.active = YES AND gam.map.same = YES THEN
-  FOR i = 0 TO 3
+  FOR i as integer = 0 TO 3
    catz(i) = vstate.dat.elevation
   NEXT i
   npc(vstate.npc).z = vstate.dat.elevation
@@ -2931,7 +2916,6 @@ SUB loadsay (byval box_id as integer)
 
  '--Create a set of slices to display the text box
  init_text_box_slices txt
-
 END SUB
 
 SUB advance_text_box ()
@@ -3257,7 +3241,6 @@ SUB init_text_box_slices(txt as TextBoxState)
   choice_sl(0)->Lookup = SL_TEXTBOX_CHOICE0
   choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
-
 END SUB
 
 'This is used for resetting game state. But only a few of the txt members
@@ -3923,7 +3906,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def( , , "Show/test battle formations") THEN battle_formation_testing_menu
  IF dbg.def( , , "(Advanced) Manipulate gen() array") THEN patcharray gen(), "gen"
  IF dbg.def( , , "(Advanced) Manipulate gmap() array") THEN patcharray gmap(), "gmap"
- 'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), 0)
+ 'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), NO)
  #IFDEF __FB_ANDROID__
   IF dbg.def( , , "Email saved game") THEN
    savegame 33
@@ -4086,14 +4069,14 @@ SUB refresh_keepalive_file ()
  timestamp = MID(DATE, 7, 4) & "-" & MID(DATE, 1, 2) & "-" & MID(DATE, 4, 2) & " " & TIME
  DIM filename as string
  filename = tmpdir & "keepalive.tmp"
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)
  PUT #fh, 1, timestamp
  CLOSE #fh
 END SUB
 
 FUNCTION read_keepalive_as_days (keepalive_file as string) as integer
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(keepalive_file, FOR_BINARY + ACCESS_READ, fh)
  DIM datestr as string = "YYYY-MM-DD"
  GET #fh, 1, datestr
@@ -4106,19 +4089,14 @@ FUNCTION guess_age_by_tmpdir_name(dirname as string) as integer
  'It will be in one of the following two formats:
  'Old: YYYYMMDDhhmmss.RANDOM.tmp
  'New: ohrrpgceYYYYMMDDhhmmss.RANDOM.tmp
+ 'New format
+ IF LEFT(dirname, 8) = "ohrrpgce" THEN dirname = MID(dirname, 9)
  DIM datestr as string
- IF LEFT(dirname, 8) = "ohrrpgce" THEN
-  'New format
-  datestr = MID(dirname, 9, 4) & "-" & MID(dirname, 13, 2) & "-" & MID(dirname, 15, 2)
- ELSE
-  'Old format
-  datestr = MID(dirname, 1, 4) & "-" & MID(dirname, 5, 2) & "-" & MID(dirname, 7, 2)
- END IF
+ datestr = MID(dirname, 1, 4) & "-" & MID(dirname, 5, 2) & "-" & MID(dirname, 7, 2)
  RETURN days_since_datestr(datestr)
 END FUNCTION
 
 SUB cleanup_other_temp_files ()
-
  DIM tmp_parent as string = trimfilename(tmpdir)
  DIM tmp_cur as string = trimpath(tmpdir)
  
@@ -4134,11 +4112,9 @@ SUB cleanup_other_temp_files ()
  DIM keepalive_file as string
  DIM age as integer
  DIM threshhold as integer
- DIM cap as string
 
- FOR i as integer = 0 TO UBOUND(filelist)
-  
-  dirname = filelist(i)
+ FOR idx as integer = 0 TO UBOUND(filelist)
+  dirname = filelist(idx)
   dirname_full = tmp_parent & SLASH & dirname
   keepalive_file = dirname_full & SLASH & "keepalive.tmp"
   IF dirname = tmp_cur THEN
@@ -4163,8 +4139,8 @@ SUB cleanup_other_temp_files ()
 #ENDIF
    IF age > threshhold THEN
     center_edgeboxstyle  , 65, 25 * 8, 16, 0, vpage, NO, YES
-    cap = "Cleaning up files: " & INT(100 / large(UBOUND(filelist), 1) * i) & "%"
-    edgeprint cap, pCentered, 60, uilook(uiText), vpage
+    edgeprint "Cleaning up files: " & INT(100 / large(UBOUND(filelist), 1) * idx) & "%", _
+              pCentered, 60, uilook(uiText), vpage
     setvispage vpage, NO
     debuginfo "CLEAN " & dirname_full & " because it has been dead for about " & age & " days"
     killdir dirname_full, YES
@@ -4172,7 +4148,7 @@ SUB cleanup_other_temp_files ()
     debuginfo "Ignore " & dirname & " because it has only been dead " & age & " days"
    END IF
   END IF
- NEXT i
+ NEXT idx
 END SUB
 
 

@@ -97,7 +97,7 @@ DIM joy(4) as integer
 DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1
-DIM fadestate as integer
+DIM fadestate as bool
 DIM auto_distrib as string
 
 DIM editing_a_game as bool

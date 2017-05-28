@@ -25,7 +25,7 @@ EXTERN usepreunlump as bool
 EXTERN fatal as bool
 EXTERN checkfatal as bool
 EXTERN err_suppress_lvl as scriptErrEnum
-EXTERN backcompat_sound_slot_mode as integer
+EXTERN backcompat_sound_slot_mode as bool
 EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
 EXTERN running_as_slave as bool

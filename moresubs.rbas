@@ -739,7 +739,7 @@ SUB settag (byval tagnum as integer, byval value as integer = 4444)
  END IF
 END SUB
 
-FUNCTION istag (byval num as integer, byval zero as integer=NO) as integer
+FUNCTION istag (num as integer, zero as bool=NO) as bool
  IF ABS(num) <= max_tag() THEN
   RETURN istag(tag(), num, zero)
  ELSE
@@ -758,17 +758,17 @@ SUB settag (tagbits() as integer, byval tagnum as integer, byval value as intege
  END IF
 END SUB
 
-FUNCTION istag (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
+FUNCTION istag (tagbits() as integer, num as integer, zero as bool=NO) as bool
  IF num = 0 THEN RETURN zero 'why go through all that just to return defaults?
- IF num = 1 THEN RETURN 0
- IF num = -1 THEN RETURN -1
+ IF num = 1 THEN RETURN NO
+ IF num = -1 THEN RETURN YES
  IF ABS(num) >= UBOUND(tagbits) * 16 + 16 THEN RETURN zero ' use default in case of an invalid tag
 
- DIM ret as integer = readbit(tagbits(), 0, ABS(num)) 'raw bit: 0 or -1
+ DIM ret as integer = readbit(tagbits(), 0, ABS(num)) 'raw bit: 0 or 1
 
- IF num > 0 AND ret <> 0 THEN RETURN -1
- IF num < 0 AND ret = 0 THEN RETURN -1
- RETURN 0
+ IF num > 0 AND ret <> 0 THEN RETURN YES
+ IF num < 0 AND ret = 0 THEN RETURN YES
+ RETURN NO
 END FUNCTION
 
 SUB minimap (byval x as integer, byval y as integer)
@@ -1102,7 +1102,7 @@ END IF
 
 END SUB
 
-SUB renamehero (byval who as integer, byval escapable as integer)
+SUB renamehero (byval who as integer, byval escapable as bool)
 'If escapable is true, then ESC exits, otherwise it resets the entered name
 
 DIM her as herodef
@@ -1115,8 +1115,8 @@ DIM prompt as string = readglobalstring(137, "Name the Hero", 20)
 DIM entry_box_width as integer = large(limit, LEN(gam.hero(who).name)) * 8
 DIM remember as string = gam.hero(who).name
 
-DIM need_fade_out as integer
-IF fadestate = 0 THEN
+DIM need_fade_out as bool
+IF fadestate = NO THEN
  setvispage vpage
  fadein
  need_fade_out = YES
@@ -1567,7 +1567,7 @@ DO
    hero_swap_menu 1
   END IF
   IF menuid(st.pt) = 4 THEN '--EQUIP
-   w = onwho(readglobalstring(108, "Equip Who?", 20), 0)
+   w = onwho(readglobalstring(108, "Equip Who?", 20), NO)
    IF w >= 0 THEN
     equip w
    END IF

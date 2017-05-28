@@ -1544,7 +1544,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 134'--hero by rank
   scriptret = herobyrank(retvals(0))
  CASE 145'--pick hero
-  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), 1)
+  scriptret = onwho(readglobalstring(135, "Which Hero?", 20), YES)
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
@@ -1648,7 +1648,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
   'This opcode is not exposed in plotscr.hsd and should not be used in any new scripts
   IF retvals(0) >= 0 AND retvals(0) <= 7 THEN
-   backcompat_sound_slot_mode = -1
+   backcompat_sound_slot_mode = YES
    backcompat_sound_slots(retvals(0)) = retvals(1) + 1
   END IF
  CASE 196'--free sound (BACKWARDS COMPATABILITY HACK)
@@ -3602,7 +3602,7 @@ SUB script_functions(byval cmdid as integer)
     scriptret = (i + 1) * -1
    END IF
   END IF
- CASE 126 '--destroy NPC
+ CASE 126 '--destroy NPC (aka delete NPC)
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    'Don't run zone exit triggers.

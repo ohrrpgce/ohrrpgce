@@ -300,7 +300,7 @@ EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle
 EXTERN as integer vpage, dpage
 EXTERN buffer() as integer
-EXTERN fadestate as integer
+EXTERN fadestate as bool
 EXTERN master() as RGBcolor
 EXTERN current_font() as integer
 EXTERN gen() as integer

@@ -470,9 +470,11 @@ CONST loadmodeAlways = 1
 CONST loadmodeIfUnchanged = 2
 
 'Constants for timer advancement modes (see game.bas:should_skip_this_timer())
-CONST TIMER_NORMAL = 0
-CONST TIMER_BATTLE = 1
-CONST TIMER_BLOCKINGMENUS = 2
+Enum TimerContextEnum
+        TIMER_NORMAL = 0
+        TIMER_BATTLE = 1
+        TIMER_BLOCKINGMENUS = 2
+End Enum
 
 'Timer .flags
 CONST TIMERFLAG_CRITICAL = 1

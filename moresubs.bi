@@ -22,13 +22,13 @@ DECLARE FUNCTION findhero (byval id as integer, byval first as integer, byval la
 DECLARE SUB hero_swap_menu (byval reserve_too as bool)
 DECLARE SUB settag OVERLOAD (byval tagnum as integer, byval value as integer = 4444)
 DECLARE SUB settag OVERLOAD (tagbits() as integer, byval tagnum as integer, byval value as integer = 4444)
-DECLARE FUNCTION istag OVERLOAD (byval num as integer, byval zero as integer=NO) as integer
-DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, byval num as integer, byval zero as integer=NO) as integer
+DECLARE FUNCTION istag OVERLOAD (num as integer, zero as bool=NO) as bool
+DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, num as integer, zero as bool=NO) as bool
 DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as bool
-DECLARE FUNCTION onwho (caption as string, byval alone as integer) as integer
+DECLARE FUNCTION onwho (caption as string, alone as bool) as integer
 DECLARE SUB readjoysettings
-DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
+DECLARE SUB renamehero (who as integer, escapable as bool)
 DECLARE SUB resetgame ()
 DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
 DECLARE SUB resetlmp (byval slot as integer, byval hero_level as integer)

@@ -145,13 +145,13 @@ END FUNCTION
 
 'fade in and out not actually used in custom
 SUB fadein ()
-fadestate = 1
-fadetopal master()
+ fadestate = YES
+ fadetopal master()
 END SUB
 
 SUB fadeout (byval red as integer, byval green as integer, byval blue as integer)
-fadestate = 0
-fadeto red, green, blue
+ fadestate = NO
+ fadeto red, green, blue
 END SUB
 
 'Call before showing debug screens and messages in Game, in case the screen is faded out or
@@ -159,7 +159,7 @@ END SUB
 'Call restore_previous_palette() before resuming (mandatory)
 SUB ensure_normal_palette ()
 #IFDEF IS_GAME
- 'IF fadestate = 0 THEN setpal master()  'Simpler solution
+ 'IF fadestate = NO THEN setpal master()  'Simpler solution
  IF master_remembered THEN EXIT SUB
  master_remembered = YES
  FOR i as integer = 0 TO 255
@@ -445,7 +445,7 @@ END SUB
 ' Returns the scancode of the keypress (it is cleared!)
 FUNCTION notification (msg as string) as integer
  ensure_normal_palette
- dim holdpage as integer = allocatepage
+ DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
