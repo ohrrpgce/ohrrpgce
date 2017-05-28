@@ -26,6 +26,24 @@ The script management menu allows you to access some tasks and tools related to 
   automatically when importing
   .hss/.txt files.
 
+* "Export scripts backup copy"
+  exports the backup copy of your
+  scripts source code. Use this if
+  you've accidentally lost the
+  original .hss/.txt files. Normally
+  you should have no use for this.
+  HSpeak automatically includes a
+  backup when compiling. (You can
+  prevent this by passing the -n
+  argument to HSpeak -- you will have
+  to compile manually).
+  Backup copies have been included
+  by HSpeak since Ypsiliform.
+  If the compiled scripts are older
+  than that, then Custom will attempt
+  to decompile the scripts instead,
+  using the HSDECMPL tool.
+
 * "Check where scripts are used"
   produces a list of all the places
   where your game triggers a script.

@@ -2652,10 +2652,11 @@ FUNCTION find_support_dir () as string
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
-FUNCTION find_helper_app (appname as string, try_install as integer=NO) as string
+FUNCTION find_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
  'Returns an empty string if the app is not found, or the full path if it is found
 
  'try_install currently only works on Windows, and not for all possible apps
+ 'download_url: only used if try_install is true, to override the default
 
  'Look in the same folder as CUSTOM/GAME
  IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
@@ -2671,14 +2672,15 @@ FUNCTION find_helper_app (appname as string, try_install as integer=NO) as strin
   RETURN RTRIM(where, !"\n")
  #ENDIF
  #IFDEF __FB_WIN32__
-  RETURN find_windows_helper_app(appname, try_install)
+  RETURN find_windows_helper_app(appname, try_install, download_url)
  #ENDIF
 END FUNCTION
 
-FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) as string
- 'Returns an empty string if the app is not found, or the full path if it is found
-
+FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
  'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
+ 'Returns an empty string if the app is not found, or the full path if it is found
+ 'try_install: download it if not installed
+ 'download_url: only used if try_install is true, to override the default
 
  'For windows, first look in the support subdirectory
  DIM support as string = find_support_dir()
@@ -2707,11 +2709,15 @@ FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO) 
   DIM choice as integer
   choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util")
   IF choice = 0 THEN
-   DIM extenstion as string = "zip"
-   IF appname = "unzip" THEN extenstion = "exe"
-   download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extenstion, support
-   IF NOT isfile(support & SLASH & appname & "." & extenstion) THEN
-    visible_debug "Unable to download " & appname & "." & extenstion
+   DIM extension as string = "zip"
+   IF appname = "unzip" THEN extension = "exe"
+   IF LEN(download_url) THEN
+    download_file download_url, support
+   ELSE
+    download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extension, support
+   END IF
+   IF NOT isfile(support & SLASH & appname & "." & extension) THEN
+    visible_debug "Unable to download " & appname & "." & extension
     RETURN ""
    END IF
    IF appname <> "unzip" THEN
@@ -5287,7 +5293,7 @@ END FUNCTION
 
 FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
  ' :'_~? are allowed
- DIM to_exclude as string = !"`!@#$%^&*()-+=[]{}\\|<>,.;/\""
+ DIM to_exclude as string = "`!@#$%^&*()-+=[]{}\\|<>,.;/"""
  IF allow_whitespace = NO THEN to_exclude &= " "
  DIM tmp as string = exclude(ident, to_exclude)
  RETURN remove_nonprintable_ascii(tmp)

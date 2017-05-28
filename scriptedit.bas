@@ -33,6 +33,7 @@ DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames () as string
 DECLARE SUB export_scripts()
 DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TriggerSet)
+DECLARE SUB decompile_scripts()
 
 
 'Prints a hamsterspeak constant to already-open filehandle
@@ -470,9 +471,9 @@ SUB scriptman ()
  menu(0) = "Previous Menu"
  menu(1) = "Compile and/or Import scripts (.hss/.hs)"
  menu(2) = "Export names for scripts (.hsi)"
- menu(3) = "Check where scripts are used..."
- menu(4) = "Find broken script triggers..."
- menu(5) = "Export scripts"
+ menu(3) = "Export scripts backup copy (.hss)"
+ menu(4) = "Check where scripts are used..."
+ menu(5) = "Find broken script triggers..."
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -510,11 +511,11 @@ SUB scriptman ()
      DIM dummy as string = exportnames()
      waitforanykey
     CASE 3
-     script_usage_list()
-    CASE 4
-     script_broken_trigger_list()
-    CASE 5
      export_scripts()
+    CASE 4
+     script_usage_list()
+    CASE 5
+     script_broken_trigger_list()
    END SELECT
   END IF
 
@@ -662,9 +663,38 @@ SUB export_scripts()
 
  ELSE
   IF strcmp(STRPTR(header.hspeak_version), STRPTR("3I ")) < 0 THEN
-   notification "The scripts are old. Try decompiling them with HSDECMPL or nohrio. (Ask for help by email/on the forums)"
+   ' They are old enough for hsdecmpl to work
+   notification "Original script source is not available, but the scripts are old enough to decompile with DECMPL. This may not work; asked for help if not."
+   decompile_scripts
   ELSE
    notification "Original script source was omitted. You could try decompiling the scripts with nohrio."
   END IF
+ END IF
+END SUB
+
+'Try to decompile old scripts using the HSDECMPL tool.
+SUB decompile_scripts()
+ DIM hsdecmpl as string
+ hsdecmpl = find_helper_app("hsdecmpl", YES, "http://hamsterrepublic.com/ohrrpgce/thirdparty/hsdecmpl.zip")
+ IF LEN(hsdecmpl) = 0 THEN
+  notification "The scripts could be decompiled with HSDECMPL but it's not installed. " _
+               "Get it from http://rpg.hamsterrepublic.com/ohrrpgce/HS_Decompiler. " _
+               "Ask for help by email/on the forums."
+  EXIT SUB
+ END IF
+
+ DIM dest as string
+ dest = inputfilename("Export scripts to which file?", ".hss", "", "", trimextension(trimpath(sourcerpg)))
+ IF dest = "" THEN EXIT SUB
+
+ DIM as string args, spawn_ret, hsi
+ hsi = exportnames()
+
+ args = escape_filename(game & ".hsp") & " " & escape_filename(dest & ".hss")
+ args &= " " & escape_filename("plotscr.hsd+scancode.hsi+" & hsi)
+ args &= " /F:default"
+ spawn_ret = spawn_and_wait(hsdecmpl, args)
+ IF LEN(spawn_ret) THEN
+  notification "Running HSDECMPL failed: " & spawn_ret
  END IF
 END SUB
