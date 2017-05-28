@@ -215,9 +215,9 @@ DECLARE FUNCTION last_inv_slot() as integer
 DECLARE FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_warnings as bool = NO) as string
 DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
-DECLARE FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
+DECLARE FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
 
-DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
+DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
 DECLARE FUNCTION get_home_dir() as string
@@ -236,9 +236,6 @@ DECLARE FUNCTION int_from_xy(pos as XYPair, byval wide as integer, byval high as
 DECLARE FUNCTION xy_from_int(byval n as integer, byval wide as integer, byval high as integer) as XYPair
 
 DECLARE FUNCTION color_browser_256(byval start_color as integer=0) as integer
-
-'These were added from other, less-appropriate places
-DECLARE FUNCTION filenum(byval n as integer) as string
 
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)

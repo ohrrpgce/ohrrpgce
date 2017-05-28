@@ -449,6 +449,7 @@ FUNCTION notification (msg as string) as integer
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
+ IF getquitflag THEN RETURN 0
  sleep 250  'Avoid accidental advancement
  DIM scancode as integer = waitforanykey()
  clearkey(scancode)
@@ -3290,10 +3291,6 @@ END FUNCTION
 
 
 SUB upgrade (show_messages as bool)
-DIM o as integer
-DIM p as integer
-DIM y as integer
-DIM temp as integer
 DIM fh as integer
 DIM master_temp(255) as RGBcolor
 
@@ -3340,10 +3337,10 @@ FOR i as integer = 0 TO 8
 NEXT i
 fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
 fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
-'FIXME: .dt0 lump is always padded up to 60 records
 IF isfile(workingdir & SLASH & "heroes.reld") THEN
  'TODO: genMaxHero fix-up for heroes.reld is unimplemented
 ELSE
+ 'In old versions, games start with 60 heroes
  fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
 END IF
 fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
@@ -3453,7 +3450,7 @@ IF gen(genVersion) = 1 THEN
   buffer(i) = 0
  NEXT i
  FOR i as integer = 0 TO 1
-  o = i * 20
+  DIM o as integer = i * 20
   buffer(0 + o) = 112
   buffer(1 + o) = 0
   '--wait 3--
@@ -3684,7 +3681,7 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  DIM song(99) as string
  fh = FREEFILE
  OPENFILE(game + ".sng", FOR_BINARY, fh)
- temp = LOF(fh)
+ DIM temp as integer = LOF(fh)
  CLOSE #fh
  IF temp > 0 THEN
   fh = FREEFILE
@@ -3825,19 +3822,16 @@ END IF
 IF getfixbit(fixAttackitems) = 0 THEN
   upgrade_message "Zero new ammunition data..."
   setfixbit(fixAttackitems, 1)
-  fh = freefile
   OPENFILE(workingdir + SLASH + "attack.bin", FOR_BINARY, fh)
-  REDIM dat(curbinsize(binATTACK)/2 - 1) as short
-  p = 1
-  FOR i as integer = 0 to gen(genMaxAttack)
-
-    GET #fh,p,dat()
-    FOR y = 53 TO 59
+  REDIM dat(dimbinsize(binATTACK)) as short
+  DIM record_pos as integer = 1
+  FOR idx as integer = 0 to gen(genMaxAttack)
+    GET #fh, record_pos, dat()
+    FOR y as integer = 53 TO 59
       dat(y) = 0
     NEXT
-
-    PUT #fh,p,dat()
-    p+=curbinsize(binATTACK)
+    PUT #fh, record_pos, dat()
+    record_pos += getbinsize(binATTACK)
   NEXT
   CLOSE #fh
 END IF
@@ -3846,27 +3840,26 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  upgrade_message "Reset hero hand points..."
  DO
   setfixbit(fixWeapPoints, 1)
-  fh = freefile
   OPENFILE(game + ".dt0", FOR_BINARY, fh)
   REDIM dat(dimbinsize(binDT0)) as short
   FOR i as integer = 0 to gen(genMaxHero)
-   GET #fh,,dat()
+   GET #fh, , dat()
    IF dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
-    close #fh
+    CLOSE #fh
     EXIT DO 'they already use hand points, abort!
    END IF
   NEXT
   
-  p = 1
+  DIM record_pos as integer = 1
   DIM recsize as integer = getbinsize(binDT0)
-  FOR i as integer = 0 to gen(genMaxHero)
-   GET #fh, p, dat()
+  FOR idx as integer = 0 to gen(genMaxHero)
+   GET #fh, record_pos, dat()
    dat(297) = 24
    dat(299) = -20
-   PUT #fh, p, dat()
-   p += recsize
+   PUT #fh, record_pos, dat()
+   record_pos += recsize
   NEXT
-  close #fh
+  CLOSE #fh
   EXIT DO
  LOOP
 END IF
@@ -5230,10 +5223,8 @@ END FUNCTION
 
 'The name is not totally correct, actually escapes non-printable characters and icons in the font,
 'which those are depends on the font type
-FUNCTION escape_nonprintable_ascii(s as string) as string
+FUNCTION escape_nonprintable_ascii(istr as string) as string
  DIM result as string = ""
- DIM nstr as string
- DIM ch as string
  DIM as integer icons_low, icons_high
  IF get_font_type(current_font()) = ftypeLatin1 THEN
   icons_low = 127
@@ -5242,9 +5233,8 @@ FUNCTION escape_nonprintable_ascii(s as string) as string
   icons_low = 127
   icons_high = 255
  END IF
- FOR i as integer = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  SELECT CASE ASC(ch)
+ FOR idx as integer = 0 TO LEN(istr) - 1
+  SELECT CASE istr[idx]
    CASE 92 '--Backslash
     result &= "\\"
    CASE 10
@@ -5254,16 +5244,16 @@ FUNCTION escape_nonprintable_ascii(s as string) as string
    CASE 9
     result &= "\t"
    CASE 0 TO 31, icons_low TO icons_high
-    nstr = STR(ASC(ch))
+    DIM nstr as string = STR(istr[idx])
     WHILE LEN(nstr) < 3
      nstr = "0" & nstr
     WEND
     result &= "\" & nstr
    'CASE 32 TO 91, 93 TO 126, latin_low TO latin_high
    CASE ELSE
-    result &= ch
+    result &= CHR(istr[idx])
   END SELECT
- NEXT i
+ NEXT idx
  RETURN result
 END FUNCTION
 
@@ -5291,7 +5281,7 @@ FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as s
  RETURN ret
 END FUNCTION
 
-FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as integer = YES) as string
+FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
  ' :'_~? are allowed
  DIM to_exclude as string = "`!@#$%^&*()-+=[]{}\\|<>,.;/"""
  IF allow_whitespace = NO THEN to_exclude &= " "
@@ -5305,7 +5295,7 @@ END FUNCTION
 'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
 'be encoded before being used, but the whole path return still needs to be run through
 'decode_filename() before being displayed.
-FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", byval allow_overwrite as integer=YES) as string
+FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
  DIM filename as string = default
  DIM tog as integer
  DIM foldermode as bool = NO
@@ -5647,14 +5637,6 @@ SUB save_help_file(helpkey as string, text as string)
   visible_debug "help file """ & helpfile & """ is not writeable."
  END IF
 END SUB
-
-FUNCTION filenum (byval n as integer) as string
- IF n < 100 THEN
-  RETURN RIGHT("00" + STR(n), 2)
- ELSE
-  RETURN STR(n)
- END IF
-END FUNCTION
 
 'OK, NOW it supports negative n too
 FUNCTION xy_from_int(byval n as integer, byval wide as integer, byval high as integer) as XYPair
