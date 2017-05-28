@@ -5964,6 +5964,66 @@ set horiz align(sl, edge:right)
 		<section title="Sprite Slices">
 		<description>Unlike the other types of slices, sprite slices come in different subtypes for each of the different sprite sizes. A sprite slice of one subtype can be turned into another subtype with the <p>replace*sprite</p> commands.</description>
 		<reference ref="sliceissprite" />
+		<command id="loadsprite">
+			<canon>load sprite (sprite type, num, palette)</canon>
+			<shortname>load sprite</shortname>
+			<description>
+				Creates a sprite slice by loading a sprite of the given <p>sprite type</p>
+				(use a constant like <tt>spritetype:walkabout</tt>; see <ref>getspritetype</ref> for more),
+				with sprite set number <p>num</p> and with given <p>palette</p>.
+				Returns a handle for the slice.
+				You may omit <p>palette</p>,
+				in which case the default palette for that sprite will be loaded.
+				<p>palette</p> is ignored for <tt>spritetype:backdrop</tt>.
+				You must free it with <ref>freesprite</ref> when you are done.
+			</description>
+			<seealso>
+				<ref>replacesprite</ref>
+				<ref>loadherosprite</ref>
+				<ref>loadsmallenemysprite</ref>
+				<ref>loadmediumenemysprite</ref>
+				<ref>loadlargeenemysprite</ref>
+				<ref>loadwalkaboutsprite</ref>
+				<ref>loadattacksprite</ref>
+				<ref>loadbordersprite</ref>
+				<ref>loadportraitsprite</ref>
+				<ref>loadbackdropsprite</ref>
+				<ref>getspritetype</ref>
+				<ref>getspritesetnumber</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
+		<command id="replacesprite">
+			<canon>replace sprite (slice, sprite type, num, palette)</canon>
+			<shortname>replace sprite</shortname>
+			<description>
+				Change an existing sprite <p>slice</p> into a different sprite,
+				loading a sprite of the given <p>sprite type</p>
+				(use a constant like <tt>spritetype:walkabout</tt>; see <ref>getspritetype</ref> for more),
+				with sprite set number <p>num</p> and with given <p>palette</p>.
+				You may omit <p>palette</p>,
+				in which case the default palette for that sprite will be loaded.
+				<p>palette</p> is ignored for <tt>spritetype:backdrop</tt>.
+				The handle for the slice doesn't change,
+				and everything except the size of the slice stays the same.
+				You must free it with <ref>freesprite</ref> when you are done.
+			</description>
+			<seealso>
+				<ref>loadsprite</ref>
+				<ref>replaceherosprite</ref>
+				<ref>replacesmallenemysprite</ref>
+				<ref>replacemediumenemysprite</ref>
+				<ref>replacelargeenemysprite</ref>
+				<ref>replacewalkaboutsprite</ref>
+				<ref>replaceattacksprite</ref>
+				<ref>replacebordersprite</ref>
+				<ref>replaceportraitsprite</ref>
+				<ref>replacebackdropsprite</ref>
+				<ref>getspritetype</ref>
+				<ref>getspritesetnumber</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
 		<command id="loadherosprite">
 			<canon>load hero sprite (num, palette)</canon>
 			<shortname>load hero sprite</shortname>
@@ -6230,7 +6290,11 @@ set horiz align(sl, edge:right)
 		<command id="getspritepalette">
 			<canon>get sprite palette (handle)</canon>
 			<shortname>get sprite palette</shortname>
-			<description>Returns the palette of sprite slice <p>handle</p>.</description>
+			<description>
+				Returns the palette of sprite slice <p>handle</p>,
+				or returns -1 if the sprite is set to use the default palette
+				(use <ref>getspritedefaultpal</ref> to figure which that is).
+			</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritesetnumber</ref>

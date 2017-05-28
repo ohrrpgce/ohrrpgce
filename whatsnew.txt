@@ -105,6 +105,8 @@ WHAT IS NEW?
       string variable at once [Matthias]
     * -= and += now return their result, like := does, so they can be
       used as expressions [Ralph]
+    * "load sprite" and "replace sprite" (general versions of "load
+      hero sprite", etc) [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

@@ -1397,6 +1397,35 @@ script, get menu item extra, hsd:handle, hsd:extra=0, begin
   end
 end
 
+#--------------------------------------------------------------------------
+# slice commands
+
+script, load sprite, hsd:type, hsd:number, hsd:pal = -1, begin
+  if(hsd:type == spritetype:hero)        then(return(load hero sprite         (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:smallenemy)  then(return(load small enemy sprite  (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:mediumenemy) then(return(load medium enemy sprite (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:largeenemy)  then(return(load large enemy sprite  (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:walkabout)   then(return(load walkabout sprite    (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:weapon)      then(return(load weapon sprite       (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:attack)      then(return(load attack sprite       (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:border)      then(return(load border sprite       (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:portrait)    then(return(load portrait sprite     (hsd:number, hsd:pal)))
+  if(hsd:type == spritetype:backdrop)    then(return(load backdrop sprite     (hsd:number)))
+end
+
+script, replace sprite, hsd:sl, hsd:type, hsd:number, hsd:pal = -1, begin
+  if(hsd:type == spritetype:hero)        then(replace hero sprite         (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:smallenemy)  then(replace small enemy sprite  (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:mediumenemy) then(replace medium enemy sprite (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:largeenemy)  then(replace large enemy sprite  (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:walkabout)   then(replace walkabout sprite    (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:weapon)      then(replace weapon sprite       (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:attack)      then(replace attack sprite       (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:border)      then(replace border sprite       (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:portrait)    then(replace portrait sprite     (hsd:sl, hsd:number, hsd:pal))
+  if(hsd:type == spritetype:backdrop)    then(replace backdrop sprite     (hsd:sl, hsd:number))
+end
+
 script, load enemy sprite, hsd:size, hsd:number, hsd:pal = -1, begin
   if(hsd:size == EnemySize:small) then(return(load small enemy sprite(hsd:number, hsd:pal)))
   if(hsd:size == EnemySize:medium) then(return(load medium enemy sprite(hsd:number, hsd:pal)))
@@ -1408,9 +1437,6 @@ script, replace enemy sprite, hsd:ID, hsd:size, hsd:number, hsd:pal = -1, begin
   if(hsd:size == EnemySize:medium) then(return(replace medium enemy sprite(hsd:ID, hsd:number, hsd:pal)))
   if(hsd:size == EnemySize:large) then(return(replace large enemy sprite(hsd:ID, hsd:number, hsd:pal)))
 end
-
-#--------------------------------------------------------------------------
-# slice commands
 
 script, first sprite child, hsd:parent, begin
   variable(hsd:sl)
