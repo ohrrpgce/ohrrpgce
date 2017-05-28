@@ -1555,6 +1555,7 @@ END FUNCTION
 ' - The path is treated as case insensitive, and we search for a file matching that pattern
 ' - If there are multiple files matching case insensitively, return an error
 ' - If the path would be absolute on any platform, give up, this can't be made portable
+' FIXME: Need to disallow non-portable characters such as :
 '
 ' NOTE: while on UNIX and Mac we return the path with the actual capitalisation, on Windows we don't bother
 ' to do so, and return the original path (normalised and simplified).

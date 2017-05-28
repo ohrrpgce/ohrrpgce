@@ -635,16 +635,14 @@ SUB export_scripts()
   END IF
 
   DIM dest as string
-  dest = trimextension(sourcerpg) & " scripts"
-  
+  dest = inputfilename("Export scripts to which (new) directory?", "", trimfilename(sourcerpg), "", _
+                       trimpath(trimextension(sourcerpg)) & " scripts")
+
   IF isdir(dest) THEN
-   IF yesno("Destination directory `" + dest + "' already exists. Delete it?", NO, NO) = NO THEN EXIT SUB
-   killdir dest
   ELSEIF isfile(dest) THEN
-   notification "destination directory `" + dest + "' already exists as a file"
+   notification "Destination directory `" & dest & "' already exists as a file! Pick a different name."
    EXIT SUB
-  END IF
-  IF makedir(dest) <> 0 THEN
+  ELSEIF makedir(dest) <> 0 THEN
    notification "Couldn't create directory " & dest
    EXIT SUB
   END IF
@@ -655,19 +653,30 @@ SUB export_scripts()
 
  ELSEIF islumpfile(hsp, "source.txt") THEN
   ' Extract as a single file
-  unlumpfile(hsp, "source.txt", tmpdir)
-  DIM dest as string = trimextension(sourcerpg) & " extracted.hss"
-  copyfile tmpdir & "source.txt", dest
-  safekill tmpdir & "source.txt"
-  notification "Extracted scripts as " & dest
+  notification "A backup of the scripts is available, but they are all mushed " _
+               "up into a single file. You'll have to clean it up."
+  DIM dest as string
+  dest = inputfilename("Export scripts to which file?", ".hss", "", "", trimextension(trimpath(sourcerpg)))
+  IF LEN(dest) THEN
+   unlumpfile(hsp, "source.txt", tmpdir)
+   copyfile tmpdir & "source.txt", dest
+   safekill tmpdir & "source.txt"
+   notification "Extracted scripts as " & dest
+  END IF
 
  ELSE
   IF strcmp(STRPTR(header.hspeak_version), STRPTR("3I ")) < 0 THEN
    ' They are old enough for hsdecmpl to work
-   notification "Original script source is not available, but the scripts are old enough to decompile with DECMPL. This may not work; asked for help if not."
+   notification "No backup of the original script source is available, but the scripts are " _
+                "old enough to decompile with HSDECMPL, which I will now attempt. " _
+                "This may not work; ask for help by email/forums if not."
    decompile_scripts
   ELSE
-   notification "Original script source was omitted. You could try decompiling the scripts with nohrio."
+   IF yesno("A backup of original script source is not available (it was " _
+            "purposedfully omitted), and the scripts appear to be too recent for " _
+            "the HSDECMPL decompiler to work. Try anyway?", NO, NO) THEN
+    decompile_scripts
+   END IF
   END IF
  END IF
 END SUB

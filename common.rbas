@@ -5299,7 +5299,7 @@ FUNCTION sanitize_script_identifier (ident as string, byval allow_whitespace as 
  RETURN remove_nonprintable_ascii(tmp)
 END FUNCTION
 
-'Prompts the user for a file path
+'Prompts the user for a file (or directory) path
 'ext: The file extension; must start with '.'
 'directory:  If blank, default to curdir
 'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
@@ -5333,9 +5333,9 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
    IF keyval(scEnter) > 1 THEN
     filename = TRIM(filename)
     IF filename <> "" THEN
-     IF isfile(directory + SLASH + filename + ext) THEN
+     IF get_file_type(directory + SLASH + filename + ext) <> fileTypeNonexistent THEN
       If allow_overwrite THEN
-       IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
+       IF yesno("That already exists, overwrite?") THEN RETURN directory + SLASH + filename
       ELSE
        notification filename & ext & " already exists"
       END IF
