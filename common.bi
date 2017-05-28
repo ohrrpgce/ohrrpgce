@@ -87,6 +87,7 @@ DECLARE FUNCTION peek8bit (array16() as integer, byval index as integer) as inte
 DECLARE SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
+DECLARE SUB unconvertpalette()
 
 DECLARE FUNCTION createminimap OVERLOAD (map() as TileMap, tilesets() as TilesetData ptr, byref zoom as integer = -1) as Frame ptr
 DECLARE FUNCTION createminimap OVERLOAD (layer as TileMap, tileset as TilesetData ptr, byref zoom as integer = -1) as Frame ptr

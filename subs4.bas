@@ -1032,6 +1032,8 @@ DO
     SaveUIColors uilook(), boxlook(), palnum
   CASE 7
     gen(genMasterPal) = palnum
+    ' Keep obsolete .MAS lump up to date
+    unconvertpalette
     'Instant live-previewing
     xbsave game + ".gen", gen(), 1000
     state.need_update = YES

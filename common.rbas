@@ -1247,6 +1247,10 @@ SUB savepalette(pal() as RGBcolor, byval palnum as integer)
  NEXT
  PUT #fh, recsize * palnum + headsize + 1, palbuf()
  CLOSE #fh
+
+ 'This is not necessary in the slightest, but we copy the default master palette
+ 'back to the .MAS lump, to give old graphics utilities some chance of working
+ IF palnum = gen(genMasterPal) THEN unconvertpalette()
 END SUB
 
 SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
@@ -3718,12 +3722,9 @@ IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  ELSE
   loadpalette master(), 0  'Loads from .mas
  END IF
- savepalette master(), 0  'Saves to palettes.bin
  gen(genMaxMasterPal) = 0
+ savepalette master(), 0  'Saves to palettes.bin
 END IF
-'This is not necessary in the slightest, but we copy the default master palette
-'back to the .MAS lump, to give old graphics utilities some chance of working
-unconvertpalette()
 
 'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
 gen(genMasterPal) = bound(gen(genMasterPal), 0, gen(genMaxMasterPal))
