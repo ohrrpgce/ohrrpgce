@@ -1077,7 +1077,9 @@ Options:
   music=BACKEND       Music backend. Options:
                         """ + " ".join (music_map.keys ()) + """
                       Current (default) value: """ + "+".join (music) + """
-  gengcc=1            Compile using GCC emitter (faster binaries, longer compiles).
+  gengcc=1            Compile using GCC emitter (faster binaries, longer compile
+                      times, and some extra warnings). This is the default
+                      everywhere except x86 Windows/Linux/BSD.
   debug=0|1|2|3       Debug level:
                                   -exx |  debug info  | optimisation
                                  ------+--------------+--------------
@@ -1097,8 +1099,8 @@ Options:
   fbc=PATH            Point to a different version of fbc.
   macsdk=version      Compile against a Mac OS X SDK instead of using the system
                       headers and libraries. Specify the SDK version, e.g. 10.4.
-                      You will need the relevant SDK installed in /Developer/SDKs and
-                      may want to use a copy of FB built against that SDK.
+                      You'll need the relevant SDK installed in /Developer/SDKs
+                      and may want to use a copy of FB built against that SDK.
                       Also sets macosx-version-min (defaults to 10.4).
   prefix=PATH         For 'install' and 'uninstall' actions. Default: '/usr'
   destdir=PATH        For 'install' and 'uninstall' actions. Use if you want to
@@ -1108,28 +1110,36 @@ Options:
   v=1                 Be verbose.
 
 Experimental options:
-  linkgcc=0           Link using fbc instead of g++ (only works for a few targets)
-  android-source=1    Used as part of the Android build process for Game/Custom (see wiki)
+  linkgcc=0           Link using fbc instead of g++ (this only works for a
+                      few targets).
+  android-source=1    Used as part of the Android build process for Game/Custom
+                      (see wiki)
   glibc=1             Enable memory_usage function
   target=...          Set cross-compiling target. Passed through to fbc. Either
                       a toolchain prefix triplet such as arm-linux-androideabi
-                      (will be prefixed to tool names, e.g. arm-linux-androideabi-gcc)
-                      or a target name supported by fbc (e.g. darwin, android) or
-                      a platform-cpu pair (e.g. linux-arm).
-                      Current (default) value: """ + target + """
-  arch=ARCH           Specify target CPU type. Overrides 'target'. Options include:
+                      (will be prefixed to names of tools like gcc/as/ld/, e.g.
+                      arm-linux-androideabi-gcc) or a target name supported by
+                      fbc (e.g. darwin, android) or a platform-cpu pair (e.g.
+                      linux-arm). Current (default) value: """ + target + """
+  arch=ARCH           Specify target CPU type. Overrides 'target'. Options
+                      include:
                        x86, x86_64
-                       arm/armeabi/arm5vte  Older ARM devices w/o FPUs (Android default)
-                       armv7-a              Newer ARM devices w/ FPUs, like RPi2+.
-                       32 or 64             32 or 64 bit variant of the default arch.
+                       arm or armeabi     Older 32bit ARM devices w/o FPUs.
+                           or arm5vte     (Android default.)
+                       armv7-a            Newer 32 bit ARM devices w/ FPUs,
+                                          like RPi2+.
+                       32 or 64           32 or 64 bit variant of the default
+                                          arch.
                       Current (default) value: """ + arch + """
   portable=1          (For Linux) Try to build portable binaries, and test them.
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
   fbc                 Override FB compiler
-  AS, CC, CXX         Override assembler/compiler. Should be set when crosscompiling
-  GCC                 Used only to compile C code generated from FB code. May not be clang!
+  AS, CC, CXX         Override assembler/compiler. Should be set when
+                      crosscompiling unless target=... is given instead.
+  GCC                 Used only to compile C code generated from FB code
+                      (when using gengcc=1). Must not be clang!
                       CC used by default, unless CC appears to be clang.
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
@@ -1161,13 +1171,18 @@ Targets (executables to build):
   gfx_directx_test    gfx_directx.dll test
   miditest
 Other targets/actions:
-  install             (Unix only.) Install the OHRRPGCE. Uses prefix and destdir args
-                      Installs files into ${destdir}${prefix}/games and ${destdir}${prefix}/share
-  uninstall           (Unix only.) Uninstalls. Uses prefix, destdir, dry_run args
+  install             (Unix only.) Install the OHRRPGCE. Uses prefix and destdir
+                      args.
+                      Installs files into ${destdir}${prefix}/games and
+                      ${destdir}${prefix}/share
+  uninstall           (Unix only.) Removes 'install'ed files. Uses prefix,
+                      destdir, dry_run args (must be same as when installing).
   reload              Compile all RELOAD utilities.
-  autotest            Runs autotest.rpg. See autotest.py for a better tool to check differences.
+  autotest            Runs autotest.rpg. See autotest.py for a better tool to
+                      check differences.
   interactivetest     Runs interactivetest.rpg with recorded input.
-  test (or tests)     Compile and run all automated tests, including autotest.rpg.
+  test (or tests)     Compile and run all automated tests, including
+                      autotest.rpg.
   .                   Compile everything (but doesn't run tests)
 
 With no targets specified, compiles game and custom.
@@ -1177,7 +1192,8 @@ Examples:
   scons
  Specifying graphics and music backends for a debug build of Game:
   scons gfx=sdl+fb music=native game
- Do a 'release' build (same as binary distributions) of everything, using 4 CPU cores:
+ Do a 'release' build (same as binary distributions) of everything, using 4
+ CPU cores:
   scons -j 4 debug=0 .
  Create 64 bit release builds and run tests:
   scons -j4 arch=64 debug=0 . test
