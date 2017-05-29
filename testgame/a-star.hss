@@ -2,6 +2,35 @@
 
 plotscript, on new game, begin
   set hero speed(me, 4)
+  jump to map(none, 0)
 end
 
+plotscript, on menu button, begin
+  suspend player
+  suspend npcs
+  variable(i, m, mi)
+  m := open menu(0)
+  for(i, 0, 1) do(
+    mi := add menu item(m)
+    get map name(0, i)
+    set menu item caption(mi, 0)
+    set menu item type(mi, menutype:script)
+    set menu item subtype(mi, @jump to map)
+    set menu item extra(mi, 0, i)
+  )
+end
 
+plotscript, on menu close, begin
+  resume player
+  resume npcs
+end
+
+plotscript, jump to map, mi, mapnum, begin
+  suspend player
+  suspend npcs
+  teleport to map(mapnum)
+  set hero position(0, NPC x(0), NPC y(0))
+  delete npc(0)
+  resume npcs
+  resume player
+end
