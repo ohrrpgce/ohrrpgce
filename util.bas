@@ -126,24 +126,6 @@ OPERATOR RectType.CAST () as string
   RETURN x & "," & y & ",w" & wide & ",h" & high
 END OPERATOR
 
-FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
- IF src_v = dest_v THEN RETURN default 'Same XY
- DIM diff as XYPair
- diff.x = dest_v.x - src_v.x
- diff.y = dest_v.y - src_v.y
- IF ABS(diff.x) = ABS(diff.y) THEN RETURN default 'Make no attempt to resolve diagonals
- IF ABS(diff.x) > ABS(diff.y) THEN
-  'Horizontal
-  IF diff.x < 0 THEN RETURN 3
-  RETURN 1
- ELSE
-  'Vertical
-  IF diff.y < 0 THEN RETURN 0
-  RETURN 2
- END IF
- RETURN default 'fallback should not be reached
-END FUNCTION
-
 FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
  IF axis = 0 THEN
   IF v.x < 0 THEN RETURN 3

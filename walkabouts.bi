@@ -48,6 +48,8 @@ DECLARE SUB wrapaheadxy OVERLOAD (byref p as XYPair, byval direction as integer,
 
 DECLARE FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
 
+DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
+
 'Vehicles
 DECLARE FUNCTION vehicle_is_animating() as bool
 DECLARE SUB reset_vehicle(v as vehicleState)

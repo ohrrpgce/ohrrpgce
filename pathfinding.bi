@@ -13,7 +13,7 @@ End Enum
 Type AStarNode
  p as XYPair
  parent as XYPair
- status as AStarNodeStatus = AStarNodeStatus.EMPTY
+ status as AStarNodeStatus
 End Type
 DECLARE_VECTOR_OF_TYPE(AStarNode, AStarNode)
 

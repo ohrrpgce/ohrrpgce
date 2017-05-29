@@ -408,7 +408,6 @@ DECLARE_VECTOR_OF_TYPE(XYPair, XYPair)
 
 DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
 DECLARE SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)
-DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
 
 UNION XYZTriple
   TYPE

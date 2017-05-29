@@ -29,7 +29,7 @@
 Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxdist as integer=0)
  this.startpos = startpos
  this.destpos = destpos
- this.maxdist = maxdist
+ this.maxdist = maxdist ' Not implemented yet
  v_new path
 End Constructor
 
@@ -54,7 +54,7 @@ Sub AStarPathfinder.calculate()
 
  dim safety as integer = 0
  do
-  
+    
   if cursor = destpos then
    'debug "Destination found!"
    'Fill the path result with the parent chain starting at destpos
@@ -65,6 +65,7 @@ Sub AStarPathfinder.calculate()
     if n.parent = startpos then exit do
     n = getnode(n.parent)
    loop
+   'debug_path()
    exit do
   end if
 
@@ -78,8 +79,8 @@ Sub AStarPathfinder.calculate()
     if not check_wall_edges(cursor.x, cursor.y, direction) then
      'Yes, the adjacent tile is reachable
      
-     'Update nearby node's parent, add to the open list
      getnode(nearby).p = nearby
+     'Update nearby node's parent, add to the open list
      if getnode(nearby).status = AStarNodeStatus.OPENED then
       'This node is already in the open list, check to see if the current
       'path cost is better than the saved path cost
@@ -117,14 +118,13 @@ Sub AStarPathfinder.calculate()
    getnode(best).status = AStarNodeStatus.CLOSED
    cursor = best
   else
-   'Open list was empty
-   debug "Open list was empty"
+   'Open list was empty, which means no path was found
    exit do
   end if
 
   safety += 1
-  if safety > mapsizetiles.x * mapsizetiles.y then
-   debug "AStar safety check: " & safety & " iterations is bigger than mapsize " & mapsizetiles.x * mapsizetiles.y
+  if safety > mapsizetiles.x * mapsizetiles.y * 2 then
+   debug "AStar safety check: " & safety & " iterations is bigger than double mapsize " & mapsizetiles.x * mapsizetiles.y & " * 2"
    exit do
   end if
 
@@ -143,12 +143,30 @@ Function AStarPathfinder.calc_cost(n as AStarNode) as integer
 End Function
 
 Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
+ if n.status = AStarNodeStatus.EMPTY then
+  debug "ERROR empty node in cost_before_node at " & n.p
+  return 1
+ end if
  if n.parent = startpos then return 1
  return 1 + cost_before_node(getnode(n.parent))
 End Function
 
 Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
- return abs(n.p.x - destpos.x) + abs(n.p.y - destpos.y)
+ if gmap(5) = 1 then
+  'This is a wrapping map
+  dim diff as XYPair
+  diff.x = destpos.x - n.p.x
+  diff.y = destpos.y - n.p.y
+  if abs(diff.x) > mapsizetiles.x / 2 then
+   diff.x = abs(diff.x) - mapsizetiles.x / 2
+  end if
+  if abs(diff.y) > mapsizetiles.y / 2 then
+   diff.y = abs(diff.y) - mapsizetiles.y / 2 
+  end if
+  return abs(diff.x) + abs(diff.y)
+ else
+  return abs(n.p.x - destpos.x) + abs(n.p.y - destpos.y)
+ end if
 End Function
 
 Sub AStarPathfinder.debug_path()

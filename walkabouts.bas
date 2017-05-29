@@ -816,6 +816,34 @@ FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as
  RETURN YES
 END FUNCTION
 
+FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
+ IF src_v = dest_v THEN RETURN default 'Same XY
+ DIM diff as XYPair
+ diff.x = dest_v.x - src_v.x
+ diff.y = dest_v.y - src_v.y
+ IF ABS(diff.x) = ABS(diff.y) THEN RETURN default 'Make no attempt to resolve diagonals
+ IF ABS(diff.x) > ABS(diff.y) THEN
+  'Horizontal
+  IF gmap(5) = 1 ANDALSO ABS(diff.x) > mapsizetiles.x / 2 THEN
+   'Wraparound map
+   IF diff.x < 0 THEN RETURN 1
+   RETURN 3
+  END IF
+  IF diff.x < 0 THEN RETURN 3
+  RETURN 1
+ ELSE
+  'Vertical
+  IF gmap(5) = 1 ANDALSO ABS(diff.y) > mapsizetiles.y / 2 THEN
+   'Wraparound map
+   IF diff.y < 0 THEN RETURN 2
+   RETURN 0
+  END IF
+  IF diff.y < 0 THEN RETURN 0
+  RETURN 2
+ END IF
+ RETURN default 'fallback should not be reached
+END FUNCTION
+
 '==========================================================================================
 '                                        Vehicles
 '==========================================================================================
