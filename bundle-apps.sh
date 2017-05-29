@@ -1,7 +1,22 @@
 #!/bin/sh
+# This script creates the Mac OSX OHRRPGCE-Custom.app and OHRRPGCE-Game.app apps.
+# It should called only after running scons to compile the ohrrpgce-game and
+# ohrrpgce-custom binaries.
+# Note: only x86 apps are supported currently, because mac/Frameworks.tar.gz
+# only contains x86 libraries.
 
 TODAY=`date "+%Y%m%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
+
+# Sanity checks
+if ! file ../ohrrpgce-game | grep i386 ; then
+  echo "ohrrpgce-game is missing or not compiled as 32 bit"
+  exit 1
+fi
+if ! file ../ohrrpgce-custom | grep i386 ; then
+  echo "ohrrpgce-custom is missing or not compiled as 32 bit"
+  exit 1
+fi
 
 echo Deleting old apps
 rm -rf OHRRPGCE-Game.app
