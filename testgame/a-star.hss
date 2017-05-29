@@ -1,0 +1,7 @@
+
+
+plotscript, on new game, begin
+  set hero speed(me, 4)
+end
+
+
