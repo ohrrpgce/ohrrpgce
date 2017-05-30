@@ -1,5 +1,5 @@
 'OHRRPGCE - vector.bi
-'Copyright 2010. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
+'Copyright 2010-2017. Please read LICENSE.txt for GNU GPL details and disclaimer of liability
 '
 'Arrays in FB are a disaster. This is a completely separate array implementation,
 'written in C (see array.c).  These arrays are called vectors (as in C++) to avoid
@@ -29,24 +29,19 @@
 TYPE FnCtor as sub cdecl (byval as any ptr)
 TYPE FnCopy as sub cdecl (byval as any ptr, byval as any ptr)
 TYPE FnStr as function cdecl (byval as any ptr) as string
-#IF __FB_VERSION__ < "0.91"
- 'I don't know why, but using 'long' instead of 'integer' on 32 bit FB versions < 0.91
- 'generates a warning even they're the same size
- TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as integer
-#ELSE
- TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
-#ENDIF
+TYPE FnCompare as function cdecl (byval as any ptr, byval as any ptr) as int32
 
 'Not used
-ENUM PassConvention
+ENUM 'PassConvention
   PASS_BYVAL
   PASS_BYREF
   PASS_ZSTRING
 END ENUM
+TYPE PassConvention as uint32
 
 TYPE TypeTable
-  element_len as ulong
-  passtype as ulong  'Is a PassConvention (but FB Enums are 64 bit on x86_64) (NOT USED)
+  element_len as uint32
+  passtype as PassConvention  'Not used
   ctor as FnCtor
   copyctor as FnCopy
   dtor as FnCtor
@@ -67,7 +62,7 @@ extern "C"
 declare sub array_new (byref this as any vector, byval length as int32, byval tbl as TypeTable ptr)
 
 'Undocumented, if you need this, you're probably doing something wrong
-declare function array_is_temp (byval this as any vector) as int32
+declare function array_is_temp (byval this as any vector) as boolint
 
 end extern
 
@@ -94,8 +89,8 @@ end extern
   declare function array_extend_d (byref this as any vector, byref append as any vector) as any vector
   declare function array_sort (byval this as any vector, byval compfunc as FnCompare = 0) as any vector
   declare function array_reverse (byref this as any vector) as any vector
-  declare function array_equal (byval lhs as any vector, byval rhs as any vector) as int32
-  declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as int32
+  declare function array_equal (byval lhs as any vector, byval rhs as any vector) as boolint
+  declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as boolint
   declare function array_find (byval this as any vector, byval value as any ptr) as int32
   declare function array_insert (byref this as any vector, byval pos as int32, byval value as any ptr) as any vector
   declare function array_remove (byref this as any vector, byval value as any ptr) as int32
@@ -140,6 +135,7 @@ end extern
   end extern
 
   'Deletes any existing vector in 'this', creates a new vector.
+  '(this should be either NULL or an existing array of the same type)
   'Special case: this is a FB wrapper function
   private sub v_new overload (byref this as T vector, byval length as int32 = 0)
     array_new(this, length, @type_table(TID))
@@ -189,18 +185,18 @@ end extern
   declare function v_extend_d overload alias "array_extend_d" (byref this as T vector, byref append as T vector) as T vector
 
   'Sort (Quicksort: non-stable) into ascending order. Returns 'this'.
-  'You can override the type's default compare func. NOTE: compfunc must be cdecl!
+  'You can override the type's default compare func.
   declare function v_sort overload alias "array_sort" (byval this as T vector, byval compfunc as FnCompare = 0) as T vector
 
   'Reverse elements. Returns 'this'
   declare function v_reverse overload alias "array_reverse" (byref this as T vector) as T vector
 
-  'Are all elements equal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
-  declare function v_equal overload alias "array_equal" (byval lhs as T vector, byval rhs as T vector) as int32
+  'Are all elements equal? If the type has no comparison functions defined, does raw memcmp. Returns YES/NO
+  declare function v_equal overload alias "array_equal" (byval lhs as T vector, byval rhs as T vector) as boolint
 
-  'Are any elements inequal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
+  'Are any elements inequal? If the type has no comparison functions defined, does raw memcmp. Returns YES/NO
   'Please ignore the byrefs: they are there only to match the FnCompare signature
-  declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as int32
+  declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as boolint
 
   'Returns the index of the first element equal to 'item', or -1 if not found
   declare function v_find overload alias "array_find" (byval this as T vector, byref value as T) as int32
@@ -219,7 +215,11 @@ end extern
 
 #ELSE  'IF __FB_GCC__
 
-  'Can't use the "byref as T" trick when using #defines instead of aliases.
+  'Can't use the "byref as T" trick to get fbc to pass as pointer to an object
+  'when using #defines instead of aliases (see the #IF __FB_GCC__ block above)
+  'and I'm not aware of any other way to get a pointer for an arbitrary type in a macro.
+  '(E.g. @/varptr don't work for integers inside a macro)
+  '(There's another reason to not use #defines: it might require writing the call with brackets.)
   'So use wrapper functions instead (luckily GCC can optimise these away)
 
   'Wrap just for the default argument

@@ -111,6 +111,8 @@ FUNCTION v_str CDECL (byref vec as any vector) as string
   RETURN ret + "]"
 END FUNCTION
 
+'Copy a vector into a dynamic array. If the array is zero length, the array will be -1 TO -1
+'The vector is preserved.
 SUB vector_to_array OVERLOAD (array() as integer, byval vec as integer vector)
   IF vec = NULL THEN
     debug "vector_to_array: uninitialised vector is suspicious"
@@ -126,6 +128,8 @@ SUB vector_to_array OVERLOAD (array() as integer, byval vec as integer vector)
   NEXT
 END SUB
 
+'Copy a vector into a dynamic array. If the array is zero length, the array will be -1 TO -1
+'The vector is preserved.
 SUB vector_to_array OVERLOAD (array() as string, byval vec as string vector)
   IF vec = NULL THEN
     debug "vector_to_array: uninitialised vector is suspicious"
@@ -141,6 +145,8 @@ SUB vector_to_array OVERLOAD (array() as string, byval vec as string vector)
   NEXT
 END SUB
 
+'Create a vector from an array with LBOUND 0 or -1; the -1th element is ignored
+'(vec is initialised, any existing contents deleted).
 SUB array_to_vector OVERLOAD (byref vec as integer vector, array() as integer)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
     showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
@@ -153,6 +159,8 @@ SUB array_to_vector OVERLOAD (byref vec as integer vector, array() as integer)
   NEXT
 END SUB
 
+'Create a vector from an array with LBOUND 0 or -1; the -1th element is ignored
+'(vec is initialised, any existing contents deleted).
 SUB array_to_vector OVERLOAD (byref vec as string vector, array() as string)
   IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
     showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)

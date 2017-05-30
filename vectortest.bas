@@ -487,6 +487,7 @@ startTest(sortStringArray)
 	vector_to_array array2(), vec
 	if array2(0) <> "allegory" then fail
 	if array2(4) <> "soul" then fail
+	v_free vec
 endTest
 
 startTest(intArrayCompatibility)
@@ -628,14 +629,15 @@ startTest(intVectorVectorCompare)
 	tmp[0] = 10
 	v_append arr2, tmp
 	assertVector(arr, "[[10, 1000, 1001]]")
-	if v_equal(arr, arr2) = 0 then fail
-	if v_equal(arr[0], arr2[0]) = 0 then fail
+	if v_equal(arr, arr2) = NO then fail
+	if v_equal(arr[0], arr2[0]) = NO then fail
 	v_append arr, tmp
 	if v_equal(arr, arr2) then fail
 	v_append arr2, tmp
 	if v_inequal(arr, arr2) then fail
 	v_free arr
 	v_free arr2
+	v_free tmp
 endTest
 
 'First we need to create 'string vector vector' overloads/typetable

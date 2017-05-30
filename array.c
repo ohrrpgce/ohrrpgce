@@ -166,6 +166,8 @@ static array_t mem_resize(array_t array, unsigned int len) {
 #if 1
 	void *newmem = realloc(mem, arraysize);
 #else
+	// For debugging: Move the data to a new allocation every single time,
+	// to check that everyone correctly handles this.
 	int oldsize = ARRAY_OVERHEAD + header->len * header->typetbl->element_len;
 	if (oldsize > arraysize)
 		oldsize = arraysize;
@@ -277,22 +279,20 @@ array_t array_append(array_t *array, void *value) {
 	typetable *tytbl = get_type(*array);
 	int len = length(*array);
 
+	void *moved_from = NULL;
 	if (value >= (void *)*array && value < (void *)nth_elem(*array, len)) {
 		// Special logic: you're appending an element of an array to itself, but what
 		// if realloc moves the array? Rather than throw an error, be benevolent.
-		void *temp = alloca(tytbl->element_len);
-		memcpy(temp, value, tytbl->element_len);
-		value = temp;
+		moved_from = *array;
 	}
 
 	*array = mem_resize(*array, len + 1);
 
+	if (moved_from)
+		value += (void*)*array - moved_from;
+
 	void *elmt = nth_elem(*array, len);
-	if (tytbl->copyctor) {
-		tytbl->copyctor(elmt, value);
-	} else {
-		memcpy(elmt, value, tytbl->element_len);
-	}
+	copy_elements(elmt, value, 1, tytbl);
 	return *array;
 }
 
@@ -325,7 +325,7 @@ array_t array_extend_d(array_t *dest, array_t *src) {
 
 	*dest = mem_resize(*dest, len + len2);
 
-	memcpy((char *)*dest + tytbl->element_len * len, *src, tytbl->element_len * len2);
+	memcpy(nth_elem(*dest, len), *src, tytbl->element_len * len2);
 
 	mem_free(*src);
 	*src = NULL;
@@ -347,7 +347,7 @@ array_t array_extend(array_t *dest, array_t *src) {
 	*dest = mem_resize(*dest, len + len2);
 	//If *dest == *src, then we are still OK
 
-	void *from = *src, *to = nth_elem(*dest, len); //(char *)*dest + (tytbl->element_len * len);
+	void *from = *src, *to = nth_elem(*dest, len);
 	copy_elements(to, from, len2, tytbl);
 	return *dest;
 }
@@ -458,7 +458,7 @@ int array_length(array_t array) {
 array_t array_end(array_t array) {
 	if (!array)
 		return NULL;
-	return (array_t)((char *)array + get_type(array)->element_len * length(array));
+	return nth_elem(array, length(array));
 }
 
 // (E)
@@ -488,10 +488,10 @@ array_t array_temp(array_t array) {
 }
 
 // (E)
-int array_is_temp(array_t array) {
+boolint array_is_temp(array_t array) {
 	if (!array)
 		throw_error("array_is_temp: array uninitialised");
-	return get_header(array)->temp;
+	return get_header(array)->temp ? -1 : 0;
 }
 
 // (E)
@@ -509,7 +509,7 @@ array_t array_sort(array_t array, FnCompare compare) {
 }
 
 // Returns -1 for true
-int array_equal(array_t lhs, array_t rhs) {
+boolint array_equal(array_t lhs, array_t rhs) {
 	if (!lhs || !rhs)
 		throw_error("array_equal: array uninitialised");
 
@@ -536,7 +536,7 @@ int array_equal(array_t lhs, array_t rhs) {
 }
 
 // (E)
-int array_inequal(array_t *lhs, array_t *rhs) {
+boolint array_inequal(array_t *lhs, array_t *rhs) {
 	return array_equal(*lhs, *rhs) ? 0 : -1;
 }
 
@@ -591,12 +591,7 @@ array_t array_insert(array_t *array, int pos, void *value) {
 	if (pos < len)
 		memmove(elmt + tytbl->element_len, elmt, (len - pos) * tytbl->element_len);
 
-	if (tytbl->copyctor) {
-		tytbl->copyctor(elmt, value);
-	} else {
-		memcpy(elmt, value, tytbl->element_len);
-	}
-
+	copy_elements(elmt, value, 1, tytbl);
 	return *array;
 }
 
