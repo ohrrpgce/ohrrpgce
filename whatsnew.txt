@@ -167,6 +167,11 @@ WHAT IS NEW?
 
 June 06 2016 [Callipygous+1]
 
+  * New Features
+    * If you are using the gfx_sdl backend, almost all menus in
+      custom can make use of the extra space when the window is
+      maximized
+
   * Bugfixes
     * You weren't meant to be able to resize the window in the sprite
       editor; doing so would corrupt graphics (gfx_sdl only) [Ralph]
@@ -181,9 +186,6 @@ June 06 2016 [Callipygous+1]
       exit to the file-picker and then open a game again
     * Options for changing the window size now work on Macs [Ralph]
     * "unhide mouse cursor" now works in fullscreen too [Ralph]
-    * If you are using the gfx_sdl backend, almost all menus in
-      custom can make use of the extra space when the window is
-      maximized
 
   * Stuff Only Developers Will Notice
     * 64 bit builds work now.
