@@ -651,3 +651,99 @@ array_t array_reverse(array_t *array) {
 	mem_free(*array);
 	return *array = newmem;
 }
+
+/****************************** Priority Queue *******************************/
+// Binary heap priority queue to retrieve minimum element
+
+#define LEFT_CHILD(idx) (2*idx+1)
+#define PARENT(idx) ((idx-1)/2)
+
+// (E)
+// Remove and delete the smallest element (read it yourself before popping)
+// and preserve the heap invariant.
+// compare is optional.
+void array_heappop(array_t *array, FnCompare compare)
+{
+	if (!array)
+		throw_error("array_heappop: array uninitialised");
+
+	typetable *tytbl = get_type(*array);
+	int len = length(*array);
+	if (len == 0)
+		throw_error("array_heappop: pop from empty queue");
+	if (!compare) {
+		compare = tytbl->comp;
+		if (!compare)
+			throw_error("array_heappop: no comparison function defined for %s", tytbl->name);
+	}
+
+	// Delete root element
+	delete_elements(*array, 0, 1);
+
+	// We pop off the last element and look where to put it (don't resize yet)
+	int hole = 0;
+	void *to_insert = nth_elem(*array, len - 1);
+	len--;
+
+	if (len) {
+		// Bubble up the hole from root until finding a spot to put to_insert
+		while (LEFT_CHILD(hole) < len) {
+			// Find the smallest child
+			int left_child = LEFT_CHILD(hole), right_child = left_child + 1;
+			int smallest = left_child;
+			if (right_child < len && compare(nth_elem(*array, right_child), nth_elem(*array, left_child)) <= 0)
+				smallest = right_child;
+
+			if (compare(to_insert, nth_elem(*array, smallest)) <= 0)
+				break;  // at least as small as both children
+			memcpy(nth_elem(*array, hole), nth_elem(*array, smallest), tytbl->element_len);
+			hole = smallest;
+		}
+		memcpy(nth_elem(*array, hole), to_insert, tytbl->element_len);
+	}
+
+	// Now update the array length
+	*array = mem_resize(*array, len);
+}
+
+// (E)
+// Add a new value to a heap; returns its location
+// compare is optional
+int array_heappush(array_t *array, void *value, FnCompare compare)
+{
+	if (!array)
+		throw_error("array_heappush: array uninitialised");
+
+	typetable *tytbl = get_type(*array);
+	int len = length(*array);
+	if (!compare) {
+		compare = tytbl->comp;
+		if (!compare)
+			throw_error("array_heappush: no comparison function defined for %s", tytbl->name);
+	}
+
+	void *moved_from = NULL;
+	if (value >= (void *)*array && value < (void *)nth_elem(*array, len)) {
+		// Special logic: you're push a copy of an element of an array, but what
+		// if realloc moves the array? Rather than throw an error, be benevolent.
+		moved_from = *array;
+	}
+
+	*array = mem_resize(*array, len + 1);
+
+	if (moved_from)
+		value += (void*)*array - moved_from;
+
+	// Start from end and bubble down the value until its parent isn't larger
+	int hole = len;  // where to place
+	while (hole > 0) {
+		int parent = PARENT(hole);
+		if (compare(nth_elem(*array, parent), value) <= 0)
+			break;
+		memcpy(nth_elem(*array, hole), nth_elem(*array, parent), tytbl->element_len);
+		hole = parent;
+	}
+	// Place *value
+	copy_elements(nth_elem(*array, hole), value, 1, tytbl);
+	return hole;
+}

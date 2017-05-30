@@ -810,3 +810,53 @@ startTest(testBoundsChecking)
 	set_debug_hook(NULL)
 	v_free arr
 endTest
+
+startTest(testHeap)
+	' Stuff a whole lot of random values into a heap and check they come out right
+	dim heap as integer vector
+	v_new heap
+	for idx as integer = 0 to 1000
+		v_heappush heap, rnd * 300
+	next
+	dim last as integer = heap[0]
+	dim length as integer = v_len(heap)
+	if length <> 1001 then fail
+	while v_len(heap)
+		if heap[0] < last then fail
+		last = heap[0]
+		v_heappop heap
+		length -= 1
+		if length <> v_len(heap) then fail
+	wend
+	v_free heap
+endTest
+
+startTest(testHeapUpDown)
+	' Test alternating pushing and popping, test that it works
+	' with more complex data types (length-1 strings), and check we get back what we pushed
+	dim heap as string vector
+	v_new heap
+	dim last as integer = 0
+	dim sum as integer = 0
+	for idx as integer = 0 to 50
+		for jdx as integer = 1 to 10
+			dim elmt as integer = small(255, last + rnd * 30)
+			v_heappush heap, chr(elmt)
+			sum += elmt
+		next
+		for jdx as integer = 1 to 5
+			if asc(heap[0]) < last then fail
+			last = asc(heap[0])
+			sum -= last
+			v_heappop heap
+		next
+	next
+	while v_len(heap)
+		if asc(heap[0]) < last then fail
+		last = asc(heap[0])
+		sum -= last
+		v_heappop heap
+	wend
+	if sum <> 0 then fail
+	v_free heap
+endTest

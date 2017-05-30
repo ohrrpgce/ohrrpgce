@@ -95,6 +95,8 @@ end extern
   declare function array_insert (byref this as any vector, byval pos as int32, byval value as any ptr) as any vector
   declare function array_remove (byref this as any vector, byval value as any ptr) as int32
   declare function array_delete_slice (byref this as any vector, byval from as int32, byval to as int32) as any vector
+  declare sub array_heappop (byref this as any vector, byval compfunc as FnCompare = 0)
+  declare function array_heappush (byref this as any vector, byval value as any ptr, byval compfunc as FnCompare = 0) as int32
   end extern
 
   #DEFINE v_free array_free
@@ -121,6 +123,8 @@ end extern
   '#DEFINE v_remove array_remove
   #DEFINE v_delete_slice array_delete_slice
   '#DEFINE v_delete_slice(this, from, to) cast(typeof(this), array_delete_slice(this, from, to))
+  #DEFINE v_heappop array_heappop
+  '#DEFINE v_heappush array_heappush
 #ENDIF
 
 
@@ -211,6 +215,19 @@ end extern
   'Delete the range [from, to). Returns 'this'
   declare function v_delete_slice overload alias "array_delete_slice" (byref this as T vector, byval from as int32, byval to as int32) as T vector
 
+  'The following act on heaps, which are vectors ordered according to a tree structure, with (one of) the
+  'minimum element at this[0]. They are an efficient way to implement priority queues.
+  'Construct a heap by starting from an empty vector and calling v_heappush
+  'repeatedly, or just use v_sort.
+
+  'Remove and delete the smallest element (read it yourself before popping) from a heap.
+  'You can override the type's default compare func.
+  declare sub v_heappop overload alias "array_heappop" (byref this as T vector, byval compfunc as FnCompare = 0)
+
+  'Add a new value to a heap. Returns the index at which it was placed.
+  'You can override the type's default compare func.
+  declare function v_heappush overload alias "array_heappush" (byref this as T vector, byref value as T, byval compfunc as FnCompare = 0) as int32
+
   end extern
 
 #ELSE  'IF __FB_GCC__
@@ -241,6 +258,10 @@ end extern
 
   private function v_remove overload (byref this as T vector, byref value as T) as int32
     return array_remove(this, @value)
+  end function
+
+  private function v_heappush overload (byref this as T vector, byref value as T, byval compfunc as FnCompare = 0) as int32
+    return array_heappush(this, @value, compfunc)
   end function
 
 #ENDIF

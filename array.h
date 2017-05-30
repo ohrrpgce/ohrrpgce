@@ -72,3 +72,5 @@ array_t array_insert(array_t *array, int pos, void *value);
 array_t array_delete_slice(array_t *array, int from, int to);
 int array_remove(array_t *array, void *value);
 array_t array_reverse(array_t *array);
+void array_heappop(array_t *array, FnCompare compare);
+int array_heappush(array_t *array, void *value, FnCompare compare);
