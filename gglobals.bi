@@ -65,7 +65,7 @@ EXTERN as integer mapx, mapy  'camera pos
 EXTERN tilesets() as TilesetData ptr
 
 'Hero walkabout globals
-EXTERN as integer catx(), caty(), catz(), catd()
+EXTERN cats() as CaterpillarHistory
 EXTERN herow() as HeroWalkabout
 
 'NPC globals

@@ -193,9 +193,9 @@ NEXT i
 
 '--hero's position
 FOR i as integer = 0 TO 15
- catx(i) = gen(genStartX) * 20
- caty(i) = gen(genStartY) * 20
- catd(i) = 2
+ cats(i).x = gen(genStartX) * 20
+ cats(i).y = gen(genStartY) * 20
+ cats(i).d = 2
 NEXT i
 
 'plotstring colours
@@ -597,7 +597,7 @@ SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as b
    update_map_slices_for_new_tilemap
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
-   cropposition catx(0), caty(0), 20
+   cropposition cats(0).x, cats(0).y, 20
 
   ELSE
    DIM errmsg as string = " Tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high

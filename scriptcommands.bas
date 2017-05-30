@@ -536,7 +536,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 33'--show map
   gen(genScrBackdrop) = 0
  CASE 34'--dismount vehicle
-  forcedismount catd()
+  forcedismount
  CASE 35'--use NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -578,8 +578,8 @@ SUB script_functions(byval cmdid as integer)
  CASE 61'--teleport to map
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMap) THEN
    gam.map.id = retvals(0)
-   catx(0) = retvals(1) * 20
-   caty(0) = retvals(2) * 20
+   cats(0).x = retvals(1) * 20
+   cats(0).y = retvals(2) * 20
    gam.want.teleport = YES
    script_start_waiting(0)
   END IF
@@ -674,7 +674,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 151'--show mini map
   stop_fibre_timing
-  minimap catx(0), caty(0)
+  minimap cats(0).x, cats(0).y
   start_fibre_timing
  CASE 153'--items menu
   stop_fibre_timing
@@ -770,7 +770,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(1) = 1 THEN tempxgo = -20
    IF retvals(1) = 2 THEN tempygo = -20
    IF retvals(1) = 3 THEN tempxgo = 20
-   scriptret = wrappass(catx(retvals(0) * 5) \ 20, caty(retvals(0) * 5) \ 20, tempxgo, tempygo, 0)
+   scriptret = wrappass(cats(retvals(0) * 5).x \ 20, cats(retvals(0) * 5).y \ 20, tempxgo, tempygo, 0)
   END IF
  CASE 259'--check NPC wall
   npcref = getnpcref(retvals(0), 0)
@@ -1074,8 +1074,8 @@ SUB script_functions(byval cmdid as integer)
  CASE 135'--put hero
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cropposition retvals(1), retvals(2), 20
-   catx(retvals(0) * 5) = retvals(1)
-   caty(retvals(0) * 5) = retvals(2)
+   cats(retvals(0) * 5).x = retvals(1)
+   cats(retvals(0) * 5).y = retvals(2)
   END IF
  CASE 136'--put npc
   npcref = getnpcref(retvals(0), 0)
@@ -1091,11 +1091,11 @@ SUB script_functions(byval cmdid as integer)
   limitcamera mapx, mapy
  CASE 138'--hero pixel x
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = catx(retvals(0) * 5)
+   scriptret = cats(retvals(0) * 5).x
   END IF
  CASE 139'--hero pixel y
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = caty(retvals(0) * 5)
+   scriptret = cats(retvals(0) * 5).y
   END IF
  CASE 140'--npc pixel x
   npcref = getnpcref(retvals(0), 0)
@@ -1198,16 +1198,16 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    SELECT CASE retvals(1)
     CASE 0'--north
-     catd(retvals(0) * 5) = 0
+     cats(retvals(0) * 5).d = 0
      herow(retvals(0)).ygo = retvals(2) * 20
     CASE 1'--east
-     catd(retvals(0) * 5) = 1
+     cats(retvals(0) * 5).d = 1
      herow(retvals(0)).xgo = (retvals(2) * 20) * -1
     CASE 2'--south
-     catd(retvals(0) * 5) = 2
+     cats(retvals(0) * 5).d = 2
      herow(retvals(0)).ygo = (retvals(2) * 20) * -1
     CASE 3'--west
-     catd(retvals(0) * 5) = 3
+     cats(retvals(0) * 5).d = 3
      herow(retvals(0)).xgo = retvals(2) * 20
    END SELECT
   END IF
@@ -1295,11 +1295,11 @@ SUB script_functions(byval cmdid as integer)
   script_start_waiting(retvals(0))
  CASE 43'--hero x
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = catx(retvals(0) * 5) \ 20
+   scriptret = cats(retvals(0) * 5).x \ 20
   END IF
  CASE 44'--hero y
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = caty(retvals(0) * 5) \ 20
+   scriptret = cats(retvals(0) * 5).y \ 20
   END IF
  CASE 47'--suspend obstruction
   setbit gen(), genSuspendBits, suspendobstruction, 1
@@ -1313,7 +1313,7 @@ SUB script_functions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendherowalls, 0
  CASE 53'--set hero direction
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   catd(retvals(0) * 5) = ABS(retvals(1)) MOD 4
+   cats(retvals(0) * 5).d = ABS(retvals(1)) MOD 4
   END IF
  CASE 57, 118'--suspend caterpillar
   setbit gen(), genSuspendBits, suspendcaterpillar, 1
@@ -1389,8 +1389,8 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
   cropposition retvals(1), retvals(2), 1
    FOR i as integer = 0 TO 4
-    catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
-    caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
+    cats(small(retvals(0) * 5 + i, 15)).x = retvals(1) * 20
+    cats(small(retvals(0) * 5 + i, 15)).y = retvals(2) * 20
    NEXT i
   END IF
  CASE 90'--find hero
@@ -1410,10 +1410,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 95'--resume NPC walls
   setbit gen(), genSuspendBits, suspendnpcwalls, 0
  CASE 96'--set hero Z
-  catz(bound(retvals(0), 0, 3) * 5) = retvals(1)
+  cats(bound(retvals(0), 0, 3) * 5).z = retvals(1)
  CASE 102'--hero direction
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   scriptret = catd(retvals(0) * 5)
+   scriptret = cats(retvals(0) * 5).d
   END IF
  CASE 103'--reset palette
   loadpalette master(), gam.current_master_palette
@@ -3368,7 +3368,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 544 '--hero Z
   IF really_valid_hero_party(retvals(0), 3) THEN
-   scriptret = catz(retvals(0) * 5)
+   scriptret = cats(retvals(0) * 5).z
   END IF
  CASE 547 '--item maximum stack size (item id)
   IF valid_item(retvals(0)) THEN

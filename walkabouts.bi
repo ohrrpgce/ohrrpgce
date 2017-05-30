@@ -54,7 +54,7 @@ DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default
 DECLARE FUNCTION vehicle_is_animating() as bool
 DECLARE SUB reset_vehicle(v as vehicleState)
 DECLARE SUB dump_vehicle_state()
-DECLARE SUB forcedismount (catd() as integer)
+DECLARE SUB forcedismount ()
 DECLARE SUB update_vehicle_state ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()

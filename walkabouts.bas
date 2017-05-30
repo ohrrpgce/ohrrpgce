@@ -230,13 +230,13 @@ PRIVATE SUB update_walkabout_hero_slices()
 
  IF should_show_normal_caterpillar() THEN
   FOR i as integer = 0 TO UBOUND(herow)
-   update_walkabout_pos herow(i).sl, catx(i * 5), caty(i * 5), catz(i * 5)
+   update_walkabout_pos herow(i).sl, cats(i * 5).x, cats(i * 5).y, cats(i * 5).z
   NEXT i
 
   DIM cat_slot as integer = 0
   FOR party_slot as integer = 0 TO 3
    IF gam.hero(party_slot).id >= 0 THEN
-    set_walkabout_frame herow(cat_slot).sl, catd(cat_slot * 5), (herow(cat_slot).wtog \ 2)
+    set_walkabout_frame herow(cat_slot).sl, cats(cat_slot * 5).d, (herow(cat_slot).wtog \ 2)
     cat_slot += 1
    END IF
   NEXT party_slot
@@ -246,8 +246,8 @@ PRIVATE SUB update_walkabout_hero_slices()
 
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  update_walkabout_pos herow(0).sl, catx(0), caty(0), catz(0)
-  set_walkabout_frame herow(0).sl, catd(0), (herow(0).wtog \ 2)
+  update_walkabout_pos herow(0).sl, cats(0).x, cats(0).y, cats(0).z
+  set_walkabout_frame herow(0).sl, cats(0).d, (herow(0).wtog \ 2)
   FOR i as integer = 1 TO UBOUND(herow)
    set_walkabout_vis herow(i).sl, NO
   NEXT i
@@ -893,8 +893,8 @@ SUB update_vehicle_state ()
  IF vstate.rising THEN '--rise----------------------
   DIM risen_count as integer = 0
   FOR i as integer = 0 TO 3
-   IF catz(i * 5) < vstate.dat.elevation THEN
-    catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
+   IF cats(i * 5).z < vstate.dat.elevation THEN
+    cats(i * 5).z = cats(i * 5).z + large(1, small(4, (vstate.dat.elevation - cats(i * 5).z + 1) \ 2))
    ELSE
     risen_count += 1
    END IF
@@ -906,15 +906,15 @@ SUB update_vehicle_state ()
  IF vstate.falling THEN '--fall-------------------
   DIM fallen_count as integer = 0
   FOR i as integer = 0 TO 3
-   IF catz(i * 5) > 0 THEN
-    catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
+   IF cats(i * 5).z > 0 THEN
+    cats(i * 5).z = cats(i * 5).z - large(1, small(4, (vstate.dat.elevation - cats(i * 5).z + 1) \ 2))
    ELSE
     fallen_count += 1
    END IF
   NEXT i
   IF fallen_count = 4 THEN
    FOR i as integer = 0 TO 3
-    catz(i * 5) = 0
+    cats(i * 5).z = 0
    NEXT i
    vstate.falling = NO
    vstate.init_dismount = YES
@@ -922,20 +922,20 @@ SUB update_vehicle_state ()
  END IF
  IF vstate.init_dismount THEN '--dismount---------------
   vstate.init_dismount = NO
-  DIM disx as integer = catx(0) \ 20
-  DIM disy as integer = caty(0) \ 20
+  DIM disx as integer = cats(0).x \ 20
+  DIM disy as integer = cats(0).y \ 20
   IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
    '--dismount-ahead is true, dismount-passwalls is true
-   aheadxy disx, disy, catd(0), 1
+   aheadxy disx, disy, cats(0).d, 1
    cropposition disx, disy, 1
   END IF
   IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
    '--dismount point is landable
    FOR i as integer = 0 TO 15
-    catx(i) = catx(0)
-    caty(i) = caty(0)
-    catd(i) = catd(0)
-    catz(i) = 0
+    cats(i).x = cats(0).x
+    cats(i).y = cats(0).y
+    cats(i).d = cats(0).d
+    cats(i).z = 0
    NEXT i
    IF vstate.dat.dismount_ahead = YES THEN
     vstate.ahead = YES
@@ -960,7 +960,7 @@ SUB update_vehicle_state ()
   IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
    'FIXME: Why is this here, when dismounting is apparently also handled by vehscramble?
    'Does this have to do with Bug 764 - "Blocked by" vehicle setting does nothing ?
-   SELECT CASE catd(0)
+   SELECT CASE cats(0).d
     CASE 0
      herow(0).ygo = 20
     CASE 1
@@ -979,10 +979,10 @@ SUB update_vehicle_state ()
   '--clear vehicle (sets vstate.active=NO, etc)
   reset_vehicle vstate
   FOR i as integer = 0 TO 15   'Why is this duplicated from dismounting?
-   catx(i) = catx(0)
-   caty(i) = caty(0)
-   catd(i) = catd(0)
-   catz(i) = 0
+   cats(i).x = cats(0).x
+   cats(i).y = cats(0).y
+   cats(i).d = cats(0).d
+   cats(i).z = 0
   NEXT i
   gam.random_battle_countdown = range(100, 60)
  END IF
@@ -1016,7 +1016,7 @@ SUB update_vehicle_state ()
   END IF
  END IF'--not animating
 
- IF vstate.active THEN npc(vstate.npc).z = catz(0)
+ IF vstate.active THEN npc(vstate.npc).z = cats(0).z
 END SUB
 
 SUB vehicle_graceful_dismount ()
@@ -1029,12 +1029,12 @@ SUB vehicle_graceful_dismount ()
  END IF
 END SUB
 
-SUB forcedismount (catd() as integer)
+SUB forcedismount ()
  IF vstate.active THEN
   '--clear vehicle on loading new map--
   IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
    '--dismount-ahead is true, dismount-passwalls is false
-   SELECT CASE catd(0)
+   SELECT CASE cats(0).d
     CASE 0
      herow(0).ygo = 20
     CASE 1
@@ -1055,8 +1055,8 @@ SUB forcedismount (catd() as integer)
   herow(0).speed = vstate.old_speed
   reset_vehicle vstate
   FOR i as integer = 1 TO 15
-   catx(i) = catx(0)
-   caty(i) = caty(0)
+   cats(i).x = cats(0).x
+   cats(i).y = cats(0).y
   NEXT i
   gam.random_battle_countdown = range(100, 60)
  END IF
@@ -1098,8 +1098,8 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
  DIM scramy as integer
  FOR i as integer = 0 TO 3
   IF i < count THEN
-   scramx = catx(i * 5)
-   scramy = caty(i * 5)
+   scramx = cats(i * 5).x
+   scramy = cats(i * 5).y
    IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
     scramx = targx
     herow(i).xgo = 0
@@ -1122,8 +1122,8 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
     IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
    END IF
    IF scramx - targx = 0 AND scramy - targy = 0 THEN scrambled_heroes += 1
-   catx(i * 5) = scramx
-   caty(i * 5) = scramy
+   cats(i * 5).x = scramx
+   cats(i * 5).y = scramy
   END IF
  NEXT i
  IF scrambled_heroes = count THEN

@@ -52,7 +52,8 @@ TYPE HeroWalkabout
   wtog as integer
   speed as integer
   curzones as integer vector = 0
-  'x, y, z, dir are in catx(), caty(), catz(), catd() instead *grumble*
+  'x, y, z, dir are in the cats() array of type CaterpillarHistory
+  'FIXME: They will be accessed through functions (soon)
 
   Declare Destructor()  'Free curzones
 END TYPE
@@ -278,6 +279,13 @@ TYPE DebugMenuDef
  Declare Sub start_building_menu()
  Declare Destructor()
  Declare Function def(combining_scancode as integer = 0, scancode as integer = 0, menuitem as string = "") as bool
+END TYPE
+
+TYPE CaterpillarHistory
+ x as integer
+ y as integer
+ z as integer
+ d as integer
 END TYPE
 
 #ENDIF

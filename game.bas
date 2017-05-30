@@ -93,10 +93,13 @@ DIM gold as integer
 'Noninterpolated
 REDIM herow(3) as HeroWalkabout
 'Interpolated
-REDIM catx(15) as integer
-REDIM caty(15) as integer
-REDIM catz(15) as integer
-REDIM catd(15) as integer
+'The cats array store a history of recent leader positions.
+'The size is: (max_number_of_heroes - 1) * (tile_size / leader_speed) + 1
+'but for simplicity we just dim it for the slowest possible leader speed of 1, so:
+'(4 - 1) * (20 / 1) + 1 = 61
+' so 61 elements is 0-60
+'FIXME: still dimmed to 15 because hardcoded to speed 4, that should change soon!
+REDIM cats(15) as CaterpillarHistory
 
 REDIM npcs(0) as NPCType
 REDIM npc(299) as NPCInst
@@ -788,10 +791,10 @@ DO
  IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
    DO
-    IF carray(ccUp) > 0 THEN herow(0).ygo = 20: catd(0) = 0: EXIT DO
-    IF carray(ccDown) > 0 THEN herow(0).ygo = -20: catd(0) = 2: EXIT DO
-    IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: catd(0) = 3: EXIT DO
-    IF carray(ccRight) > 0 THEN herow(0).xgo = -20: catd(0) = 1: EXIT DO
+    IF carray(ccUp) > 0 THEN herow(0).ygo = 20: cats(0).d = 0: EXIT DO
+    IF carray(ccDown) > 0 THEN herow(0).ygo = -20: cats(0).d = 2: EXIT DO
+    IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: cats(0).d = 3: EXIT DO
+    IF carray(ccRight) > 0 THEN herow(0).xgo = -20: cats(0).d = 1: EXIT DO
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
      usenpc 0, find_useable_npc()
     END IF
@@ -1111,14 +1114,15 @@ END SUB
 '                                      Hero movement
 '==========================================================================================
 
-
 SUB interpolatecat
  'given the current positions of the caterpillar party, interpolate their inbetween frames
- FOR o as integer = 0 TO UBOUND(catx) - 5 STEP 5
+ 'This is used when caterpillar party is re-enabled after being disabled
+ 'FIXME: or after changing the leader's speed (soon)
+ FOR o as integer = 0 TO UBOUND(cats) - 5 STEP 5
   FOR i as integer = o + 1 TO o + 4
-   catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
-   caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
-   catd(i) = catd(o)
+   cats(i).x = cats(i - 1).x + ((cats(o + 5).x - cats(o).x) / 5)
+   cats(i).y = cats(i - 1).y + ((cats(o + 5).y - cats(o).y) / 5)
+   cats(i).d = cats(o).d
   NEXT i
  NEXT o
 END SUB
@@ -1137,8 +1141,8 @@ SUB update_heroes(force_step_check as bool=NO)
     '--this only happens if herowalls is on
     '--wrapping passability
     DIM herotile as XYPair
-    herotile.x = catx(whoi * 5) \ 20
-    herotile.y = caty(whoi * 5) \ 20
+    herotile.x = cats(whoi * 5).x \ 20
+    herotile.y = cats(whoi * 5).y \ 20
     wrappass herotile.x, herotile.y, herow(whoi).xgo, herow(whoi).ygo, vstate.active
    END IF
    IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
@@ -1149,16 +1153,16 @@ SUB update_heroes(force_step_check as bool=NO)
        DIM id as integer
        id = .id - 1
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
-        IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), herow(whoi).xgo, herow(whoi).ygo) THEN
+        IF wrapcollision (.x, .y, .xgo, .ygo, cats(whoi * 5).x, cats(whoi * 5).y, herow(whoi).xgo, herow(whoi).ygo) THEN
          IF .not_obstruction = 0 THEN
           herow(whoi).xgo = 0: herow(whoi).ygo = 0
           '--push the NPC
           DIM push as integer = npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
-           IF catd(whoi) = 0 AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
-           IF catd(whoi) = 2 AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
-           IF catd(whoi) = 3 AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
-           IF catd(whoi) = 1 AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
+           IF cats(whoi).d = 0 AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
+           IF cats(whoi).d = 2 AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
+           IF cats(whoi).d = 3 AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
+           IF cats(whoi).d = 1 AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
            IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
             FOR o as integer = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
              IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
@@ -1174,7 +1178,7 @@ SUB update_heroes(force_step_check as bool=NO)
           END IF
          END IF
          IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
-          IF wraptouch(.x, .y, catx(0), caty(0), 20) THEN
+          IF wraptouch(.x, .y, cats(0).x, cats(0).y, 20) THEN
            usenpc 1, i
           END IF
          END IF '---touch-activate
@@ -1190,10 +1194,10 @@ SUB update_heroes(force_step_check as bool=NO)
  'Caterpillar hero movement: if enabled and the leader about to move then make others trail
  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
   IF herow(0).xgo OR herow(0).ygo THEN
-   FOR i as integer = UBOUND(catx) TO 1 STEP -1
-    catx(i) = catx(i - 1)
-    caty(i) = caty(i - 1)
-    catd(i) = catd(i - 1)
+   FOR i as integer = UBOUND(cats) TO 1 STEP -1
+    cats(i).x = cats(i - 1).x
+    cats(i).y = cats(i - 1).y
+    cats(i).d = cats(i - 1).d
    NEXT i
    FOR whoi as integer = 0 TO sizeActiveParty - 1
     herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
@@ -1216,13 +1220,13 @@ SUB update_heroes(force_step_check as bool=NO)
   IF herow(whoi).xgo OR herow(whoi).ygo THEN
    '--this actually updates the hero's coordinates
    'NOTE: if the caterpillar is enabled, then only the leader has nonzero xgo, ygo
-   IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: catx(whoi * 5) -= herow(whoi).speed
-   IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: catx(whoi * 5) += herow(whoi).speed
-   IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: caty(whoi * 5) -= herow(whoi).speed
-   IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: caty(whoi * 5) += herow(whoi).speed
+   IF herow(whoi).xgo > 0 THEN herow(whoi).xgo -= herow(whoi).speed: cats(whoi * 5).x -= herow(whoi).speed
+   IF herow(whoi).xgo < 0 THEN herow(whoi).xgo += herow(whoi).speed: cats(whoi * 5).x += herow(whoi).speed
+   IF herow(whoi).ygo > 0 THEN herow(whoi).ygo -= herow(whoi).speed: cats(whoi * 5).y -= herow(whoi).speed
+   IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: cats(whoi * 5).y += herow(whoi).speed
    didgo(whoi) = YES
   END IF
-  cropmovement catx(whoi * 5), caty(whoi * 5), herow(whoi).xgo, herow(whoi).ygo
+  cropmovement cats(whoi * 5).x, cats(whoi * 5).y, herow(whoi).xgo, herow(whoi).ygo
  NEXT whoi
 
  'Update lists of current zones and run zone entry+exit triggers
@@ -1250,7 +1254,7 @@ SUB update_heroes(force_step_check as bool=NO)
    process_zone_eachstep_triggers "hero" & whoi, herow(whoi).curzones
 
    '--Check for harm tile
-   DIM p as integer = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+   DIM p as integer = readblock(pass, cats(whoi * 5).x \ 20, cats(whoi * 5).y \ 20)
    IF p AND passHarm THEN
 
     DIM harm_whole_party as bool = NO
@@ -1295,7 +1299,7 @@ SUB update_heroes(force_step_check as bool=NO)
      IF .id > 0 THEN '---NPC EXISTS---
       IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
        IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
-        IF .x = catx(0) AND .y = caty(0) THEN '---YOU ARE ON NPC---
+        IF .x = cats(0).x AND .y = cats(0).y THEN '---YOU ARE ON NPC---
          usenpc 1, i
         END IF '---YOU ARE ON NPC---
        END IF '---NPC IS PASSABLE---
@@ -1314,7 +1318,7 @@ SUB update_heroes(force_step_check as bool=NO)
   'No random battle allowed on the first tick before fade-in (?)
   IF gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendrandomenemies) = 0 THEN
    DIM battle_formation_set as integer
-   battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
+   battle_formation_set = readblock(foemap, cats(0).x \ 20, cats(0).y \ 20)
    IF vstate.active = YES THEN
     '--Riding a vehicle
     IF vstate.dat.random_battles > 0 THEN
@@ -1344,7 +1348,7 @@ SUB update_heroes(force_step_check as bool=NO)
        END IF
       ELSE
        'trigger the instead-of-battle script
-       trigger_script gmap(13), 2, YES, "instead-of-battle", "triggered at " & (catx(0) \ 20) & "," & (caty(0) \ 20), mainFibreGroup
+       trigger_script gmap(13), 2, YES, "instead-of-battle", "triggered at " & (cats(0).x \ 20) & "," & (cats(0).y \ 20), mainFibreGroup
        trigger_script_arg 0, battle_formation, "formation"
        trigger_script_arg 1, battle_formation_set, "formation set"
       END IF
@@ -1356,9 +1360,9 @@ SUB update_heroes(force_step_check as bool=NO)
   'Each step trigger
   IF gmap(14) > 0 THEN
    trigger_script gmap(14), 3, YES, "eachstep", "map " & gam.map.id, mainFibreGroup
-   trigger_script_arg 0, catx(0) \ 20, "tile x"
-   trigger_script_arg 1, caty(0) \ 20, "tile y"
-   trigger_script_arg 2, catd(0), "direction"
+   trigger_script_arg 0, cats(0).x \ 20, "tile x"
+   trigger_script_arg 1, cats(0).y \ 20, "tile y"
+   trigger_script_arg 2, cats(0).d, "direction"
   END IF
 
  END IF '--End of on-step triggers
@@ -1406,7 +1410,7 @@ END SUB
 
 SUB update_hero_zones(byval who as integer)
  DIM newzones as integer vector
- v_move newzones, GetZonesAtTile(zmap, catx(who * 5) \ 20, caty(who * 5) \ 20)
+ v_move newzones, GetZonesAtTile(zmap, cats(who * 5).x \ 20, cats(who * 5).y \ 20)
  process_zone_entry_triggers "hero" & who, herow(who).curzones, newzones
  v_move herow(who).curzones, newzones
 END SUB
@@ -1436,11 +1440,11 @@ SUB update_npcs ()
     '--if we are not scrambling clearing or aheading
     IF vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO THEN
      '--match vehicle to main hero
-     npc(o).x = catx(0)
-     npc(o).y = caty(0)
-     npc(o).z = catz(0)  'NPC Z value is matched to the hero in update_vehicle_state for simplicity, but
+     npc(o).x = cats(0).x
+     npc(o).y = cats(0).y
+     npc(o).z = cats(0).z  'NPC Z value is matched to the hero in update_vehicle_state for simplicity, but
                          'this is here in case of setheroz or setnpcz or loaded map state or other funkiness happens
-     npc(o).dir = catd(0)
+     npc(o).dir = cats(0).d
      npc(o).frame = herow(0).wtog
     END IF
    ELSE
@@ -1468,7 +1472,7 @@ END SUB
 
 SUB npcmove_random_wander(npci as NPCInst)
  DIM percent_chance_to_move as integer = 25
- IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN
+ IF wraptouch(npci.x, npci.y, cats(0).x, cats(0).y, 20) THEN
   'Far more likely to hold still while touching the hero
   percent_chance_to_move = 5
  END IF
@@ -1493,24 +1497,24 @@ SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
  DIM d as integer
  IF randint(100) < 50 THEN
   'Vertical movement
-  IF caty(0) < npci.y THEN d = 0
-  IF caty(0) > npci.y THEN d = 2
+  IF cats(0).y < npci.y THEN d = 0
+  IF cats(0).y > npci.y THEN d = 2
   IF gmap(5) = 1 THEN
    'Special handling for wraparound maps
-   IF caty(0) - mapsizetiles.y * 10 > npci.y THEN d = 0
-   IF caty(0) + mapsizetiles.y * 10 < npci.y THEN d = 2
+   IF cats(0).y - mapsizetiles.y * 10 > npci.y THEN d = 0
+   IF cats(0).y + mapsizetiles.y * 10 < npci.y THEN d = 2
   END IF
-  IF caty(0) = npci.y THEN d = randint(4)
+  IF cats(0).y = npci.y THEN d = randint(4)
  ELSE
   'Horizontal movement
-  IF catx(0) < npci.x THEN d = 3
-  IF catx(0) > npci.x THEN d = 1
+  IF cats(0).x < npci.x THEN d = 3
+  IF cats(0).x > npci.x THEN d = 1
   IF gmap(5) = 1 THEN
    'Special handling for wraparound maps
-   IF catx(0) - mapsizetiles.x * 10 > npci.x THEN d = 3
-   IF catx(0) + mapsizetiles.x * 10 < npci.x THEN d = 1
+   IF cats(0).x - mapsizetiles.x * 10 > npci.x THEN d = 3
+   IF cats(0).x + mapsizetiles.x * 10 < npci.x THEN d = 1
   END IF
-  IF catx(0) = npci.x THEN d = randint(4)
+  IF cats(0).x = npci.x THEN d = randint(4)
  END IF
  IF avoid_instead THEN d = loopvar(d, 0, 3, 2) 'invert the direction
  npci.dir = d
@@ -1530,8 +1534,8 @@ SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
  t1.x = npci.x / 20
  t1.y = npci.y / 20
  DIM t2 as XYPair
- t2.x = catx(0) / 20
- t2.y = caty(0) / 20
+ t2.x = cats(0).x / 20
+ t2.y = cats(0).y / 20
  DIM dist as XYPair
  dist.x = t2.x - t1.x
  dist.y = t2.y - t1.y
@@ -1573,8 +1577,8 @@ SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
  t1.x = npci.x / 20
  t1.y = npci.y / 20
  DIM t2 as XYPair
- t2.x = catx(0) / 20
- t2.y = caty(0) / 20
+ t2.x = cats(0).x / 20
+ t2.y = cats(0).y / 20
  DIM dist as XYPair
  dist.x = t2.x - t1.x
  dist.y = t2.y - t1.y
@@ -1694,8 +1698,8 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  t1.x = npci.x / 20
  t1.y = npci.y / 20
  DIM t2 as XYPair
- t2.x = catx(0) / 20
- t2.y = caty(0) / 20
+ t2.x = cats(0).x / 20
+ t2.y = cats(0).y / 20
 
  DIM pf as AStarPathfinder = AStarPathfinder(t1, t2)
  pf.calculate()
@@ -1796,7 +1800,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
 
  '--Check touch activation (always happens). I have no idea why this is here!
  IF npcdata.activation = 1 AND txt.showing = NO THEN
-  IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN
+  IF wraptouch(npci.x, npci.y, cats(0).x, cats(0).y, 20) THEN
    usenpc 1, npcnum
   END IF
  END IF
@@ -1905,7 +1909,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   NEXT i
   '---Check for hero-NPC collision
   IF npcdata.activation <> 2 THEN  'Not step-on activated
-   IF wrapcollision (npci.x, npci.y, xgo, ygo, catx(0), caty(0), herow(0).xgo, herow(0).ygo) THEN
+   IF wrapcollision (npci.x, npci.y, xgo, ygo, cats(0).x, cats(0).y, herow(0).xgo, herow(0).ygo) THEN
     collision_type = collideHero
     RETURN YES
    END IF
@@ -2088,7 +2092,7 @@ SUB loadmap_tilemap(byval mapnum as integer)
  update_map_slices_for_new_tilemap
 
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
- cropposition catx(0), caty(0), 20
+ cropposition cats(0).x, cats(0).y, 20
 END SUB
 
 SUB loadmap_passmap(byval mapnum as integer)
@@ -2435,7 +2439,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spTeamOrOrder
       hero_swap_menu readbit(gen(), genBits, 5)
      CASE spMap, spMapMaybe
-      minimap catx(0), caty(0)
+      minimap cats(0).x, cats(0).y
      CASE spSave, spSaveMaybe
       slot = picksave()
       IF slot >= 0 THEN savegame slot
@@ -2690,14 +2694,14 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
 
  'Hero/caterpillar party and vehicle
  IF afterbat = NO AND gam.map.same = NO THEN
-  forcedismount catd()
+  forcedismount
  END IF
  IF afterbat = NO AND afterload = NO THEN
   FOR i as integer = 0 TO 15
-   catx(i) = catx(0)
-   caty(i) = caty(0)
-   catd(i) = catd(0)
-   catz(i) = 0
+   cats(i).x = cats(0).x
+   cats(i).y = cats(0).y
+   cats(i).d = cats(0).d
+   cats(i).z = 0
   NEXT i
  END IF
  IF afterload = YES THEN
@@ -2708,7 +2712,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  END IF
  IF vstate.active = YES AND gam.map.same = YES THEN
   FOR i as integer = 0 TO 3
-   catz(i) = vstate.dat.elevation
+   cats(i).z = vstate.dat.elevation
   NEXT i
   npc(vstate.npc).z = vstate.dat.elevation
   herow(0).speed = vstate.dat.speed
@@ -2784,7 +2788,7 @@ SUB checkdoors ()
  IF readbit(gen(), genSuspendBits, suspenddoors) = 1 THEN EXIT SUB
 
  DIM door_id as integer
- door_id = find_door(catx(0) \ 20, caty(0) \ 20)
+ door_id = find_door(cats(0).x \ 20, cats(0).y \ 20)
  IF door_id >= 0 THEN usedoor door_id
 END SUB
 
@@ -2816,8 +2820,8 @@ SUB usedoor (byval door_id as integer)
   gam.map.same = (.dest_map = gam.map.id)
   gam.map.id = .dest_map
   deserdoors game + ".dox", gam.map.door(), gam.map.id
-  catx(0) = gam.map.door(.dest).x * 20
-  caty(0) = (gam.map.door(.dest).y - 1) * 20
+  cats(0).x = gam.map.door(.dest).x * 20
+  cats(0).y = (gam.map.door(.dest).y - 1) * 20
   fadeout 0, 0, 0
   queue_fade_in 1
   prepare_map
@@ -3438,9 +3442,9 @@ END SUB
 '--Look in front of the leader for an activatable NPC.
 '--WARNING: has side-effects: assumes result is passed to usenpc
 FUNCTION find_useable_npc() as integer
- DIM ux as integer = catx(0)
- DIM uy as integer = caty(0)
- wrapaheadxy ux, uy, catd(0), 20, 20
+ DIM ux as integer = cats(0).x
+ DIM uy as integer = cats(0).y
+ wrapaheadxy ux, uy, cats(0).d, 20, 20
 
  FOR j as integer = 0 TO 299
   WITH npc(j)
@@ -3500,7 +3504,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  txt.old_dir = -1
  IF cause <> 2 AND npcs(id).facetype <> 2 THEN  'not "Do not face player"
   txt.old_dir = npc(npcnum).dir
-  npc(npcnum).dir = catd(0)
+  npc(npcnum).dir = cats(0).d
   npc(npcnum).dir = loopvar(npc(npcnum).dir, 0, 3, 2)
  END IF
  IF npcs(id).usetag > 0 THEN
@@ -3520,7 +3524,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
   vstate.id = vehuse - 1
   LoadVehicle game & ".veh", vstate.dat, vstate.id
   '--check mounting permissions first
-  IF vehpass(vstate.dat.mount_from, readblock(pass, catx(0) \ 20, caty(0) \ 20), -1) THEN
+  IF vehpass(vstate.dat.mount_from, readblock(pass, cats(0).x \ 20, cats(0).y \ 20), -1) THEN
    vstate.active = YES
    vstate.npc = npcnum
    vstate.old_speed = herow(0).speed
@@ -3550,8 +3554,8 @@ FUNCTION want_to_check_for_walls(byval who as integer) as bool
  IF gam.walk_through_walls THEN RETURN NO
  IF vstate.dat.pass_walls THEN RETURN NO
  IF vstate.active THEN
-  DIM thisherotilex as integer = catx(who * 5) \ 20
-  DIM thisherotiley as integer = caty(who * 5) \ 20
+  DIM thisherotilex as integer = cats(who * 5).x \ 20
+  DIM thisherotiley as integer = cats(who * 5).y \ 20
   IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN NO
  END IF
  RETURN YES
@@ -3785,7 +3789,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  ' (not AND, unless you want it to always appear in the menu!)
 
  IF txt.showing = NO THEN
-  IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap catx(0), caty(0)
+  IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap cats(0).x, cats(0).y
 
   IF dbg.def(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
    IF teleporttool() THEN 'CTRL + F1
@@ -3819,8 +3823,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
 
  IF dbg.def(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
-  catx(0) = (catx(0) \ 20) * 20
-  caty(0) = (caty(0) \ 20) * 20
+  cats(0).x = (cats(0).x \ 20) * 20
+  cats(0).y = (cats(0).y \ 20) * 20
   herow(0).xgo = 0
   herow(0).ygo = 0
  END IF
@@ -3959,7 +3963,7 @@ SUB battle_formation_testing_menu()
  ClearMenuData menu
 
  DIM battle_formation_set as integer
- battle_formation_set = readblock(foemap, catx(0) \ 20, caty(0) \ 20)
+ battle_formation_set = readblock(foemap, cats(0).x \ 20, cats(0).y \ 20)
 
  IF battle_formation_set = 0 THEN
   append_menu_item(menu, "Formation set: None", 0, 1)
