@@ -2475,8 +2475,10 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
    CASE mtypeTextBox
     menu_text_box = .sub_t
    CASE mtypeScript
-    DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 3)
-    trigger_script .sub_t, numargs, YES, "menuitem", "item '" & get_menu_item_caption(mi, menus(menuslot)) & "' in menu " & menus(menuslot).record, mainFibreGroup
+    DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 4, 3)
+    trigger_script .sub_t, numargs, YES, "menuitem", _
+                   "item '" & get_menu_item_caption(mi, menus(menuslot)) _
+                   & "' in menu " & menus(menuslot).record, mainFibreGroup
     IF menus(topmenu).allow_gameplay THEN
      '0 is passed instead of the menu item handle if it would be invalid
      trigger_script_arg 0, IIF(mi.close_if_selected, 0, .handle), "item handle"
