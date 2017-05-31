@@ -62,6 +62,7 @@ DECLARE SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as 
 DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer, byval amount as integer = 1)
 DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
 DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
+DECLARE FUNCTION catindex(byval rank as integer) as integer
 
 '=================================== Globals ==================================
 
@@ -98,8 +99,7 @@ REDIM herow(3) as HeroWalkabout
 'but for simplicity we just dim it for the slowest possible leader speed of 1, so:
 '(4 - 1) * (20 / 1) + 1 = 61
 ' so 61 elements is 0-60
-'FIXME: still dimmed to 15 because hardcoded to speed 4, that should change soon!
-REDIM cats(15) as CaterpillarHistory
+REDIM cats(60) as CaterpillarHistory
 
 REDIM npcs(0) as NPCType
 REDIM npc(299) as NPCInst
@@ -995,6 +995,7 @@ END SUB
 
 SUB doloadgame(byval load_slot as integer)
  loadgame load_slot
+ interpolatecat()
  IF gen(genLoadGameScript) > 0 THEN
   DIM nargs as integer = UBOUND(gam.want.script_args) + 2
   trigger_script gen(genLoadGameScript), nargs, YES, "loadgame", "", mainFibreGroup
@@ -1114,44 +1115,44 @@ END SUB
 '                                      Hero movement
 '==========================================================================================
 
-FUNCTION herox(byval rank as integer) byref as integer
- 'Bound leader speed to 1-20. We don't expect caterpillar to be reliable
- ' at speeds outside that range, but we do still need to store the party's
- ' positions within the bounds of the cats() array.
- 'FIXME: still hard-coding to rank*5 regardless of leader speed, but that will change soon
- DIM index as integer = rank * 5 'rank * 20 / bound(herow(0).speed, 1, 20)
- IF index > UBOUND(cats) THEN
-  debug "herox(" & rank & ") index " & index & " out of bounds"
-  index = UBOUND(cats)
+FUNCTION catleaderspeed() as integer
+ IF readbit(gen(), genBits2, 25) = 0 THEN
+  '"Keep caterpillar length the same when speed changes" bitset is off
+  'so treat the caterpillar leader speed as if it is hard-coded to 4
+  return 4
  END IF
- RETURN cats(index).x
+
+ DIM speed as integer = herow(0).speed
+ IF speed <= 0 THEN
+  'If leader speed is zero or negative, treat the caterpillar as if speed is 1
+  speed = 1
+ END IF
+ IF speed > 20 THEN
+  'If speed is bigger than tile size, clamp it. That will cause the caterpillar to stretch
+  'but if you speed is bigger than your tilesize, that is probably the least of your problems ;)
+  speed = 20
+ END IF
+ return speed
+END FUNCTION
+
+FUNCTION catindex(byval rank as integer) as integer
+ RETURN rank * 20 / catleaderspeed()
+END FUNCTION
+
+FUNCTION herox(byval rank as integer) byref as integer
+ RETURN cats(catindex(rank)).x
 END FUNCTION
 
 FUNCTION heroy(byval rank as integer) byref as integer
- DIM index as integer = rank * 5 'rank * 20 / bound(herow(0).speed, 1, 20)
- IF index > UBOUND(cats) THEN
-  debug "heroy(" & rank & ") index " & index & " out of bounds"
-  index = UBOUND(cats)
- END IF
- RETURN cats(index).y
+ RETURN cats(catindex(rank)).y
 END FUNCTION
 
 FUNCTION heroz(byval rank as integer) byref as integer
- DIM index as integer = rank * 5 'rank * 20 / bound(herow(0).speed, 1, 20)
- IF index > UBOUND(cats) THEN
-  debug "heroz(" & rank & ") index " & index & " out of bounds"
-  index = UBOUND(cats)
- END IF
- RETURN cats(index).z
+ RETURN cats(catindex(rank)).z
 END FUNCTION
 
 FUNCTION herodir(byval rank as integer) byref as integer
- DIM index as integer = rank * 5 'rank * 20 / bound(herow(0).speed, 1, 20)
- IF index > UBOUND(cats) THEN
-  debug "herodir(" & rank & ") index " & index & " out of bounds"
-  index = UBOUND(cats)
- END IF
- RETURN cats(index).d
+ RETURN cats(catindex(rank)).d
 END FUNCTION
 
 FUNCTION herotx(byval rank as integer) as integer
@@ -1163,10 +1164,13 @@ FUNCTION heroty(byval rank as integer) as integer
 END FUNCTION
 
 SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as integer, byval newy as integer)
- 'FIXME: this is still hardcoded for leader speed 5
- FOR i as integer = 0 TO 4
-  cats(small(rank * 5 + i, 15)).x = newx
-  cats(small(rank * 5 + i, 15)).y = newy
+ 'FIXME: this is still hardcoded for leader speed 4
+ DIM sp as integer = catleaderspeed()
+ DIM gap as integer = 20 / sp
+ FOR i as integer = 0 TO gap - 1
+  DIM index as integer = small(rank * gap + i, UBOUND(cats))
+  cats(index).x = newx
+  cats(index).y = newy
  NEXT i
 END SUB
 
@@ -1179,14 +1183,45 @@ SUB resetcaterpillar ()
  NEXT i
 END SUB
 
-SUB interpolatecat ()
+SUB change_hero_speed(byval rank as integer, byval new_speed as integer)
+ DIM old_speed as integer = herow(rank).speed
+ herow(rank).speed = new_speed
+ IF rank = 0 ANDALSO old_speed <> new_speed THEN
+  interpolatecat (old_speed)
+ END IF
+END SUB
+
+SUB interpolatecat (byval old_speed as integer = -1)
  'given the current positions of the caterpillar party, interpolate their inbetween frames
  'This is used when caterpillar party is re-enabled after being disabled
- 'FIXME: or after changing the leader's speed (soon)
- FOR o as integer = 0 TO UBOUND(cats) - 5 STEP 5
-  FOR i as integer = o + 1 TO o + 4
-   cats(i).x = cats(i - 1).x + ((cats(o + 5).x - cats(o).x) / 5)
-   cats(i).y = cats(i - 1).y + ((cats(o + 5).y - cats(o).y) / 5)
+ 'This should be called any time the leader's speed changes!
+ 
+ DIM sp as integer = catleaderspeed()
+
+ IF old_speed = -1 THEN old_speed = sp
+ 
+ IF readbit(gen(), genBits2, 25) = 0 THEN
+  '"Keep caterpillar length the same when speed changes" bitset is off
+  'so we never actually remap hero indexes when speed changes
+  old_speed = 4
+ END IF
+ 
+ IF old_speed <> sp THEN
+  'Remap the hero positions from the old speed to the new speed
+  DIM cattemp(3) as CaterpillarHistory
+  FOR i as integer = 0 to 3
+   cattemp(i) = cats(i * (20 / old_speed))
+  NEXT i
+  FOR i as integer = 0 to 3
+   cats(i * (20 / sp)) = cattemp(i)
+  NEXT i
+ END IF
+
+ DIM gap as integer = 20 / sp
+ FOR o as integer = 0 TO UBOUND(cats) - gap STEP gap
+  FOR i as integer = o + 1 TO o + gap - 1
+   cats(i).x = cats(i - 1).x + ((cats(o + gap).x - cats(o).x) / gap)
+   cats(i).y = cats(i - 1).y + ((cats(o + gap).y - cats(o).y) / gap)
    cats(i).d = cats(o).d
   NEXT i
  NEXT o
@@ -2771,18 +2806,21 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
   resetcaterpillar
  END IF
  IF afterload = YES THEN
-  interpolatecat
   herow(0).xgo = 0
   herow(0).ygo = 0
   herow(0).speed = 4
+  change_hero_speed(0, 4)
  END IF
  IF vstate.active = YES AND gam.map.same = YES THEN
   FOR i as integer = 0 TO 3
    (heroz(i)) = vstate.dat.elevation
   NEXT i
   npc(vstate.npc).z = vstate.dat.elevation
-  herow(0).speed = vstate.dat.speed
-  IF herow(0).speed = 3 THEN herow(0).speed = 10
+  IF vstate.dat.speed = 3 THEN
+   change_hero_speed(0, 10)
+  ELSE
+   change_hero_speed(0, vstate.dat.speed)
+  END IF
  END IF
 
  txt.sayer = -1
@@ -3594,7 +3632,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
    vstate.active = YES
    vstate.npc = npcnum
    vstate.old_speed = herow(0).speed
-   herow(0).speed = 10
+   change_hero_speed(0, 10)
    vstate.mounting = YES '--trigger mounting sequence
    settag vstate.dat.riding_tag, YES
    create_walkabout_shadow npc(vstate.npc).sl

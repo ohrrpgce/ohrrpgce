@@ -966,7 +966,7 @@ SUB update_vehicle_state ()
      herow(0).xgo = 20
    END SELECT
   END IF
-  herow(0).speed = vstate.old_speed
+  change_hero_speed(0, vstate.old_speed)
   npc(vstate.npc).xgo = 0
   npc(vstate.npc).ygo = 0
   npc(vstate.npc).z = 0
@@ -1042,7 +1042,7 @@ SUB forcedismount ()
    trigger_script ABS(vstate.dat.on_dismount), 0, YES, "vehicle dismount", "", mainFibreGroup
   END IF
   settag vstate.dat.riding_tag, NO
-  herow(0).speed = vstate.old_speed
+  change_hero_speed(0, vstate.old_speed)
   reset_vehicle vstate
   resetcaterpillar ()
   gam.random_battle_countdown = range(100, 60)
@@ -1118,8 +1118,11 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
    trigger_script ABS(vstate.dat.on_mount), 0, YES, "vehicle on-mount", "", mainFibreGroup
   END IF
   IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
-  herow(0).speed = vstate.dat.speed
-  IF herow(0).speed = 3 THEN herow(0).speed = 10
+  IF vstate.dat.speed = 3 THEN
+   change_hero_speed(0, 10)
+  ELSE
+   change_hero_speed(0, vstate.dat.speed)
+  END IF
   '--null out hero's movement
   FOR i as integer = 0 TO 3
    herow(i).xgo = 0

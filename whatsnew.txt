@@ -84,6 +84,8 @@ WHAT IS NEW?
     * Raised map layer limit from 8 to 16 [Ralph]
     * Added "Export scripts backup copy" option to Script Management menu
       (HSpeak has saved a backup copy of scripts for years now) [Ralph]
+    * New preference bitset "Keep caterpillar length the same when speed
+      changes" [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

@@ -14,7 +14,6 @@ DECLARE FUNCTION herobyrank (byval slot as integer) as integer
 DECLARE FUNCTION rank_to_party_slot (byval rank as integer) as integer
 DECLARE FUNCTION party_slot_to_rank (byval slot as integer) as integer
 DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer
-DECLARE SUB interpolatecat
 
 DECLARE SUB trigger_onkeypress_script ()
 DECLARE SUB process_wait_conditions ()

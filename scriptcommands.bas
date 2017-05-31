@@ -1319,7 +1319,7 @@ SUB script_functions(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendcaterpillar, 1
  CASE 58, 119'--resume caterpillar
   setbit gen(), genSuspendBits, suspendcaterpillar, 0
-  interpolatecat
+  interpolatecat ()
  CASE 59'--wait for text box
   IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
    script_start_waiting(retvals(0))
@@ -1377,7 +1377,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 81'--set hero speed
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   herow(retvals(0)).speed = bound(retvals(1), 0, 20)
+   change_hero_speed(retvals(0), bound(retvals(1), 0, 20))
   END IF
  CASE 82'--inventory
   scriptret = countitem(retvals(0))
