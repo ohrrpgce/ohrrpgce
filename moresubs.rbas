@@ -826,8 +826,8 @@ FUNCTION teleporttool () as bool
  DIM camera as XYPair   'In pixels
 
  DIM dest as XYPair
- dest.x = cats(0).x \ 20
- dest.y = cats(0).y \ 20
+ dest.x = herotx(0)
+ dest.y = heroty(0)
 
  ensure_normal_palette
 
@@ -911,8 +911,8 @@ FUNCTION teleporttool () as bool
    IF carray(ccUse) > 1 THEN 'confirm and teleport
     IF gam.map.id <> destmap THEN teleporttool = YES
     gam.map.id = destmap
-    cats(0).x = dest.x * 20
-    cats(0).y = dest.y * 20
+    (herox(0)) = dest.x * 20
+    (heroy(0)) = dest.y * 20
     EXIT DO
    END IF
    IF carray(ccMenu) > 1 THEN pickpoint = NO
@@ -1184,10 +1184,10 @@ SUB resetgame ()
 'to a value other than zero/empty string/etc.
 
 gam.map.id = 0
-cats(0).x = 0
-cats(0).y = 0
-cats(0).z = 0
-cats(0).d = 0
+(herox(0)) = 0
+(heroy(0)) = 0
+(heroz(0)) = 0
+(herodir(0)) = 0
 gam.getinputtext_enabled = NO
 script_log_resetgame
 'leader = 0
@@ -1561,7 +1561,7 @@ DO
    buystuff id, 1, storebuf()
   END IF
   IF menuid(st.pt) = 6 THEN '--MAP
-   minimap cats(0).x, cats(0).y
+   minimap herox(0), heroy(0)
   END IF
   IF menuid(st.pt) = 7 THEN '--TEAM
    hero_swap_menu 1

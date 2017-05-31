@@ -52,8 +52,9 @@ TYPE HeroWalkabout
   wtog as integer
   speed as integer
   curzones as integer vector = 0
-  'x, y, z, dir are in the cats() array of type CaterpillarHistory
-  'FIXME: They will be accessed through functions (soon)
+
+  'x, y, z, dir are not located here! They are in the cats() array of type CaterpillarHistory
+  'See the accessor functions herox() heroy() heroz() and herodir()
 
   Declare Destructor()  'Free curzones
 END TYPE

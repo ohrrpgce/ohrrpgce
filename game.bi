@@ -116,4 +116,14 @@ DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval d
 DECLARE FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
 DECLARE FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
 
+DECLARE FUNCTION herox(byval rank as integer) byref as integer
+DECLARE FUNCTION heroy(byval rank as integer) byref as integer
+DECLARE FUNCTION heroz(byval rank as integer) byref as integer
+DECLARE FUNCTION herodir(byval rank as integer) byref as integer
+DECLARE FUNCTION herotx(byval rank as integer) as integer
+DECLARE FUNCTION heroty(byval rank as integer) as integer
+
+DECLARE SUB resetcaterpillar ()
+DECLARE SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as integer, byval newy as integer)
+
 #ENDIF
