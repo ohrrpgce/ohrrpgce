@@ -406,6 +406,7 @@ END TYPE
 
 DECLARE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
 
+'Node of an .hsz script abstract syntax tree
 TYPE ScriptCommand
   kind as integer
   value as integer
@@ -463,6 +464,7 @@ Type DoorLink
   tag2 as integer
 End Type
 
+' All the data for a map. Currently only used in the map editor.
 TYPE MapData
   id as integer
   name as string

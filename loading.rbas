@@ -596,7 +596,7 @@ SUB MapData.load(map_id as integer)
 END SUB
 
 FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
- IF layernum > 7 THEN
+ IF layernum > 15 THEN
   debugc errPromptBug, "read_map_layer_name: layernum too high"
  ELSE
   RETURN readbinstring(gmap(), 34 + layernum * 21, 40)
@@ -604,7 +604,7 @@ FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
 END FUNCTION
 
 SUB write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
- IF layernum > 7 THEN
+ IF layernum > 15 THEN
   debugc errPromptBug, "write_map_layer_name: layernum too high"
  ELSE
   writebinstring(newname, gmap(), 34 + layernum * 21, 40)

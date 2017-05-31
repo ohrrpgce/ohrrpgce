@@ -1843,6 +1843,14 @@ define constant, begin
 -101005, sl:map layer5
 -101006, sl:map layer6
 -101007, sl:map layer7
+-101008, sl:map layer8
+-101009, sl:map layer9
+-101010, sl:map layer10
+-101011, sl:map layer11
+-101012, sl:map layer12
+-101013, sl:map layer13
+-101014, sl:map layer14
+-101015, sl:map layer15
 -102000, sl:status portrait
 -102001, sl:status walkabout
 -102002, sl:status battlesprite

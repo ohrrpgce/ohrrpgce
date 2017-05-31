@@ -895,15 +895,19 @@ DO
     NEXT
    '#ENDIF
 
-   FOR i as integer = 1 TO small(maplayerMax, 10)
-    IF keyval(scAlt) > 0 AND keyval(sc1 + (i - 1)) > 1 THEN
-     clearkey(sc1 + i)
+   'Alt+number to toggle layer 1-10 enabled, Alt+Shift+number to toggle layer 11-15
+   FOR i as integer = 1 TO small(maplayerMax, 20)
+    DIM shift_ok as bool = IIF(i > 10, keyval(scShift) > 0, YES)
+    DIM num_key as integer = sc1 + ((i - 1) MOD 10)
+    IF keyval(scAlt) > 0 AND shift_ok AND keyval(num_key) > 1 THEN
+     clearkey(num_key)
      togglelayerenabled(st.map.gmap(), i)
      IF layerisenabled(st.map.gmap(), i) THEN
       IF i > UBOUND(st.map.tiles) THEN
        DIM howmany as integer
        howmany = i - UBOUND(st.map.tiles)
-       IF yesno("Layer " & i & " doesn't exist yet. Create " & IIF(howmany = 1, "a new map layer?", howmany & " new map layers?")) THEN
+       IF yesno("Layer " & i & " doesn't exist yet. Create " & _
+                IIF(howmany = 1, "a new map layer?", howmany & " new map layers?")) THEN
         mapedit_append_new_layers st, howmany
        END IF
       END IF
@@ -3548,15 +3552,16 @@ SUB color_for_each_tile (tileset as TilesetData ptr, colors() as RGBcolor)
    FOR x as integer = 0 TO 19
     DIM idx as integer
     idx = readpixel(tileset->spr, x, tile * 20 + y)
-    r += master(idx).r ^ 1.7
-    g += master(idx).g ^ 1.7
-    b += master(idx).b ^ 1.7
+    ' Perform gamma correction
+    r += master(idx).r ^ 2.2
+    g += master(idx).g ^ 2.2
+    b += master(idx).b ^ 2.2
    NEXT
   NEXT
-  colors(tile).b = small(255., (b / 400) ^ (1 / 1.7))
-  colors(tile).g = small(255., (g / 400) ^ (1 / 1.7))
-  colors(tile).r = small(255., (r / 400) ^ (1 / 1.7))
-  debug "tile " & tile & " g " & g & "->" & colors(tile).g
+  colors(tile).b = small(255., (b / 400) ^ (1 / 2.2))
+  colors(tile).g = small(255., (g / 400) ^ (1 / 2.2))
+  colors(tile).r = small(255., (r / 400) ^ (1 / 2.2))
+  'debug "tile " & tile & " g " & g & "->" & colors(tile).g
  NEXT
  'Then handle animated tiles by making them the same colour as the first tile in the animation
  FOR tile as integer = 160 TO 255
@@ -3856,32 +3861,38 @@ END SUB
 '==========================================================================================
 
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
  RETURN xreadbit(vis(), l)
 END FUNCTION
 
 FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
- IF l <= 0 THEN RETURN YES
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ IF l = 0 THEN RETURN YES
  'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
  RETURN xreadbit(gmap(), l - 1, 19)
 END FUNCTION
 
 SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
  setbit(vis(), 0, l, v)
 END SUB
 
 SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
- IF l <= 0 THEN EXIT SUB
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ IF l = 0 THEN EXIT SUB
  setbit(gmap(), 19, l - 1, v)
 END SUB
 
 SUB ToggleLayerVisible(vis() as integer, byval l as integer)
- setbit(vis(), 0, l, readbit(vis(), 0, l) xor 1)
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ setbit(vis(), 0, l, readbit(vis(), 0, l) XOR 1)
 END SUB
 
 SUB ToggleLayerEnabled(gmap() as integer, byval l as integer)
- IF l <= 0 THEN EXIT SUB
- setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) xor 1)
+ IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
+ IF l = 0 THEN EXIT SUB
+ setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l - 1) XOR 1)
 END SUB
 
 

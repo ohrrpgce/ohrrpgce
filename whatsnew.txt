@@ -81,6 +81,7 @@ WHAT IS NEW?
       records after the current has changed to Shift-Backspace.  You can
       also press Delete on the <-- Record # --> line instead. [Ralph]
     * Raised the limit on hero definitions from 60 to 512 [Ralph]
+    * Raised map layer limit from 8 to 16 [Ralph]
     * Added "Export scripts backup copy" option to Script Management menu
       (HSpeak has saved a backup copy of scripts for years now) [Ralph]
 
