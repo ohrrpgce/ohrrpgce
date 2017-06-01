@@ -652,6 +652,9 @@
 		<a href="#about-checkequipment">check equipment (hero,slot)</a><br>
 		
 	
+		<a href="#about-checkgameexists">check game exists (file string id)</a><br>
+		
+	
 		<a href="#about-checkherowall">check hero wall (who,direction)</a><br>
 		
 	
@@ -1585,6 +1588,9 @@
 		<a href="#about-loadsmallenemysprite">load small enemy sprite (num, palette)</a><br>
 		
 	
+		<a href="#about-loadsprite">load sprite (sprite type, num, palette)</a><br>
+		
+	
 		<a href="#about-loadtileset">load tileset (tileset, layer)</a><br>
 		
 	
@@ -1964,6 +1970,9 @@
 		
 	
 		<a href="#about-replacesmallenemysprite">replace small enemy sprite (handle, num, palette)</a><br>
+		
+	
+		<a href="#about-replacesprite">replace sprite (slice, sprite type, num, palette)</a><br>
 		
 	
 		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (handle, num, palette)</a><br>
@@ -2872,6 +2881,9 @@
 		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
 		
 	
+		<a href="#about-textboxtext">textbox text (string ID, textbox, expand, strip)</a><br>
+		
+	
 		
 		<a href="#about-if">then</a><br>
 	
@@ -3482,7 +3494,14 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="about-setvariable"></a>
 		<h4>variable := value</h4>
 <p>
-			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.
+			
+				This command assigns a new value to a variable.
+				If you do not specify the new value, the variable will be reset to zero.
+				This command works exactly the same for global and local variables.
+				<br>
+				The <span class="code">:=</span> operation actually returns <span class="param">value</span>, so you can use it
+				as an expression, for example in <span class="code">temp1 := (temp2 := 1)</span>.
+			
 			
 			
 			
@@ -3492,7 +3511,16 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="about-increment"></a>
 		<h4>increment (variable,amount)</h4>
 <p>
-			This command adds an amount to the current value of a variable. If you do not specify the amount, then the variable will be incremented by one. This command works exactly the same for global and local variables.<br>You can also increment variables by writing variable += amount
+			
+				or<br><span class="param">variable += amount</span>
+				<br>
+				This command adds an amount to the current value of a variable.
+				If you do not specify the amount, then the variable will be incremented by one.
+				This command works exactly the same for global and local variables.
+				<br>
+				The <span class="code">+=</span> operation actually returns the new value of <span class="param">variable</span>,
+				so you can use it as an expression, for example in <span class="code">while ((index += 1) &lt; 10)</span>.
+			
 			
 			
 			
@@ -3502,7 +3530,16 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 <a name="about-decrement"></a>
 		<h4>decrement (variable,amount)</h4>
 <p>
-			This command subtracts an amount from the current value of a variable. If you do not specify the amount, then the variable will be decremented by one. This command works exactly the same for global and local variables.<br>You can also decrement variables by writing variable -= amount
+			
+				or<br><span class="param">variable -= amount</span>
+				<br>
+				This command subtracts an amount from the current value of a variable.
+				If you do not specify the amount, then the variable will be decremented by one.
+				This command works exactly the same for global and local variables.
+				<br>
+				The <span class="code">-=</span> operation actually returns the new value of <span class="param">variable</span>,
+				so you can use it as an expression, for example in <span class="code">while (index -= 1)</span>.
+			
 			
 			
 			
@@ -5377,7 +5414,26 @@ resume box advance # go back to normal</pre>
 			Loads one of the <span class="param">line</span>s of a <span class="param">textbox</span> into a <span class="param">string ID</span>. Valid numbers for <span class="param">line</span> are 0-7. If <span class="param">expand</span> is true (which is the default) codes such as ${H1} in the string will be substituted automatically. If <span class="param">strip</span> is true (which is NOT the default), white space at the beginning and end of the string are removed.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-expandstring" class="ref">expand string</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-expandstring" class="ref">expand string</a>, </li>
+<li><a href="#about-textboxtext" class="ref">textbox text</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-textboxtext"></a>
+		<h4>textbox text (string ID, textbox, expand, strip)</h4>
+<p>
+			
+				Loads all lines of a <span class="param">textbox</span> into a single <span class="param">string ID</span>.
+				If <span class="param">expand</span> is true (which is the default) codes such as ${H1} in the string will be substituted automatically.
+				If <span class="param">strip</span> is true (which is NOT the default), white space at the beginning and end of the string are removed.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-textboxline" class="ref">textbox line</a></li></ul>
 </div>
 		</p>
 </div>
@@ -8006,9 +8062,22 @@ end</pre>
 <a name="about-addenemytoformation"></a>
 		<h4>add enemy to formation (formation, enemy id, x, y, slot)</h4>
 <p>
-			Adds an enemy with given <span class="param">enemy id</span> (use the constants of the form <span class="param">enemy:name</span> in your exported .hsi file) to the specified <span class="param">formation</span>. <span class="param">x</span> (up to 230) and <span class="param">y</span> (up to 199) give the position of the center of the bottom edge of the enemy - approximately where it appears to stand. <span class="param">slot</span> (0 to 7) is an optional argument, if given then the enemy is created in the suggested slot if empty. Otherwise it's put in the first empty slot. The actual slot number used is returned, or -1 if the enemy couldn't be added.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Changes to enemy formations are temporary: they are not saved in save files.<br clear="all">
+			
+				Adds an enemy with given <span class="param">enemy id</span>
+				(use the constants of the form <span class="param">enemy:name</span> in your exported .hsi file) to the specified <span class="param">formation</span>.
+				<span class="param">x</span> (0 to 320) and <span class="param">y</span> (from roughly 17 to 240, depending on enemy size)
+				give the position of the center of the bottom edge of the enemy
+				- approximately where it appears to stand.
+				<span class="param">slot</span> (0 to 7) is an optional argument,
+				if you specify it, then the enemy is created in the suggested slot if empty.
+				If you omit <span class="param">slot</span> or <span class="param">slot</span> isn't empty, the enemy is put in the first empty slot.
+				The actual slot number used is returned, or -1 if the enemy couldn't be added.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Changes to enemy formations are temporary: they are not saved in save files.
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation</a></li></ul>
@@ -8880,9 +8949,20 @@ There is no limit on string length.<br>
 <a name="about-stringtoglobals"></a>
 		<h4>string to globals (ID, starting global, length)</h4>
 <p>
-			This command will fill global variables (starting with #<span class="param">starting global</span>), up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>. If the string is not long enough, the rest of the globals in this "field" are padded with the value 256. If the string is too long, then only part of it is saved.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames<br clear="all">
+			
+				This command will fill global variables (starting with #<span class="param">starting global</span>),
+				up to <span class="param">length</span> globals, with the ascii values of the characters in string #<span class="param">ID</span>.
+				If the string is not long enough, the rest of the globals in this "field" are padded with the value 256.
+				If the string is too long, then only part of it is saved.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-globalstostring" class="ref">globals to string</a></li></ul>
@@ -8893,9 +8973,23 @@ There is no limit on string length.<br>
 <a name="about-globalstostring"></a>
 		<h4>globals to string(ID, starting global, length)</h4>
 <p>
-			This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>. It will build a new string in slot #<span class="param">ID</span>, using the ascii values from the global variables #<span class="param">starting global</span> and <span class="param">length</span> globals thereafter. Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a> if you don't know the length of the string. If a global has a value greater than 255, the value will be ignored.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command is deprecated. There is no reason to use it in new games, since there are much easier ways to store strings in savegames<br clear="all">
+			
+				This command is the opposite of <a href="#about-stringtoglobals" class="ref">string to globals</a>.
+				It will build a new string in slot #<span class="param">ID</span>,
+				using the ascii values from the global variables #<span class="param">starting global</span>
+				and <span class="param">length</span> globals thereafter.
+				Pass the same value for <span class="param">length</span> as you did to <a href="#about-stringtoglobals" class="ref">string to globals</a>
+				if you don't know the length of the string.
+				If a global has a value greater than 255, the value will be ignored.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					This command is deprecated.
+					The Saved Game Settings menu now has an option to store strings in saved games.
+					There is no reason to use this command in new games,
+					unless you're using <a href="#about-importglobals" class="ref">import globals</a>/<a href="#about-exportglobals" class="ref">export globals</a>.
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-stringtoglobals" class="ref">string to globals</a></li></ul>
@@ -9844,7 +9938,7 @@ end</pre>
 <a name="about-getmenuitembit"></a>
 		<h4>get menu item bit(menu item handle, bit)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:Close menu if selected</span>.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span>, <span class="param">menu item bit:Close menu when selected</span> and <span class="param">menu item bit:skip close script</span>.
 			
 			
 			
@@ -9854,7 +9948,7 @@ end</pre>
 <a name="about-setmenuitembit"></a>
 		<h4>set menu item bit(menu item handle, bit, value)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span> and <span class="param">menu item bit:close menu when selected</span>.
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span>, <span class="param">menu item bit:Close menu when selected</span> and <span class="param">menu item bit:skip close script</span>.
 			
 			
 			
@@ -10680,6 +10774,14 @@ lookup slice(sl:map layer4)
 lookup slice(sl:map layer5)
 lookup slice(sl:map layer6)
 lookup slice(sl:map layer7)
+lookup slice(sl:map layer8)
+lookup slice(sl:map layer9)
+lookup slice(sl:map layer10)
+lookup slice(sl:map layer11)
+lookup slice(sl:map layer12)
+lookup slice(sl:map layer13)
+lookup slice(sl:map layer14)
+lookup slice(sl:map layer15)
 lookup slice(sl:status portrait)
 lookup slice(sl:status walkabout)
 lookup slice(sl:status battlesprite)
@@ -12739,6 +12841,100 @@ set horiz align(sl, edge:right)
 		<p><a href="#about-sliceissprite">Defined in the Checking Slice Type section.</a></p>
 		</div>
 		<div class="command">
+<a name="about-loadsprite"></a>
+		<h4>load sprite (sprite type, num, palette)</h4>
+<p>
+			
+				Creates a sprite slice by loading a sprite of the given <span class="param">sprite type</span>
+				(use a constant like <span class="code">spritetype:walkabout</span>; see <a href="#about-getspritetype" class="ref">get sprite type</a> for more),
+				with sprite set number <span class="param">num</span> and with given <span class="param">palette</span>.
+				Returns a handle for the slice.
+				You may omit <span class="param">palette</span>,
+				in which case the default palette for that sprite will be loaded.
+				<span class="param">palette</span> is ignored for <span class="code">spritetype:backdrop</span>.
+				You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-replacesprite" class="ref">replace sprite</a>, </li>
+<li>
+<a href="#about-loadherosprite" class="ref">load hero sprite</a>, </li>
+<li>
+<a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>, </li>
+<li>
+<a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>, </li>
+<li>
+<a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>, </li>
+<li>
+<a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, </li>
+<li>
+<a href="#about-loadattacksprite" class="ref">load attack sprite</a>, </li>
+<li>
+<a href="#about-loadbordersprite" class="ref">load border sprite</a>, </li>
+<li>
+<a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, </li>
+<li>
+<a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>, </li>
+<li>
+<a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
+<li>
+<a href="#about-getspritesetnumber" class="ref">get sprite set number</a>, </li>
+<li><a href="#about-freesprite" class="ref">free sprite</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-replacesprite"></a>
+		<h4>replace sprite (slice, sprite type, num, palette)</h4>
+<p>
+			
+				Change an existing sprite <span class="param">slice</span> into a different sprite,
+				loading a sprite of the given <span class="param">sprite type</span>
+				(use a constant like <span class="code">spritetype:walkabout</span>; see <a href="#about-getspritetype" class="ref">get sprite type</a> for more),
+				with sprite set number <span class="param">num</span> and with given <span class="param">palette</span>.
+				You may omit <span class="param">palette</span>,
+				in which case the default palette for that sprite will be loaded.
+				<span class="param">palette</span> is ignored for <span class="code">spritetype:backdrop</span>.
+				The handle for the slice doesn't change,
+				and everything except the size of the slice stays the same.
+				You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-loadsprite" class="ref">load sprite</a>, </li>
+<li>
+<a href="#about-replaceherosprite" class="ref">replace hero sprite</a>, </li>
+<li>
+<a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>, </li>
+<li>
+<a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>, </li>
+<li>
+<a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>, </li>
+<li>
+<a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>, </li>
+<li>
+<a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>, </li>
+<li>
+<a href="#about-replacebordersprite" class="ref">replace border sprite</a>, </li>
+<li>
+<a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>, </li>
+<li>
+<a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>, </li>
+<li>
+<a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
+<li>
+<a href="#about-getspritesetnumber" class="ref">get sprite set number</a>, </li>
+<li><a href="#about-freesprite" class="ref">free sprite</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-loadherosprite"></a>
 		<h4>load hero sprite (num, palette)</h4>
 <p>
@@ -13206,7 +13402,11 @@ set horiz align(sl, edge:right)
 <a name="about-getspritepalette"></a>
 		<h4>get sprite palette (handle)</h4>
 <p>
-			Returns the palette of sprite slice <span class="param">handle</span>.
+			
+				Returns the palette of sprite slice <span class="param">handle</span>,
+				or returns -1 if the sprite is set to use the default palette
+				(use <a href="#about-getspritedefaultpal" class="ref">get sprite default pal</a> to figure which that is).
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -16220,6 +16420,22 @@ run game(0)</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-checkgameexists"></a>
+		<h4>check game exists (file string id)</h4>
+<p>
+			
+				Check whether an .rpg file/.rpgdir directory exists, returning true or false.
+				This is useful before calling <a href="#about-rungame" class="ref">run game</a>, which will show an error if the game doesn't exist.
+				
+				See <a href="#about-rungame" class="ref">run game</a> for more information about the filename.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-rungame" class="ref">run game</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-milliseconds"></a>
 		<h4>milliseconds</h4>
 <p>
@@ -17143,7 +17359,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 778 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 782 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
