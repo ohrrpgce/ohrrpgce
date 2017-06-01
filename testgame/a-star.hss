@@ -14,6 +14,7 @@ plotscript, on menu button, begin
   suspend npcs
   variable(i, m, mi)
   m := create menu()
+  set menu on close script(m, @on menu close)
   for(i, 0, last map) do(
     mi := add menu item(m)
     get map name(0, i)
@@ -22,7 +23,7 @@ plotscript, on menu button, begin
     set menu item subtype(mi, @jump to map)
     set menu item extra(mi, 0, i)
     set menu item bit(mi, menu item bit:Close menu when selected, true)
-    if(i == 0) then(select menu item(mi))
+    if(i == current map) then(select menu item(mi))
   )
   mi := add menu item(m)
   set menu item caption(mi, $0="Quit Game")
@@ -43,4 +44,49 @@ plotscript, jump to map, mi, mapnum, begin
   delete npc(0)
   resume npcs
   resume player
+end
+
+plotscript, on key press handler, begin
+  if(keyval(key:space) > 1 || keyval(key:enter) > 1 || keyval(key:ctrl) > 1) then(
+    try to splat
+  )
+end
+
+script, try to splat, begin
+  variable(x, y, d, ref, count, i)
+  x := hero x(me)
+  y := hero y(me)
+  d := hero direction(me)
+  x := ahead x(x, d)
+  y := ahead y(y, d)
+  count := npc at spot(x, y, get count)
+  for (i, 0, count -- 1) do(
+    ref := npc at spot(x, y, i)
+    if(ref) then(splat slime(ref))
+  )
+end
+
+script, ahead x, x, d, dist=1, begin
+  switch(d) do(
+    case(left) exit returning(x -- dist)
+    case(right) exit returning(x + dist)
+  )
+  exit returning(x)
+end
+
+script, ahead y, y, d, dist=1, begin
+  switch(d) do(
+    case(up) exit returning(y -- dist)
+    case(down) exit returning(y + dist)
+  )
+  exit returning(y)
+end
+
+script, splat slime, ref, begin
+  # Only unsplatted slimes can splat
+  if(get npc id(ref) == 1) then(
+    wait for NPC
+    change npc id(ref, 2)
+    set npc obstructs(ref, false)
+  )
 end
