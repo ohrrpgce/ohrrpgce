@@ -283,6 +283,7 @@ dim shared draw_fps as double             'Current measured frame draw rate, per
 dim shared real_fps as double             'Current measured frame display rate, per second
 dim shared showfps as integer = 0         'Draw on overlay? 0 (off), 1 (real fps), or 2 (draw fps)
 
+dim shared overlays_enabled as bool = YES 'Whether to draw overlays in general
 dim shared overlay_message as string      'Message to display on screen
 dim shared overlay_hide_time as double    'Time at which to hide it
 dim shared overlay_replay_display as bool
@@ -475,6 +476,9 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		end if
 	elseif opt = "recordoverlays" then
 		screenshot_record_overlays = YES
+		return 1
+	elseif opt = "hideoverlays" then
+		overlays_enabled = NO
 		return 1
 	elseif opt = "recordinput" then
 		dim fname as string = absolute_with_orig_path(arg)
@@ -2553,6 +2557,8 @@ end sub
 'Draw stuff on top of the video page about to be shown.
 'Returns true if something was drawn.
 private function draw_allmodex_overlays (page as integer) as bool
+	if overlays_enabled = NO then return NO
+
 	dim dirty as bool = NO
 	if showfps then
 		dim fpsstring as string

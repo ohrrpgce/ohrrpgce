@@ -45,7 +45,7 @@ function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
-		help = help & "(C) Copyright 1997-2015 James Paige and Hamster Republic Productions" & LINE_END
+		help = help & "(C) Copyright 1997-2017 James Paige and Hamster Republic Productions" & LINE_END
 		help = help & "This game engine is free software under the terms of the GNU GPL v2+" & LINE_END
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
 		help = help & "Game data copyright and license will vary." & LINE_END
@@ -59,7 +59,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 #IFDEF IS_GAME
-		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (for bughunting only)" & LINE_END
+		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 		help = help & "-errlvl level       Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
@@ -79,9 +79,10 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default " & max_display_fps & ")" & LINE_END
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END
+		help = help & "-hideoverlays       Never draw overlays" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
-		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default on Linux/BSD)" & LINE_END
+		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under X11 (ie. Linux, BSD))" & LINE_END
 		help = help & "-native-kbd         Use OS-based text input instead of US keyboard layout (Default on Windows, Mac OS X, Android)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
