@@ -1,8 +1,9 @@
-define constant(3, last map)
+define constant(4, last map)
+define constant(4, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
-  jump to map(none, 0)
+  jump to map(none, default map)
 end
 
 plotscript, quit this game, begin
@@ -90,3 +91,29 @@ script, splat slime, ref, begin
     set npc obstructs(ref, false)
   )
 end
+
+plotscript, clicky switch, arg, ref, begin
+  variable(tile, pass)
+  if(npc direction(ref) == down) then(
+    # rock doors are open, we want to close them.
+    tile := 42
+    pass := north wall + east wall + south wall + west wall
+    set npc direction(ref, up)
+  )else(
+    # rock doors are closed, we want to open them
+    tile := 16
+    pass := none
+    set npc direction(ref, down)
+  )
+  variable(x, y)
+  for (y, 0, map width -- 1) do(
+    for (x, 0, map height -- 1) do(
+      if(read zone(2, x, y)) then(
+        write map block(x, y, tile)
+        write pass block(x, y, pass)
+      )
+    )
+  )
+end
+
+
