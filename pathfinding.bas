@@ -127,7 +127,8 @@ Sub AStarPathfinder.calculate()
    debug "AStar safety check: " & safety & " iterations is bigger than double mapsize " & mapsizetiles.x * mapsizetiles.y & " * 2"
    exit do
   end if
-
+  
+  'slow_debug()
  loop
  v_free openlist
  v_free closelist
@@ -215,6 +216,22 @@ Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
   return abs(n.p.x - destpos.x) + abs(n.p.y - destpos.y)
  end if
 End Function
+
+Sub AStarPathfinder.slow_debug()
+ for y as integer = 0 to mapsizetiles.y - 1
+  for x as integer = 0 to mapsizetiles.x - 1
+   dim col as integer = 0
+   select case nodes(x, y).status
+    case AStarNodeStatus.OPENED: col = uilook(uiHighlight)
+    case AStarNodeStatus.CLOSED: col = uilook(uiHighlight2)
+   end select
+   if col then fuzzyrect x * 20 - mapx, y * 20 - mapy, 20, 20, col, vpage 
+  next x
+ next y
+ setvispage vpage
+ dowait
+ setwait 10
+End Sub
 
 Sub AStarPathfinder.debug_path()
  dim s as string = " A* path="

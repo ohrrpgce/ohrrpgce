@@ -49,6 +49,7 @@ Type AStarPathfinder
  
  Declare Sub debug_path()
  Declare Sub debug_list(list as AStarNode vector, expected_status as AStarNodeStatus, listname as string ="nodelist")
+ Declare Sub slow_debug()
 
 End Type
 
