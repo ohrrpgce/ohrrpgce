@@ -26,6 +26,7 @@ Type AStarPathfinder
                         ' A positive number is the max manhattan distance to search.
  
  path as XYPair vector
+ consolation as bool ' This will be YES if the resulting path fails to reach the desired destpos
                         
  nodes(ANY, ANY) as AStarNode
 
@@ -35,11 +36,14 @@ Type AStarPathfinder
  Declare Function getnode(p as XYPair) byref as AStarNode
  
  Declare Sub calculate()
+ Declare Sub set_result_path(found_dest as XYPair)
+ Declare Function best_node_from_list(list as AStarNode vector) as XYPair
  Declare Function calc_cost(n as AStarNode) as integer
  Declare Function cost_before_node(n as AStarNode) as integer
  Declare Function guess_cost_after_node(n as AStarNode) as integer
  
  Declare Sub debug_path()
+ Declare Sub debug_list(list as AStarNode vector, expected_status as AStarNodeStatus, listname as string ="nodelist")
 
 End Type
 

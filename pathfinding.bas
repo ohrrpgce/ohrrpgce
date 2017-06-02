@@ -46,6 +46,7 @@ Sub AStarPathfinder.calculate()
  dim closelist as AStarNode vector
  v_new closelist
 
+ 'Flush the path before we begin
  v_resize path, 0
 
  dim cursor as XYPair
@@ -58,13 +59,7 @@ Sub AStarPathfinder.calculate()
   if cursor = destpos then
    'debug "Destination found!"
    'Fill the path result with the parent chain starting at destpos
-   v_insert path, 0, destpos
-   dim n as AStarNode = getnode(destpos) 
-   do
-    v_insert path, 0, n.parent
-    if n.parent = startpos then exit do
-    n = getnode(n.parent)
-   loop
+   set_result_path(destpos)
    'debug_path()
    exit do
   end if
@@ -105,22 +100,17 @@ Sub AStarPathfinder.calculate()
   end if
 
   if v_len(openlist) > 0 then
-   dim best as XYPair
-   dim best_cost as integer = -1
-   for i as integer = 0 to v_len(openlist) - 1
-    dim cost as integer = calc_cost(openlist[i])
-    if cost < best_cost orelse best_cost = -1 then
-     best_cost = cost
-     best = openlist[i].p
-    end if
-   next i
+   'Open list still has nodes, so pick the best one to be our new cursor
+   dim best as XYPair = best_node_from_list(openlist)
    v_append closelist, getnode(best)
    v_remove openlist, getnode(best)
    getnode(best).status = AStarNodeStatus.CLOSED
    cursor = best
   else
-   'Open list was empty, which means no path was found
-   debug "open list was empty"
+   'Open list was empty, which means no path was found.
+   'Choose the best node from the closelist to be the consolation destination
+   dim best as XYPair = best_node_from_list(closelist)
+   set_result_path(best)
    exit do
   end if
 
@@ -135,6 +125,42 @@ Sub AStarPathfinder.calculate()
  v_free closelist
  
 End Sub
+
+Sub AStarPathfinder.set_result_path(found_dest as XYPair)
+ 'We are about to regenerate the path, so flush it first
+ v_resize path, 0
+ v_insert path, 0, found_dest
+ dim n as AStarNode = getnode(found_dest) 
+ dim safety as integer = 0
+ do
+  v_insert path, 0, n.parent
+  if n.parent = startpos then exit do
+  n = getnode(n.parent)
+  safety += 1
+  if safety > mapsizetiles.x * mapsizetiles.y * 2 then
+   debug "AStar result path safety check: " & safety & " iterations is bigger than double mapsize " & mapsizetiles.x * mapsizetiles.y & " * 2"
+   'This would probably mean an endless loop caused by a corrupted parentage chain
+   exit do
+  end if
+ loop
+ 'Update the consolation flag
+ consolation = found_dest <> destpos
+End Sub
+
+Function AStarPathfinder.best_node_from_list(list as AStarNode vector) as XYPair
+ 'Doesn't handle tie-breaking yet
+ 'Might be replaced with sorting in the future?
+ dim best as XYPair
+ dim best_cost as integer = -1
+ for i as integer = 0 to v_len(list) - 1
+  dim cost as integer = calc_cost(list[i])
+  if cost < best_cost orelse best_cost = -1 then
+   best_cost = cost
+   best = list[i].p
+  end if
+ next i
+ return best
+End Function
 
 Function AStarPathfinder.getnode(p as XYPair) byref as AStarNode
  return nodes(p.x, p.y)
@@ -176,6 +202,22 @@ Sub AStarPathfinder.debug_path()
  for i as integer = 0 to v_len(path) - 1
   if i > 0 then s &= " "
   s &= path[i].x & "," & path[i].y
+ next i
+ debug s
+End Sub
+
+Sub AStarPathfinder.debug_list(list as AStarNode vector, expected_status as AStarNodeStatus, listname as string ="nodelist")
+ dim s as string = " A* " & listname & "="
+ for i as integer = 0 to v_len(list) - 1
+  if i > 0 then s &= " "
+  s &= list[i].p.x & "," & list[i].p.y
+  if list[i].status <> expected_status then
+   select case list[i].status
+    case AStarNodeStatus.EMPTY: s &= "E"
+    case AStarNodeStatus.OPENED: s &= "O"
+    case AStarNodeStatus.CLOSED: s &= "C"
+   end select
+  end if
  next i
  debug s
 End Sub
