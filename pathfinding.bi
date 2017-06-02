@@ -38,7 +38,7 @@ Type AStarPathfinder
  
  Declare Function getnode(p as XYPair) byref as AStarNode
  
- Declare Sub calculate()
+ Declare Sub calculate(byval npc as NPCInst Ptr=0)
  Declare Sub set_result_path(found_dest as XYPair)
 
  Declare Function best_open_node(list as AStarNode vector) as XYPair

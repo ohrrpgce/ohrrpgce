@@ -1808,7 +1808,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  t2.y = heroty(0)
 
  DIM pf as AStarPathfinder = AStarPathfinder(t1, t2, 30)
- pf.calculate()
+ pf.calculate(@npci)
  'pf.debug_path()
  if v_len(pf.path) > 1 then
   'Don't move unless a path is found that is longer than one tile

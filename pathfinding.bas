@@ -39,7 +39,7 @@ Destructor AStarPathfinder
  v_free path
 End Destructor
 
-Sub AStarPathfinder.calculate()
+Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  'debug "AStarPathfinder.calculate() " & startpos.x & "," & startpos.y & " -> " & destpos.x & "," & destpos.y
  redim nodes(mapsizetiles.x - 1, mapsizetiles.y - 1) as AStarNode
 
@@ -75,7 +75,16 @@ Sub AStarPathfinder.calculate()
     if getnode(nearby).status = AStarNodeStatus.OPENED then continue for
     if maxdist > 0 andalso xypair_manhattan_distance(startpos, nearby) > maxdist then continue for
     
-    if not check_wall_edges(cursor.x, cursor.y, direction) then
+    dim collide as bool
+    if npc <> 0 then
+     'This is a check for an NPC
+     collide = npc_collision_check_at(*npc, cursor, direction)
+    else
+     'This is a walls-only check
+     collide = check_wall_edges(cursor.x, cursor.y, direction)
+    end if
+    
+    if not collide then
      'Yes, the adjacent tile is reachable
      
      getnode(nearby).p = nearby
