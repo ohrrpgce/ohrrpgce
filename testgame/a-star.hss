@@ -1,4 +1,4 @@
-define constant(4, last map)
+define constant(5, last map)
 define constant(4, default map)
 
 plotscript, on new game, begin
