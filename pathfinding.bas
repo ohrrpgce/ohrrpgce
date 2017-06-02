@@ -75,6 +75,7 @@ Sub AStarPathfinder.calculate()
    wrapaheadxy nearby, direction, 1, 1
    if nearby.x >= 0 andalso nearby.y >= 0 andalso nearby.x < mapsizetiles.x andalso nearby.y < mapsizetiles.y then
     if getnode(nearby).status = AStarNodeStatus.CLOSED then continue for
+    if getnode(nearby).status = AStarNodeStatus.OPENED then continue for
     
     if not check_wall_edges(cursor.x, cursor.y, direction) then
      'Yes, the adjacent tile is reachable
@@ -119,6 +120,7 @@ Sub AStarPathfinder.calculate()
    cursor = best
   else
    'Open list was empty, which means no path was found
+   debug "open list was empty"
    exit do
   end if
 
