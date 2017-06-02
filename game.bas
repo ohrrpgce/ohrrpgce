@@ -1800,6 +1800,11 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
 END SUB
 
 SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
+ if npci.pathfinder_cooldown > 0 then
+  npci.pathfinder_cooldown -= 1
+  return
+ end if
+ 
  DIM t1 as XYPair
  t1.x = npci.x / 20
  t1.y = npci.y / 20
@@ -1815,6 +1820,9 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 
   npci.dir = xypair_direction_to(pf.path[0], pf.path[1], npci.dir)
   npcmove_walk_ahead(npci)
+ else
+  'Don't try again for 10 ticks
+  npci.pathfinder_cooldown = 10
  end if
 END SUB
 

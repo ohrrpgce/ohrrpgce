@@ -265,6 +265,8 @@ TYPE NPCInst
   suspend_use as bool   'not activatable 
   suspend_ai as bool    'ignore movetype (effectively 'stand still')
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
+  
+  pathfinder_cooldown as integer 'Used to prevent stuck pathfinding NPCs from re-pathing too fast
 END TYPE
 
 TYPE InventSlot
