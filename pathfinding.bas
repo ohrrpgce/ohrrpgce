@@ -78,7 +78,9 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
     dim collide as bool
     if npc <> 0 then
      'This is a check for an NPC
-     collide = npc_collision_check_at(*npc, cursor, direction)
+     dim col_type as WalkaboutCollisionType
+     collide = npc_collision_check_at(*npc, cursor, direction, col_type)
+     if col_type = collideHero then collide = NO
     else
      'This is a walls-only check
      collide = check_wall_edges(cursor.x, cursor.y, direction)
