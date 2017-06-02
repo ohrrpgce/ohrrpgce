@@ -31,7 +31,7 @@ dim _pathfinder_obj as AStarPathfinder Ptr
 Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxdist as integer=0)
  this.startpos = startpos
  this.destpos = destpos
- this.maxdist = maxdist ' Not implemented yet
+ this.maxdist = maxdist
  v_new path
 End Constructor
 
@@ -73,6 +73,7 @@ Sub AStarPathfinder.calculate()
    if nearby.x >= 0 andalso nearby.y >= 0 andalso nearby.x < mapsizetiles.x andalso nearby.y < mapsizetiles.y then
     if getnode(nearby).status = AStarNodeStatus.CLOSED then continue for
     if getnode(nearby).status = AStarNodeStatus.OPENED then continue for
+    if maxdist > 0 andalso xypair_manhattan_distance(startpos, nearby) > maxdist then continue for
     
     if not check_wall_edges(cursor.x, cursor.y, direction) then
      'Yes, the adjacent tile is reachable
@@ -220,9 +221,7 @@ End Function
 Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
  if gmap(5) = 1 then
   'This is a wrapping map
-  dim diff as XYPair
-  diff.x = destpos.x - n.p.x
-  diff.y = destpos.y - n.p.y
+  dim diff as XYPair = destpos - n.p
   if abs(diff.x) > mapsizetiles.x / 2 then
    diff.x = abs(diff.x) - mapsizetiles.x / 2
   end if
@@ -231,7 +230,7 @@ Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
   end if
   return abs(diff.x) + abs(diff.y)
  else
-  return abs(n.p.x - destpos.x) + abs(n.p.y - destpos.y)
+  return xypair_manhattan_distance(n.p, destpos)
  end if
 End Function
 

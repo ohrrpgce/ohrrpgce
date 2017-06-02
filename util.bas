@@ -148,6 +148,16 @@ SUB xypair_move (v as XYPair, byval direction as integer, byval amount as intege
  END SELECT
 END SUB
 
+FUNCTION xypair_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+ DIM diff as XYPair = v2 - v1
+ RETURN ABS(diff.x) + ABS(diff.y)
+END FUNCTION
+
+FUNCTION xypair_distance_squared(v1 as XYPair, v2 as XYPair) as integer
+ DIM diff as XYPair = v2 - v1
+ RETURN diff.x ^ 2 + diff.y ^ 2
+END FUNCTION
+
 #IFDEF __FB_MAIN__
 startTest(XYPairOperators)
   DIM as XYPair A = (1,2), B = (3,4)

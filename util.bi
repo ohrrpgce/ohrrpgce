@@ -408,6 +408,8 @@ DECLARE_VECTOR_OF_TYPE(XYPair, XYPair)
 
 DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
 DECLARE SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)
+DECLARE FUNCTION xypair_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+DECLARE FUNCTION xypair_distance_squared(v1 as XYPair, v2 as XYPair) as integer
 
 UNION XYZTriple
   TYPE
