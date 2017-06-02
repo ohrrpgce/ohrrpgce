@@ -25,6 +25,8 @@
 '                          A* Pathfinding on a Map
 '==========================================================================================
 
+'See the notes where this variable is declared extern in pathfinding.bi
+dim _pathfinder_obj as AStarPathfinder Ptr
 
 Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxdist as integer=0)
  this.startpos = startpos
@@ -80,8 +82,12 @@ Sub AStarPathfinder.calculate()
      if getnode(nearby).status = AStarNodeStatus.OPENED then
       'This node is already in the open list, check to see if the current
       'path cost is better than the saved path cost
-      if cost_before_node(getnode(cursor)) < cost_before_node(getnode(getnode(nearby).parent)) then
+      if not getnode(nearby).has_parent then
        getnode(nearby).parent = cursor
+      else
+       if cost_before_node(getnode(cursor)) < cost_before_node(getnode(getnode(nearby).parent)) then
+        getnode(nearby).parent = cursor
+       end if
       end if
      else
       'This node should be added to the open list
@@ -109,8 +115,10 @@ Sub AStarPathfinder.calculate()
   else
    'Open list was empty, which means no path was found.
    'Choose the best node from the closelist to be the consolation destination
-   dim best as XYPair = best_node_from_list(closelist)
-   set_result_path(best)
+   if v_len(closelist) > 0 then
+    dim best as XYPair = best_node_from_list(closelist)
+    set_result_path(best)
+   end if
    exit do
   end if
 
@@ -133,6 +141,7 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
  dim n as AStarNode = getnode(found_dest) 
  dim safety as integer = 0
  do
+  if not n.has_parent then exit do
   v_insert path, 0, n.parent
   if n.parent = startpos then exit do
   n = getnode(n.parent)
@@ -148,18 +157,26 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
 End Sub
 
 Function AStarPathfinder.best_node_from_list(list as AStarNode vector) as XYPair
- 'Doesn't handle tie-breaking yet
- 'Might be replaced with sorting in the future?
- dim best as XYPair
- dim best_cost as integer = -1
- for i as integer = 0 to v_len(list) - 1
-  dim cost as integer = calc_cost(list[i])
-  if cost < best_cost orelse best_cost = -1 then
-   best_cost = cost
-   best = list[i].p
-  end if
- next i
- return best
+ _pathfinder_obj = @this
+ v_sort(list, cast(FnCompare, @node_compare))
+ _pathfinder_obj = 0
+ return list[0].p
+End Function
+
+Static Function AStarPathfinder.node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
+ 'First compare by estimated node cost
+ dim cost_a as integer = _pathfinder_obj->calc_cost(*a)
+ dim cost_b as integer = _pathfinder_obj->calc_cost(*b)
+ if cost_a < cost_b then return -1
+ if cost_a > cost_b then return 1
+ 'Break ties with distance-squared to dest
+ dim d as XYPair
+ d.x = _pathfinder_obj->destpos.x
+ d.y = _pathfinder_obj->destpos.y
+ cost_a = (d.x - a->p.x)^2 + (d.y - a->p.y)^2
+ cost_b = (d.x - b->p.x)^2 + (d.y - b->p.y)^2
+ if cost_a < cost_b then return -1
+ if cost_a > cost_b then return 1
 End Function
 
 Function AStarPathfinder.getnode(p as XYPair) byref as AStarNode
@@ -171,11 +188,13 @@ Function AStarPathfinder.calc_cost(n as AStarNode) as integer
 End Function
 
 Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
+ if n.p = startpos then return 0
+ if not n.has_parent then return mapsizetiles.x * mapsizetiles.y
+ if n.parent = startpos then return 1
  if n.status = AStarNodeStatus.EMPTY then
   debug "ERROR empty node in cost_before_node at " & n.p
   return 1
  end if
- if n.parent = startpos then return 1
  return 1 + cost_before_node(getnode(n.parent))
 End Function
 
@@ -221,6 +240,18 @@ Sub AStarPathfinder.debug_list(list as AStarNode vector, expected_status as ASta
  next i
  debug s
 End Sub
+
+'------------------------------------------------------------------------------------------
+
+Property AStarNode.parent () as XYPair
+ if not has_parent then debug "AStarNode.parent: Attempted to access non-existant parent for node " & p.x & "," & p.y
+ return _parent
+End Property
+
+Property AStarNode.parent (byval new_parent as XYPair)
+ _parent = new_parent
+ has_parent = YES
+End Property
 
 '------------------------------------------------------------------------------------------
 
