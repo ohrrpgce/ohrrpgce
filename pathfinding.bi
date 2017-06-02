@@ -40,8 +40,11 @@ Type AStarPathfinder
  
  Declare Sub calculate()
  Declare Sub set_result_path(found_dest as XYPair)
- Declare Function best_node_from_list(list as AStarNode vector) as XYPair
- Declare Static Function node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
+
+ Declare Function best_open_node(list as AStarNode vector) as XYPair
+ Declare Function best_close_node(list as AStarNode vector) as XYPair
+ Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
+ Declare Static Function close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
 
  Declare Function calc_cost(n as AStarNode) as integer
  Declare Function cost_before_node(n as AStarNode) as integer
