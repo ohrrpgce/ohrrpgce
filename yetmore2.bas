@@ -246,49 +246,59 @@ END SUB
 
 'Set the camera position.
 SUB setmapxy
-SELECT CASE gen(genCameraMode)
- CASE herocam
-  center_camera_on_walkabout herow(gen(genCameraArg1)).sl
- CASE npccam
-  IF gen(genCameraArg1) > UBOUND(npc) ORELSE npc(gen(genCameraArg1)).id <= 0 THEN
-   gen(genCameraMode) = stopcam
-  ELSE
-   center_camera_on_walkabout npc(gen(genCameraArg1)).sl
-  END IF
- CASE slicecam
-  'We also check the slice didn't just get deleted after changing map
-  IF valid_plotslice(gen(genCameraArg1), serrIgnore) THEN
-   center_camera_on_slice plotslices(gen(genCameraArg1))
-  ELSE
-   'stopping seems more appropriate than resetting to hero
-   gen(genCameraMode) = stopcam
-  END IF
- CASE pancam ' 1=dir, 2=ticks, 3=step
-  IF gen(genCameraArg2) > 0 THEN
-   aheadxy mapx, mapy, gen(genCameraArg1), gen(genCameraArg3)
-   gen(genCameraArg2) -= 1
-  END IF
-  IF gen(genCameraArg2) <= 0 THEN gen(genCameraMode) = stopcam
- CASE focuscam ' 1=x, 2=y, 3=x step, 4=y step
-  DIM camdiff as integer
-  camdiff = gen(genCameraArg1) - mapx
-  IF ABS(camdiff) <= gen(genCameraArg3) THEN
-   gen(genCameraArg3) = 0
-   mapx = gen(genCameraArg1)
-  ELSE
-   mapx += SGN(camdiff) * gen(genCameraArg3)
-  END IF
-  camdiff = gen(genCameraArg2) - mapy
-  IF ABS(camdiff) <= gen(genCameraArg4) THEN
-   gen(genCameraArg4) = 0
-   mapy = gen(genCameraArg2)
-  ELSE
-   mapy += SGN(camdiff) * gen(genCameraArg4)
-  END IF
-  limitcamera mapx, mapy
-  IF gen(genCameraArg3) = 0 AND gen(genCameraArg4) = 0 THEN gen(genCameraMode) = stopcam
-END SELECT
-limitcamera mapx, mapy
+ IF gam.debug_camera_pan THEN
+  'F7 debug key
+  DIM speed as integer = IIF(keyval(scShift) > 0, 50, 15)
+  IF carray(ccUp) > 0 THEN mapy -= speed
+  IF carray(ccDown) > 0 THEN mapy += speed
+  IF carray(ccLeft) > 0 THEN mapx -= speed
+  IF carray(ccRight) > 0 THEN mapx += speed
+ ELSE
+  'Normal camera
+  SELECT CASE gen(genCameraMode)
+   CASE herocam
+    center_camera_on_walkabout herow(gen(genCameraArg1)).sl
+   CASE npccam
+    IF gen(genCameraArg1) > UBOUND(npc) ORELSE npc(gen(genCameraArg1)).id <= 0 THEN
+     gen(genCameraMode) = stopcam
+    ELSE
+     center_camera_on_walkabout npc(gen(genCameraArg1)).sl
+    END IF
+   CASE slicecam
+    'We also check the slice didn't just get deleted after changing map
+    IF valid_plotslice(gen(genCameraArg1), serrIgnore) THEN
+     center_camera_on_slice plotslices(gen(genCameraArg1))
+    ELSE
+     'stopping seems more appropriate than resetting to hero
+     gen(genCameraMode) = stopcam
+    END IF
+   CASE pancam ' 1=dir, 2=ticks, 3=step
+    IF gen(genCameraArg2) > 0 THEN
+     aheadxy mapx, mapy, gen(genCameraArg1), gen(genCameraArg3)
+     gen(genCameraArg2) -= 1
+    END IF
+    IF gen(genCameraArg2) <= 0 THEN gen(genCameraMode) = stopcam
+   CASE focuscam ' 1=x, 2=y, 3=x step, 4=y step
+    DIM camdiff as integer
+    camdiff = gen(genCameraArg1) - mapx
+    IF ABS(camdiff) <= gen(genCameraArg3) THEN
+     gen(genCameraArg3) = 0
+     mapx = gen(genCameraArg1)
+    ELSE
+     mapx += SGN(camdiff) * gen(genCameraArg3)
+    END IF
+    camdiff = gen(genCameraArg2) - mapy
+    IF ABS(camdiff) <= gen(genCameraArg4) THEN
+     gen(genCameraArg4) = 0
+     mapy = gen(genCameraArg2)
+    ELSE
+     mapy += SGN(camdiff) * gen(genCameraArg4)
+    END IF
+    limitcamera mapx, mapy
+    IF gen(genCameraArg3) = 0 AND gen(genCameraArg4) = 0 THEN gen(genCameraMode) = stopcam
+  END SELECT
+ END IF
+ limitcamera mapx, mapy
 END SUB
 
 SUB showplotstrings

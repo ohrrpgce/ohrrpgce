@@ -788,7 +788,9 @@ DO
    menusound gen(genAcceptSFX)
   END IF
  END IF
- IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
+ IF txt.showing = NO AND gam.need_fade_in = NO AND gam.debug_camera_pan = NO _
+    AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
+    AND menus_allow_player() THEN
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
    DO
     IF carray(ccUp) > 0 THEN herow(0).ygo = 20: (herodir(0)) = 0: EXIT DO
@@ -3934,11 +3936,14 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  DIM showhide as string = IIF(gam.debug_npc_info, "Hide", "Show")
  IF dbg.def(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
 
- IF dbg.def(scCtrl, scF7, "Realign leader to grid (Ctrl-F7)") THEN
-  herox(0) = herotx(0) * 20
-  heroy(0) = heroty(0) * 20
-  herow(0).xgo = 0
-  herow(0).ygo = 0
+ IF dbg.def(      , scF7, "Move the camera (F7)") THEN
+  IF gam.debug_camera_pan THEN
+   gam.showtext = "Normal camera restored"
+  ELSE
+   gam.showtext = "Press arrow keys to pan the camera, SHIFT to go faster, F7 to stop"
+  END IF
+  gam.showtext_ticks = 45
+  gam.debug_camera_pan XOR= YES
  END IF
 
  IF dbg.def(      , scF8) THEN debug_menu
@@ -4017,6 +4022,13 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   debug "----------------Slice Tree Dump---------------"
   SliceDebugDumpTree SliceTable.Root
   notification "Dumped entire slice tree to g_debug.txt"
+ END IF
+
+ IF dbg.def( , , "Realign leader to grid") THEN
+  herox(0) = herotx(0) * 20
+  heroy(0) = heroty(0) * 20
+  herow(0).xgo = 0
+  herow(0).ygo = 0
  END IF
 
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets

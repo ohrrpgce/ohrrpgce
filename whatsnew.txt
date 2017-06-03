@@ -86,6 +86,8 @@ WHAT IS NEW?
       (HSpeak has saved a backup copy of scripts for years now) [Ralph]
     * New preference bitset "Keep caterpillar length the same when speed
       changes" [James]
+    * Re-added F7 debug key to pan the camera (we used to have a similar
+      debug key a while ago) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
