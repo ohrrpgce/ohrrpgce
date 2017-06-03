@@ -25,9 +25,6 @@
 '                          A* Pathfinding on a Map
 '==========================================================================================
 
-'See the notes where this variable is declared extern in pathfinding.bi
-dim _pathfinder_obj as AStarPathfinder Ptr
-
 Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxsearch as integer=0)
  this.startpos = startpos
  this.destpos = destpos
@@ -108,6 +105,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
       getnode(nearby).status = AStarNodeStatus.OPENED
       getnode(nearby).cost_before = cost_before_node(getnode(nearby))
       getnode(nearby).cost_after = guess_cost_after_node(getnode(nearby))
+      getnode(nearby).dist_squared = xypair_distance_squared(nearby, destpos)
       v_append openlist, getnode(nearby)
      end if
      
@@ -117,6 +115,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
   'add cursor node to the closed list
   if getnode(cursor).status <> AStarNodeStatus.CLOSED then
    getnode(cursor).status = AStarNodeStatus.CLOSED
+   getnode(cursor).dist_squared = xypair_distance_squared(cursor, destpos)
    v_append closelist, getnode(cursor)
   end if
 
@@ -173,16 +172,12 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
 End Sub
 
 Function AStarPathfinder.best_open_node(list as AStarNode vector) as XYPair
- _pathfinder_obj = @this
  v_sort(list, cast(FnCompare, @open_node_compare))
- _pathfinder_obj = 0
  return list[0].p
 End Function
 
 Function AStarPathfinder.best_close_node(list as AStarNode vector) as XYPair
- _pathfinder_obj = @this
  v_sort(list, cast(FnCompare, @close_node_compare))
- _pathfinder_obj = 0
  return list[0].p
 End Function
 
@@ -193,24 +188,16 @@ Static Function AStarPathfinder.open_node_compare cdecl (byval a as AStarNode pt
  if cost_a < cost_b then return -1
  if cost_a > cost_b then return 1
  'Break ties with distance-squared to dest
- dim d as XYPair
- d.x = _pathfinder_obj->destpos.x
- d.y = _pathfinder_obj->destpos.y
- cost_a = (d.x - a->p.x)^2 + (d.y - a->p.y)^2
- cost_b = (d.x - b->p.x)^2 + (d.y - b->p.y)^2
- if cost_a < cost_b then return -1
- if cost_a > cost_b then return 1
+ if a->dist_squared < b->dist_squared then return -1
+ if a->dist_squared > b->dist_squared then return 1
+ return 0
 End Function
 
 Static Function AStarPathfinder.close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  'Only care about distance-squared to dest
- dim d as XYPair
- d.x = _pathfinder_obj->destpos.x
- d.y = _pathfinder_obj->destpos.y
- dim cost_a as integer = (d.x - a->p.x)^2 + (d.y - a->p.y)^2
- dim cost_b as integer = (d.x - b->p.x)^2 + (d.y - b->p.y)^2
- if cost_a < cost_b then return -1
- if cost_a > cost_b then return 1
+ if a->dist_squared < b->dist_squared then return -1
+ if a->dist_squared > b->dist_squared then return 1
+ return 0
 End Function
 
 Function AStarPathfinder.getnode(p as XYPair) byref as AStarNode

@@ -19,6 +19,7 @@ Type AStarNode
  Declare Property parent (byval new_parent as XYPair)
  cost_before as integer
  cost_after as integer
+ dist_squared as integer
 End Type
 DECLARE_VECTOR_OF_TYPE(AStarNode, AStarNode)
 
@@ -56,14 +57,5 @@ Type AStarPathfinder
  Declare Sub slow_debug()
 
 End Type
-
-
-'This global is used to hold a temporary pointer to an AStarPathfinder
-'when it sorts its node lists. This is needed because the sort function
-'requires a static comparison function, and doesn't have a "this" reference.
-'
-'The side-effect of this global is that it is almost certainly not safe to
-'use two AStarPathfinder instances simultaneously in different threads
-Extern _pathfinder_obj as AStarPathfinder Ptr
 
 #endif
