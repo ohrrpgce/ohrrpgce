@@ -21,6 +21,7 @@ typedef struct _array_header {
 	typetable *typetbl;
 	int len:31;
 	int temp:1;
+	int allocated;  // Amount of memory allocated, in number of elements
 } array_header;
 
 /* ifdef VALGRIND_ARRAYS, then two bytes before the start of an array hold an id
@@ -140,6 +141,7 @@ static array_t mem_alloc(typetable *typetbl, int len) {
 	header->typetbl = typetbl;
 	header->len = len;
 	header->temp = 0;
+	header->allocated = len;
 	return array;
 }
 
@@ -153,21 +155,40 @@ static inline void mem_free(array_t array) {
 	free(get_mem_ptr(array));
 }
 
+// For debugging: Whether to move the data to a new allocation every single time
+// it's resized to check that everyone correctly handles this.
+#define FORCE_REALLOC 0
+
 static array_t mem_resize(array_t array, unsigned int len) warn_unused_result;
 
 // Lowest-level resize routine. Does not destruct/construct elements
 static array_t mem_resize(array_t array, unsigned int len) {
 	void *mem = get_mem_ptr(array);
 	array_header *header = get_header(array);
+
+	// Decide whether to grow or shrink memory
+	int alloclen;  // Amount to allocate
+	if (len > header->allocated)
+		alloclen = len + len / 2 + 3;
+	else if (len + 1 < header->allocated / 4)
+		alloclen = len;
+#if !FORCE_REALLOC
+	else {
+		header->len = len;
+		return array;
+	}
+#else
+	alloclen = len;
+#endif
+
 	int arraysize;
-	if (smul_overflow(len, header->typetbl->element_len, &arraysize) ||
+	if (smul_overflow(alloclen, header->typetbl->element_len, &arraysize) ||
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
 		debug(errFatal, "mem_resize: overflow; vector len=%d", len);
-#if 1
+#if !FORCE_REALLOC
 	void *newmem = realloc(mem, arraysize);
 #else
-	// For debugging: Move the data to a new allocation every single time,
-	// to check that everyone correctly handles this.
+	// For debugging: Allocate new memory
 	int oldsize = ARRAY_OVERHEAD + header->len * header->typetbl->element_len;
 	if (oldsize > arraysize)
 		oldsize = arraysize;
