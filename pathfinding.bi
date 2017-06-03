@@ -17,6 +17,8 @@ Type AStarNode
  has_parent as bool
  Declare Property parent () as XYPair
  Declare Property parent (byval new_parent as XYPair)
+ cost_before as integer
+ cost_after as integer
 End Type
 DECLARE_VECTOR_OF_TYPE(AStarNode, AStarNode)
 
@@ -46,7 +48,6 @@ Type AStarPathfinder
  Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  Declare Static Function close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
 
- Declare Function calc_cost(n as AStarNode) as integer
  Declare Function cost_before_node(n as AStarNode) as integer
  Declare Function guess_cost_after_node(n as AStarNode) as integer
  

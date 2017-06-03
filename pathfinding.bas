@@ -97,14 +97,17 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
       if not getnode(nearby).has_parent then
        getnode(nearby).parent = cursor
       else
-       if cost_before_node(getnode(cursor)) < cost_before_node(getnode(getnode(nearby).parent)) then
+       if getnode(cursor).cost_before < getnode(getnode(nearby).parent).cost_before then
         getnode(nearby).parent = cursor
+        getnode(nearby).cost_before = cost_before_node(getnode(nearby))
        end if
       end if
      else
       'This node should be added to the open list
       getnode(nearby).parent = cursor
       getnode(nearby).status = AStarNodeStatus.OPENED
+      getnode(nearby).cost_before = cost_before_node(getnode(nearby))
+      getnode(nearby).cost_after = guess_cost_after_node(getnode(nearby))
       v_append openlist, getnode(nearby)
      end if
      
@@ -185,8 +188,8 @@ End Function
 
 Static Function AStarPathfinder.open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  'First compare by estimated node cost
- dim cost_a as integer = _pathfinder_obj->calc_cost(*a)
- dim cost_b as integer = _pathfinder_obj->calc_cost(*b)
+ dim cost_a as integer = a->cost_before + a->cost_after
+ dim cost_b as integer = b->cost_before + b->cost_after
  if cost_a < cost_b then return -1
  if cost_a > cost_b then return 1
  'Break ties with distance-squared to dest
@@ -212,10 +215,6 @@ End Function
 
 Function AStarPathfinder.getnode(p as XYPair) byref as AStarNode
  return nodes(p.x, p.y)
-End Function
-
-Function AStarPathfinder.calc_cost(n as AStarNode) as integer
- return cost_before_node(n) + guess_cost_after_node(n)
 End Function
 
 Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
