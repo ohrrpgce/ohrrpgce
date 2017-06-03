@@ -40,6 +40,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  'debug "AStarPathfinder.calculate() " & startpos.x & "," & startpos.y & " -> " & destpos.x & "," & destpos.y
  redim nodes(mapsizetiles.x - 1, mapsizetiles.y - 1) as AStarNode
 
+ 'openlist is a heap. closelist is just an unsorted list (we barely need it)
  dim openlist as AStarNode vector
  v_new openlist
  dim closelist as AStarNode vector
@@ -106,7 +107,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
       getnode(nearby).cost_before = cost_before_node(getnode(nearby))
       getnode(nearby).cost_after = guess_cost_after_node(getnode(nearby))
       getnode(nearby).dist_squared = xypair_distance_squared(nearby, destpos)
-      v_append openlist, getnode(nearby)
+      v_heappush openlist, getnode(nearby)
      end if
      
     end if
@@ -121,11 +122,10 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
 
   if v_len(openlist) > 0 then
    'Open list still has nodes, so pick the best one to be our new cursor
-   dim best as XYPair = best_open_node(openlist)
-   v_append closelist, getnode(best)
-   v_remove openlist, getnode(best)
-   getnode(best).status = AStarNodeStatus.CLOSED
-   cursor = best
+   cursor = openlist[0].p
+   openlist[0].status = AStarNodeStatus.CLOSED
+   v_append closelist, openlist[0]
+   v_heappop openlist
   else
    'Open list was empty, which means no path was found.
    'Choose the best node from the closelist to be the consolation destination
@@ -170,11 +170,6 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
  'Update the consolation flag
  consolation = found_dest <> destpos
 End Sub
-
-Function AStarPathfinder.best_open_node(list as AStarNode vector) as XYPair
- v_sort(list, cast(FnCompare, @open_node_compare))
- return list[0].p
-End Function
 
 Function AStarPathfinder.best_close_node(list as AStarNode vector) as XYPair
  v_sort(list, cast(FnCompare, @close_node_compare))
@@ -286,6 +281,8 @@ End Property
 
 '------------------------------------------------------------------------------------------
 
-DEFINE_VECTOR_OF_TYPE(AStarNode, AStarNode)
+'DEFINE_VECTOR_OF_TYPE(AStarNode, AStarNode)
+'Set compare function
+DEFINE_CUSTOM_VECTOR_TYPE(AStarNode, AStarNode, NULL, NULL, NULL, @AStarPathfinder.open_node_compare, NULL, NULL)
 
 '------------------------------------------------------------------------------------------

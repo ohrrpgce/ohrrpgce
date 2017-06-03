@@ -44,7 +44,6 @@ Type AStarPathfinder
  Declare Sub calculate(byval npc as NPCInst Ptr=0)
  Declare Sub set_result_path(found_dest as XYPair)
 
- Declare Function best_open_node(list as AStarNode vector) as XYPair
  Declare Function best_close_node(list as AStarNode vector) as XYPair
  Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  Declare Static Function close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
