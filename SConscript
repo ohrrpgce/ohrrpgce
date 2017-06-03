@@ -11,7 +11,7 @@ import shutil
 import shlex
 import itertools
 import re
-from ohrbuild import basfile_scan, verprint, android_source_actions, get_command_output, get_fb_info
+from ohrbuild import get_command_output
 import ohrbuild
 
 FBFLAGS = ['-mt'] #, '-showincludes']
@@ -51,8 +51,7 @@ base_libraries = []  # libraries shared by all utilities (except bam2mid)
 
 ################ Decide the target/OS and cpu arch
 
-dummyenv = Environment(ENV = {'PATH': os.environ['PATH']})
-fbc_binary, fbcversion, default_target, default_arch = get_fb_info(dummyenv, fbc)
+fbc_binary, fbcversion, fullfbcversion, default_target, default_arch = ohrbuild.get_fb_info(fbc)
 if verbose:
     print "Using fbc", fbc_binary #, " version:", fbcversion
 
@@ -321,7 +320,7 @@ rbasic_builder = Builder (action = [[File('reloadbasic/reloadbasic.py'), '--care
 rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output $TARGET',
                       suffix = '.obj', src_suffix = '.rc')
 
-bas_scanner = Scanner (function = basfile_scan,
+bas_scanner = Scanner (function = ohrbuild.basfile_scan,
                        skeys = ['.bas', '.bi'], recursive = True)
 
 env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLAGS')
@@ -832,7 +831,7 @@ archinfo = arch
 if arch == '(see target)':
     archinfo = target
 def version_info(source, target, env):
-    verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir, DATAFILES)
+    ohrbuild.verprint (gfx, music, fbc, archinfo, asan, portable, builddir, rootdir, DATAFILES)
 VERPRINT = env.Command (target = ['#/ver.txt', '#/iver.txt', '#/distver.bat'],
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating ver.txt"))
@@ -935,8 +934,8 @@ Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
 if android_source:
     # This is hacky and ought to be rewritten
-    Alias('game', action = android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp'))
-    Alias('custom', action = android_source_actions (editsrc, rootdir, rootdir + 'android/tmp'))
+    Alias('game', action = ohrbuild.android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp'))
+    Alias('custom', action = ohrbuild.android_source_actions (editsrc, rootdir, rootdir + 'android/tmp'))
     if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
         raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
 

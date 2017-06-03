@@ -1,16 +1,27 @@
 #!/usr/bin/env python
+
+"""
+Various utility functions used by SConscript while building, but could also be
+used by other tools.
+"""
+
 import os
+import sys
+import subprocess
 import platform
 import re
+import datetime
 import fnmatch
-import sys
 import itertools
+from SCons.Util import WhereIs
 
 host_win32 = platform.system() == 'Windows'
 
+########################################################################
+# Utilities
+
 def get_command_output(cmd, args, shell = True):
     """Runs a shell command and returns stdout as a string"""
-    import subprocess
     if shell:
         # Argument must be a single string (additional arguments get passed as extra /bin/sh args)
         if isinstance(args, (list, tuple)):
@@ -27,6 +38,9 @@ def get_command_output(cmd, args, shell = True):
         raise Exception("subprocess.Popen(%s) failed;\n%s\n%s" % (cmdargs, outtext, errtext))
     return outtext.strip()
 
+########################################################################
+# Scanning for include files
+
 include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
 # Add an include file to this list if it should be a dependency even if it doesn't exist in a clean build.
@@ -34,7 +48,7 @@ generated_includes = ['ver.txt']
 
 def scrub_includes(includes):
     """Remove those include files from a list which scons should ignore
-    because they're standard includes."""
+    because they're standard FB/library includes."""
     ret = []
     for fname in includes:
         if fname in generated_includes or os.path.isfile(fname):
@@ -49,20 +63,77 @@ def basfile_scan(node, env, path):
     #print str(node) + " includes", included
     return included
 
-def get_fb_info(env, fbc):
-    """Find fbc and query its version and default target and arch."""
-    fbc_binary = fbc
-    if not os.path.isfile (fbc_binary):
-        fbc_binary = env.WhereIs (fbc)
-    if not fbc_binary:
-        raise Exception("FreeBasic compiler is not installed!")
+########################################################################
+# Querying svn, git
+
+def missing (name, message):
+    print "%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message)
+
+def query_revision (rootdir, revision_regex, date_regex, ignore_error, *command):
+    "Get the SVN revision and date (YYYYMMDD format) from the output of a command using regexps"
+    # Note: this is reimplemented in linux/ohr_debian.py
+    rev = 0
+    date = ''
+    output = None
+    try:
+        f = subprocess.Popen (command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, cwd = rootdir)
+        output = f.stdout.read()
+        errmsg = f.stderr.read()
+        if errmsg and not ignore_error:
+            print errmsg
+    except OSError:
+        missing (command[0], '')
+        output = ''
+    date_match = re.search (date_regex, output)
+    if date_match:
+       date = date_match.expand ('\\1\\2\\3')
+    rev_match = re.search (revision_regex, output)
+    if rev_match:
+        rev = int (rev_match.group(1))
+    return date, rev
+
+def query_svn (rootdir, command):
+    """Call with either 'svn info' or 'git svn info'
+    Returns a (rev,date) pair, or (0, '') if not an svn working copy"""
+    return query_revision (rootdir, 'Revision: (\d+)', 'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command.split())
+
+def query_git (rootdir):
+    """Figure out last svn commit revision and date from a git repo
+    which is a git-svn mirror of an svn repo.
+    Returns a (rev,date) pair, or (0, '') if not a git repo"""
+    if os.path.isdir (os.path.join (rootdir, '.git')):
+        # git svn info is really slow on Windows
+        if not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
+            # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
+            # told to initialise yet, this will take a long time before failing
+            date, rev = query_svn (rootdir, 'git svn info')
+        else:
+            # Try to determine SVN revision ourselves, otherwise doing
+            # a plain git clone won't have the SVN revision info
+            date, rev = query_revision (rootdir, 'git-svn-id.*@(\d+)', 'Date:\s*(\d+)-(\d+)-(\d+)', False,
+                                        *'git log --grep git-svn-id --date short -n 1'.split())
+    else:
+        date, rev = 0, ''
+    return date, rev
+
+########################################################################
+# Querying fbc
+
+def get_fb_info(fbc = 'fbc'):
+    """Find fbc and query its version and default target and arch.
+    'fbc' is the program name to use."""
+    if not os.path.isfile (fbc):
+        fbc = WhereIs (fbc)
+        if not fbc:
+            raise Exception("FreeBasic compiler is not installed!")
     # Newer versions of fbc (1.0+) print e.g. "FreeBASIC Compiler - Version $VER ($DATECODE), built for linux-x86 (32bit)"
     # older versions printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux"
     # older still printed "FreeBASIC Compiler - Version $VER ($DATECODE) for linux (target:linux)"
-    fbcinfo = get_command_output(fbc_binary, ["-version"])
-    fbcversion = re.findall("Version ([0-9.]*)", fbcinfo)[0]
+    fbcinfo = get_command_output(fbc, ["-version"])
+    version, date = re.findall("Version ([0-9.]+) ([0-9()-]+)", fbcinfo)[0]
+    fullfbcversion = version + ' ' + date
     # Convert e.g. 1.04.1 into 1041
-    fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*fbcversion.split('.'))
+    fbcversion = (lambda x,y,z: int(x)*1000 + int(y)*10 + int(z))(*version.split('.'))
 
     fbtarget = re.findall("target:([a-z]*)", fbcinfo)  # Old versions of fbc.
     if len(fbtarget) == 0:
@@ -79,7 +150,9 @@ def get_fb_info(env, fbc):
         # Old versions
         default_target, default_arch = fbtarget, 'x86'
 
-    return fbc_binary, fbcversion, default_target, default_arch
+    return fbc, fbcversion, fullfbcversion, default_target, default_arch
+
+########################################################################
 
 def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir, DATAFILES):
     """
@@ -93,7 +166,6 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
         if not os.path.isdir (whichdir):
             os.mkdir (whichdir)
         return open (os.path.join (whichdir, filename), 'wb')
-    import datetime
     results = []
     supported_gfx = []
 
@@ -111,94 +183,33 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
 
     # Determine svn revision and date
 
-    def missing (name, message):
-        print "%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message)
-
-    def query_revision (revision_regex, date_regex, ignore_error, *command):
-        "Get the SVN revision and date (YYYYMMDD format) from the output of a command using regexps"
-        # Note: this is reimplemented in linux/ohr_debian.py
-        from subprocess import Popen, PIPE
-        import re
-        rev = 0
-        date = ''
-        output = None
-        try:
-            f = Popen (command, stdout = PIPE, stderr = PIPE, cwd = rootdir)
-            output = f.stdout.read()
-            errmsg = f.stderr.read()
-            if errmsg and not ignore_error:
-                print errmsg
-        except WindowsError:
-            missing (command[0], '')
-            output = ''
-        except OSError:
-            missing (command[0], '')
-            output = ''
-        date_match = re.search (date_regex, output)
-        if date_match:
-           date = date_match.expand ('\\1\\2\\3')
-        rev_match = re.search (revision_regex, output)
-        if rev_match:
-            rev = int (rev_match.group(1))
-        return date, rev
-
-    def query_svn (*command):
-        "For 'svn info' or 'git svn info'"
-        return query_revision ('Revision: (\d+)', 'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command)
-
-    def query_fb ():
-        from subprocess import Popen, PIPE
-        import re
-        rex = re.compile ('FreeBASIC Compiler - Version (([0-9a-f.]+) ([0-9()-]+))')
-        try:
-            f = Popen ([fbc,'-version'], stdout = PIPE)
-        except WindowsError:
-            missing (fbc,'FB is necessary to compile. Halting compilation.')
-            sys.exit (0)
-        except OSError:
-            missing (fbc,'FB is necessary to compile. Halting compilation.')
-            sys.exit (0)
-
-        output = f.stdout.read()
-        if rex.search (output):
-            return rex.search (output).expand ('\\1')
-        return '??.??.? (????-??-??)'
-
     name = 'OHRRPGCE'
-    rev = 0
-    if os.path.isdir (os.path.join (rootdir, '.git')):
-        # git svn info is really slow on Windows
-        if not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
-            # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
-            # told to initialise yet, this will take a long time before failing
-            date, rev = query_svn ('git','svn','info')
-        else:
-            # Try to determine SVN revision ourselves, otherwise doing
-            # a plain git clone won't have the SVN revision info
-            date, rev = query_revision ('git-svn-id.*@(\d+)', 'Date:\s*(\d+)-(\d+)-(\d+)', False,
-                                        *'git log --grep git-svn-id --date short -n 1'.split())
+    date, rev = query_git (rootdir)
     if rev == 0:
-        date, rev = query_svn ('svn','info')
+        date, rev = query_svn (rootdir, 'svn info')
     if rev == 0:
         print "Falling back to reading svninfo.txt"
-        date, rev = query_svn ('cat','svninfo.txt')
+        date, rev = query_svn (rootdir, 'cat svninfo.txt')
     if rev == 0:
         print
-        print " WARNING!!"
-        print "Could not determine SVN revision, which will result in RPG files without full version info and could lead to mistakes when upgrading .rpg files. A file called svninfo.txt should have been included with the source code if you downloaded a .zip instead of using svn or git."
+        print """ WARNING!!
+Could not determine SVN revision, which will result in RPG files without full
+version info and could lead to mistakes when upgrading .rpg files. A file called
+svninfo.txt should have been included with the source code if you downloaded a
+.zip instead of using svn or git."""
         print
     # Always use current date instead
     date = datetime.date.today().strftime ('%Y%m%d')
 
     if branch_rev <= 0:
         branch_rev = rev
-    fbver = query_fb ()
-    for g in used_gfx:
-        if g in ('sdl','fb','alleg','directx','sdlpp','console'):
-            results.append ('#DEFINE GFX_%s_BACKEND' % g.upper())
-            supported_gfx.append (g)
+    fbver = get_fb_info(fbc)[2]
+    for gfx in used_gfx:
+        if gfx in ('sdl','fb','alleg','directx','sdlpp','console'):
+            results.append ('#DEFINE GFX_%s_BACKEND' % gfx.upper())
+            supported_gfx.append (gfx)
         else:
-            exit("Unrecognised gfx backend " + g)
+            exit("Unrecognised gfx backend " + gfx)
     for m in used_music:
         if m in ('native','sdl','native2','allegro','silence'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
@@ -250,6 +261,9 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
                                                       tmpdate.replace ('.','-')))
     f.close()
 
+########################################################################
+# Android
+
 def android_source_actions (sourcelist, rootdir, destdir):
     # Get a list of C and C++ files to use as sources
     source_files = []
@@ -283,6 +297,9 @@ def android_source_actions (sourcelist, rootdir, destdir):
         'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
     ]
     return actions
+
+########################################################################
+# Portability checks
     
 def check_lib_requirements(binary):
     """Check and print which versions of glibc and gcc dependency libraries (including libstdc++.so)
