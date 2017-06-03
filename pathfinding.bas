@@ -55,6 +55,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
 
  dim safety as integer = 0
  do
+  dim byref cursornode as AStarNode = getnode(cursor)
     
   if cursor = destpos then
    'debug "Destination found!"
@@ -69,8 +70,10 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
    nearby = cursor
    wrapaheadxy nearby, direction, 1, 1
    if nearby.x >= 0 andalso nearby.y >= 0 andalso nearby.x < mapsizetiles.x andalso nearby.y < mapsizetiles.y then
-    if getnode(nearby).status = AStarNodeStatus.CLOSED then continue for
-    if getnode(nearby).status = AStarNodeStatus.OPENED then continue for
+    dim byref nearbynode as AStarNode = getnode(nearby)
+
+    if nearbynode.status = AStarNodeStatus.CLOSED then continue for
+    if nearbynode.status = AStarNodeStatus.OPENED then continue for
     if maxsearch > 0 andalso v_len(openlist) + v_len(closelist) >= maxsearch then continue for
     
     dim collide as bool
@@ -87,37 +90,37 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
     if not collide then
      'Yes, the adjacent tile is reachable
      
-     getnode(nearby).p = nearby
+     nearbynode.p = nearby
      'Update nearby node's parent, add to the open list
-     if getnode(nearby).status = AStarNodeStatus.OPENED then
+     if nearbynode.status = AStarNodeStatus.OPENED then
       'This node is already in the open list, check to see if the current
       'path cost is better than the saved path cost
-      if not getnode(nearby).has_parent then
-       getnode(nearby).parent = cursor
+      if not nearbynode.has_parent then
+       nearbynode.parent = cursor
       else
-       if getnode(cursor).cost_before < getnode(getnode(nearby).parent).cost_before then
-        getnode(nearby).parent = cursor
-        getnode(nearby).cost_before = cost_before_node(getnode(nearby))
+       if cursornode.cost_before < getnode(nearbynode.parent).cost_before then
+        nearbynode.parent = cursor
+        nearbynode.cost_before = cost_before_node(nearbynode)
        end if
       end if
      else
       'This node should be added to the open list
-      getnode(nearby).parent = cursor
-      getnode(nearby).status = AStarNodeStatus.OPENED
-      getnode(nearby).cost_before = cost_before_node(getnode(nearby))
-      getnode(nearby).cost_after = guess_cost_after_node(getnode(nearby))
-      getnode(nearby).dist_squared = xypair_distance_squared(nearby, destpos)
-      v_heappush openlist, getnode(nearby)
+      nearbynode.parent = cursor
+      nearbynode.status = AStarNodeStatus.OPENED
+      nearbynode.cost_before = cost_before_node(nearbynode)
+      nearbynode.cost_after = guess_cost_after_node(nearbynode)
+      nearbynode.dist_squared = xypair_distance_squared(nearby, destpos)
+      v_heappush openlist, nearbynode
      end if
      
     end if
    end if
   next direction
   'add cursor node to the closed list
-  if getnode(cursor).status <> AStarNodeStatus.CLOSED then
-   getnode(cursor).status = AStarNodeStatus.CLOSED
-   getnode(cursor).dist_squared = xypair_distance_squared(cursor, destpos)
-   v_append closelist, getnode(cursor)
+  if cursornode.status <> AStarNodeStatus.CLOSED then
+   cursornode.status = AStarNodeStatus.CLOSED
+   cursornode.dist_squared = xypair_distance_squared(cursor, destpos)
+   v_append closelist, cursornode
   end if
 
   if v_len(openlist) > 0 then
