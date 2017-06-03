@@ -25,15 +25,15 @@ Type AStarPathfinder
  startpos as XYPair
  destpos as XYPair
 
- maxdist as integer = 0 ' Zero means search the whole map.
-                        ' A positive number is the max manhattan distance to search.
+ maxsearch as integer = 0 ' Zero means search the whole map.
+                        ' A positive number is the max number of open+close tiles to search.
  
  path as XYPair vector
  consolation as bool ' This will be YES if the resulting path fails to reach the desired destpos
                         
  nodes(ANY, ANY) as AStarNode
 
- Declare Constructor (startpos as XYPair, destpos as XYPair, maxdist as integer=0)
+ Declare Constructor (startpos as XYPair, destpos as XYPair, maxsearch as integer=0)
  Declare Destructor ()
  
  Declare Function getnode(p as XYPair) byref as AStarNode

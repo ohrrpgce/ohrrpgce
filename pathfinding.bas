@@ -28,10 +28,10 @@
 'See the notes where this variable is declared extern in pathfinding.bi
 dim _pathfinder_obj as AStarPathfinder Ptr
 
-Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxdist as integer=0)
+Constructor AStarPathfinder (startpos as XYPair, destpos as XYPair, maxsearch as integer=0)
  this.startpos = startpos
  this.destpos = destpos
- this.maxdist = maxdist
+ this.maxsearch = maxsearch
  v_new path
 End Constructor
 
@@ -73,7 +73,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
    if nearby.x >= 0 andalso nearby.y >= 0 andalso nearby.x < mapsizetiles.x andalso nearby.y < mapsizetiles.y then
     if getnode(nearby).status = AStarNodeStatus.CLOSED then continue for
     if getnode(nearby).status = AStarNodeStatus.OPENED then continue for
-    if maxdist > 0 andalso xypair_manhattan_distance(startpos, nearby) > maxdist then continue for
+    if maxsearch > 0 andalso v_len(openlist) + v_len(closelist) >= maxsearch then continue for
     
     dim collide as bool
     if npc <> 0 then

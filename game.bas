@@ -1812,7 +1812,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  t2.x = herotx(0)
  t2.y = heroty(0)
 
- DIM pf as AStarPathfinder = AStarPathfinder(t1, t2, 30)
+ DIM pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(@npci)
  'pf.debug_path()
  if v_len(pf.path) > 1 then
