@@ -155,7 +155,7 @@ END FUNCTION
 
 FUNCTION xypair_distance_squared(v1 as XYPair, v2 as XYPair) as integer
  DIM diff as XYPair = v2 - v1
- RETURN diff.x ^ 2 + diff.y ^ 2
+ RETURN diff.x * diff.x + diff.y * diff.y
 END FUNCTION
 
 #IFDEF __FB_MAIN__
