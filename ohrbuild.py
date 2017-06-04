@@ -113,7 +113,7 @@ def query_git (rootdir):
             date, rev = query_revision (rootdir, 'git-svn-id.*@(\d+)', 'Date:\s*(\d+)-(\d+)-(\d+)', False,
                                         *'git log --grep git-svn-id --date short -n 1'.split())
     else:
-        date, rev = 0, ''
+        date, rev = '', 0
     return date, rev
 
 ########################################################################
