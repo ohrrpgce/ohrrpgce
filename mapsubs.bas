@@ -1822,12 +1822,9 @@ END SUB
 
 
 '==========================================================================================
-'                                Zonemap display helpers
-'==========================================================================================
 
 
 SUB mapedit_list_npcs_by_tile (st as MapEditState)
-
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
 
  DIM count as integer = 0
@@ -1875,7 +1872,6 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
   clearpage dpage
   dowait
  LOOP
- 
 END SUB
 
 FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
@@ -4826,6 +4822,261 @@ END SUB
 '======================================= NPC Editor =======================================
 
 
+' State of edit_npc (single NPC definition editor)
+TYPE NPCEditState
+ state as MenuState
+ menu as SimpleMenuItem vector
+ ' IDs to match up menu items with actions. Currently equal to .N data index, but treat as meaningless.
+ itemids(any) as integer
+
+ ' Preview current item/textbox/script/vechicle name
+ itemname as string
+ boxpreview as string
+ scrname as string
+ vehiclename as string
+
+ movetype(any) as string
+ facetype(any) as string
+ usetype(any) as string
+ pushtype(any) as string
+
+ DECLARE SUB menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
+END TYPE
+
+
+SUB NPCEditState.menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
+ append_simplemenu_item menu, menuitem, unselectable, , itemid
+ v_end(menu)[-1].disabled = unselectable
+END SUB
+
+FUNCTION editnpc_zone_caption(byval zoneid as integer, byval default as integer, zmap as ZoneMap) as string
+ DIM caption as string
+ IF zoneid = 0 THEN
+  caption = " Map default:"
+  zoneid = default
+ ELSEIF zoneid = -1 THEN
+  'We use -1 instead of 0 for None simply so that the default value
+  '(including in existing games) is 'default'
+  zoneid = 0
+ END IF
+ IF zoneid = 0 THEN
+  caption += " None"
+ ELSE
+  caption += " " & zoneid & " " & GetZoneInfo(zmap, zoneid)->name
+ END IF
+ RETURN caption
+END FUNCTION
+
+SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, zmap as ZoneMap)
+ REDIM ed.itemids(-1 TO -1)
+ v_new ed.menu
+
+ ed.menu_append -1, "Previous Menu"
+ ed.menu_append  0, "Picture " & npcdata.picture
+ ed.menu_append  1, "Palette " & defaultint(npcdata.palette)
+
+ ed.menu_append   , "Movement", YES
+ ed.menu_append  2, "Move Type = " & safe_caption(ed.movetype(), npcdata.movetype, "movetype")
+ ed.menu_append  3, "Move Speed " & npcdata.speed
+ ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
+ ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
+ ed.menu_append 17, "Ignore Passmap: " & yesorno(npcdata.ignore_passmap)
+ ed.menu_append  7, "Pushability " & safe_caption(ed.pushtype(), npcdata.pushtype, "pushtype")
+
+ ed.menu_append   , "Activation by player:", YES
+ ed.menu_append  8, "Activation: " & safe_caption(ed.usetype(), npcdata.activation, "usetype")
+ ed.menu_append  4, "Display Text " & zero_default(npcdata.textbox, "[None]")
+ ed.menu_append  6, "Give Item: " & ed.itemname
+ ed.menu_append 12, "Run Script: " & ed.scrname
+ ed.menu_append 13, "Script Argument: " & IIF(npcdata.script, STR(npcdata.scriptarg), "N/A")
+ ed.menu_append 14, "Vehicle: " & IIF(npcdata.vehicle > 0, ed.vehiclename, "No")
+ ed.menu_append  5, "When Activated " & safe_caption(ed.facetype(), npcdata.facetype, "facetype")
+ IF npcdata.usetag THEN
+  ed.menu_append 11, "Usable Only Once (onetime " & npcdata.usetag & ")"
+ ELSE
+  ed.menu_append 11, "Usable Repeatedly"
+ END IF
+
+ ed.menu_append   , "Appears when...:", YES
+ ed.menu_append  9, "Appear if Tag " & tag_condition_caption(npcdata.tag1, "", "Always")
+ ed.menu_append 10, "Appear if Tag " & tag_condition_caption(npcdata.tag2, "", "Always")
+
+ ed.state.last = v_len(ed.menu) - 1
+END SUB
+
+' Editor for a single NPC definition
+SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
+ DIM ed as NPCEditState
+ DIM menu_display as BasicMenuItem vector
+
+ DIM walk as integer = 0
+ DIM tog as integer = 0
+
+ DIM selectst as SelectTypeState
+ WITH ed.state
+  .autosize = YES
+  .autosize_ignore_pixels = 24
+  .need_update = YES
+ END WITH
+ DIM menuopts as MenuOptions
+ menuopts.fullscreen_scrollbar = YES
+
+ REDIM ed.movetype(15)
+ ed.movetype(0) = "Stand Still"
+ ed.movetype(1) = "Wander"
+ ed.movetype(2) = "Pace"
+ ed.movetype(3) = "Right Turns"
+ ed.movetype(4) = "Left Turns"
+ ed.movetype(5) = "Random Turns"
+ ed.movetype(6) = "Chase You (Meandering)"
+ ed.movetype(7) = "Avoid You (Meandering)"
+ ed.movetype(8) = "Walk In Place"
+ ed.movetype(9) = "Chase You (Direct)"
+ ed.movetype(10) = "Avoid You (Direct)"
+ ed.movetype(11) = "Follow walls (Right)"
+ ed.movetype(12) = "Follow walls (Left)"
+ ed.movetype(13) = "Follow walls (R) stop for others"
+ ed.movetype(14) = "Follow walls (L) stop for others"
+ ed.movetype(15) = "Chase You (EXPERIMENTAL Pathfinding)"
+ REDIM ed.pushtype(7)
+ ed.pushtype(0) = "Off"
+ ed.pushtype(1) = "Full"
+ ed.pushtype(2) = "Vertical"
+ ed.pushtype(3) = "Horizontal"
+ ed.pushtype(4) = "Up only"
+ ed.pushtype(5) = "Right Only"
+ ed.pushtype(6) = "Down Only"
+ ed.pushtype(7) = "Left Only"
+ REDIM ed.usetype(2)
+ ed.usetype(0) = "Use"
+ ed.usetype(1) = "Touch"
+ ed.usetype(2) = "Step On"
+ REDIM ed.facetype(2)
+ ed.facetype(0) = "Change Direction"
+ ed.facetype(1) = "Face Player"
+ ed.facetype(2) = "Do Not Face Player"
+
+ npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
+ npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+
+ ed.itemname = load_item_name(npcdata.item, 0, 0)
+ ed.boxpreview = textbox_preview_line(npcdata.textbox)
+ ed.scrname = scriptname(npcdata.script)
+ ed.vehiclename = load_vehicle_name(npcdata.vehicle - 1)
+
+ update_edit_npc npcdata, ed, gmap(), zmap
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  tog = tog XOR 1
+  IF npcdata.movetype > 0 THEN walk = (walk + 1) MOD 4
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "edit_npc"
+  usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
+  DIM itemid as integer = ed.menu[ed.state.pt].dat
+  SELECT CASE itemid
+   CASE 0'--picture
+    IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
+     frame_unload @npcdata.sprite
+     palette16_unload @npcdata.pal
+     npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+    END IF
+   CASE 1'--palette
+    IF intgrabber(npcdata.palette, -1, gen(genMaxPal)) THEN
+     palette16_unload @npcdata.pal
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+    END IF
+    IF enter_space_click(ed.state) THEN
+     npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+     palette16_unload @npcdata.pal
+     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+    END IF
+   CASE 2
+    intgrabber(npcdata.movetype, 0, ubound(ed.movetype))
+   CASE 3
+    'yuck.
+    IF npcdata.speed = 10 THEN npcdata.speed = 3
+    intgrabber(npcdata.speed, 0, 5)
+    IF npcdata.speed = 3 THEN npcdata.speed = 10
+   CASE 4
+    IF intgrabber(npcdata.textbox, 0, gen(genMaxTextbox)) THEN
+     ed.boxpreview = textbox_preview_line(npcdata.textbox)
+    END IF
+   CASE 5
+    intgrabber(npcdata.facetype, 0, ubound(ed.facetype))
+   CASE 6
+    IF intgrabber(npcdata.item, 0, gen(genMaxItem) + 1) THEN
+     ed.itemname = load_item_name(npcdata.item, 0, 0)
+    END IF
+   CASE 7
+    intgrabber(npcdata.pushtype, 0, ubound(ed.pushtype))
+   CASE 8
+    intgrabber(npcdata.activation, 0, ubound(ed.usetype))
+   CASE 9'--tag conditionals
+    tag_grabber npcdata.tag1
+   CASE 10'--tag conditionals
+    tag_grabber npcdata.tag2
+   CASE 11'--one-time-use tag
+    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(ed.state) THEN
+     onetimetog npcdata.usetag
+    END IF
+   CASE 12'--script
+    IF enter_space_click(ed.state) THEN
+     ed.scrname = scriptbrowse(npcdata.script, plottrigger, "NPC use plotscript")
+    ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
+     ed.scrname = scriptname(npcdata.script)
+    END IF
+   CASE 13
+    intgrabber(npcdata.scriptarg, -32768, 32767)
+   CASE 14
+    IF intgrabber(npcdata.vehicle, 0, gen(genMaxVehicle) + 1) THEN
+     ed.vehiclename = load_vehicle_name(npcdata.vehicle - 1)
+    END IF
+   CASE 15
+    intgrabber(npcdata.defaultzone, -1, 9999)
+   CASE 16
+    intgrabber(npcdata.defaultwallzone, -1, 9999)
+   CASE 17
+    intgrabber(npcdata.ignore_passmap, 0, 1)
+    IF enter_space_click(ed.state) THEN npcdata.ignore_passmap XOR= 1
+   CASE -1' previous menu
+    IF enter_space_click(ed.state) THEN EXIT DO
+  END SELECT
+
+  update_edit_npc npcdata, ed, gmap(), zmap
+
+  IF select_by_typing(selectst, NO) THEN
+   select_on_word_boundary cast(BasicMenuItem vector, ed.menu), selectst, ed.state
+  END IF
+
+  '--Draw screen
+  clearpage dpage
+  highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
+  edgebox pRight - 15, pBottom - 23, npcdata.sprite->w + 2, npcdata.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
+  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, pRight - 16, pBottom - 24, 1, YES, dpage
+  standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
+  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
+  printstr ed.boxpreview, 0, pBottom - 10, dpage
+  textcolor uilook(uiSelectedItem2), 0
+  printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ v_free ed.menu
+ v_free menu_display
+
+ frame_unload @npcdata.sprite
+ palette16_unload @npcdata.pal
+END SUB
+
+
+'----------------------------- Toplevel NPC Editor ----------------------------
+
 SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as NPCInst)
 
  '--Count number of uses
@@ -4857,6 +5108,7 @@ SUB handle_npc_def_delete (npc() as NPCType, byval id as integer, npc_insts() as
 
 END SUB
 
+'This is the top-level NPC editor menu (displays a list of NPCs)
 SUB npcdef_editor (st as MapEditState)
 DIM byref map as MapData = st.map
 

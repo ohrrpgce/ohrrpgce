@@ -38,6 +38,10 @@ DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as 
 DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_conditionals(byref box as TextBox)
 DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
+DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
+DECLARE FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
+DECLARE FUNCTION import_textboxes (filename as string, byref warn as string) as bool
+
 
 
 'These are used in the TextBox conditional editor
@@ -181,7 +185,7 @@ SUB text_box_editor()
     textbox_connections box, st, menu()
    END IF
    IF state.pt = 9 THEN '--Export textboxes to a .TXT file
-    STATIC metadata(3) as integer
+    STATIC metadata(3) as bool
     DIM metadatalabels(3) as string
     metadatalabels(0) = "Text"
     metadata(0) = YES '--by default, export text
@@ -260,6 +264,10 @@ SUB text_box_editor()
  END WITH
  'See wiki for .SAY file format docs
 END SUB
+
+
+'========================= Textbox Conditionals Editor ========================
+
 
 SUB textbox_conditionals(byref box as TextBox)
  DIM menu(-1 TO 22) as string
@@ -451,6 +459,10 @@ SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
  END SELECT
 END SUB
 
+
+'========================== Textbox Display/Preview ===========================
+
+
 ' Draw the textbox without backdrop, optionally without text or at other y position.
 SUB textbox_edit_preview (byref box as TextBox, byref st as TextboxEditState, page as integer, override_y as integer=-1, suppress_text as integer=NO)
  DIM ypos as integer
@@ -527,6 +539,10 @@ SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
    END IF
  END SELECT
 END SUB
+
+
+'==============================================================================
+
 
 FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
  DIM prefix2 as string
@@ -619,6 +635,10 @@ FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
   CASE ELSE    : RETURN condTAG
  END SELECT
 END FUNCTION
+
+
+'============================== Appearance Editor =============================
+
 
 SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
  DIM tog as integer = 0
@@ -897,6 +917,10 @@ SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
  LOOP
 END SUB
 
+
+'==============================================================================
+
+
 SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
  '--this inits and saves a new text box, copying in values from another box for defaults
  ClearTextBox box
@@ -926,6 +950,10 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
   .line_sound      = boxcopier.line_sound
  END WITH
 END SUB
+
+
+'============================ Textbox Text Editor =============================
+
 
 'Wrap and split up a string and stuff it into box.text, possibly editing 'text'
 'by trimming unneeded whitespace at the end.
@@ -1016,6 +1044,10 @@ SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
  LOOP
 END SUB
 
+
+'========================== Textbox Choice Editor =============================
+
+
 SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
  'tchoice:
  DIM state as MenuState
@@ -1057,6 +1089,10 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
   dowait
  LOOP
 END SUB
+
+
+'========================== Textbox Connections Viewer ========================
+
 
 SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
 'FIXME: menu() should be moved to become a member of st, then we wouldn't have to pass it around
@@ -1269,3 +1305,431 @@ SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as integer,
   printstr node.lines(i), x + 1, y + i * 8 + 1, dpage
  NEXT i
 END SUB
+
+
+'============================== Import Textboxes ==============================
+
+
+SUB import_textboxes_warn (byref warn as string, s as string)
+ debug "import_textboxes: " & s
+ IF warn <> "" THEN warn = warn & " "
+ warn = warn & s
+END SUB
+
+FUNCTION import_textboxes (filename as string, byref warn as string) as bool
+ DIM fh as integer = FREEFILE
+ IF OPEN(filename FOR INPUT as #fh) THEN
+  import_textboxes_warn warn, "Failed to open """ & decode_filename(filename) & """."
+  RETURN NO
+ END IF
+ DIM warn_length as integer = 0
+ DIM warn_skip as integer = 0
+ DIM warn_append as integer = 0
+ DIM show_encoding_warnings as bool = YES
+ DIM box as TextBox
+ DIM index as integer = 0
+ DIM getindex as integer = 0 
+ DIM mode as integer = 0
+ DIM s as string
+ DIM firstline as integer = YES
+ DIM line_number as integer = 0
+ DIM boxlines as integer = 0
+ DIM i as integer
+ DO WHILE NOT EOF(fh)
+  line_number += 1
+  LINE INPUT #1, s
+  s = decode_backslash_codes(s, "Line " & line_number & ":", show_encoding_warnings)
+  IF firstline THEN
+   IF RTRIM(s) <> STRING(38, "=") THEN
+    import_textboxes_warn warn, decode_filename(filename) & " is not a valid text box file. Expected header row, found """ & s & """."
+    CLOSE #fh
+    RETURN NO
+   END IF
+   firstline = NO
+   CONTINUE DO
+  END IF
+  SELECT CASE mode
+   CASE 0 '--Seek box number
+    IF LEFT(s, 4) = "Box " THEN
+     getindex = VALINT(MID(s, 5))
+     IF getindex > index THEN
+      warn_skip += 1
+      debug "import_textboxes: line " & line_number & ": box ID " & index & " is not in the txt file"
+     END IF
+     IF getindex < index THEN
+      debug "import_textboxes: line " & line_number & ": box ID numbers out-of-order. Expected " & index & ", but found " & getindex
+     END IF
+     index = getindex
+     LoadTextBox box, index
+     boxlines = 0
+     mode = 1
+    ELSE
+     import_textboxes_warn warn, "line " & line_number & ": expected Box # but found """ & s & """."
+     CLOSE #fh
+     RETURN NO
+    END IF
+   CASE 1 '--Seek divider
+    IF RTRIM(s) = STRING(38, "-") THEN
+     mode = 2
+    ELSEIF RTRIM(s) = STRING(38, "=") THEN '--no text
+     IF index > gen(genMaxTextbox) THEN
+      warn_append += index - gen(genMaxTextbox)
+      gen(genMaxTextbox) = index
+     END IF
+     SaveTextBox box, index
+     index += 1
+     mode = 0
+     boxlines = 0
+    ELSE
+     IF INSTR(s, ":") THEN '--metadata, probably
+      dim t as string, v as string
+      t = LCASE(LEFT(s, instr(s, ":") - 1))
+      v = TRIM(MID(s, instr(s, ":") + 1))
+      SELECT CASE t
+       CASE "size"
+        IF LCASE(v) = "auto" THEN
+         box.shrink = -1
+        ELSEIF VALINT(v) > 21 THEN
+         debug "Box size too large, capping"
+         box.shrink = 0
+        ELSE
+         box.shrink = 21 - VALINT(v)
+        END IF
+       CASE "portrait box"
+        box.portrait_box = str2bool(v, NO)
+       CASE "portrait type"
+        box.portrait_type = VALINT(v)
+       CASE "portrait id"
+        box.portrait_id = VALINT(v)
+       CASE "portrait x"
+        box.portrait_pos.x = VALINT(v)
+       CASE "portrait y"
+        box.portrait_pos.y = VALINT(v)
+       CASE "portrait palette"
+        box.portrait_pal = VALINT(v)
+       CASE "instead tag"
+        box.instead_tag = VALINT(v)
+       CASE "instead box"
+        box.instead = VALINT(v)
+       CASE "set tag"
+        box.settag_tag = VALINT(v)
+       CASE "set tag 1"
+        box.settag1 = VALINT(v)
+       CASE "set tag 2"
+        box.settag2 = VALINT(v)
+       CASE "battle tag"
+        box.battle_tag = VALINT(v)
+       CASE "battle"
+        box.battle = VALINT(v)
+       CASE "shop tag"
+        box.shop_tag = VALINT(v)
+       CASE "shop"
+        box.shop = VALINT(v)
+       CASE "item tag"
+        box.item_tag = VALINT(v)
+       CASE "item"
+        box.item = VALINT(v)
+       CASE "money tag"
+        box.money_tag = VALINT(v)
+       CASE "money"
+        box.money = VALINT(v)
+       CASE "door tag"
+        box.door_tag = VALINT(v)
+       CASE "door"
+        box.door = VALINT(v)
+       CASE "hero tag"
+        box.hero_tag = VALINT(v)
+       CASE "hero add"
+        box.hero_addrem = VALINT(v)
+       CASE "hero swap"
+        box.hero_swap = VALINT(v)
+       CASE "hero lock"
+        box.hero_lock = VALINT(v)
+       CASE "menu tag"
+        box.menu_tag = VALINT(v)
+       CASE "menu"
+        box.menu = VALINT(v)
+       CASE "next tag"
+        box.after_tag = VALINT(v)
+       CASE "next box"
+        box.after = VALINT(v)
+       CASE "choice enabled"
+        box.choice_enabled = str2bool(v)
+       CASE "choice 1"
+        box.choice(0) = TRIM(v)
+       CASE "choice 2"
+        box.choice(1) = TRIM(v)
+       CASE "choice 1 tag"
+        box.choice_tag(0) = VALINT(v)
+       CASE "choice 2 tag"
+        box.choice_tag(1) = VALINT(v)
+       CASE "position"
+        box.vertical_offset = VALINT(v)
+       CASE "text color"
+        box.textcolor = VALINT(v)
+       CASE "border color"
+        box.boxstyle = VALINT(v)
+       CASE "backdrop"
+        box.backdrop = VALINT(v)
+       CASE "music"
+        box.music = VALINT(v)
+       CASE "restore music"
+        box.restore_music = str2bool(v)
+       CASE "sound effect"
+        box.sound_effect = VALINT(v)
+       CASE "stop sound after box"
+        box.stop_sound_after = str2bool(v)
+       CASE "line sound"
+        box.line_sound = VALINT(v)
+       CASE "show box"
+        box.no_box = str2bool(v,,YES)
+       CASE "translucent"
+        box.opaque = str2bool(v,,YES)
+        
+       CASE ELSE
+        import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
+        CLOSE #fh
+        RETURN NO
+      END SELECT
+     END IF
+    END IF
+   CASE 2 '--Text lines
+    IF RTRIM(s) = STRING(38, "=") THEN
+     FOR i = boxlines TO 7
+      box.text(i) = ""
+     NEXT i
+     IF index > gen(genMaxTextbox) THEN
+      warn_append += index - gen(genMaxTextbox)
+      gen(genMaxTextbox) = index
+     END IF
+     SaveTextBox box, index
+     index += 1
+     boxlines = 0
+     mode = 0
+    ELSE
+     IF boxlines >= 8 THEN
+      import_textboxes_warn warn, "line " & line_number & ": too many lines in box " & index & ". Overflowed with """ & s & """."
+      CLOSE #fh
+      RETURN NO
+     END IF
+     IF LEN(s) > 38 THEN '--this should be down here
+      warn_length += 1
+      debug "import_textboxes: line " & line_number & ": line too long (" & LEN(s) & ")"
+      s = LEFT(s, 38)
+     END IF
+     box.text(boxlines) = s
+     boxlines += 1
+    END IF
+  END SELECT
+ LOOP
+ IF mode = 2 THEN'--Save the last box
+  FOR i = boxlines TO 7
+   box.text(i) = ""
+  NEXT i
+  IF index > gen(genMaxTextbox) THEN
+   warn_append += index - gen(genMaxTextbox)
+   gen(genMaxTextbox) = index
+  END IF
+  SaveTextBox box, index
+ ELSEIF mode = 0 THEN '--this... is not good
+  import_textboxes_warn warn, "line " & line_number & ": txt file ended unexpectedly."
+  CLOSE #fh
+  RETURN NO
+ END IF
+ IF warn_length > 0 THEN import_textboxes_warn warn, warn_length & " lines were too long."
+ IF warn_skip > 0   THEN import_textboxes_warn warn, warn_skip & " box ID numbers were not in the txt file."
+ IF warn_append > 0 THEN import_textboxes_warn warn, warn_append & " new boxes were appended."
+ CLOSE #fh
+ RETURN YES
+END FUNCTION
+
+
+'============================== Export Texboxes ===============================
+
+
+FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
+ DIM fh as integer = FREEFILE
+ IF OPEN(filename FOR OUTPUT as #fh) THEN debug "export_textboxes: Failed to open " & filename : RETURN NO
+ DIM box as TextBox
+ DIM blank as integer
+ DIM as integer i, j, k
+ FOR i = 0 TO gen(genMaxTextBox)
+  LoadTextBox box, i
+  '--Write the header guide
+  PRINT #fh, "======================================"
+  '--Write the box number and metadata
+  PRINT #fh, "Box " & i
+    
+  IF metadata(1) THEN '--box conditionals
+   IF box.instead_tag <> 0 THEN
+    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Never")) & ")"
+    PRINT #fh, "Instead Box: " & box.instead;
+    IF box.instead < 0 THEN
+     PRINT #fh, " (Plotscript " & scriptname(box.instead * -1) & ")"
+    ELSE
+     PRINT #fh, " (Textbox)"
+    END IF
+   END IF
+   IF box.after_tag <> 0 THEN
+    PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Never")) & ")"
+    PRINT #fh, "Next Box: " & box.after;
+    IF box.after < 0 THEN
+     PRINT #fh, " (Plotscript " & scriptname(box.after * -1) & ")"
+    ELSE
+     PRINT #fh, " (Textbox)"
+    END IF
+   END IF
+   
+   IF box.settag_tag <> 0 THEN
+    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag_tag, , "Never")) & ")"
+    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & escape_nonprintable_ascii(tag_set_caption(box.settag1)) & ")"
+    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & escape_nonprintable_ascii(tag_set_caption(box.settag2)) & ")"
+   END IF
+   IF box.battle_tag <> 0 THEN
+    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.battle_tag, , "Never")) & ")"
+    PRINT #fh, "Battle: " & box.battle
+   END IF
+   IF box.shop_tag <> 0 THEN
+    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.shop_tag, , "Never")) & ")"
+    PRINT #fh, "Shop: " & box.shop;
+    IF box.shop = 0 THEN PRINT #fh, " (Restore HP/MP)"
+    IF box.shop < 0 THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
+    IF box.shop > 0 THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname(box.shop - 1)) & ")"
+   END IF
+   IF box.hero_tag <> 0 THEN
+    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.hero_tag, , "Never")) & ")"
+    
+    IF box.hero_addrem <> 0 THEN
+     PRINT #fh, "Hero Add: " & box.hero_addrem;
+     IF box.hero_addrem < 0 THEN
+      PRINT #fh, " (Remove " & escape_nonprintable_ascii(getheroname((box.hero_addrem * -1) - 1)) & ")"
+     ELSE
+      PRINT #fh, " (Add " & escape_nonprintable_ascii(getheroname(box.hero_addrem - 1)) & ")"
+     END IF
+    END IF
+    
+    IF box.hero_swap <> 0 THEN
+     PRINT #fh, "Hero Swap: " & box.hero_swap;
+     IF box.hero_swap < 0 THEN
+      PRINT #fh, " (Swap Out " & escape_nonprintable_ascii(getheroname((box.hero_swap * -1) - 1)) & ")"
+     ELSE
+      PRINT #fh, " (Swap In " & escape_nonprintable_ascii(getheroname(box.hero_swap - 1)) & ")"
+     END IF
+    END IF
+    
+    IF box.hero_lock <> 0 THEN
+     PRINT #fh, "Hero Lock: " & box.hero_lock;
+     IF box.hero_lock < 0 THEN
+      PRINT #fh, " (Lock " & escape_nonprintable_ascii(getheroname((box.hero_lock * -1) - 1)) & ")"
+     ELSE
+      PRINT #fh, " (Unlock " & escape_nonprintable_ascii(getheroname(box.hero_lock - 1)) & ")"
+     END IF
+    END IF
+    
+   END IF
+   
+   IF box.money_tag <> 0 THEN
+    PRINT #fh, "Money Tag: " & box.money_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.money_tag, , "Never")) & ")"
+    PRINT #fh, "Money: " & box.money
+   END IF
+   
+   IF box.door_tag <> 0 THEN
+    PRINT #fh, "Door Tag: " & box.door_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.door_tag, , "Never")) & ")"
+    PRINT #fh, "Door: " & box.door
+   END IF
+   
+   IF box.item_tag <> 0 THEN
+    PRINT #fh, "Item Tag: " & box.item_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.item_tag, , "Never")) & ")"
+    PRINT #fh, "Item: " & box.item;
+    IF box.item < 0 THEN
+     PRINT #fh, " (Remove " & escape_nonprintable_ascii(readitemname((box.item * -1) - 1)) & ")"
+    ELSE
+     PRINT #fh, " (Add " & escape_nonprintable_ascii(readitemname(box.item - 1)) & ")"
+    END IF
+   END IF
+  END IF
+  
+  IF box.menu_tag <> 0 THEN
+    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.menu_tag, , "Never")) & ")"
+    PRINT #fh, "Menu: " & box.menu
+   END IF
+   
+  IF metadata(2) THEN '--choices
+   IF box.choice_enabled THEN
+    PRINT #fh, "Choice Enabled: YES"
+    PRINT #fh, "Choice 1: " & escape_nonprintable_ascii(box.choice(0))
+    PRINT #fh, "Choice 1 " & escape_nonprintable_ascii(tag_set_caption(box.choice_tag(0)))
+    PRINT #fh, "Choice 2: " & escape_nonprintable_ascii(box.choice(1))
+    PRINT #fh, "Choice 2 " & escape_nonprintable_ascii(tag_set_caption(box.choice_tag(1)))
+    
+   END IF
+  END IF
+  
+  IF metadata(3) THEN '--box appearance
+   IF box.shrink = -1 THEN
+    PRINT #fh, "Size: auto"
+   ELSE
+    PRINT #fh, "Size: " & (21 - box.shrink)
+   END IF
+   PRINT #fh, "Position: " & box.vertical_offset
+   PRINT #fh, "Text Color: " & box.textcolor '--AARGH.
+   PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
+   PRINT #fh, "Backdrop: " & box.backdrop
+   IF box.music > 0 THEN
+    PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname(box.music - 1)) & ")"
+   ELSEIF box.music = 0 THEN
+    PRINT #fh, "Music: " & box.music & " (None)"
+   ELSEIF box.music < 0 THEN
+    PRINT #fh, "Music: " & box.music & " (Silence)"
+   END IF
+   PRINT #fh, "Restore Music: " & yesorno(box.restore_music)
+   IF box.sound_effect > 0 THEN
+    PRINT #fh, "Sound Effect: " & box.sound_effect & " (" & escape_nonprintable_ascii(getsfxname(box.sound_effect - 1)) & ")"
+   ELSE
+    PRINT #fh, "Sound Effect: " & box.sound_effect & " (None)"
+   END IF
+   PRINT #fh, "Stop Sound After Box: " & yesorno(box.stop_sound_after)
+   IF box.line_sound > 0 THEN
+    PRINT #fh, "Line Sound: " & box.line_sound & " (" & escape_nonprintable_ascii(getsfxname(box.line_sound - 1)) & ")"
+   ELSEIF box.line_sound = 0 THEN
+    PRINT #fh, "Line Sound: " & box.line_sound & " (Default)"
+   ELSEIF box.line_sound < 0 THEN
+    PRINT #fh, "Line Sound: " & box.line_sound & " (None)"
+   END IF
+   PRINT #fh, "Show Box: " & yesorno(NOT box.no_box) '--argh, double negatives
+   PRINT #fh, "Translucent: " & yesorno(NOT box.opaque) '--  "       "      "
+   
+   IF box.portrait_box <> NO OR box.portrait_type <> 0 THEN
+    PRINT #fh, "Portrait Box: " & yesorno(box.portrait_box)
+   END IF
+   IF box.portrait_type <> 0 THEN
+    PRINT #fh, "Portrait Type: " & box.portrait_type
+    PRINT #fh, "Portrait ID: " & box.portrait_id
+    IF box.portrait_pal <> -1 THEN PRINT #fh, "Portrait Palette: " & box.portrait_pal
+    PRINT #fh, "Portrait X: " & box.portrait_pos.X
+    PRINT #fh, "Portrait Y: " & box.portrait_pos.Y
+   END IF
+  END IF
+  
+  
+  
+  IF metadata(0) THEN '--box text
+   '--Write the separator
+   PRINT #fh, "--------------------------------------"
+   blank = 0
+   FOR j = 0 TO 7
+    IF box.text(j) = "" THEN
+     blank += 1
+    ELSE
+     FOR k = 1 TO blank
+      PRINT #fh, ""
+     NEXT k
+     blank = 0
+     PRINT #fh, escape_nonprintable_ascii(box.text(j))
+    END IF
+   NEXT j
+  END IF
+ NEXT i
+ CLOSE #fh
+ RETURN YES
+END FUNCTION

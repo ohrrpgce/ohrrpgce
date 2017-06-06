@@ -48,8 +48,6 @@ DECLARE FUNCTION step_estimate(freq as integer, low as integer, high as integer,
 DECLARE FUNCTION speed_estimate(speed as integer, suffix as string=" seconds", zero as string="infinity") as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
-DECLARE FUNCTION export_textboxes (filename as string, metadata() as integer) as integer
-DECLARE FUNCTION import_textboxes (filename as string, byref warn as string) as integer
 DECLARE FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as string) as integer
 DECLARE FUNCTION str2bool(q as string, default as integer = NO, invert as integer = NO) as integer
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
