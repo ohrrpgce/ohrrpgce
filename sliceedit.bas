@@ -62,7 +62,10 @@ TYPE SliceEditState
 
  slicelookup(any) as string
  specialcodes(any) as SpecialLookupCode
- slicemenu(any) as SliceEditMenuItem
+ slicemenu(any) as SliceEditMenuItem 'The top-level menu (which lists all slices)
+ slicemenust as MenuState            'State of slicemenu() menu
+
+ DECLARE FUNCTION curslice() as Slice ptr
 END TYPE
 
 CONST kindlimitANYTHING = 0
@@ -136,7 +139,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
-DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
+DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
@@ -146,7 +149,7 @@ DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as 
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
-DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, byref state as MenuState, edit_separately as bool)
+DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
@@ -387,7 +390,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  REDIM ses.slicemenu(0) as SliceEditMenuItem
  REDIM plainmenu(0) as string 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
 
- DIM state as MenuState
+ DIM byref state as MenuState = ses.slicemenust
  WITH state
   .need_update = YES
   .autosize = YES
@@ -419,6 +422,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  DO
   setwait 55
   setkeys
+
   IF keyval(scEsc) > 1 THEN
    IF ses.hide_mode <> hideNothing THEN
     ses.hide_mode = hideNothing
@@ -434,7 +438,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
   IF keyval(scF5) > 1 THEN
    ses.show_root = NOT ses.show_root
-   cursor_seek = ses.slicemenu(state.pt).handle
+   cursor_seek = ses.curslice
    state.need_update = YES
   END IF
   IF keyval(scF6) > 1 THEN
@@ -448,24 +452,24 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
   IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
    'Toggle visibility (does nothing on Select slice children)
-   IF ses.slicemenu(state.pt).handle THEN
-    ses.slicemenu(state.pt).handle->Visible XOR= YES
+   IF ses.curslice THEN
+    ses.curslice->Visible XOR= YES
    END IF
   END IF
   IF keyval(scH) > 1 THEN
    'Toggle editor visibility of children
-   IF ses.slicemenu(state.pt).handle THEN
-    IF ses.slicemenu(state.pt).handle->NumChildren > 0 THEN
-     ses.slicemenu(state.pt).handle->EditorHideChildren XOR= YES
+   IF ses.curslice THEN
+    IF ses.curslice->NumChildren > 0 THEN
+     ses.curslice->EditorHideChildren XOR= YES
     ELSE
-     ses.slicemenu(state.pt).handle->EditorHideChildren = NO
+     ses.curslice->EditorHideChildren = NO
     END IF
     state.need_update = YES
    END IF
   END IF
   IF keyval(scF7) > 1 THEN
    'Make a sprite melt, just for a fun test
-   DissolveSpriteSlice(ses.slicemenu(state.pt).handle, 5, 36)
+   DissolveSpriteSlice(ses.curslice, 5, 36)
   END IF
 
   IF state.need_update = NO AND enter_space_click(state) THEN
@@ -473,10 +477,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     EXIT DO
    ELSEIF state.pt = ses.collection_name_pt THEN
     ' Selected the 'Editing <collection file>' menu item
-    slice_editor_import_file ses, edslice, state, YES
+    slice_editor_import_file ses, edslice, YES
    ELSE
-    cursor_seek = ses.slicemenu(state.pt).handle
-    slice_edit_detail ses, ses.slicemenu(state.pt).handle
+    cursor_seek = ses.curslice
+    slice_edit_detail ses, ses.curslice
     state.need_update = YES
    END IF 
   END IF
@@ -517,15 +521,15 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
    choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices())
    IF choice >= 0 THEN
-    slice_editor_import_file ses, edslice, state, (choice = 1)
+    slice_editor_import_file ses, edslice, (choice = 1)
    END IF
   END IF
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF ses.slicemenu(state.pt).handle <> NULL ANDALSO ses.slicemenu(state.pt).handle <> edslice THEN
-     InsertSliceBefore ses.slicemenu(state.pt).handle, NewSliceOfType(slice_type)
+    IF ses.curslice <> NULL ANDALSO ses.curslice <> edslice THEN
+     InsertSliceBefore ses.curslice, NewSliceOfType(slice_type)
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
     END IF
@@ -536,62 +540,61 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO THEN
    IF copy_keychord() THEN
     #IFDEF IS_GAME
-     IF ses.slicemenu(state.pt).handle ANDALSO ses.slicemenu(state.pt).handle->Lookup < 0 THEN
+     IF ses.curslice ANDALSO ses.curslice->Lookup < 0 THEN
       notification "Can't copy special slices!"
       CONTINUE DO
      END IF
     #ENDIF
-    slice_editor_copy ses, ses.slicemenu(state.pt).handle, edslice
+    slice_editor_copy ses, ses.curslice, edslice
    ELSEIF paste_keychord() THEN
-    slice_editor_paste ses, ses.slicemenu(state.pt).handle, edslice
+    slice_editor_paste ses, ses.curslice, edslice
     state.need_update = YES
    END IF
   END IF
 
   'Special handling for the currently selected slice
-  DIM cur_sl as slice ptr = ses.slicemenu(state.pt).handle
-  preview_SelectSlice_parents cur_sl
+  preview_SelectSlice_parents ses.curslice
 
-  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).handle <> NULL THEN
+  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
     #IFDEF IS_GAME
-     IF ses.slicemenu(state.pt).handle->Lookup < 0 THEN
+     IF ses.curslice->Lookup < 0 THEN
       notification "Can't delete special slices!"
       CONTINUE DO
      END IF
     #ENDIF
-    IF ses.slicemenu(state.pt).handle = edslice THEN
+    IF ses.curslice = edslice THEN
      notification "Can't delete the root slice!"
      CONTINUE DO
     ELSE
-     IF yesno("Delete this " & SliceTypeName(ses.slicemenu(state.pt).handle) & " slice?", NO) THEN
+     IF yesno("Delete this " & SliceTypeName(ses.curslice) & " slice?", NO) THEN
       slice_editor_refresh_delete state.pt, ses.slicemenu()
       state.need_update = YES
      END IF
     END IF
    ELSEIF keyval(scF) > 1 THEN
-    slice_editor ses.slicemenu(state.pt).handle, , YES
+    slice_editor ses.curslice, , YES
     state.need_update = YES
 
    ELSEIF keyval(scShift) > 0 THEN
 
     IF keyval(scUp) > 1 THEN
-     SwapSiblingSlices ses.slicemenu(state.pt).handle, ses.slicemenu(state.pt).handle->PrevSibling
-     cursor_seek = ses.slicemenu(state.pt).handle
+     SwapSiblingSlices ses.curslice, ses.curslice->PrevSibling
+     cursor_seek = ses.curslice
      state.need_update = YES
     ELSEIF keyval(scDown) > 1 AND state.pt < state.last THEN
-     SwapSiblingSlices ses.slicemenu(state.pt).handle, ses.slicemenu(state.pt).handle->NextSibling
-     cursor_seek = ses.slicemenu(state.pt).handle
+     SwapSiblingSlices ses.curslice, ses.curslice->NextSibling
+     cursor_seek = ses.curslice
      state.need_update = YES
     ELSEIF keyval(scRight) > 1 THEN
-     SliceAdoptSister ses.slicemenu(state.pt).handle
-     cursor_seek = ses.slicemenu(state.pt).handle
+     SliceAdoptSister ses.curslice
+     cursor_seek = ses.curslice
      state.need_update = YES
     ELSEIF keyval(scLeft) > 1 THEN
-     IF (ses.slicemenu(state.pt).handle)->parent <> edslice THEN
-      SliceAdoptNiece ses.slicemenu(state.pt).handle
-      cursor_seek = ses.slicemenu(state.pt).handle
+     IF ses.curslice->parent <> edslice THEN
+      SliceAdoptNiece ses.curslice
+      cursor_seek = ses.curslice
       state.need_update = YES
      END IF
     END IF
@@ -599,29 +602,29 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
 
     IF keyval(scUp) > 1 THEN
-     cursor_seek = ses.slicemenu(state.pt).handle->prevSibling
+     cursor_seek = ses.curslice->prevSibling
      state.need_update = YES
     ELSEIF keyval(scDown) > 1 THEN
-     cursor_seek = ses.slicemenu(state.pt).handle->nextSibling
+     cursor_seek = ses.curslice->nextSibling
      state.need_update = YES
     ELSEIF keyval(scLeft) > 1 THEN
-     cursor_seek = ses.slicemenu(state.pt).handle->parent
+     cursor_seek = ses.curslice->parent
      state.need_update = YES
     ELSEIF keyval(scRight) > 1 THEN
-     cursor_seek = ses.slicemenu(state.pt).handle->firstChild
+     cursor_seek = ses.curslice->firstChild
      state.need_update = YES
     END IF
 
    ELSE '--neither shift nor ctrl
 
     IF keyval(scLeft) > 1 THEN
-     cursor_seek = (ses.slicemenu(state.pt).handle)->parent
+     cursor_seek = (ses.curslice)->parent
      state.need_update = YES
     END IF
 
    END IF
 
-  END IF '--end IF state.need_update = NO AND ses.slicemenu(state.pt).handle
+  END IF '--end IF state.need_update = NO AND ses.curslice
 
   ' Highlighting and selecting slices with the mouse
   DIM topmost as Slice ptr = 0
@@ -638,7 +641,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF UpdateScreenSlice() THEN state.need_update = YES
 
   IF state.need_update THEN
-   slice_editor_refresh(ses, state, edslice, cursor_seek)
+   slice_editor_refresh(ses, edslice, cursor_seek)
    state.need_update = NO
    cursor_seek = NULL
   ELSE
@@ -650,8 +653,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
-  IF ses.slicemenu(state.pt).handle THEN
-   DrawSliceAnts ses.slicemenu(state.pt).handle, dpage
+  IF ses.curslice THEN
+   DrawSliceAnts ses.curslice, dpage
   END IF
   IF topmost THEN
    DrawSliceAnts topmost, dpage
@@ -701,6 +704,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
  #ENDIF
 END SUB
+
+FUNCTION SliceEditState.curslice() as Slice ptr
+ RETURN slicemenu(slicemenust.pt).handle
+END FUNCTION
 
 'Sets a slice and all of its ancestors as the selected child of their parent, if a Select slice.
 SUB preview_SelectSlice_parents (byval sl as Slice ptr)
@@ -812,7 +819,7 @@ END SUB
 ' Browse for a slice collection to import or edit.
 ' If edit_separately, then we save the current collection and switch to editing the new one,
 ' otherwise it's imported overwriting the current one.
-SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, byref state as MenuState, edit_separately as bool)
+SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
  DIM filename as string = browse(0, "", "*.slice", "browse_import_slices")
  IF filename <> "" THEN
   IF edit_separately THEN
@@ -823,7 +830,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
    ses.editing_existing = NO
   END IF
   slice_editor_load ses, edslice, filename
-  state.need_update = YES
+  ses.slicemenust.need_update = YES
  END IF
 END SUB
 
@@ -1417,7 +1424,7 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slic
 END FUNCTION
 
 'Update slice states and the menu listing the slices
-SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
+SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
  FOR i as integer = 0 TO UBOUND(ses.slicemenu)
   ses.slicemenu(i).s = ""
  NEXT i
@@ -1449,15 +1456,15 @@ SUB slice_editor_refresh (byref ses as SliceEditState, byref state as MenuState,
  IF cursor_seek <> 0 THEN
   FOR i as integer = 0 TO index - 1
    IF ses.slicemenu(i).handle = cursor_seek THEN
-    state.pt = i
+    ses.slicemenust.pt = i
     cursor_seek = 0
     EXIT FOR
    END IF
   NEXT i
  END IF
  
- state.last = index - 1
- correct_menu_state state
+ ses.slicemenust.last = index - 1
+ correct_menu_state ses.slicemenust
 END SUB
 
 SUB slice_editor_refresh_delete (byref index as integer, menu() as SliceEditMenuItem)
