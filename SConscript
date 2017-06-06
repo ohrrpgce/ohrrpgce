@@ -135,6 +135,9 @@ if not arch:
         # arm64-v8a
         # See https://developer.android.com/ndk/guides/abis.html for more
         arch = 'armv5te'
+    elif mac:
+        # Default to 32 bit, because bundle-apps.sh only supports that currently
+        arch = 'x86'
     else:
         arch = default_arch
 
