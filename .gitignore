@@ -26,6 +26,8 @@ build/
 *.exe
 ohrrpgce-game
 ohrrpgce-custom
+OHRRPGCE-Game.app
+OHRRPGCE-Custom.app
 hspeak
 unlump
 relump
@@ -53,6 +55,8 @@ gfx_directx.lib
 gfx_directx.pdb
 gfx_directx/gfx_directx.res
 vc90.pub
+# OSX debug info
+*.dSYM
 autotest/
 autobackups/
 joyset.ini

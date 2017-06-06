@@ -14,15 +14,10 @@ echo Building binaries
 
 rm ohrrpgce-game ohrrpgce-custom
 
-scons debug=0 ${EXTRA_SCONS_OPTIONS} arch=32 game custom hspeak unlump relump
-
-if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
-  echo Aborting distrib script because scons failed
-  exit 1
-fi
+scons debug=0 ${EXTRA_SCONS_OPTIONS} arch=32 game custom hspeak unlump relump || exit 1
 
 echo Bundling apps
-./bundle-apps.sh
+./bundle-apps.sh || exit 1
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
@@ -36,8 +31,8 @@ rm -f distrib/ohrrpgce-mac-minimal*.zip
 echo "Packaging binary distribution of CUSTOM"
 
 echo "  Including binaries"
-cp -pR OHRRPGCE-Custom.app tmp
-cp -pR OHRRPGCE-Game.app tmp
+cp -pR OHRRPGCE-Custom.app tmp &&
+cp -pR OHRRPGCE-Game.app tmp || exit 1
 
 echo "  Including readmes"
 cp -p README-mac.txt tmp
@@ -48,26 +43,26 @@ if [ $CODE == 'wip' ] ; then
 fi
 
 echo "  Including Vikings of Midgard"
-mkdir tmp/"Vikings of Midgard"
-./relump vikings/vikings.rpgdir tmp/"Vikings of Midgard"/vikings.rpg
-cp -pR "vikings/Vikings script files" tmp/"Vikings of Midgard"
-cp -p "vikings/README-vikings.txt" tmp/"Vikings of Midgard"
+mkdir -p tmp/"Vikings of Midgard" &&
+./relump vikings/vikings.rpgdir tmp/"Vikings of Midgard"/vikings.rpg &&
+cp -pR "vikings/Vikings script files" tmp/"Vikings of Midgard" &&
+cp -p "vikings/README-vikings.txt" tmp/"Vikings of Midgard" || exit 1
 
 echo "  Including import"
 mkdir tmp/import
 cp -pR import/* tmp/import
 
 echo "  Including docs"
-mkdir tmp/docs
-cp -p docs/*.html tmp/docs
-cp -p docs/plotdict.xml tmp/docs
-cp -p docs/htmlplot.xsl tmp/docs
-cp -p docs/more-docs.txt tmp/docs
+mkdir tmp/docs &&
+cp -p docs/*.html tmp/docs &&
+cp -p docs/plotdict.xml tmp/docs &&
+cp -p docs/htmlplot.xsl tmp/docs &&
+cp -p docs/more-docs.txt tmp/docs || exit 1
 
 echo "Creating disk image"
 mv tmp OHRRPGCE-$CODE
 #tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
-hdiutil create -srcfolder OHRRPGCE-$CODE/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg
+hdiutil create -srcfolder OHRRPGCE-$CODE/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg || exit 1
 mv OHRRPGCE-$CODE tmp
 
 echo "Erasing contents of temporary directory"

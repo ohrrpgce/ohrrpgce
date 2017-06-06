@@ -14,12 +14,12 @@ cd ~/src/nightly
 
 if [ ! -d ohrrpgce ] ; then
   echo nightly snapshot not found, checking out from svn...
-  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce
+  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce || exit 1
 fi
 
 cd ohrrpgce
 
-svn update > ../nightly-temp.txt
+svn update > ../nightly-temp.txt || exit 1
 UPDATE=`wc -l < ../nightly-temp.txt`
 cat ../nightly-temp.txt
 rm ../nightly-temp.txt
@@ -31,12 +31,12 @@ fi
 
 echo Now we go to build the Mac nightlies
 
-svn cleanup
-svn update
+svn cleanup &&
+svn update || exit 1
 
 cd wip
 
-./distrib-mac.sh ${MORE_ARGS}
+./distrib-mac.sh ${MORE_ARGS} || exit 1
 
 if [ ! -f ohrrpgce-game -o ! -f ohrrpgce-custom ] ; then
   echo Aborting distrib-nightly script because distrib script failed

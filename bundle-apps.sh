@@ -9,11 +9,11 @@ TODAY=`date "+%Y%m%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 
 # Sanity checks
-if ! file ../ohrrpgce-game | grep i386 ; then
+if ! file ohrrpgce-game | grep 386 ; then
   echo "ohrrpgce-game is missing or not compiled as 32 bit"
   exit 1
 fi
-if ! file ../ohrrpgce-custom | grep i386 ; then
+if ! file ohrrpgce-custom | grep 386 ; then
   echo "ohrrpgce-custom is missing or not compiled as 32 bit"
   exit 1
 fi
@@ -56,7 +56,7 @@ sed -i -e "s/#VERSION#/O.H.R.RPG.C.E version ${CODE} ${TODAY}/g" OHRRPGCE-Custom
 cp ohrrpgce-custom OHRRPGCE-Custom.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Custom.app/Contents &&
 cp -R ohrhelp/*.txt OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
-cp data/* OHRRPGCE-Custom.app/Contents/Resources/ &&
+cp -R data/* OHRRPGCE-Custom.app/Contents/Resources/ &&
 cp support/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 cp plotscr.hsd scancode.hsi OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ && 
