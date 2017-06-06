@@ -468,8 +468,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
   IF keyval(scF7) > 1 THEN
-   'Make a sprite melt, just for a fun test
-   DissolveSpriteSlice(ses.curslice, 5, 36)
+   IF ses.curslice ANDALSO ses.curslice->SliceType = slSprite THEN
+    'Make a sprite melt, just for a fun test
+    DissolveSpriteSlice(ses.curslice, 5, 36)
+   END IF
   END IF
 
   IF state.need_update = NO AND enter_space_click(state) THEN
