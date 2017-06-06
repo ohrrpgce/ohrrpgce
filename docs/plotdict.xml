@@ -8101,7 +8101,14 @@ end</example>
 		<command id="saveslotused">
 			<canon>save slot used (slot)</canon>
 			<shortname>save slot used</shortname>
-			<description>Returns whether a game has been saved in the save slot. Use if you, for example, don&apos;t want to overwrite a saved game with <ref>saveinslot</ref>.</description>
+			<description>
+				Returns whether a game has been saved in the save slot.
+				Use if you, for example, don't want to overwrite a saved game with <ref>saveinslot</ref>.
+				This returns false if the slot has never been saved to normally,
+				but has been written to using <ref>exportglobals</ref>
+				(which will create a nearly-empty .rsav file containing just globals,
+				if it doesn't already exist).
+			</description>
 		</command>
 		<reference ref="sendemail" />
 		<reference ref="getloadscript" />
@@ -8158,7 +8165,24 @@ end</example>
 		<command id="exportglobals">
 			<canon>export globals (slot, first, last)</canon>
 			<shortname>export globals</shortname>
-			<description>Writes a range of globals to a save game slot, overwriting the saved game's globals. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. <p>first</p> defaults to 0, and <p>last</p> defaults to 16383. Therefore, if you pass no range, all the globals will be written.<note>You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <ref>importglobals</ref>.</note><note>Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!</note></description>
+			<description>
+				Writes a range of globals to a save game slot, overwriting the saved game's globals.
+				<p>slot</p> is the save slot number, from 1 to 32,
+				regardless of how many save slots enabled in the save/load menus.
+				<p>first</p> and <p>last</p> are the id numbers of the globals at the
+				beginning and end of the range.
+				<p>first</p> defaults to 0, and <p>last</p> defaults to 16383.
+				Therefore, if you pass no range, all the globals will be written.
+				<note>
+					You can export globals to an empty slot!
+					This doesn't create a visible save game that the player can load,
+					however you will still be able to read them with <ref>importglobals</ref>.
+				</note>
+				<note>
+					Unlike importglobals, 'export globals (slot, first)' does
+					NOT export a single global variable!
+				</note>
+			</description>
 			<seealso>
 				<ref>importglobals</ref>
 				<ref>writeglobal</ref>
