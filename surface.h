@@ -26,8 +26,6 @@ enum SurfaceUsage
 	SU_Staging = 2,      // Surfaces that don't get sent to GPU
 };
 
-typedef struct _Frame Frame;
-
 typedef struct
 {
 	void* handle;

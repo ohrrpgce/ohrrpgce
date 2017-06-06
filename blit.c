@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include "allmodex.h"
+#include "surface.h"
 #include "common.h"
 
 void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, int w, int h, int pitch, int zoom, int smooth, RGBcolor dummypal[]);

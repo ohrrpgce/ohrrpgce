@@ -4,7 +4,7 @@
 #define ALLMODEX_H
 
 #include <stdint.h>
-#include "surface.h"
+//#include "surface.h"
 
 #ifdef __cplusplus
 extern "C" {
