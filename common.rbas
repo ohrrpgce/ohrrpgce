@@ -5243,7 +5243,8 @@ FUNCTION escape_nonprintable_ascii(istr as string) as string
   icons_high = 255
  END IF
  FOR idx as integer = 0 TO LEN(istr) - 1
-  SELECT CASE istr[idx]
+  DIM ch as string = MID(istr, idx, 1)
+  SELECT CASE ASC(ch)
    CASE 92 '--Backslash
     result &= "\\"
    CASE 10
@@ -5253,14 +5254,14 @@ FUNCTION escape_nonprintable_ascii(istr as string) as string
    CASE 9
     result &= "\t"
    CASE 0 TO 31, icons_low TO icons_high
-    DIM nstr as string = STR(istr[idx])
+    DIM nstr as string = STR(ASC(ch))
     WHILE LEN(nstr) < 3
      nstr = "0" & nstr
     WEND
     result &= "\" & nstr
    'CASE 32 TO 91, 93 TO 126, latin_low TO latin_high
    CASE ELSE
-    result &= CHR(istr[idx])
+    result &= ch
   END SELECT
  NEXT idx
  RETURN result
