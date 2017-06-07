@@ -955,6 +955,27 @@ SUB str_array_append (array() as string, s as string)
  array(UBOUND(array)) = s
 END SUB
 
+'Insert a new element into an array at position 'pos'.
+SUB str_array_insert(array() as string, pos as integer, value as string)
+ IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
+  showerror "int_array_insert out of bounds: " & pos
+  EXIT SUB
+ END IF
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
+ FOR idx as integer = UBOUND(array) TO pos STEP -1
+  SWAP array(idx), array(idx + 1)
+ NEXT
+END SUB
+
+' Remove array(which) (default last), shuffling everything else down
+SUB str_array_pop (array() as string, which as integer = &hE2D0FD15)
+ IF which = &hE2D0FD15 THEN which = UBOUND(array)
+ IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
+  array_shuffle_to_end array(), which
+  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+ END IF
+END SUB
+
 FUNCTION str_array_find(array() as string, value as string, notfound as integer=-1) as integer
  FOR i as integer = LBOUND(array) TO UBOUND(array)
   IF LCASE(array(i)) = value THEN RETURN i
@@ -970,9 +991,30 @@ FUNCTION str_array_findcasei (array() as string, value as string, notfound as in
  RETURN notfound
 END FUNCTION
 
-SUB int_array_append (array() as integer, byval k as integer)
+SUB int_array_append (array() as integer, byval value as integer)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as integer
- array(UBOUND(array)) = k
+ array(UBOUND(array)) = value
+END SUB
+
+'Insert a new element into an array at position 'pos'.
+SUB int_array_insert(array() as integer, pos as integer, value as integer)
+ IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
+  showerror "int_array_insert out of bounds: " & pos
+  EXIT SUB
+ END IF
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
+ FOR idx as integer = UBOUND(array) TO pos STEP -1
+  SWAP array(idx), array(idx + 1)
+ NEXT
+END SUB
+
+' Remove array(which) (default last), shuffling everything else down
+SUB int_array_pop (array() as integer, which as integer = &hE2D0FD15)
+ IF which = &hE2D0FD15 THEN which = UBOUND(array)
+ IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
+  array_shuffle_to_end array(), which
+  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+ END IF
 END SUB
 
 SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)

@@ -134,9 +134,13 @@ declare sub array_shuffle_to_end overload(array() as integer, which as integer)
 declare sub array_shuffle_to_end overload(array() as string, which as integer)
 
 'These act on *dynamic length* destination arrays only! Static arrays will segfault!
-declare sub str_array_append (array() as string, s as string)
-declare sub int_array_append (array() as integer, byval k as integer)
+declare sub str_array_append (array() as string,  value as string)
+declare sub int_array_append (array() as integer, value as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
+declare sub str_array_insert (array() as string,  pos as integer, value as string)
+declare sub int_array_insert (array() as integer, pos as integer, value as string)
+declare sub str_array_pop (array() as string,  which as integer = &hE2D0FD15)
+declare sub int_array_pop (array() as integer, which as integer = &hE2D0FD15)
 declare sub int_array_remove (array() as integer, byval k as integer)
 declare sub int_array_copy (fromarray() as integer, toarray() as integer)
 
