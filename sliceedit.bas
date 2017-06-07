@@ -99,6 +99,8 @@ END TYPE
 
 '==============================================================================
 
+DIM SHARED remember_draw_root_pos as XYPair
+
 ' 64 bit FB treats ENUM SliceTypes as a different type to any other, can't pass to int_array_find()...
 REDIM SHARED editable_slice_types(8) as integer 'SliceTypes
 editable_slice_types(0) = SlContainer
@@ -301,20 +303,21 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
  rect.border = -2  'None
  DIM ret as Slice ptr = NewRectangleSlice(NULL, rect)
  WITH *ret
+  .Pos = remember_draw_root_pos
   .Width = gen(genResolutionX)
   .Height = gen(genResolutionY)
-  .AlignHoriz = alignMiddle
+  .AlignHoriz = alignRight
   .AlignVert = alignMiddle
-  .AnchorHoriz = alignMiddle
+  .AnchorHoriz = alignRight
   .AnchorVert = alignMiddle
  END WITH
- ' But the editor resolution is smaller than the game's, add an offset so that
+ ' But if the editor resolution is smaller than the game's, add an offset so that
  ' the top left corner of the 'screen' is visible.
  ' This is crude because the 'screen' will shift if the user resizes the window,
  ' but we can't just recenter it every tick because then F6 won't work.
  RefreshSliceScreenPos ret
- ret->X = -small(0, ret->ScreenX)
- ret->Y = -small(0, ret->ScreenY)
+ ret->X -= small(0, ret->ScreenX)
+ ret->Y -= small(0, ret->ScreenY)
  RETURN ret
 END FUNCTION
 
@@ -342,6 +345,7 @@ SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string 
 
  slice_editor_main ses, edslice
 
+ remember_draw_root_pos = ses.draw_root->Pos
  DeleteSlice @ses.draw_root
 END SUB
 
@@ -364,7 +368,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
  ELSE
   ' Temporarily reparent the root of the slice tree!
   rootslice = FindRootSlice(edslice)
-  ses.draw_root = create_draw_root
+  ses.draw_root = create_draw_root()
   SetSliceParent rootslice, ses.draw_root
  END IF
 
@@ -372,6 +376,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
 
  IF recursive = NO THEN
   OrphanSlice rootslice
+  remember_draw_root_pos = ses.draw_root->Pos
   DeleteSlice @ses.draw_root
  END IF
 END SUB
