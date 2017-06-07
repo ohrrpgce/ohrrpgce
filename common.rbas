@@ -444,17 +444,26 @@ END SUB
 ' Show a message in a box and wait for the user to advance with a keypress.
 ' Returns the scancode of the keypress (it is cleared!)
 FUNCTION notification (msg as string) as integer
+ ' For safety disallow reentering, though I'm not currently aware of a way this might happen
+ STATIC entered as bool = NO
+ IF entered THEN
+  debug "BUG: notfication reentered"
+  RETURN 0
+ END IF
+ entered = YES
+
  ensure_normal_palette
  DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
- IF getquitflag THEN RETURN 0
+ IF getquitflag THEN entered = NO : RETURN 0
  sleep 250  'Avoid accidental advancement
  DIM scancode as integer = waitforanykey()
  clearkey(scancode)
  freepage holdpage
  restore_previous_palette
+ entered = NO
  RETURN scancode
 END FUNCTION
 
@@ -797,9 +806,9 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
   debugc errBug, "getdefaultpal: bad fileset " & fileset
   RETURN -1
  END IF
- DIM lumpsdir as string = workingdir, fname as string
+ DIM as string lumpsdir, fname
  ' Use a default if no game has been loaded
- IF LEN(game) = 0 THEN lumpsdir = finddatadir("defaultgfx")
+ lumpsdir = IIF(LEN(game), workingdir, finddatadir("defaultgfx"))
  fname = lumpsdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer
  IF OPENFILE(fname, FOR_BINARY, fh) = 0 THEN
@@ -1056,6 +1065,10 @@ END SUB
 
 'Ask the user if they want to continue (only if isfatal is false), otherwise quit.
 SUB showerror (msg as string, byval isfatal as bool = NO)
+ DIM printmsg as string
+ printmsg = IIF(isfatal, "FATAL: ", "ERROR: ") + msg
+ PRINT printmsg
+
  STATIC entered as integer = 0  'don't allow reentry
  IF entered THEN
   IF isfatal AND entered = 1 THEN
@@ -1065,13 +1078,11 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
   EXIT SUB
  END IF
  entered = 1
- DIM printmsg as string
- printmsg = IIF(isfatal, "FATAL: ", "ERROR: ") + msg
+
  debug printmsg
- PRINT printmsg
  IF modex_initialised = NO THEN
-  debug "showerror: modex_initialised false"
   PRINT "showerror: modex_initialised false"
+  debug "showerror: modex_initialised false"
   fatal_error_shutdown
  END IF
 
@@ -1112,14 +1123,16 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
 
  #IFDEF IS_CUSTOM
   'Continuing to edit
-  setwait 200  'Give user a chance to let go of keys
-  dowait
-  clearpage 0
-  basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
-                "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
-                uilook(uiText), 0
-  setvispage 0
-  waitforanykey
+  IF editing_a_game THEN
+   setwait 200  'Give user a chance to let go of keys
+   dowait
+   clearpage 0
+   basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
+                 "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
+                 uilook(uiText), 0
+   setvispage 0
+   waitforanykey
+  END IF
 
   IF activepalette > -1 THEN
    loadpalette master(), activepalette
@@ -3058,15 +3071,24 @@ PRIVATE FUNCTION finddatafile_internal(filename as string, searchtype as FileTyp
  RETURN ""
 END FUNCTION
 
+PRIVATE FUNCTION finddatafile_internal2(filename as string, searchtype as FileTypeEnum, error_if_missing as bool) as string
+ DIM ret as string = finddatafile_internal(filename, searchtype)
+ IF LEN(ret) THEN RETURN ret
+ IF error_if_missing THEN
+  showerror !"Error: data " & IIF(searchtype = fileTypeFile, "file", "directory") & " data/" & _
+            filename & " not found. The OHRRPGCE apparently isn't installed properly. Try reinstalling."
+ END IF
+END FUNCTION
+
 ' Given a filename, search all the locations that data files for Game or Custom might
 ' be packages, and return its path if found.
-FUNCTION finddatafile(filename as string) as string
- RETURN finddatafile_internal(filename, fileTypeFile)
+FUNCTION finddatafile(filename as string, error_if_missing as bool = YES) as string
+ RETURN finddatafile_internal2(filename, fileTypeFile, error_if_missing)
 END FUNCTION
 
 ' Like finddatafile, for subdirectories. Has a trailing slash only if dirname has one.
-FUNCTION finddatadir(dirname as string) as string
- RETURN finddatafile_internal(dirname, fileTypeDirectory)
+FUNCTION finddatadir(dirname as string, error_if_missing as bool = YES) as string
+ RETURN finddatafile_internal2(dirname, fileTypeDirectory, error_if_missing)
 END FUNCTION
 
 ' Return the location of the data/ dir, in case you want to create a new file there

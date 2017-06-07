@@ -428,9 +428,7 @@ rectangle st.cursor.sprite + 1, 3, 3, 14, 14, 2
 rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
 DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
-IF LEN(datafile) = 0 THEN
- visible_debug "arrows2.bmp missing"
-ELSE
+IF LEN(datafile) THEN
  DIM arrowset as Frame ptr = frame_import_bmp_raw(datafile)
  FOR idx as integer = 0 TO 4
   st.arrow_icons(idx) = frame_resized(arrowset, 20, 20, idx * -20, 0)

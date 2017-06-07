@@ -1403,7 +1403,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   .trans = YES
   .loaded = YES  'Even if an error occurs, we create a Frame
 
-  dim filename as string = finddatafile(*.assetfile)
+  dim filename as string = finddatafile(*.assetfile, NO)  'Handle missing file below
   if len(filename) then
    .img.sprite = frame_import_bmp_as_8bit(filename, master())
   end if
@@ -1413,7 +1413,8 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   else
    if warn_if_missing then
     visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
-                  & !" (the OHRRPGCE isn't installed correctly?):\ndata/" & *.assetfile
+                  & !":\ndata/" & *.assetfile _
+                  & !"\nThe OHRRPGCE apparently isn't installed properly. Try reinstalling, or report this error."
    end if
    ' Draw an X (the width and height were hopefully loaded from a .slice file)
    .img.sprite = frame_new(sl->Width, sl->Height, , YES)

@@ -101,8 +101,8 @@ DECLARE SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, r
 DECLARE SUB unloadmaptilesets (tilesets() as TilesetData ptr)
 DECLARE SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps as bool = NO)
 
-DECLARE FUNCTION finddatafile(filename as string) as string
-DECLARE FUNCTION finddatadir(dirname as string) as string
+DECLARE FUNCTION finddatafile(filename as string, error_if_missing as bool = YES) as string
+DECLARE FUNCTION finddatadir(dirname as string, error_if_missing as bool = YES) as string
 DECLARE FUNCTION get_data_dir() as string
 DECLARE FUNCTION filename_relative_to_datadir(filename as string) as string
 DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)

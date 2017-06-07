@@ -157,9 +157,9 @@ END SUB
 '-----------------------------------------------------------------------
 
 FUNCTION edrun_create_widget_slice(byval widget as NodePtr) as Slice Ptr
- IF widget = 0 THEN
+ IF widget = NULL THEN
   pop_warning("can't create slice for null widget!")
-  RETURN 0
+  RETURN NULL
  END IF
  DIM sl as Slice Ptr
  sl = NewSliceOfType(slSpecial)
@@ -167,10 +167,7 @@ FUNCTION edrun_create_widget_slice(byval widget as NodePtr) as Slice Ptr
  kind = GetString(widget)
  DIM dirname as string
  dirname = finddatadir("widgets")
- IF dirname = "" THEN
-  pop_warning("Can't find widget data dir!")
-  RETURN 0
- END IF
+ IF dirname = "" THEN RETURN NULL
  DIM filename as string
  filename =  dirname & SLASH & kind & ".widget.slice"
  IF isfile(filename) THEN

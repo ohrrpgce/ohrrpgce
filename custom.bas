@@ -1282,14 +1282,12 @@ END SUB
 ' Returns true for success
 FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  IF newrpg = "" THEN RETURN NO
+ ' Error already shown if missing
+ IF NOT isfile(templatefile) THEN RETURN NO
  textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 100, vpage
  printstr "Creating RPG File", 0, 110, vpage
  setvispage vpage, NO
- IF NOT isfile(templatefile) THEN
-  notification !"Error: ohrrpgce.new not found. The OHRRPGCE is apparently not installed properly.\nPress Enter to quit"
-  RETURN NO
- END IF
  writeablecopyfile templatefile, newrpg
  printstr "Unlumping", 0, 120, vpage
  setvispage vpage, NO

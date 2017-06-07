@@ -1076,7 +1076,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   DIM dat as SpriteSliceData ptr = sl->SliceData
   IF enter_space_click(state) THEN
    ' Browse for an asset. Only paths inside data/ are allowed.
-   DIM as string filename = finddatafile(*dat->assetfile)
+   DIM as string filename = finddatafile(*dat->assetfile, NO)
    IF LEN(filename) = 0 THEN filename = get_data_dir()
    filename = browse(2, filename, "*.bmp", "browse_import_sprite")
    IF LEN(filename) THEN

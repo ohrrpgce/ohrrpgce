@@ -5287,7 +5287,7 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 
 	for i = 0 to 255
 		with newfont->layers(1)->chdata(i)
-			f = finddatafile(directory & SLASH & i & ".bmp")
+			f = finddatafile(directory & SLASH & i & ".bmp", NO)
 			if isfile(f) then
 				'FIXME: awful stuff
 				tempfr = frame_import_bmp_raw(f)  ', master())
@@ -7110,7 +7110,6 @@ private function graphics_file(extn as string) as string
 		' Haven't loaded a game, fallback to the engine's default graphics
 		dim gfxdir as string = finddatadir("defaultgfx")
 		if len(gfxdir) = 0 then
-			showerror "Can't find graphic or palette " & extn & ": no game loaded and no default"
 			return ""
 		end if
 		return gfxdir & SLASH "ohrrpgce" & extn
