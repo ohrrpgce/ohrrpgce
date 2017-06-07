@@ -1,0 +1,12 @@
+Welcome to the OHRRPGCE!
+
+You can press F1 on any menu to see a help screen like this one.
+The F1 help pages explain the options on each menu, but to read OHRRPGCE tutorials and articles go to the website, at
+http://HamsterRepublic.com/ohrrpgce/
+in particular the HOWTO tutorials. Ask questions on the Forums if you need help - discussing with others is fun!
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home and End) to navigate through menus. Press ENTER or SPACE to choose a menu option. Remember that you can press ESC to exit any submenu and get back to the previous menu.
+
+Press F9 on any menu to access a menu of global editor settings and shortcuts.
+
+Try LOAD EXISTING GAME and load Vikings of Midgard, the example game included with the engine, to get an idea of what goes into an OHRRPGCE game. The graphics and music are graciously donated, free-to-use, by Fenrir-Lunaris and the composers!
