@@ -125,11 +125,11 @@ TYPE IntStrPair
   s as string
 END TYPE
 
-declare function str_array_find (array() as string, value as string, notfound as integer=-1) as integer
-declare function str_array_findcasei (array() as string, value as string, notfound as integer=-1) as integer
-declare function int_array_find (array() as integer, value as integer) as integer
-declare function intstr_array_find overload (array() as IntStrPair, value as integer) as integer
-declare function intstr_array_find overload (array() as IntStrPair, value as string) as integer
+declare function str_array_find      (array() as string,  value as string,  notfound as integer = -1) as integer
+declare function str_array_findcasei (array() as string,  value as string,  notfound as integer = -1) as integer
+declare function int_array_find      (array() as integer, value as integer, notfound as integer = -1) as integer
+declare function intstr_array_find overload (array() as IntStrPair, value as integer, notfound as integer = -1) as integer
+declare function intstr_array_find overload (array() as IntStrPair, value as string, notfound as integer = -1) as integer
 declare sub array_shuffle_to_end overload(array() as integer, which as integer)
 declare sub array_shuffle_to_end overload(array() as string, which as integer)
 
@@ -138,10 +138,11 @@ declare sub str_array_append (array() as string,  value as string)
 declare sub int_array_append (array() as integer, value as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
 declare sub str_array_insert (array() as string,  pos as integer, value as string)
-declare sub int_array_insert (array() as integer, pos as integer, value as string)
+declare sub int_array_insert (array() as integer, pos as integer, value as integer)
 declare sub str_array_pop (array() as string,  which as integer = &hE2D0FD15)
 declare sub int_array_pop (array() as integer, which as integer = &hE2D0FD15)
-declare sub int_array_remove (array() as integer, byval k as integer)
+declare function str_array_remove (array() as string,  value as string)  as integer
+declare function int_array_remove (array() as integer, value as integer) as integer
 declare sub int_array_copy (fromarray() as integer, toarray() as integer)
 
 /'

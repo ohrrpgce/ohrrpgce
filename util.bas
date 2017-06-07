@@ -950,72 +950,16 @@ SUB flusharray (array() as integer, byval size as integer=-1, byval value as int
  NEXT i
 END SUB
 
-SUB str_array_append (array() as string, s as string)
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as string
- array(UBOUND(array)) = s
-END SUB
+#MACRO MAKE_ARRAY_APPEND(Subname, Typename)
+ 'Insert a new element into an array at position 'pos'.
+ SUB Subname (array() as Typename, value as Typename)
+  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
+  array(UBOUND(array)) = value
+ END SUB
+#ENDMACRO
 
-'Insert a new element into an array at position 'pos'.
-SUB str_array_insert(array() as string, pos as integer, value as string)
- IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
-  showerror "int_array_insert out of bounds: " & pos
-  EXIT SUB
- END IF
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
- FOR idx as integer = UBOUND(array) TO pos STEP -1
-  SWAP array(idx), array(idx + 1)
- NEXT
-END SUB
-
-' Remove array(which) (default last), shuffling everything else down
-SUB str_array_pop (array() as string, which as integer = &hE2D0FD15)
- IF which = &hE2D0FD15 THEN which = UBOUND(array)
- IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
-  array_shuffle_to_end array(), which
-  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
- END IF
-END SUB
-
-FUNCTION str_array_find(array() as string, value as string, notfound as integer=-1) as integer
- FOR i as integer = LBOUND(array) TO UBOUND(array)
-  IF LCASE(array(i)) = value THEN RETURN i
- NEXT
- RETURN notfound
-END FUNCTION
-
-FUNCTION str_array_findcasei (array() as string, value as string, notfound as integer=-1) as integer
- DIM valuei as string = LCASE(value)
- FOR i as integer = LBOUND(array) TO UBOUND(array)
-  IF LCASE(array(i)) = valuei THEN RETURN i
- NEXT
- RETURN notfound
-END FUNCTION
-
-SUB int_array_append (array() as integer, byval value as integer)
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) as integer
- array(UBOUND(array)) = value
-END SUB
-
-'Insert a new element into an array at position 'pos'.
-SUB int_array_insert(array() as integer, pos as integer, value as integer)
- IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
-  showerror "int_array_insert out of bounds: " & pos
-  EXIT SUB
- END IF
- REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
- FOR idx as integer = UBOUND(array) TO pos STEP -1
-  SWAP array(idx), array(idx + 1)
- NEXT
-END SUB
-
-' Remove array(which) (default last), shuffling everything else down
-SUB int_array_pop (array() as integer, which as integer = &hE2D0FD15)
- IF which = &hE2D0FD15 THEN which = UBOUND(array)
- IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
-  array_shuffle_to_end array(), which
-  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
- END IF
-END SUB
+MAKE_ARRAY_APPEND(str_array_append, string)
+MAKE_ARRAY_APPEND(int_array_append, integer)
 
 SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
@@ -1023,57 +967,81 @@ SUB intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
  array(UBOUND(array)).s = s
 END SUB
 
-FUNCTION int_array_find (array() as integer, value as integer) as integer
- FOR i as integer = LBOUND(array) TO UBOUND(array)
-  IF array(i) = value THEN RETURN i
- NEXT
- RETURN -1
-END FUNCTION
-
-FUNCTION intstr_array_find (array() as IntStrPair, value as integer) as integer
- FOR i as integer = LBOUND(array) TO UBOUND(array)
-  IF array(i).i = value THEN RETURN i
- NEXT
- RETURN -1
-END FUNCTION
-
-FUNCTION intstr_array_find (array() as IntStrPair, value as string) as integer
- FOR i as integer = LBOUND(array) TO UBOUND(array)
-  IF array(i).s = value THEN RETURN i
- NEXT
- RETURN -1
-END FUNCTION
-
-'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
-SUB array_shuffle_to_end(array() as string, which as integer)
- IF which < LBOUND(array) THEN EXIT SUB
- FOR idx as integer = which TO UBOUND(array) - 1
-  SWAP array(idx), array(idx + 1)
- NEXT
-END SUB
-
-'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
-SUB array_shuffle_to_end(array() as integer, which as integer)
- IF which < LBOUND(array) THEN EXIT SUB
- FOR idx as integer = which TO UBOUND(array) - 1
-  SWAP array(idx), array(idx + 1)
- NEXT
-END SUB
-
-'Resize a dynamic int array, removing all occurrences of k
-SUB int_array_remove (array() as integer, byval k as integer)
- DIM i as integer = LBOUND(array)
- WHILE i <= UBOUND(array)
-  IF array(i) = k THEN
-   'Shuffle down
-   FOR j as integer = i TO UBOUND(array) - 1
-    array(j) = array(j + 1)
-   NEXT
-   IF UBOUND(array) > LBOUND(array) THEN REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+#MACRO MAKE_ARRAY_INSERT(Subname, Typename)
+ 'Insert a new element into an array at position 'pos'.
+ SUB Subname(array() as Typename, pos as integer, value as Typename)
+  IF pos < LBOUND(array) OR pos > UBOUND(array) + 1 THEN
+   showerror #Subname " out of bounds: " & pos
+   EXIT SUB
   END IF
-  i += 1
- WEND
-END SUB
+  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
+  FOR idx as integer = UBOUND(array) TO pos STEP -1
+   SWAP array(idx), array(idx + 1)
+  NEXT
+ END SUB
+#ENDMACRO
+
+MAKE_ARRAY_INSERT(str_array_insert, string)
+MAKE_ARRAY_INSERT(int_array_insert, integer)
+
+#MACRO MAKE_ARRAY_POP(Subname, Typename)
+ ' Remove array(which) (default last), shuffling everything else down
+ SUB Subname (array() as Typename, which as integer = &hE2D0FD15)
+  IF which = &hE2D0FD15 THEN which = UBOUND(array)
+  IF which >= LBOUND(array) AND which <= UBOUND(array) THEN
+   array_shuffle_to_end array(), which
+   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+  END IF
+ END SUB
+#ENDMACRO
+
+MAKE_ARRAY_POP(str_array_pop, string)
+MAKE_ARRAY_POP(int_array_pop, integer)
+
+#MACRO MAKE_ARRAY_FIND(Subname, ArrayTypename, ValTypename, EqualCheck)
+ ' Return index of first item in array equal to 'value', or 'notfound'.
+ FUNCTION Subname (array() as ArrayTypename, value as ValTypename, notfound as integer = -1) as integer
+  FOR i as integer = LBOUND(array) TO UBOUND(array)
+   IF EqualCheck THEN RETURN i
+  NEXT
+  RETURN notfound
+ END FUNCTION
+#ENDMACRO
+
+MAKE_ARRAY_FIND(str_array_find,      string,     string,  array(i) = value)
+MAKE_ARRAY_FIND(str_array_findcasei, string,     string,  LCASE(array(i)) = LCASE(value))
+MAKE_ARRAY_FIND(int_array_find,      integer,    integer, array(i) = value)
+MAKE_ARRAY_FIND(intstr_array_find,   IntStrPair, integer, array(i).i = value)
+MAKE_ARRAY_FIND(intstr_array_find,   IntStrPair, string,  array(i).s = value)
+
+#MACRO MAKE_ARRAY_SHUFFLE_TO_END(Typename)
+ 'Preserves order of everything except element at position 'which'. OK to give invalid 'which'
+ SUB array_shuffle_to_end(array() as Typename, which as integer)
+  IF which < LBOUND(array) THEN EXIT SUB
+  FOR idx as integer = which TO UBOUND(array) - 1
+   SWAP array(idx), array(idx + 1)
+  NEXT
+ END SUB
+#ENDMACRO
+
+MAKE_ARRAY_SHUFFLE_TO_END(string)
+MAKE_ARRAY_SHUFFLE_TO_END(integer)
+
+#MACRO MAKE_ARRAY_REMOVE(Funcname, Typename, Prefix)
+ 'Remove the first instance of value, resizing the dynamic array.
+ 'No error or warning if it isn't found.
+ 'Returns the index of the item if it was found, or -1 if not
+ FUNCTION Funcname (array() as TypeName, value as TypeName) as integer
+  DIM idx as integer
+  idx = Prefix##_array_find(array(), value, &he110b0b1)
+  IF idx = &he110b0b1 THEN RETURN -1
+  Prefix##_array_pop array(), idx
+  RETURN idx
+ END FUNCTION
+#ENDMACRO
+
+MAKE_ARRAY_REMOVE(str_array_remove, string,  str)
+MAKE_ARRAY_REMOVE(int_array_remove, integer, int)
 
 SUB int_array_copy (fromarray() as integer, toarray() as integer)
  DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
