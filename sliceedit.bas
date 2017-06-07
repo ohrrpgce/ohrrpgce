@@ -822,7 +822,7 @@ END SUB
 ' If edit_separately, then we save the current collection and switch to editing the new one,
 ' otherwise it's imported overwriting the current one.
 SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
- DIM filename as string = browse(0, "", "*.slice", "browse_import_slices")
+ DIM filename as string = browse(0, trimfilename(ses.collection_file), "*.slice", "browse_import_slices")
  IF filename <> "" THEN
   IF edit_separately THEN
    ' We are no longer editing whatever we were before
@@ -838,24 +838,28 @@ END SUB
 
 ' Called when you leave the editor or switch to a different collection: saves if necessary.
 SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
+ DIM filename as string = slice_editor_filename(ses)
  IF ses.use_index THEN
   ' Autosave on quit, unless the collection is empty
-  DIM filename as string = slice_editor_filename(ses)
   IF edslice->NumChildren > 0 THEN
    '--save non-empty slice collections
    SliceSaveToFile edslice, filename
   ELSE
    '--erase empty slice collections
+   '(Note: since you can edit the root slice, this is technically wrong...)
    safekill filename
   END IF
  ELSEIF LEN(ses.collection_file) THEN
-  'Prevent attempt to quit the program, stop and wait for response first
-  DIM quitting as bool = getquitflag()
-  setquitflag NO
-  IF yesno("Save collection before leaving, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", YES, NO) THEN
-   SliceSaveToFile edslice, ses.collection_file
+  IF edslice->NumChildren > 0 THEN
+   'Prevent attempt to quit the program, stop and wait for response first
+   DIM quitting as bool = getquitflag()
+   setquitflag NO
+   IF yesno("Save collection before leaving, overwriting " & _
+            simplify_path_further(filename, CURDIR) & "?", YES, NO) THEN
+    SliceSaveToFile edslice, filename
+   END IF
+   IF quitting THEN setquitflag
   END IF
-  IF quitting THEN setquitflag
  END IF
 END SUB
 
