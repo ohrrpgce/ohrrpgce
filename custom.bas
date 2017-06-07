@@ -398,6 +398,7 @@ SUB main_editor_menu()
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.last = UBOUND(menu)
+ state.autosize = YES
  state.autosize_ignore_pixels = 24
  DIM menuopts as MenuOptions
  menuopts.scrollbar = YES
@@ -450,9 +451,7 @@ SUB main_editor_menu()
    IF state.pt = 18 THEN slice_editor
    IF state.pt = 19 THEN distribute_game
    IF state.pt = 20 THEN spawn_game_menu(keyval(scShift) > 0)
-   IF state.pt = 21 THEN
-    prompt_for_save_and_quit
-   END IF
+   IF state.pt = 21 THEN prompt_for_save_and_quit
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF
@@ -472,11 +471,9 @@ SUB main_editor_menu()
   setvispage vpage
   dowait
  LOOP
-
 END SUB
 
 SUB gfx_editor_menu()
-
  DIM menu(14) as string
  DIM menu_display(UBOUND(menu)) as string
 
@@ -569,19 +566,28 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  state.pt = 1
  state.last = 2
  state.size = 20
+
+ 'DIM logo as Frame ptr = frame_import_bmp_as_8bit(finddatafile("logo50%.bmp"), master())
+ DIM root as Slice ptr
+ root = NewSliceOfType(slContainer)
+ SliceLoadFromFile root, finddatafile("choose_rpg.slice")
+ DIM menusl as Slice ptr = LookupSlice(-100, root)  'Editor lookup codes not implemented yet
+ IF menusl = 0 THEN menusl = NewSliceOfType(slContainer, root)
  
  DIM chooserpg_menu(2) as string
  chooserpg_menu(0) = "CREATE NEW GAME"
  chooserpg_menu(1) = "LOAD EXISTING GAME"
  chooserpg_menu(2) = "EXIT PROGRAM"
-
- DIM result as string
+ DIM opts as MenuOptions
+ opts.edged = YES
 
  setkeys
  DO
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN cleanup_and_terminate
+  IF keyval(scF1) > 1 THEN show_help "choose_rpg"
+
   usemenu state
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
@@ -603,13 +609,17 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
   END IF
  
   clearpage dpage
-  standardmenu chooserpg_menu(), state, 0, 0, dpage
- 
+  DrawSlice root, dpage
+  'frame_draw logo, , pCentered, 20, , , dpage
+  standardmenu chooserpg_menu(), state, menusl->ScreenX, menusl->ScreenY, dpage, opts
+  wrapprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom - 14, uilook(uiMenuItem), dpage
+  edgeprint "Press F1 for help on any menu!", 8, pBottom - 4, uilook(uiText), dpage
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
- 
+ DeleteSlice @root
 END SUB
 
 SUB prompt_for_save_and_quit()
@@ -781,12 +791,21 @@ END SUB
 
 ' Accessible with F8 if we are editing a game
 SUB Custom_global_menu
- DIM menu(...) as string = { _
-  "Reimport scripts", "Test Game", "Volume", "Macro record/replay (Ctrl-F11)", _
-  "Zoom 1x", "Zoom 2x", "Zoom 3x" _
- }
+ REDIM menu(6) as string
+ menu(0) = "Reimport scripts"
+ menu(1) = "Test Game"
+ menu(2) = "Volume"
+ menu(3) = "Macro record/replay (Ctrl-F11)"
+ menu(4) = "Zoom 1x"
+ menu(5) = "Zoom 2x"
+ menu(6) = "Zoom 3x"
+ IF editing_a_game = NO THEN
+  str_array_pop menu(), 1
+  str_array_pop menu(), 0
+ END IF
 
  DIM choice as integer = multichoice("Global Editor Options (F9)", menu())
+ IF editing_a_game = NO AND choice >= 0 THEN choice += 2
  IF choice = 0 THEN
   reimport_previous_scripts
  ELSEIF choice = 1 THEN
@@ -811,7 +830,7 @@ END SUB
 ' It should be fine to call any allmodex function in here, but beware we might
 ' not have loaded a game yet!
 SUB global_setkeys_hook
- IF keyval(scF9) > 1 AND editing_a_game THEN Custom_global_menu
+ IF keyval(scF9) > 1 THEN Custom_global_menu
 END SUB
 
 
