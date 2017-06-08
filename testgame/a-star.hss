@@ -1,5 +1,5 @@
 define constant(7, last map)
-define constant(6, default map)
+define constant(0, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)

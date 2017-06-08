@@ -57,4 +57,12 @@ Type AStarPathfinder
 
 End Type
 
+'This is used for speeding up NPC collision checking at the expense of a map-shaped chunk of memory
+Type NPCCollisionCache
+ size as XYPair
+ obstruct(ANY, ANY) as bool
+ Declare Sub populate(size as XYPair, npci as NPCInst)
+ Declare Sub debug_cache()
+End Type
+
 #endif

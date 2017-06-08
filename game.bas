@@ -1938,8 +1938,8 @@ FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair,
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
- 'Returns an NPC collision check as if the NPC was at a different location that it really is
+FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+ 'Returns an NPC collision check as if the NPC was at a different location than it really is
  DIM savepos as XYPair
  savepos.x = npci.x
  savepos.y = npci.y
@@ -1952,7 +1952,7 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  npci.xgo = 0
  npci.ygo = 0
  DIM result as bool
- result = npc_collision_check(npci, direction, collision_type)
+ result = npc_collision_check(npci, direction, collision_type, npc_ccache)
  'Restore real NPC position and movement
  npci.x = savepos.x
  npci.y = savepos.y
@@ -1961,18 +1961,18 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
- RETURN npc_collision_check(npci, npcs(npci.id - 1), direction, collision_type)
+FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+ RETURN npc_collision_check(npci, npcs(npci.id - 1), direction, collision_type, npc_ccache)
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  DIM go as XYPair
  xypair_move go, direction, 20
  'NPC xgo and ygo are backwards, so we invert the value we got from xypair_move()
- RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1, collision_type)
+ RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1, collision_type, npc_ccache)
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns true if the NPC would collide with a wall, zone, npc, hero, etc
  
  'This function works with local copies of xgo and ygo because it calls functions that modify
@@ -2015,14 +2015,25 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
   '--this only happens if obstruction is on
   '---Check for NPC-NPC collision
-  FOR i as integer = 0 TO UBOUND(npc)
-   IF npc(i).id > 0 AND @npci <> @npc(i) AND npc(i).not_obstruction = 0 THEN
-    IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
-     collision_type = collideNPC
-     RETURN YES
-    END IF
+  IF npc_ccache <> 0 THEN
+   'An NPC collision cache is available, check it
+   DIM tpos as XYPair = XY((npci.x - xgo) / 20, (npci.y - ygo) / 20)
+   wrapxy (tpos.x, tpos.y, mapsizetiles.x, mapsizetiles.y)
+   IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
+    collision_type = collideNPC
+    RETURN YES
    END IF
-  NEXT i
+  ELSE
+   'Loop through all the NPCs and check them
+   FOR i as integer = 0 TO UBOUND(npc)
+    IF npc(i).id > 0 AND @npci <> @npc(i) AND npc(i).not_obstruction = 0 THEN
+     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
+      collision_type = collideNPC
+      RETURN YES
+     END IF
+    END IF
+   NEXT i
+  END IF
   '---Check for hero-NPC collision
   IF npcdata.activation <> 2 THEN  'Not step-on activated
    IF wrapcollision (npci.x, npci.y, xgo, ygo, herox(0), heroy(0), herow(0).xgo, herow(0).ygo) THEN

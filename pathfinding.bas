@@ -49,6 +49,12 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  'Flush the path before we begin
  v_resize path, 0
 
+ 'If we have an NPCInst, pre-cache NPC collisions
+ dim npc_ccache as NPCCollisionCache
+ if npc <> 0 then
+  npc_ccache.populate(mapsizetiles, *npc)
+ end if
+
  dim cursor as XYPair
  cursor = startpos
  getnode(cursor).p = cursor
@@ -80,7 +86,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
     if npc <> 0 then
      'This is a check for an NPC
      dim col_type as WalkaboutCollisionType
-     collide = npc_collision_check_at(*npc, cursor, direction, col_type)
+     collide = npc_collision_check_at(*npc, cursor, direction, col_type, @npc_ccache)
      if col_type = collideHero then collide = NO
     else
      'This is a walls-only check
@@ -281,6 +287,33 @@ Property AStarNode.parent (byval new_parent as XYPair)
  _parent = new_parent
  has_parent = YES
 End Property
+
+'------------------------------------------------------------------------------------------
+
+Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst)
+ 'Loop through the npc() global and cache them
+ 'NPCi is the NPC that we are checking collisions relative to
+ redim obstruct(size.x - 1, size.y - 1) as bool
+ dim tpos as XYPair
+ for i as integer = 0 TO ubound(npc)
+  if npc(i).id > 0 andalso @npci <> @npc(i) andalso npc(i).not_obstruction = 0 then
+   tpos.x = npc(i).x / 20
+   tpos.y = npc(i).y / 20
+   obstruct(tpos.x, tpos.y) = YES
+  end if
+ next i
+End Sub
+
+Sub NPCCollisionCache.debug_cache()
+ for y as integer = 0 to ubound(obstruct, 2)
+  for x as integer = 0 to ubound(obstruct, 1)
+   if obstruct(x, y) then fuzzyrect x * 20 - mapx, y * 20 - mapy, 20, 20, uilook(uiHighlight), vpage 
+  next x
+ next y
+ setvispage vpage
+ dowait
+ setwait 10
+End Sub
 
 '------------------------------------------------------------------------------------------
 
