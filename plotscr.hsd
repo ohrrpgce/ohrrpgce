@@ -1653,6 +1653,7 @@ define constant, begin
   12,NPCmovetype:followwallsleft
   13,NPCmovetype:followwallsrightstopsforothers
   14,NPCmovetype:followwallsleftstopsforothers
+  15,NPCmovetype:chaseyoupathfinding
 3,NPCstat:movespeed
 4,NPCstat:displaytext
 5,NPCstat:whenactivated
