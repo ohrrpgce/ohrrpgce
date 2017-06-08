@@ -163,6 +163,9 @@ WHAT IS NEW?
       counts the number of calls while profiling enabled [Ralph]
     * gfx_directx: commandline args -f/--fullscreen, --width, --height
       and -z/--zoom now work [Ralph]
+    * Fix a bug in turn-based battles that prevented cancelling backwards
+      through hero action selection when there was a gap in the party
+      [James]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
