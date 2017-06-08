@@ -129,4 +129,6 @@ DECLARE SUB interpolatecat (byval old_speed as integer = -1)
 DECLARE SUB resetcaterpillar ()
 DECLARE SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as integer, byval newy as integer)
 
+DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
+
 #ENDIF

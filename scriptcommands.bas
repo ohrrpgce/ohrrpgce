@@ -4316,6 +4316,27 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(3) THEN plotstr(retvals(0)).s = trim(plotstr(retvals(0)).s)
    IF retvals(2) THEN embedtext plotstr(retvals(0)).s
   END IF
+ CASE 628'--pathfind npc to
+  DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+  IF npcid <> -1 THEN
+   cancel_npc_movement_override (npc(npcid))
+   npc(npcid).pathfinder_override = NPCOverrideMove.POS
+   npc(npcid).pathfinder_dest_pos = XY(retvals(1), retvals(2))
+  END IF
+ CASE 629'--npc chases npc
+  DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+  DIM dest_npcid as integer = get_valid_npc_id(retvals(1), serrBound)
+  IF npcid <> -1 ANDALSO dest_npcid <> -1 THEN
+   cancel_npc_movement_override (npc(npcid))
+   npc(npcid).pathfinder_override = NPCOverrideMove.NPC
+   npc(npcid).pathfinder_dest_npc = dest_npcid
+   npc(npcid).pathfinder_stop_when_npc_reached = (retvals(2) <> 0)
+  END IF
+ CASE 630'--cancel npc movement override
+  DIM npcid as integer = get_valid_npc_id(retvals(0), serrBound)
+  IF npcid <> -1 THEN
+   cancel_npc_movement_override (npc(npcid))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

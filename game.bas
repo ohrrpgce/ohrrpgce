@@ -1807,19 +1807,43 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
   return
  end if
  
- DIM t1 as XYPair
+ dim t1 as XYPair
  t1.x = npci.x / 20
  t1.y = npci.y / 20
- DIM t2 as XYPair
- t2.x = herotx(0)
- t2.y = heroty(0)
+ dim t2 as XYPair
+ select case npci.pathfinder_override
+  case NPCOverrideMove.NONE
+   'No override is currently happening, default to chasing the leader hero
+   t2.x = herotx(0)
+   t2.y = heroty(0)
+  case NPCOverrideMove.NPC
+   if npc(npci.pathfinder_dest_npc).id = 0 then
+    'NPC must have been deleted
+    cancel_npc_movement_override (npci)
+    return
+   end if
+   t2.x = npc(npci.pathfinder_dest_npc).x / 20
+   t2.y = npc(npci.pathfinder_dest_npc).y / 20
+   if npci.pathfinder_stop_when_npc_reached andalso xypair_manhattan_distance (t1, t2) <= 1 then
+    'Within 1 tile of destination
+    cancel_npc_movement_override (npci)
+    return
+   end if
+  case NPCOverrideMove.POS  
+   t2 = npci.pathfinder_dest_pos
+   if t1 = t2 then
+    'Already at destination
+    cancel_npc_movement_override (npci)
+    return
+   end if
+ end select
 
- DIM pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
+ dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(@npci)
  'pf.debug_path()
  if v_len(pf.path) > 1 then
   'Don't move unless a path is found that is longer than one tile
-
+  
   npci.dir = xypair_direction_to(pf.path[0], pf.path[1], npci.dir)
   npcmove_walk_ahead(npci)
  else
@@ -1828,12 +1852,24 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  end if
 END SUB
 
+SUB cancel_npc_movement_override (npci as NPCInst)
+ npci.pathfinder_override = NPCOverrideMove.NONE
+ npci.pathfinder_dest_pos = XY(-1, -1)
+ npci.pathfinder_dest_npc = 0
+ npci.pathfinder_stop_when_npc_reached = NO
+END SUB
+
 'A currently stationary NPC decides what to do.
 'Most move types are implemented here, but some are handled upon collision in npchitwall()
 SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
  
  IF npcdata.movetype <> 8 ANDALSO npcdata.speed = 0 THEN
   ' Do nothing for most movetypes when walking speed is 0
+  EXIT SUB
+ END IF
+
+ IF npci.pathfinder_override THEN 
+  npcmove_pathfinding_chase(npci, npcdata)
   EXIT SUB
  END IF
  
@@ -2050,6 +2086,10 @@ END FUNCTION
 
 SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  IF npci.suspend_ai = 0 THEN
+  IF npci.pathfinder_override THEN
+   'Don't do any of this if normal movement has been temporarily overridden by pathfinding
+   EXIT SUB
+  END IF
   IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
   IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
   IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns

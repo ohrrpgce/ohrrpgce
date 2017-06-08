@@ -649,6 +649,9 @@ define function, begin
 625,moveslicewithwallchecking,3,0,0,0    # Move a slice by xgo,ygo or until it hits a wall (sl, xgo, ygo)
 626,textboxtext,4,0,0,1,0                # Get whole text from a textbox (string, box, expand, strip)
 627,checkgameexists,1,-1      # Check an .rpg/.rpgdir exists (string id)
+628,pathfindnpcto,3,0,0,0     # Make an NPC pathfind to a specific position (npc, tile x, tile y)
+629,npcchasesnpc,3,0,0,0      # Make an NPC chase another NPC (npc, target npc, stop when reached)
+630,cancelnpcmovementoverride,1,0 # Cancel a previous pathfindnpcto or npcchasesnpc command (npc)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

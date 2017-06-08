@@ -241,6 +241,12 @@ TYPE NPCType
   pal as palette16 ptr
 END TYPE
 
+ENUM NPCOverrideMove
+ NONE
+ NPC
+ POS
+END ENUM
+
 'Don't forget to update CleanNPCL and load/save_npc_instances when adding to this
 TYPE NPCInst
   sl as SliceFwd Ptr
@@ -267,6 +273,11 @@ TYPE NPCInst
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
   
   pathfinder_cooldown as integer 'Used to prevent stuck pathfinding NPCs from re-pathing too fast
+
+  pathfinder_override as NPCOverrideMove 'Set if normal movement has been overridden by pathfinding
+  pathfinder_dest_pos as XYPair 'Used when pathfinding overrides normal movement (only used for NPCOverrideMove.POS)
+  pathfinder_dest_npc as integer 'NPC reference used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
+  pathfinder_stop_when_npc_reached as bool
 END TYPE
 
 TYPE InventSlot
