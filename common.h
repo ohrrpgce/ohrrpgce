@@ -46,9 +46,8 @@ typedef int boolint;
 # define __has_builtin(x) 0
 #endif
 
-// Can't rely on __has_builtin. These builtins introduced in GCC 4.8
-#if  __GNUC__ > 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8) || \
-     (__has_builtin(__builtin_smul_overflow) && __has_builtin(__builtin_sadd_overflow))
+// Can't rely on __has_builtin. Overflow-checked builtins introduced in GCC 5.0, and also in clang
+#if  __GNUC__ >= 5 || (__has_builtin(__builtin_smul_overflow) && __has_builtin(__builtin_sadd_overflow))
 # define has_overflow_builtins
 #endif
 
