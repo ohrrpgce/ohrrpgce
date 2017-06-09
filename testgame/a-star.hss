@@ -1,5 +1,5 @@
-define constant(11, last map)
-define constant(11, default map)
+define constant(12, last map)
+define constant(12, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -178,5 +178,22 @@ script, follow all in a loop, id, begin
   )
 end
 
+plotscript, hungry caterpillar autorun, begin
+  follow in a chain(6, 1)
+end
+
+script, follow in a chain, leader ref, id, begin
+  variable(count, ref, dest, i)
+  count := npc copy count(id)
+  for(i, 0, count -- 1) do(
+    ref := npc reference(id, i)
+    if(i == 0) then(
+      dest := leader ref
+    )else(
+      dest := npc reference(id, i -- 1)
+    )
+    npc chases npc(ref, dest)
+  )
+end
 
 
