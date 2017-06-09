@@ -49,7 +49,7 @@ extern typetable type_table(MenuDefItem);            // MENUDEFITEM
 extern typetable type_table(SimpleMenuItem);         // SIMPLEMENUITEM
 
 
-void array_new(array_t *array, int len, typetable *tbl);
+void array_new(array_t *array, int len, int reserve, typetable *tbl);
 void array_free(array_t *array);
 array_t array_append(array_t *array, void *value);
 array_t array_extend_d(array_t *dest, array_t *src);

@@ -142,7 +142,7 @@ array_t list_files_or_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhid
 	int save_errno = errno;
 
 	array_t ret = NULL;
-	array_new(&ret, 0, &type_table(string));
+	array_new(&ret, 0, 0, &type_table(string));
 	if (dp == NULL) {
 		debug(errError, "list_files/subdirs: unable to opendir(%s): %s", dirpath, strerror(save_errno));
 	} else {

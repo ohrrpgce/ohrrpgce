@@ -148,6 +148,15 @@ startTest(appendString)
 	if arr <> NULL then fail
 endTest
 
+startTest(reserve)
+	dim arr as string vector
+	v_new arr, 0, 1000
+	v_append arr, "foo"
+	if v_len(arr) <> 1 then fail
+	v_free arr
+	if arr <> NULL then fail
+endTest
+
 startTest(findInsertDeleteInteger)
 	dim arr as integer vector
 	v_new arr

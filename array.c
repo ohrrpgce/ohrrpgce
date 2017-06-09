@@ -130,11 +130,15 @@ static bool sadd_overflow(int a, int b, int *res) {
 #endif  /* !has_overflow_builtins */
 
 // Lowest-level alloc routine. Does not destruct/construct elements
-static array_t mem_alloc(typetable *typetbl, int len) {
+// len: length of the array
+// alloc: allocate memory for this many element (must be >= len)
+static array_t mem_alloc(typetable *typetbl, int len, int alloc) {
+	if (alloc < len || len < 0)
+		debug(errFatal, "mem_alloc: alloc == %d < len == %d", alloc, len);
 	int arraysize;
-	if (smul_overflow(len, typetbl->element_len, &arraysize) ||
+	if (smul_overflow(alloc, typetbl->element_len, &arraysize) ||
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
-		debug(errFatal, "mem_alloc: overflow; vector len=%d", len);
+		debug(errFatal, "mem_alloc: overflow; vector alloc=%d", alloc);
 	void *mem = malloc(arraysize);
 	if (!mem)
 		debug(errFatal, "mem_alloc: out of memory");
@@ -144,9 +148,9 @@ static array_t mem_alloc(typetable *typetbl, int len) {
 #endif
 	array_header *header = get_header(array);
 	header->typetbl = typetbl;
-	header->len = len;
 	header->temp = 0;
-	header->allocated = len;
+	header->len = len;
+	header->allocated = alloc;
 	return array;
 }
 
@@ -209,6 +213,7 @@ static array_t mem_resize(array_t array, unsigned int len) {
 	header = newmem;
 #endif
 	header->len = len;
+	header->allocated = alloclen;
 	return get_array_ptr(newmem);
 }
 
@@ -219,7 +224,7 @@ static array_t mem_resize(array_t array, unsigned int len) {
 array_t array_create_temp(struct typetable *typetbl, int len, ...) {
 	va_list va;
 	va_start(va, len);
-	array_t array = mem_alloc(typetbl, len);
+	array_t array = mem_alloc(typetbl, len, len);
 	FnCopy copier = typetbl->copy;
 	//FIXME
 	va_end(va);
@@ -383,6 +388,7 @@ array_t array_extend(array_t *dest, array_t *src) {
 void array_assign(array_t *dest, array_t *src) {
 	if (*dest) {
 		// Delete old dest array
+		// TODO: it's not necessary to free the old memory
 		delete_elements(*dest, 0, length(*dest));
 		mem_free(*dest);
 		*dest = NULL;
@@ -402,7 +408,7 @@ void array_assign(array_t *dest, array_t *src) {
 	}
 
 	// Copy required
-	array_t newa = mem_alloc(srch->typetbl, srch->len);
+	array_t newa = mem_alloc(srch->typetbl, srch->len, srch->len);
 	copy_elements(newa, *src, srch->len, srch->typetbl);
 	*dest = newa;
 }
@@ -428,13 +434,16 @@ void array_assign_d(array_t *dest, array_t *src) {
 }
 
 // (A)
-void array_new(array_t *array, int len, typetable *tbl) {
+void array_new(array_t *array, int len, int reserve, typetable *tbl) {
 	if (len < 0) {
 		throw_error("array_new: invalid length %d", len);
 	}
+	if (reserve < 0) {
+		throw_error("array_new: invalid reserve %d", reserve);
+	}
 	if (*array)
 		array_free(array);
-	*array = mem_alloc(tbl, len);
+	*array = mem_alloc(tbl, len, len + reserve);
 	init_elements(*array, len, tbl);
 }
 
@@ -665,7 +674,7 @@ array_t array_reverse(array_t *array) {
 	typetable *tytbl = get_type(*array);
 	int len = length(*array);
 
-	array_t newmem = mem_alloc(tytbl, len);
+	array_t newmem = mem_alloc(tytbl, len, len);
 	char *dest = (char *)newmem, *src = nth_elem(*array, len - 1);
 
 	for (int i = len; i; i--) {

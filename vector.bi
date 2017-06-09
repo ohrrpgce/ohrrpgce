@@ -59,7 +59,7 @@ extern "C"
 
 'This one function in array.c is special: it needs to be passed a TypeTable which
 'depends on the overload. Therefore, we wrap it.
-declare sub array_new (byref this as any vector, byval length as int32, byval tbl as TypeTable ptr)
+declare sub array_new (byref this as any vector, byval length as int32, byval reserve as int32, byval tbl as TypeTable ptr)
 
 'Undocumented, if you need this, you're probably doing something wrong
 declare function array_is_temp (byval this as any vector) as boolint
@@ -141,8 +141,9 @@ end extern
   'Deletes any existing vector in 'this', creates a new vector.
   '(this should be either NULL or an existing array of the same type)
   'Special case: this is a FB wrapper function
-  private sub v_new overload (byref this as T vector, byval length as int32 = 0)
-    array_new(this, length, @type_table(TID))
+  'reserve is the number of extra elements to reserve memory for. It is only an optimisation
+  private sub v_new overload (byref this as T vector, byval length as int32 = 0, byval reserve as int32 = 2)
+    array_new(this, length, reserve, @type_table(TID))
   end sub
 
 #IF __FB_GCC__ = 0
@@ -369,7 +370,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 #MACRO DEFINE_VECTOR_VECTOR_OF(T, TID)
   sub TID##_vector_ctor CDECL (byref this as T vector)
     this = NULL
-    array_new this, 0, @type_table(TID)
+    array_new this, 0, 0, @type_table(TID)
   end sub
 
   sub TID##_vector_copyctor CDECL (byref this as T vector, byref that as T vector)
