@@ -1,5 +1,5 @@
-define constant(7, last map)
-define constant(0, default map)
+define constant(8, last map)
+define constant(8, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -49,12 +49,14 @@ end
 
 plotscript, on key press handler, begin
   if(keyval(key:space) > 1 || keyval(key:enter) > 1 || keyval(key:ctrl) > 1) then(
-    try to splat
+    if(try to splat) then(exit script)
+    call blue slime
   )
 end
 
 script, try to splat, begin
-  variable(x, y, d, ref, count, i)
+  variable(x, y, d, ref, count, i, result)
+  result := false
   x := hero x(me)
   y := hero y(me)
   d := hero direction(me)
@@ -63,8 +65,9 @@ script, try to splat, begin
   count := npc at spot(x, y, get count)
   for (i, 0, count -- 1) do(
     ref := npc at spot(x, y, i)
-    if(ref) then(splat slime(ref))
+    if(ref) then(splat slime(ref), result := true)
   )
+  exit returning(result)
 end
 
 script, ahead x, x, d, dist=1, begin
@@ -116,4 +119,19 @@ plotscript, clicky switch, arg, ref, begin
   )
 end
 
+script, call blue slime, begin
+  variable(x, y, d, ref, result)
+  result := false
+  x := hero x(me)
+  y := hero y(me)
+  d := hero direction(me)
+  x := ahead x(x, d)
+  y := ahead y(y, d)
+  ref := npc reference(4)
+  if(ref) then(
+    pathfind npc to(ref, x, y)
+    result := true
+  )
+  exit returning(result)
+end
 

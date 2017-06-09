@@ -1829,7 +1829,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
     cancel_npc_movement_override (npci)
     return
    end if
-  case NPCOverrideMove.POS  
+  case NPCOverrideMove.POS
    t2 = npci.pathfinder_dest_pos
    if t1 = t2 then
     'Already at destination
