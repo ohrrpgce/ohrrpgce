@@ -4332,7 +4332,7 @@ SUB script_functions(byval cmdid as integer)
    npc(npcref).pathfinder_dest_npc = dest_npcref
    npc(npcref).pathfinder_stop_when_npc_reached = (retvals(2) <> 0)
   END IF
- CASE 630'--cancel npc movement override
+ CASE 630'--cancel npc walk
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))

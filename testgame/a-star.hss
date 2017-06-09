@@ -1,5 +1,10 @@
-define constant(12, last map)
-define constant(12, default map)
+define constant(13, last map)
+define constant(13, default map)
+
+define constant(1, timer:turn and go)
+define constant(2, str:turn and go)
+
+global variable(1, turn and go ref)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -13,6 +18,7 @@ end
 plotscript, on menu button, begin
   suspend player
   suspend npcs
+  suspend timers
   variable(i, m, mi)
   m := create menu()
   set menu on close script(m, @on menu close)
@@ -35,6 +41,7 @@ end
 plotscript, on menu close, begin
   resume player
   maybe resume npcs
+  resume timers
 end
 
 plotscript, jump to map, mi, mapnum, begin
@@ -43,6 +50,8 @@ plotscript, jump to map, mi, mapnum, begin
   teleport to map(mapnum)
   set hero position(0, NPC x(0), NPC y(0))
   delete npc(0)
+  stop timer(timer:turn and go)
+  hide string(str:turn and go)
   resume npcs
   resume player
 end
@@ -196,4 +205,27 @@ script, follow in a chain, leader ref, id, begin
   )
 end
 
+plotscript, turn and go, arg, ref, begin
+  variable(d)
+  d := (hero direction(me) + 2) ,mod, 4
+  set npc direction(ref, d)
+  turn and go ref := ref
+  set timer(timer:turn and go, 3, 30, @already turned so now go, str:turn and go)
+  show string at(str:turn and go, npc pixel x(ref) -- camera pixel x, npc pixel y(ref) -- camera pixel y)
+end
 
+script, already turned so now go, begin
+  variable(ref)
+  ref := turn and go ref
+  hide string(str:turn and go)
+  walk npc(ref, npc direction(ref), 100000)
+end
+
+plotscript, cancel all npc walk, begin
+  variable(ref)
+  ref := next npc reference()
+  while(ref) do(
+    cancel npc walk(ref)
+    ref := next npc reference(ref)
+  )
+end
