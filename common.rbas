@@ -3353,6 +3353,8 @@ IF auto_upgrader_version.recorded THEN
 END IF
 debuginfo "archinym creation info: " & read_archinym_version()
 
+DIM has_sfx as bool = isfile(workingdir & SLASH & "sfxdata.bin")
+
 '----------------------------------------
 'Update record-count for all fixed-length lumps.
 'WARNING: we haven't done fixWipeGEN yet, so don't initialise anything in gen(199) and up!
@@ -3778,7 +3780,8 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  def_menu_set.menufile = workingdir + SLASH + "menus.bin"
  def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menu as MenuDef
- create_default_menu menu
+ ' If we're playing an old game without sound effects, SFX volume option is pointless
+ create_default_menu menu, has_sfx
  SaveMenuData def_menu_set, menu, 0
  ClearMenuData menu
 END IF
@@ -4516,7 +4519,7 @@ PRIVATE SUB add_item_to_(menu as MenuDef, subtype as integer, hide_if_disabled a
 END SUB
 
 ' Initialise the default main menu used for old games
-SUB create_default_menu(menu as MenuDef)
+SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
  ClearMenuData menu
  add_item_to_ menu, spItems
  add_item_to_ menu, spSpells
@@ -4527,8 +4530,16 @@ SUB create_default_menu(menu as MenuDef)
  add_item_to_ menu, spSaveMaybe, YES
  add_item_to_ menu, spWindowed, YES
  add_item_to_ menu, spFullscreen, YES
- add_item_to_ menu, spMusicVolume
- add_item_to_ menu, spSoundVolume
+ IF add_sfx_volume THEN
+  add_item_to_ menu, spMusicVolume
+  add_item_to_ menu, spSoundVolume
+ ELSE
+  ' (When playing old games without sfx)
+  ' Don't need sfx volume, so don't need the Volume menu either,
+  ' but use the caption set for the old Volume option.
+  add_item_to_ menu, spMusicVolume
+  menu.last->caption = readglobalstring(69, "Volume", 10)
+ END IF
  add_item_to_ menu, spQuit
  menu.translucent = YES
  menu.min_chars = 14
@@ -4546,9 +4557,11 @@ SUB create_volume_menu(menu as MenuDef)
  ClearMenuData menu
  add_item_to_ menu, spMusicVolume
  add_item_to_ menu, spSoundVolume
- menu.min_chars = 16
+ menu.min_chars = 10
  menu.boxstyle = mainmenu.boxstyle
  menu.textcolor = mainmenu.textcolor
+ menu.translucent = mainmenu.translucent
+ menu.bordersize = mainmenu.bordersize
  menu.textalign = mainmenu.textalign
 
  ClearMenuData mainmenu
