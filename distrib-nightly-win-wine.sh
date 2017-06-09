@@ -9,6 +9,8 @@ SCPDOCS="HamsterRepublic.com/ohrrpgce/docs"
 
 SCONS="C:\Python27\Scripts\scons.bat"
 
+SCONS_ARGS="debug=0 gengcc=1"
+
 #-----------------------------------------------------------------------
 
 function mustexist {
@@ -87,55 +89,55 @@ scp -p distrib/ohrrpgce-win-installer-"${SUFFIX}".exe "${SCPHOST}":"${SCPDEST}"/
 wine cmd /C "${SCONS}" hspeak relump.exe unlump.exe
 
 rm -r game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl debug=0
+wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=sdl $SCONS_ARGS
 zip_and_upload directx sdl "~" gfx_directx.dll SDL.dll SDL_mixer.dll 
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+fb music=native debug=0
+wine cmd /C "${SCONS}" gfx=directx+fb music=native $SCONS_ARGS
 zip_and_upload directx native "~" gfx_directx.dll audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+fb music=native2 debug=0
+wine cmd /C "${SCONS}" gfx=directx+fb music=native2 $SCONS_ARGS
 zip_and_upload directx native2 "~" gfx_directx.dll audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx+sdl music=sdl debug=0
+wine cmd /C "${SCONS}" gfx=fb+directx+sdl music=sdl $SCONS_ARGS
 zip_and_upload fb sdl "~" SDL.dll SDL_mixer.dll 
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx music=native debug=0
+wine cmd /C "${SCONS}" gfx=fb+directx music=native $SCONS_ARGS
 zip_and_upload fb native "~" audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=fb+directx music=native2 debug=0
+wine cmd /C "${SCONS}" gfx=fb+directx music=native2 $SCONS_ARGS
 zip_and_upload fb native2 "~" audiere.dll
 
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=alleg+directx+fb+sdl music=sdl debug=0
-zip_and_upload alleg sdl "~" alleg40.dll SDL.dll SDL_mixer.dll 
+# rm -f game*.exe custom*.exe
+# wine cmd /C "${SCONS}" gfx=alleg+directx+fb+sdl music=sdl $SCONS_ARGS
+# zip_and_upload alleg sdl "~" alleg40.dll SDL.dll SDL_mixer.dll 
+
+# rm -f game*.exe custom*.exe
+# wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native $SCONS_ARGS
+# zip_and_upload alleg native "~" alleg40.dll audiere.dll
+
+# rm -f game*.exe custom*.exe
+# wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native2 $SCONS_ARGS
+# zip_and_upload alleg native2 "~" alleg40.dll audiere.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native debug=0
-zip_and_upload alleg native "~" alleg40.dll audiere.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=alleg+directx+fb music=native2 debug=0
-zip_and_upload alleg native2 "~" alleg40.dll audiere.dll
-
-rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=sdl debug=0
+wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=sdl $SCONS_ARGS
 zip_and_upload sdl sdl "~" SDL.dll SDL_mixer.dll 
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native debug=0
+wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native $SCONS_ARGS
 zip_and_upload sdl native "~" audiere.dll SDL.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native2 debug=0
+wine cmd /C "${SCONS}" gfx=sdl+directx+fb music=native2 $SCONS_ARGS
 zip_and_upload sdl native2 "~" audiere.dll SDL.dll
 
 rm -f game*.exe custom*.exe
-wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence debug=0
+wine cmd /C "${SCONS}" gfx=directx+sdl+fb music=silence $SCONS_ARGS
 zip_and_upload directx silence "~" SDL.dll gfx_directx.dll
 
 rm -f game*.exe custom*.exe

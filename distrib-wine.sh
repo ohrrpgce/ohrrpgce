@@ -4,6 +4,8 @@
 echo "Building OHRRPGCE distribution for Windows using Linux+Wine"
 echo "-----------------------------------------------------------"
 
+SCONS_ARGS="debug=0 gengcc=1"
+
 #-----------------------------------------------------------------------
 
 function mustexist {
@@ -52,7 +54,7 @@ function ohrrpgce_common_files {
 }
 
 #-----------------------------------------------------------------------
-# turn of wine's debug noise
+# turn off wine's debug noise
 export WINEDEBUG=fixme-all
 
 SCONS="C:\Python27\Scripts\scons.bat"
@@ -64,14 +66,14 @@ echo "Building executables..."
 
 rm game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
-wine cmd /C "${SCONS}" game custom hspeak unlump.exe relump.exe debug=0
+wine cmd /C "${SCONS}" $SCONS_ARGS game custom hspeak unlump.exe relump.exe
 
 for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" ; do
   mustexist "${exe}"
 done
 
 echo "Lumping Vikings of Midgard"
-scons relump
+scons $SCONS_ARGS relump
 rm -f vikings.rpg
 ./relump.exe vikings/vikings.rpgdir vikings.rpg
 mustexist "vikings.rpg"

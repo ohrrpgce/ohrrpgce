@@ -2,8 +2,10 @@
 #
 # Build and package builds for linux
 
-# Number of threads to use
-NJOBS=-j2
+# Number of parallel jobs to run
+NJOBS=-j6
+
+SCONS_ARGS="debug=0 gengcc=1 portable=1 $NJOBS"
 
 if [ ! -f distrib.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
@@ -11,7 +13,7 @@ if [ ! -f distrib.sh ] ; then
 fi
 
 echo "Building relump"
-scons $NJOBS debug=0 relump || exit 1
+scons $SCONS_ARGS relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
@@ -33,7 +35,7 @@ package_for_arch() {
   ARCH=$1
 
   echo "Building $ARCH binaries"
-  scons $NJOBS debug=0 arch=$ARCH portable=1 game custom hspeak unlump relump || return 1
+  scons $SCONS_ARGS arch=$ARCH game custom hspeak unlump relump || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
 
