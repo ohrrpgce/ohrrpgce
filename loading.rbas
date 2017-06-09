@@ -838,7 +838,8 @@ END SUB
 'the tile gets its own IDmap, which is retrieved by indexing .extraID_hash with key
 '(x SHL 16) + y. Private IDmaps contain exactly those zone IDs which that tile is in.
 '
-'Zone IDs and empty slots within each IDmap are completely unordered.
+'Zone IDs within each IDmap are completely unordered, but the unused slots (value 0)
+'must be sorted to the end. This allows early-exiting.
 '
 'There's therefore a limit of 15 zones per tile, which could be overcome by replacing
 'extra IDmaps with arbitrary length lists of zone IDs, but that's a lot of added complexity
@@ -910,7 +911,7 @@ FUNCTION GetZonesAtTile(zmap as ZoneMap, x as integer, y as integer, maxid as in
   REDIM tmparray() as integer
   GetZonesAtTile zmap, tmparray(), x, y, maxid
   DIM zonesvec as integer vector
-  array_to_vector zonesvec, tmparray() 
+  array_to_vector zonesvec, tmparray()
   v_sort zonesvec
   RETURN v_ret(zonesvec)
 END FUNCTION
@@ -928,6 +929,8 @@ FUNCTION CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as inte
     FOR slot as integer = 0 TO 14
       IF IDmap[slot] = id THEN
         RETURN iif(bitvector AND (1 SHL slot), YES, NO)
+      ELSEIF IDmap[slot] = 0 THEN
+        RETURN NO
       END IF
     NEXT
   END WITH
@@ -1011,15 +1014,12 @@ FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, b
     END IF
     IF (*bitvector AND &h7fff) = &h7fff THEN debug "SetZoneTile: tile too full": RETURN NO
   tryagain:
+    'If it's already set, stop. When we reach an empty slot we know we've checked them all, so stop
     FOR i as integer = 0 TO 14
       IF IDmap[i] = id THEN
         *bitvector OR= 1 SHL i
         RETURN YES
-      END IF
-    NEXT
-    'debug "SetZoneTile: ID " & id & " not yet in IDmap"
-    FOR i as integer = 0 TO 14
-      IF IDmap[i] = 0 THEN
+      ELSEIF IDmap[i] = 0 THEN
         *bitvector OR= 1 SHL i
         IDmap[i] = id
         RETURN YES
@@ -1027,13 +1027,18 @@ FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, b
     NEXT
     'debug "SetZoneTile: IDmap full"
     'Segment ID array is full, add a new ID array
-    *bitvector OR= 1 SHL 15
+    DIM oldbitvector as integer = *bitvector
+    *bitvector = 1 SHL 15  ' Set crowded bit, erase others
     DIM IDmapnew as ushort ptr = cast(ushort ptr, ZoneMapAddExtraSegment(zmap, x, y))
+    DIM newidx as integer = 0
     FOR i as integer = 0 TO 14
-      IF *bitvector AND (1 SHL i) THEN
-        IDmapnew[i] = IDmap[i]
+      IF oldbitvector AND (1 SHL i) THEN
+        ' Shuffle the used IDs to the front of IDmapnew
+        IDmapnew[newidx] = IDmap[i]
+        newidx += 1
       END IF
     NEXT
+    *bitvector OR= (1 SHL newidx) - 1  'Set all bits up to newidx
     IDmap = IDmapnew
     'This GOTO will be reached at most once
     GOTO tryagain
@@ -1051,7 +1056,10 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
     END IF
     DIM slot as integer = -1
     FOR i as integer = 0 TO 14
-      IF IDmap[i] = id THEN slot = i
+      IF IDmap[i] = id THEN
+        slot = i
+        EXIT FOR
+      END IF
     NEXT
     IF slot = -1 ORELSE (*bitvector AND (1 SHL slot)) = 0 THEN EXIT SUB  'This tile is not even part of this zone!
     ZoneInfoBookkeeping zmap, id, -1
@@ -1067,7 +1075,17 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
         NEXT
       NEXT
     END IF
-    IF usecount = 1 THEN IDmap[slot] = 0
+    IF usecount = 1 THEN
+      ' Last use of this ID, so remove IDmap[slot]. But we have to keep the empty slots sorted to the end
+      FOR i as integer = 14 TO 0 STEP -1
+        IF IDmap[i] <> 0 THEN
+          IDmap[slot] = IDmap[i]
+          IDmap[i] = 0
+          slot = i
+          EXIT FOR
+        END IF
+      NEXT
+    END IF
     *bitvector -= 1 SHL slot
   END WITH 
 END SUB
