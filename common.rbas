@@ -3373,11 +3373,13 @@ ELSE
 END IF
 fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
 fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
-' Because the .pal file format changed in Format 5, we should skip it to avoid errors (genMaxPal fixed below).
-' Note: there is a second record count in the header, which is respected by Palette16_load,
-' and may not match gen(genMaxPal)!
 IF gen(genVersion) >= 5 THEN
+ ' Note: there is a second record count in the header, which is respected by Palette16_load,
+ ' and may not match gen(genMaxPal)! TODO: should probably ignore it.
  fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
+ELSE
+ ' The .pal file format changed in Format 5 (genMaxPal is computed below)
+ gen(genMaxPal) = 99
 END IF
 fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"
 '.veh may not exist yet
@@ -3573,6 +3575,7 @@ IF gen(genVersion) = 4 THEN
  upgrade_message "March 31 2001 format (5)"
  gen(genVersion) = 5
  upgrade_message "Upgrading 16-color Palette Format..."
+ ' Change the .pal header from a 7 byte BSAVE one to a custom 16 byte one.
  DIM temppal16(8 - 1) as integer
  xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
  killfile game + ".pal"
@@ -3595,7 +3598,7 @@ IF gen(genVersion) = 4 THEN
   temppal16(i) = 0
  NEXT i
  storerecord temppal16(), game + ".pal", 16 \ 2, 0
- '--convert palettes
+ '--append palettes (really just replacing the header and keeping everything else the same)
  FOR j as integer = 0 TO last
   FOR i as integer = 0 TO 7
    temppal16(i) = buffer(j * 8 + i)
