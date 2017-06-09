@@ -1,5 +1,5 @@
-define constant(10, last map)
-define constant(9, default map)
+define constant(11, last map)
+define constant(11, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -159,3 +159,24 @@ plotscript, suspender switch, arg, ref, begin
     set npc direction(ref, down)
   )
 end
+
+plotscript, mulberry bush autorun, begin
+  follow all in a loop(1)
+end
+
+script, follow all in a loop, id, begin
+  variable(count, ref, dest, i)
+  count := npc copy count(id)
+  for(i, 0, count -- 1) do(
+    ref := npc reference(id, i)
+    if(i == count -- 1) then(
+      dest := npc reference(id, 0)
+    )else(
+      dest := npc reference(id, i + 1)
+    )
+    npc chases npc(ref, dest)
+  )
+end
+
+
+
