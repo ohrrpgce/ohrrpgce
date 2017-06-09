@@ -1121,7 +1121,7 @@ FUNCTION catleaderspeed() as integer
  IF readbit(gen(), genBits2, 25) = 0 THEN
   '"Keep caterpillar length the same when speed changes" bitset is off
   'so treat the caterpillar leader speed as if it is hard-coded to 4
-  return 4
+  RETURN 4
  END IF
 
  DIM speed as integer = herow(0).speed
@@ -1134,11 +1134,11 @@ FUNCTION catleaderspeed() as integer
   'but if you speed is bigger than your tilesize, that is probably the least of your problems ;)
   speed = 20
  END IF
- return speed
+ RETURN speed
 END FUNCTION
 
 FUNCTION catindex(byval rank as integer) as integer
- RETURN rank * 20 / catleaderspeed()
+ RETURN rank * (20 \ catleaderspeed())
 END FUNCTION
 
 FUNCTION herox(byval rank as integer) byref as integer

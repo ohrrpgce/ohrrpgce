@@ -498,14 +498,18 @@ END SUB
 
 SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
  '--wraps the given X and Y values within the bounds of width and height
- x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
- y = ((y MOD high) + high) MOD high
+ x = x MOD wide
+ IF x < 0 THEN x += wide  'negative modulo is the devil's creation and never helped me once
+ y = y MOD high
+ IF y < 0 THEN y += high
 END SUB
 
 SUB wrapxy (byref p as XYPair, byval wide as integer, byval high as integer)
  '--wraps the given X and Y values within the bounds of width and height
- p.x = ((p.x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
- p.y = ((p.y MOD high) + high) MOD high
+ p.x = p.x MOD wide
+ IF p.x < 0 THEN p.x += wide  'negative modulo is the devil's creation and never helped me once
+ p.y = p.y MOD high
+ IF p.y < 0 THEN p.y += high
 END SUB
 
 'alters X and Y ahead by distance in direction, wrapping if neccisary
