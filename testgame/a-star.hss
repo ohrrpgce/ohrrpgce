@@ -1,5 +1,5 @@
-define constant(8, last map)
-define constant(8, default map)
+define constant(9, last map)
+define constant(9, default map)
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -34,7 +34,7 @@ end
 
 plotscript, on menu close, begin
   resume player
-  resume npcs
+  maybe resume npcs
 end
 
 plotscript, jump to map, mi, mapnum, begin
@@ -135,3 +135,27 @@ script, call blue slime, begin
   exit returning(result)
 end
 
+script, maybe resume npcs, begin
+  variable(ref)
+  ref := npc reference(5)
+  if(ref) then(
+    # Suspender switch found, toggle it twice
+    suspender switch(none, ref)
+    suspender switch(none, ref)
+  )else(
+    # No suspender switch, just resume npcs
+    resume npcs
+  )
+end
+
+plotscript, suspender switch, arg, ref, begin
+  if(npc direction(ref) == down) then(
+    # suspend npc is off, turn it on
+    suspend npcs
+    set npc direction(ref, up)
+  )else(
+    # suspend npc is on, turn it off
+    resume npcs
+    set npc direction(ref, down)
+  )
+end

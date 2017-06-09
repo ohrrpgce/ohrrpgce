@@ -1557,11 +1557,12 @@ SUB update_npcs ()
     END IF
    ELSE
     '--For all NPCs except the active vehicle
-    IF txt.sayer <> o AND readbit(gen(), genSuspendBits, suspendnpcs) = 0 AND npc(o).suspend_ai = 0 THEN
+    IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = 0) ORELSE npc(o).pathfinder_override THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
      END IF
     END IF
+
    END IF
 
    DIM finished_step as bool = NO
