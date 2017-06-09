@@ -43,8 +43,8 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  'openlist is a heap. closelist is just an unsorted list (we barely need it)
  dim openlist as AStarNode vector
  v_new openlist
- dim closelist as AStarNode vector
- v_new closelist
+ ' dim closelist as AStarNode vector
+ ' v_new closelist
 
  'Flush the path before we begin
  v_resize path, 0
@@ -58,8 +58,11 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  dim cursor as XYPair
  cursor = startpos
  getnode(cursor).p = cursor
+ getnode(cursor).status = AStarNodeStatus.OPENED
+ getnode(cursor).dist_squared = xypair_distance_squared(cursor, destpos)
 
- dim safety as integer = 0
+ dim best_closed_node as AStarNode ptr = @(getnode(cursor))
+ dim tiles_closed as integer = 0
  do
   dim byref cursornode as AStarNode = getnode(cursor)
     
@@ -80,7 +83,8 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
 
     if nearbynode.status = AStarNodeStatus.CLOSED then continue for
     if nearbynode.status = AStarNodeStatus.OPENED then continue for
-    if maxsearch > 0 andalso v_len(openlist) + v_len(closelist) >= maxsearch then continue for
+    ' Once we hit the maxsearch limit we don't open any new tiles, but we visit and close any already opened
+    if maxsearch > 0 andalso v_len(openlist) + tiles_closed >= maxsearch then continue for
     
     dim collide as bool
     if npc <> 0 then
@@ -122,39 +126,39 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
     end if
    end if
   next direction
+
   'add cursor node to the closed list
-  if cursornode.status <> AStarNodeStatus.CLOSED then
-   cursornode.status = AStarNodeStatus.CLOSED
-   cursornode.dist_squared = xypair_distance_squared(cursor, destpos)
-   v_append closelist, cursornode
+  if cursornode.status <> AStarNodeStatus.OPENED then showerror "A*: open list corrupted"
+  tiles_closed += 1
+  cursornode.status = AStarNodeStatus.CLOSED
+  if closed_node_compare(@cursornode, best_closed_node) < 0 then
+   best_closed_node = @cursornode
   end if
+  'v_append closelist, cursornode
 
   if v_len(openlist) > 0 then
    'Open list still has nodes, so pick the best one to be our new cursor
    cursor = openlist[0].p
-   openlist[0].status = AStarNodeStatus.CLOSED
-   v_append closelist, openlist[0]
+   'v_append closelist, openlist[0]
    v_heappop openlist
   else
    'Open list was empty, which means no path was found.
    'Choose the best node from the closelist to be the consolation destination
-   if v_len(closelist) > 0 then
-    dim best as XYPair = best_close_node(closelist)
-    set_result_path(best)
+   if tiles_closed then
+    set_result_path(best_closed_node->p)
    end if
    exit do
   end if
 
-  safety += 1
-  if safety > mapsizetiles.x * mapsizetiles.y * 2 then
-   debug "AStar safety check: " & safety & " iterations is bigger than double mapsize " & mapsizetiles.x * mapsizetiles.y & " * 2"
+  if tiles_closed > mapsizetiles.x * mapsizetiles.y then
+   showerror "A* infinite loop: " & tiles_closed & " iterations is bigger than mapsize"
    exit do
   end if
   
   'slow_debug()
  loop
  v_free openlist
- v_free closelist
+ 'v_free closelist
  
 End Sub
 
@@ -180,11 +184,6 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
  consolation = found_dest <> destpos
 End Sub
 
-Function AStarPathfinder.best_close_node(list as AStarNode vector) as XYPair
- v_sort(list, cast(FnCompare, @close_node_compare))
- return list[0].p
-End Function
-
 Static Function AStarPathfinder.open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  'First compare by estimated node cost
  dim cost_a as integer = a->cost_before + a->cost_after
@@ -197,7 +196,7 @@ Static Function AStarPathfinder.open_node_compare cdecl (byval a as AStarNode pt
  return 0
 End Function
 
-Static Function AStarPathfinder.close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
+Static Function AStarPathfinder.closed_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  'Only care about distance-squared to dest
  if a->dist_squared < b->dist_squared then return -1
  if a->dist_squared > b->dist_squared then return 1

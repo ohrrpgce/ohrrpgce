@@ -29,7 +29,7 @@ Type AStarPathfinder
  destpos as XYPair
 
  maxsearch as integer = 0 ' Zero means search the whole map.
-                        ' A positive number is the max number of open+close tiles to search.
+                        ' A positive number is the max number of open+closed tiles to search.
  
  path as XYPair vector
  consolation as bool ' This will be YES if the resulting path fails to reach the desired destpos
@@ -44,9 +44,8 @@ Type AStarPathfinder
  Declare Sub calculate(byval npc as NPCInst Ptr=0)
  Declare Sub set_result_path(found_dest as XYPair)
 
- Declare Function best_close_node(list as AStarNode vector) as XYPair
  Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
- Declare Static Function close_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
+ Declare Static Function closed_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
 
  Declare Function cost_before_node(n as AStarNode) as integer
  Declare Function guess_cost_after_node(n as AStarNode) as integer
