@@ -40,11 +40,9 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
  'debug "AStarPathfinder.calculate() " & startpos.x & "," & startpos.y & " -> " & destpos.x & "," & destpos.y
  redim nodes(mapsizetiles.x - 1, mapsizetiles.y - 1) as AStarNode
 
- 'openlist is a heap. closelist is just an unsorted list (we barely need it)
+ 'openlist is a heap
  dim openlist as AStarNode vector
  v_new openlist
- ' dim closelist as AStarNode vector
- ' v_new closelist
 
  'Flush the path before we begin
  v_resize path, 0
@@ -134,12 +132,10 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
   if closed_node_compare(@cursornode, best_closed_node) < 0 then
    best_closed_node = @cursornode
   end if
-  'v_append closelist, cursornode
 
   if v_len(openlist) > 0 then
    'Open list still has nodes, so pick the best one to be our new cursor
    cursor = openlist[0].p
-   'v_append closelist, openlist[0]
    v_heappop openlist
   else
    'Open list was empty, which means no path was found.
@@ -158,8 +154,6 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
   'slow_debug()
  loop
  v_free openlist
- 'v_free closelist
- 
 End Sub
 
 Sub AStarPathfinder.set_result_path(found_dest as XYPair)
@@ -170,16 +164,17 @@ Sub AStarPathfinder.set_result_path(found_dest as XYPair)
  dim safety as integer = 0
  do
   if not n.has_parent then exit do
-  v_insert path, 0, n.parent
+  v_append path, n.parent
   if n.parent = startpos then exit do
   n = getnode(n.parent)
   safety += 1
-  if safety > mapsizetiles.x * mapsizetiles.y * 2 then
-   debug "AStar result path safety check: " & safety & " iterations is bigger than double mapsize " & mapsizetiles.x * mapsizetiles.y & " * 2"
+  if safety > mapsizetiles.x * mapsizetiles.y then
+   showerror "AStar result path safety check: " & safety & " iterations is bigger than mapsize"
    'This would probably mean an endless loop caused by a corrupted parentage chain
    exit do
   end if
  loop
+ v_reverse path
  'Update the consolation flag
  consolation = found_dest <> destpos
 End Sub
