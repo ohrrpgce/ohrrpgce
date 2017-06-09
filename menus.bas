@@ -1411,12 +1411,12 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
      IF menu.highlight_selection ANDALSO selected THEN
-      rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 8, uiLook(uiHighlight), page
+      rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 10, uiLook(uiHighlight), page
      END IF
      IF .t = mtypeSpecial THEN
       ' Check for menu items with bars behind
       DIM bar_width as integer = 0
-      metermax = large(48, textwidth(.text))  'small(state.rect.wide, 80)
+      metermax = small(state.rect.wide, 80)  'large(48, textwidth(.text))
       IF .sub_t = spMusicVolume OR .sub_t = spVolumeMenu THEN
        bar_width = get_music_volume() * metermax
       ELSEIF .sub_t = spSoundVolume THEN
