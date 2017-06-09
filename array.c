@@ -104,6 +104,10 @@ static inline void *nth_elem(array_t array, int n) {
 	return (char *)array + tytbl->element_len * n;
 }
 
+#if has_overflow_builtins
+# define smul_overflow __builtin_smul_overflow
+# define sadd_overflow __builtin_sadd_overflow
+#else
 
 // In modern GCC and clang can use __builtin_smul_overflow and
 // __builtin_sadd_overflow instead.
@@ -123,6 +127,7 @@ static bool sadd_overflow(int a, int b, int *res) {
 	return false;
 }
 
+#endif  /* !has_overflow_builtins */
 
 // Lowest-level alloc routine. Does not destruct/construct elements
 static array_t mem_alloc(typetable *typetbl, int len) {
