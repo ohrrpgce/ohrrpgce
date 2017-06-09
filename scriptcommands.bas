@@ -4336,6 +4336,7 @@ SUB script_functions(byval cmdid as integer)
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
+   cancel_npc_walk (npc(npcref))
   END IF
 
  CASE ELSE

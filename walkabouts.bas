@@ -1143,3 +1143,10 @@ FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as i
  RETURN loopvar(d, 0, 3, amount * rota)
 END FUNCTION
 
+SUB cancel_npc_walk(npci as NPCInst)
+ DO WHILE npci.xgo >= 20 : npci.xgo -= 20 : LOOP
+ DO WHILE npci.xgo <= -20 : npci.xgo += 20 : LOOP
+ DO WHILE npci.ygo >= 20 : npci.ygo -= 20 : LOOP
+ DO WHILE npci.ygo <= -20 : npci.ygo += 20 : LOOP
+END SUB
+
