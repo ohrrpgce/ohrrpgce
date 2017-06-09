@@ -839,14 +839,16 @@ END SUB
 '(x SHL 16) + y. Private IDmaps contain exactly those zone IDs which that tile is in.
 '
 'Zone IDs within each IDmap are completely unordered, but the unused slots (value 0)
-'must be sorted to the end. This allows early-exiting.
+'must be sorted to the end. This allows early-exiting. In order to allow preserving this
+'invariant easily, ID 65535 (DELETED) can be also used to mark unused slots.
 '
 'There's therefore a limit of 15 zones per tile, which could be overcome by replacing
 'extra IDmaps with arbitrary length lists of zone IDs, but that's a lot of added complexity
 '(and things are complex enough already, aren't they?)
-'And the limit on number of zones is really 65535, not 9999; that's just a rounder number.
+'And the limit on number of zones is really 65534, not 9999; that's just a rounder number.
 'Maybe we'll find some use for an extra couple bits per ID?
 
+CONST DELETED = 65535
 
 'Used both to blank out an existing ZoneMap, or initialise it from zeroed-out memory
 SUB CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)
@@ -883,8 +885,9 @@ END SUB
 
 'Fills zones() with the IDs of all the zones which this tile is a part of.
 'zones() should be a dynamic array, it's filled with unsorted ID numbers in zones(0) onwards
-'zones() is REDIMed to start at -1, for fake zero-length arrays
-SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, x as integer, y as integer, maxid as integer = 65535)
+'zones() is REDIMed to start at -1, for fake zero-length arrays.
+'maxid must be less than 65535 (DELETED)
+SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, x as integer, y as integer, maxid as integer = 65534)
   WITH zmap
     DIM bitvector as ushort = .bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
@@ -907,7 +910,7 @@ SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, x as integer, y as integ
 END SUB
 
 'Returns zones at a tile, in a sorted vector
-FUNCTION GetZonesAtTile(zmap as ZoneMap, x as integer, y as integer, maxid as integer = 65535) as integer vector
+FUNCTION GetZonesAtTile(zmap as ZoneMap, x as integer, y as integer, maxid as integer = 65534) as integer vector
   REDIM tmparray() as integer
   GetZonesAtTile zmap, tmparray(), x, y, maxid
   DIM zonesvec as integer vector
@@ -1001,8 +1004,8 @@ PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, byval x as integer, byv
 END FUNCTION
 
 'Add tile to zone.
-'Returns success, or 0 if there are already too many overlapping zones there
-FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as integer
+'Returns success, or NO if there are already too many overlapping zones there
+FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as bool
   IF CheckZoneAtTile(zmap, id, x, y) THEN RETURN YES
   ZoneInfoBookkeeping zmap, id, 1
   WITH zmap
@@ -1019,7 +1022,7 @@ FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, b
       IF IDmap[i] = id THEN
         *bitvector OR= 1 SHL i
         RETURN YES
-      ELSEIF IDmap[i] = 0 THEN
+      ELSEIF IDmap[i] = 0 OR IDmap[i] = DELETED THEN
         *bitvector OR= 1 SHL i
         IDmap[i] = id
         RETURN YES
@@ -1076,7 +1079,12 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
       NEXT
     END IF
     IF usecount = 1 THEN
-      ' Last use of this ID, so remove IDmap[slot]. But we have to keep the empty slots sorted to the end
+      ' Last use of this ID, so remove IDmap[slot].
+      IDmap[slot] = DELETED
+      ' To completely remove it we have to keep the empty slots sorted to the end;
+      ' the following is incomplete because it doesn't update the bitmaps for the tiles in the block
+      ' which use IDmap[i].
+      /'
       FOR i as integer = 14 TO 0 STEP -1
         IF IDmap[i] <> 0 THEN
           IDmap[slot] = IDmap[i]
@@ -1085,6 +1093,7 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
           EXIT FOR
         END IF
       NEXT
+      '/
     END IF
     *bitvector -= 1 SHL slot
   END WITH 
