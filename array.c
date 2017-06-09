@@ -104,7 +104,7 @@ static inline void *nth_elem(array_t array, int n) {
 	return (char *)array + tytbl->element_len * n;
 }
 
-#if has_overflow_builtins
+#ifdef has_overflow_builtins
 # define smul_overflow __builtin_smul_overflow
 # define sadd_overflow __builtin_sadd_overflow
 #else
