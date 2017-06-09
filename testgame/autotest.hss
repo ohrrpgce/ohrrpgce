@@ -101,6 +101,7 @@ script, run tests 1, begin
   string load tests
   save slot tests
   slice tests
+  zone tests
   inventory tests
   hero tests
   death tests
@@ -3060,6 +3061,116 @@ end
 
 ########################################################################
 
+define constant(1, zone:center)
+define constant(2, zone:wholegrass)
+define constant(3, zone:rightedge)
+define constant(4, zone:leftedge)
+define constant(5, zone:everything)
+define constant(6, zone:topedge)
+define constant(7, zone:bottomedge)
+
+# Equivalent to readzone, but checks it agrees with zoneatspot
+script, check zone, id, x, y, begin
+  variable(i, what)
+  for (i, 0, zone at spot(x, y, getcount) -- 1) do (
+    what := zone at spot(x, y, i)
+    assert(what > 0)
+    if (what == id) then (
+      assert(read zone(id, x, y) == true)
+      exit returning (true)
+    )
+  )
+  assert(read zone(id, x, y) == false)
+  return(false)
+end
+
+script, zone tests, begin
+  $0="zone tests"
+  # Could do with more tests of the internal complexities of ZoneMap
+
+  # Read some existing tiles (green plot of grass)
+  assert(zone at spot(17, 15, getcount) == 3)
+  assert(check zone(1, 17, 15) == 1)
+  assert(check zone(2, 17, 15) == 1)
+  assert(check zone(3, 17, 15) == 0)
+  assert(check zone(5, 17, 15) == 1)
+
+  assert(zone at spot(16, 16, getcount) == 4)
+  assert(check zone(1, 16, 16) == 0)
+  assert(check zone(2, 16, 16) == 1)
+  assert(check zone(3, 16, 16) == 0)
+  assert(check zone(4, 16, 16) == 1)
+  assert(check zone(5, 16, 16) == 1)
+  assert(check zone(7, 16, 16) == 1)
+
+  # zone number of tiles
+  assert(zone number of tiles(1) == 1)
+  assert(zone number of tiles(2) == 9)
+  assert(zone number of tiles(5) == 800)
+  assert(zone number of tiles(8) == 0)
+  assert(zone number of tiles(9988) == 0)
+
+  # Other zone data commands
+  get zone name (95, zone:leftedge)
+  $96="left edge"
+  assert(string compare(95, 96))
+  assert(get zone extra(5, 0) == 10)
+  assert(get zone extra(5, 1) == -2147483648)
+  assert(get zone extra(5, 2) == 2147483647)
+  # A nonexistent zone
+  get zone name (95, 9000)
+  assert(string length(95) == 0)
+  assert(get zone extra(9000, 0) == 0)
+  assert(get zone extra(9000, 1) == 0)
+  set zone extra (9000, 2, 32)
+  assert(get zone extra(9000, 2) == 32)
+
+  # Erasing a zone shouldn't affect others on the same tile
+  write zone(1, 17, 15, 0)
+  assert(check zone(1, 17, 15) == 0)
+  assert(check zone(2, 17, 15) == 1)
+  assert(check zone(5, 17, 15) == 1)
+  assert(zone at spot(17, 15, getcount) == 2)
+  write zone(1, 17, 15, 1)
+  assert(check zone(1, 17, 15) == 1)
+
+  # Write a zone that doesn't exist at all yet
+  write zone(1003, 16, 14, 1)
+  assert(check zone(1003, 16, 14) == 1)
+
+  variable(idx, idx2, count)
+  # Already 3 zones here; place 15 zones on one tile (the max)
+  count := 3
+  for (idx, 1001, 1012) do (
+    write zone(idx, 17, 15, 1)
+    assert(check zone(idx, 17, 15) == 1)
+    count += 1
+    assert(zone at spot(17, 15, getcount) == count)
+  )
+  # Remove them again in FIFO order
+  for (idx, 1001, 1012) do (
+    write zone(idx, 17, 15, 0)
+    assert(check zone(idx, 17, 15) == 0)
+    count -= 1
+    assert(zone at spot(17, 15, getcount) == count)
+    for (idx2, idx + 1, 1012) do (
+      assert(check zone(idx2, 17, 15) == 1)
+    )
+  )
+
+  # Check other zones within the same 4x4 block are undisturbed
+  assert(zone at spot(16, 14, getcount) == 5)
+  assert(check zone(1, 16, 14) == 0)
+  assert(check zone(2, 16, 14) == 1)
+  assert(check zone(3, 16, 14) == 0)
+  assert(check zone(4, 16, 14) == 1)
+  assert(check zone(5, 16, 14) == 1)
+  assert(check zone(6, 16, 14) == 1)
+  assert(check zone(1003, 16, 14) == 1)
+end
+
+########################################################################
+
 script, save slot tests, begin
   $0="save slot tests"
   # This includes tests for commands which operate on save slots,
@@ -3562,8 +3673,6 @@ end
 #get tile animation offset (animation pattern, layer)
 #get victory music
 #get wrap(handle)
-#get zone extra (zone id, extra num)
-#get zone name (string id, zone id)
 #globals to string(ID, starting global, length)
 #number >> number
 #number >= number
@@ -3654,7 +3763,6 @@ end
 #read NPC (who,NPCstat)
 #read pass block (x,y)
 #read timer (id)
-#read zone (zone id, x, y)
 #realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)
 #replace attack sprite (handle, num, palette)
 #replace backdrop sprite (handle, num)
@@ -3763,7 +3871,6 @@ end
 #set vert align (handle, edge)
 #set vert anchor (handle, edge)
 #set wrap(handle, wrap)
-#set zone extra (zone id, extra num, value)
 #show backdrop (number)
 #show grid (handle, shown)
 #show map
@@ -3824,8 +3931,5 @@ end
 #write color (index, element, value)
 #write map block (x,y,value,layer)
 #write pass block (x,y,value)
-#write zone (zone id, x, y, value)
 #value,xor,value
 #Y sort children (handle)
-#zone at spot (x, y, count)
-#zone number of tiles (zone id)
