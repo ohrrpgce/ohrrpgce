@@ -210,13 +210,12 @@ End Function
 
 Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
  if n.p = startpos then return 0
- if not n.has_parent then return mapsizetiles.x * mapsizetiles.y
- if n.parent = startpos then return 1
+ if not n.has_parent then return INT_MAX
  if n.status = AStarNodeStatus.EMPTY then
   debug "ERROR empty node in cost_before_node at " & n.p
-  return 1
+  return INT_MAX
  end if
- return 1 + cost_before_node(getnode(n.parent))
+ return 1 + getnode(n.parent).cost_before
 End Function
 
 Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
