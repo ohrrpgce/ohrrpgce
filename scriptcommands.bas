@@ -4317,15 +4317,15 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(2) THEN embedtext plotstr(retvals(0)).s
   END IF
  CASE 628'--pathfind npc to
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBound)
+  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
    npc(npcref).pathfinder_override = NPCOverrideMove.POS
    npc(npcref).pathfinder_dest_pos = XY(retvals(1), retvals(2))
   END IF
  CASE 629'--npc chases npc
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBound)
-  DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBound)
+  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
+  DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
   IF npcref >= 0 ANDALSO dest_npcref <> -1 THEN
    cancel_npc_movement_override (npc(npcref))
    npc(npcref).pathfinder_override = NPCOverrideMove.NPC
@@ -4333,7 +4333,7 @@ SUB script_functions(byval cmdid as integer)
    npc(npcref).pathfinder_stop_when_npc_reached = (retvals(2) <> 0)
   END IF
  CASE 630'--cancel npc movement override
-  DIM npcref as integer = get_valid_npc(retvals(0), serrBound)
+  DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
   END IF
