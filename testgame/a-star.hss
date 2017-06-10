@@ -1,5 +1,5 @@
 define constant(14, last map)
-define constant(14, default map)
+define constant(3, default map)
 
 define constant(3, music count)
 define constant(1, timer:turn and go)
@@ -149,8 +149,8 @@ plotscript, clicky switch, arg, ref, begin
     set npc direction(ref, down)
   )
   variable(x, y)
-  for (y, 0, map width -- 1) do(
-    for (x, 0, map height -- 1) do(
+  for (y, 0, map height -- 1) do(
+    for (x, 0, map width -- 1) do(
       if(read zone(2, x, y)) then(
         write map block(x, y, tile)
         write pass block(x, y, pass)
