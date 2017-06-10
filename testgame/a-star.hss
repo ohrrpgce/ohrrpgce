@@ -1,10 +1,12 @@
 define constant(14, last map)
 define constant(14, default map)
 
+define constant(3, music count)
 define constant(1, timer:turn and go)
 define constant(2, str:turn and go)
 
 global variable(1, turn and go ref)
+global variable(2, music i)
 
 #-----------------------------------------------------------------------
 
@@ -75,6 +77,12 @@ plotscript, jump to map, mi, mapnum, begin
   hide string(str:turn and go)
   resume npcs
   resume player
+  next music
+end
+
+script, next music, begin
+  play song(music i)
+  music i := (music i + 1) ,mod, music count
 end
 
 plotscript, on key press handler, begin
@@ -122,11 +130,13 @@ script, splat slime, ref, begin
     wait for NPC
     change npc id(ref, 2)
     set npc obstructs(ref, false)
+    play sound(1)
   )
 end
 
 plotscript, clicky switch, arg, ref, begin
   variable(tile, pass)
+  play sound(2)
   if(npc direction(ref) == down) then(
     # rock doors are open, we want to close them.
     tile := 42
@@ -161,6 +171,7 @@ script, call blue slime, begin
   if(ref) then(
     pathfind npc to(ref, x, y)
     result := true
+    play sound(3)
   )
   exit returning(result)
 end
@@ -179,6 +190,7 @@ script, maybe resume npcs, begin
 end
 
 plotscript, suspender switch, arg, ref, begin
+  play sound(2)
   if(npc direction(ref) == down) then(
     # suspend npc is off, turn it on
     suspend npcs
@@ -225,6 +237,7 @@ plotscript, turn and go, arg, ref, begin
   turn and go ref := ref
   set timer(timer:turn and go, 3, 30, @already turned so now go, str:turn and go)
   show string at(str:turn and go, npc pixel x(ref) -- camera pixel x, npc pixel y(ref) -- camera pixel y)
+  play sound(4)
 end
 
 script, already turned so now go, begin
@@ -232,6 +245,7 @@ script, already turned so now go, begin
   ref := turn and go ref
   hide string(str:turn and go)
   walk npc(ref, npc direction(ref), 100000)
+  play sound(5)
 end
 
 plotscript, cancel all npc walk, begin
@@ -241,4 +255,5 @@ plotscript, cancel all npc walk, begin
     cancel npc walk(ref)
     ref := next npc reference(ref)
   )
+  play sound(6)
 end
