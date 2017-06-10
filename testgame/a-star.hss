@@ -1,10 +1,31 @@
-define constant(13, last map)
-define constant(13, default map)
+define constant(14, last map)
+define constant(14, default map)
 
 define constant(1, timer:turn and go)
 define constant(2, str:turn and go)
 
 global variable(1, turn and go ref)
+
+#-----------------------------------------------------------------------
+
+plotscript, mulberry bush autorun, begin
+  follow all in a loop(1)
+end
+
+plotscript, hungry caterpillar autorun, begin
+  follow in a chain(6, 1)
+end
+
+plotscript, circle the wagons autorun, begin
+  variable(ref)
+  ref := npc reference(3)
+  if(ref) then(
+    clicky switch(none, ref)
+  )
+  follow all in a loop(1)
+end
+
+#-----------------------------------------------------------------------
 
 plotscript, on new game, begin
   set hero speed(me, 4)
@@ -169,10 +190,6 @@ plotscript, suspender switch, arg, ref, begin
   )
 end
 
-plotscript, mulberry bush autorun, begin
-  follow all in a loop(1)
-end
-
 script, follow all in a loop, id, begin
   variable(count, ref, dest, i)
   count := npc copy count(id)
@@ -185,10 +202,6 @@ script, follow all in a loop, id, begin
     )
     npc chases npc(ref, dest)
   )
-end
-
-plotscript, hungry caterpillar autorun, begin
-  follow in a chain(6, 1)
 end
 
 script, follow in a chain, leader ref, id, begin
