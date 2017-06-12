@@ -8,6 +8,9 @@ define function, begin
   1,noop4,4,0,0,0,0
 end
 
+globalvariable(1,globalvar)
+defineconstant(1,constant)
+
 ## Check for errors given extra commas, and for operators in illegal positions
 script, comma tests, begin
   variable(xx)
@@ -74,4 +77,31 @@ script, flow tests, dummy, begin
   if(dummy) if(dummy) then() # ERROR
   if(dummy) else()           # OK
   if(dummy) else() then()    # ERROR
+end
+
+script, namespace tests, arg, begin
+  variable(noop)         # ERROR
+  variable(script)       # ERROR
+  variable(globalvar)    # ERROR
+  variable(constant)     # ERROR
+  variable(flow tests)   # ERROR
+  variable(arg)          # ERROR
+  variable(1)            # ERROR
+  variable(a.)           # ERROR
+  variable(v)
+  ## subscript args and variables can shadow outer locals, but not globals
+  subscript, sub ()                               # OK
+  subscript, sub, globalvar ()                    # ERROR
+  subscript, sub, constant ()                     # ERROR
+  subscript, sub, NO OP ()                        # ERROR
+  subscript, sub, namespace tests ()              # ERROR
+  subscript, sub, sub ()                          # ERROR
+  subscript, sub, arg ()                          # OK
+  subscript, sub, v ()                            # OK
+  subscript, namespace tests, arg ()              # ERROR
+  subscript, sub, (subscript, sub2 ())            # OK
+  subscript, sub, (subscript, SUB ())             # ERROR
+  subscript, sub, (subscript, namespace tests ()) # ERROR
+  subscript, sub, v (subscript, sub2, v ())       # OK
+  subscript, sub, W (subscript, sub2, w ())       # OK
 end

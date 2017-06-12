@@ -112,6 +112,8 @@ WHAT IS NEW?
       used as expressions [Ralph]
     * "load sprite" and "replace sprite" (general versions of "load
       hero sprite", etc) [Ralph]
+    * subscript variables and arguments can now have the same name as
+      variables in the parent script, "shadowing" them [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

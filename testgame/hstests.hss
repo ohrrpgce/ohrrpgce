@@ -467,6 +467,44 @@ script, subscript tests, begin
     var1 := 0
   end
   assert(sibling1(10) == 55)
+
+  subscript scope tests(1)
+end
+
+# Test that inner variables shadow outer ones
+script, subscript scope tests, arg, begin
+  variable(v1)
+  v1 := 42
+
+  subscript, sub1, arg, begin
+    assert(arg == 2)
+    variable(v1)
+    assert(v1 == 0)
+    v1 := 63
+    assert(v1 == 63)
+  end
+
+  assert(arg == 1)
+  sub1(2)
+  assert(arg == 1)
+  assert(v1 == 42)
+
+  subscript, sub2, arg, begin
+    variable(v1)
+    subscript, sub3, v1, begin
+      v1 += 5
+      subscript, sub4, arg ()
+      assert(arg == 100)
+      for(arg, 0, 32) do ()
+    end
+    assert(v1 == 0)
+    sub3(10)
+    assert(v1 == 0)
+    assert(arg == 33)
+  end
+
+  sub2(100)
+  assert(v1 == 42)
 end
 
 # A very weird way to compute fibonacci numbers
