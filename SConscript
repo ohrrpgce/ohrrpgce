@@ -245,6 +245,10 @@ def findtool(envvar, toolname):
 GCC = findtool ('GCC', "gcc")
 CC = findtool ('CC', "gcc")
 CXX = findtool ('CXX', "g++")
+MAKE = findtool ('MAKE', 'make')
+if not MAKE and win32:
+	MAKE = findtool ('MAKE', 'mingw32-make')
+	
 clang = False
 if CC:
     try:
@@ -914,7 +918,7 @@ hspeak_builddir = builddir + "hspeak"
 HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'), action = [
     # maxsize: cause euc to split hspeak.exw to multiple .c files
     "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s" % hspeak_builddir,
-    "make -j%d -C %s -f hspeak.mak" % (GetOption('num_jobs'), hspeak_builddir)
+    "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
 ])
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
