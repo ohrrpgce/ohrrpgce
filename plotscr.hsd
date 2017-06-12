@@ -1624,14 +1624,14 @@ define constant, begin
 0,currentstat
 1,maximumstat
 2,basestat
-1,northwall
-2,eastwall
-4,southwall
-8,westwall
-16,vehicleA
-32,vehicleB
-64,harmtile
-128,overheadtile
+0b1,northwall
+0b10,eastwall
+0b100,southwall
+0b1000,westwall
+0b10000,vehicleA
+0b100000,vehicleB
+0b1000000,harmtile
+0b10000000,overheadtile
 10000,zone:OneWayExit
 0,inside battle
 1,outside battle
@@ -1721,22 +1721,22 @@ define constant, begin
 2, extra 2
 0, x axis
 1, y axis
-1,mapstate:mapsettings
-2,mapstate:npclocations
-4,mapstate:npcdefinitions
-8,mapstate:tilemap
-16,mapstate:passmap
-32,mapstate:zonemap
-#64,mapstate:foemap
-6,mapstate:npcs
-56,mapstate:tiles
-255,mapstate:all
+0b1,mapstate:mapsettings
+0b10,mapstate:npclocations
+0b100,mapstate:npcdefinitions
+0b1000,mapstate:tilemap
+0b10000,mapstate:passmap
+0b100000,mapstate:zonemap
+#0b1000000,mapstate:foemap
+0b110,mapstate:npcs
+0b111000,mapstate:tiles
+0b11111111,mapstate:all
 0,timer:stop #use in speed
 -1,timer:default #use in any
 -2,timer:gameover#use in trigger
-1,timerflag:critical
-2,timerflag:battle
-4,timerflag:menu
+0b1,timerflag:critical
+0b10,timerflag:battle
+0b100,timerflag:menu
 0,menutype:label
 1,menutype:special
 2,menutype:menu
