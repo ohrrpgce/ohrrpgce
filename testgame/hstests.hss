@@ -27,7 +27,8 @@ global variable(5000, global 5000)
 ########################################################################
 
 script, interpreter tests, begin
-  hspeak tests
+  encoding tests
+  lexer tests
   string tests
   math tests
   flow tests
@@ -174,9 +175,8 @@ plotscript, ¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE, begin
   return (42)
 end 
 
-# This really doesn't belong here, but I'm too lazy to find a better place
-script, hspeak tests, begin
-  $0="hspeak tests"
+script, encoding tests, begin
+  $0="encoding tests"
   variable (Über)
   Über := 12
   for (über, über, über + 4) do ()
@@ -187,9 +187,34 @@ script, hspeak tests, begin
   ÿve := 0
 
   assert(¿ƒüñÑÿ sÇ®¡ÞΤ ηªɱE == 42)
-  
-  global 5000 := 99999
-  assert(global 5000 == 99999)
+end
+
+########################################################################
+
+script, lexer tests, begin
+  # Check number parsing
+
+  # We don't actually care that any of this is done at runtime
+  # instead of compile time; id is only avoid "always false" warnings
+  subscript, id, x (return (x))
+
+  assert(1 000 == id(1000))
+  assert(- 1	000 == id(0 -- 1000))  # tab
+  assert(0x0 == id(0))
+  assert(0x 000 == id(0))
+  assert(0x 100 == id(256))
+  assert(0XABc == id(2748))
+  assert(- 0x 100 == id(-256))
+  assert(0xffffffff == id(-1))
+  assert(0x80000000 == id(-2147483648))
+  assert(-0xabcedf0 == id(-180153840))
+  assert(-0xffffffff == id(1))
+  assert(0x 100 == id(256))
+  assert(0b1 == id(1))
+  assert(0b1001010110011010011011111110101 == id(1254963189))
+  assert(0b11001010110011010011011111110101 == id(-892520459))
+  assert(0o1777 == id(1023))
+  assert(-0o1777 == id(-1023))
 end
 
 ########################################################################
@@ -280,6 +305,7 @@ end
 ########################################################################
 
 # Very incomplete
+# This script tests basic operations work
 script, math tests, begin
   $0="math tests"
 
@@ -323,6 +349,24 @@ script, math tests, begin
   assert(read global(@another global) == 10)
   write global(@another global, 4)
   assert(another global == 4)
+
+  larger math tests
+end
+
+# Return number of bits in an integer. Does NOT work for negative numbers!
+# Adapted from the "Software Optimization Guide for AMD Athlon 64 and Opteron Processors"
+script, bitcount, v, begin
+  v := v -- ((v / 2), and, 0x55555555)
+  v := (v, and, 0x33333333) + ((v / 2^2), and, 0x33333333)
+  return (((v + (v / 2^4), and, 0xF0F0F0F) * 0x1010101) / 2^24)
+end
+
+# This script tests that whole routines work correctly
+script, larger math tests, begin
+  assert(bitcount(0) == 0)
+  assert(bitcount(0x70000000) == 3)
+  assert(bitcount(0x11111111) == 8)
+  assert(bitcount(0x107030ff) == 1+3+2+4+4)
 end
 
 ########################################################################

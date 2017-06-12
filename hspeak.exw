@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--    2017-06-13 0x, 0o and 0b number prefixes
 --3T  2017-06-11 Allow subscript vars/args to shadow outer locals
 --3Se 2017-05-17 Disallow extra commas
 --3Sd 2017-03-17 --incdir option; check ../share/games/ohrrpgce/ instead
@@ -183,19 +184,22 @@ constant COL_LAST=#F8FF
 --Euphoria's color constants vary depending on the platform, so we avoid them
 constant HS_TO_EU_COLORS={YELLOW, RED, BRIGHT_RED, WHITE, BRIGHT_WHITE}
 
-constant LEX_CHAR=0
-constant LEX_SPACE=1
-constant LEX_BEGIN=2
-constant LEX_END=3
-constant LEX_OPERATOR=4
-constant LEX_COMMENT=5
-constant LEX_STRING=6
-constant LEX_COMMA=7
-constant LEX_WARN=8
-constant LEX_BINARY=9
-constant LEX_DIGIT=10
-constant LEX_OPERATOR2=11
-constant LEX_NEWLINE=12
+--These are character classes used in lexer_table
+constant LEX_CHAR=0       --Most character which are valid in identifiers. Everything above char 255
+constant LEX_SPACE=1      --space and tab
+constant LEX_BEGIN=2      --(
+constant LEX_END=3        --)
+constant LEX_OPERATOR=4   --The first character of an operator
+constant LEX_COMMENT=5    --#
+constant LEX_STRING=6     --"
+constant LEX_COMMA=7      --,
+constant LEX_WARN=8       --[]{}.
+constant LEX_BINARY=9     --Nonprintable characters
+constant LEX_DIGIT=10     --0-9
+constant LEX_HEXDIGIT=11  --a-fA-F
+constant LEX_OPERATOR2=12 --Only used in lexer_table_key2!!
+constant LEX_NEWLINE=13   --\n
+
 constant FILE_NAME=1
 constant FILE_TEXT=2
 constant FILE_LINE_EXTENTS=3
@@ -405,7 +409,7 @@ sequence separator_list   separator_list={
                              "+=","-=","$+","$=","$","+","--","/","*","^^","^"
                              ,"==","<>",">>","<<","<=",">=",">","<",":=","=","&&","||"
                           }
-sequence lexer_table      lexer_table={}
+sequence lexer_table      lexer_table={}      --maps from ASCII value+1 (note +1!) to LEX_* constant
 sequence lexer_table_key2 lexer_table_key2={}
 string hex_chars          hex_chars="0123456789abcedfABCDEF"
 sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
@@ -882,12 +886,17 @@ procedure init_lexer()
                 {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_NEWLINE,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
+  --NOTE the +1!
   lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,127-32) & repeat(LEX_BINARY,#A1-127) & repeat(LEX_CHAR,256-#A1)
   for i=1 to length(table_insert[1]) do
     lexer_table[table_insert[1][i]+1]=table_insert[2][i]
   end for
   for i=0 to 9 do
     lexer_table['0'+i+1]=LEX_DIGIT
+  end for
+  for i=0 to 5 do
+    lexer_table['a'+i+1]=LEX_HEXDIGIT
+    lexer_table['A'+i+1]=LEX_HEXDIGIT
   end for
   --add the one-character prefix of each operator
   for i=1 to length(separator_list) do
@@ -1350,6 +1359,7 @@ function lexer_read_string(string s, integer i, integer stop, srcpos pos)
       elsif s[i]='x' then
         --escape 8 bit values (later will add \u and \U for 16 bit and 32 bit escapes)
         at1=0
+        at2=0
         if i+2<=stop then
           at1=find(s[i+1],hex_chars)
           at2=find(s[i+2],hex_chars)
@@ -1380,14 +1390,17 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Lex a signed or unsigned integer literal.
+--Returns {newi, text} with text is the string representation of an integer.
 function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   integer state
   atom val
-  integer sign
+  integer sign,base
   string text
   integer starti
 
   starti=i
+  --Process negative prefix, because it isn't treated as a unary operator
   if s[i]='-' then
     text="-"
     i+=1
@@ -1395,6 +1408,24 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   else
     text=""
     sign=1
+  end if
+  --Skip whitespace
+  while i<=stop and (s[i]=' ' or s[i]='\t') do
+    i+=1
+  end while
+  --Check for base prefix 0x 0o or 0b. No separating space allowed!
+  base=10
+  if i+2<=stop and s[i]='0' then
+    if s[i+1]='x' or s[i+1]='X' then
+      base=16
+      i+=2
+    elsif s[i+1]='o' or s[i+1]='O' then
+      base=8
+      i+=2
+    elsif s[i+1]='b' or s[i+1]='B' then
+      base=2
+      i+=2
+    end if
   end if
   val=0
   while i<=stop do
@@ -1404,27 +1435,43 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       state=LEX_CHAR
     end if
     --color_print("lexing number i=%d %d=%s state %d\n",{i,s[i],{s[i]},state})
-    if state=LEX_DIGIT then
+    if state=LEX_DIGIT then  --0-9
+      integer digit
+      digit=s[i]-'0'
+      if digit>=base then
+        src_error(sprintf_utf("Found digit "&COLYEL&"%s"&COLRED&" which is too big, while parsing a base-%d number",{s[i],base}),pos+i)
+      end if
       text&=s[i]
-      val=val*10+s[i]-'0'
+      val=val*base+digit
+    elsif base=16 and state=LEX_HEXDIGIT then  --a-fA-F
+      text&=s[i]
+      val=val*16+(toLower(s[i])-'a'+10)
     elsif state=LEX_SPACE then  --yes, allowed in numbers too
     elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_OPERATOR or state=LEX_COMMENT or state=LEX_BINARY or state=LEX_NEWLINE then
       --backtrack one character
       --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
       i-=1
       exit
-    else  --currently, state=LEX_CHAR or state=LEX_WARN or state=LEX_STRING
+    else  --currently, state=LEX_CHAR or state=LEX_HEXDIGIT or state=LEX_WARN or state=LEX_STRING
       if s[i]='.' then
         src_error("Floating point values are not yet implemented",pos+i)
       end if
       src_error(
-        sprintf_utf("Expected "&COLYEL&"%s"&COLRED&" to be followed by "&COLYEL&","&COLRED&" or "&COLYEL&"("&COLRED&" or "&COLYEL&")"&COLRED&" or an operator"
-                ,{text})
+        sprintf_utf("Found unexpected character "&COLYEL&"%s"&COLRED&" while reading a number, "&COLYEL&"%s"&COLRED&". Names such as variables can't start with a digit. Or maybe you forgot a comma or operator?"
+                ,{s[i],text})
         ,pos+i
       )
     end if
     i+=1
   end while
+  if base!=10 then
+    --Special behaviour for non-decimals: silently overflow large 32 bit unsigned values to negatives
+    if val>=#80000000 and val<#100000000 then
+      val=val-#100000000
+    end if
+    --Convert to text
+    text=sprintf("%d",{sign*val})
+  end if
   if not int32(sign*val) then
     src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed integer. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
   end if
@@ -1520,7 +1567,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       state=LEX_CHAR
     end if
     --color_print("lexing i=%d %d=%s state %d nonnum=%d ident=%s\n",{i,s[i],{s[i]},state,nonnumeral,ident})
-    if state=LEX_CHAR then
+    if state=LEX_CHAR or state=LEX_HEXDIGIT then
       ident=ident & toLower(s[i])
       if textstart=0 then
         textstart=i
@@ -4143,35 +4190,37 @@ function sanity_check(NodeList tree, VarList vars, string parent)
   sequence kind_and_id
   integer kind
   atom id
+  srcpos pos
   for i=1 to length(tree) do
     s=tree[i][TREE_TRUNK][CMD_TEXT]
+    pos=tree[i][TREE_TRUNK][CMD_POS]
     kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars)
     kind=kind_and_id[1]
     id=kind_and_id[2]
     if (compare("if",parent)=0) and i=1 then
       if kind=KIND_NUMBER then
         if id then
-          src_warn(sprintf_utf("Condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),tree[i][TREE_TRUNK][CMD_POS])
+          src_warn(sprintf_utf("Condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),pos)
         else
-          src_warn("Condition is always false",tree[i][TREE_TRUNK][CMD_POS])
+          src_warn("Condition is always false",pos)
         end if
       elsif kind=KIND_FLOW then
-        src_warn(sprintf_utf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),tree[i][TREE_TRUNK][CMD_POS])
+        src_warn(sprintf_utf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),pos)
       end if
     elsif block_command(parent) then
       if kind=KIND_NUMBER then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found an expression with value "&COLYEL&"%d"&COLRED&". It will do nothing here."
-                 ,{id}),tree[i][TREE_TRUNK][CMD_POS])
+                 ,{id}),pos)
       elsif kind=KIND_GLOBAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found global variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
-                 ,{s}),tree[i][TREE_TRUNK][CMD_POS])
+                 ,{s}),pos)
       elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
         src_warn(sprintf_utf("Expected script, function, or flow control, but found local variable "&COLYEL&"%s"&COLRED&". It will do nothing here."
-                 ,{s}),tree[i][TREE_TRUNK][CMD_POS])
+                 ,{s}),pos)
       elsif kind=KIND_MATH and (id<=15 or id=19 or id>=22) then
         -- setvariable, increment, decrement, logand, logor have side effects
         src_warn(sprintf_utf("Expected a statement but found built-in function "&COLYEL&"%s"&COLRED&", returning a value that is being discarded"
-                 ,{s}),tree[i][TREE_TRUNK][CMD_POS])
+                 ,{s}),pos)
       end if
     end if
     if kind=KIND_GLOBAL then

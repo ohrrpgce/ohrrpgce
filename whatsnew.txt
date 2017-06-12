@@ -108,12 +108,15 @@ WHAT IS NEW?
     * "get npc speed"
     * Added "textbox text" to read all lines from a textbox into a
       string variable at once [Matthias]
-    * -= and += now return their result, like := does, so they can be
-      used as expressions [Ralph]
     * "load sprite" and "replace sprite" (general versions of "load
       hero sprite", etc) [Ralph]
-    * subscript variables and arguments can now have the same name as
-      variables in the parent script, "shadowing" them [Ralph]
+    * Changes to the language:
+      * -= and += now return their result, like := does, so they can be
+        used as expressions [Ralph]
+      * subscript variables and arguments can now have the same name as
+        variables in the parent script, "shadowing" them [Ralph]
+      * Hexidecimal, octal and binary number constants, written like
+        0xCABBA9E, 0o377 and 0b1101111000011 [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

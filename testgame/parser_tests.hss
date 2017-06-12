@@ -60,10 +60,51 @@ script, comma tests, begin
   noop4(,$0="")          # ERROR
 end
 
+end                      # ERROR
+begin                    # ERROR
+script, foo, end         # ERROR
+()                       # ERROR
+
 script, string tests, begin
   $0="", 232             # WARN
   $0="" 232              # ERROR
   "asdasd"               # ERROR
+end
+
+script, number tests, x, begin
+  x := - 14                  # OK
+  x := -                     # ERROR
+  ## tab characters
+  x := -	1	4    # OK
+  x := 14a                   # ERROR
+  x := - 14a                 # ERROR
+  x := 0x14a                 # OK
+  x := - 0x 14a              # OK
+  x := -	0x	14a  # OK
+  x := 0x                    # ERROR
+  x := 0o                    # ERROR
+  x := 0b                    # ERROR
+  ## Space after the 0 not supported... but we don't care one way or the other
+  ##x := 0 x1
+  ## Numbers which aren't 32 bit
+  x := 0x100000000           # ERROR
+  x := 0o1                   # OK
+  x := 0o8                   # ERROR
+  x := 0oa                   # ERROR
+  x := 0b0                   # OK
+  x := 0xa                   # OK
+  x := 0xf                   # OK
+  x := 0bf                   # ERROR
+  x := 0XF                   # OK
+  x := -0x111                # OK
+  ## special rules for non-decimals: silently overflow large unsigned 32bit ints
+  x := 0xffffffff            # OK
+  x := -0xffffffff           # OK
+  x := -2147483648           # OK
+  x := -2147483649           # ERROR
+  x := 1.                    # ERROR
+  x := 1.0                   # ERROR
+  x := .0                    # ERROR
 end
 
 script, flow tests, dummy, begin
