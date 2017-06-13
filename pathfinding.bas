@@ -36,7 +36,8 @@ Destructor AStarPathfinder
  v_free path
 End Destructor
 
-Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
+Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO)
+ 'should_collide_with_hero is only checked when an npc instance is provided
  'debug "AStarPathfinder.calculate() " & startpos.x & "," & startpos.y & " -> " & destpos.x & "," & destpos.y
  redim nodes(mapsizetiles.x - 1, mapsizetiles.y - 1) as AStarNode
 
@@ -89,7 +90,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0)
      'This is a check for an NPC
      dim col_type as WalkaboutCollisionType
      collide = npc_collision_check_at(*npc, cursor, direction, col_type, @npc_ccache)
-     if col_type = collideHero then collide = NO
+     if col_type = collideHero andalso should_collide_with_hero = NO then collide = NO
     else
      'This is a walls-only check
      collide = check_wall_edges(cursor.x, cursor.y, direction)

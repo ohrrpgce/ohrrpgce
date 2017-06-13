@@ -1807,6 +1807,8 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
   npci.pathfinder_cooldown -= 1
   return
  end if
+
+ dim should_collide_with_hero as bool = NO
  
  dim t1 as XYPair
  t1.x = npci.x / 20
@@ -1817,6 +1819,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
    'No override is currently happening, default to chasing the leader hero
    t2.x = herotx(0)
    t2.y = heroty(0)
+   should_collide_with_hero = NO
   case NPCOverrideMove.NPC
    if npc(npci.pathfinder_dest_npc).id = 0 then
     'NPC must have been deleted
@@ -1830,6 +1833,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
     cancel_npc_movement_override (npci)
     return
    end if
+   should_collide_with_hero = YES
   case NPCOverrideMove.POS
    t2 = npci.pathfinder_dest_pos
    if t1 = t2 then
@@ -1837,10 +1841,11 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
     cancel_npc_movement_override (npci)
     return
    end if
+   should_collide_with_hero = YES
  end select
 
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
- pf.calculate(@npci)
+ pf.calculate(@npci, should_collide_with_hero)
  'pf.debug_path()
  if v_len(pf.path) > 1 then
   'Don't move unless a path is found that is longer than one tile

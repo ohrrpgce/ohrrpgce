@@ -41,7 +41,7 @@ Type AStarPathfinder
  
  Declare Function getnode(p as XYPair) byref as AStarNode
  
- Declare Sub calculate(byval npc as NPCInst Ptr=0)
+ Declare Sub calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO)
  Declare Sub set_result_path(found_dest as XYPair)
 
  Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
