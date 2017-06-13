@@ -213,19 +213,7 @@ Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
 End Function
 
 Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
- if gmap(5) = 1 then
-  'This is a wrapping map
-  dim diff as XYPair = destpos - n.p
-  if abs(diff.x) > mapsizetiles.x / 2 then
-   diff.x = abs(diff.x) - mapsizetiles.x / 2
-  end if
-  if abs(diff.y) > mapsizetiles.y / 2 then
-   diff.y = abs(diff.y) - mapsizetiles.y / 2 
-  end if
-  return abs(diff.x) + abs(diff.y)
- else
-  return xypair_manhattan_distance(n.p, destpos)
- end if
+ return xypair_wrapping_manhattan_distance(n.p, destpos)
 End Function
 
 Sub AStarPathfinder.slow_debug()
@@ -307,6 +295,24 @@ Sub NPCCollisionCache.debug_cache()
  dowait
  setwait 10
 End Sub
+
+'------------------------------------------------------------------------------------------
+
+Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+ if gmap(5) = 1 then
+  'This is a wrapping map
+  dim diff as XYPair = v2 - v1
+  if abs(diff.x) > mapsizetiles.x / 2 then
+   diff.x = abs(diff.x) - mapsizetiles.x / 2
+  end if
+  if abs(diff.y) > mapsizetiles.y / 2 then
+   diff.y = abs(diff.y) - mapsizetiles.y / 2 
+  end if
+  return abs(diff.x) + abs(diff.y)
+ else
+  return xypair_manhattan_distance(v1, v2)
+ end if
+End Function
 
 '------------------------------------------------------------------------------------------
 

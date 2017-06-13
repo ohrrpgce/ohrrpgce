@@ -64,4 +64,6 @@ Type NPCCollisionCache
  Declare Sub debug_cache()
 End Type
 
+Declare Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+
 #endif
