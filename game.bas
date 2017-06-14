@@ -1565,8 +1565,16 @@ SUB update_npcs ()
 
    END IF
 
+   DIM oldpos as XYPair = XY(npc(o).x, npc(o).y)
+
    DIM finished_step as bool = NO
    IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npcs(id))
+
+   IF oldpos = XY(npc(o).x, npc(o).y) THEN
+    npc(o).stillticks += 1
+   ELSE
+    npc(o).stillticks = 0
+   END IF
 
    'Recalculate current zones every tick (see update_heroes for rationale)
    update_npc_zones o

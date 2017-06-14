@@ -282,6 +282,7 @@ TYPE NPCInst
   suspend_ai as bool    'ignore movetype (effectively 'stand still')
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
 
+  stillticks as integer 'counts the number of ticks that an npc has spend holding still
   pathover as PathfinderOverride
 END TYPE
 

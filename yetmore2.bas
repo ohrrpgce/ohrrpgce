@@ -950,6 +950,7 @@ SUB npc_debug_display ()
      printstr MID(temp, 1, 1), drawX, drawY + 12, dpage
      printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
+     'printstr STR(npc(i).stillticks), drawX, drawY + 20, dpage
      FOR yoff as integer = -1 TO 1
       FOR xoff as integer = -1 TO 1
        DIM tile as XYPair
