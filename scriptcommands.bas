@@ -4338,6 +4338,28 @@ SUB script_functions(byval cmdid as integer)
    cancel_npc_movement_override (npc(npcref))
    cancel_npc_walk (npc(npcref))
   END IF
+ CASE 631'--player is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendplayer), 1, 0)
+ CASE 632'--npcs are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendnpcs), 1, 0)
+ CASE 633'--obstruction is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendobstruction), 1, 0)
+ CASE 634'--hero walls are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendherowalls), 1, 0)
+ CASE 635'--npc walls are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendnpcwalls), 1, 0)
+ CASE 636'--caterpillar is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendcaterpillar), 1, 0)
+ CASE 637'--doors are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspenddoors), 1, 0)
+ CASE 638'--random enemies are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendrandomenemies), 1, 0)
+ CASE 639'--box advance is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendboxadvance), 1, 0)
+ CASE 640'--overlay is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendoverlay), 1, 0)
+ CASE 641'--map music is suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendambientmusic), 1, 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

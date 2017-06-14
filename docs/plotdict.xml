@@ -807,6 +807,11 @@ resume player</example>
 			<description>Restores normal control after a <ref>suspendplayer</ref> command. This is very important. If you use <ref>suspendplayer</ref>, but forget resume player, the game will be stuck after the script ends.</description>
 			<example c="suspendplayer" />
 		</command>
+		<command id="playerissuspended">
+			<canon>player is suspended</canon>
+			<shortname>player is suspended</shortname>
+			<description>Returns true if <ref>suspendplayer</ref> is active.</description>
+		</command>
 		<command id="suspendnpcs">
 			<canon>suspend NPCs</canon>
 			<shortname>suspend NPCs</shortname>
@@ -826,6 +831,11 @@ resume NPCs</example>
 			<description>Restores automatic NPC movement after a <ref>suspendnpcs</ref> command. This does not resume NPCs suspended with <ref>setnpcmoves</ref>.</description>
 			<example c="suspendnpcs" />
 		</command>
+		<command id="npcsaresuspended">
+			<canon>npcs are suspended</canon>
+			<shortname>npcs are suspended</shortname>
+			<description>Returns true if <ref>suspendnpcs</ref> is active.</description>
+		</command>
 		<command id="suspendobstruction">
 			<canon>suspend obstruction</canon>
 			<shortname>suspend obstruction</shortname>
@@ -843,6 +853,11 @@ resume obstruction</example>
 			<description>Restores normal obstruction after a <ref>suspendobstruction</ref> command. This doesn't undo the effect of <ref>setnpcobstructs</ref>.</description>
 			<example c="suspendobstruction" />
 		</command>
+		<command id="obstructionissuspended">
+			<canon>obstruction is suspended</canon>
+			<shortname>obstruction is suspended</shortname>
+			<description>Returns true if <ref>suspendobstruction</ref> is active.</description>
+		</command>
 		<command id="suspendherowalls">
 			<canon>suspend hero walls</canon>
 			<shortname>suspend hero walls</shortname>
@@ -856,6 +871,11 @@ resume hero walls # back to mortality...</example>
 			<shortname>resume hero walls</shortname>
 			<description>Restores normal wall behavior after a <ref>suspendherowalls</ref> command</description>
 			<example c="suspendherowalls" />
+		</command>
+		<command id="herowallsaresuspended">
+			<canon>hero walls are suspended</canon>
+			<shortname>hero walls are suspended</shortname>
+			<description>Returns true if <ref>suspendherowalls</ref> is active.</description>
 		</command>
 		<command id="suspendnpcwalls">
 			<canon>suspend NPC walls</canon>
@@ -890,6 +910,11 @@ resume NPC walls # back to mortality...</example>
 			<description>Restores normal wall behavior after a <ref>suspendnpcwalls</ref> command. This doesn't undo the effect of <ref>setnpcignoreswalls</ref>.</description>
 			<example c="suspendnpcwalls" />
 		</command>
+		<command id="npcwallsaresuspended">
+			<canon>npc walls are suspended</canon>
+			<shortname>npc walls are suspended</shortname>
+			<description>Returns true if <ref>suspendnpcwalls</ref> is active.</description>
+		</command>
 		<command id="suspendcaterpillar">
 			<canon>suspend caterpillar</canon>
 			<shortname>suspend caterpillar</shortname>
@@ -903,6 +928,11 @@ resume caterpillar # normal game again.</example>
 			<shortname>resume caterpillar</shortname>
 			<description>Reverses the <ref>suspendcaterpillar</ref> command, and makes your other heroes follow the leader as normal. In earlier versions this was misspelled as resume catapillar. The old spelling still works for backwards compatibility.</description>
 			<example c="suspendcaterpillar" />
+		</command>
+		<command id="caterpillarissuspended">
+			<canon>caterpillar is suspended</canon>
+			<shortname>caterpillar is suspended</shortname>
+			<description>Returns true if <ref>suspendcaterpillar</ref> is active.</description>
 		</command>
 		<command id="suspendcatapillar">
 			<alias>suspendcaterpillar</alias>
@@ -924,6 +954,11 @@ resume caterpillar # normal game again.</example>
 			<shortname>resume doors</shortname>
 			<description>Restores normal door triggering after a <ref>suspenddoors</ref> command. If the lead hero is already standing on a door, it will not be triggered.</description>
 		</command>
+		<command id="doorsaresuspended">
+			<canon>doors are suspended</canon>
+			<shortname>doors are suspended</shortname>
+			<description>Returns true if <ref>suspenddoors</ref> is active.</description>
+		</command>
 		<command id="suspendrandomenemies">
 			<canon>suspend random enemies</canon>
 			<shortname>suspend random enemies</shortname>
@@ -937,6 +972,11 @@ resume random enemies # back to normal</example>
 			<shortname>resume random enemies</shortname>
 			<description>Undoes the <ref>suspendrandomenemies</ref> command and allows random battles to occur as normal. In earlier versions, this was misspelled as resume random enemys. The old spelling still works for backwards compatibility.</description>
 			<example c="suspendrandomenemies" />
+		</command>
+		<command id="randomenemiesaresuspended">
+			<canon>random enemies are suspended</canon>
+			<shortname>random enemies are suspended</shortname>
+			<description>Returns true if <ref>suspendrandomenemies</ref> is active.</description>
 		</command>
 		<command id="suspendrandomenemys">
 			<alias>suspendrandomenemies</alias>
@@ -962,6 +1002,11 @@ resume box advance # go back to normal</example>
 			<description>Undoes the <ref>suspendboxadvance</ref> command and allows the player to advance and clear text boxes by pressing keys as normal.</description>
 			<example c="suspendboxadvance" />
 		</command>
+		<command id="boxadvanceissuspended">
+			<canon>box advance is suspended</canon>
+			<shortname>box advance is suspended</shortname>
+			<description>Returns true if <ref>suspendboxadvance</ref> is active.</description>
+		</command>
 		<command id="suspendoverlay">
 			<canon>suspend overlay</canon>
 			<shortname>suspend overlay</shortname>
@@ -971,6 +1016,11 @@ resume box advance # go back to normal</example>
 			<canon>resume overlay</canon>
 			<shortname>resume overlay</shortname>
 			<description>Undoes the <ref>suspendoverlay</ref> command, causing overhead tiles to be drawn over heroes and NPCs as normal.</description>
+		</command>
+		<command id="overlayissuspended">
+			<canon>overlay is suspended</canon>
+			<shortname>overlay is suspended</shortname>
+			<description>Returns true if <ref>suspendoverlay</ref> is active.</description>
 		</command>
 		<command id="suspendmapmusic">
 			<canon>suspend map music</canon>
@@ -1000,6 +1050,11 @@ play song (get ambient music)</example>
 			<shortname>resume map music</shortname>
 			<added>serendipity</added>
 			<description>Causes ambient music to automatically start playing when you enter a map again after a <ref>suspendmapmusic</ref> command.</description>
+		</command>
+		<command id="mapmusicissuspended">
+			<canon>map music is suspended</canon>
+			<shortname>map music is suspended</shortname>
+			<description>Returns true if <ref>suspendmapmusic</ref> is active.</description>
 		</command>
 		<command id="suspendtimers">
 			<canon>suspend timers</canon>

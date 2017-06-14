@@ -652,6 +652,18 @@ define function, begin
 628,pathfindnpcto,3,0,0,0     # Make an NPC pathfind to a specific position (npc, tile x, tile y)
 629,npcchasesnpc,3,0,0,0      # Make an NPC chase another NPC (npc, target npc, stop when reached)
 630,cancelnpcwalk,1,0         # Cancel walknpc, pathfindnpcto, or npcchasesnpc command (npc)
+631,playerissuspended,0       # return true if "suspend player" is active
+632,npcsaresuspended,0        # return true if "suspend NPCs" is active
+633,obstructionissuspended,0  # return true if "suspend obstruction" is active
+634,herowallsaresuspended,0   # return true if "suspend hero walls" is active
+635,npcwallsaresuspended,0    # return true if "suspend NPC walls" is active
+636,caterpillarissuspended,0  # return true if "suspend caterpillar" is active
+637,doorsaresuspended,0       # return true if "suspend doors" is active
+638,randomenemiesaresuspended,0  # return true if "suspend random enemies" is active
+639,boxadvanceissuspended,0   # return true if "suspend box advance" is active
+640,overlayissuspended,0      # return true if "suspend overlay" is active
+641,mapmusicissuspended,0     # return true if "suspend map music" is active
+#642,timersaresuspended,0      # return true if "suspend timers" is active
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

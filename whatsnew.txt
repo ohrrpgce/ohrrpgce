@@ -112,6 +112,9 @@ WHAT IS NEW?
       string variable at once [Matthias]
     * "load sprite" and "replace sprite" (general versions of "load
       hero sprite", etc) [Ralph]
+    * Commands to check whether or not each of the suspend states is
+      active, for example: "player is suspended", "npc walls are
+      suspended", etc... [James]
     * Changes to the language:
       * -= and += now return their result, like := does, so they can be
         used as expressions [Ralph]

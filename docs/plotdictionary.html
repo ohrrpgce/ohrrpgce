@@ -601,6 +601,9 @@
 		<a href="#about-bottommenu">bottom menu</a><br>
 		
 	
+		<a href="#about-boxadvanceissuspended">box advance is suspended</a><br>
+		
+	
 		<a href="#about-break">break</a><br>
 		
 	
@@ -635,6 +638,9 @@
 		
 	
 		<a href="#about-case">case(value)</a><br>
+		
+	
+		<a href="#about-caterpillarissuspended">caterpillar is suspended</a><br>
 		
 	
 		<a href="#about-centerslice">center slice (handle)</a><br>
@@ -818,6 +824,9 @@
 		
 	
 		<a href="#about-doorexists">door exists (number)</a><br>
+		
+	
+		<a href="#about-doorsaresuspended">doors are suspended</a><br>
 		
 	
 		
@@ -1426,6 +1435,9 @@
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
 		
 	
+		<a href="#about-herowallsaresuspended">hero walls are suspended</a><br>
+		
+	
 		<a href="#about-herox">hero X (who)</a><br>
 		
 	
@@ -1627,6 +1639,9 @@
 		<a href="#about-mapheight">map height (map)</a><br>
 		
 	
+		<a href="#about-mapmusicissuspended">map music is suspended</a><br>
+		
+	
 		<a href="#about-mapwidth">map width (map)</a><br>
 		
 	
@@ -1777,6 +1792,12 @@
 		<a href="#about-npcreference">NPC reference (ID, copy)</a><br>
 		
 	
+		<a href="#about-npcsaresuspended">npcs are suspended</a><br>
+		
+	
+		<a href="#about-npcwallsaresuspended">npc walls are suspended</a><br>
+		
+	
 		<a href="#about-npcx">NPC X (who)</a><br>
 		
 	
@@ -1790,6 +1811,9 @@
 		
 	
 		<a href="#about-numericconstants">Numeric Constants</a><br>
+		
+	
+		<a href="#about-obstructionissuspended">obstruction is suspended</a><br>
 		
 	
 		
@@ -1818,6 +1842,9 @@
 	
 		
 		<a href="#about-tileconstants">overhead tile</a><br>
+	
+		<a href="#about-overlayissuspended">overlay is suspended</a><br>
+		
 	
 		<a href="#about-pancamera">pan camera (direction,distance,pixelstep)</a><br>
 		
@@ -1848,6 +1875,9 @@
 	
 		
 		<a href="#about-putsprite">place sprite</a><br>
+	
+		<a href="#about-playerissuspended">player is suspended</a><br>
+		
 	
 		<a href="#about-playsong">play song (song)</a><br>
 		
@@ -1892,6 +1922,9 @@
 		
 	
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
+		
+	
+		<a href="#about-randomenemiesaresuspended">random enemies are suspended</a><br>
 		
 	
 		<a href="#about-randomformation">random formation (formation set)</a><br>
@@ -4111,6 +4144,16 @@ resume player</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-playerissuspended"></a>
+		<h4>player is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendplayer" class="ref">suspend player</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendnpcs"></a>
 		<h4>suspend NPCs</h4>
 <p>
@@ -4142,6 +4185,16 @@ resume NPCs</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-npcsaresuspended"></a>
+		<h4>npcs are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendobstruction"></a>
 		<h4>suspend obstruction</h4>
 <p>
@@ -4167,6 +4220,16 @@ resume obstruction</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-obstructionissuspended"></a>
+		<h4>obstruction is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendobstruction" class="ref">suspend obstruction</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendherowalls"></a>
 		<h4>suspend hero walls</h4>
 <p>
@@ -4187,6 +4250,16 @@ resume hero walls # back to mortality...</pre>
 			<pre>suspend hero walls # hero is now a ghost
 # walk through things
 resume hero walls # back to mortality...</pre>
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-herowallsaresuspended"></a>
+		<h4>hero walls are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendherowalls" class="ref">suspend hero walls</a> is active.
+			
+			
 			
 		</p>
 </div>
@@ -4238,6 +4311,16 @@ resume NPC walls # back to mortality...</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-npcwallsaresuspended"></a>
+		<h4>npc walls are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendcaterpillar"></a>
 		<h4>suspend caterpillar</h4>
 <p>
@@ -4260,6 +4343,16 @@ resume caterpillar # normal game again.</pre>
 			<pre>suspend caterpillar # cutscene
 # move heroes, probably fight a battle or two...
 resume caterpillar # normal game again.</pre>
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-caterpillarissuspended"></a>
+		<h4>caterpillar is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> is active.
+			
+			
 			
 		</p>
 </div>
@@ -4296,6 +4389,16 @@ resume caterpillar # normal game again.</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-doorsaresuspended"></a>
+		<h4>doors are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspenddoors" class="ref">suspend doors</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendrandomenemies"></a>
 		<h4>suspend random enemies</h4>
 <p>
@@ -4316,6 +4419,16 @@ resume random enemies # back to normal</pre>
 			<pre>suspend random enemies # no battles for now
 walk hero (me, up, 10) # cross pit of evil monsters of doom
 resume random enemies # back to normal</pre>
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-randomenemiesaresuspended"></a>
+		<h4>random enemies are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendrandomenemies" class="ref">suspend random enemies</a> is active.
+			
+			
 			
 		</p>
 </div>
@@ -4360,6 +4473,16 @@ resume box advance # go back to normal</pre>
 		</p>
 </div>
 		<div class="command">
+<a name="about-boxadvanceissuspended"></a>
+		<h4>box advance is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-suspendoverlay"></a>
 		<h4>suspend overlay</h4>
 <p>
@@ -4374,6 +4497,16 @@ resume box advance # go back to normal</pre>
 		<h4>resume overlay</h4>
 <p>
 			Undoes the <a href="#about-suspendoverlay" class="ref">suspend overlay</a> command, causing overhead tiles to be drawn over heroes and NPCs as normal.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-overlayissuspended"></a>
+		<h4>overlay is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendoverlay" class="ref">suspend overlay</a> is active.
 			
 			
 			
@@ -4414,6 +4547,16 @@ play song (get ambient music)</pre>
 		<h4>resume map music</h4>
 <p>
 			Causes ambient music to automatically start playing when you enter a map again after a <a href="#about-suspendmapmusic" class="ref">suspend map music</a> command.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-mapmusicissuspended"></a>
+		<h4>map music is suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendmapmusic" class="ref">suspend map music</a> is active.
 			
 			
 			
@@ -16249,7 +16392,14 @@ end</pre>
 <a name="about-saveslotused"></a>
 		<h4>save slot used (slot)</h4>
 <p>
-			Returns whether a game has been saved in the save slot. Use if you, for example, don't want to overwrite a saved game with <a href="#about-saveinslot" class="ref">save in slot</a>.
+			
+				Returns whether a game has been saved in the save slot.
+				Use if you, for example, don't want to overwrite a saved game with <a href="#about-saveinslot" class="ref">save in slot</a>.
+				This returns false if the slot has never been saved to normally,
+				but has been written to using <a href="#about-exportglobals" class="ref">export globals</a>
+				(which will create a nearly-empty .rsav file containing just globals,
+				if it doesn't already exist).
+			
 			
 			
 			
@@ -16325,11 +16475,28 @@ end</pre>
 <a name="about-exportglobals"></a>
 		<h4>export globals (slot, first, last)</h4>
 <p>
-			Writes a range of globals to a save game slot, overwriting the saved game's globals. <span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range. <span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 16383. Therefore, if you pass no range, all the globals will be written.<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.<br clear="all">
-</div><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!<br clear="all">
+			
+				Writes a range of globals to a save game slot, overwriting the saved game's globals.
+				<span class="param">slot</span> is the save slot number, from 1 to 32,
+				regardless of how many save slots enabled in the save/load menus.
+				<span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the
+				beginning and end of the range.
+				<span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 16383.
+				Therefore, if you pass no range, all the globals will be written.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					You can export globals to an empty slot!
+					This doesn't create a visible save game that the player can load,
+					however you will still be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.
+				<br clear="all">
 </div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Unlike importglobals, 'export globals (slot, first)' does
+					NOT export a single global variable!
+				<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17359,7 +17526,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 782 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 793 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
