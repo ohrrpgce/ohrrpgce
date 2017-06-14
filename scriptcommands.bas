@@ -410,7 +410,7 @@ SUB process_wait_conditions()
     CASE 4'--wait for NPC
      DIM npcref as integer = getnpcref(.waitarg, 0)
      IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
-      IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
+      IF npc(npcref).xgo = 0 ANDALSO npc(npcref).ygo = 0 ANDALSO npc(npcref).pathfinder_override = NO THEN
        script_stop_waiting()
       END IF
      ELSE

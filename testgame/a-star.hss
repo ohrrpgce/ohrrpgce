@@ -1,5 +1,5 @@
-define constant(15, last map)
-define constant(15, default map)
+define constant(16, last map)
+define constant(16, default map)
 
 define constant(3, music count)
 define constant(1, timer:turn and go)
@@ -8,6 +8,8 @@ define constant(2, str:turn and go)
 
 global variable(1, turn and go ref)
 global variable(2, music i)
+global variable(3, find x)
+global variable(4, find y)
 
 #-----------------------------------------------------------------------
 
@@ -266,12 +268,11 @@ end
 
 script, back and forth loop, begin
   if(current map <> map:back and forth) then(exit script)
-  variable(ref, diff)
+  variable(ref)
   ref := next npc reference()
   while(ref) do(
     if(get npc id(ref) == 1) then(
-      diff := abs(npc x(ref) -- hero x(me)) + abs(npc y(ref) -- hero y(me))
-      if(diff == 1) then(
+      if(one tile from hero(ref)) then(
         npc chases npc(ref, 4, true)
       )
     )
@@ -279,3 +280,62 @@ script, back and forth loop, begin
   )
   set timer(timer:back and forth, 0, 1, @back and forth loop)
 end
+
+script, one tile from hero, ref, begin
+  exit returning(manhattan dist to hero(ref) <= 1)
+end
+
+script, manhattan dist to hero, ref, begin
+  exit returning(abs(npc x(ref) -- hero x(me)) + abs(npc y(ref) -- hero y(me)))
+end
+
+script, one tile from npc, ref, other, begin
+  exit returning(manhattan dist between npcs(ref, other) <= 1)
+end
+
+script, manhattan dist between npcs, ref, other, begin
+  exit returning(abs(npc x(ref) -- npc x(other)) + abs(npc y(ref) -- npc y(other)))
+end
+
+plotscript, trigger summoner, arg, ref, begin
+  variable(old x, old y)
+  suspend player
+  camera follows npc(ref)
+  old x := npc x(ref)
+  old y := npc y(ref)
+  if(find slime well) then(
+    pathfind npc to(ref, find x, find y -- 1)
+    wait for npc(ref)
+    create npc(1, find x, find y, down)
+    pathfind npc to(ref, old x, old y)
+    wait for npc(ref)
+  )
+  camera follows hero
+  resume player
+end
+
+script, find slime well, begin
+  exit returning(find random zone tile(3))
+end
+
+script, find random zone tile, seek zone, begin
+  variable(count, which, x, y, found)
+  count := zone number of tiles(seek zone)
+  if(count == 0) then(exit returning(false))
+  which := random(1, count)
+  found := 0
+  for(y, 0, map height -- 1) do(
+    for(x, 0, map width -- 1) do(
+      if(read zone(seek zone, x, y)) then(
+        found += 1
+        if(found == which) then(
+          find x := x
+          find y := y
+          exit returning(true)
+        )
+      )
+    )
+  )
+  exit returning(false)
+end
+
