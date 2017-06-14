@@ -1,8 +1,9 @@
-define constant(14, last map)
-define constant(14, default map)
+define constant(15, last map)
+define constant(15, default map)
 
 define constant(3, music count)
 define constant(1, timer:turn and go)
+define constant(2, timer:back and forth)
 define constant(2, str:turn and go)
 
 global variable(1, turn and go ref)
@@ -25,6 +26,11 @@ plotscript, circle the wagons autorun, begin
     clicky switch(none, ref)
   )
   follow all in a loop(1)
+end
+
+plotscript, back and forth autorun, begin
+  trace(string sprintf(0, $1="back and forth autorun"))
+  back and forth loop
 end
 
 #-----------------------------------------------------------------------
@@ -256,4 +262,20 @@ plotscript, cancel all npc walk, begin
     ref := next npc reference(ref)
   )
   play sound(6)
+end
+
+script, back and forth loop, begin
+  if(current map <> map:back and forth) then(exit script)
+  variable(ref, diff)
+  ref := next npc reference()
+  while(ref) do(
+    if(get npc id(ref) == 1) then(
+      diff := abs(npc x(ref) -- hero x(me)) + abs(npc y(ref) -- hero y(me))
+      if(diff == 1) then(
+        npc chases npc(ref, 4, true)
+      )
+    )
+    ref := next npc reference(ref)
+  )
+  set timer(timer:back and forth, 0, 1, @back and forth loop)
 end
