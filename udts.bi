@@ -247,6 +247,16 @@ ENUM NPCOverrideMove
  POS
 END ENUM
 
+TYPE PathfinderOverride
+  override as NPCOverrideMove 'Set if normal movement has been overridden by pathfinding
+
+  cooldown as integer 'Used to prevent stuck pathfinding NPCs from re-pathing too fast
+
+  dest_pos as XYPair 'Used when pathfinding overrides normal movement (only used for NPCOverrideMove.POS)
+  dest_npc as integer 'NPC reference used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
+  stop_when_npc_reached as bool
+END TYPE
+
 'Don't forget to update CleanNPCL and load/save_npc_instances when adding to this
 TYPE NPCInst
   sl as SliceFwd Ptr
@@ -271,13 +281,8 @@ TYPE NPCInst
   suspend_use as bool   'not activatable 
   suspend_ai as bool    'ignore movetype (effectively 'stand still')
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
-  
-  pathfinder_cooldown as integer 'Used to prevent stuck pathfinding NPCs from re-pathing too fast
 
-  pathfinder_override as NPCOverrideMove 'Set if normal movement has been overridden by pathfinding
-  pathfinder_dest_pos as XYPair 'Used when pathfinding overrides normal movement (only used for NPCOverrideMove.POS)
-  pathfinder_dest_npc as integer 'NPC reference used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
-  pathfinder_stop_when_npc_reached as bool
+  pathover as PathfinderOverride
 END TYPE
 
 TYPE InventSlot

@@ -1557,7 +1557,7 @@ SUB update_npcs ()
     END IF
    ELSE
     '--For all NPCs except the active vehicle
-    IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = 0) ORELSE npc(o).pathfinder_override THEN
+    IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = 0) ORELSE npc(o).pathover.override THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
      END IF
@@ -1803,8 +1803,8 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
 END SUB
 
 SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
- if npci.pathfinder_cooldown > 0 then
-  npci.pathfinder_cooldown -= 1
+ if npci.pathover.cooldown > 0 then
+  npci.pathover.cooldown -= 1
   return
  end if
 
@@ -1814,28 +1814,28 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  t1.x = npci.x / 20
  t1.y = npci.y / 20
  dim t2 as XYPair
- select case npci.pathfinder_override
+ select case npci.pathover.override
   case NPCOverrideMove.NONE
    'No override is currently happening, default to chasing the leader hero
    t2.x = herotx(0)
    t2.y = heroty(0)
    should_collide_with_hero = NO
   case NPCOverrideMove.NPC
-   if npc(npci.pathfinder_dest_npc).id = 0 then
+   if npc(npci.pathover.dest_npc).id = 0 then
     'NPC must have been deleted
     cancel_npc_movement_override (npci)
     return
    end if
-   t2.x = npc(npci.pathfinder_dest_npc).x / 20
-   t2.y = npc(npci.pathfinder_dest_npc).y / 20
-   if npci.pathfinder_stop_when_npc_reached andalso xypair_wrapping_manhattan_distance (t1, t2) <= 1 then
+   t2.x = npc(npci.pathover.dest_npc).x / 20
+   t2.y = npc(npci.pathover.dest_npc).y / 20
+   if npci.pathover.stop_when_npc_reached andalso xypair_wrapping_manhattan_distance (t1, t2) <= 1 then
     'Within 1 tile of destination
     cancel_npc_movement_override (npci)
     return
    end if
    should_collide_with_hero = YES
   case NPCOverrideMove.POS
-   t2 = npci.pathfinder_dest_pos
+   t2 = npci.pathover.dest_pos
    if t1 = t2 then
     'Already at destination
     cancel_npc_movement_override (npci)
@@ -1854,15 +1854,16 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
   npcmove_walk_ahead(npci)
  else
   'Don't try again for 10 ticks
-  npci.pathfinder_cooldown = 10
+  npci.pathover.cooldown = 10
  end if
 END SUB
 
 SUB cancel_npc_movement_override (npci as NPCInst)
- npci.pathfinder_override = NPCOverrideMove.NONE
- npci.pathfinder_dest_pos = XY(-1, -1)
- npci.pathfinder_dest_npc = 0
- npci.pathfinder_stop_when_npc_reached = NO
+ npci.pathover.override = NPCOverrideMove.NONE
+ npci.pathover.dest_pos = XY(-1, -1)
+ npci.pathover.dest_npc = 0
+ npci.pathover.stop_when_npc_reached = NO
+ npci.pathover.cooldown = 0
 END SUB
 
 'A currently stationary NPC decides what to do.
@@ -1874,7 +1875,7 @@ SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
   EXIT SUB
  END IF
 
- IF npci.pathfinder_override THEN 
+ IF npci.pathover.override THEN 
   npcmove_pathfinding_chase(npci, npcdata)
   EXIT SUB
  END IF
@@ -1952,6 +1953,8 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    '--no speed, kill wantgo
    npci.xgo = 0
    npci.ygo = 0
+   '--also kill pathfinding override
+   cancel_npc_movement_override (npci)
   END IF
   IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
  END IF
@@ -2092,7 +2095,7 @@ END FUNCTION
 
 SUB npchitwall(npci as NPCInst, npcdata as NPCType)
  IF npci.suspend_ai = 0 THEN
-  IF npci.pathfinder_override THEN
+  IF npci.pathover.override THEN
    'Don't do any of this if normal movement has been temporarily overridden by pathfinding
    EXIT SUB
   END IF

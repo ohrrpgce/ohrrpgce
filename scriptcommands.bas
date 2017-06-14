@@ -410,7 +410,7 @@ SUB process_wait_conditions()
     CASE 4'--wait for NPC
      DIM npcref as integer = getnpcref(.waitarg, 0)
      IF npcref >= 0 ANDALSO .waitarg2 = gam.map.id THEN
-      IF npc(npcref).xgo = 0 ANDALSO npc(npcref).ygo = 0 ANDALSO npc(npcref).pathfinder_override = NO THEN
+      IF npc(npcref).xgo = 0 ANDALSO npc(npcref).ygo = 0 ANDALSO npc(npcref).pathover.override = NO THEN
        script_stop_waiting()
       END IF
      ELSE
@@ -4316,17 +4316,17 @@ SUB script_functions(byval cmdid as integer)
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   IF npcref >= 0 THEN
    cancel_npc_movement_override (npc(npcref))
-   npc(npcref).pathfinder_override = NPCOverrideMove.POS
-   npc(npcref).pathfinder_dest_pos = XY(retvals(1), retvals(2))
+   npc(npcref).pathover.override = NPCOverrideMove.POS
+   npc(npcref).pathover.dest_pos = XY(retvals(1), retvals(2))
   END IF
  CASE 629'--npc chases npc
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
   DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
   IF npcref >= 0 ANDALSO dest_npcref <> -1 THEN
    cancel_npc_movement_override (npc(npcref))
-   npc(npcref).pathfinder_override = NPCOverrideMove.NPC
-   npc(npcref).pathfinder_dest_npc = dest_npcref
-   npc(npcref).pathfinder_stop_when_npc_reached = (retvals(2) <> 0)
+   npc(npcref).pathover.override = NPCOverrideMove.NPC
+   npc(npcref).pathover.dest_npc = dest_npcref
+   npc(npcref).pathover.stop_when_npc_reached = (retvals(2) <> 0)
   END IF
  CASE 630'--cancel npc walk
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
