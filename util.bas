@@ -975,7 +975,8 @@ END SUB
    EXIT SUB
   END IF
   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
-  FOR idx as integer = UBOUND(array) TO pos STEP -1
+  array(UBOUND(array)) = value
+  FOR idx as integer = UBOUND(array) - 1 TO pos STEP -1
    SWAP array(idx), array(idx + 1)
   NEXT
  END SUB
@@ -1047,6 +1048,14 @@ SUB int_array_copy (fromarray() as integer, toarray() as integer)
  DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
  REDIM toarray(low TO high)
  memcpy @toarray(low), @fromarray(low), sizeof(integer) * (high - low + 1)
+END SUB
+
+SUB str_array_copy (fromarray() as string, toarray() as string)
+ DIM as integer low = LBOUND(fromarray), high = UBOUND(fromarray)
+ REDIM toarray(low TO high)
+ FOR i as integer = low TO high
+  toarray(i) = fromarray(i)
+ NEXT
 END SUB
 
 'I've compared the speed of the following two. For random integers, the quicksort is faster

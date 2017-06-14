@@ -4,4 +4,6 @@ You cannot fix the problem here; this is merely to see at a glance where broken 
 
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
 
+Select "Export to File" to save the contents of this screen to a text file.
+
 Press ESC to return to the Script Management menu.

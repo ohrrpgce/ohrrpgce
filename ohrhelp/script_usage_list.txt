@@ -4,4 +4,6 @@ You cannot do anything to your scripts from this screen; it is merely to see at 
 
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type part of menu item to jump to it, such as "map 68".
 
+Select "Export to File" to save the contents of this screen to a text file.
+
 Press ESC to go back to the Script Management menu.

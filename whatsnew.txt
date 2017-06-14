@@ -88,6 +88,8 @@ WHAT IS NEW?
       changes" [James]
     * Re-added F7 debug key to pan the camera (we used to have a similar
       debug key a while ago) [Ralph]
+    * "Export to File" option in Script Usage and Find Broken Script
+      Triggers menus [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
@@ -129,6 +131,7 @@ WHAT IS NEW?
     * Scripts triggered from a menu item now always get passed the menu
       item extra data, even if the first argument is the menu item
       handle [Ralph]
+    * Custom's "title" screen [Ralph]
 
   * Bugfixes
     * 64-bit builds of Custom work now... for real this time! They

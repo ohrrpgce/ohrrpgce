@@ -36,6 +36,7 @@ DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers a
 DECLARE SUB decompile_scripts()
 DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
 
+DECLARE SUB script_list_export (menu() as string, description as string, remove_first_items as integer)
 DECLARE SUB visit_scripts(byval visit as FnScriptVisitor)
 DECLARE SUB gather_script_usage(list() as string, byval id as integer, byval trigger as integer=0, byref meter as integer, byval meter_times as integer=1, box_instead_cache() as integer, box_after_cache() as integer, box_preview_cache() as string)
 DECLARE SUB script_usage_list ()
@@ -1160,6 +1161,24 @@ PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as stri
  RETURN NO  'trig not modified
 END FUNCTION
 
+' Export menu() to a file, except for the first items.
+SUB script_list_export (menu() as string, description as string, remove_first_items as integer)
+ DIM title as string = trimpath(trimextension(sourcerpg)) + " " + description
+ DIM fname as string = inputfilename("Filename to export " & description & " list to?", _
+                                     ".txt", "", "", title)
+ IF LEN(fname) THEN
+  DIM lines() as string
+  str_array_copy menu(), lines()
+  FOR i as integer = 1 TO remove_first_items
+   str_array_pop lines(), 0
+  NEXT
+  str_array_insert lines(), 0, title
+  str_array_insert lines(), 1, "Exported " & DATE & " " & TIME
+  str_array_insert lines(), 2, ""
+  lines_to_file lines(), fname + ".txt"
+ END IF
+END SUB
+
 SUB script_usage_list ()
  DIM buf(20) as integer
  DIM id as integer
@@ -1175,9 +1194,12 @@ SUB script_usage_list ()
  'Start by adding all the script names to script_usage_menu (so that they'll
  'appear first when we do a stable sort), then add script instances.
 
- REDIM script_usage_menu(0)
- script_usage_menu(0).i = -1
- script_usage_menu(0).s = "back to previous menu..."
+ REDIM script_usage_menu(1)
+ script_usage_menu(0).i = -2
+ script_usage_menu(0).s = "Back to Previous Menu"
+ script_usage_menu(1).i = -1
+ script_usage_menu(1).s = "Export to File..."
+ DIM num_fixed_menu_items as integer = 2
 
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
@@ -1258,7 +1280,7 @@ SUB script_usage_list ()
  DIM selectst as SelectTypeState
  DIM state as MenuState
  state.autosize = YES
- state.last = UBOUND(menu)
+ init_menu_state state, menu()
  
  setkeys YES
  DO
@@ -1268,6 +1290,7 @@ SUB script_usage_list ()
   IF keyval(scF1) > 1 THEN show_help "script_usage_list"
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN script_list_export menu(), "script usage", num_fixed_menu_items
   END IF
   usemenu state
   IF select_by_typing(selectst) THEN
@@ -1329,18 +1352,20 @@ SUB script_broken_trigger_list()
  'Cache plotscr.lst
  load_script_ids_list
 
- REDIM missing_script_trigger_list(0) as string
- missing_script_trigger_list(0) = "back to previous menu..."
+ REDIM missing_script_trigger_list(1) as string
+ missing_script_trigger_list(0) = "Back to Previous Menu"
+ missing_script_trigger_list(1) = "Export to File..."
+ DIM num_fixed_menu_items as integer = 2
 
  visit_scripts @check_broken_script_trigger
 
- IF UBOUND(missing_script_trigger_list) = 0 THEN
+ IF UBOUND(missing_script_trigger_list) = num_fixed_menu_items - 1 THEN
   str_array_append missing_script_trigger_list(), "No broken triggers found!"
  END IF
 
  DIM state as MenuState
- state.size = 24
- state.last = UBOUND(missing_script_trigger_list)
+ state.autosize = YES
+ init_menu_state state, missing_script_trigger_list()
 
  setkeys
  DO
@@ -1350,6 +1375,7 @@ SUB script_broken_trigger_list()
   IF keyval(scF1) > 1 THEN show_help "script_broken_trigger_list"
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN script_list_export missing_script_trigger_list(), "broken triggers", num_fixed_menu_items
   END IF
   usemenu state
 

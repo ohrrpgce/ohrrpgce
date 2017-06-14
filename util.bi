@@ -144,6 +144,7 @@ declare sub int_array_pop (array() as integer, which as integer = &hE2D0FD15)
 declare function str_array_remove (array() as string,  value as string)  as integer
 declare function int_array_remove (array() as integer, value as integer) as integer
 declare sub int_array_copy (fromarray() as integer, toarray() as integer)
+declare sub str_array_copy (fromarray() as string,  toarray() as string)
 
 /'
 declare sub int_array_exclude (() as integer, array() as integer)
