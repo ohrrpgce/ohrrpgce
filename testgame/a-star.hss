@@ -298,16 +298,13 @@ script, manhattan dist between npcs, ref, other, begin
 end
 
 plotscript, trigger summoner, arg, ref, begin
-  variable(old x, old y)
   suspend player
   camera follows npc(ref)
-  old x := npc x(ref)
-  old y := npc y(ref)
   if(find slime well) then(
-    pathfind npc to(ref, find x, find y -- 1)
+    pathfind npc to(ref, find x, find y -- 1, 0)
     wait for npc(ref)
     create npc(1, find x, find y, down)
-    pathfind npc to(ref, old x, old y)
+    pathfind npc to(ref, hero x(me), hero y(me), 0)
     wait for npc(ref)
   )
   camera follows hero

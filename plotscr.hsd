@@ -649,8 +649,8 @@ define function, begin
 625,moveslicewithwallchecking,3,0,0,0    # Move a slice by xgo,ygo or until it hits a wall (sl, xgo, ygo)
 626,textboxtext,4,0,0,1,0                # Get whole text from a textbox (string, box, expand, strip)
 627,checkgameexists,1,-1      # Check an .rpg/.rpgdir exists (string id)
-628,pathfindnpcto,3,0,0,0     # Make an NPC pathfind to a specific position (npc, tile x, tile y)
-629,npcchasesnpc,3,0,0,0      # Make an NPC chase another NPC (npc, target npc, stop when reached)
+628,pathfindnpcto,4,0,0,0,0   # Make an NPC pathfind to a specific position (npc, tile x, tile y, stop after stuckticks)
+629,npcchasesnpc,4,0,0,0,0    # Make an NPC chase another NPC (npc, target npc, stop when reached, stop after stuckticks)
 630,cancelnpcwalk,1,0         # Cancel walknpc, pathfindnpcto, or npcchasesnpc command (npc)
 631,playerissuspended,0       # return true if "suspend player" is active
 632,npcsaresuspended,0        # return true if "suspend NPCs" is active

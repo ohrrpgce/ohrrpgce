@@ -1811,6 +1811,10 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
 END SUB
 
 SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
+ if npci.pathover.stop_after_stillticks > 0 andalso npci.stillticks > npci.pathover.stop_after_stillticks then
+  cancel_npc_movement_override (npci)
+  return
+ end if
  if npci.pathover.cooldown > 0 then
   npci.pathover.cooldown -= 1
   return
@@ -1871,6 +1875,7 @@ SUB cancel_npc_movement_override (npci as NPCInst)
  npci.pathover.dest_pos = XY(-1, -1)
  npci.pathover.dest_npc = 0
  npci.pathover.stop_when_npc_reached = NO
+ npci.pathover.stop_after_stillticks = 0
  npci.pathover.cooldown = 0
 END SUB
 

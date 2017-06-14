@@ -4318,6 +4318,7 @@ SUB script_functions(byval cmdid as integer)
    cancel_npc_movement_override (npc(npcref))
    npc(npcref).pathover.override = NPCOverrideMove.POS
    npc(npcref).pathover.dest_pos = XY(retvals(1), retvals(2))
+   npc(npcref).pathover.stop_after_stillticks = retvals(3)
   END IF
  CASE 629'--npc chases npc
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)
@@ -4327,6 +4328,7 @@ SUB script_functions(byval cmdid as integer)
    npc(npcref).pathover.override = NPCOverrideMove.NPC
    npc(npcref).pathover.dest_npc = dest_npcref
    npc(npcref).pathover.stop_when_npc_reached = (retvals(2) <> 0)
+   npc(npcref).pathover.stop_after_stillticks = retvals(3)
   END IF
  CASE 630'--cancel npc walk
   DIM npcref as integer = get_valid_npc(retvals(0), serrBadOp)

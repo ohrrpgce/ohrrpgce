@@ -255,6 +255,7 @@ TYPE PathfinderOverride
   dest_pos as XYPair 'Used when pathfinding overrides normal movement (only used for NPCOverrideMove.POS)
   dest_npc as integer 'NPC reference used when pathfinding overrides normal movement (only used for NPCOverrideMove.NPC)
   stop_when_npc_reached as bool
+  stop_after_stillticks as integer
 END TYPE
 
 'Don't forget to update CleanNPCL and load/save_npc_instances when adding to this
