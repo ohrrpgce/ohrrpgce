@@ -1066,6 +1066,11 @@ play song (get ambient music)</example>
 			<shortname>resume timers</shortname>
 			<description>Undoes <ref>suspendtimers</ref>. All previously paused plot timers will become active again.</description>
 		</command>
+		<command id="timersaresuspended">
+			<canon>timers are suspended</canon>
+			<shortname>timers are suspended</shortname>
+			<description>Returns true if <ref>suspendtimers</ref> is active.</description>
+		</command>
 	</section>
 
 	<section title="Moving Heroes">

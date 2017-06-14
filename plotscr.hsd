@@ -663,7 +663,7 @@ define function, begin
 639,boxadvanceissuspended,0   # return true if "suspend box advance" is active
 640,overlayissuspended,0      # return true if "suspend overlay" is active
 641,mapmusicissuspended,0     # return true if "suspend map music" is active
-#642,timersaresuspended,0      # return true if "suspend timers" is active
+642,timersaresuspended,0      # return true if "suspend timers" is active
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

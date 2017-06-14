@@ -2358,10 +2358,10 @@ END FUNCTION
 
 ' Countdown timers, applying effects (except TIMERFLAG_CRITICAL)
 SUB dotimer(timercontext as TimerContextEnum)
+  if readbit(gen(), genSuspendBits, suspendtimers) <> 0 then exit sub
   dim i as integer
   for i = 0 to ubound(timers)
     with timers(i)
-      if .pause then continue for
       if .speed > 0 then
         if should_skip_this_timer(timercontext, timers(i)) then continue for  'not supposed to run here
         'debug "i=" & i & " timercontext=" & timercontext & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger

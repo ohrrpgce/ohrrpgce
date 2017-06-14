@@ -2577,13 +2577,9 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF 
  CASE 415 '--suspend timers
-  FOR i as integer = 0 TO ubound(timers)
-   timers(i).pause = YES
-  NEXT i
+  setbit gen(), genSuspendBits, suspendtimers, 1
  CASE 416 '--resume timers
-  FOR i as integer = 0 TO ubound(timers)
-   timers(i).pause = NO
-  NEXT i
+  setbit gen(), genSuspendBits, suspendtimers, 0
  CASE 325, 417 '--set sprite visible, set slice visible
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
@@ -4360,6 +4356,8 @@ SUB script_functions(byval cmdid as integer)
   scriptret = IIF(readbit(gen(), genSuspendBits, suspendoverlay), 1, 0)
  CASE 641'--map music is suspended
   scriptret = IIF(readbit(gen(), genSuspendBits, suspendambientmusic), 1, 0)
+ CASE 642'--timers are suspended
+  scriptret = IIF(readbit(gen(), genSuspendBits, suspendtimers), 1, 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

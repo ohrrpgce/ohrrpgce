@@ -297,7 +297,6 @@ TYPE PlotTimer
   trigger as integer
   flags as integer  '1=critical 2=battle 4=menu 8+=undefined
   st as integer     'string, but both str and string are reserved
-  pause as bool
   finished_tick as integer  'tick at which this last triggered; 0 if never
 END TYPE
 

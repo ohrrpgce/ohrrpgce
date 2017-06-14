@@ -1216,9 +1216,6 @@ IF mode > 1 AND viewmode = 4 THEN
     text &= LEFT(.count & "      ", 6)
    END IF
    text &= LEFT(ABS(.speed) & "      ", 6)  'negated if not running
-   IF .pause THEN
-    flags &= "P "
-   END IF
    flags &= .flags
    text &= LEFT(flags & "      ", 6)
    text &= LEFT(.st & "    ", 4)

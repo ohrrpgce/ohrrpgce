@@ -1297,7 +1297,6 @@ FOR i as integer = 0 TO ubound(timers)
   .trigger = 0
   .flags = 0
   .st = 0
-  .pause = NO
  END WITH
 NEXT i
 
