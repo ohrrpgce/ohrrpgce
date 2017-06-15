@@ -297,14 +297,24 @@ script, manhattan dist between npcs, ref, other, begin
   exit returning(abs(npc x(ref) -- npc x(other)) + abs(npc y(ref) -- npc y(other)))
 end
 
+script, one tile from spot, ref, x, y, begin
+  exit returning(manhattan dist to spot(ref, x, y) <= 1)
+end
+
+script, manhattan dist to spot, ref, x, y, begin
+  exit returning(abs(npc x(ref) -- x) + abs(npc y(ref) -- y))
+end
+
 plotscript, trigger summoner, arg, ref, begin
   suspend player
   camera follows npc(ref)
   if(find slime well) then(
-    pathfind npc to(ref, find x, find y -- 1, 0)
+    pathfind npc to(ref, find x, find y -- 1, 1)
     wait for npc(ref)
-    create npc(1, find x, find y, down)
-    pathfind npc to(ref, hero x(me), hero y(me), 0)
+    if(one tile from spot(ref, find x, find y)) then(
+      create npc(1, find x, find y, down)
+    )
+    pathfind npc to(ref, hero x(me), hero y(me), 1)
     wait for npc(ref)
   )
   camera follows hero
