@@ -115,6 +115,8 @@ WHAT IS NEW?
     * Commands to check whether or not each of the suspend states is
       active, for example: "player is suspended", "npc walls are
       suspended", etc... [James]
+    * NPC pathfinding commands: "pathfind npc to" "npc chases npc"
+      "cancel npc walk" [James]
     * Changes to the language:
       * -= and += now return their result, like := does, so they can be
         used as expressions [Ralph]

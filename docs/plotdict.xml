@@ -1362,6 +1362,37 @@ while (npcref) do (
 			<shortname>set NPC direction</shortname>
 			<description>Makes the specified NPC face in the specified direction. The following constants are available for direction: <ref>north</ref>, <ref>south</ref>, <ref>east</ref>, <ref>west</ref>, <ref>up</ref>, <ref>down</ref>, <ref>left</ref>, or <ref>right</ref>. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will turn.</description>
 		</command>
+		<command id="pathfindnpcto">
+			<canon>pathfind NPC to (who, x, y, stuck ticks)</canon>
+			<shortname>pathfind NPC to</shortname>
+			<description>Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the NPC. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancel npc walk</ref> command.</description>
+			<seealso>
+				<ref>npcchasesnpc</ref>
+				<ref>cancelnpcwalk</ref>
+				<ref>waitfornpc</ref>
+			</seealso>
+		</command>
+		<command id="npcchasesnpc">
+			<canon>NPC chases NPC (who, other who, stop when reached, stuck ticks)</canon>
+			<shortname>NPC chases NPC</shortname>
+			<description>Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <p>who</p> is the NPC who will be chasing. The second argument <p>other who</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancel npc walk</ref> command.</description>
+			<seealso>
+				<ref>pathfindnpcto</ref>
+				<ref>cancelnpcwalk</ref>
+				<ref>waitfornpc</ref>
+			</seealso>
+		</command>
+		<command id="cancelnpcwalk">
+			<canon>cancel NPC walk (who)</canon>
+			<shortname>cancel NPC walk</shortname>
+			<description>If the specified NPC is walking with a command like <ref>walknpc</ref> or pathfinding with a command like <ref>pathfindnpcto</ref>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles. This command has no effect on automatic NPC movement patterns, it only stops scripted movement.</description>
+			<seealso>
+				<ref>pathfindnpcto</ref>
+				<ref>npcchasesnpc</ref>
+				<ref>walknpc</ref>
+				<ref>cancelnpcwalk</ref>
+			</seealso>
+		</command>
 		<command id="npcdirection">
 			<canon>NPC direction (who)</canon>
 			<shortname>NPC direction</shortname>
