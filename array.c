@@ -45,11 +45,12 @@ static inline array_header *get_header(array_t array) {
 
 #define ARRAY_OVERHEAD sizeof(short)
 
-array_header **header_table;
+array_header **header_table = NULL;
 
-static short alloc_header() {
+// Returns an index in header_table containing the header pointer
+static unsigned short alloc_header() {
 	if (!header_table) {
-		header_table = calloc(65536 * sizeof(void *), 1);
+		header_table = calloc(65536 * sizeof(array_header *), 1);
 	}
 	for (int i = 0; i < 65536; i++) {
 		if (!header_table[i]) {
@@ -68,10 +69,11 @@ static void free_header(short id) {
 	header_table[id] = NULL;
 }
 
-static inline array_header *get_header(array_t array) {
+//static inline
+array_header *get_header(array_t array) {
 	if (!array)
 		return NULL;
-	return header_table[((short *)array)[-1]];
+	return header_table[((unsigned short *)array)[-1]];
 }
 
 
@@ -144,7 +146,7 @@ static array_t mem_alloc(typetable *typetbl, int len, int alloc) {
 		debug(errFatal, "mem_alloc: out of memory");
 	array_t array = get_array_ptr(mem);
 #ifdef VALGRIND_ARRAYS
-	*(short *)mem = alloc_header();
+	*(unsigned short *)mem = alloc_header();
 #endif
 	array_header *header = get_header(array);
 	header->typetbl = typetbl;
