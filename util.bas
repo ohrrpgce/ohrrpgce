@@ -2749,17 +2749,17 @@ SUB string_to_file (string_to_write as string, filename as string)
  CLOSE #fh
 END SUB
 
-'Read each line of a file into a string array
-SUB lines_from_file(strarray() as string, filename as string, expect_exists as bool = YES)
+'Read each line of a file into a string array. Return true on success
+FUNCTION lines_from_file(strarray() as string, filename as string, expect_exists as bool = YES) as bool
  REDIM strarray(-1 TO -1)
  DIM as integer fh, openerr
  openerr = OPENFILE(filename, FOR_INPUT, fh)
  IF openerr = fberrNOTFOUND THEN
   IF expect_exists THEN showerror "Missing file: " & filename
-  EXIT SUB
+  RETURN NO
  ELSEIF openerr <> fberrOK THEN
   showerror "lines_from_file: Couldn't open " & filename
-  EXIT SUB
+  RETURN NO
  END IF
  DO UNTIL EOF(fh)
   DIM text as string
@@ -2767,21 +2767,23 @@ SUB lines_from_file(strarray() as string, filename as string, expect_exists as b
   str_array_append strarray(), text
  LOOP
  CLOSE #fh
-END SUB
+ RETURN YES
+END FUNCTION
 
 'Write an array of strings to a file, one-per-line.
-'unix line endings will automatically be added
-SUB lines_to_file(strarray() as string, filename as string)
+'The specified line endings will automatically be added (you can pass "" if not needed)
+FUNCTION lines_to_file(strarray() as string, filename as string, lineending as string = !"\n") as bool
  DIM fh as integer
  IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) THEN
   showerror "lines_to_file: Couldn't open " & filename
-  EXIT SUB
+  RETURN NO
  END IF
  FOR i as integer = 0 TO UBOUND(strarray)
-  PUT #fh, , strarray(i) & !"\n"
+  PUT #fh, , strarray(i) & lineending
  NEXT i
  CLOSE #fh
-END SUB
+ RETURN YES
+END FUNCTION
 
 'Note: Custom doesn't use this function
 FUNCTION get_tmpdir () as string
@@ -2914,7 +2916,7 @@ SUB write_ini_value (ini_filename as string, key as string, value as integer)
   lines_from_file ini(), ini_filename
  END IF
  write_ini_value ini(), key, value
- lines_to_file ini(), ini_filename
+ lines_to_file ini(), ini_filename, LINE_END
 END SUB
 
 SUB write_ini_value (ini() as string, key as string, value as integer)

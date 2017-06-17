@@ -1175,7 +1175,7 @@ SUB script_list_export (menu() as string, description as string, remove_first_it
   str_array_insert lines(), 0, title
   str_array_insert lines(), 1, "Exported " & DATE & " " & TIME
   str_array_insert lines(), 2, ""
-  lines_to_file lines(), fname + ".txt"
+  lines_to_file lines(), fname + ".txt", LINE_END
  END IF
 END SUB
 
