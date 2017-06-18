@@ -2952,8 +2952,10 @@ sub writeblock (map as TileMap, byval x as integer, byval y as integer, byval v 
 	map.data[x + y * map.wide] = v
 end sub
 
+'Calculate which tile to display
 private function calcblock (tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 'returns -1 to draw no tile
+'overheadmode = 0 : ignore overhead tile bit; draw normally;
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
 'overheadmode = 2 : draw overhead tiles only
 	dim block as integer
@@ -2992,9 +2994,10 @@ private function calcblock (tmap as TileMap, byval x as integer, byval y as inte
 
 	if overheadmode > 0 then
 		if pmapptr = NULL then
-			debugc errPromptBug, "NULL passmap ptr"
+			debugc errPromptBug, "calcblock: overheadmode but passmap ptr is NULL"
 			block = -1
 		elseif x >= pmapptr->wide or y >= pmapptr->high then
+			'Impossible if the passmap is the same size
 			if overheadmode = 2 then block = -1
 		elseif ((readblock(*pmapptr, x, y) and passOverhead) <> 0) xor (overheadmode = 2) then
 			block = -1
@@ -3002,6 +3005,17 @@ private function calcblock (tmap as TileMap, byval x as integer, byval y as inte
 	end if
 
 	return block
+end function
+
+'Given a tile number, possibly animated, translate it to the static tile to display
+function translate_animated_tile(todraw as integer) as integer
+	if todraw >= 208 then
+		return (todraw - 48 + anim2) mod 160
+	elseif todraw >= 160 then
+		return (todraw + anim1) mod 160
+	else
+		return todraw
+	end if
 end function
 
 sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tileset as TilesetData ptr, byval p as integer, byval trans as bool = NO, byval overheadmode as integer = 0, byval pmapptr as TileMap ptr = NULL, byval ystart as integer = 0, byval yheight as integer = -1)
@@ -3076,12 +3090,8 @@ sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tile
 		xpos = xstart
 		while tx < dest->w
 			todraw = calcblock(tmap, xpos, ypos, overheadmode, pmapptr)
-			if (largetileset = NO ANDALSO todraw >= 160) then
-				if (todraw > 207) then
-					todraw = (todraw - 48 + anim2) MOD 160
-				else
-					todraw = (todraw + anim1) MOD 160
-				end if
+			if largetileset = NO then
+				todraw = translate_animated_tile(todraw)
 			end if
 
 			'get the tile
@@ -3112,6 +3122,27 @@ end sub
 
 sub setoutside (byval defaulttile as integer)
 	bordertile = defaulttile
+end sub
+
+' Draws all map layers at a single tile coordinate. Used for drawing the minimap.
+' Respects setoutside. Changes the setanim (current tileset animation) state.
+sub draw_layers_at_tile(composed_tile as Frame ptr, tiles() as TileMap, tilesets() as TilesetData ptr, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
+	for layer as integer = 0 to ubound(tiles)
+		with *tilesets(layer)
+			setanim .tastuf(0) + .anim(0).cycle, .tastuf(20) + .anim(1).cycle
+
+			dim todraw as integer = calcblock(tiles(layer), tx, ty, 0, 0)
+			if todraw < -1 then continue for
+			todraw = translate_animated_tile(todraw)
+
+			frame_draw .spr, , 0, -todraw * 20, 1, (layer > 0), composed_tile
+
+			if layer = 0 andalso pmapptr andalso (readblock(*pmapptr, tx, ty) and passOverhead) then
+				' If an overhead tile, return just the layer 0 tile
+				exit for
+			end if
+		end with
+	next
 end sub
 
 
@@ -7299,7 +7330,7 @@ sub frame_unload cdecl(byval p as frame ptr ptr)
 	*p = 0
 end sub
 
-'Takes a 320x200 Frame and produces a 3200x20 Frame in the format expected of tilesets:
+'Takes a 320x200 Frame and produces a 20x3200 Frame in the format expected of tilesets:
 'linear series of 20x20 tiles.
 function mxs_frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 	dim tileset as Frame ptr

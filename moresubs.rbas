@@ -27,8 +27,8 @@
 #include "scripting.bi"
 
 '--Local subs and functions
-DECLARE SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, tilesets2() as TilesetData ptr)
-DECLARE SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
+DECLARE SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, pass2 as TileMap, tilesets2() as TilesetData ptr)
+DECLARE SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, passX as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
 DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 DECLARE SUB hero_swap_menu_init(st as OrderTeamState)
 DECLARE SUB hero_swap_menu_display (st as OrderTeamState)
@@ -774,12 +774,12 @@ END FUNCTION
 SUB minimap (byval x as integer, byval y as integer)
  DIM mini as Frame Ptr
  DIM zoom as integer = -1
- mini = createminimap(maptiles(), tilesets(), zoom)
+ mini = createminimap(maptiles(), tilesets(), @pass, zoom)
 
  DIM minisize as XYPair
  minisize.x = mini->w
  minisize.y = mini->h
- 
+
  DIM offset as XYPair
  offset.x = rCenter - minisize.x / 2
  offset.y = rCenter - minisize.y / 2
@@ -814,8 +814,11 @@ END SUB
 'The map-teleport debug menu.
 'Sets gam.map.id and hero position and returns true if the player wants to teleport.
 FUNCTION teleporttool () as bool
+ 'The maptiles, passmap and tilesets for displayed map, if not the same as the current in-game map
  REDIM maptiles2(0) as TileMap
+ DIM pass2 as TileMap
  DIM tilesets2(maplayerMax) as TilesetData ptr
+
  DIM mini as Frame Ptr
  DIM zoom as integer = -1 'pixels per tile
  DIM maxzoom as integer
@@ -837,7 +840,7 @@ FUNCTION teleporttool () as bool
 
  'Initially use the real map's maptiles() and tilesets(), which has
  'the advantage of making the map look more correct.
- teleporttool_generate_minimap mini, maptiles(), tilesets(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
+ teleporttool_generate_minimap mini, maptiles(), pass, tilesets(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
 
  DIM state as MenuState
  state.pt = 0
@@ -883,7 +886,7 @@ FUNCTION teleporttool () as bool
   IF preview_delay > 0 THEN
    preview_delay -= 1
    IF preview_delay = 0 THEN
-    teleporttool_load_map destmap, maptiles2(), tilesets2()
+    teleporttool_load_map destmap, maptiles2(), pass2, tilesets2()
     state.need_update = YES
     zoom = -1  'Back to default
    END IF
@@ -892,9 +895,9 @@ FUNCTION teleporttool () as bool
   IF state.need_update THEN
    state.need_update = NO
    IF destmap = currentmap THEN
-    teleporttool_generate_minimap mini, maptiles(), tilesets(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
+    teleporttool_generate_minimap mini, maptiles(), pass, tilesets(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
    ELSE
-    teleporttool_generate_minimap mini, maptiles2(), tilesets2(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
+    teleporttool_generate_minimap mini, maptiles2(), pass2, tilesets2(), zoom, maxzoom, mapsize, minisize, offset, camera, dest
    END IF
   END IF
 
@@ -916,7 +919,7 @@ FUNCTION teleporttool () as bool
     EXIT DO
    END IF
    IF carray(ccMenu) > 1 THEN pickpoint = NO
-   
+
    DIM xrate as integer  'Movement rate
    DIM yrate as integer
    IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
@@ -958,6 +961,7 @@ FUNCTION teleporttool () as bool
  frame_unload @mini
  freepage holdscreen
  unloadtilemaps maptiles2()
+ unloadtilemap pass2
  unloadmaptilesets tilesets2()
  restore_previous_palette
  setkeys
@@ -965,16 +969,17 @@ FUNCTION teleporttool () as bool
  MenuSound gen(genCancelSFX)
 END FUNCTION
 
-'Load a map
-SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, tilesets2() as TilesetData ptr)
+'Load enough of a map's data to display it
+SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, pass2 as TileMap, tilesets2() as TilesetData ptr)
  DIM gmap2(dimbinsize(binMAP)) as integer
  loadrecord gmap2(), game + ".map", getbinsize(binMAP) \ 2, map
  loadtilemaps maptiles2(), maplumpname(map, "t")
  loadmaptilesets tilesets2(), gmap2()
+ loadtilemap pass2, maplumpname(map, "p")
 END SUB
 
 'Generate the minimap given a zoom factor, and determinate viewport and camera positions
-SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
+SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, passX as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
  mapsize.x = maptilesX(0).wide
  mapsize.y = maptilesX(0).high
  DIM screenw as integer = vpages(vpage)->w
@@ -987,7 +992,7 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  maxzoom = bound(INT(2.5 * screen_ratio), 4, 20)
 
  frame_unload @mini
- mini = createminimap(maptilesX(), tilesetsX(), zoom)
+ mini = createminimap(maptilesX(), tilesetsX(), @pass, zoom)
  offset.x = large(screenw \ 2 - mini->w \ 2, 0)
  offset.y = large(screenh \ 2 - mini->h \ 2, 0)
  minisize.x = screenw - offset.x * 2

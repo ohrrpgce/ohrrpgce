@@ -179,6 +179,7 @@ WHAT IS NEW?
     * Fix a bug in turn-based battles that prevented cancelling backwards
       through hero action selection when there was a gap in the party
       [James]
+    * Minimaps now display obsolete Overhead tiles correctly [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

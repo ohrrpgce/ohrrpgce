@@ -4172,13 +4172,13 @@ SUB resize_rezoom_mini_map(st as MapEditState, byref rs as MapResizeState)
  rs.zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
  IF rs.zoom <> lastzoom THEN
   frame_unload @(rs.minimap)
-  rs.minimap = createminimap(st.map.tiles(), st.tilesets(), rs.zoom)
+  rs.minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass, rs.zoom)
  END IF
 END SUB
 
 SUB show_minimap(st as MapEditState)
  DIM minimap as Frame Ptr
- minimap = createminimap(st.map.tiles(), st.tilesets())
+ minimap = createminimap(st.map.tiles(), st.tilesets(), @st.map.pass)
 
  clearpage vpage
  frame_draw minimap, NULL, 0, 0, 1, NO, vpage
