@@ -56,9 +56,16 @@ type FnRWopsClose as function cdecl(byval as SDL_RWops ptr) as integer
 'vectors of all the safe RWops that are not yet closed, and the corresponding close functions.
 dim shared live_RWops as any ptr vector
 dim shared live_RWops_closefuncs as any ptr vector
-v_new live_RWops
-v_new live_RWops_closefuncs
 
+' Initialise globals. But don't a module constructor (module-level code) because
+' it might get run before vector.bas's module constructor which initialises the
+' 'any ptr vector' type table.
+private sub sdl_lumprwops_constructor ()
+	v_new live_RWops
+	v_new live_RWops_closefuncs
+end sub
+
+' On the other hand no ordering problems here
 sub sdl_lumprwops_destructor () destructor
 	v_free live_RWops
 	v_free live_RWops_closefuncs
@@ -83,6 +90,7 @@ end function
 'Wrap an SDL_RWops, overriding the close function. Can be closed/deleted just once,
 'can be safely checked for liveness
 function safe_RWops (byval rw as SDL_RWops ptr) as SDL_RWops ptr
+	if live_RWops = NULL then sdl_lumprwops_constructor
 	v_append live_RWops, rw
 	v_append live_RWops_closefuncs, cast(any ptr, rw->close)
 	rw->close = @safe_RW_close_wrap

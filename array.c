@@ -141,6 +141,7 @@ static array_t mem_alloc(typetable *typetbl, int len, int alloc) {
 	if (smul_overflow(alloc, typetbl->element_len, &arraysize) ||
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
 		debug(errFatal, "mem_alloc: overflow; vector alloc=%d", alloc);
+	//printf("alloc arraysize %d len %d alloc %d ellen %d\n", arraysize, len, alloc, typetbl->element_len);
 	void *mem = malloc(arraysize);
 	if (!mem)
 		debug(errFatal, "mem_alloc: out of memory");
@@ -197,6 +198,7 @@ static array_t mem_resize(array_t array, unsigned int len) {
 	    sadd_overflow(arraysize, ARRAY_OVERHEAD, &arraysize))
 		debug(errFatal, "mem_resize: overflow; vector len=%d", len);
 #if !FORCE_REALLOC
+	//printf("realloc to arraysize %d len %d alloc %d\n", arraysize, len, alloclen);
 	void *newmem = realloc(mem, arraysize);
 #else
 	// For debugging: Allocate new memory
@@ -442,6 +444,9 @@ void array_new(array_t *array, int len, int reserve, typetable *tbl) {
 	}
 	if (reserve < 0) {
 		throw_error("array_new: invalid reserve %d", reserve);
+	}
+	if (tbl->element_len <= 0) {
+		throw_error("array_new: invalid element_len %d", tbl->element_len);
 	}
 	if (*array)
 		array_free(array);
