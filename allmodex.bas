@@ -177,6 +177,11 @@ dim shared lastframe as double              'Time at which the last frame was di
 dim shared blocking_draws as bool = NO      'True if drawing the screen is a blocking call.
 dim shared skipped_frame as SkippedFrame    'Records the last setvispage/setvissurface call if it was frameskipped.
 
+dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if none.
+                                            'Virtually always vpage; in fact using anything other than vpage
+                                            'would cause a lot of glitches.
+dim shared last_setvissurface as Surface ptr = NULL  'Records the last setvissurface. NULL if none
+
 #IFDEF __FB_DARWIN__
 	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
 	' (Still doesn't work perfectly)
@@ -818,7 +823,8 @@ end sub
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 'skippable: if true, allowed to frameskip this frame at high framerates
-sub setvispage (page as integer, skippable as bool = YES)
+'preserve_page: if true, don't modify page
+sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
@@ -829,6 +835,10 @@ sub setvispage (page as integer, skippable as bool = YES)
 		update_fps_counter YES
 		exit sub
 	end if
+	' Remember last page
+	last_setvispage = page
+	if last_setvissurface then gfx_surfaceDestroy(@last_setvissurface)
+
 	update_fps_counter NO
 	if not time_draw_calls_from_finish then
 		lastframe = timer
@@ -846,20 +856,26 @@ sub setvispage (page as integer, skippable as bool = YES)
 		end if
 	end if
 
+	' The page to which to draw overlays, and display
+	dim drawpage as integer = page
+	if preserve_page then
+		drawpage = duplicatepage(page)
+	end if
+
 	if screenshot_record_overlays = YES then
 		'Modifies page. This is bad if displaying a page other than vpage/dpage!
-		draw_allmodex_overlays page
+		draw_allmodex_overlays drawpage
 	end if
 
 	'F12 for screenshots handled here (uses real_keyval)
 	snapshot_check
-	gif_record_frame8 vpages(page), intpal()
+	gif_record_frame8 vpages(drawpage), intpal()
 
 	if screenshot_record_overlays = NO then
-		draw_allmodex_overlays page
+		draw_allmodex_overlays drawpage
 	end if
 
-	with *vpages(page)
+	with *vpages(drawpage)
 		'the fb backend may freeze up if it collides with the polling thread
 		mutexlock keybdmutex
 		if updatepal then
@@ -878,6 +894,10 @@ sub setvispage (page as integer, skippable as bool = YES)
 		mutexunlock keybdmutex
 	end with
 
+	if preserve_page then
+		freepage drawpage
+	end if
+
 	if time_draw_calls_from_finish then
 		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
 		lastframe = timer - 0.004
@@ -894,7 +914,8 @@ end sub
 'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
 'May modify the surface.
 'skippable: if true, allowed to frameskip this frame at high framerates
-sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
+'preserve_surf: if true, don't modify to_show
+sub setvissurface (to_show as Surface ptr, skippable as bool = YES, preserve_surf as bool = NO)
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
@@ -902,31 +923,45 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES)
 		update_fps_counter YES
 		exit sub
 	end if
+	' Remember last surface
+	last_setvispage = -1
+	surface_assign @last_setvissurface, gfx_surfaceReference(to_show)
+
 	update_fps_counter NO
 	if not time_draw_calls_from_finish then
 		lastframe = timer
 	end if
 
+	' The page to which to draw overlays, and display
+	dim drawsurf as Surface ptr = to_show
+	if preserve_surf then
+		drawsurf = surface_duplicate(to_show)
+	end if
+
 	if screenshot_record_overlays = YES then
 		'Modifies page. This is bad if displaying a page other than vpage/dpage!
-		draw_allmodex_overlays32 to_show
+		draw_allmodex_overlays32 drawsurf
 	end if
 
 	'F12 for screenshots: Not implemented for surfaces
 	'snapshot_check
-	gif_record_frame32 to_show
+	gif_record_frame32 drawsurf
 
 	if screenshot_record_overlays = NO then
-		draw_allmodex_overlays32 to_show
+		draw_allmodex_overlays32 drawsurf
 	end if
 
 	dim surface_pal as RGBPalette ptr
-	if to_show->format = SF_8bit then
+	if drawsurf->format = SF_8bit then
 		' Need to provide a palette
 		gfx_paletteFromRGB(@intpal(0), @surface_pal)
 	end if
 
-	gfx_present(to_show, surface_pal)
+	gfx_present(drawsurf, surface_pal)
+
+	if preserve_surf then
+		gfx_surfaceDestroy(@drawsurf)
+	end if
 
 	if time_draw_calls_from_finish then
 		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
@@ -1708,8 +1743,10 @@ function waitforanykey () as integer
 	use_speed_control = YES
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 	setkeys
+	dim saved_page as integer = last_setvispage
+	dim saved_surf as Surface ptr = last_setvissurface
 	do
-		setwait 60
+		setwait 60, 200
 		io_pollkeyevents()
 		setkeys
 		key = anykeypressed(sleepjoy = 0)
@@ -1720,7 +1757,14 @@ function waitforanykey () as integer
 		if sleepjoy > 0 then
 			sleepjoy -= 1
 		end if
-		dowait
+		if dowait then
+			' Redraw the screen occasionally in case something like an overlay is drawn
+			if saved_page >= 0 then
+				setvispage saved_page, , YES
+			elseif saved_surf then
+				setvissurface saved_surf, , YES
+			end if
+		end if
 	loop
 end function
 

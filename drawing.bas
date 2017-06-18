@@ -1461,6 +1461,10 @@ DO
   END IF
  END IF
  IF keyval(scF1) > 1 THEN show_help "editmaptile"
+ 'Debug keys
+ IF keyval(scCtrl) > 0 AND keyval(sc2) > 1 THEN setvispage 2: waitforanykey
+ IF keyval(scCtrl) > 0 AND keyval(sc3) > 1 THEN setvispage 3: waitforanykey
+ 'Normal keys
  IF keyval(scAlt) = 0 THEN
   IF keyval(scShift) > 0 THEN
    IF keyval(scF) > 1 THEN ts.fastmovestep = small(ts.fastmovestep + 1, 19)
@@ -3626,9 +3630,6 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 END SUB
 
 SUB spriteedit_sprctrl(byref ss as SpriteEditState)
- 'Debug keys
- IF keyval(scCtrl) > 0 AND keyval(sc3) > 1 THEN setvispage 3: waitforanykey
- 'Normal keys
  IF ss.mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
   ss.lastpos.x = -1
   ss.lastpos.y = -1
