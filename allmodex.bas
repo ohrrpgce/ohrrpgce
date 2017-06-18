@@ -7493,7 +7493,7 @@ end sub
 
 ' See frame_assign.
 sub surface_assign cdecl(ptr_to_replace as Surface ptr ptr, new_value as Surface ptr)
-	gfx_surfaceDestroy(ptr_to_replace)
+	if *ptr_to_replace then gfx_surfaceDestroy(ptr_to_replace)
 	*ptr_to_replace = new_value
 end sub
 

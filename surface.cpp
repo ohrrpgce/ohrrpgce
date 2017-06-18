@@ -127,6 +127,14 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalet
 	return -1;
 }
 
+Surface* surface_duplicate( Surface* surf ) {
+	Surface *ret;
+	if (gfx_surfaceCreate( surf->width, surf->height, surf->format, surf->usage, &ret ))
+		return NULL;
+	gfx_surfaceCopy( NULL, surf, NULL, false, NULL, ret);
+	return ret;
+}
+
 // This choice of precision allows downscaling by a factor of 4096x without overflow
 #define FIXEDPNT 0x1000
 typedef unsigned int fixedpoint;  // A number multipled by FIXEDPNT
@@ -190,9 +198,9 @@ Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 	}
 
 	Surface *dest, *temp;
-	if (gfx_surfaceCreate_SW(destWidth, destHeight, SF_32bit, SU_Staging, &dest))
+	if (gfx_surfaceCreate(destWidth, destHeight, SF_32bit, SU_Staging, &dest))
 		return NULL;
-	if (gfx_surfaceCreate_SW(destWidth, surf->height, SF_32bit, SU_Staging, &temp))
+	if (gfx_surfaceCreate(destWidth, surf->height, SF_32bit, SU_Staging, &temp))
 		return NULL;  // Memory leak; I don't care
 
 	// Scale surf horizontally, put result in temp
@@ -207,7 +215,7 @@ Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 		scalerow(&temp->pixel32(x, 0), temp->width, &dest->pixel32(x, 0), dest->width, dest->height, runlen);
 	}
 
-	gfx_surfaceDestroy_SW(&temp);
+	gfx_surfaceDestroy(&temp);
 	return dest;
 }
 

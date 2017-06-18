@@ -66,6 +66,7 @@ extern "C"
 {
 #endif
 
+	// Software implementation
 	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn );
@@ -82,10 +83,27 @@ extern "C"
 	int gfx_paletteDestroy_SW( RGBPalette** ppPaletteIn );
 	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
 
+	// Function pointers to the selected implementation
+	extern int (*gfx_surfaceCreate)( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
+	extern int (*gfx_surfaceFromFrame)( Frame* pFrameIn, Surface** ppSurfaceOut );
+	extern int (*gfx_surfaceDestroy)( Surface** ppSurfaceIn );
+	extern Surface* (*gfx_surfaceReference)( Surface* pSurfaceIn );
+	extern int (*gfx_surfaceUpdate)( Surface* pSurfaceIn );
+	extern int (*gfx_surfaceGetData)( Surface* pSurfaceIn );
+	extern int (*gfx_surfaceFill)( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
+	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
+	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+
+	extern int (*gfx_paletteCreate)( RGBPalette** ppPaletteOut );
+	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
+	extern int (*gfx_paletteDestroy)( RGBPalette** ppPaletteIn );
+	extern int (*gfx_paletteUpdate)( RGBPalette* pPaletteIn );
 
 	// Convenience wrappers not specific to any Surface implementation
 	void surface_assign( Surface** ptr_to_replace, Surface* new_value );
 	Surface* surface_scale( Surface *surf, int destWidth, int destHeight );
+	Surface* surface_duplicate( Surface* surf );
 
 #ifdef __cplusplus
 };
