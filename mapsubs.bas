@@ -4066,7 +4066,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   IF keyval(scESC) > 1 THEN
    'Unlike every other menu, hitting ESC cancels changes, so confirm if changes were made
    IF (rs.rect.x = 0 AND rs.rect.y = 0 AND rs.rect.wide = rs.oldsize.x AND rs.rect.high = rs.oldsize.y) _
-      ORELSE yesno("Cancel resize?", NO) THEN
+      ORELSE yesno("Cancel resize?", NO, YES) THEN  'Must default to yes on ESC
     rs.rect.wide = -1
     rs.rect.high = -1
     EXIT DO
@@ -4083,11 +4083,11 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
      EXIT DO
     END IF
    CASE 1
-    IF keyval(scLeft) > 0 THEN rs.rect.wide -= incval 
+    IF keyval(scLeft) > 0 THEN rs.rect.wide -= incval
     IF keyval(scRight) > 0 THEN rs.rect.wide += incval
     resize_correct_width st, rs
    CASE 2
-    IF keyval(scLeft) > 0 THEN rs.rect.high -= incval 
+    IF keyval(scLeft) > 0 THEN rs.rect.high -= incval
     IF keyval(scRight) > 0 THEN rs.rect.high += incval
     resize_correct_height st, rs
    CASE 3
@@ -4105,8 +4105,8 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   drawoff.x = large(0, -rs.rect.x * rs.zoom)
   drawoff.y = large(0, -rs.rect.y * rs.zoom)
   frame_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
-  draw_menu rs.menu, state, dpage
   drawbox drawoff.x + rs.zoom * rs.rect.x, drawoff.y + rs.zoom * rs.rect.y, rs.zoom * rs.rect.wide, rs.zoom * rs.rect.high, 14 + state.tog, 1, dpage
+  draw_menu rs.menu, state, dpage
 
   SWAP dpage, vpage
   setvispage vpage
