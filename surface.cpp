@@ -42,6 +42,11 @@ int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 		debug(errPromptBug, "gfx_surfaceWithFrame_SW: pitch != width"); // Unimplemented: Would have to make a copy of the data
 		return -1;
 	}
+	if (pFrameIn->surf) {
+		debug(errPromptBug, "gfx_surfaceWithFrame_SW: can't use Surface-backed Frame");
+		// Well, we could maybe return pFrameIn->surf
+		return -1;
+	}
 	Surface *ret = new Surface {NULL, 1, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
 	ret->pPaletteData = ret->frame->image;
 	*ppSurfaceOut = ret;
@@ -131,7 +136,8 @@ Surface* surface_duplicate( Surface* surf ) {
 	Surface *ret;
 	if (gfx_surfaceCreate( surf->width, surf->height, surf->format, surf->usage, &ret ))
 		return NULL;
-	gfx_surfaceCopy( NULL, surf, NULL, false, NULL, ret);
+	gfx_surfaceCopy( NULL, surf, NULL, NULL, false, NULL, ret);
+
 	return ret;
 }
 
@@ -233,13 +239,17 @@ void clampRectToSurface( SurfaceRect* pRect, Surface* pSurf ) {
 // the edge of the respective Surfaces; they are clamped. Negative width or
 // height means the draw is a noop.
 // bUseColorKey0 says whether color 0 in 8-bit source images is transparent
-int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest ) {
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, Palette16* pPal8, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest ) {
 	if (!pSurfaceSrc || !pSurfaceDest) {
 		debug(errPromptBug, "surfaceCopy_SW: NULL ptr %p %p", pSurfaceSrc, pSurfaceDest);
 		return -1;
 	}
 	if (pSurfaceSrc->format == SF_32bit && pSurfaceDest->format == SF_8bit) {
 		debug(errPromptBug, "surfaceCopy_SW: can't copy from 32-bit to 8-bit Surface");
+		return -1;
+	}
+	if (pSurfaceSrc->format != SF_8bit && (pPalette || pPal8)) {
+		debug(errPromptBug, "surfaceCopy_SW: given a palette but not an 8-bit src");
 		return -1;
 	}
 
@@ -300,8 +310,13 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		if (bUseColorKey0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					if (*srcp8)
-						*destp8 = *srcp8;
+					if (pPal8) {
+						if (*srcp8)
+							*destp8 = pPal8->col[*srcp8];
+					} else {
+						if (*srcp8)
+							*destp8 = *srcp8;
+					}
 					srcp8++;
 					destp8++;
 				}
@@ -309,10 +324,19 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 				destp8 += destLineEnd;
 			}
 		} else {
-			for (int itY = 0; itY < itY_max; itY++) {
-				memcpy(destp8, srcp8, 1 * itX_max);
-				srcp8  += pSurfaceSrc->width;
-				destp8+= pSurfaceDest->width;
+			if (pPal8) {
+				for (int itY = 0; itY < itY_max; itY++) {
+					for (int itX = 0; itX < itX_max; itX++)
+						*destp8++ = pPal8->col[*srcp8++];
+					srcp8 += srcLineEnd;
+					destp8 += destLineEnd;
+				}
+			} else {
+				for (int itY = 0; itY < itY_max; itY++) {
+					memcpy(destp8, srcp8, 1 * itX_max);
+					srcp8 += pSurfaceSrc->width;
+					destp8 += pSurfaceDest->width;
+				}
 			}
 		}
 	} else { //source is 8bit, dest is 32bit
@@ -321,12 +345,21 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 			return -1;
 		}
 
+		RGBcolor *restrict pal32 = pPalette->col;
+		if (pPal8) {
+			// Form a temp palette to avoid doble-indirection on every pixel
+			pal32 = (RGBcolor*)alloca(pPal8->numcolors * sizeof(RGBcolor));
+			for (int idx = 0; idx < pPal8->numcolors; idx++) {
+				pal32[idx] = pPalette->col[pPal8->col[idx]];
+			}
+		}
+
 		if (bUseColorKey0) {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++)
 				{
 					if (*srcp8)
-						*destp32 = pPalette->col[*srcp8].col;
+						*destp32 = pal32[*srcp8].col;
 					srcp8++;
 					destp32++;
 				}
@@ -336,7 +369,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		} else {
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
-					*destp32++ = pPalette->col[*srcp8++].col;
+					*destp32++ = pal32[*srcp8++].col;
 				}
 				srcp8 += srcLineEnd;
 				destp32 += destLineEnd;

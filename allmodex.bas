@@ -54,7 +54,7 @@ declare sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
 
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, x as integer, y as integer, trans as bool, dest as Surface ptr)
+declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
 
 'declare sub grabrect(byval page as integer, byval x as integer, byval y as integer, byval w as integer, byval h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -6853,7 +6853,7 @@ private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x
 end sub
 
 ' Blit a Surface with setclip clipping.
-private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, x as integer, y as integer, trans as bool, dest as Surface ptr)
+private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
 
 	' It's OK for the src and dest rects to have negative size or be off
 	' the edge of src/dest, because gfx_surfaceCopy properly clips them.
@@ -6871,7 +6871,7 @@ private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, 
 
 	dim destRect as SurfaceRect = (x, y, clipr, clipb)
 
-	if gfx_surfaceCopy(@srcRect, src, master_pal, trans, @destRect, dest) then
+	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, trans, @destRect, dest) then
 		debug "gfx_surfaceCopy error"
 	end if
 end sub
@@ -7785,9 +7785,6 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		showerror "trying to draw from/to null frame/surf"
 		exit sub
 	end if
-	if pal then
-		showerror "pal not implemented"
-	end if
 
 	x = relative_pos(x, dest->width, src->w)
 	y = relative_pos(y, dest->height, src->h)
@@ -7801,12 +7798,17 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		if gfx_surfaceWithFrame(src, @src_surface) then return
 	end if
 	dim master_pal as RGBPalette ptr
-	if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
-		debug "gfx_paletteFromRGB failed"
-	else
+	if src_surface->format = SF_8bit then
+		if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
+			debug "gfx_paletteFromRGB failed"
+			goto cleanup
+		end if
+	end if
 
-		draw_clipped_surf src_surface, master_pal, x, y, trans, dest
+	draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest
 
+	cleanup:
+	if master_pal then
 		gfx_paletteDestroy(@master_pal)
 	end if
 	if src->surf = NULL then
