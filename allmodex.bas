@@ -4683,6 +4683,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 	dim arg as integer
 	dim as Frame charframe
 	charframe.mask = NULL
+	charframe.refcount = NOREFC
 
 	with state
 'debug "draw frag: x=" & .x & " y=" & .y & " char=" & .charnum & " reallydraw=" & reallydraw & " layer=" & layer
@@ -7515,21 +7516,23 @@ end function
 ' elements also have 1 refcount, indicating that they are 'in use' by the head element,
 ' but this is just for feel-good book keeping
 ' (cdecl so that it can be used in the frame ptr vector typetable)
-sub frame_unload cdecl(byval p as frame ptr ptr)
-	if p = 0 then exit sub
-	if *p = 0 then exit sub
+sub frame_unload cdecl(ppfr as Frame ptr ptr)
+	if ppfr = 0 then exit sub
+	dim fr as Frame ptr = *ppfr
+	*ppfr = 0
+	if fr = 0 then exit sub
 
-	if clippedframe = *p then clippedframe = 0
-	with **p
-		if .refcount <> NOREFC then
-			if .refcount = FREEDREFC then
-				debug frame_describe(*p) & " already freed!"
-				*p = 0
-				exit sub
-			end if
-			.refcount -= 1
-			if .refcount < 0 then debug frame_describe(*p) & " has refcount " & .refcount
+	if clippedframe = fr then clippedframe = 0
+	with *fr
+		if .refcount = NOREFC then
+			exit sub
 		end if
+		if .refcount = FREEDREFC then
+			debug frame_describe(fr) & " already freed!"
+			exit sub
+		end if
+		.refcount -= 1
+		if .refcount < 0 then debug frame_describe(fr) & " has refcount " & .refcount
 		'if cached, can free two references at once
 		if (.refcount - .cached) <= 0 then
 			if .arrayelem then
@@ -7539,18 +7542,17 @@ sub frame_unload cdecl(byval p as frame ptr ptr)
 			end if
 			if .isview then
 				frame_unload @.base
-				deallocate(*p)
+				deallocate(fr)
 			else
 				for i as integer = 1 to .arraylen - 1
-					if (*p)[i].refcount <> 1 then
-						debug frame_describe(*p + i) & " array elem freed with bad refcount"
+					if fr[i].refcount <> 1 then
+						debug frame_describe(@fr[i]) & " array elem freed with bad refcount"
 					end if
 				next
-				if .cached then sprite_to_B_cache((*p)->cacheentry) else frame_freemem(*p)
+				if .cached then sprite_to_B_cache(fr->cacheentry) else frame_freemem(fr)
 			end if
 		end if
 	end with
-	*p = 0
 end sub
 
 'Takes a 320x200 Frame and produces a 20x3200 Frame in the format expected of tilesets:
@@ -7715,7 +7717,7 @@ end function
 function frame_reference cdecl(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
-		showerror "tried to reference a non-refcounted sprite!"
+		'showerror "tried to reference a non-refcounted sprite!"
 	else
 		p->refcount += 1
 	end if
