@@ -79,8 +79,9 @@ DECLARE SUB restoremode ()
 DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
 DECLARE SUB mersenne_twister (byval seed as double)
 
-DECLARE FUNCTION allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
-DECLARE FUNCTION allocatepage32(byval w as integer = -1, byval h as integer = -1) as integer
+DECLARE SUB switch_to_32bit_vpages ()
+DECLARE SUB switch_to_8bit_vpages ()
+DECLARE FUNCTION allocatepage(w as integer = -1, h as integer = -1, bitdepth as integer = -1) as integer
 DECLARE FUNCTION duplicatepage (byval page as integer) as integer
 DECLARE SUB freepage (byval page as integer)
 DECLARE FUNCTION registerpage (byval spr as Frame ptr) as integer
@@ -473,7 +474,7 @@ declare function frame_describe(byval p as frame ptr) as string
 
 declare function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
 declare sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
-'declare sub frame_drop_surface(fr as Frame ptr)
+declare sub frame_drop_surface(fr as Frame ptr)
 declare function frame_with_surface(surf as Surface ptr) as Frame ptr
 
 
@@ -618,5 +619,6 @@ extern fonts() as Font ptr
 extern global_tog as integer
 extern max_display_fps as integer
 extern user_toggled_fullscreen as bool
+extern default_page_bitdepth as integer
 
 #ENDIF

@@ -1895,7 +1895,7 @@ SUB quad_transforms_menu ()
  st.last = 2
  st.size = 22
  st.need_update = YES
- 
+
  DIM spritemode as integer = -1  ' Not a SpriteType. A .PT# number or -1 to show master palette
 
  DIM testframe as Frame ptr
@@ -1905,10 +1905,8 @@ SUB quad_transforms_menu ()
  DIM scale as Float2 = (2.0, 2.0)
  DIM position as Float2 = (150, 50)
 
- 'This is the actual render Surface
- ' DIM vpage32 as Surface ptr
- ' gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
- DIM vpage32 as integer = allocatepage32()
+ switch_to_32bit_vpages()
+ DIM vpage8 as integer = allocatepage( , , 8)
 
  DIM as double drawtime, pagecopytime
 
@@ -1919,7 +1917,7 @@ SUB quad_transforms_menu ()
 
  DO
   setwait 55
-  
+
   if st.need_update then
    if spritemode < -1 then spritemode = sprTypeLastPT
    if spritemode > sprTypeLastPT then spritemode = -1
@@ -1968,9 +1966,11 @@ SUB quad_transforms_menu ()
   IF keyval(scLeftBracket) > 1 THEN spritemode -= 1: st.need_update = YES
   IF keyval(scRightBracket) > 1 THEN spritemode += 1: st.need_update = YES
 
-  clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
-  frame_draw testframe, , 20, 50, 2, , vpages(vpage)  'drawn at 2x scale
+  clearpage vpage8
+  standardmenu menu(), st, 0, 0, vpage8
+  ' We have to draw onto a temp 8-bit Surface, because frame_draw with scale
+  ' isn't supported with Surfaces yet
+  frame_draw testframe, , 20, 50, 2, , vpages(vpage8)  'drawn at 2x scale
 
   'Can only display the previous frame's time to draw, since we don't currently
   'have any functions to print text to surfaces
@@ -1978,8 +1978,8 @@ SUB quad_transforms_menu ()
   debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
 
   pagecopytime = TIMER
-  'Copy from vpage (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage), NULL, 0, 0, , NO, vpage32
+  'Copy from vpage8 (8 bit Frame) to the render target surface
+  frame_draw vpages(vpage8), NULL, 0, 0, , NO, vpage
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER
@@ -2004,18 +2004,16 @@ SUB quad_transforms_menu ()
    pt_vertices(i).pos.y = trans_vertices(i).y
   NEXT
 
-  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage32)->surf )
+  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage)->surf )
   drawtime = TIMER - starttime
 
-  setvispage vpage32
-
-  'surface_export_bmp24 ("out.bmp", vpage32)
+  setvispage vpage
   dowait
  LOOP
  setkeys
  frame_unload @testframe
- 'gfx_surfaceDestroy(@vpage32)
- freepage vpage32
+ freepage vpage8
+ switch_to_8bit_vpages()
  gfx_surfaceDestroy(@spriteSurface)
  gfx_paletteDestroy(@masterPalette)
 END SUB

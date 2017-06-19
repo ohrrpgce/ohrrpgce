@@ -118,6 +118,7 @@ declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 dim modex_initialised as bool = NO
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
+dim default_page_bitdepth as integer = 8  '8 or 32. Affects allocatepage only, set by switch_to_*bit_vpages()
 
 'Whether the player has at any point toggled fullscreen/windowed in some low-level way
 'like alt+enter or window buttons.
@@ -527,6 +528,30 @@ end function
 '==========================================================================================
 
 
+' Convert all videopages to 32 bit. Preserves their content
+sub switch_to_32bit_vpages ()
+	default_page_bitdepth = 32
+	for i as integer = 0 to ubound(vpages)
+		if vpages(i) then
+			frame_convert_to_32bit vpages(i), intpal()
+		end if
+	next
+end sub
+
+' Convert all videopages to 8 bit Frames (not backed by Surfaces).
+' WIPES their contents!
+sub switch_to_8bit_vpages ()
+	default_page_bitdepth = 8
+	for i as integer = 0 to ubound(vpages)
+		if vpages(i) then
+			'frame_assign @vpages(i), frame_new(vpages(i)->w, vpages(i)->h)
+			'Safer to use this, as it keeps extra state like .noresize
+			frame_drop_surface vpages(i)
+			clearpage i
+		end if
+	next
+end sub
+
 sub freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
@@ -556,20 +581,21 @@ function registerpage (byval spr as Frame ptr) as integer
 	return ubound(vpages)
 end function
 
-function allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
+'Create a new video page and return its index.
+'bitdepth: 8 for a regular Frame, 32 for a 32-bit Surface-backed page, or -1 to use the default
+'Note: the page is filled with color 0, unlike clearpage, which defaults to uiBackground!
+function allocatepage(w as integer = -1, h as integer = -1, bitdepth as integer = -1) as integer
 	if w < 0 then w = windowsize.w
 	if h < 0 then h = windowsize.h
-	dim fr as Frame ptr = frame_new(w, h, , YES)
+	if bitdepth < 0 then bitdepth = default_page_bitdepth
+	if bitdepth <> 8 and bitdepth <> 32 then
+		showerror "allocatepage: Bad bitdepth " & bitdepth
+	end if
+	dim fr as Frame ptr = frame_new(w, h, , YES, , bitdepth = 32)
 
 	dim ret as integer = registerpage(fr)
 	frame_unload(@fr) 'we're not hanging onto it, vpages() is
 
-	return ret
-end function
-
-function allocatepage32(byval w as integer = -1, byval h as integer = -1) as integer
-	dim ret as integer = allocatepage(w, h)
-	frame_convert_to_32bit vpages(ret), intpal()
 	return ret
 end function
 
@@ -7256,6 +7282,7 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface
 end function
 
 ' Turn a regular Frame into a 32-bit Surface-backed Frame.
+' Content is preserved.
 sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
 	fr->surf = frame_to_surface32(fr, masterpal())
 
@@ -7263,6 +7290,14 @@ sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
 	fr->image = NULL
 	deallocate(fr->mask)
 	fr->mask = NULL
+end sub
+
+' Turn Surface-backed Frame back to a regular Frame. Content IS WIPED!
+sub frame_drop_surface(fr as Frame ptr)
+	if fr->surf then
+		gfx_surfaceDestroy(@fr->surf)
+		fr->image = callocate(fr->pitch * fr->h)
+	end if
 end sub
 
 private sub frame_delete_members(byval f as frame ptr)
