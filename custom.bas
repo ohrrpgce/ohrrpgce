@@ -1979,7 +1979,7 @@ SUB quad_transforms_menu ()
 
   pagecopytime = TIMER
   'Copy from vpage (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage), master(), NULL, 0, 0, NO, vpages(vpage32)->surf
+  frame_draw vpages(vpage), NULL, 0, 0, , NO, vpage32
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER

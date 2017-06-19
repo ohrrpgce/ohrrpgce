@@ -52,6 +52,7 @@ end type
 declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub _frame_copyctor cdecl(dest as frame ptr ptr, src as frame ptr ptr)
 
+declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr)
@@ -2673,7 +2674,10 @@ private function draw_allmodex_overlays32 (surf as Surface ptr) as bool
 
 	' Draw overlays onto the surface, first drawing them to a temp overlays_page (which starts blank)
 	if draw_allmodex_overlays(overlays_page) then
-		frame_draw vpages(overlays_page), intpal(), NULL, 0, 0, YES, surf
+		dim fr as Frame ptr
+		fr = frame_with_surface(surf)
+		frame_draw vpages(overlays_page), intpal(), , 0, 0, , YES, fr
+		frame_unload @fr
 		clearpage overlays_page, 0  'Must clear with colour 0, not uiBackground!
 		return YES
 	end if
@@ -3176,7 +3180,7 @@ sub drawmap (tmap as TileMap, byval x as integer, byval y as integer, byval tile
 				end if
 
 				'draw it on the map
-				draw_clipped(@tileframe, , tx, ty, trans, dest)
+				frame_draw_internal(@tileframe, intpal(), , tx, ty, , trans, dest)
 			end if
 
 			tx = tx + 20
@@ -4775,7 +4779,7 @@ sub draw_line_fragment(byval dest as Frame ptr, byref state as PrintStrState, by
 							'(2-layer fonts would need layer 0 to be opaque)
 							'ALSO, this would stuff up ${KB#} on 2-layer fonts
 							if layer = 1 and state.not_transparent then trans = NO
-							draw_clipped(@charframe, state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, trans, dest)
+							frame_draw_internal(@charframe, intpal(), state.localpal, state.x + .offx, state.y + .offy - state.thefont->h, , trans, dest)
 						end with
 					end if
 				end if
@@ -6788,16 +6792,6 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 	end with
 end sub
 
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval surf as Surface ptr)
-	clippedframe = NULL
-	with *surf
-		clipl = bound(l, 0, .width) '.width valid, prevents any drawing
-		clipt = bound(t, 0, .height)
-		clipr = bound(r, 0, .width - 1)
-		clipb = bound(b, 0, .height - 1)
-	end with
-end sub
-
 'Shrinks clipping area, never grows it
 sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 	if clippedframe <> fr then
@@ -6838,21 +6832,6 @@ end sub
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
 private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-
-	if src->surf <> NULL or dest->surf <> NULL then
-		' Delegate if using a Surface
-		' (This is here rather than frame_draw because this sub is called
-		' directly in a couple places)
-		if dest->surf = NULL then
-			showerror "draw_clipped: trying to draw a Surface-backed Frame to a regular Frame"
-		elseif write_mask then
-			showerror "draw_clipped: write_mask not supported with a Surface-backed Frame"
-		else
-			frame_draw src, intpal(), pal, x, y, trans, dest->surf
-		end if
-		exit sub
-	end if
-
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
@@ -7323,8 +7302,8 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 end function
 
 ' Creates a 32 bit Surface which is a copy of an unpaletted Frame.
-' This is not the same as gfx_surfaceWithFrame, which creates a Surface which
-' is just a view of a Frame!
+' This is not the same as gfx_surfaceWithFrame, which creates a special Surface which
+' is just a view of a Frame (and may be a temporary hack!)
 function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
 	if fr->surf then
 		debug "frame_to_surface32 called on a Surface-backed Frame"
@@ -7338,7 +7317,10 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface
 	if gfx_surfaceCreate(fr->w, fr->h, SF_32bit, SU_Staging, @surf) then
 		return NULL
 	end if
-	frame_draw fr, masterpal(), NULL, 0, 0, NO, surf
+	dim wrapper as Frame ptr  'yuck
+	wrapper = frame_with_surface(surf)
+	frame_draw fr, intpal(), , 0, 0, , NO, wrapper
+	frame_unload @wrapper
 	return surf
 end function
 
@@ -7818,10 +7800,17 @@ end sub
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
 sub frame_draw(src as frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
-	frame_draw src, pal, x, y, scale, trans, vpages(page), write_mask
+	frame_draw src, intpal(), pal, x, y, scale, trans, vpages(page), write_mask
 end sub
 
 sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
+	frame_draw src, intpal(), pal, x, y, scale, trans, dest, write_mask
+end sub
+
+' Explicitly specify the master palette to use - it is only used if the src is 8-bit
+' and the dest is 32-bit.
+' Also, the mask if any is ignored.
+sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 	if src = NULL or dest = NULL then
 		showerror "trying to draw from/to null frame"
 		exit sub
@@ -7832,56 +7821,55 @@ sub frame_draw(src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as 
 
 	x = relative_pos(x, dest->w, src->w)
 	y = relative_pos(y, dest->h, src->h)
-
 	x += src->offset.x * scale
 	y += src->offset.y * scale
 
-	if scale = 1 then
-		draw_clipped src, pal, x, y, trans, dest
-	else
-		draw_clipped_scaled src, pal, x, y, scale, trans, dest, write_mask
-	end if
+	frame_draw_internal src, masterpal(), pal, x, y, scale, trans, dest, write_mask
 end sub
 
-' Draw onto a Surface. Unlike other overloads, this one takes a master palette
-' (ignored if blitting to an 8-bit Surface) instead of a Palette16.
-' Also, the mask if any is ignored.
-sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Surface ptr)
-	if src = NULL or dest = NULL then
-		showerror "trying to draw from/to null frame/surf"
-		exit sub
-	end if
-	setclip , , , , dest
+private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 
-	x = relative_pos(x, dest->width, src->w)
-	y = relative_pos(y, dest->height, src->h)
-	x += src->offset.x
-	y += src->offset.y
+	if src->surf <> NULL or dest->surf <> NULL then
+		if dest->surf = NULL then
+			showerror "draw_clipped: trying to draw a Surface-backed Frame to a regular Frame"
+		elseif write_mask <> NO or scale <> 1 then
+			showerror "draw_clipped: write_mask and scale not supported with a Surface-backed Frame"
+		end if
 
-	dim src_surface as Surface ptr
-	if src->surf then
-		src_surface = src->surf
+		dim src_surface as Surface ptr
+		if src->surf then
+			src_surface = src->surf
+		else
+			debuginfo "frame_draw_internal: unnecessary allocation"
+			if gfx_surfaceWithFrame(src, @src_surface) then return
+		end if
+		dim master_pal as RGBPalette ptr
+		if src_surface->format = SF_8bit then
+			' TODO: Don't do this every single call!
+			if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
+				debug "gfx_paletteFromRGB failed"
+				goto cleanup
+			end if
+		end if
+
+		draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest->surf
+
+		cleanup:
+		if master_pal then
+			gfx_paletteDestroy(@master_pal)
+		end if
+		if src->surf = NULL then
+			gfx_surfaceDestroy(@src_surface)
+		end if
 	else
-		if gfx_surfaceWithFrame(src, @src_surface) then return
-	end if
-	dim master_pal as RGBPalette ptr
-	if src_surface->format = SF_8bit then
-		if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
-			debug "gfx_paletteFromRGB failed"
-			goto cleanup
+		if scale = 1 then
+			draw_clipped src, pal, x, y, trans, dest
+		else
+			draw_clipped_scaled src, pal, x, y, scale, trans, dest, write_mask
 		end if
 	end if
-
-	draw_clipped_surf src_surface, master_pal, pal, x, y, trans, dest
-
-	cleanup:
-	if master_pal then
-		gfx_paletteDestroy(@master_pal)
-	end if
-	if src->surf = NULL then
-		gfx_surfaceDestroy(@src_surface)
-	end if
 end sub
+
 
 'Return a copy which has been clipped or extended. Extended portions are filled with bgcol.
 'Can also be used to scroll (does not wrap around)
