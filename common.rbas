@@ -460,7 +460,6 @@ FUNCTION notification (msg as string) as integer
  IF getquitflag THEN entered = NO : RETURN 0
  sleep 250  'Avoid accidental advancement
  DIM scancode as integer = waitforanykey()
- clearkey(scancode)
  freepage holdpage
  restore_previous_palette
  entered = NO

@@ -1751,6 +1751,7 @@ function waitforanykey () as integer
 		key = anykeypressed(sleepjoy = 0)
 		if key then
 			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
+			setkeys  'Clear the keypress
 			use_speed_control = remem_speed_control
 			return key
 		end if
@@ -1759,7 +1760,7 @@ function waitforanykey () as integer
 		end if
 		if dowait then
 			' Redraw the screen occasionally in case something like an overlay is drawn
-			setvispage last_setvispage, , YES
+			setvispage last_setvispage, , YES  'Preserve contents
 		end if
 	loop
 end function
