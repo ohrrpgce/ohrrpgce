@@ -2007,7 +2007,6 @@ SUB quad_transforms_menu ()
   gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage32)->surf )
   drawtime = TIMER - starttime
 
-  'setvissurface vpage32
   setvispage vpage32
 
   'surface_export_bmp24 ("out.bmp", vpage32)

@@ -69,8 +69,7 @@ declare sub loadbmprle8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 declare sub stop_recording_gif()
-declare sub gif_record_frame8(fr as Frame ptr, palette() as RGBcolor)
-declare sub gif_record_frame32(surf as Surface ptr)
+declare sub gif_record_frame(fr as Frame ptr, palette() as RGBcolor)
 
 declare function next_unused_screenshot_filename() as string
 declare sub snapshot_check()
@@ -87,7 +86,6 @@ declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
 declare function draw_allmodex_overlays (page as integer) as bool
-declare function draw_allmodex_overlays32 (surf as Surface ptr) as bool
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
 declare sub update_fps_counter (skipped as bool)
@@ -175,7 +173,6 @@ dim shared anim1 as integer
 dim shared anim2 as integer
 
 type SkippedFrame
-	surf as Surface ptr
 	page as integer = -1
 
 	declare sub drop()
@@ -194,12 +191,11 @@ dim shared fps_multiplier as double = 1.0   'Effect speed multiplier, affects al
 dim max_display_fps as integer = 90         'Skip frames if drawing more than this.
 dim shared lastframe as double              'Time at which the last frame was displayed.
 dim shared blocking_draws as bool = NO      'True if drawing the screen is a blocking call.
-dim shared skipped_frame as SkippedFrame    'Records the last setvispage/setvissurface call if it was frameskipped.
+dim shared skipped_frame as SkippedFrame    'Records the last setvispage call if it was frameskipped.
 
 dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if none.
                                             'Virtually always vpage; in fact using anything other than vpage
-                                            'would cause a lot of glitches.
-dim shared last_setvissurface as Surface ptr = NULL  'Records the last setvissurface. NULL if none
+                                            'would cause a lot of functions like multichoice to glitch
 
 #IFDEF __FB_DARWIN__
 	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
@@ -827,21 +823,19 @@ end function
 '                                   setvispage and Fading
 '==========================================================================================
 
+declare sub present_internal_frame(drawpage as integer, starttime as double)
+declare sub present_internal_surface(drawpage as integer)
 
 sub SkippedFrame.drop()
-	gfx_surfaceDestroy(@surf)  'decrement refcount
 	'if page >= 0 then freepage page
 	page = -1
 end sub
 
-' If the last setvispage/setvissurface was skipped, display it
+' If the last setvispage was skipped, display it
 sub SkippedFrame.show ()
-	' Non-skippable setvis* calls.
-	' Note: setvis* will call SkippedFrame.drop() when the display page/surf
+	' Note: setvispage will call SkippedFrame.drop() after displaying the page
 	if page > -1 then
 		setvispage page, NO
-	elseif surf then
-		setvissurface surf, NO
 	end if
 end sub
 
@@ -850,14 +844,6 @@ end sub
 'skippable: if true, allowed to frameskip this frame at high framerates
 'preserve_page: if true, don't modify page
 sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
-	if vpages(page)->surf then
-		setvissurface vpages(page)->surf, skippable, preserve_page
-		'setvissurface will set these, but we want 'page' to be remembered, not page->surf
-		last_setvispage = page
-		gfx_surfaceDestroy(@last_setvissurface)
-		exit sub
-	end if
-
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
@@ -870,7 +856,6 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 	end if
 	' Remember last page
 	last_setvispage = page
-	if last_setvissurface then gfx_surfaceDestroy(@last_setvissurface)
 
 	update_fps_counter NO
 	if not time_draw_calls_from_finish then
@@ -878,7 +863,6 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 	end if
 
 	dim starttime as double = timer
-	dim starttime2 as double
 	if gfx_supports_variable_resolution() = NO then
 		'Safety check. We must stick to 320x200, otherwise the backend could crash.
 		'In future backends should be updated to accept other sizes even if they only support 320x200
@@ -902,30 +886,22 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 
 	'F12 for screenshots handled here (uses real_keyval)
 	snapshot_check
-	gif_record_frame8 vpages(drawpage), intpal()
+	gif_record_frame vpages(drawpage), intpal()
 
 	if screenshot_record_overlays = NO then
 		draw_allmodex_overlays drawpage
 	end if
 
-	with *vpages(drawpage)
-		'the fb backend may freeze up if it collides with the polling thread
-		mutexlock keybdmutex
-		if updatepal then
-			starttime2 = timer
-			gfx_setpal(@intpal(0))
-			debug_if_slow(starttime2, 0.05, "gfx_setpal")
-			updatepal = NO
-		end if
-		starttime += timer  'Stop timer
-		starttime2 = timer
-		gfx_showpage(.image, .w, .h)
-		' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
-		' although in gfx_fb it freezes readmouse instead)
-		debug_if_slow(starttime2, 0.05, "gfx_showpage")
-		starttime -= timer  'Restart timer
-		mutexunlock keybdmutex
-	end with
+	'the fb backend may freeze up if it collides with the polling thread
+	mutexlock keybdmutex
+
+	if vpages(page)->surf then
+		present_internal_surface drawpage
+	else
+		present_internal_frame drawpage, starttime
+	end if
+
+	mutexunlock keybdmutex
 
 	if preserve_page then
 		freepage drawpage
@@ -944,45 +920,31 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 	debug_if_slow(starttime, 0.05, "")
 end sub
 
-'Present a Surface on the screen; Surface equivalent of setvispage. Still incomplete.
-'May modify the surface.
-'skippable: if true, allowed to frameskip this frame at high framerates
-'preserve_surf: if true, don't modify to_show
-sub setvissurface (to_show as Surface ptr, skippable as bool = YES, preserve_surf as bool = NO)
-	' Drop frames to reduce CPU usage if FPS too high
-	if skippable andalso timer - lastframe < 1. / max_display_fps then
-		skipped_frame.drop()
-		skipped_frame.surf = gfx_surfaceReference(to_show)
-		update_fps_counter YES
-		exit sub
+'setvispage internal function for presenting a regular Frame page on the screen
+private sub present_internal_frame(drawpage as integer, starttime as double)
+	dim starttime2 as double
+	if updatepal then
+		starttime2 = timer
+		gfx_setpal(@intpal(0))
+		debug_if_slow(starttime2, 0.05, "gfx_setpal")
+		updatepal = NO
 	end if
-	' Remember last surface
-	last_setvispage = -1
-	surface_assign @last_setvissurface, gfx_surfaceReference(to_show)
+	starttime += timer  'Stop timer
+	starttime2 = timer
 
-	update_fps_counter NO
-	if not time_draw_calls_from_finish then
-		lastframe = timer
-	end if
+	with *vpages(drawpage)
+		gfx_showpage(.image, .w, .h)
+	end with
 
-	' The page to which to draw overlays, and display
-	dim drawsurf as Surface ptr = to_show
-	if preserve_surf then
-		drawsurf = surface_duplicate(to_show)
-	end if
+	' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
+	' although in gfx_fb it freezes readmouse instead)
+	debug_if_slow(starttime2, 0.05, "gfx_showpage")
+	starttime -= timer  'Restart timer
+end sub
 
-	if screenshot_record_overlays = YES then
-		'Modifies page. This is bad if displaying a page other than vpage/dpage!
-		draw_allmodex_overlays32 drawsurf
-	end if
-
-	'F12 for screenshots
-	snapshot_check
-	gif_record_frame32 drawsurf
-
-	if screenshot_record_overlays = NO then
-		draw_allmodex_overlays32 drawsurf
-	end if
+'setvispage internal function for presenting a Surface-backed page on the screen
+private sub present_internal_surface(drawpage as integer)
+	dim drawsurf as Surface ptr = vpages(drawpage)->surf
 
 	dim surface_pal as RGBPalette ptr
 	if drawsurf->format = SF_8bit then
@@ -992,22 +954,7 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES, preserve_sur
 
 	gfx_present(drawsurf, surface_pal)
 
-	if preserve_surf then
-		gfx_surfaceDestroy(@drawsurf)
-	end if
-
-	if time_draw_calls_from_finish then
-		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
-		lastframe = timer - 0.004
-	end if
-
 	gfx_paletteDestroy(@surface_pal)
-
-	skipped_frame.drop()  'Delay dropping old frame; skipped_frame.show() might have called us
-
-	'After presenting this is a good time to check for window size changes and
-	'resize the videopages as needed before the next frame is rendered.
-	screen_size_update
 end sub
 
 
@@ -1049,7 +996,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 
 	if updatepal then
 		skippable_setpal
-		gif_record_frame8 vpages(vpage), intpal()
+		gif_record_frame vpages(last_setvispage), intpal()
 	end if
 
 	for i = 1 to 32
@@ -1080,8 +1027,8 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 		skippable_setpal
 
 		if i mod 3 = 0 then
-			' We're assuming that vpage hasn't been modified since the last setvispage
-			gif_record_frame8 vpages(vpage), intpal()
+			' We're assuming that the page hasn't been modified since the last setvispage
+			gif_record_frame vpages(last_setvispage), intpal()
 		end if
 
 		dowait
@@ -1102,7 +1049,7 @@ sub fadetopal (pal() as RGBcolor)
 
 	if updatepal then
 		skippable_setpal
-		gif_record_frame8 vpages(vpage), intpal()
+		gif_record_frame vpages(last_setvispage), intpal()
 	end if
 
 	for i = 1 to 32
@@ -1132,8 +1079,8 @@ sub fadetopal (pal() as RGBcolor)
 		next
 
 		if i mod 3 = 0 then
-			' We're assuming that vpage hasn't been modified since the last setvispage
-			gif_record_frame8 vpages(vpage), intpal()
+			' We're assuming that the page hasn't been modified since the last setvispage
+			gif_record_frame vpages(last_setvispage), intpal()
 		end if
 
 		skippable_setpal
@@ -1771,8 +1718,6 @@ function waitforanykey () as integer
 	use_speed_control = YES
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 	setkeys
-	dim saved_page as integer = last_setvispage
-	dim saved_surf as Surface ptr = last_setvissurface
 	do
 		setwait 60, 200
 		io_pollkeyevents()
@@ -1788,11 +1733,7 @@ function waitforanykey () as integer
 		end if
 		if dowait then
 			' Redraw the screen occasionally in case something like an overlay is drawn
-			if saved_page >= 0 then
-				setvispage saved_page, , YES
-			elseif saved_surf then
-				setvissurface saved_surf, , YES
-			end if
+			setvispage last_setvispage, , YES
 		end if
 	loop
 end function
@@ -2665,23 +2606,6 @@ private function draw_allmodex_overlays (page as integer) as bool
 	end if
 
 	return dirty
-end function
-
-'32 bit version of the above
-private function draw_allmodex_overlays32 (surf as Surface ptr) as bool
-	static overlays_page as integer = 0
-	if overlays_page = 0 then overlays_page = allocatepage
-
-	' Draw overlays onto the surface, first drawing them to a temp overlays_page (which starts blank)
-	if draw_allmodex_overlays(overlays_page) then
-		dim fr as Frame ptr
-		fr = frame_with_surface(surf)
-		frame_draw vpages(overlays_page), intpal(), , 0, 0, , YES, fr
-		frame_unload @fr
-		clearpage overlays_page, 0  'Must clear with colour 0, not uiBackground!
-		return YES
-	end if
-	return NO
 end function
 
 
@@ -6607,31 +6531,34 @@ sub toggle_recording_gif()
 	end if
 end sub
 
-' Called with every frame that should be included in any ongoing recording
-private sub gif_record_frame8(fr as Frame ptr, pal() as RGBcolor)
+' Called with every frame that should be included in any ongoing gif recording
+private sub gif_record_frame(fr as Frame ptr, pal() as RGBcolor)
 	if recordgif.active = NO then exit sub
-	CHECK_FRAME_8BIT(fr)
-
 	dim delay as integer = recordgif.delay()
 	if delay <= 0 then exit sub
-	dim gifpal as GifPalette
-	GifPalette_from_pal gifpal, pal()
-	if GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, delay, @gifpal) = NO then
-		show_overlay_message "Recording failed (GifWriteFrame8)"
-		debug "GifWriteFrame8 failed"
+
+	dim ret as bool
+	dim bits as integer
+	dim sf as Surface ptr = fr->surf
+	if sf andalso sf->format = SF_32bit then
+		bits = 32
+		dim image as ubyte ptr = cast(ubyte ptr, sf->pColorData)
+		ret = GifWriteFrame(@recordgif.writer, image, sf->width, sf->height, delay, 8, NO)
+	else
+		' 8-bit Surface-backed Frames and regular Frames.
+		bits = 8
+		dim gifpal as GifPalette
+		GifPalette_from_pal gifpal, pal()
+		if sf andalso sf->format = SF_8bit then
+			ret = GifWriteFrame8(@recordgif.writer, sf->pPaletteData, sf->width, sf->height, delay, @gifpal)
+		else
+			ret = GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, delay, @gifpal)
+		end if
 	end if
-end sub
-
-' Called with every frame that should be included in any ongoing recording
-private sub gif_record_frame32(surf as Surface ptr)
-	if recordgif.active = NO then exit sub
-
-	dim delay as integer = recordgif.delay()
-	if delay <= 0 then exit sub
-	dim image as ubyte ptr = cast(ubyte ptr, surf->pColorData)
-	if GifWriteFrame(@recordgif.writer, image, surf->width, surf->height, delay, 8, NO) = NO then
-		show_overlay_message "Recording failed (GifWriteFrame)"
-		debug "GifWriteFrame failed"
+	if ret = NO then
+		' On a write failure, recordgif.active will already be set to false
+		show_overlay_message "Recording failed (GifWriteFrame " & bits & ")"
+		debug "GifWriteFrame failed, bits = " & bits
 	end if
 end sub
 
@@ -6651,9 +6578,7 @@ function screenshot (fname as string) as string
 	if gfx_screenshot(fname) = 0 then
 		'otherwise save it ourselves
 		ret = fname & ".bmp"
-		if last_setvissurface then
-			surface_export_bmp24(ret, last_setvissurface)
-		elseif last_setvispage >= 0 then
+		if last_setvispage >= 0 then
 			frame_export_bmp(ret, vpages(last_setvispage), intpal())
 		end if
 		return ret
@@ -6671,9 +6596,7 @@ end function
 sub bmp_screenshot(f as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
-	if last_setvissurface then
-		surface_export_bmp24(f & ".bmp", last_setvissurface)
-	elseif last_setvispage >= 0 then
+	if last_setvispage >= 0 then
 		frame_export_bmp(f & ".bmp", vpages(last_setvispage), intpal())
 	end if
 end sub
