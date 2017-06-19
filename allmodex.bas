@@ -570,6 +570,12 @@ function allocatepage(byval w as integer = -1, byval h as integer = -1) as integ
 	return ret
 end function
 
+function allocatepage32(byval w as integer = -1, byval h as integer = -1) as integer
+	dim ret as integer = allocatepage(w, h)
+	frame_convert_to_32bit vpages(ret), intpal()
+	return ret
+end function
+
 'creates a copy of a page, registering it (must be freed)
 function duplicatepage (byval page as integer) as integer
 	dim fr as Frame ptr = frame_duplicate(vpages(page))
@@ -843,6 +849,11 @@ end sub
 'skippable: if true, allowed to frameskip this frame at high framerates
 'preserve_page: if true, don't modify page
 sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
+	if vpages(page)->surf then
+		setvissurface vpages(page)->surf, skippable, preserve_page
+		exit sub
+	end if
+
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()

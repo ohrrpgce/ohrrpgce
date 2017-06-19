@@ -80,6 +80,7 @@ DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
 DECLARE SUB mersenne_twister (byval seed as double)
 
 DECLARE FUNCTION allocatepage(byval w as integer = -1, byval h as integer = -1) as integer
+DECLARE FUNCTION allocatepage32(byval w as integer = -1, byval h as integer = -1) as integer
 DECLARE FUNCTION duplicatepage (byval page as integer) as integer
 DECLARE SUB freepage (byval page as integer)
 DECLARE FUNCTION registerpage (byval spr as Frame ptr) as integer

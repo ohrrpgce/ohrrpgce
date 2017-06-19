@@ -1906,8 +1906,9 @@ SUB quad_transforms_menu ()
  DIM position as Float2 = (150, 50)
 
  'This is the actual render Surface
- DIM vpage32 as Surface ptr
- gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
+ ' DIM vpage32 as Surface ptr
+ ' gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
+ DIM vpage32 as integer = allocatepage32()
 
  DIM as double drawtime, pagecopytime
 
@@ -1952,10 +1953,10 @@ SUB quad_transforms_menu ()
     .bottom = spriteSurface->height - 1
    END WITH
    vec3GenerateCorners @vertices(0), 4, testframesize
-   
+
    st.need_update = NO
   end if
-  
+
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scLeft)  THEN scale.x -= 0.1
@@ -1978,7 +1979,7 @@ SUB quad_transforms_menu ()
 
   pagecopytime = TIMER
   'Copy from vpage (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage), master(), NULL, 0, 0, NO, vpage32
+  frame_draw vpages(vpage), master(), NULL, 0, 0, NO, vpages(vpage32)->surf
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER
@@ -2003,17 +2004,19 @@ SUB quad_transforms_menu ()
    pt_vertices(i).pos.y = trans_vertices(i).y
   NEXT
 
-  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpage32 )
+  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpages(vpage32)->surf )
   drawtime = TIMER - starttime
 
-  setvissurface vpage32
+  'setvissurface vpage32
+  setvispage vpage32
 
   'surface_export_bmp24 ("out.bmp", vpage32)
   dowait
  LOOP
  setkeys
  frame_unload @testframe
- gfx_surfaceDestroy(@vpage32)
+ 'gfx_surfaceDestroy(@vpage32)
+ freepage vpage32
  gfx_surfaceDestroy(@spriteSurface)
  gfx_paletteDestroy(@masterPalette)
 END SUB
