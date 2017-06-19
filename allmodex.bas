@@ -851,6 +851,9 @@ end sub
 sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
 	if vpages(page)->surf then
 		setvissurface vpages(page)->surf, skippable, preserve_page
+		'setvissurface will set these, but we want 'page' to be remembered, not page->surf
+		last_setvispage = page
+		gfx_surfaceDestroy(@last_setvissurface)
 		exit sub
 	end if
 
@@ -972,8 +975,8 @@ sub setvissurface (to_show as Surface ptr, skippable as bool = YES, preserve_sur
 		draw_allmodex_overlays32 drawsurf
 	end if
 
-	'F12 for screenshots: Not implemented for surfaces
-	'snapshot_check
+	'F12 for screenshots
+	snapshot_check
 	gif_record_frame32 drawsurf
 
 	if screenshot_record_overlays = NO then
@@ -1775,6 +1778,7 @@ function waitforanykey () as integer
 		setkeys
 		key = anykeypressed(sleepjoy = 0)
 		if key then
+			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
 			use_speed_control = remem_speed_control
 			return key
 		end if
@@ -5570,6 +5574,11 @@ sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 	dim as RGBcolor ptr sptr
 	dim as ubyte buf(3)
 
+	if surf->format <> SF_32bit then
+		showerror "surface_export_bmp24 got 8bit Surface"
+		exit sub
+	end if
+
 	of = write_bmp_header(f, surf->width, surf->height, 24)
 	if of = -1 then exit sub
 
@@ -5659,6 +5668,18 @@ sub frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor,
 	next
 
 	close #of
+end sub
+
+' Generic 4/8/24-bit BMP export
+sub frame_export_bmp (fname as string, fr as Frame ptr, maspal() as RGBcolor, byval pal as Palette16 ptr = NULL)
+	if pal then
+		frame_export_bmp4 fname, fr, maspal(), pal
+	elseif fr->surf then
+		' todo: 8-bit surfaces
+		surface_export_bmp24 fname, fr->surf
+	else
+		frame_export_bmp8 fname, fr, maspal()
+	end if
 end sub
 
 'Creates a new file and writes the bmp headers to it.
@@ -6618,7 +6639,11 @@ function screenshot (fname as string) as string
 	if gfx_screenshot(fname) = 0 then
 		'otherwise save it ourselves
 		ret = fname & ".bmp"
-		frame_export_bmp8(ret, vpages(vpage), intpal())
+		if last_setvissurface then
+			surface_export_bmp24(ret, last_setvissurface)
+		elseif last_setvispage >= 0 then
+			frame_export_bmp(ret, vpages(last_setvispage), intpal())
+		end if
 		return ret
 	end if
 	' The reason for this for loop is that we don't know what extension the gfx backend
@@ -6634,7 +6659,11 @@ end function
 sub bmp_screenshot(f as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
-	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
+	if last_setvissurface then
+		surface_export_bmp24(f & ".bmp", last_setvissurface)
+	elseif last_setvispage >= 0 then
+		frame_export_bmp(f & ".bmp", vpages(last_setvispage), intpal())
+	end if
 end sub
 
 ' Find an available screenshot name in the current directory.
