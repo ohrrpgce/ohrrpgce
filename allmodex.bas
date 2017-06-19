@@ -3775,7 +3775,6 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
-	CHECK_FRAME_8BIT(fr)
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
@@ -3794,12 +3793,21 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
-	while h > 0
-		memset(sptr, c, w)
-		sptr += fr->pitch
-		h -= 1
-	wend
+	if fr->surf then
+		dim rect as SurfaceRect = (x, y, x + w - 1, y + h - 1)
+		dim col as uint32 = c
+		if fr->surf->format = SF_32bit then
+			col = intpal(c).col
+		end if
+		gfx_surfaceFill(col, @rect, fr->surf)
+	else
+		dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
+		while h > 0
+			memset(sptr, c, w)
+			sptr += fr->pitch
+			h -= 1
+		wend
+	end if
 end sub
 
 sub fuzzyrect (x as RelPos, y as RelPos, w as RelPos = rWidth, h as RelPos = rHeight, c as integer, p as integer, fuzzfactor as integer = 50)

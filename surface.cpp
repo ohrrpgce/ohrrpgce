@@ -112,7 +112,7 @@ int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfac
 		else
 			for(int i = pRect->top; i <= pRect->bottom; i++)
 				for(int j = pRect->left; j <= pRect->right; j++)
-					pSurfaceIn->pPaletteData[i*pSurfaceIn->width + j] = fillColor;
+					pSurfaceIn->pColorData[i*pSurfaceIn->width + j] = fillColor;
 	}
 	else
 	{
