@@ -6788,6 +6788,16 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 	end with
 end sub
 
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval surf as Surface ptr)
+	clippedframe = NULL
+	with *surf
+		clipl = bound(l, 0, .width) '.width valid, prevents any drawing
+		clipt = bound(t, 0, .height)
+		clipr = bound(r, 0, .width - 1)
+		clipb = bound(b, 0, .height - 1)
+	end with
+end sub
+
 'Shrinks clipping area, never grows it
 sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 	if clippedframe <> fr then
@@ -6834,9 +6844,9 @@ private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as int
 		' (This is here rather than frame_draw because this sub is called
 		' directly in a couple places)
 		if dest->surf = NULL then
-			showerror "draw_clipped: trying to draw a Surface-based Frame to a regular Frame"
+			showerror "draw_clipped: trying to draw a Surface-backed Frame to a regular Frame"
 		elseif write_mask then
-			showerror "draw_clipped: write_mask not supported with a Surface-based Frame"
+			showerror "draw_clipped: write_mask not supported with a Surface-backed Frame"
 		else
 			frame_draw src, intpal(), pal, x, y, trans, dest->surf
 		end if
@@ -7188,12 +7198,18 @@ end sub
 '==========================================================================================
 
 
-'Create a blank Frame.
+'Create a blank Frame or array of Frames
 'By default not initialised; pass clr=YES to initialise to 0
-function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
+'with_surface32: if true, create a 32-it Surface-backed Frame.
+function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO) as Frame ptr
 	if w < 1 or h < 1 or frames < 1 then
 		debugc errPromptBug, "frame_new: bad size " & w & "*" & h & "*" & frames
 		return 0
+	end if
+	if with_surface32 then
+		if wantmask then
+			debugc errPromptBug, "frame_new: mask and backing surface mututally exclusive"
+		end if
 	end if
 
 	dim ret as frame ptr
@@ -7216,21 +7232,31 @@ function frame_new(byval w as integer, byval h as integer, byval frames as integ
 			if i > 0 then .arrayelem = 1
 			.w = w
 			.h = h
-			.pitch = w '+ 10  'test pitch conversion work
+			.pitch = w
 			.mask = NULL
-			if clr then
-				.image = callocate(.pitch * h)
-				if wantmask then .mask = callocate(.pitch * h)
+			if with_surface32 then
+				if gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, @.surf) then
+					frame_freemem(ret)
+					return NULL
+				end if
+				if clr then
+					gfx_surfaceFill(intpal(0).col, NULL, .surf)
+				end if
 			else
-				.image = allocate(.pitch * h)
-				if wantmask then .mask = allocate(.pitch * h)
-			end if
+				if clr then
+					.image = callocate(.pitch * h)
+					if wantmask then .mask = callocate(.pitch * h)
+				else
+					.image = allocate(.pitch * h)
+					if wantmask then .mask = allocate(.pitch * h)
+				end if
 
-			if .image = 0 or (.mask = 0 and wantmask <> NO) then
-				debug "Could not allocate sprite frames, no memory"
-				'well, I don't really see the point freeing memory, but who knows...
-				frame_freemem(ret)
-				return 0
+				if .image = 0 or (.mask = 0 and wantmask <> NO) then
+					debug "Could not allocate sprite frames/surfaces"
+					'well, I don't really see the point freeing memory, but who knows...
+					frame_freemem(ret)
+					return NULL
+				end if
 			end if
 		end with
 	next
@@ -7825,6 +7851,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		showerror "trying to draw from/to null frame/surf"
 		exit sub
 	end if
+	setclip , , , , dest
 
 	x = relative_pos(x, dest->width, src->w)
 	y = relative_pos(y, dest->height, src->h)
@@ -7860,9 +7887,9 @@ end sub
 'Can also be used to scroll (does not wrap around)
 function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 	dim as Frame ptr ret
-	ret = frame_new(wide, high, , NO, (spr->mask <> NULL))
+	ret = frame_new(wide, high, , NO, (spr->mask <> NULL), (spr->surf <> NULL))
 	frame_clear ret, bgcol
-	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, YES  'trans=NO, write_mask=YES
+	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
 	return ret
 end function
 
@@ -8233,7 +8260,10 @@ end function
 'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
 'frame_duplicate with clr=1 does the same
 sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
-	CHECK_FRAME_8BIT(spr)
+	if spr->surf then
+		gfx_surfaceFill(intpal(colour).col, NULL, spr->surf)
+		exit sub
+	end if
 	if spr->image then
 		if spr->w = spr->pitch then
 			memset(spr->image, colour, spr->w * spr->h)

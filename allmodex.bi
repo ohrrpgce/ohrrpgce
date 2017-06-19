@@ -176,7 +176,8 @@ Type ClipState
 End Type
 
 'NOTE: clipping values are global.
-DECLARE SUB setclip (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
+DECLARE SUB setclip OVERLOAD (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
+DECLARE SUB setclip OVERLOAD (byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval surf as Surface ptr)
 DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
 DECLARE SUB saveclip(byref buf as ClipState)
 DECLARE SUB loadclip(byref buf as ClipState)
@@ -439,7 +440,7 @@ DECLARE FUNCTION get_global_sfx_volume () as single
 '==========================================================================================
 '                                          Frame
 
-declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as bool = NO, byval wantmask as bool = NO) as Frame ptr
+declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, byval picoff as integer = 0) as Frame ptr
 declare sub frame_to_buffer(spr as Frame ptr, pic() as integer)
