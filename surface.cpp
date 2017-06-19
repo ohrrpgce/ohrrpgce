@@ -36,10 +36,10 @@ int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format,
 // Return a Surface which is a view onto a Frame. The Surface and Frame should both
 // be destroyed as normal.
 // (The Frame refcount is incremented)
-int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
+int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 {
 	if (pFrameIn->w != pFrameIn->pitch) {
-		debug(errPromptBug, "gfx_surfaceFromFrame_SW: pitch != width"); // Unimplemented: Would have to make a copy of the data
+		debug(errPromptBug, "gfx_surfaceWithFrame_SW: pitch != width"); // Unimplemented: Would have to make a copy of the data
 		return -1;
 	}
 	Surface *ret = new Surface {NULL, 1, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};

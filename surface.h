@@ -26,7 +26,7 @@ enum SurfaceUsage
 	SU_Staging = 2,      // Surfaces that don't get sent to GPU
 };
 
-typedef struct
+typedef struct Surface
 {
 	void* handle;
 	int refcount;
@@ -68,7 +68,7 @@ extern "C"
 
 	// Software implementation
 	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
-	int gfx_surfaceFromFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
+	int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn );
 	Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
@@ -85,7 +85,7 @@ extern "C"
 
 	// Function pointers to the selected implementation
 	extern int (*gfx_surfaceCreate)( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
-	extern int (*gfx_surfaceFromFrame)( Frame* pFrameIn, Surface** ppSurfaceOut );
+	extern int (*gfx_surfaceWithFrame)( Frame* pFrameIn, Surface** ppSurfaceOut );
 	extern int (*gfx_surfaceDestroy)( Surface** ppSurfaceIn );
 	extern Surface* (*gfx_surfaceReference)( Surface* pSurfaceIn );
 	extern int (*gfx_surfaceUpdate)( Surface* pSurfaceIn );

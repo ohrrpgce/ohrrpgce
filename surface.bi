@@ -19,7 +19,7 @@ Enum SurfaceFormat
 	SF_8bit = 0
 	SF_32bit = 1
 End Enum
-	
+
 Enum SurfaceUsage
 	SU_Source = 0       ' Surfaces that can be drawn to render targets
 	SU_RenderTarget = 1
@@ -93,7 +93,7 @@ End Type
 extern "C"
 
 	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
-	extern gfx_surfaceFromFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	extern gfx_surfaceWithFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 	extern gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 	extern gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -122,7 +122,7 @@ extern "C"
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
-	declare function gfx_surfaceFromFrame_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	declare function gfx_surfaceWithFrame_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceDestroy_SW ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 	declare function gfx_surfaceReference_SW ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 	declare function gfx_surfaceUpdate_SW ( byval pSurfaceIn as Surface ptr ) as integer

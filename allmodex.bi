@@ -40,8 +40,9 @@ Type Frame
 
 	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
-	image as ubyte ptr
-	mask as ubyte ptr
+	image as ubyte ptr 'Pointer to top-left corner. NULL if and onlf it Surface-backed.
+	mask as ubyte ptr  'Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather
+	                   'than nonzero bytes in image. Most Frames don't have a mask.
 	refcount as int32  'see frame_unload in particular for documentation
 	arraylen as int32  'how many frames were contiguously allocated in this frame array
 	base as Frame ptr    'if a view, the Frame which actually owns this memory
@@ -50,6 +51,9 @@ Type Frame
 	arrayelem:1 as int32  'not the first frame in a frame array
 	isview:1 as int32
 	noresize:1 as int32  '(Video pages only.) Don't resize this page to the window size
+
+	surf as Surface ptr  'If not NULL, this is a Surface-backed Frame, and image/mask are NULL.
+	                     'Holds a single reference to surf.
 
 	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
                                     'will need to be freed at the same time
@@ -442,14 +446,14 @@ declare function frame_load_4bit(filen as string, record as integer, numframes a
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
 declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
-extern "C" 
+extern "C"
 declare function frame_reference (byval p as frame ptr) as frame ptr
 declare sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
 declare sub frame_unload (byval p as frame ptr ptr)
 end extern
 declare sub frame_draw overload (src as frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, page as integer, write_mask as bool = NO)
 declare sub frame_draw overload (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
-declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, x as RelPos, y as RelPos, trans as bool = YES, dest as Surface ptr)
+declare sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Surface ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)
@@ -465,6 +469,12 @@ declare sub tileset_empty_cache()
 declare function frame_is_valid(byval p as frame ptr) as bool
 declare sub sprite_debug_cache()
 declare function frame_describe(byval p as frame ptr) as string
+
+declare function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
+declare sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
+'declare sub frame_drop_surface(fr as Frame ptr)
+declare function frame_with_surface(surf as Surface ptr) as Frame ptr
+
 
 '==========================================================================================
 '                                       Palette16

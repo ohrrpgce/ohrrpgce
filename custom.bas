@@ -1942,7 +1942,7 @@ SUB quad_transforms_menu ()
    end select
 
    gfx_surfaceDestroy( @spriteSurface )
-   gfx_surfaceFromFrame( testframe, @spriteSurface )
+   gfx_surfaceWithFrame( testframe, @spriteSurface )
 
    DIM testframesize as Rect
    WITH testframesize
@@ -1978,7 +1978,7 @@ SUB quad_transforms_menu ()
 
   pagecopytime = TIMER
   'Copy from vpage (8 bit Frame) to the render target surface
-  frame_draw vpages(vpage), master(), 0, 0, NO, vpage32
+  frame_draw vpages(vpage), master(), NULL, 0, 0, NO, vpage32
   pagecopytime = TIMER - pagecopytime
 
   DIM starttime as double = TIMER

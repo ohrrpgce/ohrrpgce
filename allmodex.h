@@ -24,13 +24,14 @@ typedef struct {
 struct SpriteCacheEntry;
 struct SpriteSet;
 
-typedef struct _Frame {
+typedef struct Frame {
 	int w;
 	int h;
 	XYPair offset; //Draw offset from the position passed to frame_draw. Used by frame_dissolve
 	int pitch;     //pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
-	unsigned char *image;
-	unsigned char *mask;
+	unsigned char *image; //Pointer to top-left corner. NULL if and only if Surface-backed.
+	unsigned char *mask;  //Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather
+	                      //than nonzero bytes in image. Most Frames don't have a mask.
 	int refcount;  //see sprite_unload in particular for documentation
 	int arraylen;  //how many frames were contiguously allocated in this frame array
 	struct _Frame *base;   //the Frame which actually owns this memory
@@ -39,6 +40,9 @@ typedef struct _Frame {
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
 	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
+
+	struct Surface *surf;      //If not NULL, this is a Surface-backed Frame, and image/mask are NULL.
+	                           //Holds a single reference to surf.
 
 	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
 	                           //will need to be freed at the same time
