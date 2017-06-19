@@ -7424,24 +7424,45 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 end function
 
 'Appends a new "frame" child node
-'TODO: Assumes the frame is 8 bit, and doesn't save metadata about palette or master palette
+'TODO: Doesn't save metadata about palette or master palette
 'TODO: Doesn't save mask, but we don't have any need to serialise masks at the moment
 function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
 	dim as NodePtr frame_node, image_node
 	frame_node = AppendChildNode(parent, "frame")
 	AppendChildNode(frame_node, "w", fr->w)
 	AppendChildNode(frame_node, "h", fr->h)
+
+	if fr->mask then
+		debug "WARNING: frame_to_node can't save masks"
+	end if
+
 	'"bits" gives the format of the "image" node; whether this Frame
 	'is a 4 or 8 bit sprite is unknown (and would be stored separately)
-	AppendChildNode(frame_node, "bits", 8)
+	dim bits as integer = 8
+	if fr->surf then
+		if fr->surf->format = SF_32bit then
+			bits = 32
+		end if
+	end if
+
+	AppendChildNode(frame_node, "bits", bits)
 
 	image_node = AppendChildNode(frame_node, "image")
 	'Allocate uninitialised memory
-	SetContent(image_node, NULL, fr->w * fr->h)
-	dim imdata as ubyte ptr = GetZString(image_node)
-	for y as integer = 0 TO fr->h - 1
-		memcpy(imdata + y * fr->w, fr->image + y * fr->pitch, fr->w)
-	next
+	SetContent(image_node, NULL, fr->w * fr->h * (bits \ 8))
+	dim imdata as byte ptr = GetZString(image_node)
+
+	if fr->surf then
+		dim surf as Surface ptr = fr->surf
+		dim rowlen as integer = surf->width * bits \ 8
+		for y as integer = 0 TO surf->height - 1
+			memcpy(imdata + y * rowlen, cast(byte ptr, surf->pRawData) + y * rowlen, rowlen)
+		next
+	else
+		for y as integer = 0 TO fr->h - 1
+			memcpy(imdata + y * fr->w, fr->image + y * fr->pitch, fr->w)
+		next
+	end if
 
 	return frame_node
 end function
@@ -7449,26 +7470,39 @@ end function
 'Loads a Frame from a "frame" node (node name not enforced)
 function frame_from_node(node as NodePtr) as Frame ptr
 	dim as integer bitdepth = GetChildNodeInt(node, "bits", 8)
-	dim as integer w = GetChildNodeInt(node, "w"), h = GetChildNodeInt(node, "h")
-	if bitdepth <> 8 then
+	dim as integer w = GetChildNodeInt(node, "w")
+	dim as integer h = GetChildNodeInt(node, "h")
+	if bitdepth <> 8 and bitdepth <> 32 then
 		debugc errPromptError, "frame_from_node: Unsupported graphics bitdepth " & bitdepth
-		return NULL
-	end if
-	dim fr as Frame ptr
-	fr = frame_new(w, h)
-	if fr = NULL then
-		'If the width or height was bad then an error already shown
 		return NULL
 	end if
 
 	dim image_node as NodePtr = GetChildByName(node, "image")
 	dim imdata as ubyte ptr = GetZString(image_node)
 	dim imlen as integer = GetZStringSize(image_node)
-	if imdata = NULL OR imlen < w * h then
-		debugc errPromptError, "frame_from_node: Couldn't load image; data is short (" & imlen & " for " & w & "*" & h & ")"
+	if imdata = NULL OR imlen <> w * h * bitdepth \ 8 then
+		debugc errPromptError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & w & "*" & h & ", bitdepth=" & bitdepth & ")"
 		return NULL
 	end if
-	memcpy(fr->image, imdata, w * h)
+
+	dim fr as Frame ptr
+
+	if bitdepth = 8 then
+		fr = frame_new(w, h)
+		if fr = NULL then
+			'If the width or height was bad then an error already shown
+			return NULL
+		end if
+		memcpy(fr->image, imdata, w * h)
+	elseif bitdepth = 32 then
+		dim surf as Surface ptr
+		if gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, @surf) then
+			return NULL
+		end if
+		memcpy(surf->pColorData, imdata, w * h * 4)
+		fr = frame_with_surface(surf)
+		gfx_surfaceDestroy(@surf)
+	end if
 	return fr
 end function
 
@@ -7614,12 +7648,23 @@ end sub
 'clr: if true, return a new blank Frame with the same size.
 'note: does not copy frame arrays, only single frames
 function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
-	dim ret as frame ptr, i as integer
+	dim ret as Frame ptr
 
 	if p = 0 then return 0
 
-	ret = callocate(sizeof(frame))
+	if p->surf then
+		if clr or addmask then
+			showerror "frame_duplicate: clr/addmask unimplemented for Surfaces"
+			return 0
+		end if
+		dim surf as Surface ptr = surface_duplicate(p->surf)
+		ret = frame_with_surface(surf)
+		ret->offset = p->offset
+		gfx_surfaceDestroy(@surf)  'Decrement extra reference
+		return ret
+	end if
 
+	ret = callocate(sizeof(frame))
 	if ret = 0 then return 0
 
 	ret->w = p->w
@@ -7638,7 +7683,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 				'a little optimisation (we know ret->w == ret->pitch)
 				memcpy(ret->image, p->image, ret->w * ret->h)
 			else
-				for i = 0 to ret->h - 1
+				for i as integer = 0 to ret->h - 1
 					memcpy(ret->image + i * ret->pitch, p->image + i * p->pitch, ret->w)
 				next
 			end if
@@ -7653,7 +7698,7 @@ function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO)
 				'a little optimisation (we know ret->w == ret->pitch)
 				memcpy(ret->mask, p->mask, ret->w * ret->h)
 			else
-				for i = 0 to ret->h - 1
+				for i as integer = 0 to ret->h - 1
 					memcpy(ret->mask + i * ret->pitch, p->mask + i * p->pitch, ret->w)
 				next
 			end if
