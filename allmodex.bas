@@ -100,6 +100,20 @@ declare function hexptr(p as any ptr) as string
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
 
+#define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
+
+#define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
+#define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
+
+' In a function, pass return value on error
+#macro CHECK_FRAME_8BIT(fr, what...)
+	if (fr)->image = NULL then
+		' Probably usually indicates that the Frame is Surface-backed
+		debug __FUNCTION__ & ": NULL Frame.image"
+		return what
+	end if
+#endmacro
+
 '------------ Global variables ------------
 
 dim modex_initialised as bool = NO
@@ -1115,11 +1129,6 @@ sub fadetopal (pal() as RGBcolor)
 	'setwait to avoid "dowait without setwait" warnings
 	setwait 0
 end sub
-
-#define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
-
-#define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
-#define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
 
 '==========================================================================================
@@ -3387,6 +3396,7 @@ sub stosprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	if clippedframe <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
+	CHECK_FRAME_8BIT(vpages(page))
 
 	poff = picoff
 	w = pic(poff)
@@ -3428,6 +3438,7 @@ sub loadsprite (pic() as integer, byval picoff as integer, byval x as integer, b
 	if clippedframe <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
+	CHECK_FRAME_8BIT(vpages(page))
 
 	sbytes = ((w * h) + 1) \ 2	'only 4 bits per pixel
 
@@ -3466,6 +3477,8 @@ sub getsprite (pic() as integer, byval picoff as integer, byval x as integer, by
 	dim nyb as integer = 0
 	dim p as integer = 0
 	dim as integer sw, sh
+
+	CHECK_FRAME_8BIT(vpages(page))
 
 	'store width and height
 	p = picoff
@@ -3520,6 +3533,8 @@ sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 	dim as integer x, y
 	dim sptr as ubyte ptr
 	dim plane as integer
+
+	CHECK_FRAME_8BIT(fr)
 
 	if NOT fileiswriteable(fil) then exit sub
 	f = freefile
@@ -3619,7 +3634,7 @@ sub putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, by
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit sub
 	end if
-
+	CHECK_FRAME_8BIT(spr)
 	FRAMEPIXEL(x, y, spr) = c
 end sub
 
@@ -3627,6 +3642,7 @@ sub putpixel (byval x as integer, byval y as integer, byval c as integer, byval 
 	if clippedframe <> vpages(p) then
 		setclip , , , , vpages(p)
 	end if
+	CHECK_FRAME_8BIT(vpages(p))
 
 	if POINT_CLIPPED(x, y) then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
@@ -3640,6 +3656,7 @@ function readpixel (byval spr as Frame ptr, byval x as integer, byval y as integ
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit function
 	end if
+	CHECK_FRAME_8BIT(spr, 0)
 
 	return FRAMEPIXEL(x, y, spr)
 end function
@@ -3648,12 +3665,12 @@ function readpixel (byval x as integer, byval y as integer, byval p as integer) 
 	if clippedframe <> vpages(p) then
 		setclip , , , , vpages(p)
 	end if
+	CHECK_FRAME_8BIT(vpages(p), 0)
 
 	if POINT_CLIPPED(x, y) then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
 		return 0
 	end if
-
 	return PAGEPIXEL(x, y, p)
 end function
 
@@ -3739,8 +3756,7 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
-
-	if fr = 0 then debug "rectangle null ptr": exit sub
+	CHECK_FRAME_8BIT(fr)
 
 	' Decode relative positions/sizes to absolute
 	w = relative_pos(w, fr->w)
@@ -3784,6 +3800,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+	CHECK_FRAME_8BIT(fr)
 
 	fuzzfactor = bound(fuzzfactor, 1, 99)
 
@@ -3905,6 +3922,7 @@ sub drawline (byval dest as Frame ptr, byval x1 as integer, byval y1 as integer,
 	if clippedframe <> dest then
 		setclip , , , , dest
 	end if
+	CHECK_FRAME_8BIT(dest)
 
 	if POINT_CLIPPED(x1, y1) orelse POINT_CLIPPED(x2, y2) then
 		debug "drawline: outside clipping"
@@ -4023,6 +4041,7 @@ sub paintat (byval dest as Frame ptr, byval x as integer, byval y as integer, by
 	if clippedframe <> dest then
 		setclip , , , , dest
 	end if
+	CHECK_FRAME_8BIT(dest)
 
 	if POINT_CLIPPED(x, y) then exit sub
 
@@ -4096,6 +4115,7 @@ sub ellipse (byval fr as Frame ptr, byval x as double, byval y as double, byval 
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+	CHECK_FRAME_8BIT(fr)
 
 	'x,y is the pixel to centre the ellipse at - that is, the centre of that pixel, so add half a pixel to
 	'radius to put the perimeter halfway between two pixels
@@ -4192,6 +4212,7 @@ sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols 
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+	CHECK_FRAME_8BIT(fr)
 
 	for yi as integer = clipt to clipb
 		dim sptr as ubyte ptr = fr->image + (yi * fr->pitch)
@@ -4214,6 +4235,8 @@ sub remap_to_palette (fr as Frame ptr, pal as Palette16 ptr)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+	CHECK_FRAME_8BIT(fr)
+
 	for y as integer = clipt to clipb
 		for x as integer = clipl to clipr
 			FRAMEPIXEL(x, y, fr) = pal->col(FRAMEPIXEL(x, y, fr))
@@ -4232,6 +4255,7 @@ function countcolor (fr as Frame ptr, col as integer) as integer
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+	CHECK_FRAME_8BIT(fr, 0)
 
 	dim ret as integer = 0
 	for yi as integer = clipt to clipb
@@ -5158,6 +5182,7 @@ function font_create_edged (basefont as Font ptr) as Font ptr
 		debugc errPromptBug, "font_create_edged was passed a blank font!"
 		return null
 	end if
+	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
 	dim newfont as Font ptr = callocate(sizeof(Font))
 
@@ -5245,6 +5270,7 @@ function font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop
 		debug "createshadowfont was passed a blank font!"
 		return null
 	end if
+	CHECK_FRAME_8BIT(basefont->layers(1)->spr, NULL)
 
 	dim newfont as Font ptr = callocate(sizeof(Font))
 
@@ -5556,6 +5582,8 @@ sub frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 	dim as integer of, y, i, skipbytes
 	dim as ubyte ptr sptr
 
+	CHECK_FRAME_8BIT(fr)
+
 	of = write_bmp_header(f, fr->w, fr->h, 8)
 	if of = -1 then exit sub
 
@@ -5585,6 +5613,8 @@ sub frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor,
 	dim as integer of, x, y, i, skipbytes
 	dim as ubyte ptr sptr
 	dim as ubyte pix
+
+	CHECK_FRAME_8BIT(fr)
 
 	of = write_bmp_header(f, fr->w, fr->h, 4)
 	if of = -1 then exit sub
@@ -6434,6 +6464,8 @@ end sub
 
 ' Output a single-frame .gif. Ignores mask.
 sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pal as Palette16 ptr = NULL, transparent as bool = NO)
+	CHECK_FRAME_8BIT(fr)  'TODO: implement 32bit export
+
 	dim writer as GifWriter
 	dim gifpal as GifPalette
 	GifPalette_from_pal gifpal, maspal(), pal
@@ -6533,6 +6565,7 @@ end sub
 ' Called with every frame that should be included in any ongoing recording
 private sub gif_record_frame8(fr as Frame ptr, pal() as RGBcolor)
 	if recordgif.active = NO then exit sub
+	CHECK_FRAME_8BIT(fr)
 
 	dim delay as integer = recordgif.delay()
 	if delay <= 0 then exit sub
@@ -7166,6 +7199,8 @@ end function
 'Create a frame which is a view onto part of a larger frame
 'Can return a zero-size view. Seems to work, but not yet sure that all operations will work correctly on such a frame.
 function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
+	CHECK_FRAME_8BIT(spr, NULL)
+
 	dim ret as frame ptr = callocate(sizeof(Frame))
 
 	if ret = 0 then
@@ -7487,6 +7522,8 @@ end sub
 'Takes a 320x200 Frame and produces a 20x3200 Frame in the format expected of tilesets:
 'linear series of 20x20 tiles.
 function mxs_frame_to_tileset(byval spr as Frame ptr) as Frame ptr
+	CHECK_FRAME_8BIT(spr, NULL)
+
 	dim tileset as Frame ptr
 	tileset = frame_new(20, 20 * 160)
 
@@ -7541,7 +7578,11 @@ function frame_is_valid(byval p as frame ptr) as bool
 	if p->w < 0 or p->h < 0 then ret = NO
 	if p->pitch < p->w then ret = NO
 
-	if p->image = 0 then ret = NO
+	if p->surf then
+		if p->image = 0 or p->mask = 0 then ret = NO
+	else
+		if p->image = 0 then ret = NO
+	end if
 
 	'Patterns used by Windows and Linux to scrub memory
 	if cint(p->mask) = &hBAADF00D or cint(p->image) = &hBAADF00D then ret = NO
@@ -7558,6 +7599,7 @@ end function
 'Add a mask. NOTE: Only valid on Frames with pitch == w!
 'clr: is true, blank mask, otherwise copy image
 private sub frame_add_mask(byval fr as frame ptr, byval clr as bool = NO)
+	CHECK_FRAME_8BIT(fr)
 	if fr->mask then exit sub
 	if clr = NO then
 		fr->mask = allocate(fr->w * fr->h)
@@ -7740,6 +7782,8 @@ end function
 ' tlength is the desired length of the transition (in any time units you please),
 ' t is the number of elasped time units. style is the specific transition.
 function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
+	CHECK_FRAME_8BIT(spr, NULL)
+
 	'Return a blank sprite of same size
 	'(Note that Vapourise and Phase Out aren't blank on t==tlength, while others are, unless tlength=0
 	if t > tlength then return frame_duplicate(spr, YES)
@@ -8031,6 +8075,7 @@ end sub
 ' flips a sprite horizontally. In place: you are only allowed to do this on sprites with no other references
 sub frame_flip_horiz(byval spr as frame ptr)
 	if spr = 0 then exit sub
+	CHECK_FRAME_8BIT(spr)
 
 	if spr->refcount > 1 then
 		debug "illegal hflip on " & frame_describe(spr)
@@ -8047,6 +8092,7 @@ end sub
 ' flips a sprite vertically. In place: you are only allowed to do this on sprites with no other references
 sub frame_flip_vert(byval spr as frame ptr)
 	if spr = 0 then exit sub
+	CHECK_FRAME_8BIT(spr)
 
 	if spr->refcount > 1 then
 		debug "illegal vflip on " & frame_describe(spr)
@@ -8063,6 +8109,7 @@ end sub
 'Unlike flipping functions, not inplace!
 function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
+	CHECK_FRAME_8BIT(spr, NULL)
 
 	dim ret as Frame ptr = frame_new(spr->h, spr->w, 1, (spr->mask <> NULL))
 
@@ -8080,6 +8127,7 @@ end function
 'Unlike flipping functions, not inplace!
 function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
+	CHECK_FRAME_8BIT(spr, NULL)
 
 	dim ret as Frame ptr = frame_new(spr->h, spr->w, 1, (spr->mask <> NULL))
 
@@ -8096,6 +8144,7 @@ end function
 'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
 'frame_duplicate with clr=1 does the same
 sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
+	CHECK_FRAME_8BIT(spr)
 	if spr->image then
 		if spr->w = spr->pitch then
 			memset(spr->image, colour, spr->w * spr->h)
@@ -8118,7 +8167,8 @@ end sub
 
 'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.
 ' function frame_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as bool = NO, byval direct as bool = NO) as frame ptr
-
+'	CHECK_FRAME_8BIT(spr, NULL)
+'
 ' 	dim ret as frame ptr, x as integer, y as integer
 '
 ' 	ret = frame_clear(spr, -1)
@@ -8188,6 +8238,7 @@ private sub grabrect(byval page as integer, byval x as integer, byval y as integ
 	dim as integer i, j, px, py, l
 
 	if ibuf = null then exit sub
+	CHECK_FRAME_8BIT(vpages(page))
 
 	sptr = vpages(page)->image
 
