@@ -816,6 +816,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
         "you'll then be able to import normally."
   slice_editor newcollection
  ELSE
+  remember_draw_root_pos = ses.draw_root->Pos
   DeleteSlice @ses.draw_root
   edslice = newcollection
   ses.draw_root = create_draw_root()
