@@ -406,11 +406,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   .edged = YES
   .itemspacing = -1
   .highlight = YES
-  .fullscreen_scrollbar = YES
  END WITH
 
  DIM cursor_seek as Slice Ptr = 0
- 
+
  DIM jump_to_collection as integer
 
  '--Ensure all the slices are updated before the loop starts
@@ -489,7 +488,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     cursor_seek = ses.curslice
     slice_edit_detail ses, ses.curslice
     state.need_update = YES
-   END IF 
+   END IF
   END IF
   IF ses.use_index THEN
    IF state.pt = 1 THEN
@@ -656,7 +655,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   END IF
 
   draw_background vpages(dpage), bgChequer
-  
+
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
@@ -686,8 +685,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
    NEXT i
 
-   standardmenu plainmenu(), state, 0, 0, dpage, menuopts
-   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, pBottom, uilook(uiText), dpage
+   standardmenu plainmenu(), state, 8, 0, dpage, menuopts
+   draw_fullscreen_scrollbar state, 0, dpage, alignLeft
+   edgeprint "+ to add a slice. SHIFT+arrows to sort", 8, pBottom, uilook(uiText), dpage
   END IF
 
   SWAP vpage, dpage

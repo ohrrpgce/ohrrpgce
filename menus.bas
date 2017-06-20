@@ -1602,26 +1602,26 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB draw_scrollbar(state as MenuState, menu as MenuDef, byval page as integer)
- draw_scrollbar state, menu.rect, menu.boxstyle, page
+SUB draw_scrollbar(state as MenuState, menu as MenuDef, page as integer, align as AlignType = alignRight)
+ draw_scrollbar state, menu.rect, menu.boxstyle, page, align
 END SUB
 
-SUB draw_scrollbar(state as MenuState, rect as RectType, byval boxstyle as integer=0, byval page as integer)
- DIM count as integer = state.last - state.first + 1
- draw_scrollbar state, rect, count, boxstyle, page
-END SUB
-
+'Hint: usually you would pass state.rect as rect
 'count being the number of (visible) menu items
-SUB draw_scrollbar(state as MenuState, rect as RectType, byval count as integer, byval boxstyle as integer=0, byval page as integer)
+'align is which side to put the slider on
+SUB draw_scrollbar(state as MenuState, rect as RectType, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
+ DIM count as integer = state.last - state.first + 1
  'recall state.size is off-by-1
  IF state.top > state.first OR count > (state.size + 1) THEN
   IF count > 0 THEN
    DIM sbar as RectType
    DIM slider as RectType
-   sbar.x = rect.x + rect.wide - 6
-   sbar.y = rect.y + 2
+   ' 2px padding on each side, 4px wide slider
+   DIM pad as integer = 2
    sbar.wide = 4
-   sbar.high = rect.high - 4
+   sbar.high = rect.high - pad * 2
+   sbar.x = rect.x + pad + anchor_point(align, rect.wide - pad * 2 - sbar.wide)
+   sbar.y = rect.y + pad
    WITH sbar
     slider.y = .high / count * (state.top - state.first)
     slider.high = .high / count * (state.size + 1)
@@ -1632,9 +1632,9 @@ SUB draw_scrollbar(state as MenuState, rect as RectType, byval count as integer,
  END IF
 END SUB
 
-SUB draw_fullscreen_scrollbar(state as MenuState, byval boxstyle as integer=0, byval page as integer)
+SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
  DIM rect as RectType
  rect.wide = vpages(page)->w
  rect.high = vpages(page)->h
- draw_scrollbar state, rect, boxstyle, page
+ draw_scrollbar state, rect, boxstyle, page, align
 END SUB

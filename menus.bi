@@ -79,10 +79,9 @@ DECLARE FUNCTION get_special_menu_caption(byval subtype as integer) as string
 DECLARE FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
 
 '' Scrollbars!
-DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, menu as MenuDef, byval page as integer)
-DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, rect as RectType, byval boxstyle as integer=0, byval page as integer)
-DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, rect as RectType, byval count as integer, byval boxstyle as integer=0, byval page as integer)
-DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, byval boxstyle as integer=0, byval page as integer)
+DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, menu as MenuDef, page as integer, align as AlignType = alignRight)
+DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, rect as RectType, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
+DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
 
 
 #endif

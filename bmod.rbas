@@ -1003,9 +1003,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      .pt = INT(bat.item.pt / 3)
      .last = INT(last_inv_slot() / 3)
     END WITH
-    bat.inv_scroll_rect.high = inv_height - 10
+    bat.inv_scroll_rect.high = inv_height - 2
     edgeboxstyle 8, 4, 304, inv_height, 0, page
-    draw_scrollbar bat.inv_scroll, bat.inv_scroll_rect, bat.inv_scroll.last, , page
+    draw_scrollbar bat.inv_scroll, bat.inv_scroll_rect, , page
     FOR i = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
      if i < lbound(inventory) or i > ubound(inventory) then continue for
      textcolor uilook(uiDisabledItem - readbit(bat.iuse(), 0, i)), 0
@@ -1764,7 +1764,7 @@ SUB reset_battle_state (byref bat as BattleState)
   END WITH
   WITH .inv_scroll_rect
    .x = 20
-   .y = 8
+   .y = 5
    .wide = 292
    '.high set later
   END WITH
