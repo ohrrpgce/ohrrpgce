@@ -5,12 +5,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef _WIN32
-#include <malloc.h>
-#elif defined(__gnu_linux__)
-// Doesn't exist in BSD
-#include <alloca.h>
-#endif
 #include <limits.h>
 
 #include "common.h"

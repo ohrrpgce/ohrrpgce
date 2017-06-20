@@ -11,6 +11,14 @@
 #include "errorlevel.h"
 #include <stdint.h>
 
+// For alloca declaration
+#ifdef _WIN32
+#include <malloc.h>
+#elif defined(__gnu_linux__)
+// Doesn't exist in BSD
+#include <alloca.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
