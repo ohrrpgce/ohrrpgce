@@ -6599,12 +6599,15 @@ dim shared as string*4 screenshot_exts(...) => {".bmp", ".png", ".jpg", ".dds", 
 
 'Save a screenshot. fname should NOT include the extension, since the gfx backend can decide that.
 'Returns the filename it was saved to, with extension
-function screenshot (fname as string) as string
+function screenshot (basename as string) as string
 	dim ret as string
+	if len(basename) = 0 then
+		basename = next_unused_screenshot_filename()
+	end if
 	'try external first
-	if gfx_screenshot(fname) = 0 then
+	if gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
-		ret = fname & ".bmp"
+		ret = basename & ".bmp"
 		if last_setvispage >= 0 then
 			frame_export_bmp(ret, vpages(last_setvispage), intpal())
 		end if
@@ -6613,18 +6616,18 @@ function screenshot (fname as string) as string
 	' The reason for this for loop is that we don't know what extension the gfx backend
 	' might save the screenshot as; have to search for it.
 	for i as integer = 0 to ubound(screenshot_exts)
-		ret = fname & screenshot_exts(i)
+		ret = basename & screenshot_exts(i)
 		if isfile(ret) then
 			return ret
 		end if
 	next
 end function
 
-sub bmp_screenshot(f as string)
+sub bmp_screenshot(basename as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
 	if last_setvispage >= 0 then
-		frame_export_bmp(f & ".bmp", vpages(last_setvispage), intpal())
+		frame_export_bmp(basename & ".bmp", vpages(last_setvispage), intpal())
 	end if
 end sub
 
@@ -6710,7 +6713,7 @@ private sub snapshot_check()
 			redim backlog(0)
 
 			' Take the new screenshot
-			dim temp as string = screenshot(next_unused_screenshot_filename())
+			dim temp as string = screenshot()
 			'debug "saved " & temp
 			if num_screenshots_taken = 0 then
 				first_screenshot = trimpath(temp)

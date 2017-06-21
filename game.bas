@@ -763,6 +763,9 @@ DO
  gam.mouse = readmouse  'didn't bother to check havemouse()
  control
 
+ '--Debug keys
+ IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN check_debug_keys()
+
  'debug "menu key handling:"
  check_menu_tags
  player_menu_keys()
@@ -829,8 +832,10 @@ DO
  'DEBUG debug "NPC movement"
  update_npcs()
 
- '--Debug keys
- IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN check_debug_keys()
+ AdvanceSlice SliceTable.root
+ ELSE
+  dotimer(TIMER_BLOCKINGMENUS)
+ END IF' end menus_allow_gameplay
 
  IF gam.want.loadgame > 0 THEN
   'DEBUG debug "loading game slot " & (gam.want.loadgame - 1)
@@ -848,11 +853,6 @@ DO
   queue_fade_in 1, YES
   doloadgame load_slot
  END IF
-
- AdvanceSlice SliceTable.root
- ELSE
-  dotimer(TIMER_BLOCKINGMENUS)
- END IF' end menus_allow_gameplay
 
  'Death handling
  IF checkfatal THEN
@@ -2536,6 +2536,7 @@ END SUB
 SUB player_menu_keys ()
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
+  IF gam.debug_camera_pan THEN EXIT SUB
   'Following controls useable on empty menus too
 
   IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
@@ -2637,9 +2638,6 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
       '(Maybe it would be better to display the load menu even if there are no saves)
       IF slot >= 0 THEN
        gam.want.loadgame = slot + 1
-       FOR i as integer = topmenu TO 0 STEP -1
-        remove_menu i, NO
-       NEXT i
       END IF
      CASE spQuit
       menusound gen(genAcceptSFX)
@@ -4225,7 +4223,7 @@ SUB battle_formation_testing_menu()
 
   copypage holdscreen, vpage
   draw_menu menu, state, vpage
-  edgeprint "F1 Help", 0, pBottom, uilook(uiMenuItem), vpage
+  edgeprint "F1 Help", 0, pBottom, uilook(uiText), vpage
   setvispage vpage
   dowait
  LOOP

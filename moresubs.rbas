@@ -1183,7 +1183,7 @@ END SUB
 
 SUB resetgame ()
 'Warning: don't put necessary initialisation in here,
-'as this is only called after the first game.
+'as this is ONLY called AFTER playing a game, on gameover/resetgame/loadgame/quit.
 'initgamedefaults is probably a better place for that.
 'In order words, be suspicious of anything in here that resets
 'to a value other than zero/empty string/etc.
@@ -1200,6 +1200,7 @@ mapx = 0
 mapy = 0
 gold = 0
 gam.showstring = ""
+gam.debug_camera_pan = NO
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
@@ -1338,6 +1339,8 @@ DESTRUCTOR HeroWalkabout ()
  v_free curzones
 END DESTRUCTOR
 
+'Unlike resetgame(), this is called before a game first is played,
+'in addition to being called after playing (resetgame/gameover/loadgame/quit).
 SUB reset_game_state ()
  reset_map_state(gam.map)
  gam.wonbattle = NO

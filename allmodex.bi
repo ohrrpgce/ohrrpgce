@@ -311,8 +311,8 @@ TYPE QuantizeOptions
 	transparency as RGBcolor 'Color to map to 0 (should have .a=0) (Default -1, meaning none)
 END TYPE
 
-DECLARE FUNCTION screenshot (f as string = "") as string
-DECLARE SUB bmp_screenshot(f as string)
+DECLARE FUNCTION screenshot(basename as string = "") as string
+DECLARE SUB bmp_screenshot(basename as string)
 DECLARE SUB toggle_recording_gif()
 
 DECLARE SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
