@@ -1,18 +1,63 @@
+# This GDB script file is used when running gdbcustom.sh/gdbgame.sh etc,
+# or 'Test Game under GDB' in Custom.
+
 set lang c++
+
+define dumpstate
+	echo Dumping state. FB error string:\n
+	p ((char**)&__fb_ctx)[5]
+	echo GFXBACKENDINFO:s
+	p GFXBACKENDINFO
+	echo MUSICBACKENDINFO:
+	p MUSICBACKENDINFO
+	echo SYSTEMINFO:
+	p SYSTEMINFO
+	echo Threads and backtrace:\n
+	info threads
+	bt
+end
+
+# Only happens when running under Test Game
+break HOOK_AFTER_ATTACH_TO_MASTER
+
+# Break when exiting with __fb_ctx.__fb_ermsg set (only when compiled with -exx)
 break fb_End if ((char**)&__fb_ctx)[5] != 0
 break exit if ((char**)&__fb_ctx)[5] != 0
-break abort
+# Not sure why can't hook abort
+#break abort
+commands 2 3
+	dumpstate
+end
+
+# Exit gdb when the program exits
+define bye
+	# Need to use a define block to continue and quit, because
+	# a 'commands' block is cancelled when the program exits
+	cont
+	quit
+end
+break exit
+commands 4
+	bye
+end
+
 handle SIGPIPE nostop noprint pass
 source misc/gdbscripts
 echo                Running...\n
 run
-if $_exitcode == 0
-	echo No crash here\n
-	quit	
-else
-	echo Non-zero exit code!\n
-	source gdbcmds2
-end
 
+# Doesn't really work, since the program has already exited in either case...
+init-if-undefined $_exitcode = 0
+init-if-undefined $_exitsignal = 0
+if $_exitcode || $_exitsignal
+	echo Non-zero exit code or killed by signal!\n
+        dumpstate
+else
+	# If we pressed Ctrl+C or otherwise interrupted the program, a signal would be set
+	if $_isvoid($_siginfo)
+		echo Program exited normally\n
+		quit
+	end
+end
 
 

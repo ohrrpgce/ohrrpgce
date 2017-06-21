@@ -2782,8 +2782,18 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
   ' channel_wait_for_client_connection is going to time out if Game isn't
   ' allowed to run normally, so as a compromise break immediately after the
   ' channel is connected. (You can always increase the 3sec delay instead.)
-  arguments = "-ex ""break HOOK_AFTER_ATTACH_TO_MASTER"" -ex ""run"" " _
-              "--args " & executable & " " & arguments
+
+  ' We imitate invoking gdb via the gdbgame.sh/bat script
+  DIM cmdfile as string
+  cmdfile = finddatafile("misc/gdbcmds1.txt", NO)
+
+  DIM gdbargs as string
+  IF LEN(cmdfile) > 0 THEN
+   gdbargs = "-x=""" & cmdfile & """ "
+  ELSE
+   gdbargs = "-ex ""break HOOK_AFTER_ATTACH_TO_MASTER"" -ex ""run"" "
+  END IF
+  gdbargs &= "--args " & executable & " " & arguments
   executable = find_helper_app("gdb")
   IF LEN(executable) = 0 THEN
    notification "Couldn't find gdb. You need to install it."
@@ -2795,19 +2805,20 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
    ' so need to spawn it inside an xterm
    ' TODO: this isn't going to work on OSX... unless maybe you have X11 installed?
    ' Wrap in a xterm call...
-   arguments = " -geometry 120x25 -bg black -fg gray90 -title 'gdb ohrrpgce-game' -e " _
-               """" & escape_string(executable & " " & arguments, """\") & """"
+   DIM xtermargs as string
+   xtermargs = " -geometry 120x30 -bg black -fg gray90 -title 'gdb ohrrpgce-game' -e " _
+               """" & escape_string(executable & " " & gdbargs, """\") & """"
    executable = find_helper_app("xterm")
    IF LEN(executable) = 0 THEN
     notification "xterm is missing; can't continue"
     RETURN NO
    ENDIF
 
-   slave_process = open_process(executable, arguments, YES, YES)
+   slave_process = open_process(executable, xtermargs, YES, YES)
 
   #ELSEIF defined(__FB_WIN32__)
    ' Likewise on Windows need a console. But this is only implemented on Windows
-   slave_process = open_console_process(executable, arguments)
+   slave_process = open_console_process(executable, gdbargs)
   #ELSE
    notification "Running under GDB not implemented on this platform"
    RETURN NO
