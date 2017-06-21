@@ -2020,7 +2020,7 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
- RETURN npc_collision_check(npci, npcs(npci.id - 1), direction, collision_type, npc_ccache)
+ RETURN npc_collision_check(npci, npcs(ABS(npci.id) - 1), direction, collision_type, npc_ccache)
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool

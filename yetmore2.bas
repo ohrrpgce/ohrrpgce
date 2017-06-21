@@ -939,9 +939,9 @@ SUB npc_debug_display ()
    IF .id <> 0 THEN
     DIM as integer drawX, drawY
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-     textcolor uilook(uiText), 0
+     textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
      'the numbers can overlap quite badly, try to squeeze them in
-     temp = IIF(.id < 0, "-", "") & (ABS(.id) - 1)
+     temp = STR(ABS(.id) - 1)
      printstr MID(temp, 1, 1), drawX, drawY + 4, dpage
      printstr MID(temp, 2, 1), drawX + 7, drawY + 4, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 4, dpage
@@ -951,17 +951,20 @@ SUB npc_debug_display ()
      printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
      printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
      'printstr STR(npc(i).stillticks), drawX, drawY + 20, dpage
-     FOR yoff as integer = -1 TO 1
-      FOR xoff as integer = -1 TO 1
-       DIM tile as XYPair
-       tile.x = npc(i).x / 20 + xoff
-       tile.y = npc(i).y / 20 + yoff
-       IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
-       IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
-       IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
-       IF npc_collision_check_at(npc(i), tile, dirWest)  THEN drawants_for_tile tile, dirWest
-      NEXT xoff
-     NEXT yoff
+     ' Don't bother to draw obstruction for disabled NPCs
+     IF .id > 0 THEN
+      FOR yoff as integer = -1 TO 1
+       FOR xoff as integer = -1 TO 1
+        DIM tile as XYPair
+        tile.x = npc(i).x / 20 + xoff
+        tile.y = npc(i).y / 20 + yoff
+        IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
+        IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
+        IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
+        IF npc_collision_check_at(npc(i), tile, dirWest)  THEN drawants_for_tile tile, dirWest
+       NEXT xoff
+      NEXT yoff
+     END IF
     END IF
    END IF
   END WITH
