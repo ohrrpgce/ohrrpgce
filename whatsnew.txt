@@ -90,6 +90,8 @@ WHAT IS NEW?
       debug key a while ago) [Ralph]
     * "Export to File" option in Script Usage and Find Broken Script
       Triggers menus [Ralph]
+    * Added general preference bitset "Hero walking animation continues
+      when not moving" [James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

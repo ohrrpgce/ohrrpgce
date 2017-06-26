@@ -161,6 +161,7 @@ SUB edit_general_bitsets()
  bitname(38) = "Never show script timers during battles"
  bitname(40) = "Don't stop music when starting/loading game"
  bitname(41) = "Keep caterpillar length the same when speed changes"
+ bitname(42) = "Hero walking animation continues when not moving"
  edit_global_bitsets bitname(), "general_game_bitsets"
 END SUB
 

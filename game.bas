@@ -1305,15 +1305,21 @@ SUB update_heroes(force_step_check as bool=NO)
  'Caterpillar hero movement: if enabled and the leader is about to move
  ' then make other heroes trail along by updating the caterpillar history
  IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN
-  IF herow(0).xgo OR herow(0).ygo THEN
+  'Normal caterpillar
+  IF herow(0).xgo ORELSE herow(0).ygo THEN
    updatecaterpillarhistory
+  END IF
+  IF herow(0).xgo ORELSE herow(0).ygo ORELSE readbit(gen(), genBits2, 26) THEN
    FOR whoi as integer = 0 TO sizeActiveParty - 1
     herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
    NEXT whoi
   END IF
  ELSE
+  'Suspended caterpillar
   FOR whoi as integer = 0 TO sizeActiveParty - 1
-   IF herow(whoi).xgo OR herow(whoi).ygo THEN herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
+   IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE readbit(gen(), genBits2, 26) THEN
+    herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
+   END IF
   NEXT whoi
  END IF
 
