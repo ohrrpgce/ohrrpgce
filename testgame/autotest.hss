@@ -3542,7 +3542,7 @@ script, run game tests, begin
   assert(check game exists($1="") == false)
   assert(check game exists($1="test.rpg"))
   assert(check game exists($1="foo.rpg") == false)
-  assert(check game exists($1="test.rpgdir"))
+  #assert(check game exists($1="test.rpgdir"))
   assert(check game exists($1="autotest.rpg"))
   assert(check game exists($1="autotest.hss") == false)
   assert(check game exists($1="../testgame") == false)
