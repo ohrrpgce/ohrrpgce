@@ -4366,6 +4366,20 @@ SUB script_functions(byval cmdid as integer)
   scriptret = IIF(readbit(gen(), genSuspendBits, suspendambientmusic), 1, 0)
  CASE 642'--timers are suspended
   scriptret = IIF(readbit(gen(), genSuspendBits, suspendtimers), 1, 0)
+ CASE 643'--get screen width
+  scriptret = gen(genResolutionX)
+ CASE 644'--get screen height
+  scriptret = gen(genResolutionY)
+ CASE 645'--set screen resolution
+  'FIXME: this is secret and undocumented until the gfx_directx backends supports resolution changing
+  IF retvals(0) < MinResolutionX ORELSE retvals(0) > MaxResolutionX ORELSE retvals(1) < MinResolutionY ORELSE retvals(1) > MaxResolutionY THEN
+   scripterr interpreter_context_name() + "invalid resolution " & retvals(0) & "," & retvals(1) & " should be in the range of " & MinResolutionX & "," & MinResolutionY & " to " & MaxResolutionX & "," & MaxResolutionY, serrBound
+  ELSE
+   gen(genResolutionX) = retvals(0)
+   gen(genResolutionY) = retvals(1)
+   apply_game_window_settings()
+  END IF
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

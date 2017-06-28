@@ -119,6 +119,7 @@ WHAT IS NEW?
       suspended", etc... [James]
     * NPC pathfinding commands: "pathfind npc to" "npc chases npc"
       "cancel npc walk" [James]
+    * "get screen width" and "get screen height" [James]
     * Changes to the language:
       * -= and += now return their result, like := does, so they can be
         used as expressions [Ralph]

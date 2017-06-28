@@ -8057,6 +8057,26 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				<ref>keyispressed</ref>
 			</seealso>
 		</command>
+		<command id="getscreenwidth">
+			<canon>get screen width</canon>
+			<shortname>get screen width</shortname>
+			<description>
+				Returns the width of the screen in pixels.
+			</description>
+			<seealso>
+				<ref>getscreenheight</ref>
+			</seealso>
+		</command>
+		<command id="getscreenheight">
+			<canon>get screen height</canon>
+			<shortname>get screen height</shortname>
+			<description>
+				Returns the height of the screen in pixels.
+			</description>
+			<seealso>
+				<ref>getscreenwidth</ref>
+			</seealso>
+		</command>
 
 		<section title="Caps">
 		<command id="getdamagecap">

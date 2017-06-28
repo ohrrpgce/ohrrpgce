@@ -38,6 +38,10 @@ end
 #-----------------------------------------------------------------------
 
 plotscript, on new game, begin
+  # Screen defaults to 400x400 on desktop
+  if(running on console || running on mobile) then(
+    set screen resolution(400, 225)
+  )
   set hero speed(me, 4)
   jump to map(none, default map)
 end

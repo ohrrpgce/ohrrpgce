@@ -294,7 +294,7 @@ CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 642  'Max ID number of any supported script command (checked when loading game)
+CONST maxScriptCmdID = 645  'Max ID number of any supported script command (checked when loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0
@@ -485,6 +485,12 @@ CONST TIMERFLAG_MENU     = 4
 'Timer .trigger
 CONST TIMERTRIGGER_DEFAULT = -1
 CONST TIMERTRIGGER_GAMEOVER = -2
+
+CONST MaxResolutionX = 1280 'Arbitrary limits
+CONST MaxResolutionY = 960
+CONST MinResolutionX = 10
+CONST MinResolutionY = 10
+
 
 #include "uiconst.bi"
 #include "scancodes.bi"

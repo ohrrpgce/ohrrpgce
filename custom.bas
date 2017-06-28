@@ -1743,8 +1743,8 @@ SUB resolution_menu (secret_options as bool)
   DIM quit as bool = (keyval(scEsc) > 1 OR (enter_space_click(st) AND st.pt = 0))
   IF usemenu(st) ORELSE quit THEN
    ' Reinforce limits, because we temporarily allow 0 while typing for convenience
-   gen(genResolutionX) = large(10, gen(genResolutionX))
-   gen(genResolutionY) = large(10, gen(genResolutionY))
+   gen(genResolutionX) = large(MinResolutionX, gen(genResolutionX))
+   gen(genResolutionY) = large(MinResolutionY, gen(genResolutionY))
   END IF
   IF quit THEN EXIT DO
   IF keyval(scF1) > 1 THEN
@@ -1755,8 +1755,8 @@ SUB resolution_menu (secret_options as bool)
    CASE 2: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
    CASE 3: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
    CASE 4: st.need_update OR= intgrabber(gen(genRungameFullscreenIndependent), 0, 1)
-   CASE 5: st.need_update OR= intgrabber(gen(genResolutionX), 0, 1280)  'Arbitrary limits
-   CASE 6: st.need_update OR= intgrabber(gen(genResolutionY), 0, 960)
+   CASE 5: st.need_update OR= intgrabber(gen(genResolutionX), 0, MaxResolutionX)  'Arbitrary limits
+   CASE 6: st.need_update OR= intgrabber(gen(genResolutionY), 0, MaxResolutionY)
   END SELECT
   IF st.need_update THEN
    xbsave game + ".gen", gen(), 1000   'Instant live previewing update
