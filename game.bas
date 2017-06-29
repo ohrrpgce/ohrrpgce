@@ -2961,6 +2961,9 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
    update_npc_zones npcref
   END IF
  NEXT
+ 
+ 'Cancel any pending hero pathing
+ cancel_hero_pathfinding()
 
  'DEBUG debug "end of preparemap"
 END SUB
