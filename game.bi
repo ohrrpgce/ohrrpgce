@@ -131,4 +131,10 @@ DECLARE SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as 
 
 DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
 
+DECLARE FUNCTION hero_is_pathfinding() as bool
+DECLARE SUB cancel_hero_pathfinding()
+DECLARE SUB trigger_hero_pathfinding(dest as XYPair)
+DECLARE SUB update_hero_pathfinding(byval rank as integer)
+DECLARE SUB heromove_walk_ahead(byval rank as integer)
+
 #ENDIF

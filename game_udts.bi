@@ -97,6 +97,18 @@ TYPE VirtualGamePadState
   being_shown as bool
 END TYPE
 
+ENUM HeroPathingMode
+ NONE
+ NPC
+ POS
+END ENUM
+
+TYPE HeroPathing
+  mode as HeroPathingMode 'Set if pathfinding is happening
+  dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
+  dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
+END TYPE
+
 TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
@@ -136,6 +148,7 @@ TYPE GameState
   quit as bool                       'Quit back to titlescreen
   pad as VirtualGamePadState
   non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
+  hero_pathing as HeroPathing
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

@@ -796,13 +796,24 @@ DO
     AND menus_allow_player() THEN
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
    DO
-    IF carray(ccUp) > 0 THEN herow(0).ygo = 20: (herodir(0)) = 0: EXIT DO
-    IF carray(ccDown) > 0 THEN herow(0).ygo = -20: (herodir(0)) = 2: EXIT DO
-    IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: (herodir(0)) = 3: EXIT DO
-    IF carray(ccRight) > 0 THEN herow(0).xgo = -20: (herodir(0)) = 1: EXIT DO
+    IF carray(ccUp) > 0 THEN herow(0).ygo = 20: (herodir(0)) = 0    : cancel_hero_pathfinding() : EXIT DO
+    IF carray(ccDown) > 0 THEN herow(0).ygo = -20: (herodir(0)) = 2 : cancel_hero_pathfinding() : EXIT DO
+    IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: (herodir(0)) = 3  : cancel_hero_pathfinding() : EXIT DO
+    IF carray(ccRight) > 0 THEN herow(0).xgo = -20: (herodir(0)) = 1: cancel_hero_pathfinding() : EXIT DO
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
+     cancel_hero_pathfinding()
      usenpc 0, find_useable_npc()
     END IF
+    IF is_mouse_hero_move_enabled() THEN
+     IF gam.mouse.clicks AND mouseLeft THEN
+      IF hero_is_pathfinding() THEN
+       cancel_hero_pathfinding()
+      ELSE
+       trigger_hero_pathfinding(XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20))
+      END IF
+     END IF
+    END IF
+    update_hero_pathfinding(0)
     EXIT DO
    LOOP
   END IF
@@ -4440,4 +4451,43 @@ FUNCTION top_menu_allows_controls() as bool
  END IF
  RETURN NO
 END FUNCTION
+
+FUNCTION hero_is_pathfinding() as bool
+ RETURN gam.hero_pathing.mode <> HeroPathingMode.NONE
+END FUNCTION
+
+SUB cancel_hero_pathfinding()
+ gam.hero_pathing.mode = HeroPathingMode.NONE
+END SUB
+
+SUB trigger_hero_pathfinding(dest as XYPair)
+ gam.hero_pathing.mode = HeroPathingMode.POS
+ gam.hero_pathing.dest_pos = dest
+END SUB
+
+SUB update_hero_pathfinding(byval rank as integer)
+ IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
+
+ DIM t1 as XYPair = XY(herotx(rank), heroty(rank))
+ DIM t2 as XYPair = gam.hero_pathing.dest_pos
+ 
+ dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
+ pf.calculate(0, NO)
+ pf.slow_debug()
+ if v_len(pf.path) > 1 then
+  'Don't move unless a path is found that is longer than one tile
+  (herodir(rank)) = xypair_direction_to(pf.path[0], pf.path[1], herodir(rank))
+  heromove_walk_ahead(rank)
+ else
+  'Give up immediately when pathing fails
+  gam.hero_pathing.mode = HeroPathingMode.NONE
+ end if
+END SUB
+
+SUB heromove_walk_ahead(byval rank as integer)
+ IF herodir(rank) = 0 THEN herow(rank).ygo = 20
+ IF herodir(rank) = 2 THEN herow(rank).ygo = -20
+ IF herodir(rank) = 3 THEN herow(rank).xgo = 20
+ IF herodir(rank) = 1 THEN herow(rank).xgo = -20
+END SUB
 
