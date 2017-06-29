@@ -6531,3 +6531,30 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
  v_free vec
  RETURN result
 END FUNCTION
+
+FUNCTION is_mouse_hero_move_enabled() as bool
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM mousenode as NodePtr
+ IF gen_root."mouse".exists THEN
+  mousenode = gen_root."mouse".ptr
+ ELSE
+  RETURN NO
+ END IF
+ RETURN IIF(GetChildNodeInt(mousenode, "move_hero", 0) <> 0, YES, NO)
+END FUNCTION
+
+SUB set_mouse_hero_move_enabled(byval v as bool)
+ 'This changes the node, but does not call write_general_reld()
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM mousenode as NodePtr
+ IF gen_root."mouse".exists THEN
+  mousenode = gen_root."mouse".ptr
+ ELSE
+  mousenode = SetChildNode(gen_root, "mouse")
+ END IF
+ SetChildNode(mousenode, "move_hero", IIF(v, 1, 0))
+END SUB
+
+SUB toggle_mouse_hero_move_enabled()
+ set_mouse_hero_move_enabled(NOT is_mouse_hero_move_enabled())
+END SUB

@@ -3738,7 +3738,7 @@ SUB edit_button_name_strings()
  DIM gen_root as NodePtr = get_general_reld()
 
  '-- the buttonnames node will be created with defaults in
- '-- get_general_reld() if it does not exist already.
+ '-- update_general_data() if it does not exist already.
  DIM buttonnames as NodePtr = gen_root."buttonnames".ptr
 
  DIM codenum as integer
@@ -4393,3 +4393,63 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
  END IF
  RETURN 0
 END FUNCTION
+
+SUB edit_mouse_options ()
+
+ DIM menu as MenuDef
+ 
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+
+ DIM t as integer
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "edit_mouse_options"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   st.need_update = NO
+   InitLikeStandardMenu menu
+   append_menu_item menu, "Previous menu..."
+   menu.last->t = 0
+   append_menu_item menu, "Click on map to move the hero: " & yesorno(is_mouse_hero_move_enabled())
+   menu.last->t = 1
+   init_menu_state st, menu
+  END IF
+
+  usemenu st
+
+  t = menu.items[st.pt]->t
+  
+  IF t = 1 THEN
+   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    toggle_mouse_hero_move_enabled()
+    st.need_update = YES
+   END IF
+  END IF
+  
+  IF enter_space_click(st) THEN
+   SELECT CASE t
+    CASE 0: EXIT DO
+    CASE 1:
+    toggle_mouse_hero_move_enabled()
+     st.need_update = YES
+   END SELECT
+  END IF
+  
+  clearpage dpage
+  
+  draw_menu menu, st, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+ 
+ write_general_reld()
+END SUB
+

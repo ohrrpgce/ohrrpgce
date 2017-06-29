@@ -1676,7 +1676,8 @@ SUB secret_menu ()
      "New Spriteset/Animation Editor", _
      "New backdrop browser", _
      "RGFX tests", _
-     "Test Game under GDB" _
+     "Test Game under GDB", _
+     "Mouse Options" _
  }
  DIM st as MenuState
  st.autosize = YES
@@ -1709,6 +1710,7 @@ SUB secret_menu ()
    IF st.pt = 19 THEN backdrop_browser
    IF st.pt = 20 THEN new_graphics_tests
    IF st.pt = 21 THEN spawn_game_menu YES
+   IF st.pt = 22 THEN edit_mouse_options ()
   END IF
   usemenu st
   clearpage vpage

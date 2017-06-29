@@ -286,9 +286,12 @@ DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 DECLARE FUNCTION focuscost (byval cost as integer, byval focus as integer) as integer
 DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=0, byval cur_lmp as integer=0) as string
 
-
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
+
+DECLARE FUNCTION is_mouse_hero_move_enabled() as bool
+DECLARE SUB set_mouse_hero_move_enabled(byval v as bool)
+DECLARE SUB toggle_mouse_hero_move_enabled()
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
