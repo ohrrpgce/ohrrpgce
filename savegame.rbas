@@ -1888,7 +1888,7 @@ END SUB
 
 FUNCTION old_save_slot_used (byval slot as integer) as integer
  IF isfile(old_savefile) = 0 THEN RETURN NO
- DIM as SHORT saveversion
+ DIM as short saveversion
  DIM savh as integer = FREEFILE
  OPEN old_savefile FOR BINARY as #savh
  GET #savh, 1 + 60000 * slot, saveversion
@@ -1897,7 +1897,7 @@ FUNCTION old_save_slot_used (byval slot as integer) as integer
 END FUNCTION
 
 SUB old_erase_save_slot (byval slot as integer)
- DIM as SHORT saveversion = 0
+ DIM as short saveversion = 0
  IF fileisreadable(old_savefile) = NO THEN EXIT SUB
  DIM savh as integer = FREEFILE
  OPEN old_savefile FOR BINARY as #savh

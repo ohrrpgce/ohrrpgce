@@ -6115,7 +6115,7 @@ FUNCTION gamepad_virtual_keyboard (default_str as string, max_length as integer=
    debug "WARNING: gamepad_virtual_keyboard: can't get arrowset for multi_player " & multi_player
    arr = default_arrowset()
  END SELECT
-debug "gamepad_virtual_keyboard player=" & multi_player
+ debuginfo "gamepad_virtual_keyboard player=" & multi_player
  RETURN gamepad_virtual_keyboard(arr, default_str, max_length)
 END FUNCTION
 
@@ -6123,11 +6123,11 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
  'This is intended for OUYA where the Android virtual keyboard seems to
  'be partly broken. It might prove to be useful for other purposes too.
 
- debug "ArrowSet " & arr.U & "," & arr.R & "," & arr.D & "," & arr.L & " confirm=" & arr.confirm & " cancel=" & arr.cancel
+ debuginfo "ArrowSet " & arr.U & "," & arr.R & "," & arr.D & "," & arr.L & " confirm=" & arr.confirm & " cancel=" & arr.cancel
 
 
  DIM alphabet as string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 1234567890',.;:?!@#$%^&*~_+-=()[]{}<>/"
- 
+
  DIM result as string = default_str
 
  '--Preserve whatever screen was already showing as a background
