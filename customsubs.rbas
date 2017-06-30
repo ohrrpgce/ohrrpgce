@@ -4403,6 +4403,7 @@ SUB edit_mouse_options ()
  st.need_update = YES
 
  DIM t as integer
+ DIM do_toggle as bool = NO
 
  setkeys YES
  DO
@@ -4418,25 +4419,45 @@ SUB edit_mouse_options ()
    menu.last->t = 0
    append_menu_item menu, "Click on map to move the hero: " & yesorno(get_gen_bool("/mouse/move_hero"))
    menu.last->t = 1
+   append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle", YES))
+   menu.last->t = 2
+   append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox", YES))
+   menu.last->t = 3
+   append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu", YES))
+   menu.last->t = 4
    init_menu_state st, menu
   END IF
 
   usemenu st
 
   t = menu.items[st.pt]->t
-  
-  IF t = 1 THEN
-   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-    toggle_gen_bool("/mouse/move_hero")
-    st.need_update = YES
-   END IF
+
+  do_toggle = NO
+  IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+   do_toggle = YES
   END IF
   
   IF enter_space_click(st) THEN
    SELECT CASE t
     CASE 0: EXIT DO
+    CASE ELSE
+     do_toggle = YES
+   END SELECT
+  END IF
+  
+  IF do_toggle THEN
+   SELECT CASE t
     CASE 1:
      toggle_gen_bool("/mouse/move_hero")
+     st.need_update = YES
+    CASE 2:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_battle", YES)
+     st.need_update = YES
+    CASE 3:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_textbox", YES)
+     st.need_update = YES
+    CASE 4:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_menu", YES)
      st.need_update = YES
    END SELECT
   END IF

@@ -2488,6 +2488,9 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  IF topmenu > 0 THEN mstates(topmenu - 1).active = NO
  mstates(topmenu).active = YES
  check_menu_tags
+ IF get_gen_bool("/mouse/move_hero/cancel_on_menu", YES) THEN
+  cancel_hero_pathfinding()
+ END IF
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
@@ -2963,7 +2966,11 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  NEXT
  
  'Cancel any pending hero pathing
- cancel_hero_pathfinding()
+ IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle", YES) THEN
+  'Don't cancel
+ ELSE
+  cancel_hero_pathfinding()
+ END IF
 
  'DEBUG debug "end of preparemap"
 END SUB
@@ -3127,6 +3134,11 @@ SUB loadsay (byval box_id as integer)
 
  '--Create a set of slices to display the text box
  init_text_box_slices txt
+ 
+ '--Cancel hero pathfinding
+ IF get_gen_bool("/mouse/move_hero/cancel_on_textbox", YES) THEN
+  cancel_hero_pathfinding()
+ END IF
 END SUB
 
 SUB advance_text_box ()
