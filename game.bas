@@ -797,6 +797,12 @@ DO
  IF txt.showing = NO AND gam.need_fade_in = NO AND gam.debug_camera_pan = NO _
     AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
     AND menus_allow_player() THEN
+  IF get_gen_bool("/mouse/move_hero") THEN
+   IF gam.mouse.clicks AND mouseLeft THEN
+    cancel_hero_pathfinding()
+    trigger_hero_pathfinding(XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20))
+   END IF
+  END IF
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
    DO
     IF carray(ccUp) > 0 THEN herow(0).ygo = 20: (herodir(0)) = 0    : cancel_hero_pathfinding() : EXIT DO
@@ -806,15 +812,6 @@ DO
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
      cancel_hero_pathfinding()
      usenpc 0, find_useable_npc()
-    END IF
-    IF get_gen_bool("/mouse/move_hero") THEN
-     IF gam.mouse.clicks AND mouseLeft THEN
-      IF hero_is_pathfinding() THEN
-       cancel_hero_pathfinding()
-      ELSE
-       trigger_hero_pathfinding(XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20))
-      END IF
-     END IF
     END IF
     update_hero_pathfinding(0)
     EXIT DO
@@ -4587,7 +4584,7 @@ SUB update_hero_pathfinding(byval rank as integer)
  
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(null, NO, YES)
- pf.slow_debug()
+ 'pf.slow_debug()
  if v_len(pf.path) > 1 then
   'Don't move unless a path is found that is longer than one tile
   (herodir(rank)) = xypair_direction_to(pf.path[0], pf.path[1], herodir(rank))
