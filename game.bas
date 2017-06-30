@@ -63,6 +63,7 @@ DECLARE SUB npcmove_rotate_and_walk_ahead(npci as NPCInst, byval rota as integer
 DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval direction as integer)
 DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION catindex(byval rank as integer) as integer
+DECLARE FUNCTION user_triggered_main_menu() as bool
 
 '=================================== Globals ==================================
 
@@ -784,7 +785,7 @@ DO
 
  'DEBUG debug "keyboard handling"
  update_hero_pathfinding_menu_queue()
- IF (carray(ccMenu) > 1 ORELSE gam.hero_pathing.queued_menu) AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+ IF (user_triggered_main_menu() ORELSE gam.hero_pathing.queued_menu) AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
   gam.hero_pathing.queued_menu = NO
   IF gen(genEscMenuScript) > 0 THEN
    trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
@@ -4480,7 +4481,7 @@ END SUB
 
 SUB update_hero_pathfinding_menu_queue()
  IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
- IF carray(ccMenu) THEN
+ IF user_triggered_main_menu() THEN
   IF get_gen_bool("/mouse/move_hero/cancel_on_menu", YES) THEN
    gam.hero_pathing.queued_menu = YES
    cancel_hero_pathfinding()
@@ -4514,4 +4515,12 @@ SUB heromove_walk_ahead(byval rank as integer)
  IF herodir(rank) = 3 THEN herow(rank).xgo = 20
  IF herodir(rank) = 1 THEN herow(rank).xgo = -20
 END SUB
+
+FUNCTION user_triggered_main_menu() as bool
+ IF carray(ccMenu) > 1 THEN RETURN YES
+ IF get_gen_bool("/mouse/menu_right_click") THEN
+  IF gam.mouse.clicks AND mouseRight THEN RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
 

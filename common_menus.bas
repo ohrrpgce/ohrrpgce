@@ -224,6 +224,8 @@ SUB edit_mouse_options ()
    menu.last->t = 3
    append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu", YES))
    menu.last->t = 4
+   append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
+   menu.last->t = 100
    init_menu_state st, menu
   END IF
 
@@ -257,6 +259,9 @@ SUB edit_mouse_options ()
      st.need_update = YES
     CASE 4:
      toggle_gen_bool("/mouse/move_hero/cancel_on_menu", YES)
+     st.need_update = YES
+    CASE 100:
+     toggle_gen_bool("/mouse/menu_right_click", NO)
      st.need_update = YES
    END SELECT
   END IF
