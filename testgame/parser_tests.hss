@@ -72,6 +72,7 @@ script, string tests, begin
 end
 
 script, number tests, x, begin
+  x := 000 0000              # OK
   x := - 14                  # OK
   x := -                     # ERROR
   ## tab characters
@@ -105,6 +106,22 @@ script, number tests, x, begin
   x := 1.                    # ERROR
   x := 1.0                   # ERROR
   x := .0                    # ERROR
+end
+
+script, math warnings, x, begin
+  x := random ()             # ERROR
+  x := random (1)            # ERROR
+  x := random (1, 0)         # WARNING
+  x := random (1, 1)         # OK
+  ## The following test optimisations
+  x := 1 / 0                 # ERROR
+  x := 1, mod, 0             # ERROR
+  x := 1^0                   # OK
+  x := 0^-1                  # ERROR
+  ## Negative exponents evaluate to 0, but will probably change in future
+  x := 1^-1                  # OK
+  x := sqrt(0)               # OK
+  x := sqrt(-1)              # ERROR
 end
 
 script, flow tests, dummy, begin
