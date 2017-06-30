@@ -2039,6 +2039,29 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  RETURN result
 END FUNCTION
 
+FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+ 'Returns an Hero collision check as if the Hero was at a different location than it really is
+ DIM savepos as XYPair
+ savepos.x = herox(rank)
+ savepos.y = heroy(rank)
+ DIM savego as XYPair
+ savego.x = herow(rank).xgo
+ savego.y = herow(rank).ygo
+ 'Temporarily override hero position and movement
+ (herox(rank)) = tile.x * 20
+ (heroy(rank)) = tile.y * 20
+ herow(rank).xgo = 0
+ herow(rank).ygo = 0
+ DIM result as bool
+ result = hero_collision_check(rank, direction, collision_type, npc_ccache)
+ 'Restore real hero position and movement
+ (herox(rank)) = savepos.x
+ (heroy(rank)) = savepos.y
+ herow(rank).xgo = savego.x
+ herow(rank).ygo = savego.y
+ RETURN result
+END FUNCTION
+
 FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  RETURN npc_collision_check(npci, npcs(ABS(npci.id) - 1), direction, collision_type, npc_ccache)
 END FUNCTION
@@ -2048,6 +2071,13 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval directio
  xypair_move go, direction, 20
  'NPC xgo and ygo are backwards, so we invert the value we got from xypair_move()
  RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1, collision_type, npc_ccache)
+END FUNCTION
+
+FUNCTION hero_collision_check(byval rank as integer, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+ DIM go as XYPair
+ xypair_move go, direction, 20
+ 'Hero xgo and ygo are backwards, so we invert the value we got from xypair_move()
+ RETURN hero_collision_check(rank, go.x * -1, go.y * -1, collision_type, npc_ccache)
 END FUNCTION
 
 FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
@@ -2119,6 +2149,65 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
     RETURN YES
    END IF
   END IF
+ END IF
+ 
+ 'Did not collide with anything
+ collision_type = collideNone
+ RETURN NO
+END FUNCTION
+
+FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+ 'Returns true if the hero would collide with a wall, zone, npc, hero, etc
+ 
+ 'This function works with local copies of xgo and ygo because it calls functions that modify
+ 'the xgo and ygo passed in, but we don't want to alter herow().xgo and herow().ygo if we are just
+ 'checking whether collision could possibly happen.
+
+ 'Hero xgo and ygo are backwards from what you might expect! xgo=-1 means the hero wants to 1 pixel right
+
+ 'Collision type optionally communicates which type of collision was detected first.
+ 'If two types of collision are possible for a single move, only the first will ever be indicated 
+
+ DIM tilepos as XYPair 'Which tile is the center of the hero on?
+ tilepos.x = herotx(rank)
+ tilepos.y = heroty(rank)
+ DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
+ pixelpos.x = tilepos.x * 20
+ pixelpos.y = tilepos.y * 20
+
+ IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 THEN
+  '--this only happens if hero walls are on
+  IF wrappass(tilepos.x, tilepos.y, xgo, ygo, NO, NO) THEN
+   collision_type = collideWall
+   RETURN YES
+  END IF
+  '--If heroes had zone restrictions like NPCs, this would be the place to check them (But they don't!)
+ END IF
+ IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
+  '--this only happens if obstruction is on
+  '---Check for hero-NPC collision
+  IF npc_ccache <> 0 THEN
+   'An NPC collision cache is available, check it
+   DIM tpos as XYPair = XY((herox(rank) - xgo) / 20, (heroy(rank) - ygo) / 20)
+   wrapxy (tpos.x, tpos.y, mapsizetiles.x, mapsizetiles.y)
+   IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
+    collision_type = collideNPC
+    RETURN YES
+   END IF
+  ELSE
+   'Loop through all the NPCs and check them
+   FOR i as integer = 0 TO UBOUND(npc)
+    IF npc(i).id > 0 ANDALSO npc(i).not_obstruction = 0 THEN
+     IF npcs(npc(i).id - 1).activation <> 2 THEN ' Only for NPCs that are not step-on activated
+      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, herox(i), heroy(i), xgo, ygo) THEN
+       collision_type = collideNPC
+       RETURN YES
+      END IF
+     END IF
+    END IF
+   NEXT i
+  END IF
+  '---Do Not Check for hero-hero collision (but if we did, it would go here)
  END IF
  
  'Did not collide with anything
@@ -4497,7 +4586,7 @@ SUB update_hero_pathfinding(byval rank as integer)
  DIM t2 as XYPair = gam.hero_pathing.dest_pos
  
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
- pf.calculate(0, NO)
+ pf.calculate(null, NO, YES)
  pf.slow_debug()
  if v_len(pf.path) > 1 then
   'Don't move unless a path is found that is longer than one tile

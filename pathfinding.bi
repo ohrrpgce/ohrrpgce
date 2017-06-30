@@ -41,7 +41,7 @@ Type AStarPathfinder
  
  Declare Function getnode(p as XYPair) byref as AStarNode
  
- Declare Sub calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO)
+ Declare Sub calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO, byval check_npcs_as_hero as bool=NO)
  Declare Sub set_result_path(found_dest as XYPair)
 
  Declare Static Function open_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
@@ -60,7 +60,7 @@ End Type
 Type NPCCollisionCache
  size as XYPair
  obstruct(ANY, ANY) as bool
- Declare Sub populate(size as XYPair, npci as NPCInst)
+ Declare Sub populate(size as XYPair, npci as NPCInst ptr=null, byval ignore_step_on as bool=NO)
  Declare Sub debug_cache()
 End Type
 

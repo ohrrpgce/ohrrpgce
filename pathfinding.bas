@@ -36,8 +36,10 @@ Destructor AStarPathfinder
  v_free path
 End Destructor
 
-Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO)
+Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO, byval check_npcs_as_hero as bool=NO)
  'should_collide_with_hero is only checked when an npc instance is provided
+ 'check_npcs_as_hero should only be set when the npc ptr is null
+
  'debug "AStarPathfinder.calculate() " & startpos.x & "," & startpos.y & " -> " & destpos.x & "," & destpos.y
  redim nodes(mapsizetiles.x - 1, mapsizetiles.y - 1) as AStarNode
 
@@ -48,10 +50,12 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
  'Flush the path before we begin
  v_resize path, 0
 
- 'If we have an NPCInst, pre-cache NPC collisions
+ 'pre-cache NPC collisions, but only if we need them.
  dim npc_ccache as NPCCollisionCache
- if npc <> 0 then
-  npc_ccache.populate(mapsizetiles, *npc)
+ if npc <> null then
+  npc_ccache.populate(mapsizetiles, npc)
+ elseif check_npcs_as_hero then
+  npc_ccache.populate(mapsizetiles, null, YES)
  end if
 
  dim cursor as XYPair
@@ -86,10 +90,14 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
     if maxsearch > 0 andalso v_len(openlist) + tiles_closed >= maxsearch then continue for
     
     dim collide as bool
-    if npc <> 0 then
-     'This is a check for an NPC
+    if npc <> null orelse check_npcs_as_hero then
+     'This is a check cares about npc collisions
      dim col_type as WalkaboutCollisionType
-     collide = npc_collision_check_at(*npc, cursor, direction, col_type, @npc_ccache)
+     if npc = null then
+      collide = hero_collision_check_at(0, cursor, direction, col_type, @npc_ccache)
+     else
+      collide = npc_collision_check_at(*npc, cursor, direction, col_type, @npc_ccache)
+     end if
      if col_type = collideHero andalso should_collide_with_hero = NO then collide = NO
     else
      'This is a walls-only check
@@ -272,13 +280,14 @@ End Property
 
 '------------------------------------------------------------------------------------------
 
-Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst)
+Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst Ptr=null, byval ignore_step_on as bool=NO)
  'Loop through the npc() global and cache them
- 'NPCi is the NPC that we are checking collisions relative to
+ 'NPCi is a pointer to the NPC that we are checking collisions relative to
  redim obstruct(size.x - 1, size.y - 1) as bool
  dim tpos as XYPair
  for i as integer = 0 TO ubound(npc)
-  if npc(i).id > 0 andalso @npci <> @npc(i) andalso npc(i).not_obstruction = 0 then
+  if npc(i).id > 0 andalso npci <> @npc(i) andalso npc(i).not_obstruction = 0 then
+   if ignore_step_on andalso npcs(npc(i).id - 1).activation = 2 then continue for
    tpos.x = npc(i).x / 20
    tpos.y = npc(i).y / 20
    obstruct(tpos.x, tpos.y) = YES
