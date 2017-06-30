@@ -218,11 +218,11 @@ SUB edit_mouse_options ()
    menu.last->t = 0
    append_menu_item menu, "Click on map to move the hero: " & yesorno(get_gen_bool("/mouse/move_hero"))
    menu.last->t = 1
-   append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle", YES))
+   append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle"))
    menu.last->t = 2
-   append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox", YES))
+   append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox"))
    menu.last->t = 3
-   append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu", YES))
+   append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu"))
    menu.last->t = 4
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
@@ -254,19 +254,19 @@ SUB edit_mouse_options ()
      toggle_gen_bool("/mouse/move_hero")
      st.need_update = YES
     CASE 2:
-     toggle_gen_bool("/mouse/move_hero/cancel_on_battle", YES)
+     toggle_gen_bool("/mouse/move_hero/cancel_on_battle")
      st.need_update = YES
     CASE 3:
-     toggle_gen_bool("/mouse/move_hero/cancel_on_textbox", YES)
+     toggle_gen_bool("/mouse/move_hero/cancel_on_textbox")
      st.need_update = YES
     CASE 4:
-     toggle_gen_bool("/mouse/move_hero/cancel_on_menu", YES)
+     toggle_gen_bool("/mouse/move_hero/cancel_on_menu")
      st.need_update = YES
     CASE 10:
-     toggle_gen_bool("/mouse/menu_right_click", NO)
+     toggle_gen_bool("/mouse/menu_right_click")
      st.need_update = YES
     CASE 20:
-     toggle_gen_bool("/mouse/click_textboxes", NO)
+     toggle_gen_bool("/mouse/click_textboxes")
      st.need_update = YES
    END SELECT
   END IF

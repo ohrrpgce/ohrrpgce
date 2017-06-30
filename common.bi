@@ -289,9 +289,10 @@ DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as intege
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
 
-DECLARE FUNCTION get_gen_bool(nodepath as string, byval default as bool=NO) as bool
+DECLARE FUNCTION default_gen_bool(nodepath as string) as bool
+DECLARE FUNCTION get_gen_bool(nodepath as string) as bool
 DECLARE SUB set_gen_bool(nodepath as string, byval v as bool)
-DECLARE SUB toggle_gen_bool(nodepath as string, byval default as bool=NO)
+DECLARE SUB toggle_gen_bool(nodepath as string)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string

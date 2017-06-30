@@ -2491,7 +2491,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  IF topmenu > 0 THEN mstates(topmenu - 1).active = NO
  mstates(topmenu).active = YES
  check_menu_tags
- IF get_gen_bool("/mouse/move_hero/cancel_on_menu", YES) THEN
+ IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
   cancel_hero_pathfinding()
  END IF
  RETURN assign_menu_handles(menus(topmenu))
@@ -2969,7 +2969,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  NEXT
  
  'Cancel any pending hero pathing
- IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle", YES) THEN
+ IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle") THEN
   'Don't cancel
  ELSE
   cancel_hero_pathfinding()
@@ -3139,7 +3139,7 @@ SUB loadsay (byval box_id as integer)
  init_text_box_slices txt
  
  '--Cancel hero pathfinding
- IF get_gen_bool("/mouse/move_hero/cancel_on_textbox", YES) THEN
+ IF get_gen_bool("/mouse/move_hero/cancel_on_textbox") THEN
   cancel_hero_pathfinding()
  END IF
 END SUB
@@ -4482,7 +4482,7 @@ END SUB
 SUB update_hero_pathfinding_menu_queue()
  IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
  IF user_triggered_main_menu() THEN
-  IF get_gen_bool("/mouse/move_hero/cancel_on_menu", YES) THEN
+  IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
    gam.hero_pathing.queued_menu = YES
    cancel_hero_pathfinding()
    EXIT SUB

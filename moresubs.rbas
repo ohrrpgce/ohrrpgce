@@ -1425,12 +1425,12 @@ FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
 END FUNCTION
 
 FUNCTION use_touch_textboxes() as bool
- 'Also apples to mouse-click textboxes
+ 'Also applies to mouse-click textboxes
  IF running_on_mobile() THEN
   DIM root as NodePtr = get_general_reld()
   IF root."mobile_options"."touch_textboxes".exists THEN RETURN YES
  END IF
- IF get_gen_bool("/mouse/click_textboxes", NO) THEN
+ IF get_gen_bool("/mouse/click_textboxes") THEN
   RETURN YES
  END IF
  RETURN NO

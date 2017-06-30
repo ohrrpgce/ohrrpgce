@@ -6534,11 +6534,28 @@ END FUNCTION
 
 '--Wrapper functions for getting and setting values from general.reld
 
-FUNCTION get_gen_bool(nodepath as string, byval default as bool=NO) as bool
+FUNCTION default_gen_bool(nodepath as string) as bool
+ 'This function supplies a centralized place to manage defaults for
+ 'boolean keys in the general.reld lump. This way it is easy to change
+ 'defaults without having to update every get_gen_bool() call.
+ SELECT CASE nodepath
+  CASE "/mouse/move_hero": RETURN NO
+  CASE "/mouse/move_hero/cancel_on_battle": RETURN YES
+  CASE "/mouse/move_hero/cancel_on_textbox": RETURN YES
+  CASE "/mouse/move_hero/cancel_on_menu": RETURN YES
+  CASE "/mouse/menu_right_click": RETURN NO
+  CASE "/mouse/click_textboxes": RETURN NO
+  CASE ELSE
+   debuginfo "default_gen_bool: no default for nodepath """ & nodepath & """ falling back to NO"
+   RETURN NO
+ END SELECT
+END FUNCTION
+
+FUNCTION get_gen_bool(nodepath as string) as bool
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
  IF node THEN RETURN IIF(GetInteger(node), YES, NO)
- RETURN default
+ RETURN default_gen_bool(nodepath)
 END FUNCTION
 
 SUB set_gen_bool(nodepath as string, byval v as bool)
@@ -6548,7 +6565,7 @@ SUB set_gen_bool(nodepath as string, byval v as bool)
  SetContent(node, IIF(v, 1, 0))
 END SUB
 
-SUB toggle_gen_bool(nodepath as string, byval default as bool=NO)
+SUB toggle_gen_bool(nodepath as string)
  'This changes the node, but does not call write_general_reld()
- set_gen_bool(nodepath, NOT get_gen_bool(nodepath, default))
+ set_gen_bool(nodepath, NOT get_gen_bool(nodepath))
 END SUB
