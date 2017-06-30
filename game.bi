@@ -135,6 +135,7 @@ DECLARE FUNCTION hero_is_pathfinding() as bool
 DECLARE SUB cancel_hero_pathfinding()
 DECLARE SUB trigger_hero_pathfinding(dest as XYPair)
 DECLARE SUB update_hero_pathfinding(byval rank as integer)
+DECLARE SUB update_hero_pathfinding_menu_queue()
 DECLARE SUB heromove_walk_ahead(byval rank as integer)
 
 #ENDIF

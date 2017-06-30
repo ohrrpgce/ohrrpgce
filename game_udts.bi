@@ -107,6 +107,7 @@ TYPE HeroPathing
   mode as HeroPathingMode 'Set if pathfinding is happening
   dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
   dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
+  queued_menu as bool ' Set to YES when a menu opening keypress has been queued
 END TYPE
 
 TYPE GameState

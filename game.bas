@@ -783,7 +783,9 @@ DO
  dotimer(TIMER_NORMAL)
 
  'DEBUG debug "keyboard handling"
- IF carray(ccMenu) > 1 AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+ update_hero_pathfinding_menu_queue()
+ IF (carray(ccMenu) > 1 ORELSE gam.hero_pathing.queued_menu) AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+  gam.hero_pathing.queued_menu = NO
   IF gen(genEscMenuScript) > 0 THEN
    trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
   ELSEIF allowed_to_open_main_menu() THEN
@@ -4476,9 +4478,20 @@ SUB trigger_hero_pathfinding(dest as XYPair)
  gam.hero_pathing.dest_pos = dest
 END SUB
 
+SUB update_hero_pathfinding_menu_queue()
+ IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
+ IF carray(ccMenu) THEN
+  IF get_gen_bool("/mouse/move_hero/cancel_on_menu", YES) THEN
+   gam.hero_pathing.queued_menu = YES
+   cancel_hero_pathfinding()
+   EXIT SUB
+  END IF
+ END IF
+END SUB
+
 SUB update_hero_pathfinding(byval rank as integer)
  IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
-
+ 
  DIM t1 as XYPair = XY(herotx(rank), heroty(rank))
  DIM t2 as XYPair = gam.hero_pathing.dest_pos
  
