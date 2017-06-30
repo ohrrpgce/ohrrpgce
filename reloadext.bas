@@ -104,11 +104,11 @@ Function GetNodePath(byval node as NodePtr) as string
 	return prefix & "/" & NodeName(node)
 End Function
 
-Function NodeByPath(byval doc as DocPtr, path as string) as NodePtr
-	Return NodeByPath(DocumentRoot(doc), path)
+Function NodeByPath(byval doc as DocPtr, path as string, byval create as bool=NO) as NodePtr
+	Return NodeByPath(DocumentRoot(doc), path, create)
 End Function
 
-Function NodeByPath(byval node as NodePtr, path as string) as NodePtr
+Function NodeByPath(byval node as NodePtr, path as string, byval create as bool=NO) as NodePtr
 	if node = null then return null
 	if path = "" then return null
 	if mid(path, 1, 1) <> "/" then
@@ -160,13 +160,23 @@ Function NodeByPath(byval node as NodePtr, path as string) as NodePtr
 			if GetInteger(child) = index then exit do
 			child = NextSibling(child, segment)
 		loop
-		if child = null then return null
 	else
 		child = GetChildByName(node, segment)
 	end if
- 
+	
+	if child = null then
+		if create then
+			child = SetChildNode(node, segment)
+			if use_index then
+				SetContent(child, index)
+			end if
+		else
+			return null
+		end if
+	end if
+	
 	if remainder <> "" then
-		return NodeByPath(child, remainder)
+		return NodeByPath(child, remainder, create)
 	else
 		return child
 	end if

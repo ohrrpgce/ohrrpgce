@@ -16,8 +16,8 @@ Declare Function GetBitset(byval node as Nodeptr, byval bit as integer) as integ
 Declare sub LoadBitsetArray(byval node as NodePtr, bs() as integer, byval size as integer)
 Declare sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as integer)
 Declare Function GetNodePath(byval node as NodePtr) as string
-Declare Function NodeByPath Overload (byval doc as DocPtr, path as string) as NodePtr
-Declare Function NodeByPath(byval node as NodePtr, path as string) as NodePtr
+Declare Function NodeByPath overload (byval doc as DocPtr, path as string, byval create as bool=NO) as NodePtr
+Declare Function NodeByPath overload (byval node as NodePtr, path as string, byval create as bool=NO) as NodePtr
 Declare Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr, byval pedantic as integer) as integer
 
 Declare Function SetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval value as integer = 0, valuename as string = "int") as NodePtr

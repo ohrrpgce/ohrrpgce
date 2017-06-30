@@ -443,6 +443,31 @@ startTest(testNodeByPath)
 	if nod1 = null then fail
 	if NodeName(nod1) <> "max" then fail
 	if GetInteger(nod1) <> 100 then fail
+	
+	'test NodeByPath's create feature
+	nod1 = NodeByPath(doc, "/foo/bar/baz", YES)
+	if nod1 = null then fail
+	nod1 = NodeByPath(doc, "/foo")
+	if nod1 = null then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz/should_not_be_created")
+	if nod1 <> null then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz/should_be_created", YES)
+	if nod1 = null then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz")
+	if nod1 = null then fail
+	if GetChildNodeExists(nod1, "should_be_created") = NO then fail
+	'Also test creation with subscript syntax
+	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_not_be_created[2]")
+	if nod1 <> null then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[2]", YES)
+	if nod1 = null then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz")
+	if GetChildNodeExists(nod1, "should_be_created") = NO then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[2]")
+	if nod1 = null then fail
+	if GetInteger(nod1) <> 2 then fail
+	nod1 = NodeByPath(doc, "/foo/bar/baz/also_should_be_created[0]")
+	if nod1 <> null then fail
 endTest
 
 startTest(testProvisional)
