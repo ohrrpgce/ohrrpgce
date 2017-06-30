@@ -6532,18 +6532,23 @@ FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byv
  RETURN result
 END FUNCTION
 
-FUNCTION is_mouse_hero_move_enabled() as bool
+'--Wrapper functions for getting and setting values from general.reld
+
+FUNCTION get_gen_bool(nodepath as string, byval default as bool=NO) as bool
  DIM gen_root as NodePtr = get_general_reld()
- RETURN gen_root."mouse"."move_hero".bool
+ DIM node as NodePtr = NodeByPath(gen_root, nodepath)
+ IF node THEN RETURN IIF(GetInteger(node), YES, NO)
+ RETURN default
 END FUNCTION
 
-SUB set_mouse_hero_move_enabled(byval v as bool)
+SUB set_gen_bool(nodepath as string, byval v as bool)
  'This changes the node, but does not call write_general_reld()
  DIM gen_root as NodePtr = get_general_reld()
- DIM mousenode as NodePtr = GetOrCreateChild(gen_root, "mouse")
- SetChildNode(mousenode, "move_hero", IIF(v, 1, 0))
+ DIM node as NodePtr = NodeByPath(gen_root, nodepath, YES)
+ SetContent(node, IIF(v, 1, 0))
 END SUB
 
-SUB toggle_mouse_hero_move_enabled()
- set_mouse_hero_move_enabled(NOT is_mouse_hero_move_enabled())
+SUB toggle_gen_bool(nodepath as string, byval default as bool=NO)
+ 'This changes the node, but does not call write_general_reld()
+ set_gen_bool(nodepath, NOT get_gen_bool(nodepath, default))
 END SUB

@@ -289,9 +289,9 @@ DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as intege
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
 
-DECLARE FUNCTION is_mouse_hero_move_enabled() as bool
-DECLARE SUB set_mouse_hero_move_enabled(byval v as bool)
-DECLARE SUB toggle_mouse_hero_move_enabled()
+DECLARE FUNCTION get_gen_bool(nodepath as string, byval default as bool=NO) as bool
+DECLARE SUB set_gen_bool(nodepath as string, byval v as bool)
+DECLARE SUB toggle_gen_bool(nodepath as string, byval default as bool=NO)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string

@@ -4416,7 +4416,7 @@ SUB edit_mouse_options ()
    InitLikeStandardMenu menu
    append_menu_item menu, "Previous menu..."
    menu.last->t = 0
-   append_menu_item menu, "Click on map to move the hero: " & yesorno(is_mouse_hero_move_enabled())
+   append_menu_item menu, "Click on map to move the hero: " & yesorno(get_gen_bool("/mouse/move_hero"))
    menu.last->t = 1
    init_menu_state st, menu
   END IF
@@ -4427,7 +4427,7 @@ SUB edit_mouse_options ()
   
   IF t = 1 THEN
    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-    toggle_mouse_hero_move_enabled()
+    toggle_gen_bool("/mouse/move_hero")
     st.need_update = YES
    END IF
   END IF
@@ -4436,7 +4436,7 @@ SUB edit_mouse_options ()
    SELECT CASE t
     CASE 0: EXIT DO
     CASE 1:
-    toggle_mouse_hero_move_enabled()
+     toggle_gen_bool("/mouse/move_hero")
      st.need_update = YES
    END SELECT
   END IF

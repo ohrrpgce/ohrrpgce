@@ -804,7 +804,7 @@ DO
      cancel_hero_pathfinding()
      usenpc 0, find_useable_npc()
     END IF
-    IF is_mouse_hero_move_enabled() THEN
+    IF get_gen_bool("/mouse/move_hero") THEN
      IF gam.mouse.clicks AND mouseLeft THEN
       IF hero_is_pathfinding() THEN
        cancel_hero_pathfinding()
@@ -4141,8 +4141,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   IF dbg.def( , , "Switch to release mode (hide errors)") THEN gen(genCurrentDebugMode) = 0
  END IF
  IF dbg.def( , , "Toggle click-to-move-hero mode") THEN
-  toggle_mouse_hero_move_enabled()
-  gam.showtext = "mouse.move_hero=" & yesorno(is_mouse_hero_move_enabled())
+  toggle_gen_bool("/mouse/move_hero")
+  gam.showtext = "mouse.move_hero=" & yesorno(get_gen_bool("/mouse/move_hero"))
   gam.showtext_ticks = 36
  END IF
 END SUB
