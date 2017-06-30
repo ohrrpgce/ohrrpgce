@@ -4152,11 +4152,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  ELSE
   IF dbg.def( , , "Switch to release mode (hide errors)") THEN gen(genCurrentDebugMode) = 0
  END IF
- IF dbg.def( , , "Toggle click-to-move-hero mode") THEN
-  toggle_gen_bool("/mouse/move_hero")
-  gam.showtext = "mouse.move_hero=" & yesorno(get_gen_bool("/mouse/move_hero"))
-  gam.showtext_ticks = 36
- END IF
+ IF dbg.def( , , "Mouse Options") THEN edit_mouse_options()
 END SUB
 
 ' Check for debug key combos.

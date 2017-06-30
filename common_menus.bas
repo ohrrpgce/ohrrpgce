@@ -10,6 +10,7 @@
 #include "common.bi"
 #include "slices.bi"
 #include "reload.bi"
+#include "loading.bi"
 
 
 
@@ -190,4 +191,84 @@ SUB edit_active_time_battle_bitsets()
  bitname(23) = "Pause for attack animations"
  bitname(35) = "Pause when targeting attacks"
  edit_global_bitsets bitname(), "general_game_active_battle_bitsets"
+END SUB
+
+SUB edit_mouse_options ()
+
+ DIM menu as MenuDef
+ 
+ DIM st as MenuState
+ st.active = YES
+ st.need_update = YES
+
+ DIM t as integer
+ DIM do_toggle as bool = NO
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(scF1) > 1 THEN show_help "edit_mouse_options"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+
+  IF st.need_update THEN
+   st.need_update = NO
+   InitLikeStandardMenu menu
+   append_menu_item menu, "Previous menu..."
+   menu.last->t = 0
+   append_menu_item menu, "Click on map to move the hero: " & yesorno(get_gen_bool("/mouse/move_hero"))
+   menu.last->t = 1
+   append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle", YES))
+   menu.last->t = 2
+   append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox", YES))
+   menu.last->t = 3
+   append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu", YES))
+   menu.last->t = 4
+   init_menu_state st, menu
+  END IF
+
+  usemenu st
+
+  t = menu.items[st.pt]->t
+
+  do_toggle = NO
+  IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+   do_toggle = YES
+  END IF
+  
+  IF enter_space_click(st) THEN
+   SELECT CASE t
+    CASE 0: EXIT DO
+    CASE ELSE
+     do_toggle = YES
+   END SELECT
+  END IF
+  
+  IF do_toggle THEN
+   SELECT CASE t
+    CASE 1:
+     toggle_gen_bool("/mouse/move_hero")
+     st.need_update = YES
+    CASE 2:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_battle", YES)
+     st.need_update = YES
+    CASE 3:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_textbox", YES)
+     st.need_update = YES
+    CASE 4:
+     toggle_gen_bool("/mouse/move_hero/cancel_on_menu", YES)
+     st.need_update = YES
+   END SELECT
+  END IF
+  
+  clearpage dpage
+  
+  draw_menu menu, st, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+ 
+ write_general_reld()
 END SUB

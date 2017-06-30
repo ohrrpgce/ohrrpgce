@@ -15,5 +15,6 @@ DECLARE FUNCTION editbitset (array() as integer, byval wof as integer, byval las
 DECLARE SUB edit_general_bitsets()
 DECLARE SUB edit_backcompat_bitsets()
 DECLARE SUB edit_active_time_battle_bitsets()
+DECLARE SUB edit_mouse_options ()
 
 #endif

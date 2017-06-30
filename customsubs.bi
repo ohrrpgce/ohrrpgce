@@ -100,6 +100,4 @@ DECLARE SUB mark_non_elemental_elementals ()
 
 DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
-DECLARE SUB edit_mouse_options ()
-
 #endif
