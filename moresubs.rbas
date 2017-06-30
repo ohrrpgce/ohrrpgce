@@ -1425,11 +1425,15 @@ FUNCTION should_hide_virtual_gamepad_when_suspendplayer() as bool
 END FUNCTION
 
 FUNCTION use_touch_textboxes() as bool
- IF NOT running_on_mobile() THEN RETURN NO
- DIM root as NodePtr = get_general_reld()
- DIM mobile as NodePtr = root."mobile_options".ptr
- IF mobile = 0 THEN mobile = SetChildNode(root, "mobile_options")
- RETURN mobile."touch_textboxes".exists
+ 'Also apples to mouse-click textboxes
+ IF running_on_mobile() THEN
+  DIM root as NodePtr = get_general_reld()
+  IF root."mobile_options"."touch_textboxes".exists THEN RETURN YES
+ END IF
+ IF get_gen_bool("/mouse/click_textboxes", NO) THEN
+  RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 SUB reset_map_state (map as MapModeState)
