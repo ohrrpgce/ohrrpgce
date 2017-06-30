@@ -303,7 +303,13 @@ def android_source_actions (sourcelist, rootdir, destdir):
     
 def check_lib_requirements(binary):
     """Check and print which versions of glibc and gcc dependency libraries (including libstdc++.so)
-    that an ELF binary requires"""
+    that an ELF binary requires.
+
+    Note that libstdc++ version requirements are reported as GCC requirements,
+    because each libstdc++ version is tied to a specific GCC version.
+    Old versions before ~2010 are lumped together, and GCC versions newer than 6.1
+    aren't supported yet.
+    """
 
     libraries = []
     current_lib = None
@@ -320,7 +326,7 @@ def check_lib_requirements(binary):
             #print symbol, version
             req[symbol] = max(req[symbol], version)
 
-    # Tables giving the required version of GCC
+    # Tables giving the required version of GCC corresponding to each GLIBCXX symbol versioning tag
     GLIBCXX_to_gcc = {
         (3,4,10): (4,3,0),
         (3,4,11): (4,4,0),
@@ -337,6 +343,7 @@ def check_lib_requirements(binary):
         (3,4,22): (6,1,0),
     }
 
+    # Ditto for CXXABI
     CXXABI_to_gcc = {
         (1,3,2): (4,3,0),
         (1,3,3): (4,4,0),
@@ -403,27 +410,29 @@ def check_lib_requirements(binary):
             return table[version_tuple]
         return "unknown"
 
-    max_versions = [(0,)]
+    gcc_ver_reqs = []
+    gcc_req = ''
 
     if 'libstdc++.so.6' in libraries:
-        max_versions.append((3,4,0))
+        gcc_ver_reqs.append((3,4,0))
 
     if req['GLIBCXX'] > (3,4,22) or req['CXXABI'] > (1,3,10):
         gcc_req = '>6.1.0'
     else:
         if req['GCC']:
-            max_versions.append(req['GCC'])
+            gcc_ver_reqs.append(req['GCC'])
         # fixme: this isn't very good
         if req['CXXABI'] < (1,3,2):
             pass
         else: #if req['CXXABI'] in GLIBCXX_to_gcc:
-            max_versions.append(CXXABI_to_gcc.get(req['CXXABI'], (9, 'unknown')))
+            gcc_ver_reqs.append(CXXABI_to_gcc.get(req['CXXABI'], (9, 'unknown')))
         if req['GLIBCXX'] < (3,4,10):
             pass
         else: #if req['GLIBCXX'] in GLIBCXX_to_gcc:
-            max_versions.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (9, 'unknown')))
-        max_version = max(max_versions)
-        gcc_req = verstring(max_version) + ' (released %s)' % lookup_version(max_version, gcc_release_dates)
+            gcc_ver_reqs.append(GLIBCXX_to_gcc.get(req['GLIBCXX'], (9, 'unknown')))
+        if gcc_ver_reqs:
+            max_version = max(gcc_ver_reqs)
+            gcc_req = verstring(max_version) + ' (released %s)' % lookup_version(max_version, gcc_release_dates)
     if gcc_req:
         gcc_req = 'and libs for gcc ' + gcc_req
 
