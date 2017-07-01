@@ -11,12 +11,14 @@
 #include "config.bi"
 #include "backends.bi"
 #include "gfx.bi"
+#include "common.bi"
 #undef Font
 #undef readkey
+#undef bitmap
+#undef ellipse
+#undef get_filename
 #include "allegro.bi"
 #include "scancodes.bi"
-
-declare sub debug(s as string)
 
 dim shared init_gfx as bool = NO
 dim shared screenbuf as BITMAP ptr = null
@@ -47,6 +49,7 @@ dim shared scantrans(0 to 127) as integer => { _
 }
 
 extern "C"
+
 
 function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = NO then
@@ -95,6 +98,11 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 'takes a pointer to raw 8-bit data at 320x200 (w, h ignored)
 	dim as integer x, y
 
+	if w <> 320 or h <> 200 then
+		debug "gfx_alleg_showpage: only 320x200 implemented"
+		exit sub
+	end if
+
 	if screenbuf = null then
 		'only create this once, to save a bit of time
 		screenbuf = create_bitmap(320, 200)
@@ -112,13 +120,7 @@ sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as in
 	next
 
 	stretch_blit(screenbuf, screen, 0, 0, 320, 200, 0, baroffset, 640, 400)
-
 end sub
-
-'NOT IMPLEMENTED
-function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
-	return 1
-end function
 
 sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 	'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
@@ -130,6 +132,17 @@ sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 
 	set_palette(@alpal(0))
 end sub
+
+function gfx_alleg_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
+	if surfaceIn->format <> SF_8bit then
+		debug "gfx_alleg_present: 32 bit not implemented"
+		return 1
+	end if
+	if pal then
+		gfx_alleg_setpal @pal->col(0)
+	end if
+	gfx_alleg_showpage surfaceIn->pPaletteData, surfaceIn->width, surfaceIn->height
+end function
 
 function gfx_alleg_screenshot(byval fname as zstring ptr) as integer
 	gfx_alleg_screenshot = 0

@@ -849,7 +849,7 @@ end function
 '                                   setvispage and Fading
 '==========================================================================================
 
-declare sub present_internal_frame(drawpage as integer, starttime as double)
+declare sub present_internal_frame(drawpage as integer)
 declare sub present_internal_surface(drawpage as integer)
 
 sub SkippedFrame.drop()
@@ -921,11 +921,19 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 	'the fb backend may freeze up if it collides with the polling thread
 	mutexlock keybdmutex
 
+	starttime += timer  'Stop timer
+	dim starttime2 as double = timer
+
 	if vpages(page)->surf then
 		present_internal_surface drawpage
 	else
-		present_internal_frame drawpage, starttime
+		present_internal_frame drawpage
 	end if
+
+	' This gets triggered a lot under Win XP because the program freezes while moving
+	' the window (in all backends, although in gfx_fb it freezes readmouse instead)
+	debug_if_slow(starttime2, 0.05, "gfx_present")
+	starttime -= timer  'Restart timer
 
 	mutexunlock keybdmutex
 
@@ -947,25 +955,29 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 end sub
 
 'setvispage internal function for presenting a regular Frame page on the screen
-private sub present_internal_frame(drawpage as integer, starttime as double)
-	dim starttime2 as double
-	if updatepal then
-		starttime2 = timer
-		gfx_setpal(@intpal(0))
-		debug_if_slow(starttime2, 0.05, "gfx_setpal")
-		updatepal = NO
+private sub present_internal_frame(drawpage as integer)
+	' if updatepal then
+	' 	gfx_setpal(@intpal(0))
+	' 	updatepal = NO
+	' end if
+	' with *vpages(drawpage)
+	' 	gfx_showpage(.image, .w, .h)
+	' end with
+
+	dim surf as Surface ptr
+	if gfx_surfaceWithFrame(vpages(drawpage), @surf) then return
+
+	dim surface_pal as RGBPalette ptr
+	if surf->format = SF_8bit then
+		' Need to provide a palette
+		gfx_paletteFromRGB(@intpal(0), @surface_pal)
 	end if
-	starttime += timer  'Stop timer
-	starttime2 = timer
 
-	with *vpages(drawpage)
-		gfx_showpage(.image, .w, .h)
-	end with
+	gfx_present(surf, surface_pal)
+	updatepal = NO  'We just did
 
-	' This gets triggered a lot under Win XP because the program freezes while moving the window (in all backends,
-	' although in gfx_fb it freezes readmouse instead)
-	debug_if_slow(starttime2, 0.05, "gfx_showpage")
-	starttime -= timer  'Restart timer
+	gfx_paletteDestroy(@surface_pal)
+	gfx_surfaceDestroy(@surf)
 end sub
 
 'setvispage internal function for presenting a Surface-backed page on the screen
@@ -979,11 +991,12 @@ private sub present_internal_surface(drawpage as integer)
 	end if
 
 	gfx_present(drawsurf, surface_pal)
+	updatepal = NO  'We just did
 
 	gfx_paletteDestroy(@surface_pal)
 end sub
 
-
+' Change the palette at the NEXT setvispage call (or before next screen fade).
 sub setpal(pal() as RGBcolor)
 	memcpy(@intpal(0), @pal(0), 256 * SIZEOF(RGBcolor))
 
@@ -991,7 +1004,7 @@ sub setpal(pal() as RGBcolor)
 end sub
 
 ' A gfx_setpal wrapper which may perform frameskipping to limit fps
-private sub skippable_setpal()
+private sub maybe_do_gfx_setpal()
 	updatepal = YES
 	if timer - lastframe < 1. / max_display_fps then
 		update_fps_counter YES
@@ -1021,7 +1034,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
-		skippable_setpal
+		maybe_do_gfx_setpal
 		gif_record_frame vpages(last_setvispage), intpal()
 	end if
 
@@ -1050,7 +1063,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 				intpal(j).b -= iif(diff <= -8, -8, diff)
 			end if
 		next
-		skippable_setpal
+		maybe_do_gfx_setpal
 
 		if i mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
@@ -1074,7 +1087,7 @@ sub fadetopal (pal() as RGBcolor)
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
 
 	if updatepal then
-		skippable_setpal
+		maybe_do_gfx_setpal
 		gif_record_frame vpages(last_setvispage), intpal()
 	end if
 
@@ -1109,7 +1122,7 @@ sub fadetopal (pal() as RGBcolor)
 			gif_record_frame vpages(last_setvispage), intpal()
 		end if
 
-		skippable_setpal
+		maybe_do_gfx_setpal
 		dowait
 	next
 
@@ -7248,6 +7261,9 @@ end function
 ' Unload/Destroy both the Frame and the Surface: increments refcount for the Surface!
 function frame_with_surface(surf as Surface ptr) as Frame ptr
 	dim ret as Frame ptr = callocate(sizeof(Frame))
+
+	'Note: normally it makes no sense to call this on a Surface that is itself
+	'a view of a Frame
 
 	surf = gfx_surfaceReference(surf)
 	with *ret

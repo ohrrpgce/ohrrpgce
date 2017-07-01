@@ -174,7 +174,7 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 			end if
 		else  '32 bit
 			if depth = 8 then
-				debug "gfx_fb_present: can't present a 32 bit surface unless running in 32 bit mode! Run .widthith '-d 32'"
+				debug "gfx_fb_present: can't present a 32 bit surface unless running in 32 bit mode! Run with '-d 32'"
 				return 1
 			elseif depth = 32 then
 				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth)
