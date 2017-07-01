@@ -2754,15 +2754,15 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
  executable = exepath & SLASH & GAMEEXE
 
 #ifdef __FB_DARWIN__
- DIM mac_game_bundle as string = "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
- executable = app_dir & mac_game_bundle
+ gameexename = "OHRRPGCE-Game"
+ CONST mac_game_bundle as string = "/OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
+ ' First check for unbundled ohrrpgce-game, then OHRRPGCE-Game.app
+ executable = exepath & SLASH & GAMEEXE
  IF isfile(executable) = NO THEN
-  executable = parentdir(exepath, 3) & mac_game_bundle
- END IF
- IF isfile(executable) = NO THEN
-  executable = exepath & SLASH & GAMEEXE
- ELSE
-  gameexename = "OHRRPGCE-Game"
+  executable = app_dir & mac_game_bundle
+  IF isfile(executable) = NO THEN
+   executable = parentdir(exepath, 3) & mac_game_bundle
+  END IF
  END IF
 #endif
  IF isfile(executable) = NO THEN
