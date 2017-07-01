@@ -1018,11 +1018,6 @@ SUB limitcamera (byref x as integer, byref y as integer)
  END IF
 END SUB
 
-' This function exists to be hooked by gdb after we've opened
-' the channel (without which, Custom's attempt to open it times out)
-SUB hook_after_attach_to_master(success as bool)
-END SUB
-
 FUNCTION game_setoption(opt as string, arg as string) as integer
  IF opt = "errlvl" THEN
   IF is_int(arg) THEN

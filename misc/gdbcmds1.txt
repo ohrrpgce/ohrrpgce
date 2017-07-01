@@ -22,10 +22,12 @@ break HOOK_AFTER_ATTACH_TO_MASTER
 
 # Break when exiting with __fb_ctx.__fb_ermsg set (only when compiled with -exx)
 break fb_End if ((char**)&__fb_ctx)[5] != 0
-break exit if ((char**)&__fb_ctx)[5] != 0
+# For some reason, a conditional break on exit gives a 'not defined' error with old gdb (on OSX)
+#break exit if ((char**)&__fb_ctx)[5] != 0
 # Not sure why can't hook abort
 #break abort
-commands 2 3
+commands 2
+#commands 2 3
 	dumpstate
 end
 
@@ -37,7 +39,7 @@ define bye
 	quit
 end
 break exit
-commands 4
+commands 3
 	bye
 end
 

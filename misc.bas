@@ -158,6 +158,13 @@ sub display_help_string(help as string)
 	SYSTEM        ' terminate the program
 end sub
 
+
+' This function exists to be hooked by gdb after we've opened
+' the channel (without which, Custom's attempt to open it times out).
+' It needs to be in a module other than yetmore2.bas so that it doesn't get inlined.
+SUB hook_after_attach_to_master(success as bool)
+END SUB
+
 FUNCTION ReadShort(byval fh as integer, byval p as long=-1) as short
 	DIM ret as short
 	IF p = -1 THEN
