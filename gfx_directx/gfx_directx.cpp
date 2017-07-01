@@ -118,12 +118,6 @@ DFI_IMPLEMENT_CDECL(void, gfx_showpage, unsigned char *raw, int w, int h)
 	gfx_PumpMessages();
 }
 
-DFI_IMPLEMENT_CDECL(void, gfx_showpage32, unsigned int *raw, int w, int h)
-{
-	g_DirectX.present32(raw, w, h);
-	gfx_PumpMessages();
-}
-
 DFI_IMPLEMENT_CDECL(int, gfx_present, Surface* pSurfaceIn, ::RGBPalette* pPalette)
 {
 	if(pSurfaceIn->format == SF_32bit)
