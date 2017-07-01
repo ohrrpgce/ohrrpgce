@@ -35,6 +35,7 @@ CONST SL_TEXTBOX_LAYER        = -100006
 CONST SL_STRING_LAYER         = -100007
 CONST SL_MAPROOT              = -100008
 CONST SL_OBSOLETE_OVERHEAD    = -100009
+CONST SL_MAP_OVERLAY          = -100020
 CONST SL_WALKABOUT_LAYER      = -100010
 CONST SL_HERO_LAYER           = -100011
 CONST SL_NPC_LAYER            = -100012
@@ -233,6 +234,7 @@ TYPE SliceTable_
   maproot as Slice Ptr
   maplayer(maplayerMax) as Slice Ptr
   obsoleteoverhead as Slice Ptr
+  MapOverlay as Slice Ptr
   Backdrop as Slice Ptr
   Walkabout as Slice Ptr
   HeroLayer as Slice Ptr

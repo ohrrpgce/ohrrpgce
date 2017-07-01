@@ -198,6 +198,10 @@ Sub SetupMapSlices(byval to_max as integer)
  SliceTable.ObsoleteOverhead = NewSliceOfType(slMap, SliceTable.MapRoot, SL_OBSOLETE_OVERHEAD)
  ChangeMapSlice SliceTable.ObsoleteOverhead, , , 0, 2   'non-transparent, overhead
 
+ SliceTable.MapOverlay = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_MAP_OVERLAY)
+ SliceTable.MapOverlay->Fill = YES
+ SliceTable.MapOverlay->Protect = YES
+
  'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
  SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
  SliceTable.Walkabout->Fill = YES
@@ -222,6 +226,7 @@ Sub DestroyGameSlices (Byval dumpdebug as integer=0)
   SliceTable.MapLayer(i) = 0
  NEXT
  SliceTable.ObsoleteOverhead = 0
+ SliceTable.MapOverlay = 0
  SliceTable.Backdrop = 0
  SliceTable.ScriptSprite = 0
  SliceTable.TextBox = 0
@@ -305,6 +310,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_STRING_LAYER: RETURN "string_layer"
   CASE SL_MAPROOT: RETURN "maproot"
   CASE SL_OBSOLETE_OVERHEAD: RETURN "obsolete_overhead"
+  CASE SL_MAP_OVERLAY: RETURN "map_overlay"
   CASE SL_WALKABOUT_LAYER: RETURN "walkabout_layer"
   CASE SL_HERO_LAYER: RETURN "hero_layer"
   CASE SL_NPC_LAYER: RETURN "npc_layer"

@@ -3618,6 +3618,7 @@ SUB recreate_map_slices()
    DeleteSlice @SliceTable.MapLayer(i)
   NEXT i
   DeleteSlice @SliceTable.ObsoleteOverhead
+  DeleteSlice @SliceTable.MapOverlay
   DeleteSlice @SliceTable.HeroLayer
   DeleteSlice @SliceTable.NPCLayer
   DeleteSlice @SliceTable.Walkabout
@@ -3681,6 +3682,8 @@ SUB refresh_map_slice()
  NEXT
  SliceTable.ObsoleteOverhead->Width = mapsizetiles.x * 20
  SliceTable.ObsoleteOverhead->Height = mapsizetiles.y * 20
+ SliceTable.MapOverlay->Width = mapsizetiles.x * 20
+ SliceTable.MapOverlay->Height = mapsizetiles.y * 20
 
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
@@ -3723,6 +3726,7 @@ SUB refresh_map_slice()
 
  SliceTable.Walkabout->Sorter = num_layers_under_walkabouts
  SliceTable.ObsoleteOverhead->Sorter = UBOUND(maptiles) + 2
+ SliceTable.MapOverlay->Sorter = UBOUND(maptiles) + 3
 
  CustomSortChildSlices SliceTable.MapRoot, YES
  'Delete/recreate walkabout layers if needed.

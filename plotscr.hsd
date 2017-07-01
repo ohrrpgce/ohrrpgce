@@ -1848,6 +1848,7 @@ define constant, begin
 -100007, sl:string layer
 -100008, sl:maproot
 -100009, sl:obsolete overhead
+-100020, sl:map overlay
 -100010, sl:walkabout layer
 -100011, sl:hero layer
 -100012, sl:npc layer
