@@ -120,6 +120,9 @@ DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED force_video_reset as bool = NO
+'(This used to be set to true on OSX, due to problems years ago without it, but
+'it's harmful with SDL 1.2.14 and OS 10.8.5)
+DIM SHARED always_force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
@@ -377,12 +380,7 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   IF windowedmode = NO THEN
     flags = flags OR SDL_FULLSCREEN
   END IF
-#IFDEF __FB_DARWIN__
-  '(In brief recent testing with SDL 1.2.14 and OS 10.8.5 I couldn't find any need
-  'to force a reset, but I'll assume there may still be a need for older OSX or SDL or something.)
-  force_video_reset = YES
-#ENDIF
-  IF force_video_reset THEN
+  IF always_force_video_reset OR force_video_reset THEN
     'Sometimes need to quit and reinit the video subsystem for changes to take effect
     force_video_reset = NO
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
@@ -752,6 +750,9 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
   ELSEIF *opt = "input-debug" THEN
     debugging_io = YES
     ret = 1
+  ELSEIF *opt = "reset-videomode" THEN
+    always_force_video_reset = YES
+    ret = 1
   END IF
   'globble numerical args even if invalid
   IF ret = 1 AND is_int(*arg) THEN ret = 2
@@ -761,7 +762,8 @@ END FUNCTION
 FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input"
+          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input" LINE_END _
+          "-reset-videomode    Reset SDL video subsys when changing video mode; may work around problems"
 END FUNCTION
 
 FUNCTION gfx_sdl_get_safe_zone_margin() as single
