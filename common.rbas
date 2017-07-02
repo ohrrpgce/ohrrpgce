@@ -6540,6 +6540,7 @@ FUNCTION default_gen_bool(nodepath as string) as bool
  'defaults without having to update every get_gen_bool() call.
  SELECT CASE nodepath
   CASE "/mouse/move_hero": RETURN NO
+  CASE "/mouse/move_hero/display_dest": RETURN NO
   CASE "/mouse/move_hero/cancel_on_battle": RETURN YES
   CASE "/mouse/move_hero/cancel_on_textbox": RETURN YES
   CASE "/mouse/move_hero/cancel_on_menu": RETURN YES

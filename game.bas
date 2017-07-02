@@ -2966,6 +2966,13 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  END IF
  loadmap_foemap gam.map.id
 
+ 'Cancel any pending hero pathing
+ IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle") THEN
+  'Don't cancel
+ ELSE
+  cancel_hero_pathfinding()
+ END IF
+
  IF afterbat = NO THEN
   recreate_map_slices
  END IF
@@ -3054,13 +3061,6 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
   END IF
  NEXT
  
- 'Cancel any pending hero pathing
- IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle") THEN
-  'Don't cancel
- ELSE
-  cancel_hero_pathfinding()
- END IF
-
  'DEBUG debug "end of preparemap"
 END SUB
 
@@ -4562,6 +4562,7 @@ END FUNCTION
 
 SUB cancel_hero_pathfinding()
  gam.hero_pathing.mode = HeroPathingMode.NONE
+ clear_hero_pathfinding_display
 END SUB
 
 SUB trigger_hero_pathfinding(dest as XYPair)
@@ -4581,7 +4582,10 @@ SUB update_hero_pathfinding_menu_queue()
 END SUB
 
 SUB update_hero_pathfinding(byval rank as integer)
- IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
+ IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN
+  clear_hero_pathfinding_display()
+  EXIT SUB
+ END IF
  
  DIM t1 as XYPair = XY(herotx(rank), heroty(rank))
  DIM t2 as XYPair = gam.hero_pathing.dest_pos
@@ -4593,10 +4597,35 @@ SUB update_hero_pathfinding(byval rank as integer)
   'Don't move unless a path is found that is longer than one tile
   (herodir(rank)) = xypair_direction_to(pf.path[0], pf.path[1], herodir(rank))
   heromove_walk_ahead(rank)
+  update_hero_pathfinding_display(t2)
  else
   'Give up immediately when pathing fails
   gam.hero_pathing.mode = HeroPathingMode.NONE
+  clear_hero_pathfinding_display()
  end if
+END SUB
+
+SUB clear_hero_pathfinding_display()
+ IF gam.hero_pathing.dest_display_sl <> 0 THEN
+  DeleteSlice @(gam.hero_pathing.dest_display_sl)
+ END IF
+END SUB
+
+SUB update_hero_pathfinding_display(byref tile as XYpair)
+ IF get_gen_bool("/mouse/move_hero/display_dest") THEN
+  DIM sl as Slice Ptr
+  IF gam.hero_pathing.dest_display_sl <> 0 THEN
+   sl = gam.hero_pathing.dest_display_sl
+  ELSE
+   gam.hero_pathing.dest_display_sl = NewSliceOfType(slRectangle, SliceTable.MapOverlay, SL_PATHFIND_DEST_DISPLAY)
+   sl = gam.hero_pathing.dest_display_sl
+   sl->width = 20
+   sl->height = 20
+   ChangeRectangleSlice sl, , , uilook(uiHighlight), , transHollow
+  END IF
+  sl->X = tile.x * 20
+  sl->Y = tile.y * 20
+ END IF
 END SUB
 
 SUB heromove_walk_ahead(byval rank as integer)
