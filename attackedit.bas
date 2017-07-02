@@ -1177,7 +1177,6 @@ STATIC warned_old_fail_bit as bool = NO
 
 'load data here
 loadattackdata recbuf(), recindex
-update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 state.need_update = YES
 
 'As a hack (I blame it on flexmenu itself which tries to be more "flexible" than possible),
@@ -1237,7 +1236,6 @@ DO
    ELSE
     loadattackdata recbuf(), recindex
    END IF
-   update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 
    state.need_update = YES
   END IF
@@ -1250,7 +1248,6 @@ DO
    saveattackdata recbuf(), recindex
    SWAP rememberindex, recindex
    loadattackdata recbuf(), recindex
-   update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
    state.need_update = YES
    show_name_ticks = 23
   END IF
@@ -1396,14 +1393,12 @@ DO
     saveattackdata recbuf(), recindex
     recindex = attack_chain_browser(recindex)
     loadattackdata recbuf(), recindex
-    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
    CASE AtkElementalFails TO AtkElementalFails + 63
     DIM cond as AttackElementCondition
     DeSerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
     percent_cond_editor cond, -1000.0, 1000.0, 4, "Fail", " damage" + menu(workmenu(state.pt))  'Fail when ... damage from <elem>
     SerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
-    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
    CASE AtkWepHand0
     xy_position_on_slice weppreview, recbuf(AtkDatWepHand0X), recbuf(AtkDatWepHand0Y), "weapon handle position", "xy_weapon_handle"
@@ -1430,8 +1425,8 @@ DO
   IF helpkey = "attack_damage" THEN
    attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
   END IF
-  'update_attack_editor_for_fail_conds should not be called here, but only when
-  'the record number changes! (Well, it could be called more often than that)
+  '--regenerate captions for fail conditions
+  update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
   '--in case new attacks have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   '--in case chain mode has changed
@@ -1589,6 +1584,7 @@ SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
   NEXT i
 END SUB
 
+'Regenerate captions for elemental failure conditions
 SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
  DIM cond as AttackElementCondition
  FOR i as integer = 0 TO 63

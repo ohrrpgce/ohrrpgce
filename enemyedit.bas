@@ -647,11 +647,10 @@ DO
      recindex -= 1
      enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     END IF
-    update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
-    state.need_update = YES
    ELSE
     enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
    END IF
+   state.need_update = YES
   END IF
  END IF
 
