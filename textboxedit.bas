@@ -650,9 +650,8 @@ SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditStat
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_position_portrait"
   IF enter_or_space() THEN EXIT DO
-  DIM as integer speed = 1
-  DIM as integer delay = 90
-  IF keyval(scLeftShift) OR keyval(scRightShift) THEN speed = 10 : delay = 55
+  DIM as integer speed = IIF(keyval(scShift), 10, 1)
+  DIM as integer delay = IIF(keyval(scShift), 55, 90)
   IF slowkey(scLeft, delay)  THEN box.portrait_pos.x -= speed
   IF slowkey(scRight, delay) THEN box.portrait_pos.x += speed
   IF slowkey(scUp, delay)    THEN box.portrait_pos.y -= speed

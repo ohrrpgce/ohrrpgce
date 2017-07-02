@@ -1177,7 +1177,7 @@ DO
  '--general purpose controls----
  st.oldpos.x = st.x
  st.oldpos.y = st.y
- IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+ IF keyval(scShift) > 0 THEN
   st.rate.x = 8
   st.rate.y = 5
  ELSE
@@ -4074,7 +4074,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   END IF
   IF keyval(scF1) > 1 THEN show_help "resize_map"
   usemenu state
-  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN incval = 8 ELSE incval = 1
+  IF keyval(scShift) > 0 THEN incval = 8 ELSE incval = 1
   SELECT CASE state.pt
    CASE 0
     IF keyval(scEnter) > 1 THEN

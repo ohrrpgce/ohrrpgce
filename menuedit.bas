@@ -222,18 +222,18 @@ SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as
  WITH *menudata.items[mstate.pt]
   IF NOT (menudata.edit_mode = YES AND .trueorder.next = NULL) THEN  'not the last item, "NEW MENU ITEM"
    strgrabber .caption, 38
-   IF keyval(scEnter) > 1 THEN '--Enter
+   IF keyval(scEnter) > 1 THEN
     mstate.active = NO
     dstate.active = YES
     dstate.need_update = YES
    END IF
-   IF keyval(scDelete) > 1 THEN '-- Delete
+   IF keyval(scDelete) > 1 THEN
     IF yesno("Delete this menu item?", NO) THEN
      remove_menu_item menudata, mstate.pt
      mstate.need_update = YES
     END IF
    END IF
-   IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN '--holding Shift
+   IF keyval(scShift) > 0 THEN
     IF keyval(scUp) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
      'NOTE: Cursor will have already moved because of usemenu call above
      swap_menu_items menudata, mstate.pt, menudata, mstate.pt + 1
@@ -485,29 +485,27 @@ SUB edit_menu_item_bits (mi as MenuDefItem)
 END SUB
 
 SUB reposition_menu (menu as MenuDef, mstate as MenuState)
- DIM shift as integer
-
  setkeys
  DO
   setwait 55
   setkeys
- 
+
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_menu"
-  
-  shift = ABS(keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
+
+  DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   WITH menu.offset
-   IF keyval(scUp) > 1 THEN .y -= 1 + 9 * shift
-   IF keyval(scDown) > 1 THEN .y += 1 + 9 * shift
-   IF keyval(scLeft) > 1 THEN .x -= 1 + 9 * shift
-   IF keyval(scRight) > 1 THEN .x += 1 + 9 * shift
+   IF keyval(scUp) > 1 THEN .y -= speed
+   IF keyval(scDown) > 1 THEN .y += speed
+   IF keyval(scLeft) > 1 THEN .x -= speed
+   IF keyval(scRight) > 1 THEN .x += speed
   END WITH
- 
+
   clearpage dpage
   draw_menu menu, mstate, dpage
   edgeprint "Offset=" & menu.offset, 0, 0, uilook(uiDisabledItem), dpage
   edgeprint "Arrows to re-position, ESC to exit", 0, pBottom, uilook(uiDisabledItem), dpage
-  
+
   SWAP vpage, dpage
   setvispage vpage
   dowait

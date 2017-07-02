@@ -2078,7 +2078,7 @@ DO
 
  '' Move cursor by keyboard
  DIM inc as integer
- IF keyval(scLeftShift) OR keyval(scRightShift) OR snap_to_grid THEN inc = 20 ELSE inc = 1
+ IF keyval(scShift) OR snap_to_grid THEN inc = 20 ELSE inc = 1
  DIM as integer movex = 0, movey = 0
  IF keyval(scUp) AND 5 THEN movey = -inc
  IF keyval(scDown) AND 5 THEN movey = inc

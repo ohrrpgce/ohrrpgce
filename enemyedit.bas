@@ -658,7 +658,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help helpkey
 
  IF keyval(scTab) > 1 THEN
-  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+  IF keyval(scShift) > 0 THEN
    rememberindex = recindex
   ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxEnemy) THEN
    saveenemydata recbuf(), recindex
@@ -1063,7 +1063,7 @@ SUB hero_formation_editor ()
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "hero_formation_editor_placement"
    DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
-   IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
+   IF keyval(scShift) THEN movespeed = 8
    WITH hform.slots(slot)
     DIM hrect as Slice ptr = LookupSlice(SL_FORMEDITOR_HERO + slot, rootslice)
     IF hrect THEN
@@ -1189,7 +1189,7 @@ SUB individual_formation_editor ()
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
    DIM as integer movespeed = 1
-   IF keyval(scLeftShift) OR keyval(scRightShift) THEN movespeed = 8
+   IF keyval(scShift) THEN movespeed = 8
    WITH form.slots(slot)
     DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
     DIM size as XYPair
