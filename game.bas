@@ -798,7 +798,7 @@ DO
     AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
     AND menus_allow_player() THEN
   IF get_gen_bool("/mouse/move_hero") THEN
-   IF gam.mouse.clicks AND mouseLeft THEN
+   IF gam.mouse.buttons AND mouseLeft THEN
     cancel_hero_pathfinding()
     trigger_hero_pathfinding(XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20))
    END IF
