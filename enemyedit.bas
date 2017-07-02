@@ -1,4 +1,4 @@
-'OHRRPGCE CUSTOM - Enemy and Formation/Formation Set Editors
+'OHRRPGCE CUSTOM - Enemy Editor and Enemy/Hero Formation/Formation Set Editors
 '(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -21,7 +21,7 @@
 
 'Defined in this file:
 
-DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
+DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
 DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
@@ -638,9 +638,12 @@ DO
    saveenemydata recbuf(), lastindex
    IF recindex > gen(genMaxEnemy) THEN
     '--adding a new set
-    IF enemy_edit_add_new(recbuf(), recindex, preview_box) THEN
+    IF enemy_edit_add_new(recbuf(), preview_box) THEN
+     'Added a new record (blank or copy)
      saveenemydata recbuf(), recindex
     ELSE
+     'cancelled add, reload the old last record
+     recindex -= 1
      enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     END IF
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
@@ -834,9 +837,10 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
 
 END SUB
 
-FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
- 'Returns YES if a new record was added, or NO if cancelled.
- 'The recbuf() will be populated with the new blank or cloned record
+'Returns YES if a new record was added, or NO if cancelled.
+'When YES, gen(genMaxEnemy) gets updated, and recbuf() will be populated with
+'blank or cloned record, and unsaved! Previous contents are discarded.
+FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
   DIM enemy as EnemyDef
   DIM menu(2) as string
   DIM enemytocopy as integer = 0
@@ -851,10 +855,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, pre
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN  'cancel
-      recindex -= 1
-      RETURN NO
-    END IF
+    IF keyval(scESC) > 1 THEN RETURN NO 'cancel
     IF keyval(scF1) > 1 THEN show_help "enemy_new"
     usemenu state
     IF state.pt = 2 THEN
@@ -873,14 +874,13 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, byref recindex as integer, pre
     IF enter_space_click(state) THEN
       SELECT CASE state.pt
         CASE 0 ' cancel
-          recindex -= 1
           RETURN NO
         CASE 1 ' blank
-          gen(genMaxEnemy) = recindex
+          gen(genMaxEnemy) += 1
           clearenemydata recbuf()
           RETURN YES
         CASE 2 ' copy
-          gen(genMaxEnemy) = recindex
+          gen(genMaxEnemy) += 1
           RETURN YES
       END SELECT
     END IF

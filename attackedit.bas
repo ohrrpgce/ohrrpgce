@@ -13,7 +13,7 @@
 #include "loading.bi"
 
 '--Local SUBs
-DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, byref recindex as integer, byval preview_box as Slice Ptr) as integer
+DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
@@ -1225,11 +1225,12 @@ DO
   IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
-    IF atk_edit_add_new(recbuf(), recindex, preview_box) THEN
+    IF atk_edit_add_new(recbuf(), preview_box) THEN
      'Added a new record (blank or copy)
      saveattackdata recbuf(), recindex
     ELSE
      'cancelled add, reload the old last record
+     recindex -= 1
      loadattackdata recbuf(), recindex
     END IF
    ELSE
@@ -1503,9 +1504,10 @@ DeleteSlice @preview_box
 
 END SUB
 
-FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, preview_box as Slice Ptr) as integer
- '--returns YES if a new record was added, or NO if cancelled.
- 'The recbuf() will be populated with blank or copy.
+'Returns YES if a new record was added, or NO if cancelled.
+'When YES, gen(genMaxAttack) gets updated, and recbuf() will be populated with
+'blank or cloned record, and unsaved! Previous contents are discarded.
+FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as bool
   DIM attack as AttackData
   DIM menu(2) as string
   DIM attacktocopy as integer = 0
@@ -1521,10 +1523,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN  'cancel
-      recindex -= 1
-      RETURN NO
-    END IF
+    IF keyval(scESC) > 1 THEN RETURN NO  'cancel
     IF keyval(scF1) > 1 THEN show_help "attack_new"
     usemenu state
     IF state.pt = 2 THEN
@@ -1542,14 +1541,13 @@ FUNCTION atk_edit_add_new (recbuf() as integer, byref recindex as integer, previ
     IF enter_space_click(state) THEN
       SELECT CASE state.pt
         CASE 0 ' cancel
-          recindex -= 1
           RETURN NO
         CASE 1 ' blank
-          gen(genMaxAttack) = recindex
+          gen(genMaxAttack) += 1
           initattackdata recbuf()
           RETURN YES
         CASE 2 ' copy
-          gen(genMaxAttack) = recindex
+          gen(genMaxAttack) += 1
           RETURN YES
       END SELECT
     END IF
