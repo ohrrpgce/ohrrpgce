@@ -265,8 +265,12 @@ svninfo.txt should have been included with the source code if you downloaded a
 # Android
 
 def android_source_actions (sourcelist, rootdir, destdir):
-    # Get a list of C and C++ files to use as sources
+    """Returns a pair (source_nodes, actions) for android-source=1 builds.
+    The actions copy a set of C and C++ files to destdir (which is android/tmp/),
+    including all C/C++ sources and C-translations of .bas files.
+    """
     source_files = []
+    source_nodes = []
     for node in sourcelist:
         assert len(node.sources) == 1
         # If it ends with .bas then we can't use the name of the source file,
@@ -274,9 +278,13 @@ def android_source_actions (sourcelist, rootdir, destdir):
         # use the name of the resulting target instead, which is an .o
         if node.sources[0].name.endswith('.bas'):
             source_files.append (node.abspath[:-2] + '.c')
+            # 'node' is for an .o file, but actually we pass -r to fbc, so it
+            # produces a .c instead of an .o output. SCons doesn't care that no .o is generated.
+            source_nodes += [node]
         else:
             # node.sources[0] itself is a path in build/ (to a nonexistent file)
             source_files.append (node.sources[0].srcnode().abspath)
+            source_nodes += node.sources
     # hacky. Copy the right source files to a temp directory because the Android.mk used
     # by the SDL port selects too much.
     # The more correct way to do this would be to use VariantDir to get scons
@@ -296,7 +304,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
         # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
         'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
     ]
-    return actions
+    return source_nodes, actions
 
 ########################################################################
 # Portability checks

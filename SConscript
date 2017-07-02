@@ -935,16 +935,20 @@ UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') 
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
-Alias ('game', GAME)
-Alias ('custom', CUSTOM)
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
 if android_source:
-    # This is hacky and ought to be rewritten
-    Alias('game', action = ohrbuild.android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp'))
-    Alias('custom', action = ohrbuild.android_source_actions (editsrc, rootdir, rootdir + 'android/tmp'))
+    # android_source is a hack:
+    # Don't produce any .o files, just produce and copy .c/.cpp files to a directory for sdl-android's build system
+    srcs, actions = ohrbuild.android_source_actions (gamesrc, rootdir, rootdir + 'android/tmp')
+    Alias('game', source = srcs, action = actions)
+    srcs, actions = ohrbuild.android_source_actions (editsrc, rootdir, rootdir + 'android/tmp')
+    Alias('custom', source = srcs, action = actions)
     if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
         raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
+else:
+    Alias('game', GAME)
+    Alias('custom', CUSTOM)
 
 # building gfx_directx.dll (can't crosscompile)
 if platform.system () == 'Windows':
