@@ -3,6 +3,7 @@ to transform an enemy target into
 a different enemy.
 
 When "Enemy Becomes" is "None", no transmogrification will happen. If an enemy ID number is selected, the target will be changed into it. This has no effect if the attack is used on a hero.
+Press ENTER to select an enemy.
 
 Health: You can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum.
 

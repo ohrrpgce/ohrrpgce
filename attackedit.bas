@@ -11,6 +11,7 @@
 #include "flexmenu.bi"
 #include "const.bi"
 #include "loading.bi"
+#include "custom.bi"
 
 '--Local SUBs
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool
@@ -198,8 +199,11 @@ CONST AtkDatDramaticPause = 320
 'anything past this requires expanding the data
 
 
-
-SUB attack_editor ()
+'recindex: which attack to show. If -1, same as last time. If >= max, ask to add a new attack,
+'(and exit and return -1 if cancelled).
+'Otherwise, returns the attack number we were last editing.
+'Note: the attack editor can be entered recursively!
+FUNCTION attack_editor (recindex as integer = -1) as integer
 
 DIM i as integer
 
@@ -609,7 +613,7 @@ addcaption caption(), capindex, "preserve % of max"   '2
 addcaption caption(), capindex, "keep old current, limit to new max"  '3
 
 CONST AtkLimTransmogEnemy = 39
-max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
+max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1 'Must be updated!
 min(AtkLimTransmogEnemy) = 0
 
 'Special case!
@@ -1154,6 +1158,8 @@ DIM damagepreview as string
 
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
+state.pt = 1  'Select <-Attack ..-> line
+state.size = 25
 
 DIM selectable() as bool
 flexmenu_update_selectable workmenu(), menutype(), selectable()
@@ -1162,11 +1168,10 @@ DIM menudepth as integer = 0
 DIM laststate as MenuState
 laststate.pt = 0
 laststate.top = 0
-DIM recindex as integer = 0
-DIM lastindex as integer = 0
+
 laststate.need_update = NO
 
-DIM rememberindex as integer = -1   'Record to switch to with TAB
+STATIC rememberindex as integer = -1   'Record to switch to with TAB
 DIM show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
 
 DIM remember_atk_bit as integer = -1
@@ -1174,6 +1179,23 @@ DIM remember_dmg_bit as integer = -1
 DIM remember_elmt_bit as integer = -1
 DIM drawpreview as bool = YES
 STATIC warned_old_fail_bit as bool = NO
+
+'Which attack to show?
+STATIC remember_recindex as integer = 0
+IF recindex < 0 THEN
+ recindex = remember_recindex
+ELSE
+ IF recindex > gen(genMaxAttack) THEN
+  IF atk_edit_add_new(recbuf(), preview_box) THEN
+   'Added a new record (blank or copy)
+   saveattackdata recbuf(), recindex
+   recindex = gen(genMaxAttack) + 1
+  ELSE
+   DeleteSlice @preview_box
+   RETURN -1
+  END IF
+ END IF
+END IF
 
 'load data here
 loadattackdata recbuf(), recindex
@@ -1221,7 +1243,7 @@ DO
  END IF
 
  IF workmenu(state.pt) = AtkChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
-  lastindex = recindex
+  DIM lastindex as integer = recindex
   IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
@@ -1283,6 +1305,10 @@ DO
 
  IF enter_space_click(state) THEN
   SELECT CASE workmenu(state.pt)
+   CASE AtkChooseAct
+    'The <-Attack #-> line; enter exits so that if we were called from another menu
+    'it is easy to select an attack and return to it.
+    EXIT DO
    CASE AtkBackAct
     IF menudepth = 1 THEN
      atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
@@ -1418,6 +1444,14 @@ DO
   END IF
  END IF
 
+ IF flexmenu_handle_crossrefs(state, workmenu(state.pt), menutype(), menuoff(), recindex, recbuf(), YES) THEN
+  'Reload this attack in case it was changed in recursive call to the editor (in fact, this record might be deleted!)
+  recindex = small(recindex, gen(genMaxAttack))
+  loadattackdata recbuf(), recindex
+  show_name_ticks = 23
+  state.need_update = YES
+ END IF
+
  IF state.need_update THEN
   IF helpkey = "attack_appearance" THEN
    attack_editor_build_appearance_menu recbuf(), workmenu(), state
@@ -1427,8 +1461,9 @@ DO
   END IF
   '--regenerate captions for fail conditions
   update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
-  '--in case new attacks have been added
+  '--in case new attacks/enemies have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
+  max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
   '--in case chain mode has changed
   update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2)
   update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2)
@@ -1498,7 +1533,10 @@ saveattackdata recbuf(), recindex
 resetsfx
 DeleteSlice @preview_box
 
-END SUB
+remember_recindex = recindex
+RETURN recindex
+
+END FUNCTION
 
 'Returns YES if a new record was added, or NO if cancelled.
 'When YES, gen(genMaxAttack) gets updated, and recbuf() will be populated with
@@ -1519,7 +1557,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN RETURN NO  'cancel
+    IF keyval(scESC) > 1 THEN setkeys : RETURN NO  'cancel
     IF keyval(scF1) > 1 THEN show_help "attack_new"
     usemenu state
     IF state.pt = 2 THEN
@@ -1535,6 +1573,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
       menu(2) = "Copy of Attack " & attacktocopy
     END IF
     IF enter_space_click(state) THEN
+      setkeys
       SELECT CASE state.pt
         CASE 0 ' cancel
           RETURN NO
@@ -1991,7 +2030,69 @@ SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, sel
  NEXT
 END SUB
 
+'Handles attempt to enter the attack or enemy editor by hitting Enter/etc/+/Insert on a menu item.
+'Returns true if need to update state.
+FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, menutype() as integer, menuoff() as integer, recindex as integer, recbuf() as integer, is_attack_editor as bool) as bool
+
+ DIM wantnew as bool = NO
+ DIM record as integer
+
+ IF enter_space_click(state) THEN
+  wantnew = NO
+ ELSEIF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
+  wantnew = YES
+ ELSE
+  RETURN NO
+ END IF
+
+ IF is_attack_editor THEN
+  saveattackdata recbuf(), recindex
+ ELSE
+  saveenemydata recbuf(), recindex
+ END IF
+
+ DIM byref dat as integer = recbuf(menuoff(nowindex))
+ DIM newdat as integer = -1
+ SELECT CASE menutype(nowindex)
+  CASE 7 'dat is attack + 1
+   IF wantnew THEN
+    record = gen(genMaxAttack) + 1
+   ELSE
+    record = IIF(dat > 0, dat - 1, 0)
+   END IF
+   record = attack_editor(record)
+   IF record >= 0 THEN newdat = record + 1
+  CASE 9 'dat is enemy + 1
+   IF wantnew THEN
+    record = gen(genMaxEnemy) + 1
+   ELSE
+    record = IIF(dat > 0, dat - 1, 0)
+   END IF
+   record = enemy_editor(record)
+   IF record >= 0 THEN newdat = record + 1
+ END SELECT
+
+ ' Update dat to the selected enemy/attack.
+ ' However, recbuf() is now stale, so reload it, and when we return YES
+ ' recbuf() will be reloaded again, so we need to save our changes too!
+ IF newdat <> -1 THEN
+  IF is_attack_editor THEN
+   loadattackdata recbuf(), recindex
+   dat = newdat
+   saveattackdata recbuf(), recindex
+  ELSE
+   loadenemydata recbuf(), recindex
+   dat = newdat
+   saveenemydata recbuf(), recindex
+  END IF
+  RETURN YES
+ END IF
+
+ RETURN NO
+END FUNCTION
+
 FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
+'--Calls intgrabber/strgrabber etc, as appropriate for the selected data field.
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
@@ -2057,15 +2158,15 @@ SELECT CASE menutype(nowindex)
   changed = tag_grabber(datablock(menuoff(nowindex)), -max_tag(), max_tag(), NO)
  CASE 3' string
   s = readbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
-  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = YES
   writebinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex))
  CASE 4' badly stored string
   s = readbadbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
-  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = YES
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0
  CASE 6' extra badly stored string
   s = readbadbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
-  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = YES
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
  CASE 4000 TO 4999' elemental condition
   DIM cond as AttackElementCondition
@@ -2307,6 +2408,7 @@ END FUNCTION
 
 '------------------------------------------------------------------------------
 
+'Returns which "base attack stat" was selected. base_num is the initial/default value.
 FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
 
  IF base_num = 1 THEN base_num = 12 'redundant attacker magic entry

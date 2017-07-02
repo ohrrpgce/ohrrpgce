@@ -22,7 +22,7 @@
 'Defined in this file:
 
 DECLARE FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
-DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+DECLARE SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
 DECLARE SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuState, caption() as string, byval EnCapElemResist as integer)
 DECLARE SUB enemy_edit_pushmenu (state as MenuState, byref lastptr as integer, byref lasttop as integer, byref menudepth as bool)
 DECLARE SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
@@ -51,7 +51,11 @@ SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string,
  NEXT
 END SUB
 
-SUB enemy_editor ()
+'recindex: which enemy to show. If -1, same as last time. If >= max, ask to add a new attack,
+'(and exit and return -1 if cancelled).
+'Otherwise, returns the enemy number we were last editing.
+'Note: the enemy editor can be entered recursively!
+FUNCTION enemy_editor (recindex as integer = -1) as integer
 
 DIM elementnames() as string
 getelementnames elementnames()
@@ -161,7 +165,7 @@ CONST EnLimSpawnNum = 19
 max(EnLimSpawnNum) = 8
 
 CONST EnLimAtk = 20
-max(EnLimAtk) = gen(genMaxAttack) + 1
+max(EnLimAtk) = gen(genMaxAttack) + 1 'Must be updated!
 
 CONST EnLimStr16 = 21
 max(EnLimStr16) = 16
@@ -594,17 +598,35 @@ dissolve_ticks = -1
 
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
+state.pt = 1  'Select <-Enemy ..-> line
+state.size = 25
 
 DIM menudepth as bool = NO
 DIM lastptr as integer = 0
 DIM lasttop as integer = 0
-DIM recindex as integer = 0
 
-DIM rememberindex as integer = -1   'Record to switch to with TAB
+STATIC rememberindex as integer = -1   'Record to switch to with TAB
 DIM show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
 
 DIM remember_bit as integer = -1
 DIM drawpreview as bool = YES
+
+'Which enemy to show?
+STATIC remember_recindex as integer = 0
+IF recindex < 0 THEN
+ recindex = remember_recindex
+ELSE
+ IF recindex > gen(genMaxEnemy) THEN
+  IF enemy_edit_add_new(recbuf(), preview_box) THEN
+   'Added a new record (blank or copy)
+   saveenemydata recbuf(), recindex
+   recindex = gen(genMaxEnemy) + 1
+  ELSE
+   DeleteSlice @preview_box
+   RETURN -1
+  END IF
+ END IF
+END IF
 
 'load data here
 enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
@@ -669,6 +691,10 @@ DO
 
  IF enter_space_click(state) THEN
   SELECT CASE workmenu(state.pt)
+   CASE EnMenuChooseAct
+    'The <-Enemy #-> line; enter exits so that if we were called from another menu
+    'it is easy to select an enemy and return to it.
+    EXIT DO
    CASE EnMenuBackAct
     IF menudepth THEN
      enemy_edit_backmenu state, lastptr, lasttop, menudepth, workmenu(), mainMenu()
@@ -746,6 +772,14 @@ DO
   END IF
  END IF
 
+ IF flexmenu_handle_crossrefs(state, workmenu(state.pt), menutype(), menuoff(), recindex, recbuf(), NO) THEN
+  'Reload this enemy in case it was changed in recursive call to the editor (in fact, this record might be deleted!)
+  recindex = small(recindex, gen(genMaxEnemy))
+  enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
+  show_name_ticks = 23
+  state.need_update = YES
+ END IF
+
  IF dissolve_ticks >= 0 THEN
   dissolve_ticks += 1
   IF dissolve_ticks > dissolve_time + 15 THEN
@@ -763,7 +797,7 @@ DO
 
  IF state.need_update THEN
   state.need_update = NO
-  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
+  enemy_edit_update_menu recindex, state, recbuf(), menu(), menuoff(), menutype(), menulimits(), min(), max(), dispmenu(), workmenu(), caption(), preview_sprite, preview, dissolve_ticks, EnLimSpawn, EnLimAtk, EnLimPic, EnDatPic, EnDatPal, EnDatPicSize
  END IF
 
  clearpage vpage
@@ -791,7 +825,10 @@ resetsfx
 DeleteSlice @preview_box
 frame_unload @preview_sprite
 
-END SUB
+remember_recindex = recindex
+RETURN recindex
+
+END FUNCTION
 
 SUB enemy_edit_backmenu (state as MenuState, byval lastptr as integer, byval lasttop as integer, byref menudepth as bool, workmenu() as integer, mainMenu() as integer)
  setactivemenu workmenu(), mainMenu(), state
@@ -813,11 +850,12 @@ SUB enemy_edit_load(byval recnum as integer, recbuf() as integer, state as MenuS
  state.need_update = YES
 END SUB
 
-SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
+SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf() as integer, menu() as string, menuoff() as integer, menutype() as integer, menulimits() as integer, min() as integer, max() as integer, dispmenu() as string, workmenu() as integer, caption() as string, byref preview_sprite as Frame ptr, preview as Slice Ptr, byval dissolve_ticks as integer, byval EnLimSpawn as integer, byval EnLimAtk as integer, byval EnLimPic as integer, byval EnDatPic as integer, byval EnDatPal as integer, byval EnDatPicSize as integer)
 
- '--in case new enemies have been added
+ '--in case new enemies/attacks have been added
  max(EnLimSpawn) = gen(genMaxEnemy) + 1
- 
+ max(EnLimAtk) = gen(genMaxAttack) + 1
+
  '--in case the PicSize has changed
  max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
  
@@ -855,7 +893,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as b
   DO
     setwait 55
     setkeys
-    IF keyval(scESC) > 1 THEN RETURN NO 'cancel
+    IF keyval(scESC) > 1 THEN setkeys : RETURN NO 'cancel
     IF keyval(scF1) > 1 THEN show_help "enemy_new"
     usemenu state
     IF state.pt = 2 THEN
@@ -872,6 +910,7 @@ FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as b
       menu(2) = "Copy of Enemy " & enemytocopy & " " & enemy.name
     END IF
     IF enter_space_click(state) THEN
+      setkeys
       SELECT CASE state.pt
         CASE 0 ' cancel
           RETURN NO

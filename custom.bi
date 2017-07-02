@@ -24,8 +24,8 @@ DECLARE SUB importsfx ()
 DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()
 DECLARE SUB formation_editor ()
-DECLARE SUB enemy_editor ()
-DECLARE SUB attack_editor ()
+DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
+DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
 DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB menu_editor ()
