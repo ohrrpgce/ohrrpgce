@@ -10,7 +10,7 @@ There are 2 tag settings, each divided into 3 sections.
 
 On: This is the condition that triggers the tag setting.
 
-* On Never - This means that the tag
+* Never - This means that the tag
   setting is entirely disabled.
 
 * On Use - This means the tag setting

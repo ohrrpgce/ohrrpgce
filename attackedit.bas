@@ -508,11 +508,11 @@ CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
 menucapoff(AtkTagIf) = capindex
 'Indices are AttackTagConditionEnum
-addcaption caption(), capindex, "Never" '0
-addcaption caption(), capindex, "On Use"   '1
-addcaption caption(), capindex, "On Hit"   '2
-addcaption caption(), capindex, "On Miss"  '3
-addcaption caption(), capindex, "On Kill"  '4
+addcaption caption(), capindex, "Never:"    '0
+addcaption caption(), capindex, "On Use:"   '1
+addcaption caption(), capindex, "On Hit:"   '2
+addcaption caption(), capindex, "On Miss:"  '3
+addcaption caption(), capindex, "On Kill:"  '4
 
 CONST AtkLimTagAnd = 25
 max(AtkLimTag) = max_tag()
@@ -783,7 +783,7 @@ menutype(AtkBaseDef) = 2000 + menucapoff(AtkBaseDef)
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
-menu(AtkTag) = "Set Tag"
+menu(AtkTag) = " Set Tag"
 menutype(AtkTag) = 21
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
@@ -793,12 +793,12 @@ menutype(AtkTagIf) = 2000 + menucapoff(AtkTagIf)
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
 
-menu(AtkTagAnd) = "If Tag"
+menu(AtkTagAnd) = " If Tag"
 menutype(AtkTagAnd) = 2
 menuoff(AtkTagAnd) = AtkDatTagAnd
 menulimits(AtkTagAnd) = AtkLimTagAnd
 
-menu(AtkTag2) = "Set Tag"
+menu(AtkTag2) = " Set Tag"
 menutype(AtkTag2) = 21
 menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
@@ -808,7 +808,7 @@ menutype(AtkTagIf2) = 2000 + menucapoff(AtkTagIf)
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
 
-menu(AtkTagAnd2) = "If Tag"
+menu(AtkTagAnd2) = " If Tag"
 menutype(AtkTagAnd2) = 2
 menuoff(AtkTagAnd2) = AtkDatTagAnd2
 menulimits(AtkTagAnd2) = AtkLimTagAnd
