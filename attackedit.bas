@@ -1032,6 +1032,7 @@ DIM workmenu(65) as integer
 DIM dispmenu(65) as string
 DIM state as MenuState
 state.autosize = YES
+state.autosize_ignore_pixels = 12
 
 DIM mainMenu(13) as integer
 mainMenu(0) = AtkBackAct
@@ -1513,6 +1514,8 @@ DO
   edgeprint cost_caption, pRight, pBottom, uilook(uiDisabledItem), dpage
   edgeprint RIGHT(cost_caption, 30), pRight, pBottom, uilook(uiText), dpage
  END IF
+
+ edgeprint flexmenu_tooltip(workmenu(state.pt), menutype()), pLeft, pBottom, uilook(uiDisabledItem), dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
@@ -2404,6 +2407,16 @@ END SUB
 FUNCTION isStringField(byval mnu as integer) as bool
   IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN YES
   RETURN NO
+END FUNCTION
+
+'Message to show at the bottom of the screen. Only for things not specific to enemy or attack editor.
+FUNCTION flexmenu_tooltip(nowindex as integer, menutype() as integer) as string
+ SELECT CASE menutype(nowindex)
+  CASE 7  'attack (offset)
+   RETURN "+ or Insert to add a new attack"
+  CASE 9  'enemy (offset)
+   RETURN "+ or Insert to add a new enemy"
+ END SELECT
 END FUNCTION
 
 '------------------------------------------------------------------------------

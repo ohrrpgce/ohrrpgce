@@ -482,6 +482,7 @@ DIM workmenu(93) as integer
 DIM dispmenu(93) as string
 DIM state as MenuState
 state.autosize = YES
+state.autosize_ignore_pixels = 12
 state.need_update = YES
 
 DIM mainMenu(9) as integer
@@ -813,6 +814,7 @@ DO
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmpstr, pRight, 0, vpage
  END IF
+ edgeprint flexmenu_tooltip(workmenu(state.pt), menutype()), pLeft, pBottom, uilook(uiDisabledItem), vpage
 
  setvispage vpage
  dowait
