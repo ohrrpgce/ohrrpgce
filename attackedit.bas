@@ -1166,13 +1166,14 @@ DIM recindex as integer = 0
 DIM lastindex as integer = 0
 laststate.need_update = NO
 
-DIM rememberindex as integer = -1
+DIM rememberindex as integer = -1   'Record to switch to with TAB
+DIM show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
+
 DIM remember_atk_bit as integer = -1
 DIM remember_dmg_bit as integer = -1
 DIM remember_elmt_bit as integer = -1
-DIM show_name as integer = 0
-DIM drawpreview as integer = YES
-STATIC warned_old_fail_bit as integer = NO
+DIM drawpreview as bool = YES
+STATIC warned_old_fail_bit as bool = NO
 
 'load data here
 loadattackdata recbuf(), recindex
@@ -1251,7 +1252,7 @@ DO
    loadattackdata recbuf(), recindex
    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
    state.need_update = YES
-   show_name = 23
+   show_name_ticks = 23
   END IF
  END IF
 
@@ -1484,8 +1485,8 @@ DO
  END IF
 
  standardmenu dispmenu(), state, 0, 0, dpage
- IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just tab-flipped, show ID and name
-   show_name = large(0, show_name - 1)
+ IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
+   show_name_ticks = large(0, show_name_ticks - 1)
    tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmpstr, pRight, 0, dpage
@@ -1994,7 +1995,7 @@ SUB flexmenu_update_selectable(workmenu() as integer, menutype() as integer, sel
  NEXT
 END SUB
 
-FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as integer
+FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
@@ -2042,7 +2043,7 @@ FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as 
 'mintable() is minimum integer values
 'maxtable() is maximum int values and string limits
 
-DIM changed as integer = 0
+DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
@@ -2303,9 +2304,9 @@ FOR i = 0 TO size
 NEXT i
 END SUB
 
-FUNCTION isStringField(byval mnu as integer) as integer
-  IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN -1
-  RETURN 0
+FUNCTION isStringField(byval mnu as integer) as bool
+  IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN YES
+  RETURN NO
 END FUNCTION
 
 '------------------------------------------------------------------------------

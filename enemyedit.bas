@@ -34,7 +34,7 @@ DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFor
 DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
 DECLARE SUB hero_formation_editor ()
 
-DECLARE SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as slice Ptr)
+DECLARE SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as Slice Ptr)
 
 ' Formation editor slice lookup codes
 CONST SL_FORMEDITOR_BACKDROP = 100
@@ -600,10 +600,11 @@ DIM lastptr as integer = 0
 DIM lasttop as integer = 0
 DIM recindex as integer = 0
 
-DIM rememberindex as integer = -1
+DIM rememberindex as integer = -1   'Record to switch to with TAB
+DIM show_name_ticks as integer = 0  'Number of ticks to show name (after switching record with TAB)
+
 DIM remember_bit as integer = -1
-DIM show_name as integer = 0
-DIM drawpreview as integer = YES
+DIM drawpreview as bool = YES
 
 'load data here
 enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
@@ -663,7 +664,7 @@ DO
    saveenemydata recbuf(), recindex
    SWAP rememberindex, recindex
    enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
-   show_name = 23
+   show_name_ticks = 23
   END IF
  END IF
 
@@ -773,11 +774,11 @@ DO
 
  standardmenu dispmenu(), state, 0, 0, vpage
  draw_fullscreen_scrollbar state, , vpage
- IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just pressed TAB
-  show_name = large(0, show_name - 1)
+ IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
+  show_name_ticks = large(0, show_name_ticks - 1)
   DIM tmpstr as string = readbadbinstring(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr tmpstr, rRight, 0, vpage
+  printstr tmpstr, pRight, 0, vpage
  END IF
 
  setvispage vpage
