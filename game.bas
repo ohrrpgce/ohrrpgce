@@ -784,15 +784,21 @@ DO
  dotimer(TIMER_NORMAL)
 
  'DEBUG debug "keyboard handling"
- update_hero_pathfinding_menu_queue()
- IF (user_triggered_main_menu() ORELSE gam.hero_pathing.queued_menu) AND txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-  gam.hero_pathing.queued_menu = NO
-  IF gen(genEscMenuScript) > 0 THEN
-   trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
-  ELSEIF allowed_to_open_main_menu() THEN
-   add_menu 0
-   menusound gen(genAcceptSFX)
+ IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO THEN
+  'Menu key is enabled (provided you're stationary)
+  update_hero_pathfinding_menu_queue()
+  IF (user_triggered_main_menu() ORELSE gam.hero_pathing.queued_menu) AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+   gam.hero_pathing.queued_menu = NO
+   IF gen(genEscMenuScript) > 0 THEN
+    trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
+   ELSEIF allowed_to_open_main_menu() THEN
+    add_menu 0
+    menusound gen(genAcceptSFX)
+   END IF
   END IF
+ ELSE
+  'Edge case: don't allow a queued menu to be delayed indefinitely
+  gam.hero_pathing.queued_menu = NO
  END IF
  IF txt.showing = NO AND gam.need_fade_in = NO AND gam.debug_camera_pan = NO _
     AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
