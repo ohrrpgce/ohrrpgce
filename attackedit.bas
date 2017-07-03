@@ -2037,16 +2037,13 @@ END SUB
 'Returns true if need to update state.
 FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, menutype() as integer, menuoff() as integer, recindex as integer, recbuf() as integer, is_attack_editor as bool) as bool
 
- DIM wantnew as bool = NO
- DIM record as integer
-
- IF enter_space_click(state) THEN
-  wantnew = NO
- ELSEIF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
-  wantnew = YES
- ELSE
-  RETURN NO
- END IF
+ 'Early out tests
+ IF enter_or_add_new(state) = NO THEN RETURN NO
+ SELECT CASE menutype(nowindex)
+  CASE 7, 9 'attack, enemy
+  CASE ELSE
+   RETURN NO
+ END SELECT
 
  IF is_attack_editor THEN
   saveattackdata recbuf(), recindex
@@ -2054,31 +2051,20 @@ FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, men
   saveenemydata recbuf(), recindex
  END IF
 
+ DIM ret as bool
  DIM byref dat as integer = recbuf(menuoff(nowindex))
- DIM newdat as integer = -1
  SELECT CASE menutype(nowindex)
   CASE 7 'dat is attack + 1
-   IF wantnew THEN
-    record = gen(genMaxAttack) + 1
-   ELSE
-    record = IIF(dat > 0, dat - 1, 0)
-   END IF
-   record = attack_editor(record)
-   IF record >= 0 THEN newdat = record + 1
+   ret = attackgrabber(dat, state, 1, , NO)  'intgrab=NO
   CASE 9 'dat is enemy + 1
-   IF wantnew THEN
-    record = gen(genMaxEnemy) + 1
-   ELSE
-    record = IIF(dat > 0, dat - 1, 0)
-   END IF
-   record = enemy_editor(record)
-   IF record >= 0 THEN newdat = record + 1
+   ret = enemygrabber(dat, state, 1, , NO)  'intgrab=NO
  END SELECT
 
- ' Update dat to the selected enemy/attack.
- ' However, recbuf() is now stale, so reload it, and when we return YES
- ' recbuf() will be reloaded again, so we need to save our changes too!
- IF newdat <> -1 THEN
+ ' If we entered the attack/enemy editor recursively recbuf() may now stale, so
+ ' reload it and re-write dat.
+ ' When we return YES recbuf() will be reloaded again, so we need to save our changes too!
+ IF ret THEN
+  DIM newdat as integer = dat
   IF is_attack_editor THEN
    loadattackdata recbuf(), recindex
    dat = newdat
@@ -2088,10 +2074,9 @@ FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, men
    dat = newdat
    saveenemydata recbuf(), recindex
   END IF
-  RETURN YES
  END IF
 
- RETURN NO
+ RETURN ret
 END FUNCTION
 
 FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
@@ -2412,10 +2397,8 @@ END FUNCTION
 'Message to show at the bottom of the screen. Only for things not specific to enemy or attack editor.
 FUNCTION flexmenu_tooltip(nowindex as integer, menutype() as integer) as string
  SELECT CASE menutype(nowindex)
-  CASE 7  'attack (offset)
-   RETURN "+ or Insert to add a new attack"
-  CASE 9  'enemy (offset)
-   RETURN "+ or Insert to add a new enemy"
+  CASE 7, 9  'attack (offset)
+   RETURN "ENTER to edit, + or INSERT to add new"
  END SELECT
 END FUNCTION
 

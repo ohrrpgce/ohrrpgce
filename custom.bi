@@ -12,6 +12,15 @@
 #include "udts.bi"
 #include "custom_udts.bi"
 
+' record: which attack to show. If -1, default. If >= max, ask to add a new record,
+' (and exit and return -1 if cancelled). Can also return -1 if not reentrant.
+' Otherwise, returns the object number that was selected/last edited.
+TYPE FnEditor as FUNCTION(record as integer = -1) as integer
+
+' FnEditor editors
+DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
+DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
+
 DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
@@ -24,8 +33,6 @@ DECLARE SUB importsfx ()
 DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()
 DECLARE SUB formation_editor ()
-DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
-DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
 DECLARE SUB hero_editor ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB menu_editor ()

@@ -6,7 +6,10 @@ Some kinds of menu items require a number, for example:
 
 Kind: Specific Attack
   Type the ID number of the attack
-  that will appear in the menu.
+  that will appear in the menu, or
+  press ENTER or SPACE to browse for
+  or edit an attack, or + or INSERT
+  to create and edit a new one.
 
 Kind: Spell List
   Type the ID number of the hero's
@@ -20,4 +23,4 @@ Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify on
 
 Note that some other conditions can disable a menu item, such as if costs for an attack aren't met.
 
-When disabled - If a menu item is disabled (e.g. due to a tag), sets whether disabled items are greyed out or hidden. 
+When disabled - If a menu item is disabled (e.g. due to a tag), sets whether disabled items are greyed out or hidden.

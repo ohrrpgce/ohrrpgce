@@ -53,6 +53,7 @@ SUB item_editor
   IF enter_space_click(state) THEN
    IF state.pt = -1 THEN EXIT DO
    IF state.pt = gen(genMaxItem) + 1 THEN
+    'Add new item
     IF gen(genMaxItem) < maxMaxItems THEN
      gen(genMaxItem) += 1
      DIM itembuf(dimbinsize(binITM)) as integer
@@ -130,7 +131,7 @@ SUB individual_item_editor(item_id as integer)
  max(3) = 32767
  max(4) = 99
  max(5) = 5
- max(6) = gen(genMaxAttack)
+ max(6) = gen(genMaxAttack)  'These are not used or kept up-to-date!
  max(7) = gen(genMaxAttack)
  max(8) = gen(genMaxAttack)
  max(9) = gen(genMaxAttack)
@@ -222,12 +223,17 @@ SUB individual_item_editor(item_id as integer)
     IF intgrabber(itembuf(iidx(state.pt)), min(state.pt), max(state.pt)) THEN
      state.need_update = YES
     END IF
-   CASE 6, 7, 8
-    IF zintgrabber(itembuf(iidx(state.pt)), -1, max(state.pt)) THEN
+   CASE 6, 7, 8  'Attacks
+    IF attackgrabber(itembuf(iidx(state.pt)), state, 1, 0) THEN
      state.need_update = YES
     END IF
    CASE 9
-    IF xintgrabber(itembuf(51), 0, max(state.pt), -1, gen(genMaxTextbox) * -1) THEN
+    'Out-of-battle use can be either an attack or a textbox
+    'We want attackgrabber to handle + and enter/space/click when an attack is
+    'selected, and xintgrabber to handle other keys.
+    IF keyval(scPlus) = 0 ANDALSO xintgrabber(itembuf(51), 0, gen(genMaxAttack), -1, gen(genMaxTextbox) * -1) THEN
+     state.need_update = YES
+    ELSEIF itembuf(51) > 0 ANDALSO attackgrabber(itembuf(51), state, 1, , NO) THEN  'intgrab=NO
      state.need_update = YES
     END IF
    CASE 11 TO 14
@@ -266,7 +272,13 @@ SUB individual_item_editor(item_id as integer)
    drawline handle.x + 1, handle.y    , handle.x + 2, handle.y    , col, dpage
    drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
   END IF
-  edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
+
+  IF (state.pt >= 6 AND state.pt <= 8) OR (state.pt = 9 AND itembuf(iidx(state.pt)) > 0) THEN
+   'Editing an attack ID
+   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiDisabledItem), dpage
+  ELSE
+   edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
+  END IF
   SWAP vpage, dpage
   setvispage vpage
   dowait

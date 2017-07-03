@@ -29,6 +29,10 @@ DECLARE FUNCTION format_percent_cond(byref cond as AttackElementCondition, defau
 DECLARE FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
 DECLARE SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, byval max as double, byval decimalplaces as integer = 4, do_what as string = "...", percent_of_what as string = "")
 
+DECLARE FUNCTION enter_or_add_new(state as MenuState) as bool
+DECLARE FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+DECLARE FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+
 DECLARE SUB ui_color_editor(palnum as integer)
 DECLARE SUB make_ui_color_editor_menu(m() as string, colors() as integer)
 DECLARE SUB ui_boxstyle_editor(palnum as integer)

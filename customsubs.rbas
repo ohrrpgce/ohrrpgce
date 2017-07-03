@@ -816,6 +816,61 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
  LOOP
 END SUB
 
+'Whether thinggrabber will enter an editor.
+FUNCTION enter_or_add_new(state as MenuState) as bool
+ RETURN enter_space_click(state) OR keyval(scPlus) > 1 OR keyval(scInsert) > 1
+END FUNCTION
+
+'Returns true if the calling menu needs to refresh.
+'Edit an object ID numerically (unless intgrab=NO) or by entering an editor.
+'See FnEditor for information about the calling convention.
+'This handles enter/space/click, +/insert, digits, left/right, - and backspace.
+'offset should be 0 or 1, eg:
+' offset=0: datum X means attack X
+' offset=1: datum 0 is none, X+1 is attack X
+'min is the minimum value of datum. Usually equal to offset if there is no
+'"none" option, or offset-1 if there is. (Not the same as min for zintgrabber!)
+'max_record is the maximum object ID, not the upper range of datum.
+PRIVATE FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor) as bool
+ DIM editor_arg as integer  'What to pass to editor_func.
+ IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
+  editor_arg = max_record + 1
+ ELSEIF enter_space_click(state) THEN
+  ' A value < 0 would mean None; default to 0 in that case
+  editor_arg = large(datum - offset, 0)
+ ELSE
+  ' Check this only after checking scPlus, because intgrabber reads it
+  IF intgrab THEN
+   IF offset <> 0 AND offset <> 1 THEN showerror "thinggrabber: weird offset " & offset
+   'min and max for zintgrabber are offset by one: -1 means datum=0
+   IF (offset = 1 ANDALSO zintgrabber(datum, min - 1, max_record)) OR _
+      (offset = 0 ANDALSO intgrabber(datum, min, max_record)) THEN
+    RETURN YES
+   END IF
+  END IF
+  RETURN NO
+ END IF
+
+ DIM newrecord as integer
+ newrecord = editor_func(editor_arg)
+ IF newrecord = -1 THEN RETURN NO  'Cancelled add-new
+ datum = newrecord + offset
+ ' Even if the ID hasn't changed you might have edited the data, so need to refresh the menu
+ RETURN YES
+END FUNCTION
+
+'Edit an attack ID (possibly offset) numerically or by entering the attack editor.
+'See thinggrabber.
+FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
+ RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_editor)
+END FUNCTION
+
+'Edit an enemy ID (possibly offset) numerically or by entering the enemy editor.
+'See thinggrabber.
+FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
+ RETURN thinggrabber(datum, state, offset, min, gen(genMaxEnemy), intgrab, @enemy_editor)
+END FUNCTION
+
 ' Shared by ui_color_editor and ui_boxstyle_editor
 SUB make_ui_editor_sample_menu(sample_menu as MenuDef, sample_state as MenuState)
  ClearMenuData sample_menu
@@ -2580,7 +2635,7 @@ SUB experience_chart ()
   END IF
   IF state.pt = 2 THEN
    IF mode = 1 THEN
-    IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
+    IF enemygrabber(enemy_id, state) THEN state.need_update = YES
    ELSEIF mode = 2 THEN
     IF intgrabber(form_id, 0, gen(genMaxFormation)) THEN state.need_update = YES
    END IF

@@ -690,7 +690,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
      EXIT DO
     END IF
    CASE 1:
-    IF zintgrabber(slot.attack, -1, gen(genMaxAttack)) THEN st.need_update = YES
+    IF attackgrabber(slot.attack, st, 1, 0) THEN st.need_update = YES
    CASE 2:
     IF zintgrabber(slot.learned, -1, 99) THEN st.need_update = YES
    CASE 3:
@@ -705,7 +705,7 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
   END SELECT
   
   IF st.need_update THEN
-   cap = ""
+   cap = "(None)"
    IF slot.attack > 0 THEN cap = (slot.attack - 1) & " " & readattackname(slot.attack - 1)
    menu.items[1]->caption = "Attack: " & cap
 
@@ -722,6 +722,9 @@ SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
   copypage holdscreen, vpage
   draw_menu menu, st, vpage
+  IF st.pt = 1 THEN
+   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiSelectedDisabled), vpage
+  END IF
   setvispage vpage
   
   dowait
@@ -890,7 +893,8 @@ CONST edbatmenu_NUM = 2 'extra 0 = lower limit, extra 1 = upper limit
 CONST edbatmenu_STR = 3
 CONST edbatmenu_TAG = 4
 CONST edbatmenu_COLOR = 5 'extra 0 = lower limit, extra 1 = upper limit  (to reduce redundancy...)
-CONST edbatmenu_UNSELECTABLE = 6 'Does nothing
+CONST edbatmenu_ATTACK = 6
+CONST edbatmenu_UNSELECTABLE = 7 'Does nothing
 
 SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
  IF edit_node = 0 THEN debug "edit_battle_menu_item null NodePtr": EXIT SUB
@@ -934,10 +938,8 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    ELSEIF k."attack".exists THEN
     append_menu_item menu, "Kind: Specific Attack", edbatmenu_KIND
     v = k."attack".integer
-    append_menu_item menu, "Attack: " & v & " " & readattackname(v), edbatmenu_NUM
+    append_menu_item menu, "Attack: " & v & " " & readattackname(v), edbatmenu_ATTACK
     menu.last->dataptr = k."attack".ptr
-    menu.last->extra(0) = 0
-    menu.last->extra(1) = gen(genMaxAttack)
    ELSEIF k."spells".exists THEN
     append_menu_item menu, "Kind: Spell List", edbatmenu_KIND
     v = k."spells".integer
@@ -986,8 +988,9 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    '   menu.last->disabled = YES    
    '  END IF
    ELSEIF k."weapon".exists OR k."attack".exists THEN
-    append_menu_item menu, "(May be disabled if costs not met)", edbatmenu_UNSELECTABLE
-    menu.last->disabled = YES    
+    append_menu_item menu, IIF(k."weapon".exists, "(May be disabled", "(Disabled") + " if costs not met)", _
+                     edbatmenu_UNSELECTABLE
+    menu.last->disabled = YES
    END IF
 
    init_menu_state st, menu
@@ -1015,6 +1018,9 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
     CASE edbatmenu_NUM
      st.need_update OR= intgrabber(v, .extra(0), .extra(1))
      SetContent(.dataptr, v)
+    CASE edbatmenu_ATTACK
+     st.need_update OR= attackgrabber(v, st)
+     SetContent(.dataptr, v)
     CASE edbatmenu_COLOR
      st.need_update OR= intgrabber(v, 0, 255)
      SetContent(.dataptr, v)
@@ -1032,8 +1038,11 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
   copypage holdscreen, vpage
   fuzzyrect 0, 0, , , uilook(uiBackground), vpage
   draw_menu menu, st, vpage
+  IF menu.items[st.pt]->t = edbatmenu_ATTACK THEN
+   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiMenuItem), vpage
+  END IF
   setvispage vpage
-  
+
   dowait
  LOOP
 

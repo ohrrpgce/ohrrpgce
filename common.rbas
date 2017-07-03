@@ -1516,7 +1516,7 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  END IF
 END FUNCTION
 
-FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=75, more as integer=77) as bool
+FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
  '--adjust for entries that are offset by +1
  '--what a hack!
  '--all entries <= 0 are special options not meant to be enumerated

@@ -1,6 +1,7 @@
 This is the editor for a single slot in a spell list.
 
 Here you choose which attack will be used for the spell.
+With the attack selected, press ENTER or SPACE to enter the attack editor to edit/browse for an attack. Press INSERT or + as a quick way to add a new attack.
 
 You can also choose how the hero will learn the spell.
 
@@ -9,4 +10,3 @@ You can also choose how the hero will learn the spell.
 "Learned at Level 0" means the hero will always be able to use the spell.
  
 "Learned at level #" means that the hero will gain the spell automatically when they reach that experience level.
-

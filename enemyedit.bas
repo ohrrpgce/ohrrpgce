@@ -1326,7 +1326,9 @@ SUB individual_formation_editor ()
    IF slot <> -1 THEN
     WITH form.slots(slot)
      DIM oldenemy as integer = .id
-     IF intgrabber(.id, -1, gen(genMaxEnemy)) THEN
+     IF form.slots(slot).id >= 0 AND enter_space_click(state) THEN
+      'Pressing enter should go to placement mode (handled above)
+     ELSEIF enemygrabber(.id, state, 0, -1) THEN
       'This would treat the x/y position as being the bottom middle of enemies, which makes much more
       'sense, but that would change where enemies of different sizes are spawned in slots in existing games
       'See the Plan for battle formation improvements
