@@ -807,7 +807,9 @@ DO
   IF get_gen_bool("/mouse/move_hero") THEN
    IF gam.mouse.buttons AND mouseLeft THEN
     cancel_hero_pathfinding()
-    trigger_hero_pathfinding(XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20))
+    DIM dest as XYPair = XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20)
+    wrapxy(dest, mapsizetiles.x, mapsizetiles.y)
+    trigger_hero_pathfinding(dest)
    END IF
   END IF
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
