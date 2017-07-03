@@ -1054,6 +1054,15 @@ SUB forcedismount ()
 END SUB
 
 FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
+ 'This whole feature was ill-planned and ill-implemented. The vehicle bitset that ignores walls
+ 'causes this whole thing to be moot, and the way in which this feature causes passability to
+ 'be selectively ignored is mostly useless.
+ 
+ 'PLAN: Deprecate this whole feature. Don't remove it of course, just hide it in a
+ '"Deprecated Vehicle Options" sub-menu. Add support for allowing vehicles to optionally
+ 'respect the zone-restrictions of the NPC they are attached to. 
+
+ 'n is the type of passability override rules to use. See the SELECT CASE below
  '--true means passable
  '--false means impassable
 
