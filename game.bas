@@ -2182,8 +2182,10 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
  IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 THEN
   '--this only happens if hero walls are on
   IF wrappass(tilepos.x, tilepos.y, xgo, ygo, NO, NO) THEN
-   collision_type = collideWall
-   RETURN YES
+   IF NOT hero_should_ignore_walls(rank) THEN
+    collision_type = collideWall
+    RETURN YES
+   END IF
   END IF
   '--If heroes had zone restrictions like NPCs, this would be the place to check them (But they don't!)
  END IF
@@ -3876,9 +3878,7 @@ FUNCTION hero_should_ignore_walls(byval who as integer) as bool
  IF gam.walk_through_walls THEN RETURN YES
  IF vstate.dat.pass_walls THEN RETURN YES
  IF vstate.active THEN
-  DIM thisherotilex as integer = herotx(who)
-  DIM thisherotiley as integer = heroty(who)
-  IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN YES
+  IF vehpass(vstate.dat.override_walls, readblock(pass, herotx(who), heroty(who)), 0) <> 0 THEN RETURN YES
  END IF
  RETURN NO
 END FUNCTION
