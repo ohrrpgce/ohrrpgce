@@ -1380,18 +1380,29 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   .spacing = 10 + menu.itemspacing
  END WITH
 
- WITH menu.rect
-  IF menu.no_box = NO THEN
+ IF menu.no_box = NO THEN
+  WITH menu.rect
    edgeboxstyle .x, .y, .wide, .high, menu.boxstyle, page, menu.translucent
-  END IF
-  IF menu.no_scrollbar = NO THEN
-   draw_scrollbar state, menu, page
-  END IF
- END WITH
+  END WITH
+ END IF
 
  state.tog = state.tog XOR 1
  DIM selected as integer
 
+ 'First draw the highlight rectangle, if any, behind the items
+ IF menu.highlight_selection THEN
+  i = state.pt - state.top
+  IF i >= 0 AND i <= state.size THEN
+   where = menu.rect.topleft + XY(4, bord + i * (10 + menu.itemspacing))
+   rectangle where.x, where.y, menu.rect.wide - 8, 10, uiLook(uiHighlight), page
+  END IF
+ END IF
+
+ IF menu.no_scrollbar = NO THEN
+  draw_scrollbar state, menu, page
+ END IF
+
+ 'Draw the items
  FOR i = 0 TO state.size
   selected = NO
   elem = state.top + i
@@ -1410,9 +1421,6 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     END IF
     IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
-     IF menu.highlight_selection ANDALSO selected THEN
-      rectangle menu.rect.x + 4, where.y, menu.rect.wide - 8, 10, uiLook(uiHighlight), page
-     END IF
      IF .t = mtypeSpecial THEN
       ' Check for menu items with bars behind
       DIM bar_width as integer = 0
@@ -1434,6 +1442,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  
 END SUB
 
+' Calculate top-left corner of the text, placed in 'where'
 SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
  DIM bord as integer
  bord = 8 + menu.bordersize
