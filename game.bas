@@ -36,6 +36,7 @@
 DECLARE SUB checkdoors ()
 DECLARE SUB usedoor (byval door_id as integer)
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as bool
+DECLARE FUNCTION hero_should_ignore_walls(byval who as integer) as bool
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
@@ -3867,16 +3868,20 @@ FUNCTION want_to_check_for_walls(byval who as integer) as bool
  'Check hero is at beginning of a movement to a new tile (aligned in at least one direction)...
  IF movdivis(herow(who).xgo) = NO AND movdivis(herow(who).ygo) = NO THEN RETURN NO
  '...and certain conditions aren't met
- IF gam.walk_through_walls THEN RETURN NO
- IF vstate.dat.pass_walls THEN RETURN NO
- IF vstate.active THEN
-  DIM thisherotilex as integer = herotx(who)
-  DIM thisherotiley as integer = heroty(who)
-  IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN NO
- END IF
+ IF hero_should_ignore_walls(who) THEN RETURN NO
  RETURN YES
 END FUNCTION
 
+FUNCTION hero_should_ignore_walls(byval who as integer) as bool
+ IF gam.walk_through_walls THEN RETURN YES
+ IF vstate.dat.pass_walls THEN RETURN YES
+ IF vstate.active THEN
+  DIM thisherotilex as integer = herotx(who)
+  DIM thisherotiley as integer = heroty(who)
+  IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
 
 '==========================================================================================
 '                                      Party slots
