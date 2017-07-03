@@ -85,6 +85,7 @@ declare sub record_input_tick ()
 declare sub replay_input_tick ()
 declare sub read_replay_length ()
 
+declare function draw_allmodex_recordable_overlays (page as integer) as bool
 declare function draw_allmodex_overlays (page as integer) as bool
 declare sub show_replay_overlay()
 declare sub hide_overlays ()
@@ -276,6 +277,8 @@ end type
 dim shared recordgif as RecordGIFState
 dim shared gif_max_fps as integer = 30
 dim shared screenshot_record_overlays as bool = NO
+dim shared gif_show_keys as bool         'While recording a gif, whether to display pressed keys
+dim shared gif_show_mouse as bool        'While recording a gif, whether to display mouse location
 
 dim shared closerequest as bool = NO     'It has been requested to close the program.
 
@@ -302,7 +305,7 @@ dim shared fps_real_frames as integer = 0 'Frames sent to gfx backend since fps_
 dim shared fps_time_start as double = 0.0
 dim shared draw_fps as double             'Current measured frame draw rate, per second
 dim shared real_fps as double             'Current measured frame display rate, per second
-dim shared showfps as integer = 0         'Draw on overlay? 0 (off), 1 (real fps), or 2 (draw fps)
+dim shared overlay_showfps as integer = 0 'Draw on overlay? 0 (off), 1 (real fps), or 2 (draw fps)
 
 dim shared overlays_enabled as bool = YES 'Whether to draw overlays in general
 dim shared overlay_message as string      'Message to display on screen
@@ -519,6 +522,12 @@ function allmodex_setoption(opt as string, arg as string) as integer
 			display_help_string "input cannot be replayed from """ & fname & """ because the file is not readable." & LINE_END
 			return 1
 		end if
+	elseif opt = "showkeys" then
+		gif_show_keys = YES
+		return 1
+	elseif opt = "showmouse" then
+		gif_show_mouse = YES
+		return 1
 	end if
 end function
 
@@ -904,6 +913,9 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 	if preserve_page then
 		drawpage = duplicatepage(page)
 	end if
+
+	'Dray those overlays that are always recorded in .gifs/screenshots
+	draw_allmodex_recordable_overlays drawpage
 
 	if screenshot_record_overlays = YES then
 		'Modifies page. This is bad if displaying a page other than vpage/dpage!
@@ -2588,7 +2600,7 @@ private function ms_to_string (ms as integer) as string
 end function
 
 sub toggle_fps_display ()
-	showfps = (showfps + 1) MOD 3
+	overlay_showfps = (overlay_showfps + 1) MOD 3
 end sub
 
 ' Called every time a frame is drawn.
@@ -2608,15 +2620,61 @@ private sub update_fps_counter (skipped as bool)
 	end if
 end sub
 
+'Draw stuff on top of the video page about to be shown; specially those things
+'that are included in .gifs/screenshots even without --recordoverlays
+'Returns true if something was drawn.
+private function draw_allmodex_recordable_overlays (page as integer) as bool
+	dim dirty as bool = NO
+
+	if gif_show_mouse then
+		with mouse_state
+			dim col as integer = uilook(uiSelectedItem + global_tog)
+			rectangle .x - 4, .y, 9, 1, col, page
+			rectangle .x, .y - 4, 1, 9, col, page
+		end with
+		dirty = YES
+	end if
+
+	if gif_show_keys andalso recordgif.active then
+		' Build up two strings describing keypresses, so that modifiers like LShift
+		' are sorted to the front.
+		' FIXME: due to frameskip some keypresses might not be recorded. Should show for more than 1 tick.
+		dim as string modifiers, keys
+		with *iif(replay.active, @replay_kb, @real_kb)
+			for idx as integer = 0 to ubound(.keybd)
+				if .keybd(idx) = 0 then continue for
+				dim keyname as string = scancodename(idx)
+				select case idx
+				case scLeftShift, scRightShift, scLeftAlt, scRightAlt, scLeftCtrl, scRightCtrl
+					modifiers &= "+" & scancodename(idx)
+				case scShift, scAlt, scUnfilteredAlt, scCtrl
+					'Ignore these duplicates
+				case else
+					keys &= "+" & scancodename(idx)
+				end select
+			next idx
+		end with
+		dim keysmsg as string = mid(modifiers & keys, 2)  'trim leading + if any
+		if len(keysmsg) then
+			rectangle pRight, pTop, textwidth(keysmsg) + 2, 10, uilook(uiBackground), page
+			edgeprint keysmsg, pRight - 1, pTop, uilook(uiText), page
+			dirty = YES
+		end if
+	end if
+
+	return dirty
+end function
+
 'Draw stuff on top of the video page about to be shown.
 'Returns true if something was drawn.
 private function draw_allmodex_overlays (page as integer) as bool
 	if overlays_enabled = NO then return NO
 
 	dim dirty as bool = NO
-	if showfps then
+
+	if overlay_showfps then
 		dim fpsstring as string
-		if showfps = 2 then
+		if overlay_showfps = 2 then
 			fpsstring = "Draw:" & format(draw_fps, "0.0") & " FPS"
 		else
 			fpsstring = "Display:" & format(real_fps, "0.0") & " FPS"

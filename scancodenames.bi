@@ -23,9 +23,9 @@ static scancodenames(...) as string * 14  = { _
   "8",                        /' 09 '/ _
   /' "Asterisk", '/           /' 09 '/ _
   "9",                        /' 10 '/ _
-  /' "LeftParenthesis", '/    /' 10 '/ _
+  /' "LParenthesis", '/       /' 10 '/ _
   "0",                        /' 11 '/ _
-  /' "RightParenthesis", '/   /' 11 '/ _
+  /' "RParenthesis", '/       /' 11 '/ _
   "Minus",                    /' 12 '/ _
   /' "Underscore", '/         /' 12 '/ _
   "Equals",                   /' 13 '/ _
@@ -42,10 +42,10 @@ static scancodenames(...) as string * 14  = { _
   "I",                        /' 23 '/ _
   "O",                        /' 24 '/ _
   "P",                        /' 25 '/ _
-  "LeftBracket",              /' 26 '/ _
-  /' "LeftBrace", '/          /' 26 '/ _
-  "RightBracket",             /' 27 '/ _
-  /' "RightBrace", '/         /' 27 '/ _
+  "LBracket",                 /' 26 '/ _
+  /' "LBrace", '/             /' 26 '/ _
+  "RBracket",                 /' 27 '/ _
+  /' "RBrace", '/             /' 27 '/ _
   "Enter",                    /' 28 '/ _
   "Ctrl",                     /' 29 '/ _
   "A",                        /' 30 '/ _
@@ -64,7 +64,7 @@ static scancodenames(...) as string * 14  = { _
   /' "Apostrophe", '/         /' 40 '/ _
   "Backquote",                /' 41 '/ _
   /' "Tilde", '/              /' 41 '/ _
-  "LeftShift",                /' 42 '/ _
+  "LShift",                   /' 42 '/ _
   "Backslash",                /' 43 '/ _
   /' "Pipe", '/               /' 43 '/ _
   "Z",                        /' 44 '/ _
@@ -75,12 +75,12 @@ static scancodenames(...) as string * 14  = { _
   "N",                        /' 49 '/ _
   "M",                        /' 50 '/ _
   "Comma",                    /' 51 '/ _
-  /' "LeftCaret", '/          /' 51 '/ _
+  /' "LCaret", '/             /' 51 '/ _
   "Period",                   /' 52 '/ _
-  /' "RightCaret", '/         /' 52 '/ _
+  /' "RCaret", '/             /' 52 '/ _
   "Slash",                    /' 53 '/ _
   /' "QuestionMark", '/       /' 53 '/ _
-  "RightShift",               /' 54 '/ _
+  "RShift",                   /' 54 '/ _
   "NumpadAsterisk",           /' 55 '/ _
   "UnfilteredAlt",            /' 56 '/ _
   "Space",                    /' 57 '/ _
@@ -117,21 +117,21 @@ static scancodenames(...) as string * 14  = { _
   "F12",                      /' 88 '/ _
   "",                         /' 89 '/ _
   "",                         /' 90 '/ _
-  /' "LeftWinLogo", '/        /' 91 '/ _
-  /' "LeftCommand", '/        /' 91 '/ _
-  "LeftMeta",                 /' 91 '/ _
-  /' "RightWinLogo", '/       /' 92 '/ _
-  /' "RightCommand", '/       /' 92 '/ _
-  "RightMeta",                /' 92 '/ _
+  /' "LWinLogo", '/           /' 91 '/ _
+  /' "LCommand", '/           /' 91 '/ _
+  "LMeta",                    /' 91 '/ _
+  /' "RWinLogo", '/           /' 92 '/ _
+  /' "RCommand", '/           /' 92 '/ _
+  "RMeta",                    /' 92 '/ _
   "Context",                  /' 93 '/ _
   "F13",                      /' 94 '/ _
   "F14",                      /' 95 '/ _
   "F15",                      /' 96 '/ _
   "Shift",                    /' 97 '/ _
-  "LeftAlt",                  /' 98 '/ _
-  "RightAlt",                 /' 99 '/ _
-  "LeftCtrl",                 /' 100 '/ _
-  "RightCtrl",                /' 101 '/ _
+  "LAlt",                     /' 98 '/ _
+  "RAlt",                     /' 99 '/ _
+  "LCtrl",                    /' 100 '/ _
+  "RCtrl",                    /' 101 '/ _
   "NumpadSlash",              /' 102 '/ _
   "NumpadEnter",              /' 103 '/ _
   "Numpad7",                  /' 104 '/ _

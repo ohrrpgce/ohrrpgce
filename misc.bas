@@ -80,6 +80,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END
 		help = help & "-hideoverlays       Never draw overlays" & LINE_END
+		help = help & "-showkeys           Show keyboard keys as they're pressed while recording a .gif" & LINE_END
+		help = help & "-showmouse          Show mouse position while recording a .gif" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-no-native-kbd      Use US keyboard layout instead of OS-based text input (Default under X11 (ie. Linux, BSD))" & LINE_END
