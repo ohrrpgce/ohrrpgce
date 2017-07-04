@@ -26,6 +26,9 @@ DECLARE SUB orphan_npc_slices()
 DECLARE FUNCTION hero_layer() as Slice Ptr
 DECLARE FUNCTION npc_layer() as Slice Ptr
 
+DECLARE FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
+DECLARE FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
+
 'Movement/collision/wrapping
 DECLARE FUNCTION movdivis (byval xygo as integer) as bool
 DECLARE FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer

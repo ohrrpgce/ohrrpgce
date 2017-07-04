@@ -3516,22 +3516,14 @@ SUB script_functions(byval cmdid as integer)
    NEXT i
   END IF
  CASE 121'--NPC at spot
-  scriptret = 0
-  DIM found as integer = 0
-  FOR i as integer = 0 TO UBOUND(npc)
-   IF npc(i).id > 0 THEN
-    IF npc(i).x \ 20 = retvals(0) THEN 
-     IF npc(i).y \ 20 = retvals(1) THEN
-      IF found = retvals(2) THEN
-       scriptret = (i + 1) * -1
-       EXIT FOR
-      END IF
-      found = found + 1
-     END IF
-    END IF
-   END IF
-  NEXT i
-  IF retvals(2) = -1 THEN scriptret = found
+  IF retvals(2) = -1 THEN
+   scriptret = count_npcs_at_spot(XY(retvals(0), retvals(1)))
+  ELSE
+   scriptret = npc_at_spot(XY(retvals(0), retvals(1)), retvals(2))
+   'convert the npc() index number into a script npc reference
+   '(also converts -1 failure value into 0 failure value)
+   scriptret = (scriptret + 1) * -1
+  END IF
  CASE 122'--get NPC ID
   ' Note: this command can be given an ID, effectively checking whether any NPCs with that ID exist
   npcref = getnpcref(retvals(0), 0)

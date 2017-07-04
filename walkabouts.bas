@@ -1165,3 +1165,39 @@ SUB cancel_npc_walk(npci as NPCInst)
  DO WHILE npci.ygo <= -20 : npci.ygo += 20 : LOOP
 END SUB
 
+FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
+ 'Return the index into the npc() NPCInst of the npc found at the given x,y coords
+ 'or -1 if not found
+ DIM found as integer = 0
+ FOR i as integer = 0 TO UBOUND(npc)
+  IF npc(i).id > 0 THEN
+   IF npc(i).x \ 20 = tilepos.x THEN 
+    IF npc(i).y \ 20 = tilepos.y THEN
+     IF found = copynum THEN
+      RETURN i
+     END IF
+     found = found + 1
+    END IF
+   END IF
+  END IF
+ NEXT i
+ RETURN -1 'failure
+END FUNCTION
+
+FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
+ 'Return the count of npcs instances at the given x,y coords
+ 'or 0 if not found
+ DIM found as integer = 0
+ FOR i as integer = 0 TO UBOUND(npc)
+  IF npc(i).id > 0 THEN
+   IF npc(i).x \ 20 = tilepos.x THEN 
+    IF npc(i).y \ 20 = tilepos.y THEN
+     found = found + 1
+    END IF
+   END IF
+  END IF
+ NEXT i
+ RETURN found
+END FUNCTION
+
+
