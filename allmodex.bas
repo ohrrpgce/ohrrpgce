@@ -2127,6 +2127,15 @@ sub update_mouse_state ()
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	mutexunlock keybdmutex
 
+	'Ignore mouse clicks that focus the window. If you clicked, it's already
+	'focused, so we consider the previous focus state instead.
+	static prev_focus_state as bool
+	if prev_focus_state = NO then
+		mouse_state.buttons = 0
+		mouse_state.clicks = 0
+	end if
+	prev_focus_state = gfx_getwindowstate()->focused
+
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
 	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
 	'        wheel scrolls offscreen are registered when you move back onscreen
