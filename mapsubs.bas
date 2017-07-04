@@ -4803,7 +4803,7 @@ FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as in
  mapview.y = st.mapy
  mapview.wide = vpages(dpage)->w
  mapview.high = vpages(dpage)->h - 20  '20 pixels for menubar
- RETURN rect_collide_point(mapview, x * 20 + 10, y * 20 + 10)
+ RETURN rect_collide_point(mapview, XY(x * 20 + 10, y * 20 + 10))
 END FUNCTION
 
 'Center the camera on a tile

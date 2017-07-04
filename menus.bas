@@ -121,7 +121,7 @@ FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer
  'Return a value < state.first if it's not on any menu item.
  WITH state
   IF .has_been_drawn THEN
-   DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, x, y, .spacing)
+   DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, XY(x, y), .spacing)
    mpt += .top
    IF mpt >= .first ANDALSO mpt <= .last THEN
     RETURN mpt

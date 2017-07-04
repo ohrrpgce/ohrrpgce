@@ -418,7 +418,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   mouse = readmouse()
   WITH mouse
    IF .clicks AND mouseleft THEN
-    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .x, .y) THEN
+    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .pos) THEN
      EXIT DO
     ELSE
      DIM rect as RectType
@@ -429,7 +429,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
      FOR xidx as integer = 0 TO 15
       FOR yidx as integer = 0 TO 15
        rect.topleft = XY(xidx * 10, 8 + yidx * 10)
-       IF rect_collide_point(rect, .x, .y) THEN col = yidx * 16 + xidx
+       IF rect_collide_point(rect, .pos) THEN col = yidx * 16 + xidx
       NEXT
      NEXT
      'Click on an image pixel (safe if the position is off the edge of the image)
@@ -835,7 +835,7 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   mouse = readmouse()
   WITH mouse
    IF .clicks AND mouseleft THEN
-    IF rect_collide_point(str_rect("ESC when done", 0, 0), .x, .y) THEN
+    IF rect_collide_point(str_rect("ESC when done", 0, 0), .pos) THEN
      EXIT DO
     ELSE
      tastuf(0 + 20 * taset) = small(cint(int(.x / 20) + int(.y / 20) * 16), 112)
