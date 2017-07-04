@@ -1374,25 +1374,31 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
   ret.info_file_exists = YES
   DIM text() as string
   lines_from_file text(), sessionfile
-  'The metadata file's mtime should be nearly the same, but in future maybe we will want to write it
-  'without saving the game.
-  'ret.session_start_time = FILEDATETIME(sessionfile)
-  ret.session_start_time = VAL(text(6))
-
-  IF UBOUND(text) >= 8 ANDALSO LEN(text(8)) > 0 THEN
-   ret.sourcerpg = text(8)
-   IF isfile(ret.sourcerpg) THEN
-    ret.sourcerpg_current_mtime = FILEDATETIME(ret.sourcerpg)
-    IF UBOUND(text) >= 11 THEN ret.sourcerpg_old_mtime = VAL(text(11))
+  IF UBOUND(text) < 3 THEN
+   'Invalid file. We've always written at least 8 lines (but many may be blank)
+   debug sessionfile & " appears to contain garbage."
+  ELSE
+   'The metadata file's mtime should be nearly the same, but in future maybe we will want to write it
+   'without saving the game.
+   'ret.session_start_time = FILEDATETIME(sessionfile)
+   IF UBOUND(text) >= 6 THEN
+    ret.session_start_time = VAL(text(6))
    END IF
+   IF UBOUND(text) >= 8 ANDALSO LEN(text(8)) > 0 THEN
+    ret.sourcerpg = text(8)
+    IF isfile(ret.sourcerpg) THEN
+     ret.sourcerpg_current_mtime = FILEDATETIME(ret.sourcerpg)
+     IF UBOUND(text) >= 11 THEN ret.sourcerpg_old_mtime = VAL(text(11))
+    END IF
+   END IF
+   ret.pid = VAL(text(3))
+   exe = text(1)
+   ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
+   ' but it's incredibly unlikely
+   DIM pid_current_exe as string = get_process_path(ret.pid)
+   debuginfo "pid_current_exe = " & pid_current_exe
+   ret.running = (LEN(exe) ANDALSO pid_current_exe = exe)
   END IF
-  ret.pid = VAL(text(3))
-  exe = text(1)
-  ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
-  ' but it's incredibly unlikely
-  DIM pid_current_exe as string = get_process_path(ret.pid)
-  debuginfo "pid_current_exe = " & pid_current_exe
-  ret.running = (LEN(exe) ANDALSO pid_current_exe = exe)
  ELSE
   'We don't know anything, except that we could work out session_start_time by looking at working.tmp mtimes.
  END IF
