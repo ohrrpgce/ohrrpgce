@@ -4241,9 +4241,6 @@ end</example>
 				returns the handle for the menu item at that position, or <p>false</p> if none.
 				If multiple menus overlap at that location the top-most one is returned.
 				You can find the menu that the menu item belongs to with <ref>parentmenu</ref>.
-				<danger>
-					This command is unfinished: it's broken when the menu has scrollbars.
-				</danger>
 			</description>
 			<seealso>
 				<ref>selectedmenuitem</ref>

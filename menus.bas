@@ -122,9 +122,13 @@ FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer
  WITH state
   IF .has_been_drawn THEN
    DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, XY(x, y), .spacing)
-   mpt += .top
-   IF mpt >= .first ANDALSO mpt <= .last THEN
-    RETURN mpt
+   IF mpt > -1 THEN
+    mpt += .top
+    ' Need to check against size, as there might be a few pixels inside .rect after
+    ' the last visible menu item, where the next item isn't drawn
+    IF mpt >= .first ANDALSO mpt <= .last ANDALSO mpt <= .top + .size THEN
+     RETURN mpt
+    END IF
    END IF
   END IF
   RETURN .first - 1 'Mouse is not over a menu item!
