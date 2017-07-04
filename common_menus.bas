@@ -99,11 +99,21 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   draw_fullscreen_scrollbar state, , dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN
-    col = IIF(readbit(array(), wof, bits(i)), uilook(uiMenuItem), uilook(uiDisabledItem))
-    IF state.pt = i THEN col = IIF(readbit(array(), wof, bits(i)), uilook(uiSelectedItem + state.tog), uilook(uiSelectedDisabled + state.tog))
+    DIM biton as integer = readbit(array(), wof, bits(i))
+    IF state.pt = i THEN
+     col = uilook(IIF(biton, uiSelectedItem, uiSelectedDisabled) + state.tog)
+    ELSEIF state.hover = i THEN
+     col = uilook(uiMouseHoverItem)
+    ELSE
+     col = uilook(IIF(biton, uiMenuItem, uiDisabledItem))
+    END IF
    ELSE
     col = uilook(uiMenuItem)
-    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
+    IF state.pt = i THEN
+     col = uilook(uiSelectedItem + state.tog)
+    ELSEIF state.hover = i THEN
+     col = uilook(uiMouseHoverItem)
+    END IF
    END IF
    textcolor col, 0
    DIM drawstr as string = " " & menu(i)

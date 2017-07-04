@@ -221,8 +221,9 @@ SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as
  IF mstate.pt >= 0 AND mstate.pt < menudata.numitems THEN
  WITH *menudata.items[mstate.pt]
   IF NOT (menudata.edit_mode = YES AND .trueorder.next = NULL) THEN  'not the last item, "NEW MENU ITEM"
-   strgrabber .caption, 38
-   IF keyval(scEnter) > 1 THEN
+   IF strgrabber(.caption, 38) THEN
+    'Space should not enter the menu
+   ELSEIF enter_space_click(mstate) THEN
     mstate.active = NO
     dstate.active = YES
     dstate.need_update = YES
