@@ -103,7 +103,7 @@ TYPE MenuDef
   no_controls      as bool ' Bitset 6
   prevent_main_menu as bool ' Bitset 7
   advance_textbox  as bool ' Bitset 8
-  highlight_selection as bool 'Bitset 9
+  highlight_selection as bool 'Bitset 9: Draw a rectangle behind the item while selected
   rect      as RectType
   offset    as XYPair
   anchorhoriz as AlignType  'Relative to self
@@ -127,6 +127,7 @@ END TYPE
 TYPE MenuState
   active    as bool = YES
   pt        as integer 'currently selected item (.first - 1 if menu is empty)
+  hover     as integer 'item mouse is hovering over, or .first - 1 if none. Set even if .active=NO
   top       as integer 'scroll position for long lists
   first     as integer 'first element (usually zero)
   last      as integer 'last element (.first - 1 if menu is empty)

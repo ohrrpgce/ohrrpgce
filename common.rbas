@@ -4844,33 +4844,28 @@ SUB load_default_master_palette (master_palette() as RGBColor)
  NEXT i
 END SUB
 
-FUNCTION enter_space_click (state as MenuState) as integer
- DIM mouse as MouseInfo
- mouse = readmouse()
- IF state.has_been_drawn THEN
-  IF (mouse.clicks AND mouseleft) THEN
-   DIM r as RectType
-   r.x = state.rect.x
-   r.y = state.rect.y + (state.pt - state.top) * state.spacing
-   r.wide = state.rect.wide
-   r.high = state.spacing
-   IF rect_collide_point(r, mouse.x, mouse.y) THEN
-    'RETURN YES
-   END IF
-  END IF
+'You should call usemenu before calling this, to ensure state.pt is correct!
+FUNCTION enter_space_click (state as MenuState) as bool
+#IFNDEF IS_GAME
+ IF readmouse().clicks AND mouseleft THEN
+  'If you click off the menu then .hover = .first - 1, and if you click on an
+  'unselectable item then also .pt <> .hover.
+  'Also handle the case where the menu is empty, so .pt = .first - 1
+  IF state.pt = state.hover AND state.pt >= state.first THEN RETURN YES
  END IF
+#ENDIF
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
-FUNCTION enter_or_space () as integer
+FUNCTION enter_or_space () as bool
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
-FUNCTION copy_keychord () as integer
+FUNCTION copy_keychord () as bool
  RETURN (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR (keyval(scShift) > 0 AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1)
 END FUNCTION
 
-FUNCTION paste_keychord () as integer
+FUNCTION paste_keychord () as bool
  RETURN (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)
 END FUNCTION
 

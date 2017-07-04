@@ -20,7 +20,6 @@ DECLARE SUB LoadMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as i
 DECLARE SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as integer)
 DECLARE SUB SaveMenuItems(menu_set as MenuSet, dat as MenuDef, byval record as integer)
 DECLARE SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer, byval menunum as integer, byval itemnum as integer)
-DECLARE FUNCTION mouse_on_menustate (state as MenuState) as integer
 
 'TypeTables
 DEFINE_VECTOR_OF_CLASS(BasicMenuItem, BasicMenuItem)
@@ -42,6 +41,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
   .first = 0
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
+  .hover = -1
   .pt = bound(.pt, .first, .last)  '.first <= .last
   IF menu(.pt).unselectable THEN
    .pt = -1  'explicitly -1 when nothing selectable
@@ -69,6 +69,7 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
   .first = 0
   .last = v_len(menu) - 1
   IF .size <= 0 THEN .size = 20
+  .hover = -1
   .pt = bound(.pt, .first, .last)  '.first <= .last
   IF v_at(menu, .pt)->unselectable THEN
    .pt = -1  'explicitly -1 when nothing selectable
@@ -130,15 +131,17 @@ FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer
  END WITH
 END FUNCTION
 
-FUNCTION mouse_on_menustate (state as MenuState) as integer
- 'If the mouse overlaps a MenuState, return the index of the menu item it is touching.
- 'Return a value < state.first if the mouse is not on any menu item.
+FUNCTION mouse_hover_and_click (state as MenuState) as bool
+ 'Updates state.hover, and returns YES if user clicked on a menu item.
+#IFNDEF IS_GAME
  DIM mouse as MouseInfo
  mouse = readmouse()
- IF mouse.moved ORELSE (mouse.clicks AND mouseleft) THEN
-  RETURN find_menu_item_at_point(state, mouse.x, mouse.y)
+ state.hover = find_menu_item_at_point(state, mouse.x, mouse.y)
+ IF state.hover >= state.first ANDALSO (mouse.clicks AND mouseleft) THEN
+  RETURN YES
  END IF
- RETURN state.first - 1
+#ENDIF
+ RETURN NO
 END FUNCTION
 
 ' This does a subset of what usemenu does, call this after modifying .pt, .last, .first or .size
@@ -150,6 +153,7 @@ SUB correct_menu_state (state as MenuState)
   .top = large(small(.top, .last - .size), .first)
   ' Selected item must be visible (unless the menu is empty)
   IF .pt >= .first THEN .top = bound(.top, .pt - .size, .pt)
+  .hover = .first - 1
  END WITH
 END SUB
 
@@ -158,13 +162,10 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   IF .autosize THEN
    recalc_menu_size state
   END IF
- 
+
   DIM oldptr as integer = .pt
   DIM oldtop as integer = .top
-  
-  DIM mpt as integer = mouse_on_menustate(state)
-  'IF mpt >= .first THEN .pt = mpt
-  
+
   IF .first < .last THEN
    IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
    IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
@@ -174,7 +175,9 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
    IF keyval(scEnd) > 1 THEN .pt = .last
   END IF
   correct_menu_state state  'Update .top and .pt
- 
+
+  IF mouse_hover_and_click(state) THEN .pt = .hover
+
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
@@ -223,14 +226,6 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   d = 0
   moved_d = 0
 
-  DIM mpt as integer = mouse_on_menustate(state)
-  IF mpt >= .first ANDALSO not v_at(menudata, mpt)->unselectable THEN
-   IF mpt <> .pt THEN
-    '.pt = mpt
-    'RETURN YES
-   END IF
-  END IF
-
   IF keyval(deckey) > 1 THEN d = -1
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
@@ -267,6 +262,10 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   END IF
   correct_menu_state state  'Update .top
 
+  IF mouse_hover_and_click(state) ANDALSO NOT v_at(menudata, .hover)->unselectable THEN
+   .pt = .hover
+  END IF
+
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
@@ -290,14 +289,6 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   oldtop = .top
   d = 0
   moved_d = 0
-
-  DIM mpt as integer = mouse_on_menustate(state)
-  IF mpt >= .first ANDALSO selectable(mpt) THEN
-   IF mpt <> .pt THEN
-    '.pt = mpt
-    'RETURN YES
-   END IF
-  END IF
 
   IF keyval(deckey) > 1 THEN d = -1
   IF keyval(inckey) > 1 THEN d = 1
@@ -335,6 +326,10 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   END IF
   correct_menu_state state  'Update .top
 
+  IF mouse_hover_and_click(state) ANDALSO selectable(.hover) THEN
+   .pt = .hover
+  END IF
+
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
   ELSE
@@ -360,6 +355,7 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
   IF keyval(scPagedown) > 1 THEN .top = small(lasttop, .top + .size)
   IF keyval(scHome) > 1 THEN .top = .first
   IF keyval(scEnd) > 1 THEN .top = lasttop
+  mouse_hover_and_click(state)  'Update .hover
   RETURN (.top <> oldtop)
  END WITH
 END FUNCTION
@@ -431,11 +427,13 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
  DIM first as integer = state.first
  state.top -= first
  state.pt -= first
+ state.hover -= first
  state.last -= first
  state.first = 0
  standardmenu basicmenu, state, x, y, page, menuopts
  state.top += first
  state.pt += first
+ state.hover += first
  state.last += first
  state.first = first
  v_free basicmenu
@@ -450,11 +448,13 @@ SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, 
  DIM first as integer = state.first
  state.top -= first
  state.pt -= first
+ state.hover -= first
  state.last -= first
  state.first = 0
  standardmenu basicmenu, state, x, y, page, menuopts
  state.top += first
  state.pt += first
+ state.hover += first
  state.last += first
  state.first = first
  v_free basicmenu
@@ -504,10 +504,19 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
     DIM col as integer = .col
     IF .disabled THEN
      IF .col = 0 THEN col = uilook(uiDisabledItem)
-     IF state.pt = i AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
+     IF state.pt = i AND state.active THEN
+      col = uilook(uiSelectedDisabled + state.tog)
+     'A menu item with the .disabled colour may or may not be selectable, so not clear what to do
+     ' ELSEIF state.hover = i AND state.active THEN
+     '  col = uilook(uiMouseHoverItem)
+     END IF
     ELSE
      IF .col = 0 THEN col = uilook(uiMenuItem)
-     IF state.pt = i AND state.active THEN col = uilook(uiSelectedItem + state.tog)
+     IF state.pt = i AND state.active THEN
+      col = uilook(uiSelectedItem + state.tog)
+     ELSEIF state.hover = i AND state.active THEN
+      col = uilook(uiMouseHoverItem)
+     END IF
     END IF
     DIM drawx as integer = x
     IF linewidth > wide AND state.active THEN
@@ -1415,6 +1424,8 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     IF .disabled THEN
      col = uilook(uiDisabledItem)
      IF selected THEN col = uilook(uiSelectedDisabled + state.tog)
+    ELSEIF state.hover = i AND state.active AND NOT selected THEN
+     col = uilook(uiMouseHoverItem)
     END IF
     IF .col > 0 ANDALSO NOT selected THEN
      IF .disabled = NO OR .disabled_overrides_color = NO THEN col = .col
