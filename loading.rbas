@@ -2154,7 +2154,9 @@ END SUB
 SUB InternalDefaultUIColors (colarray() as integer, uidef() as integer, boxarray() as BoxStyle, boxdef() as integer)
  'This sub just exists because I didn't want to copy-and-paste to implement
  'OldDefaultUIColors() and DefaultUIColors()
- FOR i as integer = 0 TO uiColorLast
+ 'First we call GuessDefaultUIColors to initialise any colours above uiColorOldLast, which aren't in uidef()
+ GuessDefaultUIColors master(), colarray(), boxarray()
+ FOR i as integer = 0 TO uiColorOldLast
   colarray(i) = uidef(i)
  NEXT i
  FOR i as integer = 0 TO uiBoxLast
@@ -2172,7 +2174,7 @@ SUB OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  'Default UI for Classic OHR master palette
  'for upgrading old games that lack an uicolors.bin file
  'Boxstyle borders all set to line only.
- DIM uidef(uiColorLast) as integer = _
+ DIM uidef(uiColorOldLast) as integer = _
         {0,7,8,14,15,6,7,1,2,18,21,35,37,15,240,10,14,240}
  DIM boxdef(uiBoxLast * 2 + 1) as integer = _
         {18,28,34,44,50,60,66,76,82,92,98,108,114,124,130,140, _
@@ -2182,7 +2184,7 @@ END SUB
 
 SUB DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
  'Default UI for NeoTA's new Master palette
- 'for the filepicker before loading a game.
+ 'for the filepicker and other menus before a game is loaded.
  'Boxstyle borders all set to line only.
  DIM uidef(uiColorLast) as integer = _
         {0,144,80,110,240,102,144,244,215,242,67,212,215,240,0,220,110,0}
@@ -2235,11 +2237,12 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiItemScreenHighlight2)     = &h228B22
  fixeddefaults(uiItemScreenSwapHighlight)  = &h003B95
  fixeddefaults(uiItemScreenSwapHighlight2) = &h228B22
+ fixeddefaults(uiMouseHoverItem)    = &h8C8C8C
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
  NEXT i
- 
+
  DIM boxdefaults(uiBoxLast * 2 + 1) as integer = _
     {&h001D48,&h8084D0,&h123D12,&h98FA90,&h500000,&hFF7F7F,&h4F7A54,&hD3F88E,&h5E4600,&hF1EA89,&h471747,_
      &hDF90FF,&h76352C,&hD3A560,&h2D2200,&hD7A100,&h4D3836,&hF6D2B6,&h2179D3,&h0E2059,&h3CB23A,&h0E300E,_
@@ -2294,7 +2297,7 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
-   DIM throwawaybox(uiBoxLast) as BoxStyle 'Not really used right now
+   DIM throwawaybox(uiBoxLast) as BoxStyle 'Not used
    GuessDefaultUIColors master(), defaults(), throwawaybox()
    RETURN defaults(index)
  END SELECT
@@ -2339,6 +2342,7 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiItemScreenHighlight2: RETURN "Items: highlight selected (Flash)"
   CASE uiItemScreenSwapHighlight: RETURN "Items: highlight swapping"
   CASE uiItemScreenSwapHighlight2: RETURN "Items: highlight swapping (Flash)"
+  CASE uiMouseHoverItem: RETURN "Mouse hover over menu item"
  END SELECT
  'Invalid values still print, but !?
  RETURN n & "(!?)"

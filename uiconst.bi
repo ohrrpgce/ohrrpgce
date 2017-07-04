@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColorLast = 36
+CONST uiColorLast = 37
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -48,17 +48,18 @@ CONST uiItemScreenHighlight = 33
 CONST uiItemScreenHighlight2 = 34
 CONST uiItemScreenSwapHighlight = 35
 CONST uiItemScreenSwapHighlight2 = 36
+'-------------------------
+CONST uiMouseHoverItem = 37	'A menu item over which the mouse is hovering
 
 'When you add more constants you will need to update GuessDefaultUIColors
-'and FillMissingUIColor and UiColorCaption in loading.rbas
+'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.
+'And don't forget to update uiColorLast above.
 
 'If you add any new colors that need to auto-flash when used by slices,
 'add them to SliceColor in slices.bas
 
-'You might also want to check how UI colours are automatically remapped
-'in remappalette in subs4.bas and also the indication of used master
-'palette colour in masterpalettemenu in subs4.bas although neither of
-'those should require manual updating
-
+'Although not requiring manual updating, other places UI colours are looped over:
+'-automatic remapping in remappalette in subs4.bas
+'-used master palette colours indicated in masterpalettemenu in subs4.bas
 
 #ENDIF
