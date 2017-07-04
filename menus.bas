@@ -161,6 +161,18 @@ SUB correct_menu_state (state as MenuState)
  END WITH
 END SUB
 
+' Adjust .top and .pt according to mouse wheel input.
+SUB mouse_scroll_menu(byref state as MenuState)
+ WITH state
+  DIM lasttop as integer = large(.first, .last - .size)
+  IF .hover >= .first THEN  'Mouse over the menu
+   .top = bound(.top + (4 * readmouse().wheel_delta) \ 120, .first, lasttop)
+   ' Make sure .pt is visible
+   .pt = bound(.pt, .top, .top + .size)
+  END IF
+ END WITH
+END SUB
+
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   IF .autosize THEN
@@ -181,6 +193,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   correct_menu_state state  'Update .top and .pt
 
   IF mouse_hover_and_click(state) THEN .pt = .hover
+  mouse_scroll_menu state
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -269,6 +282,7 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   IF mouse_hover_and_click(state) ANDALSO NOT v_at(menudata, .hover)->unselectable THEN
    .pt = .hover
   END IF
+  mouse_scroll_menu state
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -333,6 +347,7 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   IF mouse_hover_and_click(state) ANDALSO selectable(.hover) THEN
    .pt = .hover
   END IF
+  mouse_scroll_menu state
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO
@@ -360,6 +375,7 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
   IF keyval(scHome) > 1 THEN .top = .first
   IF keyval(scEnd) > 1 THEN .top = lasttop
   mouse_hover_and_click(state)  'Update .hover
+  mouse_scroll_menu(state)
   RETURN (.top <> oldtop)
  END WITH
 END FUNCTION
