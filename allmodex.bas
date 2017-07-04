@@ -879,6 +879,9 @@ end sub
 'skippable: if true, allowed to frameskip this frame at high framerates
 'preserve_page: if true, don't modify page
 sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
+	' Remember last page
+	last_setvispage = page
+
 	' Drop frames to reduce CPU usage if FPS too high
 	if skippable andalso timer - lastframe < 1. / max_display_fps then
 		skipped_frame.drop()
@@ -889,8 +892,6 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 		update_fps_counter YES
 		exit sub
 	end if
-	' Remember last page
-	last_setvispage = page
 
 	update_fps_counter NO
 	if not time_draw_calls_from_finish then
