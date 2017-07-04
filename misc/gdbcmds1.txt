@@ -20,8 +20,12 @@ end
 # Only happens when running under Test Game
 break HOOK_AFTER_ATTACH_TO_MASTER
 
-# Break when exiting with __fb_ctx.__fb_ermsg set (only when compiled with -exx)
+# Break when exiting with __fb_ctx.errmsg set (only when compiled with -exx)
+# (This is equal to __fb_errmsg on an error, and NULL otherwise)
+# (On Windows this is called fb_End@4. Exactly 1 of the following 'break's
+# should succeed, so that breakpoint numbers stay in-sync.)
 break fb_End if ((char**)&__fb_ctx)[5] != 0
+break fb_End@4 if ((char**)&__fb_ctx)[5] != 0
 # For some reason, a conditional break on exit gives a 'not defined' error with old gdb (on OSX)
 #break exit if ((char**)&__fb_ctx)[5] != 0
 # Not sure why can't hook abort
