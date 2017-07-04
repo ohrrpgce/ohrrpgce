@@ -141,8 +141,9 @@ FUNCTION mouse_hover_and_click (state as MenuState) as bool
  DIM mouse as MouseInfo
  mouse = readmouse()
  state.hover = find_menu_item_at_point(state, mouse.x, mouse.y)
- IF state.hover >= state.first ANDALSO (mouse.clicks AND mouseleft) THEN
-  RETURN YES
+ IF state.hover >= state.first THEN
+  IF mouse.clicks AND mouseright THEN state.pt = state.hover
+  IF mouse.clicks AND mouseleft THEN RETURN YES
  END IF
 #ENDIF
  RETURN NO

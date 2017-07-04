@@ -1439,13 +1439,14 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  ' Mapping from scNumpad7 and up to scNumpad0 to values
  STATIC numpad_nums(...) as integer = {7, 8, 9, -1, 4, 5, 6, -1, 1, 2, 3, 0}
 
- IF more <> 0 ANDALSO keyval(more) > 1 THEN
-  n = bound(n, min, max)  'If it's out of range, loopvar would return garbage
-  n = loopvar(n, min, max, 1)
-  typed = YES
- ELSEIF less <> 0 ANDALSO keyval(less) > 1 THEN
+ DIM updown as integer = 0
+ IF readmouse().buttons AND mouseright THEN updown = readmouse().wheel_clicks
+ IF more <> 0 ANDALSO keyval(more) > 1 THEN updown += 1
+ IF less <> 0 ANDALSO keyval(less) > 1 THEN updown -= 1
+
+ IF updown THEN
   n = bound(n, min, max)
-  n = loopvar(n, min, max, -1)
+  n = loopvar(n, min, max, updown)
   typed = YES
  ELSE
   DIM sign as integer = SGN(n)
