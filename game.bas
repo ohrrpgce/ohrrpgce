@@ -4579,8 +4579,14 @@ SUB cancel_hero_pathfinding()
 END SUB
 
 SUB trigger_hero_pathfinding(dest as XYPair)
- gam.hero_pathing.mode = HeroPathingMode.POS
- gam.hero_pathing.dest_pos = dest
+ DIM npc_index as integer = npc_at_spot(dest)
+ IF npc_index >= 0 THEN
+  gam.hero_pathing.mode = HeroPathingMode.NPC
+  gam.hero_pathing.dest_npc = npc_index
+ ELSE
+  gam.hero_pathing.mode = HeroPathingMode.POS
+  gam.hero_pathing.dest_pos = dest
+ END IF
 END SUB
 
 SUB update_hero_pathfinding_menu_queue()
@@ -4601,7 +4607,23 @@ SUB update_hero_pathfinding(byval rank as integer)
  END IF
  
  DIM t1 as XYPair = XY(herotx(rank), heroty(rank))
- DIM t2 as XYPair = gam.hero_pathing.dest_pos
+ DIM t2 as XYPair
+ 
+ SELECT CASE gam.hero_pathing.mode
+  CASE HeroPathingMode.POS:
+   t2 = gam.hero_pathing.dest_pos
+  CASE HeroPathingMode.NPC:
+   WITH npc(gam.hero_pathing.dest_npc)
+    IF .id > 0 THEN
+     'Target NPC still exists
+      t2 = XY(.x \ 20, .y \ 20)
+    ELSE
+     'Target NPC was destroyed or tag-disabled
+     cancel_hero_pathfinding()
+     EXIT SUB
+    END IF
+   END WITH
+ END SELECT
  
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(null, NO, YES)
