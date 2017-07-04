@@ -293,6 +293,7 @@ dim shared cursorvisibility as CursorVisibility = cursorDefault
 
 'State of the mouse (set when setkeys is called), includes persistent state
 dim shared mouse_state as MouseInfo
+dim shared last_mouse_wheel as integer   'mouse_state.wheel at previous update_mouse_state call.
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -2128,6 +2129,11 @@ sub update_mouse_state ()
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	mutexunlock keybdmutex
 
+	mouse_state.wheel *= -1
+	mouse_state.wheel_delta = mouse_state.wheel - last_mouse_wheel
+	mouse_state.wheel_clicks = mouse_state.wheel \ 120 - last_mouse_wheel \ 120
+	last_mouse_wheel = mouse_state.wheel
+
 	'Ignore mouse clicks that focus the window. If you clicked, it's already
 	'focused, so we consider the previous focus state instead.
 	static prev_focus_state as bool
@@ -2141,7 +2147,9 @@ sub update_mouse_state ()
 	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
 	'        wheel scrolls offscreen are registered when you move back onscreen
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
-	'gfx_sdl: button state works offscreen. wheel state not implemented yet
+	'gfx_sdl: button state works offscreen. Wheel movement is reported if the
+	'         mouse is over the window, even if it's not focused. SDL 1.2 doesn't
+	'         know about the OS's wheel speed setting.
 
 	mouse_state.moved = lastpos <> mouse_state.pos
 

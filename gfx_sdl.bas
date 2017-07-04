@@ -141,7 +141,8 @@ DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED as int32 privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
 DIM SHARED input_buffer as wstring * 128
-DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked, in SDL order, not OHR
+DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked (SDL order, not OHR), since last io_mousebits
+DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
@@ -914,7 +915,24 @@ SUB gfx_sdl_process_events()
         END IF
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
-        mouseclicks OR= SDL_BUTTON(evnt.button.button)
+        'Interestingly, although (on Linux/X11) SDL doesn't report mouse motion events
+        'if the window isn't focused, it does report mouse wheel button events
+        '(other buttons focus the window).
+        WITH evnt.button
+          mouseclicks OR= SDL_BUTTON(.button)
+          IF .button = SDL_BUTTON_WHEELUP THEN mousewheel += 120
+          IF .button = SDL_BUTTON_WHEELDOWN THEN mousewheel -= 120
+          IF debugging_io THEN
+            debuginfo "SDL_MOUSEBUTTONDOWN mouse " & .which & " button " & .button & " at " & .x & "," & .y
+          END IF
+        END WITH
+      CASE SDL_MOUSEBUTTONUP
+        WITH evnt.button
+          IF debugging_io THEN
+            debuginfo "SDL_MOUSEBUTTONUP   mouse " & .which & " button " & .button & " at " & .x & "," & .y
+          END IF
+        END WITH
+
 'Warning: I don't know which one FB versions between 0.91 and 1.04 need
 #IF __FB_VERSION__ < "0.91" OR __FB_VERSION__ >= "1.04"
       CASE SDL_ACTIVEEVENT
@@ -1180,8 +1198,6 @@ FUNCTION fix_buttons(byval buttons as integer) as integer
   IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR mouseLeft
   IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR mouseRight
   IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR mouseMiddle
-  IF SDL_BUTTON(SDL_BUTTON_WHEELUP) AND buttons THEN mbuttons = mbuttons OR mouseWheelUp
-  IF SDL_BUTTON(SDL_BUTTON_WHEELDOWN) AND buttons THEN mbuttons = mbuttons OR mouseWheelDown
   RETURN mbuttons
 END FUNCTION
 
@@ -1229,6 +1245,7 @@ SUB io_sdl_mousebits (byref mx as integer, byref my as integer, byref mwheel as 
   mx = privatemx \ zoom
   my = privatemy \ zoom
 
+  mwheel = mousewheel
   mclicks = fix_buttons(mouseclicks)
   mbuttons = fix_buttons(buttons or mouseclicks)
   mouseclicks = 0

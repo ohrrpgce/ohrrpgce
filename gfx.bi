@@ -208,7 +208,9 @@ extern Io_running_on_ouya as function () as bool
 'All of the arguments should be overwritten with new values:
 'mbuttons is bitmask of currently down keys OR new clicks, mclicks is bitmask of new clicks since last call.
 'left, right, middle buttons are bits 0, 1, 2
-'Mouse wheel not commonly implemented yet.
+'mwheel is the mouse wheel position, not the wheel delta. It should be 120 per
+'dedent ('tick', 15 degree rotation), but not necessarily a multiple of 120 for
+'a free-scrolling mouse (e.g. touch interface). Increases rotating away from you.
 extern Io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 
 '(optional, must be thread safe) same as Io_mouse bits.

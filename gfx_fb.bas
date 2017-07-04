@@ -477,7 +477,7 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 		dmy = (dmy \ zoom) - screen_buffer_offset
 		lastx = dmx
 		lasty = dmy
-		lastwheel = dw
+		lastwheel = 120 * dw
 		lastbuttons = db
 	end if
 	mx = lastx

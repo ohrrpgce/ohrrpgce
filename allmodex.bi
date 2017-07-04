@@ -386,9 +386,12 @@ Type MouseInfo
 	moved as bool         'Whether mouse has moved since the last setkeys call
 	clicks as integer     'Button down since the last setkeys call; MouseButton bitvector (see scancodes.bi)
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
-	wheel as integer      'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
+	wheel as integer      'Wheel position. Each dedent/click is 120
+	wheel_delta as integer  'Change in .wheel since last setkeys
+	wheel_clicks as integer 'Multiples of 120 that .wheel has changed since last setkeys (NOT .wheel_delta\120)
+		                'If the wheel is moved very slowly, wheel_delta\120 may be always 0.
 	dragging as integer   'MouseButton bitvector, but only one button at once can be dragged.
-	                      'A dragged button is one held down for at least 2 ticks. 
+	                      'A dragged button is one held down for at least 2 ticks.
 	                      'So on the first tick, you see click=button=true, dragging=false
 	                      'And on the subsequent ticks, you see dragging=button=true, click=false
 	clickstart as XYPair  'Mouse position at start of click/drag (Note: no backend currently
