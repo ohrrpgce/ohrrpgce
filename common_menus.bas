@@ -49,6 +49,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  
  init_menu_state state, menu()
  state.top = -1
+ state.pt = -1
 
  menu(-1) = "Previous Menu"
 

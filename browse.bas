@@ -139,6 +139,11 @@ IF br.special = 7 THEN br.mstate.size = 16 ELSE br.mstate.size = 17
 br.mstate.pt = 0
 br.mstate.top = 0
 br.mstate.last = 0
+DIM _menuopts as MenuOptions  'Not used! Only for calc_menustate_size
+_menuopts.edged = YES
+'This is just for mouse support
+calc_menustate_size br.mstate, _menuopts, 10, 20
+
 br.drivesshown = 0
 br.getdrivenames = NO
 
@@ -277,7 +282,9 @@ DO
   .rect.high = get_resolution().h
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
-  textcolor catfg(tree(i).kind), catbg(tree(i).kind)
+  DIM fgcol as integer = catfg(tree(i).kind)
+  IF i = br.mstate.hover THEN fgcol = uilook(uiMouseHoverItem)
+  textcolor fgcol, catbg(tree(i).kind)
   DIM caption as string = tree(i).caption
   IF LEN(caption) < 38 AND catbg(tree(i).kind) > 0 THEN caption += STRING(38 - LEN(caption), " ")
   IF i = br.mstate.pt THEN caption = highlight_menu_typing_selection_string(caption, selectst)
