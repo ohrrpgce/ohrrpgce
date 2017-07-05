@@ -60,11 +60,7 @@ CONST condSETTAG = 9
 
 SUB text_box_editor()
  STATIC browse_default as string
- DIM menu(10) as string
- DIM h(2) as string
- DIM tagmn as string
- DIM gcsr as integer
- DIM tcur as integer
+
  DIM box as TextBox
  DIM st as TextboxEditState
  WITH st
@@ -72,12 +68,8 @@ SUB text_box_editor()
   .search = ""
  END WITH
 
- '--For the import/export support
- DIM box_text_file as string
- DIM remember_boxcount as integer
- DIM backup_say as string
- DIM import_warn as string = ""
 
+ DIM menu(10) as string
  menu(0) = "Return to Main Menu"
  menu(1) = "Text Box"
  menu(2) = "Edit Text"
@@ -89,19 +81,17 @@ SUB text_box_editor()
  menu(8) = "Connected Boxes..."
  menu(9) = "Export text boxes..."
  menu(10) = "Import text boxes..."
- 
- DIM state as MenuState
- state.pt = 0
+
+ DIM state as MenuState  'State of the toplevel menu
+ state.pt = 1
  state.last = UBOUND(menu)
  state.size = 24
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  menuopts.itemspacing = -1
- 
+
  DIM style_clip as integer = 0
- 
- DIM temptrig as integer
- 
+
  textbox_edit_load box, st, menu()
  setkeys YES
  DO
@@ -125,7 +115,7 @@ SUB text_box_editor()
     IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
      SaveTextBox box, st.id
      update_textbox_editor_main_menu box, menu()
-    END IF'--modify next
+    END IF
    CASE ELSE '--not using the quick textbox chainer nor the search
     IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
     IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
@@ -171,7 +161,7 @@ SUB text_box_editor()
      st.id = box.after
      textbox_edit_load box, st, menu()
     ELSE
-     temptrig = ABS(box.after)
+     DIM temptrig as integer = ABS(box.after)
      scriptbrowse temptrig, plottrigger, "textbox plotscript"
      box.after = -temptrig
      update_textbox_editor_main_menu box, menu()
@@ -192,8 +182,9 @@ SUB text_box_editor()
     metadatalabels(1) = "Conditionals"
     metadatalabels(2) = "Choices"
     metadatalabels(3) = "Appearance"
-   
+
     IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
+     DIM box_text_file as string
      box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
@@ -207,17 +198,18 @@ SUB text_box_editor()
    END IF
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
+     DIM box_text_file as string
      box_text_file = browse(0, browse_default, "*.txt", "browse_import_textbox")
      clearpage vpage
-     backup_say = tmpdir & "backup-textbox-lump.say"
+     DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump
      copyfile game & ".say", backup_say
      IF NOT isfile(backup_say) THEN
       notification "unable to save a backup copy of the text box data to " & backup_say
      ELSE
       '--Backup was successfuly, okay to proceed
-      remember_boxcount = gen(genMaxTextbox)
-      import_warn = ""
+      DIM remember_boxcount as integer = gen(genMaxTextbox)
+      DIM import_warn as string = ""
       IF import_textboxes(box_text_file, import_warn) THEN
        notification "Successfully imported """ & decode_filename(box_text_file) & """. " & import_warn
       ELSE
@@ -237,10 +229,11 @@ SUB text_box_editor()
 
   '--Draw screen
   IF st.id = 0 THEN
-    menu(1) = "Text Box 0 [template]"
+    menu(1) = CHR(27) & "Text Box 0 [template]" & CHR(26)
   ELSE
-    menu(1) = "Text Box " & st.id
+    menu(1) = CHR(27) & "Text Box " & st.id & CHR(26)
   END IF
+
   menu(7) = "Text Search:"
   IF state.pt = 7 THEN menu(7) &= st.search
  

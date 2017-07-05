@@ -62,7 +62,7 @@ SUB hero_editor
 
  DIM menu(10) as string
  menu(0) = "Return to Main Menu"
- menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
+ menu(1) = CHR(27) & "Hero " & hero_id & CHR(26)
  menu(2) = "Name:"
  menu(3) = "Appearance and Misc..."
  menu(4) = "Edit Stats..."
@@ -143,7 +143,7 @@ SUB hero_editor
    strgrabber her.name, 16
   END IF
 
-  menu(1) = CHR(27) & "Pick Hero " & hero_id & CHR(26)
+  menu(1) = CHR(27) & "Hero " & hero_id & CHR(26)
   menu(2) = "Name:" & her.name
 
   '--Draw screen
