@@ -141,7 +141,9 @@ WHAT IS NEW?
     * Scripts triggered from a menu item now always get passed the menu
       item extra data, even if the first argument is the menu item
       handle [Ralph]
-    * Custom's "title" screen [Ralph]
+    * Custom's splash screen [Ralph]
+    * Rearranged and renamed Custom's main menu items a bit; Edit Font is
+      now under Edit Graphics [Ralph]
 
   * Bugfixes
     * 64-bit builds of Custom work now... for real this time! They

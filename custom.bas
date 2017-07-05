@@ -380,31 +380,30 @@ main_editor_menu
 '=======================================================================
 
 SUB main_editor_menu()
- DIM menu(21) as string
+ DIM menu(20) as string
  DIM menu_display(UBOUND(menu)) as string
  
  menu(0) = "Edit Graphics"
- menu(1) = "Edit Map Data"
- menu(2) = "Edit Global Text Strings"
- menu(3) = "Edit Heroes"
- menu(4) = "Edit Enemies"
- menu(5) = "Edit Attacks"
+ menu(1) = "Edit Maps"
+ menu(2) = "Edit Heroes"
+ menu(3) = "Edit Enemies"
+ menu(4) = "Edit Attacks"
+ menu(5) = "Edit Battle Formations"
  menu(6) = "Edit Items"
  menu(7) = "Edit Shops"
- menu(8) = "Edit Battle Formations"
- menu(9) = "Edit Text Boxes"
+ menu(8) = "Edit Text Boxes"
+ menu(9) = "Edit Tag Names"
  menu(10) = "Edit Menus"
- menu(11) = "Edit Vehicles"
- menu(12) = "Edit Tag Names"
+ menu(11) = "Edit Slice Collections"
+ menu(12) = "Edit Vehicles"
  menu(13) = "Import Music"
  menu(14) = "Import Sound Effects"
- menu(15) = "Edit Font"
- menu(16) = "Edit General Game Data"
+ menu(15) = "Edit Global Text Strings"
+ menu(16) = "Edit General Game Settings"
  menu(17) = "Script Management"
- menu(18) = "Edit Slice Collections"
- menu(19) = "Distribute Game"
- menu(20) = "Test Game"
- menu(21) = "Quit Editing"
+ menu(18) = "Distribute Game"
+ menu(19) = "Test Game"
+ menu(20) = "Quit or Save"
  
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -443,26 +442,25 @@ SUB main_editor_menu()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN gfx_editor_menu
    IF state.pt = 1 THEN map_picker
-   IF state.pt = 2 THEN edit_global_text_strings
-   IF state.pt = 3 THEN hero_editor
-   IF state.pt = 4 THEN enemy_editor
-   IF state.pt = 5 THEN attack_editor
+   IF state.pt = 2 THEN hero_editor
+   IF state.pt = 3 THEN enemy_editor
+   IF state.pt = 4 THEN attack_editor
+   IF state.pt = 5 THEN formation_editor
    IF state.pt = 6 THEN item_editor
    IF state.pt = 7 THEN shop_editor
-   IF state.pt = 8 THEN formation_editor
-   IF state.pt = 9 THEN text_box_editor
+   IF state.pt = 8 THEN text_box_editor
+   IF state.pt = 9 THEN tags_menu
    IF state.pt = 10 THEN menu_editor
-   IF state.pt = 11 THEN vehicles
-   IF state.pt = 12 THEN tags_menu
+   IF state.pt = 11 THEN slice_editor
+   IF state.pt = 12 THEN vehicles
    IF state.pt = 13 THEN importsong
    IF state.pt = 14 THEN importsfx
-   IF state.pt = 15 THEN fontedit current_font()
+   IF state.pt = 15 THEN edit_global_text_strings
    IF state.pt = 16 THEN general_data_editor
    IF state.pt = 17 THEN scriptman
-   IF state.pt = 18 THEN slice_editor
-   IF state.pt = 19 THEN distribute_game
-   IF state.pt = 20 THEN spawn_game_menu(keyval(scShift) > 0)
-   IF state.pt = 21 THEN prompt_for_save_and_quit
+   IF state.pt = 18 THEN distribute_game
+   IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0)
+   IF state.pt = 20 THEN prompt_for_save_and_quit
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF
@@ -485,24 +483,25 @@ SUB main_editor_menu()
 END SUB
 
 SUB gfx_editor_menu()
- DIM menu(14) as string
+ DIM menu(15) as string
  DIM menu_display(UBOUND(menu)) as string
 
  menu(0) = "Back to the main menu"
- menu(1) = "Edit Maptiles"
- menu(2) = "Draw Walkabout Graphics"
- menu(3) = "Draw Hero Graphics"
- menu(4) = "Draw Small Enemy Graphics  34x34"
- menu(5) = "Draw Medium Enemy Graphics 50x50"
- menu(6) = "Draw Big Enemy Graphics    80x80"
- menu(7) = "Draw Attacks"
- menu(8) = "Draw Weapons"
- menu(9) = "Draw Box Edges"
- menu(10) = "Draw Portrait Graphics"
- menu(11) = "Import/Export Screens"
- menu(12) = "Import/Export Full Maptile Sets"
+ menu(1) = "Edit Tilesets"
+ menu(2) = "Import/Export Tilesets"
+ menu(3) = "Draw Walkabout Graphics"
+ menu(4) = "Draw Hero Battle Graphics"
+ menu(5) = "Draw Small Enemy Graphics  34x34"
+ menu(6) = "Draw Medium Enemy Graphics 50x50"
+ menu(7) = "Draw Big Enemy Graphics    80x80"
+ menu(8) = "Draw Attacks"
+ menu(9) = "Draw Weapons"
+ menu(10) = "Draw Box Edges"
+ menu(11) = "Draw Portraits"
+ menu(12) = "Import/Export Backdrops"
  menu(13) = "Change User-Interface Colors"
  menu(14) = "Change Box Styles"
+ menu(15) = "Edit Font"
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -538,23 +537,24 @@ SUB gfx_editor_menu()
     EXIT DO
    END IF
    IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(), 4
-   IF state.pt = 3 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 0
-   IF state.pt = 4 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 1
-   IF state.pt = 5 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2
-   IF state.pt = 6 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 3
-   IF state.pt = 7 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 6
-   IF state.pt = 8 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 5
-   IF state.pt = 9 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 7
-   IF state.pt = 10 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 8
-   IF state.pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
-   IF state.pt = 12 THEN
+   IF state.pt = 2 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
     importbmp ".til", "tileset", gen(genMaxTile), sprTypeTileset
     gen(genMaxTile) = gen(genMaxTile) - 1
    END IF
+   IF state.pt = 3 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(), 4
+   IF state.pt = 4 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 0
+   IF state.pt = 5 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 1
+   IF state.pt = 6 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2
+   IF state.pt = 7 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 3
+   IF state.pt = 8 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 6
+   IF state.pt = 9 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 5
+   IF state.pt = 10 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 7
+   IF state.pt = 11 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 8
+   IF state.pt = 12 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
    IF state.pt = 13 THEN ui_color_editor(activepalette)
    IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
+   IF state.pt = 15 THEN fontedit current_font()
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF

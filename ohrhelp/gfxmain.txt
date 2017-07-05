@@ -2,11 +2,13 @@ This is the Graphics Editor where you can edit the various graphical elements of
 
 You can also type in part of a menu option to jump to it. For example, type "bo" to jump to Draw Box Edges.
 
-Choose "Edit Maptiles" to edit and create new tilesets to use for the various layers of your maps.
+Choose "Edit Tilesets" to edit and create new sets of tile graphics to use for the various layers of your maps, as well as define tile animations and other properties of tilesets.
+
+Choose "Import/Export Tilesets" to view, import or export tilesets as single 320x200 images. See the help file in that menu for more details.
 
 Choose "Draw Walkabout Graphics" to edit and create new sets of graphics for all heroes and NPCs to use when "walking about" on your maps.
 
-Choose "Draw Hero Graphics" to edit and create new sets of graphics for your heroes to use in battle.
+Choose "Draw Hero Battle Graphics" to edit and create new sets of graphics for your heroes to use in battle.
 
 Choose "Draw Small/Medium/Big Enemy Graphics" to edit and create new sets of graphics for enemies to use in battle (if you want enemies to show up on the map, you should draw them Walkabout graphics and make them an NPC on your map).
 
@@ -16,10 +18,13 @@ Choose "Draw Weapons" to edit and create new sets of graphics for items to use w
 
 Choose "Draw Box Edges" to edit and create new sets of graphics for text boxes to use as their borders.
 
-Choose "Draw Portrait Graphics" to edit and create new sets of graphics to put into text boxes when certain characters are speaking.
+Choose "Draw Portraits" to edit and create new sets of graphics to put into text boxes when certain characters are speaking.
 
-Choose "Import/Export Screens" to view, import, or export full screen graphics for use as backgrounds for battles, certain textboxes, or other special circumstances.  See the help file in that menu for more details.
+Choose "Import/Export Backdrops" to view, import, or export full screen graphics for use as backgrounds for battles, certain textboxes, or other special circumstances.  See the help file in that menu for more details.
 
-Choose "Import/Export Full Maptile Sets" to view, import, or export full screen graphics that are automatically split up into tiles for use on maps.  See the help file in that menu for more details.
+Choose "Change User-Interface Colors" to pick colors for various menu-related and other special uses in both the both the game and the editor. You can also restore these colors to their defaults in this menu.
 
-Choose "Change User-Interface Colors" to pick colors for various menu-related uses in both custom AND game.  You can also restore these colors to their defaults in this menu.
+Choose "Change Box Styles" to change the appearance of the boxes which form textboxes, menus and other rectangle slices. Certain box styles are used in each of the built-in menus like Save, Load, Items, etc. See the wiki for details. You can also restore these box styles to their defaults in this menu.
+
+Choose "Edit Font" to draw, import or export the font that is used everywhere in-game and in this game editor.
+
