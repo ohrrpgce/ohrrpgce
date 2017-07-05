@@ -1135,8 +1135,7 @@ FOR i as integer = 0 TO last_slot
   FOR o as integer = 0 TO 3
    '--hero pic and palette
    IF pv(i).hero_id(o) > 0 THEN
-    sprites(i, o).sprite = frame_load(sprTypeHero, pv(i).hero(o).battle_pic)
-    sprites(i, o).pal = palette16_load(pv(i).hero(o).battle_pal, sprTypeHero, pv(i).hero(o).battle_pic)
+    load_sprite_and_pal sprites(i, o), sprTypeHero, pv(i).hero(o).battle_pic, pv(i).hero(o).battle_pal
    END IF
   NEXT o
  END IF
@@ -1222,8 +1221,7 @@ freepage holdscreen
 FOR t as integer = 4 TO 5: carray(t) = 0: NEXT t
 FOR i as integer = 0 TO last_slot
  FOR o as integer = 0 TO 3
-  frame_unload(@sprites(i, o).sprite)
-  palette16_unload(@sprites(i, o).pal)
+  unload_sprite_and_pal sprites(i, o)
  NEXT
 NEXT
 

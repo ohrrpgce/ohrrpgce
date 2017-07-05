@@ -1217,25 +1217,19 @@ END SUB
 SUB update_hero_preview_pics(byref st as HeroEditState, her as HeroDef)
  clear_hero_preview_pics st
  WITH st
-  .battle.sprite    = frame_load(sprTypeHero, her.sprite)
-  .battle.pal       = palette16_load(her.sprite_pal, sprTypeHero, her.sprite)
-  .walkabout.sprite = frame_load(sprTypeWalkabout, her.walk_sprite)
-  .walkabout.pal    = palette16_load(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite)
+  load_sprite_and_pal .battle, sprTypeHero, her.sprite, her.sprite_pal
+  load_sprite_and_pal .walkabout, sprTypeWalkabout, her.walk_sprite, her.walk_sprite_pal
   IF her.portrait >= 0 THEN
-   .portrait.sprite = frame_load(sprTypePortrait, her.portrait)
-   .portrait.pal    = palette16_load(her.portrait_pal, sprTypePortrait, her.portrait)
+   load_sprite_and_pal .portrait, sprTypePortrait, her.portrait, her.portrait_pal
   END IF
  END WITH
 END SUB
 
 SUB clear_hero_preview_pics(byref st as HeroEditState)
  WITH st
-  IF .battle.sprite    THEN frame_unload    @.battle.sprite
-  IF .battle.pal       THEN palette16_unload @.battle.pal
-  IF .walkabout.sprite THEN frame_unload    @.walkabout.sprite
-  IF .walkabout.pal    THEN palette16_unload @.walkabout.pal
-  IF .portrait.sprite  THEN frame_unload    @.portrait.sprite
-  IF .portrait.pal     THEN palette16_unload @.portrait.pal
+  unload_sprite_and_pal .battle
+  unload_sprite_and_pal .walkabout
+  unload_sprite_and_pal .portrait
  END WITH
 END SUB
 

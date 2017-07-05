@@ -283,8 +283,7 @@ SUB individual_item_editor(item_id as integer)
   setvispage vpage
   dowait
  LOOP
- IF wep_img.sprite THEN frame_unload @wep_img.sprite
- IF wep_img.pal    THEN palette16_unload @wep_img.pal
+ unload_sprite_and_pal wep_img
  writebadbinstring item_name, itembuf(), 0, 8
  writebadbinstring info, itembuf(), 9, 36
  saveitemdata itembuf(), item_id

@@ -258,11 +258,7 @@ SUB text_box_editor()
   setvispage vpage
   dowait
  LOOP
- WITH st.portrait
-  IF .sprite THEN frame_unload @.sprite
-  IF .pal    THEN palette16_unload @.pal
- END WITH
- 'See wiki for .SAY file format docs
+ unload_sprite_and_pal st.portrait
 END SUB
 
 

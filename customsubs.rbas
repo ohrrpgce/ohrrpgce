@@ -1444,9 +1444,8 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
  DIM img_id as integer = -1
  DIM pal_id as integer = -1
  DIM her as HeroDef
+ unload_sprite_and_pal gfx
  WITH gfx
-  IF .sprite THEN frame_unload @.sprite
-  IF .pal    THEN palette16_unload @.pal
   SELECT CASE box.portrait_type
    CASE 1' Fixed ID number
     img_id = box.portrait_id
@@ -1467,8 +1466,7 @@ SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
     pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
-   .sprite = frame_load(sprTypePortrait, img_id)
-   .pal    = palette16_load(pal_id, sprTypePortrait, img_id)
+   load_sprite_and_pal gfx, sprTypePortrait, img_id, pal_id
   END IF
  END WITH
 END SUB
