@@ -49,6 +49,7 @@ Activation: This controls how an NPC is activated. It also controls whether or n
   blocked by them.
 
 Display Text: Here you can choose a text box that will be displayed if the player activates the NPC. A preview of the first line of the text box will be displayed at the bottom of the screen.
+Press ENTER or SPACE to browse for or edit the text box. Press INSERT or + to quickly add a new text box.
 
 Give Item: Here you can choose an item which will be added to the player's inventory when they activate the NPC. This is most often useful for treasure chests. Note that there will be no visual display of the item being added. You might want to use a text box for that.
 

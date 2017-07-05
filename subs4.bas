@@ -214,8 +214,10 @@ DO
    ELSEIF scrintgrabber(veh(offset(state.pt)), min(state.pt), max(state.pt), scLeft, scRight, 1, plottrigger) THEN
     state.need_update = YES
    END IF
-  CASE 13, 14
-   IF enter_space_click(state) THEN
+  CASE 13, 14 '--mount and dismount actions
+   IF veh(offset(state.pt)) > 0 ANDALSO textboxgrabber(veh(offset(state.pt)), state) THEN
+    state.need_update = YES
+   ELSEIF enter_space_click(state) THEN
     DIM temptrig as integer = large(0, -veh(offset(state.pt)))
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(state.pt)) = -temptrig
@@ -1691,7 +1693,9 @@ SUB startingdatamenu
   IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_space_click(state)) THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "new_game_data"
   usemenu state
-  IF state.pt > 0 THEN
+  IF state.pt = 6 THEN
+   state.need_update OR= textboxgrabber(gen(index(state.pt)), state)
+  ELSEIF state.pt > 0 THEN
    IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
   END IF
   IF state.need_update THEN

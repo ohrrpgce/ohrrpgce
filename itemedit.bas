@@ -229,11 +229,23 @@ SUB individual_item_editor(item_id as integer)
     END IF
    CASE 9
     'Out-of-battle use can be either an attack or a textbox
-    'We want attackgrabber to handle + and enter/space/click when an attack is
-    'selected, and xintgrabber to handle other keys.
+    'We want attack/textboxgrabber to handle +/ins and enter/space/click when an
+    'attack/textbox is selected, and xintgrabber to handle other keys.
+    DIM boxnum as integer = -itembuf(51)
     IF keyval(scPlus) = 0 ANDALSO xintgrabber(itembuf(51), 0, gen(genMaxAttack), -1, gen(genMaxTextbox) * -1) THEN
      state.need_update = YES
+    ELSEIF itembuf(51) < 0 ANDALSO textboxgrabber(boxnum, state, 0, , NO) THEN  'intgrab=NO
+     itembuf(51) = -boxnum
+     state.need_update = YES
     ELSEIF itembuf(51) > 0 ANDALSO attackgrabber(itembuf(51), state, 1, , NO) THEN  'intgrab=NO
+     state.need_update = YES
+    ELSEIF enter_or_add_new(state) THEN
+     'Yikes... never cram multiple data types in the same option!!
+     '(OK, this is overkill, since James will hopefully come along and replace this soon!)
+     DIM wantnew as bool = NOT enter_space_click(state)
+     DIM addwhat as integer = twochoice("Link to what?", "A textbox", "An attack")
+     IF addwhat = 0 THEN itembuf(51) = -large(0, text_box_editor(IIF(wantnew, 999999, 1)))
+     IF addwhat = 1 THEN itembuf(51) = 1 + attack_editor(IIF(wantnew, 999999, 0))
      state.need_update = YES
     END IF
    CASE 11 TO 14
@@ -273,10 +285,13 @@ SUB individual_item_editor(item_id as integer)
    drawline handle.x    , handle.y + 1, handle.x    , handle.y + 2, col, dpage
   END IF
 
-  IF (state.pt >= 6 AND state.pt <= 8) OR (state.pt = 9 AND itembuf(iidx(state.pt)) > 0) THEN
-   'Editing an attack ID
-   edgeprint "ENTER to edit, + or INSERT to add new", 0, pBottom, uilook(uiDisabledItem), dpage
-  ELSE
+  IF state.pt >= 6 AND state.pt <= 9 THEN
+   'Editing a textbox/attack ID. Move it up if a textbox is being previewed
+   DIM y as RelPos = pBottom
+   IF itembuf(51) < 0 THEN y -= 10
+   edgeprint "ENTER to edit, + or INSERT to add new", 0, y, uilook(uiDisabledItem), dpage
+  END IF
+  IF itembuf(51) < 0 THEN
    edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
   END IF
   SWAP vpage, dpage
@@ -300,8 +315,11 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
  menu(6) = "When used in battle: " & item_attack_name(itembuf(47))
  menu(7) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
  menu(8) = "Teach Spell: " & item_attack_name(itembuf(50))
- IF itembuf(51) >= 0 THEN
+ IF itembuf(51) > 0 THEN
   menu(9) = "When used out of battle: " & item_attack_name(itembuf(51))
+  box_preview = ""
+ ELSEIF itembuf(51) = 0 THEN
+  menu(9) = "When used out of battle: NO ATTACK/TEXTBOX"
   box_preview = ""
  ELSE
   menu(9) = "When used out of battle: Text " & ABS(itembuf(51))
@@ -310,10 +328,10 @@ SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as in
  menu(10) = "Unlimited Use"
  IF itembuf(73) = 1 THEN menu(10) = "Consumed By Use"
  IF itembuf(73) = 2 THEN menu(10) = "Cannot be Sold/Dropped"
- menu(11) = "own item TAG " & itembuf(74) & " " & load_tag_name(itembuf(74))
- menu(12) = "is in inventory TAG " & itembuf(75) & " " & load_tag_name(itembuf(75))
- menu(13) = "is equipped TAG " & itembuf(76) & " " & load_tag_name(itembuf(76))
- menu(14) = "eqpt by active hero TAG " & itembuf(77) & " " & load_tag_name(itembuf(77))
+ menu(11) = "Own item Tag " & itembuf(74) & " " & load_tag_name(itembuf(74))
+ menu(12) = "Is in inventory Tag " & itembuf(75) & " " & load_tag_name(itembuf(75))
+ menu(13) = "Is equipped Tag " & itembuf(76) & " " & load_tag_name(itembuf(76))
+ menu(14) = "Equipped by active hero Tag " & itembuf(77) & " " & load_tag_name(itembuf(77))
  menu(15) = "Weapon Picture: " & itembuf(52)
  menu(16) = "Weapon Palette: " & defaultint(itembuf(53))
  menu(17) = "Handle position A..."

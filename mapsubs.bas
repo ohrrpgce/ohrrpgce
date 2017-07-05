@@ -5000,7 +5000,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     intgrabber(npcdata.speed, 0, 5)
     IF npcdata.speed = 3 THEN npcdata.speed = 10
    CASE 4
-    IF intgrabber(npcdata.textbox, 0, gen(genMaxTextbox)) THEN
+    IF textboxgrabber(npcdata.textbox, ed.state) THEN
      ed.boxpreview = textbox_preview_line(npcdata.textbox)
     END IF
    CASE 5

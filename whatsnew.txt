@@ -92,8 +92,8 @@ WHAT IS NEW?
       Triggers menus [Ralph]
     * Added general preference bitset "Heroes use Walk in Place animation
       while idle" [James]
-    * You can jump to the attack and enemy editors from anywhere you
-      select an attack/enemy, or add a new one directly [Ralph]
+    * You can jump to the attack, enemy and textbox editors from anywhere
+      you select an attack/enemy/box, or add a new one directly [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

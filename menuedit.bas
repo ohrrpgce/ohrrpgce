@@ -321,6 +321,8 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
      scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
      dstate.need_update = YES
     END IF
+   ELSEIF mi.t = mtypeTextBox THEN
+    IF textboxgrabber(mi.sub_t, dstate) THEN dstate.need_update = YES
    ELSE
     IF intgrabber(mi.sub_t, 0, max) THEN dstate.need_update = YES
    END IF

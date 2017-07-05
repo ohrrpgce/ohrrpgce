@@ -6,4 +6,4 @@ Type in numbers for the various data that will be used when the player starts a 
 
 The initial X,Y and map number can also be set in the map editor (press Ctrl+H to set the starting location.)
 
-Starting Textbox causes a textbox to appear when you start a new game, in addition to running the new-game script.
+Starting Textbox causes a textbox to appear when you start a new game, in addition to running the new-game script. Press ENTER or SPACE to browse for/edit the text box.

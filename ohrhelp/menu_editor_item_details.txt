@@ -62,6 +62,9 @@ This is the menu item detail editor. This is where you define what a menu item a
    bitset is turned ON, the text box
    will appear layered underneath
    the open menu.
+   Press ENTER to browse for/edit the
+   text box, and INSERT or + to
+   quickly add a new text box.
 
   *Run script - Press ENTER on the
    subtype to browse a list of
