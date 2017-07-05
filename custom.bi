@@ -20,6 +20,7 @@ TYPE FnEditor as FUNCTION(record as integer = -1) as integer
 ' FnEditor editors
 DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
+DECLARE FUNCTION text_box_editor (whichbox as integer = -1) as integer
 
 DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE SUB vehicles ()
@@ -34,7 +35,6 @@ DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
-DECLARE SUB text_box_editor ()
 DECLARE SUB menu_editor ()
 DECLARE SUB maptile ()
 DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)

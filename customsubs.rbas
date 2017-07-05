@@ -861,14 +861,21 @@ END FUNCTION
 
 'Edit an attack ID (possibly offset) numerically or by entering the attack editor.
 'See thinggrabber.
-FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
+FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
  RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_editor)
 END FUNCTION
 
 'Edit an enemy ID (possibly offset) numerically or by entering the enemy editor.
 'See thinggrabber.
-FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
+FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
  RETURN thinggrabber(datum, state, offset, min, gen(genMaxEnemy), intgrab, @enemy_editor)
+END FUNCTION
+
+'Edit a textbox ID (possibly offset) numerically or by entering the textbox editor.
+'See thinggrabber.
+FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+ 'TODO: textbox 0 is never selectable, but ID 0 is None. So this acts a bit weird.
+ RETURN thinggrabber(datum, state, offset, min, gen(genMaxTextbox), intgrab, @text_box_editor)
 END FUNCTION
 
 ' Shared by ui_color_editor and ui_boxstyle_editor

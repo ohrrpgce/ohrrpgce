@@ -57,17 +57,33 @@ CONST condBOX    = 7
 CONST condMENU   = 8
 CONST condSETTAG = 9
 
-
-SUB text_box_editor()
+'whichbox is the box to edit, -1 for default, or past last textbox to add a new
+'one. Returns -1 if cancelled add-new, or else last box edited.
+'(See also FnEditor)
+FUNCTION text_box_editor(whichbox as integer = -1) as integer
  STATIC browse_default as string
 
  DIM box as TextBox
  DIM st as TextboxEditState
  WITH st
-  .id = 1
   .search = ""
  END WITH
 
+ 'Set st.id: textbox to edit
+ STATIC remember_box_id as integer = 1
+ IF whichbox <= -1 THEN
+  st.id = remember_box_id
+ ELSE
+  st.id = small(whichbox, gen(genMaxTextBox) + 1)
+  IF st.id > gen(genMaxTextBox) THEN
+   IF yesno("Add new text box?") THEN
+    gen(genMaxTextBox) = st.id
+    textbox_create_from_box 0, box, st
+   ELSE
+    RETURN -1
+   END IF
+  END IF
+ END IF
 
  DIM menu(10) as string
  menu(0) = "Return to Main Menu"
@@ -144,6 +160,7 @@ SUB text_box_editor()
   END SELECT
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN EXIT DO
    IF state.pt = 2 THEN textbox_line_editor box, st
    IF state.pt = 3 THEN
     textbox_conditionals box
@@ -252,7 +269,9 @@ SUB text_box_editor()
   dowait
  LOOP
  unload_sprite_and_pal st.portrait
-END SUB
+ remember_box_id = st.id
+ RETURN st.id
+END FUNCTION
 
 
 '========================= Textbox Conditionals Editor ========================

@@ -32,6 +32,7 @@ DECLARE SUB percent_cond_editor (cond as AttackElementCondition, byval min as do
 DECLARE FUNCTION enter_or_add_new(state as MenuState) as bool
 DECLARE FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
 DECLARE FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+DECLARE FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
 
 DECLARE SUB ui_color_editor(palnum as integer)
 DECLARE SUB make_ui_color_editor_menu(m() as string, colors() as integer)
