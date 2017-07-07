@@ -4623,6 +4623,11 @@ SUB update_hero_pathfinding(byval rank as integer)
      EXIT SUB
     END IF
    END WITH
+   IF xypair_manhattan_distance(t1, t2) = 1 THEN
+    'One tile away from dest NPC!
+    (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
+    usenpc 0, find_useable_npc()
+   END IF
  END SELECT
  
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
