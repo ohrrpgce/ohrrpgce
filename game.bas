@@ -4652,14 +4652,16 @@ SUB update_hero_pathfinding_display(byref tile as XYpair)
   IF gam.hero_pathing.dest_display_sl <> 0 THEN
    sl = gam.hero_pathing.dest_display_sl
   ELSE
-   gam.hero_pathing.dest_display_sl = NewSliceOfType(slRectangle, SliceTable.MapOverlay, SL_PATHFIND_DEST_DISPLAY)
+   gam.hero_pathing.dest_display_sl = NewSliceOfType(slEllipse, SliceTable.MapOverlay, SL_PATHFIND_DEST_DISPLAY)
    sl = gam.hero_pathing.dest_display_sl
-   sl->width = 20
-   sl->height = 20
-   ChangeRectangleSlice sl, , , uilook(uiHighlight), , transHollow
+   sl->width = 25
+   sl->height = 25
+   sl->AnchorHoriz = 1
+   sl->AnchorVert = 1
+   ChangeEllipseSlice sl, uilook(uiHighlight)
   END IF
-  sl->X = tile.x * 20
-  sl->Y = tile.y * 20
+  sl->X = tile.x * 20 + 10
+  sl->Y = tile.y * 20 + 10
  END IF
 END SUB
 
