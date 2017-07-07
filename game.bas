@@ -4660,8 +4660,10 @@ SUB update_hero_pathfinding_display(byref tile as XYpair)
    sl->AnchorVert = 1
    ChangeEllipseSlice sl, uilook(uiHighlight)
   END IF
-  sl->X = tile.x * 20 + 10
-  sl->Y = tile.y * 20 + 10
+  DIM destpos as XYPair
+  framewalkabout tile.x * 20 + 10, tile.y * 20 + 10, destpos.x, destpos.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+  sl->X = mapx + destpos.x
+  sl->Y = mapy + destpos.y
  END IF
 END SUB
 
