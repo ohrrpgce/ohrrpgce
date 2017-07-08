@@ -4667,11 +4667,8 @@ SUB update_hero_pathfinding_display(byref tile as XYpair)
   END IF
   IF gam.hero_pathing.mode = HeroPathingMode.NPC THEN
    IF npc(gam.hero_pathing.dest_npc).sl <> null THEN
-    SetSliceParent sl, npc(gam.hero_pathing.dest_npc).sl
-    sl->X = 0
-    sl->Y = 0 + gmap(11) 'foot offset
-    sl->AlignHoriz = 1
-    sl->AlignVert = 1
+    sl->X = npc(gam.hero_pathing.dest_npc).x + 10
+    sl->Y = npc(gam.hero_pathing.dest_npc).y + 10 + gmap(11) 'foot offset
     EXIT SUB
    END IF
   END IF
@@ -4679,8 +4676,6 @@ SUB update_hero_pathfinding_display(byref tile as XYpair)
   framewalkabout tile.x * 20 + 10, tile.y * 20 + 10, destpos.x, destpos.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
   sl->X = mapx + destpos.x
   sl->Y = mapy + destpos.y
-  sl->AlignHoriz = 0
-  sl->AlignVert = 0
  END IF
 END SUB
 
