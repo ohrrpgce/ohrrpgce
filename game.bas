@@ -807,9 +807,7 @@ DO
   IF get_gen_bool("/mouse/move_hero") THEN
    IF gam.mouse.buttons AND mouseLeft THEN
     cancel_hero_pathfinding()
-    DIM dest as XYPair = XY((mapx + gam.mouse.x) \ 20, (mapy + gam.mouse.y) \ 20)
-    wrapxy(dest, mapsizetiles.x, mapsizetiles.y)
-    trigger_hero_pathfinding(dest)
+    trigger_hero_pathfinding()
    END IF
   END IF
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
@@ -4578,14 +4576,17 @@ SUB cancel_hero_pathfinding()
  clear_hero_pathfinding_display
 END SUB
 
-SUB trigger_hero_pathfinding(dest as XYPair)
- DIM npc_index as integer = npc_at_spot(dest)
+SUB trigger_hero_pathfinding()
+ DIM clickpos as XYPair = XY(mapx + gam.mouse.x, mapy + gam.mouse.y)
+ wrapxy(clickpos, mapsizetiles.x * 20, mapsizetiles.y * 20)
+ DIM npc_index as integer = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
   gam.hero_pathing.mode = HeroPathingMode.NPC
   gam.hero_pathing.dest_npc = npc_index
  ELSE
+  DIM clicktile as XYPair = XY(clickpos.x \ 20, clickpos.y \ 20)
   gam.hero_pathing.mode = HeroPathingMode.POS
-  gam.hero_pathing.dest_pos = dest
+  gam.hero_pathing.dest_pos = clicktile
  END IF
 END SUB
 
