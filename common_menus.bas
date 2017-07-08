@@ -239,6 +239,8 @@ SUB edit_mouse_options ()
    menu.last->t = 5
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
+   append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
+   menu.last->t = 11
    append_menu_item menu, "Click to advance text boxes: " & yesorno(get_gen_bool("/mouse/click_textboxes"))
    menu.last->t = 20
    init_menu_state st, menu
@@ -280,6 +282,9 @@ SUB edit_mouse_options ()
      st.need_update = YES
     CASE 10:
      toggle_gen_bool("/mouse/menu_right_click")
+     st.need_update = YES
+    CASE 11:
+     toggle_gen_bool("/mouse/mouse_menus")
      st.need_update = YES
     CASE 20:
      toggle_gen_bool("/mouse/click_textboxes")

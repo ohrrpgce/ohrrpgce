@@ -2702,7 +2702,7 @@ SUB player_menu_keys ()
     write_ini_value config_file, "gfx.margin", get_safe_zone_margin()
    END IF
   END IF
-  IF carray(ccUse) > 1 THEN
+  IF carray(ccUse) > 1 ORELSE menu_click(mstates(topmenu)) THEN
    activate_menu_item mi, topmenu
   END IF
  END IF

@@ -4845,16 +4845,27 @@ SUB load_default_master_palette (master_palette() as RGBColor)
  NEXT i
 END SUB
 
+'You should probably be calling enter_space_click() instead of calling this directly
+'You should call usemenu before calling this, to ensure state.pt is correct!
+FUNCTION menu_click (state as MenuState) as bool
+ DIM use_mouse as bool = YES
+#IFDEF IS_GAME
+ use_mouse = get_gen_bool("/mouse/mouse_menus")
+#ENDIF
+ IF use_mouse THEN
+  IF readmouse().clicks AND mouseleft THEN
+   'If you click off the menu then .hover = .first - 1, and if you click on an
+   'unselectable item then also .pt <> .hover.
+   'Also handle the case where the menu is empty, so .pt = .first - 1
+   IF state.pt = state.hover AND state.pt >= state.first THEN RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION enter_space_click (state as MenuState) as bool
-#IFNDEF IS_GAME
- IF readmouse().clicks AND mouseleft THEN
-  'If you click off the menu then .hover = .first - 1, and if you click on an
-  'unselectable item then also .pt <> .hover.
-  'Also handle the case where the menu is empty, so .pt = .first - 1
-  IF state.pt = state.hover AND state.pt >= state.first THEN RETURN YES
- END IF
-#ENDIF
+ IF menu_click(state) THEN RETURN YES
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
@@ -6542,6 +6553,7 @@ FUNCTION default_gen_bool(nodepath as string) as bool
   CASE "/mouse/move_hero/cancel_on_textbox": RETURN YES
   CASE "/mouse/move_hero/cancel_on_menu": RETURN YES
   CASE "/mouse/menu_right_click": RETURN NO
+  CASE "/mouse/mouse_menus": RETURN NO
   CASE "/mouse/click_textboxes": RETURN NO
   CASE ELSE
    debuginfo "default_gen_bool: no default for nodepath """ & nodepath & """ falling back to NO"

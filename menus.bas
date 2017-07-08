@@ -137,15 +137,19 @@ END FUNCTION
 
 FUNCTION mouse_hover_and_click (state as MenuState) as bool
  'Updates state.hover, and returns YES if user clicked on a menu item.
-#IFNDEF IS_GAME
- DIM mouse as MouseInfo
- mouse = readmouse()
- state.hover = find_menu_item_at_point(state, mouse.x, mouse.y)
- IF state.hover >= state.first THEN
-  IF mouse.clicks AND mouseright THEN state.pt = state.hover
-  IF mouse.clicks AND mouseleft THEN RETURN YES
- END IF
+ DIM use_mouse as bool = YES
+#IFDEF IS_GAME
+ use_mouse = get_gen_bool("/mouse/mouse_menus")
 #ENDIF
+ IF use_mouse THEN
+  DIM mouse as MouseInfo
+  mouse = readmouse()
+  state.hover = find_menu_item_at_point(state, mouse.x, mouse.y)
+  IF state.hover >= state.first THEN
+   IF mouse.clicks AND mouseright THEN state.pt = state.hover
+   IF mouse.clicks AND mouseleft THEN RETURN YES
+  END IF
+ END IF
  RETURN NO
 END FUNCTION
 
