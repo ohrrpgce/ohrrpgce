@@ -921,12 +921,13 @@ SUB debug_npcs ()
  FOR i as integer = 0 TO 299
   WITH npc(i)
    IF .id <> 0 THEN
-    DIM as integer drawX, drawY
-    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-     debug " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
-    ELSE
-     debug " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
+    DIM npcinfo as string
+    npcinfo = " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
+    DIM where as XYPair
+    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5)) THEN
+     npcinfo &= " screenx=" & where.x & " screeny=" & where.y
     END IF
+    debug npcinfo
    END IF
   END WITH
  NEXT
@@ -937,27 +938,25 @@ SUB npc_debug_display ()
  FOR i as integer = 0 TO 299
   WITH npc(i)
    IF .id <> 0 THEN
-    DIM as integer drawX, drawY
-    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
+    DIM where as XYPair
+    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5)) THEN
      textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
      'the numbers can overlap quite badly, try to squeeze them in
      temp = STR(ABS(.id) - 1)
-     printstr MID(temp, 1, 1), drawX, drawY + 4, dpage
-     printstr MID(temp, 2, 1), drawX + 7, drawY + 4, dpage
-     printstr MID(temp, 3, 1), drawX + 14, drawY + 4, dpage
+     printstr MID(temp, 1, 1), where.x, where.y + 4, dpage
+     printstr MID(temp, 2, 1), where.x + 7, where.y + 4, dpage
+     printstr MID(temp, 3, 1), where.x + 14, where.y + 4, dpage
      textcolor uilook(uiDescription), 0
      temp = STR(i + 1)
-     printstr MID(temp, 1, 1), drawX, drawY + 12, dpage
-     printstr MID(temp, 2, 1), drawX + 7, drawY + 12, dpage
-     printstr MID(temp, 3, 1), drawX + 14, drawY + 12, dpage
-     'printstr STR(npc(i).stillticks), drawX, drawY + 20, dpage
+     printstr MID(temp, 1, 1), where.x, where.y + 12, dpage
+     printstr MID(temp, 2, 1), where.x + 7, where.y + 12, dpage
+     printstr MID(temp, 3, 1), where.x + 14, where.y + 12, dpage
+     'printstr STR(npc(i).stillticks), where.x, where.y + 20, dpage
      ' Don't bother to draw obstruction for disabled NPCs
      IF .id > 0 THEN
       FOR yoff as integer = -1 TO 1
        FOR xoff as integer = -1 TO 1
-        DIM tile as XYPair
-        tile.x = npc(i).x / 20 + xoff
-        tile.y = npc(i).y / 20 + yoff
+        DIM tile as XYPair = npc(i).pos / 20 + XY(xoff, yoff)
         IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
         IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
         IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
@@ -972,13 +971,13 @@ SUB npc_debug_display ()
 END SUB
 
 SUB drawants_for_tile(tile as XYPair, byval direction as integer)
- DIM as integer drawX, drawY
- IF framewalkabout(tile.x * 20, tile.y * 20, drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
+ DIM where as XYPair
+ IF framewalkabout(tile * 20, where, mapsizetiles * 20, gmap(5)) THEN
   SELECT CASE direction
-   CASE dirNorth: drawants vpages(dpage), drawX       , drawY       , 20, 1
-   CASE dirEast:  drawants vpages(dpage), drawX + 20-1, drawY       , 1, 20
-   CASE dirSouth: drawants vpages(dpage), drawX       , drawY + 20-1, 20, 1
-   CASE dirWest:  drawants vpages(dpage), drawX       , drawY       , 1, 20
+   CASE dirNorth: drawants vpages(dpage), where.x       , where.y       , 20, 1
+   CASE dirEast:  drawants vpages(dpage), where.x + 20-1, where.y       , 1, 20
+   CASE dirSouth: drawants vpages(dpage), where.x       , where.y + 20-1, 20, 1
+   CASE dirWest:  drawants vpages(dpage), where.x       , where.y       , 1, 20
    CASE ELSE
     debuginfo "drawants_for_tile: " & tile.x & " " & tile.y & " invalid direction " & direction
   END SELECT

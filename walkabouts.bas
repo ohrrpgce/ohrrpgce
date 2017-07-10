@@ -142,11 +142,8 @@ SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer,
 
  DIM where as XYPair
  '+ gmap(11)
- framewalkabout x, y , where.x, where.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
- WITH *walkabout_cont
-  .X = where.x + mapx
-  .Y = where.y + mapy
- END WITH
+ framewalkabout XY(x, y), where, mapsizetiles * 20, gmap(5)
+ walkabout_cont->Pos = where + XY(mapx, mapy)
 
  DIM sprsl as Slice Ptr
  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
@@ -541,22 +538,21 @@ SUB cropposition (byref x as integer, byref y as integer, byval unitsize as inte
  END IF
 END SUB
 
-FUNCTION cropmovement (byref x as integer, byref y as integer, byref xgo as integer, byref ygo as integer) as integer
+FUNCTION cropmovement (byref pos as XYPair, byref xygo as XYPair) as bool
  'crops movement at edge of map, or wraps
- 'returns true if ran into wall at edge
- cropmovement = 0
+ 'returns true if ran into wall at edge (and sets xgo OR ygo to 0)
  IF gmap(5) = 1 THEN
   '--wrap walking
-  IF x < 0 THEN x = x + mapsizetiles.x * 20
-  IF x >= mapsizetiles.x * 20 THEN x = x - mapsizetiles.x * 20
-  IF y < 0 THEN y = y + mapsizetiles.y * 20
-  IF y >= mapsizetiles.y * 20 THEN y = y - mapsizetiles.y * 20
+  wrapxy pos, mapsizetiles.x * 20, mapsizetiles.y * 20
+  RETURN NO
  ELSE
   '--crop walking
-  IF x < 0 THEN x = 0: xgo = 0: cropmovement = 1
-  IF x > (mapsizetiles.x - 1) * 20 THEN x = (mapsizetiles.x - 1) * 20: xgo = 0: cropmovement = 1
-  IF y < 0 THEN y = 0: ygo = 0: cropmovement = 1
-  IF y > (mapsizetiles.y - 1) * 20 THEN y = (mapsizetiles.y - 1) * 20: ygo = 0: cropmovement = 1
+  DIM old as XYPair = pos
+  pos.x = bound(pos.x, 0, (mapsizetiles.x - 1) * 20)
+  pos.y = bound(pos.y, 0, (mapsizetiles.y - 1) * 20)
+  IF pos.x <> old.x THEN xygo.x = 0
+  IF pos.y <> old.y THEN xygo.y = 0
+  RETURN pos <> old
  END IF
 END FUNCTION
 
@@ -753,41 +749,41 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
  LOOP
 END FUNCTION
 
-FUNCTION wrapzonecheck (byval zone as integer, byval x as integer, byval y as integer, byval xgo as integer, byval ygo as integer) as integer
- 'x, y in pixels
+FUNCTION wrapzonecheck (byval zone as integer, byval pos as XYPair, byval xygo as XYPair) as bool
+ 'pos is in pixels
  'Warning: always wraps! But that isn't a problem on non-wrapping maps.
 
- x -= xgo
- y -= ygo
- wrapxy (x, y, mapsizetiles.x * 20, mapsizetiles.y * 20)
- RETURN CheckZoneAtTile(zmap, zone, x \ 20, y \ 20)
+ pos -= xygo
+ wrapxy pos, mapsizetiles.x * 20, mapsizetiles.y * 20
+ RETURN CheckZoneAtTile(zmap, zone, pos.x \ 20, pos.y \ 20)
 END FUNCTION
 
-FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer
- DIM as integer x1, x2, y1, y2
- x1 = (xa - bound(xgoa, -20, 20)) \ 20
- x2 = (xb - bound(xgob, -20, 20)) \ 20
- y1 = (ya - bound(ygoa, -20, 20)) \ 20
- y2 = (yb - bound(ygob, -20, 20)) \ 20
+FUNCTION wrapcollision (byval posa as XYPair, byval xygoa as XYPair, byval posb as XYPair, byval xygob as XYPair) as bool
+ DIM as XYPair dest1, dest2
+ dest1.x = (posa.x - bound(xygoa.x, -20, 20)) \ 20
+ dest2.x = (posb.x - bound(xygob.x, -20, 20)) \ 20
+ dest1.y = (posa.y - bound(xygoa.y, -20, 20)) \ 20
+ dest2.y = (posb.y - bound(xygob.y, -20, 20)) \ 20
 
  IF gmap(5) = 1 THEN
-  RETURN (x1 - x2) MOD mapsizetiles.x = 0 AND (y1 - y2) MOD mapsizetiles.y = 0
+  RETURN (dest1 - dest2) MOD mapsizetiles = 0
  ELSE
-  RETURN (x1 = x2) AND (y1 = y2)
+  RETURN dest1 = dest2
  END IF
 END FUNCTION
 
-FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval distance as integer) as integer
+FUNCTION wraptouch (byval pos1 as XYPair, byval pos2 as XYPair, byval distance as integer) as bool
  'whether 2 walkabouts are within distance pixels horizontally + vertically
  IF gmap(5) = 1 THEN
-  IF ABS((x1 - x2) MOD (mapsizetiles.x * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (mapsizetiles.y * 20 - distance)) <= distance THEN RETURN 1
+  IF ABS((pos1 - pos2) MOD (mapsizetiles * 20 - distance)) <= distance THEN RETURN YES
  ELSE
-  IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN RETURN 1
+  IF ABS(pos1 - pos2) <= 20 THEN RETURN YES
  END IF
- RETURN 0
+ RETURN NO
 END FUNCTION
 
-'called on each coordinate of a screen position to wrap it around the map so that's it's as close as possible to being on the screen
+'Called on the X or Y coordinate of a screen position to wrap it around the map
+'so that's it's as close as possible to being on the screen.
 PRIVATE FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as integer, byval maplen as integer) as integer
  'consider two possibilities: one negative but as large as possible; and the one after that
  DIM as integer lowposs, highposs
@@ -800,22 +796,18 @@ PRIVATE FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as i
  RETURN lowposs - 10
 END FUNCTION
 
-FUNCTION framewalkabout (byval x as integer, byval y as integer, byref framex as integer, byref framey as integer, byval mapwide as integer, byval maphigh as integer, byval wrapmode as integer) as integer
- 'Given an X and a Y returns true if a walkabout at that spot might be on-screen.
- 'We always return true because with offset variable sized frames and slices
- 'attached to NPCs, it's practically impossible to tell.
- 'Also checks wraparound map, and sets framex and framey
- 'to the position on screen most likely to be the best place to 
- 'draw the walkabout (closest to the screen edge). (relative to the top-left
- 'corner of the screen, not the top left corner of the map)
- 'TODO: improve by taking into account frame offset once that's implemented.
+FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer) as bool
+ 'Given a map position returns if a walkabout at that spot MIGHT be on-screen,
+ 'and sets screenpos to where on the screen to place it.
+ 'TODO: We always return true because with slices attached to NPCs, it's practically impossible to tell.
+ 'On a wraparound map, the position is wrapped to make it as close to a screen
+ 'edge as possible (might still appear bad for slices parented to a walkabout and offset)
 
  IF wrapmode = 1 THEN
-  framex = closestwrappedpos(x - mapx, vpages(dpage)->w, mapwide)
-  framey = closestwrappedpos(y - mapy, vpages(dpage)->h, maphigh)
+  screenpos.x = closestwrappedpos(mappos.x - mapx, vpages(dpage)->w, mapsize.w)
+  screenpos.y = closestwrappedpos(mappos.y - mapy, vpages(dpage)->h, mapsize.h)
  ELSE
-  framex = x - mapx
-  framey = y - mapy
+  screenpos = mappos - XY(mapx, mapy)
  END IF
  RETURN YES
 END FUNCTION
@@ -926,7 +918,7 @@ SUB update_vehicle_state ()
   DIM dismountpos as XYPair = herotpos(0)
   IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
    '--dismount-ahead is true, dismount-passwalls is true
-   aheadxy dismountpos.x, dismountpos.y, herodir(0), 1
+   aheadxy dismountpos, herodir(0), 1
    cropposition dismountpos.x, dismountpos.y, 1
   END IF
   IF vehpass(vstate.dat.dismount_to, readblock(pass, dismountpos.x, dismountpos.y), -1) THEN

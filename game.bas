@@ -1284,7 +1284,7 @@ SUB update_heroes(force_step_check as bool=NO)
        DIM id as integer
        id = .id - 1
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
-        IF wrapcollision (.x, .y, .xgo, .ygo, herox(whoi), heroy(whoi), herow(whoi).xgo, herow(whoi).ygo) THEN
+        IF wrapcollision (.pos, .xygo, heropos(whoi), herow(whoi).xygo) THEN
          IF .not_obstruction = 0 THEN
           herow(whoi).xygo = 0
           '--push the NPC
@@ -1299,7 +1299,7 @@ SUB update_heroes(force_step_check as bool=NO)
              IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
              IF i = o THEN CONTINUE FOR
              IF npc(o).not_obstruction THEN CONTINUE FOR
-             IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+             IF wrapcollision (.pos, .xygo, npc(o).pos, npc(o).xygo) THEN
               .xgo = 0
               .ygo = 0
               EXIT FOR
@@ -1309,7 +1309,7 @@ SUB update_heroes(force_step_check as bool=NO)
           END IF
          END IF
          IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
-          IF wraptouch(.x, .y, herox(0), heroy(0), 20) THEN
+          IF wraptouch(.pos, heropos(0), 20) THEN
            usenpc 1, i
           END IF
          END IF '---touch-activate
@@ -1360,7 +1360,7 @@ SUB update_heroes(force_step_check as bool=NO)
    IF herow(whoi).ygo < 0 THEN herow(whoi).ygo += herow(whoi).speed: heroy(whoi) += herow(whoi).speed
    didgo(whoi) = YES
   END IF
-  cropmovement herox(whoi), heroy(whoi), herow(whoi).xgo, herow(whoi).ygo
+  cropmovement heropos(whoi), herow(whoi).xygo
  NEXT whoi
 
  'Update lists of current zones and run zone entry+exit triggers
@@ -1615,7 +1615,7 @@ END SUB
 
 SUB npcmove_random_wander(npci as NPCInst)
  DIM percent_chance_to_move as integer = 25
- IF wraptouch(npci.x, npci.y, herox(0), heroy(0), 20) THEN
+ IF wraptouch(npci.pos, heropos(0), 20) THEN
   'Far more likely to hold still while touching the hero
   percent_chance_to_move = 5
  END IF
@@ -1975,12 +1975,12 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    '--also kill pathfinding override
    cancel_npc_movement_override (npci)
   END IF
-  IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
+  IF cropmovement(npci.pos, npci.xygo) THEN npchitwall(npci, npcdata)
  END IF
 
  '--Check touch activation (always happens). I have no idea why this is here!
  IF npcdata.activation = 1 AND txt.showing = NO THEN
-  IF wraptouch(npci.x, npci.y, herox(0), heroy(0), 20) THEN
+  IF wraptouch(npci.pos, heropos(0), 20) THEN
    usenpc 1, npcnum
   END IF
  END IF
@@ -2077,14 +2077,14 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   '--Check for movement zones (treat the edges as walls)
   DIM zone as integer = npcdata.defaultzone
   IF zone = 0 THEN zone = gmap(32)  'fallback to default
-  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) = 0 THEN
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos, XY(xgo, ygo)) = 0 THEN
    collision_type = collideMoveZone
    RETURN YES
   END IF
   '--Check for avoidance zones (treat as walls)
   zone = npcdata.defaultwallzone
   IF zone = 0 THEN zone = gmap(33)  'fallback to default
-  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos.x, pixelpos.y, xgo, ygo) THEN
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos, XY(xgo, ygo)) THEN
    collision_type = collideAvoidZone
    RETURN YES
   END IF
@@ -2095,7 +2095,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
    DIM tpos as XYPair = XY((npci.x - xgo) / 20, (npci.y - ygo) / 20)
-   wrapxy (tpos.x, tpos.y, mapsizetiles.x, mapsizetiles.y)
+   wrapxy (tpos, mapsizetiles.x, mapsizetiles.y)
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC
     RETURN YES
@@ -2104,7 +2104,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
    'Loop through all the NPCs and check them
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 AND @npci <> @npc(i) AND npc(i).not_obstruction = 0 THEN
-     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, xgo, ygo) THEN
+     IF wrapcollision (npc(i).pos, npc(i).xygo, npci.pos, XY(xgo, ygo)) THEN
       collision_type = collideNPC
       RETURN YES
      END IF
@@ -2113,7 +2113,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   END IF
   '---Check for hero-NPC collision
   IF npcdata.activation <> 2 THEN  'Not step-on activated
-   IF wrapcollision (npci.x, npci.y, xgo, ygo, herox(0), heroy(0), herow(0).xgo, herow(0).ygo) THEN
+   IF wrapcollision (npci.pos, XY(xgo, ygo), heropos(0), herow(0).xygo) THEN
     collision_type = collideHero
     RETURN YES
    END IF
@@ -2156,7 +2156,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
    DIM tpos as XYPair = XY((herox(rank) - xgo) / 20, (heroy(rank) - ygo) / 20)
-   wrapxy (tpos.x, tpos.y, mapsizetiles.x, mapsizetiles.y)
+   wrapxy (tpos, mapsizetiles.x, mapsizetiles.y)
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC
     RETURN YES
@@ -2166,7 +2166,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
    FOR i as integer = 0 TO UBOUND(npc)
     IF npc(i).id > 0 ANDALSO npc(i).not_obstruction = 0 THEN
      IF npcs(npc(i).id - 1).activation <> 2 THEN ' Only for NPCs that are not step-on activated
-      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, herox(i), heroy(i), xgo, ygo) THEN
+      IF wrapcollision (npc(i).pos, npc(i).xygo, heropos(i), XY(xgo, ygo)) THEN
        collision_type = collideNPC
        RETURN YES
       END IF
@@ -4608,7 +4608,7 @@ SUB clear_hero_pathfinding_display()
  END IF
 END SUB
 
-SUB update_hero_pathfinding_display(byref tile as XYpair)
+SUB update_hero_pathfinding_display(byval tile as XYpair)
  IF get_gen_bool("/mouse/move_hero/display_dest") THEN
   DIM sl as Slice Ptr
   IF gam.hero_pathing.dest_display_sl <> 0 THEN
@@ -4630,7 +4630,7 @@ SUB update_hero_pathfinding_display(byref tile as XYpair)
    END IF
   END IF
   DIM destpos as XYPair
-  framewalkabout tile.x * 20 + 10, tile.y * 20 + 10, destpos.x, destpos.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+  framewalkabout tile * 20 + 10, destpos, mapsizetiles * 20, gmap(5)
   sl->X = mapx + destpos.x
   sl->Y = mapy + destpos.y
  END IF
