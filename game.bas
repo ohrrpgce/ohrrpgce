@@ -2618,7 +2618,7 @@ END SUB
 FUNCTION player_menu_should_close() as bool
  IF menus(topmenu).no_close THEN RETURN NO
  IF carray(ccMenu) > 1 THEN RETURN YES
- IF menu_click_outside(mstates(topmenu)) THEN
+ IF menu_click_outside(menus(topmenu)) THEN
   'Clicked while the mouse was outside the menu
   RETURN YES
  END IF
