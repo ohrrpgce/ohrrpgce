@@ -4540,6 +4540,7 @@ SUB trigger_hero_pathfinding()
   gam.hero_pathing.mode = HeroPathingMode.NPC
   gam.hero_pathing.dest_npc = npc_index
  ELSE
+  clickpos.y -= gmap(11) 'adjust for foot-offset
   DIM clicktile as XYPair = clickpos \ 20
   gam.hero_pathing.mode = HeroPathingMode.POS
   gam.hero_pathing.dest_pos = clicktile
@@ -4632,7 +4633,7 @@ SUB update_hero_pathfinding_display(byval tile as XYpair)
   DIM destpos as XYPair
   framewalkabout tile * 20 + 10, destpos, mapsizetiles * 20, gmap(5)
   sl->X = mapx + destpos.x
-  sl->Y = mapy + destpos.y
+  sl->Y = mapy + destpos.y + gmap(11) 'foot offset
  END IF
 END SUB
 
