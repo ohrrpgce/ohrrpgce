@@ -4853,7 +4853,7 @@ FUNCTION menu_click (state as MenuState) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus")
 #ENDIF
  IF use_mouse THEN
-  IF readmouse().clicks AND mouseleft THEN
+  IF readmouse().release AND mouseleft THEN
    'If you click off the menu then .hover = .first - 1, and if you click on an
    'unselectable item then also .pt <> .hover.
    'Also handle the case where the menu is empty, so .pt = .first - 1
