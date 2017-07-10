@@ -237,6 +237,8 @@ SUB edit_mouse_options ()
    menu.last->t = 4
    append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu"))
    menu.last->t = 5
+   append_menu_item menu, " Max tiles to search: " & get_gen_int("/mouse/move_hero/max_search")
+   menu.last->t = 6
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
    append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
@@ -251,17 +253,25 @@ SUB edit_mouse_options ()
   t = menu.items[st.pt]->t
 
   do_toggle = NO
-  IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-   do_toggle = YES
-  END IF
   
   IF enter_space_click(st) THEN
    SELECT CASE t
     CASE 0: EXIT DO
+    CASE 6:
     CASE ELSE
      do_toggle = YES
    END SELECT
   END IF
+
+  SELECT CASE t
+   CASE 0: 'exit
+   CASE 6:
+    IF gen_intgrabber("/mouse/move_hero/max_search") THEN st.need_update = YES
+   CASE ELSE
+    IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+     do_toggle = YES
+    END IF
+  END SELECT
   
   IF do_toggle THEN
    SELECT CASE t

@@ -295,6 +295,14 @@ DECLARE FUNCTION get_gen_bool(nodepath as string) as bool
 DECLARE SUB set_gen_bool(nodepath as string, byval v as bool)
 DECLARE SUB toggle_gen_bool(nodepath as string)
 
+DECLARE FUNCTION default_gen_int(nodepath as string) as integer
+DECLARE FUNCTION gen_int_limits(nodepath as string) as XYPair
+DECLARE FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integer
+DECLARE FUNCTION get_gen_int(nodepath as string) as integer
+DECLARE SUB set_gen_int(nodepath as string, byval v as integer)
+DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
+
+
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
 EXTERN as string game, exename

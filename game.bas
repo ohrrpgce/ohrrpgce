@@ -4588,7 +4588,7 @@ SUB update_hero_pathfinding(byval rank as integer)
    END IF
  END SELECT
  
- dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
+ dim pf as AStarPathfinder = AStarPathfinder(t1, t2, get_gen_int("/mouse/move_hero/max_search"))
  pf.calculate(null, NO, YES)
  'pf.slow_debug()
  if v_len(pf.path) > 1 then

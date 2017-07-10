@@ -6561,11 +6561,54 @@ FUNCTION default_gen_bool(nodepath as string) as bool
  END SELECT
 END FUNCTION
 
+FUNCTION default_gen_int(nodepath as string) as integer
+ 'This function supplies a centralized place to manage defaults for
+ 'integers in the general.reld lump. This way it is easy to change
+ 'defaults without having to update every get_gen_int() call.
+ SELECT CASE nodepath
+  CASE "/mouse/move_hero/max_search": RETURN 1000
+  CASE ELSE
+   debuginfo "default_gen_int: no default for nodepath """ & nodepath & """ falling back to 0"
+   RETURN 0
+ END SELECT
+END FUNCTION
+
+FUNCTION gen_int_limits(nodepath as string) as XYPair
+ 'This function supplies a centralized place to manage
+ 'minimum and maximum values for integers in general.reld
+ SELECT CASE nodepath
+  CASE "/mouse/move_hero/max_search": RETURN XY(0, 100000)
+  CASE ELSE
+   debuginfo "gen_int_limits: no limits for nodepath """ & nodepath & """ falling back to something large"
+   RETURN XY(-100000000, 100000000) '100 million is completel arbitrary
+ END SELECT
+END FUNCTION
+
+FUNCTION enforce_gen_int_limits(nodepath as string, byval v as integer) as integer
+ DIM limits as XYPair = gen_int_limits(nodepath)
+ IF v < limits.x THEN
+  debug nodepath & " " & v & " is less than " & limits.x & " (correcting)"
+  RETURN limits.x
+ END IF
+ IF v > limits.y THEN
+  debug nodepath & " " & v & " is greater than " & limits.y & " (correcting)"
+  RETURN limits.y
+ END IF
+ RETURN v
+END FUNCTION
+
 FUNCTION get_gen_bool(nodepath as string) as bool
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath)
  IF node THEN RETURN IIF(GetInteger(node), YES, NO)
  RETURN default_gen_bool(nodepath)
+END FUNCTION
+
+FUNCTION get_gen_int(nodepath as string) as integer
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM node as NodePtr = NodeByPath(gen_root, nodepath)
+ IF node THEN RETURN enforce_gen_int_limits(nodepath, GetInteger(node))
+ RETURN default_gen_int(nodepath)
 END FUNCTION
 
 SUB set_gen_bool(nodepath as string, byval v as bool)
@@ -6575,7 +6618,25 @@ SUB set_gen_bool(nodepath as string, byval v as bool)
  SetContent(node, IIF(v, 1, 0))
 END SUB
 
+SUB set_gen_int(nodepath as string, byval v as integer)
+ 'This changes the node, but does not call write_general_reld()
+ DIM gen_root as NodePtr = get_general_reld()
+ DIM node as NodePtr = NodeByPath(gen_root, nodepath, YES)
+ SetContent(node, enforce_gen_int_limits(nodepath, v))
+END SUB
+
 SUB toggle_gen_bool(nodepath as string)
  'This changes the node, but does not call write_general_reld()
  set_gen_bool(nodepath, NOT get_gen_bool(nodepath))
 END SUB
+
+FUNCTION gen_intgrabber(nodepath as string) as bool
+ 'This changes the node, but does not call write_general_reld()
+ DIM v as integer = get_gen_int(nodepath)
+ DIM limits as XYPair = gen_int_limits(nodepath)
+ IF intgrabber(v, limits.x, limits.y) THEN
+  set_gen_int(nodepath, v)
+  RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
