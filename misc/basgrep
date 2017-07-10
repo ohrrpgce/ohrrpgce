@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ARGS=""
+if [ "$1" = "-l" ] ; then
+  ARGS="$ARGS -l"
+  shift
+fi
+
+grep -P -n -i ${ARGS} "${1}" *.bas *.bi *.rbas | grep -P -i -v "^[^ ]+\.rbas\.bas:"
