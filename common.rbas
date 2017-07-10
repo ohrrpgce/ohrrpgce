@@ -4863,6 +4863,20 @@ FUNCTION menu_click (state as MenuState) as bool
  RETURN NO
 END FUNCTION
 
+FUNCTION menu_click_outside(state as MenuState) as bool
+ DIM use_mouse as bool = YES
+#IFDEF IS_GAME
+ use_mouse = get_gen_bool("/mouse/mouse_menus")
+#ENDIF
+ IF use_mouse THEN
+  IF readmouse().release AND mouseleft THEN
+   'If you click off the menu then .hover = .first - 1
+   IF state.hover = state.first - 1 THEN RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION enter_space_click (state as MenuState) as bool
  IF menu_click(state) THEN RETURN YES

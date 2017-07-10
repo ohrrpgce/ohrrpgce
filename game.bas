@@ -65,6 +65,8 @@ DECLARE SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval dire
 DECLARE SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION catindex(byval rank as integer) as integer
 DECLARE FUNCTION user_triggered_main_menu() as bool
+DECLARE FUNCTION player_menu_should_close() as bool
+DECLARE SUB debug_mouse_state()
 
 '=================================== Globals ==================================
 
@@ -763,6 +765,7 @@ DO
  update_virtual_gamepad_display()
  setkeys gam.getinputtext_enabled
  gam.mouse = readmouse  'didn't bother to check havemouse()
+ 'debug_mouse_state()
  control
 
  '--Debug keys
@@ -2612,13 +2615,23 @@ SUB update_menu_states ()
  NEXT i
 END SUB
 
+FUNCTION player_menu_should_close() as bool
+ IF menus(topmenu).no_close THEN RETURN NO
+ IF carray(ccMenu) > 1 THEN RETURN YES
+ IF menu_click_outside(mstates(topmenu)) THEN
+  'Clicked while the mouse was outside the menu
+  RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
+
 SUB player_menu_keys ()
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
   IF gam.debug_camera_pan THEN EXIT SUB
   'Following controls useable on empty menus too
 
-  IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
+  IF player_menu_should_close() THEN
    carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
    DIM esc_menu as integer = menus(topmenu).esc_menu - 1
@@ -4651,4 +4664,13 @@ FUNCTION user_triggered_main_menu() as bool
  END IF
  RETURN NO
 END FUNCTION
+
+SUB debug_mouse_state()
+ DIM s as string
+ WITH gam.mouse
+  s = "Mouse: B=" & .buttons & " C=" & .clicks & " R=" & .release & " X=" & .x & " Y=" & .y
+ END WITH
+ gam.showtext = s
+ gam.showtext_ticks = 1
+END SUB
 
