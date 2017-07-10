@@ -269,6 +269,20 @@ FUNCTION countitem (byval item_id as integer) as integer
  RETURN total
 END FUNCTION
 
+FUNCTION count_equipped_item(byval item_id as integer) as integer
+ DIM count as integer = 0
+ FOR slot as integer = 0 to 3
+  IF gam.hero(slot).id >= 0 THEN
+   FOR eqslot as integer = 0 TO UBOUND(eqstuf, 2)
+    IF eqstuf(slot, eqslot) - 1 = item_id THEN
+     count += 1
+    END IF
+   NEXT eqslot
+  END IF
+ NEXT slot
+ RETURN count
+END FUNCTION
+
 SUB getitem (byval item_id as integer, byval num as integer=1)
 
  DIM numitems as integer = num

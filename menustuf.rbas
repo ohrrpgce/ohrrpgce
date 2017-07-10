@@ -356,6 +356,11 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  IF already_count > 0 THEN
   append_menu_item buyst.info, readglobalstring(324, "You own", 20) & " " & already_count
  END IF
+
+ DIM equipped_count as integer = count_equipped_item(thing_id)
+ IF equipped_count > 0 THEN
+  append_menu_item buyst.info, readglobalstring(326, "Equipped", 20) & " " & equipped_count
+ END IF
  
  IF buy THEN
   DIM price as integer = buy."price".default(0).integer

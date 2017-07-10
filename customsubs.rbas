@@ -1836,6 +1836,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Hire",                       73, "Hire", 10
  GTS_add_to_menu menu, "Exit",                       74, "Exit", 10
  GTS_add_to_menu menu, "You own (itemcount)",       324, "You own", 20
+ GTS_add_to_menu menu, "Equipped (itemcount)",      326, "Equipped", 20
 
  GTS_menu_header menu, "Buy/Hire Menu:"
  GTS_add_to_menu menu, "Buy trade prefix",           85, "Trade for", 20
