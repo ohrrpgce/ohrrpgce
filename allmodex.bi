@@ -386,6 +386,8 @@ Type MouseInfo
 	moved as bool         'Whether mouse has moved since the last setkeys call
 	clicks as integer     'Button down since the last setkeys call; MouseButton bitvector (see scancodes.bi)
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
+	release as integer    'Buttons that were released last click; MouseButton bitvector
+	last_buttons as integer 'used when calculating .release; MouseButton bitvector
 	wheel as integer      'Wheel position. Each dedent/click is 120
 	wheel_delta as integer  'Change in .wheel since last setkeys
 	wheel_clicks as integer 'Multiples of 120 that .wheel has changed since last setkeys (NOT .wheel_delta\120)

@@ -79,6 +79,7 @@ declare function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 declare sub pollingthread(byval as any ptr)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
+declare sub check_for_released_mouse_button(byval buttonnum as integer)
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -2119,15 +2120,30 @@ function getcursorvisibility () as CursorVisibility
 	return cursorvisibility
 end function
 
+sub check_for_released_mouse_button(byval buttonnum as integer)
+	if (mouse_state.last_buttons AND buttonnum) andalso (mouse_state.buttons AND buttonnum) = 0 then
+		'If the button was released since the last tick, turn on .release
+		mouse_state.release OR= buttonnum
+	else
+		'All the rest of the time, .release should be off
+		mouse_state.release AND= NOT buttonnum
+	end if
+end sub
+
 ' Called from setkeys to update the internal mouse state
 sub update_mouse_state ()
 	dim starttime as double = timer
 
 	dim lastpos as XYPair = mouse_state.pos
 
+	mouse_state.last_buttons = mouse_state.buttons
+
 	mutexlock keybdmutex   'Just in case
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	mutexunlock keybdmutex
+	
+	check_for_released_mouse_button(mouseLeft)
+	check_for_released_mouse_button(mouseRight)
 
 	mouse_state.wheel *= -1
 	mouse_state.wheel_delta = mouse_state.wheel - last_mouse_wheel
