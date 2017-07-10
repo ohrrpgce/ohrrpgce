@@ -924,7 +924,7 @@ SUB debug_npcs ()
     DIM npcinfo as string
     npcinfo = " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
     DIM where as XYPair
-    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5)) THEN
+    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5), 0) THEN
      npcinfo &= " screenx=" & where.x & " screeny=" & where.y
     END IF
     debug npcinfo
@@ -939,19 +939,9 @@ SUB npc_debug_display ()
   WITH npc(i)
    IF .id <> 0 THEN
     DIM where as XYPair
-    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5)) THEN
-     textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
-     'the numbers can overlap quite badly, try to squeeze them in
-     temp = STR(ABS(.id) - 1)
-     printstr MID(temp, 1, 1), where.x, where.y + 4, dpage
-     printstr MID(temp, 2, 1), where.x + 7, where.y + 4, dpage
-     printstr MID(temp, 3, 1), where.x + 14, where.y + 4, dpage
-     textcolor uilook(uiDescription), 0
-     temp = STR(i + 1)
-     printstr MID(temp, 1, 1), where.x, where.y + 12, dpage
-     printstr MID(temp, 2, 1), where.x + 7, where.y + 12, dpage
-     printstr MID(temp, 3, 1), where.x + 14, where.y + 12, dpage
-     'printstr STR(npc(i).stillticks), where.x, where.y + 20, dpage
+    ' Use a margin of 20 pixels, for one extra tile
+    IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5), 20) THEN
+     ' Draw tile edges which the NPC can't pass
      ' Don't bother to draw obstruction for disabled NPCs
      IF .id > 0 THEN
       FOR yoff as integer = -1 TO 1
@@ -964,6 +954,19 @@ SUB npc_debug_display ()
        NEXT xoff
       NEXT yoff
      END IF
+     ' Draw the NPC ID and reference number
+     textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
+     'the numbers can overlap quite badly, try to squeeze them in
+     temp = STR(ABS(.id) - 1)
+     printstr MID(temp, 1, 1), where.x, where.y + 4, dpage
+     printstr MID(temp, 2, 1), where.x + 7, where.y + 4, dpage
+     printstr MID(temp, 3, 1), where.x + 14, where.y + 4, dpage
+     textcolor uilook(uiDescription), 0
+     temp = STR(i + 1)
+     printstr MID(temp, 1, 1), where.x, where.y + 12, dpage
+     printstr MID(temp, 2, 1), where.x + 7, where.y + 12, dpage
+     printstr MID(temp, 3, 1), where.x + 14, where.y + 12, dpage
+     'printstr STR(npc(i).stillticks), where.x, where.y + 20, dpage
     END IF
    END IF
   END WITH
@@ -972,7 +975,7 @@ END SUB
 
 SUB drawants_for_tile(tile as XYPair, byval direction as integer)
  DIM where as XYPair
- IF framewalkabout(tile * 20, where, mapsizetiles * 20, gmap(5)) THEN
+ IF framewalkabout(tile * 20, where, mapsizetiles * 20, gmap(5), 0) THEN
   SELECT CASE direction
    CASE dirNorth: drawants vpages(dpage), where.x       , where.y       , 20, 1
    CASE dirEast:  drawants vpages(dpage), where.x + 20-1, where.y       , 1, 20

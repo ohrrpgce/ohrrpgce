@@ -796,10 +796,12 @@ PRIVATE FUNCTION closestwrappedpos (byval coord as integer, byval screenlen as i
  RETURN lowposs - 10
 END FUNCTION
 
-FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer) as bool
+FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer, margin as integer = -1) as bool
  'Given a map position returns if a walkabout at that spot MIGHT be on-screen,
  'and sets screenpos to where on the screen to place it.
- 'TODO: We always return true because with slices attached to NPCs, it's practically impossible to tell.
+ 'Due to slices attached to NPCs, it's practically impossible to tell, so by default
+ 'return YES. If you don't want that, pass 'margin' as the max number of pixels
+ 'that whatever you're drawing extends over the edge of the 20x20 tile (typically 0).
  'On a wraparound map, the position is wrapped to make it as close to a screen
  'edge as possible (might still appear bad for slices parented to a walkabout and offset)
 
@@ -809,7 +811,10 @@ FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byva
  ELSE
   screenpos = mappos - XY(mapx, mapy)
  END IF
- RETURN YES
+ IF margin = -1 THEN RETURN YES
+ DIM bounds as RectType
+ corners_to_rect XY(-20, -20) - margin, vpages(dpage)->size + margin, bounds
+ RETURN rect_collide_point(bounds, screenpos)
 END FUNCTION
 
 FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
