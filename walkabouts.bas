@@ -822,9 +822,7 @@ END FUNCTION
 
 FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
  IF src_v = dest_v THEN RETURN default 'Same XY
- DIM diff as XYPair
- diff.x = dest_v.x - src_v.x
- diff.y = dest_v.y - src_v.y
+ DIM diff as XYPair = dest_v - src_v
  IF ABS(diff.x) = ABS(diff.y) THEN RETURN default 'Make no attempt to resolve diagonals
  IF ABS(diff.x) > ABS(diff.y) THEN
   'Horizontal
@@ -880,14 +878,13 @@ SUB dump_vehicle_state()
 END SUB
 
 SUB update_vehicle_state ()
- STATIC aheadx as integer
- STATIC aheady as integer
+ STATIC aheadpos as XYPair
 
  IF vstate.mounting THEN '--scramble-----------------------
   '--part of the vehicle automount where heros scramble--
   IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
    '--npc must stop before we mount
-   IF vehscramble(npc(vstate.npc).x, npc(vstate.npc).y) THEN
+   IF vehscramble(npc(vstate.npc).pos) THEN
     'Finished scramble
     vstate.mounting = NO
     IF vstate.dat.elevation > 0 THEN vstate.rising = YES
@@ -926,20 +923,18 @@ SUB update_vehicle_state ()
  END IF
  IF vstate.init_dismount THEN '--dismount---------------
   vstate.init_dismount = NO
-  DIM disx as integer = herotx(0)
-  DIM disy as integer = heroty(0)
+  DIM dismountpos as XYPair = herotpos(0)
   IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
    '--dismount-ahead is true, dismount-passwalls is true
-   aheadxy disx, disy, herodir(0), 1
-   cropposition disx, disy, 1
+   aheadxy dismountpos.x, dismountpos.y, herodir(0), 1
+   cropposition dismountpos.x, dismountpos.y, 1
   END IF
-  IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
+  IF vehpass(vstate.dat.dismount_to, readblock(pass, dismountpos.x, dismountpos.y), -1) THEN
    '--dismount point is landable
    resetcaterpillar ()
    IF vstate.dat.dismount_ahead = YES THEN
     vstate.ahead = YES
-    aheadx = disx * 20
-    aheady = disy * 20
+    aheadpos = dismountpos * 20
    ELSE
     vstate.trigger_cleanup = YES
    END IF
@@ -981,7 +976,7 @@ SUB update_vehicle_state ()
   gam.random_battle_countdown = range(100, 60)
  END IF
  IF vstate.ahead THEN '--dismounting ahead
-  IF vehscramble(aheadx, aheady) THEN
+  IF vehscramble(aheadpos) THEN
    vstate.ahead = NO
    vstate.trigger_cleanup = YES '--clear (happens next tick, maybe not intentionally)
   END IF
@@ -1097,7 +1092,7 @@ FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as in
 END FUNCTION
 
 'Returns true if the scramble is finished
-FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
+FUNCTION vehscramble(byval target as XYPair) as bool
  DIM scrambled_heroes as integer = 0
  DIM count as integer = herocount()
  DIM scramx as integer
@@ -1106,28 +1101,28 @@ FUNCTION vehscramble(byval targx as integer, byval targy as integer) as bool
   IF i < count THEN
    scramx = herox(i)
    scramy = heroy(i)
-   IF ABS(scramx - targx) < large(herow(i).speed, 4) THEN
-    scramx = targx
+   IF ABS(scramx - target.x) < large(herow(i).speed, 4) THEN
+    scramx = target.x
     herow(i).xgo = 0
     herow(i).ygo = 0
    END IF
-   IF ABS(scramy - targy) < large(herow(i).speed, 4) THEN
-    scramy = targy
+   IF ABS(scramy - target.y) < large(herow(i).speed, 4) THEN
+    scramy = target.y
     herow(i).xgo = 0
     herow(i).ygo = 0
    END IF
-   IF ABS(targx - scramx) > 0 AND herow(i).xgo = 0 THEN
-    herow(i).xgo = 20 * SGN(scramx - targx)
+   IF ABS(target.x - scramx) > 0 AND herow(i).xgo = 0 THEN
+    herow(i).xgo = 20 * SGN(scramx - target.x)
    END IF
-   IF ABS(targy - scramy) > 0 AND herow(i).ygo = 0 THEN
-    herow(i).ygo = 20 * SGN(scramy - targy)
+   IF ABS(target.y - scramy) > 0 AND herow(i).ygo = 0 THEN
+    herow(i).ygo = 20 * SGN(scramy - target.y)
    END IF
    IF gmap(5) = 1 THEN
     '--this is a wrapping map
-    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
-    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
+    IF ABS(scramx - target.x) > mapsizetiles.x * 20 / 2 THEN herow(i).xgo *= -1
+    IF ABS(scramy - target.y) > mapsizetiles.y * 20 / 2 THEN herow(i).ygo *= -1
    END IF
-   IF scramx - targx = 0 AND scramy - targy = 0 THEN scrambled_heroes += 1
+   IF scramx - target.x = 0 AND scramy - target.y = 0 THEN scrambled_heroes += 1
    (herox(i)) = scramx
    (heroy(i)) = scramy
   END IF
@@ -1171,13 +1166,11 @@ FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN
-   IF npc(i).x \ 20 = tilepos.x THEN 
-    IF npc(i).y \ 20 = tilepos.y THEN
-     IF found = copynum THEN
-      RETURN i
-     END IF
-     found = found + 1
+   IF npc(i).pos \ 20 = tilepos THEN 
+    IF found = copynum THEN
+     RETURN i
     END IF
+    found = found + 1
    END IF
   END IF
  NEXT i
@@ -1190,10 +1183,8 @@ FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN
-   IF npc(i).x \ 20 = tilepos.x THEN 
-    IF npc(i).y \ 20 = tilepos.y THEN
-     found = found + 1
-    END IF
+   IF npc(i).pos \ 20 = tilepos THEN 
+    found = found + 1
    END IF
   END IF
  NEXT i

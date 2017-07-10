@@ -263,18 +263,26 @@ END TYPE
 TYPE NPCInst
   sl as SliceFwd Ptr
   '--stored values
-  x as integer      'npcl+0
-  y as integer      'npcl+300
+  UNION
+    TYPE
+      x as integer  'npcl+0
+      y as integer  'npcl+300
+    END TYPE
+    pos as XYPair
+  END UNION
   z as integer      '            Does not include foot offset
   id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)
-
-  xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
-  ygo as integer    'npcl+1800   warning: positive to go UP, negative to go RIGHT
+  UNION
+    TYPE
+      xgo as integer'npcl+1500   warning: positive to go LEFT, negative RIGHT
+      ygo as integer'npcl+1800   warning: positive to go UP, negative to go RIGHT
                     ' These backwards-seeming values are an artifact of a time 20 years ago
                     ' when James typed - when he should have typed +
-
+    END TYPE
+    xygo as XYPair
+  END UNION
   dir as integer    'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer

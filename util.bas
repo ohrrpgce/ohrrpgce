@@ -69,6 +69,11 @@ OPERATOR XYPair.+= (rhs as XYPair)
   y += rhs.y
 END OPERATOR
 
+OPERATOR XYPair.LET (value as integer)
+  x = value
+  y = value
+END OPERATOR
+
 OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
   RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
 END OPERATOR

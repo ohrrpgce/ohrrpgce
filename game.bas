@@ -1067,10 +1067,7 @@ SUB displayall()
 
  ' Update camera position
  setmapxy
- WITH *(SliceTable.MapRoot)
-  .X = mapx * -1
-  .Y = mapy * -1
- END WITH
+ SliceTable.MapRoot->Pos = XY(-mapx, -mapy)
 
  ' Walkabout slice positions (other than the hero/NPC being
  ' followed) also depend on the camera position, so need to be
@@ -1159,6 +1156,10 @@ FUNCTION catindex(byval rank as integer) as integer
  RETURN rank * (20 \ catleaderspeed())
 END FUNCTION
 
+FUNCTION heropos(byval rank as integer) byref as XYPair
+ RETURN cats(catindex(rank)).pos
+END FUNCTION
+
 FUNCTION herox(byval rank as integer) byref as integer
  RETURN cats(catindex(rank)).x
 END FUNCTION
@@ -1173,6 +1174,10 @@ END FUNCTION
 
 FUNCTION herodir(byval rank as integer) byref as integer
  RETURN cats(catindex(rank)).d
+END FUNCTION
+
+FUNCTION herotpos(byval rank as integer) as XYPair
+ RETURN heropos(rank) \ 20
 END FUNCTION
 
 FUNCTION herotx(byval rank as integer) as integer
@@ -1240,8 +1245,7 @@ SUB interpolatecat (byval old_speed as integer = -1)
  DIM gap as integer = 20 / sp
  FOR o as integer = 0 TO UBOUND(cats) - gap STEP gap
   FOR i as integer = o + 1 TO o + gap - 1
-   cats(i).x = cats(i - 1).x + ((cats(o + gap).x - cats(o).x) / gap)
-   cats(i).y = cats(i - 1).y + ((cats(o + gap).y - cats(o).y) / gap)
+   cats(i).pos = cats(i - 1).pos + ((cats(o + gap).pos - cats(o).pos) / gap)
    cats(i).d = cats(o).d
   NEXT i
  NEXT o
@@ -1269,9 +1273,7 @@ SUB update_heroes(force_step_check as bool=NO)
    IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
     '--this only happens if herowalls is on
     '--wrapping passability
-    DIM herotile as XYPair
-    herotile.x = herotx(whoi)
-    herotile.y = heroty(whoi)
+    DIM herotile as XYPair = herotpos(whoi)
     wrappass herotile.x, herotile.y, herow(whoi).xgo, herow(whoi).ygo, vstate.active
    END IF
    IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
@@ -1284,7 +1286,7 @@ SUB update_heroes(force_step_check as bool=NO)
        IF npcs(id).activation <> 2 THEN '---NPC is not step-on
         IF wrapcollision (.x, .y, .xgo, .ygo, herox(whoi), heroy(whoi), herow(whoi).xgo, herow(whoi).ygo) THEN
          IF .not_obstruction = 0 THEN
-          herow(whoi).xgo = 0: herow(whoi).ygo = 0
+          herow(whoi).xygo = 0
           '--push the NPC
           DIM push as integer = npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
@@ -1431,7 +1433,7 @@ SUB update_heroes(force_step_check as bool=NO)
      IF .id > 0 THEN '---NPC EXISTS---
       IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
        IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
-        IF .x = herox(0) AND .y = heroy(0) THEN '---YOU ARE ON NPC---
+        IF .pos = heropos(0) THEN '---YOU ARE ON NPC---
          usenpc 1, i
         END IF '---YOU ARE ON NPC---
        END IF '---NPC IS PASSABLE---
@@ -1589,12 +1591,12 @@ SUB update_npcs ()
 
    END IF
 
-   DIM oldpos as XYPair = XY(npc(o).x, npc(o).y)
+   DIM oldpos as XYPair = npc(o).pos
 
    DIM finished_step as bool = NO
    IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN finished_step = perform_npc_move(o, npc(o), npcs(id))
 
-   IF oldpos = XY(npc(o).x, npc(o).y) THEN
+   IF oldpos = npc(o).pos THEN
     npc(o).stillticks += 1
    ELSE
     npc(o).stillticks = 0
@@ -1671,15 +1673,9 @@ SUB npcmove_walk_in_place(npci as NPCInst)
 END SUB
 
 SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
- DIM t1 as XYPair
- t1.x = npci.x / 20
- t1.y = npci.y / 20
- DIM t2 as XYPair
- t2.x = herotx(0)
- t2.y = heroty(0)
- DIM dist as XYPair
- dist.x = t2.x - t1.x
- dist.y = t2.y - t1.y
+ DIM t1 as XYPair = npci.pos / 20
+ DIM t2 as XYPair = herotpos(0)
+ DIM dist as XYPair = t2 - t1
  DIM axis as integer '0=horizontal, 1=vertical
  IF dist.x = 0 THEN
   'Lined up horizontally
@@ -1714,15 +1710,9 @@ SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
 END SUB
 
 SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
- DIM t1 as XYPair
- t1.x = npci.x / 20
- t1.y = npci.y / 20
- DIM t2 as XYPair
- t2.x = herotx(0)
- t2.y = heroty(0)
- DIM dist as XYPair
- dist.x = t2.x - t1.x
- dist.y = t2.y - t1.y
+ DIM t1 as XYPair = npci.pos / 20
+ DIM t2 as XYPair = herotpos(0)
+ DIM dist as XYPair = t2 - t1
  DIM axis as integer '0=horizontal, 1=vertical
  IF dist.x = 0 THEN
   'Lined up horizontally
@@ -1772,9 +1762,7 @@ SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval side as inte
  d = walkrotate(d, side)
  IF NOT npc_collision_check(npci, npcdata, d) THEN
   'No side-wall present, we might want to turn
-  DIM tile as XYPair
-  tile.x = npci.x / 20
-  tile.y = npci.y / 20
+  DIM tile as XYPair = npci.pos / 20
   xypair_move tile, d
   IF npc_collision_check_at(npci, tile, walkrotate(d, side)) THEN
    'A wall is present in this direction for us to follow
@@ -1806,9 +1794,7 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
  d = walkrotate(d, side)
  IF NOT npc_collision_check_walls_and_zones(npci, d) THEN
   'No side-wall present, we might want to turn
-  DIM tile as XYPair
-  tile.x = npci.x / 20
-  tile.y = npci.y / 20
+  DIM tile as XYPair = npci.pos / 20
   xypair_move tile, d
   IF npc_collision_check_at_walls_and_zones(npci, tile, walkrotate(d, side)) THEN
    'A wall is present in this direction for us to follow
@@ -1846,15 +1832,12 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
 
  dim should_collide_with_hero as bool = NO
  
- dim t1 as XYPair
- t1.x = npci.x / 20
- t1.y = npci.y / 20
+ dim t1 as XYPair = npci.pos / 20
  dim t2 as XYPair
  select case npci.pathover.override
   case NPCOverrideMove.NONE
    'No override is currently happening, default to chasing the leader hero
-   t2.x = herotx(0)
-   t2.y = heroty(0)
+   t2 = herotpos(0)
    should_collide_with_hero = NO
   case NPCOverrideMove.NPC
    if npc(npci.pathover.dest_npc).id = 0 then
@@ -1862,8 +1845,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
     cancel_npc_movement_override (npci)
     return
    end if
-   t2.x = npc(npci.pathover.dest_npc).x / 20
-   t2.y = npc(npci.pathover.dest_npc).y / 20
+   t2 = npc(npci.pathover.dest_npc).pos / 20
    if npci.pathover.stop_when_npc_reached andalso xypair_wrapping_manhattan_distance (t1, t2) <= 1 then
     'Within 1 tile of destination
     cancel_npc_movement_override (npci)
@@ -2022,47 +2004,31 @@ END FUNCTION
 
 FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns an NPC collision check as if the NPC was at a different location than it really is
- DIM savepos as XYPair
- savepos.x = npci.x
- savepos.y = npci.y
- DIM savego as XYPair
- savego.x = npci.xgo
- savego.y = npci.ygo
+ DIM savepos as XYPair = npci.pos
+ DIM savego as XYPair = npci.xygo
  'Temporarily override NPC position and movement
- npci.x = tile.x * 20
- npci.y = tile.y * 20
- npci.xgo = 0
- npci.ygo = 0
+ npci.pos = tile * 20
+ npci.xygo = 0
  DIM result as bool
  result = npc_collision_check(npci, direction, collision_type, npc_ccache)
  'Restore real NPC position and movement
- npci.x = savepos.x
- npci.y = savepos.y
- npci.xgo = savego.x
- npci.ygo = savego.y
+ npci.pos = savepos
+ npci.xygo = savego
  RETURN result
 END FUNCTION
 
 FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns an Hero collision check as if the Hero was at a different location than it really is
- DIM savepos as XYPair
- savepos.x = herox(rank)
- savepos.y = heroy(rank)
- DIM savego as XYPair
- savego.x = herow(rank).xgo
- savego.y = herow(rank).ygo
+ DIM savepos as XYPair = heropos(rank)
+ DIM savego as XYPair = herow(rank).xygo
  'Temporarily override hero position and movement
- (herox(rank)) = tile.x * 20
- (heroy(rank)) = tile.y * 20
- herow(rank).xgo = 0
- herow(rank).ygo = 0
+ (heropos(rank)) = tile * 20
+ herow(rank).xygo = 0
  DIM result as bool
  result = hero_collision_check(rank, direction, collision_type, npc_ccache)
  'Restore real hero position and movement
- (herox(rank)) = savepos.x
- (heroy(rank)) = savepos.y
- herow(rank).xgo = savego.x
- herow(rank).ygo = savego.y
+ (heropos(rank)) = savepos
+ herow(rank).xygo = savego
  RETURN result
 END FUNCTION
 
@@ -2100,8 +2066,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  tilepos.x = (npci.x + 10) \ 20
  tilepos.y = (npci.y + 10) \ 20
  DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
- pixelpos.x = tilepos.x * 20
- pixelpos.y = tilepos.y * 20
+ pixelpos = tilepos * 20
 
  IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
   '--this only happens if NPC walls on
@@ -2173,11 +2138,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
  'If two types of collision are possible for a single move, only the first will ever be indicated 
 
  DIM tilepos as XYPair 'Which tile is the center of the hero on?
- tilepos.x = herotx(rank)
- tilepos.y = heroty(rank)
- DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
- pixelpos.x = tilepos.x * 20
- pixelpos.y = tilepos.y * 20
+ tilepos = herotpos(rank)
 
  IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 THEN
   '--this only happens if hero walls are on
@@ -3685,14 +3646,11 @@ SUB refresh_map_slice()
  END WITH
  FOR i as integer = 0 TO UBOUND(SliceTable.MapLayer)
   IF SliceTable.MapLayer(i) THEN
-   SliceTable.MapLayer(i)->Width = mapsizetiles.x * 20
-   SliceTable.MapLayer(i)->Height = mapsizetiles.y * 20
+   SliceTable.MapLayer(i)->Size = mapsizetiles * 20
   END IF
  NEXT
- SliceTable.ObsoleteOverhead->Width = mapsizetiles.x * 20
- SliceTable.ObsoleteOverhead->Height = mapsizetiles.y * 20
- SliceTable.MapOverlay->Width = mapsizetiles.x * 20
- SliceTable.MapOverlay->Height = mapsizetiles.y * 20
+ SliceTable.ObsoleteOverhead->Size = mapsizetiles * 20
+ SliceTable.MapOverlay->Size = mapsizetiles * 20
 
  FOR i as integer = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
@@ -4232,10 +4190,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def( , , "Realign leader to grid") THEN
-  herox(0) = herotx(0) * 20
-  heroy(0) = heroty(0) * 20
-  herow(0).xgo = 0
-  herow(0).ygo = 0
+  (heropos(0)) = herotpos(0) * 20
+  herow(0).xygo = 0
  END IF
 
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
@@ -4577,14 +4533,14 @@ SUB cancel_hero_pathfinding()
 END SUB
 
 SUB trigger_hero_pathfinding()
- DIM clickpos as XYPair = XY(mapx + gam.mouse.x, mapy + gam.mouse.y)
+ DIM clickpos as XYPair = XY(mapx, mapy) + gam.mouse.pos
  wrapxy(clickpos, mapsizetiles.x * 20, mapsizetiles.y * 20)
  DIM npc_index as integer = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
   gam.hero_pathing.mode = HeroPathingMode.NPC
   gam.hero_pathing.dest_npc = npc_index
  ELSE
-  DIM clicktile as XYPair = XY(clickpos.x \ 20, clickpos.y \ 20)
+  DIM clicktile as XYPair = clickpos \ 20
   gam.hero_pathing.mode = HeroPathingMode.POS
   gam.hero_pathing.dest_pos = clicktile
  END IF
@@ -4607,7 +4563,7 @@ SUB update_hero_pathfinding(byval rank as integer)
   EXIT SUB
  END IF
  
- DIM t1 as XYPair = XY(herotx(rank), heroty(rank))
+ DIM t1 as XYPair = herotpos(rank)
  DIM t2 as XYPair
  
  SELECT CASE gam.hero_pathing.mode
@@ -4617,7 +4573,7 @@ SUB update_hero_pathfinding(byval rank as integer)
    WITH npc(gam.hero_pathing.dest_npc)
     IF .id > 0 THEN
      'Target NPC still exists
-      t2 = XY(.x \ 20, .y \ 20)
+      t2 = .pos \ 20
     ELSE
      'Target NPC was destroyed or tag-disabled
      cancel_hero_pathfinding()

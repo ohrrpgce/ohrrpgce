@@ -391,6 +391,7 @@ UNION XYPair
 
   DECLARE OPERATOR += (rhs as XYPair)
   DECLARE OPERATOR CAST () as string
+  DECLARE OPERATOR LET (value as integer)
 END UNION
 
 DECLARE OPERATOR = (lhs as XYPair, rhs as XYPair) as bool

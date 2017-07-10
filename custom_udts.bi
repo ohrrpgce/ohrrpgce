@@ -256,8 +256,13 @@ TYPE MapEditState
 
   editmode as integer        'ENUM MapEditMode
   seteditmode as integer     'Normally -1, set to an editmode to cause a switch
-  x as integer               'Cursor position, in tiles
-  y as integer
+  UNION
+    TYPE
+      x as integer           'Cursor position, in tiles
+      y as integer
+    END TYPE
+    pos as XYPair
+  END UNION
   mapx as integer            'Camera position (top left of viewable area), in pixels
   mapy as integer
   layer as integer

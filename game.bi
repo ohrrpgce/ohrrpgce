@@ -123,10 +123,12 @@ DECLARE FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, 
 
 DECLARE FUNCTION herox(byval rank as integer) byref as integer
 DECLARE FUNCTION heroy(byval rank as integer) byref as integer
+DECLARE FUNCTION heropos(byval rank as integer) byref as XYPair
 DECLARE FUNCTION heroz(byval rank as integer) byref as integer
 DECLARE FUNCTION herodir(byval rank as integer) byref as integer
 DECLARE FUNCTION herotx(byval rank as integer) as integer
 DECLARE FUNCTION heroty(byval rank as integer) as integer
+DECLARE FUNCTION herotpos(byval rank as integer) as XYPair
 
 DECLARE SUB change_hero_speed(byval rank as integer, byval new_speed as integer)
 DECLARE SUB interpolatecat (byval old_speed as integer = -1)

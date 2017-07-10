@@ -47,8 +47,13 @@ END TYPE
 
 TYPE HeroWalkabout
   sl as Slice Ptr
-  xgo as integer
-  ygo as integer
+  UNION
+    TYPE
+      xgo as integer
+      ygo as integer
+    END TYPE
+    xygo as XYPair
+  END UNION
   wtog as integer
   speed as integer
   curzones as integer vector = 0
@@ -299,8 +304,13 @@ TYPE DebugMenuDef
 END TYPE
 
 TYPE CaterpillarHistory
- x as integer
- y as integer
+ UNION
+  TYPE
+   x as integer
+   y as integer
+  END TYPE
+  pos as XYPair
+ END UNION
  z as integer
  d as integer
 END TYPE

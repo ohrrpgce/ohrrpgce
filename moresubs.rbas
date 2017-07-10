@@ -827,10 +827,7 @@ FUNCTION teleporttool () as bool
  DIM minisize as XYPair 'Minimap size in pixels
  DIM offset as XYPair   'Top-left position where the on-screen map viewport starts
  DIM camera as XYPair   'In pixels
-
- DIM dest as XYPair
- dest.x = herotx(0)
- dest.y = heroty(0)
+ DIM dest as XYPair = herotpos(0)
 
  ensure_normal_palette
 
@@ -914,8 +911,7 @@ FUNCTION teleporttool () as bool
    IF carray(ccUse) > 1 THEN 'confirm and teleport
     IF gam.map.id <> destmap THEN teleporttool = YES
     gam.map.id = destmap
-    (herox(0)) = dest.x * 20
-    (heroy(0)) = dest.y * 20
+    (heropos(0)) = dest * 20
     EXIT DO
    END IF
    IF carray(ccMenu) > 1 THEN pickpoint = NO
@@ -949,7 +945,8 @@ FUNCTION teleporttool () as bool
   edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
   frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
   'Hero cursor
-  rectangle offset.x + dest.x * zoom - camera.x, offset.y + dest.y * zoom - camera.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage
+  DIM cursor as XYPair = offset + dest * zoom - camera
+  rectangle cursor.x, cursor.y, zoom, zoom, uilook(uiSelectedItem) * toggle, vpage
   state.pt = IIF(pickpoint, 1, 0)
   standardmenu menu(), state, 0, vpages(vpage)->h - 29, vpage, menuopts
   DIM caption as string = IIF(pickpoint, "Arrows/SHIFT move; ENTER to teleport", "Select map; ENTER to select position")

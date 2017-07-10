@@ -1033,7 +1033,7 @@ DO
     FOR i as integer = 0 TO 299
      WITH st.map.npc(i)
       IF .id > 0 THEN
-       IF .x = st.x * 20 AND .y = st.y * 20 THEN .id = 0
+       IF .pos = st.pos * 20 THEN .id = 0
       END IF
      END WITH
     NEXT i
@@ -1069,8 +1069,7 @@ DO
       IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
      IF npc_slot >= 0 THEN
-      st.map.npc(npc_slot).x = st.x * 20
-      st.map.npc(npc_slot).y = st.y * 20
+      st.map.npc(npc_slot).pos = st.pos * 20
       st.map.npc(npc_slot).id = st.cur_npc + 1
       st.map.npc(npc_slot).dir = st.npc_d
      END IF
