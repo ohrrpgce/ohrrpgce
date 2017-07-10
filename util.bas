@@ -52,12 +52,35 @@ init_runtime
 
 DEFINE_VECTOR_OF_TYPE(XYPair, XYPair)
 
-OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
-  RETURN lhs.x = rhs.x AND lhs.y = rhs.y
-END OPERATOR
+#MACRO XYPAIR_OPERATOR_AND_XY(OP)
+  OPERATOR OP (lhs as XYPair, rhs as XYPair) as bool
+    RETURN lhs.x OP rhs.x AND lhs.y OP rhs.y
+  END OPERATOR
+#ENDMACRO
+
+#MACRO XYPAIR_OPERATOR_AND_INT(OP)
+  OPERATOR OP (lhs as XYPair, rhs as integer) as bool
+    RETURN lhs.x OP rhs AND lhs.y OP rhs
+  END OPERATOR
+#ENDMACRO
+
+XYPAIR_OPERATOR_AND_XY (=)
+XYPAIR_OPERATOR_AND_INT(=)
+'XYPAIR_OPERATOR_AND_XY(<)
+XYPAIR_OPERATOR_AND_INT(<)
+'XYPAIR_OPERATOR_AND_XY(<=)
+XYPAIR_OPERATOR_AND_INT(<=)
+'XYPAIR_OPERATOR_AND_XY(>)
+XYPAIR_OPERATOR_AND_INT(>)
+'XYPAIR_OPERATOR_AND_XY(>=)
+XYPAIR_OPERATOR_AND_INT(>=)
 
 OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
   RETURN lhs.x <> rhs.x OR lhs.y <> rhs.y
+END OPERATOR
+
+OPERATOR <> (lhs as XYPair, rhs as integer) as bool
+  RETURN lhs.x <> rhs OR lhs.y <> rhs
 END OPERATOR
 
 OPERATOR XYPair.CAST () as string
@@ -112,6 +135,18 @@ END OPERATOR
 
 OPERATOR / (lhs as XYPair, rhs as double) as XYPair
   RETURN TYPE(lhs.x / rhs, lhs.y / rhs)
+END OPERATOR
+
+OPERATOR ABS (lhs as XYPair) as XYPair
+  RETURN TYPE(ABS(lhs.x), ABS(lhs.y))
+END OPERATOR
+
+OPERATOR MOD (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x MOD rhs.x, lhs.y MOD rhs.y)
+END OPERATOR
+
+OPERATOR MOD (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x MOD rhs, lhs.y MOD rhs)
 END OPERATOR
 
 OPERATOR - (lhs as XYPair) as XYPair
@@ -171,6 +206,13 @@ startTest(XYPairOperators)
   IF A <> TYPE<XYPair>(1,2) THEN fail
   IF XY(101,-34) <> TYPE<XYPair>(101,-34) THEN fail
   IF (A = XY(1,2)) <> YES THEN fail
+
+  IF A < 2 THEN fail
+  IF NOT A < 3 THEN fail
+  IF NOT A > 0 THEN fail
+  IF NOT A >= 1 THEN fail
+  IF A >= 2 THEN fail
+
   A += B
   IF A <> XY(4,6) THEN fail
   IF -A <> XY(-4,-6) THEN fail
@@ -186,6 +228,9 @@ startTest(XYPairOperators)
   IF A / 1.5 <> XY(3,4) THEN fail
   IF A / XY(-1,4) <> XY(-4,2) THEN fail
   IF STR(A) <> "4,6" THEN fail
+  IF ABS(XY(-4,-5)) <> XY(4,5) THEN fail
+  IF A MOD 3 <> XY(1,0) THEN fail
+  IF A MOD XY(3,5) <> XY(1,1) THEN fail
 endTest
 
 startTest(RectTypeOperators)

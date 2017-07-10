@@ -393,9 +393,14 @@ UNION XYPair
   DECLARE OPERATOR CAST () as string
   DECLARE OPERATOR LET (value as integer)
 END UNION
-
-DECLARE OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
+DECLARE OPERATOR =  (lhs as XYPair, rhs as XYPair) as bool
+DECLARE OPERATOR =  (lhs as XYPair, rhs as integer) as bool
 DECLARE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
+DECLARE OPERATOR <> (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR <  (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR <= (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR >  (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR >= (lhs as XYPair, rhs as integer) as bool
 DECLARE OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
@@ -406,6 +411,9 @@ DECLARE OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR / (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR / (lhs as XYPair, rhs as double) as XYPair
+DECLARE OPERATOR ABS (lhs as XYPair) as XYPair
+DECLARE OPERATOR MOD (lhs as XYPair, rhs as XYPair) as XYPair
+DECLARE OPERATOR MOD (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR - (lhs as XYPair) as XYPair
 
 #DEFINE XY(x, y) TYPE<XYPair>(x, y)
