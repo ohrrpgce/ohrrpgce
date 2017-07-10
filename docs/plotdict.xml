@@ -6695,7 +6695,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getellipsebordercol">
 			<canon>get ellipse border col (handle)</canon>
 			<shortname>get ellipse border col</shortname>
-			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its border. This will be a number from 0 to 255 representing a color from the master palette.</description>
+			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its border. This will be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent.</description>
 			<seealso>
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>
@@ -6706,7 +6706,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setellipsebordercol">
 			<canon>set ellipse border col (handle, color)</canon>
 			<shortname>set ellipse border col</shortname>
-			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its border. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.</description>
+			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its border. The <p>color</p> should be a number from 1 to 255 representing a color from the master palette. <p>color</p> 0 means 'transparent', which is not very useful.</description>
 			<seealso>
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>

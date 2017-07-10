@@ -187,6 +187,8 @@ WHAT IS NEW?
       through hero action selection when there was a gap in the party
       [James]
     * Minimaps now display obsolete Overhead tiles correctly [Ralph]
+    * If the Background UI color wasn't 0, ellipse slice border/fill color
+      set to 0 didn't appear transparent [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

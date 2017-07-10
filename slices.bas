@@ -2034,8 +2034,11 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
    .frame = frame_new(w, h, , YES)
    'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
    dim fillcol as integer = dat->fillcol
-   if fillcol = 0 then fillcol = -1
-   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, SliceColor(dat->bordercol), SliceColor(fillcol), h / 2 - 0.5
+   'EllipseSliceData.fillcol 0 means transparent, while ellipse() uses -1 to mean transparent
+   'NOTE: Drawing bordercol or fillcol 0 will be transparent anyway, because when .frame
+   'gets drawn to the videopage, colour 0 counts as transparent. So fillcol=-1 is just an optimisation.
+   if fillcol = 0 then fillcol = -1 else fillcol = SliceColor(fillcol)
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, SliceColor(dat->bordercol), fillcol, h / 2 - 0.5
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
