@@ -119,6 +119,9 @@ DIM browser_font(1023) as integer
 getbrowserfont browser_font()
 setfont browser_font()
 
+DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+showmousecursor
+
 'remember/default may be either empty or a file (if one was selected last call), or directory (if not)
 DIM startfile as string
 IF remember = "" THEN remember = CURDIR & SLASH
@@ -300,6 +303,7 @@ DO
  dowait
 LOOP
 
+setcursorvisibility(prev_mouse_vis)
 setfont current_font()
 IF LEN(ret) THEN
  default = ret

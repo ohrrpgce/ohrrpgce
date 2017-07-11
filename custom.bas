@@ -211,6 +211,7 @@ getdefaultfont current_font()
 setmodex
 debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setwindowtitle "O.H.R.RPG.C.E"
+showmousecursor
 unlock_resolution 320, 200   'Minimum window size
 setpal master()
 setfont current_font()
@@ -2073,7 +2074,7 @@ SUB text_test_menu
   dowait
  LOOP
  setkeys
- defaultmousecursor
+ showmousecursor
 END SUB
 
 SUB font_test_menu

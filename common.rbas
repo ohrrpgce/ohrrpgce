@@ -453,6 +453,8 @@ FUNCTION notification (msg as string) as integer
  entered = YES
 
  ensure_normal_palette
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ defaultmousecursor
  DIM holdpage as integer = allocatepage
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
@@ -462,6 +464,7 @@ FUNCTION notification (msg as string) as integer
  DIM scancode as integer = waitforanykey()
  freepage holdpage
  restore_previous_palette
+ setcursorvisibility(prev_mouse_vis)
  entered = NO
  RETURN scancode
 END FUNCTION
@@ -2061,6 +2064,8 @@ SUB show_help(helpkey as string)
  DIM searchstring as string
 
  '--Now loop displaying help
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
  ensure_normal_palette
  setkeys YES
  DO
@@ -2171,6 +2176,7 @@ SUB show_help(helpkey as string)
   dowait
  LOOP
 
+ setcursorvisibility(prev_mouse_vis)
  restore_previous_palette
  freepage holdscreen
  DeleteSlice @help_root
@@ -2375,6 +2381,9 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  init_menu_state state, menu
  state.pt = defaultval
 
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
+
  ensure_normal_palette
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer
@@ -2425,6 +2434,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  LOOP
  setkeys
  restore_previous_palette
+ setcursorvisibility(prev_mouse_vis)
  copypage holdscreen, vpage
  freepage holdscreen
  ClearMenuData menu
@@ -5736,6 +5746,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
  cursor = xy_from_int(start_color, 16, 16)
  DIM mouse as MouseInfo
  DIM gotmouse as bool = havemouse()
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  hidemousecursor
  setkeys
  DO
@@ -5801,7 +5812,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   IF dowait THEN tog = (tog + 1) MOD 256
   firsttick = NO
  LOOP
- defaultmousecursor
+ setcursorvisibility prev_mouse_vis
  RETURN ret
 END FUNCTION
 

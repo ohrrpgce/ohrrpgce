@@ -478,7 +478,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   dowait
  LOOP
  setpal master()
- defaultmousecursor
+ showmousecursor
 END SUB
 
 'Give the user the chance to remap a color to 0.
@@ -1296,7 +1296,7 @@ END IF
 v_free ts.defaultwalls
 oldpaste = ts.canpaste
 frame_unload @ts.drawframe
-defaultmousecursor
+showmousecursor
 END SUB
 
 SUB refreshtileedit (state as TileEditState)
@@ -3315,6 +3315,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
  palstate.last = 2
  palstate.size = 2
  palstate.need_update = YES
+ showmousecursor
  setkeys
  DO
   setwait 55
@@ -3376,6 +3377,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
   setvispage vpage
   dowait
  LOOP
+ hidemousecursor
  RETURN ret
 END FUNCTION
 
@@ -3610,7 +3612,7 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
    ss.tog = ss.tog XOR 1
   END IF
  LOOP
- defaultmousecursor
+ showmousecursor
  palette16_save ss.palette, ss.pal_num
  palette16_unload @ss.palette
  v_free ss.undo_history
