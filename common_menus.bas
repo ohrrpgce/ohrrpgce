@@ -310,6 +310,9 @@ SUB edit_mouse_options ()
   
   dowait
  LOOP
- 
- write_general_reld()
+
+ #IFNDEF IS_GAME
+  ' Don't write changes, in case we're live-previewing or playing an .rpgdir
+  write_general_reld()
+ #ENDIF
 END SUB

@@ -4067,7 +4067,10 @@ SUB write_general_reld()
 END SUB
 
 SUB close_general_reld()
- write_general_reld()
+ #IFNDEF IS_GAME
+  ' Don't write changes, in case we're live-previewing or playing an .rpgdir
+  write_general_reld()
+ #ENDIF
  IF gen_reld_doc THEN
   FreeDocument gen_reld_doc
   gen_reld_doc = 0
