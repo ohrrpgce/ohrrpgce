@@ -2658,17 +2658,19 @@ DO
    carray(ccMenu) = 0
    EXIT DO
   END IF
-  IF carray(ccLeft) > 1 THEN 'Left: previous hero
-   DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL gam.hero(st.who).id >= 0
-   equip_menu_setup st, menu()
-   MenuSound gen(genCursorSFX)
-   item_info = equip_menu_equipped_item_info(st, eqstuf())
-  END IF
-  IF carray(ccRight) > 1 THEN 'Right: next hero
-   DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL gam.hero(st.who).id >= 0
-   equip_menu_setup st, menu()
-   MenuSound gen(genCursorSFX)
-   item_info = equip_menu_equipped_item_info(st, eqstuf())
+  IF allow_switch THEN
+   IF carray(ccLeft) > 1 THEN 'Left: previous hero
+    st.who = loop_active_party_slot(st.who, -1)
+    equip_menu_setup st, menu()
+    MenuSound gen(genCursorSFX)
+    item_info = equip_menu_equipped_item_info(st, eqstuf())
+   END IF
+   IF carray(ccRight) > 1 THEN 'Right: next hero
+    st.who = loop_active_party_slot(st.who, 1)
+    equip_menu_setup st, menu()
+    MenuSound gen(genCursorSFX)
+    item_info = equip_menu_equipped_item_info(st, eqstuf())
+   END IF
   END IF
   usemenusounds
   IF usemenu(st.slot, 0, 0, 6, 6) THEN
