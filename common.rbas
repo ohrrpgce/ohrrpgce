@@ -4854,6 +4854,15 @@ FUNCTION menu_click (state as MenuState) as bool
 #ENDIF
  IF use_mouse THEN
   IF readmouse().release AND mouseleft THEN
+   IF overlay_message_visible() THEN
+    'If an allmodex overlay message is visible, dismiss it instead.
+    'NOTE: because code tends to keep a copy of MouseInfo returned from readmouse,
+    'the following clearclick() may not have an effect
+    show_overlay_message "", 0.
+    readmouse().clearclick(mouseleft)
+    RETURN NO
+   END IF
+
    'If you click off the menu then .hover = .first - 1, and if you click on an
    'unselectable item then also .pt <> .hover.
    'Also handle the case where the menu is empty, so .pt = .first - 1

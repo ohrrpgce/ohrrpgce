@@ -111,6 +111,7 @@ DECLARE SUB fadeto (byval red as integer, byval green as integer, byval blue as 
 DECLARE SUB fadetopal (pal() as RGBcolor)
 
 DECLARE SUB show_overlay_message(msg as string, seconds as double = 3.)
+DECLARE FUNCTION overlay_message_visible () as bool
 
 '==========================================================================================
 '                                        Maps
@@ -398,6 +399,8 @@ Type MouseInfo
 	                      'And on the subsequent ticks, you see dragging=button=true, click=false
 	clickstart as XYPair  'Mouse position at start of click/drag (Note: no backend currently
 	                      'supports reporting the position of click, so currently equal to .x/.y)
+
+	DECLARE SUB clearclick(button as MouseButton)
 End Type
 
 DECLARE FUNCTION havemouse () as bool
@@ -406,7 +409,7 @@ DECLARE SUB showmousecursor ()
 DECLARE SUB defaultmousecursor ()
 DECLARE SUB setcursorvisibility (state as CursorVisibility)
 DECLARE FUNCTION getcursorvisibility () as CursorVisibility
-DECLARE FUNCTION readmouse () as MouseInfo
+DECLARE FUNCTION readmouse () byref as MouseInfo
 DECLARE SUB movemouse (byval x as integer, byval y as integer)
 DECLARE SUB mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 

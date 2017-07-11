@@ -2087,7 +2087,7 @@ end sub
 
 
 '==========================================================================================
-'                                     Mouse and joystick
+'                                          Mouse
 '==========================================================================================
 
 
@@ -2196,8 +2196,8 @@ sub update_mouse_state ()
 	else
 		'Dragging is only tracked for a single button at a time, and clickstart is not updated
 		'while dragging either. So we may now test for new drags or clicks.
-		for i as integer = 0 to 31
-			dim mask as integer = 2 ^ i
+		for button as integer = 0 to 15
+			dim mask as MouseButton = 1 shl button
 			if mouse_state.clicks and mask then
 				'Do not flag as dragging until the second tick
 				mouse_state.clickstart = mouse_state.pos
@@ -2222,9 +2222,16 @@ end sub
 
 ' Get the state of the mouse at the last setkeys call (or after putmouse, mouserect).
 ' So make sure you call this AFTER setkeys.
-function readmouse () as MouseInfo
+function readmouse () byref as MouseInfo
 	return mouse_state
 end function
+
+sub MouseInfo.clearclick(button as MouseButton)
+	clicks and= not button
+	release and= not button
+	' Cancel for good measure, but not really needed
+	dragging and= not button
+end sub
 
 sub movemouse (byval x as integer, byval y as integer)
 	io_setmouse(x, y)
@@ -2265,6 +2272,12 @@ sub mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integ
 	mouse_state.x = bound(mouse_state.x, xmin, xmax)
 	mouse_state.y = bound(mouse_state.y, ymin, ymax)
 end sub
+
+
+'==========================================================================================
+'                                        Joystick
+'==========================================================================================
+
 
 function readjoy (joybuf() as integer, byval jnum as integer) as bool
 'Return false if joystick is not present, or true if joystick is present.
@@ -2307,7 +2320,8 @@ end function
 '==========================================================================================
 '                       Compat layer for old graphics backend IO API
 '==========================================================================================
-
+' These functions are used to supplement gfx backends not supporting
+' io_mousebits or io_keybits.
 
 'these are wrappers provided by the polling thread
 sub io_amx_keybits cdecl (byval keybdarray as integer ptr)
@@ -2628,6 +2642,10 @@ sub show_overlay_message (msg as string, seconds as double = 3.)
 	overlay_hide_time = timer + seconds
 	overlay_replay_display = NO
 end sub
+
+function overlay_message_visible () as bool
+	return len(overlay_message) > 0 and overlay_hide_time > timer
+end function
 
 'Show the overlay for replaying input
 private sub show_replay_overlay ()
