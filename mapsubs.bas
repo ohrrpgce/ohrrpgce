@@ -1492,7 +1492,7 @@ DO
  '--door display--
  IF st.editmode = door_mode THEN
   textcolor uilook(uiBackground), 0
-  FOR i as integer = 0 TO 99
+  FOR i as integer = 0 TO maxDoorsPerMap
    WITH st.map.door(i)
     IF .x >= st.mapx \ 20 AND .x <= (st.mapx + mapviewsize.w) \ 20 AND _
        .y >  st.mapy \ 20 AND .y <= (st.mapy + mapviewsize.h) \ 20 + 1 AND _
@@ -3276,7 +3276,7 @@ SUB mapedit_resize(st as MapEditState)
  st.mapx = 0
  st.mapy = 0
  edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
- FOR i as integer = 0 TO 99
+ FOR i as integer = 0 TO maxDoorsPerMap
   WITH st.map.door(i)
    .x -= rs.rect.x
    .y -= rs.rect.y
@@ -3753,8 +3753,8 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  DIM byref doorlink as DoorLink = st.map.doorlink(linknum)
 
  DIM ulim(4) as integer, llim(4) as integer
- ulim(0) = 99: llim(0) = -1
- ulim(1) = 99: llim(1) = 0
+ ulim(0) = maxDoorsPerMap: llim(0) = -1
+ ulim(1) = maxDoorsPerMap: llim(1) = 0
  ulim(2) = gen(genMaxMap): llim(2) = 0
  ulim(3) = max_tag(): llim(3) = -max_tag()
  ulim(4) = max_tag(): llim(4) = -max_tag()

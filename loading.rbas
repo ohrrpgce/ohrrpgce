@@ -1465,13 +1465,13 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	
 	seek #f, record * 600 + 1
 	
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		array(i).x = readshort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		array(i).y = readshort(f)
 	next
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		array(i).bits(0) = readshort(f)
 	next
 	
@@ -1488,13 +1488,13 @@ Sub SerDoors(filename as string, array() as door, byval record as integer)
 
 	seek #f, record * 600 + 1
 
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		writeshort f, -1, array(i).x
 	next
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		writeshort f, -1, array(i).y
 	next
-	for i = 0 to 99
+	for i = 0 to maxDoorsPerMap
 		writeshort f, -1, array(i).bits(0)
 	next
 

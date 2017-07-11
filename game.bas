@@ -3057,7 +3057,7 @@ END SUB
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)
 FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
- FOR door_id as integer = 0 TO 99
+ FOR door_id as integer = 0 TO maxDoorsPerMap
   IF readbit(gam.map.door(door_id).bits(), 0, 0) THEN  'Door exists
    IF gam.map.door(door_id).x = tilex AND gam.map.door(door_id).y = tiley + 1 THEN
     RETURN door_id

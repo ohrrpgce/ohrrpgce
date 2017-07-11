@@ -3227,7 +3227,7 @@ SUB script_functions(byval cmdid as integer)
    IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest_map
   END IF
  CASE 525 '--door exists
-  IF retvals(0) >= 0 AND retvals(0) <= 99 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= maxDoorsPerMap THEN
    scriptret = readbit(gam.map.door(retvals(0)).bits(), 0, 0)
   END IF
  CASE 526 '--get attack caption
