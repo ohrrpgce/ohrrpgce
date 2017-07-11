@@ -871,7 +871,7 @@
 		<a href="#about-equal">number == number</a><br>
 		
 	
-		<a href="#about-equipmenu">equip menu (who)</a><br>
+		<a href="#about-equipmenu">equip menu (who, allow switching)</a><br>
 		
 	
 		<a href="#about-equipwhere">equip where (hero,item)</a><br>
@@ -1709,6 +1709,9 @@
 		
 	
 		<a href="#about-mouseregion">mouse region (x min, x max, y min, y max)</a><br>
+		
+	
+		<a href="#about-mouserelease">mouse release (which)</a><br>
 		
 	
 		<a href="#about-movesliceabove">move slice above (handle, above what handle)</a><br>
@@ -5981,9 +5984,19 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 <a name="about-equipmenu"></a>
-		<h4>equip menu (who)</h4>
+		<h4>equip menu (who, allow switching)</h4>
 <p>
-			Takes you directly to a hero's equip menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful. If you do not specify any hero, the first hero in the party will be used.
+			
+				Takes you directly to a hero's equip menu.
+				Specify the hero using its position in the party 0-3.
+				Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name.
+				The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful.
+				If you do not specify any hero, the first hero in the party will be used.
+				The optional second argument <span class="param">allow switching</span> says whether
+				to allow the player to switch to a different hero by pressing
+				Left and Right keys.
+				It defaults to <span class="code">true</span>.
+			
 			
 			
 			
@@ -9013,7 +9026,12 @@ end</pre>
 			
 			
 			
-			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-mouseclick" class="ref">mouse click</a>, </li>
+<li><a href="#about-mouserelease" class="ref">mouse release</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -9022,7 +9040,6 @@ end</pre>
 <p>
 			
 				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been 'clicked' down in the last tick.
-				Returns true even if the mouse button is still down.
 				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
 				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
@@ -9034,7 +9051,37 @@ end</pre>
 			
 			
 			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-mousebutton" class="ref">mouse button</a>, </li>
+<li><a href="#about-mouserelease" class="ref">mouse release</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-mouserelease"></a>
+		<h4>mouse release (which)</h4>
+<p>
 			
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been released since the last tick.
+				You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Just like keyboard commands such as <a href="#about-keyispressed" class="ref">key is pressed</a>, you can <b>not</b>
+					wait for the player to click the mouse with a while loop that doesn't contain
+					a <a href="#about-wait" class="ref">wait</a> command, because the mouse state is only updated one per frame.
+				<br clear="all">
+</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-mousebutton" class="ref">mouse button</a>, </li>
+<li><a href="#about-mouseclick" class="ref">mouse click</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -10013,11 +10060,6 @@ end</pre>
 				returns the handle for the menu item at that position, or <span class="param">false</span> if none.
 				If multiple menus overlap at that location the top-most one is returned.
 				You can find the menu that the menu item belongs to with <a href="#about-parentmenu" class="ref">parent menu</a>.
-				<div style="background-color:#FEE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
-					This command is unfinished: it's broken when the menu has scrollbars.
-				<br clear="all">
-</div>
 			
 			
 			
@@ -14091,7 +14133,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getellipsebordercol"></a>
 		<h4>get ellipse border col (handle)</h4>
 <p>
-			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its border. This will be a number from 0 to 255 representing a color from the master palette.
+			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its border. This will be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14110,7 +14152,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setellipsebordercol"></a>
 		<h4>set ellipse border col (handle, color)</h4>
 <p>
-			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its border. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.
+			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its border. The <span class="param">color</span> should be a number from 1 to 255 representing a color from the master palette. <span class="param">color</span> 0 means 'transparent', which is not very useful.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -17635,7 +17677,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 799 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 800 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

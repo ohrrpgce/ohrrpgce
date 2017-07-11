@@ -4369,6 +4369,10 @@ SUB script_functions(byval cmdid as integer)
    gen(genResolutionY) = retvals(1)
    apply_game_window_settings()
   END IF
+ CASE 646'--mouse release
+  IF retvals(0) <= 4 THEN
+   IF gam.mouse.release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+  END IF
 
 
  CASE ELSE

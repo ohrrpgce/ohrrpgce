@@ -124,6 +124,7 @@ WHAT IS NEW?
     * NPC pathfinding commands: "pathfind npc to" "npc chases npc"
       "cancel npc walk" [James]
     * "get screen width" and "get screen height" [James]
+    * "mouse release" to check if a click has just ended [James]
     * Changes to the language:
       * -= and += now return their result, like := does, so they can be
         used as expressions [Ralph]
