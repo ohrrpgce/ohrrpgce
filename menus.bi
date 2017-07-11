@@ -30,7 +30,8 @@ DECLARE SUB calc_menustate_size (state as MenuState, menuopts as MenuOptions, x 
 
 '' Mouse support
 DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer
-DECLARE FUNCTION mouse_hover_and_click (state as MenuState) as bool
+DECLARE FUNCTION mouse_update_hover (state as MenuState) as bool
+DECLARE SUB mouse_update_selection (state as MenuState)
 
 '' Selection by typing
 DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool

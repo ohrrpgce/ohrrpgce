@@ -135,23 +135,27 @@ FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer
  END WITH
 END FUNCTION
 
-FUNCTION mouse_hover_and_click (state as MenuState) as bool
- 'Updates state.hover, and returns YES if user clicked on a menu item.
+' Updates state.hover, and returns YES if the mouse is over the menu.
+' (You only need this if not calling usemenu or scrollmenu)
+FUNCTION mouse_update_hover (state as MenuState) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
  use_mouse = get_gen_bool("/mouse/mouse_menus")
 #ENDIF
  IF use_mouse THEN
-  DIM mouse as MouseInfo
-  mouse = readmouse()
-  state.hover = find_menu_item_at_point(state, mouse.x, mouse.y)
-  IF state.hover >= state.first THEN
-   IF mouse.clicks AND mouseright THEN state.pt = state.hover
-   IF mouse.clicks AND mouseleft THEN RETURN YES
-  END IF
+  state.hover = find_menu_item_at_point(state, readmouse.x, readmouse.y)
+  RETURN state.hover >= state.first
  END IF
  RETURN NO
 END FUNCTION
+
+' Updates state.pt. This should be called only after mouse_update_hover has
+' updated state.hover and returned YES, if state.hover is a selectable item.
+SUB mouse_update_selection (state as MenuState)
+ IF (readmouse.buttons OR readmouse.release) AND (mouseleft OR mouseright) THEN
+  state.pt = state.hover
+ END IF
+END SUB
 
 ' This does a subset of what usemenu does, call this after modifying .pt, .last, .first or .size
 ' if not immediately calling usemenu.
@@ -197,7 +201,7 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   END IF
   correct_menu_state state  'Update .top and .pt
 
-  IF mouse_hover_and_click(state) THEN .pt = .hover
+  IF mouse_update_hover(state) THEN mouse_update_selection(state)
   mouse_scroll_menu state
 
   IF oldptr = .pt AND oldtop = .top THEN
@@ -284,8 +288,8 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   END IF
   correct_menu_state state  'Update .top
 
-  IF mouse_hover_and_click(state) ANDALSO NOT v_at(menudata, .hover)->unselectable THEN
-   .pt = .hover
+  IF mouse_update_hover(state) ANDALSO NOT v_at(menudata, .hover)->unselectable THEN
+   mouse_update_selection(state)
   END IF
   mouse_scroll_menu state
 
@@ -349,8 +353,8 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   END IF
   correct_menu_state state  'Update .top
 
-  IF mouse_hover_and_click(state) ANDALSO selectable(.hover) THEN
-   .pt = .hover
+  IF mouse_update_hover(state) ANDALSO selectable(.hover) THEN
+   mouse_update_selection(state)
   END IF
   mouse_scroll_menu state
 
@@ -379,7 +383,7 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
   IF keyval(scPagedown) > 1 THEN .top = small(lasttop, .top + .size)
   IF keyval(scHome) > 1 THEN .top = .first
   IF keyval(scEnd) > 1 THEN .top = lasttop
-  mouse_hover_and_click(state)  'Update .hover
+  mouse_update_hover(state)
   mouse_scroll_menu(state)
   RETURN (.top <> oldtop)
  END WITH
