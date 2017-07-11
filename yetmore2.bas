@@ -466,14 +466,7 @@ FUNCTION titlescreen () as bool
     ret = NO
     EXIT DO
    END IF
-   IF anykeypressed() THEN EXIT DO
-   IF running_on_mobile() ANDALSO should_disable_virtual_gamepad() THEN
-    'Special case for Android games that don't use the virtual gamepad
-    'Allow them to click past the title screen without having to script their own title screen
-    IF (readmouse().clicks AND mouseLeft) THEN
-     EXIT DO
-    END IF
-   END IF
+   IF anykeypressed(YES, YES) THEN EXIT DO  'Joystick and mouse included
   END IF
 
   clearpage vpage

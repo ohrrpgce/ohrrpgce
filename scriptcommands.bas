@@ -330,15 +330,11 @@ SUB trigger_onkeypress_script ()
   IF carray(i) THEN doit = YES: EXIT FOR
  NEXT i
 
- 'Checks keyboard and joystick keys
- IF anykeypressed(YES, 0) THEN doit = YES
+ 'Checks whether keyboard and joystick keys are down, and optionally the mouse
+ IF anykeypressed(YES, gam.mouse_enabled, 0) THEN doit = YES
 
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
  IF keyval(scUnfilteredAlt) > 0 THEN doit = YES
-
- IF gam.mouse_enabled THEN
-  IF gam.mouse.buttons THEN doit = YES
- END IF
  
  IF nowscript >= 0 THEN
   IF scriptinsts(nowscript).waiting = waitingOnCmd AND scriptinsts(nowscript).curvalue = 9 THEN
@@ -436,7 +432,7 @@ SUB process_wait_conditions()
       IF .waitarg = ccMenu AND keyval(scUnfilteredAlt) > 1 THEN script_stop_waiting()
      ELSE
       '.waitarg == anykey
-      DIM temp as integer = anykeypressed()
+      DIM temp as integer = anykeypressed(YES, NO)  'Check joysticks but not mouse clicks
       'Because anykeypressed doesn't check it, and we don't want to break scripts
       'doing waitforkey(any key) followed by looking for key:alt (== scUnfilteredAlt)
       IF keyval(scUnfilteredAlt) > 1 THEN temp = scUnfilteredAlt

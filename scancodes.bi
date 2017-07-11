@@ -153,7 +153,7 @@ CONST scPause = 118
 'This alt scancode is filtered for WM combinations
 CONST scAlt = 119
 
-'Used for size of arrays, must NOT including joystick scancodes (due to script_keyval)
+'Used for size of arrays, must NOT include joystick/mouse scancodes (due to script_keyval)
 'NOTE: 127 is also hardcoded into gfx.bi API and backends.
 'Can't be increased anyway, due to joystick scancodes
 CONST scLAST = 127
@@ -165,6 +165,11 @@ CONST scJoyRight = 145
 CONST scJoyUp = 146
 CONST scJoyDown = 147
 CONST scJoyLAST = 147
+
+'These are only used by anykeypressed! As with scJoy* codes, you can't use them elsewhere!
+CONST scMouseLeft = 180
+CONST scMouseRight = 181
+CONST scMouseMiddle = 182
 
 ENUM MouseButton
   mouseLeft = 1

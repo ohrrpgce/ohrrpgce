@@ -815,7 +815,7 @@ SUB minimap (byval x as integer, byval y as integer)
   tog = tog XOR 1
   playtimer
   control
-  IF anykeypressed THEN EXIT DO
+  IF anykeypressed(YES, YES) THEN EXIT DO  'inc. joystick and mouse
   rectangle offset.x + (x / 20) * zoom, offset.y + (y / 20) * zoom, zoom, zoom, uilook(uiSelectedItem) * tog, vpage
   setvispage vpage
   dowait

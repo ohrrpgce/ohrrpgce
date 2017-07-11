@@ -79,7 +79,7 @@ declare function calcblock(tmap as TileMap, byval x as integer, byval y as integ
 declare sub pollingthread(byval as any ptr)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
-declare sub check_for_released_mouse_button(byval buttonnum as integer)
+declare sub check_for_released_mouse_button(byval buttonnum as MouseButton)
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -1739,7 +1739,7 @@ end function
 '               1 to trigger only on new keypress or repeat.
 'Returns scancode if one is found, 0 otherwise.
 'Use this instead of looping over all keys, to make sure alt filtering and joysticks work
-function anykeypressed (byval checkjoystick as bool = YES, trigger_level as integer = 1) as integer
+function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as integer = 1) as integer
 	dim as integer joybutton, joyx, joyy
 
 	for i as integer = 0 to scLAST
@@ -1763,9 +1763,18 @@ function anykeypressed (byval checkjoystick as bool = YES, trigger_level as inte
 		end if
 		debug_if_slow(starttime, 0.01, "io_readjoysane")
 	end if
+
+	if checkmouse then
+		dim bitvec as integer = iif(trigger_level >= 1, mouse_state.release, mouse_state.buttons)
+		for button as integer = 0 to 15
+			if bitvec and (1 shl button) then
+				return scMouseLeft + button
+			end if
+		next button
+	end if
 end function
 
-'Returns a scancode or joystick button scancode
+'Returns the keyboard, mouse or joystick button scancode
 function waitforanykey () as integer
 	dim as integer key, sleepjoy = 3
 	dim remem_speed_control as bool = use_speed_control
@@ -1795,7 +1804,7 @@ end function
 
 'Without changing the results of keyval or readmouse, check whether a key has been pressed,
 'mouse button clicked, or window close requested since the last call to setkeys.
-'NOTE: any such keypresses are lost! This is OK for the current purposes
+'NOTE: any such keypresses or mouse clicks are lost! This is OK for the current purposes
 'NOTE: This checks the real keyboard state while replaying input.
 function interrupting_keypress () as bool
 	dim starttime as double = timer
@@ -2120,13 +2129,13 @@ function getcursorvisibility () as CursorVisibility
 	return cursorvisibility
 end function
 
-sub check_for_released_mouse_button(byval buttonnum as integer)
-	if (mouse_state.last_buttons AND buttonnum) andalso (mouse_state.buttons AND buttonnum) = 0 then
+sub check_for_released_mouse_button(byval buttonnum as MouseButton)
+	if (mouse_state.last_buttons and buttonnum) andalso (mouse_state.buttons and buttonnum) = 0 then
 		'If the button was released since the last tick, turn on .release
-		mouse_state.release OR= buttonnum
+		mouse_state.release or= buttonnum
 	else
 		'All the rest of the time, .release should be off
-		mouse_state.release AND= NOT buttonnum
+		mouse_state.release and= not buttonnum
 	end if
 end sub
 
@@ -2141,9 +2150,10 @@ sub update_mouse_state ()
 	mutexlock keybdmutex   'Just in case
 	io_mousebits(mouse_state.x, mouse_state.y, mouse_state.wheel, mouse_state.buttons, mouse_state.clicks)
 	mutexunlock keybdmutex
-	
-	check_for_released_mouse_button(mouseLeft)
-	check_for_released_mouse_button(mouseRight)
+
+	for button as integer = 0 to 15
+		check_for_released_mouse_button(1 shl button)
+	next
 
 	mouse_state.wheel *= -1
 	mouse_state.wheel_delta = mouse_state.wheel - last_mouse_wheel
