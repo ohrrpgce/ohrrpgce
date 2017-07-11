@@ -637,7 +637,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO THEN
    topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
    DIM mouse as MouseInfo = readmouse()
-   IF topmost ANDALSO (mouse.clicks AND mouseLeft) THEN
+   IF topmost ANDALSO (mouse.release AND mouseLeft) THEN
     cursor_seek = topmost
     state.need_update = YES
    END IF
