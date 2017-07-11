@@ -4607,10 +4607,11 @@ SUB update_hero_pathfinding(byval rank as integer)
    END IF
  END SELECT
  
- dim pf as AStarPathfinder = AStarPathfinder(t1, t2, get_gen_int("/mouse/move_hero/max_search"))
+ dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(null, NO, YES)
  'pf.slow_debug()
- if v_len(pf.path) > 1 then
+ dim maxpath as integer = get_gen_int("/mouse/move_hero/max_path_length")
+ if v_len(pf.path) > 1 andalso (maxpath = 0 orelse v_len(pf.path) <= maxpath) then
   'Don't move unless a path is found that is longer than one tile
   (herodir(rank)) = xypair_direction_to(pf.path[0], pf.path[1], herodir(rank))
   heromove_walk_ahead(rank)

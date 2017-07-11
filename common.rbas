@@ -6599,7 +6599,7 @@ FUNCTION default_gen_int(nodepath as string) as integer
  'integers in the general.reld lump. This way it is easy to change
  'defaults without having to update every get_gen_int() call.
  SELECT CASE nodepath
-  CASE "/mouse/move_hero/max_search": RETURN 1000
+  CASE "/mouse/move_hero/max_path_length": RETURN 0
   CASE ELSE
    debuginfo "default_gen_int: no default for nodepath """ & nodepath & """ falling back to 0"
    RETURN 0
@@ -6610,7 +6610,7 @@ FUNCTION gen_int_limits(nodepath as string) as XYPair
  'This function supplies a centralized place to manage
  'minimum and maximum values for integers in general.reld
  SELECT CASE nodepath
-  CASE "/mouse/move_hero/max_search": RETURN XY(0, 100000)
+  CASE "/mouse/move_hero/max_path_length": RETURN XY(0, 100000)
   CASE ELSE
    debuginfo "gen_int_limits: no limits for nodepath """ & nodepath & """ falling back to something large"
    RETURN XY(-100000000, 100000000) '100 million is completel arbitrary

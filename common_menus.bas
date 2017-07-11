@@ -237,7 +237,7 @@ SUB edit_mouse_options ()
    menu.last->t = 4
    append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu"))
    menu.last->t = 5
-   append_menu_item menu, " Max tiles to search: " & get_gen_int("/mouse/move_hero/max_search")
+   append_menu_item menu, " Max tiles to walk: " & zero_default(get_gen_int("/mouse/move_hero/max_path_length"), "0 (no limit)")
    menu.last->t = 6
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
@@ -266,7 +266,7 @@ SUB edit_mouse_options ()
   SELECT CASE t
    CASE 0: 'exit
    CASE 6:
-    IF gen_intgrabber("/mouse/move_hero/max_search") THEN st.need_update = YES
+    IF gen_intgrabber("/mouse/move_hero/max_path_length") THEN st.need_update = YES
    CASE ELSE
     IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
      do_toggle = YES
