@@ -239,6 +239,8 @@ SUB edit_mouse_options ()
    menu.last->t = 5
    append_menu_item menu, " Max tiles to walk: " & zero_default(get_gen_int("/mouse/move_hero/max_path_length"), "0 (no limit)")
    menu.last->t = 6
+   append_menu_item menu, "Show cursor even in full-screen: " & yesorno(get_gen_bool("/mouse/show_cursor"))
+   menu.last->t = 9
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
    append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
@@ -289,6 +291,9 @@ SUB edit_mouse_options ()
      st.need_update = YES
     CASE 5:
      toggle_gen_bool("/mouse/move_hero/cancel_on_menu")
+     st.need_update = YES
+    CASE 9:
+     toggle_gen_bool("/mouse/show_cursor")
      st.need_update = YES
     CASE 10:
      toggle_gen_bool("/mouse/menu_right_click")

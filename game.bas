@@ -689,6 +689,7 @@ reset_vehicle vstate
 '========================== Title and loadgame menu ============================
 
 gam.ingame = YES
+IF get_gen_bool("/mouse/show_cursor") THEN showmousecursor 'Without this, the default cursor visibility depends on window state
 
 DIM load_slot as integer = -1
 '.resetgame is YES when resetgame was called so we are skipping straight to launching the game
