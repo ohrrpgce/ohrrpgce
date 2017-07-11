@@ -831,7 +831,7 @@ DO
  END IF
  IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
   IF use_touch_textboxes() THEN
-   IF gam.mouse.clicks AND mouseLeft THEN
+   IF gam.mouse.release AND mouseLeft THEN
     advance_text_box
    END IF
   END IF
