@@ -1456,6 +1456,13 @@ sub CleanDoorLinks(array() as doorlink)
 	next
 end sub
 
+Function read_one_door(byval map_id as integer, byval door_id as integer) as door
+	'FIXME: This could definitely be more efficient!
+	dim doortemp(maxDoorsPerMap) as door
+	DeSerDoors game & ".dox", doortemp(), map_id
+	return doortemp(door_id)
+End function
+
 Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 	dim as integer f, i
 	

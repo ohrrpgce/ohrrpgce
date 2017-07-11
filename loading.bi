@@ -79,6 +79,7 @@ declare Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead
 declare sub CleanDoorLinks(array() as doorlink)
 declare Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 declare Sub SerDoors(filename as string, array() as door, byval record as integer)
+declare Function read_one_door(byval map_id as integer, byval door_id as integer) as door
 declare Sub CleanDoors(array() as door)
 
 
