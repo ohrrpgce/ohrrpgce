@@ -2599,7 +2599,10 @@ FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byv
  RETURN didcure
 END FUNCTION
 
-SUB equip (byval who as integer)
+'Equip menu.
+'who is party slot.
+'allow_switch is whether to allow switching left/right to other heroes
+SUB equip_menu (who as integer, allow_switch as bool = YES)
 
 DIM m(4) as string
 DIM menu(6) as string

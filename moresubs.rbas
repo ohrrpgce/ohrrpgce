@@ -1591,7 +1591,7 @@ DO
   IF menuid(st.pt) = 4 THEN '--EQUIP
    w = onwho(readglobalstring(108, "Equip Who?", 20), NO)
    IF w >= 0 THEN
-    equip w
+    equip_menu w
    END IF
   END IF
   IF menuid(st.pt) = 5 THEN '--SAVE

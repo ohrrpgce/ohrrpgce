@@ -2713,7 +2713,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
       IF slot >= 0 THEN status_screen slot
      CASE spEquip
       slot = onwho(readglobalstring(108, "Equip Whom?", 20), NO)
-      IF slot >= 0 THEN equip slot
+      IF slot >= 0 THEN equip_menu slot
      CASE spOrder
       hero_swap_menu 0
      CASE spTeam
@@ -3929,7 +3929,7 @@ FUNCTION active_party_size() as integer
 END FUNCTION
 
 FUNCTION loop_active_party_slot(byval slot as integer, byval direction as integer=1) as integer
- 'Given a slot number in the active party, return the next empty slot
+ 'Given a slot number in the active party, return the next or previous occupied slot
  IF direction <> 1 ANDALSO direction <> -1 THEN
   RETURN slot
  END IF
@@ -4535,6 +4535,12 @@ FUNCTION top_menu_allows_controls() as bool
  END IF
  RETURN NO
 END FUNCTION
+
+
+'==========================================================================================
+'                                 Hero Pathfinding/Mouse controls
+'==========================================================================================
+
 
 FUNCTION hero_is_pathfinding() as bool
  RETURN gam.hero_pathing.mode <> HeroPathingMode.NONE

@@ -4017,16 +4017,18 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
   start_fibre_timing
- CASE 154'--equip menu
+ CASE 154'--equip menu(who [, allow_switch])
   stop_fibre_timing
+  DIM allow_switch as bool
+  allow_switch = IIF(curcmd->argc < 1, YES, retvals(1) <> 0)
   'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
-    equip retvals(0)
+    equip_menu retvals(0), allow_switch
    END IF
   ELSEIF retvals(0) = -1 THEN
    'Or pass -1 to equip the first hero in the party
-   equip rank_to_party_slot(0)
+   equip_menu rank_to_party_slot(0), allow_switch
   END IF
   start_fibre_timing
  CASE 157'--order menu
