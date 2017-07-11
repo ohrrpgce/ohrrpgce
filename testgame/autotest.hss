@@ -2571,6 +2571,14 @@ script, door tests, begin
   wait for hero
   walk hero to x(0, 6)
   wait for hero
+
+  # querying doors on other maps
+  assert(current map == map:test town)
+  assert(door exists on map(0, map:Door test map))
+  assert(not(door exists on map(2, map:Door test map)))
+  assert(get door x on map(0, map:Door test map) == 11)
+  assert(get door y on map(0, map:Door test map) == 4)
+
 end
 
 ########################################################################

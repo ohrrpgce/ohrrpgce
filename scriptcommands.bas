@@ -4373,7 +4373,35 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) <= 4 THEN
    IF gam.mouse.release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
-
+ CASE 647'--door exists on map
+  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+    scriptret = readbit(read_one_door(retvals(1), retvals(0)).bits(), 0, 0)
+   END IF
+  END IF
+ CASE 648'--get door x on map
+  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+    DIM thisdoor as door = read_one_door(retvals(1), retvals(0))
+    IF readbit(thisdoor.bits(), 0, 0) THEN
+     scriptret = thisdoor.x
+    ELSE
+     scriptret = -1
+    END IF
+   END IF
+  END IF
+ CASE 649'--get door y on map
+  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+    DIM thisdoor as door = read_one_door(retvals(1), retvals(0))
+    IF readbit(thisdoor.bits(), 0, 0) THEN
+     scriptret = thisdoor.y - 1
+    ELSE
+     scriptret = -1
+    END IF
+   END IF
+  END IF
+ 
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
