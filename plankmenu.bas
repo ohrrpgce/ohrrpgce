@@ -64,11 +64,11 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
   IF ps.cur = 0 THEN debug "plank_menu_scroll_page: No cursor, and can't find one" : EXIT SUB
  END IF
 
- DIM scroll as slice ptr = find_plank_scroll(ps.m)
+ DIM scroll as Slice ptr = find_plank_scroll(ps.m)
 
  DIM targpos as XYPair
- targpos.x = ps.cur->ScreenX + ps.cur->Width / 2
- targpos.y = ps.cur->ScreenY + ps.cur->Height / 2 + scroll->Height * scrolldir
+ targpos = ps.cur->ScreenPos + ps.cur->Size / 2
+ IF scroll THEN targpos.y += scroll->Height * scrolldir
 
  REDIM planks(any) as Slice Ptr
  find_all_planks ps, ps.m, planks()
@@ -158,6 +158,7 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
  plank_checker = ps.is_plank_callback
  IF plank_checker = 0 THEN plank_checker = @default_is_plank
 
+ REDIM planks(-1 TO -1)
  DIM planks_found as integer = 0
  DIM desc as Slice ptr = m->FirstChild
  DO WHILE desc
@@ -171,7 +172,7 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
   END IF
   desc = NextDescendent(desc, m)
  LOOP
- REDIM PRESERVE planks(planks_found - 1)
+ REDIM PRESERVE planks(-1 TO planks_found - 1)
 END SUB
 
 SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as PlankItemState)
