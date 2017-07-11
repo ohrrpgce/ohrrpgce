@@ -417,7 +417,7 @@ SUB process_wait_conditions()
      IF txt.showing ANDALSO use_touch_textboxes() THEN
       'If a touch textbox is currently being displayed, we make a special
       'exception and treat any touch as the key we are waiting for
-      IF (gam.mouse.clicks AND mouseLeft) THEN
+      IF (gam.mouse.release AND mouseLeft) THEN
        script_stop_waiting()
       END IF
      ELSE
