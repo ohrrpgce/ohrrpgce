@@ -64,7 +64,8 @@ DECLARE FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum
 DECLARE FUNCTION valid_formation(byval form as integer) as integer
 DECLARE FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as integer
 DECLARE FUNCTION valid_zone(byval id as integer) as integer
-DECLARE FUNCTION valid_door(byval id as integer) as integer
+DECLARE FUNCTION valid_door OVERLOAD (byval id as integer) as bool
+DECLARE FUNCTION valid_door OVERLOAD (thisdoor as door) as bool
 DECLARE FUNCTION valid_map_layer(layer as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
 DECLARE FUNCTION valid_save_slot(slot as integer) as integer

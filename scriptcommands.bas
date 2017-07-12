@@ -29,6 +29,7 @@
 ''''' Local functions
 DECLARE SUB run_game ()
 DECLARE FUNCTION check_game_exists () as integer
+DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, arg_index as integer) as bool
 
 
 ''''' Global variables
@@ -3203,16 +3204,20 @@ SUB script_functions(byval cmdid as integer)
    scriptret = find_plotslice_handle(npc(npcref).sl)
   END IF
  CASE 521 '--get door x
-  IF valid_door(retvals(0)) THEN
-   scriptret = gam.map.door(retvals(0)).x
-  ELSE
-   scriptret = -1
+  scriptret = -1
+  DIM thisdoor as door
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+   IF valid_door(thisdoor) THEN
+    scriptret = thisdoor.x
+   END IF
   END IF
  CASE 522 '--get door y
-  IF valid_door(retvals(0)) THEN
-   scriptret = gam.map.door(retvals(0)).y - 1
-  ELSE
-   scriptret = -1
+  scriptret = -1
+  DIM thisdoor as door
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+   IF valid_door(thisdoor) THEN
+    scriptret = thisdoor.y - 1
+   END IF
   END IF
  CASE 523 '--get door destination id
   scriptret = -1
@@ -3227,8 +3232,11 @@ SUB script_functions(byval cmdid as integer)
    IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest_map
   END IF
  CASE 525 '--door exists
-  IF retvals(0) >= 0 AND retvals(0) <= maxDoorsPerMap THEN
-   scriptret = readbit(gam.map.door(retvals(0)).bits(), 0, 0)
+  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
+   DIM thisdoor as door
+   IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+    scriptret = readbit(thisdoor.bits(), 0, 0)
+   END IF
   END IF
  CASE 526 '--get attack caption
   IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , , serrBadOp) THEN
@@ -4373,34 +4381,6 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) <= 4 THEN
    IF gam.mouse.release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
- CASE 647'--door exists on map
-  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
-   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
-    scriptret = readbit(read_one_door(retvals(1), retvals(0)).bits(), 0, 0)
-   END IF
-  END IF
- CASE 648'--get door x on map
-  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
-   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
-    DIM thisdoor as door = read_one_door(retvals(1), retvals(0))
-    IF readbit(thisdoor.bits(), 0, 0) THEN
-     scriptret = thisdoor.x
-    ELSE
-     scriptret = -1
-    END IF
-   END IF
-  END IF
- CASE 649'--get door y on map
-  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
-   IF bound_arg(retvals(1), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
-    DIM thisdoor as door = read_one_door(retvals(1), retvals(0))
-    IF readbit(thisdoor.bits(), 0, 0) THEN
-     scriptret = thisdoor.y - 1
-    ELSE
-     scriptret = -1
-    END IF
-   END IF
-  END IF
  
 
  CASE ELSE
@@ -4954,11 +4934,20 @@ FUNCTION valid_zone(byval id as integer) as integer
  RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , , serrBadOp)
 END FUNCTION
 
-FUNCTION valid_door(byval id as integer) as integer
+FUNCTION valid_door(byval id as integer) as bool
  IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , serrBadOp) = NO THEN RETURN NO
  IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
   'Door doesn't exist
   scripterr current_command_name() & ": invalid door id " & id, serrBadOp
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION valid_door(thisdoor as door) as bool
+ IF readbit(thisdoor.bits(), 0, 0) = 0 THEN
+  'Door doesn't exist
+  scripterr current_command_name() & ": invalid door object", serrBadOp
   RETURN NO
  END IF
  RETURN YES
@@ -4984,6 +4973,27 @@ FUNCTION valid_save_slot(slot as integer) as integer
  RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
 END FUNCTION
 
+FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, arg_index as integer) as bool
+ IF curcmd->argc < arg_index + 1 THEN
+  'map arg doesn't exist, use current map
+  thisdoor = gam.map.door(door_id)
+  RETURN YES
+ ELSEIF retvals(arg_index) = -1 THEN
+  'default to current map
+  thisdoor = gam.map.door(door_id)
+  RETURN YES
+ ELSE
+  IF bound_arg(retvals(arg_index), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+   IF retvals(arg_index) = gam.map.id THEN
+    thisdoor = gam.map.door(door_id)
+   ELSE
+    thisdoor = read_one_door(retvals(arg_index), door_id)
+   END IF
+   RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
 
 '==========================================================================================
 '                             Misc command implementations

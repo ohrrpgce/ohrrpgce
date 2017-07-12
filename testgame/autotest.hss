@@ -2574,10 +2574,10 @@ script, door tests, begin
 
   # querying doors on other maps
   assert(current map == map:test town)
-  assert(door exists on map(0, map:Door test map))
-  assert(not(door exists on map(2, map:Door test map)))
-  assert(get door x on map(0, map:Door test map) == 11)
-  assert(get door y on map(0, map:Door test map) == 4)
+  assert(door exists(0, map:Door test map))
+  assert(not(door exists(2, map:Door test map)))
+  assert(get door x(0, map:Door test map) == 11)
+  assert(get door y(0, map:Door test map) == 4)
 
 end
 

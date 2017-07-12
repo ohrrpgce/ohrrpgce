@@ -541,11 +541,11 @@ define function, begin
 518,menuitemtrueslot,1,0         #slot no. of a menu item as it appears in Custom (menu item handle)
 519,getheroslice,1,0             #get the slice representing a hero walkabout
 520,getNPCslice,1,0              #get the slice representing an NPC walkabout
-521,getdoorx,1,0                 #x coordinate of given door
-522,getdoory,1,0                 #y coordinate of given door
+521,getdoorx,2,0,-1              #x coordinate of given door
+522,getdoory,2,0,-1              #y coordinate of given door
 523,getdoordestinationid,1,0     #door id of given door's exit
 524,getdoordestinationmap,1,0    #map number of given door's exit
-525,doorexists,1,0               #returns true if the given door exists
+525,doorexists,2,0,-1            #returns true if the given door exists
 526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
 527,getrectfuzziness,1,0         #get rect fuzz percentange
 528,setrectfuzziness,2,0,50      #set rect fuzz percentange
@@ -668,9 +668,6 @@ define function, begin
 644,getscreenheight,0         # return the y resolution of the screen
 645,setscreenresolution,2,0,0 # change the x,y resolution of the screen
 646,mouserelease,1,0          # returns true if the specified button is was just released (button)
-647,doorexistsonmap,2,0,-1    # returns true if the given door exists on that map (defaults to current map)
-648,getdoorxonmap,2,0,-1      # x coordinate of given door on a map (defaults to current map)
-649,getdooryonmap,2,0,-1      # y coordinate of given door on a map (defaults to current map)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
