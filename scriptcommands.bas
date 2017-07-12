@@ -615,12 +615,12 @@ SUB script_functions(byval cmdid as integer)
  CASE 86'--advance text box
   advance_text_box
  CASE 97'--read map block
-  IF curcmd->argc = 2 THEN retvals(2) = 0
+  retvals(2) = get_optional_arg(2, 0)
   IF retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
    scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
   END IF
  CASE 98'--write map block
-  IF curcmd->argc = 3 THEN retvals(3) = 0
+  retvals(3) = get_optional_arg(3, 0)
   IF retvals(3) >= 0 AND retvals(3) <= UBOUND(maptiles) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
    writeblock maptiles(retvals(3)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), retvals(2)
    lump_reloading.maptiles.dirty = YES
@@ -714,7 +714,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 234'--load menu (reallyload, show new game)
   stop_fibre_timing
   ' Originally only had one argument; 'show new game' should default to true
-  IF curcmd->argc < 2 THEN retvals(1) = 1
+  retvals(1) = get_optional_arg(1, 1)
   scriptret = pickload(retvals(1)) + 1
   IF retvals(0) THEN
    'Enact whatever the user picked
@@ -747,17 +747,17 @@ SUB script_functions(byval cmdid as integer)
  CASE 248'--delete map state
   deletemapstate gam.map.id, retvals(0), "map"
  CASE 253'--set tile animation offset
-  IF curcmd->argc < 3 THEN retvals(2) = 0
+  retvals(2) = get_optional_arg(2, 0)
   IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(2), serrBound) THEN
    tilesets(retvals(2))->anim(retvals(0)).cycle = retvals(1) MOD 160
   END IF
  CASE 254'--get tile animation offset
-  IF curcmd->argc < 2 THEN retvals(1) = 0
+  retvals(1) = get_optional_arg(1, 0)
   IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(1), serrBound) THEN
    scriptret = tilesets(retvals(1))->anim(retvals(0)).cycle
   END IF
  CASE 255'--animation start tile
-  IF curcmd->argc < 2 THEN retvals(1) = 0  'Older versions
+  retvals(1) = get_optional_arg(1, 0)
   IF (retvals(0) >= 0 AND retvals(0) < 256) AND valid_map_layer(retvals(1), serrBound) THEN
    scriptret = tile_anim_deanimate_tile(retvals(0), tilesets(retvals(1))->tastuf())
   END IF
@@ -850,7 +850,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 287'--get level mp
   IF valid_hero_party(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 7, "mp level") THEN
-    IF curcmd->argc = 2 THEN retvals(2) = 0  'Third arg added later
+    retvals(2) = get_optional_arg(2, 0)
     IF retvals(2) = 0 THEN
      'Current stat
      scriptret = lmp(retvals(0), retvals(1))
@@ -1606,7 +1606,8 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 181'--map height([map])
   'map height did not originally have an argument
-  IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
+  retvals(0) = get_optional_arg(0, -1)
+  IF retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.y
   ELSE
    IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , serrBadOp) THEN
@@ -2667,7 +2668,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 433'--slice at pixel(parent, x, y, num, descend, visibleonly)
   'visibleonly is recent addition
-  IF curcmd->argc < 6 THEN retvals(5) = 0
+  retvals(5) = get_optional_arg(5, 0)
   IF valid_plotslice(retvals(0)) THEN
    ' We update retvals(0) and its ancestors, FindSliceAtPoint updates its descendents.
    RefreshSliceScreenPos plotslices(retvals(0))
@@ -2681,7 +2682,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 434'--find colliding slice(parent, handle, num, descend, visibleonly)
-  IF curcmd->argc < 5 THEN retvals(4) = 0
+  retvals(4) = get_optional_arg(4, 0)
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
    ' We update retvals(0/1) and their ancestors, FindSliceCollision updates retvals(0)'s descendents.
    RefreshSliceScreenPos plotslices(retvals(0))
@@ -4026,9 +4027,10 @@ SUB script_functions(byval cmdid as integer)
   END IF
   start_fibre_timing
  CASE 154'--equip menu(who [, allow_switch])
+  retvals(1) = get_optional_arg(1, 0)
   stop_fibre_timing
   DIM allow_switch as bool
-  allow_switch = IIF(curcmd->argc < 1, YES, retvals(1) <> 0)
+  allow_switch = (retvals(1) <> 0)
   'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
