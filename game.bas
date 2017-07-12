@@ -67,6 +67,7 @@ DECLARE FUNCTION catindex(byval rank as integer) as integer
 DECLARE FUNCTION user_triggered_main_menu() as bool
 DECLARE FUNCTION player_menu_should_close() as bool
 DECLARE SUB debug_mouse_state()
+DECLARE FUNCTION do_find_doorlink (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
 
 '=================================== Globals ==================================
 
@@ -3077,16 +3078,41 @@ SUB checkdoors ()
  IF door_id >= 0 THEN usedoor door_id
 END SUB
 
-FUNCTION find_doorlink (byval door_id as integer) as integer
+FUNCTION find_doorlink (byval door_id as integer, byval map_id as integer=-1) as integer
  'Returns the index in gam.map.doorlinks() which is active for this door,
  'or -1 if none are, or if the door does not even exist.
+ 'If map_id is -1 then use the current map
+ DIM thisdoor as door
+ IF map_id = -1 THEN map_id = gam.map.id
+ IF map_id = gam.map.id THEN
+  thisdoor = gam.map.door(door_id)
+ ELSE
+  IF read_one_door(thisdoor, map_id, door_id) = NO THEN RETURN -1
+ END IF
 
- IF readbit(gam.map.door(door_id).bits(), 0, 0) = 0 THEN RETURN -1
+ IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN -1
 
- deserdoorlinks maplumpname(gam.map.id,"d"), gam.map.doorlinks()
+ IF map_id = gam.map.id THEN
+  'WARNING as a side-effect when used for a valid door on the current map,
+  ' this function populates gam.map.doorlinks() which may be used later
+  deserdoorlinks maplumpname(map_id,"d"), gam.map.doorlinks()
+  RETURN do_find_doorlink(door_id, thisdoor, gam.map.doorlinks())
+ ELSE
+  DIM door_links(199) as DoorLink
+  deserdoorlinks maplumpname(map_id,"d"), door_links()
+  RETURN do_find_doorlink(door_id, thisdoor, door_links())
+ END IF
+END FUNCTION
 
- FOR i as integer = 0 TO UBOUND(gam.map.doorlinks)
-  WITH gam.map.doorlinks(i)
+FUNCTION do_find_doorlink (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
+ 'Returns the index in door_links() which is active for door_id,
+ 'or -1 if none are, or if the door does not even exist.
+ 'Assumes that the door_id and the doorlinks() array belong to the same map
+
+ IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN -1
+
+ FOR i as integer = 0 TO UBOUND(door_links)
+  WITH door_links(i)
    IF door_id = .source THEN
     IF istag(.tag1, YES) AND istag(.tag2, YES) THEN 'Check tags to make sure this door is okay
      RETURN i
