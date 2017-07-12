@@ -4944,10 +4944,12 @@ FUNCTION valid_door(byval id as integer) as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_door(thisdoor as door) as bool
+FUNCTION valid_door(thisdoor as door, byval id as integer=-1) as bool
  IF readbit(thisdoor.bits(), 0, 0) = 0 THEN
   'Door doesn't exist
-  scripterr current_command_name() & ": invalid door object", serrBadOp
+  DIM errtext as string = current_command_name() & ": invalid door object"
+  IF id >= 0 THEN errtext &= " id " & id
+  scripterr errtext, serrBadOp
   RETURN NO
  END IF
  RETURN YES
