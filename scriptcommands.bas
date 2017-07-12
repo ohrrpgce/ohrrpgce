@@ -29,7 +29,8 @@
 ''''' Local functions
 DECLARE SUB run_game ()
 DECLARE FUNCTION check_game_exists () as integer
-DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval arg_index as integer) as bool
+DECLARE FUNCTION get_optional_arg(byval retval_index as integer, byval default as integer) as integer
+DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
 
 
 ''''' Global variables
@@ -3205,16 +3206,18 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 521 '--get door x
   scriptret = -1
+  DIM map_id as integer = get_optional_arg(1, -1)
   DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
    IF valid_door(thisdoor) THEN
     scriptret = thisdoor.x
    END IF
   END IF
  CASE 522 '--get door y
   scriptret = -1
+  DIM map_id as integer = get_optional_arg(1, -1)
   DIM thisdoor as door
-  IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
    IF valid_door(thisdoor) THEN
     scriptret = thisdoor.y - 1
    END IF
@@ -3233,8 +3236,9 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 525 '--door exists
   IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
+   DIM map_id as integer = get_optional_arg(1, -1)
    DIM thisdoor as door
-   IF get_door_by_map_script_arg(thisdoor, retvals(0), 1) THEN
+   IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
     scriptret = readbit(thisdoor.bits(), 0, 0)
    END IF
   END IF
@@ -4975,13 +4979,7 @@ FUNCTION valid_save_slot(slot as integer) as integer
  RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
 END FUNCTION
 
-FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval arg_index as integer) as bool
- IF curcmd->argc < arg_index + 1 THEN
-  'map arg doesn't exist, use current map
-  thisdoor = gam.map.door(door_id)
-  RETURN YES
- END IF
- DIM map_id as integer = retvals(arg_index)
+FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
  IF map_id = -1 THEN
   'default to current map
   thisdoor = gam.map.door(door_id)
@@ -4998,6 +4996,19 @@ FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as int
   END IF
  END IF
  RETURN NO
+END FUNCTION
+
+'==========================================================================================
+'                             Utility functions for default arguments 
+'==========================================================================================
+
+'This function is for when a new argument has been added that will exist in newer compiled
+' scripts, but might be missing in old compiled scripts
+FUNCTION get_optional_arg(byval retval_index as integer, byval default as integer) as integer
+ IF curcmd->argc < retval_index + 1 THEN
+  RETURN default
+ END IF
+ RETURN retvals(retval_index)
 END FUNCTION
 
 '==========================================================================================
