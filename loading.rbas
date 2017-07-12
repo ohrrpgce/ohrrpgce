@@ -1456,11 +1456,30 @@ sub CleanDoorLinks(array() as doorlink)
 	next
 end sub
 
-Function read_one_door(byval map_id as integer, byval door_id as integer) as door
-	'FIXME: This could definitely be more efficient!
-	dim doortemp(maxDoorsPerMap) as door
-	DeSerDoors game & ".dox", doortemp(), map_id
-	return doortemp(door_id)
+Function read_one_door(byref thisdoor as door, byval map_id as integer, byval door_id as integer) as bool
+	'Returns NO if unable to read the file.
+	'Still succeeds for doors that don't happen to be defined. (undefined doors can be identified by checking the .bits()) 
+	dim as integer f
+	
+	if openfile(game & ".dox", for_binary + access_read, f) <> fberrOK then
+		return NO
+	end if
+
+	'Get the offset of the beginning of the desired map
+	dim recstart as integer = 1 + map_id * 600
+	'Get the size of a section of the same type of data
+	dim sectionbytes as integer = (MaxDoorsPerMap + 1) * 2
+
+	seek #f, recstart + door_id * 2 
+	thisdoor.x = readshort(f)
+	seek #f, recstart + sectionbytes + door_id * 2 
+	thisdoor.y = readshort(f)
+	seek #f, recstart + sectionbytes * 2 + door_id * 2 
+	thisdoor.bits(0) = readshort(f)
+	
+	close #f
+	
+	return YES
 End function
 
 Sub DeSerDoors(filename as string, array() as door, byval record as integer)
@@ -1470,6 +1489,7 @@ Sub DeSerDoors(filename as string, array() as door, byval record as integer)
 		exit sub
 	end if
 	
+	'Jump to the beginning of the desired map
 	seek #f, record * 600 + 1
 	
 	for i = 0 to maxDoorsPerMap

@@ -29,7 +29,7 @@
 ''''' Local functions
 DECLARE SUB run_game ()
 DECLARE FUNCTION check_game_exists () as integer
-DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, arg_index as integer) as bool
+DECLARE FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval arg_index as integer) as bool
 
 
 ''''' Global variables
@@ -4975,22 +4975,25 @@ FUNCTION valid_save_slot(slot as integer) as integer
  RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
 END FUNCTION
 
-FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, arg_index as integer) as bool
+FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval arg_index as integer) as bool
  IF curcmd->argc < arg_index + 1 THEN
   'map arg doesn't exist, use current map
   thisdoor = gam.map.door(door_id)
   RETURN YES
- ELSEIF retvals(arg_index) = -1 THEN
+ END IF
+ DIM map_id as integer = retvals(arg_index)
+ IF map_id = -1 THEN
   'default to current map
   thisdoor = gam.map.door(door_id)
   RETURN YES
- ELSE
-  IF bound_arg(retvals(arg_index), 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
-   IF retvals(arg_index) = gam.map.id THEN
-    thisdoor = gam.map.door(door_id)
-   ELSE
-    thisdoor = read_one_door(retvals(arg_index), door_id)
-   END IF
+ END IF
+ IF bound_arg(map_id, 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+  IF map_id = gam.map.id THEN
+   'requested a specific map, but it was the current one
+   thisdoor = gam.map.door(door_id)
+   RETURN YES
+  END IF
+  IF read_one_door(thisdoor, map_id, door_id) THEN
    RETURN YES
   END IF
  END IF
