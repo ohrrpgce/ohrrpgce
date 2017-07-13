@@ -2580,10 +2580,16 @@ script, door tests, begin
   assert(get door y(0, map:Door test map) == 4)
   assert(check tag(7) == on)
   assert(get door destination id(0, map:Door test map) == 0)
+  assert(get door destination map(0, map:Door test map) == map:Test Town)
   assert(get door destination id(1, map:Door test map) == 0)
+  assert(get door destination map(1, map:Door test map) == map:Door test map)
   set tag(7, off)
   assert(get door destination id(1, map:Door test map) == -1)
+  assert(get door destination map(1, map:Door test map) == -1)
   set tag(7, on)
+  assert(get door destination id(2, map:Door test map) == -1)
+  assert(get door destination map(2, map:Door test map) == -1)
+  
 
 end
 

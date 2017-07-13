@@ -544,7 +544,7 @@ define function, begin
 521,getdoorx,2,0,-1              #x coordinate of given door
 522,getdoory,2,0,-1              #y coordinate of given door
 523,getdoordestinationid,2,0,-1  #door id of given door's exit
-524,getdoordestinationmap,1,0    #map number of given door's exit
+524,getdoordestinationmap,2,0,-1 #map number of given door's exit
 525,doorexists,2,0,-1            #returns true if the given door exists
 526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
 527,getrectfuzziness,1,0         #get rect fuzz percentange

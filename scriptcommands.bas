@@ -3235,9 +3235,11 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 524 '--get door destination map
   scriptret = -1
-  IF valid_door(retvals(0)) THEN
+  DIM map_id as integer = get_optional_arg(1, -1)
+  DIM thisdoor as door
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
    DIM dlink as doorlink
-   IF find_doorlink(dlink, retvals(0)) THEN
+   IF find_doorlink(dlink, retvals(0), map_id) THEN
     scriptret = dlink.dest_map
    END IF
   END IF
