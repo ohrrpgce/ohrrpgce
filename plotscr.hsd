@@ -543,7 +543,7 @@ define function, begin
 520,getNPCslice,1,0              #get the slice representing an NPC walkabout
 521,getdoorx,2,0,-1              #x coordinate of given door
 522,getdoory,2,0,-1              #y coordinate of given door
-523,getdoordestinationid,1,0     #door id of given door's exit
+523,getdoordestinationid,2,0,-1  #door id of given door's exit
 524,getdoordestinationmap,1,0    #map number of given door's exit
 525,doorexists,2,0,-1            #returns true if the given door exists
 526,getattackcaption,2,0,0       #puts an attack's caption in a string (string id, attack id+1 / attack .hsi constant)
