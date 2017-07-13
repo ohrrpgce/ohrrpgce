@@ -3092,14 +3092,12 @@ FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer
 
  IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN NO
 
- IF map_id = gam.map.id THEN
-  DIM door_links(199) as DoorLink
-  deserdoorlinks maplumpname(map_id,"d"), door_links()
-  DIM index as integer = find_doorlink_id(door_id, thisdoor, door_links())
-  IF index >= 0 THEN
-   thisdoorlink = door_links(index)
-   RETURN YES
-  END IF
+ DIM door_links(199) as DoorLink
+ deserdoorlinks maplumpname(map_id,"d"), door_links()
+ DIM index as integer = find_doorlink_id(door_id, thisdoor, door_links())
+ IF index >= 0 THEN
+  thisdoorlink = door_links(index)
+  RETURN YES
  END IF
  RETURN NO
 END FUNCTION
