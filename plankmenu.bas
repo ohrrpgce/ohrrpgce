@@ -165,7 +165,7 @@ SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Sl
   IF plank_checker(desc) THEN
    'This is a plank.
    IF planks_found > UBOUND(planks) THEN
-    REDIM PRESERVE planks(UBOUND(planks) + 10)
+    REDIM PRESERVE planks(-1 TO UBOUND(planks) + 10)
    END IF
    planks(planks_found) = desc
    planks_found += 1
