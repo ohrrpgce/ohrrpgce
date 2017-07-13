@@ -67,7 +67,7 @@ DECLARE FUNCTION catindex(byval rank as integer) as integer
 DECLARE FUNCTION user_triggered_main_menu() as bool
 DECLARE FUNCTION player_menu_should_close() as bool
 DECLARE SUB debug_mouse_state()
-DECLARE FUNCTION do_find_doorlink (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
+DECLARE FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
 
 '=================================== Globals ==================================
 
@@ -3078,36 +3078,37 @@ SUB checkdoors ()
  IF door_id >= 0 THEN usedoor door_id
 END SUB
 
-FUNCTION find_doorlink (byval door_id as integer, byval map_id as integer=-1) as integer
- 'Returns the index in gam.map.doorlinks() which is active for this door,
- 'or -1 if none are, or if the door does not even exist.
+FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer, byval map_id as integer=-1) as bool
+ 'populates the thisdoorlink object
+ 'returns YES on success, or NO if no links were found or the door doesn't exist
  'If map_id is -1 then use the current map
  DIM thisdoor as door
  IF map_id = -1 THEN map_id = gam.map.id
  IF map_id = gam.map.id THEN
   thisdoor = gam.map.door(door_id)
  ELSE
-  IF read_one_door(thisdoor, map_id, door_id) = NO THEN RETURN -1
+  IF read_one_door(thisdoor, map_id, door_id) = NO THEN RETURN NO
  END IF
 
- IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN -1
+ IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN NO
 
  IF map_id = gam.map.id THEN
-  'WARNING as a side-effect when used for a valid door on the current map,
-  ' this function populates gam.map.doorlinks() which may be used later
-  deserdoorlinks maplumpname(map_id,"d"), gam.map.doorlinks()
-  RETURN do_find_doorlink(door_id, thisdoor, gam.map.doorlinks())
- ELSE
   DIM door_links(199) as DoorLink
   deserdoorlinks maplumpname(map_id,"d"), door_links()
-  RETURN do_find_doorlink(door_id, thisdoor, door_links())
+  DIM index as integer = find_doorlink_id(door_id, thisdoor, door_links())
+  IF index >= 0 THEN
+   thisdoorlink = door_links(index)
+   RETURN YES
+  END IF
  END IF
+ RETURN NO
 END FUNCTION
 
-FUNCTION do_find_doorlink (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
+FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
  'Returns the index in door_links() which is active for door_id,
  'or -1 if none are, or if the door does not even exist.
  'Assumes that the door_id and the doorlinks() array belong to the same map
+ 'If multiple matches exist, only the first one that passes the tag tests will be returned.
 
  IF readbit(thisdoor.bits(), 0, 0) = 0 THEN RETURN -1
 
@@ -3124,10 +3125,10 @@ FUNCTION do_find_doorlink (byval door_id as integer, thisdoor as door, door_link
 END FUNCTION
 
 SUB usedoor (byval door_id as integer)
- DIM linknum as integer = find_doorlink(door_id)
- IF linknum = -1 THEN EXIT SUB
+ DIM dlink as doorlink
+ IF find_doorlink(dlink, door_id) = NO THEN EXIT SUB
 
- WITH gam.map.doorlinks(linknum)
+ WITH dlink
   gam.map.same = (.dest_map = gam.map.id)
   gam.map.id = .dest_map
   deserdoors game + ".dox", gam.map.door(), gam.map.id

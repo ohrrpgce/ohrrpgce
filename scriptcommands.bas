@@ -3226,14 +3226,18 @@ SUB script_functions(byval cmdid as integer)
  CASE 523 '--get door destination id
   scriptret = -1
   IF valid_door(retvals(0)) THEN
-   DIM linknum as integer = find_doorlink(retvals(0))
-   IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest
+   DIM dlink as doorlink
+   IF find_doorlink(dlink, retvals(0)) THEN
+    scriptret = dlink.dest
+   END IF
   END IF
  CASE 524 '--get door destination map
   scriptret = -1
   IF valid_door(retvals(0)) THEN
-   DIM linknum as integer = find_doorlink(retvals(0))
-   IF linknum >= 0 THEN scriptret = gam.map.doorlinks(linknum).dest_map
+   DIM dlink as doorlink
+   IF find_doorlink(dlink, retvals(0)) THEN
+    scriptret = dlink.dest_map
+   END IF
   END IF
  CASE 525 '--door exists
   IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN

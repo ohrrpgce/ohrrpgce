@@ -13,7 +13,6 @@ TYPE MapModeState
   same     as bool    'flag that indicates when you are moving through a same-map door
   name     as string
   door(maxDoorsPerMap) as Door
-  doorlinks(199) as doorlink
 END TYPE
 
 TYPE HeroStats
