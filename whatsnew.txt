@@ -125,6 +125,9 @@ WHAT IS NEW?
       "cancel npc walk" [James]
     * "get screen width" and "get screen height" [James]
     * "mouse release" to check if a click has just ended [James]
+    * Commands for reading door information can now optionally read
+      information about doors on other maps instead of the current map
+      [James]
     * Changes to the language:
       * -= and += now return their result, like := does, so they can be
         used as expressions [Ralph]
