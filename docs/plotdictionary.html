@@ -4963,7 +4963,7 @@ resume player</pre>
 <a name="about-dooratspot"></a>
 		<h4>door at spot (x, y)</h4>
 <p>
-			Checks whether there is a door on the position given by <a href="#x" class="undef">x</a>, <a href="#y" class="undef">y</a> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <a href="#about-getdoordestinationid" class="ref">get door destination id</a> to check if a door is active. If you want to script your own map transitions, you will find <a href="#about-suspenddoors" class="ref">suspend doors</a> helpful.
+			Checks whether there is a door on the position given by <span class="param">x</span>, <span class="param">y</span> in tiles and if so returns its ID; otherwise returns -1. Note that the door might not have any active doorlink, or no door links at all. You can use <a href="#about-getdoordestinationid" class="ref">get door destination id</a> to check if a door is active. If you want to script your own map transitions, you will find <a href="#about-suspenddoors" class="ref">suspend doors</a> helpful.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5108,7 +5108,7 @@ while (npcref) do (
 <a name="about-pathfindnpcto"></a>
 		<h4>pathfind NPC to (who, x, y, stuck ticks)</h4>
 <p>
-			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#cancel%20npc%20walk" class="undef">cancel npc walk</a> command.
+			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5125,7 +5125,7 @@ while (npcref) do (
 <a name="about-npcchasesnpc"></a>
 		<h4>NPC chases NPC (who, other who, stop when reached, stuck ticks)</h4>
 <p>
-			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#cancel%20npc%20walk" class="undef">cancel npc walk</a> command.
+			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11149,7 +11149,7 @@ end
 <a name="about-getnpcslice"></a>
 		<h4>get npc slice (npc)</h4>
 <p>
-			Get the slice for an NPC walkabout. The argument is the NPC id or an <a href="#NPCreference" class="undef">NPCreference</a>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.
+			Get the slice for an NPC walkabout. The argument is the NPC id or an <a href="#about-npcreference" class="ref">NPC reference</a>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getheroslice" class="ref">get hero slice</a></li></ul>
@@ -17352,7 +17352,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-autonumber"></a>
 		<h4>autonumber</h4>
 <p>
-			autonumber is a constant that is used as the ID number in old-style <a href="#definescript" class="undef">definescript</a> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.
+			autonumber is a constant that is used as the ID number in old-style <b>define script</b> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.
 			
 			
 			
