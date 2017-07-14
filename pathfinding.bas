@@ -288,8 +288,8 @@ Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst Ptr=null, byval i
  for i as integer = 0 TO ubound(npc)
   if npc(i).id > 0 andalso npci <> @npc(i) andalso npc(i).not_obstruction = 0 then
    if ignore_step_on andalso npcs(npc(i).id - 1).activation = 2 then continue for
-   tpos.x = (npc(i).x + 10) \ 20
-   tpos.y = (npc(i).y + 10) \ 20
+   tpos.x = (npc(i).x + 10 + npc(i).xgo) \ 20
+   tpos.y = (npc(i).y + 10 + npc(i).ygo) \ 20
    'On wrapping maps have to wrap after rounding to the nearest tile, which might be x=width or y=height
    'cropposition(tpos.x, tpos.y, 1)  'Slower
    if tpos.x = mapsizetiles.x then tpos.x = 0
