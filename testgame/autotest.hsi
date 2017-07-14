@@ -119,6 +119,7 @@ define constant, begin
 2,map:Insteadofbattle script map
 3,map:InsteadAfter battle map
 4,map:Door test map
+5,map:Pathland
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run

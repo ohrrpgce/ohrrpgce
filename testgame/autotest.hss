@@ -11,6 +11,7 @@ include, hstests.hss
 ########################################################################
 
 define constant(1, default wait)
+define constant(10, timer:checkpoint)
 
 global variable(100, menu item script global)
 global variable(101, timer global)
@@ -32,6 +33,7 @@ global variable(116, savegame slice)
 global variable(117, savegame npc)
 global variable(118, called resetgame)
 global variable(119, hook loadgame)
+global variable(120, timer checkpoint interval)
 
 # 200-500 used in hstests.hss
 # 5000-6000 used in hstests.hss
@@ -114,9 +116,24 @@ script, run tests 1, begin
   enemy tests
   battle tests
   timer tests
+  pathfinding tests
   run game tests
   resetgame tests   # Resets the game
   crash
+end
+
+script, start checkpoint timer, interval, begin
+  timer checkpoint interval := interval
+  do start checkpoint interval
+end
+
+script, do start checkpoint interval , begin
+  _checkpoint
+  set timer(timer:checkpoint, 0, timer checkpoint interval, @do start checkpoint interval)
+end
+
+script, stop checkpoint timer, begin
+  stop timer(timer:checkpoint)
 end
 
 # follows "resetgame tests"
@@ -2507,6 +2524,109 @@ script, battle timer test, begin
   append number(0, timer global)
   trace(0)
   show string(0), w
+end
+
+########################################################################
+
+script, pathfinding tests, begin
+  $0="Pathfinding tests"
+  
+  variable(oldx, oldy, oldmap)
+  oldx := herox(me)
+  oldy := heroy(me)
+  oldmap := current map
+  
+  teleport to map(map:Pathland, 8, 7)
+  start checkpoint timer(4)
+  
+  variable(ref)
+  ref := create NPC(0, 17, 3)
+  pathfind npc to(ref, hero x(me), hero y(me), 1)
+  wait for npc(ref)
+  assert(dist from leader(ref) == 1)
+ 
+  pathfind npc to(ref, 8, 3)
+  wait for npc(ref)
+  assert(npc x(ref) == 8)
+  assert(npc y(ref) == 3)
+  
+  # With pacing NPCs in the way
+  create npc(1, 8, 10, right)
+  create npc(1, 8, 11, right)
+  create npc(1, 8, 12, right)
+  create npc(1, 8, 13, right)
+  camera follows npc(ref)
+  pathfind npc to(ref, 10, 16)
+  wait for npc(ref)
+  assert(npc x(ref) == 10)
+  assert(npc y(ref) == 16)
+  
+  # To an unreachable zone destination
+  pathfind npc to(ref, 15, 5, 1)
+  wait for npc(ref)
+  assert(dist from pos(ref, 15, 5) == 2)
+  
+  # Cancelling a walk
+  pathfind npc to(ref, 14, 9)
+  wait for npc(ref)
+  assert(is at pos(ref, 14, 9))
+  pathfind npc to(ref, 17, 11)
+  wait(10)
+  cancel npc walk(ref)
+  assert(is at pos(ref, 15, 8))
+  # also test cancelling a regular walk npc
+  walk npc(ref, left, 4)
+  wait(10)
+  cancel npc walk(ref)
+  assert(is at pos(ref, 13, 8))
+  # cancel a walk mid-step
+  walk npc(ref, right, 3)
+  wait(1)
+  cancel npc walk(ref)
+  assert(npc is walking(ref) == true) # this doesn't become false until the current step finishes
+  wait for npc(ref)
+  assert(npc is walking(ref) == false)
+  assert(is at pos(ref, 14, 8))
+  # Test obstructed wait with no timeout
+  create npc(2, 9, 8)
+  pathfind npc to(ref, 9, 7)
+  wait(7 * 5) # wait the time it takes to walk 7 steps (will get stuck after 6 steps)
+  assert(is at pos(ref, 10, 8))
+  walk npc(2, south, 1)
+  wait for npc(ref)
+  assert(is at pos(ref, 9, 7))
+  # Test npc following npc
+  walk npc(ref, south, 1)
+  wait for npc(1)
+  assert(is at pos(ref, 9, 7))
+  pathfind npc to(ref, 16, 18)
+  wait(10)
+  npc chases npc(2, ref, false, 10)
+  wait for npc(ref)
+  assert(is at pos(ref, 16, 18))
+  wait for npc(2)
+  assert(dist from pos(2, 16, 18) == 1)
+  
+  # clean up
+  camera follows hero
+  stop checkpoint timer
+  
+  teleport to map(oldmap, oldx, oldy)
+end
+
+script, is at pos, ref, x, y, begin
+  exit returning(npc x (ref) == x && npc y (ref) == y)
+end
+
+script, dist from leader, ref, begin
+  exit returning(dist from pos(ref, hero x(me), hero y(me)))
+end
+
+script, dist from pos, ref, x, y, begin
+  variable(dx, dy)
+  dx := abs(npc x(ref) -- x)
+  dy := abs(npc y(ref) -- y)
+  exit returning(dx + dy)
 end
 
 ########################################################################
