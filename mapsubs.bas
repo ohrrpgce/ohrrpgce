@@ -4934,7 +4934,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  ed.movetype(12) = "Follow walls (Left)"
  ed.movetype(13) = "Follow walls (R) stop for others"
  ed.movetype(14) = "Follow walls (L) stop for others"
- ed.movetype(15) = "Chase You (EXPERIMENTAL Pathfinding)"
+ ed.movetype(15) = "Chase You (Pathfinding)"
  REDIM ed.pushtype(7)
  ed.pushtype(0) = "Off"
  ed.pushtype(1) = "Full"
