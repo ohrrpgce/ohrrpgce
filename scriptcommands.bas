@@ -4395,6 +4395,10 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) <= 4 THEN
    IF gam.mouse.release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
+ CASE 647'--_cancel runfast
+  enable_speed_control YES
+ CASE 648'--_runfast
+  enable_speed_control NO
  
 
  CASE ELSE

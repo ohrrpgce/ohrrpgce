@@ -668,6 +668,8 @@ define function, begin
 644,getscreenheight,0         # return the y resolution of the screen
 645,setscreenresolution,2,0,0 # change the x,y resolution of the screen
 646,mouserelease,1,0          # returns true if the specified button is was just released (button)
+647,_cancelrunfast,0          # cancels the -runfast command-line option, if it is active.
+648,_runfast,0                # speeds up as if the -runfast command-line option is active.
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
