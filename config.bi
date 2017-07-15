@@ -16,6 +16,7 @@
 #UNDEF width
 #UNDEF pos
 #UNDEF pos  ' You need to undef POS twice! Why??
+#UNDEF point
 
 '====================================== Build string ======================================
 

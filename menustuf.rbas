@@ -3580,17 +3580,15 @@ SUB virtual_keyboard_button_focus (byval button as Slice Ptr)
  END IF
 END SUB
 
-FUNCTION virtual_keyboard_button_at_pos (byref st as VirtualKeyboardScreenState, byval x as integer, byval y as integer) as Slice Ptr
-  
+FUNCTION virtual_keyboard_button_at_pos (byref st as VirtualKeyboardScreenState, byval pos as XYPair) as Slice Ptr
  DIM button as Slice Ptr
  FOR i as integer = 0 TO v_len(st.arr) - 1
   button = st.arr[i]
-  IF SliceCollidePoint(button, x, y) THEN
+  IF SliceCollidePoint(button, pos) THEN
    RETURN button
   END IF
  NEXT i
  RETURN 0
-
 END FUNCTION
 
 SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval button as Slice Ptr)
@@ -3669,7 +3667,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
   visible_debug "touch_virtual_keyboard: no text slice has SL_VIRTUAL_KEYBOARD_ENTRYTEXT lookup code"
  END IF
  st.select_sl = LookupSlice(SL_VIRTUAL_KEYBOARD_SELECT, st.sl)
-  
+
  menusound gen(genAcceptSFX)
  setkeys
  DO
@@ -3677,16 +3675,13 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
   setkeys
   control
 
-  DIM mouse as MouseInfo
-  mouse = readmouse()
-  
-  IF mouse.buttons AND mouseLeft THEN
+  IF readmouse.buttons AND mouseLeft THEN
    IF st.pushed_sl = 0 THEN
     IF NOT st.drag_off THEN
-     st.pushed_sl = virtual_keyboard_button_at_pos(st, mouse.x, mouse.y)
+     st.pushed_sl = virtual_keyboard_button_at_pos(st, readmouse.pos)
     END IF
    ELSE
-    IF st.pushed_sl <> 0 ANDALSO st.pushed_sl <> virtual_keyboard_button_at_pos(st, mouse.x, mouse.y) THEN
+    IF st.pushed_sl <> 0 ANDALSO st.pushed_sl <> virtual_keyboard_button_at_pos(st, readmouse.pos) THEN
      st.drag_off = YES
      st.pushed_sl = 0
     END IF

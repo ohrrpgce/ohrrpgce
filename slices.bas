@@ -3011,38 +3011,38 @@ Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
  SliceRefreshRecurse slc
 end sub
 
-Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
+Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
  'Check for a screen-position collision between slice 1 and slice 2 (regardless of parentage)
  'Note RefreshSliceScreenPos not called here
- if sl1 = 0 or sl2 = 0 then return 0
+ if sl1 = 0 or sl2 = 0 then return NO
  'AABB collision test
  if sl1->Width + sl2->Width <= abs(2 * sl1->ScreenX + sl1->Width - 2 * sl2->ScreenX - sl2->Width) then return NO
  if sl1->Height + sl2->Height <= abs(2 * sl1->ScreenY + sl1->Height - 2 * sl2->ScreenY - sl2->Height) then return NO
  return YES
 end function
 
-Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
+Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
  'Check if a point collides with a slice's screen position
  'Note RefreshSliceScreenPos not called here
- if sl = 0 then return 0
- if x >= sl->ScreenX and x < sl->ScreenX + sl->Width then
-  if y >= sl->ScreenY and y < sl->ScreenY + sl->Height then
+ if sl = 0 then return NO
+ if point.x >= sl->ScreenX and point.x < sl->ScreenX + sl->Width then
+  if point.y >= sl->ScreenY and point.y < sl->ScreenY + sl->Height then
    return YES
   end if
  end if
  return NO
 end function
 
-Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
+Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
  'Check if sl2 is completely contained inside sl1
- if sl1 = 0 or sl2 = 0 then return 0
+ if sl1 = 0 or sl2 = 0 then return NO
  RefreshSliceScreenPos(sl1)
  RefreshSliceScreenPos(sl2)
- if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY) then
-  if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY + sl2->Height-1) then
+ if SliceCollidePoint(sl1, sl2->ScreenPos) then
+  if SliceCollidePoint(sl1, sl2->ScreenPos + sl2->Size - 1) then
    'no nonrectangular slices (yet)
-   'if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY) then
-    'if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height-1) then
+   'if SliceCollidePoint(sl1, XY(sl2->ScreenX + sl2->Width-1, sl2->ScreenY)) then
+    'if SliceCollidePoint(sl1, XY(sl2->ScreenX, sl2->ScreenY + sl2->Height-1)) then
     'end if
    'end if
    return YES
@@ -3088,8 +3088,8 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  return NULL
 end function
 
-Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
- 'Find a slice which is not Special at a certain x,y screen position.
+Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+ 'Find a slice which is not Special at a certain screen position.
  'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
  'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
@@ -3105,13 +3105,13 @@ Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
    if .Visible or (visibleonly = NO) then
-    if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
+    if .SliceType <> slSpecial and SliceCollidePoint(s, point) then  '--impossible to encounter the root
      if num = 0 then return s
      num -= 1
     end if
 
     if descend then
-     temp = FindSliceAtPoint(s, x, y, num, YES, visibleonly)
+     temp = FindSliceAtPoint(s, point, num, YES, visibleonly)
      if temp then return temp
     end if
    end if

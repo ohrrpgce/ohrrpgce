@@ -743,13 +743,13 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
  'We want to allow finding edslice too (FindSliceAtPoint will ignore parent), but this
  'won't work when editing an existing slice tree.
  IF edslice->Parent THEN parent = edslice->Parent
- DIM mouse as MouseInfo = readmouse()
+ DIM byref mouse as MouseInfo = readmouse()
  DIM topmost as Slice ptr = NULL
  DIM idx as integer = 0
  DO
   DIM temp as integer = idx
   ' Search for visible slices
-  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.x, mouse.y, temp, YES, YES)
+  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, YES)
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.

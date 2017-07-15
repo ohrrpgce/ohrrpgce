@@ -387,11 +387,11 @@ DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
 DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
-DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
-DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
-DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
+DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
+DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
+DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
 DECLARE Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
-DECLARE Function FindSliceAtPoint(parent as Slice Ptr, x as integer, y as integer, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)

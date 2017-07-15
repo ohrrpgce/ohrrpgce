@@ -2420,7 +2420,7 @@ SUB script_functions(byval cmdid as integer)
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
-   scriptret = ABS(SliceCollidePoint(sl, retvals(1), retvals(2)))
+   scriptret = ABS(SliceCollidePoint(sl, XY(retvals(1), retvals(2))))
   END IF
  CASE 385 '--slice collide
   IF valid_plotslice(retvals(0)) THEN
@@ -2676,11 +2676,11 @@ SUB script_functions(byval cmdid as integer)
    RefreshSliceScreenPos plotslices(retvals(0))
    IF retvals(3) <= -1 THEN
     DIM slnum as integer = -1
-    FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), slnum, retvals(4), retvals(5))
+    FindSliceAtPoint(plotslices(retvals(0)), XY(retvals(1), retvals(2)), slnum, retvals(4), retvals(5))
     scriptret = -slnum - 1
    ELSE
     DIM slnum as integer = retvals(3)  ' Avoid modification to retvals
-    scriptret = find_plotslice_handle(FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), slnum, retvals(4), retvals(5)))
+    scriptret = find_plotslice_handle(FindSliceAtPoint(plotslices(retvals(0)), XY(retvals(1), retvals(2)), slnum, retvals(4), retvals(5)))
    END IF
   END IF
  CASE 434'--find colliding slice(parent, handle, num, descend, visibleonly)

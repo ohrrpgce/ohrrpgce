@@ -1194,6 +1194,8 @@ FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disa
  'Return the index into the npc() NPCInst of the npc found at the given x,y coords.
  ' This checks the location where the npc is currently displayed,
  ' not the tile they are considered to be occupying
+ ' pixelpos should be in the map bounds.
+ ' Note: if an NPC is partially over the map edge we may miss it.
  'Returns -1 if not found
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
