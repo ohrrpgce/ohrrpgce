@@ -45,6 +45,7 @@ Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
 Source: "data\*"; DestDir: "{app}\data\"; Flags: ignoreversion
+Source: "data\defaultgfx\*"; DestDir: "{app}\data\defaultgfx\"; Flags: ignoreversion
 Source: "ohrhelp\*"; DestDir: "{app}\ohrhelp\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
