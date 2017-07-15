@@ -761,7 +761,7 @@ DO
  IF running_as_slave THEN try_to_reload_lumps_onmap
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
- playtimer
+ IF gam.paused = NO THEN playtimer
 
  'DEBUG debug "read controls"
  update_virtual_gamepad_display()
@@ -771,6 +771,8 @@ DO
 
  '--Debug keys
  IF always_enable_debug_keys OR readbit(gen(), genBits, 8) = 0 THEN check_debug_keys()
+
+ IF gam.paused = NO THEN
 
  'debug "menu key handling:"
  check_menu_tags
@@ -858,6 +860,7 @@ DO
  ELSE
   dotimer(TIMER_BLOCKINGMENUS)
  END IF' end menus_allow_gameplay
+ END IF' end gam.paused = NO
 
  IF gam.want.loadgame > 0 THEN
   'DEBUG debug "loading game slot " & (gam.want.loadgame - 1)
@@ -923,9 +926,12 @@ DO
  'DEBUG debug "swap video pages"
  SWAP vpage, dpage
  setvispage vpage
- 'DEBUG debug "fade in"
- check_for_queued_music_change
- check_for_queued_fade_in
+
+ IF gam.paused = NO THEN
+  'DEBUG debug "fade in"
+  check_for_queued_music_change
+  check_for_queued_fade_in
+ END IF
  'DEBUG debug "tail of main loop"
  dowait
 LOOP
@@ -4200,6 +4206,16 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'This is also handled in allmodex
  IF dbg.def( , , "Record .gif video (Ctrl-F12)") THEN toggle_recording_gif
 
+ IF dbg.def(, scPause, "Pause game (Pause)") THEN
+  gam.paused XOR= YES
+  IF gam.paused THEN
+   gam.showtext = "PAUSED"
+   gam.showtext_ticks = INT_MAX
+  ELSE
+   gam.showtext_ticks = 0
+  END IF
+ END IF
+
  IF gam.debug_showtags = NO OR dbg.menu <> NULL THEN  'Always accessible in debug menu
   IF dbg.def(scCtrl, scPlus) OR _
      dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
@@ -4495,7 +4511,7 @@ SUB a_script_wants_keys()
 END SUB
 
 SUB update_virtual_gamepad_display()
- 'Based on global state, of the current game, decide whether or not the virual gamepad should be displaying
+ 'Based on global state, of the current game, decide whether or not the virtual gamepad should be displaying
  IF calc_virtual_gamepad_state() THEN
   IF NOT gam.pad.being_shown THEN
    show_virtual_gamepad()

@@ -133,6 +133,7 @@ TYPE GameState
   debug_showtags as bool
   debug_npc_info as bool
   debug_camera_pan as bool           'Arrow keys pan the camera, and camera mode is ignored
+  paused as bool                     'Pause the game (only in map mode; this is a debug key)
   autorungame as bool                'Game was autorun, not selected from RPG browser
   return_to_browser as bool          'Return to browser when quitting the game
   ingame as bool                     'Have loaded a game and done initialisations. True from titlescreen onwards

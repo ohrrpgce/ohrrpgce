@@ -1212,6 +1212,7 @@ mapy = 0
 gold = 0
 gam.showstring = ""
 gam.debug_camera_pan = NO
+gam.paused = NO
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 

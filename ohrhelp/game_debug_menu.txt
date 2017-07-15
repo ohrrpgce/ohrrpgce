@@ -35,6 +35,8 @@ F12 Take a screenshot, saving it next to the .rpg. Hold down to take a screensho
 
 CTRL+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files will be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
 
+PAUSE Pauses the game; only debug keys can be used.
+
 CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per tick).
 
 Holding down SHIFT+TAB increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
@@ -52,3 +54,5 @@ Manipulate gmap() array: Raw-edit gmap(), for engine developers. This gives you 
 Email saved game (Only on Android): Saves the current game and then attaches it to an email to the game developer (opens an email client).
 
 Switch to debug/release mode: This toggles whether script and other errors are displayed. Games usually default to Release because lots of errors might occur in old games, but when playtesting it's better to use Debug mode.
+
+Mouse Options: These options for mouse-based control of the hero and menus aren't totally finished yet, but you can start to try them out.
