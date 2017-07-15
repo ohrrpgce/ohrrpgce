@@ -13,6 +13,7 @@
 #include "cglobals.bi"
 #include "scrconst.bi"
 #include "loading.bi"
+#include "common_menus.bi"
 
 CONST tilew = 20
 CONST tileh = 20
@@ -4832,11 +4833,6 @@ TYPE NPCEditState
  scrname as string
  vehiclename as string
 
- movetype(any) as string
- facetype(any) as string
- usetype(any) as string
- pushtype(any) as string
-
  DECLARE SUB menu_append(itemid as integer = -2, menuitem as string, unselectable as bool = NO)
 END TYPE
 
@@ -4873,21 +4869,21 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
  ed.menu_append  1, "Palette " & defaultint(npcdata.palette)
 
  ed.menu_append   , "Movement", YES
- ed.menu_append  2, "Move Type = " & safe_caption(ed.movetype(), npcdata.movetype, "movetype")
+ ed.menu_append  2, "Move Type = " & safe_caption(npc_movetypes(), npcdata.movetype, "movetype")
  ed.menu_append  3, "Move Speed " & npcdata.speed
  ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
  ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
  ed.menu_append 17, "Ignore Passmap: " & yesorno(npcdata.ignore_passmap)
- ed.menu_append  7, "Pushability " & safe_caption(ed.pushtype(), npcdata.pushtype, "pushtype")
+ ed.menu_append  7, "Pushability " & safe_caption(npc_pushtypes(), npcdata.pushtype, "pushtype")
 
  ed.menu_append   , "Activation by player:", YES
- ed.menu_append  8, "Activation: " & safe_caption(ed.usetype(), npcdata.activation, "usetype")
+ ed.menu_append  8, "Activation: " & safe_caption(npc_usetypes(), npcdata.activation, "usetype")
  ed.menu_append  4, "Display Text " & zero_default(npcdata.textbox, "[None]")
  ed.menu_append  6, "Give Item: " & ed.itemname
  ed.menu_append 12, "Run Script: " & ed.scrname
  ed.menu_append 13, "Script Argument: " & IIF(npcdata.script, STR(npcdata.scriptarg), "N/A")
  ed.menu_append 14, "Vehicle: " & IIF(npcdata.vehicle > 0, ed.vehiclename, "No")
- ed.menu_append  5, "When Activated " & safe_caption(ed.facetype(), npcdata.facetype, "facetype")
+ ed.menu_append  5, "When Activated " & safe_caption(npc_facetypes(), npcdata.facetype, "facetype")
  IF npcdata.usetag THEN
   ed.menu_append 11, "Usable Only Once (onetime " & npcdata.usetag & ")"
  ELSE
@@ -4917,41 +4913,6 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  END WITH
  DIM menuopts as MenuOptions
  menuopts.fullscreen_scrollbar = YES
-
- REDIM ed.movetype(15)
- ed.movetype(0) = "Stand Still"
- ed.movetype(1) = "Wander"
- ed.movetype(2) = "Pace"
- ed.movetype(3) = "Right Turns"
- ed.movetype(4) = "Left Turns"
- ed.movetype(5) = "Random Turns"
- ed.movetype(6) = "Chase You (Meandering)"
- ed.movetype(7) = "Avoid You (Meandering)"
- ed.movetype(8) = "Walk In Place"
- ed.movetype(9) = "Chase You (Direct)"
- ed.movetype(10) = "Avoid You (Direct)"
- ed.movetype(11) = "Follow walls (Right)"
- ed.movetype(12) = "Follow walls (Left)"
- ed.movetype(13) = "Follow walls (R) stop for others"
- ed.movetype(14) = "Follow walls (L) stop for others"
- ed.movetype(15) = "Chase You (Pathfinding)"
- REDIM ed.pushtype(7)
- ed.pushtype(0) = "Off"
- ed.pushtype(1) = "Full"
- ed.pushtype(2) = "Vertical"
- ed.pushtype(3) = "Horizontal"
- ed.pushtype(4) = "Up only"
- ed.pushtype(5) = "Right Only"
- ed.pushtype(6) = "Down Only"
- ed.pushtype(7) = "Left Only"
- REDIM ed.usetype(2)
- ed.usetype(0) = "Use"
- ed.usetype(1) = "Touch"
- ed.usetype(2) = "Step On"
- REDIM ed.facetype(2)
- ed.facetype(0) = "Change Direction"
- ed.facetype(1) = "Face Player"
- ed.facetype(2) = "Do Not Face Player"
 
  npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
  npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
@@ -4992,7 +4953,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
     END IF
    CASE 2
-    intgrabber(npcdata.movetype, 0, ubound(ed.movetype))
+    intgrabber(npcdata.movetype, 0, ubound(npc_movetypes))
    CASE 3
     'yuck.
     IF npcdata.speed = 10 THEN npcdata.speed = 3
@@ -5003,15 +4964,15 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      ed.boxpreview = textbox_preview_line(npcdata.textbox)
     END IF
    CASE 5
-    intgrabber(npcdata.facetype, 0, ubound(ed.facetype))
+    intgrabber(npcdata.facetype, 0, ubound(npc_facetypes))
    CASE 6
     IF intgrabber(npcdata.item, 0, gen(genMaxItem) + 1) THEN
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
    CASE 7
-    intgrabber(npcdata.pushtype, 0, ubound(ed.pushtype))
+    intgrabber(npcdata.pushtype, 0, ubound(npc_pushtypes))
    CASE 8
-    intgrabber(npcdata.activation, 0, ubound(ed.usetype))
+    intgrabber(npcdata.activation, 0, ubound(npc_usetypes))
    CASE 9'--tag conditionals
     tag_grabber npcdata.tag1
    CASE 10'--tag conditionals

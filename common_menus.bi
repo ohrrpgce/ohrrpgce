@@ -17,4 +17,10 @@ DECLARE SUB edit_backcompat_bitsets()
 DECLARE SUB edit_active_time_battle_bitsets()
 DECLARE SUB edit_mouse_options ()
 
+'Globals
+EXTERN npc_movetypes() as string
+EXTERN npc_pushtypes() as string
+EXTERN npc_usetypes() as string
+EXTERN npc_facetypes() as string
+
 #endif

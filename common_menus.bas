@@ -13,6 +13,48 @@
 #include "loading.bi"
 
 
+'Globals
+
+REDIM npc_movetypes(15) as string
+npc_movetypes(0) = "Stand Still"
+npc_movetypes(1) = "Wander"
+npc_movetypes(2) = "Pace"
+npc_movetypes(3) = "Right Turns"
+npc_movetypes(4) = "Left Turns"
+npc_movetypes(5) = "Random Turns"
+npc_movetypes(6) = "Chase You (Meandering)"
+npc_movetypes(7) = "Avoid You (Meandering)"
+npc_movetypes(8) = "Walk In Place"
+npc_movetypes(9) = "Chase You (Direct)"
+npc_movetypes(10) = "Avoid You (Direct)"
+npc_movetypes(11) = "Follow walls (Right)"
+npc_movetypes(12) = "Follow walls (Left)"
+npc_movetypes(13) = "Follow walls (R) stop for others"
+npc_movetypes(14) = "Follow walls (L) stop for others"
+npc_movetypes(15) = "Chase You (Pathfinding)"
+
+REDIM npc_pushtypes(7) as string
+npc_pushtypes(0) = "Off"
+npc_pushtypes(1) = "Full"
+npc_pushtypes(2) = "Vertical"
+npc_pushtypes(3) = "Horizontal"
+npc_pushtypes(4) = "Up only"
+npc_pushtypes(5) = "Right Only"
+npc_pushtypes(6) = "Down Only"
+npc_pushtypes(7) = "Left Only"
+
+REDIM npc_usetypes(2) as string
+npc_usetypes(0) = "Use"
+npc_usetypes(1) = "Touch"
+npc_usetypes(2) = "Step On"
+
+REDIM npc_facetypes(2) as string
+npc_facetypes(0) = "Change Direction"
+npc_facetypes(1) = "Face Player"
+npc_facetypes(2) = "Do Not Face Player"
+
+
+'==============================================================================
 
 ' The boilerplate for displaying a MenuDef menu, if nothing else has to be drawn to the screen.
 SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = NULL)
