@@ -766,7 +766,6 @@ DO
  'DEBUG debug "read controls"
  update_virtual_gamepad_display()
  setkeys gam.getinputtext_enabled
- gam.mouse = readmouse  'didn't bother to check havemouse()
  'debug_mouse_state()
  control
 
@@ -810,7 +809,7 @@ DO
     AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
     AND menus_allow_player() THEN
   IF get_gen_bool("/mouse/move_hero") THEN
-   IF gam.mouse.buttons AND mouseLeft THEN
+   IF readmouse().buttons AND mouseLeft THEN
     cancel_hero_pathfinding()
     trigger_hero_pathfinding()
    END IF
@@ -832,7 +831,7 @@ DO
  END IF
  IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
   IF use_touch_textboxes() THEN
-   IF gam.mouse.release AND mouseLeft THEN
+   IF readmouse().release AND mouseLeft THEN
     advance_text_box
    END IF
   END IF
@@ -4578,7 +4577,7 @@ SUB cancel_hero_pathfinding()
 END SUB
 
 SUB trigger_hero_pathfinding()
- DIM clickpos as XYPair = XY(mapx, mapy) + gam.mouse.pos
+ DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos
  wrapxy clickpos, 20
  DIM npc_index as integer = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
@@ -4693,14 +4692,14 @@ END SUB
 FUNCTION user_triggered_main_menu() as bool
  IF carray(ccMenu) > 1 THEN RETURN YES
  IF get_gen_bool("/mouse/menu_right_click") THEN
-  IF gam.mouse.clicks AND mouseRight THEN RETURN YES
+  IF readmouse().clicks AND mouseRight THEN RETURN YES
  END IF
  RETURN NO
 END FUNCTION
 
 SUB debug_mouse_state()
  DIM s as string
- WITH gam.mouse
+ WITH readmouse()
   s = "Mouse: B=" & .buttons & " C=" & .clicks & " R=" & .release & " X=" & .x & " Y=" & .y
  END WITH
  gam.showtext = s

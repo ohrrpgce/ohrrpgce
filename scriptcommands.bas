@@ -419,7 +419,7 @@ SUB process_wait_conditions()
      IF txt.showing ANDALSO use_touch_textboxes() THEN
       'If a touch textbox is currently being displayed, we make a special
       'exception and treat any touch as the key we are waiting for
-      IF (gam.mouse.release AND mouseLeft) THEN
+      IF readmouse().release AND mouseLeft THEN
        script_stop_waiting()
       END IF
      ELSE
@@ -1122,16 +1122,15 @@ SUB script_functions(byval cmdid as integer)
   hidemousecursor
   gam.mouse_enabled = YES
  CASE 160'--mouse pixel x
-  scriptret = gam.mouse.x
+  scriptret = readmouse().x
  CASE 161'--mouse pixel y
-  scriptret = gam.mouse.y
+  scriptret = readmouse().y
  CASE 162'--mouse button
   IF retvals(0) <= 31 THEN
-   IF gam.mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF readmouse().buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
   movemouse bound(retvals(0), 0, get_resolution().w - 1), bound(retvals(1), 0, get_resolution().h - 1)
-  gam.mouse = readmouse
  CASE 164'--mouse region(xmin, xmax, ymin, ymax)
   IF retvals(0) = -1 AND retvals(1) = -1 AND retvals(2) = -1 AND retvals(3) = -1 THEN
    mouserect -1, -1, -1, -1
@@ -1142,7 +1141,6 @@ SUB script_functions(byval cmdid as integer)
    retvals(3) = bound(retvals(3), retvals(2), get_resolution().h - 1)
    mouserect retvals(0), retvals(1), retvals(2), retvals(3)
   END IF
-  gam.mouse = readmouse
  CASE 178'--read gmap
   'Don't support reading newer gmap indices
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
@@ -1161,7 +1159,11 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 492'--mouse click
   IF retvals(0) <= 4 THEN
-   IF gam.mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF readmouse().clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+  END IF
+ CASE 646'--mouse release
+  IF retvals(0) <= 4 THEN
+   IF readmouse().release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
 
 'old scriptmisc
@@ -4390,10 +4392,6 @@ SUB script_functions(byval cmdid as integer)
    gen(genResolutionX) = retvals(0)
    gen(genResolutionY) = retvals(1)
    apply_game_window_settings()
-  END IF
- CASE 646'--mouse release
-  IF retvals(0) <= 4 THEN
-   IF gam.mouse.release AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 647'--_cancel runfast
   enable_speed_control YES
