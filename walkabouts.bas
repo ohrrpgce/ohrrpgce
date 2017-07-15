@@ -1200,8 +1200,10 @@ FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disa
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 OR allow_disabled THEN
-   IF ABS(npc(i).x + 10 - pixelpos.x) <= 10 THEN 
-    IF ABS(npc(i).y + 10 + gmap(11) - pixelpos.y) <= 10 THEN
+   DIM size as XYPair = (20, 20)
+   DIM diff as XYPair = pixelpos - XY(npc(i).x, npc(i).y + gmap(11))
+   IF diff.x >= 0 AND diff.x < size.w THEN
+    IF diff.y >= 0 AND diff.y < size.h THEN
      IF found = copynum THEN
       RETURN i
      END IF
