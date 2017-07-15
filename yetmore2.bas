@@ -1007,7 +1007,7 @@ SUB limitcamera (byref x as integer, byref y as integer)
   ' Wrapping map. Wrap the camera according to the center, not the top-left
   x += mapview->Width \ 2
   y += mapview->Height \ 2
-  wrapxy x, y, mapsizetiles.x * 20, mapsizetiles.y * 20
+  wrapxy x, y, 20
   x -= mapview->Width \ 2
   y -= mapview->Height \ 2
  END IF

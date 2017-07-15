@@ -493,20 +493,22 @@ SUB aheadxy (byref p as XYPair, byval direction as integer, byval distance as in
  IF direction = 3 THEN p.x = p.x - distance
 END SUB
 
-SUB wrapxy (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
- '--wraps the given X and Y values within the bounds of width and height
- x = x MOD wide
- IF x < 0 THEN x += wide  'negative modulo is the devil's creation and never helped me once
- y = y MOD high
- IF y < 0 THEN y += high
+SUB wrapxy (byref x as integer, byref y as integer, byval unitsize as integer = 1)
+ '--wraps the given X and Y values within the bounds of the map.
+ '--unitsize should be 1 if X/Y are in tiles, or 20 if X/Y are in pixels
+ x = x MOD mapsizetiles.w * unitsize
+ IF x < 0 THEN x += mapsizetiles.w * unitsize  'negative modulo is the devil's creation and never helped me once
+ y = y MOD mapsizetiles.h * unitsize
+ IF y < 0 THEN y += mapsizetiles.h * unitsize
 END SUB
 
-SUB wrapxy (byref p as XYPair, byval wide as integer, byval high as integer)
- '--wraps the given X and Y values within the bounds of width and height
- p.x = p.x MOD wide
- IF p.x < 0 THEN p.x += wide  'negative modulo is the devil's creation and never helped me once
- p.y = p.y MOD high
- IF p.y < 0 THEN p.y += high
+SUB wrapxy (byref p as XYPair, byval unitsize as integer = 1)
+ '--wraps the given X and Y values within the bounds of the map.
+ '--unitsize should be 1 if X/Y are in tiles, or 20 if X/Y are in pixels
+ p.x = p.x MOD mapsizetiles.w * unitsize
+ IF p.x < 0 THEN p.x += mapsizetiles.w * unitsize
+ p.y = p.y MOD mapsizetiles.h * unitsize
+ IF p.y < 0 THEN p.y += mapsizetiles.h * unitsize
 END SUB
 
 'alters X and Y ahead by distance in direction, wrapping if neccisary
@@ -515,7 +517,7 @@ SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as inte
  aheadxy x, y, direction, distance
  
  IF gmap(5) = 1 THEN
-  wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+  wrapxy x, y, unitsize
  END IF
 END SUB
 
@@ -525,13 +527,13 @@ SUB wrapaheadxy (byref p as XYPair, byval direction as integer, byval distance a
  aheadxy p, direction, distance
  
  IF gmap(5) = 1 THEN
-  wrapxy p, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+  wrapxy p, unitsize
  END IF
 END SUB
 
 SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
  IF gmap(5) = 1 THEN
-  wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+  wrapxy x, y, unitsize
  ELSE
   x = bound(x, 0, (mapsizetiles.x - 1) * unitsize)
   y = bound(y, 0, (mapsizetiles.y - 1) * unitsize)
@@ -543,7 +545,7 @@ FUNCTION cropmovement (byref pos as XYPair, byref xygo as XYPair) as bool
  'returns true if ran into wall at edge (and sets xgo OR ygo to 0)
  IF gmap(5) = 1 THEN
   '--wrap walking
-  wrapxy pos, mapsizetiles.x * 20, mapsizetiles.y * 20
+  wrapxy pos, 20
   RETURN NO
  ELSE
   '--crop walking
@@ -568,7 +570,7 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integ
  DIM wallblock as integer
 
  IF gmap(5) = 1 THEN
-  wrapxy tilex, tiley, mapsizetiles.x, mapsizetiles.y
+  wrapxy tilex, tiley
  END IF
  IF ignore_passmap THEN    ' Check only for the map edge
   IF tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high THEN RETURN YES
@@ -754,7 +756,7 @@ FUNCTION wrapzonecheck (byval zone as integer, byval pos as XYPair, byval xygo a
  'Warning: always wraps! But that isn't a problem on non-wrapping maps.
 
  pos -= xygo
- wrapxy pos, mapsizetiles.x * 20, mapsizetiles.y * 20
+ wrapxy pos, 20
  RETURN CheckZoneAtTile(zmap, zone, pos.x \ 20, pos.y \ 20)
 END FUNCTION
 

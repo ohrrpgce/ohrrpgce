@@ -43,11 +43,11 @@ DECLARE FUNCTION wraptouch (byval pos1 as XYPair, byval pos2 as XYPair, byval di
 DECLARE FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
 
 DECLARE SUB aheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
-DECLARE SUB wrapxy OVERLOAD (byref x as integer, byref y as integer, byval wide as integer, byval high as integer)
+DECLARE SUB wrapxy OVERLOAD (byref x as integer, byref y as integer, byval unitsize as integer = 1)
 DECLARE SUB wrapaheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
 
 DECLARE SUB aheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer)
-DECLARE SUB wrapxy OVERLOAD (byref p as XYPair, byval wide as integer, byval high as integer)
+DECLARE SUB wrapxy OVERLOAD (byref p as XYPair, byval unitsize as integer = 1)
 DECLARE SUB wrapaheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer, byval unitsize as integer)
 
 DECLARE FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer

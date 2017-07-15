@@ -2100,7 +2100,7 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
    DIM tpos as XYPair = XY((npci.x - xgo) / 20, (npci.y - ygo) / 20)
-   wrapxy (tpos, mapsizetiles.x, mapsizetiles.y)
+   wrapxy tpos
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC
     RETURN YES
@@ -2161,7 +2161,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
    DIM tpos as XYPair = XY((herox(rank) - xgo) / 20, (heroy(rank) - ygo) / 20)
-   wrapxy (tpos, mapsizetiles.x, mapsizetiles.y)
+   wrapxy tpos
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC
     RETURN YES
@@ -4579,7 +4579,7 @@ END SUB
 
 SUB trigger_hero_pathfinding()
  DIM clickpos as XYPair = XY(mapx, mapy) + gam.mouse.pos
- wrapxy(clickpos, mapsizetiles.x * 20, mapsizetiles.y * 20)
+ wrapxy clickpos, 20
  DIM npc_index as integer = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
   gam.hero_pathing.mode = HeroPathingMode.NPC
