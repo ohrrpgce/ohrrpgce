@@ -1190,14 +1190,14 @@ FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
  RETURN found
 END FUNCTION
 
-FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0) as integer
+FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disabled as bool=NO) as integer
  'Return the index into the npc() NPCInst of the npc found at the given x,y coords.
  ' This checks the location where the npc is currently displayed,
  ' not the tile they are considered to be occupying
  'Returns -1 if not found
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id > 0 THEN
+  IF npc(i).id > 0 OR allow_disabled THEN
    IF ABS(npc(i).x + 10 - pixelpos.x) <= 10 THEN 
     IF ABS(npc(i).y + 10 + gmap(11) - pixelpos.y) <= 10 THEN
      IF found = copynum THEN

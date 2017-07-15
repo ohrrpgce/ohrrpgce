@@ -14,7 +14,8 @@ CTRL+F4 Edit the slice tree (in the Slice Collection Editor). You can even save 
 
 F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
 
-F6 Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
+F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
+Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
 
 CTRL+F7 Realign hero 0 with the tile grid
 

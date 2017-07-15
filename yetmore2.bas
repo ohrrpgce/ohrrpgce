@@ -926,6 +926,94 @@ SUB debug_npcs ()
  NEXT
 END SUB
 
+FUNCTION describe_npctype(npcid as integer) as string
+ DIM info as string
+ WITH npcs(npcid)
+  info &= fgcol_text("NPC Type: ", uilook(uiSelectedItem)) _
+       & "Pic " & .picture & " Pal " & .palette _
+       & " Speed " & .speed _
+       & " MOVETYPE: " & npc_movetypes(.movetype) _
+       & ", ACTIVATION: " & npc_usetypes(.activation) _
+       & ", FACE: " & npc_facetypes(.facetype) _
+       & ", PUSH: " & npc_pushtypes(.pushtype)
+ END WITH
+ RETURN info
+END FUNCTION
+
+FUNCTION describe_npcinst(npcnum as integer) as string
+ DIM info as string
+ WITH npc(npcnum)
+  DIM id as integer = ABS(.id) - 1
+  'Calculate NPC copy number
+  DIM copynum as integer
+  FOR i as integer = 0 TO npcnum - 1
+   IF npc(i).id - 1 = id THEN copynum += 1
+  NEXT
+
+  info = "ID " & id
+  IF .id < 0 THEN
+   info &= " (DISABLED)"
+  ELSE
+   info &= " copy " & copynum
+  END IF
+  info &= " npcref " & (-1 - npcnum) & !"\n" _
+       & describe_npctype(id) & !"\n" _
+       & fgcol_text("NPC Inst: ", uilook(uiSelectedItem)) _
+       & "At " & .pos & " Z " & .z _
+       & " tile " & (.pos \ 20) & !"\n" _
+       & "Extra 0:" & .extra(0) & " 1:" & .extra(1) & " 2:" & .extra(2) & !"\n" _
+       & "AI: " & yesorno(NOT .suspend_ai) _
+       & " Usable: " & yesorno(NOT .suspend_use) _
+       & " Walls: " & yesorno(NOT .ignore_walls) _
+       & " Obstruction: " & yesorno(NOT .not_obstruction) _
+       & !"\nXYgo: " & .xygo _
+       & " Pathing: "
+  WITH .pathover
+   IF .override <> NPCOverrideMove.NONE THEN
+    IF .override = NPCOverrideMove.NPC THEN
+     info &= "to NPC " & .dest_npc & " stop when reached: " & yesorno(.stop_when_npc_reached)
+    ELSEIF .override = NPCOverrideMove.POS THEN
+     info &= "to " & .dest_pos
+    END IF
+    info &= !"\nCooldown: " & .cooldown _
+         & " Stillticks: " & npc(npcnum).stillticks _
+         & ", Stops after: " & .stop_after_stillticks
+   ELSE
+    info &= "N/A."
+   END IF
+  END WITH
+ END WITH
+ RETURN info
+END FUNCTION
+
+'Draw tooltip with info about the NPCs under the mouse cursor
+PRIVATE SUB npc_debug_display_tooltip ()
+ DIM pos as XYPair = readmouse.pos + XY(mapx, mapy)
+ wrapxy pos, 20
+
+ 'Find each NPC at pos
+ DIM info as string
+ FOR copy as integer = 0 TO 999
+  DIM npcnum as integer = npc_at_pixel(pos, copy, YES)
+  IF npcnum = -1 THEN EXIT FOR
+  IF LEN(info) THEN info &= !"\n"
+  info &= describe_npcinst(npcnum)
+ NEXT
+
+ IF LEN(info) THEN
+  'info = bgcol_text(info, uilook(uiShadow))
+  CONST maxwidth = 280
+  DIM boxsize as XYPair = textsize(info, maxwidth, fontEdged)
+  DIM as RelPos x = readmouse.x + showLeft, y = readmouse.y + 7 + showTop
+  ' If near the bottom of the screen, show the tooltip above the mouse
+  IF readmouse.y + 7 + boxsize.h > vpages(dpage)->h THEN
+   y = readmouse.y + showTop + ancBottom
+  END IF
+  fuzzyrect x, y, boxsize.w, boxsize.h, uilook(uiShadow), dpage, 70
+  wrapprint info, x, y, uilook(uiText), dpage, maxwidth, , fontEdged
+ END IF
+END SUB
+
 SUB npc_debug_display ()
  DIM temp as string
  FOR i as integer = 0 TO 299
@@ -964,6 +1052,8 @@ SUB npc_debug_display ()
    END IF
   END WITH
  NEXT
+
+ npc_debug_display_tooltip
 END SUB
 
 SUB drawants_for_tile(tile as XYPair, byval direction as integer)
