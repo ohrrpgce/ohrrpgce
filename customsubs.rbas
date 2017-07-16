@@ -3299,7 +3299,7 @@ SUB edit_platform_options ()
     append_menu_item menu, ""
     menu.last->unselectable = YES
 
-    append_menu_item menu, "Touch Textboxes: " & yesorno(mobile."touch_textboxes".exists)
+    append_menu_item menu, "Touch Textboxes: " & yesorno(get_gen_bool("/mobile_options/touch_textboxes/enabled"))
     menu.last->t = platformoptTOGGLETOUCHTEXTBOXES
  
     append_menu_item menu, ""
@@ -3397,7 +3397,7 @@ SUB edit_platform_options ()
      ToggleChildNode gen_root, "multiplayer_gamepads"
      st.need_update = YES
     CASE platformoptTOGGLETOUCHTEXTBOXES:
-     ToggleChildNode mobile, "touch_textboxes"
+     toggle_gen_bool("/mobile_options/touch_textboxes/enabled")
      st.need_update = YES
     CASE platformoptBUTTON:
      sc = prompt_for_scancode()
@@ -3439,7 +3439,7 @@ SUB edit_platform_options ()
     END IF
    CASE platformoptTOGGLETOUCHTEXTBOXES:
     IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
-     ToggleChildNode mobile, "touch_textboxes"
+     toggle_gen_bool("/mobile_options/touch_textboxes/enabled")
      st.need_update = YES
     END IF
    CASE platformoptBUTTON:
