@@ -17,9 +17,9 @@ Type AStarNode
  has_parent as bool
  Declare Property parent () as XYPair
  Declare Property parent (byval new_parent as XYPair)
- cost_before as integer
- cost_after as integer
- dist_squared as integer
+ cost_before as integer         'Tiles to reach this node (Manhattan dist)
+ cost_after as integer          'Est. tiles to reach goal (Manhattan dist)
+ cost_after_squared as integer  'Est. tiles to reach goal (Squared dist)
 End Type
 DECLARE_VECTOR_OF_TYPE(AStarNode, AStarNode)
 
@@ -48,7 +48,7 @@ Type AStarPathfinder
  Declare Static Function closed_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
 
  Declare Function cost_before_node(n as AStarNode) as integer
- Declare Function guess_cost_after_node(n as AStarNode) as integer
+ Declare Sub guess_cost_after_node(n as AStarNode)
  
  Declare Sub debug_path()
  Declare Sub debug_list(list as AStarNode vector, expected_status as AStarNodeStatus, listname as string ="nodelist")
@@ -64,6 +64,6 @@ Type NPCCollisionCache
  Declare Sub debug_cache()
 End Type
 
-Declare Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+Declare Function xypair_wrapped_distance(v1 as XYPair, v2 as XYPair, byref squared_dist as integer = 0) as integer
 
 #endif

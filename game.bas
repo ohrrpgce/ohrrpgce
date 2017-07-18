@@ -1856,7 +1856,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
     return
    end if
    t2 = npc(npci.pathover.dest_npc).pos / 20
-   if npci.pathover.stop_when_npc_reached andalso xypair_wrapping_manhattan_distance (t1, t2) <= 1 then
+   if npci.pathover.stop_when_npc_reached andalso xypair_wrapped_distance(t1, t2) <= 1 then
     'Within 1 tile of destination
     cancel_npc_movement_override (npci)
     return

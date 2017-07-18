@@ -62,7 +62,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
  cursor = startpos
  getnode(cursor).p = cursor
  getnode(cursor).status = AStarNodeStatus.OPENED
- getnode(cursor).dist_squared = xypair_distance_squared(cursor, destpos)
+ guess_cost_after_node(getnode(cursor))
 
  dim best_closed_node as AStarNode ptr = @(getnode(cursor))
  dim tiles_closed as integer = 0
@@ -111,7 +111,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
      'Update nearby node's parent, add to the open list
      if nearbynode.status = AStarNodeStatus.OPENED then
       'This node is already in the open list, check to see if the current
-      'path cost is better than the saved path cost
+      'path cost is better than the saved path cost, and if so update it.
       if not nearbynode.has_parent then
        nearbynode.parent = cursor
       else
@@ -125,11 +125,10 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
       nearbynode.parent = cursor
       nearbynode.status = AStarNodeStatus.OPENED
       nearbynode.cost_before = cost_before_node(nearbynode)
-      nearbynode.cost_after = guess_cost_after_node(nearbynode)
-      nearbynode.dist_squared = xypair_distance_squared(nearby, destpos)
+      guess_cost_after_node(nearbynode)
       v_heappush openlist, nearbynode
      end if
-     
+
     end if
    end if
   next direction
@@ -195,15 +194,15 @@ Static Function AStarPathfinder.open_node_compare cdecl (byval a as AStarNode pt
  if cost_a < cost_b then return -1
  if cost_a > cost_b then return 1
  'Break ties with distance-squared to dest
- if a->dist_squared < b->dist_squared then return -1
- if a->dist_squared > b->dist_squared then return 1
+ if a->cost_after_squared < b->cost_after_squared then return -1
+ if a->cost_after_squared > b->cost_after_squared then return 1
  return 0
 End Function
 
 Static Function AStarPathfinder.closed_node_compare cdecl (byval a as AStarNode ptr, byval b as AStarNode ptr) as long
  'Only care about distance-squared to dest
- if a->dist_squared < b->dist_squared then return -1
- if a->dist_squared > b->dist_squared then return 1
+ if a->cost_after_squared < b->cost_after_squared then return -1
+ if a->cost_after_squared > b->cost_after_squared then return 1
  return 0
 End Function
 
@@ -221,9 +220,9 @@ Function AStarPathfinder.cost_before_node(n as AStarNode) as integer
  return 1 + getnode(n.parent).cost_before
 End Function
 
-Function AStarPathfinder.guess_cost_after_node(n as AStarNode) as integer
- return xypair_wrapping_manhattan_distance(n.p, destpos)
-End Function
+Sub AStarPathfinder.guess_cost_after_node(n as AStarNode)
+ n.cost_after = xypair_wrapped_distance(n.p, destpos, n.cost_after_squared)
+End Sub
 
 Sub AStarPathfinder.slow_debug()
  for y as integer = 0 to mapsizetiles.y - 1
@@ -312,8 +311,9 @@ End Sub
 
 '------------------------------------------------------------------------------------------
 
-'Variant of xypair_manhattan_distance
-Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
+'Variant of xypair_manhattan_distance which finds the shortest manhattan
+'distance around wrapping maps, and also optionally returns the squared distance
+Function xypair_wrapped_distance(v1 as XYPair, v2 as XYPair, byref squared_dist as integer = 0) as integer
  dim diff as XYPair = v2 - v1
  diff.x = abs(diff.x)
  diff.y = abs(diff.y)
@@ -326,6 +326,7 @@ Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integ
    diff.y = mapsizetiles.y - diff.y
   end if
  end if
+ squared_dist = diff.x * diff.x + diff.y * diff.y
  return diff.x + diff.y
 End Function
 
