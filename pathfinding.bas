@@ -320,10 +320,10 @@ Function xypair_wrapping_manhattan_distance(v1 as XYPair, v2 as XYPair) as integ
  if gmap(5) = 1 then
   'This is a wrapping map
   if diff.x > mapsizetiles.x \ 2 then
-   diff.x -= mapsizetiles.x \ 2
+   diff.x = mapsizetiles.x - diff.x
   end if
-  if abs(diff.y) > mapsizetiles.y \ 2 then
-   diff.y -= mapsizetiles.y \ 2
+  if diff.y > mapsizetiles.y \ 2 then
+   diff.y = mapsizetiles.y - diff.y
   end if
  end if
  return diff.x + diff.y
