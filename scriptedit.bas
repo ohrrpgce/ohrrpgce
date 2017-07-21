@@ -442,7 +442,7 @@ SUB importscripts (f as string, quickimport as bool)
 
   '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
   show_message ""
-  show_message "Autofixing broken triggers..."
+  show_message "Scanning script triggers..."
   autofix_broken_old_scripts
 
   '--erase the temporary backup copy of plotscr.lst
@@ -1431,6 +1431,9 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  
 END FUNCTION
 
+'If the user converted any scripts from old-style definescript scripts into
+'plotscripts, automatically convert any triggers where those script IDs were used.
+'This is called after importing scripts.
 SUB autofix_broken_old_scripts()
  '--sanity test
  IF NOT isfile(tmpdir & "plotscr.lst.tmp") THEN
