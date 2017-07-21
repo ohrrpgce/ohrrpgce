@@ -942,7 +942,6 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
  WITH box
   .no_box          = boxcopier.no_box
   .opaque          = boxcopier.opaque
-  .restore_music   = boxcopier.restore_music
   .portrait_box    = boxcopier.portrait_box
   .vertical_offset = boxcopier.vertical_offset
   .shrink          = boxcopier.shrink
@@ -952,9 +951,14 @@ SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box a
   .portrait_id     = boxcopier.portrait_id
   .portrait_pal    = boxcopier.portrait_pal
   .portrait_pos    = boxcopier.portrait_pos
+  'Copy backdrop as it's often used as a portrait
+  .backdrop        = boxcopier.backdrop
   .sound_effect    = boxcopier.sound_effect
   .stop_sound_after= boxcopier.stop_sound_after
   .line_sound      = boxcopier.line_sound
+  'But don't copy music, as in a sequence of textboxes you wouldn't give them the same setting.
+  '.restore_music   = boxcopier.restore_music
+  '.music           = boxcopier.music
  END WITH
 END SUB
 
