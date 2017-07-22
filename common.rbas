@@ -5315,7 +5315,7 @@ FUNCTION escape_nonprintable_ascii(istr as string) as string
   icons_low = 127
   icons_high = 255
  END IF
- FOR idx as integer = 0 TO LEN(istr) - 1
+ FOR idx as integer = 1 TO LEN(istr)
   DIM ch as string = MID(istr, idx, 1)
   SELECT CASE ASC(ch)
    CASE 92 '--Backslash
