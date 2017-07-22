@@ -6,6 +6,8 @@ Use the Left and Right arrow keys to change which text box you are working on, o
 
 To make a new text box (which will be based on the template of text box 0, see below), press the right arrow key on the final text box.
 
+You can also create a new text box and make the current box link to it "After" by pressing ENTER or INSERT or + on the "After: ..." option. (+ creates a new box with the same style as the current, as usual.)
+
 Press ENTER or SPACE to open the various sub-menus.
 
 To find a text box, you can type in the "Search" field and press ENTER.

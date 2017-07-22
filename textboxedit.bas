@@ -30,6 +30,8 @@ DECLARE SUB update_textbox_appearance_editor_menu (byref menu as SimpleMenuItem 
 DECLARE SUB textbox_position_portrait (byref box as TextBox, byref st as TextboxEditState, backdrop as Frame ptr)
 DECLARE SUB textbox_seek(byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+DECLARE SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
@@ -128,14 +130,20 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    CASE 7'textsearch
     strgrabber st.search, 36
    CASE 6'quickchainer
-    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
+    IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+     IF yesno("Create and link to new a textbox like this one?") THEN
+      textbox_link_to_new_box_and_load st.id, box, st, menu()
+     END IF
+    ELSEIF keyval(scInsert) > 1 ANDALSO yesno("Create and link to a new textbox?") THEN
+     textbox_link_to_new_box_and_load 0,     box, st, menu()
+    ELSEIF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
      SaveTextBox box, st.id
      update_textbox_editor_main_menu box, menu()
     END IF
    CASE ELSE '--not using the quick textbox chainer nor the search
     IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
     IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
-     IF yesno("Copy box " & style_clip & "'s style to this box") THEN
+     IF yesno("Copy box " & style_clip & "'s style to this box?") THEN
       textbox_copy_style_from_box style_clip, box, st
       SaveTextBox box, st.id
       textbox_edit_load box, st, menu()
@@ -150,12 +158,8 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
     END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
      IF yesno("Create a textbox like this one?") THEN
-      gen(genMaxTextBox) += 1
-      DIM as integer remptr = st.id
-      st.id = gen(genMaxTextBox)
-      textbox_create_from_box remptr, box, st
+      textbox_create_from_box_and_load st.id, box, st, menu()
      END IF
-     textbox_edit_load box, st, menu()
     END IF
   END SELECT
   IF enter_space_click(state) THEN
@@ -173,11 +177,23 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
     update_textbox_editor_main_menu box, menu()
    END IF
    IF state.pt = 6 THEN
+    DIM want_scriptbrowse as bool = NO
     IF box.after > 0 THEN
      '--Go to Next textbox
      st.id = box.after
      textbox_edit_load box, st, menu()
+    ELSEIF box.after < 0 THEN
+     want_scriptbrowse = YES
     ELSE
+     DIM choices(...) as string = { _
+      "A new textbox", "A new textbox with this style", "A script" _
+     }
+     DIM choice as integer = multichoice("Link to what after this textbox?", choices())
+     IF choice = 0 THEN textbox_link_to_new_box_and_load 0,     box, st, menu()
+     IF choice = 1 THEN textbox_link_to_new_box_and_load st.id, box, st, menu()
+     IF choice = 2 THEN want_scriptbrowse = YES
+    END IF
+    IF want_scriptbrowse THEN
      DIM temptrig as integer = ABS(box.after)
      scriptbrowse temptrig, plottrigger, "textbox plotscript"
      box.after = -temptrig
@@ -242,7 +258,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
 
    '--Save box after visiting any submenu
    SaveTextBox box, st.id
-  END IF
+  END IF '--end of enter_space_click
 
   '--Draw screen
   IF st.id = 0 THEN
@@ -262,6 +278,9 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   printstr "+ to copy", 248, 0, dpage
   printstr "ALT+C copy style", 192, 8, dpage
   IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
+  IF state.pt = 6 THEN
+   edgeprint "+ or INSERT to link to new text box", 0, pBottom, uilook(uiDisabledItem), dpage
+  END IF
   standardmenu menu(), state, 0, 0, dpage, menuopts
 
   SWAP vpage, dpage
@@ -532,7 +551,7 @@ SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
  END IF
  SELECT CASE box.after_tag
   CASE 0
-   menu(6) = "Next: None Selected"
+   menu(6) = "Next: None Selected..."
   CASE -1
    IF box.after >= 0 THEN
     menu(6) = "Next: Box " & box.after
@@ -933,6 +952,20 @@ SUB textbox_create_from_box (byval template_box_id as integer=0, byref box as Te
  ClearTextBox box
  textbox_copy_style_from_box template_box_id, box, st
  SaveTextBox box, st.id
+END SUB
+
+SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+ gen(genMaxTextBox) += 1
+ st.id = gen(genMaxTextBox)
+ textbox_create_from_box template_box_id, box, st
+ textbox_edit_load box, st, menu()
+END SUB
+
+SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
+ box.after = gen(genMaxTextBox) + 1
+ box.after_tag = -1  'Always
+ SaveTextBox box, st.id
+ textbox_create_from_box_and_load template_box_id, box, st, menu()
 END SUB
 
 SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
