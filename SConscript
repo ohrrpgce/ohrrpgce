@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Main scons build script for OHRRPGCE
-Run "scons -h" to print help.
+Run "scons -h" to print help (and "scons -H" for options to scons itself).
 
 cf. SConstruct, ohrbuild.py
 """
@@ -48,6 +48,13 @@ DATAFILES = ''
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 
 base_libraries = []  # libraries shared by all utilities (except bam2mid)
+
+# Set default value for -j/--jobs option
+try:
+    import multiprocessing  # Python 2.6+
+    SetOption('num_jobs', multiprocessing.cpu_count())
+except (ImportError, NotImplementedError):
+    pass
 
 ################ Decide the target/OS and cpu arch
 
@@ -1200,13 +1207,14 @@ With no targets specified, compiles game and custom.
 Examples:
  Do a debug build of Game and Custom:
   scons
+ Do a release build (same as official releases) of everything and run tests:
+  scons debug=0 . test
  Specifying graphics and music backends for a debug build of Game:
   scons gfx=sdl+fb music=native game
- Do a 'release' build (same as binary distributions) of everything, using 4
- CPU cores:
-  scons -j 4 debug=0 .
- Create 64 bit release builds and run tests:
-  scons -j4 arch=64 debug=0 . test
- Install (Unix only):
+ Compile one file at a time, to avoid mixed-up error messages:
+  scons -j1
+ Create 64 bit release builds:
+  scons arch=64 debug=0 .
+ Compile and install (Unix only):
   sudo scons install prefix=/usr/local
 """)
