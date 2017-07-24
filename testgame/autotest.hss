@@ -2048,7 +2048,6 @@ script, menu tests, begin
   )
   if(count <> 4) then($0="iterated wrong number of menu items (vis only)")
 
-
   # close when selected
   set menu item bit(antelope, 1, true)
   use menu item(antelope), w
@@ -2064,6 +2063,58 @@ script, menu tests, begin
   if(get menu on close script(m) <> @on close menu test) then($0="menu close script readback failed", crash)
   use menu item(mi), w
   if(menu close global <> 99) then($0="menu close script didn't run", crash)
+
+  # Test background highlight
+  w(2)
+  m := create menu, w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Lorem"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Ipsum"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Dolor"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Sit"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Amet"), w
+  assert(get menu bit(m, menubit:highlight selection background) == false)
+  set menu bit(m, menubit:highlight selection background), w
+  assert(get menu bit(m, menubit:highlight selection background) == true)
+  mi := first menu item(m)
+  while(mi) do(
+    mi := next menu item(mi, true)
+    if(mi) then(select menu item(mi))
+    w(2)
+  )
+  w
+  close menu(m),w
+  
+  # Test closing a textbox by closing the menu
+  m := create menu, w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Twas brillig"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="And the slithy toaves..."), w
+  assert(get menu bit(m, menubit:advance text box when menu closes) == false)
+  show text box(2),w
+  # first, closing the menu should not close the textbox by default
+  close menu(m),w
+  assert(current text box == 2)
+  advance text box, w
+  assert(current text box == -1)
+  # Now do it again...
+  m := create menu, w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="Did gyre and gimbal"), w
+  mi := add menu item(m), w
+  set menu item caption(mi, $1="In the wabe..."), w
+  assert(get menu bit(m, menubit:advance text box when menu closes) == false)
+  set menu bit(m, menubit:advance text box when menu closes), w
+  assert(get menu bit(m, menubit:advance text box when menu closes) == true)
+  show text box(2),w
+  # This time, closing the menu should close the textbox too
+  close menu(m),w
+  assert(current text box ==-1)
 
   menu scroll tests
 end

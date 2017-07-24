@@ -1783,6 +1783,8 @@ define constant, begin
 5,menubit:no close
 6,menubit:no controls
 7,menubit:prevent main menu
+8,menubit:advance text box when menu closes
+9,menubit:highlight selection background
 ### The align: constants are for menu alignment, NOT for slices!
 0,align:center
 -1,align:left

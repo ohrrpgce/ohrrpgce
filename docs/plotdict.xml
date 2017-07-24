@@ -4388,6 +4388,8 @@ end</example>
 					<li>menubit:no close</li>
 					<li>menubit:no controls</li>
 					<li>menubit:prevent main menu</li>
+					<li>menubit:advance text box when menu closes</li>
+					<li>menubit:highlight selection background</li>
 				</ul>
 			</description>
 		</command>
