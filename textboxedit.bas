@@ -126,6 +126,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   '--Editing
   '--NOTE: On this top-level menu, the textbox must be saved immediately after
   '--any data changes (e.g. after a submenu) so we can assume no unsaved changes.
+
   SELECT CASE state.pt
    CASE 7'textsearch
     strgrabber st.search, 36
@@ -136,9 +137,16 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      END IF
     ELSEIF keyval(scInsert) > 1 ANDALSO yesno("Create and link to a new textbox?") THEN
      textbox_link_to_new_box_and_load 0,     box, st, menu()
-    ELSEIF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
-     SaveTextBox box, st.id
-     update_textbox_editor_main_menu box, menu()
+    ELSE
+     ' Ctrl+Left/Right links to previous/next box. We actually let scrintgrabber
+     ' handle that, by starting at box.after. So continuing press Ctrl+Left/Right works.
+     IF keyval(scCtrl) > 0 AND box.after = 0 THEN
+      IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.after = st.id
+     END IF
+     IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
+      SaveTextBox box, st.id
+      update_textbox_editor_main_menu box, menu()
+     END IF
     END IF
    CASE ELSE '--not using the quick textbox chainer nor the search
     IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
@@ -149,19 +157,25 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
       textbox_edit_load box, st, menu()
      END IF
     END IF
-    IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
-     IF st.id > gen(genMaxTextBox) THEN
-      gen(genMaxTextBox) = st.id
-      textbox_create_from_box 0, box, st
-     END IF
-     textbox_edit_load box, st, menu()
-    END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
      IF yesno("Create a textbox like this one?") THEN
       textbox_create_from_box_and_load st.id, box, st, menu()
      END IF
     END IF
   END SELECT
+
+  'Navigate textboxes
+  'Alt+left/right is only needed when the quickchainer ('After') is selected
+  IF state.pt <> 6 ORELSE keyval(scAlt) > 0 THEN  'not quickchainer
+   IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
+    IF st.id > gen(genMaxTextBox) THEN
+     gen(genMaxTextBox) = st.id
+     textbox_create_from_box 0, box, st
+    END IF
+    textbox_edit_load box, st, menu()
+   END IF
+  END IF
+
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN EXIT DO
@@ -186,9 +200,9 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      want_scriptbrowse = YES
     ELSE
      DIM choices(...) as string = { _
-      "A new textbox", "A new textbox with this style", "A script" _
+      "A new text box with default style", "A new text box with this style", "A script" _
      }
-     DIM choice as integer = multichoice("Link to what after this textbox?", choices())
+     DIM choice as integer = multichoice("Link to what after this text box?", choices())
      IF choice = 0 THEN textbox_link_to_new_box_and_load 0,     box, st, menu()
      IF choice = 1 THEN textbox_link_to_new_box_and_load st.id, box, st, menu()
      IF choice = 2 THEN want_scriptbrowse = YES
@@ -279,7 +293,13 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   printstr "ALT+C copy style", 192, 8, dpage
   IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
   IF state.pt = 6 THEN
-   edgeprint "+ or INSERT to link to new text box", 0, pBottom, uilook(uiDisabledItem), dpage
+   DIM tooltip as string
+   IF box.after THEN
+    tooltip = textbox_condition_short_caption(box.after_tag)
+   ELSE
+    tooltip = "+/INSERT/ENTER/Ctrl" & CHR(27,ASC("/"),26) & ": link to textbox"
+   END IF
+   edgeprint tooltip, 0, pBottom, uilook(uiDisabledItem), dpage
   END IF
   standardmenu menu(), state, 0, 0, dpage, menuopts
 
