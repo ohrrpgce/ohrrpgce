@@ -166,8 +166,6 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
         if not os.path.isdir (whichdir):
             os.mkdir (whichdir)
         return open (os.path.join (whichdir, filename), 'wb')
-    results = []
-    supported_gfx = []
 
     # Determine branch name and svn revision
     f = open (os.path.join (rootdir, 'codename.txt'),'rb')
@@ -182,8 +180,6 @@ def verprint (used_gfx, used_music, fbc, arch, asan, portable, builddir, rootdir
     branch_rev = int(lines[1])
 
     # Determine svn revision and date
-
-    name = 'OHRRPGCE'
     date, rev = query_git (rootdir)
     if rev == 0:
         date, rev = query_svn (rootdir, 'svn info')
@@ -198,12 +194,23 @@ version info and could lead to mistakes when upgrading .rpg files. A file called
 svninfo.txt should have been included with the source code if you downloaded a
 .zip instead of using svn or git."""
         print
-    # Always use current date instead
-    date = datetime.date.today().strftime ('%Y%m%d')
+
+    # Discard git/svn date and use current date instead because it doesn't reflect when
+    # the source was actually last modified.
+    # Unless overridden: https://reproducible-builds.org/specs/source-date-epoch/
+    if 'SOURCE_DATE_EPOCH' in os.environ:
+        build_date = datetime.datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
+    else:
+        build_date = datetime.date.today()
+    date = build_date.strftime ('%Y%m%d')
 
     if branch_rev <= 0:
         branch_rev = rev
     fbver = get_fb_info(fbc)[2]
+    results = []
+
+    # Backends
+    supported_gfx = []
     for gfx in used_gfx:
         if gfx in ('sdl','fb','alleg','directx','sdlpp','console'):
             results.append ('#DEFINE GFX_%s_BACKEND' % gfx.upper())
@@ -221,6 +228,7 @@ svninfo.txt should have been included with the source code if you downloaded a
     results.append ("#DEFINE GFX_CHOICES_INIT  " +\
       " :  ".join (['redim gfx_choices(%d)' % (len(supported_gfx) - 1)] + tmp))
 
+    name = 'OHRRPGCE'
     gfx_code = 'gfx_' + "+".join (supported_gfx)
     music_code = 'music_' + "+".join (used_music)
     asan = 'AddrSan' if asan else ''
