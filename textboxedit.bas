@@ -94,7 +94,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  menu(3) = "Edit Conditionals"
  menu(4) = "Edit Choices"
  menu(5) = "Box Appearance & Sounds"
- menu(6) = "Next:"
+ menu(6) = "After:"
  menu(7) = "Text Search:"
  menu(8) = "Connected Boxes..."
  menu(9) = "Export text boxes..."
@@ -412,6 +412,8 @@ SUB textbox_conditionals(byref box as TextBox)
     END SELECT
     rectangle 0, drawy, 312, state.spacing - 1, c, dpage
    ELSE
+    'Display items that do nothing greyed out
+    'FIXME: not correct: shop 0, formation 0, door 0 and menu 0 still do something!
     IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
    END IF
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
@@ -551,18 +553,18 @@ SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
  END IF
  SELECT CASE box.after_tag
   CASE 0
-   menu(6) = "Next: None Selected..."
+   menu(6) = "After: None Selected..."
   CASE -1
    IF box.after >= 0 THEN
-    menu(6) = "Next: Box " & box.after
+    menu(6) = "After: Box " & box.after
    ELSE
-    menu(6) = "Next: script " & scriptname(ABS(box.after))
+    menu(6) = "After: script " & scriptname(ABS(box.after))
    END IF
   CASE ELSE
    IF box.after >= 0 THEN
-    menu(6) = "Next: Box " & box.after & " (conditional)"
+    menu(6) = "After: Box " & box.after & " (conditional)"
    ELSE
-    menu(6) = "Next: script " & scriptname(ABS(box.after)) & " (conditional)"
+    menu(6) = "After: script " & scriptname(ABS(box.after)) & " (conditional)"
    END IF
  END SELECT
 END SUB
@@ -582,7 +584,7 @@ END FUNCTION
 
 FUNCTION textbox_condition_short_caption(tag as integer) as string
  IF tag = 0 THEN RETURN "NEVER"
- IF tag = 1 THEN RETURN "NEVER(1)"
+ IF tag = 1 THEN RETURN "NEVER"
  IF tag = -1 THEN RETURN "ALWAYS"
  RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff(tag))
 END FUNCTION
