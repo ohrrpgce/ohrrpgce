@@ -681,7 +681,7 @@ txt.id = -1
 
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
-gam.debug_showtags = NO
+gam.debug_showtags = 0
 gam.debug_npc_info = NO
 gam.walk_through_walls = NO
 
@@ -4132,7 +4132,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
-  gam.debug_showtags XOR= YES
+  gam.debug_showtags = (gam.debug_showtags + 1) MOD 3
   scrwatch = 0
  END IF
 
@@ -4173,11 +4173,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
 
  IF dbg.def(      , scF10) THEN
   scrwatch = loopvar(scrwatch, 0, 2, 1)
-  gam.debug_showtags = NO
+  gam.debug_showtags = 0
  END IF
  IF dbg.def(      ,      , "Script debugger (F10)") THEN
   scrwatch = 2  'Go straight in instead of showing the memory usage bars
-  gam.debug_showtags = NO
+  gam.debug_showtags = 0
  END IF
 
  IF dbg.def(scCtrl, scF10, "Toggle script logging (Ctrl-F10)") THEN
@@ -4216,7 +4216,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   END IF
  END IF
 
- IF gam.debug_showtags = NO OR dbg.menu <> NULL THEN  'Always accessible in debug menu
+ IF gam.debug_showtags = 0 OR dbg.menu <> NULL THEN  'Always accessible in debug menu
   IF dbg.def(scCtrl, scPlus) OR _
      dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
    speedcontrol = large(speedcontrol - 1, 10.)

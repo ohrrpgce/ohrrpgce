@@ -1,6 +1,6 @@
 The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
 
-F4 Toggle tag debug screen
+F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - scroll, TAB toggles, CTRL+ sets and CTRL- unsets). Press F4 again twice to close.
 
 Ctrl+F4 Instantly Run (even from inescapable enemies)
 
@@ -10,7 +10,7 @@ F6 Toggle between turn-based and active-time-based battle systems
 
 F7 Kill all enemies which are targetable and need to killed to win
 
-F8 Show the debug menu, with these keys documented.
+F8 Shows this debug menu, with these keys documented.
 
 F10 Display Enemy ready-meters and state-variables, and again to hide.
 

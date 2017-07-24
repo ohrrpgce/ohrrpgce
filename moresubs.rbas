@@ -1722,11 +1722,16 @@ party_change_updates
 END FUNCTION
 
 SUB tagdisplay
-DIM c as integer
-STATIC st as menustate
-st.size = 6
+STATIC st as MenuState
+DIM lineh as integer = lineheight()
+IF gam.debug_showtags = 2 THEN
+ st.size = get_resolution().h \ lineh - 1
+ELSE
+ st.size = 6
+END IF
 st.last = max_tag()
 
+'Controls
 IF keyval(scCtrl) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
   settag st.pt, NO
@@ -1737,13 +1742,19 @@ IF keyval(scCtrl) > 0 THEN
   tag_updates
  END IF
 ELSE
- IF usemenu(st, scMinus, scPlus) = 0 THEN
+ IF usemenu(st, scMinus, scPlus) = NO THEN
   'little bit hacky...
   usemenu(st, scNumpadMinus, scNumpadPlus)
  END IF
 END IF
+IF keyval(scTab) > 1 THEN
+ settag st.pt, NOT istag(st.pt, 0)
+END IF
 
-fuzzyrect 0, 0, 208, (st.size + 1) * 10, uilook(uiOutline), dpage
+'Draw the menu
+wrapprint !"To scroll:\n+/-/pgup/down\nTAB to toggle\nF4 expand/quit", pRight, 0, uilook(uiMenuItem), dpage
+'This fuzzy box is exactly wide enough for the max tag name length
+fuzzyrect 0, 0, 200, (st.size + 1) * lineh, uilook(uiOutline), dpage
 FOR i as integer = st.top TO st.top + st.size
  DIM temp as string = i & "  "
  SELECT CASE i
@@ -1751,12 +1762,15 @@ FOR i as integer = st.top TO st.top + st.size
    temp += "Reserved Tag"
   CASE IS > 1
    temp += load_tag_name(i)
+   IF tag_is_autoset(i) THEN temp &= " [AUTOSET]"
  END SELECT
- c = uilook(uiDisabledItem)
- IF istag(i, 0) THEN c = uilook(uiHighlight) 'hmm
- edgeprint temp, 16, (i - st.top) * 10, c, dpage
- IF i = st.pt THEN edgeprint "->", 0, (i - st.top) * 10, uilook(uiText), dpage
+ DIM col as integer
+ IF istag(i, 0) THEN col = uiSelectedItem ELSE col = uiMenuItem
+ DIM y as integer = (i - st.top) * lineh
+ edgeprint temp, 8, y, uilook(col), dpage
+ IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), dpage
 NEXT i
+
 END SUB
 
 SUB writejoysettings

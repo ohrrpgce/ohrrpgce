@@ -8,7 +8,7 @@ F2 Quicksave anywhere
 
 F3 Quickload anywhere (Warning: Do not quicksave or load during a script, especially if the suspend player command has been issued. The script will not continue when you quickload later)
 
-F4 Calls up the Tag-debug screen, which shows you which tags are OFF and which are ON, and lets you change them (+ and - scroll, CTRL+ sets and CTRL- unsets)
+F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - scroll, TAB toggles, CTRL+ sets and CTRL- unsets). Press F4 again twice to close.
 
 CTRL+F4 Edit the slice tree (in the Slice Collection Editor). You can even save the slice tree to file.
 

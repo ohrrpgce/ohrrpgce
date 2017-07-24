@@ -130,8 +130,8 @@ TYPE GameState
   walk_through_walls as bool         'used for F11 cheat mode
   mouse_enabled as bool              'initmouse called
   hero(sizeParty - 1) as HeroState
-  debug_showtags as bool
-  debug_npc_info as bool
+  debug_showtags as integer          '0: off, 1: small display, 2: full-length display
+  debug_npc_info as bool             'NPC debug display
   debug_camera_pan as bool           'Arrow keys pan the camera, and camera mode is ignored
   paused as bool                     'Pause the game (only in map mode; this is a debug key)
   autorungame as bool                'Game was autorun, not selected from RPG browser
