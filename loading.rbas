@@ -157,6 +157,7 @@ SUB SetNPCD (npcdata as NPCType, intoffset as integer, value as integer)
    CASE 15: .defaultzone = value
    CASE 16: .defaultwallzone = value
    CASE 17: .ignore_passmap = value
+   CASE 18: .pathfinding_obstruction_mode = value
    CASE ELSE
     debugc errPromptBug, "SetNPCD: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -185,6 +186,7 @@ FUNCTION GetNPCD (npcdata as NPCType, intoffset as integer) as integer
    CASE 15: RETURN .defaultzone
    CASE 16: RETURN .defaultwallzone
    CASE 17: RETURN .ignore_passmap
+   CASE 18: RETURN .pathfinding_obstruction_mode
    CASE ELSE
     debugc errPromptBug, "GetNPCD: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -212,6 +214,7 @@ SUB CleanNPCDefinition(dat as NPCType)
    .defaultzone= 0
    .defaultwallzone = 0
    .ignore_passmap = 0
+   .pathfinding_obstruction_mode = 0
    IF .sprite THEN frame_unload @.sprite
    IF .pal THEN palette16_unload @.pal
   END WITH

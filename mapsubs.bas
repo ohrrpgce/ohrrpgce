@@ -2330,7 +2330,7 @@ END FUNCTION
 SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer)
 
  v_new menu
- REDIM gdidx(23)
+ REDIM gdidx(25)
  gdidx(0)  = -1: append_simplemenu_item menu, "Previous Menu"
  gdidx(1)  = 1:  append_simplemenu_item menu, "Ambient Music: "
  gdidx(2)  = 2:  append_simplemenu_item menu, "Minimap Available: "
@@ -2339,27 +2339,30 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  gdidx(5)  = 17: append_simplemenu_item menu, "NPC Data: "
  gdidx(6)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
  gdidx(7)  = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
+ gdidx(8)  = 378: append_simplemenu_item menu, "Default Pathfinding rules: "
 
- gdidx(8)  = -1: append_simplemenu_item menu, "Display:", YES, uilook(uiText)
+ 'Add an extra gap
+ gdidx(9) = -1: append_simplemenu_item menu, "", YES
+ gdidx(10)  = -1: append_simplemenu_item menu, "Display:", YES, uilook(uiText)
 
- gdidx(9)  = 11: append_simplemenu_item menu, "Foot Offset: "
- gdidx(10) = 16: append_simplemenu_item menu, "Walkabout Layering: "
- gdidx(11) = 4:  append_simplemenu_item menu, "Display Map Name: "
- gdidx(12) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
- gdidx(13) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
- gdidx(14) = 5:  append_simplemenu_item menu, "Map Edge Mode: " 
- gdidx(15) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+ gdidx(11)  = 11: append_simplemenu_item menu, "Foot Offset: "
+ gdidx(12) = 16: append_simplemenu_item menu, "Walkabout Layering: "
+ gdidx(13) = 4:  append_simplemenu_item menu, "Display Map Name: "
+ gdidx(14) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
+ gdidx(15) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
+ gdidx(16) = 5:  append_simplemenu_item menu, "Map Edge Mode: " 
+ gdidx(17) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
 
  'Add an extra gap, for the edge tile preview
- gdidx(16) = -1: append_simplemenu_item menu, "", YES
+ gdidx(18) = -1: append_simplemenu_item menu, "", YES
 
- gdidx(17) = -1: append_simplemenu_item menu, "Scripts:", YES, uilook(uiText)
- gdidx(18) = 7:  append_simplemenu_item menu, "Autorun Script: "
- gdidx(19) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
- gdidx(20) = 12: append_simplemenu_item menu, "After-Battle Script: "
- gdidx(21) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
- gdidx(22) = 14: append_simplemenu_item menu, "Each-Step Script: "
- gdidx(23) = 15: append_simplemenu_item menu, "On-Keypress Script: "
+ gdidx(19) = -1: append_simplemenu_item menu, "Scripts:", YES, uilook(uiText)
+ gdidx(20) = 7:  append_simplemenu_item menu, "Autorun Script: "
+ gdidx(21) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
+ gdidx(22) = 12: append_simplemenu_item menu, "After-Battle Script: "
+ gdidx(23) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
+ gdidx(24) = 14: append_simplemenu_item menu, "Each-Step Script: "
+ gdidx(25) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
  IF UBOUND(gdidx) + 1 <> v_len(menu) THEN debugc errFatalBug, "Wrong gdidx length!"
  invert_permutation gdidx(), midx()
@@ -2449,12 +2452,20 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
    menu[midx(i)].text &= gmap(i) & " " & GetZoneInfo(st.map.zmap, gmap(i))->name
   END IF
  NEXT
+ ' Default Pathfinding rules
+ SELECT CASE gmap(378) 
+  CASE 0: menu[midx(378)].text &= "Default (NPCs Obstruct)"
+  CASE 1: menu[midx(378)].text &= "NPCs Obstruct"
+  CASE 2: menu[midx(378)].text &= "Ignore NPCs"
+ END SELECT
 END SUB
 
 SUB mapedit_gmapdata(st as MapEditState)
  DIM gdidx() as integer   'Index in gmap()
  DIM menu as SimpleMenuItem vector
  DIM menu_display as SimpleMenuItem vector
+ DIM menuopts as MenuOptions
+ menuopts.scrollbar = YES
  DIM BYREF map as MapData = st.map
 
  'Maps gmap() index to menu() index
@@ -2485,6 +2496,7 @@ SUB mapedit_gmapdata(st as MapEditState)
  gdmax(18) = 2:                   gdmin(18) = 0
  gdmax(32) = zoneLASTUSER:        gdmin(32) = 0
  gdmax(33) = zoneLASTUSER:        gdmin(33) = 0
+ gdmax(378) = 2:                  gdmin(378) = 0
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -2554,7 +2566,7 @@ SUB mapedit_gmapdata(st as MapEditState)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, menu), cast(BasicMenuItem vector, menu_display), selectst, state
-  standardmenu cast(BasicMenuItem vector, menu_display), state, 0, 0, dpage
+  standardmenu cast(BasicMenuItem vector, menu_display), state, 0, 0, dpage, menuopts
   IF map.gmap(10) THEN
    'Harm tile flash color preview
    rectangle 4 + 8 * LEN(menu[midx(10)].text), 8 * midx(10), 8, 8, map.gmap(10), dpage
@@ -4870,6 +4882,19 @@ SUB update_edit_npc (npcdata as NPCType, ed as NPCEditState, gmap() as integer, 
 
  ed.menu_append   , "Movement", YES
  ed.menu_append  2, "Move Type = " & safe_caption(npc_movetypes(), npcdata.movetype, "movetype")
+ IF npcdata.movetype = 15 THEN
+  DIM obs_caption as string
+  SELECT CASE npcdata.pathfinding_obstruction_mode
+   CASE 0: obs_caption = "Default for this map"
+    SELECT CASE gmap(378)
+     CASE 0, 1: obs_caption &= " (NPCs Obstruct)"
+     CASE 2: obs_caption &= " (Ignore NPCs)"
+    END SELECT
+   CASE 1: obs_caption = "NPCs Obstruct"
+   CASE 2: obs_caption = "Ignore NPCs"
+  END SELECT
+  ed.menu_append 18, " Pathfinding rule: " & obs_caption
+ END IF
  ed.menu_append  3, "Move Speed " & npcdata.speed
  ed.menu_append 15, "Movement Zone:" & editnpc_zone_caption(npcdata.defaultzone, gmap(32), zmap)
  ed.menu_append 16, "Avoidance Zone:" & editnpc_zone_caption(npcdata.defaultwallzone, gmap(33), zmap)
@@ -5000,6 +5025,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 17
     intgrabber(npcdata.ignore_passmap, 0, 1)
     IF enter_space_click(ed.state) THEN npcdata.ignore_passmap XOR= 1
+   CASE 18
+    intgrabber(npcdata.pathfinding_obstruction_mode, 0, 2)
    CASE -1' previous menu
     IF enter_space_click(ed.state) THEN EXIT DO
   END SELECT

@@ -215,7 +215,7 @@ TYPE SelectTypeState
  remember_pt as integer       'Remember last state.pt value
 END TYPE
 
-CONST maxNPCDataField = 17  'Highest valid argument to Get/SetNPCD and read/alterNPC commands
+CONST maxNPCDataField = 18  'Highest valid argument to Get/SetNPCD and read/alterNPC commands
 
 'Warning: when editing NPCType, update Get/SetNPCD,
 'readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
@@ -238,6 +238,7 @@ TYPE NPCType
   defaultzone as integer '+15
   defaultwallzone as integer '+16
   ignore_passmap as integer '+17  (0 or 1) Can walk through walls (but not zones or map edges)
+  pathfinding_obstruction_mode as integer '+18 (only matters if .movetype=15)
   sprite as frame ptr
   pal as palette16 ptr
 END TYPE

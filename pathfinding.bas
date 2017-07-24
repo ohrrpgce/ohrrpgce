@@ -36,7 +36,7 @@ Destructor AStarPathfinder
  v_free path
 End Destructor
 
-Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO, byval check_npcs_as_hero as bool=NO)
+Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_with_hero as bool=NO, byval check_npcs_as_hero as bool=NO, byval should_collide_with_npcs as bool=YES)
  'should_collide_with_hero is only checked when an npc instance is provided
  'check_npcs_as_hero should only be set when the npc ptr is null
 
@@ -49,6 +49,11 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
 
  'Flush the path before we begin
  v_resize path, 0
+
+ if not should_collide_with_npcs then
+  npc = null
+  check_npcs_as_hero = NO
+ end if
 
  'pre-cache NPC collisions, but only if we need them.
  dim npc_ccache as NPCCollisionCache
@@ -293,7 +298,11 @@ Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst Ptr=null, byval i
    'cropposition(tpos.x, tpos.y, 1)  'Slower
    if tpos.x = mapsizetiles.x then tpos.x = 0
    if tpos.y = mapsizetiles.y then tpos.y = 0
-   obstruct(tpos.x, tpos.y) = YES
+   if tpos.x >= 0 andalso tpos.x < size.x andalso tpos.y >= 0 andalso tpos.y < size.y then
+    obstruct(tpos.x, tpos.y) = YES
+   else
+    debug "NPCCollisionCache.populate(): " & tpos & " is out of range. Size = " & size  
+   end if
   end if
  next i
 End Sub
