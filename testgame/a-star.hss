@@ -1,5 +1,5 @@
-define constant(18, last map)
-define constant(18, default map)
+define constant(19, last map)
+define constant(19, default map)
 
 define constant(3, music count)
 define constant(1, timer:turn and go)

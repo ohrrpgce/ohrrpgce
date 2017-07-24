@@ -296,13 +296,9 @@ Sub NPCCollisionCache.populate(size as XYPair, npci as NPCInst Ptr=null, byval i
    tpos.y = (npc(i).y + 10 + npc(i).ygo) \ 20
    'On wrapping maps have to wrap after rounding to the nearest tile, which might be x=width or y=height
    'cropposition(tpos.x, tpos.y, 1)  'Slower
-   if tpos.x = mapsizetiles.x then tpos.x = 0
-   if tpos.y = mapsizetiles.y then tpos.y = 0
-   if tpos.x >= 0 andalso tpos.x < size.x andalso tpos.y >= 0 andalso tpos.y < size.y then
-    obstruct(tpos.x, tpos.y) = YES
-   else
-    debug "NPCCollisionCache.populate(): " & tpos & " is out of range. Size = " & size  
-   end if
+   if tpos.x >= mapsizetiles.x then tpos.x = 0
+   if tpos.y >= mapsizetiles.y then tpos.y = 0
+   obstruct(tpos.x, tpos.y) = YES
   end if
  next i
 End Sub
