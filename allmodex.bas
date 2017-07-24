@@ -5093,12 +5093,20 @@ end function
 'Returns the width and height of an autowrapped string.
 'Specify the wrapping width; 'wide' might include rWidth for the width of the screen
 '(which is what the page arg is for).
-function textsize(text as string, wide as RelPos, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
+function textsize(text as string, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
 	if page = -1 then page = vpage
 	wide = relative_pos(wide, vpages(page)->w)
 	dim retsize as StringSize
 	text_layout_dimensions @retsize, text, , , wide, get_font(fontnum), withtags, YES
 	return XY(retsize.w, retsize.h)
+end function
+
+'Returns the default height of a line of text of a certain font.
+'Warning: this currently returns 10 for 8x8 fonts, because that's what text slices use. Sigh.
+'However standardmenu (calc_menustate_size) by default uses 9 for fontEdged and 8 for fontPlain
+'and draw_menu by default uses 10. Nonstandard menus use 8-10.
+function lineheight(fontnum as integer = fontEdged) as integer
+	return get_font(fontnum, YES)->h
 end function
 
 'xpos and ypos passed to use same cached state

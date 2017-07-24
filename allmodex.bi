@@ -284,8 +284,9 @@ DECLARE SUB wrapprint (text as string, x as RelPos, y as RelPos, col as integer 
 DECLARE SUB textcolor (byval fg as integer, byval bg as integer)
 
 DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
-DECLARE FUNCTION textwidth(text as string, fontnum as integer = 0, withtags as bool = YES, withnewlines as bool = YES) as integer
-DECLARE FUNCTION textsize(text as string, wide as RelPos, fontnum as integer = 0, withtags as bool = YES, page as integer = -1) as XYPair
+DECLARE FUNCTION textwidth(text as string, fontnum as integer = fontPlain, withtags as bool = YES, withnewlines as bool = YES) as integer
+DECLARE FUNCTION textsize(text as string, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
+DECLARE FUNCTION lineheight(fontnum as integer = fontEdged) as integer
 
 DECLARE SUB find_point_in_text (byval retsize as StringCharPos ptr, byval seekx as integer, byval seeky as integer, z as string, byval wide as integer = 999999, byval xpos as integer = 0, byval ypos as integer = 0, byval fontnum as integer, byval withtags as bool = YES, byval withnewlines as bool = YES)
 
