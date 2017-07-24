@@ -6,9 +6,13 @@ Use the Left and Right arrow keys to change which text box you are working on, o
 
 To make a new text box (which will be based on the template of text box 0, see below), press the right arrow key on the final text box.
 
-You can also create a new text box and make the current box link to it "After" by pressing ENTER or INSERT or + on the "After: ..." option. (+ creates a new box with the same style as the current, as usual.)
-
 Press ENTER or SPACE to open the various sub-menus.
+
+After: This shows which script or text box follows this one, as set in the Conditionals submenu. The tag condition is shown at the screen bottom. There are special controls while this option is selected:
+If a text box is linked, press ENTER to jump to it.
+If a script is linked, ENTER shows the script browser.
+Otherwise, press ENTER to bring up a menu, or CTRL+LEFT/RIGHT to link to the previous/next text box.
+You can also create a new text box and make the current box link to it by pressing INSERT or + (+ creates a new box with the same style as the current.)
 
 To find a text box, you can type in the "Search" field and press ENTER.
 

@@ -8,7 +8,7 @@ You can also hold the ALT key and press the left and right arrow keys to change 
 
 There are three types of chaining.
 
-* Default Chain - This chain will be evaluated after the current attack finishes. If the evaluation succeeds, then this attack will be used next.
+* Regular Chain - This chain will be evaluated after the current attack finishes. If the evaluation succeeds, then this attack will be used next.
 
 * Else-Chain - If the default chain's evaluation fails, then the else-chain will be evaluated. If the evaluation succeeds, then this attack will be used next.
 
