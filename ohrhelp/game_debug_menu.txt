@@ -41,6 +41,8 @@ CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per 
 
 Holding down SHIFT+TAB increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
 
+Toggle window resizability: Turning this on makes the window resizable by dragging the edges. Select again to disable. NOTE: This doesn't work if using gfx_directx (the default on Windows).
+
 List slices to g_debug.txt: Write a textual dump of the whole slice tree to g_debug.txt, next to the .rpg file.
 
 Edit backcompat bitsets: Lets you toggle backcompat bitsets to fix games broken by recent OHRRPGCE versions. It's not always possible for the engine to automatically turn on the correct bits.

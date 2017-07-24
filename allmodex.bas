@@ -2462,6 +2462,7 @@ private sub allmodex_controls()
 			set_resolution windowsize.w - 10, windowsize.h - 10
 		end if
 		if keyval(scR) > 1 then
+			'Note: there's also a debug key in the F8 menu in-game.
 			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
 		end if
 	end if

@@ -74,6 +74,7 @@ WHAT IS NEW?
      * Re-added F7 debug key to pan the camera (we used to have a similar
        debug key a while ago) [Ralph]
      * Added PAUSE debug key which works while walking around [Ralph]
+     * Option to make the window resizable (in F8 menu) [Ralph]
     * General bitset "Don't stop music when starting/loading game" [Ralph]
     * Ability to reorder shop items/things [Ralph]
     * Preview of the surrounding tiles, or tiling of the current tile

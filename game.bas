@@ -4237,6 +4237,17 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'Ctrl+~ implemented in allmodex
  IF dbg.def( , , "Show frames-per-second (Ctrl ~)") THEN toggle_fps_display
 
+ IF dbg.def( , , "Toggle window resizability") THEN
+  IF resolution_unlocked THEN
+   apply_game_window_settings()  'Reset size to genResolutionX/Y
+   lock_resolution
+  ELSE
+   unlock_resolution 0, 0
+  END IF
+  gam.showtext = "Window resizable: " & yesorno(resolution_unlocked)
+  gam.showtext_ticks = 60
+ END IF
+
  IF dbg.def( , , "List slices to g_debug.txt") THEN
   debug "----------------Slice Tree Dump---------------"
   SliceDebugDumpTree SliceTable.Root
