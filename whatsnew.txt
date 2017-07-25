@@ -142,6 +142,7 @@ WHAT IS NEW?
       * Hexidecimal, octal and binary number constants, written like
         0xCABBA9E, 0o377 and 0b1101111000011 [Ralph]
     * Added "allow switching" argument to "equip menu" command [Ralph]
+    * "gain hero stat", to easily increase/decrease a stat [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

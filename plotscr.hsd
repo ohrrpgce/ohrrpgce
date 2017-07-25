@@ -727,6 +727,32 @@ script,getherolevel,hsd:who=0,begin
   return(getherostat(hsd:who,12,currentstat))
 end
 
+script, gainherostat, hsd:who, hsd:stat, hsd:change, hsd:resetcurrent=false, begin
+  variable(hsd:oldcur, hsd:oldmax, hsd:newcur, hsd:newmax, hsd:newbase, hsd:cap)
+  if (hsd:resetcurrent == false) then (
+    hsd:oldcur := getherostat(hsd:who, hsd:stat, currentstat)
+    hsd:oldmax := getherostat(hsd:who, hsd:stat, maximumstat)
+  )
+  hsd:newbase := getherostat(hsd:who, hsd:stat, basestat) + hsd:change
+  setherostat(hsd:who, hsd:stat, hsd:newbase, basestat)
+  hsd:newmax := getherostat(hsd:who, hsd:stat, maximumstat)
+  if (hsd:resetcurrent) then (
+    # Set current to new max
+    hsd:newcur := hsd:newmax
+  ) else (
+    # Increase current proportional to change in max
+    # Have to be careful about integer overflow. Each stat can be any int32
+    #hsd:newcur := hsd:oldcur * hsd:newmax / hsd:oldmax
+    hsd:newcur := multdiv(hsd:oldcur, hsd:newmax, hsd:oldmax)
+  )
+  # Enforce stat caps on current. No need to do this for base/max, as base isn't
+  # capped, and max is autocapped when base is modified.
+  hsd:cap := get hero stat cap(hsd:stat)
+  if (hsd:cap && hsd:newcur > hsd:cap) then (hsd:newcur := hsd:cap)
+  setherostat(hsd:who, hsd:stat, hsd:newcur, currentstat)
+  return(hsd:newmax)
+end
+
 script,autosave,begin
 if (lastsaveslot==0)
   then(return(savemenu))

@@ -1287,6 +1287,30 @@ script, hero stat tests, begin
   set hero stat cap(stat:mp, 0)
   set hero stat cap(stat:spd, 0)
 
+  # gain hero stat
+  assert(gain hero stat(1, stat:atk, 3) == 13)  #return new maximum
+  assert(get hero stat(1, stat:atk, base stat) == 12)
+  assert(get hero stat(1, stat:atk, maximum stat) == 13)
+  assert(get hero stat(1, stat:atk, current stat) == 13)
+  # Only max and current should respect caps
+  set hero stat cap(stat:atk, 11)
+  assert(gain hero stat(1, stat:atk, 4) == 11)  #return new maximum
+  assert(get hero stat(1, stat:atk, base stat) == 16)
+  assert(get hero stat(1, stat:atk, maximum stat) == 11)
+  assert(get hero stat(1, stat:atk, current stat) == 11)
+  gain hero stat(1, stat:atk, -7)  #back to original
+  set hero stat cap(stat:atk, 0)
+  # Test proportional increase
+  assert(get hero stat(1, stat:hp, current stat) == 5)  # HP: 5/10
+  assert(gain hero stat(1, stat:hp, 6) == 16)
+  assert(get hero stat(1, stat:hp, current stat) == 8)  # HP: 8/16
+  assert(get hero stat(1, stat:hp, maximum stat) == 16)
+  assert(gain hero stat(1, stat:hp, -7) == 9)
+  # Test reset-to-max
+  assert(gain hero stat(1, stat:hp, 1, true) == 10)
+  assert(get hero stat(1, stat:hp, current stat) == 10)  # HP: 10/10
+  assert(get hero stat(1, stat:hp, maximum stat) == 10)
+
   # test original stats restored
   assert(get hero stat(1, stat:hp, maximum stat) == 10)
   assert(get hero stat(1, stat:hp, base stat) == 10)
@@ -1299,7 +1323,7 @@ script, hero stat tests, begin
   assert(get hero stat(1, stat:spd, maximum stat) == 30)
   assert(get hero stat(1, stat:spd, base stat) == 30)
   # but not current values for hp, mp
-  assert(get hero stat(1, stat:hp, current stat) == 5)
+  assert(get hero stat(1, stat:hp, current stat) == 10)
   assert(get hero stat(1, stat:mp, current stat) == 12)
   # ...fix that up
   restore hp and mp

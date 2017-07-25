@@ -991,6 +991,9 @@
 		<a href="#about-freesprite">free sprite (handle)</a><br>
 		
 	
+		<a href="#about-gainherostat">gain hero stat (who, stat, amount, reset to max)</a><br>
+		
+	
 		<a href="#about-gameover">game over</a><br>
 		
 	
@@ -6554,10 +6557,27 @@ end</pre>
 <a name="about-unequip"></a>
 		<h4>unequip (hero,slot)</h4>
 <p>
-			Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <a href="#about-setherostat" class="ref">set hero stat</a>) if the new max is more than the old one.<br clear="all">
+			
+				Removes the item that the specified hero has equipped in the specified slot.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).
+				The second argument is the slot to unequip. Use the slot:weapon, slot:armor,
+				etc. constants from your .hsi file.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					When a hero's equipment changes, the current values of all stats other than
+					HP and MP for the hero are reset to their new maximum values.
+					The current values of the HP and MP stats are capped to the new maximums
+					but not otherwise changed.
+					If you want to cause the HP and MP to be scaled up or down proportionally
+					(so that e.g. 8/10 HP becomes 16/20 HP),
+					the easiest way to do that is to make use of a side-effect of <a href="#about-gainherostat" class="ref">gain hero stat</a>:
+					<pre>gain hero stat(who, stat:hp, 0)
+gain hero stat(who, stat:mp, 0)</pre>
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -6572,10 +6592,22 @@ end</pre>
 <a name="about-forceequip"></a>
 		<h4>force equip (hero,slot,item)</h4>
 <p>
-			Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item's number or the item:name constants from your .hsi file.
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <a href="#about-setherostat" class="ref">set hero stat</a>) if the new max is more than the old one.<br clear="all">
+			
+				Forces a hero to equip an item, even if it is not normally equipable.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).
+				The second argument is the slot to equip. Use the slot:weapon, slot:armor,
+				etc. constants from your .hsi file.
+				The third argument is the item to equip.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					When a hero's equipment changes, their current HP and MP stats aren't updated.
+					See the Note at <a href="#about-unequip" class="ref">unequip</a> for more information.
+				<br clear="all">
 </div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -6592,7 +6624,22 @@ end</pre>
 <a name="about-equipwhere"></a>
 		<h4>equip where (hero,item)</h4>
 <p>
-			Returns the number of the slot that a hero can equip an item in (a constant of the form slot:weapon, etc, in your .hsi file), or <a href="#about-booleanconstants" class="ref">false</a> if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name). The second argument is the item to check the equipability of. You can use the item's number or the item:name constants from your .hsi file.
+			
+				Returns the number of the slot that a hero can equip an item in
+				(a constant of the form slot:weapon, etc, in your .hsi file),
+				or <a href="#about-booleanconstants" class="ref">false</a> if the hero cannot equip it.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by name).
+				The second argument is the item to check the equipability of.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					When a hero's equipment changes, their current HP and MP stats aren't updated.
+					See the Note at <a href="#about-unequip" class="ref">unequip</a> for more information.
+				<br clear="all">
+</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -7334,6 +7381,8 @@ end</pre>
 <li>
 <a href="#about-setherostat" class="ref">set hero stat</a>, </li>
 <li>
+<a href="#about-gainherostat" class="ref">gain hero stat</a>, </li>
+<li>
 <a href="#about-getlevelmp" class="ref">get level MP</a>, </li>
 <li>
 <a href="#about-getherolevel" class="ref">get hero level</a>, </li>
@@ -7353,24 +7402,37 @@ end</pre>
 		<h4>set hero stat (who,stat,value,type)</h4>
 <p>
 			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a> or <a href="#about-basestat" class="ref">base stat</a>. Follow those links for explanations. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. You can set the current value of a stat to more than the maximum value. If you want to permanently change a stat you would change both the current value and just one of either the maximum value or the base value.
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Cap stats are ignored by this command. Use <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> if you want to limit the current or maximum value of a stat to a cap. But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <a href="#about-setherostatcap" class="ref">set hero stat cap</a>. Caps don't apply to base stats.<br clear="all">
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					Cap stats are ignored by this command.
+					Use <a href="#about-setcappedherostat" class="ref">set capped hero stat</a> if you want to limit the current or maximum value of a stat to a cap.
+					But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <a href="#about-setherostatcap" class="ref">set hero stat cap</a>. Caps don't apply to base stats.
+				<br clear="all">
 </div>
-<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The maximum and base values of a stat are tied together. Modifying the max will always modify the other by the same amount.<br clear="all">
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					The maximum and base values of a stat are tied together.
+					Modifying the max will always modify the other by the same amount.
+				<br clear="all">
+</div>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">
+					If you want to increase or decrease a stat by a certain amount, just use <a href="#about-gainherostat" class="ref">gain hero stat</a>.
+				<br clear="all">
 </div>
 			
-			<pre>
-# Use this script to reset a stat to its max value
+			
+			<pre># Use this script to reset a stat to its max value
 script, reset stat, hero slot, stat, begin
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, maximum stat), current stat) 
-end</pre><pre>
-# Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
+end</pre><pre># Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
 script, adjust stat, hero slot, stat, amount, begin 
   set capped hero stat(hero slot, stat, get hero stat(hero slot, stat, current stat) + amount, current stat) 
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, base stat) + amount, base stat) 
 end</pre>
 			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-gainherostat" class="ref">gain hero stat</a>, </li>
 <li>
 <a href="#about-getherostat" class="ref">get hero stat</a>, </li>
 <li>
@@ -7380,6 +7442,48 @@ end</pre>
 <li>
 <a href="#about-setenemystat" class="ref">set enemy stat</a>, </li>
 <li><a href="#about-getenemystat" class="ref">get enemy stat</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-gainherostat"></a>
+		<h4>gain hero stat (who, stat, amount, reset to max)</h4>
+<p>
+			
+				Increase or decrease one of a hero's stats.
+				The base, maximum and current value of the stat are all changed, consistently.
+				<br>
+				The first argument <span class="code">who</span> is the position in your party of the hero you want
+				to change, as returned by <a href="#about-findhero" class="ref">find hero</a>.
+				<br>
+				The second argument is the name of the <span class="code">stat</span> that you want to change.
+				The names of the stats are defined in your HSI file in the form <span class="code">stat:name</span>,
+				such as <span class="code">stat:hp</span>.
+				<br>
+				The third argument is the <span class="code">amount</span> to change the stat;
+				it will be added to the base value and maximum value of the stat.
+				<br>
+				The optional fourth argument <span class="code">reset to max</span> says how the current value of
+				the stat should be updated.
+				If <span class="code">false</span> (which is the default), the current value will be set so that it's the
+				same percentage of the max before and after.
+				For example, 8/10 HP become 12/15 HP.
+				If <span class="code">reset to max</span> is <span class="code">true</span>, then the current value is set equal to the max.
+				<br>
+				The maximum and current stat values are capped to the stat cap, if any.
+				(Base stats are by definition not capped.)
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li>
+<a href="#about-setherostat" class="ref">set hero stat</a>, </li>
+<li>
+<a href="#about-setcappedherostat" class="ref">set capped hero stat</a>, </li>
+<li><a href="#about-setherostatcap" class="ref">set hero stat cap</a></li>
 </ul>
 </div>
 		</p>
@@ -7396,7 +7500,9 @@ end</pre>
 <a href="#about-setherostat" class="ref">set hero stat</a>, </li>
 <li>
 <a href="#about-getherostatcap" class="ref">get hero stat cap</a>, </li>
-<li><a href="#about-setherostatcap" class="ref">set hero stat cap</a></li>
+<li>
+<a href="#about-setherostatcap" class="ref">set hero stat cap</a>, </li>
+<li><a href="#about-gainherostat" class="ref">gain hero stat</a></li>
 </ul>
 </div>
 		</p>
@@ -17679,7 +17785,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 800 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 801 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

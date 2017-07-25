@@ -2163,8 +2163,25 @@ end</example>
 		<command id="unequip">
 			<canon>unequip (hero,slot)</canon>
 			<shortname>unequip</shortname>
-			<description>Removes the item that the specified hero has equipped in the specified slot. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to unequip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file.
-<note>When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <ref>setherostat</ref>) if the new max is more than the old one.</note></description>
+			<description>
+				Removes the item that the specified hero has equipped in the specified slot.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <ref>findhero</ref> if you want to refer to the hero by name).
+				The second argument is the slot to unequip. Use the slot:weapon, slot:armor,
+				etc. constants from your .hsi file.
+				<note>
+					When a hero's equipment changes, the current values of all stats other than
+					HP and MP for the hero are reset to their new maximum values.
+					The current values of the HP and MP stats are capped to the new maximums
+					but not otherwise changed.
+					If you want to cause the HP and MP to be scaled up or down proportionally
+					(so that e.g. 8/10 HP becomes 16/20 HP),
+					the easiest way to do that is to make use of a side-effect of <ref>gainherostat</ref>:
+					<example>gain hero stat(who, stat:hp, 0)
+gain hero stat(who, stat:mp, 0)</example>
+				</note>
+			</description>
 			<seealso>
 				<ref>forceequip</ref>
 				<ref>checkequipment</ref>
@@ -2173,8 +2190,20 @@ end</example>
 		<command id="forceequip">
 			<canon>force equip (hero,slot,item)</canon>
 			<shortname>force equip</shortname>
-			<description>Forces a hero to equip an item, even if it is not normally equipable. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the slot to equip. Use the slot:weapon, slot:armor, etc. constants from your .hsi file. The third argument is the item to equip. You can use the item&apos;s number or the item:name constants from your .hsi file.
-<note>When a hero's equipment changes, the current values of all stats other than HP and MP for the hero are reset to their new maximum values. The current values of the HP and MP stats are capped to the new maximums but not otherwise changed, so you might like to check and scale up the HP and MP of the hero (see <ref>setherostat</ref>) if the new max is more than the old one.</note></description>
+			<description>
+				Forces a hero to equip an item, even if it is not normally equipable.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <ref>findhero</ref> if you want to refer to the hero by name).
+				The second argument is the slot to equip. Use the slot:weapon, slot:armor,
+				etc. constants from your .hsi file.
+				The third argument is the item to equip.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<note>
+					When a hero's equipment changes, their current HP and MP stats aren't updated.
+					See the Note at <ref>unequip</ref> for more information.
+				</note>
+			</description>
 			<seealso>
 				<ref>unequip</ref>
 				<ref>equipwhere</ref>
@@ -2184,7 +2213,20 @@ end</example>
 		<command id="equipwhere">
 			<canon>equip where (hero,item)</canon>
 			<shortname>equip where</shortname>
-			<description>Returns the number of the slot that a hero can equip an item in (a constant of the form slot:weapon, etc, in your .hsi file), or <ref>false</ref> if the hero cannot equip it. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (Use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to check the equipability of. You can use the item&apos;s number or the item:name constants from your .hsi file.</description>
+			<description>
+				Returns the number of the slot that a hero can equip an item in
+				(a constant of the form slot:weapon, etc, in your .hsi file),
+				or <ref>false</ref> if the hero cannot equip it.
+				The first argument is the position of the hero in your party,
+				0-3 for the active party, 4-40 for the reserve.
+				(Use <ref>findhero</ref> if you want to refer to the hero by name).
+				The second argument is the item to check the equipability of.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<note>
+					When a hero's equipment changes, their current HP and MP stats aren't updated.
+					See the Note at <ref>unequip</ref> for more information.
+				</note>
+			</description>
 			<seealso>
 				<ref>unequip</ref>
 				<ref>checkequipment</ref>
@@ -2576,6 +2618,7 @@ end</example>
 			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref> or <ref>basestat</ref>. Follow those links for explanations. If you leave out the type, <ref>currentstat</ref> will be assumed.</description>
 			<seealso>
 				<ref>setherostat</ref>
+				<ref>gainherostat</ref>
 				<ref>getlevelmp</ref>
 				<ref>getherolevel</ref>
 				<ref>totalexperience</ref>
@@ -2588,25 +2631,69 @@ end</example>
 			<canon>set hero stat (who,stat,value,type)</canon>
 			<shortname>set hero stat</shortname>
 			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref> or <ref>basestat</ref>. Follow those links for explanations. If you leave the last argument blank, <ref>currentstat</ref> will be assumed. You can set the current value of a stat to more than the maximum value. If you want to permanently change a stat you would change both the current value and just one of either the maximum value or the base value.
-<note>Cap stats are ignored by this command. Use <ref>setcappedherostat</ref> if you want to limit the current or maximum value of a stat to a cap. But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <ref>setherostatcap</ref>. Caps don't apply to base stats.</note>
-<note>The maximum and base values of a stat are tied together. Modifying the max will always modify the other by the same amount.</note></description>
-			<example>
-# Use this script to reset a stat to its max value
+				<note>
+					Cap stats are ignored by this command.
+					Use <ref>setcappedherostat</ref> if you want to limit the current or maximum value of a stat to a cap.
+					But the stat will be capped later due to certain events such as equipping or unequipping an item, levelling up, or using <ref>setherostatcap</ref>. Caps don't apply to base stats.
+				</note>
+				<note>
+					The maximum and base values of a stat are tied together.
+					Modifying the max will always modify the other by the same amount.
+				</note>
+				<note>
+					If you want to increase or decrease a stat by a certain amount, just use <ref>gainherostat</ref>.
+				</note>
+			</description>
+			<example># Use this script to reset a stat to its max value
 script, reset stat, hero slot, stat, begin
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, maximum stat), current stat) 
 end</example>
-			<example>
-# Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
+			<example># Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
 script, adjust stat, hero slot, stat, amount, begin 
   set capped hero stat(hero slot, stat, get hero stat(hero slot, stat, current stat) + amount, current stat) 
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, base stat) + amount, base stat) 
 end</example>
 			<seealso>
+				<ref>gainherostat</ref>
 				<ref>getherostat</ref>
 				<ref>setcappedherostat</ref>
 				<ref>setherostatcap</ref>
 				<ref>setenemystat</ref>
 				<ref>getenemystat</ref>
+			</seealso>
+		</command>
+		<command id="gainherostat">
+			<canon>gain hero stat (who, stat, amount, reset to max)</canon>
+			<shortname>gain hero stat</shortname>
+			<description>
+				Increase or decrease one of a hero's stats.
+				The base, maximum and current value of the stat are all changed, consistently.
+				<lb/>
+				The first argument <tt>who</tt> is the position in your party of the hero you want
+				to change, as returned by <ref>findhero</ref>.
+				<lb/>
+				The second argument is the name of the <tt>stat</tt> that you want to change.
+				The names of the stats are defined in your HSI file in the form <tt>stat:name</tt>,
+				such as <tt>stat:hp</tt>.
+				<lb/>
+				The third argument is the <tt>amount</tt> to change the stat;
+				it will be added to the base value and maximum value of the stat.
+				<lb/>
+				The optional fourth argument <tt>reset to max</tt> says how the current value of
+				the stat should be updated.
+				If <tt>false</tt> (which is the default), the current value will be set so that it's the
+				same percentage of the max before and after.
+				For example, 8/10 HP become 12/15 HP.
+				If <tt>reset to max</tt> is <tt>true</tt>, then the current value is set equal to the max.
+				<lb/>
+				The maximum and current stat values are capped to the stat cap, if any.
+				(Base stats are by definition not capped.)
+			</description>
+			<seealso>
+				<ref>getherostat</ref>
+				<ref>setherostat</ref>
+				<ref>setcappedherostat</ref>
+				<ref>setherostatcap</ref>
 			</seealso>
 		</command>
 		<command id="setcappedherostat">
@@ -2617,6 +2704,7 @@ end</example>
 				<ref>setherostat</ref>
 				<ref>getherostatcap</ref>
 				<ref>setherostatcap</ref>
+				<ref>gainherostat</ref>
 			</seealso>
 		</command>
 		<command id="getherostatcap">
