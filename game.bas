@@ -3195,7 +3195,6 @@ SUB loadsay (byval box_id as integer)
  '--Store box ID number for later reference
  txt.id = box_id
 
- gen(genTextboxBackdrop) = 0
  WITH txt.choicestate
   .pt = 0
   .size = 2
@@ -3219,10 +3218,8 @@ SUB loadsay (byval box_id as integer)
  '--make a sound if the choicebox is enabled
  IF txt.box.choice_enabled THEN MenuSound gen(genAcceptSFX)
 
- '-- update backdrop if necessary
- IF txt.box.backdrop > 0 THEN
-  gen(genTextboxBackdrop) = txt.box.backdrop
- END IF
+ '-- update backdrop (0 means none)
+ gen(genTextboxBackdrop) = txt.box.backdrop
 
  '-- change music if necessary
  IF txt.box.music > 0 THEN
@@ -3258,10 +3255,8 @@ SUB loadsay (byval box_id as integer)
 END SUB
 
 SUB advance_text_box ()
- IF txt.box.backdrop > 0 THEN
-  '--backdrop needs resetting
-  gen(genTextboxBackdrop) = 0
- END IF
+ '--Remove backdrop if any
+ gen(genTextboxBackdrop) = 0
  '---IF MADE A CHOICE---
  IF txt.box.choice_enabled THEN
   MenuSound gen(genAcceptSFX)
@@ -3353,9 +3348,6 @@ SUB advance_text_box ()
     npc(txt.sayer).dir = txt.old_dir
    END IF
   END IF
- END IF
- IF txt.box.backdrop > 0 THEN
-  gen(genTextboxBackdrop) = 0
  END IF
  txt.showing = NO
  txt.fully_shown = NO
