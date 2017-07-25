@@ -19,11 +19,14 @@ mkdir "${DLTEMP}"
 cd "${DLTEMP}"
 
 if [ -x "`which dpkg`" ] ; then
-  wget "http://downloads.sourceforge.net/project/rapideuphoria/Euphoria/4.0.3/Linux/euphoria_4.0.3_i386.deb"
-  sudo dpkg -i euphoria_4.0.3_i386.deb
+  wget "https://downloads.sourceforge.net/project/rapideuphoria/Euphoria/4.0.5/euphoria_4.0.5_amd64.deb"
+  echo "Using sudo to install dependencies"
+  sudo apt-get install --no-install-recommends libc6-i386
+  echo "Using sudo to install Euphoria package"
+  sudo dpkg -i euphoria_4.0.5_amd64.deb
 else
-  wget "http://downloads.sourceforge.net/project/rapideuphoria/Euphoria/4.0.3/Linux/euphoria-4.0.3-Linux-ix86.tar.bz2"
-  tar -jxf "euphoria-4.0.3-Linux-ix86.tar.bz2"
+  wget "https://downloads.sourceforge.net/project/rapideuphoria/Euphoria/4.0.5/euphoria-4.0.5-Linux-ix86.tar.bz2"
+  tar -jxf "euphoria-4.0.5-Linux-ix86.tar.bz2"
 
   EUDEST="/usr/local/share/euphoria"
   EUBIN="/usr/local/bin"
@@ -43,7 +46,7 @@ else
     echo "Giving up."
     exit 1
   fi
-  sudo mv euphoria-4.0.3-Linux-ix86 "${EUDEST}"
+  sudo mv euphoria-4.0.5-Linux-ix86 "${EUDEST}"
   sudo chown -R root:root "${EUDEST}"
   sudo mv "${EUDEST}"/bin/eub "${EUBIN}"
   sudo mv "${EUDEST}"/bin/eubind "${EUBIN}"
