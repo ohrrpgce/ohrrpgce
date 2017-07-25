@@ -115,6 +115,15 @@ let commands = {
     },
     566: function scripterror(stab, id) {
         throw new Error("Script threw error: " + interpreter.plotstring[id]);
+    },
+    649: function multdiv(stab, a, b, c) {
+        let ret = (a * b) / c;
+        if (ret < -2147483648)
+            return -2147483648;
+        else if (ret > 2147483647)
+            return 2147483647;
+        // Math.round breaks ties by rounding up, which differs from FB/x86's rounding to even
+        return Math.round(ret);
     }
 };
 

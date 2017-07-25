@@ -4397,7 +4397,10 @@ SUB script_functions(byval cmdid as integer)
   enable_speed_control YES
  CASE 648'--_runfast
   enable_speed_control NO
- 
+ CASE 649'--multdiv
+  'Return int(float(a)*b/c), clamped to a 32-bit int, and rounded
+  '(Break ties towards +inf, since that's what JS does; FB/x86 breaks ties towards even)
+  scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

@@ -351,6 +351,15 @@ script, math tests, begin
   assert(another global == 4)
 
   larger math tests
+
+  assert(multdiv(10, 20, 30) == 7)
+  assert(multdiv(1, 499, 1000) == 0)
+  assert(multdiv(1, 500, 1000) == 1)
+  assert(multdiv(1, 501, 1000) == 1)
+  assert(multdiv(-1, 500, 1000) == 0)
+  assert(multdiv(1 000 000, 1 000 000, -1 000) == -1 000 000 000)
+  assert(multdiv(1 000 000, 1 000 000, 1) == 2147483647)
+  assert(multdiv(1 000 000, -1 000 000, 1) == -2147483648)
 end
 
 # Return number of bits in an integer. Does NOT work for negative numbers!

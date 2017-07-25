@@ -63,6 +63,7 @@ define function, begin
 # 596,runningonmac,0            # returns true if the device is Mac
 # 597,runningonlinux,0          # returns true if the device is Linux
 # 600,runningonouya,0           # returns true if the device is OUYA (see also "running on console")
+649,multdiv,3,0,0,0           # calculate int(float(a)*b/c), with rounding and clamping (undocumented)
 end
 
 define trigger,begin

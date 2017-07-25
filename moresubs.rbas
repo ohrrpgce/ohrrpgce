@@ -1480,6 +1480,7 @@ END SUB
 
 FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 
+' (This is used when reading joyset.ini, but could be replaced with read_ini_int)
 ' checks to see if searchee begins with setting =
 ' if so, sets result to the uppercased space-trimmed value that
 ' follows the = sign and returns true. If not found, returns false
