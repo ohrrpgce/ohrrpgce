@@ -45,7 +45,7 @@ recommends = "madplay, vorbis-tools"
 ############################################################################
 
 def create_dpkg():
-    "Creates ohrrpgce_${version}_i386.deb"
+    "Creates ohrrpgce_${version}_amd64.deb"
     version = read_version()
     quiet_mkdir(package_name + '/DEBIAN')
     write_control_file(package_name + '/DEBIAN/control',
@@ -54,7 +54,7 @@ Priority: optional
 Section: games
 Installed-Size: %d
 Maintainer: %s
-Architecture: i386
+Architecture: amd64
 Version: %s
 Depends: %s
 Recommends: %s
