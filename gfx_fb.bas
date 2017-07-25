@@ -115,6 +115,8 @@ sub gfx_fb_update_screen_mode()
 end sub
 
 sub gfx_fb_close
+	screen 0
+	init_gfx = NO
 end sub
 
 function gfx_fb_getversion() as integer

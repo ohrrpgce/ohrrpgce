@@ -127,7 +127,6 @@ DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
-DIM SHARED keystate as Uint8 ptr = NULL
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
 DIM SHARED sdlpalette(0 TO 255) as SDL_Color
 DIM SHARED framesize as XYPair
@@ -331,17 +330,15 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   DIM ver as const SDL_version ptr = SDL_Linked_Version()
   *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
-  IF SDL_WasInit(0) = 0 THEN
-    IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
-      *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
-      RETURN 0
-    END IF
-  ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
-    IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
-      *info_buffer = MID("Can't start SDL video subsys: " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
-      RETURN 0
-    END IF
 
+  DIM video_already_init as bool = (SDL_WasInit(SDL_INIT_VIDEO) <> 0)
+
+  IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
+    *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
+    RETURN 0
+  END IF
+
+  IF video_already_init = NO THEN
     'Get resolution of the screen, must be done before opening a window,
     'as after that this gives the size of the window instead.
     DIM videoinfo as const SDL_VideoInfo ptr = SDL_GetVideoInfo()
@@ -369,7 +366,6 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
     debuginfo "Not running on a console, leave the virtual gamepad visible"
   END IF
 #ENDIF
-
 
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
@@ -477,6 +473,8 @@ END FUNCTION
 SUB gfx_sdl_close()
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
+    screensurface = NULL
+    screenbuffer = NULL
     FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
       IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
       joystickhandles(i) = NULL

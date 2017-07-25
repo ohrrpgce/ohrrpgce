@@ -555,6 +555,30 @@ private sub unload_backend(which as GFxBackendStuff ptr)
 	currentgfxbackend = NULL
 end sub
 
+' Returns true if the desired backend was loaded. It's always the case that
+' the backend was shut down and another or the same one was loaded+initialised
+' (if not, that's a fatal error).
+function switch_gfx_backend(name as string) as bool
+	if currentgfxbackend then
+		' Make sure that the current is the second preference, in case the switch fails.
+		prefer_backend(currentgfxbackend)
+
+		gfx_close()
+		unload_backend(currentgfxbackend)
+	end if
+
+	dim backendinfo as GfxBackendStuff ptr = lookup_gfx_backend(name)
+	if backendinfo = NULL then
+		showerror "Invalid gfx backend " & name
+		return NO
+	end if
+
+	prefer_backend(backendinfo)
+	init_best_gfx_backend()
+
+	return currentgfxbackend = backendinfo
+end function
+
 ' Try to load (but not init) gfx backends in order of preference until one works.
 private sub load_best_gfx_backend()
 	if currentgfxbackend <> NULL then exit sub

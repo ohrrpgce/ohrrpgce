@@ -76,6 +76,8 @@ declare sub snapshot_check()
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
+declare sub screen_size_update ()
+
 declare sub pollingthread(byval as any ptr)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
@@ -337,7 +339,7 @@ dim shared mouse_grab_requested as bool = NO
 dim shared mouse_grab_overridden as bool = NO
 dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
-dim shared remember_title as string
+dim shared remember_title as string       'The window title
 
 dim shared global_sfx_volume as single = 1.
 
@@ -348,9 +350,8 @@ dim shared global_sfx_volume as single = 1.
 '==========================================================================================
 
 
+' Initialise anything in this module that's independent from the gfx backend
 private sub modex_init()
-	'initialise software gfx library
-
 	redim vpages(3)
 	'redim fixedsize_vpages(3)  'Initially all NO
 	vpagesp = @vpages(0)
@@ -367,16 +368,14 @@ private sub modex_init()
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
 	sprcacheB_used = 0
+
+	' TODO: tmpdir is shared by all instances of Custom, but when that is fixed this can be removed
+	macrofile = tmpdir & "macro" & get_process_id() & ".ohrkeys"
 end sub
 
-' Initialise this module and backends, create a window
-sub setmodex()
-	modex_init()
-
-	'Select and initialise a graphics/io
-	init_best_gfx_backend()
-
-	'init vars
+' Initialise stuff specific to the backend (this is called after gfx_init())
+private sub backend_init()
+	'Polling thread variables
 	endpollthread = NO
 	mouselastflags = 0
 	mouseflags = 0
@@ -394,19 +393,26 @@ sub setmodex()
 	fps_draw_frames = 0
 	fps_real_frames = 0
 
-	' TODO: tmpdir is shared by all instances of Custom, but when that is fixed this can be removed
-	macrofile = tmpdir & "macro" & get_process_id() & ".ohrkeys"
-
 	if gfx_supports_variable_resolution() = NO then
 		debuginfo "Resolution changing not supported"
+		windowsize = XY(320, 200)
+		'In case we're called from switch_gfx, resize video pages
+		screen_size_update
 	end if
+end sub
+
+' Initialise this module and backends, create a window
+sub setmodex()
+	modex_init()
+	'Select and initialise a graphics/io backend
+	init_best_gfx_backend()
+	backend_init()
 
 	modex_initialised = YES
 end sub
 
+' Cleans up anything in this module which is independent of the graphics backend
 private sub modex_quit()
-	'clean up software gfx library
-
 	stop_recording_input
 	stop_recording_gif
 
@@ -424,11 +430,8 @@ private sub modex_quit()
 	safekill macrofile
 end sub
 
-' Deinitialise this module and backends, destroy the window
-sub restoremode()
-	if modex_initialised = NO then exit sub
-	modex_initialised = NO
-
+' Shuts down the gfx backend and cleans up everything that needs to be
+private sub backend_quit()
 	'clean up io stuff
 	if keybdthread then
 		endpollthread = YES
@@ -440,8 +443,28 @@ sub restoremode()
 	skipped_frame.drop()
 
 	gfx_close()
+end sub
 
+' Deinitialise this module and backends, destroy the window
+sub restoremode()
+	if modex_initialised = NO then exit sub
+	modex_initialised = NO
+
+	backend_quit
 	modex_quit
+end sub
+
+' Switch to a different gfx backend
+sub switch_gfx(backendname as string)
+	debuginfo "switch_gfx " & backendname
+
+	backend_quit()
+	switch_gfx_backend(backendname)
+	backend_init()
+
+	' Re-apply settings (this is very incomplete)
+	setwindowtitle remember_title
+	io_setmousevisibility(cursorvisibility)
 end sub
 
 sub mersenne_twister (byval seed as double)

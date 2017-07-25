@@ -76,6 +76,7 @@ End Type
 
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
+DECLARE SUB switch_gfx (backendname as string)
 DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
 DECLARE SUB mersenne_twister (byval seed as double)
 
