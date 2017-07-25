@@ -651,3 +651,22 @@ sub read_backend_info()
 		systeminfo = get_windows_version()
 	#endif
 end sub
+
+sub gfx_backend_menu ()
+	redim menu() as string
+	for idx as integer = 0 to ubound(gfx_choices)
+		dim item as string = "gfx_" & gfx_choices(idx)->name
+		if gfx_choices(idx) = currentgfxbackend then
+			item &= " (Current)"
+		end if
+		str_array_append menu(), item
+	next
+
+	dim choice as integer
+	choice = multichoice("Switch to which graphics backend? (EXPERIMENTAL! And UNFINISHED!)", menu())
+	if choice > -1 then
+		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
+		dim backendname as string = gfx_choices(choice)->name
+		switch_gfx backendname
+	end if
+end sub

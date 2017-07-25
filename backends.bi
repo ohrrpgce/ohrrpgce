@@ -9,6 +9,8 @@ declare function switch_gfx_backend (name as string) as bool
 declare sub read_backend_info()
 declare function valid_gfx_backend (name as string) as bool
 
+declare sub gfx_backend_menu ()
+
 extern wantpollingthread as bool
 extern as string gfxbackend, musicbackend
 extern as string gfxbackendinfo, musicbackendinfo, systeminfo

@@ -2443,6 +2443,10 @@ private sub allmodex_controls()
 		interrupt_self ()
 	end if
 
+	if keyval(scCtrl) > 0 and keyval(scF8) > 1 then
+		gfx_backend_menu
+	end if
+
 	' F12 screenshots are handled in setvispage, not here.
 
 	' Ctrl+F12 to start/stop recording a .gif

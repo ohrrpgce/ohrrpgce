@@ -811,6 +811,7 @@ SUB Custom_global_menu
  menu(4) = "Zoom 1x"
  menu(5) = "Zoom 2x"
  menu(6) = "Zoom 3x"
+ 'menu(7) = "Graphics backend settings"
  IF editing_a_game = NO THEN
   str_array_pop menu(), 1
   str_array_pop menu(), 0
@@ -835,6 +836,8 @@ SUB Custom_global_menu
   set_scale_factor 2
  ELSEIF choice = 6 THEN
   set_scale_factor 3
+ ELSEIF choice = 7 THEN
+  gfx_backend_menu
  END IF
 END SUB
 
