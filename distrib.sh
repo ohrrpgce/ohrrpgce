@@ -107,7 +107,7 @@ fi
 if [ -z "${OHR_SKIP_X86_64}" ] ; then
   package_for_arch x86_64
   if which dpkg > /dev/null; then
-    echo "Building x86 Debian/Ubuntu packages"
+    echo "Building x86_64 Debian/Ubuntu packages"
     cd linux
     rm -f *.deb
     rm -Rf ohrrpgce
