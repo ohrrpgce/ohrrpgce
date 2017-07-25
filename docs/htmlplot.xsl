@@ -53,12 +53,13 @@
 					}
 
 					pre {
-						background-color:#FFFFFF;
+						background-color:#B0B8B8;
 						color:#000000;
 						border-width:3px;
 						border-style:ridge;
-						padding:10px;
+						padding:7px;
 						padding-left:20px;
+						margin:3px;
 						white-space: pre-wrap;
 						/*font-family:fixedsys,monospace;*/
 						font-size: 12px;
@@ -115,19 +116,20 @@
 						color: #f09090;
 					}
 
-					div.note {
+					/* Used by note, warn, and danger */
+					div.notice {
 					  border:thin black solid;
 					  padding:5px;
 					  color:black;
 					  margin:3px;
-					  min-height: 48px;
+					  min-height: 32px;
 					}
 
-					div.note a {
+					div.notice a {
 					  color: #008800;
 					}
 
-					div.note .param, div.note .code {
+					div.notice .param, div.notice .code {
 					  color: #888800;
 					}
 
@@ -303,23 +305,23 @@
 	<xsl:template match="b"><b><xsl:apply-templates /></b></xsl:template>
 
 	<xsl:template match="note">
-		<div style="background-color:#EFF;" class="note">
-			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon"/>
-			<xsl:apply-templates /><br clear="all" />
+		<div style="background-color:#BCC;" class="notice">
+			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon"/>
+			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
 
 	<xsl:template match="warn">
-		<div style="background-color:#FFE;" class="note">
+		<div style="background-color:#CCB;" class="notice">
 			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon"/>
-			<xsl:apply-templates /><br clear="all" />
+			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
 
 	<xsl:template match="danger">
-		<div style="background-color:#FEE;" class="note">
+		<div style="background-color:#DCC;" class="notice">
 			<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon"/>
-			<xsl:apply-templates /><br clear="all" />
+			<xsl:apply-templates /><!-- <br clear="all" /> -->
 		</div>
 	</xsl:template>
 
