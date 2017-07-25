@@ -21,7 +21,7 @@ cd "${DLTEMP}"
 if [ -x "`which dpkg`" ] ; then
   wget "https://downloads.sourceforge.net/project/rapideuphoria/Euphoria/4.0.5/euphoria_4.0.5_amd64.deb"
   echo "Using sudo to install dependencies"
-  sudo apt-get install --no-install-recommends libc6-i386
+  sudo apt-get install --no-install-recommends libc6-i386 g++-multilib
   echo "Using sudo to install Euphoria package"
   sudo dpkg -i euphoria_4.0.5_amd64.deb
 else
