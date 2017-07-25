@@ -137,7 +137,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      END IF
     ELSEIF keyval(scInsert) > 1 ANDALSO yesno("Create and link to a new textbox?") THEN
      textbox_link_to_new_box_and_load 0,     box, st, menu()
-    ELSE
+    ELSEIF keyval(scAlt) = 0 THEN  'Ignore alt+left/right keypresses
      ' Ctrl+Left/Right links to previous/next box. We actually let scrintgrabber
      ' handle that, by starting at box.after. So continuing press Ctrl+Left/Right works.
      IF keyval(scCtrl) > 0 AND box.after = 0 THEN
