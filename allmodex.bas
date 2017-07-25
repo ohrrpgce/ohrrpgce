@@ -374,7 +374,7 @@ sub setmodex()
 	modex_init()
 
 	'Select and initialise a graphics/io
-	init_gfx_backend()
+	init_best_gfx_backend()
 
 	'init vars
 	endpollthread = NO

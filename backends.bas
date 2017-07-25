@@ -132,33 +132,36 @@ declare function gfx_console_setprocptrs() as integer
 
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
-	name as string * 7
-	libname as string * 15
-	load as function () as integer
+	name as string * 7              'Without gfx_ prefix
+	alt_name as string * 7          'An alternative name that's also accepted
+	libname as string * 15          'Filename from which to load a dyn-linked backend, without extension
+	load as function () as integer  'Set function ptrs. Is NULL if the backend is dynamically linked
 	wantpolling as bool  'run the polling thread?
 	dylib as any ptr  'handle on a loaded library
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", @gfx_alleg_setprocptrs, YES)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", "", @gfx_alleg_setprocptrs, YES)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", "", NULL)  'work out wantpolling when loading
+dim shared as GfxBackendStuff directx_stuff = ("directx", "", "gfx_directx", NULL)  'work out wantpolling when loading
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", "", @gfx_fb_setprocptrs, YES)
+dim shared as GfxBackendStuff fb_stuff = ("fb", "", "", @gfx_fb_setprocptrs, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", @gfx_sdl_setprocptrs, NO)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", "", @gfx_sdl_setprocptrs, NO)
 #endif
 #ifdef GFX_CONSOLE_BACKEND
-dim shared as GfxBackendStuff console_stuff = ("console", "", @gfx_console_setprocptrs, NO)
+dim shared as GfxBackendStuff console_stuff = ("console", "", "", @gfx_console_setprocptrs, NO)
 #endif
 #ifdef GFX_SDLPP_BACKEND
-dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "gfx_sdl", NULL)
+dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL)
 'dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "", @gfx_sdlpp_setprocptrs)
 #endif
 
+' Alternative spellings allowed
+dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "fb", "sdl", "console", "sdlpp", "sdl++"}
 
 'you can't initialise arrays with addresses because FB considers them nonconstant!!
 'plus the extern block nonsense, oh what a mess
@@ -169,7 +172,8 @@ dim shared gfx_choices() as GfxBackendStuff ptr
 GFX_CHOICES_INIT
 extern "C"
 
-declare function gfx_load(byval onlyfirst as integer = NO) as bool
+declare sub load_best_gfx_backend()
+declare function load_backend(which as GFxBackendStuff ptr) as bool
 declare sub unload_backend(which as GFxBackendStuff ptr)
 declare sub default_gfx_render_procs()
 
@@ -450,66 +454,48 @@ private sub prefer_backend(b as GfxBackendStuff ptr)
 	next
 end sub
 
+function valid_gfx_backend(name as string) as bool
+	for idx as integer = 0 to ubound(valid_gfx_backends)
+		if valid_gfx_backends(idx) = name then return YES
+	next idx
+	return NO
+end function
+
+function lookup_gfx_backend(name as string) as GfxBackendStuff ptr
+	for idx as integer = 0 to ubound(gfx_choices)
+		if gfx_choices(idx)->name = name orelse gfx_choices(idx)->alt_name = name then
+			return gfx_choices(idx)
+		end if
+	next
+	return NULL
+end function
+
 function backends_setoption(opt as string, arg as string) as integer
 	'general backend options
 	'gfx should be the first option
-	if opt = "gfx" then 
-		dim unsupported as integer = NO
-		dim failed as integer = NO
-		if arg = "alleg" or arg = "allegro" then
-			#ifdef GFX_ALLEG_BACKEND
-				prefer_backend(@alleg_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		elseif arg = "directx" then
-			#ifdef GFX_DIRECTX_BACKEND
-				prefer_backend(@directx_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		elseif arg = "fb" then
-			#ifdef GFX_FB_BACKEND
-				prefer_backend(@fb_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		elseif arg = "sdl" then
-			#ifdef GFX_SDL_BACKEND
-				prefer_backend(@sdl_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		elseif arg = "console" then
-			#ifdef GFX_CONSOLE_BACKEND
-				prefer_backend(@console_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		elseif arg = "sdlpp" or arg = "sdl++" then
-			#ifdef GFX_SDLPP_BACKEND
-				prefer_backend(@sdlpp_stuff)
-				if gfx_load(YES) then return 2
-				failed = YES
-			#endif
-			unsupported = YES
-		else
+	if opt = "gfx" then
+		if currentgfxbackend <> NULL then
+			display_help_string "Can't specify --gfx twice!"
+		end if
+
+		'First check if its a backend which isn't compiled in
+		if not valid_gfx_backend(arg) then
 			display_help_string """" + arg + """ is not a valid graphics backend"
 		end if
-		if failed then
-			display_help_string "gfx_" + arg + " could not be loaded!"
-		elseif unsupported then
+
+		dim backendinfo as GfxBackendStuff ptr = lookup_gfx_backend(arg)
+		if backendinfo = NULL then
 			display_help_string "gfx_" + arg + " support is not enabled in this build"
+		else
+			prefer_backend(backendinfo)
+			if not load_backend(backendinfo) then
+				display_help_string "gfx_" + arg + " could not be loaded!"
+			end if
 		end if
 		return 2
 	else
 		'after any -gfx is processed, should load the backend to send it the remain options
-		gfx_load
+		load_best_gfx_backend
 		if opt = "w" or opt = "windowed" then
 			gfx_setwindowed(1)
 			return 1
@@ -534,7 +520,6 @@ private function load_backend(which as GFxBackendStuff ptr) as bool
 	if which->load = NULL then
 		'Dynamically linked
 		dim filename as string = which->libname
-		if filename = "" then filename = "gfx_" + which->name
 #ifdef __FB_WIN32__
 		filename += ".dll"
 #else
@@ -566,21 +551,19 @@ private sub unload_backend(which as GFxBackendStuff ptr)
 	end if
 end sub
 
-'onlyfirst: only try the most prefered. Returns true on success
-private function gfx_load(byval onlyfirst as bool) as bool
-	if currentgfxbackend <> NULL then return YES 'hmm
+' Try to load (but not init) gfx backends in order of preference until one works.
+private sub load_best_gfx_backend()
+	if currentgfxbackend <> NULL then exit sub
 	for i as integer = 0 to ubound(gfx_choices)
-		if load_backend(gfx_choices(i)) then return YES
-		if onlyfirst then return NO
+		if load_backend(gfx_choices(i)) then exit sub
 	next
 	display_help_string "Could not load any graphic backend! (Who forgot to compile without at least gfx_fb?)"
-	return NO
-end function
+end sub
 
 end extern
 
 ' Try to init gfx backends in order of preference until one works.
-sub init_gfx_backend()
+sub init_best_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
@@ -616,7 +599,6 @@ sub init_gfx_backend()
 	next
 
 	display_help_string "No working graphics backend!"
-	system 1
 end sub
 
 ' Load gfxbackendinfo, musicbackendinfo, systeminfo
