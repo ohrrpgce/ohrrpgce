@@ -18,9 +18,11 @@ fi
 mkdir "${DLTEMP}"
 cd "${DLTEMP}"
 
-wget "http://downloads.sourceforge.net/project/fbc/Binaries%20-%20Linux/FreeBASIC-0.23.0-linux.run?use_mirror=iweb"
-chmod +x "FreeBASIC-0.23.0-linux.run"
-sudo ./"FreeBASIC-0.23.0-linux.run" install
+wget "https://downloads.sourceforge.net/project/fbc/Binaries%20-%20Linux/FreeBASIC-1.05.0-linux-x86_64.tar.gz"
+tar -xvf "FreeBASIC-1.05.0-linux-x86_64.tar.gz"
+cd "FreeBASIC-1.05.0-linux-x86_64"
+echo "Running FreeBasic installer with sudo..."
+sudo ./install.sh -i
 
 cd ..
 rm -Rf "${DLTEMP}"
