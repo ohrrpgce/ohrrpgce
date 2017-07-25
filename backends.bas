@@ -122,7 +122,7 @@ dim gfx_renderTriangleTextureColor as function ( byval pTriangle as VertexPTC pt
 
 dim gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as RGBPalette ptr ) as integer
 
-
+type FnGfxLoad as function cdecl () as integer
 
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
@@ -130,14 +130,16 @@ declare function gfx_sdl_setprocptrs() as integer
 declare function gfx_console_setprocptrs() as integer
 'declare function gfx_sdlpp_setprocptrs() as integer
 
+end extern
+
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
-	name as string * 7              'Without gfx_ prefix
-	alt_name as string * 7          'An alternative name that's also accepted
-	libname as string * 15          'Filename from which to load a dyn-linked backend, without extension
-	load as function () as integer  'Set function ptrs. Is NULL if the backend is dynamically linked
-	wantpolling as bool  'run the polling thread?
-	dylib as any ptr  'handle on a loaded library
+	name as string * 7      'Without gfx_ prefix
+	alt_name as string * 7  'An alternative name that's also accepted
+	libname as string * 15  'Filename from which to load a dyn-linked backend, without extension
+	load as FnGfxLoad       'Set function ptrs. Is NULL if the backend is dynamically linked
+	wantpolling as bool     'Need allmodex to run the polling thread?
+	dylib as any ptr        'Handle for a loaded dynamic library, if any
 end type
 
 #ifdef GFX_ALLEG_BACKEND
@@ -163,14 +165,10 @@ dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL)
 ' Alternative spellings allowed
 dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "fb", "sdl", "console", "sdlpp", "sdl++"}
 
-'you can't initialise arrays with addresses because FB considers them nonconstant!!
-'plus the extern block nonsense, oh what a mess
-end extern
 dim shared gfx_choices() as GfxBackendStuff ptr
-
-'sets up pointers to *_stuff variables, in some build-dependent order
+'Initialises gfx_choices with pointers to *_stuff variables, in some build-dependent order
+'(you can't initialise arrays with addresses because FB considers them nonconstant)
 GFX_CHOICES_INIT
-extern "C"
 
 declare sub load_best_gfx_backend()
 declare function load_backend(which as GFxBackendStuff ptr) as bool
@@ -185,6 +183,8 @@ dim as string gfxbackendinfo, musicbackendinfo
 dim as string systeminfo
 
 dim allegro_initialised as bool = NO
+
+extern "C"
 
 sub gfx_dummy_get_screen_size(wide as integer ptr, high as integer ptr) : *wide = 0 : *high = 0 : end sub
 function gfx_dummy_supports_variable_resolution() as bool : return NO : end function
@@ -217,6 +217,8 @@ sub io_dummy_remap_android_gamepad(byval player as integer, gp as GamePadMap) : 
 sub io_dummy_remap_touchscreen_button(byval button_id as integer, byval ohr_scancode as integer) : end sub
 function io_dummy_running_on_console() as bool : return NO : end function
 function io_dummy_running_on_ouya() as bool : return NO : end function
+
+end extern
 
 'Some parts of the API (function pointers) are optional in all gfx backends.
 'Those are set to defaults, most of which do nothing.
@@ -495,11 +497,12 @@ function backends_setoption(opt as string, arg as string) as integer
 		return 2
 	else
 		'after any -gfx is processed, should load the backend to send it the remain options
-		load_best_gfx_backend
 		if opt = "w" or opt = "windowed" then
+			load_best_gfx_backend
 			gfx_setwindowed(1)
 			return 1
 		elseif opt = "f" or opt = "fullscreen" then
+			load_best_gfx_backend
 			gfx_setwindowed(0)
 			return 1
 		end if
@@ -512,7 +515,6 @@ private function load_backend(which as GFxBackendStuff ptr) as bool
 	if currentgfxbackend = which then return YES
 	if currentgfxbackend <> NULL then
 		unload_backend(currentgfxbackend)
-		currentgfxbackend = NULL
 	end if
 
 	set_default_gfx_function_ptrs()
@@ -544,11 +546,13 @@ private function load_backend(which as GFxBackendStuff ptr) as bool
 	return YES
 end function
 
+' Does not shut down the backend!
 private sub unload_backend(which as GFxBackendStuff ptr)
 	if which->dylib then
 		dylibfree(which->dylib)
 		which->dylib = NULL
 	end if
+	currentgfxbackend = NULL
 end sub
 
 ' Try to load (but not init) gfx backends in order of preference until one works.
@@ -559,8 +563,6 @@ private sub load_best_gfx_backend()
 	next
 	display_help_string "Could not load any graphic backend! (Who forgot to compile without at least gfx_fb?)"
 end sub
-
-end extern
 
 ' Try to init gfx backends in order of preference until one works.
 sub init_best_gfx_backend()
@@ -593,7 +595,6 @@ sub init_best_gfx_backend()
 					end if
 				end if
 				unload_backend(gfx_choices(i))
-				currentgfxbackend = NULL
 			end if
 		end with
 	next

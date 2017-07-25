@@ -4,10 +4,9 @@
 #define BACKENDS_BI
 
 declare sub init_best_gfx_backend()
-declare function backends_setoption cdecl(opt as string, arg as string) as integer
+declare function backends_setoption (opt as string, arg as string) as integer
 declare sub read_backend_info()
-declare function valid_gfx_backend(name as string) as bool
-
+declare function valid_gfx_backend (name as string) as bool
 
 extern wantpollingthread as bool
 extern as string gfxbackend, musicbackend
