@@ -102,6 +102,10 @@ package_for_arch() {
 
 if [ -z "${OHR_SKIP_X86}" ] ; then
   package_for_arch x86 &&
+fi
+
+if [ -z "${OHR_SKIP_X86_64}" ] ; then
+  package_for_arch x86_64
   if which dpkg > /dev/null; then
     echo "Building x86 Debian/Ubuntu packages"
     cd linux
@@ -111,9 +115,4 @@ if [ -z "${OHR_SKIP_X86}" ] ; then
     cd ..
     mv linux/*.deb distrib
   fi
-fi
-
-if [ -z "${OHR_SKIP_X86_64}" ] ; then
-  package_for_arch x86_64
-  # TODO: x86_64 .debs
 fi
