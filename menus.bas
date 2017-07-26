@@ -88,14 +88,14 @@ END SUB
 SUB recalc_menu_size (byref state as MenuState)
  'Run this once per frame for a menu that should fill the whole screen vertically
  'Does not work unless .spacing is set correctly (set on call to standardmenu)
- 'The optional ignore_pixels argument is for when the the menu should not fill the entire vertical space
  WITH state
   IF .spacing = 0 THEN
    ' This error is currently impossible
    IF .has_been_drawn = YES THEN debugc errBug, "recalc_menu_size: .spacing didn't get set"
    EXIT SUB
   END IF
-  .size = (vpages(dpage)->h - .autosize_ignore_pixels) \ .spacing - 1 - .autosize_ignore_lines
+  DIM ignorepix as integer = .autosize_ignore_pixels + .autosize_ignore_lines * large(.spacing, 10)
+  .size = (vpages(dpage)->h - ignorepix) \ .spacing - 1
  END WITH
 END SUB
 
