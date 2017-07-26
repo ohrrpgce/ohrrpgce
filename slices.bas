@@ -1141,7 +1141,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
  dim last_line as integer = ubound(lines)
- if dat->line_limit <> 0 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
+ if dat->line_limit <> -1 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
  dim ypos as integer
 
  for linenum as integer = dat->first_line to last_line
@@ -1179,7 +1179,7 @@ Sub UpdateTextSlice(byval sl as slice ptr)
  WrapTextSlice sl, lines()
  dim high as integer
  high = dat->line_count
- if dat->line_limit > 0 then
+ if dat->line_limit > -1 then  'If not unlimited
   high = small(high, dat->line_limit)
  end if
  sl->Height = high * 10

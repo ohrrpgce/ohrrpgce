@@ -3483,11 +3483,11 @@ SUB init_text_box_slices(txt as TextBoxState)
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
 
- '--start the displayed lines as all hidden. They will be revealed in drawsay
+ '--start the displayed lines as all hidden. They will be revealed in update_textbox
  DIM dat as TextSliceData Ptr
  dat = text_sl->SliceData
  IF dat THEN
-  dat->line_limit = -1
+  dat->line_limit = 0
  END IF
 
  '--figure out which portrait to load

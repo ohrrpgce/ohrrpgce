@@ -1883,7 +1883,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
    IF keyval(scDown) > 1 THEN dat->first_line += 1
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
   END IF
-  deadkeys = large(deadkeys -1, 0)
+  deadkeys = large(deadkeys - 1, 0)
 
   'Animate the arrival of the pop-up
   animate->Y = large(animate->Y - 20, 0)

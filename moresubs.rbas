@@ -436,7 +436,7 @@ IF txt.show_lines < 7 THEN
   IF dat THEN
    dat->line_limit = txt.show_lines
    IF txt.fully_shown THEN
-    dat->line_limit = 0
+    dat->line_limit = -1  'Show all
    END IF
   END IF
  END IF
