@@ -4682,6 +4682,24 @@ FUNCTION onoroff (byval n as integer) as string
  RETURN "OFF"
 END FUNCTION
 
+'Return a description of a tag condition: ALWAYS/NEVER/IF TAG #=ON/OFF (Name...)
+'In Custom consider tag_condition_caption, tag_set_caption, etc.
+'zerocap:   What zero means. Usually either Always or Never
+'maxwidth:  Limit string to this many pixels wide
+FUNCTION describe_tag_condition(tag as integer, zerocap as string, maxwidth as integer = 320) as string
+ IF tag = 0 THEN RETURN zerocap
+ IF tag = 1 THEN RETURN "NEVER"
+ IF tag = -1 THEN RETURN "ALWAYS"
+ DIM ret as string
+ ret = "IF TAG " & ABS(tag) & "=" + onoroff(tag)
+ IF ABS(tag) > 1 THEN
+  ret &= " (" & load_tag_name(ABS(tag))
+  ret = shorten_to_right(ret, maxwidth - textwidth(")"))
+  ret &= ")"
+ END IF
+ RETURN ret
+END FUNCTION
+
 'Returns a YES/NO string. Not to be confused with yesno() (in this file)
 'which asks an interactive yes/no question.
 'If you want to override the defaults, why not use IIF() instead, which is identical?

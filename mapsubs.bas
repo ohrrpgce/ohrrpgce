@@ -5046,7 +5046,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
   printstr ed.boxpreview, 0, pBottom - 10, dpage
   textcolor uilook(uiSelectedItem2), 0
-  printstr explain_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
+  printstr describe_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait

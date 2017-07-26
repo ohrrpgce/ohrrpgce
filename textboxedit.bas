@@ -593,6 +593,7 @@ END SUB
 '==============================================================================
 
 
+'One of the tag conditional headers in the Conditionals menu.
 FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
  DIM prefix2 as string
  IF LEN(prefix) > 0 THEN prefix2 = prefix & ": "
@@ -602,11 +603,12 @@ FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as str
  RETURN prefix2 & "If tag " & ABS(tag) & " = " + onoroff(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
+'Note that this is similar to tag_condition_caption and describe_tag_condition. Ugh!
 FUNCTION textbox_condition_short_caption(tag as integer) as string
  IF tag = 0 THEN RETURN "NEVER"
  IF tag = 1 THEN RETURN "NEVER"
  IF tag = -1 THEN RETURN "ALWAYS"
- RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff(tag))
+ RETURN "IF TAG " & ABS(tag) & "=" + onoroff(tag)
 END FUNCTION
 
 SUB write_box_conditional_by_menu_index(byref box as TextBox, menuindex as integer, num as integer)

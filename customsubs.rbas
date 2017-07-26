@@ -1199,33 +1199,6 @@ FUNCTION intgrabber_with_addset(byref pt as integer, byval min as integer, byval
  END IF
 END FUNCTION
 
-FUNCTION explain_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as integer, byval tag1 as integer, byval tag2 as integer) as string
-  DIM ret as string = prefix
-  DIM true_count as integer
-  DIM false_count as integer
-  IF tag1 = 0 THEN tag1 = IIF(zerovalue, -1, 1)
-  IF tag2 = 0 THEN tag2 = IIF(zerovalue, -1, 1)
-  IF tag1 = 1 THEN
-   false_count += 1
-  ELSEIF tag1 = -1 THEN
-   true_count += 1
-  ELSE
-   ret &= " tag " & ABS(tag1) & " = " & onoroff(tag1)
-  END IF
-  IF tag2 = 1 THEN
-   false_count += 1
-  ELSEIF tag2 = -1 THEN
-   true_count += 1
-  ELSE
-   IF true_count = 0 AND false_count = 0 THEN ret &= " and"
-   ret &= " tag " & ABS(tag2) & " = " & onoroff(tag2)
-  END IF
-  
-  IF true_count = 2 THEN ret = truetext
-  IF false_count > 0 THEN ret = falsetext
-  RETURN ret
-END FUNCTION
-
 FUNCTION load_vehicle_name(vehID as integer) as string
  IF vehID < 0 OR vehID > gen(genMaxVehicle) THEN RETURN ""
  DIM vehicle as VehicleData
@@ -1608,20 +1581,25 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
  LOOP
 END SUB
 
+'Returns  "prefix ABS(n) suffix [AUTOSET] (<tagname or zero/one/negonecap>)"
+'where everything except the ABS(n) is optional.
 PRIVATE FUNCTION base_tag_caption(byval n as integer, prefix as string, suffix as string, zerocap as string, onecap as string, negonecap as string, byval allowspecial as integer) as string
- DIM s as string
+ DIM ret as string
+ ret = prefix
+ IF LEN(ret) > 0 THEN ret &= " "
+ ret &= ABS(n) & suffix
+ IF allowspecial <> YES ANDALSO tag_is_autoset(n) THEN ret &= " [AUTOSET]"
+
+ 'Append " ($cap)"
  DIM cap as string
- s = prefix
- IF LEN(s) > 0 THEN s &= " "
- s &= ABS(n) & suffix
  cap = load_tag_name(n)
  IF n = 0 AND LEN(zerocap) > 0 THEN cap = zerocap
  IF n = 1 AND LEN(onecap) > 0 THEN cap = onecap
  IF n = -1 AND LEN(negonecap) > 0 THEN cap = negonecap
  cap = TRIM(cap)
- IF allowspecial <> YES ANDALSO tag_is_autoset(n) THEN s &= " [AUTOSET]"
- IF LEN(cap) > 0 THEN s &= " (" & cap & ")"
- RETURN s
+ IF LEN(cap) > 0 THEN ret &= " (" & cap & ")"
+
+ RETURN ret
 END FUNCTION
 
 FUNCTION tag_toggle_caption(byval n as integer, prefix as string="Toggle tag", byval allowspecial as integer=NO) as string
@@ -1636,8 +1614,38 @@ FUNCTION tag_set_caption(byval n as integer, prefix as string="Set Tag", byval a
  RETURN base_tag_caption(n, prefix, "=" & onoroff(n), "No tag set", "Unchangeable", "Unchangeable", allowspecial)
 END FUNCTION
 
+' Note that this similar to textbox_condition[_short]_caption and describe_tag_condition. Sorry!
 FUNCTION tag_condition_caption(byval n as integer, prefix as string="Tag", zerocap as string, onecap as string="Never", negonecap as string="Always") as string
  RETURN base_tag_caption(n, prefix, "=" & onoroff(n), zerocap, onecap, negonecap, YES)
+END FUNCTION
+
+'Describe a condition which checks two tags (both conditions need to pass)
+'zerovalue: meaning of 0. true is always, false is never
+FUNCTION describe_two_tag_condition(prefix as string, truetext as string, falsetext as string, byval zerovalue as bool, byval tag1 as integer, byval tag2 as integer) as string
+  DIM ret as string = prefix
+  DIM true_count as integer
+  DIM false_count as integer
+  IF tag1 = 0 THEN tag1 = IIF(zerovalue, -1, 1)
+  IF tag2 = 0 THEN tag2 = IIF(zerovalue, -1, 1)
+  IF tag1 = 1 THEN
+   false_count += 1
+  ELSEIF tag1 = -1 THEN
+   true_count += 1
+  ELSE
+   ret &= " tag " & ABS(tag1) & " = " & onoroff(tag1)
+  END IF
+  IF tag2 = 1 THEN
+   false_count += 1
+  ELSEIF tag2 = -1 THEN
+   true_count += 1
+  ELSE
+   IF true_count = 0 AND false_count = 0 THEN ret &= " and"
+   ret &= " tag " & ABS(tag2) & " = " & onoroff(tag2)
+  END IF
+  
+  IF true_count = 2 THEN ret = truetext
+  IF false_count > 0 THEN ret = falsetext
+  RETURN ret
 END FUNCTION
 
 FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
