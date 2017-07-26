@@ -4577,7 +4577,8 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 'debug "layout '" & z & "' from " & .charnum & " at " & .x & "," & .y
 		line_height = .thefont->h
 		for ch = .charnum to len(z) - 1
-			if ch = endchar then  'FIXME: This never happens
+			if ch = endchar - 1 then
+				'If the final character is a newline and maybe other cases, need to record this
 'debug "hit endchar"
 				endchar_x = .x
 				endchar_outbuf_len = len(outbuf) + chars_to_add
@@ -4590,6 +4591,11 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 				'Skip past the newline character, but don't add to outbuf
 				ch += 1
 				if ch >= endchar then
+					'FIXME: If the final character is a newline, we don't add a blank line.
+					'But text slices do! We should probably do the same here, e.g. removing
+					'this if block (and much more work).
+					'However, it's difficult to change that, due to other functions depending
+					'this one.
 					outbuf = left(outbuf, endchar_outbuf_len)
 					line_width = endchar_x
 					UPDATE_STATE(outbuf, x, endchar_x)
