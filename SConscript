@@ -254,8 +254,8 @@ CC = findtool ('CC', "gcc")
 CXX = findtool ('CXX', "g++")
 MAKE = findtool ('MAKE', 'make')
 if not MAKE and win32:
-	MAKE = findtool ('MAKE', 'mingw32-make')
-	
+    MAKE = findtool ('MAKE', 'mingw32-make')
+
 clang = False
 if CC:
     try:
@@ -921,12 +921,20 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
+
 hspeak_builddir = builddir + "hspeak"
+# Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
+# copy of Euphoria is installed system-wide
+euc_extra_args = ''
+if 'EUDIR' in env['ENV']:
+    euc_extra_args = '-eudir ' + env['ENV']['EUDIR']
+# HSpeak is built by translating to C, generating a Makefile, and running make.
 HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'), action = [
     # maxsize: cause euc to split hspeak.exw to multiple .c files
-    "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s" % hspeak_builddir,
+    "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
     "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
 ])
+
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
@@ -1161,7 +1169,8 @@ The following environmental variables are also important:
   OHRGFX, OHRMUSIC    Specify default gfx, music backends
   DXSDK_DIR, Lib,
      Include          For compiling gfx_directx.dll
-  EUDIR               Needed by Euphoria? (when compiling hspeak)
+  EUDIR               Override location of the Euphoria installation, for
+                      compiling hspeak (not needed if installed system-wide)
 
 Targets (executables to build):
   """ + gamename + """ (or game)
@@ -1169,7 +1178,7 @@ Targets (executables to build):
   gfx_directx.dll
   unlump
   relump
-  hspeak
+  hspeak              HamsterSpeak compiler (note: arch and target ignored)
   dumpohrkey          Convert .ohrkeys to text
   bam2mid             Convert .bam to .mid
   slice2bas           For embedding .slice files

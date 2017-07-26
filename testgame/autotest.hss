@@ -7,6 +7,7 @@
 # test that demonstrates the bug FIRST before you fix the bug.
 
 include, hstests.hss
+include, autotest.hsi
 
 ########################################################################
 
