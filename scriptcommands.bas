@@ -3246,12 +3246,10 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 525 '--door exists
-  IF bound_arg(retvals(0), 0, maxDoorsPerMap, "door ID", , , serrBadOp) THEN
-   DIM map_id as integer = get_optional_arg(1, -1)
-   DIM thisdoor as door
-   IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
-    scriptret = readbit(thisdoor.bits(), 0, 0)
-   END IF
+  DIM map_id as integer = get_optional_arg(1, -1)
+  DIM thisdoor as door
+  IF get_door_by_map_script_arg(thisdoor, retvals(0), map_id) THEN
+   scriptret = readbit(thisdoor.bits(), 0, 0)
   END IF
  CASE 526 '--get attack caption
   IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , , serrBadOp) THEN
@@ -4995,17 +4993,13 @@ FUNCTION valid_save_slot(slot as integer) as integer
 END FUNCTION
 
 FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
- IF map_id = -1 THEN
+ IF map_id = -1 OR map_id = gam.map.id THEN
   'default to current map
+  IF door_id < 0 OR door_id > UBOUND(gam.map.door) THEN RETURN NO
   thisdoor = gam.map.door(door_id)
   RETURN YES
  END IF
  IF bound_arg(map_id, 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
-  IF map_id = gam.map.id THEN
-   'requested a specific map, but it was the current one
-   thisdoor = gam.map.door(door_id)
-   RETURN YES
-  END IF
   IF read_one_door(thisdoor, map_id, door_id) THEN
    RETURN YES
   END IF

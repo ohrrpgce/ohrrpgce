@@ -1493,7 +1493,7 @@ DO
  '--door display--
  IF st.editmode = door_mode THEN
   textcolor uilook(uiBackground), 0
-  FOR i as integer = 0 TO maxDoorsPerMap
+  FOR i as integer = 0 TO UBOUND(st.map.door)
    WITH st.map.door(i)
     IF .x >= st.mapx \ 20 AND .x <= (st.mapx + mapviewsize.w) \ 20 AND _
        .y >  st.mapy \ 20 AND .y <= (st.mapy + mapviewsize.h) \ 20 + 1 AND _
@@ -3289,7 +3289,7 @@ SUB mapedit_resize(st as MapEditState)
  st.mapx = 0
  st.mapy = 0
  edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
- FOR i as integer = 0 TO maxDoorsPerMap
+ FOR i as integer = 0 TO UBOUND(st.map.door)
   WITH st.map.door(i)
    .x -= rs.rect.x
    .y -= rs.rect.y
@@ -3299,7 +3299,7 @@ SUB mapedit_resize(st as MapEditState)
   END WITH
  NEXT
  edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- FOR i as integer = 0 TO 299
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    .x -= rs.rect.x * 20
    .y -= rs.rect.y * 20

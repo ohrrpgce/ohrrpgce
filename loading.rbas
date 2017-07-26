@@ -1462,8 +1462,10 @@ end sub
 Function read_one_door(byref thisdoor as door, byval map_id as integer, byval door_id as integer) as bool
 	'Returns NO if unable to read the file.
 	'Still succeeds for doors that don't happen to be defined. (undefined doors can be identified by checking the .bits()) 
+	if door_id < 0 or door_id > MaxDoorsPerMap then return NO
+	if map_id < 0 or map_id > gen(genMaxMap) then return NO
+
 	dim as integer f
-	
 	if openfile(game & ".dox", for_binary + access_read, f) <> fberrOK then
 		return NO
 	end if

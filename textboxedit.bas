@@ -402,7 +402,7 @@ SUB textbox_conditionals(byref box as TextBox)
     CASE condMONEY
      intgrabber num, -32000, 32000
     CASE condDOOR
-     intgrabber num, 0, 199
+     intgrabber num, 0, maxDoorsPerMap
     CASE condITEM
      xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
     CASE condBOX

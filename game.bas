@@ -3082,7 +3082,7 @@ END SUB
 'Return the ID of a door at a tile, or -1 for none
 '(There should only be one door on each tile, because the editor doesn't let you place more)
 FUNCTION find_door (byval tilex as integer, byval tiley as integer) as integer
- FOR door_id as integer = 0 TO maxDoorsPerMap
+ FOR door_id as integer = 0 TO UBOUND(gam.map.door)
   IF readbit(gam.map.door(door_id).bits(), 0, 0) THEN  'Door exists
    IF gam.map.door(door_id).x = tilex AND gam.map.door(door_id).y = tiley + 1 THEN
     RETURN door_id
@@ -3108,7 +3108,12 @@ FUNCTION find_doorlink (byref thisdoorlink as doorlink, byval door_id as integer
  'If map_id is -1 then use the current map
  DIM thisdoor as door
  IF map_id = -1 THEN map_id = gam.map.id
+ IF door_id < 0 ORELSE door_id > maxDoorsPerMap THEN
+  debug "Tried to lookup out-of-range door " & door_id & " on map " & map_id
+  RETURN NO
+ END IF
  IF map_id = gam.map.id THEN
+  IF door_id > UBOUND(gam.map.door) THEN RETURN NO
   thisdoor = gam.map.door(door_id)
  ELSE
   IF read_one_door(thisdoor, map_id, door_id) = NO THEN RETURN NO
