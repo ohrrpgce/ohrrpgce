@@ -1,5 +1,8 @@
 The following documentation is also available at http://rpg.hamsterrepublic.com/ohrrpgce/Debug_keys
 
+-------------------------------------
+The following are only available when a text box IS NOT being displayed:
+
 F1 Show Minimap
 
 CTRL+F1 Pick a spot on the minimap of any map to teleport to.
@@ -7,6 +10,15 @@ CTRL+F1 Pick a spot on the minimap of any map to teleport to.
 F2 Quicksave anywhere
 
 F3 Quickload anywhere (Warning: Do not quicksave or load during a script, especially if the suspend player command has been issued. The script will not continue when you quickload later)
+
+-------------------------------------
+The following are only available when a text box IS being displayed:
+
+F1 Show text box debug info. The next textbox/script conditional is shown in detail. Any other enabled conditionals which happen after the textbox closes are only shown briefly: the tags that activate them, not their exact effects.
+Conditionals that happen as soon as the text box is displayed, such as 'Instead' checks and 'Set Tag', aren't shown.
+
+-------------------------------------
+Everything else is always available:
 
 F4 Brings up the Tag Debugging menu, which shows you which tags are OFF and which are ON (and which are Autoset, e.g. an "Item equipped" tag), and lets you change them (+ and - scroll, TAB toggles, CTRL+ sets and CTRL- unsets). Press F4 again twice to close.
 

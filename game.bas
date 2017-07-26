@@ -47,9 +47,12 @@ DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(timercontext as TimerContextEnum, tmr as PlotTimer) as bool
+
 DECLARE SUB update_menu_states ()
 DECLARE SUB check_debug_keys()
 DECLARE SUB battle_formation_testing_menu()
+DECLARE SUB show_textbox_debug_info ()
+
 DECLARE SUB queue_music_change (byval song as integer)
 DECLARE SUB check_for_queued_music_change ()
 DECLARE SUB npcmove_random_wander(npci as NPCInst)
@@ -684,6 +687,7 @@ txt.id = -1
 gam.showtext_ticks = 0
 gam.debug_showtags = 0
 gam.debug_npc_info = NO
+gam.debug_textbox_info = NO
 gam.walk_through_walls = NO
 
 reset_vehicle vstate
@@ -1134,6 +1138,7 @@ SUB displayall()
   wrapprint gam.showtext, pCentered, pBottom - 10, uilook(uiText), dpage
  END IF
  IF gam.debug_npc_info THEN npc_debug_display
+ IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
@@ -3163,6 +3168,7 @@ END SUB
 '==========================================================================================
 
 
+'Whether "show textbox" happens immediately
 FUNCTION immediate_showtextbox() as bool
  RETURN xreadbit(gen(), 18, genBits2)
 END FUNCTION
@@ -4134,6 +4140,9 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   IF dbg.def(      , scF3, "Quick-load (F3)") THEN
    IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
   END IF
+
+ ELSE
+  IF dbg.def(      , scF1, "See textbox info (F1)") THEN gam.debug_textbox_info XOR=YES
  END IF
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
@@ -4394,6 +4403,51 @@ SUB battle_formation_testing_menu()
  freepage holdscreen
  ClearMenuData menu
 
+END SUB
+
+'Used nit show_textbox_debug_info
+PRIVATE FUNCTION box_cond_info(tagcond as integer, what as string) as string
+ IF tagcond = 0 OR tagcond = 1 THEN RETURN ""  'Never
+ IF tagcond = -1 THEN RETURN "[" & what & "] " 'Always
+ RETURN "[" & what & ":tag" & ABS(tagcond) & " " & onoroff(tagcond) & "] "
+END FUNCTION
+
+'Called when gam.debug_textbox_info = YES
+SUB show_textbox_debug_info ()
+ IF txt.showing = NO THEN
+  'gam.debug_textbox_info = NO
+  EXIT SUB
+ END IF
+
+ DIM info as string
+ info = "Text box " & txt.id
+ IF txt.sayer <> -1 THEN info &= !"\nSpeaker: NPC ref " & (-1 - txt.sayer) & " (ID " & npc(txt.sayer).id & ")"
+
+ DIM after as string
+ IF txt.box.after THEN
+  after &= describe_tag_condition(txt.box.after_tag, "ALWAYS", get_resolution().w - 96)
+  IF txt.box.after < 0 THEN
+   after &= ": run " & scriptname(-txt.box.after) & !"\n"
+  ELSE
+   after &= ": box " & txt.box.after & !"\n"
+  END IF
+ END IF
+ ' Not listing all the conditions in detail, only a summary, to keep things clean
+ after &= box_cond_info(txt.box.battle_tag, "Battle")
+ after &= box_cond_info(txt.box.door_tag, "Door")
+ after &= box_cond_info(txt.box.money_tag, "Money")
+ after &= box_cond_info(txt.box.item_tag, "Item")
+ after &= box_cond_info(txt.box.shop_tag, "Shop/Inn")
+ after &= box_cond_info(txt.box.hero_tag, "Party change")
+ IF txt.box.restore_music THEN after &= "[Restore music] "
+ IF txt.box.backdrop THEN after &= "[Remove backdrop] "
+ IF LEN(after) THEN
+  info &= !"\nActions afterwards:\n" & after
+ END IF
+
+ DIM sz as XYPair = textsize(info)
+ fuzzyrect 0, pBottom, sz.w, sz.h, uilook(uiBackground), dpage, 55
+ wrapprint info, 0, pBottom, uilook(uiText), dpage
 END SUB
 
 'Send an email to the game author. Currently only works on Android.

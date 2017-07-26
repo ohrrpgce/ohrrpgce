@@ -65,7 +65,8 @@ WHAT IS NEW?
       movement types are now captioned "(Meandering)" [James]
     * New NPC movement types: "Follow Walls (right)" and "Follow Walls
       (Left)" as well as "Stops for others" variants of both. [James]
-    * Debug key improvements:
+    * New or improved debug keys:
+     * F1 text box debug info (only when a text box is displayed) [Ralph]
      * F4 tag debug mode sane controls and display improvements [Ralph]
      * When displaying NPC debug info with F6, NPC collision information
        is displayed [James]
