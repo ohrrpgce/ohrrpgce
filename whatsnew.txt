@@ -204,6 +204,7 @@ WHAT IS NEW?
     * Minimaps now display obsolete Overhead tiles correctly [Ralph]
     * If the Background UI color wasn't 0, ellipse slice border/fill color
       set to 0 didn't appear transparent [Ralph]
+    * Textbox line sounds weren't played for the first two lines [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]

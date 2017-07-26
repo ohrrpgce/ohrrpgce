@@ -1109,6 +1109,7 @@ SUB displayall()
  END IF
 
  update_backdrop_slice
+ IF txt.showing = YES THEN update_textbox
 
  NumDrawnSlices = 0
  DIM drawtime as double = TIMER
@@ -1118,11 +1119,11 @@ SUB displayall()
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
+
  IF harmtileflash = YES THEN
   rectangle 0, 0, rWidth, rHeight, gmap(10), dpage
   harmtileflash = NO
  END IF
- IF txt.showing = YES THEN update_textbox
 
  'FIXME: Eventually we want to draw the rest of this stuff using slices, but for now draw it on top
  'Note: this updates .pt and .top etc for each menu, but doesn't update item visibility.
@@ -3249,11 +3250,11 @@ SUB loadsay (byval box_id as integer)
 
  txt.showing = YES
  txt.fully_shown = NO
- txt.show_lines = 0
+ txt.show_lines = -1  'Set to -1 because it will be incremented before the textbox is drawn
 
  '--Create a set of slices to display the text box
  init_text_box_slices txt
- 
+
  '--Cancel hero pathfinding
  IF get_gen_bool("/mouse/move_hero/cancel_on_textbox") THEN
   cancel_hero_pathfinding()

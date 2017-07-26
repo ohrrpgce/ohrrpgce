@@ -407,24 +407,23 @@ SUB update_textbox ()
 STATIC tog as integer
 tog = tog XOR 1
 
-IF txt.show_lines < 7 THEN
- txt.show_lines = txt.show_lines + 1
+'On the first tick, show_lines is -1
+IF txt.fully_shown = NO THEN
+ txt.show_lines += 1
  '--play sounds for non-blank lines
- IF txt.show_lines > 1 THEN
-  IF trim(txt.box.text(txt.show_lines)) <> "" THEN
-   IF txt.box.line_sound > 0 THEN
-    ' Don't subtract 1, since menusound takes sfx id + 1
-    menusound txt.box.line_sound
-   ELSEIF txt.box.line_sound = 0 THEN
-    ' Default
-    menusound gen(genTextboxLine)
-   ELSEIF txt.box.line_sound < 0 THEN
-    ' Silence
-   END IF
+ IF TRIM(txt.box.text(txt.show_lines)) <> "" THEN
+  IF txt.box.line_sound > 0 THEN
+   ' Don't subtract 1, since menusound takes sfx id + 1
+   menusound txt.box.line_sound
+  ELSEIF txt.box.line_sound = 0 THEN
+   ' Default
+   menusound gen(genTextboxLine)
+  ELSEIF txt.box.line_sound < 0 THEN
+   ' Silence
   END IF
  END IF
  '--note when the display of lines is done
- IF txt.show_lines >= 7 THEN
+ IF txt.show_lines >= UBOUND(txt.box.text) THEN
   txt.fully_shown = YES
  END IF
  '--update the slice to show the right number of lines
