@@ -14773,9 +14773,15 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h4>slice collide point (handle, x, y)</h4>
 <p>
 			
-				Return true if a given <span class="param">x</span> and <span class="param">y</span> coordinate point lies inside the bounding rectangle for slice <span class="param">handle</span>'s screen position.
+				Return true if a given <span class="param">x</span> and <span class="param">y</span> coordinate point lies inside the
+				bounding rectangle for slice <span class="param">handle</span>'s screen position.
 				<span class="param">x</span> and <span class="param">y</span> are pixel coordinates relative to the screen,
-				such as the ones returned by <a href="#about-mousepixelx" class="ref">mouse pixel X</a> and <a href="#about-mousepixely" class="ref">mouse pixel Y</a> (but can also be off the screen).
+				such as the ones returned by <a href="#about-mousepixelx" class="ref">mouse pixel X</a> and <a href="#about-mousepixely" class="ref">mouse pixel Y</a>
+				(but can also be off the screen).
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					Unlike <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, this command ignores slice clipping.
+				</div>
 			
 			
 			
@@ -14787,7 +14793,13 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-slicecollide"></a>
 		<h4>slice collide (handle1, handle2)</h4>
 <p>
-			Given a pair of slice handles, return true if their screen positions overlap with one another (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.
+			
+				Given a pair of slice handles, return true if their screen positions overlap with
+				one another (even if one or both are off the edge of the screen or hidden or
+				clipped by one of their ancestors).
+				Parent/child relationships have nothing to do with this test;
+				it does not matter if the slices are related or what their children are.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14802,7 +14814,12 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-slicecontains"></a>
 		<h4>slice contains (handle1, handle2)</h4>
 <p>
-			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span> (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.
+			
+				Return true if the screen position of slice <span class="param">handle2</span> is completely inside
+				slice <span class="param">handle1</span> (even if one or both are off the edge of the screen or hidden).
+				Parent/child relationships have nothing to do with this test;
+				it does not matter if the slices are related or what their children are.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
@@ -14816,12 +14833,15 @@ The third argument is the total number of ticks that the animation should run. Y
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position.
 				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
+				<br>
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
 				slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead of a slice handle.
+				<br>
 				<span class="param">check descendants</span> is an optional argument defaulting to true.
 				If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants.
+				<br>
 				<span class="param">visible only</span> is an optional argument defaulting to false.
 				If true, then only visible slices are counted or returned.
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <span class="param">parent</span> itself
@@ -14836,6 +14856,17 @@ The third argument is the total number of ticks that the animation should run. Y
 					while one on the bottom or right edges counts as outside.
 					If a slice has zero width or zero height, then there are no points inside it,
 					and slice at pixel will never return it!
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If a slice clips its children, then any parts of those children
+					that are clipped off are ignored when looking for <span class="param">x</span>, <span class="param">y</span>.
+					However, it doesn't matter whether <span class="param">parent</span> or any of its ancestors
+					are set to clip; it's assumed that they don't.
+					<br>
+					You can also use this to speed up the search, since all the children of
+					a clipping slice will be skipped if that slice itself doesn't contain
+					<span class="param">x</span>, <span class="param">y</span>.
 				</div>
 			
 			
@@ -14856,6 +14887,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <p>
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice colliding (intersecting) with the given <span class="param">slice</span> (by screen position).
+				(Children of <span class="param">slice</span> are ignored.)
 				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
   				the bottom most one (returned by default) is number 0, next up is 1, etc.
@@ -14868,6 +14900,17 @@ The third argument is the total number of ticks that the animation should run. Y
 				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
 				<br>
 				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If a slice clips its children, then any parts of those children
+					that are clipped off are ignored when checking collisions.
+					However, it doesn't matter whether <span class="param">parent</span> or any of its ancestors
+					are set to clip; it's assumed that they don't.
+					<br>
+					You can also use this to speed up the search, since all the children of
+					a clipping slice will be skipped if that slice itself doesn't collide
+					with <span class="param">slice</span>.
+				</div>
 			
 			
 			

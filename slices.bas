@@ -3052,9 +3052,12 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
 end function
 
 Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
- 'Find a slice which is not Special and is not sl which overlaps with sl.
- 'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
- 'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
+ 'Find a child or descendant of parent which is not Special and is not sl which overlaps with sl.
+ 'descend:     Whether to recurse to decendents of parent.
+ '             Note: except for clipping (and maybe invisible) slices, we always check all descendents!
+ 'visibleonly: Whether to restrict to visible slices (treats parent as visible).
+ 'num:         0 to return bottommost matching slice, 1 for next, etc.
+ '             Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
  'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
  'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
@@ -3067,15 +3070,22 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
    with *s
     'We refresh the child even if not visible, unlike DrawSlice
     parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
- 
-    if .Visible or (visibleonly = NO) then
 
-     if .SliceType <> slSpecial and SliceCollide(s, sl) then  '--impossible to encounter the root
-      if num = 0 then return s
-      num -= 1
+    dim recurse as bool = descend
+
+    if .Visible or (visibleonly = NO) then
+     if SliceCollide(s, sl) then
+      if .SliceType <> slSpecial then
+       if num = 0 then return s
+       num -= 1
+      end if
+     elseif s->Clip then
+      'Clipping slices reduce the effective sizes of their descendents, so don't
+      'recurse if point not inside
+      recurse = NO
      end if
 
-     if descend then
+     if recurse then
       temp = FindSliceCollision(s, sl, num, YES, visibleonly)
       if temp then return temp
      end if
@@ -3089,9 +3099,11 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
 end function
 
 Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
- 'Find a slice which is not Special at a certain screen position.
- 'descend: whether to recurse. visibleonly: whether to restrict to visible slices (assumes parent is visible).
- 'num: 0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
+ 'Find a child or descendant of parent which is not Special that contains a certain screen position.
+ 'descend:     Whether to recurse.
+ '             Note: except for clipping (and maybe invisible) slices, we always check all descendents!
+ 'visibleonly: Whether to restrict to visible slices (treats parent as visible).
+ 'num:         0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
  'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
  'Warning: RefreshSliceScreenPos doesn't get called on invisible slices in DrawSlice!!
@@ -3105,12 +3117,20 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
    if .Visible or (visibleonly = NO) then
-    if .SliceType <> slSpecial and SliceCollidePoint(s, point) then  '--impossible to encounter the root
-     if num = 0 then return s
-     num -= 1
+    dim recurse as bool = descend
+
+    if SliceCollidePoint(s, point) then
+     if .SliceType <> slSpecial then
+      if num = 0 then return s
+      num -= 1
+     end if
+    elseif s->Clip then
+     'Clipping slices reduce the effective sizes of their descendents, so don't
+     'recurse if point not inside
+     recurse = NO
     end if
 
-    if descend then
+    if recurse then
      temp = FindSliceAtPoint(s, point, num, YES, visibleonly)
      if temp then return temp
     end if

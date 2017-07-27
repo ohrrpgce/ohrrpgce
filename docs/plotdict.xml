@@ -7185,9 +7185,14 @@ The third argument is the total number of ticks that the animation should run. Y
 			<canon>slice collide point (handle, x, y)</canon>
 			<shortname>slice collide point</shortname>
 			<description>
-				Return true if a given <p>x</p> and <p>y</p> coordinate point lies inside the bounding rectangle for slice <p>handle</p>'s screen position.
+				Return true if a given <p>x</p> and <p>y</p> coordinate point lies inside the
+				bounding rectangle for slice <p>handle</p>'s screen position.
 				<p>x</p> and <p>y</p> are pixel coordinates relative to the screen,
-				such as the ones returned by <ref>mousepixelx</ref> and <ref>mousepixely</ref> (but can also be off the screen).
+				such as the ones returned by <ref>mousepixelx</ref> and <ref>mousepixely</ref>
+				(but can also be off the screen).
+				<note>
+					Unlike <ref>sliceatpixel</ref>, this command ignores slice clipping.
+				</note>
 			</description>
 			<seealso>
 				<ref>slicecollide</ref>
@@ -7196,7 +7201,13 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="slicecollide">
 			<canon>slice collide (handle1, handle2)</canon>
 			<shortname>slice collide</shortname>
-			<description>Given a pair of slice handles, return true if their screen positions overlap with one another (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
+			<description>
+				Given a pair of slice handles, return true if their screen positions overlap with
+				one another (even if one or both are off the edge of the screen or hidden or
+				clipped by one of their ancestors).
+				Parent/child relationships have nothing to do with this test;
+				it does not matter if the slices are related or what their children are.
+			</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>slicecontains</ref>
@@ -7205,7 +7216,12 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="slicecontains">
 			<canon>slice contains (handle1, handle2)</canon>
 			<shortname>slice contains</shortname>
-			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p> (even if one or both are off the edge of the screen or hidden). Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
+			<description>
+				Return true if the screen position of slice <p>handle2</p> is completely inside
+				slice <p>handle1</p> (even if one or both are off the edge of the screen or hidden).
+				Parent/child relationships have nothing to do with this test;
+				it does not matter if the slices are related or what their children are.
+			</description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>
@@ -7216,12 +7232,15 @@ The third argument is the total number of ticks that the animation should run. Y
 			<description>
 				Searches through all the descendants of <p>parent</p> for a slice containing the given <p>x</p>, <p>y</p> pixel screen position.
 				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>, since that is the default parent of new slices.
+				<lb/>
 				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
 				slice at pixel returns 0 if <p>number</p> is too large (larger than or equal to the number of overlapping slices).
 				If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead of a slice handle.
+				<lb/>
 				<p>check descendants</p> is an optional argument defaulting to true.
 				If false, then only <p>parent</p>'s children will be checked, not all its descendants.
+				<lb/>
 				<p>visible only</p> is an optional argument defaulting to false.
 				If true, then only visible slices are counted or returned.
 				(That is, slices marked not-visible are ignored while searching for slices, but whether <p>parent</p> itself
@@ -7236,6 +7255,16 @@ The third argument is the total number of ticks that the animation should run. Y
 					If a slice has zero width or zero height, then there are no points inside it,
 					and slice at pixel will never return it!
 				</note>
+				<note>
+					If a slice clips its children, then any parts of those children
+					that are clipped off are ignored when looking for <p>x</p>, <p>y</p>.
+					However, it doesn't matter whether <p>parent</p> or any of its ancestors
+					are set to clip; it's assumed that they don't.
+					<lb/>
+					You can also use this to speed up the search, since all the children of
+					a clipping slice will be skipped if that slice itself doesn't contain
+					<p>x</p>, <p>y</p>.
+				</note>
 			</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
@@ -7248,6 +7277,7 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>find colliding slice</shortname>
 			<description>
 				Searches through all the descendants of <p>parent</p> for a slice colliding (intersecting) with the given <p>slice</p> (by screen position).
+				(Children of <p>slice</p> are ignored.)
 				To search all your slices, you can often use <ref>spritelayer</ref> as <p>parent</p>, since that is the default parent of new slices.
 				<p>number</p> is an optional argument indicating which slice to return if there is more than one at that point;
   				the bottom most one (returned by default) is number 0, next up is 1, etc.
@@ -7260,6 +7290,16 @@ The third argument is the total number of ticks that the animation should run. Y
 				Pass true for <p>visibleonly</p> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
 				<lb/>
 				This command never returns Special slices, such as the <ref>spritelayer</ref> slice, nor will it return <p>slice</p> or any of its descendants.
+				<note>
+					If a slice clips its children, then any parts of those children
+					that are clipped off are ignored when checking collisions.
+					However, it doesn't matter whether <p>parent</p> or any of its ancestors
+					are set to clip; it's assumed that they don't.
+					<lb/>
+					You can also use this to speed up the search, since all the children of
+					a clipping slice will be skipped if that slice itself doesn't collide
+					with <p>slice</p>.
+				</note>
 			</description>
 			<seealso>
 				<ref>sliceatpixel</ref>
