@@ -65,7 +65,7 @@ FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max
  RETURN NO
 END FUNCTION
 
-SUB tag_autoset_warning(byval tag_id as integer)
+PRIVATE SUB tag_autoset_warning(byval tag_id as integer)
  notification !"This tag is automatically set or unset on the following conditions:\n" + describe_tag_autoset_places(tag_id) + !"\nThis means that you should not attempt to set or unset the tag in any other way, because your changes will be erased -- unpredictably!"
 END SUB
 

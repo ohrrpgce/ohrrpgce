@@ -4807,6 +4807,7 @@ FUNCTION load_tag_name (byval index as integer) as string
  IF index = 0 THEN RETURN ""
  IF index = 1 THEN RETURN "Never"
  IF index = -1 THEN RETURN "Always"
+ IF index > gen(genMaxTagName) THEN RETURN ""
  RETURN readbadgenericname(ABS(index), game + ".tmn", 42, 0, 20)
 END FUNCTION
 

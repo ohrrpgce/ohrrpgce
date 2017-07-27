@@ -1724,12 +1724,12 @@ END FUNCTION
 SUB tagdisplay
 STATIC st as MenuState
 DIM lineh as integer = lineheight()
+st.last = gen(genMaxTagName)
 IF gam.debug_showtags = 2 THEN
- st.size = get_resolution().h \ lineh - 1
+ st.size = small(st.last, get_resolution().h \ lineh - 1)
 ELSE
  st.size = 6
 END IF
-st.last = max_tag()
 
 'Controls
 IF keyval(scCtrl) > 0 THEN
