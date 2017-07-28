@@ -4035,7 +4035,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
   start_fibre_timing
  CASE 154'--equip menu(who [, allow_switch])
-  retvals(1) = get_optional_arg(1, 0)
+  retvals(1) = get_optional_arg(1, 1)
   stop_fibre_timing
   DIM allow_switch as bool
   allow_switch = (retvals(1) <> 0)
