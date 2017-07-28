@@ -497,12 +497,11 @@ function backends_setoption(opt as string, arg as string) as integer
 		return 2
 	else
 		'after any -gfx is processed, should load the backend to send it the remain options
+		load_best_gfx_backend
 		if opt = "w" or opt = "windowed" then
-			load_best_gfx_backend
 			gfx_setwindowed(1)
 			return 1
 		elseif opt = "f" or opt = "fullscreen" then
-			load_best_gfx_backend
 			gfx_setwindowed(0)
 			return 1
 		end if
