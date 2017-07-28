@@ -145,6 +145,8 @@ WHAT IS NEW?
     * Added "allow switching" argument to "equip menu" command [Ralph]
     * "gain hero stat", to easily increase/decrease a stat [Ralph]
     * "slice at pixel" and "find colliding slice" now respect clipping
+    * Increased highest available global variable id number from
+      16383 -> 50000 [James]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed

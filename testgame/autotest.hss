@@ -35,6 +35,7 @@ global variable(117, savegame npc)
 global variable(118, called resetgame)
 global variable(119, hook loadgame)
 global variable(120, timer checkpoint interval)
+global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
 # 5000-6000 used in hstests.hss
@@ -3416,6 +3417,16 @@ script, save slot tests, begin
   import globals(1, @export global 1, @export global 2)
   assert(export global 1 == 0)
   assert(export global 2 == 0)
+  
+  # high global id numbers
+  # (Export this to slot 3 so I can inspect autotest.saves/2.rsav)
+  the global with the biggest id := 123
+  assert(the global with the biggest id == 123)
+  assert(@the global with the biggest id == 50000)
+  export globals(3, @the global with the biggest id, @the global with the biggest id)
+  write global(@the global with the biggest id, 321)
+  assert(import globals(3, @the global with the biggest id) == 123)
+  assert(the global with the biggest id == 321)
 
   # exporting globals should not cause a slot to appear as used
   assert(save slot used(1) == false)

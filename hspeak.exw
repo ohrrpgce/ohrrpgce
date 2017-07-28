@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ta 2017-07-28 Increased MAXGLOBAL to 50000
 --    2017-06-13 0x, 0o and 0b number prefixes
 --3T  2017-06-11 Allow subscript vars/args to shadow outer locals
 --3Se 2017-05-17 Disallow extra commas
@@ -163,7 +164,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="T "
+constant COMPILER_SUB_VERSION="Ta"
 constant COPYRIGHT_DATE="2017"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
@@ -292,7 +293,7 @@ constant HSP_FORMAT_VERSION=1
 constant CODE_START_BYTE_OFFSET=18
 constant HSZ_FORMAT_VERSION=3
 
-constant MAXGLOBAL=16383  --largest ID
+constant MAXGLOBAL=50000  --largest ID
 constant MAX_LOCALS=100   --max number of locals per script (not including nonlocals)
 
 constant MAX_NEST_DEPTH=4
