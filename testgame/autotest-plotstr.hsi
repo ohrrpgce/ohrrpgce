@@ -1,0 +1,77 @@
+# These the autotest.rpg tests which include characters above U+00FF,
+# which are handled by hspeak, but cause problems with Hamster Whisper
+
+script, plotstr tests, begin
+  # This tests only the display of plotstrings.
+  # Pure string manipulation stuff is tested in "string tests" in hstests.hss,
+  # and reading strings from game data in "string load tests"
+  $0="plotstr tests"
+
+  $1="	 ¡éÖœ£"  # tab, space, exclamation
+  $2="‰Œẽñ"  # characters above U+00FF
+  1 $+ 2
+  show string at(3, 0, 0)
+  w
+  hide string(3)
+
+  assert(string is visible(0) == false)
+  position string(0, 50, 50)
+  assert(string is visible(0) == false)
+
+  # There are no commands to return the current colour and style
+  # of a string (and I don't see any need to add them), so that can only be
+  # tested by screenshot.
+  $5 = "This isn't empty"
+  show string at(5, 110, 100)
+  assert(string is visible(5))
+  assert(string x(5) == 110)
+  assert(string y(5) == 100)
+  # Should default to 'string:outline' style and uiText colour
+  w
+  string color(5, 72, 15) # green, white
+  w
+  # Test return to default colour
+  string color(5)
+  w
+  position string(5, 10, 20)
+  assert(string x(5) == 10)
+  assert(string y(5) == 20)
+  w
+  center string at(5, 160, 0)
+  assert(string x(5) == 160 -- 4 * 16)
+  assert(string y(5) == 0)
+
+  $6 = "This is flat yellow-on-purple"
+  show string at(6, 100, 110)
+  assert(string is visible(6) == true)
+  string style(6, string:flat)
+  string color(6, 14, 194)  # yellow, purple
+  w
+  string color(6)
+  $6 = "Now it's tranparent flat white"
+  w
+
+  show string(6)
+  w
+  show no value
+
+  # Can't test colour, style
+
+  # Test clear
+  clear string(6)
+  assert(string length(6) == 0)
+  # Shouldn't affect visibility
+  assert(string is visible(6) == true)
+  $6 = "XYZ"
+
+  # Test hide
+  hide string(6)
+  assert(string is visible(6) == false)
+  w
+
+  # Clean up
+  hide string(5)
+  clear string(5)
+  clear string(6)
+  w
+end
