@@ -1473,6 +1473,7 @@ script, npc tests, begin
   npc id tests(NPC reference(1))
   npc tag and onetime tests
   use npc script tests
+  alter npc tests
 end
 
 script, npc movement tests, n, begin
@@ -1588,6 +1589,54 @@ script, use npc script tests, begin
 
   free slice(tick counter slice)
 end
+
+script, alter npc tests, begin
+  $0="alter npc tests"
+  #_cancel runfast
+  
+  assert(current map == 0)
+  w
+  
+  # make a pair of NPCs to use in these tests
+  variable(n1, n2)
+  n1 := create npc(9, 5, 5, west),w
+  n2 := create npc(9, 11, 5, east),w
+  # First do picture and palette changes on the first instance
+  # and verify the changes on the second instance
+  assert(get npc sprite id(n2) == 13)
+  assert(get npc sprite palette(n2) == -1)
+  alter npc(n1, NPCStat:picture, 12),w
+  assert(get npc sprite id(n2) == 12)
+  alter npc(n1, NPCStat:palette, 5),w
+  assert(get npc sprite palette(n2) == 5)
+  alter npc(n1, NPCStat:picture, 13),w
+  alter npc(n1, NPCStat:palette, -1),w
+
+  #wait for key
+  while (npc copy count(9) > 0) do(
+    delete npc(9),w
+  )
+
+  #_runfast
+end
+
+
+script, get npc sprite id, ref, begin
+  variable(sl, spr)
+  sl := get npc slice(ref)
+  spr := lookup slice(sl:walkabout sprite component, sl)
+  assert(get sprite type(spr) == spritetype:walkabout)
+  exit returning(get sprite set number(spr))
+end
+
+script, get npc sprite palette, ref, begin
+  variable(sl, spr)
+  sl := get npc slice(ref)
+  spr := lookup slice(sl:walkabout sprite component, sl)
+  assert(get sprite type(spr) == spritetype:walkabout)
+  exit returning(get sprite palette(spr))
+end
+
 
 ########################################################################
 
@@ -3716,7 +3765,6 @@ end
 #add enemy to formation (formation, enemy id, x, y, slot)
 #allow minimap (setting)
 #allow save anywhere (setting)
-#alter NPC (who,NPCstat,value)
 #value,and,value
 #animation start tile (tile number, layer)
 #append ascii (ID, char)
