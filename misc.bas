@@ -129,11 +129,7 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 	end if
 
 	' Delegate
-	argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
 	if argsused = 0 then argsused = allmodex_setoption(opt, arg)
-	if argsused = 0 andalso gfx_setoption then
-		argsused = gfx_setoption(cstring(opt), cstring(arg))
-	end if
 	if argsused = 0 then argsused = global_setoption(opt, arg)
 	if argsused = 0 then argsused = common_setoption(opt, arg)  'common.rbas
 	#ifdef IS_GAME
@@ -142,6 +138,10 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 	#ifdef IS_CUSTOM
 		if argsused = 0 then argsused = custom_setoption(opt, arg)
 	#endif
+	if argsused = 0 then argsused = backends_setoption(opt, arg)  'this always loads a backend
+	if argsused = 0 andalso gfx_setoption then
+		argsused = gfx_setoption(cstring(opt), cstring(arg))
+	end if
 
 	return argsused
 end function

@@ -473,11 +473,14 @@ function lookup_gfx_backend(name as string) as GfxBackendStuff ptr
 end function
 
 function backends_setoption(opt as string, arg as string) as integer
-	'general backend options
-	'gfx should be the first option
+	'General backend options.
+	'Note: this function always loads a graphics backend, so should be
+	'called before gfx_setoption(), and --gfx should be the first option
 	if opt = "gfx" then
 		if currentgfxbackend <> NULL then
-			display_help_string "Can't specify --gfx twice!"
+			display_help_string "Can't specify --gfx after a backend is loaded! " _
+					    "(The backend is loaded automatically to process " _
+					    "unknown commandline options, so put --gfx first)"
 		end if
 
 		'First check if its a backend which isn't compiled in
@@ -496,7 +499,6 @@ function backends_setoption(opt as string, arg as string) as integer
 		end if
 		return 2
 	else
-		'after any -gfx is processed, should load the backend to send it the remain options
 		load_best_gfx_backend
 		if opt = "w" or opt = "windowed" then
 			gfx_setwindowed(1)
