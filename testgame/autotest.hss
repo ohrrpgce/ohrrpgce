@@ -1592,7 +1592,6 @@ end
 
 script, alter npc tests, begin
   $0="alter npc tests"
-  #_cancel runfast
   
   assert(current map == 0)
   w
@@ -1611,6 +1610,7 @@ script, alter npc tests, begin
   assert(get npc sprite palette(n2) == 5)
   alter npc(n1, NPCStat:picture, 13),w
   alter npc(n1, NPCStat:palette, -1),w
+
   # Test move speed
   variable(ox, oy)
   assert(read npc(n1, NPCStat:move speed) == 0)
@@ -1657,7 +1657,18 @@ script, alter npc tests, begin
   w(1)
   assert(npc pixel x(n2) == ox + 0)
   assert(npc pixel y(n2) == oy + 0)
+  alter npc(n1, NPCStat:move speed, 0)
+  
+  # Now test textbox display
+  assert(read npc(n1, NPCStat:display text) == 0)
+  alter npc(n1, NPCStat:display text, 18),w
+  assert(current text box == -1)
+  use npc(n2), w
+  assert(current text box == 18)
+  advance text box, w
+  assert(current text box == -1)
 
+  #_cancel runfast
 
   #wait for key
   #_runfast
