@@ -1611,13 +1611,60 @@ script, alter npc tests, begin
   assert(get npc sprite palette(n2) == 5)
   alter npc(n1, NPCStat:picture, 13),w
   alter npc(n1, NPCStat:palette, -1),w
+  # Test move speed
+  variable(ox, oy)
+  assert(read npc(n1, NPCStat:move speed) == 0)
+  alter npc(n1, NPCStat:move speed, 1), w
+  ox := npc pixel x(n2)
+  oy := npc pixel y(n2)
+  walk npc(n2, east, 1)
+  w(10)
+  assert(npc pixel x(n2) == ox + 10)
+  w(10)
+  assert(npc pixel x(n2) == ox + 20)
+  alter npc(n1, NPCStat:move speed, 2),w
+  walk npc(n2, south, 1)
+  w(1)
+  assert(npc pixel y(n2) == oy + 2)
+  wait for npc(n2)
+  assert(npc pixel y(n2) == oy + 20)
+  alter npc(n1, NPCStat:move speed, 4),w
+  walk npc(n2, west, 1)
+  w(1)
+  assert(npc pixel x(n2) == ox + 16)
+  wait for npc(n2)
+  alter npc(n1, NPCStat:move speed, 5),w
+  walk npc(n2, north, 1)
+  w(1)
+  assert(npc pixel y(n2) == oy + 15)
+  wait for npc(n2)
+  # Has gone in a complete circle
+  assert(npc pixel x(n2) == ox)
+  assert(npc pixel y(n2) == oy)
+  # How about diagonal next?
+  alter npc(n1, NPCStat:move speed, 10),w
+  walk npc(n2, right, 1)
+  walk npc(n2, down, 1)
+  w(1)
+  assert(npc pixel x(n2) == ox + 10)
+  assert(npc pixel y(n2) == oy + 10)
+  w(1)
+  assert(npc pixel x(n2) == ox + 20)
+  assert(npc pixel y(n2) == oy + 20)
+  alter npc(n1, NPCStat:move speed, 20)
+  walk npc(n2, left, 1)
+  walk npc(n2, up, 1)
+  w(1)
+  assert(npc pixel x(n2) == ox + 0)
+  assert(npc pixel y(n2) == oy + 0)
+
 
   #wait for key
+  #_runfast
   while (npc copy count(9) > 0) do(
     delete npc(9),w
   )
 
-  #_runfast
 end
 
 
