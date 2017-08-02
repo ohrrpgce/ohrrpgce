@@ -4297,7 +4297,17 @@ SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
  DIM buf(160) as integer
  v_new defaults, 160
  '--load defaults from tile set defaults file
- loadrecord buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum
+ DIM success as bool
+ DIM partial_retval as bool
+ success = loadrecord(buf(), workingdir & SLASH & "defpass.bin", 322 \ 2, tilesetnum, partial_retval)
+ IF NOT success THEN
+  IF partial_retval THEN
+   debug "Partial record loaded, defpass.bin might be corrupted"
+  ELSE
+   'debuginfo "defpass.bin record " & tilesetnum & " does not exist, and that is okay"
+   EXIT SUB
+  END IF
+ END IF
  '--enforce magic number and filesize
  IF buf(160) = 4444 THEN
   FOR i as integer = 0 TO 159
