@@ -1668,6 +1668,96 @@ script, alter npc tests, begin
   advance text box, w
   assert(current text box == -1)
 
+  # Test touch and step-on activation
+  # We will use a text box for this test
+  alter npc(n1, NPCStat:display text, 18),w
+  assert(current text box == -1)
+  assert(read npc(n1, NPCstat:activation) == NPCactivation:use)
+  # Move the hero adjacent to the npc
+  walk hero to x(me, npc x(n2)),w
+  wait for hero(me),w
+  assert(hero x(me) == npc x(n2))
+  assert(hero y(me) == npc y(n2) + 1)
+  assert(current text box == -1)
+  # Try to walking into the npc, nothing should happen
+  walk hero(me, north, 1), w
+  wait for hero(me),w
+  assert(hero y(me) == npc y(n2) + 1)
+  assert(current text box == -1)
+  # Make the NPC touch-activated
+  alter npc(n1, NPCstat:activation, NPCactivation:touch), w
+  # Nothing should happen yet
+  assert(current text box == -1)
+  # Walk the hero into the NPC
+  walk hero(me, north, 1), w
+  wait for hero(me), w
+  assert(current text box == 18)
+  advance text box
+  assert(current text box == -1)
+  # Walk the hero next to the NPC (does nothing because the NPC isn't moving)
+  walk hero(me, right, 1), w
+  wait for hero(me), w
+  assert(current text box == -1)
+  walk hero(me, left, 1), w
+  wait for hero(me), w
+  assert(current text box == -1)
+  # Now move the npc. Even when moving away into a tile one space diagonal, activation should happen
+  alter npc(n1, NPCStat:move speed, 5)
+  walk npc(n2, right, 1), w
+  wait for npc(n2), w
+  assert(current text box == 18)
+  advance text box
+  assert(current text box == -1)
+  # Move one tile further. This should not activate
+  walk npc(n2, right, 1), w
+  wait for npc(n2), w
+  assert(current text box == -1)
+  # Walk back one tile, into the diagonal space. Will activate
+  walk npc(n2, left, 1), w
+  wait for npc(n2), w
+  assert(current text box == 18)
+  advance text box, w
+  assert(current text box == -1)
+  # Walk back one more space, into the adjacent tile, will activate again
+  walk npc(n2, left, 1), w
+  wait for npc(n2), w
+  assert(current text box == 18)
+  advance text box, w
+  assert(current text box == -1)
+  # Now try step-on activation
+  alter npc(n1, NPCstat:activation, NPCactivation:stepon),w
+  walk hero(me, north, 1), w
+  assert(current text box == -1)
+  wait for hero(me), w
+  assert(current text box == 18)
+  advance text box, w
+  assert(current text box == -1)
+  # Move the heroes around
+  walk hero(me, north, 1), w
+  wait for hero(me),w
+  assert(current text box == -1)
+  walk hero(me, right, 1), w
+  wait for hero(me),w
+  walk hero(me, down, 2), w
+  wait for hero(me),w
+  walk hero(me, left, 1), w
+  wait for hero(me),w
+  assert(hero x(me) == npc x(n2))
+  assert(hero y(me) == npc y(n2) + 1)
+  # Move the step-on npc under the hero (for better or for worse, this does not activate)
+  assert(current text box == -1)
+  walk npc(n2, down, 1), w
+  assert(current text box == -1)
+  wait for npc(n2), w
+  assert(current text box == -1)
+  # Walk the npc back and reset its activation
+  walk npc(n2, up, 1), w
+  wait for npc(n2), w
+  assert(current text box == -1)
+  alter npc(n1, NPCstat:activation, NPCactivation:use), w
+  assert(read npc(n1, NPCstat:activation) == NPCactivation:use)
+  alter npc(n1, NPCstat:display text, 0)
+
   #_cancel runfast
 
   #wait for key
