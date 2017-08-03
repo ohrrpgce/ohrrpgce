@@ -81,6 +81,7 @@ define constant, begin
 3,item:Boots
 4,item:SteelSho
 5,item:Bulky
+6,item:Whatsit
 0,stat:HP
 1,stat:MP
 2,stat:Atk

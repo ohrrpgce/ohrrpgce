@@ -1762,6 +1762,38 @@ script, alter npc tests, begin
 
   #wait for key
   #_runfast
+  
+  # Test getting items
+  assert(read npc(n1, NPCstat:give item) == 0)
+  alter npc(n1, NPCstat:give item, item:Whatsit + 1), w
+  assert(read npc(n1, NPCstat:give item) == item:Whatsit + 1)
+  # There should not be any Whatsits in your inventory yet
+  assert(inventory(item:Whatsit) == 0)
+  # Now get one
+  use npc(n2),w
+  assert(inventory(item:Whatsit) == 1)
+  # Get a few more
+  use npc(n2),w
+  use npc(n2),w
+  use npc(n2),w
+  assert(inventory(item:Whatsit) == 4)
+  # Now clear the get item
+  alter npc(n1, NPCstat:give item, 0), w
+  # This should not give the item
+  use npc(n2),w
+  assert(inventory(item:Whatsit) == 4)
+  
+  ### still needs tests:
+  # NPCstat:move type
+  # NPCstat:when activated
+  # NPCstat:pushability
+  # NPCstat:script
+  # NPCstat:script argument
+  # NPCstat:vehicle
+  # NPCstat:default movement zone
+  # NPCstat:default avoidance zone
+  # NPCstat:ignore passmap
+  
   while (npc copy count(9) > 0) do(
     delete npc(9),w
   )
