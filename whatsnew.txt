@@ -103,6 +103,7 @@ WHAT IS NEW?
       you select an attack/enemy/box, or add a new one directly [Ralph]
     * Shops now display how many of an item you already own as well as
       how many you have equipped [James]
+    * Metadata is shown for .ogg files in the music and sfx menus [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

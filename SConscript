@@ -701,6 +701,9 @@ if win32:
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
     if 'console' in gfx:
         common_libraries += ['pdcurses']
+    if 'sdl' in music:
+        # libvorbisfile is linked into SDL_mixer.dll which has been compiled to export its symbols
+        commonenv['FBFLAGS'] += ['-d', 'HAVE_VORBISFILE']
 elif mac:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
@@ -712,6 +715,9 @@ elif mac:
             commonenv.ParseConfig('sdl-config --cflags')
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+    if 'sdl' in music:
+        # libvorbisfile is linked into SDL_mixer.framework which has been compiled to export its symbols
+        commonenv['FBFLAGS'] += ['-d', 'HAVE_VORBISFILE']
 
     if arch == 'x86_64' and 'sdl' in music:
         print
@@ -732,12 +738,15 @@ elif unix:  # Linux & BSD
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')
+    common_libraries += ['vorbisfile']
+    commonenv['FBFLAGS'] += ['-d','HAVE_VORBISFILE']
     DATAFILES = prefix + '/share/games/ohrrpgce'
 
 
 ################ Add the libraries to env and commonenv
 
 if win32:
+    # win32/ contains .a and .dll.a files
     env['FBLINKFLAGS'] += ['-p', 'win32']
     env['CXXLINKFLAGS'] += ['-L', 'win32']
     common_libpaths += ['win32']

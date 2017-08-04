@@ -5,7 +5,11 @@
 #include "config.bi"
 #include "util.bi"
 #include "common.bi"
+#include "string.bi"
 #include "audiofile.bi"
+#ifdef HAVE_VORBISFILE
+#include "vorbis/vorbisfile.bi"
+#endif
 
 '==========================================================================================
 '                                    Examining Files
@@ -46,6 +50,59 @@ function isawav(fi as string) as bool
 	close #fh
 	return YES
 end function
+
+' Append one or more lines to menu() describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
+sub read_ogg_metadata(songfile as string, menu() as string)
+#ifdef HAVE_VORBISFILE
+	dim oggfile as OggVorbis_File
+	dim ret as integer
+	ret = ov_fopen(songfile, @oggfile)
+	if ret then
+		dim msg as string
+		select case ret
+			case OV_EREAD:      msg = "ERROR: Can't read file!"
+			case OV_ENOTVORBIS: msg = "ERROR: Not a Vorbis (audio) .ogg file!"
+			case OV_EVERSION:   msg = "ERROR: Unknown .ogg format version!"
+			case OV_EBADHEADER: msg = "ERROR: Corrupt .ogg file!"
+			case else:          msg = "ERROR: Can't parse file (error " & ret & ")"
+		end select
+		str_array_append menu(), msg
+		debug "ov_fopen( " & songfile & ") failed : " & msg
+		exit sub
+	end if
+
+	' Bit and sample rate, channels
+	dim info as vorbis_info ptr
+	info = ov_info(@oggfile, -1)
+	if info then
+		dim msg as string
+		msg = info->channels & " channel(s)  " &  format(info->rate / 1000, "0.0") & "kHz  "
+		if info->bitrate_nominal then msg &= cint(info->bitrate_nominal / 1000) & "kbps"
+		str_array_append menu(), msg
+	else
+		debug "ov_info failed: " & songfile
+	end if
+
+	' Comments
+	dim comments as vorbis_comment ptr
+	comments = ov_comment(@oggfile, -1)
+	if comments then
+		debug comments->comments & " comments on " & songfile
+		for idx as integer = 0 TO comments->comments - 1
+			' .ogg comment strings are UTF8, not null-terminated
+			dim temp as string
+			temp = blob_to_string(comments->user_comments[idx], comments->comment_lengths[idx])
+			str_array_append menu(), utf8_to_OHR(temp)
+		next
+	else
+		debug "ov_comment failed: " & songfile
+	end if
+
+	ov_clear(@oggfile)
+#else
+	str_array_append menu(), "(OGG metadata not enabled in this build)"
+#endif
+end sub
 
 ' Check that an audio file really is the format it appears to be
 ' (This isn't and was never really necessary...)
