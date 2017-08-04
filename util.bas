@@ -1901,7 +1901,7 @@ END SUB
 ' NOTE: you should normally use utf8_to_OHR instead!
 FUNCTION utf8_to_latin1(utf8string as string) as string
   'Avoid FB's builtin conversion to wstring because it's locale-dependent
-  DIM length as integer = utf8_length(strptr(utf8string))
+  DIM length as ssize_t = utf8_length(strptr(utf8string))
   IF length < 0 THEN
     debug "utf8_length(" & utf8string & ") failed"
     RETURN "[CORRUPTED]"
@@ -1940,7 +1940,7 @@ END FUNCTION
 FUNCTION decode_filename(filename as string) as string
   IF LEN(filename) = 0 THEN RETURN filename
 #ifdef __FB_UNIX__
-  DIM length as integer
+  DIM length as ssize_t
   DIM unicode as wstring ptr
 
 #ifdef __FB_ANDROID__
