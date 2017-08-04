@@ -7,9 +7,21 @@
 #include "common.bi"
 #include "string.bi"
 #include "audiofile.bi"
-#ifdef HAVE_VORBISFILE
+'#ifdef HAVE_VORBISFILE
 #include "vorbis/vorbisfile.bi"
-#endif
+'#endif
+
+dim shared libvorbisfile as any ptr
+
+#undef ov_clear
+#undef ov_fopen
+#undef ov_info
+#undef ov_comment
+dim shared ov_clear as function(byval vf as OggVorbis_File ptr) as long
+dim shared ov_fopen as function(byval path as const zstring ptr, byval vf as OggVorbis_File ptr) as long
+dim shared ov_info as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_info ptr
+dim shared ov_comment as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_comment ptr
+
 
 '==========================================================================================
 '                                    Examining Files
@@ -51,9 +63,51 @@ function isawav(fi as string) as bool
 	return YES
 end function
 
+#macro MUSTLOAD(hfile, procedure)
+	procedure = dylibsymbol(hfile, #procedure)
+	if procedure = NULL then
+		dylibfree(hFile)
+		hFile = NULL
+		return NO
+	end if
+#endmacro
+
+private function _load_libvorbisfile(libfile as string) as bool
+	libvorbisfile = dylibload(libfile)
+	if libvorbisfile = NULL then return NO
+
+	MUSTLOAD(libvorbisfile, ov_clear)
+	MUSTLOAD(libvorbisfile, ov_fopen)
+	MUSTLOAD(libvorbisfile, ov_info)
+	MUSTLOAD(libvorbisfile, ov_comment)
+	return YES
+end function
+
+' Dynamically load functions from libvorbisfile.
+' This isn't really necessary! However it avoids errors if:
+' -you use an old copy of SDL_mixer.dll that's laying around
+' -on Mac you're trying to run ohrrpgce-custom directly without bundling
+'  (compiling instructions on the wiki tell you to install a standard SDL_mixer.framework in /Library/Frameworks)
+' -libvorbisfile isn's installed on Unix
+private function load_vorbisfile() as bool
+	if libvorbisfile then return YES
+	' Unix
+	if _load_libvorbisfile("vorbisfile") then return YES
+	' libvorbisfile is statically linked into our windows and mac SDL_mixer builds.
+	' We can load them even if we're using a different music backend
+	if _load_libvorbisfile("SDL_mixer") then return YES
+	RETURN NO
+end function
+
 ' Append one or more lines to menu() describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
 sub read_ogg_metadata(songfile as string, menu() as string)
-#ifdef HAVE_VORBISFILE
+	if load_vorbisfile() = NO then
+		str_array_append menu(), "Can't read OGG metadata: missing library"
+		exit sub
+	end if
+	'We don't unload libvorbisfile afterwards. No need.
+
+'#ifdef HAVE_VORBISFILE
 	dim oggfile as OggVorbis_File
 	dim ret as integer
 	ret = ov_fopen(songfile, @oggfile)
@@ -106,9 +160,9 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 	end if
 
 	ov_clear(@oggfile)
-#else
-	str_array_append menu(), "(OGG metadata not enabled in this build)"
-#endif
+' #else
+' 	str_array_append menu(), "(OGG metadata not enabled in this build)"
+' #endif
 end sub
 
 ' Check that an audio file really is the format it appears to be
