@@ -2668,49 +2668,47 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 	CLOSE #ff
 END SUB
 
-'bb(): bit array, 16 bits per integer (rest ignored)
-'w:    index in bb() to start at (index where bits 0-15 are)
-'b:    bit number (counting from bb(w))
-'v:    value, zero or nonzero
-SUB setbit (bb() as integer, byval w as integer, byval b as integer, byval v as integer)
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
+'Set a bit in an integer if 'value', given a bitmask instead of a bit number
+SUB setbitmask (byref bitsets as integer, bitmask as integer, value as bool)
+	bitsets and= not bitmask
+	if value then bitsets or= bitmask
+END SUB
 
-	woff = w + (b \ 16)
-	wb = b mod 16
+'Turn a bit in an array of 16bit words on or off.
+'bitwords(): bit array, 16 bits per integer (rest ignored)
+'wordnum:    index in bitwords() to start at (index where bits 0-15 are)
+'bitnum:     bit number (counting from bitwords(wordnum))
+'value:      whether to set the bit on
+SUB setbit (bitwords() as integer, wordnum as integer, bitnum as integer, value as bool)
+	dim wordoff as integer
+	dim wordbit as integer
 
-	if woff > ubound(bb) then
-		debug "setbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b & ", v " & v
+	wordoff = wordnum + (bitnum \ 16)
+	wordbit = bitnum mod 16
+
+	if wordoff > ubound(bitwords) then
+		debug "setbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum & ", v " & value
 		exit sub
 	end if
 
-	mask = 1 shl wb
-	if v then
-		bb(woff) = bb(woff) or mask
-	else
-		mask = not mask
-		bb(woff) = bb(woff) and mask
-	end if
+	setbitmask bitwords(wordoff), 1 shl wordbit, value
 end SUB
 
 'Returns 0 or 1. Use xreadbit if you want NO or YES instead.
 'See setbit for full documentation
-FUNCTION readbit (bb() as integer, byval w as integer, byval b as integer) as integer
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
+FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) as integer
+	dim wordoff as integer
+	dim wordbit as integer
 
-	woff = w + (b \ 16)
-	if woff > ubound(bb) then
-		debug "readbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b
+	wordoff = wordnum + (bitnum \ 16)
+	wordbit = bitnum mod 16
+
+	if wordoff > ubound(bitwords) then
+		debug "readbit overflow: ub " & ubound(bitwords) & ", wordnum " & wordnum & ", bitnum " & bitnum
 		return 0
 	end if
-	wb = b mod 16
 
-	mask = 1 shl wb
-
-	if (bb(woff) and mask) then
+	if bitwords(wordoff) and (1 shl wordbit) then
 		readbit = 1
 	else
 		readbit = 0

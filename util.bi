@@ -655,8 +655,11 @@ declare function readkey () as string
 
 DECLARE SUB xbload (f as string, array() as integer, e as string)
 DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
-DECLARE SUB setbit (b() as integer, byval w as integer, byval b as integer, byval v as integer)
-DECLARE FUNCTION readbit (b() as integer, byval w as integer, byval b as integer) as integer
+
+DECLARE SUB setbitmask (byref bitsets as integer, bitmask as integer, value as bool)
+DECLARE SUB setbit (bitwords() as integer, wordnum as integer, bitnum as integer, value as bool)
+DECLARE FUNCTION readbit (bitwords() as integer, wordnum as integer, bitnum as integer) as integer
+
 DECLARE SUB array2str (arr() as integer, byval o as integer, s as string)
 DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 
