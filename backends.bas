@@ -671,3 +671,10 @@ sub gfx_backend_menu ()
 		switch_gfx backendname
 	end if
 end sub
+
+' Eventually this will let you switch music backends, not just delegate to music_settings_menu
+sub music_backend_menu ()
+	if music_settings_menu() = NO then
+		notification "No adjustable music backend settings"
+	end if
+end sub

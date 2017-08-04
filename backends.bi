@@ -10,6 +10,7 @@ declare sub read_backend_info()
 declare function valid_gfx_backend (name as string) as bool
 
 declare sub gfx_backend_menu ()
+declare sub music_backend_menu ()
 
 extern wantpollingthread as bool
 extern as string gfxbackend, musicbackend

@@ -1,3 +1,7 @@
+'This is not an actual music backend; it is included as part of music_native and music_native2
+'It plays sound effects using Audiere.
+'music_native/native2 play non-MIDI music by treating them as sound effects.
+
 #include "config.bi"
 #include "common.bi"
 #include "const.bi"

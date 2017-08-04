@@ -97,6 +97,10 @@ function music_get_info() as string
 	return allegro_id
 end function
 
+function music_settings_menu () as bool
+	return NO
+end function
+
 sub music_play(songname as string, fmt as MusicFormatEnum)
 	if music_on = 1 then
 		songname = rtrim(songname)	'lose any added nulls

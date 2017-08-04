@@ -225,8 +225,11 @@ function music_get_info() as string
 	return ""
 end function
 
-sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
+function music_settings_menu() as bool
+	return NO
+end function
 
+sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 end sub
 
 sub music_play(songname as string, byval fmt as MusicFormatEnum)

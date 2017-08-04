@@ -26,6 +26,10 @@ declare sub music_stop()
 declare sub music_setvolume(byval vol as single)
 declare function music_getvolume() as single
 
+' Optional. A menu to edit backend-specific settings.
+' Return YES if a menu was shown, NO otherwise
+declare function music_settings_menu() as bool
+
 '==========================================================================================
 '                                            SFX
 

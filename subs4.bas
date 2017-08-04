@@ -526,6 +526,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
  IF keyval(scF2) > 1 THEN Custom_volume_menu
+ IF keyval(scF3) > 1 THEN music_backend_menu
 
  usemenu state, selectable()
 
@@ -788,6 +789,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "import_sfx"
  IF keyval(scF2) > 1 THEN Custom_volume_menu
+ IF keyval(scF3) > 1 THEN music_backend_menu
 
  usemenu state, selectable()
 
