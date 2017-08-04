@@ -580,6 +580,7 @@ declare function length_matching (s1 as string, s2 as string) as integer
 declare function is_int(s as string) as integer
 declare function str2int (stri as string, default as integer=0) as integer
 declare function rotascii (s as string, o as integer) as string
+declare function titlecase(word as string) as string
 declare function escape_string(s as string, chars as string) as string
 declare function replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
 declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string

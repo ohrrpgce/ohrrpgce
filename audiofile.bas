@@ -87,12 +87,19 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 	dim comments as vorbis_comment ptr
 	comments = ov_comment(@oggfile, -1)
 	if comments then
-		debug comments->comments & " comments on " & songfile
+		str_array_append menu(), ""
 		for idx as integer = 0 TO comments->comments - 1
 			' .ogg comment strings are UTF8, not null-terminated
-			dim temp as string
-			temp = blob_to_string(comments->user_comments[idx], comments->comment_lengths[idx])
-			str_array_append menu(), utf8_to_OHR(temp)
+			' They're usually formatted like "AUTHOR=virt", but sometimes lower case or no 'tag' name.
+			dim cmmt as string
+			cmmt = blob_to_string(comments->user_comments[idx], comments->comment_lengths[idx])
+			cmmt = utf8_to_OHR(cmmt)
+			dim as integer eqpos = instr(cmmt, "="), spcpos = instr(cmmt, " ")
+			if eqpos > 1 andalso (spcpos = 0 orelse spcpos > eqpos) then
+				'Seems to be a tag, format it like "Author: virt"
+				cmmt = titlecase(left(cmmt, eqpos - 1)) & ": " & mid(cmmt, eqpos + 1)
+			end if
+			str_array_append menu(), cmmt
 		next
 	else
 		debug "ov_comment failed: " & songfile
