@@ -4178,6 +4178,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF8) THEN debug_menu
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.
 
+ 'Ctrl+F8 handled in allmodex
+ IF dbg.def(      ,     , "Switch graphics backend (Ctrl-F8)") THEN gfx_backend_menu
 
  IF dbg.def(scCtrl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (Ctrl-F9)") THEN
   scriptprofiling XOR= YES
@@ -4226,7 +4228,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'This is also handled in allmodex
  IF dbg.def( , , "Record .gif video (Ctrl-F12)") THEN toggle_recording_gif
 
- IF dbg.def(, scPause, "Pause game (Pause)") THEN
+ IF dbg.def( , scPause, "Pause game (Pause)") THEN
   gam.paused XOR= YES
   IF gam.paused THEN
    gam.showtext = "PAUSED"

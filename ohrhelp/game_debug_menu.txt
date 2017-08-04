@@ -33,6 +33,8 @@ CTRL+F7 Realign hero 0 with the tile grid
 
 F8 Bring up this debug menu (this option does nothing)
 
+CTRL+F8 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
+
 CTRL+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (next to the .rpg file) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
 
 F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
