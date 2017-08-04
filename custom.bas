@@ -236,7 +236,7 @@ DIM rpg_browse_default as string
 
 FOR i as integer = 0 TO UBOUND(cmdline_args)
  DIM arg as string
- arg = absolute_with_orig_path(cmdline_args(i))
+ arg = simplify_path(absolute_with_orig_path(cmdline_args(i)))
  DIM extn as string = LCASE(justextension(arg))
 
  IF (extn = "hs" OR extn = "hss" OR extn = "txt") AND isfile(arg) THEN
