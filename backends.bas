@@ -170,7 +170,6 @@ dim shared gfx_choices() as GfxBackendStuff ptr
 '(you can't initialise arrays with addresses because FB considers them nonconstant)
 GFX_CHOICES_INIT
 
-declare sub load_best_gfx_backend()
 declare function load_backend(which as GFxBackendStuff ptr) as bool
 declare sub unload_backend(which as GFxBackendStuff ptr)
 declare sub default_gfx_render_procs()
@@ -328,7 +327,7 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	TRYLOAD (gfx_set_resizable)
 	TRYLOAD (gfx_recenter_window_hint)
 	MUSTLOAD(gfx_setoption)
-	MUSTLOAD(gfx_describe_options)
+	TRYLOAD (gfx_describe_options)
 	TRYLOAD (gfx_printchar)
 	TRYLOAD (gfx_get_safe_zone_margin)
 	TRYLOAD (gfx_set_safe_zone_margin)
@@ -581,7 +580,8 @@ function switch_gfx_backend(name as string) as bool
 end function
 
 ' Try to load (but not init) gfx backends in order of preference until one works.
-private sub load_best_gfx_backend()
+' Noop if one is already loaded.
+sub load_best_gfx_backend()
 	if currentgfxbackend <> NULL then exit sub
 	for i as integer = 0 to ubound(gfx_choices)
 		if load_backend(gfx_choices(i)) then exit sub
@@ -590,7 +590,9 @@ private sub load_best_gfx_backend()
 end sub
 
 ' Try to init gfx backends in order of preference until one works.
+' Noop if one is already loaded.
 sub init_best_gfx_backend()
+	if currentgfxbackend <> NULL then exit sub
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then

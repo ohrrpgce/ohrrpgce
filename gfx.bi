@@ -141,6 +141,7 @@ extern Gfx_vsync_supported as function () as bool
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled
 extern Gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
+'(optional)
 extern Gfx_describe_options as function () as zstring ptr
 
 '(optional, ptr may be NULL, gfx_console only)

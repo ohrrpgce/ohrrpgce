@@ -52,6 +52,8 @@ function global_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		return 1
 	elseif opt = "?" or opt = "help" or opt = "h" then
+		load_best_gfx_backend()
+
 		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END & LINE_END
 		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END
 		help = help & "additional command line arguments will be read from it, one per line." & LINE_END
@@ -89,7 +91,9 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx XYX -help to see others)" & LINE_END
-		help = help & *gfx_describe_options()
+		if gfx_describe_options() then
+			help = help & *gfx_describe_options()
+		end if
 		display_help_string help
 		return 1
 	elseif opt = "log" then

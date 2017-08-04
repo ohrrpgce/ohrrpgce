@@ -3,6 +3,7 @@
 #ifndef BACKENDS_BI
 #define BACKENDS_BI
 
+declare sub load_best_gfx_backend()
 declare sub init_best_gfx_backend()
 declare function backends_setoption (opt as string, arg as string) as integer
 declare function switch_gfx_backend (name as string) as bool
