@@ -1879,7 +1879,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
   END IF
   
   IF deadkeys = 0 THEN
-   IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
+   IF keyval(scESC) > 1 OR enter_or_space() OR click_dismiss() THEN EXIT DO
    IF keyval(scUp) > 1 THEN dat->first_line -= 1
    IF keyval(scDown) > 1 THEN dat->first_line += 1
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
@@ -2086,7 +2086,7 @@ SUB show_help(helpkey as string)
    ChangeTextSlice help_text, textstring
   END IF
 
-  IF deadkeys = 0 THEN 
+  IF deadkeys = 0 THEN
    IF keyval(scESC) > 1 THEN
     '--If there are any changes to the help screen, offer to save them
     IF help_str = dat->s THEN
@@ -4865,7 +4865,7 @@ FUNCTION menu_click (state as MenuState) as bool
     'NOTE: because code tends to keep a copy of MouseInfo returned from readmouse,
     'the following clearclick() may not have an effect
     show_overlay_message "", 0.
-    readmouse().clearclick(mouseleft)
+    readmouse().clearclick(mouseLeft)
     RETURN NO
    END IF
 
@@ -4884,11 +4884,20 @@ FUNCTION menu_click_outside(m as MenuDef) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus")
 #ENDIF
  IF use_mouse THEN
-  IF readmouse().release AND mouseleft THEN
+  IF readmouse().release AND mouseLeft THEN
    IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
   END IF
  END IF
  RETURN NO
+END FUNCTION
+
+'Whether a mouse click should dismiss a modal message box
+FUNCTION click_dismiss () as bool
+ IF readmouse.release AND (mouseLeft OR mouseRight) THEN
+  readmouse.clearclick(mouseLeft)
+  readmouse.clearclick(mouseRight)
+  RETURN YES
+ END IF
 END FUNCTION
 
 'You should call usemenu before calling this, to ensure state.pt is correct!

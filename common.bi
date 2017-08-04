@@ -206,6 +206,7 @@ DECLARE FUNCTION percent_grabber OVERLOAD (byref float as single, repr as string
 
 DECLARE FUNCTION menu_click (state as MenuState) as bool
 DECLARE FUNCTION menu_click_outside(m as MenuDef) as bool
+DECLARE FUNCTION click_dismiss () as bool
 DECLARE FUNCTION enter_space_click (state as MenuState) as bool
 DECLARE FUNCTION enter_or_space () as bool
 DECLARE FUNCTION copy_keychord () as bool
