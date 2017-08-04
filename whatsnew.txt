@@ -208,6 +208,9 @@ WHAT IS NEW?
     * If the Background UI color wasn't 0, ellipse slice border/fill color
       set to 0 didn't appear transparent [Ralph]
     * Textbox line sounds weren't played for the first two lines [Ralph]
+    * SDL_mixer.dll (Windows only) recompiled to use modplug instead of
+      mikmod to play modules. This fixes bad sound quality, broken
+      looping, some files not playing, and too-low volume [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
