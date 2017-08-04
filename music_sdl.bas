@@ -40,8 +40,19 @@ declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 'So don't depend on these functions.
 dim shared _Mix_GetNumMusicDecoders as function () as Sint32
 dim shared _Mix_GetNumChunkDecoders as function () as Sint32
-dim shared _Mix_GetMusicDecoder as function  (byval index as Sint32) as zstring ptr
+dim shared _Mix_GetMusicDecoder as function (byval index as Sint32) as zstring ptr
 dim shared _Mix_GetChunkDecoder as function (byval index as Sint32) as zstring ptr
+
+'We might not actually link to libmodplug, but want the type/enum declarations.
+'Warning: does #inclib "modplug", which we don't actually want.
+'Luckily as long as not building with "scons linkgcc=0", #inclibs are ignored.
+#include "modplug.bi"
+
+'These are only available if SDL_mixer has been statically linked with libmodplug and
+'exports its symbols (as our builds of SDL_mixer for Windows and Mac do)
+dim shared _ModPlug_GetSettings as sub (byval settings as ModPlug_Settings ptr)
+dim shared _ModPlug_SetSettings as sub (byval settings as const ModPlug_Settings ptr)
+
 
 ' Older FB have out of date SDL headers
 #if __FB_VERSION__ < "1.04"
@@ -105,6 +116,8 @@ function music_get_info() as string
 		_Mix_GetNumChunkDecoders = dylibsymbol(libhandle, "Mix_GetNumChunkDecoders")
 		_Mix_GetMusicDecoder = dylibsymbol(libhandle, "Mix_GetMusicDecoder")
 		_Mix_GetChunkDecoder = dylibsymbol(libhandle, "Mix_GetChunkDecoder")
+		_ModPlug_GetSettings = dylibsymbol(libhandle, "ModPlug_GetSettings")
+		_ModPlug_SetSettings = dylibsymbol(libhandle, "ModPlug_SetSettings")
 	end if
 
 	if gfxbackend <> "sdl" then
@@ -640,4 +653,60 @@ function sfx_slot_info (byval slot as integer) as string
 	with sfx_slots(slot)
 		return .used & " " & .effectID & " " & .paused & " " & .playing & " " & .buf
 	end with
+end function
+
+
+'================================================================================
+'                                    ModPlug settings
+
+
+type ModplugSettingsMenu extends ModularMenu
+	settings as ModPlug_Settings
+
+	declare sub update ()
+	declare function each_tick () as bool
+end type
+
+sub ModplugSettingsMenu.update ()
+	_ModPlug_SetSettings(@settings)
+
+	redim menu(4)
+	state.last = ubound(menu)
+
+	menu(0) = "Previous Menu..."
+	menu(1) = "Noise reduction: " & yesorno(settings.mFlags and MODPLUG_ENABLE_NOISE_REDUCTION)
+	menu(2) = "Reverb: " & settings.mReverbDepth & "%"
+	menu(3) = "Surround: " & yesorno(settings.mFlags and MODPLUG_ENABLE_SURROUND)
+	menu(4) = "Megabass: " & settings.mBassAmount & "%"
+end sub
+
+function ModplugSettingsMenu.each_tick () as bool
+	dim changed as bool
+	select case state.pt
+		case 0
+			if enter_space_click(state) then return YES
+		case 1
+			changed = bitgrabber(settings.mFlags, MODPLUG_ENABLE_NOISE_REDUCTION, state)
+		case 2
+			changed = intgrabber(settings.mReverbDepth, 0, 100)
+			setbitmask settings.mFlags, MODPLUG_ENABLE_REVERB, settings.mReverbDepth > 0
+		case 3
+			changed = bitgrabber(settings.mFlags, MODPLUG_ENABLE_SURROUND, state)
+		case 4
+			changed = intgrabber(settings.mBassAmount, 0, 100)
+			setbitmask settings.mFlags, MODPLUG_ENABLE_MEGABASS, settings.mBassAmount > 0
+	end select
+	state.need_update or= changed
+end function
+
+function modplug_settings_menu () as bool
+	if _ModPlug_GetSettings = NULL or _ModPlug_SetSettings = NULL then return NO
+
+	dim menu as ModplugSettingsMenu
+	menu.floating = YES
+	menu.tooltip = "ModPlug settings (not saved)"
+	_ModPlug_GetSettings(@menu.settings)
+	menu.run()
+	_ModPlug_SetSettings(@menu.settings)
+	return YES
 end function
