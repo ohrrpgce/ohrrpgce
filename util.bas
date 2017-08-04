@@ -1892,6 +1892,28 @@ SUB extendfile (byval fh as integer, byval length as integer)
  END IF
 END SUB
 
+' Convert a UTF8 string to Latin-1. Any codepoints not in Latin-1 (ie above 255) get converted to '?'
+' NOTE: you should normally use utf8_to_OHR instead!
+FUNCTION utf8_to_latin1(utf8string as string) as string
+  'Avoid FB's builtin conversion to wstring because it's locale-dependent
+  DIM length as integer = utf8_length(strptr(utf8string))
+  IF length < 0 THEN
+    debug "utf8_length(" & utf8string & ") failed"
+    RETURN "[CORRUPTED]"
+  END IF
+
+  DIM widestr as wstring ptr
+  widestr = utf8_decode(strptr(utf8string), @length)
+  IF widestr = NULL THEN RETURN "[CORRUPTED]"  'Shouldn't ever happen
+
+  DIM ret as string = SPACE(length)
+  length = wstring_to_latin1(widestr, strptr(ret), length + 1)
+  ' The result might be shorter
+  ret = LEFT(ret, length)
+  DEALLOCATE widestr
+  RETURN ret
+END FUNCTION
+
 ' This translates a filename, e.g. returned from browse() or findfiles() to
 ' Latin-1 so it can be displayed normally.
 ' FIXME: check the font type instead of assuming Latin-1.

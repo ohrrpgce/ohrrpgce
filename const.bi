@@ -353,7 +353,7 @@ CONST frameDEAD = 7
 
 '--- Misc constants
 
-'Constants for gen(genFontType)
+'Constants returned by get_font_type()
 Enum fontTypeEnum
   ftypeASCII  = 0 'Non-extended ASCII, characters 127 and above assumed to be icons
   ftypeLatin1 = 1 'Characters between 127 and 160 inclusive are assumed to be icons

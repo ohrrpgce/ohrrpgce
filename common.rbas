@@ -5207,6 +5207,28 @@ SUB unload_sprite_and_pal (byref img as GraphicPair)
  palette16_unload @img.pal
 END SUB
 
+' Convert a UTF8 string to the encoding used for the current game (Latin-1 or ASCII)
+' Any codepoints not in Latin-1/ASCII get converted to '?'
+FUNCTION utf8_to_OHR(utf8string as string) as string
+ DIM ret as string = utf8_to_latin1(utf8string)
+
+ DIM as integer icons_low, icons_high
+ IF get_font_type(current_font()) = ftypeLatin1 THEN
+  icons_low = 127
+  icons_high = 160
+ ELSE
+  icons_low = 127
+  icons_high = 255
+ END IF
+
+ FOR idx as integer = 0 TO LEN(ret) - 1
+  IF icons_low <= ret[idx] AND ret[idx] <= icons_high THEN
+   ret[idx] = ASC("?")
+  END IF
+ NEXT
+ RETURN ret
+END FUNCTION
+
 'context describes the string string (eg line number)
 'If show_warnings is true, then warnings about the text encoding
 'related to icons in the font are displayed. You only want those
