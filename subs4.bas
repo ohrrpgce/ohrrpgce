@@ -36,9 +36,9 @@ DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() 
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
-DECLARE SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool)
+DECLARE SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool, state as MenuState)
 DECLARE SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
-DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string)
+DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string, selectable() as bool, state as MenuState)
 DECLARE SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
 DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string)
 DECLARE SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
@@ -499,9 +499,8 @@ SUB delete_song (byval songnum as integer, songfile as string)
 END SUB
 
 SUB importsong ()
-DIM oggtemp as string
-DIM menu(10) as string
-DIM selectable(10) as bool
+REDIM menu(10) as string
+REDIM selectable(10) as bool
 menu(0) = "Previous Menu"
 menu(3) = "Import Song..."
 menu(4) = "Export Song..."
@@ -509,16 +508,16 @@ menu(5) = "Delete Song"
 
 DIM state as MenuState
 state.size = 24
-state.last = 10
+state.autosize = YES
+state.autosize_ignore_lines = 1
 state.pt = 1
 
 DIM songnum as integer = 0
 DIM songname as string = ""
 DIM songfile as string = ""
 DIM bamfile as string = ""
-DIM newsong as integer
 DIM file_ext as string
-importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
 
 setkeys YES
 DO
@@ -535,29 +534,29 @@ DO
   menu(2) = "Name: " + songname
  ELSE
   '-- check for switching song
-  newsong = songnum
+  DIM newsong as integer = songnum
   IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
    importsong_save_song_data songname, songnum
    songnum = newsong
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
   END IF
   IF keyval(scLeft) > 1 AND songnum > 0 THEN
    importsong_save_song_data songname, songnum
    songnum -= 1
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
   END IF
   IF keyval(scRight) > 1 AND songnum < 32767 THEN
    importsong_save_song_data songname, songnum
    songnum += 1
    IF needaddset(songnum, gen(genMaxSong), "song") THEN songname = ""
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
   END IF
  END IF
  IF enter_space_click(state) THEN
   IF state.pt = 0 THEN EXIT DO
   IF state.pt = 3 THEN
    importsong_import_song_file songname, songfile, songnum
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
   END IF
   IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext, songname
   IF state.pt = 5 AND songfile <> "" THEN  'delete song
@@ -568,13 +567,13 @@ DO
     delete_song songnum, songfile
     safekill bamfile
     IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
-    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
    END IF
   END IF
   IF state.pt = 6 THEN  'delete BAM fallback
    IF yesno("Really delete this BAM song?", NO, NO) THEN
     safekill bamfile
-    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable()
+    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), selectable(), state
     state.pt = 0
    END IF
   END IF
@@ -639,13 +638,14 @@ SUB importsong_import_song_file (songname as string, songfile as string, byval s
  importsong_save_song_data songname, songnum
 END SUB
 
-SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool)
+SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, selectable() as bool, state as MenuState)
  music_stop
 
  DIM temp as string
  '-- first job: find the song's name
  temp = workingdir & SLASH & "song" & songnum
  songfile = ""
+ file_ext = ""
  DIM songtype as string = "NO FILE"
  '-- BAM special case and least desirable, so check first and override
  IF songnum > 99 THEN
@@ -704,25 +704,33 @@ SUB importsong_get_song_info (songname as string, songfile as string, byval song
 
  DIM optionsbottom as integer
 
+ REDIM PRESERVE menu(9)
  menu(1) = "<- Song " & songnum & " of " & gen(genMaxSong) & " ->"
  IF songfile <> "" THEN menu(2) = "Name: " & songname ELSE menu(2) = "-Unused-"
  menu(7) = ""
  menu(8) = "Type: " & songtype
  menu(9) = "Filesize: " & filesize(songfile)
  IF bamfile <> songfile AND bamfile <> "" THEN
+  REDIM PRESERVE menu(10)
   menu(10) = "BAM fallback exists. Filesize: " & filesize(bamfile)
   menu(6) = "Delete BAM fallback"
   optionsbottom = 6
  ELSE
-  menu(10) = ""
   menu(6) = ""
   optionsbottom = 5
  END IF
- '-- add author, length, etc, info here
 
+ '-- add author, length, etc, info here
+ IF file_ext = ".ogg" THEN
+  read_ogg_metadata songfile, menu()
+ END IF
+
+ REDIM PRESERVE selectable(UBOUND(menu))
  FOR i as integer = 0 TO UBOUND(selectable)
   selectable(i) = (i <= optionsbottom)
  NEXT
+
+ state.last = UBOUND(menu)
 END SUB
 
 'songfile: Complete path to the song file to be exported
@@ -751,22 +759,19 @@ END SUB
 
 SUB importsfx ()
 
-DIM menu(10) as string
-DIM selectable(10) as bool
-DIM submenu(2) as string
+REDIM menu(10) as string
+REDIM selectable(10) as bool
 menu(0) = "Previous Menu"
 menu(3) = "Import Sound..."
 menu(4) = "Export Sound..."
 menu(5) = "Delete Sound"
 menu(6) = "Play Sound"
-FOR i as integer = 0 TO 6
- selectable(i) = YES
-NEXT
-
 
 DIM state as MenuState
 state.pt = 1
 state.size = 24
+state.autosize = YES
+state.autosize_ignore_lines = 1
 state.last = UBOUND(menu)
 
 DIM sfxnum as integer = 0
@@ -774,7 +779,7 @@ DIM sfxname as string = ""
 DIM sfxfile as string = ""
 DIM newsfx as integer
 DIM file_ext as string
-importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
 
 setkeys YES
 DO
@@ -796,20 +801,20 @@ DO
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum = newsfx
-   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
   END IF
   IF keyval(scLeft) > 1 AND sfxnum > 0 THEN
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum -= 1
-   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
   END IF
   IF keyval(scRight) > 1 AND sfxnum < 32767 THEN
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum += 1
    IF needaddset(sfxnum, gen(genMaxSFX), "sfx") THEN sfxname = ""
-   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+   importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
   END IF
  END IF
  IF enter_space_click(state) THEN
@@ -819,7 +824,7 @@ DO
   CASE 3   'import
     freesfx sfxnum
     importsfx_importsfxfile sfxname, sfxfile, sfxnum, file_ext
-    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
   CASE 4   'export
     IF sfxfile <> "" THEN importsfx_exportsfx sfxfile, file_ext, sfxname
   CASE 5   'delete sfx
@@ -827,7 +832,7 @@ DO
       IF yesno("Really delete this sound?", NO, NO) THEN
         freesfx sfxnum
         safekill sfxfile
-        importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu()
+        importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), selectable(), state
       END IF
     END IF
   CASE 1, 6
@@ -900,7 +905,7 @@ SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
  storerecord sfxbuf(), workingdir & SLASH & "sfxdata.bin", curbinsize(binSFXDATA) \ 2, sfxnum
 END SUB
 
-SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string)
+SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string, selectable() as bool, state as MenuState)
  '-- first job: find the sfx's name
  DIM temp as string = workingdir & SLASH & "sfx" & sfxnum
  DIM sfxtype as string = "NO FILE"
@@ -930,6 +935,7 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
   sfxname = ""
  END IF
 
+ REDIM PRESERVE menu(10)  'Erase metadata lines
  menu(1) = "<- SFX " & sfxnum & " of " & gen(genMaxSFX) & " ->"
  IF sfxfile <> "" THEN menu(2) = "Name: " & sfxname ELSE menu(2) = "-Unused-"
  menu(8) = ""
@@ -937,6 +943,15 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
  menu(10) = "Filesize: " & filesize(sfxfile)
 
  '-- add author, length, etc, info here
+ IF file_ext = ".ogg" THEN
+  read_ogg_metadata sfxfile, menu()
+ END IF
+
+ REDIM selectable(UBOUND(menu))
+ FOR i as integer = 0 TO 6
+  selectable(i) = YES
+ NEXT
+ state.last = UBOUND(menu)
 END SUB
 
 SUB export_master_palette ()
