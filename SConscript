@@ -782,6 +782,7 @@ reload_modules =  ['reload.bas',
 # The following are built twice, for Game and Custom, so may use #ifdef to change behaviour
 # (.bas files only) 
 shared_modules += ['allmodex',
+                   'audiofile',
                    'backends',
                    'lumpfile',
                    'misc',

@@ -1281,16 +1281,8 @@ sub resetsfx ()
 	sound_reset
 end sub
 
-sub loadsong (fname as string)
-	'check for extension
-	dim ext as string
-	dim songname as string
-	dim songtype as MusicFormatEnum
-
-	songname = fname
-	songtype = getmusictype(fname)
-
-	music_play(songname, songtype)
+sub loadsong (songname as string)
+	music_play(songname, getmusictype(songname))
 end sub
 
 'Doesn't work in SDL_mixer for MIDI music, so avoid
@@ -1310,101 +1302,11 @@ sub set_music_volume (byval vol as single)
 	music_setvolume(vol)
 end sub
 
-function getmusictype (file as string) as MusicFormatEnum
-	if real_isfile(file) = NO then
-		'no further checking if this is a directory
-		return 0
-	end if
-
-	dim ext as string, chk as integer
-	ext = lcase(justextension(file))
-
-	'special case
-	if str(cint(ext)) = ext then return FORMAT_BAM
-
-	select case ext
-	case "bam"
-		chk = FORMAT_BAM
-	case "mid"
-		chk = FORMAT_MIDI
-	case "xm"
-		chk = FORMAT_XM
-	case "it"
-		chk = FORMAT_IT
-	case "wav"
-		chk = FORMAT_WAV
-	case "ogg"
-		chk = FORMAT_OGG
-	case "mp3"
-		chk = FORMAT_MP3
-	case "s3m"
-		chk = FORMAT_S3M
-	case "mod"
-		chk = FORMAT_MOD
-	case else
-		debug "unknown format: " & file & " - " & ext
-		chk = 0
-	end select
-
-	return chk
-end function
-
 
 '==========================================================================================
 '                                      Sound effects
 '==========================================================================================
 
-
-function isawav(fi as string) as bool
-	if not isfile(fi) then return NO 'duhhhhhh
-
-#define ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
-	dim _RIFF as integer = ID("R","I","F","F") 'these are the "signatures" of a
-	dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
-	'dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
-	'dim _data as integer = ID("d","a","t","a") 'data are the chunks
-#undef ID
-
-	dim chnk_ID as integer
-	dim chnk_size as integer
-	dim fh as integer = freefile
-	openfile(fi, for_binary + access_read, fh)
-
-	get #fh, , chnk_ID
-	if chnk_ID <> _RIFF then
-		close #fh
-		return NO 'not even a RIFF file
-	end if
-
-	get #fh, , chnk_size 'don't care
-
-	get #fh, , chnk_ID
-
-	if chnk_ID <> _WAVE then
-		close #fh
-		return NO 'not a WAVE file, pffft
-	end if
-
-	'is this good enough? meh, sure.
-	close #fh
-	return YES
-end function
-
-' Translate sfx number to lump name
-function soundfile (sfxnum as integer) as string
-	dim as string sfxbase
-
-	sfxbase = workingdir & SLASH & "sfx" & sfxnum
-	if isfile(sfxbase & ".ogg") THEN
-		return sfxbase & ".ogg"
-	elseif isfile(sfxbase & ".mp3") then
-		return sfxbase & ".mp3"
-	elseif isfile(sfxbase & ".wav") then
-		return sfxbase & ".wav"
-	else
-		return ""
-	end if
-end function
 
 ' loopcount N to play N+1 times, -1 to loop forever
 ' See set_sfx_volume for description of volume_mult.
@@ -1416,7 +1318,7 @@ sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1
 	' music_audiere has no limit.
 	slot = sound_slot_with_id(num)
 	if slot = -1 then
-		slot = sound_load(soundfile(num), num)
+		slot = sound_load(find_sfx_lump(num), num)
 		if slot = -1 then exit sub
 	end if
 	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume

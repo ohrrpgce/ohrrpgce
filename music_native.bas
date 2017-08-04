@@ -477,7 +477,7 @@ Sub PlayBackThread(byval dummy as any ptr)
 						'p += 1
 						'debug "load sound(" + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + "," + str(curevent->extradata[p+2]) + ")"
 						'
-						'sound_load cint(*(curevent->extradata + p + 2)),soundfile(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
+						'sound_load cint(*(curevent->extradata + p + 2)),find_sfx_lump(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
 						'
 						'p += 3
 					case &H31 'play sound

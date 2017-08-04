@@ -176,7 +176,7 @@ function sound_load(fname as string, num as integer = -1) as integer
 
   ' 2. load the sound
 
-  'loadWaveFileToBuffer soundfile(num), @derbuffer
+  'loadWaveFileToBuffer find_sfx_lump(num), @derbuffer
 
   dim extn as string = justextension(fname)
   dim audslot as integer  'Audiere sound number

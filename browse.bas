@@ -54,7 +54,7 @@ DECLARE SUB draw_browse_meter(br as BrowseMenuState)
 DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
-DECLARE FUNCTION valid_audio_file (filepath as string, byval typemask as integer) as bool
+DECLARE FUNCTION legal_audio_file (filepath as string, byval typemask as integer) as bool
 DECLARE FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
 DECLARE FUNCTION check_is_scripts_file(filepath as string) as bool
 
@@ -349,7 +349,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    CASE 1 'music bam only (is this still used?)
     music_stop
     IF .kind = bkSelectable OR .kind = bkUnselectable THEN
-     IF valid_audio_file(filepath, FORMAT_BAM) THEN
+     IF legal_audio_file(filepath, FORMAT_BAM) THEN
       loadsong filepath
      ELSE
       br.alert = .decoded_filename + " is not a valid BAM file"
@@ -369,7 +369,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    CASE 5 'music
     music_stop
     br.alert = .about
-    IF valid_audio_file(filepath, PREVIEWABLE_MUSIC_FORMAT) THEN
+    IF legal_audio_file(filepath, PREVIEWABLE_MUSIC_FORMAT) THEN
      loadsong filepath
     ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
      br.alert = "Cannot preview MP3, try importing"
@@ -383,7 +383,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     END IF
     IF .kind <> bkUnselectable THEN
      'not disabled because of size
-     IF valid_audio_file(filepath, PREVIEWABLE_FX_FORMAT) THEN
+     IF legal_audio_file(filepath, PREVIEWABLE_FX_FORMAT) THEN
       br.snd = sound_load(filepath)
       IF br.snd > -1 THEN sound_play(br.snd, 0, get_global_sfx_volume)
      ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
@@ -440,13 +440,13 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    filepath = br.nowdir & .filename
    '---music files
    IF br.special = 1 OR br.special = 5 THEN
-    IF valid_audio_file(filepath, VALID_MUSIC_FORMAT) = NO THEN
+    IF legal_audio_file(filepath, VALID_MUSIC_FORMAT) = NO THEN
      .kind = bkUnselectable
      .about = "Not a valid music file"
     END IF
    END IF
    IF br.special = 6 THEN
-    IF valid_audio_file(filepath, VALID_FX_FORMAT) = NO THEN
+    IF legal_audio_file(filepath, VALID_FX_FORMAT) = NO THEN
      .kind = bkUnselectable
      .about = "Not a valid sound effect file"
     ELSEIF FILELEN(filepath) > 500 * 1024 AND LCASE(justextension(filepath)) <> "wav" THEN
@@ -585,36 +585,11 @@ SUB draw_browse_meter(br as BrowseMenuState)
  END WITH
 END SUB
 
-' Check whether file type is one of the ones specified in the mask
-FUNCTION valid_audio_file (filepath as string, byval typemask as integer) as bool
- DIM as string hdmask, realhd
- DIM as integer musfh, chk
- chk = getmusictype(filepath)
-
- IF (chk AND typemask) = 0 THEN return NO
-
- SELECT CASE chk
-  CASE FORMAT_BAM
-   hdmask = "    "
-   realhd = "CBMF"
-  CASE FORMAT_MIDI
-   hdmask = "    "
-   realhd = "MThd"
-  CASE FORMAT_XM
-   hdmask = "                 "
-   realhd = "Extended Module: "
-  'Other supported module formats are missing, but I don't see any point adding them
- END SELECT
-
- IF LEN(hdmask) THEN
-  musfh = FREEFILE
-  OPENFILE(filepath, FOR_BINARY, musfh)
-  GET #musfh, 1, hdmask
-  CLOSE #musfh
-  IF hdmask <> realhd THEN return NO
- END IF
-
- RETURN YES
+' Check whether file type (truly) is one of the ones specified in the mask
+FUNCTION legal_audio_file (filepath as string, byval typemask as integer) as bool
+ DIM chk as MusicFormatEnum = getmusictype(filepath)
+ IF (chk AND typemask) = 0 THEN RETURN NO
+ RETURN valid_audio_file(filepath)
 END FUNCTION
 
 SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)

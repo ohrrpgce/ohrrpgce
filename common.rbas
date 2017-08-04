@@ -14,6 +14,7 @@
 #include "ver.txt"
 #include "const.bi"
 #include "allmodex.bi"
+#include "audiofile.bi"
 #include "os.bi"
 #include "cutil.bi"
 #include "string.bi"
@@ -2459,32 +2460,8 @@ FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as 
 END FUNCTION
 
 SUB playsongnum (byval songnum as integer)
-  DIM songbase as string, songfile as string
-
-  songbase = workingdir & SLASH & "song" & songnum
-  songfile = ""
-  
-  IF isfile(songbase & ".mp3") THEN
-    songfile = songbase & ".mp3"
-  ELSEIF isfile(songbase & ".ogg") THEN
-    songfile = songbase & ".ogg"
-  ELSEIF isfile(songbase & ".mod") THEN
-    songfile = songbase & ".mod"
-  ELSEIF isfile(songbase & ".xm") THEN
-    songfile = songbase & ".xm"
-  ELSEIF isfile(songbase & ".s3m") THEN
-    songfile = songbase & ".s3m"
-  ELSEIF isfile(songbase & ".it") THEN
-    songfile = songbase & ".it"
-  ELSEIF isfile(songbase & ".mid") THEN
-    songfile = songbase & ".mid"
-  ELSEIF isfile(songbase & ".bam") THEN
-    songfile = songbase & ".bam"
-  ELSEIF isfile(game & "." & songnum) THEN
-    songfile = game & "." & songnum ' old-style BAM naming scheme
-  END IF
-
-  if songfile = "" then exit sub
+  DIM songfile as string = find_music_lump(songnum)
+  IF songfile = "" THEN EXIT SUB
   loadsong songfile
 END SUB
 
