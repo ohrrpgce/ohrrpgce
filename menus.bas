@@ -34,6 +34,7 @@ DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
 
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
+'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
  calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
@@ -62,6 +63,7 @@ END SUB
 '
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
+'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
  calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
@@ -410,16 +412,14 @@ END SUB
 ' (Note: 'menu' is optional, needed only to calculate width.)
 ' Sets .has_been_drawn=YES to indicate that these members have been initialised,
 ' even if not called from standardmenu.
-SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as integer, y as integer, page as integer = -1, menu as BasicMenuItem vector = NULL)
+SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
  IF page = -1 THEN page = vpage
  WITH state
   .has_been_drawn = YES
   IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
   .spacing += menuopts.itemspacing
-  .rect.x = x
-  .rect.y = y
 
-  ' TODO: calc_menustate_size used to call recalc_menu_size unconditional. So still
+  ' TODO: calc_menustate_size used to call recalc_menu_size unconditionally. So still
   ' need to call it if .size is 0. But would be cleaner to just default .autosize to YES
   IF .autosize OR (.size = 0) THEN
    ' Calculate .size.
@@ -430,6 +430,7 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as intege
    recalc_menu_size state
   END IF
 
+  ' Width
   DIM wide as integer = menuopts.wide
   IF menuopts.calc_size ANDALSO menu THEN
    ' Widen the menu according to widest menu item
@@ -438,18 +439,26 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as intege
    NEXT
    IF menuopts.scrollbar THEN wide += 6
   END IF
-  .rect.wide = small(vpages(page)->w - x, wide)
+  .rect.wide = small(vpages(page)->w, wide)
+
+  ' Height
   DIM num_menu_items as integer
   IF menuopts.calc_size THEN
    num_menu_items = .last - .first + 1
   ELSE
    num_menu_items = .size + 1
   END IF
-  .rect.high = small(vpages(page)->h - y, num_menu_items * .spacing)
+  .rect.high = small(vpages(page)->h, num_menu_items * .spacing)
+
+  ' Now position the menu, and clamp to screen size
+  .rect.x = relative_pos(x, vpages(page)->w, .rect.wide)
+  .rect.y = relative_pos(y, vpages(page)->h, .rect.high)
+  .rect.wide = small(.rect.wide, vpages(page)->w - .rect.y)
+  .rect.high = small(.rect.high, vpages(page)->h - .rect.y)
  END WITH
 END SUB
 
-SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
+SUB standardmenu (menu() as string, byref state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu
  'Shift menu items so that state.first = 0
@@ -469,7 +478,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, byval x as integer
 END SUB
 
 'Version which allows items to be greyed out/disabled/shaded
-SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
@@ -494,7 +503,7 @@ END SUB
 'menu may in fact be a vector of any type inheriting from BasicMenuItem:
 ' standardmenu cast(BasicMenuItem vector, menu), ...
 'The vector's internal typetable tells the size in bytes of each menu item
-SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval x as integer, byval y as integer, byval page as integer, menuopts as MenuOptions)
+SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
 
  IF state.first <> 0 THEN
   'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
@@ -504,6 +513,9 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, byval 
 
  calc_menustate_size state, menuopts, x, y, page, menu
  DIM wide as integer = state.rect.wide
+ 'calc_menustate_size solved from RelPos to screen positions
+ x = state.rect.x
+ y = state.rect.y
 
  IF state.active THEN
   state.tog XOR= 1
@@ -913,6 +925,7 @@ FUNCTION getmenuname(byval record as integer) as string
 END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
+'FIXME: sets state.has_been_drawn = YES although state.rect is wrong
 SUB init_menu_state (byref state as MenuState, menu() as string, menuopts as MenuOptions)
  calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 

@@ -484,7 +484,7 @@ CONST _rMargin = 50000
 ' Not to be confused with the alignCenter, etc, constants! These
 ' are not usable as slice or menu positions.
 ' You can add together at most one r*, one anc* and one show* constant...
-' with the except that you can assume rCenter + rCenter = rRight, and rLeft = 0.
+' with the exception that you can assume rCenter + rCenter = rRight, and rLeft = 0.
 
 ' r* constants say which edge of the screen this RelPos position is relative to.
 CONST rLeft =   0
@@ -520,6 +520,9 @@ CONST pRight =         rRight  + ancRight
 ' Type of a relative coordinate, use this to indicate whether a function supports them!
 TYPE RelPos as integer
 
+declare function relative_pos (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
+declare sub RelPos_decode (pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType, byref show as AlignType)
+
 declare function bitcount (byval v as unsigned integer) as integer
 declare function ceiling (byval n as integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
@@ -534,8 +537,6 @@ declare function loopvar overload (byval value as longint, byval min as longint,
 declare function small overload (byval n1 as integer, byval n2 as integer) as integer
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
-declare function relative_pos (pos as RelPos, pagewidth as integer, objwidth as integer = 0) as integer
-declare sub RelPos_decode (pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType, byref show as AlignType)
 declare sub corners_to_rect (p1 as XYPair, p2 as XYPair, result as RectType)
 declare sub corners_to_rect_inclusive (p1 as XYPair, p2 as XYPair, result as RectType)
 declare function rect_collide_point (r as RectType, p as XYPair) as bool
