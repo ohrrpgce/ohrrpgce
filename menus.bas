@@ -1700,3 +1700,98 @@ SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0, page as
  rect.high = vpages(page)->h
  draw_scrollbar state, rect, boxstyle, page, align
 END SUB
+
+
+'==========================================================================================
+'                                   Generic menu system
+'==========================================================================================
+
+
+' The boilerplate for displaying a MenuDef menu, if nothing else has to be drawn to the screen.
+SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = NULL)
+ DIM holdscreen as integer = allocatepage
+ copypage vpage, holdscreen
+ DIM state as MenuState
+ init_menu_state state, menu
+ DO
+  setwait 55
+  setkeys YES
+  usemenu state
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF each_tick(menu, state, dataptr) THEN EXIT DO
+  copypage holdscreen, vpage
+  draw_menu menu, state, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ freepage holdscreen
+END SUB
+
+SUB ModularMenu.update()
+END SUB
+
+FUNCTION ModularMenu.each_tick() as bool
+ RETURN NO
+END FUNCTION
+
+SUB ModularMenu.draw_underlays()
+END SUB
+
+SUB ModularMenu.draw()
+ IF floating THEN
+  copypage holdscreen, vpage
+ ELSE
+  clearpage vpage
+ END IF
+ draw_underlays()
+
+ DIM where as XYPair = (4, 4)
+ IF floating THEN
+  'FIXME: state.rect isn't calculated until standardmenu is called
+  'TODO: In fact, this is a pretty ugly way to draw a floating menu. And state.rect
+  'takes a tick to update.
+  'So this should probably be replaced with MenuDef draw_menu
+  edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 2, vpage
+  where = XY(pCentered, pCentered)
+ END IF
+ standardmenu menu(), state, where.x, where.y, vpage, menuopts
+ IF LEN(tooltip) THEN
+  edgeprint tooltip, 0, pBottom, uilook(uiText), vpage
+ END IF
+END SUB
+
+SUB ModularMenu.run()
+ IF floating THEN
+  holdscreen = allocatepage
+  copypage vpage, holdscreen
+
+  menuopts.wide = 80
+  menuopts.calc_size = YES
+ END IF
+ state.autosize_ignore_lines = 1  'For the tooltip
+ menuopts.scrollbar = YES
+
+ update()
+ init_menu_state state, menu()
+ IF floating THEN draw()   'To calculate state.rect
+
+ DO
+  setwait 55
+  setkeys YES
+  usemenu state
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF LEN(helpkey) AND keyval(scF1) > 1 THEN show_help helpkey
+  IF each_tick() THEN EXIT DO
+  IF state.need_update THEN
+   state.need_update = NO
+   update()
+  END IF
+
+  draw()
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ IF holdscreen THEN freepage holdscreen
+END SUB

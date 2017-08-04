@@ -86,4 +86,33 @@ DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, rect as RectType, boxst
 DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0, page as integer, align as AlignType = alignRight)
 
 
+' Some day this may be a universal menu class.
+' In the meantime, just use a simple menu() as string, but probably
+' should switch to BasicMenuItem at a minimum
+TYPE ModularMenu EXTENDS Object
+ menu(any) as string
+ tooltip as string       'Shown at the bottom of the screen
+ state as MenuState
+ menuopts as MenuOptions
+ floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen
+ helpkey as string
+ holdscreen as integer   '0 if none
+
+ ' Called to create/update 'menu()' and 'state' if state.need_update is true. Also called once at start.
+ ' Should correctly set state.last
+ DECLARE VIRTUAL SUB update()
+
+ ' Called each tick. Can either call update() itself or set state.need_update=YES
+ ' Return YES to exit the menu
+ DECLARE VIRTUAL FUNCTION each_tick() as bool
+
+ ' Called before drawing the menu to draw any extra stuff
+ DECLARE VIRTUAL SUB draw_underlays()
+
+ ' Generally you shouldn't need to override this.
+ DECLARE VIRTUAL SUB draw()
+
+ DECLARE SUB run()
+END TYPE
+
 #endif
