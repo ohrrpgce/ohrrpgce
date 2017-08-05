@@ -184,11 +184,8 @@ debuginfo "documents_dir: " & documents_dir
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
-global_config_file = EXEPATH & SLASH & "ohrrpgce_config.ini"
-IF NOT isfile(global_config_file) THEN
- global_config_file = settings_dir & SLASH & "ohrrpgce_config.ini"
-END IF
-
+set_global_config_file
+config_prefix = "edit."
 
 
 '========================== Process commandline flags =========================
@@ -291,6 +288,8 @@ DIM tmpstr as string = trimfilename(sourcerpg) & SLASH & "ohrrpgce_config.ini"
 IF isfile(tmpstr) THEN
  global_config_file = tmpstr
 END IF
+DIM game_id as string = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
+config_prefix = "edit." & game_id & "."
 
 '============================= Unlump, Upgrade, Load ==========================
 

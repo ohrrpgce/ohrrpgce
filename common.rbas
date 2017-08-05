@@ -83,6 +83,10 @@ DIM settings_dir as string
 'On the other hand, Game uses a different ini file for each game (that's the game_config global).
 DIM global_config_file as string
 
+'The prefix used by read_config_int/etc functions for reading ohrrpgce_config.ini.
+'Defines the current context. E.g. "edit.game_(gamename)."
+DIM config_prefix as string
+
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
 
@@ -6721,3 +6725,51 @@ FUNCTION gen_intgrabber(nodepath as string) as bool
  END IF
  RETURN NO
 END FUNCTION
+
+'   Functions for reading/writing ohrrpgce_config.ini
+
+SUB set_global_config_file()
+ global_config_file = EXEPATH & SLASH & "ohrrpgce_config.ini"
+ IF NOT isfile(global_config_file) THEN
+  global_config_file = settings_dir & SLASH & "ohrrpgce_config.ini"
+ END IF
+END SUB
+
+'Try to read the value of a key from global_config_file while respecting
+'config_prefix and finding the most specific setting that applies.
+'For example if config_prefix is "edit.game_genesis." and key is "hspeak", then try
+'"edit.game_genesis.hspeak", "edit.hspeak", "hspeak" in order.
+'Also, in-game, check the game-specific .ini file first.
+FUNCTION read_config_str (key as string, default as string="") as string
+ DIM as string ret, prefix = config_prefix
+ #IFDEF IS_GAME
+  ret = read_ini_str(config_file, key, CHR(0))
+  IF ret <> CHR(0) THEN RETURN ret
+ #ENDIF
+
+ DO
+  ret = read_ini_str(global_config_file, prefix & key, CHR(0))
+  IF ret <> CHR(0) THEN RETURN ret
+  IF LEN(prefix) = 0 THEN RETURN default
+  'Trim end off the prefix
+  prefix = MID(prefix, INSTRREV(prefix, ".", LEN(prefix) - 1))
+ LOOP
+END FUNCTION
+
+FUNCTION read_config_int (key as string, default as integer=0) as integer
+ RETURN str2int(read_config_str(key), default)
+END FUNCTION
+
+/'
+'TODO: should this write to config_file in Game?
+'Should this even exist? You may want to use different prefixes in different
+'situations. So for now let's force you to use write_ini_value and prepend the
+'prefix explicitly until we see what our needs are.
+SUB write_config (key as string, value as string)
+ write_ini_value global_config_file, config_prefix & key, value
+END SUB
+
+SUB write_config (key as string, value as integer)
+ write_config key, STR(value)
+END SUB
+'/

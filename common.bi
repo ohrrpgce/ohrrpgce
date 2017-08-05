@@ -309,6 +309,9 @@ DECLARE FUNCTION get_gen_int(nodepath as string) as integer
 DECLARE SUB set_gen_int(nodepath as string, byval v as integer)
 DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
 
+DECLARE SUB set_global_config_file()
+DECLARE FUNCTION read_config_str (key as string, default as string="") as string
+DECLARE FUNCTION read_config_int (key as string, default as integer=0) as integer
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
@@ -332,6 +335,7 @@ EXTERN log_dir as string
 EXTERN app_dir as string
 EXTERN app_resources_dir as string
 EXTERN global_config_file as string
+EXTERN config_prefix as string
 EXTERN negative_zero as integer
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache

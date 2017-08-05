@@ -262,6 +262,9 @@ tmpdir = get_tmpdir()
 'As soon as we create the tmpdir, we want to put a keepalive file in it
 refresh_keepalive_file
 
+set_global_config_file
+config_prefix = "game."
+
 
 '========================== Process commandline flags =========================
 
