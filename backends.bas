@@ -172,6 +172,7 @@ GFX_CHOICES_INIT
 
 declare function load_backend(which as GFxBackendStuff ptr) as bool
 declare sub unload_backend(which as GFxBackendStuff ptr)
+declare function lookup_gfx_backend(name as string) as GfxBackendStuff ptr
 declare sub default_gfx_render_procs()
 
 dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
@@ -449,12 +450,27 @@ private sub default_gfx_render_procs()
 	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
 end sub
 
-private sub prefer_backend(b as GfxBackendStuff ptr)
+private sub prefer_gfx_backend(b as GfxBackendStuff ptr)
 	for i as integer = ubound(gfx_choices) - 1 to 0 step -1
 		if gfx_choices(i + 1) = b then swap gfx_choices(i), gfx_choices(i + 1)
 	next
 end sub
 
+'Set the default gfx backend for load/init_preferred_gfx_backend.
+sub prefer_gfx_backend(name as string)
+	if not valid_gfx_backend(name) then
+		visible_debug "Invalid graphics backend " & name
+		exit sub
+	end if
+	dim bkend as GfxBackendStuff ptr = lookup_gfx_backend(name)
+	if bkend then
+		prefer_gfx_backend bkend
+	else
+		debuginfo "prefer_gfx_backend: gfx backend " & name & " isn't available"
+	end if
+end sub
+
+'If a gfx backend with this name exists, even if not available in this build.
 function valid_gfx_backend(name as string) as bool
 	for idx as integer = 0 to ubound(valid_gfx_backends)
 		if valid_gfx_backends(idx) = name then return YES
@@ -491,14 +507,14 @@ function backends_setoption(opt as string, arg as string) as integer
 		if backendinfo = NULL then
 			display_help_string "gfx_" + arg + " support is not enabled in this build"
 		else
-			prefer_backend(backendinfo)
+			prefer_gfx_backend(backendinfo)
 			if not load_backend(backendinfo) then
 				display_help_string "gfx_" + arg + " could not be loaded!"
 			end if
 		end if
 		return 2
 	else
-		load_best_gfx_backend
+		load_preferred_gfx_backend
 		if opt = "w" or opt = "windowed" then
 			gfx_setwindowed(1)
 			return 1
@@ -561,7 +577,7 @@ end sub
 function switch_gfx_backend(name as string) as bool
 	if currentgfxbackend then
 		' Make sure that the current is the second preference, in case the switch fails.
-		prefer_backend(currentgfxbackend)
+		prefer_gfx_backend(currentgfxbackend)
 
 		gfx_close()
 		unload_backend(currentgfxbackend)
@@ -573,15 +589,15 @@ function switch_gfx_backend(name as string) as bool
 		return NO
 	end if
 
-	prefer_backend(backendinfo)
-	init_best_gfx_backend()
+	prefer_gfx_backend(backendinfo)
+	init_preferred_gfx_backend()
 
 	return currentgfxbackend = backendinfo
 end function
 
 ' Try to load (but not init) gfx backends in order of preference until one works.
 ' Noop if one is already loaded.
-sub load_best_gfx_backend()
+sub load_preferred_gfx_backend()
 	if currentgfxbackend <> NULL then exit sub
 	for i as integer = 0 to ubound(gfx_choices)
 		if load_backend(gfx_choices(i)) then exit sub
@@ -590,9 +606,9 @@ sub load_best_gfx_backend()
 end sub
 
 ' Try to init gfx backends in order of preference until one works.
-' Noop if one is already loaded.
-sub init_best_gfx_backend()
-	if currentgfxbackend <> NULL then exit sub
+' Must not be called if a backend is already initialised!
+' Ok to call if one is merely loaded, though.
+sub init_preferred_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then

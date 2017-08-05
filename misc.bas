@@ -52,7 +52,7 @@ function global_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		return 1
 	elseif opt = "?" or opt = "help" or opt = "h" then
-		load_best_gfx_backend()
+		load_preferred_gfx_backend()
 
 		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END & LINE_END
 		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END

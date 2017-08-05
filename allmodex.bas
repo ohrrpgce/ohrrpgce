@@ -405,7 +405,7 @@ end sub
 sub setmodex()
 	modex_init()
 	'Select and initialise a graphics/io backend
-	init_best_gfx_backend()
+	init_preferred_gfx_backend()
 	backend_init()
 
 	modex_initialised = YES
