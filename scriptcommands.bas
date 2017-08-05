@@ -1658,7 +1658,7 @@ SUB script_functions(byval cmdid as integer)
   DIM sfxid as integer = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    if retvals(2) then stopsfx sfxid
-   playsfx sfxid, retvals(1)
+   playsfx sfxid, IIF(retvals(1) <> 0, -1, 0)
    scriptret = -1
   END IF
  CASE 198'--pause sound
