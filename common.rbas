@@ -77,6 +77,12 @@ DIM app_resources_dir as string
 'This is for application-wide settings, and prefsdir for games will be a subdirectory of it.
 DIM settings_dir as string
 
+'ohrrpgce_config.ini. This is stored in either EXEPATH or settings_dir.
+'Contains global settings. Custom could also put game-specific settings here, using a different
+'key for each, which I think is better than loads of ini files, but there are no such settings yet.
+'On the other hand, Game uses a different ini file for each game (that's the game_config global).
+DIM global_config_file as string
+
 'Used by intgrabber, reset by usemenu
 DIM negative_zero as integer = NO
 

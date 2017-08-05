@@ -107,7 +107,6 @@ DIM exename as string
 DIM documents_dir as string
 DIM workingdir as string
 DIM app_dir as string
-DIM editor_config_file as string
 
 DIM slave_channel as IPCChannel = NULL_CHANNEL
 DIM slave_process as ProcessHandle = 0
@@ -185,9 +184,9 @@ debuginfo "documents_dir: " & documents_dir
 tmpdir = settings_dir & SLASH
 IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
-editor_config_file = EXEPATH & SLASH & "editorconfig.ini"
-IF NOT isfile(editor_config_file) THEN
- editor_config_file = settings_dir & SLASH & "editorconfig.ini"
+global_config_file = EXEPATH & SLASH & "ohrrpgce_config.ini"
+IF NOT isfile(global_config_file) THEN
+ global_config_file = settings_dir & SLASH & "ohrrpgce_config.ini"
 END IF
 
 
@@ -287,9 +286,10 @@ debuginfo "tmpdir: " & tmpdir
 debuginfo "settings_dir: " & settings_dir
 
 ' Local config file overrides global one
-DIM tmpstr as string = trimfilename(sourcerpg) & SLASH & "editorconfig.ini"
+' TODO: only settings actually present in the file should override ones in the global file!
+DIM tmpstr as string = trimfilename(sourcerpg) & SLASH & "ohrrpgce_config.ini"
 IF isfile(tmpstr) THEN
- editor_config_file = tmpstr
+ global_config_file = tmpstr
 END IF
 
 '============================= Unlump, Upgrade, Load ==========================
@@ -759,7 +759,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
  palette16_empty_cache
  cleanup_global_reload_doc
  clear_binsize_cache
- IF show_quit_msg ANDALSO read_ini_int(editor_config_file, "show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
+ IF show_quit_msg ANDALSO read_ini_int(global_config_file, "edit.show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!
   pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES

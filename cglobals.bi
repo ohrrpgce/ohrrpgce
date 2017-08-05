@@ -5,7 +5,6 @@
 '
 #include "os.bi"
 
-EXTERN editor_config_file as string
 EXTERN timing() as integer
 EXTERN activepalette as integer
 EXTERN slave_channel as IPCChannel

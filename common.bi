@@ -331,6 +331,7 @@ EXTERN settings_dir as string
 EXTERN log_dir as string
 EXTERN app_dir as string
 EXTERN app_resources_dir as string
+EXTERN global_config_file as string
 EXTERN negative_zero as integer
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
