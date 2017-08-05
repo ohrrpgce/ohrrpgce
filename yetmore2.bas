@@ -1185,6 +1185,10 @@ SUB apply_game_window_settings (reloading as bool = NO)
  IF XY(gen(genResolutionX), gen(genResolutionY)) <> get_resolution() THEN
   'get_resolution() will be 320x200 if the backend doesn't support anything else
   IF gfx_supports_variable_resolution() = NO THEN
+   debuginfo "Attempting to switch to gfx_sdl for flexible resolution"
+   switch_gfx "sdl"
+  END IF
+  IF gfx_supports_variable_resolution() = NO THEN
    notification "This game requires use of the gfx_sdl backend; other graphics backends do not support customisable resolution. Continuing anyway, but the game will probably be unplayable!"
   ELSE
    'Changes video page size, but not window size immediately
