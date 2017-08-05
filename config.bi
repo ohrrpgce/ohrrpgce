@@ -103,6 +103,13 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 #define ALLFILES "*.*"
 #endif
 
+'This is useful as a prefix in ohrrpgce_config.ini
+#ifdef IS_GAME
+ #define EXEPREFIX "game."
+#else
+ #define EXEPREFIX "edit."
+#endif
+
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
 CONST YES = -1
 CONST NO = 0

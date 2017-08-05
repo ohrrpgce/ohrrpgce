@@ -268,6 +268,10 @@ config_prefix = "game."
 
 '========================== Process commandline flags =========================
 
+'Read the default backend from config first so that --gfx overrides it
+DIM backend as string = read_config_str("gfx.backend")
+IF LEN(backend) THEN prefer_gfx_backend backend
+
 'Global variables which are affected by processcommandline (specifically, game_setoption)
 DIM autotestmode as bool = NO
 DIM always_enable_debug_keys as bool = NO

@@ -672,21 +672,27 @@ sub read_backend_info()
 end sub
 
 sub gfx_backend_menu ()
+	dim default_backend as string = read_config_str("gfx.backend")
 	redim menu() as string
 	for idx as integer = 0 to ubound(gfx_choices)
 		dim item as string = "gfx_" & gfx_choices(idx)->name
 		if gfx_choices(idx) = currentgfxbackend then
 			item &= " (Current)"
+		elseif gfx_choices(idx)->name = default_backend then
+			'Only shown if you use --gfx to override the default
+			item &= " (Selected default)"
 		end if
 		str_array_append menu(), item
 	next
 
 	dim choice as integer
-	choice = multichoice("Switch to which graphics backend? (EXPERIMENTAL! And UNFINISHED!)", menu())
+	choice = multichoice(!"Switch to which graphics backend? (EXPERIMENTAL!)\n" _
+			     "Your selection will be remembered for " & exename, menu())
 	if choice > -1 then
 		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
 		dim backendname as string = gfx_choices(choice)->name
 		switch_gfx backendname
+		write_ini_value global_config_file, EXEPREFIX "gfx.backend", backendname
 	end if
 end sub
 

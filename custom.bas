@@ -190,6 +190,10 @@ config_prefix = "edit."
 
 '========================== Process commandline flags =========================
 
+'Read the default backend from config first so that --gfx overrides it
+DIM backend as string = read_config_str("gfx.backend")
+IF LEN(backend) THEN prefer_gfx_backend backend
+
 exename = trimextension(trimpath(COMMAND(0)))
 
 REDIM cmdline_args() as string
