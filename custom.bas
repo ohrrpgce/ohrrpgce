@@ -190,7 +190,9 @@ config_prefix = "edit."
 
 '========================== Process commandline flags =========================
 
-'Read the default backend from config first so that --gfx overrides it
+'Read the default backend from config first so that --gfx overrides it.
+'And if it's missing, default to SDL, for resizable windows
+prefer_gfx_backend "sdl"
 DIM backend as string = read_config_str("gfx.backend")
 IF LEN(backend) THEN prefer_gfx_backend backend
 
