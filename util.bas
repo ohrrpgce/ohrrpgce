@@ -2973,7 +2973,7 @@ end sub
 '                        ini file read/write
 
 
-SUB write_ini_value (ini_filename as string, key as string, value as integer)
+SUB write_ini_value (ini_filename as string, key as string, value as string)
  REDIM ini(-1 TO -1) as string
  IF isfile(ini_filename) THEN
   lines_from_file ini(), ini_filename
@@ -2982,7 +2982,15 @@ SUB write_ini_value (ini_filename as string, key as string, value as integer)
  lines_to_file ini(), ini_filename, LINE_END
 END SUB
 
-SUB write_ini_value (ini() as string, key as string, value as integer)
+SUB write_ini_value (ini_filename as string, key as string, value as integer)
+ write_ini_value ini_filename, key, STR(value)
+END SUB
+
+SUB write_ini_value (ini_filename as string, key as string, value as double)
+ write_ini_value ini_filename, key, STR(value)
+END SUB
+
+SUB write_ini_value (ini() as string, key as string, value as string)
  'Key is case insensitive but case preservative
  'If the key is matched more than once, all copies of it will be changed
  IF LEN(key) = 0 THEN
@@ -2991,7 +2999,7 @@ SUB write_ini_value (ini() as string, key as string, value as integer)
  END IF
  DIM found as bool = NO
  FOR i as integer = 0 TO UBOUND(ini)
-  IF ini_key_match(key, ini(i)) THEN
+  IF ini_key_match(ini(i), key) THEN
    ini(i) = key & " = " & value
    found = YES
   END IF
@@ -3001,49 +3009,50 @@ SUB write_ini_value (ini() as string, key as string, value as integer)
  END IF
 END SUB
 
-FUNCTION read_ini_int (ini_filename as string, key as string, default as integer=0) as integer
+FUNCTION read_ini_str (ini_filename as string, key as string, default as string="") as string
  REDIM ini(-1 TO -1) as string
  IF isfile(ini_filename) THEN
   lines_from_file ini(), ini_filename
  END IF
- RETURN read_ini_int(ini(), key, default)
+ RETURN read_ini_str(ini(), key, default)
 END FUNCTION
 
-'Given the content of an .ini as an array of lines, return the value of a line of form "key = value"
-FUNCTION read_ini_int (ini() as string, key as string, default as integer=0) as integer
+'Given the content of an .ini as an array of lines, return the value of the
+'first line of form "key = value".
+FUNCTION read_ini_str (ini() as string, key as string, default as string="") as string
  IF LEN(key) = 0 THEN
   debug "Can't read empty key from ini file"
   RETURN default
  END IF
+ DIM value as string
  FOR i as integer = 0 TO UBOUND(ini)
-  IF ini_key_match(key, ini(i)) THEN
-   RETURN ini_value_int(ini(i), default)
-  END IF
+  IF ini_key_match(ini(i), key, value) THEN RETURN value
  NEXT i
  RETURN default
 END FUNCTION
 
-'A case insensitive match for regex "^key ?="
-FUNCTION ini_key_match(key as string, s as string) as bool
- DIM comp as string
- comp = LCASE(key & "=")
- IF LCASE(LEFT(s, LEN(comp))) = comp THEN RETURN YES
- comp = LCASE(key & " =")
- IF LCASE(LEFT(s, LEN(comp))) = comp THEN RETURN YES
- RETURN NO
+FUNCTION read_ini_int (ini_filename as string, key as string, default as integer=0) as integer
+ RETURN str2int(read_ini_str(ini_filename, key), default)
 END FUNCTION
 
-FUNCTION ini_value_int (s as string, default as integer=0) as integer
- 'Extracts and returns an integer from the value portion of an ini line.
- 'Does NOT check the key. You should use ini_key_match() before calling this
- 'default is returned if there is an error parsing the line
- DIM eqpos as integer = INSTR(s, "=")
- IF eqpos = 0 THEN
-  'no equal sign found
-  RETURN default
- END IF
- DIM tail as string = MID(s, eqpos + 1)
- RETURN str2int(tail, default)
+'This is not strict. A non-numerical value will return 0., not default!
+FUNCTION read_ini_double (ini_filename as string, key as string, default as double=0.) as double
+ DIM value as string = read_ini_str(ini_filename, key)
+ IF LEN(value) THEN RETURN VAL(value)
+ RETURN default
+END FUNCTION
+
+'A case insensitive match for regex "^key *= *value *". Returns true and sets "value" on a match
+FUNCTION ini_key_match(text as string, key as string, byref value as string = "") as bool
+ DIM eqpos as integer
+ IF LCASE(LEFT(text, LEN(key))) <> LCASE(key) THEN RETURN NO
+ eqpos = LEN(key) + 1
+ WHILE MID(text, eqpos, 1) = " "
+  eqpos += 1
+ WEND
+ IF MID(text, eqpos, 1) <> "=" THEN RETURN NO
+ value = TRIM(MID(text, eqpos + 1))
+ RETURN YES
 END FUNCTION
 
 '----------------------------------------------------------------------
