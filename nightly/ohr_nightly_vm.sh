@@ -21,4 +21,6 @@ for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" "Debian for A
   done
 done
 
-
+# After the nightly build finishes, list the remote directory
+# for a convenient overview of what builds succeeded
+ssh james_paige@motherhamster.org ls -l HamsterRepublic.com/ohrrpgce/nightly/ | cut -d " " -f 5-
