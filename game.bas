@@ -3200,7 +3200,7 @@ SUB loadsay (byval box_id as integer)
     trigger_script -txt.box.instead, 0, YES, "textbox instead", "box " & box_id, mainFibreGroup
     txt.sayer = -1
     EXIT SUB
-   ELSE
+   ELSEIF txt.box.instead > 0 THEN ' box 0, the template, is never a valid instead-box
     IF box_id <> txt.box.instead THEN
      box_id = txt.box.instead
      CONTINUE DO' Skip back to the top of the loop and get another box
@@ -3350,7 +3350,7 @@ SUB advance_text_box ()
  IF istag(txt.box.after_tag, 0) THEN
   IF txt.box.after < 0 THEN
    trigger_script -txt.box.after, 0, YES, "textbox", "box " & txt.id, mainFibreGroup
-  ELSE
+  ELSEIF txt.box.after > 0 THEN ' Box 0, the template, is never a valid "next" box
    loadsay txt.box.after
    EXIT SUB
   END IF
