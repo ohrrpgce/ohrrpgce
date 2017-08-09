@@ -166,7 +166,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
 
   'Navigate textboxes
   'Alt+left/right is only needed when the quickchainer ('After') is selected
-  IF state.pt <> 6 ORELSE keyval(scAlt) > 0 THEN  'not quickchainer
+  IF (state.pt <> 6 ANDALSO state.pt <> 7) ORELSE keyval(scAlt) > 0 THEN  'not quickchainer
    IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
     IF st.id > gen(genMaxTextBox) THEN
      gen(genMaxTextBox) = st.id
