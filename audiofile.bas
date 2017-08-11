@@ -13,6 +13,7 @@
 
 dim shared libvorbisfile as any ptr
 
+extern "C"
 #undef ov_clear
 #undef ov_fopen
 #undef ov_info
@@ -21,6 +22,7 @@ dim shared ov_clear as function(byval vf as OggVorbis_File ptr) as long
 dim shared ov_fopen as function(byval path as const zstring ptr, byval vf as OggVorbis_File ptr) as long
 dim shared ov_info as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_info ptr
 dim shared ov_comment as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_comment ptr
+end extern
 
 
 '==========================================================================================
