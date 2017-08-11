@@ -2087,12 +2087,14 @@ sub update_mouse_state ()
 
 	'Ignore mouse clicks that focus the window. If you clicked, it's already
 	'focused, so we consider the previous focus state instead.
+	'FIXME: this doesn't seem to work with gfx_sdl on X11
 	static prev_focus_state as bool
 	if prev_focus_state = NO then
 		mouse_state.buttons = 0
 		mouse_state.clicks = 0
 	end if
-	prev_focus_state = gfx_getwindowstate()->focused
+	dim window_state as WindowState ptr = gfx_getwindowstate()
+	prev_focus_state = window_state->focused
 
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
 	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
@@ -2105,6 +2107,8 @@ sub update_mouse_state ()
 	'         know about the OS's wheel speed setting.
 
 	mouse_state.moved = lastpos <> mouse_state.pos
+
+	mouse_state.active = window_state->mouse_over and window_state->focused
 
 	'Behaviour of clicking and dragging from inside the window to outside:
 	'gfx_fb:  Mouse input goes dead while outside until moved back into window.

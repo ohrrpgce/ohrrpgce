@@ -381,12 +381,15 @@ DECLARE SUB global_setkeys_hook ()
 Type MouseInfo
 	Union
 		Type
+			'Note: position may be wrong if .active is NO.
+			'See comments in update_mouse_state
 			x as integer
 			y as integer
 		End Type
 		pos as XYPair
 	End Union
 	moved as bool         'Whether mouse has moved since the last setkeys call
+	active as bool        'Is over the window and the window is focused
 	clicks as integer     'Button down since the last setkeys call; MouseButton bitvector (see scancodes.bi)
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
 	release as integer    'Buttons that were released last click; MouseButton bitvector

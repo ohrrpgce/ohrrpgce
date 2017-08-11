@@ -144,9 +144,11 @@ FUNCTION mouse_update_hover (state as MenuState) as bool
 #IFDEF IS_GAME
  use_mouse = get_gen_bool("/mouse/mouse_menus")
 #ENDIF
- IF use_mouse THEN
+ IF use_mouse ANDALSO readmouse.active THEN
   state.hover = find_menu_item_at_point(state, readmouse.x, readmouse.y)
   RETURN state.hover >= state.first
+ ELSE
+  state.hover = state.first - 1
  END IF
  RETURN NO
 END FUNCTION
