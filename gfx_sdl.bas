@@ -652,6 +652,7 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
   state.minimised = (temp AND SDL_APPACTIVE) = 0
   state.fullscreen = (windowedmode = 0)
+  state.mouse_over = (temp AND SDL_APPMOUSEFOCUS) <> 0
   RETURN @state
 END FUNCTION
 

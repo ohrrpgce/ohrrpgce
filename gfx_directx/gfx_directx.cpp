@@ -598,6 +598,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	pState->minimised = IsIconic(g_Window.getWindowHandle());
 	if (pState->structsize >= 4)
 		pState->fullscreen = g_DirectX.isViewFullscreen();
+	pState->mouse_over = g_Mouse.isCursorOverClient();
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 

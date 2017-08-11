@@ -19,8 +19,9 @@ struct WindowState
 	int minimised;
 	int fullscreen;
 	int unused;        // Obsolete, used to be user_toggled_fullscreen
+	int mouse_over;
 };
-#define WINDOWSTATE_SZ 5
+#define WINDOWSTATE_SZ 6
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
 

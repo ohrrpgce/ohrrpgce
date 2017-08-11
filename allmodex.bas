@@ -2097,6 +2097,8 @@ sub update_mouse_state ()
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
 	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
 	'        wheel scrolls offscreen are registered when you move back onscreen
+	'        Also, may report a mouse position slightly off the screen edge
+	'        (at least on X11) due to freezing mouse input fractionally late.
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. Wheel movement is reported if the
 	'         mouse is over the window, even if it's not focused. SDL 1.2 doesn't
@@ -2661,6 +2663,8 @@ end function
 'Returns true if something was drawn.
 private function draw_allmodex_overlays (page as integer) as bool
 	if overlays_enabled = NO then return NO
+
+	'show_overlay_message "mouse over:" & gfx_getwindowstate()->mouse_over & " at " & mouse_state.pos
 
 	dim dirty as bool = NO
 

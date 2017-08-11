@@ -28,12 +28,13 @@ type Palette16Fwd as Palette16
 
 type WindowState
 	structsize as integer  'number of members in the struct, set to WINDOWSTATE_SZ
-	focused as integer
-	minimised as integer
-	fullscreen as integer
+	focused as boolint
+	minimised as boolint
+	fullscreen as boolint
 	unused as integer      'Obsolete, used to be user_toggled_fullscreen
+	mouse_over as boolint
 end type
-#define WINDOWSTATE_SZ 5
+#define WINDOWSTATE_SZ 6
 
 type GamePadMap
 	'For passing OHR scancodes to io_remap_android_gamepad

@@ -179,9 +179,11 @@ end sub
 function gfx_alleg_getwindowstate() as WindowState ptr
 	static state as WindowState
 	state.structsize = WINDOWSTATE_SZ
+	'Maybe allegro 4 does support some of the following; I didn't even check
 	state.focused = YES  'Don't know
 	state.minimised = NO  'Don't know
 	state.fullscreen = (windowed = NO)
+	state.mouse_over = YES  'Don't know
 	return @state
 end function
 

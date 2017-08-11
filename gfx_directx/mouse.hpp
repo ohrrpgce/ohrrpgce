@@ -91,6 +91,7 @@ namespace gfx
 		bool isInputLive() const {return m_inputState.top() == IS_LIVE;}
 		bool isVideoFullscreen() const {return m_state.mode == VM_FULLSCREEN;}
 		bool isCursorVisible() const {return m_state.bCursorVisible;}
+		bool isCursorOverClient() const {return m_state.bOverClient;}
 		bool isClippedCursor() const {return m_state.clipped == CS_ON;}
 
 		bool processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

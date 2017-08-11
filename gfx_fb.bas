@@ -67,6 +67,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	window_state.focused = YES
 	window_state.minimised = NO
 	window_state.fullscreen = NO
+	window_state.mouse_over = NO
 	return 1
 end function
 
@@ -467,6 +468,7 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
 		'mouse is inside window
+		window_state.mouse_over = YES
 		if mouseclipped then
 			remx = dmx
 			remy = dmy
@@ -481,6 +483,8 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 		lasty = dmy
 		lastwheel = 120 * dw
 		lastbuttons = db
+	else
+		window_state.mouse_over = NO
 	end if
 	mx = lastx
 	my = lasty

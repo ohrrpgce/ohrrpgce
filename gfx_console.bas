@@ -141,6 +141,7 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
+	window_state.mouse_over = NO
 
 	if curses_mode then
 		retstr = *curses_version()
