@@ -594,11 +594,12 @@ DFI_IMPLEMENT_CDECL(void, gfx_GetWindowState, int nID, WindowState *pState)
 	// This doesn't detect when the Alt+Tab Task Switcher window is actually in the foreground.
 	// gfx_sdl has the same problem on Windows, so the engine needs to work around this anyway.
 	HWND hActive = GetForegroundWindow();
-	pState->focused = (hActive == g_Window.getWindowHandle());
-	pState->minimised = IsIconic(g_Window.getWindowHandle());
+	pState->focused = (hActive == g_Window.getWindowHandle()) ? -1 : 0;
+	pState->minimised = IsIconic(g_Window.getWindowHandle()) ? -1 : 0;
 	if (pState->structsize >= 4)
-		pState->fullscreen = g_DirectX.isViewFullscreen();
-	pState->mouse_over = g_Mouse.isCursorOverClient();
+		pState->fullscreen = g_DirectX.isViewFullscreen() ? -1 : 0;
+	if (pState->structsize >= 6)
+		pState->mouse_over = g_Mouse.isCursorOverClient() ? -1 : 0;
 	pState->structsize = min(pState->structsize, WINDOWSTATE_SZ);
 }
 

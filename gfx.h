@@ -6,6 +6,7 @@
 
 #include "stdint.h"
 
+#include "common.h"  // for boolint
 #include "gfx_common/DllFunctionInterface.h"
 #include "gfx_msg.h"
 #include "errorlevel.h"
@@ -15,11 +16,11 @@
 struct WindowState
 {
 	int structsize;    // Number of members
-	int focused;
-	int minimised;
-	int fullscreen;
+	boolint focused;
+	boolint minimised;
+	boolint fullscreen;
 	int unused;        // Obsolete, used to be user_toggled_fullscreen
-	int mouse_over;
+	boolint mouse_over;
 };
 #define WINDOWSTATE_SZ 6
 
