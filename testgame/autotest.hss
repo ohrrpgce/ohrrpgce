@@ -768,13 +768,31 @@ script, do hero cater tests, who, begin
     set hero direction(who, d), w
     assert(hero direction(who) == d)
   )
-  # moonwalk
-  for(d, north, west) do(
-    walk hero(who, ((d + 2) ,mod, 4))
-    set hero direction(who, d)
-    wait for hero(who), w
-    assert(hero direction(who) == d)
-  )
+  # moonwalk in a circle
+  walk hero(who, south, 1)
+  set hero direction(who, north)
+  wait for hero(who), w
+  assert(hero direction(who) == north)
+  assert(hero x(who) == 6)
+  assert(hero y(who) == 9)
+  walk hero(who, west, 1)
+  set hero direction(who, east)
+  wait for hero(who), w
+  assert(hero direction(who) == east)
+  assert(hero x(who) == 5)
+  assert(hero y(who) == 9)
+  walk hero(who, north, 1)
+  set hero direction(who, south)
+  wait for hero(who), w
+  assert(hero direction(who) == south)
+  assert(hero x(who) == 5)
+  assert(hero y(who) == 8)
+  walk hero(who, east, 1)
+  set hero direction(who, west)
+  wait for hero(who), w
+  assert(hero direction(who) == west)
+  assert(hero x(who) == 6)
+  assert(hero y(who) == 8)
   # walk into wall
   walk hero(who, north, 3) # should only make it 2 tiles
   wait for hero(who)
