@@ -1534,21 +1534,31 @@ script, npc movement tests, n, begin
   # walk in a circle, testing speed
   set npc speed(n, 4)
   walk npc(n, south, 1), w
-  wait for npc(n)
+  wait for npc(n),w
   assert(npc Y(n) == 6)
   set NPC speed(n, 5)
   walk npc(n, east, 1), w
-  wait for npc(n)
+  wait for npc(n),w
   assert(npc X(n) == 4)
   set NPC speed(n, 10)
   walk npc(n, north, 1), w
-  wait for npc(n)
+  wait for npc(n),w
   assert(npc Y(n) == 5)
   set NPC speed(n, 2)
   walk npc(n, west, 1), w
-  wait for npc(n)
+  wait for npc(n),w
   assert(npc X(n) == 3)
   set npc speed(n, 4)
+  
+  # Walk backwards
+  walk npc(n, east, -1)
+  wait for npc(n), w
+  assert(npc X(n) == 2)
+  assert(npc direction(n) == east)
+  walk npc(n, south, -1)
+  wait for npc(n), w
+  assert(npc Y(n) == 4)
+  assert(npc direction(n) == south)
   
   set npc position(n, 3, 5)
   
