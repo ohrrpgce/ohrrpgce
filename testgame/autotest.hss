@@ -751,6 +751,14 @@ script, do hero cater tests, who, begin
   wait for hero(who), w
   assert(hero y(who) == 9)
   assert(hero direction(who) == south)
+  walk hero(who, south, -1) # negative distance means walk backwards
+  wait for hero(who), w
+  assert(hero y(who) == 8)
+  assert(hero direction(who) == south)
+  walk hero(who, south, 1)
+  wait for hero(who), w
+  assert(hero y(who) == 9)
+  assert(hero direction(who) == south)
   walk hero(who, west, 2)
   wait for hero(who), w
   assert(hero x(who) == 5)
@@ -789,6 +797,27 @@ script, do hero cater tests, who, begin
   assert(hero y(who) == 8)
   walk hero(who, east, 1)
   set hero direction(who, west)
+  wait for hero(who), w
+  assert(hero direction(who) == west)
+  assert(hero x(who) == 6)
+  assert(hero y(who) == 8)
+  # moonwalk in a circle using negative distance
+  walk hero(who, north, -1)
+  wait for hero(who), w
+  assert(hero direction(who) == north)
+  assert(hero x(who) == 6)
+  assert(hero y(who) == 9)
+  walk hero(who, east, -1)
+  wait for hero(who), w
+  assert(hero direction(who) == east)
+  assert(hero x(who) == 5)
+  assert(hero y(who) == 9)
+  walk hero(who, south, -1)
+  wait for hero(who), w
+  assert(hero direction(who) == south)
+  assert(hero x(who) == 5)
+  assert(hero y(who) == 8)
+  walk hero(who, west, -1)
   wait for hero(who), w
   assert(hero direction(who) == west)
   assert(hero x(who) == 6)
