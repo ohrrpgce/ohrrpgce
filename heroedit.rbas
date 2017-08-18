@@ -751,10 +751,10 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
 
  DIM itembuf(dimbinsize(binITM)) as integer
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_edit"
   IF keyval(scEsc) > 1 THEN EXIT DO
 
@@ -915,10 +915,10 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
  DIM v as integer
  DIM spell_list_name as string
 
- setkeys
+ setkeys YES
  DO
   setwait 55
-  setkeys
+  setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_battle_menu_item"
   IF keyval(scEsc) > 1 THEN EXIT DO
 
