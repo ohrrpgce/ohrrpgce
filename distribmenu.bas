@@ -68,6 +68,7 @@ DECLARE FUNCTION is_known_license(license_code as string) as integer
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app ()
+DECLARE FUNCTION running_64bit() as bool
 
 CONST distmenuEXIT as integer = 1
 CONST distmenuZIP as integer = 2
@@ -730,6 +731,14 @@ FUNCTION get_windows_gameplayer() as string
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
 
+FUNCTION running_64bit() as bool
+#IFDEF __FB_64BIT__
+ RETURN YES
+#ELSE
+ RETURN NO
+#ENDIF
+END FUNCTION
+
 FUNCTION get_linux_gameplayer() as string
  'On Linux, Return the full path to ohrrpgce-game
  'On other platforms, download a precompiled i386 binary of ohrrpgce-game,
@@ -739,18 +748,20 @@ FUNCTION get_linux_gameplayer() as string
 #IFDEF __FB_UNIX__
 #IFNDEF __FB_DARWIN__
 
- '--If this is Linux, we already have the correct version of ohrrpgce-game
- IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
-  RETURN exepath & SLASH & "ohrrpgce-game"
- ELSE
-  dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+ '--If this is Linux, we might already have the correct version of ohrrpgce-game
+ IF NOT running_64bit() THEN
+  IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
+   RETURN exepath & SLASH & "ohrrpgce-game"
+  ELSE
+   dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
+  END IF
  END IF
-
+ 
 #ENDIF
 #ENDIF
 
  '--For Non-Linux platforms, we need to download ohrrpgce-game
- '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game)
+ '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game when possible)
 
  '--Find the folder that we are going to download ohrrpgce-game into
  DIM dldir as string = settings_dir & SLASH & "_gameplayer"
