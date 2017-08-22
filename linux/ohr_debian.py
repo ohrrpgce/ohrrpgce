@@ -32,7 +32,12 @@ def read_version():
   rev_regex  = re.compile('^Revision: (?P<rev>\d+)', re.I)
   got_date = False
   got_rev = False
-  f = os.popen('svn info ..', 'r')
+  if os.path.isdir("../.svn"):
+    f = os.popen('svn info ..', 'r')
+  elif os.path.isdir("../.git"):
+    f = os.popen('git svn info', 'r')
+  else:
+    raise Exception("This should be run from either a subversion working copy, or git working copy with git-svn configured.")
   for line in f:
     match = date_regex.match(line)
     if match != None:
