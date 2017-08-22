@@ -22,7 +22,7 @@ DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
 DECLARE SUB distribute_game_as_linux_tarball ()
 DECLARE FUNCTION get_windows_gameplayer() as string
-DECLARE FUNCTION get_linux_gameplayer() as string
+DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
 DECLARE FUNCTION get_mac_gameplayer() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
@@ -739,17 +739,32 @@ FUNCTION running_64bit() as bool
 #ENDIF
 END FUNCTION
 
-FUNCTION get_linux_gameplayer() as string
- 'On Linux, Return the full path to ohrrpgce-game
- 'On other platforms, download a precompiled i386 binary of ohrrpgce-game,
+FUNCTION get_linux_gameplayer(which_arch as string) as string
+ 'On Linux, if you request the same arch you are running,
+ 'Return the full path to ohrrpgce-game
+ 'In all other cases, download a precompiled binary of ohrrpgce-game,
  'unzip it, and return the full path.
  'Returns "" for failure.
+
+DIM arch_suffix as string
+DIM maybe_use_installed as bool = NO
+SELECT CASE which_arch
+ CASE "x86":
+  arch_suffix = ""
+  maybe_use_installed = NOT running_64bit()
+ CASE "x86_64":
+  arch_suffix = "-x86_64"
+  maybe_use_installed = running_64bit()
+ CASE ELSE
+  debug "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported vaues are x86 and x86_64"
+  RETURN ""
+END SELECT
 
 #IFDEF __FB_UNIX__
 #IFNDEF __FB_DARWIN__
 
  '--If this is Linux, we might already have the correct version of ohrrpgce-game
- IF NOT running_64bit() THEN
+ IF maybe_use_installed THEN
   IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
    RETURN exepath & SLASH & "ohrrpgce-game"
   ELSE
@@ -771,16 +786,14 @@ FUNCTION get_linux_gameplayer() as string
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
- 
-
+ dlfile = "ohrrpgce-player-linux-bin-minimal" & arch_suffix & ".zip"
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  url = "http://hamsterrepublic.com/ohrrpgce/nightly/ohrrpgce-player-linux-bin-minimal.zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'If using any stable release, get the latest stable release
-  url = "http://hamsterrepublic.com/dl/ohrrpgce-player-linux-bin-minimal.zip"
+  url = "http://hamsterrepublic.com/dl/" & dlfile
  END IF
- dlfile = "ohrrpgce-player-linux-bin-minimal.zip"
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "linux.download.agree") THEN
@@ -794,7 +807,7 @@ FUNCTION get_linux_gameplayer() as string
  '--Actually download the dang file
  download_file url, dldir
  IF NOT isfile(destzip) THEN
-  dist_info "ERROR: Failed to download Linux ohrrpgce-game" : RETURN ""
+  dist_info "ERROR: Failed to download Linux" & arch_suffix & " ohrrpgce-game" : RETURN ""
  END IF
  
  '--Find the unzip tool
@@ -1050,7 +1063,7 @@ SUB distribute_game_as_debian_package ()
 
   debuginfo "Copy linux game player" 
   DIM gameplayer as string
-  gameplayer = get_linux_gameplayer()
+  gameplayer = get_linux_gameplayer("x86")
   IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
   
@@ -1629,7 +1642,7 @@ SUB distribute_game_as_linux_tarball ()
 
   debuginfo "Rename linux game player" 
   DIM gameplayer as string
-  gameplayer = get_linux_gameplayer()
+  gameplayer = get_linux_gameplayer("x86")
   IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   debuginfo " exe: " & gameplayer
   DIM tarballdir_base as string = distinfo.pkgname & "-linux"
