@@ -7,6 +7,6 @@ scp -p distrib/ohrrpgce-player-linux-bin-minimal-${TODAY}-${CODE}.zip james_paig
 
 DEBTODAY=`date "+%Y.%m.%d"`
 SVNREV=`svn info | grep "^Revision:" | sed -e "s/Revision: //"`
-scp -p distrib/*_${DEBTODAY}.${CODE}-${SVNREV}_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/archive/debian/
+scp -p distrib/*_${DEBTODAY}.${CODE}-${SVNREV}_amd64.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/archive/debian/
 
 scp -p whatsnew.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/
