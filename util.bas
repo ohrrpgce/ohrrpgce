@@ -2151,6 +2151,14 @@ SUB killdir(directory as string, recurse as bool = NO)
   ' For safety. (You ought to pass absolute paths.) Check
   ' writability so we don't recurse if started from e.g. /home until
   ' we hit something deletable (this happened to me)!
+  IF NOT(isdir(directory)) THEN
+   IF isfile(directory) THEN
+    showerror "killdir: '" & directory & "' is not a directory, it is an ordinary file"
+    EXIT SUB
+   END IF
+   debug "killdir: '" & directory & "' does not exist. Skipping."
+   EXIT SUB
+  END IF
   IF LEN(directory) < 5 ORELSE diriswriteable(directory) = NO THEN
    showerror "killdir: refusing to delete directory '" & directory & "'"
    EXIT SUB
