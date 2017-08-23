@@ -36,13 +36,13 @@ DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as stri
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as integer
-DECLARE SUB distribute_game_as_debian_package ()
+DECLARE SUB distribute_game_as_debian_package (which_arch as string)
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
 DECLARE SUB write_linux_menu_file(title as string, filename as string, basename as string)
 DECLARE SUB write_linux_desktop_file(title as string, filename as string, basename as string)
 DECLARE SUB write_debian_binary_file (filename as string)
-DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
+DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState, deb_arch as string)
 DECLARE SUB write_debian_copyright_file (filename as string)
 DECLARE FUNCTION gzip_file (filename as string) as integer
 DECLARE FUNCTION gunzip_file (filename as string) as integer
@@ -124,10 +124,10 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
- 'append_simplemenu_item menu, "Export Debian Linux Package (64bit)", , , distmenuDEB64SETUP
- 'IF NOT can_make_debian_packages() THEN
- ' append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
- 'END IF
+ append_simplemenu_item menu, "Export Debian Linux Package (64bit)", , , distmenuDEB64SETUP
+ IF NOT can_make_debian_packages() THEN
+  append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
 
  append_simplemenu_item menu, "Export Debian Linux Package (32bit)", , , distmenuDEBSETUP
  IF NOT can_make_debian_packages() THEN
@@ -157,9 +157,12 @@ SUB distribute_game ()
     CASE distmenuMACSETUP:
      save_current_game 0
      distribute_game_as_mac_app
+    CASE distmenuDEB64SETUP:
+     save_current_game 0
+     distribute_game_as_debian_package "x86_64"
     CASE distmenuDEBSETUP:
      save_current_game 0
-     distribute_game_as_debian_package
+     distribute_game_as_debian_package "x86"
     CASE distmenuLINUX64SETUP:
      save_current_game 0
      distribute_game_as_linux_tarball "x86_64"
@@ -1061,14 +1064,25 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  
 END FUNCTION
 
-SUB distribute_game_as_debian_package ()
+SUB distribute_game_as_debian_package (which_arch as string)
+
+ DIM deb_arch as string
+ SELECT CASE which_arch
+  CASE "x86":
+   deb_arch = "i386"
+  CASE "x86_64":
+   deb_arch = "amd64"
+  CASE ELSE:
+   dist_info "Unknown arch """ & which_arch & """ should be one of x86 or x86_64"
+   EXIT SUB
+ END SELECT
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
  DIM basename as string = get_debian_package_name()
  DIM pkgver as string = get_debian_package_version()
- DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_i386.deb"
+ DIM debname as string = trimfilename(sourcerpg) & SLASH & basename & "_" & pkgver & "_" & deb_arch & ".deb"
 
  IF isfile(debname) THEN
   IF dist_yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1098,7 +1112,7 @@ SUB distribute_game_as_debian_package ()
 
   debuginfo "Copy linux game player" 
   DIM gameplayer as string
-  gameplayer = get_linux_gameplayer("x86")
+  gameplayer = get_linux_gameplayer(which_arch)
   IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
   
@@ -1137,7 +1151,7 @@ SUB distribute_game_as_debian_package ()
   write_debian_binary_file debtmp & SLASH & "debian-binary"
 
   debuginfo "Create debian control file"
-  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, size_in_kibibytes, distinfo
+  write_debian_control_file debtmp & SLASH & "control", basename, pkgver, size_in_kibibytes, distinfo, deb_arch
   IF NOT isfile(debtmp & SLASH & "control") THEN dist_info "Couldn't create debian control file" : EXIT DO
   write_debian_postinst_script debtmp & SLASH & "postinst"
   write_debian_postrm_script debtmp & SLASH & "postrm"
@@ -1413,7 +1427,7 @@ SUB write_debian_binary_file (filename as string)
  CLOSE #fh
 END SUB
 
-SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState)
+SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState, deb_arch as string)
  DIM LF as string = CHR(10)
 
  DIM author as string = distinfo.author
@@ -1433,7 +1447,7 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  PUT #fh, , "Priority: optional" & LF 
  PUT #fh, , "Section: games" & LF
  PUT #fh, , "Maintainer: """ & author & """ <" & email & ">" & LF
- PUT #fh, , "Architecture: i386" & LF
+ PUT #fh, , "Architecture: " & deb_arch & LF
  PUT #fh, , "Version: " & pkgver & LF
  PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
  'FIXME: the Depends: line could vary depending on gfx and music backends
@@ -1767,11 +1781,18 @@ SUB auto_export_distribs (distrib_type as string)
    dist_info "auto distrib: mac app export unavailable"
   END IF
  END IF
- IF distrib_type = "debian" ORELSE distrib_type = "all" THEN
+ IF distrib_type = "debian32" ORELSE distrib_type = "all" THEN
   IF can_make_debian_packages() THEN
-   distribute_game_as_debian_package
+   distribute_game_as_debian_package "x86"
   ELSE
-   dist_info "auto distrib: debian package export unavailable"
+   dist_info "auto distrib: debian 32bit package export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "debian64" ORELSE distrib_type = "debian" ORELSE distrib_type = "all" THEN
+  IF can_make_debian_packages() THEN
+   distribute_game_as_debian_package "x86_64"
+  ELSE
+   dist_info "auto distrib: debian 64bit package export unavailable"
   END IF
  END IF
  IF distrib_type = "tarball32" ORELSE distrib_type = "all" THEN
