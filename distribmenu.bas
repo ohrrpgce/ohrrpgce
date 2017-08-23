@@ -20,7 +20,7 @@
 
 DECLARE SUB distribute_game_as_zip ()
 DECLARE SUB distribute_game_as_windows_installer ()
-DECLARE SUB distribute_game_as_linux_tarball ()
+DECLARE SUB distribute_game_as_linux_tarball (which_arch as string)
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
 DECLARE FUNCTION get_mac_gameplayer() as string
@@ -75,9 +75,11 @@ CONST distmenuZIP as integer = 2
 CONST distmenuWINSETUP as integer = 3
 CONST distmenuMACSETUP as integer = 4
 CONST distmenuDEBSETUP as integer = 5
-CONST distmenuINFO as integer = 6
-CONST distmenuREADME as integer = 7
-CONST distmenuLINUXSETUP as integer = 8
+CONST distmenuDEB64SETUP as integer = 6
+CONST distmenuINFO as integer = 7
+CONST distmenuREADME as integer = 8
+CONST distmenuLINUXSETUP as integer = 9
+CONST distmenuLINUX64SETUP as integer = 10
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
 DECLARE SUB dist_info (msg as string, errlvl as errorLevelEnum = errDebug)
@@ -112,12 +114,22 @@ SUB distribute_game ()
   append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
- append_simplemenu_item menu, "Export Linux Tarball", , , distmenuLINUXSETUP
+ append_simplemenu_item menu, "Export Linux Tarball (64bit)", , , distmenuLINUX64SETUP
  IF NOT can_make_tarballs() THEN
   append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
 
- append_simplemenu_item menu, "Export Debian Linux Package", , , distmenuDEBSETUP
+ append_simplemenu_item menu, "Export Linux Tarball (32bit)", , , distmenuLINUXSETUP
+ IF NOT can_make_tarballs() THEN
+  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ END IF
+
+ 'append_simplemenu_item menu, "Export Debian Linux Package (64bit)", , , distmenuDEB64SETUP
+ 'IF NOT can_make_debian_packages() THEN
+ ' append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ 'END IF
+
+ append_simplemenu_item menu, "Export Debian Linux Package (32bit)", , , distmenuDEBSETUP
  IF NOT can_make_debian_packages() THEN
   append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
  END IF
@@ -148,9 +160,12 @@ SUB distribute_game ()
     CASE distmenuDEBSETUP:
      save_current_game 0
      distribute_game_as_debian_package
+    CASE distmenuLINUX64SETUP:
+     save_current_game 0
+     distribute_game_as_linux_tarball "x86_64"
     CASE distmenuLINUXSETUP:
      save_current_game 0
-     distribute_game_as_linux_tarball
+     distribute_game_as_linux_tarball "x86"
     CASE distmenuINFO:
      edit_distrib_info
     CASE distmenuREADME:
@@ -1615,12 +1630,23 @@ FUNCTION get_mac_gameplayer() as string
 
 END FUNCTION
 
-SUB distribute_game_as_linux_tarball ()
+SUB distribute_game_as_linux_tarball (which_arch as string)
+
+ DIM arch_suffix as string
+ SELECT CASE which_arch
+  CASE "x86":
+   arch_suffix = "-x86"
+  CASE "x86_64":
+   arch_suffix = "-x86_64"
+  CASE ELSE:
+   dist_info "Unknown arch """ & which_arch & """ should be one of x86 or x86_64"
+   EXIT SUB
+ END SELECT
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-linux.tar.gz"
+ DIM destname as string = trimfilename(sourcerpg) & SLASH & distinfo.pkgname & "-linux" & arch_suffix & ".tar.gz"
 
  IF isfile(destname) THEN
   IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
@@ -1642,7 +1668,7 @@ SUB distribute_game_as_linux_tarball ()
 
   debuginfo "Rename linux game player" 
   DIM gameplayer as string
-  gameplayer = get_linux_gameplayer("x86")
+  gameplayer = get_linux_gameplayer(which_arch)
   IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
   debuginfo " exe: " & gameplayer
   DIM tarballdir_base as string = distinfo.pkgname & "-linux"
@@ -1728,11 +1754,18 @@ SUB auto_export_distribs (distrib_type as string)
    dist_info "auto distrib: debian package export unavailable"
   END IF
  END IF
- IF distrib_type = "tarball" ORELSE distrib_type = "all" THEN
+ IF distrib_type = "tarball32" ORELSE distrib_type = "all" THEN
   IF can_make_tarballs() THEN
-   distribute_game_as_linux_tarball
+   distribute_game_as_linux_tarball "x86"
   ELSE
-   dist_info "auto distrib: linux tarball export unavailable"
+   dist_info "auto distrib: linux 32bit tarball export unavailable"
+  END IF
+ END IF
+ IF distrib_type = "tarball64" ORELSE distrib_type = "tarball" ORELSE distrib_type = "all" THEN
+  IF can_make_tarballs() THEN
+   distribute_game_as_linux_tarball "x86_64"
+  ELSE
+   dist_info "auto distrib: linux 64bit tarball export unavailable"
   END IF
  END IF
  auto_yes = NO
