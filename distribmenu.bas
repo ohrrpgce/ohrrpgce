@@ -755,11 +755,14 @@ FUNCTION running_64bit() as bool
 END FUNCTION
 
 FUNCTION get_linux_gameplayer(which_arch as string) as string
- 'On Linux, if you request the same arch you are running,
- 'Return the full path to ohrrpgce-game
- 'In all other cases, download a precompiled binary of ohrrpgce-game,
+ 'In most cases, download a precompiled binary of ohrrpgce-game,
  'unzip it, and return the full path.
+ '
  'Returns "" for failure.
+ '
+ 'On Linux, if you are running a non-debug binary of the requested
+ 'architecture, then the installed binary will be used rather than
+ 're-downloading.
 
 DIM arch_suffix as string
 DIM maybe_use_installed as bool = NO
@@ -780,8 +783,25 @@ END SELECT
 
  '--If this is Linux, we might already have the correct version of ohrrpgce-game
  IF maybe_use_installed THEN
-  IF isfile(exepath & SLASH & "ohrrpgce-game") THEN
-   RETURN exepath & SLASH & "ohrrpgce-game"
+  DIM installed_player as string = exepath & SLASH & "ohrrpgce-game"
+  debuginfo "Checking for " & installed_player
+  IF isfile(installed_player) THEN
+   DIM file_info as string
+   DIM err_string as string
+   DIM unstripped as bool = NO
+   IF run_and_get_output("file " & installed_player, file_info, err_string) = 0 THEN
+    IF ends_with(RTRIM(file_info, ANY !" \t\r\n"), ", not stripped") THEN
+     debug installed_player & " is an unstripped binary, don't use it for distribute"
+     unstripped = YES
+    END IF
+   ELSE
+    debug "Unable to execute: file " & installed_player
+    debug err_string
+   END IF
+   IF NOT unstripped THEN
+    debug "Using installed binary " & installed_player
+    RETURN installed_player
+   END IF
   ELSE
    dist_info "ERROR: ohrrpgce-game wasn't found in the same directory as ohrrpgce-custom. (This probably shouldn't happen!)" : RETURN ""
   END IF
