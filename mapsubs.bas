@@ -491,14 +491,14 @@ mapeditmenu(0) = "Return to Map Menu"
 mapeditmenu(1) = "Edit General Map Data..."
 mapeditmenu(2) = "Resize Map..."
 mapeditmenu(3) = "Layers and Tilesets..."
-mapeditmenu(4) = "Edit NPCs..."
-mapeditmenu(5) = "Edit Tilemap..."
-mapeditmenu(6) = "Edit Wallmap..."
-mapeditmenu(7) = "Place Doors..."
-mapeditmenu(8) = "Place NPCs..."
-mapeditmenu(9) = "Edit Foemap..."
-mapeditmenu(10) = "Edit Zones..."
-mapeditmenu(11) = "Link Doors..."
+mapeditmenu(4) = "Edit Tilemap..."
+mapeditmenu(5) = "Edit Wallmap..."
+mapeditmenu(6) = "Place Doors..."
+mapeditmenu(7) = "Link Doors..."
+mapeditmenu(8) = "Edit NPCs..."
+mapeditmenu(9) = "Place NPCs..."
+mapeditmenu(10) = "Edit Foemap..."
+mapeditmenu(11) = "Edit Zones..."
 mapeditmenu(12) = "Erase Map Data"
 mapeditmenu(13) = "Import/Export Tilemap..."
 mapeditmenu(14) = "Re-load Default Passability"
@@ -538,15 +538,18 @@ DO
     mapedit_resize st
    CASE 3
     mapedit_layers st
-   CASE 4
-    'This may delete NPC instances, and write npc definitions to disk
-    npcdef_editor st
-   CASE 5 TO 10
-    st.seteditmode = st.menustate.pt - 5
+   CASE 4 TO 6  'Tilemap, Wallmap, Doormap
+    st.seteditmode = st.menustate.pt - 4
     mapeditor_mapping st, mode_tools_map()
-   CASE 11
+   CASE 7
     mapedit_savemap st
     mapedit_linkdoors st
+   CASE 8
+    'This may delete NPC instances, and write npc definitions to disk
+    npcdef_editor st
+   CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
+    st.seteditmode = st.menustate.pt - 6
+    mapeditor_mapping st, mode_tools_map()
    CASE 12
     mapedit_delete st
     IF st.map.id > gen(genMaxMap) THEN
