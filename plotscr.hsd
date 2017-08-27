@@ -754,7 +754,7 @@ script, gainherostat, hsd:who, hsd:stat, hsd:change, hsd:resetcurrent=false, beg
 end
 
 script,autosave,begin
-if (lastsaveslot==0)
+  if (lastsaveslot==0)
   then(return(savemenu))
   else(saveinslot(lastsaveslot),return(lastsaveslot))
 end
@@ -1079,6 +1079,11 @@ end
 script,set dead heroes gain experience,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=8)
   write general(177,(read general(177),and,-9)+hsd:bit)
+end
+
+script,set active battle pause for animations,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=2^7)
+  write general(177,(read general(177),and,(-1-2^7)+hsd:bit)
 end
 
 script,set capped hero stat,hsd:who,hsd:stat,hsd:value,hsd:stat type=current stat,begin

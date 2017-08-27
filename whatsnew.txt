@@ -149,6 +149,7 @@ WHAT IS NEW?
     * "slice at pixel" and "find colliding slice" now respect clipping
     * Increased highest available global variable id number from
       16383 -> 50000 [James]
+    * "set active battle pause for animations" [Ralph]
 
   * Changes
     * Sound effects used to play at max volume, which has now changed
