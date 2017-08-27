@@ -129,7 +129,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
     ELSE
      col = uilook(IIF(biton, uiMenuItem, uiDisabledItem))
     END IF
-    ellipse vpages(dpage), 0 + 4, (i - state.top) * state.spacing + 4, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
+    ellipse vpages(dpage), 0 + 4, (i - state.top) * state.spacing + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
     col = uilook(uiMenuItem)
     IF state.pt = i THEN
