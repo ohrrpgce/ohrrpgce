@@ -2321,7 +2321,7 @@ SUB interpret_scripts()
   gam.want.battle = 0
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
-  queue_fade_in 2 'FIXME: why 2 ticks?
+  queue_fade_in 2  'Exception: delay an extra tick. Too late to change now.
   setkeys
  END IF
  IF gam.want.teleport THEN
@@ -4024,7 +4024,12 @@ END SUB
 'Cause a screen fade in some number of ticks from now.
 'script_overridable allows the fade in to be cancelled by a fadescreenout command,
 'and is for backcompatibility. See fadescreenout. If you need to increase
-'any fade in delays, normally you should set script_overridable = YES
+'any fade in delays, normally you should set script_overridable = YES... but I don't
+'think you should be increasing any delays.
+'Queued fades are quite consistent: the screen always fades in after any scripts have
+'had a chance to run for exactly one tick, meaning 'delay' is 0 or 1 depending on
+'whether it happens before or after interpret_scripts.
+'The only exception is after "fight formation", so please keep it consistent.
 SUB queue_fade_in (delay as integer = 0, script_overridable as bool = NO)
  gam.need_fade_in = YES
  gam.fade_in_delay = delay
