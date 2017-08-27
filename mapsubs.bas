@@ -33,6 +33,7 @@ DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 
+DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 
@@ -991,7 +992,11 @@ DO
     NEXT i
    END IF
    IF keyval(scAnyEnter) > 1 THEN
-    mapedit_list_npcs_by_tile st
+    IF mapedit_npc_at_spot(st) > -1 THEN
+     mapedit_list_npcs_by_tile st
+    ELSE
+     mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
+    END IF
    END IF
    st.npc_d = -1
    IF keyval(scCtrl) > 0 OR keyval(scSpace) > 1 THEN
@@ -5015,6 +5020,15 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  unload_sprite_and_pal npc_img
 END SUB
 
+'Wrapper around edit_npc to do the right thing
+'(npcdata should be an element of st.map.npc_def())
+SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
+ 'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
+ SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
+ edit_npc npcdata, st.map.gmap(), st.map.zmap
+ load_npc_graphics st.map.npc_def(), st.npc_img()
+END SUB
+
 
 '----------------------------- Toplevel NPC Editor ----------------------------
 
@@ -5086,9 +5100,7 @@ DO
    CleanNPCDefinition map.npc_def(UBOUND(map.npc_def))
   ELSE
    '--An NPC
-   'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
-   SaveNPCD maplumpname(map.id, "n"), map.npc_def()
-   edit_npc map.npc_def(state.pt), map.gmap(), map.zmap
+   mapedit_edit_npcdef st, map.npc_def(state.pt)
   END IF
   need_update_selected = YES
  END IF
@@ -5119,6 +5131,8 @@ DO
    IF copied_npcdef.usetag THEN  'onetime tag
     IF twochoice("Copied NPC has a one-time-use tag set", "Replace the tag with a new one", _
                  "Use the same tag for the copy") <> 1 THEN
+     'First save NPCs so that we can correctly search for unused one-time use tags (see onetimetog)
+     SaveNPCD maplumpname(map.id, "n"), map.npc_def()
      onetimetog map.npc_def(state.pt).usetag
      onetimetog map.npc_def(state.pt).usetag
     END IF

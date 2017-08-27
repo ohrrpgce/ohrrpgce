@@ -39,3 +39,4 @@ TAB toggles a blue rectangle that shows roughly what area of the map you are cur
 ~ shows a preview of the entire map.
 
 Press ENTER to see a list of NPCs on the currently selected tile.
+If there are no NPCs here, press ENTER to edit the current NPC definition.
