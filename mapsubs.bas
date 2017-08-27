@@ -1779,11 +1779,12 @@ END SUB
 '==========================================================================================
 
 
-SUB mapedit_list_npcs_by_tile (st as MapEditState)
+PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as string, npcids() as integer, byref count as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
 
- DIM count as integer = 0
-
+ count = 0
+ REDIM npcids(0) as integer
+ npcids(0) = -1
  REDIM menu(0) as string
  menu(0) = "Back to the map editor..."
 
@@ -1795,14 +1796,24 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
      str_array_append menu(), s
      count += 1
+     int_array_append npcids(), .id - 1
     END IF
    END IF
   END WITH
  NEXT i
+END SUB
+
+'Menu which shows the NPCs at the currently selected tile, and allows you to edit them
+SUB mapedit_list_npcs_by_tile (st as MapEditState)
+ DIM count as integer
+ REDIM npcids(0) as integer
+ REDIM menu(0) as string
+ DIM boxpreview as string
+ DIM npcdef as NPCType ptr = NULL  'convenience ptr
 
  DIM state as MenuState
  state.size = 20
- state.last = UBOUND(menu)
+ state.need_update = YES
 
  setkeys
  DO
@@ -1813,17 +1824,37 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF enter_space_click(state) THEN
    clearkey(scSpace)
-   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 0 THEN
+    EXIT DO
+   ELSEIF npcdef THEN
+    mapedit_edit_npcdef st, *npcdef
+    state.need_update = YES
+   END IF
   END IF
-  
-  usemenu state
 
+  state.need_update OR= usemenu(state)
+
+  IF state.need_update THEN
+   state.need_update = NO
+   mapedit_list_npcs_by_tile_update st, menu(), npcids(), count
+   state.last = UBOUND(menu)
+   npcdef = NULL
+   IF state.pt > 0 AND state.pt <= UBOUND(npcids) THEN
+    npcdef = @st.map.npc_def(npcids(state.pt))
+    boxpreview = npc_preview_text(*npcdef)
+   END IF
+  END IF
+
+  clearpage dpage
   edgeprint count & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiSelectedDisabled), dpage
   standardmenu menu(), state, 0, 10, dpage
+  IF npcdef THEN
+   edgeprint "Enter/Space/Ctrl to edit", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage
+   npcdefedit_preview_npc *npcdef, st.npc_img(npcids(state.pt)), boxpreview
+  END IF
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB

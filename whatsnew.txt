@@ -106,6 +106,8 @@ WHAT IS NEW?
       how many you have equipped [James]
     * Metadata is shown for .ogg files in the music and sfx menus [Ralph]
     * Ctrl+C/Ctrl+V in the NPC definition editor copy/pastes NPCs [Ralph]
+    * In NPC placement mode you can open the NPC editor by pressing ENTER
+      on tiles with NPCs (edit them) or without (edit current NPC) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
