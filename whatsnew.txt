@@ -105,6 +105,7 @@ WHAT IS NEW?
     * Shops now display how many of an item you already own as well as
       how many you have equipped [James]
     * Metadata is shown for .ogg files in the music and sfx menus [Ralph]
+    * Ctrl+C/Ctrl+V in the NPC definition editor copy/pastes NPCs [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]

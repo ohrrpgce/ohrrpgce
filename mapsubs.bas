@@ -5055,6 +5055,10 @@ END SUB
 SUB npcdef_editor (st as MapEditState)
 DIM byref map as MapData = st.map
 
+' Copied NPC buffer. can be used to copy NPC definitions also between maps
+STATIC copied_npcdef as NPCType
+STATIC have_copied_npcdef as bool = NO
+
 DIM boxpreview(UBOUND(map.npc_def)) as string
 DIM need_update_selected as bool = NO
 
@@ -5075,7 +5079,7 @@ DO
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- intgrabber state.pt, 0, state.last
+ intgrabber state.pt, 0, state.last, , , , NO  'use_clipboard=NO
  usemenu state
  IF enter_space_click(state) THEN
   IF state.pt = state.last THEN
@@ -5105,6 +5109,24 @@ DO
    state.pt = UBOUND(map.npc_def)
   END IF
   need_update_selected = YES
+ END IF
+ 'Copy/paste
+ IF state.pt < state.last THEN  'An NPC def is selected
+  IF copy_keychord() THEN
+   copied_npcdef = map.npc_def(state.pt)
+   have_copied_npcdef = YES
+  END IF
+  IF paste_keychord() ANDALSO have_copied_npcdef THEN
+   map.npc_def(state.pt) = copied_npcdef
+   IF copied_npcdef.usetag THEN  'onetime tag
+    IF twochoice("Copied NPC has a one-time-use tag set", "Replace the tag with a new one", _
+                 "Use the same tag for the copy") <> 1 THEN
+     onetimetog map.npc_def(state.pt).usetag
+     onetimetog map.npc_def(state.pt).usetag
+    END IF
+   END IF
+   need_update_selected = YES
+  END IF
  END IF
 
  IF need_update_selected THEN

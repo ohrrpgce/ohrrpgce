@@ -219,6 +219,7 @@ CONST maxNPCDataField = 18  'Highest valid argument to Get/SetNPCD and read/alte
 
 'Warning: when editing NPCType, update Get/SetNPCD,
 'readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
+'Note that instances of this type are copied in edit_npc (w/ default copy constructor)
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -239,8 +240,8 @@ TYPE NPCType
   defaultwallzone as integer '+16
   ignore_passmap as integer '+17  (0 or 1) Can walk through walls (but not zones or map edges)
   pathfinding_obstruction_mode as integer '+18 (only matters if .movetype=15)
-  sprite as frame ptr
-  pal as palette16 ptr
+  sprite as Frame ptr
+  pal as Palette16 ptr
 END TYPE
 
 ENUM NPCOverrideMove
