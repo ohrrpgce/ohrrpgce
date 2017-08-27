@@ -40,6 +40,13 @@ DIM orig_dir as string
 
 DIM tmpdir as string
 
+DIM SHARED filetype_names(fileTypeError) as string
+filetype_names(fileTypeNonexistent) = "nonexistent"
+filetype_names(fileTypeFile)        = "a file"
+filetype_names(fileTypeDirectory)   = "a directory"
+filetype_names(fileTypeOther)       = "a special file"
+filetype_names(fileTypeError)       = "unreadable"
+
 ' This sets the locale (LC_ALL) according to the environment, while the FB
 ' runtime only sets the LC_CTYPE locale (needed for mbstowcs).
 ' Placing it here seems like the simplest way to ensure it's run in all utilities.
@@ -2148,17 +2155,14 @@ SUB killdir(directory as string, recurse as bool = NO)
 #ifdef DEBUG_FILE_IO
   debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
 #endif
+  DIM filetype as FileTypeEnum = get_file_type(directory)
+  IF filetype <> fileTypeDirectory THEN
+    showerror "killdir: '" & directory & "' is not a directory, it is " & safe_caption(filetype_names(), filetype, "filetype") & ". Skipping."
+    EXIT SUB
+  END IF
   ' For safety. (You ought to pass absolute paths.) Check
   ' writability so we don't recurse if started from e.g. /home until
   ' we hit something deletable (this happened to me)!
-  IF NOT(isdir(directory)) THEN
-   IF isfile(directory) THEN
-    showerror "killdir: '" & directory & "' is not a directory, it is an ordinary file"
-    EXIT SUB
-   END IF
-   debug "killdir: '" & directory & "' does not exist. Skipping."
-   EXIT SUB
-  END IF
   IF LEN(directory) < 5 ORELSE diriswriteable(directory) = NO THEN
    showerror "killdir: refusing to delete directory '" & directory & "'"
    EXIT SUB

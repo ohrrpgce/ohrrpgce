@@ -263,6 +263,13 @@ startTest(implicitlyReadonly)
 	' know that the file doesn't exist; instead FB returns 'file not found'
 endTest
 
+' Partial test only
+startTest(killDir)
+	? !"\nIgnore 1 error:"
+	killdir("_testfile.tmp")  'Is a sub
+	if real_isfile("_testfile.tmp") = NO then fail
+endTest
+
 startTest(killFile)
 	if killfile("_testfile.tmp") = NO then fail
 	if killfile("_writetest.tmp") = NO then fail
