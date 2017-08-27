@@ -36,6 +36,7 @@ DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
+DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, walk as integer = 0)
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
@@ -1615,7 +1616,7 @@ DO
   textcolor uilook(uiSelectedItem + tog), 0
   printstr STR(st.cur_npc), (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
   edgeprint npc_preview_text(st.map.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
-  edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of NPC " & st.cur_npc & " on this map", 0, 10, uilook(uiText), dpage
+  edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map", 0, 10, uilook(uiText), dpage
  END IF
  
  textcolor uilook(uiSelectedItem + tog), 0 
@@ -1786,12 +1787,11 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
  REDIM menu(0) as string
  menu(0) = "Back to the map editor..."
 
- DIM s as string
- 
- FOR i as integer = 0 to 299
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
     IF .x = st.x * 20 AND .y = st.y * 20 THEN
+     DIM s as string
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
      str_array_append menu(), s
      count += 1
@@ -1829,7 +1829,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
 END SUB
 
 FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
- FOR i as integer = 0 TO 299
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
     IF .x = st.x * 20 AND .y = st.y * 20 THEN RETURN i
@@ -1859,17 +1859,11 @@ END SUB
 SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
  ' Resizes and fills npc_img()
  FOR i as integer = 0 TO UBOUND(npc_img)
-  WITH npc_img(i)
-   IF .sprite THEN frame_unload @.sprite
-   IF .pal THEN palette16_unload @.pal
-  END WITH
+  unload_sprite_and_pal npc_img(i)
  NEXT
  REDIM npc_img(UBOUND(npc_def))
  FOR i as integer = 0 TO UBOUND(npc_def)
-  WITH npc_img(i)
-   .sprite = frame_load(sprTypeWalkabout, npc_def(i).picture)
-   .pal    = palette16_load(npc_def(i).palette, sprTypeWalkabout, npc_def(i).picture)
-  END WITH
+  load_sprite_and_pal npc_img(i), sprTypeWalkabout, npc_def(i).picture, npc_def(i).palette
  NEXT i
 END SUB
 
@@ -5001,14 +4995,9 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
-  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
-  'Draw the two South frames
-  frame_draw npc_img.sprite + 4 + (walk \ 2), npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
-  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
-  printstr ed.boxpreview, 0, pBottom - 10, dpage
-  textcolor uilook(uiSelectedItem2), 0
-  printstr describe_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
+  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, walk
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -5018,6 +5007,17 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  v_free menu_display
 
  unload_sprite_and_pal npc_img
+END SUB
+
+' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
+SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, walk as integer = 0)
+ edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
+ 'Draw the two South frames
+ frame_draw npc_img.sprite + 4 + (walk \ 2), npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
+ textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
+ printstr boxpreview, 0, pBottom - 10, dpage
+ textcolor uilook(uiSelectedItem2), 0
+ printstr describe_two_tag_condition("Appears if", "Appears all the time", "Never appears!", YES, npcdata.tag1, npcdata.tag2), 0, pBottom, dpage
 END SUB
 
 'Wrapper around edit_npc to do the right thing
