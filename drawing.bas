@@ -1527,7 +1527,7 @@ DO
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
  IF keyval(scSpace) > 0 THEN clicktile ts, keyval(scSpace) AND 4, clone
- IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+ IF keyval(scAnyEnter) > 1 ORELSE keyval(scG) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
   'Drawing area
@@ -3669,8 +3669,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   '--save current palette
   palette16_save ss.palette, ss.pal_num
   ss.pal_num = pal16browse(ss.pal_num, ss.fileset, ss.spriteset_num)
-  clearkey(scEnter)
-  clearkey(scSpace)
+  setkeys
   palette16_unload @ss.palette
   ss.palette = palette16_load(ss.pal_num)
  END IF

@@ -988,7 +988,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    state.need_update OR= strgrabber(*s, rule.upper)
   CASE erStrgrabber
    DIM s as string ptr = rule.dataptr
-   IF keyval(scENTER) > 1 THEN
+   IF keyval(scAnyEnter) > 1 THEN
     *s = multiline_string_editor(*s, "sliceedit_text_multiline", NO)
     state.need_update = YES
    ELSE

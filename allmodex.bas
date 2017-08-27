@@ -1803,6 +1803,8 @@ sub setkeys_update_keybd (keybd() as integer, byref delayed_alt_keydown as bool)
 		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 	end if
 
+	keybd(scAnyEnter) = keybd(scEnter) or keybd(scNumpadEnter)
+
 	'Backends don't know about scAlt, only scUnfilteredAlt
 	keybd(scAlt) = keybd(scUnfilteredAlt)
 

@@ -187,7 +187,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + 1) THEN
     tag_autoset_warning state.pt + 1
    END IF
-   IF keyval(scEnter) > 1 THEN
+   IF keyval(scAnyEnter) > 1 THEN
     IF menu[state.pt].disabled THEN
      tag_autoset_warning state.pt + 1
     ELSEIF picktag THEN
@@ -280,7 +280,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
     END IF
    END IF
   ELSE
-   IF keyval(scEnter) > 1 THEN cond_editor(cond, default, st)
+   IF keyval(scAnyEnter) > 1 THEN cond_editor(cond, default, st)
   END IF
 
   CONST compare_chars as string = "=<>!"
@@ -2371,7 +2371,7 @@ SUB fontedit (font() as integer)
      END IF
     END IF
    CASE 1
-    IF keyval(scEsc) > 1 OR keyval(scEnter) > 1 THEN mode = 0
+    IF keyval(scEsc) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
     IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)
     IF keyval(scDown) > 1 THEN y = loopvar(y, 0, 7, 1)
     IF keyval(scLeft) > 1 THEN x = loopvar(x, 0, 7, -1)
@@ -4304,7 +4304,7 @@ SUB edit_purchase_details (byval prod as NodePtr)
    END SELECT
   END IF
   
-  IF keyval(scEnter) > 1 THEN
+  IF keyval(scAnyEnter) > 1 THEN
    SELECT CASE t
     CASE editpurchLONGSTRING:
      SetContent(node, multiline_string_editor(GetString(node)))

@@ -153,6 +153,9 @@ CONST scPause = 118
 'This alt scancode is filtered for WM combinations
 CONST scAlt = 119
 
+'Either scEnter or scNumpadEnter
+CONST scAnyEnter = 120
+
 'Used for size of arrays, must NOT include joystick/mouse scancodes (due to script_keyval)
 'NOTE: 127 is also hardcoded into gfx.bi API and backends.
 'Can't be increased anyway, due to joystick scancodes

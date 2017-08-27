@@ -785,7 +785,7 @@ DO
   CASE tile_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
 
-   IF keyval(scEnter) > 1 THEN mapedit_pickblock st
+   IF keyval(scAnyEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scG) > 1 THEN 'grab tile
     st.usetile(st.layer) = readblock(st.map.tiles(st.layer), st.x, st.y)
     update_tilepicker st
@@ -928,7 +928,7 @@ DO
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
-   IF keyval(scEnter) > 1 THEN ' enter to link a door
+   IF keyval(scAnyEnter) > 1 THEN ' enter to link a door
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
@@ -987,7 +987,7 @@ DO
      END WITH
     NEXT i
    END IF
-   IF keyval(scEnter) > 1 THEN
+   IF keyval(scAnyEnter) > 1 THEN
     mapedit_list_npcs_by_tile st
    END IF
    st.npc_d = -1
@@ -4037,7 +4037,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   IF keyval(scShift) > 0 THEN incval = 8 ELSE incval = 1
   SELECT CASE state.pt
    CASE 0
-    IF keyval(scEnter) > 1 THEN
+    IF keyval(scAnyEnter) > 1 THEN
      rs.rect.wide = -1
      rs.rect.high = -1
      EXIT DO
@@ -4059,7 +4059,7 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
     IF keyval(scRight) > 0 THEN rs.rect.y += incval: rs.rect.high -= incval
     resize_correct_height st, rs
   END SELECT
-  IF keyval(scEnter) > 1 THEN EXIT DO
+  IF keyval(scAnyEnter) > 1 THEN EXIT DO
 
   clearpage dpage
   drawoff.x = large(0, -rs.rect.x * rs.zoom)
@@ -4378,12 +4378,12 @@ SUB mapedit_pickblock(st as MapEditState)
   END IF
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
 
-  IF (keyval(scEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
+  IF (keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
    'start drag-selecting a box
    dragging = YES
    holdpos = tilepick
   END IF
-  IF keyval(scEnter) = 0 AND keyval(scSpace) = 0 AND dragging = YES THEN
+  IF keyval(scAnyEnter) = 0 AND keyval(scSpace) = 0 AND dragging = YES THEN
    update_tilepicker st
    mapedit_pick_tileset_rect st, tilesetview, tilepick, holdpos
    EXIT DO

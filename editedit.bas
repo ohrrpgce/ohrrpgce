@@ -230,7 +230,7 @@ FUNCTION ee_edit_widget(byref st as EEState, byval widget as NodePtr) as bool
   END IF
  END IF
  
- IF keyval(scEnter) > 1 THEN
+ IF keyval(scAnyEnter) > 1 THEN
   IF widget_editor(widget) THEN
    changed = YES
   END IF

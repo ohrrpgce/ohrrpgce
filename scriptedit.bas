@@ -478,8 +478,7 @@ SUB reimport_previous_scripts ()
  IF fname <> "" THEN
   compile_andor_import_scripts fname, YES
  END IF
- clearkey scEnter
- clearkey scSpace
+ setkeys  'Clear keys
 END SUB
 
 

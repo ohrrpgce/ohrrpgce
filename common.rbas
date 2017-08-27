@@ -1812,7 +1812,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
    '--charlist support
    pre &= charpicker()
 #ENDIF
-  ELSEIF keyval(scEnter) > 1 THEN
+  ELSEIF keyval(scAnyEnter) > 1 THEN
    IF numlines > 1 THEN
     pre &= CHR(10)
    END IF
@@ -1996,7 +1996,7 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
    prompt_for_string = NO
    EXIT DO
   END IF
-  IF keyval(scEnter) > 1 THEN
+  IF keyval(scAnyEnter) > 1 THEN
    prompt_for_string = YES
    s = dat->s
    EXIT DO
@@ -4913,11 +4913,11 @@ END FUNCTION
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION enter_space_click (state as MenuState) as bool
  IF menu_click(state) THEN RETURN YES
- RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
+ RETURN keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION enter_or_space () as bool
- RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
+ RETURN keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION toggle_item (state as MenuState) as bool
@@ -5453,7 +5453,7 @@ FUNCTION inputfilename (query as string, ext as string, directory as string, hel
   IF foldermode = NO THEN
    strgrabber filename, 40
    filename = fixfilename(filename)
-   IF keyval(scEnter) > 1 THEN
+   IF keyval(scAnyEnter) > 1 THEN
     filename = TRIM(filename)
     IF filename <> "" THEN
      IF get_file_type(directory + SLASH + filename + ext) <> fileTypeNonexistent THEN

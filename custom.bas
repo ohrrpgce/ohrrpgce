@@ -709,7 +709,7 @@ SUB prompt_for_password()
   setkeys YES
   tog = tog XOR 1
   IF keyval(scEsc) > 0 THEN cleanup_and_terminate
-  IF keyval(scEnter) > 1 THEN
+  IF keyval(scAnyEnter) > 1 THEN
    IF checkpassword(pas) THEN
     EXIT SUB
    ELSE
