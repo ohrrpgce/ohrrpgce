@@ -240,8 +240,6 @@ TYPE NPCType
   defaultwallzone as integer '+16
   ignore_passmap as integer '+17  (0 or 1) Can walk through walls (but not zones or map edges)
   pathfinding_obstruction_mode as integer '+18 (only matters if .movetype=15)
-  sprite as Frame ptr
-  pal as Palette16 ptr
 END TYPE
 
 ENUM NPCOverrideMove

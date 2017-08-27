@@ -72,15 +72,6 @@ END SUB
 SUB LoadNPCD(file as string, dat() as NPCType)
   DIM as integer i, j, f
 
-  'It's still up to you to actually load the new sprites, but "do not pass
-  'arrays holding frame pointers" would be a tricky catch
-  FOR i = 0 TO UBOUND(dat)
-   WITH dat(i)
-    IF .sprite THEN frame_unload @.sprite
-    IF .pal THEN palette16_unload @.pal
-   END WITH
-  NEXT i
-
   OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
   SEEK #f, 8
 
@@ -215,8 +206,6 @@ SUB CleanNPCDefinition(dat as NPCType)
    .defaultwallzone = 0
    .ignore_passmap = 0
    .pathfinding_obstruction_mode = 0
-   IF .sprite THEN frame_unload @.sprite
-   IF .pal THEN palette16_unload @.pal
   END WITH
 END SUB
 

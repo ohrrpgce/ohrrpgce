@@ -4897,8 +4897,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM menuopts as MenuOptions
  menuopts.fullscreen_scrollbar = YES
 
- npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
- npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+ DIM npc_img as GraphicPair
+ load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
 
  ed.itemname = load_item_name(npcdata.item, 0, 0)
  ed.boxpreview = textbox_preview_line(npcdata.textbox)
@@ -4920,20 +4920,15 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   SELECT CASE itemid
    CASE 0'--picture
     IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
-     frame_unload @npcdata.sprite
-     palette16_unload @npcdata.pal
-     npcdata.sprite = frame_load(sprTypeWalkabout, npcdata.picture)
-     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+     load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
    CASE 1'--palette
     IF intgrabber(npcdata.palette, -1, gen(genMaxPal)) THEN
-     palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+     load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
     IF enter_space_click(ed.state) THEN
      npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture)
-     palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+     load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
    CASE 2
     intgrabber(npcdata.movetype, 0, ubound(npc_movetypes))
@@ -4998,8 +4993,9 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
-  edgebox pRight - 15, pBottom - 23, npcdata.sprite->w + 2, npcdata.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
-  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, pRight - 16, pBottom - 24, 1, YES, dpage
+  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
+  'Draw the two South frames
+  frame_draw npc_img.sprite + 4 + (walk \ 2), npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
   textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
   printstr ed.boxpreview, 0, pBottom - 10, dpage
@@ -5013,8 +5009,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  v_free ed.menu
  v_free menu_display
 
- frame_unload @npcdata.sprite
- palette16_unload @npcdata.pal
+ unload_sprite_and_pal npc_img
 END SUB
 
 
