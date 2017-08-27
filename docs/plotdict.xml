@@ -8091,15 +8091,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 
 	<section title="General Game Settings">
 		<description>These commands access data in the General Game Settings menu.</description>
-		<command id="setbattlewaitmode">
-			<canon>set battle wait mode (state)</canon>
-			<shortname>set battle wait mode</shortname>
-			<description>
-				Set whether or not battles pause on spell and item menus.
-				If the argument is <ref>off</ref> then enemies continue to attack while menus are up,
-				if the argument is <ref>on</ref> then enemies wait while menus are up.
-			</description>
-		</command>
+
 		<command id="setcaterpillarmode">
 			<canon>set caterpillar mode (state)</canon>
 			<shortname>set caterpillar mode</shortname>
@@ -8152,7 +8144,62 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				If the argument is <ref>on</ref> then the "Team" menu will be available.
 			</description>
 		</command>
+		<command id="setdebugkeysdisable">
+			<canon>set debug keys disable (state)</canon>
+			<shortname>set debug keys disable</shortname>
+			<description>
+				Sets whether or not the debugging keys are allowed.
+				If the argument is <ref>off</ref> then debugging keys are allowed.
+				If the argument is <ref>on</ref> then debugging keys are disabled.
+			</description>
+		</command>
+		<command id="extendedscancodesenabled">
+			<canon>extended scancodes enabled</canon>
+			<shortname>extended scancodes enabled</shortname>
+			<description>
+				Returns the state of the "Enable better scancodes" general bitset:
+				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+			</description>
+			<seealso>
+				<ref>keyispressed</ref>
+			</seealso>
+		</command>
+		<command id="getscreenwidth">
+			<canon>get screen width</canon>
+			<shortname>get screen width</shortname>
+			<description>
+				Returns the width of the screen in pixels.
+			</description>
+			<seealso>
+				<ref>getscreenheight</ref>
+			</seealso>
+		</command>
+		<command id="getscreenheight">
+			<canon>get screen height</canon>
+			<shortname>get screen height</shortname>
+			<description>
+				Returns the height of the screen in pixels.
+			</description>
+			<seealso>
+				<ref>getscreenwidth</ref>
+			</seealso>
+		</command>
 
+		<section title="Battle System Settings">
+		<description>
+			These commands access data either in the Battle Settings submenu in General Game Settings menu,
+			or in the Preference Bitsets submenu.
+		</description>
+
+		<command id="setbattlewaitmode">
+			<canon>set battle wait mode (state)</canon>
+			<shortname>set battle wait mode</shortname>
+			<description>
+				Set whether or not battles pause on spell and item menus.
+				If the argument is <ref>off</ref> then enemies continue to attack while menus are up,
+				if the argument is <ref>on</ref> then enemies wait while menus are up.
+			</description>
+		</command>
 		<command id="getactivebattlepauseonallmenus">
 			<canon>get active battle pause on all menus</canon>
 			<shortname>get active battle pause on all menus</shortname>
@@ -8191,15 +8238,6 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				If the argument is <ref>on</ref> then the health meter will be hidden.
 			</description>
 		</command>
-		<command id="setdebugkeysdisable">
-			<canon>set debug keys disable (state)</canon>
-			<shortname>set debug keys disable</shortname>
-			<description>
-				Sets whether or not the debugging keys are allowed.
-				If the argument is <ref>off</ref> then debugging keys are allowed.
-				If the argument is <ref>on</ref> then debugging keys are disabled.
-			</description>
-		</command>
 		<command id="setdeadheroesgainexperience">
 			<canon>set dead heroes gain experience (state)</canon>
 			<shortname>set dead heroes gain experience</shortname>
@@ -8209,37 +8247,7 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 				If the argument is <ref>on</ref> then dead heroes get it too.
 			</description>
 		</command>
-		<command id="extendedscancodesenabled">
-			<canon>extended scancodes enabled</canon>
-			<shortname>extended scancodes enabled</shortname>
-			<description>
-				Returns the state of the "Enable better scancodes" general bitset:
-				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
-			</description>
-			<seealso>
-				<ref>keyispressed</ref>
-			</seealso>
-		</command>
-		<command id="getscreenwidth">
-			<canon>get screen width</canon>
-			<shortname>get screen width</shortname>
-			<description>
-				Returns the width of the screen in pixels.
-			</description>
-			<seealso>
-				<ref>getscreenheight</ref>
-			</seealso>
-		</command>
-		<command id="getscreenheight">
-			<canon>get screen height</canon>
-			<shortname>get screen height</shortname>
-			<description>
-				Returns the height of the screen in pixels.
-			</description>
-			<seealso>
-				<ref>getscreenwidth</ref>
-			</seealso>
-		</command>
+		</section>		<!-- Battle settings -->
 
 		<section title="Caps">
 		<command id="getdamagecap">
