@@ -880,6 +880,7 @@ END SUB
 'Returns YES if a new record was added, or NO if cancelled.
 'When YES, gen(genMaxEnemy) gets updated, and recbuf() will be populated with
 'blank or cloned record, and unsaved! Previous contents are discarded.
+'TODO: convert to generic_add_new
 FUNCTION enemy_edit_add_new (recbuf() as integer, preview_box as Slice ptr) as bool
   DIM enemy as EnemyDef
   DIM menu(2) as string

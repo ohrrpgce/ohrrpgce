@@ -159,6 +159,7 @@ SUB hero_editor
  clear_hero_preview_pics st
 END SUB
 
+'TODO: convert to generic_add_new
 FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer) as bool
  'Returns YES if a new hero was added, or NO if the add was cancelled
   DIM menu(2) as string

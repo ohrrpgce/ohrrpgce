@@ -974,6 +974,7 @@ SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
  END IF
 END SUB
 
+'TODO: convert to generic_add_new
 SUB shop_add_new (shopst as ShopEditState)
   DIM menu(2) as string
   DIM shoptocopy as integer = 0

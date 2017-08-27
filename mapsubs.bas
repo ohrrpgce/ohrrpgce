@@ -23,7 +23,6 @@ CONST tileh = 20
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
-DECLARE FUNCTION addmaphow () as integer
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
@@ -155,15 +154,18 @@ DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
 '                                    Map listing menu
 '==========================================================================================
 
-
-FUNCTION addmaphow () as integer
-'--Return values
-'  -2  =Cancel
-'  -1  =New blank
-'  >=0 =Copy
-
+'Ask how to add a new record to an editor.
+'what:     Type of a record, like "map"
+'maxindex: Max valid ID of an existing record
+'getname:  Returns the name or description of a record
+'Return value:
+' -2  =Cancel
+' -1  =New blank
+' >=0 =Copy existing
+'TODO: this is duplicated in a number of places. Search for 'generic_add_new'
+FUNCTION generic_add_new (what as string, maxindex as integer, getname as FUNCTION(idx as integer) as string, helpkey as string = "") as integer
 DIM menu(2) as string
-DIM maptocopy as integer = 0
+DIM whichtocopy as integer = 0
 DIM state as MenuState
 state.last = UBOUND(menu)
 state.size = 24
@@ -177,10 +179,10 @@ DO
   '--return cancel
   RETURN -2
  END IF
- IF keyval(scF1) > 1 THEN show_help "add_map_how"
+ IF keyval(scF1) > 1 THEN show_help helpkey
  usemenu state
  IF state.pt = 2 THEN
-  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN state.need_update = YES
+  IF intgrabber(whichtocopy, 0, maxindex) THEN state.need_update = YES
  END IF
  IF enter_space_click(state) THEN
   SELECT CASE state.pt
@@ -189,14 +191,14 @@ DO
    CASE 1 ' blank
     RETURN -1
    CASE 2 ' copy
-    RETURN maptocopy
+    RETURN whichtocopy
   END SELECT
  END IF
  IF state.need_update THEN
   state.need_update = NO
   menu(0) = "Cancel"
-  menu(1) = "New Blank Map"
-  menu(2) = "Copy of map " & maptocopy & " " & getmapname(maptocopy)
+  menu(1) = "New blank " & what
+  menu(2) = "Copy of " & what & " " & whichtocopy & " " & getname(whichtocopy)
  END IF
  clearpage vpage
  standardmenu menu(), state, 0, 0, vpage
@@ -3011,7 +3013,7 @@ SUB mapedit_addmap()
  DIM st as MapEditState
 
  DIM how as integer
- how = addmaphow()
+ how = generic_add_new("map", gen(genMaxMap), @getmapname, "add_map_how")
  '-- -2  =Cancel
  '-- -1  =New blank
  '-- >=0 =Copy
