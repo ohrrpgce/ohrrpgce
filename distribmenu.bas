@@ -794,7 +794,7 @@ END SELECT
    DIM unstripped as bool = NO
    IF run_and_get_output("file " & installed_player, file_info, err_string) = 0 THEN
     IF ends_with(RTRIM(file_info, ANY !" \t\r\n"), ", not stripped") THEN
-     debug installed_player & " is an unstripped binary, don't use it for distribute"
+     debuginfo installed_player & " is an unstripped binary, don't use it for distribute"
      unstripped = YES
     END IF
    ELSE
@@ -802,7 +802,7 @@ END SELECT
     debug err_string
    END IF
    IF NOT unstripped THEN
-    debug "Using installed binary " & installed_player
+    debuginfo "Using installed binary " & installed_player
     RETURN installed_player
    END IF
   ELSE
