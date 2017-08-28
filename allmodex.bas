@@ -2647,7 +2647,7 @@ private function draw_allmodex_recordable_overlays (page as integer) as bool
 				select case idx
 				case scLeftShift, scRightShift, scLeftAlt, scRightAlt, scLeftCtrl, scRightCtrl
 					modifiers &= "+" & scancodename(idx)
-				case scShift, scAlt, scUnfilteredAlt, scCtrl
+				case scShift, scAlt, scUnfilteredAlt, scCtrl, scAnyEnter
 					'Ignore these duplicates
 				case else
 					keys &= "+" & scancodename(idx)
