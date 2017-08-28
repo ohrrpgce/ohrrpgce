@@ -36,7 +36,7 @@ DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
-DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, walk as integer = 0)
+DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4)
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
@@ -1779,12 +1779,11 @@ END SUB
 '==========================================================================================
 
 
-PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as string, npcids() as integer, byref count as integer)
+PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as string, npcrefs() as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
 
- count = 0
- REDIM npcids(0) as integer
- npcids(0) = -1
+ REDIM npcrefs(0) as integer
+ npcrefs(0) = -1
  REDIM menu(0) as string
  menu(0) = "Back to the map editor..."
 
@@ -1795,8 +1794,7 @@ PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as stri
      DIM s as string
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
      str_array_append menu(), s
-     count += 1
-     int_array_append npcids(), .id - 1
+     int_array_append npcrefs(), i
     END IF
    END IF
   END WITH
@@ -1805,11 +1803,11 @@ END SUB
 
 'Menu which shows the NPCs at the currently selected tile, and allows you to edit them
 SUB mapedit_list_npcs_by_tile (st as MapEditState)
- DIM count as integer
- REDIM npcids(0) as integer
+ REDIM npcrefs(0) as integer  'Index of NPC in st.map.npc() for each menu item
  REDIM menu(0) as string
  DIM boxpreview as string
- DIM npcdef as NPCType ptr = NULL  'convenience ptr
+ DIM npcinst as NPCInst ptr = NULL  'Convenience ptrs
+ DIM npcdef as NPCType ptr = NULL
 
  DIM state as MenuState
  state.size = 20
@@ -1836,21 +1834,24 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
   IF state.need_update THEN
    state.need_update = NO
-   mapedit_list_npcs_by_tile_update st, menu(), npcids(), count
+   mapedit_list_npcs_by_tile_update st, menu(), npcrefs()
    state.last = UBOUND(menu)
+   npcinst = NULL
    npcdef = NULL
-   IF state.pt > 0 AND state.pt <= UBOUND(npcids) THEN
-    npcdef = @st.map.npc_def(npcids(state.pt))
+   IF state.pt > 0 AND state.pt <= UBOUND(npcrefs) THEN
+    npcinst = @st.map.npc(npcrefs(state.pt))
+    npcdef = @st.map.npc_def(npcinst->id - 1)
     boxpreview = npc_preview_text(*npcdef)
    END IF
   END IF
 
   clearpage dpage
-  edgeprint count & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiSelectedDisabled), dpage
+  edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiSelectedDisabled), dpage
   standardmenu menu(), state, 0, 10, dpage
   IF npcdef THEN
    edgeprint "Enter/Space/Ctrl to edit", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage
-   npcdefedit_preview_npc *npcdef, st.npc_img(npcids(state.pt)), boxpreview
+   'Display a frame in right direction
+   npcdefedit_preview_npc *npcdef, st.npc_img(npcinst->id - 1), boxpreview, npcinst->dir * 2
   END IF
 
   SWAP vpage, dpage
@@ -5027,7 +5028,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
   standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
-  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, walk
+  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + (walk \ 2)
 
   SWAP vpage, dpage
   setvispage vpage
@@ -5041,10 +5042,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 END SUB
 
 ' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
-SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, walk as integer = 0)
+' (Default to displaying south1 frame)
+SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4)
  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
- 'Draw the two South frames
- frame_draw npc_img.sprite + 4 + (walk \ 2), npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
+ frame_draw npc_img.sprite + framenum, npc_img.pal, pRight - 16, pBottom - 24, 1, YES, dpage
  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
  printstr boxpreview, 0, pBottom - 10, dpage
  textcolor uilook(uiSelectedItem2), 0
