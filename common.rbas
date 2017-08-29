@@ -6752,7 +6752,7 @@ FUNCTION read_config_str (key as string, default as string="") as string
   IF ret <> CHR(0) THEN RETURN ret
   IF LEN(prefix) = 0 THEN RETURN default
   'Trim end off the prefix
-  prefix = MID(prefix, INSTRREV(prefix, ".", LEN(prefix) - 1))
+  prefix = MID(prefix, 1, INSTRREV(prefix, ".", LEN(prefix) - 1))
  LOOP
 END FUNCTION
 

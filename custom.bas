@@ -295,7 +295,7 @@ IF isfile(tmpstr) THEN
  global_config_file = tmpstr
 END IF
 DIM game_id as string = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
-config_prefix = "edit." & game_id & "."
+config_prefix = "edit.game_" & game_id & "."
 
 '============================= Unlump, Upgrade, Load ==========================
 
