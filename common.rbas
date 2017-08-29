@@ -1770,6 +1770,7 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
   IF keyval(scDown) > 1 THEN move_lines = 1
   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
+  move_lines += readmouse.wheel_clicks * 3
   IF move_lines THEN
    insert_line = bound(insert_line + move_lines, 0, UBOUND(lines) + 1)
    IF insert_line = UBOUND(lines) + 1 THEN
@@ -2145,6 +2146,15 @@ SUB show_help(helpkey as string)
    IF editing THEN
     dat->first_line = small(dat->first_line, cursor_line - 1)
     dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
+
+    /' Move cursor to location of mouse click. Doesn't work; find_point_in_text is broken.
+    IF readmouse.buttons AND mouseLeft THEN
+     DIM curspos as StringCharPos
+     DIM mpoint as XYPair = readmouse.pos - help_text->ScreenPos
+     find_point_in_text @curspos, mpoint.x, mpoint.y, dat->s, help_text->Width, help_text->ScreenX, help_text->ScreenY, 0, YES, YES
+     dat->insert = curspos.charnum
+    END IF
+    '/
    ELSE
     '--not editing, just browsing
     IF slowkey(scUp, 30) THEN dat->first_line -= 1
@@ -2153,6 +2163,7 @@ SUB show_help(helpkey as string)
     IF keyval(scPageDown) > 1 THEN dat->first_line += dat->line_limit - 1
     IF keyval(scHome) > 1 THEN dat->first_line = 0
     IF keyval(scEnd) > 1 THEN dat->first_line = dat->line_count
+    dat->first_line += readmouse.wheel_clicks * 3
    END IF
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
   END IF
