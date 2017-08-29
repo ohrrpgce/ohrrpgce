@@ -686,7 +686,8 @@ sub gfx_backend_menu ()
 	next
 
 	dim choice as integer
-	choice = multichoice(!"Switch to which graphics backend? (EXPERIMENTAL!)\n" _
+	choice = multichoice(!"Switch to which graphics backend?\n" _
+			     !"(EXPERIMENTAL! Switching may crash the program!)\n" _
 			     "Your selection will be remembered for " & exename, menu())
 	if choice > -1 then
 		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
