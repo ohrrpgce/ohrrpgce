@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import pipes
+import subprocess
 from datetime import date
 
 ############################################################################
@@ -32,7 +33,7 @@ def read_version():
   rev_regex  = re.compile('^Revision: (?P<rev>\d+)', re.I)
   got_date = False
   got_rev = False
-  if os.path.isdir("../.svn"):
+  if is_subversion_working_copy():
     f = os.popen('svn info ..', 'r')
   elif os.path.isdir("../.git"):
     f = os.popen('git svn info', 'r')
@@ -53,6 +54,16 @@ def read_version():
   if not got_rev: print "Failed to get subversion revision number, using 0"
   if not got_date: print "Failed to get subversion last-modified date, using today's date "
   return "%s.%s.%s.%s-%s" % (year, month, day, code, rev)
+
+def is_subversion_working_copy():
+  if os.path.isdir(".svn"):
+    return True
+  # Some svn working copies don't have .svn folders
+  output = subprocess.check_output(["svn", "info"])
+  if len(output):
+    if "URL: https://rpg.hamsterrepublic.com/source" in output:
+      return True
+  return False
 
 def read_codename():
   f = open('../codename.txt', 'r')
