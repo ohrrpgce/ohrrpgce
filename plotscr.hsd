@@ -1083,7 +1083,7 @@ end
 
 script,set active battle pause for animations,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=2^7)
-  write general(177,(read general(177),and,(-1-2^7)+hsd:bit)
+  write general(177,(read general(177),and,(-1--2^7))+hsd:bit)
 end
 
 script,set capped hero stat,hsd:who,hsd:stat,hsd:value,hsd:stat type=current stat,begin
