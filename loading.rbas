@@ -831,8 +831,9 @@ END SUB
 '(x SHL 16) + y. Private IDmaps contain exactly those zone IDs which that tile is in.
 '
 'Zone IDs within each IDmap are completely unordered, but the unused slots (value 0)
-'must be sorted to the end. This allows early-exiting. In order to allow preserving this
-'invariant easily, ID 65535 (DELETED) can be also used to mark unused slots.
+'must be sorted to the end. This allows early-exiting rather than iterating over all 15 slots.
+'In order to allow preserving this invariant easily, ID 65535 (DELETED) can be also used to
+'mark unused slots; these markers are not sorted to the end.
 '
 'There's therefore a limit of 15 zones per tile, which could be overcome by replacing
 'extra IDmaps with arbitrary length lists of zone IDs, but that's a lot of added complexity
@@ -1009,17 +1010,28 @@ FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, b
     END IF
     IF (*bitvector AND &h7fff) = &h7fff THEN debug "SetZoneTile: tile too full": RETURN NO
   tryagain:
+    'Now add the zone ID to IDmap.
     'If it's already set, stop. When we reach an empty slot we know we've checked them all, so stop
+    DIM deletedslot as integer = -1
     FOR i as integer = 0 TO 14
       IF IDmap[i] = id THEN
         *bitvector OR= 1 SHL i
         RETURN YES
-      ELSEIF IDmap[i] = 0 OR IDmap[i] = DELETED THEN
+      ELSEIF IDmap[i] = 0 THEN
         *bitvector OR= 1 SHL i
         IDmap[i] = id
         RETURN YES
+      ELSEIF IDmap[i] = DELETED THEN
+        deletedslot = i
       END IF
     NEXT
+    'Only once we've checked all slots to make sure it's not already in IDmap can we overwrite
+    'a DELETED slot.
+    IF deletedslot > -1 THEN
+      *bitvector OR= 1 SHL deletedslot
+      IDmap[deletedslot] = id
+      RETURN YES
+    END IF
     'debug "SetZoneTile: IDmap full"
     'Segment ID array is full, add a new ID array
     DIM oldbitvector as integer = *bitvector
@@ -1073,9 +1085,9 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
     IF usecount = 1 THEN
       ' Last use of this ID, so remove IDmap[slot].
       IDmap[slot] = DELETED
-      ' To completely remove it we have to keep the empty slots sorted to the end;
-      ' the following is incomplete because it doesn't update the bitmaps for the tiles in the block
-      ' which use IDmap[i].
+      ' To mark it with ID 0 rather than DELETED we would have to keep the empty slots
+      ' sorted to the end; the following is an incomplete attempt to do so, because it
+      ' doesn't update the bitmaps for the tiles in the block which use IDmap[i].
       /'
       FOR i as integer = 14 TO 0 STEP -1
         IF IDmap[i] <> 0 THEN
@@ -1088,7 +1100,7 @@ SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byva
       '/
     END IF
     *bitvector -= 1 SHL slot
-  END WITH 
+  END WITH
 END SUB
 
 ' Writes the value (0 or nonzero) of a zone on a tile. Returns whether succeeded;
