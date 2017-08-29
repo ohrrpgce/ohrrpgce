@@ -39,13 +39,15 @@ global variable(120, timer checkpoint interval)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
+# 1000-1063 used in zonetests
+define constant(1000, array:zones)
 # 5000-6000 used in hstests.hss
 
 #string 0 = error messages
 #string 1-9 = temporary misc
 #string 10 = error message arg
 #string 11 = asserts
-#string 95-96 = temp misc
+#string 95-99 = temp misc
 define constant(10, err arg string)
 define constant(11, assert expression string)
 
@@ -3671,6 +3673,95 @@ script, zone tests, begin
   assert(check zone(5, 16, 14) == 1)
   assert(check zone(6, 16, 14) == 1)
   assert(check zone(1003, 16, 14) == 1)
+
+  zones randomized test
+end
+
+script, zones randomized test, begin
+  # Do a randomised test of writing and reading zones in a 8x8 area
+  # (four 4x4 blocks) at top-left corner of the map).
+  # The idea is that the zonemap code has a lot of edge cases as a result of
+  # implementation details which are a huge pain to write tests for, and those
+  # tests wouldn't be worth much if the implementation changes.
+  # Unfortunately these tests still aren't worth much; changing the various magic
+  # constants results in them not hitting the edge cases anyway! :(
+  # We check which zones we expect to see in 64 globals which act as bitvectors,
+  # the i-th bit set if that tile should be in zone i.
+
+  showvalue(1)
+  wait
+
+  # Returns true or false. id >= 1
+  subscript, readarray, id, x, y, begin
+    return((read global(array:zones + x + y * 8) / 2^(id--1)), and, 1)
+  end
+
+  # id >= 1
+  subscript, writearray, id, x, y, value, begin
+    variable(bits)
+    bits := read global(array:zones + x + y * 8)
+    bits := bits, and, (-1 -- 2^(id--1))
+    if (value) then (bits += 2^(id--1))
+    write global(array:zones + x + y * 8, bits)
+  end
+
+  # Num zones at tile
+  subscript, array count zones, x, y, begin
+    return(bitcount(read global(array:zones + x + y * 8)))
+  end
+
+  # Check the whole area is as it should be
+  subscript, test area, begin
+    variable(x, y, id)
+    for (x, 0, 7) do (
+      for (y, 0, 7) do (
+        for (id, 1, 31) do (
+          assert(readarray(id, x, y) == read zone(id, x, y))
+        )
+        assert(zone at spot(x, y, getcount) == array count zones(x, y))
+      )
+    )
+  end
+
+  # Initial state
+  variable(x,y)
+  for (x, 0, 7) do (
+    for (y, 0, 7) do (writearray(zone:everything, x, y, 1))
+  )
+  #test area
+
+  # Stick to 15 zones in the whole area, so no overflow occurs
+  variable(it, id, newvalue)
+  for (it, 0, 300) do (
+    showvalue(it)
+    x := random(0,4)
+    y := random(0,5)
+    id := random(1,15)
+    newvalue := random(0,1000)<it #random(0,2) > 0
+    assert(readarray(id, x, y) == readzone(id, x, y))
+    writezone(id, x, y, newvalue)
+    writearray(id, x, y, newvalue)
+    if (it, mod, 5 == 0) then (test area)
+  )
+  showvalue(2)
+  wait
+
+  # Now start using more zones, so that overcrowding occurs
+  # But don't use more than 15 per tile
+  for (it, 0, 5000) do (
+    showvalue(10000+it)
+    x := random(0,7)
+    y := random(0,3)
+    id := random(1,31)
+    newvalue := random(0,2) > 0
+    if (newvalue == 1 && array count zones(x, y) == 15) then (continue)
+    assert(readarray(id, x, y) == readzone(id, x, y))
+    writezone(id, x, y, newvalue)
+    writearray(id, x, y, newvalue)
+    if (it, mod, 200 == 0) then (test area)
+  )
+  shownovalue
+  wait
 end
 
 ########################################################################
