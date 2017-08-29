@@ -3450,8 +3450,14 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   .steal.item_rate = buf(19)
   .steal.rare_item = buf(20)
   .steal.rare_item_rate = buf(21)
-  .dissolve = buf(22)
-  .dissolve_length = buf(23)
+  IF getfixbit(fixDefaultDissolveEnemy) THEN
+   .dissolve = buf(22)
+   .dissolve_length = buf(23)
+  ELSE
+   ' Initialise. (Used by upgrade())
+   .dissolve = 0
+   .dissolve_length = 0
+  END IF
   .death_sound = buf(24)
   .cursor_offset.x = buf(25)
   .cursor_offset.y = buf(26)
@@ -3487,6 +3493,9 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
     .elementals(i) = DeSerSingle(buf(), 239 + i*2)
    NEXT
   ELSE
+   ' Perform upgrade of old weak/strong/absorb/enemytype bits (Used by upgrade())
+   ' The old bits will NOT be written by saveenemydata and will be lost,
+   ' the fixbit must be set after writing!
    FOR i as integer = 0 TO gen(genNumElements) - 1
     .elementals(i) = loadoldenemyresist(buf(), i)
    NEXT

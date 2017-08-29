@@ -3320,6 +3320,37 @@ END FUNCTION
 '                                    Upgrade old games
 '==========================================================================================
 
+/'
+'If you used r4109 (Zenzizenzic, 2011) or later to open a game last edited before
+'r1651 (Ubersetzung, 2007), all "weak to/strong to/absorbs/is enemytype" bits were
+'discarded instead of being upgraded to "takes X% damage from ..."
+'This routine imports them from a 2011-or-earlier .dt1 lump.
+SUB import_enemy_elementals_from_dt1 (copy_enemytypes_from as string)
+ 'r4109 was also the same commit that switched DT1 to binsize
+ IF FILELEN(copy_enemytypes_from) MOD 320 THEN
+  visible_debug copy_enemytypes_from & " is the wrong length. Probably not from before the corruption"
+  EXIT SUB
+ END IF
+ REDIM old_dat(320) as integer
+ DIM enemy as EnemyDef
+ FOR enemynum as integer = 0 TO gen(genMaxEnemy)
+  loadrecord old_dat(), copy_enemytypes_from, 160, enemynum
+  loadenemydata enemy, enemynum
+  FOR j as integer = 0 TO 63
+   DIM currentval as single = enemy.elementals(j)
+   DIM oldval as single = loadoldenemyresist(old_dat(), j)
+   IF currentval <> 1.0 AND (j < 16 OR currentval <> 0.) THEN
+    visible_debug "Enemy " & enemynum & " element " & j & " is already set to " & _
+                  format_percent(currentval) & ", skipping enemy"
+    EXIT FOR
+   ELSE
+    enemy.elementals(j) = oldval
+   END IF
+  NEXT
+  saveenemydata enemy, enemynum
+ NEXT
+END SUB
+'/
 
 SUB upgrade (show_messages as bool)
 DIM fh as integer
@@ -3425,8 +3456,9 @@ IF getfixbit(fixNumElements) = 0 THEN
  gen(genNumElements) = 16
 END IF
 IF gen(genNumElements) < 1 THEN
- upgrade_message "genNumElements was " & gen(genNumElements) & ", fixing"
- gen(genNumElements) = 1
+ visible_debug "genNumElements was invalid: " & gen(genNumElements) & ". Resetting to 64"
+ 'Set to max to be safe, because the load/save code will zero out anything above it
+ gen(genNumElements) = 64
 END IF
 
 '----------------------------------------
@@ -3973,23 +4005,37 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
  NEXT
 END IF
 
+'-------------------------------------------------------------------------------
+' Enemies
+
+'(There's also some code above that initialises some enemy data)
+
 IF getfixbit(fixDefaultDissolve) = 0 THEN
  upgrade_message "Initializing default enemy fade..."
  setfixbit(fixDefaultDissolve, 1)
  gen(genEnemyDissolve) = 0
 END IF
 
-IF getfixbit(fixDefaultDissolveEnemy) = 0 THEN
- upgrade_message "Initializing default enemy fade (per enemy)..."
- setfixbit(fixDefaultDissolveEnemy, 1)
+DIM as bool fixdissolves =  (getfixbit(fixDefaultDissolveEnemy) = 0)
+DIM as bool fixelementals = (getfixbit(fixEnemyElementals) = 0)
+IF full_upgrade ANDALSO (fixdissolves OR fixenemyelementals) THEN
+ IF fixdissolves THEN
+  upgrade_message "Initializing default enemy fade (per enemy)..."
+ END IF
+ IF fixelementals THEN
+  upgrade_message "Initialising enemy elemental resists..."
+ END IF
+ ' loadenemydata will upgrade the data when loading. All we have to do is load and save again.
  DIM enemy as EnemyDef
  FOR i as integer = 0 to gen(genMaxEnemy)
   loadenemydata enemy, i
-  enemy.dissolve = 0
-  enemy.dissolve_length = 0
   saveenemydata enemy, i
  NEXT
+ setfixbit(fixDefaultDissolveEnemy, 1)
+ setfixbit(fixEnemyElementals, 1)
 END IF
+
+'-------------------------------------------------------------------------------
 
 IF getfixbit(fixPushNPCBugCompat) = 0 THEN
  upgrade_message "Enabling 'Simulate pushable NPC bug' bitset..."
@@ -4169,19 +4215,6 @@ IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)
  setbit gen(), genBits2, 9, 1
-END IF
-
-IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
- upgrade_message "Initialising enemy elemental resists..."
- setfixbit(fixEnemyElementals, 1)
- REDIM dat(dimbinsize(binDT1)) as integer
- FOR i as integer = 0 TO gen(genMaxEnemy)
-  loadenemydata dat(), i
-  FOR j as integer = 0 TO 63
-   SerSingle(dat(), 239 + j*2, loadoldenemyresist(dat(), j))
-  NEXT
-  saveenemydata dat(), i
- NEXT
 END IF
 
 IF gen(genItemStackSize) <= 0 OR gen(genItemStackSize) > 99 THEN

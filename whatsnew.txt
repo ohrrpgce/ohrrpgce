@@ -217,6 +217,12 @@ WHAT IS NEW?
     * SDL_mixer.dll (Windows only) recompiled to use modplug instead of
       mikmod to play modules. This fixes bad sound quality, broken
       looping, some files not playing, and too-low volume [Ralph]
+    * If you used Zenzizenzic (2011) or later to open a game last edited
+      with Ubersetzung (2007) or earlier, all your enemy "is <enemytype>"
+      and "weak to/strong to/absorbs" element bits bits were discarded
+      instead of being upgraded to "takes X% damage from ..." settings.
+      The upgrade routine has been fixed, but your data is gone. If you
+      still have an old copy of your game, ask for help. [Ralph]
 
   * Stuff Only Developers Will Notice
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
