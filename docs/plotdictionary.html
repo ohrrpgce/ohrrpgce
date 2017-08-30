@@ -495,6 +495,10 @@
 <a href="#General%20Game%20Settings">General Game Settings</a><br>
 		<ul>
 		<li>
+<a href="#Battle%20System%20Settings">Battle System Settings</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Caps">Caps</a><br>
 		<ul></ul>
 </li>
@@ -2176,6 +2180,9 @@
 		
 	
 		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
+		
+	
+		<a href="#about-setactivebattlepauseforanimations">set active battle pause for animations (state)</a><br>
 		
 	
 		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
@@ -16147,6 +16154,10 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <span class="backlink"></span>General Game Settings</h3>
 		<ul>
 		<li>
+<a href="#Battle%20System%20Settings">Battle System Settings</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Caps">Caps</a><br>
 		<ul></ul>
 </li>
@@ -16154,20 +16165,6 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 <p>These commands access data in the General Game Settings menu.</p>
 		
 		
-		<div class="command">
-<a name="about-setbattlewaitmode"></a>
-		<h4>set battle wait mode (state)</h4>
-<p>
-			
-				Set whether or not battles pause on spell and item menus.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then enemies continue to attack while menus are up,
-				if the argument is <a href="#about-booleanconstants" class="ref">on</a> then enemies wait while menus are up.
-			
-			
-			
-			
-		</p>
-</div>
 		<div class="command">
 <a name="about-setcaterpillarmode"></a>
 		<h4>set caterpillar mode (state)</h4>
@@ -16247,6 +16244,105 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
+<a name="about-setdebugkeysdisable"></a>
+		<h4>set debug keys disable (state)</h4>
+<p>
+			
+				Sets whether or not the debugging keys are allowed.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then debugging keys are allowed.
+				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then debugging keys are disabled.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-extendedscancodesenabled"></a>
+		<h4>extended scancodes enabled</h4>
+<p>
+			
+				Returns the state of the "Enable better scancodes" general bitset:
+				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getscreenwidth"></a>
+		<h4>get screen width</h4>
+<p>
+			
+				Returns the width of the screen in pixels.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getscreenheight" class="ref">get screen height</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getscreenheight"></a>
+		<h4>get screen height</h4>
+<p>
+			
+				Returns the height of the screen in pixels.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getscreenwidth" class="ref">get screen width</a></li></ul>
+</div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Battle%20System%20Settings"></a>
+		<h3>
+<span class="backlink"><a href="#General%20Game%20Settings">General Game Settings</a> →
+			</span>Battle System Settings</h3>
+		<ul></ul>
+<p>
+			These commands access data either in the Battle Settings submenu in General Game Settings menu,
+			or in the Preference Bitsets submenu.
+		</p>
+		
+		
+		<div class="command">
+<a name="about-setbattlewaitmode"></a>
+		<h4>set battle wait mode (state)</h4>
+<p>
+			
+				Set whether or not battles pause on spell and item menus.
+				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then enemies continue to attack while menus are up,
+				if the argument is <a href="#about-booleanconstants" class="ref">on</a> then enemies wait while menus are up.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setactivebattlepauseforanimations"></a>
+		<h4>set active battle pause for animations (state)</h4>
+<p>
+			
+				Set the active-time battle bitset "Pause for attack animations"
+				(<span class="param">state</span> should be <span class="param">true</span> to pause, or <span class="param">false</span> to not pause),
+				which specifies whether battle ready meters continue to increase while an attack
+				is animating.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-getactivebattlepauseonallmenus"></a>
 		<h4>get active battle pause on all menus</h4>
 <p>
@@ -16305,20 +16401,6 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-setdebugkeysdisable"></a>
-		<h4>set debug keys disable (state)</h4>
-<p>
-			
-				Sets whether or not the debugging keys are allowed.
-				If the argument is <a href="#about-booleanconstants" class="ref">off</a> then debugging keys are allowed.
-				If the argument is <a href="#about-booleanconstants" class="ref">on</a> then debugging keys are disabled.
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 <a name="about-setdeadheroesgainexperience"></a>
 		<h4>set dead heroes gain experience (state)</h4>
 <p>
@@ -16330,46 +16412,6 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			
 			
 			
-		</p>
-</div>
-		<div class="command">
-<a name="about-extendedscancodesenabled"></a>
-		<h4>extended scancodes enabled</h4>
-<p>
-			
-				Returns the state of the "Enable better scancodes" general bitset:
-				whether or not numpad keys are distinguishable from Home, Up, etc. keys.
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getscreenwidth"></a>
-		<h4>get screen width</h4>
-<p>
-			
-				Returns the width of the screen in pixels.
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getscreenheight" class="ref">get screen height</a></li></ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-getscreenheight"></a>
-		<h4>get screen height</h4>
-<p>
-			
-				Returns the height of the screen in pixels.
-			
-			
-			
-			<div class="seealso">See also: <ul><li><a href="#about-getscreenwidth" class="ref">get screen width</a></li></ul>
-</div>
 		</p>
 </div>
 		<hr>
@@ -17701,7 +17743,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 801 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 802 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
