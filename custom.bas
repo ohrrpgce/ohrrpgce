@@ -465,7 +465,7 @@ SUB main_editor_menu()
    IF state.pt = 16 THEN general_data_editor
    IF state.pt = 17 THEN scriptman
    IF state.pt = 18 THEN distribute_game
-   IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0)
+   IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
    IF state.pt = 20 THEN prompt_for_save_and_quit
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
@@ -828,7 +828,7 @@ SUB Custom_global_menu
  IF choice = 0 THEN
   reimport_previous_scripts
  ELSEIF choice = 1 THEN
-  spawn_game_menu(keyval(scShift) > 0)
+  spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
  ' ELSEIF choice = 2 THEN
  '  'Warning: data in the current menu may not be saved! So figured it better to avoid this.
  '  save_current_game
@@ -1707,6 +1707,7 @@ SUB secret_menu ()
      "New backdrop browser", _
      "RGFX tests", _
      "Test Game under GDB", _
+     "Test Game under Valgrind", _
      "Mouse Options" _
  }
  DIM st as MenuState
@@ -1740,7 +1741,8 @@ SUB secret_menu ()
    IF st.pt = 19 THEN backdrop_browser
    IF st.pt = 20 THEN new_graphics_tests
    IF st.pt = 21 THEN spawn_game_menu YES
-   IF st.pt = 22 THEN edit_mouse_options ()
+   IF st.pt = 22 THEN spawn_game_menu NO, YES
+   IF st.pt = 23 THEN edit_mouse_options ()
   END IF
   usemenu st
   clearpage vpage

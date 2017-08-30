@@ -2548,7 +2548,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
   RETURN ""
  END IF
 
-#IFDEF __FB_DARWIN__
+#IF defined(__FB_DARWIN__)
 
  basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
  setvispage vpage, NO
@@ -2574,9 +2574,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  safekill dummyscript
  RETURN ""
 
-#ENDIF
-
-#IFDEF __FB_WIN32__
+#ELSEIF defined(__FB_WIN32__)
 
  DIM handle as ProcessHandle
  handle = open_console_process(app, args)
@@ -2615,7 +2613,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
   dowait
  LOOP
 
-#ENDIF
+#ELSE
 
  'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
  'os_* process handling functions only currently implemented on Windows
@@ -2636,6 +2634,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  END IF
 
  RETURN ""  'Success
+
+#ENDIF
 
 END FUNCTION
 

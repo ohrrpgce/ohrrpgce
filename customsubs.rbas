@@ -2804,8 +2804,40 @@ FUNCTION pick_channel_name() as string
  #endif
 END FUNCTION
 
+' Used by spawn_game to run gdb or valgrind.
+' Returns a ProcessHandle or NO/NULL.
+' Note: these's a fair bit of overlap between this and spawn_and_wait for Unix,
+' but this is specific to spawn_game.
+FUNCTION spawn_console_process(executable as string, args as string, title as string) as ProcessHandle
+ #IFDEF __FB_UNIX__
+  ' On Unix the spawned program doesn't inherit access to our tty even if we have one,
+  ' so need to spawn it inside an xterm
+  ' TODO: this isn't going to work on OSX... unless maybe you have X11 installed?
+  ' Wrap in a xterm call...
+  DIM xtermargs as string
+  xtermargs = " -geometry 120x30 -bg black -fg gray90 -title '" & title & "' -e " _
+              """" & escape_string(executable & " " & args, """\") & """"
+  executable = find_helper_app("xterm")
+  IF LEN(executable) = 0 THEN
+   notification "xterm is missing; can't continue"
+   RETURN NO
+  END IF
+
+  RETURN open_process(executable, xtermargs, YES, YES)
+
+ #ELSEIF defined(__FB_WIN32__)
+  ' Likewise on Windows need a console. But this is only implemented on Windows
+  RETURN open_console_process(executable, args)
+ #ELSE
+  notification "Running under GDB/Valgrind not implemented on this platform"
+  RETURN NO
+ #ENDIF
+END FUNCTION
+
+'Spawn Game for live-previewing. Puts the ProcessHandle in slave_process.
+'At most one of gdb and valgrind should be true.
 'Returns true if successfully spawned
-FUNCTION spawn_game(gdb as bool = NO) as bool
+FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  IF slave_process <> 0 THEN
   'First clean up after the last time we ran Game
   cleanup_process @slave_process
@@ -2870,31 +2902,23 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
    RETURN NO
   END IF
 
-  #IFDEF __FB_UNIX__
-   ' On Unix the spawned program doesn't inherit access to our tty even if we have one,
-   ' so need to spawn it inside an xterm
-   ' TODO: this isn't going to work on OSX... unless maybe you have X11 installed?
-   ' Wrap in a xterm call...
-   DIM xtermargs as string
-   xtermargs = " -geometry 120x30 -bg black -fg gray90 -title 'gdb ohrrpgce-game' -e " _
-               """" & escape_string(executable & " " & gdbargs, """\") & """"
-   executable = find_helper_app("xterm")
-   IF LEN(executable) = 0 THEN
-    notification "xterm is missing; can't continue"
-    RETURN NO
-   ENDIF
+  slave_process = spawn_console_process(executable, gdbargs, "gdb " & GAMEEXE)
 
-   slave_process = open_process(executable, xtermargs, YES, YES)
-
-  #ELSEIF defined(__FB_WIN32__)
-   ' Likewise on Windows need a console. But this is only implemented on Windows
-   slave_process = open_console_process(executable, gdbargs)
-  #ELSE
-   notification "Running under GDB not implemented on this platform"
+ ELSEIF valgrind THEN
+  #IFNDEF __FB_UNIX__
+   notification "Valgrind only supported on UNIX"
    RETURN NO
   #ENDIF
- ELSE
 
+  executable = find_helper_app("valgame.sh")
+  IF LEN(executable) = 0 THEN
+   notification "Couldn't find valgame.sh. You should run from a copy of the source code."
+   RETURN NO
+  END IF
+
+  slave_process = spawn_console_process(executable, arguments, "valgame.sh")
+
+ ELSE
   slave_process = open_process(executable, arguments, YES, YES)
  END IF
 
@@ -2909,7 +2933,8 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
  'Instead we test Game is still running with slave_channel <> NULL_CHANNEL
 
  'Need Game to connect before we can safely write to the pipe; wait up to 3000ms
- IF channel_wait_for_client_connection(slave_channel, 3000) = 0 THEN
+ DIM waitms as integer = IIF(valgrind, 9000, 3000)
+ IF channel_wait_for_client_connection(slave_channel, waitms) = 0 THEN
   notification "Error communicating with " & gameexename & !" (couldn't connect); aborting\n(Press a key)"
   channel_close slave_channel
   cleanup_process @slave_process
@@ -2939,7 +2964,7 @@ FUNCTION spawn_game(gdb as bool = NO) as bool
  RETURN YES
 END FUNCTION
 
-SUB spawn_game_menu(gdb as bool = NO)
+SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
  #IFDEF __FB_WIN32__
   IF is_windows_9x() THEN
    notification "Testing your game while editing isn't supported on your version of Windows; it requires an NT-based Windows release"
@@ -2957,7 +2982,7 @@ SUB spawn_game_menu(gdb as bool = NO)
  ELSE
   gen(genCurrentDebugMode) = 1
   xbsave game + ".gen", gen(), 1000
-  IF spawn_game(gdb) THEN
+  IF spawn_game(gdb, valgrind) THEN
    scancode = notification( "You're running your game in live preview mode. " _
                            !"Please press F1 now to read the help file for this if you haven't already.\n\n" _
                             "Press any key")

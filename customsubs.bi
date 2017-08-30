@@ -77,7 +77,7 @@ DECLARE FUNCTION numbertail (s as string) as string
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE SUB experience_chart ()
 DECLARE SUB stat_growth_chart ()
-DECLARE SUB spawn_game_menu (gdb as bool = NO)
+DECLARE SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
 
 DECLARE FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
