@@ -479,7 +479,17 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    END IF
   END IF
 
-  IF state.need_update = NO AND enter_space_click(state) THEN
+  ' Highlighting and selecting slices with the mouse
+  DIM topmost as Slice ptr = 0
+  IF state.need_update = NO THEN
+   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
+   IF topmost ANDALSO (readmouse().release AND mouseLeft) THEN
+    cursor_seek = topmost
+    state.need_update = YES
+   END IF
+  END IF
+
+  IF state.need_update = NO ANDALSO enter_space_click(state) THEN
    IF state.pt = 0 THEN
     EXIT DO
    ELSEIF state.pt = ses.collection_name_pt THEN
@@ -633,17 +643,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   END IF '--end IF state.need_update = NO AND ses.curslice
 
-  ' Highlighting and selecting slices with the mouse
-  DIM topmost as Slice ptr = 0
-  IF state.need_update = NO THEN
-   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-   DIM mouse as MouseInfo = readmouse()
-   IF topmost ANDALSO (mouse.release AND mouseLeft) THEN
-    cursor_seek = topmost
-    state.need_update = YES
-   END IF
-  END IF
-
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -652,7 +651,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    state.need_update = NO
    cursor_seek = NULL
   ELSE
-   usemenu state
+   ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
+   ' (Right-clicking still works to select a menu item)
+   IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
+    usemenu state
+   END IF
   END IF
 
   draw_background vpages(dpage), bgChequer
