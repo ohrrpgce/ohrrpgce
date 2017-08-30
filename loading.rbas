@@ -882,6 +882,10 @@ END SUB
 'maxid must be less than 65535 (DELETED)
 SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, x as integer, y as integer, maxid as integer = 65534)
   WITH zmap
+    IF x < 0 ORELSE x >= .wide ORELSE y < 0 ORELSE y >= .high THEN
+      REDIM zones(-1 TO -1)
+      EXIT SUB
+    END IF
     DIM bitvector as ushort = .bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF bitvector AND (1 SHL 15) THEN
@@ -916,6 +920,7 @@ END FUNCTION
 FUNCTION CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as integer) as bool
   'Could call CheckZoneAtTile, but this is more efficient
   WITH zmap
+    IF x < 0 ORELSE x >= .wide ORELSE y < 0 ORELSE y >= .high THEN RETURN NO
     DIM bitvector as ushort = .bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF bitvector AND (1 SHL 15) THEN
@@ -999,9 +1004,10 @@ END FUNCTION
 'Add tile to zone.
 'Returns success, or NO if there are already too many overlapping zones there
 FUNCTION SetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer) as bool
-  IF CheckZoneAtTile(zmap, id, x, y) THEN RETURN YES
-  ZoneInfoBookkeeping zmap, id, 1
   WITH zmap
+    IF x < 0 ORELSE x >= .wide ORELSE y < 0 ORELSE y >= .high THEN RETURN NO
+    IF CheckZoneAtTile(zmap, id, x, y) THEN RETURN YES
+    ZoneInfoBookkeeping zmap, id, 1
     DIM bitvector as ushort ptr = @.bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF *bitvector AND (1 SHL 15) THEN
@@ -1055,6 +1061,7 @@ END FUNCTION
 'Remove tile from zone.
 SUB UnsetZoneTile(zmap as ZoneMap, byval id as integer, byval x as integer, byval y as integer)
   WITH zmap
+    IF x < 0 ORELSE x >= .wide ORELSE y < 0 ORELSE y >= .high THEN EXIT SUB
     DIM bitvector as ushort ptr = @.bitmap[x + y * .wide]
     DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
     IF *bitvector AND (1 SHL 15) THEN
