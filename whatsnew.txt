@@ -2,6 +2,18 @@ WHAT IS NEW?
 
 ???? ?? 2017 [Dwimmercrafty]
 
+  Highlights:
+    * NPC pathfinding, and other new NPC movetypes including follow-walls
+    * Record .gif videos with Ctrl-F12
+    * More map layers, hero definitions, and global variables
+    * More info shown in-game in shops and the spell list menu
+    * One-way walls
+    * Lots of new in-game debug keys (see F8 debug menu), and a similar
+      new menu in Custom accessed with F9
+    * Support jumping to item, attack, enemy, textbox and npc editors
+    * Lots of progress on mouse support
+    * On Windows, you can resize Custom's window now
+
   * New Features
     * Mark Non-elemental Elementals menu lets you define which elements
       shouldn't count as elemental for enemy spawning purposes [James]
@@ -60,12 +72,15 @@ WHAT IS NEW?
     * Press H in the slice collection editor to toggle whether the
       children of a slice are shown in the menu (does not affect slice
       visibility) [James]
-    * New NPC movement types: "Chase You (Direct)" and "Avoid You
-      (Direct)" which contain no randomization. The other Chase/Avoid
-      movement types are now captioned "(Meandering)" [James]
-    * New NPC movement types: "Follow Walls (right)" and "Follow Walls
-      (Left)" as well as "Stops for others" variants of both. [James]
-    * New or improved debug keys:
+    * New NPC movement types:
+     * "Chase You (Pathfinding)" finds the shortest path to the hero,
+       moving around obstacles, or else gets as close as possible [James]
+     * "Chase You (Direct)" and "Avoid You (Direct)" which don't randomize
+       and do nothing when stuck behind an obstacle. The old Chase/Avoid
+       movement types are now captioned "(Meandering)" [James]
+     * "Follow Walls (Right)" and "Follow Walls (Left)" as well as "Stops
+       for others" variants of both. [James]
+    * New or improved in-game debug keys (all available in F8 menu):
      * F1 text box debug info (only when a text box is displayed) [Ralph]
      * F4 tag debug mode sane controls and display improvements [Ralph]
      * Press F6 twice to display NPC debug info with additional NPC
@@ -78,10 +93,10 @@ WHAT IS NEW?
      * Options to make the window resizable, or change the zoom [Ralph]
      * Ctrl-F8 (both Game and Custom) to switch graphics backends [Ralph]
     * General bitset "Don't stop music when starting/loading game" [Ralph]
-    * Ability to reorder shop items/things [Ralph]
+    * Ability to reorder shop items/things in the editor [Ralph]
     * Preview of the surrounding tiles, or tiling of the current tile
       while drawing a maptile (click on the preview to toggle or hit P)
-      [Matthias]
+      [Matthias Meike]
     * You can now also remap the background color from the Import/Export
       Backdrop/Tileset menu; also added 'View with background' [Ralph]
     * Numbers can be typed with Numpad keys (I never even tried!) [Ralph]
@@ -102,12 +117,18 @@ WHAT IS NEW?
       while idle" [James]
     * You can jump to the attack, enemy and textbox editors from anywhere
       you select an attack/enemy/box, or add a new one directly [Ralph]
+    * In NPC placement mode you can open the NPC editor by pressing ENTER
+      on tiles with NPCs (edit them) or without (edit current NPC) [Ralph]
     * Shops now display how many of an item you already own as well as
       how many you have equipped [James]
     * Metadata is shown for .ogg files in the music and sfx menus [Ralph]
     * Ctrl+C/Ctrl+V in the NPC definition editor copy/pastes NPCs [Ralph]
-    * In NPC placement mode you can open the NPC editor by pressing ENTER
-      on tiles with NPCs (edit them) or without (edit current NPC) [Ralph]
+    * Most of Custom (except the map editor) now has at least partial
+      mouse support. Also, experimental in-game mouse support (can be
+      activated in the F8 debug menu) [James, Ralph]
+    * (For now) made gfx_sdl the default backend for Custom on Windows, so
+      that you can resize the window! Try it in the map or slice editors!
+      Almost all editors can now run at higher resolutions [Ralph, James]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
@@ -228,7 +249,8 @@ WHAT IS NEW?
     * Support latest FreeBASIC version, by adding OPENFILE layer [Ralph]
     * Cross-compiling support using "scons target=..." [Ralph]
     * After 12 years of cleanup, the source is now free of GOSUBs!
-      [James, Mike, Ralph, Matthias Meike]
+      [James, Mike, Ralph, Matthias]
+    * FreeBSD support [Ralph]
 
 June 06 2016 [Callipygous+1]
 
