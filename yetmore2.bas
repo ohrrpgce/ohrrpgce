@@ -1867,6 +1867,9 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
 END SUB
 
 SUB live_preview_menu ()
+ DIM holdscreen as integer
+ holdscreen = duplicatepage(vpage)
+
  DIM st1 as MenuState
  st1.active = YES
  
@@ -1884,7 +1887,6 @@ SUB live_preview_menu ()
  DO
   setwait 55
   setkeys
-  control
   IF running_as_slave THEN try_to_reload_lumps_onmap
 
   IF keyval(scEsc) > 1 THEN EXIT DO
@@ -1895,9 +1897,9 @@ SUB live_preview_menu ()
   usemenu st1
   SELECT CASE menu1.items[st1.pt]->extra(0)
    CASE 1  '--exit
-    IF carray(ccUse) > 1 THEN EXIT DO
+    IF enter_space_click(st1) THEN EXIT DO
    CASE 2  '--reload map
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      'delete everything
      deletemapstate gam.map.id, -1, "map"
      prepare_map NO, YES
@@ -1919,42 +1921,42 @@ SUB live_preview_menu ()
    CASE 17  '--script reload mode
     st1.need_update OR= intgrabber(lump_reloading.hsp.mode, 0, 1)
    CASE 100  '--force gmap reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      'User asked to reload general map data, not tilemaps, so don't load tilesets
      reloadmap_gmap_no_tilesets
     END IF
    CASE 101  '--force tile reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_tilemap_and_tilesets NO
     END IF
    CASE 102  '--force wallmap reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_passmap NO
     END IF
    CASE 103  '--force foemap reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_foemap
     END IF
    CASE 104  '--force zonemap reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_zonemap
     END IF
    CASE 105  '--force npcl reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_npcl NO
     END IF
    CASE 106  '--force npcd reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reloadmap_npcd
     END IF
    CASE 110  '--force scripts reload
-    IF carray(ccUse) > 1 THEN
+    IF enter_space_click(st1) THEN
      reload_scripts
     END IF
   END SELECT
 
   'Draw screen
-  displayall
+  copypage holdscreen, vpage
   draw_menu menu1, st1, vpage
   IF LEN(tooltips(st1.pt)) THEN
    basic_textbox tooltips(st1.pt), , vpage, pBottom - 2, , YES
@@ -1964,4 +1966,5 @@ SUB live_preview_menu ()
  LOOP
  setkeys
  restore_previous_palette
+ freepage holdscreen
 END SUB
