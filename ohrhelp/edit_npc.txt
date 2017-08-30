@@ -9,15 +9,49 @@ Palette: This is the 16-color palette used for the picture. "default" is the pal
 
 Movement:
 
+---------------
 Move Type: This determines how the NPC will move around the map. If this NPC is not supposed to move, choose "Stand Still".
 
+* "Stand Still": Just stands there.
+
+* "Walk In Place": Same as "Stand Stand", but the NPC plays the walking animation as it stands.
+
+* "Left/Right Turns": the NPC moves in a straight line until it hits an obstacle, and then it turns left or right. If it can't move anywhere at all, it'll spin in place.
+
+* "Random Turns": As above, but the NPC randomly turns either left or right.
+
+* "Pace": the NPC moves in a straight line until it hits an obstacle, then it bounces and goes back the way it came.
+Remember that you can control which direction an NPC is facing by pressing CTRL+Left/Right/Up/Down.
+
+* The different "Chase You" and "Avoid You" options attempt to move towards/away from the player in various ways. They will all work correctly on wrapping maps.
+
+* "Chase You/Avoid You (Direct)" move directly towards/away from the player, don't make any random decisions, and stay still when stuck behind an obstacle. These NPCs easily get stuck.
+
+* "Chase You/Avoid You (Meandering)" are like the "Direct" versions, except that when two directions are equally good they choose randomly.
+
+* "Chase You (Pathfinding)" finds the shortest path to the hero, moving around any obstacle. If the map is a very large maze then pathfinding may fail to find the path. If no path can be found, the NPC will instead move to the nearest tile to the hero which it can reach. The path is recomputed every step.
+Pathing NPCs respect zone restrictions.
+NOTE: In future engine versions, pathfinding may make decisions slightly differently! Don't rely on it being completely reliable and deterministic.
+When this option is selected, the "Pathfinding rule" option appears:
+- "NPCs Obstruct" should normally be used. It causes other NPCs to be treated as solid walls, and assumes they won't move. Note that the NPC might dither back and forth beween going in two opposite directions if the shortest path changes due to the movement of other NPCs blocking bottlenecks.
+- "Ignore NPCs" means that if the NPC bumps into another NPC, it'll stop and wait for that NPC instead of moving around it. It'll remain stuck, like "Chase You (Direct)"! You may want to use this if you have a large crowd of chasing NPCs, so that the ones at the back follow those at the front instead of trying to find an alternative route.
+- The "Default" value is set in the General Map Data submenu.
+
+* "Follow walls (Left/Right)": This is the method for finding your way out of a maze by following a wall with your left/right hand.  Heroes and other NPCs are treated as walls (they're walked around, or bounced off of if they block a passage).
+
+* "Follow walls (Left/Right) stop for others": As above, but if stops and waits if an NPC/hero blocks a passage. You can use this to make NPCs follow paths by giving them a movement zone which traces out the path.
+
+---------------
+
 Move Speed: This is the speed that the NPC will move. 1 is very slow. 4 is the heroes' default speed. 10 is fast. Notice that you can't just put in any number you want? That is because move speed needs to be evenly divisible into the tile size, which is 20x20 pixels.
+NOTE: If the speed is zero, the NPC can't move. This is a very common mistake!
 
 Movement Zone: this restricts this NPC to only move onto tiles that are in a certain zone.
 
 Avoidance Zone: the NPC treats tiles in this zone as walls. This overrides the movement zone.
 
 Ignore Passmap: turning this on makes the NPC walk through walls placed on the wallmap, but it is still blocked by zones, other NPCs, the player, and the map edge (on non-wrapping maps). (You can use the "set NPC ignores walls" and "set NPC obstructs" script commands to make the NPC move through these obstacles). This might be useful for flying NPCs. Use zones to contain the NPC instead.
+Note that walls are still considered for the "Follow Walls" Movetype.
 
 Pushability: Here you can choose whether or not it is possible for the player to push the NPC. This is useful for barrier boxes, or for annoying townspeople who get in the players way. Be aware that pushable NPCs won't work unless you give them a "Move Speed" higher than zero.
 
