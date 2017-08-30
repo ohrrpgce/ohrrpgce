@@ -1883,6 +1883,7 @@ SUB live_preview_menu ()
  REDIM tooltips() as string
 
  ensure_normal_palette
+ force_use_mouse += 1
  setkeys
  DO
   setwait 55
@@ -1966,5 +1967,6 @@ SUB live_preview_menu ()
  LOOP
  setkeys
  restore_previous_palette
+ force_use_mouse -= 1
  freepage holdscreen
 END SUB

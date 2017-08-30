@@ -26,6 +26,10 @@ DEFINE_VECTOR_OF_CLASS(BasicMenuItem, BasicMenuItem)
 DEFINE_VECTOR_OF_CLASS(SimpleMenuItem, SimpleMenuItem)
 DEFINE_VECTOR_OF_CLASS(MenuDefItem, MenuDefItem)
 
+' If > 0, enable mouse controls of menus even if running a game that has disabled that.
+' This can be incremented while we are inside a debug/engine menu (to allow nesting).
+DIM force_use_mouse as integer = 0
+
 
 '==========================================================================================
 '                                 Generic MenuState Stuff
@@ -142,7 +146,7 @@ END FUNCTION
 FUNCTION mouse_update_hover (state as MenuState) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
- use_mouse = get_gen_bool("/mouse/mouse_menus")
+ use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse ANDALSO readmouse.active THEN
   state.hover = find_menu_item_at_point(state, readmouse.x, readmouse.y)

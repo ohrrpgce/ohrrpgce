@@ -90,6 +90,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
  DIM col as integer
 
  '---MAIN LOOP---
+ force_use_mouse += 1
  setkeys
  DO
   setwait 55
@@ -146,6 +147,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   setvispage vpage
   dowait
  LOOP
+ force_use_mouse -= 1
  IF remem_pt <> -2 THEN
   IF state.pt = -1 THEN
    remem_pt = -1
@@ -237,6 +239,7 @@ SUB edit_mouse_options ()
  DIM t as integer
  DIM do_toggle as bool = NO
 
+ force_use_mouse += 1
  setkeys YES
  DO
   setwait 55
@@ -337,6 +340,7 @@ SUB edit_mouse_options ()
   
   dowait
  LOOP
+ force_use_mouse -= 1
 
  #IFNDEF IS_GAME
   ' Don't write changes, in case we're live-previewing or playing an .rpgdir

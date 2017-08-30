@@ -2405,6 +2405,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
 
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  showmousecursor
+ force_use_mouse += 1
 
  ensure_normal_palette
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
@@ -2457,6 +2458,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  setkeys
  restore_previous_palette
  setcursorvisibility(prev_mouse_vis)
+ force_use_mouse -= 1
  copypage holdscreen, vpage
  freepage holdscreen
  ClearMenuData menu
@@ -4910,7 +4912,7 @@ END SUB
 FUNCTION menu_click (state as MenuState) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
- use_mouse = get_gen_bool("/mouse/mouse_menus")
+ use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
   IF readmouse().release AND mouseleft THEN
@@ -4935,7 +4937,7 @@ END FUNCTION
 FUNCTION menu_click_outside(m as MenuDef) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
- use_mouse = get_gen_bool("/mouse/mouse_menus")
+ use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
   IF readmouse().release AND mouseLeft THEN

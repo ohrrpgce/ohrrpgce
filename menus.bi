@@ -8,8 +8,6 @@
 
 #include "udts.bi"
 
-'*** Requires construction (with ClearMenuData or LoadMenuData) ***
-
 '' Generic MenuState Stuff
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
@@ -116,5 +114,9 @@ TYPE ModularMenu EXTENDS Object
 END TYPE
 
 DECLARE FUNCTION generic_add_new (what as string, maxindex as integer, getname as FUNCTION(idx as integer) as string, helpkey as string = "") as integer
+
+
+'' Global variables
+EXTERN force_use_mouse as integer
 
 #endif

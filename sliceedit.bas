@@ -417,6 +417,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  showmousecursor
+ force_use_mouse += 1
  #IFDEF IS_GAME
   DIM resolution_was_unlocked as bool = resolution_unlocked()
   unlock_resolution gen(genResolutionX), gen(genResolutionY)
@@ -703,6 +704,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  restore_previous_palette
  setkeys
  setcursorvisibility(prev_mouse_vis)
+ force_use_mouse -= 1
  #IFDEF IS_GAME
   'Make sure not to lock resolution when leaving recursive slice_editor() call
   IF resolution_was_unlocked = NO THEN
