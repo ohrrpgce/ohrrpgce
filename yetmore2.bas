@@ -1020,7 +1020,7 @@ PRIVATE SUB npc_debug_display_tooltip ()
  END IF
 END SUB
 
-SUB npc_debug_display ()
+SUB npc_debug_display (draw_walls as bool)
  DIM temp as string
  FOR i as integer = 0 TO 299
   WITH npc(i)
@@ -1028,19 +1028,23 @@ SUB npc_debug_display ()
     DIM where as XYPair
     ' Use a margin of 20 pixels, for one extra tile
     IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5), 20) THEN
-     ' Draw tile edges which the NPC can't pass
-     ' Don't bother to draw obstruction for disabled NPCs
-     IF .id > 0 THEN
-      FOR yoff as integer = -1 TO 1
-       FOR xoff as integer = -1 TO 1
-        DIM tile as XYPair = npc(i).pos / 20 + XY(xoff, yoff)
-        IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
-        IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
-        IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
-        IF npc_collision_check_at(npc(i), tile, dirWest)  THEN drawants_for_tile tile, dirWest
-       NEXT xoff
-      NEXT yoff
+     IF draw_walls THEN
+      ' Draw the neighbouring obstructions for each NPC.
+      ' Draw tile edges which the NPC can't pass
+      ' Don't bother to draw obstruction for disabled NPCs
+      IF .id > 0 THEN
+       FOR yoff as integer = -1 TO 1
+        FOR xoff as integer = -1 TO 1
+         DIM tile as XYPair = npc(i).pos / 20 + XY(xoff, yoff)
+         IF npc_collision_check_at(npc(i), tile, dirNorth) THEN drawants_for_tile tile, dirNorth
+         IF npc_collision_check_at(npc(i), tile, dirEast)  THEN drawants_for_tile tile, dirEast
+         IF npc_collision_check_at(npc(i), tile, dirSouth) THEN drawants_for_tile tile, dirSouth
+         IF npc_collision_check_at(npc(i), tile, dirWest)  THEN drawants_for_tile tile, dirWest
+        NEXT xoff
+       NEXT yoff
+      END IF
      END IF
+
      ' Draw the NPC ID and reference number
      textcolor IIF(.id < 0, uilook(uiSelectedDisabled), uilook(uiText)), 0
      'the numbers can overlap quite badly, try to squeeze them in

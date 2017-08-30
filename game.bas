@@ -693,7 +693,7 @@ txt.id = -1
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
 gam.debug_showtags = 0
-gam.debug_npc_info = NO
+gam.debug_npc_info = 0
 gam.debug_textbox_info = NO
 gam.walk_through_walls = NO
 
@@ -1145,7 +1145,7 @@ SUB displayall()
   gam.showtext_ticks -= 1
   wrapprint gam.showtext, pCentered, pBottom - 10, uilook(uiText), dpage
  END IF
- IF gam.debug_npc_info THEN npc_debug_display
+ IF gam.debug_npc_info > 0 THEN npc_debug_display(gam.debug_npc_info = 2)
  IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay
  IF scrwatch THEN scriptwatcher scrwatch, -1
@@ -4174,8 +4174,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
 
  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
- DIM showhide as string = IIF(gam.debug_npc_info, "Hide", "Show")
- IF dbg.def(      , scF6, showhide & " NPC info overlay (F6)") THEN gam.debug_npc_info XOR= YES
+ IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN gam.debug_npc_info = (gam.debug_npc_info + 1) MOD 3
 
  IF dbg.def(      , scF7, "Move the camera (F7)") THEN
   IF gam.debug_camera_pan THEN

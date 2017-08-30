@@ -68,8 +68,8 @@ WHAT IS NEW?
     * New or improved debug keys:
      * F1 text box debug info (only when a text box is displayed) [Ralph]
      * F4 tag debug mode sane controls and display improvements [Ralph]
-     * When displaying NPC debug info with F6, NPC collision information
-       is displayed [James]
+     * Press F6 twice to display NPC debug info with additional NPC
+       collision information [James]
      * Also, in F6 NPC debug mode you can view NPC info by mousing-over
        an NPC [Ralph]
      * Re-added F7 debug key to pan the camera (we used to have a similar
