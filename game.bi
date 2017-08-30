@@ -31,6 +31,7 @@ declare function dotimerbattle() as integer
 declare function add_menu (byval record as integer, byval allow_duplicate as bool=NO) as integer
 declare sub remove_menu (byval slot as integer, byval run_on_close as bool=YES)
 declare sub bring_menu_forward (byval slot as integer)
+declare function normal_controls_disabled () as bool
 declare function menus_allow_gameplay () as bool
 declare function menus_allow_player () as bool
 declare sub player_menu_keys ()

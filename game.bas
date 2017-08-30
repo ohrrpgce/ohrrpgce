@@ -803,7 +803,8 @@ DO
  dotimer(TIMER_NORMAL)
 
  'DEBUG debug "keyboard handling"
- IF txt.showing = NO AND gam.need_fade_in = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vstate.active = NO THEN
+ 'NOTE: while on a vehicle, menu and use keys are handled in update_vehicle_state()
+ IF normal_controls_disabled() = NO AND vstate.active = NO THEN
   'Menu key is enabled (provided you're stationary)
   update_hero_pathfinding_menu_queue()
   IF (user_triggered_main_menu() ORELSE gam.hero_pathing.queued_menu) AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
@@ -819,9 +820,7 @@ DO
   'Edge case: don't allow a queued menu to be delayed indefinitely
   gam.hero_pathing.queued_menu = NO
  END IF
- IF txt.showing = NO AND gam.need_fade_in = NO AND gam.debug_camera_pan = NO _
-    AND readbit(gen(), genSuspendBits, suspendplayer) = 0 AND vehicle_is_animating() = NO _
-    AND menus_allow_player() THEN
+ IF normal_controls_disabled() = NO AND menus_allow_player() THEN
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse().buttons AND mouseLeft THEN
     cancel_hero_pathfinding()
@@ -834,6 +833,7 @@ DO
     IF carray(ccDown) > 0 THEN herow(0).ygo = -20: (herodir(0)) = 2 : cancel_hero_pathfinding() : EXIT DO
     IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: (herodir(0)) = 3  : cancel_hero_pathfinding() : EXIT DO
     IF carray(ccRight) > 0 THEN herow(0).xgo = -20: (herodir(0)) = 1: cancel_hero_pathfinding() : EXIT DO
+    'While on a vehicle, menu and use keys are handled in update_vehicle_state()
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
      cancel_hero_pathfinding()
      usenpc 0, find_useable_npc()
@@ -2628,6 +2628,12 @@ SUB bring_menu_forward (byval slot as integer)
  NEXT i
  mstates(topmenu).active = YES
 END SUB
+
+'Checks all conditions that cause all of the menu, movement and use keys to be disabled while on a map.
+FUNCTION normal_controls_disabled () as bool
+ RETURN txt.showing ORELSE gam.need_fade_in ORELSE gam.debug_camera_pan _
+        ORELSE readbit(gen(), genSuspendBits, suspendplayer) ORELSE vehicle_is_animating()
+END FUNCTION
 
 FUNCTION menus_allow_gameplay () as bool
  IF topmenu < 0 THEN RETURN YES
@@ -4799,6 +4805,7 @@ SUB heromove_walk_ahead(byval rank as integer)
  IF herodir(rank) = 1 THEN herow(rank).xgo = -20
 END SUB
 
+'This function assumes the menu is not disabled for any reason
 FUNCTION user_triggered_main_menu() as bool
  IF carray(ccMenu) > 1 THEN RETURN YES
  IF get_gen_bool("/mouse/menu_right_click") THEN

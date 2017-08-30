@@ -980,29 +980,29 @@ SUB update_vehicle_state ()
    vstate.trigger_cleanup = YES '--clear (happens next tick, maybe not intentionally)
   END IF
  END IF
- IF vstate.active = YES AND vehicle_is_animating() = NO THEN
-  IF txt.showing = NO AND readbit(gen(), genSuspendBits, suspendplayer) = 0 THEN
-   REDIM button(1) as integer
-   button(0) = vstate.dat.use_button
-   button(1) = vstate.dat.menu_button
-   FOR i as integer = 0 TO 1
-    IF carray(ccUse + i) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-     SELECT CASE button(i)
-      CASE -2
-       '-disabled
-      CASE -1
-       add_menu 0
-       menusound gen(genAcceptSFX)
-      CASE 0
-       '--dismount
-       vehicle_graceful_dismount
-      CASE IS > 0
-       trigger_script button(i), 0, YES, "vehicle button " & i, "", mainFibreGroup
-     END SELECT
-    END IF
-   NEXT i
-  END IF
- END IF'--not animating
+
+ 'Handle Use and Menu keys according to vehicle-specific settings
+ IF vstate.active = YES AND normal_controls_disabled() = NO THEN
+  REDIM button(1) as integer
+  button(0) = vstate.dat.use_button
+  button(1) = vstate.dat.menu_button
+  FOR i as integer = 0 TO 1
+   IF carray(ccUse + i) > 1 AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+    SELECT CASE button(i)
+     CASE -2
+      '-disabled
+     CASE -1
+      add_menu 0
+      menusound gen(genAcceptSFX)
+     CASE 0
+      '--dismount
+      vehicle_graceful_dismount
+     CASE IS > 0
+      trigger_script button(i), 0, YES, "vehicle button " & i, "", mainFibreGroup
+    END SELECT
+   END IF
+  NEXT i
+ END IF
 
  IF vstate.active THEN npc(vstate.npc).z = heroz(0)
 END SUB
