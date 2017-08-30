@@ -28,6 +28,7 @@ F5 Menu for forcing reloading of edited data while running Game using "Test Game
 
 F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
+Press F6 twice to also see dotted lines around each NPC indicating everything that's considered an obstruction. Press three times to disable this mode.
 
 CTRL+F7 Realign hero 0 with the tile grid
 
@@ -56,6 +57,8 @@ CTRL + slows down and CTRL - speeds up the frame rate (adjusts milliseconds per 
 Holding down SHIFT+TAB increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
 
 Toggle window resizability: Turning this on makes the window resizable by dragging the edges. Select again to disable. NOTE: This doesn't work if using gfx_directx (the default on Windows).
+
+Set zoom: These options change the window size without changing the resolution.
 
 List slices to g_debug.txt: Write a textual dump of the whole slice tree to g_debug.txt, next to the .rpg file.
 

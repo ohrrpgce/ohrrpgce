@@ -1199,7 +1199,7 @@ FUNCTION npc_at_pixel(pixelpos as XYPair, byval copynum as integer=0, allow_disa
  'Returns -1 if not found
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
-  IF npc(i).id > 0 OR allow_disabled THEN
+  IF npc(i).id > 0 OR (allow_disabled ANDALSO npc(i).id <> 0) THEN
    DIM size as XYPair = (20, 20)
    DIM diff as XYPair = pixelpos - XY(npc(i).x, npc(i).y + gmap(11))
    IF diff.x >= 0 AND diff.x < size.w THEN

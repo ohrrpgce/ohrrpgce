@@ -993,6 +993,7 @@ END FUNCTION
 
 'Draw tooltip with info about the NPCs under the mouse cursor
 PRIVATE SUB npc_debug_display_tooltip ()
+ IF readmouse.active = NO THEN EXIT SUB
  DIM pos as XYPair = readmouse.pos + XY(mapx, mapy)
  wrapxy pos, 20
 
