@@ -4282,6 +4282,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   gam.showtext_ticks = 60
  END IF
 
+ IF dbg.def( , , "Set zoom to 1x") THEN set_scale_factor 1
+ IF dbg.def( , , "Set zoom to 2x") THEN set_scale_factor 2
+ IF dbg.def( , , "Set zoom to 3x") THEN set_scale_factor 3
+ IF dbg.def( , , "Set zoom to 4x") THEN set_scale_factor 4
+
  IF dbg.def( , , "List slices to g_debug.txt") THEN
   debug "----------------Slice Tree Dump---------------"
   SliceDebugDumpTree SliceTable.Root

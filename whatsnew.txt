@@ -75,7 +75,7 @@ WHAT IS NEW?
      * Re-added F7 debug key to pan the camera (we used to have a similar
        debug key a while ago) [Ralph]
      * Added PAUSE debug key which works while walking around [Ralph]
-     * Option to make the window resizable (in F8 menu) [Ralph]
+     * Options to make the window resizable, or change the zoom [Ralph]
      * Ctrl-F8 (both Game and Custom) to switch graphics backends [Ralph]
     * General bitset "Don't stop music when starting/loading game" [Ralph]
     * Ability to reorder shop items/things [Ralph]
