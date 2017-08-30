@@ -253,6 +253,11 @@ SUB setmapxy
   IF carray(ccDown) > 0 THEN mapy += speed
   IF carray(ccLeft) > 0 THEN mapx -= speed
   IF carray(ccRight) > 0 THEN mapx += speed
+  IF carray(ccMenu) > 0 THEN
+   gam.showtext = "Normal camera restored"
+   gam.showtext_ticks = 45
+   gam.debug_camera_pan = NO
+  END IF
  ELSE
   'Normal camera
   SELECT CASE gen(genCameraMode)

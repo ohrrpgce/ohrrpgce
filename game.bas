@@ -4183,7 +4183,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   ELSE
    gam.showtext = "Press arrow keys to pan the camera, SHIFT to go faster, F7 to stop"
   END IF
-  gam.showtext_ticks = 45
+  gam.showtext_ticks = 4000 \ speedcontrol
   gam.debug_camera_pan XOR= YES
  END IF
 
