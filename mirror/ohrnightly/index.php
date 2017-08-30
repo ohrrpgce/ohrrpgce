@@ -3,7 +3,7 @@
 <title>OHRRPGCE - Archive of Nightly WIP Builds</title>
 </head>
 <body>
-<p><big><b>OHRRPGCE - Archive of Nightly <a href="http://hamsterrepublic.com/ohrrpgce/index.php/What_is_a_WIP_.html">WIP</a> Builds</b></big></p>
+<p><big><b>OHRRPGCE - Archive of Nightly <a href="https://rpg.hamsterrepublic.com/ohrrpgce/What_is_a_WIP%3F">WIP</a> Builds</b></big></p>
 <?php
 
 $folder_icon = '/icons/folder.gif';
