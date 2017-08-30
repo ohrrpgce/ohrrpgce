@@ -1727,6 +1727,10 @@ DIM lineh as integer = lineheight()
 st.last = gen(genMaxTagName)
 IF gam.debug_showtags = 2 THEN
  st.size = small(st.last, get_resolution().h \ lineh - 1)
+ IF st.size <= 6 THEN
+  'Pressing F4 had no visible effect, so quit this debug mode instead
+  gam.debug_showtags = 0
+ END IF
 ELSE
  st.size = 6
 END IF
