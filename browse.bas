@@ -258,12 +258,14 @@ DO
  END IF
 
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
+ DIM title as string
  IF br.special = 7 AND tree(br.mstate.pt).kind = bkSelectable THEN
   'Selected item is an RPG
-  edgeprint shorten_to_left(decode_filename(br.nowdir + tree(br.mstate.pt).filename), 304), 8, 6, uilook(uiText), dpage
+  title = br.nowdir + tree(br.mstate.pt).filename
  ELSE
-  edgeprint decode_filename(br.nowdir), 8, 6, uilook(uiText), dpage
+  title = br.nowdir
  END IF
+ edgeprint shorten_to_left(decode_filename(title), 304), 8, 6, uilook(uiText), dpage
  edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
  edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
  IF br.special = 7 THEN

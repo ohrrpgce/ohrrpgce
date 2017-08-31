@@ -132,6 +132,8 @@ WHAT IS NEW?
     * (For now) made gfx_sdl the default backend for Custom on Windows, so
       that you can resize the window! Try it in the map or slice editors!
       Almost all editors can now run at higher resolutions [Ralph, James]
+    * Image previewing when browsing for an image to import (only when
+      the window is larger than 320x200) [Ralph]
 
   * New Plotscripting Features
     * "menu item at pixel" [Ralph, James]
