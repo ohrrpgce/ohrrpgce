@@ -1472,7 +1472,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     IF .disabled THEN
      col = uilook(uiDisabledItem)
      IF selected THEN col = uilook(uiSelectedDisabled + state.tog)
-    ELSEIF state.hover = i AND state.active AND NOT selected THEN
+    ELSEIF state.hover = elem AND state.active AND NOT selected THEN
      col = uilook(uiMouseHoverItem)
     END IF
     IF .col > 0 ANDALSO NOT selected THEN
