@@ -1837,17 +1837,23 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
  DIM root as Slice Ptr
  root = NewSliceOfType(slRoot)
  WITH *root
-  .Y = 200
-  .Fill = NO
+  .Fill = YES
  END WITH
  DIM outer_box as Slice Ptr
  outer_box = NewSliceOfType(slContainer, root)
  WITH *outer_box
-  .paddingTop = 20
-  .paddingBottom = 20
-  .paddingLeft = 20
-  .paddingRight = 20
-  .Fill = Yes
+  ' .paddingTop = 20
+  ' .paddingBottom = 20
+  ' .paddingLeft = 20
+  ' .paddingRight = 20
+  ' .Fill = YES
+  .Y = 200
+  .AlignHoriz = alignCenter
+  .AlignVert = alignCenter
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignCenter
+  .Width = small(320 - 40, get_resolution().w)
+  .Height = small(200 - 40, get_resolution().h)
  END WITH
  DIM inner_box as Slice Ptr
  inner_box = NewSliceOfType(slRectangle, outer_box)
@@ -1866,7 +1872,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
   ChangeTextSlice text_area, s, , , YES
  END WITH
  DIM animate as Slice Ptr
- animate = root
+ animate = outer_box
 
  '--Preserve whatever screen was already showing as a background
  DIM holdscreen as integer
