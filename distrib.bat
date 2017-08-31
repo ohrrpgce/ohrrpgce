@@ -86,6 +86,8 @@ mkdir tmpdist\support
 support\cp support\wget.exe tmpdist\support
 mkdir tmpdist\data
 support\cp data\*.* tmpdist\data
+mkdir tmpdist\data\defaultgfx
+support\cp data\defaultgfx\*.* tmpdist\data\defaultgfx
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
@@ -126,6 +128,8 @@ support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\data
 support\cp data\*.* tmpdist\data
+mkdir tmpdist\data\defaultgfx
+support\cp data\defaultgfx\*.* tmpdist\data\defaultgfx
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
