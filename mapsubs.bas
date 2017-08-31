@@ -120,7 +120,8 @@ DECLARE SUB link_one_door(st as MapEditState, linknum as integer)
 DECLARE SUB mapedit_linkdoors (st as MapEditState)
 DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, message as string, other_option as string = "") as integer
 DECLARE SUB mapedit_layers (st as MapEditState)
-DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0)
+DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
+
 DECLARE SUB mapedit_copy_layer(st as MapEditState, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
 DECLARE SUB mapedit_insert_new_layer(st as MapEditState, byval where as integer)
@@ -2611,13 +2612,14 @@ SUB mapedit_layers (st as MapEditState)
  DIM resetpt as bool
  DIM col as integer
  DIM tileset as integer
+ DIM layerpreview as Frame ptr
 
  state.top = 0
  state.size = 19
  state.autosize = YES
  state.autosize_ignore_pixels = 26
 
- mapedit_makelayermenu st, menu, state, YES, st.layer
+ mapedit_makelayermenu st, menu, state, YES, st.layer, layerpreview
 
  DO 
   setwait 55
@@ -2750,11 +2752,15 @@ SUB mapedit_layers (st as MapEditState)
 
   IF state.need_update THEN
    state.need_update = NO
-   mapedit_makelayermenu st, menu, state, resetpt, layerno
+   mapedit_makelayermenu st, menu, state, resetpt, layerno, layerpreview
    resetpt = NO
   END IF
 
-  copypage 2, dpage
+  clearpage dpage
+  IF layerpreview THEN
+   'Shift over 6 pixels to avoid the scrollbar if any
+   frame_draw layerpreview, , pRight + showLeft - 6, pTop, , NO, dpage
+  END IF
   standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
 
   DIM liney as integer = vpages(dpage)->h - 10
@@ -2785,6 +2791,7 @@ SUB mapedit_layers (st as MapEditState)
  mapedit_load_tilesets st
  IF layerisenabled(map.gmap(), st.layer) = 0 THEN st.layer = 0
  v_free menu
+ frame_unload @layerpreview
 
 END SUB
 
@@ -2827,7 +2834,7 @@ SUB mapedit_makelayermenu_layer(st as MapEditState, byref menu as LayerMenuItem 
  slot += 1
 END SUB
 
-SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0)
+SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
  DIM remember_selection_type as LayerMenuItemType
  IF menu THEN
   remember_selection_type = menu[state.pt].role
@@ -2906,16 +2913,12 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
   IF state.pt = 0 THEN debugc errBug, "Layer menu resetpt broken"
  END IF
 
- 'Load the background for the menu on vpage 2
+ 'Load the preview of the map layer or its tileset
+ frame_unload @layerpreview
  DIM layerno as integer = menu[state.pt].layernum
  IF layerno > -1 AND menu[state.pt].gmapindex = -1 THEN
   'Layer menu item other than tileset selection. Preview map minimap
-  clearpage 2
-  DIM preview as Frame Ptr
-  preview = createminimap(st.map.tiles(layerno), st.tilesets(layerno))
-  frame_draw preview, NULL, 0, 0, , , 2
-  frame_unload @preview
-  fuzzyrect 0, 0, , , uilook(uiBackground), 2
+  layerpreview = createminimap(st.map.tiles(layerno), st.tilesets(layerno))
 
  ELSE
   'Either preview tileset, or blank background
@@ -2928,13 +2931,11 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
    IF wanttileset = -1 THEN wanttileset = st.map.gmap(0)
   END IF
 
-  IF wanttileset = -1 THEN
-   clearpage 2
-  ELSE
-   loadmxs game + ".til", wanttileset, vpages(2)
-   fuzzyrect 0, 0, , , uilook(uiBackground), 2
+  IF wanttileset > -1 THEN
+   layerpreview = frame_load_mxs(game + ".til", wanttileset)
   END IF
  END IF
+ IF layerpreview THEN fuzzyrect layerpreview, 0, 0, , , uilook(uiBackground)
 END SUB
 
 

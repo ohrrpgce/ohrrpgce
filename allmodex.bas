@@ -360,7 +360,7 @@ private sub modex_init()
 	next
 	'other vpages slots are for temporary pages
 	'They are currently still used in the tileset editor, importbmp, titlescreenbrowse,
-	'mapedit_layers (for the layer/tileset preview), mapedit_linkdoors.
+	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
 
 	clippedframe = NULL
