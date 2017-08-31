@@ -1348,6 +1348,10 @@ FUNCTION createminimap (tiles() as TileMap, tilesets() as TilesetData ptr, pmapp
 
  FOR ty as integer = 0 TO tiles(0).high - 1
   FOR tx as integer = 0 TO tiles(0).wide - 1
+   'Clearing is only necessary if map layer 0 isn't in tiles(), so the maplayer stack may be transparent
+   IF tiles(0).layernum <> 0 THEN
+    frame_clear(composed_tile, uilook(uiBackground))
+   END IF
    draw_layers_at_tile(composed_tile, tiles(), tilesets(), tx, ty, pmapptr)
 
    FOR x as integer = 0 TO zoom - 1
