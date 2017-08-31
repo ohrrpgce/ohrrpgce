@@ -285,7 +285,7 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 			ret = NO
 		end if
 		' Warning: filename will be wrong if OPENFILE wasn't used
-		debug "loadrecord: record " & record & " is " & partially & "off the end of (?)" & get_filename(fh)
+		debuginfo "loadrecord: record " & record & " is " & partially & "off the end of (?)" & get_filename(fh)
 	end if
 	get #fh, , readbuf()
 	for idx = 0 to small(recordsize - 1, ubound(buf))
