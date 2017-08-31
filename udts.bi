@@ -290,10 +290,14 @@ TYPE NPCInst
   not_obstruction as bool 'can walk through npcs+heroes and vice-versa
   suspend_use as bool   'not activatable 
   suspend_ai as bool    'ignore movetype (effectively 'stand still')
+
+  '' The following aren't saved. (Should they be?)
+
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
 
-  stillticks as integer 'counts the number of ticks that an npc has spend holding still
+  stillticks as integer 'counts the number of ticks that an npc has spent holding still
   pathover as PathfinderOverride
+  follow_walls_waiting as bool  '"Follow Walls Stop For Others" only: is stopped for an NPC/hero
 END TYPE
 
 TYPE InventSlot

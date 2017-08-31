@@ -40,7 +40,7 @@ DECLARE FUNCTION hero_should_ignore_walls(byval who as integer) as bool
 DECLARE SUB update_npcs ()
 DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as NPCType) as bool
-DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType)
+DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutCollisionType)
 DECLARE FUNCTION find_useable_npc () as integer
 DECLARE SUB interpret_scripts ()
 DECLARE SUB update_heroes(force_step_check as bool=NO)
@@ -1607,7 +1607,7 @@ SUB update_npcs ()
     END IF
    ELSE
     '--For all NPCs except the active vehicle
-    IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = 0) ORELSE npc(o).pathover.override THEN
+    IF (txt.sayer <> o ANDALSO readbit(gen(), genSuspendBits, suspendnpcs) = 0 ANDALSO npc(o).suspend_ai = NO) ORELSE npc(o).pathover.override THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
      END IF
@@ -1813,6 +1813,20 @@ SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval side as inte
 END SUB
 
 SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, byval side as integer)
+ '.follow_walls_waiting is set if we ran into someone.
+ 'Then we need to wait to move forward a tile before we consider whether to
+ 'turn, because we might have bumped into them while rounding a corner. In that
+ 'case we already turned but haven't moved forward yet.
+ IF npci.follow_walls_waiting THEN
+  'The only reason to do this collision test here is to avoid the NPC
+  'impatiently walking in place while it waits to move.
+  IF NOT npc_collision_check_npcs_and_heroes(npci, npci.dir) THEN
+   npcmove_walk_ahead(npci)
+   npci.follow_walls_waiting = NO
+  END IF
+  EXIT SUB
+ END IF
+
  'side is 1 for right-hand walls and -1 for left-hand walls
  DIM d as integer = npci.dir
  d = walkrotate(d, side)
@@ -1982,12 +1996,14 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    IF collision_type = collideHero THEN
     '--a 0-3 tick delay before pacing enemies bounce off hero
     'James: "This delay feels like something I must have done by mistake in the late 90's"
-    IF npci.frame = 3 THEN
-     npchitwall(npci, npcdata)
+    'Any delay here will break Follow walls stop for others, so disable the delay.
+    'Yuck, maybe we should just remove this.
+    IF npci.frame = 3 ORELSE (npcdata.movetype = 13 OR npcdata.movetype = 14) THEN
+     npchitwall(npci, npcdata, collision_type)
      hit_something = YES
     END IF
    ELSE
-    npchitwall(npci, npcdata)
+    npchitwall(npci, npcdata, collision_type)
     hit_something = YES
    END IF
   END IF
@@ -2011,7 +2027,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
    '--also kill pathfinding override
    cancel_npc_movement_override (npci)
   END IF
-  IF cropmovement(npci.pos, npci.xygo) THEN npchitwall(npci, npcdata)
+  IF cropmovement(npci.pos, npci.xygo) THEN npchitwall(npci, npcdata, collideWall)
  END IF
 
  '--Check touch activation (always happens). I have no idea why this is here!
@@ -2022,6 +2038,12 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  END IF
 
  RETURN didgo
+END FUNCTION
+
+FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as integer) as bool
+ DIM collide_type as WalkaboutCollisionType
+ npc_collision_check(npci, direction, collide_type)
+ RETURN (collide_type = collideNPC ORELSE collide_type = collideHero)
 END FUNCTION
 
 FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
@@ -2218,8 +2240,8 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
  RETURN NO
 END FUNCTION
 
-SUB npchitwall(npci as NPCInst, npcdata as NPCType)
- IF npci.suspend_ai = 0 THEN
+SUB npchitwall(npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutCollisionType)
+ IF npci.suspend_ai = NO THEN
   IF npci.pathover.override THEN
    'Don't do any of this if normal movement has been temporarily overridden by pathfinding
    EXIT SUB
@@ -2228,6 +2250,11 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType)
   IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
   IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
   IF npcdata.movetype = 5 THEN npci.dir = randint(4)                'Random Turns
+  IF npcdata.movetype = 13 OR npcdata.movetype = 14 THEN  'Follow walls stop for others
+   IF collision_type = collideNPC OR collision_type = collideHero THEN
+    npci.follow_walls_waiting = YES
+   END IF
+  END IF
  END IF
 END SUB
 
