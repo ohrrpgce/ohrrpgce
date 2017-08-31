@@ -51,6 +51,7 @@ End Type
 DECLARE SUB append_tree_record(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB draw_browse_meter(br as BrowseMenuState)
+DECLARE SUB browse_calc_menusize(byref br as BrowseMenuState)
 DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
@@ -137,7 +138,7 @@ ELSE
  startfile = trimpath(default)
 END IF
 
-IF br.special = 7 THEN br.mstate.size = 16 ELSE br.mstate.size = 17
+browse_calc_menusize br
 
 br.mstate.pt = 0
 br.mstate.top = 0
@@ -167,6 +168,8 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
+ browse_calc_menusize br
+
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
  IF usemenu(br.mstate) THEN br.mstate.need_update = YES
@@ -269,8 +272,8 @@ DO
  edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
  edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
-  rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
-  edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, 190, uilook(uiMenuItem), dpage
+  rectangle 0, pBottom, 320, 10, uilook(uiDisabledItem), dpage
+  edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
  textcolor uilook(uiText), 0
@@ -283,8 +286,6 @@ DO
   .has_been_drawn = YES
   .rect.x = 10
   .rect.y = 20
-  .rect.wide = get_resolution().w
-  .rect.high = get_resolution().h
  END WITH
  FOR i as integer = br.mstate.top TO small(br.mstate.top + br.mstate.size, br.mstate.last)
   DIM fgcol as integer = catfg(tree(i).kind)
@@ -324,6 +325,13 @@ clearkey(scESC)
 RETURN ret
 
 END FUNCTION
+
+SUB browse_calc_menusize(byref br as BrowseMenuState)
+  br.mstate.rect.wide = get_resolution().w
+  br.mstate.rect.high = get_resolution().h
+  DIM margin as integer = 37 + IIF(br.special = 7, 10, 0)
+  br.mstate.size = (get_resolution().h - margin) \ 9 - 1
+END SUB
 
 ' Set br.alert according to the selected browser entry, and preview audio
 SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
