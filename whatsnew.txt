@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-???? ?? 2017 [Dwimmercrafty]
+August 31 2017 [Dwimmercrafty]
 
   Highlights:
     * NPC pathfinding, and other new NPC movetypes including follow-walls
