@@ -157,8 +157,24 @@
 			</head>
 			<body>
 				<h1>Plotscripting Dictionary</h1>
-				<p>This is a listing of all the plotscripting commands implemented as of <xsl:value-of select="@lastmodified" />. If you're reading this on the  <a href="http://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a> rather than an HTML file included in a download, then this documents the latest nightly version, not the last stable release!</p>
-				<p>In addition to reading this document, we also recommend you check out the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a> and the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a> article on the wiki.</p>
+				<xsl:if test="@version = 'wip'">
+					<h2>For the current OHRRPGCE work-in-progress version</h2>
+				</xsl:if>
+				<xsl:if test="not(@version = 'wip')">
+					<h2>For OHRRPGCE version <xsl:value-of select="@version" /></h2>
+				</xsl:if>
+
+				<p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
+				In addition to reading this document, we also recommend you check out the
+				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
+				and the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a>
+				article on the wiki.</p>
+				<p>
+				If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
+				then make sure you're looking at the page for the correct stable release or latest
+				nightly version.
+				This documentation is also included as an HTML file with downloads of the engine.
+				</p>
 				<hr/>
 				<h2>Commands by Category</h2>
 				<p>
