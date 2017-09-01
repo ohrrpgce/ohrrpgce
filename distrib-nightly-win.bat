@@ -72,8 +72,8 @@ call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll 
 
 REM Note that this is duplicated in distrib-nightly-linux.sh
 Echo upload plotdict.xml
-pscp -q docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
-pscp -q docs\htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
+pscp -q docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
+pscp -q docs\htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/docs/
 
 del unlump.exe relump.exe
 call scons unlump.exe relump.exe

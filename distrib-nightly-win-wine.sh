@@ -5,7 +5,7 @@ echo "---------------------------------------------------"
 
 SCPHOST="james_paige@motherhamster.org"
 SCPDEST="HamsterRepublic.com/ohrrpgce/nightly"
-SCPDOCS="HamsterRepublic.com/ohrrpgce/docs"
+SCPDOCS="HamsterRepublic.com/ohrrpgce/nightly/docs"
 
 SCONS="C:\Python27\Scripts\scons.bat"
 
