@@ -426,14 +426,6 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
     END WITH
     debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
     screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
-#IFDEF __FB_WIN32__
-    'Kludge: attempt to work around SDL bug causing white borders around the screen on Win7
-    'if the window is created resizable: https://www.slimesalad.com/forum/viewtopic.php?p=130620#130620
-    'It appears Windows changes the window size slightly and SDL fails to notice.
-    IF screensurface THEN
-       screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
-    END IF
-#ENDIF
     IF screensurface = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
       IF zoom > 1 ANDALSO strstr(SDL_GetError(), "No video mode large enough") THEN
