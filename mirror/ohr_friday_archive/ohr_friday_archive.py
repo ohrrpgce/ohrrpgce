@@ -28,6 +28,9 @@ for filename in os.listdir(nightlies):
     if filename in [".", "..", ".htaccess", "CONFUSED?.html", "ohrrpgce-wip-default.zip"]:
         # skip stuff that we don't want to archive
         continue
+    if os.path.isdir(filename):
+        # skip subdirectories like docs/
+        continue
     srcfile = os.path.join(nightlies, filename)
     shutil.copy2(srcfile, destdir)
 htaccess = os.path.join(destdir, ".htaccess")
