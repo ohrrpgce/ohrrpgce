@@ -16,5 +16,3 @@ scp -p distrib/ohrrpgce-player-linux-bin-minimal-${TODAY}-${CODE}-*.zip "${SCPDE
 DEBTODAY=`date "+%Y.%m.%d"`
 SVNREV=`svn info | grep "^Revision:" | sed -e "s/Revision: //"`
 scp -p distrib/*_${DEBTODAY}.${CODE}-${SVNREV}_amd64.deb "${SCPDEST}"/archive/debian/
-
-scp -p whatsnew.txt "${SCPDEST}"/
