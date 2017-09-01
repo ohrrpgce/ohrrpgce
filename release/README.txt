@@ -9,3 +9,5 @@ programs are installed and in some cases where they are located.
 
 These scripts are only intended to be run on release branches
 checked out from subversion.
+
+See also https://rpg.hamsterrepublic.com/ohrrpgce/How_to_make_a_release
