@@ -4,7 +4,7 @@ SCRIPTDIR="${0%/*}"
 cd "${SCRIPTDIR}"
 cd ..
 
-OHR_SKIP_X86="Yes" ./distrib-nightly-linux.sh
+OHR_SKIP_X86="Yes" ./distrib-linux.sh
 
 SCPDEST="james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce"
 
