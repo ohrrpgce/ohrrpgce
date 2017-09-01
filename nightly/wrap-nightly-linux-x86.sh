@@ -10,7 +10,7 @@ if [ -n "True" ] ; then
   echo "Subject: OHRRPGCE Linux nightly build ($(uname -n))"
   echo ""
   export OHR_SKIP_X86_64="Yes"
-  ./distrib-nightly.sh 2>&1
+  ./distrib-nightly-linux.sh 2>&1
 fi | tee ~/wrap-nightly-linux-output.txt
 /usr/sbin/sendmail < ~/wrap-nightly-linux-output.txt
 

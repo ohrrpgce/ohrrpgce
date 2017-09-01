@@ -104,4 +104,4 @@ done
 echo "Uploading IMPORTANT-nightly.txt..."
 scp -p IMPORTANT-nightly.txt $UPLOAD_DEST/ohrrpgce/nightly/
 
-echo "distrib-nightly.sh is done."
+echo "distrib-nightly-linux.sh is done."
