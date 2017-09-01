@@ -14,7 +14,9 @@ Move Type: This determines how the NPC will move around the map. If this NPC is 
 
 * "Stand Still": Just stands there.
 
-* "Walk In Place": Same as "Stand Stand", but the NPC plays the walking animation as it stands.
+* "Wander": Randomly take steps or stand still. Doesn't make any large movements.
+
+* "Walk In Place": Same as "Stand Still", but the NPC plays the walking animation as it stands.
 
 * "Left/Right Turns": the NPC moves in a straight line until it hits an obstacle, and then it turns left or right. If it can't move anywhere at all, it'll spin in place.
 
