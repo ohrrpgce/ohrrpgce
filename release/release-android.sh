@@ -10,6 +10,7 @@ fi
 SCRIPTDIR="${0%/*}"
 cd "${SCRIPTDIR}"
 cd ..
+RELDIR="$(pwd)"
 
 CODENAME=$(grep -v "^#" codename.txt | head -1)
 if [ "${CODENAME}" = "wip" ] ; then
@@ -17,19 +18,18 @@ if [ "${CODENAME}" = "wip" ] ; then
   exit 1
 fi
 
-exit 1
-
 # First update the symlink
-pushd "${SDLANDROID}"/project/jni/application/
-mv ohrrpgce ohrrpgce.orig_link
-ln -s ../../../../ohr/rel/"{$CODENAME}"/android ohrrpgce
-popd
+echo "Update ohrrpgce sdl-android symlink for ${CODENAME} release..."
+cd "${SDLANDROID}"/project/jni/application/
+rm ohrrpgce
+ln -s ../../../../ohr/rel/"${CODENAME}"/android ohrrpgce
+cd "${RELDIR}"
 
 # Now build the apk
 ./distrib-nightly-android.sh -noupload
 
 # Try to upload the result
-pushd "${SDLANDROID}"
+cd "${SDLANDROID}"
 if [ -f project/bin/MainActivity-debug.apk ] ; then
   TODAY=$(date "+%Y-%m-%d")
   scp -pr project/bin/MainActivity-debug.apk "${SCPDEST}"/archive/ohrrpgce-game-android-debug-"${TODAY}"-"${CODENAME}".apk
@@ -38,6 +38,7 @@ else
 fi
 
 # Restore the wip symlink
+echo "Restore ohrrpgce sdl-android symlink for wip"
 cd project/jni/application
 rm ohrrpgce
-mv ohrrpgce.orig_link ohrrpgce
+ln -s ../../../../ohr/wip/android ohrrpgce
