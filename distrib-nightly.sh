@@ -66,8 +66,8 @@ svn cleanup
 svn update
 
 # Compile and create .bz2 and .deb files
-echo "Calling distrib.sh..."
-./distrib.sh
+echo "Calling distrib-linux.sh..."
+./distrib-linux.sh
 
 echo "Uploading 32-bit linux binaries..."
 mv distrib/ohrrpgce-linux-*-wip-x86.tar.bz2 distrib/ohrrpgce-linux-wip-x86.tar.bz2 &&

@@ -7,7 +7,7 @@ NJOBS=-j6
 
 SCONS_ARGS="debug=0 gengcc=1 portable=1 $NJOBS"
 
-if [ ! -f distrib.sh ] ; then
+if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
   exit 1
 fi
