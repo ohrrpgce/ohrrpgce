@@ -108,6 +108,7 @@ script, run tests 1, begin
   string load tests
   save slot tests
   slice tests
+  maptile tests
   zone tests
   inventory tests
   hero tests
@@ -899,6 +900,36 @@ script, do hero cater tests, who, begin
       w
     )
   )
+
+  # Test one-wall walls
+  set hero position(who, 5, 9)
+  walk hero(who, south, 1)  # normal walk onto a tile with aone-way wall
+  wait for hero(who)
+  assert(hero y(who) == 10)
+  walk hero(who, east, 1)  # walk off, where there is no wall
+  wait for hero(who)
+  assert(hero x(who) == 6)
+  walk hero(who, west, 2)  # walking between tiles with one-way walls in other directions
+  wait for hero(who)
+  assert(hero x(who) == 4)
+  walk hero(who, west, 1)  # attempt to walk through a normal wall while on a oneway wall
+  wait for hero(who)
+  assert(hero x(who) == 4)
+  walk hero(who, north, 1) # walk through one-way wall (allowed)
+  wait for hero(who)
+  assert(hero y(who) == 9)
+  walk hero(who, south, 1) # try to walk disallowed direction
+  wait for hero(who)
+  assert(hero y(who) == 9)
+  walk hero(who, east, 1)
+  wait for hero(who)
+  walk hero(who, south, 2) # walk through one-way wall
+  wait for hero(who)
+  assert(hero y(who) == 11)
+  walk hero(who, north, 1) # try to walk disallowed direction
+  wait for hero(who)
+  assert(hero y(who) == 11)
+
   put hero(who, px, py), w
 end
 
@@ -3688,7 +3719,7 @@ script, zones randomized test, begin
   # We check which zones we expect to see in 64 globals which act as bitvectors,
   # the i-th bit set if that tile should be in zone i.
 
-  showvalue(1)
+  show value(1)
   wait
 
   # Returns true or false. id >= 1
@@ -3733,7 +3764,7 @@ script, zones randomized test, begin
   # Stick to 15 zones in the whole area, so no overflow occurs
   variable(it, id, newvalue)
   for (it, 0, 300) do (
-    showvalue(it)
+    show value(it)
     x := random(0,4)
     y := random(0,5)
     id := random(1,15)
@@ -3743,13 +3774,13 @@ script, zones randomized test, begin
     writearray(id, x, y, newvalue)
     if (it, mod, 5 == 0) then (test area)
   )
-  showvalue(2)
+  show value(2)
   wait
 
   # Now start using more zones, so that overcrowding occurs
   # But don't use more than 15 per tile
   for (it, 0, 5000) do (
-    showvalue(10000+it)
+    show value(10000+it)
     x := random(0,7)
     y := random(0,3)
     id := random(1,31)
@@ -3762,6 +3793,52 @@ script, zones randomized test, begin
   )
   shownovalue
   wait
+end
+
+########################################################################
+
+script, maptile tests, begin
+  $0="maptile tests"
+  # Test some tilemap and passmap commands
+  # (Zones are tested separately in 'zone tests', and wallchecking
+  # in 'do hero cater tests')
+
+  # Read some tiles on the left edge of the house (of map 0)
+  assert(read map block(6, 5, 0) == 112)
+  assert(read map block(6, 4, 0) == 96)
+  assert(read map block(6, 4, 1) == 0)
+  assert(read map block(6, 4, 2) == 58)
+  assert(read pass block(6, 5) == westwall + southwall)
+
+  # Oneway doors
+  assert(read zone(zone:OneWayExit, 4, 10) == 1)
+  assert(read pass block(4, 10) == southwall + northwall)
+  assert(read pass block(5, 10) == southwall)
+
+  # Write tilemap
+  write map block(3, 2, 255, 1)
+  assert(read map block(3, 2, 1) == 255)
+  resetmapstate(mapstate:tilemap)
+  assert(read map block(3, 2, 1) == 0)
+
+  # Write passmap
+  write pass block(3, 2, 255)
+  assert(read pass block(3, 2) == 255)
+  write pass block(3, 2, 0)
+
+  # Test tile animations
+  # An animated tile (water
+  assert(read map block(3, 3, 0) == 192)
+
+  # animation start tile (tile number, layer)
+  assert(animation start tile (192, 0) == 144)
+  # get tile animation offset (animation pattern, layer)
+  # Second animation pattern isn't used, so this should be zero
+  assert(get tile animation offset(1, 0) == 0)
+  assert(currentdisplaytile(208) == 0)  # first tile of the range
+  assert(currentdisplaytile(192) >= 144 && currentdisplaytile(192) <= 147)
+  assert(currentdisplaytile(192) == 144 + get tile animation offset(0, 0))
+  #set tile animation offset (animation pattern, offset, layer) not tested
 end
 
 ########################################################################
@@ -4094,7 +4171,6 @@ end
 #allow minimap (setting)
 #allow save anywhere (setting)
 #value,and,value
-#animation start tile (tile number, layer)
 #append ascii (ID, char)
 #append number (ID, number)
 #ascii from string (ID, position)
@@ -4122,7 +4198,6 @@ end
 #create NPC (ID,X,Y,direction)
 #create rect (width, height, style)
 #create text
-#current display tile (tile number, layer)
 #current map
 #current stat
 #days of play
@@ -4197,7 +4272,6 @@ end
 #get sort order (handle)
 #get text bg(handle)
 #get text color(handle)
-#get tile animation offset (animation pattern, layer)
 #get victory music
 #get wrap(handle)
 #globals to string(ID, starting global, length)
