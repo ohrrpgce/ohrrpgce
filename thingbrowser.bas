@@ -50,6 +50,17 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   end if
   if keyval(scF6) > 1 then slice_editor(root)
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
+  if enter_or_space() then
+   if IsAncestor(ps.cur, grid) then
+    'Selected a thing from the grid
+    result = ps.cur->Extra(0)
+    exit do
+   else
+    'Cancel out of the browser
+    result = start_id
+    exit do
+   end if
+  end if
 
   dim lastcur as slice ptr = ps.cur
   dim moved as bool = NO
@@ -72,9 +83,10 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   DrawSlice root, vpage
   setvispage vpage
   dowait
- LOOP
+ loop
  setkeys
  freepage holdscreen
+ DeleteSlice @(root)
  return result
 End Function
 
