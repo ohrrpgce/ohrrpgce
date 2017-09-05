@@ -126,9 +126,10 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  RETURN result
 END FUNCTION
 
-FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as integer, byval targy as integer) as Slice Ptr
+FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
  REDIM planks(any) as Slice Ptr
- find_all_planks ps, ps.m, planks()
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
 
  DIM best_sl as Slice Ptr = 0
  DIM best as integer = 2000000000
@@ -140,7 +141,7 @@ FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targx as in
   sl = planks(i)
   p.x = sl->ScreenX + sl->Width / 2
   p.y = sl->ScreenY + sl->Height / 2
-  dist = (targx - p.x) ^ 2 + (targy - p.y) ^ 2
+  dist = (targpos.x - p.x) ^ 2 + (targpos.y - p.y) ^ 2
   IF dist < best THEN
    best = dist
    best_sl = sl
@@ -366,7 +367,7 @@ SUB restore_plank_selection (byref ps as PlankState)
  'Attempt to restore selection previously saved by save_plank_selection
  ps.cur = 0
  IF ps.selection_saved = NO THEN EXIT SUB
- ps.cur = find_plank_nearest_screen_pos(ps, ps._saved_pos.x, ps._saved_pos.y)
+ ps.cur = find_plank_nearest_screen_pos(ps, ps._saved_pos)
  ps.selection_saved = NO
 END SUB
 

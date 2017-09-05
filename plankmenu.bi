@@ -55,6 +55,7 @@ DECLARE SUB update_plank_scrolling (byref ps as PlankState)
 DECLARE FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
 DECLARE SUB save_plank_selection (byref ps as PlankState)
 DECLARE SUB restore_plank_selection (byref ps as PlankState)
+DECLARE FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
 
 'Search for a plank with the given ID number in its ->Extra(0) slot
 DECLARE FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval id as integer, byval start_parent as Slice Ptr = 0) as Slice Ptr
