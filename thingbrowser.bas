@@ -32,11 +32,13 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  grid = LookupSlice(SL_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
  build_thing_list()
+ DrawSlice root, vpage
  
  dim ps as PlankState
  ps.m = root
  ps.cur = top_left_plank(ps)
  set_plank_state ps, ps.cur, plankSEL
+ update_plank_scrolling ps
  
  do
   setwait 55
