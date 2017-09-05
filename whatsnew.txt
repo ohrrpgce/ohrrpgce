@@ -7,6 +7,7 @@ Nov/Dec ??? 2017 [Etheldreme]
   * New Features
     * You can now browse for items rather than typing in their ID
       numbers [James]
+    * In the text box condition editor, you can browse for shops [James]
 
   * New Plotscripting Features
 

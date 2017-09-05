@@ -189,3 +189,26 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Function ShopBrowser.init_helpkey() as string
+ return "shop_browser"
+End Function
+
+Function ShopBrowser.highest_id() as integer
+ return gen(genMaxShop)
+End Function
+
+Function ShopBrowser.thing_text_for_id(byval id as integer) as string
+ dim digits as integer = len(str(highest_id()))
+ if id = -1 then
+  return lpad("", " ", digits) & " " & rpad("NO SHOP", " ", 16)
+ end if
+ return lpad(str(id), " ", digits) & " " & rpad(readshopname(id), " ", 16)
+End Function
+
+'-----------------------------------------------------------------------
+
+Function ShopBrowserOrNone.lowest_id() as integer
+ return -1 ' 0 is the lowest item id, but -1 represents "NO ITEM"
+End Function
+
+'-----------------------------------------------------------------------

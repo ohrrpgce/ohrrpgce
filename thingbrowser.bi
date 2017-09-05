@@ -36,4 +36,14 @@ Type ItemBrowserOrNone extends ItemBrowser
  declare virtual function lowest_id() as integer
 End Type
 
+Type ShopBrowser extends ThingBrowser
+ declare virtual function init_helpkey() as string
+ declare virtual function highest_id() as integer
+ declare virtual function thing_text_for_id(byval id as integer) as string
+End Type
+
+Type ShopBrowserOrNone extends ShopBrowser
+ declare virtual function lowest_id() as integer
+End Type
+
 #ENDIF
