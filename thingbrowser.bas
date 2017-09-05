@@ -69,6 +69,8 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   if keyval(scF6) > 1 then slice_editor(root)
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
+  ChangeGridSlice grid, , grid->Width / plank_size.x
+
   copypage holdscreen, vpage
   DrawSlice root, vpage
   setvispage vpage
@@ -94,8 +96,6 @@ Sub ThingBrowser.build_thing_list()
   plank_size.x = large(plank_size.x, plank->Width)
   plank_size.y = large(plank_size.y, plank->Height)
   grid->Height = plank_size.y
-  debug id & " " & grid->Width / plank_size.x
-  ChangeGridSlice grid, , grid->Width / plank_size.x
  next id
 End Sub
 
@@ -128,11 +128,12 @@ Function ItemBrowser.highest_id() as integer
 End Function
 
 Function ItemBrowser.create_thing_plank(byval id as integer) as Slice Ptr
+ dim digits as integer = len(str(highest_id()))
  dim plank as Slice ptr
  plank = NewSliceOfType(slContainer)
- plank->size = XY(90, 10)
+ plank->size = XY((10 + digits) * 8, 10)
  dim txt as Slice ptr
  txt = NewSliceOfType(slText, plank)
- ChangeTextSlice txt, id & " " & readitemname(id), uilook(uiMenuItem), YES
+ ChangeTextSlice txt, lpad(str(id), " ", digits) & " " & readitemname(id), uilook(uiMenuItem), YES
  return plank
 End Function
