@@ -68,6 +68,9 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    'Only if no movement happened in the grid do we consider outside the grid
    moved = YES
   end if
+  IF plank_menu_mouse_wheel(ps) then
+   moved = YES
+  END IF
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
    moved = ps.cur <> hover

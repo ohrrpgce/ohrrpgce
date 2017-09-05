@@ -43,6 +43,8 @@ DECLARE SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byva
 
 'plank_menu_arrows handles arrow key movement, and updates PlankState.cur and returns true .cur has changed, so you can update the visuals
 DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+'Handles mouse wheel scrolling, updates PlankState.cur, and returns true if changed
+DECLARE FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
 
 'This expands the insert codes in the slice collection,using an optional callback for special ones
 DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0)

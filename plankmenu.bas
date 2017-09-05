@@ -126,6 +126,18 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  RETURN result
 END FUNCTION
 
+FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+ DIM result as bool = NO
+ IF start_parent = 0 THEN start_parent = ps.m
+ DIM move_lines as integer
+ move_lines = readmouse.wheel_clicks * 3
+ DO WHILE move_lines <> 0
+  IF plank_menu_move_cursor(ps, 1, SGN(move_lines), start_parent) THEN result = YES
+  move_lines = move_lines - SGN(move_lines)
+ LOOP
+ RETURN result
+END FUNCTION
+
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
  'Given a target screen pos, find the closest plank, even if it does not overlap the target pos
  REDIM planks(any) as Slice Ptr
