@@ -14,6 +14,7 @@
 #include "loading.bi"
 #include "scrconst.bi"
 #include "custom.bi"
+#include "thingbrowser.bi"
 
 '--Local subs and functions
 DECLARE FUNCTION textbox_condition_caption(tag as integer, prefix as string = "") as string
@@ -405,6 +406,22 @@ SUB textbox_conditionals(byref box as TextBox)
      intgrabber num, 0, maxDoorsPerMap
     CASE condITEM
      xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
+     IF enter_space_click(state) THEN
+      DIM itemb as ItemBrowserOrNone
+      DIM orig_num as integer = num
+      DIM add_or_del as integer = SGN(num)
+      num = itemb.browse(abs(num) - 1) + 1
+      IF num > 0 THEN
+       DIM add_or_del_choices(1) as string = {"Add " & readitemname(num - 1), "Remove " & readitemname(num - 1)} 
+       SELECT CASE multichoice("Add or remove item?", add_or_del_choices(), IIF(add_or_del = -1, 1, 0), -1)
+        CASE 1
+         num = num * -1
+        CASE -1
+         'Cancel
+         num = orig_num
+       END SELECT
+      END IF
+     END IF
     CASE condBOX
      scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
     CASE condMENU
