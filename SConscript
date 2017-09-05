@@ -806,6 +806,7 @@ shared_modules += ['allmodex',
                    'reloadext',
                    'sliceedit',
                    'slices',
+                   'plankmenu.bas',
                    'thingbrowser']
 
 # (.bas files only) 
@@ -839,7 +840,6 @@ game_modules = ['game',
                 'scripting',
                 'oldhsinterpreter',
                 'purchase.rbas',
-                'plankmenu.bas',
                 'pathfinding.bas']
 
 # The following are built only once and linked into Game and Custom

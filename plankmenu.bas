@@ -1,4 +1,4 @@
-'OHRRPGCE GAME - Plank-Slice based menus
+'OHRRPGCE GAME & CUSTOM - Plank-Slice based menus
 '(C) Copyright 2014 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
@@ -94,10 +94,17 @@ END SUB
 FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
+#IFDEF IS_GAME
  IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1) THEN result = YES
  IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
  IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1) THEN result = YES
  IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+#ELSE
+ IF keyval(scLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1) THEN result = YES
+ IF keyval(scRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
+ IF keyval(scUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1) THEN result = YES
+ IF keyval(scDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+#ENDIF
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1 : result = YES
  IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1 : result = YES
  RETURN result
@@ -273,7 +280,9 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
    IF ch->SliceType = slText THEN
     dat = ch->SliceData
     IF dat->s_orig = "" THEN dat->s_orig = dat->s
+#IFDEF IS_GAME
     ChangeTextSlice ch, embed_text_codes(dat->s_orig, callback, arg0, arg1, arg2)
+#ENDIF
    END IF
    expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   END IF
