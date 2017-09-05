@@ -17,10 +17,33 @@
 '-----------------------------------------------------------------------
 
 Function ThingBrowser.browse(byref start_id as integer=0) as integer
- holdscreen = allocatepage
- copypage vpage, holdscreen
- 
  dim result as integer = start_id
+
+ dim holdscreen as integer = allocatepage
+ copypage vpage, holdscreen
+
+ root = NewSliceOfType(slRoot)
+ with *root
+  .Fill = YES
+  .paddingLeft = 8
+  .paddingRight = 8
+  .paddingTop = 8
+  .paddingBottom = 8
+ end with
+ 
+ dim box as Slice ptr
+ box = NewSliceOfType(slRectangle, root)
+ WITH *box
+  .Fill = YES
+ END WITH
+ ChangeRectangleSlice box, 1
+
+ dim grid as Slice Ptr
+ grid = NewSliceOfType(slGrid, root)
+ WITH *grid
+  .Fill = YES
+  .Lookup = SL_PLANK_HOLDER
+ END WITH
 
  build_thing_list()
  do
@@ -33,7 +56,8 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   end if
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
-  edgeprint "Inside the thingbrowser", 0, 0, uilook(uiText), vpage
+  copypage holdscreen, vpage
+  DrawSlice root, vpage
   setvispage vpage
   dowait
  LOOP
@@ -48,8 +72,19 @@ End Function
 
 
 Sub ThingBrowser.build_thing_list()
- debug "ThingBrowser.build_thing_list()"
+ dim plank as slice ptr
+ for id as integer = lowest_id() to highest_id()
+  'plank = create_thing_plank(id)
+ next id
 End Sub
+
+Function ThingBrowser.lowest_id() as integer
+ return 0
+End Function
+
+Function ThingBrowser.highest_id() as integer
+ return -1
+End Function
 
 '-----------------------------------------------------------------------
 
@@ -57,6 +92,6 @@ Function ItemBrowser.init_helpkey() as string
  return "item_browser"
 End Function
 
-Sub ItemBrowser.build_thing_list()
- debug "ItemBrowser.build_thing_list()"
-End Sub
+Function ItemBrowser.highest_id() as integer
+ return gen(genMaxItem)
+End Function
