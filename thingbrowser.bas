@@ -54,17 +54,6 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   end if
   if keyval(scF6) > 1 then slice_editor(root)
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
-  if enter_or_space() then
-   if IsAncestor(ps.cur, grid) then
-    'Selected a thing from the grid
-    result = ps.cur->Extra(0)
-    exit do
-   else
-    'Cancel out of the browser
-    result = start_id
-    exit do
-   end if
-  end if
 
   'Clear selection indicators
   if ps.cur then set_plank_state ps, ps.cur, plankNORMAL
@@ -79,11 +68,27 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    'Only if no movement happened in the grid do we consider outside the grid
    moved = YES
   end if
+  hover = find_plank_nearest_screen_pos(ps, readmouse.pos)
+  if hover andalso (readmouse.clicks AND mouseLeft) then
+   moved = ps.cur <> hover
+   ps.cur = hover
+  end if
+
   if moved then
    'Yep, a move happened
   end if
-  
-  hover = find_plank_nearest_screen_pos(ps, readmouse.pos)
+
+  if enter_or_space() orelse (readmouse.release AND mouseLeft) then
+   if IsAncestor(ps.cur, grid) then
+    'Selected a thing from the grid
+    result = ps.cur->Extra(0)
+    exit do
+   else
+    'Cancel out of the browser
+    result = start_id
+    exit do
+   end if
+  end if
 
   'Set selection indicators
   if orig_cur then set_plank_state ps, orig_cur, plankSPECIAL
