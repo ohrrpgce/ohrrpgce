@@ -68,17 +68,17 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    'Only if no movement happened in the grid do we consider outside the grid
    moved = YES
   end if
-  hover = find_plank_nearest_screen_pos(ps, readmouse.pos)
+  hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
    moved = ps.cur <> hover
    ps.cur = hover
   end if
 
   if moved then
-   'Yep, a move happened
+   'Yep, a move happened. We would update selection detail display here if that was a thing
   end if
 
-  if enter_or_space() orelse (readmouse.release AND mouseLeft) then
+  if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
     'Selected a thing from the grid
     result = ps.cur->Extra(0)
