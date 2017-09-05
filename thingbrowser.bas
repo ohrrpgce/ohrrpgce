@@ -82,6 +82,7 @@ Sub ThingBrowser.build_thing_list()
   plank = create_thing_plank(id)
   SetSliceParent(plank, grid)
   plank->Lookup = SL_PLANK_HOLDER
+  plank->Extra(0) = id
   plank_size.x = large(plank_size.x, plank->Width)
   plank_size.y = large(plank_size.y, plank->Height)
   grid->Height = plank_size.y
@@ -98,10 +99,16 @@ End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim plank as Slice ptr
- plank = NewSliceOfType(slText)
- plank->Extra(0) = id
- ChangeTextSlice plank, str(id), uilook(uiMenuItem), YES
+ plank = NewSliceOfType(slContainer)
+ dim txt as Slice Ptr
+ txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
+ ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
+ plank->size = txt->size + XY(2, 0) ' Plank is 2 pixels wider than the text
  return plank
+End Function
+
+Function ThingBrowser.thing_text_for_id(byval id as integer) as string
+ return str(id)
 End Function
 
 '-----------------------------------------------------------------------
@@ -114,10 +121,7 @@ Function ItemBrowser.highest_id() as integer
  return gen(genMaxItem)
 End Function
 
-Function ItemBrowser.create_thing_plank(byval id as integer) as Slice Ptr
+Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
- dim plank as Slice ptr
- plank = NewSliceOfType(slText)
- ChangeTextSlice plank, lpad(str(id), " ", digits) & " " & readitemname(id), uilook(uiMenuItem), YES
- return plank
+ return lpad(str(id), " ", digits) & " " & readitemname(id)
 End Function

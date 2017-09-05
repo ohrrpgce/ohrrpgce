@@ -15,13 +15,21 @@ Type ThingBrowser extends Object
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
+ 
+ 'the lookup code SL_PLANK_HOLDER will be automatically applied to whatever slice is returned.
+ 'Any slices with SL_PLANK_MENU_SELECTABLE should be created as children
+ ' The thing id number will automatically be written into the plank's ->Extra(0) slot
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+
+ 'If the plank is purely text based, just override this rather than .create_thing_plank()
+ declare virtual function thing_text_for_id(byval id as integer) as string
+
 End Type
 
 Type ItemBrowser extends ThingBrowser
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
- declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+ declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
 #ENDIF
