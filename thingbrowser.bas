@@ -21,6 +21,8 @@
 
 Function ThingBrowser.browse(byref start_id as integer=0) as integer
  dim result as integer = start_id
+ 
+ helpkey = init_helpkey()
 
  dim holdscreen as integer = allocatepage
  copypage vpage, holdscreen
