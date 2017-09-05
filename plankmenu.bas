@@ -348,7 +348,7 @@ SUB update_plank_scrolling (byref ps as PlankState)
  IF ps.m = 0 THEN debug "update_plank_scrolling: null m slice ptr" : EXIT SUB
 
  DIM scroll as slice ptr = find_plank_scroll(ps.m)
- IF scroll ANDALSO ps.cur THEN
+ IF scroll ANDALSO ps.cur ANDALSO IsAncestor(ps.cur, scroll) THEN
   ScrollToChild scroll, ps.cur
  END IF
 END SUB
