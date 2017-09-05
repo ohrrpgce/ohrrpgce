@@ -56,4 +56,9 @@ DECLARE FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
 DECLARE SUB save_plank_selection (byref ps as PlankState)
 DECLARE SUB restore_plank_selection (byref ps as PlankState)
 
+'Search for a plank with the given ID number in its ->Extra(0) slot
+DECLARE FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval id as integer, byval start_parent as Slice Ptr = 0) as Slice Ptr
+'Same as find_plank_by_extra_id() except also selects it, and updates scrolling, and returns YES if the selection has changed
+DECLARE FUNCTION focus_plank_by_extra_id(byref ps as PlankState, byval id as integer, byval start_parent as Slice Ptr = 0) as bool
+
 #endif

@@ -37,8 +37,8 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  dim ps as PlankState
  ps.m = root
  ps.cur = top_left_plank(ps)
+ focus_plank_by_extra_id ps, start_id, grid
  set_plank_state ps, ps.cur, plankSEL
- update_plank_scrolling ps
  
  do
   setwait 55
@@ -63,12 +63,10 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   if moved then
    set_plank_state ps, lastcur, plankNORMAL
    set_plank_state ps, ps.cur, plankSEL
-   update_plank_scrolling ps
-   dim slot as integer = lowest_id() - 1
-   if ps.cur then slot = ps.cur->Extra(0)
   end if
 
   ChangeGridSlice grid, , grid->Width / plank_size.x
+  update_plank_scrolling ps
 
   copypage holdscreen, vpage
   DrawSlice root, vpage
