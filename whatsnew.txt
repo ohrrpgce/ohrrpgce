@@ -1,5 +1,22 @@
 WHAT IS NEW?
 
+Nov/Dec ??? 2017 [Etheldreme]
+
+  Highlights: (fill this in right before release)
+
+  * New Features
+    * You can now browse for items rather than typing in their ID
+      numbers [James]
+
+  * New Plotscripting Features
+
+  * Changes
+
+  * Bugfixes
+
+  * Stuff Only Developers Will Notice
+
+
 August 31 2017 [Dwimmercrafty]
 
   Highlights:
