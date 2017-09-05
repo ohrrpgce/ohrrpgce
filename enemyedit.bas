@@ -12,6 +12,7 @@
 #include "loading.bi"
 #include "customsubs.bi"
 #include "slices.bi"
+#include "thingbrowser.bi"
 #include "cglobals.bi"
 
 #include "uiconst.bi"
@@ -691,7 +692,18 @@ DO
  END IF
 
  IF enter_space_click(state) THEN
-  SELECT CASE workmenu(state.pt)
+  DIM nowindex as integer = workmenu(state.pt)
+  SELECT CASE menutype(nowindex)
+   CASE 8 ' Item
+    DIM itemb as ItemBrowser
+    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)))
+    state.need_update = YES
+   CASE 10 ' Item with offset
+    DIM itemb as ItemBrowser
+    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)) - 1) + 1
+    state.need_update = YES
+  END SELECT
+  SELECT CASE nowindex
    CASE EnMenuChooseAct
     'The <-Enemy #-> line; enter exits so that if we were called from another menu
     'it is easy to select an enemy and return to it.

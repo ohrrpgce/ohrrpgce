@@ -12,6 +12,7 @@
 #include "const.bi"
 #include "loading.bi"
 #include "custom.bi"
+#include "thingbrowser.bi"
 
 '--Local SUBs
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool
@@ -1305,7 +1306,18 @@ DO
  END IF
 
  IF enter_space_click(state) THEN
-  SELECT CASE workmenu(state.pt)
+  DIM nowindex as integer = workmenu(state.pt)
+  SELECT CASE menutype(nowindex)
+   CASE 8 ' Item
+    DIM itemb as ItemBrowser
+    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)))
+    state.need_update = YES
+   CASE 10 ' Item with offset
+    DIM itemb as ItemBrowser
+    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)) - 1) + 1
+    state.need_update = YES
+  END SELECT
+  SELECT CASE nowindex
    CASE AtkChooseAct
     'The <-Attack #-> line; enter exits so that if we were called from another menu
     'it is easy to select an attack and return to it.

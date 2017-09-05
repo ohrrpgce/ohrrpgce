@@ -805,7 +805,8 @@ shared_modules += ['allmodex',
                    'reload',
                    'reloadext',
                    'sliceedit',
-                   'slices']
+                   'slices',
+                   'thingbrowser']
 
 # (.bas files only) 
 edit_modules = ['custom',
