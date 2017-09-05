@@ -3147,6 +3147,28 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  return NULL
 end function
 
+Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
+ if sl = 0 then debug "SliceIsInvisibleOrClipped: null slice": return YES 'Treating a null slice as invisible is probably safest here
+ 'First check the slice itself
+ if sl->Visible = NO then return YES
+ 'Then check for any invisible parents
+ dim parent as Slice Ptr
+ parent = sl->Parent
+ do while parent
+  if parent->Visible = NO then return YES
+  parent = parent->Parent
+ loop
+ 'Finally check for any parents that are clipping this slice
+ parent = sl->Parent
+ do while parent
+  if parent->Clip then
+   if not SliceCollide(sl, parent) then return YES
+  end if
+  parent = parent->Parent
+ loop
+ return NO
+End Function
+
 Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
  'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
  'to fit sl2 inside sl1 without doing any resizing.
