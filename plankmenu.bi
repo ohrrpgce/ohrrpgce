@@ -56,6 +56,10 @@ DECLARE SUB update_plank_scrolling (byref ps as PlankState)
 DECLARE FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
 DECLARE SUB save_plank_selection (byref ps as PlankState)
 DECLARE SUB restore_plank_selection (byref ps as PlankState)
+
+'Find the best plank at a specific screen location (like a mouse click)
+DECLARE FUNCTION find_plank_at_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
+'Find the closest plank to a screen location, for example when a selected plank vanishes, and you want to make the selection jump to the next closest one
 DECLARE FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
 
 'Search for a plank with the given ID number in its ->Extra(0) slot

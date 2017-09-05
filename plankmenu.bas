@@ -127,18 +127,48 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
 END FUNCTION
 
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
+ 'Given a target screen pos, find the closest plank, even if it does not overlap the target pos
  REDIM planks(any) as Slice Ptr
  IF start_parent = 0 THEN start_parent = ps.m
  find_all_planks ps, start_parent, planks()
 
  DIM best_sl as Slice Ptr = 0
- DIM best as integer = 2000000000
+ DIM best as integer = INT_MAX
  DIM p as XYPair
  DIM dist as integer
  
  DIM sl as Slice Ptr
  FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
+  p.x = sl->ScreenX + sl->Width / 2
+  p.y = sl->ScreenY + sl->Height / 2
+  dist = (targpos.x - p.x) ^ 2 + (targpos.y - p.y) ^ 2
+  IF dist < best THEN
+   best = dist
+   best_sl = sl
+  END IF
+ NEXT i
+ 
+ RETURN best_sl
+END FUNCTION
+
+FUNCTION find_plank_at_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
+ 'Given a target screen pos, find the closest colliding plank that is not invisible.
+ 'If multiple slices collide with the point, return the first one with the closest center-point
+ REDIM planks(any) as Slice Ptr
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
+
+ DIM best_sl as Slice Ptr = 0
+ DIM best as integer = INT_MAX
+ DIM p as XYPair
+ DIM dist as integer
+ 
+ DIM sl as Slice Ptr
+ FOR i as integer = 0 TO UBOUND(planks)
+  sl = planks(i)
+  IF NOT SliceCollidePoint(sl, targpos) THEN CONTINUE FOR
+  IF SliceIsInvisibleOrClipped(sl) THEN CONTINUE FOR
   p.x = sl->ScreenX + sl->Width / 2
   p.y = sl->ScreenY + sl->Height / 2
   dist = (targpos.x - p.x) ^ 2 + (targpos.y - p.y) ^ 2
