@@ -37,8 +37,10 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  dim ps as PlankState
  ps.m = root
  ps.cur = top_left_plank(ps)
- focus_plank_by_extra_id ps, start_id, grid
- set_plank_state ps, ps.cur, plankSEL
+ dim orig_cur as slice ptr = 0
+ if focus_plank_by_extra_id(ps, start_id, grid) then
+  orig_cur = ps.cur
+ end if
 
  dim hover as Slice Ptr = 0
  
@@ -64,7 +66,11 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    end if
   end if
 
-  dim lastcur as slice ptr = ps.cur
+  'Clear selection indicators
+  if ps.cur then set_plank_state ps, ps.cur, plankNORMAL
+  if hover then set_plank_state ps, hover, plankNORMAL
+  if orig_cur then set_plank_state ps, orig_cur, plankNORMAL
+  
   dim moved as bool = NO
   if plank_menu_arrows(ps, grid) then
    'Give priority to the grid
@@ -74,15 +80,17 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    moved = YES
   end if
   if moved then
-   set_plank_state ps, lastcur, plankNORMAL
-   set_plank_state ps, ps.cur, plankSEL
+   'Yep, a move happened
   end if
   
-  dim lasthover as Slice Ptr = hover
   hover = find_plank_nearest_screen_pos(ps, readmouse.pos)
-  if hover <> lasthover then
-   if lasthover then set_plank_state ps, lasthover, plankNORMAL
-   if hover then set_plank_state ps, hover, plankSELDISABLE
+
+  'Set selection indicators
+  if orig_cur then set_plank_state ps, orig_cur, plankSPECIAL
+  if hover then set_plank_state ps, hover, plankMOUSEHOVER
+  if ps.cur then
+   set_plank_state ps, ps.cur, plankSEL
+   if ps.cur = orig_cur then set_plank_state ps, ps.cur, plankSELSPECIAL
   end if
 
   ChangeGridSlice grid, , grid->Width / plank_size.x

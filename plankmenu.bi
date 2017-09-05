@@ -13,6 +13,7 @@ ENUM PlankItemState
  plankITEMSWAP = 6
  plankITEMSWAPDISABLE = 7
  plankITEMSWAPSPECIAL = 8
+ plankMOUSEHOVER = 9
 END ENUM
 
 TYPE FnIsPlank as Function(byval sl as Slice Ptr) as bool

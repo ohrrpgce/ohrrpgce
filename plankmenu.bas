@@ -209,6 +209,7 @@ SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as Plan
     CASE plankSELDISABLE:      ChangeTextSlice sl, , uiSelectedDisabled2 * -1 - 1
     CASE plankSPECIAL:         ChangeTextSlice sl, , uiSpecialItem * -1 - 1
     CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiSelectedSpecial2 * -1 - 1
+    CASE plankMOUSEHOVER:      ChangeTextSlice sl, , uiMouseHoverItem * -1 -1
    END SELECT
   CASE slRectangle:
    sl->Visible = YES
@@ -219,6 +220,7 @@ SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as Plan
     CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiHighlight * -1 - 1
     CASE plankSPECIAL:         sl->Visible = NO
     CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiHighlight * -1 - 1
+    CASE plankMOUSEHOVER:      sl->Visible = NO
    END SELECT
  END SELECT
 END SUB
