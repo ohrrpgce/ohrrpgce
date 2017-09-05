@@ -24,6 +24,7 @@
 #include "editedit.bi"
 #include "os.bi"
 #include "distribmenu.bi"
+#include "thingbrowser.bi"
 #include "custom.bi"
 
 
@@ -1117,6 +1118,13 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
    CASE 2 'name
     IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
    CASE 3 TO 4 'type and ID
+    IF stuf.st.pt = 4 ANDALSO stufbuf(17) = 0 THEN
+     IF enter_space_click(stuf.st) THEN
+      DIM itemb as ItemBrowser
+      stufbuf(18) = itemb.browse(stufbuf(18))
+      stuf.st.need_update = YES
+     END IF
+    END IF
     IF intgrabber(stufbuf(17 + stuf.st.pt - 3), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN
      stuf.st.need_update = YES
      update_shop_stuff_type stuf, stufbuf(), YES
@@ -1127,8 +1135,18 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
     IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , NO) THEN stuf.st.need_update = YES
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    IF enter_space_click(stuf.st) THEN
+     DIM itemb as ItemBrowserOrNone
+     stufbuf(25) = itemb.browse(stufbuf(25) - 1) + 1
+     stuf.st.need_update = YES
+    END IF
    CASE 13, 15, 17 '--must trade in item 2+ types
     IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    IF enter_space_click(stuf.st) THEN
+     DIM itemb as ItemBrowserOrNone
+     stufbuf(18 + stuf.st.pt) = itemb.browse(stufbuf(18 + stuf.st.pt) - 1) + 1
+     stuf.st.need_update = YES
+    END IF
    CASE 12, 14, 16, 18 '--trade in item amounts
     stufbuf(18 + stuf.st.pt) += 1
     IF intgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
@@ -1138,6 +1156,11 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
     IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
    CASE 21 '--trade in for
     IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
+    IF enter_space_click(stuf.st) THEN
+     DIM itemb as ItemBrowserOrNone
+     stufbuf(7 + stuf.st.pt) = itemb.browse(stufbuf(7 + stuf.st.pt) - 1) + 1
+     stuf.st.need_update = YES
+    END IF
    CASE 22 '--trade in for amount
     stufbuf(7 + stuf.st.pt) += 1
     IF intgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
