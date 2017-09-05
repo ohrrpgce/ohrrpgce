@@ -29,7 +29,7 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  SliceLoadFromFile root, finddatafile("thingbrowser.slice")
 
  dim grid as Slice Ptr
- grid = LookupSlice(SL_PLANK_HOLDER, root) 
+ grid = LookupSlice(SL_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
  build_thing_list()
  
@@ -76,12 +76,12 @@ End Function
 
 Sub ThingBrowser.build_thing_list()
  dim grid as slice ptr
- grid = LookupSlice(SL_PLANK_HOLDER, root)
+ grid = LookupSlice(SL_THINGBROWSER_GRID, root)
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
   SetSliceParent(plank, grid)
-  plank->Lookup = SL_PLANK_MENU_SELECTABLE
+  plank->Lookup = SL_PLANK_HOLDER
   plank_size.x = large(plank_size.x, plank->Width)
   plank_size.y = large(plank_size.y, plank->Height)
   grid->Height = plank_size.y

@@ -273,6 +273,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
   CASE SL_COLLECT_THINGBROWSER:
    append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
    append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   append_specialcode ses, SL_THINGBROWSER_GRID, kindlimitGRID
  END SELECT
 END SUB
 

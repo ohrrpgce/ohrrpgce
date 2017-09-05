@@ -17,6 +17,10 @@
 
 #include "plankmenu.bi"
 
+'A note about planks: A plank should have the lookup code SL_PLANK_HOLDER whatever its type.
+'Child slices of types slText, slRectangle or slSelect can have lookup code SL_PLANK_MENU_SELECTABLE
+'if their styles should change depending on selection state
+
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer) as bool
 
  IF ps.cur = 0 THEN
