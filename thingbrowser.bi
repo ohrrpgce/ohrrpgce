@@ -16,8 +16,6 @@ Type ThingBrowser extends Object
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
- declare virtual sub plank_focus(byval plank as Slice ptr)
- declare virtual sub plank_defocus(byval plank as Slice ptr)
 End Type
 
 Type ItemBrowser extends ThingBrowser

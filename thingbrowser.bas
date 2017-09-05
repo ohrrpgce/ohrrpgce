@@ -12,6 +12,8 @@
 #include "reloadext.bi"
 #include "slices.bi"
 #include "sliceedit.bi"
+#include "scriptcommands.bi"
+#include "plankmenu.bi"
 
 #include "thingbrowser.bi"
 
@@ -31,6 +33,11 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  RefreshSliceScreenPos grid
  build_thing_list()
  
+ dim ps as PlankState
+ ps.m = root
+ ps.cur = top_left_plank(ps)
+ set_plank_state ps, ps.cur, plankSEL
+ 
  do
   setwait 55
   setkeys YES
@@ -41,6 +48,15 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   end if
   if keyval(scF6) > 1 then slice_editor(root)
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
+
+  dim lastcur as slice ptr = ps.cur
+  if plank_menu_arrows(ps) then
+   set_plank_state ps, lastcur, plankNORMAL
+   set_plank_state ps, ps.cur, plankSEL
+   update_plank_scrolling ps
+   dim slot as integer = lowest_id() - 1
+   if ps.cur then slot = ps.cur->Extra(0)
+  END IF
 
   ChangeGridSlice grid, , grid->Width / plank_size.x
 
@@ -83,17 +99,10 @@ End Function
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim plank as Slice ptr
  plank = NewSliceOfType(slText)
+ plank->Extra(0) = id
  ChangeTextSlice plank, str(id), uilook(uiMenuItem), YES
  return plank
 End Function
-
-Sub ThingBrowser.plank_focus(byval plank as Slice Ptr)
- ChangeTextSlice plank, , uilook(uiSelectedItem2)
-End Sub
-
-Sub ThingBrowser.plank_defocus(byval plank as Slice Ptr)
- ChangeTextSlice plank, , uilook(uiMenuItem)
-End Sub
 
 '-----------------------------------------------------------------------
 
