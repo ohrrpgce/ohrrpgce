@@ -52,13 +52,21 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
   dim lastcur as slice ptr = ps.cur
-  if plank_menu_arrows(ps) then
+  dim moved as bool = NO
+  if plank_menu_arrows(ps, grid) then
+   'Give priority to the grid
+   moved = YES
+  elseif plank_menu_arrows(ps) then
+   'Only if no movement happened in the grid do we consider outside the grid
+   moved = YES
+  end if
+  if moved then
    set_plank_state ps, lastcur, plankNORMAL
    set_plank_state ps, ps.cur, plankSEL
    update_plank_scrolling ps
    dim slot as integer = lowest_id() - 1
    if ps.cur then slot = ps.cur->Extra(0)
-  END IF
+  end if
 
   ChangeGridSlice grid, , grid->Width / plank_size.x
 
@@ -125,5 +133,5 @@ End Function
 
 Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
- return lpad(str(id), " ", digits) & " " & readitemname(id)
+ return lpad(str(id), " ", digits) & " " & rpad(readitemname(id), " ", 8)
 End Function

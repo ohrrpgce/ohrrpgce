@@ -17,28 +17,39 @@
 
 #include "plankmenu.bi"
 
+'Local subs and functions
+DECLARE FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
+DECLARE SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
+
+'-----------------------------------------------------------------------
+
 'A note about planks: A plank should have the lookup code SL_PLANK_HOLDER whatever its type.
 'Child slices of types slText, slRectangle or slSelect can have lookup code SL_PLANK_MENU_SELECTABLE
 'if their styles should change depending on selection state
 
-FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer) as bool
+'-----------------------------------------------------------------------
+
+'If operating on a grid arrangement of plank slices, the planks should be of uniform size for best results
+'because this goes by plank center points
+FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
 
  IF ps.cur = 0 THEN
   'No cursor yet, guess a default one
   ps.cur = top_left_plank(ps)
   RETURN YES
  END IF
-
- DIM result as integer = NO
+ 
+ DIM old_cur as Slice Ptr = ps.cur
 
  REDIM planks(any) as Slice Ptr
- find_all_planks ps, ps.m, planks()
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
  
  DIM old as XYPair
  old.x = ps.cur->ScreenX + ps.cur->Width / 2
  old.y = ps.cur->ScreenY + ps.cur->Height / 2
 
- DIM best as integer = 2000000000
+ DIM best as integer = INT_MAX
  DIM p as XYPair
  DIM dist as integer
  
@@ -52,15 +63,14 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
    IF dist < best THEN
     best = dist
     ps.cur = sl
-    result = YES
    END IF
   END IF
  NEXT i
  
- RETURN result
+ RETURN ps.cur <> old_cur
 END FUNCTION
 
-SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
+SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
 
  IF ps.cur = 0 THEN
   'No cursor yet, guess a default one
@@ -75,7 +85,8 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
  IF scroll THEN targpos.y += scroll->Height * scrolldir
 
  REDIM planks(any) as Slice Ptr
- find_all_planks ps, ps.m, planks()
+ IF start_parent = 0 THEN start_parent = ps.m
+ find_all_planks ps, start_parent, planks()
 
  IF UBOUND(planks) < 0 THEN EXIT SUB
 
@@ -95,22 +106,23 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer)
  ps.cur = best_sl
 END SUB
 
-FUNCTION plank_menu_arrows (byref ps as PlankState) as bool
+FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
  DIM result as bool = NO
  'IF keyval(scA) > 1 THEN slice_editor m
+ IF start_parent = 0 THEN start_parent = ps.m
 #IFDEF IS_GAME
- IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1) THEN result = YES
- IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
- IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1) THEN result = YES
- IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+ IF carray(ccLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1, start_parent) THEN result = YES
+ IF carray(ccRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1, start_parent)  THEN result = YES
+ IF carray(ccUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
+ IF carray(ccDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
 #ELSE
- IF keyval(scLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1) THEN result = YES
- IF keyval(scRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1)  THEN result = YES
- IF keyval(scUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1) THEN result = YES
- IF keyval(scDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1)  THEN result = YES
+ IF keyval(scLeft) > 1  ANDALSO plank_menu_move_cursor(ps, 0, -1, start_parent) THEN result = YES
+ IF keyval(scRight) > 1 ANDALSO plank_menu_move_cursor(ps, 0, 1, start_parent)  THEN result = YES
+ IF keyval(scUp) > 1    ANDALSO plank_menu_move_cursor(ps, 1, -1, start_parent) THEN result = YES
+ IF keyval(scDown) > 1  ANDALSO plank_menu_move_cursor(ps, 1, 1, start_parent)  THEN result = YES
 #ENDIF
- IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1 : result = YES
- IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1 : result = YES
+ IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1, start_parent : result = YES
+ IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1, start_parent : result = YES
  RETURN result
 END FUNCTION
 
@@ -157,13 +169,13 @@ FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
 END FUNCTION
 
 FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ IF sl = 0 THEN debug "default_is_plank: null slice ptr" : RETURN NO
  RETURN sl->Lookup = SL_PLANK_HOLDER
 END FUNCTION
 
 ' Fill planks() with all descendents of m that are planks (according to the callback)
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
- IF m = 0 THEN debug "plank_menu_move_cursor: null m ptr" : EXIT SUB
+ IF m = 0 THEN debug "find_all_planks: null m ptr" : EXIT SUB
 
  DIM plank_checker as FnIsPlank
  plank_checker = ps.is_plank_callback
