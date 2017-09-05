@@ -173,5 +173,17 @@ End Function
 
 Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
+ if id = -1 then
+  return lpad("", " ", digits) & " " & rpad("NO ITEM", " ", 8)
+ end if
  return lpad(str(id), " ", digits) & " " & rpad(readitemname(id), " ", 8)
 End Function
+
+'-----------------------------------------------------------------------
+
+Function ItemBrowserOrNone.lowest_id() as integer
+ return -1 ' 0 is the lowest item id, but -1 represents "NO ITEM"
+End Function
+
+'-----------------------------------------------------------------------
+

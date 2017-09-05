@@ -32,4 +32,8 @@ Type ItemBrowser extends ThingBrowser
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
+Type ItemBrowserOrNone extends ItemBrowser
+ declare virtual function lowest_id() as integer
+End Type
+
 #ENDIF
