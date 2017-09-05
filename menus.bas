@@ -183,9 +183,11 @@ SUB mouse_scroll_menu(byref state as MenuState)
  WITH state
   DIM lasttop as integer = large(.first, .last - .size)
   IF .hover >= .first THEN  'Mouse over the menu
-   .top = bound(.top + (4 * readmouse().wheel_delta) \ 120, .first, lasttop)
-   ' Make sure .pt is visible
-   .pt = bound(.pt, .top, .top + .size)
+   IF (readmouse().buttons AND mouseRight) = 0 THEN  'While right button down, scroll wheel affects intgrabber
+    .top = bound(.top + (4 * readmouse().wheel_delta) \ 120, .first, lasttop)
+    ' Make sure .pt is visible
+    .pt = bound(.pt, .top, .top + .size)
+   END IF
   END IF
  END WITH
 END SUB
