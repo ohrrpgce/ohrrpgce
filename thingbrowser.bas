@@ -23,41 +23,14 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  dim holdscreen as integer = allocatepage
  copypage vpage, holdscreen
 
- root = NewSliceOfType(slRoot)
- with *root
-  .Fill = YES
-  .paddingLeft = 8
-  .paddingRight = 8
-  .paddingTop = 8
-  .paddingBottom = 8
- end with
- 
- dim box as Slice ptr
- box = NewSliceOfType(slRectangle, root)
- with *box
-  .Fill = YES
-  .paddingLeft = 4
-  .paddingRight = 4
-  .paddingTop = 4
-  .paddingBottom = 4
- end with
- ChangeRectangleSlice box, 1
-
- dim scroll as Slice Ptr
- scroll = NewSliceofType(slScroll, box)
- scroll->Fill = YES
+ root = NewSliceOfType(slContainer)
+ SliceLoadFromFile root, finddatafile("thingbrowser.slice")
 
  dim grid as Slice Ptr
- grid = NewSliceOfType(slGrid, scroll)
- WITH *grid
-  .Fill = YES
-  .FillMode = sliceFillHoriz
-  .Lookup = SL_PLANK_HOLDER
- END WITH
-
+ grid = LookupSlice(SL_PLANK_HOLDER, root) 
  RefreshSliceScreenPos grid
-
  build_thing_list()
+ 
  do
   setwait 55
   setkeys YES
@@ -109,13 +82,18 @@ End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim plank as Slice ptr
- plank = NewSliceOfType(slContainer)
- plank->size = XY(32, 10)
- dim txt as Slice ptr
- txt = NewSliceOfType(slText, plank)
- ChangeTextSlice txt, str(id), uilook(uiMenuItem), YES
+ plank = NewSliceOfType(slText)
+ ChangeTextSlice plank, str(id), uilook(uiMenuItem), YES
  return plank
 End Function
+
+Sub ThingBrowser.plank_focus(byval plank as Slice Ptr)
+ ChangeTextSlice plank, , uilook(uiSelectedItem2)
+End Sub
+
+Sub ThingBrowser.plank_defocus(byval plank as Slice Ptr)
+ ChangeTextSlice plank, , uilook(uiMenuItem)
+End Sub
 
 '-----------------------------------------------------------------------
 
@@ -130,10 +108,7 @@ End Function
 Function ItemBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim digits as integer = len(str(highest_id()))
  dim plank as Slice ptr
- plank = NewSliceOfType(slContainer)
- plank->size = XY((10 + digits) * 8, 10)
- dim txt as Slice ptr
- txt = NewSliceOfType(slText, plank)
- ChangeTextSlice txt, lpad(str(id), " ", digits) & " " & readitemname(id), uilook(uiMenuItem), YES
+ plank = NewSliceOfType(slText)
+ ChangeTextSlice plank, lpad(str(id), " ", digits) & " " & readitemname(id), uilook(uiMenuItem), YES
  return plank
 End Function
