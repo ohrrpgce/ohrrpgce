@@ -39,6 +39,8 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  ps.cur = top_left_plank(ps)
  focus_plank_by_extra_id ps, start_id, grid
  set_plank_state ps, ps.cur, plankSEL
+
+ dim hover as Slice Ptr = 0
  
  do
   setwait 55
@@ -74,6 +76,13 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   if moved then
    set_plank_state ps, lastcur, plankNORMAL
    set_plank_state ps, ps.cur, plankSEL
+  end if
+  
+  dim lasthover as Slice Ptr = hover
+  hover = find_plank_nearest_screen_pos(ps, readmouse.pos)
+  if hover <> lasthover then
+   if lasthover then set_plank_state ps, lasthover, plankNORMAL
+   if hover then set_plank_state ps, hover, plankSELDISABLE
   end if
 
   ChangeGridSlice grid, , grid->Width / plank_size.x
