@@ -14,6 +14,7 @@
 #include "scrconst.bi"
 #include "loading.bi"
 #include "common_menus.bi"
+#include "thingbrowser.bi"
 
 CONST tilew = 20
 CONST tileh = 20
@@ -4980,6 +4981,11 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     intgrabber(npcdata.facetype, 0, ubound(npc_facetypes))
    CASE 6
     IF intgrabber(npcdata.item, 0, gen(genMaxItem) + 1) THEN
+     ed.itemname = load_item_name(npcdata.item, 0, 0)
+    END IF
+    IF enter_space_click(ed.state) THEN
+     DIM itemb as ItemBrowser
+     npcdata.item = itemb.browse(npcdata.item - 1) + 1
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
    CASE 7
