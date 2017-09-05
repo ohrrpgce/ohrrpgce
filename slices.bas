@@ -846,6 +846,17 @@ Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
  return desc->NextSibling
 End Function
 
+'This function returns true if the ancestor slice is a parent or grandparent or great(*) grandparent...
+Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
+ if sl = 0 THEN debug "IsAncestor null slice": RETURN NO
+ dim parent as Slice ptr = sl->parent
+ do while parent
+  if parent = ancestor then return YES
+  parent = parent->Parent
+ loop
+ return NO
+End Function
+
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
 Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
  dim s as slice ptr
@@ -2348,14 +2359,7 @@ Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
  'This is intended for ScrollSlice, but can actually work on any container type.
  if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
  if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
-
- dim parent_ok as bool = NO
- dim parent as Slice ptr = ch->parent
- do while parent
-  if parent = sl then parent_ok = YES
-  parent = parent->Parent
- loop
- if not parent_ok then debug "ScrollToChild: can't scroll to an unrelated slice": exit sub
+ if not IsAncestor(ch, sl) then debug "ScrollToChild: can't scroll to an unrelated slice": exit sub
 
  dim xmove as integer = 0
  dim ymove as integer = 0 
