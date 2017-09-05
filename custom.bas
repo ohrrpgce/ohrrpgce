@@ -1063,7 +1063,6 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
  stuf.min(22) = 1
 
  stuf.thing = 0
- stuf.default_thingname = "" 'FIXME: this isn't updated anywhere yet
  stuf.thingname = ""
  
  stuf.st.pt = 0
@@ -1215,17 +1214,20 @@ SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, 
  ' This is inaccurate; if there are 11 things we write "X of 10".
  stuf.menu(1) = CHR(27) & "Shop Thing " & stuf.thing & " of " & thing_last_id & CHR(26)
  stuf.menu(2) = "Name: " & stuf.thingname
- stuf.menu(3) = "Type: "
 
  DIM typename as string
+ DIM default_name as string
  SELECT CASE stufbuf(17)
-  CASE 0: typename = "Item"
-  CASE 1: typename = "Hero"
+  CASE 0:
+   typename = "Item"
+   default_name = readitemname(stufbuf(18))
+  CASE 1:
+   typename = "Hero"
+   default_name = getheroname(stufbuf(18)) 
   CASE ELSE: typename = "???"
  END SELECT
- stuf.menu(3) &= typename
-
- stuf.menu(4) = typename & " ID: " & stufbuf(18) & " " & stuf.default_thingname
+ stuf.menu(3) = "Type: " & typename
+ stuf.menu(4) = typename & " ID: " & stufbuf(18) & " " & default_name
  
  SELECT CASE stufbuf(19)
   CASE IS > 0: stuf.menu(5) = "In Stock: " & stufbuf(19)

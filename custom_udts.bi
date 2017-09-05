@@ -396,7 +396,6 @@ TYPE ShopStuffState
  st as MenuState
  thing as integer       'Hero/item ID number
  thingname as string
- default_thingname as string
  item_value as integer  'Garbage if thing is a hero
  menu(24) as string
  max(24) as integer
