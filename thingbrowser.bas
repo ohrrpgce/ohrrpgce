@@ -11,6 +11,7 @@
 #include "uiconst.bi"
 #include "reloadext.bi"
 #include "slices.bi"
+#include "sliceedit.bi"
 
 #include "thingbrowser.bi"
 
@@ -33,7 +34,13 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  
  dim box as Slice ptr
  box = NewSliceOfType(slRectangle, root)
- box->Fill = YES
+ with *box
+  .Fill = YES
+  .paddingLeft = 4
+  .paddingRight = 4
+  .paddingTop = 4
+  .paddingBottom = 4
+ end with
  ChangeRectangleSlice box, 1
 
  dim scroll as Slice Ptr
@@ -48,6 +55,8 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   .Lookup = SL_PLANK_HOLDER
  END WITH
 
+ RefreshSliceScreenPos grid
+
  build_thing_list()
  do
   setwait 55
@@ -57,6 +66,7 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    result = start_id
    exit do
   end if
+  if keyval(scF6) > 1 then slice_editor(root)
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
   copypage holdscreen, vpage
@@ -84,6 +94,8 @@ Sub ThingBrowser.build_thing_list()
   plank_size.x = large(plank_size.x, plank->Width)
   plank_size.y = large(plank_size.y, plank->Height)
   grid->Height = plank_size.y
+  debug id & " " & grid->Width / plank_size.x
+  ChangeGridSlice grid, , grid->Width / plank_size.x
  next id
 End Sub
 
