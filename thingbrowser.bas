@@ -135,8 +135,13 @@ Function ThingBrowser.highest_id() as integer
 End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
- dim plank as Slice ptr
- plank = NewSliceOfType(slContainer)
+ dim plank as Slice Ptr
+ plank = NewSliceOfType(slContainer, SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
+ dim box as Slice Ptr
+ box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
+ box->Fill = YES
+ box->Visible = NO
+ ChangeRectangleSlice box, , , , -2
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
