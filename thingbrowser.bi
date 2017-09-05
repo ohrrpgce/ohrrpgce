@@ -7,17 +7,20 @@ Type ThingBrowser extends Object
  declare sub build_thing_list()
 
  root as Slice ptr
+ plank_size as XYPair 'This is calculated dynamically from the largest plank returned by create_thing_plank()
 
  helpkey as string
 
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
 Type ItemBrowser extends ThingBrowser
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
 #ENDIF

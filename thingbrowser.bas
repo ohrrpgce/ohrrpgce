@@ -33,15 +33,18 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  
  dim box as Slice ptr
  box = NewSliceOfType(slRectangle, root)
- WITH *box
-  .Fill = YES
- END WITH
+ box->Fill = YES
  ChangeRectangleSlice box, 1
 
+ dim scroll as Slice Ptr
+ scroll = NewSliceofType(slScroll, box)
+ scroll->Fill = YES
+
  dim grid as Slice Ptr
- grid = NewSliceOfType(slGrid, root)
+ grid = NewSliceOfType(slGrid, scroll)
  WITH *grid
   .Fill = YES
+  .FillMode = sliceFillHoriz
   .Lookup = SL_PLANK_HOLDER
  END WITH
 
@@ -70,11 +73,17 @@ Function ThingBrowser.init_helpkey() as string
  return ""
 End Function
 
-
 Sub ThingBrowser.build_thing_list()
+ dim grid as slice ptr
+ grid = LookupSlice(SL_PLANK_HOLDER, root)
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
-  'plank = create_thing_plank(id)
+  plank = create_thing_plank(id)
+  SetSliceParent(plank, grid)
+  plank->Lookup = SL_PLANK_MENU_SELECTABLE
+  plank_size.x = large(plank_size.x, plank->Width)
+  plank_size.y = large(plank_size.y, plank->Height)
+  grid->Height = plank_size.y
  next id
 End Sub
 
@@ -86,6 +95,16 @@ Function ThingBrowser.highest_id() as integer
  return -1
 End Function
 
+Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
+ dim plank as Slice ptr
+ plank = NewSliceOfType(slContainer)
+ plank->size = XY(32, 10)
+ dim txt as Slice ptr
+ txt = NewSliceOfType(slText, plank)
+ ChangeTextSlice txt, str(id), uilook(uiMenuItem), YES
+ return plank
+End Function
+
 '-----------------------------------------------------------------------
 
 Function ItemBrowser.init_helpkey() as string
@@ -94,4 +113,14 @@ End Function
 
 Function ItemBrowser.highest_id() as integer
  return gen(genMaxItem)
+End Function
+
+Function ItemBrowser.create_thing_plank(byval id as integer) as Slice Ptr
+ dim plank as Slice ptr
+ plank = NewSliceOfType(slContainer)
+ plank->size = XY(90, 10)
+ dim txt as Slice ptr
+ txt = NewSliceOfType(slText, plank)
+ ChangeTextSlice txt, id & " " & readitemname(id), uilook(uiMenuItem), YES
+ return plank
 End Function
