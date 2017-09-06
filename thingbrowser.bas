@@ -146,7 +146,7 @@ End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim plank as Slice Ptr
- plank = NewSliceOfType(slContainer, SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
+ plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
  dim box as Slice Ptr
  box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
  box->Fill = YES
