@@ -54,6 +54,7 @@ DECLARE SUB set_sprites_by_lookup_code (byval sl as Slice ptr, byval lookup as i
 DECLARE FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
 DECLARE SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
 DECLARE FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
+DECLARE FUNCTION bottom_right_plank(byref ps as PlankState) as Slice Ptr
 DECLARE SUB update_plank_scrolling (byref ps as PlankState)
 DECLARE FUNCTION find_plank_scroll (byval sl as Slice Ptr) as slice ptr
 DECLARE SUB save_plank_selection (byref ps as PlankState)

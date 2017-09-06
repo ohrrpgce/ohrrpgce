@@ -20,6 +20,8 @@
 'Local subs and functions
 DECLARE FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
 DECLARE SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
+DECLARE FUNCTION plank_menu_home(byref ps as PlankState) as bool
+DECLARE FUNCTION plank_menu_end(byref ps as PlankState) as bool
 
 '-----------------------------------------------------------------------
 
@@ -123,6 +125,8 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
 #ENDIF
  IF keyval(scPageUp) > 1 THEN plank_menu_scroll_page ps, -1, start_parent : result = YES
  IF keyval(scPageDown) > 1 THEN plank_menu_scroll_page ps, 1, start_parent : result = YES
+ IF keyval(scHome) > 1 THEN IF plank_menu_home(ps) THEN result = YES
+ IF keyval(scEnd) > 1 THEN IF plank_menu_end(ps) THEN result = YES
  RETURN result
 END FUNCTION
 
@@ -144,6 +148,18 @@ FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
  ScrollAllChildren scroll, 0, scroll_move
 
  RETURN YES
+END FUNCTION
+
+FUNCTION plank_menu_home(byref ps as PlankState) as bool
+ DIM old_cur as Slice ptr = ps.cur
+ ps.cur = top_left_plank(ps)
+ RETURN ps.cur <> old_cur
+END FUNCTION
+
+FUNCTION plank_menu_end(byref ps as PlankState) as bool
+ DIM old_cur as Slice ptr = ps.cur
+ ps.cur = bottom_right_plank(ps)
+ RETURN ps.cur <> old_cur
 END FUNCTION
 
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
@@ -199,6 +215,24 @@ FUNCTION top_left_plank(byref ps as PlankState) as Slice Ptr
  FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
   IF sl->ScreenX <= best->ScreenX ANDALSO sl->ScreenY <= best->ScreenY THEN
+   best = sl
+  END IF
+ NEXT i
+ 
+ RETURN best
+END FUNCTION
+
+FUNCTION bottom_right_plank(byref ps as PlankState) as Slice Ptr
+ REDIM planks(any) as Slice Ptr
+ find_all_planks ps, ps.m, planks()
+
+ IF UBOUND(planks) < 0 THEN RETURN 0
+
+ DIM best as Slice Ptr = planks(UBOUND(planks))
+ DIM sl as Slice Ptr
+ FOR i as integer = UBOUND(planks) to 0 STEP -1
+  sl = planks(i)
+  IF sl->ScreenX >= best->ScreenX ANDALSO sl->ScreenY >= best->ScreenY THEN
    best = sl
   END IF
  NEXT i
