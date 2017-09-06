@@ -193,7 +193,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + 1) THEN
     tag_autoset_warning state.pt + 1
    END IF
-   IF keyval(scAnyEnter) > 1 THEN
+   IF keyval(scAnyEnter) > 1 ORELSE menu_click(state) THEN ' Can't call enter_space_click() because we can type spaces when editing tag names
     IF menu[state.pt].disabled THEN
      tag_autoset_warning state.pt + 1
     ELSEIF picktag THEN
@@ -246,6 +246,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   setvispage vpage
   dowait
  LOOP
+ setkeys
 
  v_free menu
  RETURN ret
