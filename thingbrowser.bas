@@ -34,6 +34,7 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  grid = LookupSlice(SL_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
  build_thing_list()
+ ChangeGridSlice grid, , grid->Width \ plank_size.x
  DrawSlice root, vpage
  
  dim ps as PlankState
@@ -45,6 +46,7 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
  end if
 
  dim hover as Slice Ptr = 0
+ dim cursor_moved as bool = YES
  
  do
   setwait 55
@@ -62,25 +64,18 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   if hover then set_plank_state ps, hover, plankNORMAL
   if orig_cur then set_plank_state ps, orig_cur, plankNORMAL
   
-  dim moved as bool = NO
   if plank_menu_arrows(ps, grid) then
    'Give priority to the grid
-   moved = YES
+   cursor_moved = YES
   elseif plank_menu_arrows(ps) then
    'Only if no movement happened in the grid do we consider outside the grid
-   moved = YES
+   cursor_moved = YES
   end if
-  IF plank_menu_mouse_wheel(ps) then
-   moved = YES
-  END IF
+  plank_menu_mouse_wheel(ps)
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
-   moved = ps.cur <> hover
+   cursor_moved = ps.cur <> hover
    ps.cur = hover
-  end if
-
-  if moved then
-   'Yep, a move happened. We would update selection detail display here if that was a thing
   end if
 
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
@@ -104,7 +99,11 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
   end if
 
   ChangeGridSlice grid, , grid->Width \ plank_size.x
-  update_plank_scrolling ps
+  if cursor_moved then
+   'Yep, a move happened. We would update selection detail display here if that was a thing
+   update_plank_scrolling ps
+  end if
+  cursor_moved = NO
 
   copypage holdscreen, vpage
   DrawSlice root, vpage

@@ -126,16 +126,24 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  RETURN result
 END FUNCTION
 
-FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
  DIM result as bool = NO
- IF start_parent = 0 THEN start_parent = ps.m
- DIM move_lines as integer
- move_lines = readmouse.wheel_clicks * 3
- DO WHILE move_lines <> 0
-  IF plank_menu_move_cursor(ps, 1, SGN(move_lines), start_parent) THEN result = YES
-  move_lines = move_lines - SGN(move_lines)
- LOOP
- RETURN result
+ DIM scroll as Slice Ptr
+ scroll = find_plank_scroll(ps.m)
+ IF scroll = 0 THEN RETURN NO
+ IF NOT SliceCollidePoint(scroll, readmouse.pos) THEN RETURN NO
+
+ DIM topy as integer = scroll->ScreenY
+ DIM boty as integer = scroll->ScreenY + scroll->Height
+ DIM miny as integer = CalcScrollMinY(scroll, 0)
+ DIM maxy as integer = CalcScrollMaxY(scroll, 0)
+ DIM dist as integer = 30 'this is a reasonable number of pixels, I guess?
+ DIM scroll_move as integer = dist * -1 * readmouse.wheel_clicks
+ DO WHILE miny + scroll_move > topy : scroll_move -= 1 : LOOP
+ DO WHILE maxy + scroll_move < boty : scroll_move += 1 : LOOP
+ ScrollAllChildren scroll, 0, scroll_move
+
+ RETURN YES
 END FUNCTION
 
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
