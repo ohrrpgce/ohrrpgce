@@ -1130,9 +1130,9 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
      update_shop_stuff_type stuf, stufbuf(), YES
     END IF
    CASE 6 TO 7 '--condition tags
-    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , YES) THEN stuf.st.need_update = YES
+    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), stuf.st, , , YES) THEN stuf.st.need_update = YES
    CASE 8 TO 9 '--set tags
-    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), , , NO) THEN stuf.st.need_update = YES
+    IF tag_grabber(stufbuf(17 + stuf.st.pt - 3), stuf.st , , NO) THEN stuf.st.need_update = YES
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
