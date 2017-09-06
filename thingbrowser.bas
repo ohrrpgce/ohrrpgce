@@ -103,7 +103,7 @@ Function ThingBrowser.browse(byref start_id as integer=0) as integer
    if ps.cur = orig_cur then set_plank_state ps, ps.cur, plankSELSPECIAL
   end if
 
-  ChangeGridSlice grid, , grid->Width / plank_size.x
+  ChangeGridSlice grid, , grid->Width \ plank_size.x
   update_plank_scrolling ps
 
   copypage holdscreen, vpage
