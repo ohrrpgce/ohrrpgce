@@ -19,8 +19,9 @@
 
 '-----------------------------------------------------------------------
 
-Function ThingBrowser.browse(byref start_id as integer=0) as integer
+Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO) as integer
  dim result as integer = start_id
+ this.or_none = or_none
  
  helpkey = init_helpkey()
 
@@ -136,6 +137,7 @@ Sub ThingBrowser.build_thing_list()
 End Sub
 
 Function ThingBrowser.lowest_id() as integer
+ if or_none then return -1
  return 0
 End Function
 
@@ -182,12 +184,6 @@ End Function
 
 '-----------------------------------------------------------------------
 
-Function ItemBrowserOrNone.lowest_id() as integer
- return -1 ' 0 is the lowest item id, but -1 represents "NO ITEM"
-End Function
-
-'-----------------------------------------------------------------------
-
 Function ShopBrowser.init_helpkey() as string
  return "shop_browser"
 End Function
@@ -206,8 +202,3 @@ End Function
 
 '-----------------------------------------------------------------------
 
-Function ShopBrowserOrNone.lowest_id() as integer
- return -1 ' 0 is the lowest item id, but -1 represents "NO ITEM"
-End Function
-
-'-----------------------------------------------------------------------

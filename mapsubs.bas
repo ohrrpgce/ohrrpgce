@@ -4984,8 +4984,8 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
     IF enter_space_click(ed.state) THEN
-     DIM itemb as ItemBrowserOrNone
-     npcdata.item = itemb.browse(npcdata.item - 1) + 1
+     DIM itemb as ItemBrowser
+     npcdata.item = itemb.browse(npcdata.item - 1, YES) + 1
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
    CASE 7

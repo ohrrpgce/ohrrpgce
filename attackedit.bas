@@ -1313,8 +1313,8 @@ DO
     recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)))
     state.need_update = YES
    CASE 10 ' Item with offset
-    DIM itemb as ItemBrowserOrNone
-    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)) - 1) + 1
+    DIM itemb as ItemBrowser
+    recbuf(menuoff(nowindex)) = itemb.browse(recbuf(menuoff(nowindex)) - 1, YES) + 1
     state.need_update = YES
   END SELECT
   SELECT CASE nowindex

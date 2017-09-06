@@ -3,7 +3,7 @@
 
 Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
- declare function browse(byref start_id as integer=0) as integer
+ declare function browse(byref start_id as integer=0, byval or_none as bool=NO) as integer
  declare sub build_thing_list()
 
  root as Slice ptr
@@ -11,6 +11,7 @@ Type ThingBrowser extends Object
 
  helpkey as string
  index as integer
+ or_none as bool
 
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
@@ -32,18 +33,10 @@ Type ItemBrowser extends ThingBrowser
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
-Type ItemBrowserOrNone extends ItemBrowser
- declare virtual function lowest_id() as integer
-End Type
-
 Type ShopBrowser extends ThingBrowser
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
-End Type
-
-Type ShopBrowserOrNone extends ShopBrowser
- declare virtual function lowest_id() as integer
 End Type
 
 #ENDIF
