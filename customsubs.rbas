@@ -51,10 +51,16 @@ END FUNCTION
 'allowspecial indicates whether to allow picking 'special' tags: those automatically
 'set, eg. based on inventory conditions
 FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
+ DIM dummy_state as MenuState
+ dummy_state.pt = dummy_state.first - 1 'prevent mouse clicks from registering. For that one should explicitly pass a real MenuState
+ RETURN tag_grabber(n, dummy_state, min, max, allowspecial)
+END FUNCTION
+
+FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
  min = large(min, -max_tag())
  max = small(max, max_tag())
  IF intgrabber(n, min, max) THEN RETURN YES
- IF enter_or_space() THEN
+ IF enter_space_click(state) THEN
   DIM browse_tag as integer
   browse_tag = tags_menu(n, YES, allowspecial)
   IF browse_tag >= 2 OR browse_tag <= -2 THEN
