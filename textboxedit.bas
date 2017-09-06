@@ -360,6 +360,7 @@ SUB textbox_conditionals(byref box as TextBox)
  DIM c as integer
 
  textbox_update_conditional_menu box, menu()
+ init_menu_state state, menu()
  setkeys
  DO
   setwait 55
@@ -457,6 +458,7 @@ SUB textbox_conditionals(byref box as TextBox)
     'FIXME: not correct: shop 0, formation 0, door 0 and menu 0 still do something!
     IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
    END IF
+   IF i = state.hover THEN textcolor uilook(uiMouseHoverItem), 0 
    IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
    printstr menu(i), 0, drawy, dpage
   NEXT i
