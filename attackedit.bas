@@ -1452,7 +1452,7 @@ DO
  END IF
 
  IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
-  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
+  IF editflexmenu(state, workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    state.need_update = YES
   END IF
  END IF
@@ -2092,7 +2092,7 @@ FUNCTION flexmenu_handle_crossrefs (state as MenuState, nowindex as integer, men
  RETURN ret
 END FUNCTION
 
-FUNCTION editflexmenu (nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
+FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as integer, menuoff() as integer, menulimits() as integer, datablock() as integer, caption() as string, mintable() as integer, maxtable() as integer) as bool
 '--Calls intgrabber/strgrabber etc, as appropriate for the selected data field.
 '--returns true if data has changed, false it not
 
@@ -2154,9 +2154,9 @@ SELECT CASE menutype(nowindex)
   changed = intgrabber(temp, mintable(menulimits(nowindex)) + 100, maxtable(menulimits(nowindex)) + 100)
   datablock(menuoff(nowindex)) = temp - 100
  CASE 2' tag condition
-  changed = tag_grabber(datablock(menuoff(nowindex)), -max_tag(), max_tag(), YES)
+  changed = tag_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag(), YES)
  CASE 21' set tag (non-special)
-  changed = tag_grabber(datablock(menuoff(nowindex)), -max_tag(), max_tag(), NO)
+  changed = tag_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag(), NO)
  CASE 3' string
   s = readbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = YES
