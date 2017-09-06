@@ -28,8 +28,7 @@ August 31 2017 [Dwimmercrafty]
     * One-way walls
     * Lots of new in-game debug keys/F8 debug menu options, and a similar
       new menu in Custom accessed with F9
-    * Can jump to item, attack, enemy, textbox and npc editors from other
-      editors
+    * Can jump to attack, enemy, textbox and npc editors from other editors
     * Lots of progress on mouse support
     * On Windows, Custom's window is now resizable; resizing works almost
       everywhere
