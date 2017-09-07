@@ -3804,9 +3804,9 @@ SUB link_one_door(st as MapEditState, linknum as integer)
       outmap = getmapname(doorlink.dest_map)
      END IF
     CASE 3
-     tag_grabber doorlink.tag1
+     tag_grabber doorlink.tag1, state
     CASE 4
-     tag_grabber doorlink.tag2
+     tag_grabber doorlink.tag2, state
     CASE ELSE
      '...
    END SELECT
@@ -4993,9 +4993,9 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 8
     intgrabber(npcdata.activation, 0, ubound(npc_usetypes))
    CASE 9'--tag conditionals
-    tag_grabber npcdata.tag1
+    tag_grabber npcdata.tag1, ed.state
    CASE 10'--tag conditionals
-    tag_grabber npcdata.tag2
+    tag_grabber npcdata.tag2, ed.state
    CASE 11'--one-time-use tag
     IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(ed.state) THEN
      onetimetog npcdata.usetag
