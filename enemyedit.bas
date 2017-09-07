@@ -1028,7 +1028,7 @@ SUB formation_set_editor
    END IF
   END IF
   IF state.pt = 2 THEN intgrabber formset.frequency, 0, 200
-  IF state.pt = 3 THEN tag_grabber formset.tag
+  IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
    IF intgrabber(formset.formations(state.pt - 4), -1, gen(genMaxFormation)) THEN
     formation_set_editor_load_preview state, form_id, formset, form, ename(), rootslice
