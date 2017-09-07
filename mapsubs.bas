@@ -5114,6 +5114,8 @@ DIM boxpreview(UBOUND(map.npc_def)) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
+state.top = -1
+state.first = -1
 state.spacing = 25
 state.has_been_drawn = YES ' fake this because we don't call standardmenu()
 
@@ -5136,7 +5138,9 @@ DO
  corners_to_rect XY(0,0), vpages(dpage)->size, state.rect
  usemenu state
  IF enter_space_click(state) THEN
-  IF state.pt = state.last THEN
+  IF state.pt = -1 THEN
+   EXIT DO
+  ELSEIF state.pt = state.last THEN
    '--Add new NPC option
    REDIM PRESERVE map.npc_def(UBOUND(map.npc_def) + 1)
    CleanNPCDefinition map.npc_def(UBOUND(map.npc_def))
@@ -5198,28 +5202,40 @@ DO
  END IF
 
  clearpage dpage
+ DIM textcol as integer
+ DIM textbg as integer
+ DIM y as integer
  FOR i as integer = state.top TO state.top + state.size
   IF i > state.last THEN EXIT FOR
-  IF state.pt = i THEN edgebox 0, (i - state.top) * 25, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
-  textcolor uilook(uiMenuItem), 0
-   IF state.hover = i THEN textcolor uilook(uiText), uilook(uiMouseHoverItem)
-  IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
-  IF i = state.last THEN
+  textcol = uilook(uiMenuItem)
+  textbg = 0
+  IF state.hover = i THEN textcol = uilook(uiText) : textbg = uilook(uiMouseHoverItem)
+  IF state.pt = i THEN textcol = uilook(uiSelectedItem + state.tog)
+  textcolor textcol, textbg
+  y = (i - state.top) * state.spacing
+  'Selection box
+  IF state.hover = i THEN fuzzyrect 0, y, rWidth, 22, uilook(uiDisabledItem), dpage, 25
+  IF state.pt = i THEN edgebox 0, y, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
+  'Special menu items
+  IF i = -1 THEN
+   printstr "Previous Menu", 0, y + 5, dpage
+  ELSEIF i = state.last THEN
    '--Add new NPC option
-   printstr "Add new NPC", 0, ((i - state.top) * 25) + 5, dpage
+   printstr "Add new NPC", 0, y + 5, dpage
   ELSE
    '--An NPC
-   printstr "" & i, 0, ((i - state.top) * 25) + 5, dpage
+   printstr "" & i, 0, y + 5, dpage
    WITH st.npc_img(i)
     '--Down A frame
     frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
    END WITH
-   textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   IF state.hover = i THEN textcolor uilook(uiText), uilook(uiMouseHoverItem)
-   IF state.pt = i THEN textcolor uilook(uiText), uilook(uiHighlight)
-   printstr boxpreview(i), 56, ((i - state.top) * 25) + 5, dpage
+   textbg = uilook(uiHighlight)
+   IF state.hover = i THEN textbg = uilook(uiMouseHoverItem)
+   IF state.pt = i THEN textcol = uilook(uiText) : textbg = uilook(uiHighlight)
+   printstr boxpreview(i), 56, y + 5, dpage
   END IF
  NEXT i
+ draw_fullscreen_scrollbar state, , dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
