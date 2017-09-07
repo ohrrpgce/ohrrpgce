@@ -5114,6 +5114,8 @@ DIM boxpreview(UBOUND(map.npc_def)) as string
 DIM need_update_selected as bool = NO
 
 DIM state as MenuState
+state.spacing = 25
+state.has_been_drawn = YES ' fake this because we don't call standardmenu()
 
 state.last = UBOUND(map.npc_def)
 '--Add "Add new NPC" option to end
@@ -5131,6 +5133,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
  intgrabber state.pt, 0, state.last, , , , NO  'use_clipboard=NO
+ corners_to_rect XY(0,0), vpages(dpage)->size, state.rect
  usemenu state
  IF enter_space_click(state) THEN
   IF state.pt = state.last THEN
@@ -5140,6 +5143,7 @@ DO
   ELSE
    '--An NPC
    mapedit_edit_npcdef st, map.npc_def(state.pt)
+   setkeys
   END IF
   need_update_selected = YES
  END IF
@@ -5198,6 +5202,7 @@ DO
   IF i > state.last THEN EXIT FOR
   IF state.pt = i THEN edgebox 0, (i - state.top) * 25, rWidth, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
+   IF state.hover = i THEN textcolor uilook(uiText), uilook(uiMouseHoverItem)
   IF state.pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
   IF i = state.last THEN
    '--Add new NPC option
@@ -5210,6 +5215,7 @@ DO
     frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
    END WITH
    textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF state.hover = i THEN textcolor uilook(uiText), uilook(uiMouseHoverItem)
    IF state.pt = i THEN textcolor uilook(uiText), uilook(uiHighlight)
    printstr boxpreview(i), 56, ((i - state.top) * 25) + 5, dpage
   END IF
