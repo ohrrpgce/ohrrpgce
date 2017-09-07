@@ -249,7 +249,7 @@ SUB individual_item_editor(item_id as integer)
      state.need_update = YES
     END IF
    CASE 11 TO 14
-    IF tag_grabber(itembuf(74 + (state.pt - 11)), 0) THEN
+    IF tag_grabber(itembuf(74 + (state.pt - 11)), state, 0) THEN
      state.need_update = YES
      'Update cache
      itemtags(item_id).have_tag = itembuf(74)
