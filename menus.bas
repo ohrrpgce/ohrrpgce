@@ -1271,6 +1271,7 @@ SUB MenuBitsToArray (menu as MenuDef, bits() as integer)
   setbit bits(), 0, 7, .prevent_main_menu
   setbit bits(), 0, 8, .advance_textbox
   setbit bits(), 0, 9, .highlight_selection
+  setbit bits(), 0, 10, .remember_selection
  END WITH
 END SUB
 
@@ -1286,6 +1287,7 @@ SUB MenuBitsFromArray (menu as MenuDef, bits() as integer)
   .prevent_main_menu = xreadbit(bits(), 7)
   .advance_textbox   = xreadbit(bits(), 8)
   .highlight_selection = xreadbit(bits(), 9)
+  .remember_selection = xreadbit(bits(), 10)
  END WITH
 END SUB
 

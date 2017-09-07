@@ -170,9 +170,10 @@ lump_reloading.hsp.mode = loadmodeNever
 
 'Menu Data
 DIM menu_set as MenuSet
-REDIM menus(0) as MenuDef 'This is an array because it holds a stack of heirarchial menus (resized as required)
+REDIM menus(0) as MenuDef 'This is an array because it holds a stack of hierarchical menus (resized as required)
 REDIM mstates(0) as MenuState
 DIM topmenu as integer = -1
+REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu item when the menu was last closed
 
 REDIM csetup(12) as integer
 REDIM carray(13) as integer
@@ -670,6 +671,7 @@ lastformation = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
+REDIM remembered_menu_pts(gen(genMaxMenu))
 load_script_triggers_and_names
 
 makebackups 'make a few backup lumps
@@ -2582,6 +2584,7 @@ end function
 
 
 'Returns the menu handle
+'record -1 means create a blank menu instead of loading one.
 FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as integer
  IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
@@ -2605,6 +2608,14 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
   ClearMenuData menus(topmenu)
  ELSE
   LoadMenuData menu_set, menus(topmenu), record
+  IF menus(topmenu).remember_selection THEN
+   IF record <= UBOUND(remembered_menu_pts) THEN
+    ' The menu hasn't been sorted yet, so the remembered .pt should be the
+    ' true slot of the menuitem to select. sort_menu_and_select_visible_item,
+    ' called from init_menu_state then finds the real .pt.
+    mstates(topmenu).pt = remembered_menu_pts(record)
+   END IF
+  END IF
  END IF
  init_menu_state mstates(topmenu), menus(topmenu)
  IF topmenu > 0 THEN mstates(topmenu - 1).active = NO
@@ -2631,9 +2642,16 @@ SUB remove_menu (byval slot as integer, byval run_on_close as bool=YES)
   slot = find_menu_handle(remember_handle)
   bring_menu_forward slot
  END IF
- IF menus(topmenu).on_close <> 0 AND run_on_close THEN
-  trigger_script menus(topmenu).on_close, 0, YES, "menu on-close", "menu " & menus(topmenu).record, mainFibreGroup
- END IF
+ WITH menus(topmenu)
+  ' Check has an ID and is nonempty (so .pt is valid)
+  IF in_bound(.record, 0, UBOUND(remembered_menu_pts)) ANDALSO mstates(topmenu).last >= 0 THEN
+   ' Calculate and remember the true slot number of the selected menu item
+   remembered_menu_pts(.record) = dlist_find(.itemlist, .items[mstates(topmenu).pt])
+  END IF
+  IF .on_close <> 0 AND run_on_close THEN
+   trigger_script .on_close, 0, YES, "menu on-close", "menu " & .record, mainFibreGroup
+  END IF
+ END WITH
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
  IF topmenu >= 0 THEN

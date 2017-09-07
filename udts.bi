@@ -104,6 +104,7 @@ TYPE MenuDef
   prevent_main_menu as bool ' Bitset 7
   advance_textbox  as bool ' Bitset 8
   highlight_selection as bool 'Bitset 9: Draw a rectangle behind the item while selected
+  remember_selection as bool 'Bitset 10: .pt is remember when closing
   rect      as RectType
   offset    as XYPair
   anchorhoriz as AlignType  'Relative to self

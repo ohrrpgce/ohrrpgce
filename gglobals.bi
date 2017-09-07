@@ -124,6 +124,7 @@ EXTERN menus() as MenuDef
 EXTERN mstates() as MenuState
 EXTERN menu_set as MenuSet
 EXTERN topmenu as integer
+EXTERN remembered_menu_pts() as integer
 
 'Slice handles
 EXTERN plotslices() as Slice Ptr

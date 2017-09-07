@@ -1423,6 +1423,8 @@ SUB reload_gen()
  'Number of elements maybe?
 
  IF should_reset_window THEN apply_game_window_settings YES
+
+ REDIM PRESERVE remembered_menu_pts(gen(genMaxMenu))
 END SUB
 
 'Live-previewing.
