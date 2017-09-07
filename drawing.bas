@@ -791,7 +791,7 @@ SUB tile_animation(byval tilesetnum as integer)
   IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
   IF usemenu(state) THEN state.need_update = YES
   IF state.pt = 4 THEN
-   IF tag_grabber(tastuf(1 + 20 * taset)) THEN state.need_update = YES
+   IF tag_grabber(tastuf(1 + 20 * taset), state) THEN state.need_update = YES
   ELSE
    IF intgrabber(taset, 0, 1) THEN state.need_update = YES
   END IF
@@ -942,7 +942,7 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
     END IF
     IF state2.pt = 1 THEN
      IF tastuf(2 + index) = 6 THEN
-      IF tag_grabber(tastuf(11 + index)) THEN state.need_update = YES
+      IF tag_grabber(tastuf(11 + index), state2) THEN state.need_update = YES
      ELSE
       IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN state.need_update = YES
      END IF
