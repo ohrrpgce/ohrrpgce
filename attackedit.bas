@@ -2154,9 +2154,9 @@ SELECT CASE menutype(nowindex)
   changed = intgrabber(temp, mintable(menulimits(nowindex)) + 100, maxtable(menulimits(nowindex)) + 100)
   datablock(menuoff(nowindex)) = temp - 100
  CASE 2' tag condition
-  changed = tag_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag(), YES)
+  changed = tag_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag())
  CASE 21' set tag (non-special)
-  changed = tag_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag(), NO)
+  changed = tag_set_grabber(datablock(menuoff(nowindex)), state, -max_tag(), max_tag())
  CASE 3' string
   s = readbinstring(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = YES

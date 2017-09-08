@@ -331,9 +331,9 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
   CASE 5: 'conditional tag2
    IF tag_grabber(mi.tag2, dstate) THEN dstate.need_update = YES
   CASE 6: 'set tag
-   IF tag_grabber(mi.settag, dstate, , , NO) THEN dstate.need_update = YES
+   IF tag_set_grabber(mi.settag, dstate) THEN dstate.need_update = YES
   CASE 7: 'toggle tag
-   IF tag_grabber(mi.togtag, dstate, 0, , NO) THEN dstate.need_update = YES
+   IF tag_set_grabber(mi.togtag, dstate, 0) THEN dstate.need_update = YES
   CASE 8: ' bitsets
    IF enter_space_click(dstate) THEN
     edit_menu_item_bits mi

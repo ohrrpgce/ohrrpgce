@@ -1312,7 +1312,7 @@ SUB individual_formation_editor ()
     END IF
    END IF
    IF state.pt = 6 THEN
-    tag_grabber(form.victory_tag, 0, , NO)
+    tag_set_grabber(form.victory_tag, state)
    END IF
    IF state.pt = 7 THEN
     intgrabber(form.death_action, -1, 0)

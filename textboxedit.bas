@@ -394,7 +394,7 @@ SUB textbox_conditionals(byref box as TextBox)
     CASE condTAG
      tag_grabber num, state
     CASE condSETTAG
-     tag_grabber num, state, , , NO
+     tag_set_grabber num, state
     CASE condBATTLE
      intgrabber num, 0, gen(genMaxFormation)
     CASE condSHOP
@@ -1164,7 +1164,7 @@ SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
   END IF
   FOR i as integer = 0 TO 1
    IF state.pt = 2 + (i * 2) THEN strgrabber box.choice(i), 15
-   IF state.pt = 3 + (i * 2) THEN tag_grabber box.choice_tag(i), state, , , NO
+   IF state.pt = 3 + (i * 2) THEN tag_set_grabber box.choice_tag(i), state
   NEXT i
   IF box.choice_enabled THEN menu(1) = "Choice = Enabled" ELSE menu(1) = "Choice = Disabled"
   FOR i as integer = 0 TO 1
