@@ -62,7 +62,7 @@ FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integ
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_space_click(state) THEN
   DIM browse_tag as integer
-  browse_tag = tags_menu(n, YES, allowspecial)
+  browse_tag = tags_menu(n, YES, allowspecial, (min < 0))
   IF browse_tag <> n THEN
    n = browse_tag
    RETURN YES
@@ -82,8 +82,12 @@ END SUB
 
 'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
-FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES) as integer
+FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES, byval showsign as bool=NO) as integer
  STATIC searchstring as string
+ 
+ 'If this method for guessing checktag mode ever fails, we can change it to be an argument
+ DIM checktag as bool = picktag ANDALSO allowspecial
+
  DIM thisname as string
  DIM ret as integer = starttag
  IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
@@ -109,8 +113,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  IF picktag THEN
   'When picktag is true, it shold be possible to clear the tag selection
   tagid[menu_i] = 0
-  IF allowspecial THEN
-   'allowspecial being true is a good indicator that we are checking the tag rather than setting it
+  IF checktag THEN
    menu[menu_i].text = "No Tag Check"
   ELSE
    menu[menu_i].text = "No Tag Set"
@@ -140,6 +143,9 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  DIM state as MenuState
  state.autosize = YES
  state.autosize_ignore_lines = 1
+ IF showsign THEN
+  state.autosize_ignore_lines = 2
+ END IF
  state.last = v_len(menu) - 1
  init_menu_state state, menu
 
@@ -231,6 +237,10 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
      END IF
     NEXT i
    END IF
+  ELSEIF showsign THEN
+   IF keyval(scLeft) > 1 ORELSE keyval(scRight) > 1 THEN
+    tagsign = tagsign * -1
+   END IF
   END IF
   IF tagid[state.pt] = -1 AND enter_space_click(state) THEN
    ret = starttag
@@ -291,7 +301,21 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    END IF
   END IF
 
+  IF showsign THEN
+   ' Show whether we are picking a tag that can be ON or OFF
+   textcolor uilook(uiText), 0
+   DIM tempstr as string
+   IF checktag THEN
+    tempstr = "Check if tag is"
+   ELSE
+    tempstr = "Set tag ="
+   END IF
+   printstr tempstr & " " & IIF(tagsign = 1, "ON", "OFF"),  pRight, pBottom - 8, dpage
+  END IF
+  
   IF tag_is_autoset(tagid[state.pt]) THEN
+   'Showing tag autoset status is not important when using picktag for a tag check
+   'so we only show it when in set-tag more or non-tag-picking mode
    textcolor uilook(uiDisabledItem), 0
    printstr "An auto-set tag. Press TAB for details", 0, pBottom, dpage
   END IF
