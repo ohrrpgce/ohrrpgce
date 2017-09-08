@@ -56,13 +56,13 @@ FUNCTION tag_grabber (byref n as integer, byval min as integer=-99999, byval max
  RETURN tag_grabber(n, dummy_state, min, max, allowspecial)
 END FUNCTION
 
-FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
+FUNCTION tag_grabber (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES, byval always_choice as bool=NO) as integer
  min = large(min, -max_tag())
  max = small(max, max_tag())
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_space_click(state) THEN
   DIM browse_tag as integer
-  browse_tag = tags_menu(n, YES, allowspecial, (min < 0))
+  browse_tag = tags_menu(n, YES, allowspecial, (min < 0), always_choice)
   IF browse_tag <> n THEN
    n = browse_tag
    RETURN YES
@@ -82,7 +82,7 @@ END SUB
 
 'If picktag is true, then can be used to pick a tag. In that case, allowspecial indicates whether to allow
 'picking 'special' tags: those automatically set, eg. based on inventory conditions
-FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES, byval showsign as bool=NO) as integer
+FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, byval allowspecial as integer=YES, byval showsign as bool=NO, byval always_choice as bool=NO) as integer
  STATIC searchstring as string
  
  'If this method for guessing checktag mode ever fails, we can change it to be an argument
@@ -97,6 +97,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
 
  DIM menu_size as integer = gen(genMaxTagname) + 1
  IF picktag THEN menu_size += 1
+ IF always_choice THEN menu_size += 1
 
  v_new menu, menu_size
  v_new tagid, menu_size
@@ -111,13 +112,19 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  DIM menu_i as integer = 1
  
  IF picktag THEN
-  'When picktag is true, it shold be possible to clear the tag selection
+  'When picktag is true, it should be possible to clear the tag selection
   tagid[menu_i] = 0
   IF checktag THEN
    menu[menu_i].text = "No Tag Check"
   ELSE
    menu[menu_i].text = "No Tag Set"
   END IF
+  menu_i += 1
+ END IF
+
+ IF always_choice THEN
+  tagid[menu_i] = 1 'Magic value to indicate we want the "Always" tag
+  menu[menu_i].text = "ALWAYS"
   menu_i += 1
  END IF
 
@@ -243,11 +250,19 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    END IF
   END IF
   IF tagid[state.pt] = -1 AND enter_space_click(state) THEN
+   'We want to cancel out with no changes
    ret = starttag
    EXIT DO
   END IF
   IF tagid[state.pt] = 0 AND enter_space_click(state) THEN
+   'We want to return 0, clearing the tag set/check
    ret = 0
+   EXIT DO
+  END IF
+  IF tagid[state.pt] = 1 AND enter_space_click(state) THEN
+   'We want to return -1, indicating a tag-check of "ALWAYS"
+   IF NOT checktag THEN debug "tags_menu() returned -1 ALWAYS when not in checktag mode."
+   ret = -1
    EXIT DO
   END IF
   IF tagid[state.pt] >= 2 THEN
