@@ -88,23 +88,26 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  DIM ret as integer = starttag
  IF gen(genMaxTagname) < 1 THEN gen(genMaxTagname) = 1
 
+ 'Offset is added to state.pt to convert it into tag id number
+ DIM offset as integer = 1
+ 
  DIM menu as BasicMenuItem vector
- v_new menu, gen(genMaxTagname) + 1
+ v_new menu, gen(genMaxTagname) + offset
  IF picktag THEN
   menu[0].text = "Cancel"
  ELSE
   menu[0].text = "Previous Menu"
  END IF
  DIM i as integer
- FOR i = 2 TO gen(genMaxTagname) + 1
+ FOR i = 2 TO gen(genMaxTagname) + offset
   'Load all tag names plus the first blank name
-  menu[i - 1].text = "Tag " & i & ":" & load_tag_name(i)
+  menu[i - offset].text = "Tag " & i & ":" & load_tag_name(i)
   IF tag_is_autoset(i) THEN
    IF allowspecial = NO AND i <> starttag THEN
-    menu[i - 1].disabled = YES
+    menu[i - offset].disabled = YES
    ELSE
     'We don't have any UI colours that are subtle enough!
-    'menu[i - 1].col = uilook(uiText)
+    'menu[i - offset].col = uilook(uiText)
    END IF
   END IF
  NEXT i
@@ -123,12 +126,12 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
  init_menu_state state, menu
 
  state.pt = 0
- IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
- thisname = safe_tag_name(state.pt + 1)
+ IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - offset, gen(genMaxTagName))
+ thisname = safe_tag_name(state.pt + offset)
 
  DIM int_browsing as integer = NO
  DIM uninterrupted_alt_press as integer = NO
- 'Usually equal to state.pt + 1, but can reach 0
+ 'Usually equal to state.pt + offset, but can reach 0
  DIM alt_pt as integer 
  
  DIM do_search as bool = NO
@@ -152,8 +155,8 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
   IF do_search THEN
    do_search = NO
    IF searchstring <> "" THEN
-    FOR i as integer = large(state.pt + 1, 1) TO gen(genMaxTagname)
-     search_cur_str = load_tag_name(i + 1)
+    FOR i as integer = large(state.pt + offset, 1) TO gen(genMaxTagname)
+     search_cur_str = load_tag_name(i + offset)
      IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
       state.pt = i
       correct_menu_state state
@@ -164,7 +167,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
     IF NOT search_found THEN
      '--wrap the search
      FOR i as integer = 1 TO state.pt - 1
-      search_cur_str = load_tag_name(i + 1)
+      search_cur_str = load_tag_name(i + offset)
       IF INSTR(LCASE(search_cur_str), LCASE(searchstring)) THEN
        state.pt = i
        correct_menu_state state
@@ -177,44 +180,44 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    END IF
   END IF
   IF usemenu(state) THEN
-   thisname = safe_tag_name(state.pt + 1)
-   alt_pt = state.pt + 1
+   thisname = safe_tag_name(state.pt + offset)
+   alt_pt = state.pt + offset
   END IF
   IF keyval(scAlt) AND 4 THEN uninterrupted_alt_press = YES
   IF keyval(scAlt) = 0 AND uninterrupted_alt_press = YES THEN
    uninterrupted_alt_press = NO
    int_browsing XOR= YES
-   alt_pt = state.pt + 1
+   alt_pt = state.pt + offset
   END IF
   IF int_browsing THEN
-   IF intgrabber(alt_pt, 0, gen(genMaxTagName) + 1) THEN
-    state.pt = large(0, alt_pt - 1)
+   IF intgrabber(alt_pt, 0, gen(genMaxTagName) + offset) THEN
+    state.pt = large(0, alt_pt - offset)
     correct_menu_state state
-    thisname = safe_tag_name(state.pt + 1)
+    thisname = safe_tag_name(state.pt + offset)
    END IF
   END IF
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
-  IF state.pt > 0 AND state.pt + 1 <= gen(genMaxTagName) + 1 THEN
-   IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + 1) THEN
-    tag_autoset_warning state.pt + 1
+  IF state.pt > 0 AND state.pt + offset <= gen(genMaxTagName) + offset THEN
+   IF keyval(scTab) > 1 ANDALSO tag_is_autoset(state.pt + offset) THEN
+    tag_autoset_warning state.pt + offset
    END IF
    IF keyval(scAnyEnter) > 1 ORELSE menu_click(state) THEN ' Can't call enter_space_click() because we can type spaces when editing tag names
     IF menu[state.pt].disabled THEN
-     tag_autoset_warning state.pt + 1
+     tag_autoset_warning state.pt + offset
     ELSEIF picktag THEN
-     ret = (state.pt + 1) * tagsign
+     ret = (state.pt + offset) * tagsign
      EXIT DO
     END IF
    END IF
    IF int_browsing = NO ANDALSO strgrabber(thisname, 20) THEN
     uninterrupted_alt_press = NO
-    save_tag_name thisname, state.pt + 1
-    menu[state.pt].text = "Tag " & state.pt + 1 & ":" & thisname
-    IF state.pt + 1 = gen(genMaxTagName) + 1 THEN
+    save_tag_name thisname, state.pt + offset
+    menu[state.pt].text = "Tag " & state.pt + offset & ":" & thisname
+    IF state.pt + offset = gen(genMaxTagName) + offset THEN
      IF gen(genMaxTagName) < max_tag() THEN
       gen(genMaxTagName) += 1
-      v_resize menu, gen(genMaxTagName) + 1
-      menu[gen(genMaxTagName)].text = "Tag " & gen(genMaxTagName) + 1 & ":"
+      v_resize menu, gen(genMaxTagName) + offset
+      menu[gen(genMaxTagName)].text = "Tag " & gen(genMaxTagName) + offset & ":"
       state.last += 1
      END IF
     END IF
@@ -242,7 +245,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
    END IF
   END IF
 
-  IF tag_is_autoset(state.pt + 1) THEN
+  IF tag_is_autoset(state.pt + offset) THEN
    textcolor uilook(uiDisabledItem), 0
    printstr "An auto-set tag. Press TAB for details", 0, pBottom, dpage
   END IF
