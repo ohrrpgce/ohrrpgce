@@ -303,14 +303,23 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as integer=NO, by
 
   IF showsign THEN
    ' Show whether we are picking a tag that can be ON or OFF
-   textcolor uilook(uiText), 0
-   DIM tempstr as string
+   DIM signstr as string
    IF checktag THEN
-    tempstr = "Check if tag is"
+    signstr = "Check if tag is"
    ELSE
-    tempstr = "Set tag ="
+    signstr = "Set tag ="
    END IF
-   printstr tempstr & " " & IIF(tagsign = 1, "ON", "OFF"),  pRight, pBottom - 8, dpage
+   signstr = signstr & " " & IIF(tagsign = 1, "ON", "OFF")
+   textcolor uilook(uiText), 0
+   DIM signrect as RectType
+   signrect = str_rect(signstr, 0 , 0)
+   signrect.x = vpages(dpage)->w - signrect.size.x
+   signrect.y = vpages(dpage)->h - 16
+   IF rect_collide_point(signrect, readmouse.pos) THEN
+    textcolor uilook(uiSelectedItem + state.tog), uilook(uiHighlight)
+    IF readmouse.release AND mouseLeft THEN tagsign *= -1
+   END IF
+   printstr signstr, pRight, pBottom - 8, dpage
   END IF
   
   IF tag_is_autoset(tagid[state.pt]) THEN
