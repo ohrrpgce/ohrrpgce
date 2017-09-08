@@ -1027,7 +1027,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
      st.need_update OR= intgrabber(v, 0, 255)
      SetContent(.dataptr, v)
     CASE edbatmenu_TAG
-     st.need_update OR= tag_grabber(v)
+     st.need_update OR= tag_grabber(v, st)
      SetContent(.dataptr, v)
     CASE edbatmenu_STR
      DIM strval as string
@@ -1160,13 +1160,13 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     CASE 0
      IF enter_space_click(st) THEN EXIT DO
     CASE 1
-     tag_grabber .have_tag, 0
+     tag_grabber .have_tag, st, 0
     CASE 2
-     tag_grabber .alive_tag, 0
+     tag_grabber .alive_tag, st, 0
     CASE 3
-     tag_grabber .leader_tag, 0
+     tag_grabber .leader_tag, st, 0
     CASE 4
-     tag_grabber .active_tag, 0
+     tag_grabber .active_tag, st, 0
    END SELECT
 
    'Update cached hero tags
