@@ -5209,7 +5209,7 @@ DO
   IF i > state.last THEN EXIT FOR
   textcol = uilook(uiMenuItem)
   textbg = 0
-  IF state.hover = i THEN textcol = uilook(uiText) : textbg = uilook(uiMouseHoverItem)
+  IF state.hover = i THEN textcol = uilook(uiMouseHoverItem)
   IF state.pt = i THEN textcol = uilook(uiSelectedItem + state.tog)
   textcolor textcol, textbg
   y = (i - state.top) * state.spacing
@@ -5229,9 +5229,11 @@ DO
     '--Down A frame
     frame_draw .sprite + 4, .pal, 32, (i - state.top) * 25, 1, -1, dpage
    END WITH
+   textcol = uilook(uiMenuItem)
    textbg = uilook(uiHighlight)
-   IF state.hover = i THEN textbg = uilook(uiMouseHoverItem)
-   IF state.pt = i THEN textcol = uilook(uiText) : textbg = uilook(uiHighlight)
+   IF state.hover = i THEN textcol = uilook(uiMouseHoverItem)
+   IF state.pt = i THEN textcol = uilook(uiText)
+   textcolor textcol, textbg
    printstr boxpreview(i), 56, y + 5, dpage
   END IF
  NEXT i
