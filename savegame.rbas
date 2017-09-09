@@ -101,6 +101,7 @@ SUB init_save_system()
  IF diriswriteable(rpg_folder) ANDALSO force_prefsdir_save = NO THEN
   '--default location is same as the RPG file (if possible)
   savedir = trimextension(sourcerpg) & ".saves"
+  savedir = find_file_anycase(savedir, fileTypeDirectory)  'Find the directory case-insensitively
  ELSE
   '--fallback location is prefsdir
   savedir = prefsdir & SLASH & "saves"
