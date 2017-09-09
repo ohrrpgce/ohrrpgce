@@ -734,7 +734,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   NEXT
 
   '---FIND ALL FILES IN FILEMASK---
-  DIM filetype as integer = fileTypeFile
+  DIM filetype as FileTypeEnum = fileTypeFile
   IF br.special = 4 THEN
    browse_add_files "*.mas", filetype, br, tree()
    browse_add_files "*.bmp", filetype, br, tree()

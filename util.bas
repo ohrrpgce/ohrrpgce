@@ -1608,8 +1608,9 @@ FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   RETURN ret
 END FUNCTION
 
-' Given a relative path to a file or dir by a user clueless about Unix/Windows differences, try to find
-' that file, returning either a simplified/normalised path or an error message. Use isfile() to test for success.
+' Given a relative path to a file or dir by a user clueless about Unix/Windows
+' differences, try to find that file, returning either a simplified/normalised
+' path or an error message. Use isfile() or isdir() to test for success.
 ' 'path' is not modified.
 ' In particular:
 ' - \ is treated as a path separator even on Unix
@@ -1683,17 +1684,40 @@ FUNCTION find_file_portably (path as string) as string
   #ENDIF
 END FUNCTION
 
+'If the given file or directory with possibly changed case already exists then
+'return its filename, otherwise returns 'fname' unchanged.
+'(Only does case-insensitive matching of the final component. Try find_file_portably for the whole path)
+FUNCTION find_file_anycase(path as string, file_type as FileTypeEnum = fileTypeFile) as string
+ #IFDEF __FB_WIN32__
+  RETURN path
+ #ELSE
+  DIM filelist() as string
+  DIM dirname as string = trimfilename(path)
+  IF LEN(dirname) = 0 THEN dirname = CURDIR
+  'findfiles is always case-insensitive
+  findfiles dirname, trimpath(path), file_type, YES, filelist()
+  IF UBOUND(filelist) < 0 THEN RETURN path
+  IF UBOUND(filelist) > 0 THEN
+   debug "find_path_anycase: multiple files case-insensitively match " & path
+  END IF
+  RETURN dirname & SLASH & filelist(0)
+ #ENDIF
+END FUNCTION
+
 #IFDEF __FB_MAIN__
 ' Have to allow find_file_portably to not resolve the true capitalisation on Windows
 #IFDEF __FB_UNIX__
   #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_unix)
+  #DEFINE testanycase( path, expected_unix, expected_windows) testEqual(find_file_anycase (path), expected_unix)
 #ELSE
   #DEFINE testfindfile(path, expected_unix, expected_windows) testEqual(find_file_portably(path), expected_windows)
+  #DEFINE testanycase( path, expected_unix, expected_windows) testEqual(find_file_anycase (path), expected_windows)
 #ENDIF
 #DEFINE testfilemissing(path, expected) testEqual(find_file_portably(path), "Can't find " + normalize_path(expected))
 #DEFINE testfileabsolute(path) testEqual(find_file_portably(path), "Absolute path not allowed: " + path)
 
-startTest(find_file_portably)
+'This also indirectly tests findfiles a bit (Unix only)
+startTest(find_file_portably_and_anycase)
   CONST tempdir = "_Testdir.tmp"
   CONST tempdir2 = tempdir + SLASH + "subDir"
   IF makedir(tempdir) <> 0 THEN fail
@@ -1754,6 +1778,17 @@ startTest(find_file_portably)
               "Found multiple paths (in " + normed + ") with same case-insensitive name: [""SUBDIR1"", ""Subdir1""]")
   #ENDIF
 
+  ' Test find_file_anycase
+  testanycase(tempdir + "/foo.tmp",          tempdir + "/Foo.Tmp",  tempdir + "/foo.tmp")
+  testanycase(tempdir + "/Foo.tmp",          tempdir + "/Foo.Tmp",  tempdir + "/Foo.tmp")
+  CHDIR tempdir2
+  testanycase("bar.tmp",                     CURDIR + "/bar.TMP",   "bar.tmp")
+  testanycase(".." SLASH "foo.tmp",          ".." SLASH "Foo.Tmp", ".." SLASH "foo.tmp")
+  '(Looking for a file, not a subdir)
+  testanycase("../subdir",                   "../subdir",  "../subdir")
+  testanycase("..",                          "..",         "..")
+  CHDIR "../.."
+
   killdir(tempdir, YES)  'recursively
 
   IF isdir(tempdir) THEN fail
@@ -1768,7 +1803,7 @@ FUNCTION anycase (filename as string) as string
   RETURN filename
 #ELSE
   DIM ascii as integer
-  dim as string result = ""
+  DIM as string result = ""
   FOR i as integer = 1 TO LEN(filename)
     ascii = ASC(MID(filename, i, 1))
     IF ascii >= 65 AND ascii <= 90 THEN
@@ -2168,13 +2203,13 @@ SUB killdir(directory as string, recurse as bool = NO)
    EXIT SUB
   END IF
   DIM filelist() as string
-  findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
+  findfiles directory, ALLFILES, fileTypeFile, YES, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
     killfile directory + SLASH + filelist(i)
   NEXT
   IF recurse THEN
    DIM dirlist() as string
-   findfiles directory, ALLFILES, fileTypeDirectory, -1, dirlist()
+   findfiles directory, ALLFILES, fileTypeDirectory, YES, dirlist()
    FOR i as integer = 0 TO UBOUND(dirlist)
     IF dirlist(i) = "." ORELSE dirlist(i) = ".." THEN CONTINUE FOR
     'debuginfo "recurse to " & directory & SLASH & dirlist(i)
@@ -2772,14 +2807,14 @@ FUNCTION count_directory_size(directory as string) as integer
  DIM bytes as integer = 0
  DIM filelist() as string
  
- '--First cound files
- findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
+ '--First count files
+ findfiles directory, ALLFILES, fileTypeFile, YES, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
   bytes += filelen(directory & SLASH & filelist(i))
  NEXT
  
  '--Then count subdirectories
- findfiles directory, ALLFILES, fileTypeDirectory, -1, filelist()
+ findfiles directory, ALLFILES, fileTypeDirectory, YES, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
   bytes += count_directory_size(directory & SLASH & filelist(i))
  NEXT
