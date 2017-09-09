@@ -174,7 +174,7 @@ SUB correct_menu_state (state as MenuState)
   .top = large(small(.top, .last - .size), .first)
   ' Selected item must be visible (unless the menu is empty)
   IF .pt >= .first THEN .top = bound(.top, .pt - .size, .pt)
-  .hover = .first - 1
+  mouse_update_hover state
  END WITH
 END SUB
 

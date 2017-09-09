@@ -5134,7 +5134,7 @@ DO
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- intgrabber state.pt, 0, state.last, , , , NO  'use_clipboard=NO
+ intgrabber state.pt, -1, state.last, , , , NO  'use_clipboard=NO
  corners_to_rect XY(0,0), vpages(dpage)->size, state.rect
  usemenu state
  IF enter_space_click(state) THEN
@@ -5168,7 +5168,7 @@ DO
   need_update_selected = YES
  END IF
  'Copy/paste
- IF state.pt < state.last THEN  'An NPC def is selected
+ IF state.pt >= 0 ANDALSO state.pt < state.last THEN  'An NPC def is selected
   IF copy_keychord() THEN
    copied_npcdef = map.npc_def(state.pt)
    have_copied_npcdef = YES
@@ -5196,7 +5196,7 @@ DO
   boxpreview(state.pt) = npc_preview_text(map.npc_def(state.pt))
   '--Update menu size (including Add NPC option) and scroll up if needed
   state.last = UBOUND(map.npc_def) + 1
-  usemenu state
+  correct_menu_state state
 
   need_update_selected = NO
  END IF
