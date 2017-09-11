@@ -1376,11 +1376,11 @@ DO
     setactivemenu workmenu(), transmogMenu(), state
     helpkey = "attack_transmogrify"
    CASE AtkPal
-    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), sprTypeAttack, recbuf(AtkDatPic))
+    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), sprTypeAttack, recbuf(AtkDatPic), YES)
     state.need_update = YES
    CASE AtkWepPal
     IF recbuf(AtkDatWepPic) > 0 THEN
-     recbuf(AtkDatWepPal) = pal16browse(recbuf(AtkDatWepPal), sprTypeAttack, recbuf(AtkDatWepPic))
+     recbuf(AtkDatWepPal) = pal16browse(recbuf(AtkDatWepPal), sprTypeAttack, recbuf(AtkDatWepPic), YES)
      state.need_update = YES
     END IF
    CASE AtkBitAct

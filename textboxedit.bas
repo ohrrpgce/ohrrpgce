@@ -776,7 +776,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
     CASE 12:
      IF box.portrait_type = 1 THEN
-      box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id)
+      box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id, YES)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 14:

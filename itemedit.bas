@@ -206,7 +206,7 @@ SUB individual_item_editor(item_id as integer)
     END IF
    END IF
    IF state.pt = 16 THEN '--palette picker
-    itembuf(53) = pal16browse(itembuf(53), sprTypeWeapon, itembuf(52))
+    itembuf(53) = pal16browse(itembuf(53), sprTypeWeapon, itembuf(52), YES)
     state.need_update = YES
    END IF
   END IF

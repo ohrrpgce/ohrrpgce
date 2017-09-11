@@ -1356,9 +1356,9 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
    IF enter_space_click(state) THEN
     SELECT CASE state.pt
      CASE 2
-      her.sprite_pal = pal16browse(her.sprite_pal, sprTypeHero, her.sprite)
+      her.sprite_pal = pal16browse(her.sprite_pal, sprTypeHero, her.sprite, YES)
      CASE 4
-      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite)
+      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite, YES)
      CASE 6
       DIM itemb as ItemBrowser
       her.def_weapon = itemb.browse(her.def_weapon)
@@ -1367,7 +1367,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
      CASE 9
       xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 11
-      her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait)
+      her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait, YES)
     END SELECT
     st.changed = YES
    END IF

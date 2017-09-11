@@ -1373,7 +1373,7 @@ SUB onetimetog(byref tagnum as integer)
  gen(genOneTimeNPC) = i
 END SUB
 
-FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer) as integer
+FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer, byval show_default as bool=NO) as integer
 
  DIM buf(7) as integer
  REDIM sprite(100) as Frame ptr
@@ -1389,6 +1389,10 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.size = 9
  state.spacing = 20
  state.autosize = YES
+ 
+ IF show_default THEN
+  state.first = -2
+ END IF
  
  DIM stateOpts as MenuOptions
  stateOpts.itemspacing = 12
@@ -1406,7 +1410,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  'We actually want to be able to browse past the last palette to the first empty palette
  state.last += 1
 
- state.pt = bound(curpal, 0, state.last)
+ state.pt = bound(curpal, IIF(show_default, -1, 0), state.last)
  correct_menu_state state
 
  DIM last_size as integer = state.size
@@ -1434,7 +1438,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
    state.need_update = YES
   END IF
   IF enter_space_click(state) THEN
-   IF state.pt >= 0 THEN curpal = state.pt
+   IF state.pt > state.first THEN curpal = state.pt
    EXIT DO
   END IF
 
@@ -1459,6 +1463,10 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
    IF cur_slot = state.hover THEN textcolor uilook(uiMouseHoverItem), 0
    IF cur_slot = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
    SELECT CASE cur_slot
+    CASE state.first 'Might be -1 or -2 depending on whether default is displayed
+     printstr "Cancel", 4, 5 + i * 20, dpage
+    CASE -1
+     printstr "Default", 4, 5 + i * 20, dpage
     CASE IS >= 0
      o = LEN(" " & (cur_slot)) * 8
      DIM border_col as integer
@@ -1481,8 +1489,6 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
       END IF
      END IF
      printstr "" & cur_slot, 4, 5 + i * 20, dpage
-    CASE ELSE
-     printstr "Cancel", 4, 5 + i * 20, dpage
    END SELECT
   NEXT i
   IF state.pt >= 0 THEN '--write current pic on top

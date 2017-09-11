@@ -4963,7 +4963,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
     IF enter_space_click(ed.state) THEN
-     npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture)
+     npcdata.palette = pal16browse(npcdata.palette, sprTypeWalkabout, npcdata.picture, YES)
      load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
    CASE 2
