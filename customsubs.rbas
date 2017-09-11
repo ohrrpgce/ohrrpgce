@@ -1388,6 +1388,10 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.first = -1
  state.size = 9
  state.spacing = 20
+ state.autosize = YES
+ 
+ DIM stateOpts as MenuOptions
+ stateOpts.itemspacing = 12
 
  '--Find last palette which is not blank
  loadrecord buf(), game + ".pal", 8, 0
@@ -1414,11 +1418,15 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   state.tog = state.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
-  IF usemenu(state) THEN state.need_update = YES
+
   recalc_menu_size state
+  calc_menustate_size state, stateOpts, 0, 0, dpage
   state.size = small(state.size, 100)
   IF state.size <> last_size THEN state.need_update = YES
   last_size = state.size
+
+  IF usemenu(state) THEN state.need_update = YES
+  
   DIM temppt as integer = large(state.pt, 0)
   IF intgrabber(temppt, 0, state.last, , , YES) THEN
    state.pt = temppt
@@ -1453,9 +1461,10 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
    SELECT CASE cur_slot
     CASE IS >= 0
      o = LEN(" " & (cur_slot)) * 8
-     IF cur_slot = state.pt THEN
-      edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), uilook(uiMenuitem), dpage
-     END IF
+     DIM border_col as integer
+     IF cur_slot = state.hover THEN border_col = uilook(uiMouseHoverItem)
+     IF cur_slot = state.pt THEN border_col = uilook(uiMenuitem)
+     edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), border_col, dpage
      FOR j = 0 TO 15
       IF pal16(i) THEN
        c = pal16(i)->col(j)
