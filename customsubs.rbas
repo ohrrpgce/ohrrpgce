@@ -1376,8 +1376,8 @@ END SUB
 FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer) as integer
 
  DIM buf(7) as integer
- DIM sprite(9) as Frame ptr
- DIM pal16(9) as Palette16 ptr
+ REDIM sprite(100) as Frame ptr
+ REDIM pal16(100) as Palette16 ptr
 
  DIM as integer i, o, j, k
  DIM c as integer
@@ -1387,6 +1387,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.top = curpal - 1
  state.first = -1
  state.size = 9
+ state.spacing = 20
 
  '--Find last palette which is not blank
  loadrecord buf(), game + ".pal", 8, 0
@@ -1404,6 +1405,8 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  state.pt = bound(curpal, 0, state.last)
  correct_menu_state state
 
+ DIM last_size as integer = state.size
+
  setkeys
  DO
   setwait 55
@@ -1412,6 +1415,10 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
   IF usemenu(state) THEN state.need_update = YES
+  recalc_menu_size state
+  state.size = small(state.size, 100)
+  IF state.size <> last_size THEN state.need_update = YES
+  last_size = state.size
   DIM temppt as integer = large(state.pt, 0)
   IF intgrabber(temppt, 0, state.last, , , YES) THEN
    state.pt = temppt
@@ -1425,7 +1432,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
 
   IF state.need_update THEN
    state.need_update = NO
-   FOR i = 0 TO 9
+   FOR i = 0 TO state.size
     frame_unload @sprite(i)
     palette16_unload @pal16(i)
     sprite(i) = frame_load(picset, picnum)
@@ -1437,13 +1444,16 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
 
   '--Draw screen
   clearpage dpage
-  FOR i = 0 TO 9
+  FOR i = 0 TO state.size
+   DIM cur_slot as integer = state.top + i
+   IF cur_slot > state.last THEN CONTINUE FOR
    textcolor uilook(uiMenuItem), 0
-   IF state.top + i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
-   SELECT CASE state.top + i
+   IF cur_slot = state.hover THEN textcolor uilook(uiMouseHoverItem), 0
+   IF cur_slot = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   SELECT CASE cur_slot
     CASE IS >= 0
-     o = LEN(" " & (state.top + i)) * 8
-     IF state.top + i = state.pt THEN
+     o = LEN(" " & (cur_slot)) * 8
+     IF cur_slot = state.pt THEN
       edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), uilook(uiMenuitem), dpage
      END IF
      FOR j = 0 TO 15
@@ -1452,7 +1462,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
        rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
       END IF
      NEXT j
-     IF state.top + i <> state.pt THEN
+     IF cur_slot <> state.pt THEN
       IF pal16(i) THEN
        WITH sprite_sizes(picset)
         FOR k = 0 TO .frames - 1
@@ -1461,7 +1471,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
        END WITH
       END IF
      END IF
-     printstr "" & (state.top + i), 4, 5 + i * 20, dpage
+     printstr "" & cur_slot, 4, 5 + i * 20, dpage
     CASE ELSE
      printstr "Cancel", 4, 5 + i * 20, dpage
    END SELECT
@@ -1483,7 +1493,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   dowait
  LOOP
 
- FOR i = 0 TO 9
+ FOR i = 0 TO 100
   frame_unload @sprite(i)
   palette16_unload @pal16(i)
  NEXT
