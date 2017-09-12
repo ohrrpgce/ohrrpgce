@@ -269,9 +269,9 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
  '.unselectable attribute only used from leftmenu
  DIM as BasicMenuItem vector leftmenu, rightmenu, middlemenu
- v_new leftmenu, 4 + 12
- v_new rightmenu, 4 + 12
- v_new middlemenu, 4 + 12
+ v_new leftmenu, 4 + statLast + 1
+ v_new rightmenu, 4 + statLast + 1
+ v_new middlemenu, 4 + statLast + 1
  leftmenu[0].text = "Previous Menu"
  leftmenu[1].text = "Stat Visibility..."
  leftmenu[2].unselectable = YES
@@ -367,43 +367,54 @@ SUB hero_editor_stats_menu (her as HeroDef)
    NEXT i
   END IF
 
+  ' Menu positions
+  DIM rightmenux as integer = small(270, get_resolution().w - 135)
+  DIM midmenux as integer = rightmenux \ 2
+
+  ' Position of the graph...
+  ' based on its bottom-right corner
+  DIM graphBR as XYPair = get_resolution() - XY(5, 40)
+  DIM graphrect as RectType = (graphBR.x - 100, 130, 100, graphBR.y - 130)
+
   '--Draw screen
   clearpage dpage
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   IF activemenu = 0 THEN
    standardmenu leftmenu, mstate, 0, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, inactive_state, 216, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, inactive_state, rightmenux, 0, dpage
   ELSE 'activemenu = 1
    standardmenu leftmenu, inactive_state, 0, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, mstate, 216, 0, dpage
+   IF twomenus THEN standardmenu rightmenu, mstate, rightmenux, 0, dpage
   END IF
   IF gen(genMaxLevel) <> 99 ANDALSO gen(genMaxLevel) > 0 THEN
-   standardmenu middlemenu, inactive_state, 108, 0, dpage
+   standardmenu middlemenu, inactive_state, midmenux, 0, dpage
   END IF
 
   IF statnum >= 0 THEN  '--Draw graph
    textcolor uilook(uiMenuItem), 0
-   printstr statnames(statnum), 310 - LEN(statnames(statnum)) * 8, 160, dpage
+   printstr statnames(statnum), graphBR.x - 10 + ancRight, graphBR.y + 4, dpage
    IF twomenus THEN
     DIM levelmsg as string
     levelmsg = "Levels 0-" & gen(genMaxLevel)
-    printstr levelmsg, 310 - LEN(levelmsg) * 8, 170, dpage
+    printstr levelmsg, graphBR.x - 10 + ancRight, graphBR.y + 13, dpage
    END IF
    DIM as integer n0, nMax, numbars, barwidth
-   IF gen(genMaxLevel) < 25 THEN
+   IF gen(genMaxLevel) < graphrect.wide THEN
     numbars = gen(genMaxLevel) + 1
-    barwidth = 25 \ numbars
+    barwidth = graphrect.wide \ numbars
    ELSE
-    numbars = 25
+    numbars = graphrect.wide
     barwidth = 1
    END IF
    n0 = her.Lev0.sta(statnum)
    nMax = her.LevMax.sta(statnum)
+   ' The y value at the top of the graph
+   DIM graphmax as integer = large(small(99, max(statnum)), large(n0, atlevel(gen(genMaxLevel), n0, nMax)))
    FOR i as integer = 0 TO numbars - 1
     DIM as integer level, ordinate
     level = INT(i * gen(genMaxLevel) / large(1, numbars - 1))  'round result to avoid error
-    ordinate = atlevel(level, n0, nMax) * (100 / max(statnum))
-    rectangle 290 + i * barwidth, 156 - ordinate, barwidth, ordinate + 1, uilook(uiMenuItem), dpage
+    ordinate = atlevel(level, n0, nMax) * (graphrect.high / graphmax)
+    rectangle graphrect.x + i * barwidth, graphBR.y - ordinate, barwidth, ordinate + 1, uilook(uiMenuItem), dpage
    NEXT i
 
    'Experimental stuff
@@ -424,9 +435,9 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   IF statnum = statSpeed THEN
    textcolor uilook(uiDescription), 0
-   printstr "Lev0:  1 turn every " & speed_estimate(her.Lev0.spd), 0, 182, dpage
+   printstr "Lev0: 1 turn every " & speed_estimate(her.Lev0.spd), 0, pBottom - 9, dpage
    IF twomenus THEN
-    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, 190, dpage
+    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, pBottom, dpage
    END IF
   END IF
   SWAP vpage, dpage
