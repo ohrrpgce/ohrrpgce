@@ -1415,6 +1415,8 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
 
  DIM last_size as integer = state.size
 
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
  setkeys
  DO
   setwait 55
@@ -1430,7 +1432,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   last_size = state.size
 
   IF usemenu(state) THEN state.need_update = YES
-  
+
   DIM temppt as integer = large(state.pt, 0)
   IF intgrabber(temppt, 0, state.last, , , YES) THEN
    state.pt = temppt
@@ -1507,6 +1509,7 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   setvispage vpage
   dowait
  LOOP
+ setcursorvisibility(prev_mouse_vis)
 
  FOR i = 0 TO 100
   frame_unload @sprite(i)
