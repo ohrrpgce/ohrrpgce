@@ -750,6 +750,11 @@ DO
     helpkey = "enemy_elementals"
     drawpreview = NO
     state.need_update = YES
+   CASE EnMenuPic
+    DIM enemyb as EnemySpriteBrowser
+    enemyb.size_group = recbuf(EnDatPicSize)
+    recbuf(EnDatPic) = enemyb.browse(recbuf(EnDatPic))
+    state.need_update = YES
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + sprTypeSmallEnemy, recbuf(EnDatPic), YES)
     state.need_update = YES

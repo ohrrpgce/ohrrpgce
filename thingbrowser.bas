@@ -269,4 +269,25 @@ Function PortraitSpriteBrowser.sprite_kind() as integer
  return sprTypePortrait
 End Function
 
+'ENEMY
+Function EnemySpriteBrowser.highest_id() as integer
+ select case size_group
+  case 0: return gen(genMaxEnemy1Pic)
+  case 1: return gen(genMaxEnemy2Pic)
+  case 2: return gen(genMaxEnemy3Pic)
+ end select
+ debug "EnemySpriteBrowser.highest_id(): size_group " & size_group & " is not valid"
+ return 0
+End Function
+
+Function EnemySpriteBrowser.sprite_kind() as integer
+ select case size_group
+  case 0: return sprTypeSmallEnemy
+  case 1: return sprTypeMediumEnemy
+  case 2: return sprTypeLargeEnemy
+ end select
+ debug "EnemySpriteBrowser.sprite_kind: size_group " & size_group & " is not valid"
+ return sprTypeInvalid
+End Function
+
 '-----------------------------------------------------------------------
