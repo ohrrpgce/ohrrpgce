@@ -223,6 +223,11 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim spr as Slice Ptr
  spr = NewSliceOfType(slSprite, plank)
  ChangeSpriteSlice spr, sprite_kind(), id
+ dim txt as Slice Ptr
+ txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
+ txt->AlignVert = alignBottom
+ txt->AnchorVert = alignBottom
+ ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
  plank->size = spr->size
  return plank
 End Function
