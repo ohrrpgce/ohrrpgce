@@ -22,6 +22,9 @@ Type ThingBrowser extends Object
  ' The thing id number will automatically be written into the plank's ->Extra(0) slot
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 
+ 'This is called once each tick for each plank, and can be used for animation, and similar
+ declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
+
  'If the plank is purely text based, just override this rather than .create_thing_plank()
  declare virtual function thing_text_for_id(byval id as integer) as string
 
@@ -70,6 +73,7 @@ End Type
 Type AttackSpriteBrowser extends SpriteBrowser
  declare virtual function highest_id() as integer
  declare virtual function sprite_kind() as integer
+ declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
 End Type
 
 

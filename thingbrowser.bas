@@ -104,6 +104,13 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    if ps.cur = orig_cur then set_plank_state ps, ps.cur, plankSELSPECIAL
   end if
 
+  'Iterate over all the planks to run their each_tick sub  
+  REDIM planks(any) as Slice Ptr
+  find_all_planks ps, ps.m, planks()
+  for i as integer = 0 to ubound(planks)
+   each_tick_each_plank planks(i)
+  next i
+
   ChangeGridSlice grid, , grid->Width \ plank_size.x
   if cursor_moved then
    'Yep, a move happened. We would update selection detail display here if that was a thing
@@ -121,6 +128,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  DeleteSlice @(root)
  return result
 End Function
+
+Sub ThingBrowser.each_tick_each_plank(byval plank as Slice Ptr)
+ 'Nothing needs to happen here, if you don't want continous animation
+End Sub
 
 Function ThingBrowser.init_helpkey() as string
  return ""
@@ -225,7 +236,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  box->Visible = NO
  ChangeRectangleSlice box, , , , -2
  dim spr as Slice Ptr
- spr = NewSliceOfType(slSprite, plank)
+ spr = NewSliceOfType(slSprite, plank, SL_THINGBROWSER_PLANK_SPRITE)
  ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
@@ -298,6 +309,17 @@ End Function
 Function AttackSpriteBrowser.sprite_kind() as integer
  return sprTypeAttack
 End Function
+
+Sub AttackSpriteBrowser.each_tick_each_plank(byval plank as Slice Ptr)
+ dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ if spr then
+  spr->Extra(1) = loopvar(spr->Extra(1), 0, 3)
+  if spr->Extra(1) = 0 then
+   dim dat as SpriteSliceData Ptr = spr->SliceData
+   dat->frame = loopvar(dat->frame, 0, 2)
+  end if
+ end if
+End Sub
 
 
 '-----------------------------------------------------------------------
