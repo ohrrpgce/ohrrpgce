@@ -768,12 +768,26 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
    SELECT CASE menu[state.pt].dat
     CASE 0: EXIT DO ' Exit the appearance menu
     CASE 3: box.textcolor = color_browser_256(box.textcolor)
+    CASE 5:
+      DIM backdropb as BackdropSpriteBrowser
+      box.backdrop = backdropb.browse(box.backdrop - 1, YES) + 1
+      state.need_update = YES
+      frame_unload @backdrop
+      IF box.backdrop > 0 THEN
+       backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
+      END IF
     CASE 6: IF box.music > -1 THEN playsongnum box.music - 1
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
     CASE 18: box.backdrop_trans = (NOT box.backdrop_trans)
+    CASE 11:
+     IF box.portrait_type = 1 THEN
+      DIM portraitb as PortraitSpriteBrowser
+      box.portrait_id = portraitb.browse(box.portrait_id)
+      state.need_update = YES
+     END IF
     CASE 12:
      IF box.portrait_type = 1 THEN
       box.portrait_pal = pal16browse(box.portrait_pal, sprTypePortrait, box.portrait_id, YES)

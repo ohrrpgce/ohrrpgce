@@ -45,6 +45,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  if focus_plank_by_extra_id(ps, start_id, grid) then
   orig_cur = ps.cur
  end if
+ DrawSlice root, vpage
+ update_plank_scrolling ps
 
  dim hover as Slice Ptr = 0
  dim cursor_moved as bool = YES
@@ -371,13 +373,18 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
  plank = Base.create_thing_plank(id)
  dim spr as Slice Ptr
  spr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
- spr->AlignVert = alignBottom
- spr->AlignHoriz = AlignCenter
- spr->AnchorVert = alignBottom
- spr->AnchorHoriz = alignCenter
- spr->y = -1
- 'This is such a delicious hack! >:) Will I regret it later? Never! I have no regrets! -- James (Sept 2017)
- DissolveSpriteSlice spr, 9, 100, 70, NO, NO 
+ if id = -1 then
+  DeleteSlice @spr
+ end if
+ if spr then
+  spr->AlignVert = alignBottom
+  spr->AlignHoriz = AlignCenter
+  spr->AnchorVert = alignBottom
+  spr->AnchorHoriz = alignCenter
+  spr->y = -1
+  'This is such a delicious hack! >:) Will I regret it later? Never! I have no regrets! -- James (Sept 2017)
+  DissolveSpriteSlice spr, 9, 100, 70, NO, NO
+ end if
  plank->size = XY(98, 63)
  return plank
 End Function
