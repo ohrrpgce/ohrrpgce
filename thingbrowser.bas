@@ -78,6 +78,11 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    cursor_moved = ps.cur <> hover
    ps.cur = hover
   end if
+  if readmouse.buttons AND mouseRight then
+   'Holding down right click can change cursor selection
+   cursor_moved = ps.cur <> hover
+   ps.cur = hover
+  end if
 
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
