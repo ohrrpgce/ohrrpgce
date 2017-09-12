@@ -140,6 +140,20 @@ Sub ThingBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  '(the SL_PLANK_MENU_SELECTABLE animation of TextSlice and RectangleSlice color happens automatically even without this sub)
 End Sub
 
+Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
+ 'A crude and simple animation helper for sprites in planks.
+ 'Uses the Extra(1) slot to manage the animation speed.
+ 'FIXME: rip this all out and replace it when the new animation system is ready
+ dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ if spr then
+  spr->Extra(1) = loopvar(spr->Extra(1), 0, delay)
+  if spr->Extra(1) = 0 then
+   dim dat as SpriteSliceData Ptr = spr->SliceData
+   dat->frame = loopvar(dat->frame, min, max)
+  end if
+ end if
+End Sub
+
 Function ThingBrowser.init_helpkey() as string
  return ""
 End Function
@@ -266,14 +280,7 @@ Function HeroSpriteBrowser.sprite_kind() as integer
 End Function
 
 Sub HeroSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
- dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
- if spr then
-  spr->Extra(1) = loopvar(spr->Extra(1), 0, 3)
-  if spr->Extra(1) = 0 then
-   dim dat as SpriteSliceData Ptr = spr->SliceData
-   dat->frame = loopvar(dat->frame, 0, 1)
-  end if
- end if
+ loop_sprite_helper plank, 0, 1
 End Sub
 
 'WALKABOUT
@@ -290,14 +297,7 @@ Function WalkaboutSpriteBrowser.sprite_frame() as integer
 End Function
 
 Sub WalkaboutSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
- dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
- if spr then
-  spr->Extra(1) = loopvar(spr->Extra(1), 0, 1)
-  if spr->Extra(1) = 0 then
-   dim dat as SpriteSliceData Ptr = spr->SliceData
-   dat->frame = loopvar(dat->frame, 4, 5)
-  end if
- end if
+ loop_sprite_helper plank, 4, 5
 End Sub
 
 'PORTRAIT
@@ -340,15 +340,20 @@ Function AttackSpriteBrowser.sprite_kind() as integer
 End Function
 
 Sub AttackSpriteBrowser.each_tick_each_plank(byval plank as Slice Ptr)
- dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
- if spr then
-  spr->Extra(1) = loopvar(spr->Extra(1), 0, 3)
-  if spr->Extra(1) = 0 then
-   dim dat as SpriteSliceData Ptr = spr->SliceData
-   dat->frame = loopvar(dat->frame, 0, 2)
-  end if
- end if
+ loop_sprite_helper plank, 0, 2
 End Sub
 
+'WEAPON
+Function WeaponSpriteBrowser.highest_id() as integer
+ return gen(genMaxWeaponPic)
+End Function
+
+Function WeaponSpriteBrowser.sprite_kind() as integer
+ return sprTypeWeapon
+End Function
+
+Sub WeaponSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+ loop_sprite_helper plank, 0, 1
+End Sub
 
 '-----------------------------------------------------------------------

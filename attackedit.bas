@@ -1382,6 +1382,10 @@ DO
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), sprTypeAttack, recbuf(AtkDatPic), YES)
     state.need_update = YES
+   CASE AtkWepPic
+    DIM weaponb as WeaponSpriteBrowser
+    recbuf(AtkDatWepPic) = weaponb.browse(recbuf(AtkDatWepPic) - 1, YES) + 1
+    state.need_update = YES
    CASE AtkWepPal
     IF recbuf(AtkDatWepPic) > 0 THEN
      recbuf(AtkDatWepPal) = pal16browse(recbuf(AtkDatWepPal), sprTypeAttack, recbuf(AtkDatWepPic), YES)

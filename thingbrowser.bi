@@ -5,6 +5,7 @@ Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO) as integer
  declare sub build_thing_list()
+ declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
 
  root as Slice ptr
  plank_size as XYPair 'This is calculated dynamically from the largest plank returned by create_thing_plank()
@@ -80,6 +81,12 @@ Type AttackSpriteBrowser extends SpriteBrowser
  declare virtual function highest_id() as integer
  declare virtual function sprite_kind() as integer
  declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
+End Type
+
+Type WeaponSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 
