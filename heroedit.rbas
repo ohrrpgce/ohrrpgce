@@ -1381,6 +1381,9 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 9
       xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+     CASE 10
+      DIM spriteb as PortraitSpriteBrowser
+      her.portrait = spriteb.browse(her.portrait)
      CASE 11
       her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait, YES)
     END SELECT

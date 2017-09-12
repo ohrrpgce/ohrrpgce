@@ -260,5 +260,13 @@ Function WalkaboutSpriteBrowser.sprite_frame() as integer
  return 4
 End Function
 
+'PORTRAIT
+Function PortraitSpriteBrowser.highest_id() as integer
+ return gen(genMaxPortrait)
+End Function
+
+Function PortraitSpriteBrowser.sprite_kind() as integer
+ return sprTypePortrait
+End Function
 
 '-----------------------------------------------------------------------
