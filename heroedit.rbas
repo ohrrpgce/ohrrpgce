@@ -1364,6 +1364,9 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
    END SELECT
    IF enter_space_click(state) THEN
     SELECT CASE state.pt
+     CASE 1
+      DIM spriteb as HeroSpriteBrowser
+      her.sprite = spriteb.browse(her.sprite)
      CASE 2
       her.sprite_pal = pal16browse(her.sprite_pal, sprTypeHero, her.sprite, YES)
      CASE 4
