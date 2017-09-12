@@ -264,6 +264,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  txt->AlignVert = alignBottom
  txt->AnchorVert = alignBottom
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
+ if id = -1 then ChangeTextSlice txt, "NONE"
  plank->size = spr->size
  return plank
 End Function
