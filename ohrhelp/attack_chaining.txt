@@ -33,9 +33,14 @@ For each chain, there are several different options.
     want)
 
   * Stat Check - Don't allow the
-    chain to continue unless the
-    attacker's stat is above or
-    below a given threshold. The
+    chain to continue unless either,
+    the attacker's stat, any of the
+    targets' stats, or all of the
+    targets' stats, are above or
+    below a given threshold. The any/
+    all conditions will check the
+    max/min of the stats of the
+    targets, as appropriate. The
     threshold can be specified
     either as an absolute number
     or as a percentage.

@@ -2127,13 +2127,14 @@ END SUB
 SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
  SELECT CASE mode
   CASE 0 '--no special condition
+   'Set limits to maximally permissive to preserve existing values
    caption1 = ""
    max1 = 32767
-   min1 = -32767
+   min1 = -32768
    menutype1 = 18'skipper
    caption2 = ""
    max2 = 32767
-   min2 = -32767
+   min2 = -32768
    menutype2 = 18'skipper
   CASE 1 '--tagcheck
    caption1 = "  if Tag:"
@@ -2147,8 +2148,8 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
   CASE 2 TO 13
    SELECT CASE mode
     CASE 2 TO 5: caption1 = "  if attacker"
-    CASE 6 TO 9: caption1 = "  if any target"
-    CASE 10 TO 13: caption1 = "  if all target"
+    CASE 6 TO 9: caption1 = "  if any target's"
+    CASE 10 TO 13: caption1 = "  if all targets'"
    END SELECT
    max1 = 15
    min1 = 0
@@ -2166,12 +2167,12 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
      menutype2 = 0
     CASE 4,8,12
      caption2 = "  is >"
-     max2 = 100
+     max2 = 32767
      min2 = 0
      menutype2 = 17 'int%
     CASE 5,9,13
      caption2 = "  is <"
-     max2 = 100
+     max2 = 32767
      min2 = 0
      menutype2 = 17 'int%
    END SELECT
