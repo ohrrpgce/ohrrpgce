@@ -1504,21 +1504,20 @@ SUB statcapsmenu
  DIM i as integer
 
  index(1) = genDamageCap
- FOR i as integer = 2 TO 13
+ FOR i as integer = 2 TO 2 + statLast  '2 to 13
   index(i) = genStatCap + (i - 2)
  NEXT
  index(14) = genLevelCap
  index(15) = genMaxLevel
 
- max(1) = 32767
- FOR i as integer = 2 to 3 'shut up (~snicker~)
-  max(i) = 9999 'HP + MP
+ max(1) = 32767  'Damage
+ 'Stat caps
+ '(note: you can use setherostat to set stats to anything, even above 32767)
+ FOR i as integer = 2 TO 2 + statLast
+  max(i) = 32767  'By default
  NEXT
- FOR i as integer = 4 to 11
-  max(i) = 999 'Regular stats
- NEXT
- max(12) = 100 'MP~
- max(13) = 20  'Extra Hits
+ max(2 + statFocus) = 100
+ max(2 + statHitX) = 20  'Extra Hits
  max(14) = gen(genMaxLevel)  'Level cap is capped to Max Level
  max(15) = 99  'Max Level is capped to 99 ... FIXME: this could go higher!
  DO
@@ -1536,9 +1535,9 @@ SUB statcapsmenu
    m(0) = "Previous Menu"
    m(1) = "Damage Cap: "
    IF gen(genDamageCap) = 0 THEN m(1) += "None" ELSE m(1) &= gen(genDamageCap)
-   FOR i as integer = 0 to 11
-    m(2 + i) = statnames(i) + " Cap: "
-    IF gen(genStatCap + i) = 0 THEN m(2 + i) = m(2 + i) + "None" ELSE m(2 + i) = m(2 + i) & gen(genStatCap + i)
+   FOR i as integer = 0 TO statLast
+    m(2 + i) = statnames(i) + " Cap: " _
+               + IIF(gen(genStatCap + i), STR(gen(genStatCap + i)), "None")
    NEXT
    IF gen(genLevelCap) > gen(genMaxLevel) THEN gen(genLevelCap) = gen(genMaxLevel)
    max(14) = gen(genMaxLevel)

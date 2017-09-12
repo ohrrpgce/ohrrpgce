@@ -9,7 +9,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       numbers [James]
     * In the text box condition editor, you can browse for shops [James]
     * Menu bit "Remember selection when reopening" [Ralph]
-    * Removed 100% upper limits on attack chain stat % conditions
+    * Removed 100% upper limits on attack chain stat % conditions, and
+      removed most hero/enemy stat limits
 
   * New Plotscripting Features
 

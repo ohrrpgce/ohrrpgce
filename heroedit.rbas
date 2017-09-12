@@ -299,15 +299,13 @@ SUB hero_editor_stats_menu (her as HeroDef)
   .active = NO
  END WITH
 
- DIM min(11) as integer, max(11) as integer
+ DIM min(statLast) as integer, max(statLast) as integer
  FOR i as integer = 0 TO UBOUND(min)
   min(i) = 0
-  max(i) = 999
+  max(i) = 32767
  NEXT
- max(statHP) = 9999
- max(statMP) = 9999
  max(statFocus) = 100
- max(statHitX) = 10
+ max(statHitX) = 20
  
  DIM mouse as MouseInfo
 
