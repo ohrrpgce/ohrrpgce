@@ -18,6 +18,7 @@
 #include "ver.txt"
 #include "custom.bi"
 #include "customsubs.bi"
+#include "thingbrowser.bi"
 
 'Subs and functions only used here
 DECLARE SUB cond_editor (cond as Condition, default as bool = NO, outer_state as MenuState)
@@ -1149,6 +1150,11 @@ SUB ui_boxstyle_editor(palnum as integer)
    ELSEIF kind = 1 THEN
     'Color browser for edgecol
     boxlook(index).edgecol = color_browser_256(boxlook(index).edgecol)
+    make_ui_boxstyle_editor_menu color_menu(), boxlook() 
+   ELSEIF kind = 2 THEN
+    'Box border browser
+    DIM boxborderb as BoxborderSpriteBrowser
+    boxlook(index).border = boxborderb.browse(boxlook(index).border - 1, YES) + 1
     make_ui_boxstyle_editor_menu color_menu(), boxlook() 
    END IF
   END IF

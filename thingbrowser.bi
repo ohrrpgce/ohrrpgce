@@ -95,6 +95,12 @@ Type BackdropSpriteBrowser extends SpriteBrowser
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
+Type BoxborderSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+ 'declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+End Type
+
 Type SpriteOfTypeBrowser extends Object
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
 End Type

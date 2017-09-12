@@ -389,6 +389,15 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
  return plank
 End Function
 
+'BOX BORDER
+Function BoxborderSpriteBrowser.highest_id() as integer
+ return gen(genMaxBoxBorder)
+End Function
+
+Function BoxborderSpriteBrowser.sprite_kind() as integer
+ return sprTypeBoxBorder
+End Function
+
 '-----------------------------------------------------------------------
 
 Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
@@ -423,10 +432,12 @@ Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none a
   case sprTypeBackdrop
    dim br as BackdropSpriteBrowser
    return br.browse(start_id, or_none)
+  case sprTypeBoxBorder
+   dim br as BoxborderSpriteBrowser
+   return br.browse(start_id, or_none)
   case else
    visible_debug "No sprite browser available for sprite type " & spr_type
  end select
- 'FIXME: add sprTypeBoxBorder
  return start_id
 End Function
 
