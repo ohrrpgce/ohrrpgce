@@ -357,4 +357,29 @@ Sub WeaponSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  loop_sprite_helper plank, 0, 1
 End Sub
 
+'BACKDROP
+Function BackdropSpriteBrowser.highest_id() as integer
+ return gen(genNumBackdrops) - 1
+End Function
+
+Function BackdropSpriteBrowser.sprite_kind() as integer
+ return sprTypeBackdrop
+End Function
+
+Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim plank as Slice Ptr
+ plank = Base.create_thing_plank(id)
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ spr->AlignVert = alignBottom
+ spr->AlignHoriz = AlignCenter
+ spr->AnchorVert = alignBottom
+ spr->AnchorHoriz = alignCenter
+ spr->y = -1
+ 'This is such a delicious hack! >:) Will I regret it later? Never! I have no regrets! -- James (Sept 2017)
+ DissolveSpriteSlice spr, 9, 100, 70, NO, NO 
+ plank->size = XY(98, 63)
+ return plank
+End Function
+
 '-----------------------------------------------------------------------

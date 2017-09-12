@@ -1281,6 +1281,13 @@ SUB individual_formation_editor ()
     IF state.pt = 0 THEN
      EXIT DO
     END IF
+    IF state.pt = 2 THEN
+     DIM backdropb as BackdropSpriteBrowser
+     form.background = backdropb.browse(form.background)
+     bgwait = 0
+     bgctr = 0
+     load_formation_slices ename(), form, @rootslice
+    END IF
     IF state.pt = 5 THEN
      IF form.music >= 0 THEN playsongnum form.music
     END IF

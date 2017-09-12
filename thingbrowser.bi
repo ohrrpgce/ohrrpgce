@@ -89,5 +89,11 @@ Type WeaponSpriteBrowser extends SpriteBrowser
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
+Type BackdropSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+End Type
+
 
 #ENDIF
