@@ -41,11 +41,18 @@ End Type
 
 Type SpriteBrowser extends ThingBrowser
  declare virtual function sprite_kind() as integer
+ declare virtual function sprite_frame() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
 Type HeroSpriteBrowser extends SpriteBrowser
  declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+End Type
+
+Type WalkaboutSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_frame() as integer
  declare virtual function sprite_kind() as integer
 End Type
 

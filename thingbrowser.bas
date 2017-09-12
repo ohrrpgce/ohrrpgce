@@ -212,6 +212,10 @@ Function SpriteBrowser.sprite_kind() as integer
  return sprTypeInvalid
 End Function
 
+Function SpriteBrowser.sprite_frame() as integer
+ return 0
+End Function
+
 Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim plank as Slice Ptr
  plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
@@ -222,7 +226,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  ChangeRectangleSlice box, , , , -2
  dim spr as Slice Ptr
  spr = NewSliceOfType(slSprite, plank)
- ChangeSpriteSlice spr, sprite_kind(), id
+ ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
  txt->AlignVert = alignBottom
@@ -234,6 +238,7 @@ End Function
 
 '-----------------------------------------------------------------------
 
+'HERO
 Function HeroSpriteBrowser.highest_id() as integer
  return gen(genMaxHeroPic)
 End Function
@@ -241,5 +246,19 @@ End Function
 Function HeroSpriteBrowser.sprite_kind() as integer
  return sprTypeHero
 End Function
+
+'WALKABOUT
+Function WalkaboutSpriteBrowser.highest_id() as integer
+ return gen(genMaxNPCPic)
+End Function
+
+Function WalkaboutSpriteBrowser.sprite_kind() as integer
+ return sprTypeWalkabout
+End Function
+
+Function WalkaboutSpriteBrowser.sprite_frame() as integer
+ return 4
+End Function
+
 
 '-----------------------------------------------------------------------
