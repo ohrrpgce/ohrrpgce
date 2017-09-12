@@ -9,6 +9,7 @@
 #include "common.bi"
 #include "slices.bi"
 #include "loading.bi"
+#include "thingbrowser.bi"
 
 #include "sliceedit.bi"
 
@@ -125,6 +126,7 @@ CONST slgrUPDATERECTSTYLE = 64
 CONST slgrPICKLOOKUP = 128
 CONST slgrEDITSWITCHINDEX = 256
 CONST slgrBROWSESPRITEASSET = 512
+CONST slgrBROWSESPRITEID = 1024
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -1065,11 +1067,19 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    state.need_update = YES
   END IF
  END IF
+ IF rule.group AND slgrBROWSESPRITEID THEN
+  IF enter_space_click(state) THEN
+   DIM dat as SpriteSliceData ptr = sl->SliceData
+   DIM spriteb as SpriteOfTypeBrowser
+   dat->record = spriteb.browse(dat->record, , dat->spritetype)
+   state.need_update = YES
+  END IF
+ END IF
  IF rule.group AND slgrUPDATESPRITE THEN
   IF state.need_update THEN
-   'state.need_update is cleared at the top of the loop
    DIM dat as SpriteSliceData Ptr
    dat = sl->SliceData
+   'state.need_update is cleared at the top of the loop
    dat->paletted = (dat->spritetype <> sprTypeBackdrop)
    IF dat->spritetype = sprTypeFrame THEN
     ' Aside from reloading if edited, dat->assetfile is initially NULL
@@ -1299,7 +1309,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule_str rules(), "sprite_asset", erShortStrgrabber, dat->assetfile, 1024, (slgrUPDATESPRITE OR slgrBROWSESPRITEASSET)
     ELSE
      str_array_append menu(), "Sprite Number: " & dat->record
-     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
+     sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, (slgrUPDATESPRITE OR slgrBROWSESPRITEID)
      IF dat->paletted THEN
       str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
       sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE

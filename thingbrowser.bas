@@ -390,3 +390,44 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
 End Function
 
 '-----------------------------------------------------------------------
+
+Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
+ select case spr_type
+  case sprTypeHero
+   dim br as HeroSpriteBrowser
+   return br.browse(start_id, or_none)
+  case sprTypeSmallEnemy
+   dim br as EnemySpriteBrowser
+   br.size_group = 0
+   return br.browse(start_id, or_none)
+  case sprTypeMediumEnemy
+   dim br as EnemySpriteBrowser
+   br.size_group = 1
+   return br.browse(start_id, or_none)
+  case sprTypeLargeEnemy
+   dim br as EnemySpriteBrowser
+   br.size_group = 2
+   return br.browse(start_id, or_none)
+  case sprTypeWalkabout
+   dim br as WalkaboutSpriteBrowser
+   return br.browse(start_id, or_none)
+  case sprTypeWeapon
+   dim br as WeaponSpriteBrowser
+   return br.browse(start_id, or_none)
+  case sprTypeAttack
+   dim br as AttackSpriteBrowser
+   return br.browse(start_id, or_none)
+  case sprTypePortrait
+   dim br as PortraitSpriteBrowser
+   return br.browse(start_id, or_none)
+  case sprTypeBackdrop
+   dim br as BackdropSpriteBrowser
+   return br.browse(start_id, or_none)
+  case else
+   visible_debug "No sprite browser available for sprite type " & spr_type
+ end select
+ 'FIXME: add sprTypeBoxBorder
+ return start_id
+End Function
+
+'-----------------------------------------------------------------------
