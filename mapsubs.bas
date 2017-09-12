@@ -4958,6 +4958,11 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     IF intgrabber(npcdata.picture, 0, gen(genMaxNPCPic)) THEN
      load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
     END IF
+    IF enter_space_click(ed.state) THEN
+     DIM walkaboutb as WalkaboutSpriteBrowser
+     npcdata.picture = walkaboutb.browse(npcdata.picture)
+     load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
+    END IF
    CASE 1'--palette
     IF intgrabber(npcdata.palette, -1, gen(genMaxPal)) THEN
      load_sprite_and_pal npc_img, sprTypeWalkabout, npcdata.picture, npcdata.palette
