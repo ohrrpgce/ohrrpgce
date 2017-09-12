@@ -202,3 +202,34 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Function SpriteBrowser.sprite_kind() as integer
+ 'This should be overridden by a child class
+ return sprTypeInvalid
+End Function
+
+Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim plank as Slice Ptr
+ plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
+ dim box as Slice Ptr
+ box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
+ box->Fill = YES
+ box->Visible = NO
+ ChangeRectangleSlice box, , , , -2
+ dim spr as Slice Ptr
+ spr = NewSliceOfType(slSprite, plank)
+ ChangeSpriteSlice spr, sprite_kind(), id
+ plank->size = spr->size
+ return plank
+End Function
+
+'-----------------------------------------------------------------------
+
+Function HeroSpriteBrowser.highest_id() as integer
+ return gen(genMaxHeroPic)
+End Function
+
+Function HeroSpriteBrowser.sprite_kind() as integer
+ return sprTypeHero
+End Function
+
+'-----------------------------------------------------------------------

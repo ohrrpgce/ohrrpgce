@@ -39,4 +39,14 @@ Type ShopBrowser extends ThingBrowser
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
+Type SpriteBrowser extends ThingBrowser
+ declare virtual function sprite_kind() as integer
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+End Type
+
+Type HeroSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+End Type
+
 #ENDIF
