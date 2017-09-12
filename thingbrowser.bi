@@ -24,6 +24,10 @@ Type ThingBrowser extends Object
 
  'This is called once each tick for each plank, and can be used for animation, and similar
  declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
+ 
+ 'This is called once each tick for the currently selected cursor plank
+ '(this is called second, after each_tick_each_plank())
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 
  'If the plank is purely text based, just override this rather than .create_thing_plank()
  declare virtual function thing_text_for_id(byval id as integer) as string
@@ -51,12 +55,14 @@ End Type
 Type HeroSpriteBrowser extends SpriteBrowser
  declare virtual function highest_id() as integer
  declare virtual function sprite_kind() as integer
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type WalkaboutSpriteBrowser extends SpriteBrowser
  declare virtual function highest_id() as integer
  declare virtual function sprite_frame() as integer
  declare virtual function sprite_kind() as integer
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type PortraitSpriteBrowser extends SpriteBrowser

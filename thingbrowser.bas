@@ -110,6 +110,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   for i as integer = 0 to ubound(planks)
    each_tick_each_plank planks(i)
   next i
+  'Then run the each-tick sub for the selected plank
+  if ps.cur then each_tick_selected_plank ps.cur
 
   ChangeGridSlice grid, , grid->Width \ plank_size.x
   if cursor_moved then
@@ -131,6 +133,11 @@ End Function
 
 Sub ThingBrowser.each_tick_each_plank(byval plank as Slice Ptr)
  'Nothing needs to happen here, if you don't want continous animation
+End Sub
+
+Sub ThingBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+ 'Nothing needs to happen here, if you don't want extra selection cursor animation
+ '(the SL_PLANK_MENU_SELECTABLE animation of TextSlice and RectangleSlice color happens automatically even without this sub)
 End Sub
 
 Function ThingBrowser.init_helpkey() as string
@@ -258,6 +265,17 @@ Function HeroSpriteBrowser.sprite_kind() as integer
  return sprTypeHero
 End Function
 
+Sub HeroSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+ dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ if spr then
+  spr->Extra(1) = loopvar(spr->Extra(1), 0, 3)
+  if spr->Extra(1) = 0 then
+   dim dat as SpriteSliceData Ptr = spr->SliceData
+   dat->frame = loopvar(dat->frame, 0, 1)
+  end if
+ end if
+End Sub
+
 'WALKABOUT
 Function WalkaboutSpriteBrowser.highest_id() as integer
  return gen(genMaxNPCPic)
@@ -270,6 +288,17 @@ End Function
 Function WalkaboutSpriteBrowser.sprite_frame() as integer
  return 4
 End Function
+
+Sub WalkaboutSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+ dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ if spr then
+  spr->Extra(1) = loopvar(spr->Extra(1), 0, 1)
+  if spr->Extra(1) = 0 then
+   dim dat as SpriteSliceData Ptr = spr->SliceData
+   dat->frame = loopvar(dat->frame, 4, 5)
+  end if
+ end if
+End Sub
 
 'PORTRAIT
 Function PortraitSpriteBrowser.highest_id() as integer
