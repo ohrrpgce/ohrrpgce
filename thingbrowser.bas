@@ -290,4 +290,14 @@ Function EnemySpriteBrowser.sprite_kind() as integer
  return sprTypeInvalid
 End Function
 
+'ATTACK
+Function AttackSpriteBrowser.highest_id() as integer
+ return gen(genMaxAttackPic)
+End Function
+
+Function AttackSpriteBrowser.sprite_kind() as integer
+ return sprTypeAttack
+End Function
+
+
 '-----------------------------------------------------------------------

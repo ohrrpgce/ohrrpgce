@@ -1375,6 +1375,10 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), transmogMenu(), state
     helpkey = "attack_transmogrify"
+   CASE AtkPic
+    DIM attackb as AttackSpriteBrowser
+    recbuf(AtkDatPic) = attackb.browse(recbuf(AtkDatPic))
+    state.need_update = YES
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), sprTypeAttack, recbuf(AtkDatPic), YES)
     state.need_update = YES

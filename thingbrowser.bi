@@ -67,5 +67,10 @@ Type EnemySpriteBrowser extends SpriteBrowser
  declare virtual function sprite_kind() as integer
 End Type
 
+Type AttackSpriteBrowser extends SpriteBrowser
+ declare virtual function highest_id() as integer
+ declare virtual function sprite_kind() as integer
+End Type
+
 
 #ENDIF
