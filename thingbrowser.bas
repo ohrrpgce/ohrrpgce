@@ -418,6 +418,37 @@ Function BoxborderSpriteBrowser.sprite_kind() as integer
  return sprTypeBoxBorder
 End Function
 
+Function BoxborderSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim plank as Slice Ptr
+ plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
+ dim box as Slice Ptr
+ box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
+ box->Fill = YES
+ box->Visible = NO
+ ChangeRectangleSlice box, , , , -2
+ if id >= 0 then
+  dim box2 as Slice Ptr
+  box2 = NewSliceOfType(slRectangle, plank)
+  ChangeRectangleSlice box2, , , , , , , YES, id
+  box2->AlignVert = alignCenter
+  box2->AnchorVert = alignCenter
+  box2->AlignHoriz = alignCenter
+  box2->AnchorHoriz = alignCenter
+  box2->size = XY(34, 34)
+ end if
+ dim txt as Slice Ptr
+ txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
+ txt->AlignVert = alignCenter
+ txt->AnchorVert = alignCenter
+ txt->AlignHoriz = alignCenter
+ txt->AnchorHoriz = alignCenter
+ ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ plank->size = XY(50, 50)
+ return plank
+End Function
+
+
 '-----------------------------------------------------------------------
 
 Function SpriteOfTypeBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
