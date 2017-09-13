@@ -31,6 +31,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("thingbrowser.slice")
 
+ enter_browser
+
  dim grid as Slice Ptr
  grid = LookupSlice(SL_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
@@ -127,11 +129,20 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   setvispage vpage
   dowait
  loop
+ leave_browser
  setkeys
  freepage holdscreen
  DeleteSlice @(root)
  return result
 End Function
+
+Sub ThingBrowser.enter_browser()
+ 'Special initialisation
+End Sub
+
+Sub ThingBrowser.leave_browser()
+ 'Special cleanup
+End Sub
 
 Sub ThingBrowser.each_tick_each_plank(byval plank as Slice Ptr)
  'Nothing needs to happen here, if you don't want continous animation
@@ -360,6 +371,14 @@ Sub WeaponSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
 End Sub
 
 'BACKDROP
+Sub BackdropSpriteBrowser.enter_browser()
+ 'switch_to_32bit_vpages
+End Sub
+
+Sub BackdropSpriteBrowser.leave_browser()
+ 'switch_to_8bit_vpages
+End Sub
+
 Function BackdropSpriteBrowser.highest_id() as integer
  return gen(genNumBackdrops) - 1
 End Function
@@ -371,6 +390,7 @@ End Function
 Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim plank as Slice Ptr
  plank = Base.create_thing_plank(id)
+ plank->size = XY(98, 63)
  dim spr as Slice Ptr
  spr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
  if id = -1 then
@@ -384,8 +404,8 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
   spr->y = -1
   'This is such a delicious hack! >:) Will I regret it later? Never! I have no regrets! -- James (Sept 2017)
   DissolveSpriteSlice spr, 9, 100, 70, NO, NO
+  'ScaleSpriteSlice spr, plank->size - XY(2,2)
  end if
- plank->size = XY(98, 63)
  return plank
 End Function
 
