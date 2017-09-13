@@ -24,6 +24,9 @@ Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can impo
 
 Note that you are allowed to import files that don't exactly match the correct sprite size. If the BMP is too big, the right and bottom edges will be cropped. If the BMP is too small, the right and bottom edges will be padded with empty space.
 
+If the window is more than 320 pixels wide, then previews will be shown to the right.
+Press CTRL+P to preview what the image will look like after importing it (converted to the master palette), instead of its original colors.
+
 You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
 
 Press F5 to refresh the directory as well as poll the names of all removeable drives.

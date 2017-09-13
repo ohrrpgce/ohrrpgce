@@ -8,6 +8,7 @@
 #include "const.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "slices.bi"
 #include "loading.bi"
 #include "reload.bi"
 #include "os.bi"
@@ -44,7 +45,9 @@ Type BrowseMenuState
 	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
 	fmask as string
 	snd as integer          'Slot of currently playing sound, or -1
-	image_preview as Frame ptr  'Preview of currently selected image
+	bitdepth32 as bool      'Using 32-bit video pages
+	image_preview as Frame ptr   'Preview of currently selected image, or NULL
+	preview_panel_size as XYPair 'Size of the preview area
 End Type
 
 'Subs and functions only used locally
@@ -52,6 +55,8 @@ DECLARE SUB append_tree_record(byref br as BrowseMenuState, tree() as BrowseMenu
 DECLARE SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB draw_browse_meter(br as BrowseMenuState)
 DECLARE SUB browse_calc_menusize(byref br as BrowseMenuState)
+DECLARE SUB browse_update_layout(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
+DECLARE SUB browse_preview_bmp(byref br as BrowseMenuState, filepath as string)
 DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
@@ -114,6 +119,14 @@ IF needf THEN
  setpal temppal()
 END IF
 
+#IFDEF IS_CUSTOM
+ 'TODO: remove this and always run at 32 bit if there's no problem with it (Android?)
+ br.bitdepth32 = YES
+ switch_to_32bit_vpages
+#ELSE
+ br.bitdepth32 = NO
+#ENDIF
+
 'Load a variant of the default font, misc/browser font.ohf, which has both Latin-1
 'characters and the old (c), etc, characters from the original fonts
 DIM browser_font(1023) as integer
@@ -168,7 +181,7 @@ setkeys YES
 DO
  setwait 55
  setkeys YES
- browse_calc_menusize br
+ browse_update_layout br, tree()
 
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help helpkey
@@ -211,6 +224,18 @@ DO
   IF keyval(scH) > 1 THEN
    br.showHidden XOR= YES
    build_listing tree(), br
+  END IF
+  'Ctrl + P to switch between paletted/unpaletted previewing and 8/32 bit-depth
+  IF keyval(scP) > 1 THEN
+   br.bitdepth32 XOR= YES
+   IF br.bitdepth32 THEN
+    show_overlay_message "32-bit preview (original color)"
+    switch_to_32bit_vpages
+   ELSE
+    show_overlay_message "8-bit preview (converted to master palette)"
+    switch_to_8bit_vpages
+   END IF
+   br.mstate.need_update = YES
   END IF
  ELSE
   IF select_by_typing(selectst) THEN
@@ -255,11 +280,6 @@ DO
 
  '--Draw screen
  clearpage dpage
- IF br.image_preview THEN
-  drawbox 320, 0, br.image_preview->w + 2, br.image_preview->h + 2, uilook(uiText), , dpage
-  frame_draw br.image_preview, , 321, 1, , NO, dpage
- END IF
-
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  DIM title as string
  IF br.special = 7 AND tree(br.mstate.pt).kind = bkSelectable THEN
@@ -296,6 +316,12 @@ DO
   IF i = br.mstate.pt THEN caption = highlight_menu_typing_selection_string(caption, selectst)
   printstr caption, 10, 20 + (i - br.mstate.top) * 9, dpage, YES
  NEXT i
+
+ IF br.image_preview THEN
+  drawbox 320, 0, br.image_preview->w + 2, br.image_preview->h + 2, uilook(uiText), , dpage
+  frame_draw br.image_preview, , 321, 1, , NO, dpage
+ END IF
+
  SWAP vpage, dpage
  setvispage vpage
  IF needf THEN
@@ -314,6 +340,7 @@ ELSE
  default = br.nowdir
 END IF
 remember = default
+
 music_stop
 IF br.snd >= 0 THEN
  sound_stop(br.snd)
@@ -321,16 +348,50 @@ IF br.snd >= 0 THEN
  br.snd = -1
 END IF
 frame_unload @br.image_preview
+IF br.bitdepth32 THEN switch_to_8bit_vpages
+
 clearkey(scESC)
 RETURN ret
 
 END FUNCTION
 
 SUB browse_calc_menusize(byref br as BrowseMenuState)
-  br.mstate.rect.wide = get_resolution().w
-  br.mstate.rect.high = get_resolution().h
-  DIM margin as integer = 37 + IIF(br.special = 7, 10, 0)
-  br.mstate.size = (get_resolution().h - margin) \ 9 - 1
+ br.mstate.rect.size = XY(320, get_resolution().h)
+ DIM margin as integer = 37 + IIF(br.special = 7, 10, 0)
+ br.mstate.size = (get_resolution().h - margin) \ 9 - 1
+ br.preview_panel_size = get_resolution() - XY(322, 2)
+END SUB
+
+'Update the menu layout (currently just the image preview) if the window was resized
+SUB browse_update_layout(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
+ IF UpdateScreenSlice() THEN
+  browse_calc_menusize br
+  IF br.image_preview ANDALSO br.bitdepth32 THEN br.mstate.need_update = YES
+ END IF
+END SUB
+
+'Load preview of a .bmp into br.image_preview
+SUB browse_preview_bmp(byref br as BrowseMenuState, filepath as string)
+ frame_unload @br.image_preview
+ IF NOT br.preview_panel_size > 0 THEN EXIT SUB 'There's no space to display it
+ IF br.bitdepth32 THEN
+  ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
+  'DIM as double t = TIMER
+  DIM as Surface ptr temp = surface_import_bmp(filepath, YES)  'always_32bit=YES
+  '? "import32 in " & (TIMER - t)
+  't = TIMER
+  DIM ratio as double = 1.0
+  WITH br.preview_panel_size
+   IF temp->width > 0 THEN ratio = small(1.0, small(.w / temp->width, .h / temp->height))
+  END WITH
+  surface_assign @temp, surface_scale(temp, temp->width * ratio, temp->height * ratio)
+  '? "shrink in " & (TIMER - t)
+  br.image_preview = frame_with_surface(temp)
+  gfx_surfaceDestroy(@temp)
+ ELSE
+  ' Scaling not implemented
+  br.image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
+ END IF
 END SUB
 
 ' Set br.alert according to the selected browser entry, and preview audio
@@ -367,12 +428,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     END IF
    CASE 2, 3, 4, 10 'Any kind of image or master palette
     IF LCASE(justextension(.filename)) = "bmp" THEN
-     ' This is temporary: only load the preview (which might take a while)
-     ' if there's actually room to display it.
-     IF vpages(dpage)->w > 320 THEN
-      ' Load without transparency
-      frame_assign @br.image_preview, frame_import_bmp_as_8bit(filepath, master(), NO)
-     END IF
+     browse_preview_bmp br, filepath
     END IF
     ' Display the info string that was generated by browse_check_bmp
     br.alert = .about
