@@ -261,6 +261,12 @@ TYPE RectangleSliceData
  'if style is changed then set style_loaded = NO
  style as integer = -1    '-1: None, 0-14: style
  style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
+
+ 'When use use_raw_box_border is YES, ignore style ID and use raw_box_border instead.
+ 'This is not currently exposed to users yet
+ use_raw_box_border as bool
+ raw_box_border as integer
+
  'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
 
@@ -465,7 +471,9 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval fgcol as integer=-99,_
                       byval border as integer=-3,_
                       byval translucent as RectTransTypes=transUndef,_
-                      byval fuzzfactor as integer=0)
+                      byval fuzzfactor as integer=0,_
+                      byval use_raw_box_border as integer=-2,_
+                      byval raw_box_border as integer=-1)
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)

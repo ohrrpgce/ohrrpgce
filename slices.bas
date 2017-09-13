@@ -985,7 +985,11 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p, dat->translucent, dat->border, dat->fuzzfactor, NO
+ if dat->use_raw_box_border then
+  edgebox_rawborder sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), vpages(p), dat->translucent, dat->raw_box_border, dat->fuzzfactor, NO
+ else
+  edgebox           sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p,         dat->translucent, dat->border,         dat->fuzzfactor, NO
+ end if
 end sub
 
 Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
@@ -1001,6 +1005,8 @@ Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
   .translucent = dat->translucent
   .border      = dat->border
   .fuzzfactor  = dat->fuzzfactor
+  .use_raw_box_border = dat->use_raw_box_border
+  .raw_box_border = dat->raw_box_border
  end with
 end sub
 
@@ -1017,6 +1023,8 @@ Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  end if
  SaveProp node, "trans", dat->translucent
  SaveProp node, "fuzzfactor", dat->fuzzfactor
+ SaveProp node, "use_raw_box_border", dat->use_raw_box_border
+ SaveProp node, "raw_box_border", dat->raw_box_border
 End Sub
 
 Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -1034,6 +1042,8 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
   dat->bgcol = LoadProp(node, "bg")
   dat->border = LoadProp(node, "border", -1)
  end if
+ dat->use_raw_box_border = LoadProp(node, "use_raw_box_border", NO)
+ dat->raw_box_border = LoadProp(node, "raw_box_border", 0)
 End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
@@ -1070,7 +1080,9 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval fgcol as integer=-99,_
                       byval border as integer=-3,_
                       byval translucent as RectTransTypes=transUndef,_
-                      byval fuzzfactor as integer=0)
+                      byval fuzzfactor as integer=0,_
+                      byval use_raw_box_border as integer=-2,_
+                      byval raw_box_border as integer=-1)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
  if style > -2 andalso border > -3 then
@@ -1100,6 +1112,12 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
   if translucent <> transUndef then .translucent = translucent
   if fuzzfactor > 0 then
    .fuzzfactor = fuzzfactor
+  end if
+  if use_raw_box_border > -2 then
+   .use_raw_box_border = use_raw_box_border
+  end if
+  if raw_box_border > -1 then
+   .raw_box_border = raw_box_border
   end if
  end with
  if dat->style >= 0 and dat->style_loaded = NO then
