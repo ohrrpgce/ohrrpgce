@@ -358,7 +358,10 @@ SUB debuginfo (s as string)
  'For now, on Android log everything to the kernel log for convenience
  external_log s
  IF debug_to_console THEN PRINT s
- IF remember_debug_messages THEN log_buffer &= s & LINE_END
+ IF remember_debug_messages THEN
+  'Don't keep growing the buffer or the program will grind to a halt
+  IF LEN(log_buffer) < 10000 THEN log_buffer &= s & LINE_END
+ END IF
  append_to_logfile s
 
  mutexunlock debug_log_mutex
