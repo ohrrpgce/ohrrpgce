@@ -1342,7 +1342,12 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   if .loaded = NO then
    if .spritetype = sprTypeFrame then fatalerror "sprTypeFrame not loaded"  'Can't happen
    load_sprite_and_pal .img, .spritetype, .record, .pal
-   sl->Size = .img.sprite->size
+   if .scaled then
+    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+    palette16_unload @.img.pal
+   else
+    sl->Size = .img.sprite->size
+   end if
    .loaded = YES
   end if
 
@@ -1622,8 +1627,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
    .spritetype = spritetype
    .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO
-   sl->Width = sprite_sizes(.spritetype).size.x
-   sl->Height = sprite_sizes(.spritetype).size.y
+   sl->Size = sprite_sizes(.spritetype).size
   end if
   if record >= 0 then
    .record = record
@@ -1647,6 +1651,22 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
   if fliph > -2 then .flipHoriz = (fliph <> 0)
   if flipv > -2 then .flipVert = (flipv <> 0)
   if trans > -2 then .trans = (trans <> 0)
+  if .loaded = NO then unload_sprite_and_pal .img
+ end with
+end sub
+
+'Cause the sprite to be scaled/stretched to a certain size.
+'WARNING: you must call switch_to_32bit_vpages to display a scaled sprite.
+'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
+Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
+ if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
+ if sl->SliceType <> slSprite then reporterr "ScaleSpriteSlice: bad slice type " & SliceTypeName(sl) : exit sub
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  .loaded = NO
+  unload_sprite_and_pal .img
+  .scaled = YES
+  sl->Size = size
  end with
 end sub
 

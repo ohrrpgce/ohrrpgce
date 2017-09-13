@@ -297,6 +297,7 @@ Type SpriteSliceData
  trans as bool      'Draw transparently?
  flipHoriz as bool  'NO normal, YES horizontally flipped
  flipVert as bool   'NO normal, YES vertically flipped
+ scaled as bool     'UNSAVED: Scale the sprite to the size of the slice.
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
  'dissolve state data
@@ -490,6 +491,7 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval fliph as integer = -2,_
                       byval flipv as integer = -2,_
                       byval trans as integer = -2)  ' All arguments default to no change
+DECLARE Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
 DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
 DECLARE Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
 
