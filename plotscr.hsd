@@ -671,6 +671,8 @@ define function, begin
 647,_cancelrunfast,0          # cancels the -runfast command-line option, if it is active.
 648,_runfast,0                # speeds up as if the -runfast command-line option is active.
 649,multdiv,3,0,0,0           # calculate int(float(a)*b/c), with rounding and clamping (undocumented)
+650,setrectrawborder,2,0,-1   # set a rectangle slice to use a specific border sprite instead of the border for its style
+651,getrectrawborder,1,0      # set a rectangle slice to use a specific border sprite instead of the border for its style
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

@@ -1304,6 +1304,9 @@
 		<a href="#about-getrectfuzziness">get rect fuzziness (handle)</a><br>
 		
 	
+		<a href="#about-getrectrawborder">get rect raw border (handle)</a><br>
+		
+	
 		<a href="#about-getrectstyle">get rect style (handle)</a><br>
 		
 	
@@ -2511,6 +2514,9 @@
 		
 	
 		<a href="#about-setrectfuzziness">set rect fuzziness (handle, percent)</a><br>
+		
+	
+		<a href="#about-setrectrawborder">set rect raw border (handle, border)</a><br>
 		
 	
 		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
@@ -14046,10 +14052,29 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getrectborder"></a>
 		<h4>get rect border (handle)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
+			Given a rect slice <span class="param">handle</span>, return the style number of the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-setrectborder" class="ref">set rect border</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setrectborder" class="ref">set rect border</a>, </li>
+<li><a href="#about-getrectrawborder" class="ref">get rect raw border</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getrectrawborder"></a>
+		<h4>get rect raw border (handle)</h4>
+<p>
+			Given a rect slice <span class="param">handle</span>, return the sprite set id number of the graphical border it uses. This will only return a value if the border has been overridden by sprite id number. If the border is being determined by box style number, then this command will return <span class="param">-1</span>. In that case you should use <a href="#about-getrectborder" class="ref">get rect border</a> instead.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setrectrawborder" class="ref">set rect raw border</a>, </li>
+<li><a href="#about-getrectborder" class="ref">get rect border</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -14057,10 +14082,29 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setrectborder"></a>
 		<h4>set rect border (handle, border)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
+			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a box style number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getrectborder" class="ref">get rect border</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectborder" class="ref">get rect border</a>, </li>
+<li><a href="#about-setrectrawborder" class="ref">set rect raw border</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setrectrawborder"></a>
+		<h4>set rect raw border (handle, border)</h4>
+<p>
+			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a border sprite set number, or <span class="param">-1</span> to allow the rectangle's border to be set by style number. This command overrides both <a href="#about-setrectstyle" class="ref">set rect style</a> and <a href="#about-setrectborder" class="ref">set rect border</a>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectrawborder" class="ref">get rect raw border</a>, </li>
+<li><a href="#about-setrectborder" class="ref">set rect border</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -17755,7 +17799,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 802 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 804 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

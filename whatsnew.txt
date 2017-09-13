@@ -11,8 +11,12 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Menu bit "Remember selection when reopening" [Ralph]
     * Removed 100% upper limits on attack chain stat % conditions, and
       removed most hero/enemy stat limits
+    * Rectangle slices can now optionally use any box border set.
+      They are no longer limited to just the box borders defined in
+      box styles [James]
 
   * New Plotscripting Features
+    * "get rect raw border" and "set rect raw border" [James]
 
   * Changes
 

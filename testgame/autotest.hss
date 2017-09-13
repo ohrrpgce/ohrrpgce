@@ -3340,7 +3340,18 @@ script, slice tests, begin
   assert(get rect trans(sl) == trans:fuzzy)
   assert(get rect fuzziness(sl) == 50)
   free slice(sl)
-
+  
+  # Test rect border style
+  sl := create rect(99, 99), w
+  set slice x(sl, 10)
+  set slice y(sl, 10)
+  assert(get rect raw border(sl) == -1)
+  set rect raw border(sl, 0), w
+  assert(get rect raw border(sl) == 0)
+  set rect raw border(sl, 1), w
+  assert(get rect raw border(sl) == 1)
+  free slice(sl)
+  
   # Text slices
   $2="fee Fi\n \n foe"
   sl := create text
