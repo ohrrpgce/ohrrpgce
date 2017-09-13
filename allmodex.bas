@@ -3699,7 +3699,7 @@ end sub
 
 function readpixel (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
-		exit function
+		return -1
 	end if
 	CHECK_FRAME_8BIT(spr, 0)
 
@@ -3714,7 +3714,7 @@ function readpixel (byval x as integer, byval y as integer, byval p as integer) 
 
 	if POINT_CLIPPED(x, y) then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
-		return 0
+		return -1
 	end if
 	return PAGEPIXEL(x, y, p)
 end function
@@ -7354,7 +7354,7 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 	return ret
 end function
 
-' Creates a 32 bit Surface which is a copy of an unpaletted Frame.
+' Creates an (independent) 32 bit Surface which is a copy of an unpaletted Frame.
 ' This is not the same as gfx_surfaceWithFrame, which creates a special Surface which
 ' is just a view of a Frame (and may be a temporary hack!)
 function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
@@ -7392,7 +7392,9 @@ end sub
 sub frame_drop_surface(fr as Frame ptr)
 	if fr->surf then
 		gfx_surfaceDestroy(@fr->surf)
-		fr->image = callocate(fr->pitch * fr->h)
+		if fr->image = NULL then
+			fr->image = callocate(fr->pitch * fr->h)
+		end if
 	end if
 end sub
 
@@ -7902,7 +7904,7 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 		if src->surf then
 			src_surface = src->surf
 		else
-			debuginfo "frame_draw_internal: unnecessary allocation"
+			'debuginfo "frame_draw_internal: unnecessary allocation"
 			if gfx_surfaceWithFrame(src, @src_surface) then return
 		end if
 		dim master_pal as RGBPalette ptr
