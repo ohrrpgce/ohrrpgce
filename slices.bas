@@ -1342,8 +1342,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   if .loaded = NO then
    if .spritetype = sprTypeFrame then fatalerror "sprTypeFrame not loaded"  'Can't happen
    load_sprite_and_pal .img, .spritetype, .record, .pal
-   sl->Width = sprite_sizes(.spritetype).size.x
-   sl->Height = sprite_sizes(.spritetype).size.y
+   sl->Size = .img.sprite->size
    .loaded = YES
   end if
 
@@ -1355,12 +1354,12 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    sl->Visible = NO  'prevent error loop
    exit sub
   end if
-  if .frame >= sprite_sizes(.spritetype).frames or .frame < 0 then
+
+  if .frame >= spr->arraylen or .frame < 0 then
    reporterr "out of range frame " & .frame & " for slice " & sl, serrBug
    .frame = 0
   end if
-  
-  spr += .frame
+  spr = @spr[.frame]
 
   'some redesign needed to prevent this continous flipping
   if .flipHoriz then
@@ -1383,7 +1382,8 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
     else
      dtick = .d_tick
     end if
-    spr = frame_dissolved(spr, dtime, dtick, .d_type)
+    if have_copy = NO then frame_reference spr
+    frame_assign @spr, frame_dissolved(spr, dtime, dtick, .d_type)
     have_copy = YES
     if .d_auto then
      .d_tick += 1
