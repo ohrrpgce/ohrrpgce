@@ -7357,7 +7357,7 @@ end function
 ' Creates an (independent) 32 bit Surface which is a copy of an unpaletted Frame.
 ' This is not the same as gfx_surfaceWithFrame, which creates a special Surface which
 ' is just a view of a Frame (and may be a temporary hack!)
-function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
+function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Surface ptr
 	if fr->surf then
 		debug "frame_to_surface32 called on a Surface-backed Frame"
 		if fr->surf->format = SF_8bit then
@@ -7372,15 +7372,19 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface
 	end if
 	dim wrapper as Frame ptr  'yuck
 	wrapper = frame_with_surface(surf)
-	frame_draw fr, intpal(), , 0, 0, , NO, wrapper
+	frame_draw fr, intpal(), pal, 0, 0, , NO, wrapper
 	frame_unload @wrapper
 	return surf
 end function
 
 ' Turn a regular Frame into a 32-bit Surface-backed Frame.
 ' Content is preserved.
-sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
-	fr->surf = frame_to_surface32(fr, masterpal())
+sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+	if fr->cached then
+		showerror "frame_convert_to_32bit: refusing to clobber cached Frame"
+		exit sub
+	end if
+	fr->surf = frame_to_surface32(fr, masterpal(), pal)
 
 	deallocate(fr->image)
 	fr->image = NULL
@@ -7942,6 +7946,24 @@ function frame_resized(spr as Frame ptr, wide as integer, high as integer, shift
 	ret = frame_new(wide, high, , NO, (spr->mask <> NULL), (spr->surf <> NULL))
 	frame_clear ret, bgcol
 	frame_draw spr, NULL, shiftx, shifty, 1, NO, ret, (spr->surf = NULL)  'trans=NO, write_mask=not for Surfaces
+	return ret
+end function
+
+'Scale a Frame to given size. Returns a 32-bit Surface-backed Frame.
+'masterpal() only used if src is 8-bit. pal can be NULL.
+function frame_scaled32(src as Frame ptr, wide as integer, high as integer, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Frame ptr
+	dim as Surface ptr src_surface, temp
+	if src->surf then
+		src_surface = src->surf
+	else
+		src_surface = frame_to_surface32(src, masterpal(), pal)
+	end if
+	temp = surface_scale(src_surface, wide, high)
+	if src->surf = NULL then
+		gfx_surfaceDestroy(@src_surface)
+	end if
+	dim ret as Frame ptr = frame_with_surface(temp)
+	gfx_surfaceDestroy(@temp)
 	return ret
 end function
 

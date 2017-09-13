@@ -473,6 +473,7 @@ declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
+declare function frame_scaled32(src as Frame ptr, wide as integer, high as integer, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Frame ptr
 declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
 declare sub sprite_update_cache(sprtype as SpriteType)
@@ -481,8 +482,8 @@ declare function frame_is_valid(byval p as frame ptr) as bool
 declare sub sprite_debug_cache()
 declare function frame_describe(byval p as frame ptr) as string
 
-declare function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor) as Surface ptr
-declare sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor)
+declare function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Surface ptr
+declare sub frame_convert_to_32bit(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
 declare sub frame_drop_surface(fr as Frame ptr)
 declare function frame_with_surface(surf as Surface ptr) as Frame ptr
 
