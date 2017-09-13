@@ -629,6 +629,18 @@ END SUB
 
 SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
+ DIM borderindex as integer
+ IF border >= 0 THEN
+  borderindex = boxlook(border).border - 1
+ ELSE
+  '-2 for none, -1 for simple line
+  borderindex = border
+ END IF
+ edgebox_rawborder x, y, w, h, col, bordercol, fr, trans, borderindex, fuzzfactor, relcoords
+END SUB
+
+SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+'--borderindex: -2 is none -1 is simple line, 0+ is box border sprite record number
 IF relcoords THEN
  w = relative_pos(w, fr->w)
  h = relative_pos(h, fr->h)
@@ -640,18 +652,14 @@ IF trans = transFuzzy THEN
 ELSEIF trans = transOpaque THEN
  rectangle fr, x, y, w, h, col
 END IF
-IF border = -1 THEN
+IF borderindex = -1 THEN
  '--Simple line border
  drawbox fr, x, y, w, h, bordercol
-ELSEIF border >= 0 AND border <= 14 THEN
+ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
  '--Normal Border
  IF trans <> transHollow THEN drawbox fr, x, y, w, h, bordercol
- DIM as integer i, borderindex
  DIM border_gfx as GraphicPair
- borderindex = boxlook(border).border - 1
- IF borderindex >= 0 THEN
-  load_sprite_and_pal border_gfx, sprTypeBoxBorder, borderindex
- END IF
+ load_sprite_and_pal border_gfx, sprTypeBoxBorder, borderindex
  WITH border_gfx
   IF .sprite THEN ' Only proceed if a sprite is actually selected
    'Draw edges

@@ -54,6 +54,7 @@ DECLARE SUB edgeboxstyle OVERLOAD (byref rect as RectType, boxstyle as integer, 
 DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
 DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+DECLARE SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
