@@ -1274,8 +1274,15 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Foreground color: " & slice_color_caption(dat->fgcol)
     sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    str_array_append menu(), "Border: " & caption_or_int(BorderCaptions(), dat->border)
-    sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
+    str_array_append menu(), yesorno(dat->use_raw_box_border, "Use Box Border Sprite Number", "Use Box border from Rect Style")
+    sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border)
+    IF dat->use_raw_box_border THEN
+     str_array_append menu(), "Border Sprite: " & dat->raw_box_border
+     sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder) 
+    ELSE
+     str_array_append menu(), "Border: " & caption_or_int(BorderCaptions(), dat->border)
+     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
+    END IF
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, 2
     IF dat->translucent = 1 THEN
