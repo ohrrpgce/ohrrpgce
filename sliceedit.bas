@@ -127,6 +127,7 @@ CONST slgrPICKLOOKUP = 128
 CONST slgrEDITSWITCHINDEX = 256
 CONST slgrBROWSESPRITEASSET = 512
 CONST slgrBROWSESPRITEID = 1024
+CONST slgrBROWSEBOXBORDER = 2048
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -1113,6 +1114,14 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    END IF
   END IF
  END IF
+ IF rule.group AND slgrBROWSEBOXBORDER THEN
+  IF enter_space_click(state) THEN
+   DIM dat as RectangleSliceData ptr = sl->SliceData
+   DIM boxborderb as BoxborderSpriteBrowser
+   dat->raw_box_border = boxborderb.browse(dat->raw_box_border)
+   state.need_update = YES
+  END IF
+ END IF
  IF rule.group AND slgrUPDATERECTCOL THEN
   IF state.need_update THEN
    DIM dat as RectangleSliceData Ptr
@@ -1278,7 +1287,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border)
     IF dat->use_raw_box_border THEN
      str_array_append menu(), "Border Sprite: " & dat->raw_box_border
-     sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder) 
+     sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder), slgrBROWSEBOXBORDER
     ELSE
      str_array_append menu(), "Border: " & caption_or_int(BorderCaptions(), dat->border)
      sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
