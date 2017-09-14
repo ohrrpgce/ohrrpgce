@@ -286,10 +286,11 @@ End Function
 '-----------------------------------------------------------------------
 
 Sub NPCMoveTypeBrowser.build_constant_list()
- redim list(0 to ubound(npc_movetypes)) as string
- for i as integer = 0 to ubound(npc_movetypes)
-  list(i) = npc_movetypes(i)
- next i
+ str_array_copy npc_movetypes(), list()
+End Sub
+
+Sub NPCPushTypeBrowser.build_constant_list()
+ str_array_copy npc_pushtypes(), list()
 End Sub
 
 '-----------------------------------------------------------------------

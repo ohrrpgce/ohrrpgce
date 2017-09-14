@@ -4999,6 +4999,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 7
     intgrabber(npcdata.pushtype, 0, ubound(npc_pushtypes))
+    IF enter_space_click(ed.state) THEN
+     DIM constb as NPCPushTypeBrowser
+     npcdata.pushtype = constb.browse(npcdata.pushtype)
+    END IF
    CASE 8
     intgrabber(npcdata.activation, 0, ubound(npc_usetypes))
    CASE 9'--tag conditionals
