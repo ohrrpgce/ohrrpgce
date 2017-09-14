@@ -202,7 +202,7 @@ Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
  box->Fill = YES
  box->Visible = NO
- ChangeRectangleSlice box, , , , -2
+ ChangeRectangleSlice box, , , , borderNone
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
  ChangeTextSlice txt, thing_text_for_id(id), uilook(uiMenuItem), YES
@@ -268,7 +268,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
  box->Fill = YES
  box->Visible = NO
- ChangeRectangleSlice box, , , , -2
+ ChangeRectangleSlice box, , , , borderNone
  dim spr as Slice Ptr
  spr = NewSliceOfType(slSprite, plank, SL_THINGBROWSER_PLANK_SPRITE)
  ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
@@ -425,7 +425,7 @@ Function BoxborderSpriteBrowser.create_thing_plank(byval id as integer) as Slice
  box = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
  box->Fill = YES
  box->Visible = NO
- ChangeRectangleSlice box, , , , -2
+ ChangeRectangleSlice box, , , , borderNone
  if id >= 0 then
   dim box2 as Slice Ptr
   box2 = NewSliceOfType(slRectangle, plank)

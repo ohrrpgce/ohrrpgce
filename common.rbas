@@ -591,55 +591,64 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  CLOSE #fh
 END SUB
 
+'----- Styled boxes
+'All of the following require a box style rather than color, border, etc.
+
 'Backwards compatibility wrapper
 'x and y default to center of the screen
 'This is equivalent to calling edgeboxstyle with ancCenter added to x/y
-SUB centerbox (x as relpos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, c as integer, p as integer)
- IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
- center_edgeboxstyle x, y, w, h, c - 1, p
+SUB centerbox (x as RelPos=rCenter, y as RelPos=rCenter, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
+ center_edgeboxstyle x, y, w, h, boxstyle_plus1 - 1, page
 END SUB
 
-SUB center_edgeboxstyle (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
- w = relative_pos(w, vpages(p)->w)
- h = relative_pos(h, vpages(p)->h)
- edgeboxstyle x - w \ 2, y - h \ 2, w, h, boxstyle, p, fuzzy, suppress_borders
+SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
+ center_edgeboxstyle x, y, w, h, boxstyle_plus1 - 1, page, YES
 END SUB
 
-SUB edgeboxstyle (byref rect as RectType, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
- edgeboxstyle rect.x, rect.y, rect.wide, rect.high, boxstyle, p, fuzzy, suppress_borders
+'boxstyle must be >= 0
+SUB center_edgeboxstyle (x as RelPos=rCenter, y as RelPos=rCenter, w as RelPos, h as RelPos, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+ w = relative_pos(w, vpages(page)->w)
+ h = relative_pos(h, vpages(page)->h)
+ edgeboxstyle x - w \ 2, y - h \ 2, w, h, boxstyle, page, fuzzy, suppress_borders
 END SUB
 
-SUB edgeboxstyle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
- IF boxstyle < 0 OR boxstyle > 14 THEN
-  debug "edgeboxstyle: invalid boxstyle " & boxstyle
+SUB edgeboxstyle (rect as RectType, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+ edgeboxstyle rect.x, rect.y, rect.wide, rect.high, boxstyle, page, fuzzy, suppress_borders
+END SUB
+
+SUB edgeboxstyle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+ IF boxstyle < 0 OR boxstyle > UBOUND(boxlook) THEN
+  showerror "edgeboxstyle: invalid boxstyle " & boxstyle
   EXIT SUB
  END IF
  DIM col as integer = boxlook(boxstyle).bgcol
  DIM bordercol as integer = boxlook(boxstyle).edgecol
- DIM borders as integer = boxstyle
+ DIM border as RectBorderTypes = boxstyle
  DIM trans as RectTransTypes = transOpaque
- IF suppress_borders THEN borders = -1
+ IF suppress_borders THEN border = borderLine
  IF fuzzy THEN trans = transFuzzy
- edgebox x, y, w, h, col, bordercol, p, trans, borders
+ edgebox x, y, w, h, col, bordercol, page, trans, border
 END SUB
 
-SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
- edgebox x, y, w, h, col, bordercol, vpages(p), trans, border, fuzzfactor, relcoords
+'----- Unstyled boxes
+'The following take col/bgcol/border instead of a box style number
+
+SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
+ edgebox x, y, w, h, col, bordercol, vpages(page), trans, border, fuzzfactor, relcoords
 END SUB
 
-SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
- DIM borderindex as integer
+ DIM borderindex as RectBorderTypes
  IF border >= 0 THEN
-  borderindex = boxlook(border).border - 1
+  IF border <= UBOUND(boxlook) THEN borderindex = boxlook(border).border - 1
  ELSE
-  '-2 for none, -1 for simple line
   borderindex = border
  END IF
  edgebox_rawborder x, y, w, h, col, bordercol, fr, trans, borderindex, fuzzfactor, relcoords
 END SUB
 
-SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
 '--borderindex: -2 is none -1 is simple line, 0+ is box border sprite record number
 IF relcoords THEN
  w = relative_pos(w, fr->w)
@@ -652,7 +661,7 @@ IF trans = transFuzzy THEN
 ELSEIF trans = transOpaque THEN
  rectangle fr, x, y, w, h, col
 END IF
-IF borderindex = -1 THEN
+IF borderindex = borderLine THEN
  '--Simple line border
  drawbox fr, x, y, w, h, bordercol
 ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
@@ -731,10 +740,7 @@ ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
 END IF
 END SUB
 
-SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
- IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
- center_edgeboxstyle x, y, w, h, c - 1, p, YES
-END SUB
+'------------------------------------------------------------------------------
 
 FUNCTION read32bitstring (stringptr as integer ptr) as string
  DIM as string result = SPACE(stringptr[0])
@@ -6320,7 +6326,7 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .width = 130
   .height = 70
  END WITH
- ChangeRectangleSlice keybox, , uilook(uiBackground), , -2 
+ ChangeRectangleSlice keybox, , uilook(uiBackground), , borderNone
  
  DIM curs as Slice Ptr
  curs = NewSliceofType(slRectangle, keybox)
@@ -6328,7 +6334,7 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .width = 10
   .height = 10
  END WITH
- ChangeRectangleSlice curs, , uilook(uiHighlight), , -2
+ ChangeRectangleSlice curs, , uilook(uiHighlight), , borderNone
  
  DIM ch as Slice Ptr
  FOR i as integer = 0 TO LEN(alphabet) - 1
@@ -6356,7 +6362,7 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .AnchorHoriz = 1
   .AlignHoriz = 1
  END WITH
- ChangeRectangleSlice del, , uilook(uiBackground), , -2
+ ChangeRectangleSlice del, , uilook(uiBackground), , borderNone
  DIM deltxt as Slice Ptr
  deltxt = NewSliceOfType(slText, del)
  WITH *deltxt
@@ -6376,7 +6382,7 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
   .AnchorHoriz = 1
   .AlignHoriz = 1
  END WITH
- ChangeRectangleSlice confirm, , uilook(uiBackground), , -2
+ ChangeRectangleSlice confirm, , uilook(uiBackground), , borderNone
  DIM confirmtxt as Slice Ptr
  confirmtxt = NewSliceOfType(slText, confirm)
  WITH *confirmtxt

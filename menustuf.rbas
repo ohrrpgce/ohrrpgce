@@ -337,7 +337,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
       ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
      END IF
     END IF
-    ChangeRectangleSlice buyst.party_box(i), , , , -1
+    ChangeRectangleSlice buyst.party_box(i), , , , borderLine
    NEXT i
   ELSE
    'Not equippable
@@ -677,7 +677,7 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
    .X = w_tmp * i + (w_tmp - 32) / 2
   END WITH
   ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
-  ChangeRectangleSlice buyst.party_box(i), , , , -1
+  ChangeRectangleSlice buyst.party_box(i), , , , borderLine
   buyst.party_sl(i) = NewSliceOfType(slSprite, buyst.party_box(i))
   WITH *(buyst.party_sl(i))
    .AnchorVert = 1
@@ -1974,9 +1974,9 @@ SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
     CASE plankSELDISABLE:      ChangeTextSlice sl, , uiItemScreenSelectedDisabled2 * -1 - 1
     CASE plankSPECIAL:         ChangeTextSlice sl, , uiItemScreenSpecial * -1 - 1
     CASE plankSELSPECIAL:      ChangeTextSlice sl, , uiItemScreenSelectedSpecial2 * -1 - 1
-    CASE plankITEMSWAP:        ChangeTextSlice sl, , uiItemScreenSwap * -1 -1
-    CASE plankITEMSWAPDISABLE: ChangeTextSlice sl, , uiItemScreenSwapDisabled * -1 -1
-    CASE plankITEMSWAPSPECIAL: ChangeTextSlice sl, , uiItemScreenSwapSpecial * -1 -1
+    CASE plankITEMSWAP:        ChangeTextSlice sl, , uiItemScreenSwap * -1 - 1
+    CASE plankITEMSWAPDISABLE: ChangeTextSlice sl, , uiItemScreenSwapDisabled * -1 - 1
+    CASE plankITEMSWAPSPECIAL: ChangeTextSlice sl, , uiItemScreenSwapSpecial * -1 - 1
    END SELECT
   CASE slRectangle:
    sl->Visible = YES
@@ -1987,9 +1987,9 @@ SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
     CASE plankSELDISABLE:      ChangeRectangleSlice sl, , uiItemScreenHighlight2 * -1 - 1
     CASE plankSPECIAL:         sl->Visible = NO
     CASE plankSELSPECIAL:      ChangeRectangleSlice sl, , uiItemScreenHighlight2 * -1 - 1
-    CASE plankITEMSWAP:        ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
-    CASE plankITEMSWAPDISABLE: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
-    CASE plankITEMSWAPSPECIAL: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 -1
+    CASE plankITEMSWAP:        ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 - 1
+    CASE plankITEMSWAPDISABLE: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 - 1
+    CASE plankITEMSWAPSPECIAL: ChangeRectangleSlice sl, , uiItemScreenSwapHighlight2 * -1 - 1
    END SELECT
  END SELECT
 END SUB

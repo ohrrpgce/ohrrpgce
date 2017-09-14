@@ -252,15 +252,15 @@ END TYPE
 '--Data containers for various slice types
 
 TYPE RectangleSliceData
- 'If any of fgcol, bgcol or border are manually changed, set style=-1 and style_loaded=0
+ 'If anything aside from translucent/fuzzfactor is manually changed, set style=-1 and style_loaded=NO
  fgcol as integer
- border as integer = -1    '-2: None, -1: Line, 0-14: use box style's border
+ border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
  translucent as RectTransTypes
  fuzzfactor as integer = 50
  bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer = -1    '-1: None, 0-14: style
- style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
+ style_loaded as bool 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
 
  'When use use_raw_box_border is YES, ignore style ID and use raw_box_border instead.
  'This is not currently exposed to users yet
@@ -469,7 +469,7 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
                       byval bgcol as integer=-99,_
                       byval fgcol as integer=-99,_
-                      byval border as integer=-3,_
+                      byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
                       byval use_raw_box_border as integer=-2,_

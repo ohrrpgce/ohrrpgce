@@ -965,7 +965,7 @@ Sub DisposeRectangleSlice(byval sl as slice ptr)
 end sub
 
 Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
- IF dat->style >= -1 ANDALSO dat->style <= 14 THEN
+ IF dat->style >= 0 ANDALSO dat->style <= UBOUND(boxlook) THEN
   dat->bgcol = boxlook(dat->style).bgcol
   dat->fgcol = boxlook(dat->style).edgecol
   dat->border = dat->style
@@ -1040,7 +1040,7 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  else
   dat->fgcol = LoadProp(node, "fg")
   dat->bgcol = LoadProp(node, "bg")
-  dat->border = LoadProp(node, "border", -1)
+  dat->border = LoadProp(node, "border", borderLine)
  end if
  dat->use_raw_box_border = LoadProp(node, "use_raw_box_border", NO)
  dat->raw_box_border = LoadProp(node, "raw_box_border", 0)
@@ -1078,7 +1078,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
                       byval bgcol as integer=-99,_
                       byval fgcol as integer=-99,_
-                      byval border as integer=-3,_
+                      byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
                       byval use_raw_box_border as integer=-2,_
@@ -1100,7 +1100,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
    .style = -1
    .style_loaded = NO
   end if
-  if border > -3 then
+  if border > borderUndef then
    .border = border
    .style = -1
    .style_loaded = NO

@@ -47,14 +47,25 @@ ENUM RectTransTypes
  transHollow
 END ENUM
 
-DECLARE SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer, p as integer)
-DECLARE SUB centerbox (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, c as integer, p as integer)
-DECLARE SUB center_edgeboxstyle (x as RelPos = rCenter, y as RelPos = rCenter, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
-DECLARE SUB edgeboxstyle OVERLOAD (byref rect as RectType, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
-DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, p as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
-DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
-DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
-DECLARE SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as integer=-1, fuzzfactor as integer=50, relcoords as bool=YES)
+ENUM RectBorderTypes
+ borderUndef = -3
+ borderNone = -2
+ borderLine = -1
+ 'N=0-14: usually means use box N style's border
+ '(but also used by edgebox_rawborder to mean use raw box border sprite N)
+END ENUM
+
+'----- Styled boxes
+DECLARE SUB centerfuz (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
+DECLARE SUB centerbox (x as RelPos=rCenter, y as RelPos=rCenter, w as RelPos, h as RelPos, boxstyle_plus1 as integer, page as integer)
+DECLARE SUB center_edgeboxstyle (x as RelPos=rCenter, y as RelPos=rCenter, w as RelPos, h as RelPos, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (rect as RectType, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, boxstyle as integer, page as integer, fuzzy as bool=NO, suppress_borders as bool=NO)
+
+'----- Unstyled boxes
+DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
+DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
+DECLARE SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
