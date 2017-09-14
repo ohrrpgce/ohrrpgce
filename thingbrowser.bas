@@ -260,8 +260,8 @@ Sub ConstantListBrowser.enter_browser()
 End Sub
 
 Sub ConstantListBrowser.build_constant_list()
- redim list(0 to 0) as string
- list(0) = "Empty Constant List Browser"
+ 'Override this for browsers that will hardcode an array of strings
+ 'or those that can do str_array_copy() from a global array of strings
 End Sub
 
 Function ConstantListBrowser.lowest_id() as integer
@@ -299,6 +299,27 @@ End Sub
 
 Sub NPCFaceTypeBrowser.build_constant_list()
  str_array_copy npc_facetypes(), list()
+End Sub
+
+'-----------------------------------------------------------------------
+
+Sub FlexmenuCaptionBrowser.set_list_from_flexmenu(caption() as string, byval caption_code as integer, byval min as integer, byval max as integer)
+ dim capindex as integer
+ dim show_id as bool = NO
+ select case caption_code
+  case 1000 to 1999 ' caption with id at the beginning
+   capindex = caption_code - 1000
+   show_id = YES
+  case 2000 to 2999 ' caption only
+   capindex = caption_code - 2000
+  case else
+   visible_debug "set_list_from_flexmenu: caption_code " & caption_code & " is not in the expected range of 1000 to 2999"
+   exit sub
+ end select
+ redim list(min to max) as string
+ for i as integer = min to max
+  list(i) = caption(capindex + i)
+ next i
 End Sub
 
 '-----------------------------------------------------------------------

@@ -2153,8 +2153,17 @@ DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 3000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
+ CASE 1000 TO 2999' captioned integers
+  changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
+  IF enter_space_click(state) THEN
+   DIM old_dat as integer = datablock(menuoff(nowindex))
+   DIM flexb as FlexmenuCaptionBrowser
+   flexb.set_list_from_flexmenu caption(), menutype(nowindex), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex))
+   datablock(menuoff(nowindex)) = flexb.browse(datablock(menuoff(nowindex)))
+   changed = (old_dat <> datablock(menuoff(nowindex)))
+  END IF
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 22 '(int+100)%

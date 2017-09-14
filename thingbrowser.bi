@@ -85,6 +85,10 @@ Type NPCFaceTypeBrowser extends ConstantListBrowser
  declare virtual sub build_constant_list() 
 End Type
 
+Type FlexmenuCaptionBrowser extends ConstantListBrowser
+ declare sub set_list_from_flexmenu(caption() as string, byval caption_code as integer, byval min as integer, byval max as integer)
+End Type
+
 '-----------------------------------------------------------------------
 'Sprite browsers
 
