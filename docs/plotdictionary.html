@@ -13970,7 +13970,13 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getrectstyle"></a>
 		<h4>get rect style (handle)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style.
+			
+				Given a rect slice <span class="param">handle</span>, return the style it is using.
+				This will be a number from 0 to 14 representing a text box style,
+				or -1 if the rect is not using a standard style.
+				Using any of the <a href="#about-setrectfgcol" class="ref">set rect fgcol</a>, <a href="#about-setrectbgcol" class="ref">set rect bgcol</a>, <a href="#about-setrectborder" class="ref">set rect border</a>
+				or <a href="#about-setrectrawborder" class="ref">set rect raw border</a> commands causes this command to return -1.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setrectstyle" class="ref">set rect style</a></li></ul>
@@ -13981,10 +13987,23 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setrectstyle"></a>
 		<h4>set rect style (handle, style)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, change the style it uses. The <span class="param">style</span> should be a number from 0 to 14 representing a text box style.
+			
+				Given a rect slice <span class="param">handle</span>, change the box style it uses.
+				The <span class="param">style</span> should be a number from 0 to 14 representing a box style
+				(edited in the "Edit Box Styles" menu).
+				Setting the style changes the foreground (box) and background (edge) colors and the border.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getrectstyle" class="ref">get rect style</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectstyle" class="ref">get rect style</a>, </li>
+<li>
+<a href="#about-setrectfgcol" class="ref">set rect fgcol</a>, </li>
+<li>
+<a href="#about-setrectbgcol" class="ref">set rect bgcol</a>, </li>
+<li><a href="#about-setrectborder" class="ref">set rect border</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -13992,7 +14011,11 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getrectbgcol"></a>
 		<h4>get rect bgcol (handle)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, return the background color it is using. This will be a number from 0 to 255 representing a color from the master palette.
+			
+				Given a rect slice <span class="param">handle</span>, return the background color it is using,
+				which is the color inside the box (unless the box is totally transparent!)
+				This will be a number from 0 to 255 representing a color from the master palette.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14007,7 +14030,12 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setrectbgcol"></a>
 		<h4>set rect bgcol (handle, color)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, change the background color it uses. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.
+			
+				Given a rect slice <span class="param">handle</span>, change the background color it uses,
+				which is the color of the box.
+				The <span class="param">color</span> should be a number from 0 to 255 representing a color
+				from the master palette.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14052,7 +14080,14 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getrectborder"></a>
 		<h4>get rect border (handle)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, return the style number of the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
+			
+				Given a rect slice <span class="param">handle</span>, return the style number of the graphical border it uses.
+				This will be a number from 0 to 14 representing a text box border style,
+				or <span class="param">border:line</span> for a simple line border only,
+				or <span class="param">border:none</span> for no border at all,
+				or <span class="param">border:raw</span> if the box uses a "raw" box border spriteset number instead
+				(in that case you need to call <a href="#about-getrectrawborder" class="ref">get rect raw border</a> to find out which it is).
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14067,7 +14102,14 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-getrectrawborder"></a>
 		<h4>get rect raw border (handle)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, return the sprite set id number of the graphical border it uses. This will only return a value if the border has been overridden by sprite id number. If the border is being determined by box style number, then this command will return <span class="param">-1</span>. In that case you should use <a href="#about-getrectborder" class="ref">get rect border</a> instead.
+			
+				Given a rect slice <span class="param">handle</span>, return the spriteset ID number of the graphical border it uses,
+				or <span class="param">border:line</span> if it has a simple line border only,
+				or <span class="param">border:none</span> for no border at all.
+				If the border is being determined by a box style number
+				(e.g. due to <a href="#about-setrectstyle" class="ref">set rect style</a> or <a href="#about-setrectborder" class="ref">set rect border</a>),
+				then this command returns the actual box border spriteset instead of the box style number.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14082,7 +14124,19 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setrectborder"></a>
 		<h4>set rect border (handle, border)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a box style number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.
+			
+				Given a rect slice <span class="param">handle</span>, change the graphical border it uses.
+				The <span class="param">border</span> should be a box style number from 0 to 14 representing a
+				text box border style, or <span class="param">border:line</span> for a simple line border only,
+				or <span class="param">border:none</span> for no border at all.
+				(You can't use <span class="param">border:raw</span>.)
+				This command overrides both <a href="#about-setrectstyle" class="ref">set rect style</a> and <a href="#about-setrectrawborder" class="ref">set rect raw border</a>.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					<span class="param">border</span> is <b>not</b> a box border spriteset number, it's a box style number!
+					If you want to specify the box border spriteset directly, use <a href="#about-setrectrawborder" class="ref">set rect raw border</a>.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14097,7 +14151,14 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-setrectrawborder"></a>
 		<h4>set rect raw border (handle, border)</h4>
 <p>
-			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a border sprite set number, or <span class="param">-1</span> to allow the rectangle's border to be set by style number. This command overrides both <a href="#about-setrectstyle" class="ref">set rect style</a> and <a href="#about-setrectborder" class="ref">set rect border</a>.
+			
+				Given a rect slice <span class="param">handle</span>, change the graphical border it uses.
+				The <span class="param">border</span> should be a border spriteset number (<b>not</b> a box style number),
+				or <span class="param">border:line</span> for a simple line border only,
+				or <span class="param">border:none</span> for no border at all.
+				(You can't use <span class="param">border:raw</span>.)
+				This command overrides both <a href="#about-setrectstyle" class="ref">set rect style</a> and <a href="#about-setrectborder" class="ref">set rect border</a>.
+			
 			
 			
 			<div class="seealso">See also: <ul>
