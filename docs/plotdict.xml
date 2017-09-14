@@ -6785,7 +6785,8 @@ The third argument is the total number of ticks that the animation should run. Y
 				This will be a number from 0 to 14 representing a text box border style,
 				or <p>border:line</p> for a simple line border only,
 				or <p>border:none</p> for no border at all,
-				or <p>border:raw</p> if the box uses a "raw" border number instead (see <ref>getrectrawborder</ref>).
+				or <p>border:raw</p> if the box uses a "raw" box border spriteset number instead
+				(in that case you need to call <ref>getrectrawborder</ref> to find out which it is).
 			</description>
 			<seealso>
 				<ref>setrectborder</ref>
@@ -6796,11 +6797,13 @@ The third argument is the total number of ticks that the animation should run. Y
 			<canon>get rect raw border (handle)</canon>
 			<shortname>get rect raw border</shortname>
 			<description>
-				Given a rect slice <p>handle</p>, return the sprite set id number of the graphical border it uses.
-				This will only return a value if the border has been set to a box border spriteset by ID number.
-				If the border is being determined by box style number, then this command will return <p>-1</p>.
-				In that case you should use <ref>getrectborder</ref> instead.
-</description>
+				Given a rect slice <p>handle</p>, return the spriteset ID number of the graphical border it uses,
+				or <p>border:line</p> if it has a simple line border only,
+				or <p>border:none</p> for no border at all.
+				If the border is being determined by a box style number
+				(e.g. due to <ref>setrectstyle</ref> or <ref>setrectborder</ref>),
+				then this command returns the actual box border spriteset instead of the box style number.
+			</description>
 			<seealso>
 				<ref>setrectrawborder</ref>
 				<ref>getrectborder</ref>
@@ -6816,6 +6819,10 @@ The third argument is the total number of ticks that the animation should run. Y
 				or <p>border:none</p> for no border at all.
 				(You can't use <p>border:raw</p>.)
 				This command overrides both <ref>setrectstyle</ref> and <ref>setrectrawborder</ref>.
+				<note>
+					<p>border</p> is <b>not</b> a box border spriteset number, it's a box style number!
+					If you want to specify the box border spriteset directly, use <ref>setrectrawborder</ref>.
+				</note>
 			</description>
 			<seealso>
 				<ref>getrectborder</ref>
@@ -6827,8 +6834,10 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>set rect raw border</shortname>
 			<description>
 				Given a rect slice <p>handle</p>, change the graphical border it uses.
-				The <p>border</p> should be a border sprite set number.
-				(You can't use <tt>border:</tt> constants like <p>border:line</p>.)
+				The <p>border</p> should be a border spriteset number (<b>not</b> a box style number),
+				or <p>border:line</p> for a simple line border only,
+				or <p>border:none</p> for no border at all.
+				(You can't use <p>border:raw</p>.)
 				This command overrides both <ref>setrectstyle</ref> and <ref>setrectborder</ref>.
 			</description>
 			<seealso>

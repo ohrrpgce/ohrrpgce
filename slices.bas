@@ -1084,7 +1084,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
-                      byval raw_box_border as integer=-1)
+                      byval raw_box_border as RectBorderTypes=borderUndef)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
  if style > -2 andalso border > -3 then
@@ -1102,6 +1102,15 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
    .style = -1
    .style_loaded = NO
   end if
+  if raw_box_border >= 0 then
+   .use_raw_box_border = YES
+   .raw_box_border = raw_box_border
+   .style = -1
+   .style_loaded = NO
+  elseif raw_box_border > borderUndef then
+   'This is a convenience (and to make this behave the same as the script commands)
+   border = raw_box_border
+  end if
   if border > borderUndef then
    .use_raw_box_border = NO
    .border = border
@@ -1116,12 +1125,6 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
   if translucent <> transUndef then .translucent = translucent
   if fuzzfactor > 0 then
    .fuzzfactor = fuzzfactor
-  end if
-  if raw_box_border > -1 then
-   .use_raw_box_border = YES
-   .raw_box_border = raw_box_border
-   .style = -1
-   .style_loaded = NO
   end if
  end with
  if dat->style >= 0 and dat->style_loaded = NO then

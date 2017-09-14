@@ -4404,7 +4404,7 @@ SUB script_functions(byval cmdid as integer)
   '(Break ties towards +inf, since that's what JS does; FB/x86 breaks ties towards even)
   scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
  CASE 650 '--set rect raw border
-  IF bound_arg(retvals(1), 0, gen(genMaxBoxBorder), "raw border") THEN
+  IF bound_arg(retvals(1), -2, gen(genMaxBoxBorder), "raw border") THEN
    change_rect_plotslice retvals(0), , , , , , , retvals(1)
   END IF
  CASE 651 '--get rect raw border
@@ -4413,8 +4413,10 @@ SUB script_functions(byval cmdid as integer)
    dat = plotslices(retvals(0))->SliceData
    IF dat->use_raw_box_border THEN
     scriptret = dat->raw_box_border
+   ELSEIF dat->border >= 0 THEN
+    scriptret = boxlook(dat->border).border - 1  'possibly border:line
    ELSE
-    scriptret = -1
+    scriptret = dat->border  'border:line or border:none
    END IF
   END IF
 
@@ -4788,7 +4790,7 @@ SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as Sprite
  END WITH
 END SUB
 
-SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as integer=-1)
+SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as RectBorderTypes=borderUndef)
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
