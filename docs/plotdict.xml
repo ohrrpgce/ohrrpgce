@@ -6705,7 +6705,13 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getrectstyle">
 			<canon>get rect style (handle)</canon>
 			<shortname>get rect style</shortname>
-			<description>Given a rect slice <p>handle</p>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style.</description>
+			<description>
+				Given a rect slice <p>handle</p>, return the style it is using.
+				This will be a number from 0 to 14 representing a text box style,
+				or -1 if the rect is not using a standard style.
+				Using any of the <ref>setrectfgcol</ref>, <ref>setrectbgcol</ref>, <ref>setrectborder</ref>
+				or <ref>setrectrawborder</ref> commands causes this command to return -1.
+			</description>
 			<seealso>
 				<ref>setrectstyle</ref>
 			</seealso>
@@ -6713,15 +6719,27 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setrectstyle">
 			<canon>set rect style (handle, style)</canon>
 			<shortname>set rect style</shortname>
-			<description>Given a rect slice <p>handle</p>, change the style it uses. The <p>style</p> should be a number from 0 to 14 representing a text box style.</description>
+			<description>
+				Given a rect slice <p>handle</p>, change the box style it uses.
+				The <p>style</p> should be a number from 0 to 14 representing a box style
+				(edited in the "Edit Box Styles" menu).
+				Setting the style changes the foreground (box) and background (edge) colors and the border.
+			</description>
 			<seealso>
 				<ref>getrectstyle</ref>
+				<ref>setrectfgcol</ref>
+				<ref>setrectbgcol</ref>
+				<ref>setrectborder</ref>
 			</seealso>
 		</command>
 		<command id="getrectbgcol">
 			<canon>get rect bgcol (handle)</canon>
 			<shortname>get rect bgcol</shortname>
-			<description>Given a rect slice <p>handle</p>, return the background color it is using. This will be a number from 0 to 255 representing a color from the master palette.</description>
+			<description>
+				Given a rect slice <p>handle</p>, return the background color it is using,
+				which is the color inside the box (unless the box is totally transparent!)
+				This will be a number from 0 to 255 representing a color from the master palette.
+			</description>
 			<seealso>
 				<ref>setrectbgcol</ref>
 				<ref>getrectfgcol</ref>
@@ -6730,7 +6748,12 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setrectbgcol">
 			<canon>set rect bgcol (handle, color)</canon>
 			<shortname>set rect bgcol</shortname>
-			<description>Given a rect slice <p>handle</p>, change the background color it uses. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.</description>
+			<description>
+				Given a rect slice <p>handle</p>, change the background color it uses,
+				which is the color of the box.
+				The <p>color</p> should be a number from 0 to 255 representing a color
+				from the master palette.
+			</description>
 			<seealso>
 				<ref>getrectbgcol</ref>
 				<ref>setrectfgcol</ref>
