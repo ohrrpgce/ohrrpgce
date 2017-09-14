@@ -2,7 +2,9 @@ This is the Font Editor.
 
 Use the arrow keys to highlight a font character, and press ENTER or SPACE to start editing it.
 
-While editing a font character, use the arrow keys to select pixels and press SPACE to toggle them off and on. When you are finished, press ENTER or ESC.
+While editing a font character, use the arrow keys to select pixels and press SPACE to toggle them off and on. You can use the left mouse button to turn pixels on, and the right mouse button to erase pixels.
+
+When you are finished, press ENTER or ESC.
 
 It is generally a good idea to leave the right and bottom rows of pixels blank to prevent characters in strings of text from running together.
 

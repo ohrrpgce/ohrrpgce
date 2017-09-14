@@ -27,6 +27,8 @@ DECLARE SUB edit_button_name_strings()
 DECLARE FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
 DECLARE FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
 DECLARE SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
+DECLARE FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
+DECLARE FUNCTION edit_font_draw_point(byval pixelpos as XYPair) as XYPair
 
 'Module-local variables
 DIM SHARED comp_strings() as string
@@ -2472,19 +2474,26 @@ SUB fontedit (font() as integer)
  DIM yoff as integer
  
  DIM c as integer
+ DIM hover_char as integer
+ DIM hover_draw as XYPair
 
  setkeys
  DO
   setwait 55
   setkeys
   IF keyval(scF1) > 1 THEN show_help "fontedit"
+  hover_char = edit_font_picker_point(readmouse.pos)
+  hover_draw = edit_font_draw_point(readmouse.pos)
   SELECT CASE mode
-   CASE -1
+   CASE -1 ' Main font menu
     IF keyval(scEsc) > 1 THEN EXIT DO
     usemenu state, selectable()
     IF enter_space_click(state) THEN
      IF state.pt = 0 THEN EXIT DO
-     IF state.pt = 1 THEN mode = 0
+     IF state.pt = 1 THEN
+      mode = 0
+      readmouse.clearclick(mouseLeft)
+     END IF
      IF state.pt = 2 THEN
       fontedit_import_font font()
       fonttype = get_font_type(font())
@@ -2499,13 +2508,13 @@ SUB fontedit (font() as integer)
       xbsave game + ".fnt", font(), 2048
      END IF
     END IF
-   CASE 0
+   CASE 0 'Picking a character to edit
     IF keyval(scEsc) > 1 THEN mode = -1
     IF keyval(scUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
     IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
     IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
     IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
-    IF enter_space_click(state) THEN
+    IF enter_or_space() THEN
      IF pt < 0 THEN
       mode = -1
      ELSE
@@ -2514,7 +2523,7 @@ SUB fontedit (font() as integer)
       y = 0
      END IF
     END IF
-   CASE 1
+   CASE 1 ' Editing a character
     IF keyval(scEsc) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
     IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)
     IF keyval(scDown) > 1 THEN y = loopvar(y, 0, 7, 1)
@@ -2526,7 +2535,7 @@ SUB fontedit (font() as integer)
      xbsave game + ".fnt", font(), 2048
     END IF
   END SELECT
-  IF mode >= 0 THEN
+  IF mode >= 0 THEN 'Stuff that happens in both picking and editing mode
    '--copy and paste support
    IF copy_keychord() THEN
     FOR i = 0 TO 63
@@ -2539,6 +2548,32 @@ SUB fontedit (font() as integer)
     NEXT i
     setfont font()
     xbsave game + ".fnt", font(), 2048
+   END IF
+   '--clicking on the "Previous menu" label
+   IF readmouse.release AND mouseLeft THEN
+    IF rect_collide_point(str_rect(menu(0), 0, 0), readmouse.pos) THEN
+     mode = -1
+    END IF
+   END IF
+   '--Clicking on a character to edit
+   IF readmouse.release AND (mouseLeft OR mouseRight) THEN
+    IF hover_char >= 0 THEN
+     pt = hover_char
+     mode = 0
+    END IF
+   END IF
+   '--Clicking on a pixel to draw
+   IF readmouse.buttons AND (mouseLeft OR mouseRight) THEN
+    IF pt >= 0 ANDALSO hover_draw.x >= 0 ANDALSO hover_draw.y >= 0 THEN
+     mode = 1
+     x = hover_draw.x
+     y = hover_draw.y
+     DIM setpix as integer = 0
+     IF readmouse.buttons AND mouseLeft THEN setpix = 1
+     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, setpix
+     setfont font()
+     xbsave game + ".fnt", font(), 2048
+    END IF
    END IF
   END IF
 
@@ -2559,19 +2594,25 @@ SUB fontedit (font() as integer)
   END IF
 
   IF mode >= 0 THEN
+   state.tog XOR= 1'keep state.tog going even though we don't call standardmenu
    xoff = 8
    yoff = 8
    FOR i = 0 TO last
     textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+    DIM cpos as XYPair = XY(xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9)
     IF pt >= 0 THEN
      IF mode = 0 THEN
       IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
      END IF
-     IF pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
     END IF
-    printstr CHR(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
+    IF hover_char = i THEN textcolor uilook(uiMouseHoverItem), uilook(uiSelectedDisabled)
+    IF pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
+    printstr CHR(f(i)), cpos.x, cpos.y, dpage
    NEXT i
    textcolor uilook(uiMenuItem), 0
+   IF rect_collide_point(str_rect(menu(0), 0, 0), readmouse.pos) THEN
+    textcolor uilook(uiMouseHoverItem), 0
+   END IF
    IF pt < 0 THEN textcolor uilook(uiSelectedItem + state.tog), 0
    printstr menu(0), 8, 0, dpage
 
@@ -2582,7 +2623,8 @@ SUB fontedit (font() as integer)
     FOR i = 0 TO 7
      FOR j as integer = 0 TO 7
       IF readbit(font(), 0, (f(pt) * 8 + i) * 8 + j) THEN
-       rectangle xoff + i * 20, yoff + j * 20, 20, 20, uilook(uiMenuItem), dpage
+       c = uilook(uiMenuItem)
+       rectangle xoff + i * 20, yoff + j * 20, 20, 20, c, dpage
       END IF
      NEXT j
     NEXT i
@@ -2593,6 +2635,9 @@ SUB fontedit (font() as integer)
       c = uilook(uiSelectedDisabled)
      END IF
      rectangle xoff + x * 20, yoff + y * 20, 20, 20, c, dpage
+    END IF
+    IF hover_draw.x >= 0 ANDALSO hover_draw.y >= 0 THEN
+     edgebox xoff + hover_draw.x * 20, yoff + hover_draw.y * 20, 20, 20, uilook(uiMouseHoverItem), uilook(uiSelectedItem) + state.tog, dpage, transHollow
     END IF
     textcolor uilook(uiText), 0
     DIM tmp as string = "CHAR " & f(pt)
@@ -2615,6 +2660,36 @@ SUB fontedit (font() as integer)
   dowait
  LOOP
 END SUB
+
+FUNCTION edit_font_draw_point(byval pixelpos as XYPair) as XYPair
+ 'Return the font drawing x,y pos that the pixelpos (mouse cursor) is over
+ DIM offset as XYPair = XY(150, 4)
+ DIM rows as integer = 8
+ DIM cols as integer = 8
+ DIM tilesize as integer = 20
+ DIM areasize as RectType
+ corners_to_rect offset, offset + XY(cols, rows) * tilesize, areasize
+ IF NOT rect_collide_point(areasize, pixelpos) THEN RETURN XY(-1, -1)
+ DIM drawpos as XYPair
+ drawpos = pixelpos - offset
+ drawpos = drawpos \ tilesize
+ RETURN drawpos
+END FUNCTION
+
+FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
+ 'Return the character id that the pixelpos (mouse cursor) collides with or -1 if none
+ DIM offset as XYPair = XY(8,8)
+ DIM rows as integer = 16
+ DIM cols as integer = 14
+ DIM tilesize as integer = 9
+ DIM areasize as RectType
+ corners_to_rect offset, offset + XY(cols, rows) * tilesize, areasize
+ IF NOT rect_collide_point(areasize, pixelpos) THEN RETURN -1
+ DIM charpos as XYPair
+ charpos = pixelpos - offset
+ charpos = charpos \ tilesize
+ RETURN charpos.y * cols + charpos.x
+END FUNCTION
 
 SUB fontedit_export_font(font() as integer)
 
