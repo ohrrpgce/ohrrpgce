@@ -293,6 +293,14 @@ Sub NPCPushTypeBrowser.build_constant_list()
  str_array_copy npc_pushtypes(), list()
 End Sub
 
+Sub NPCUseTypeBrowser.build_constant_list()
+ str_array_copy npc_usetypes(), list()
+End Sub
+
+Sub NPCFaceTypeBrowser.build_constant_list()
+ str_array_copy npc_facetypes(), list()
+End Sub
+
 '-----------------------------------------------------------------------
 
 Function SpriteBrowser.sprite_kind() as integer

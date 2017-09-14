@@ -77,6 +77,14 @@ Type NPCPushTypeBrowser extends ConstantListBrowser
  declare virtual sub build_constant_list() 
 End Type
 
+Type NPCUseTypeBrowser extends ConstantListBrowser
+ declare virtual sub build_constant_list() 
+End Type
+
+Type NPCFaceTypeBrowser extends ConstantListBrowser
+ declare virtual sub build_constant_list() 
+End Type
+
 '-----------------------------------------------------------------------
 'Sprite browsers
 

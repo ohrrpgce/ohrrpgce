@@ -4988,6 +4988,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 5
     intgrabber(npcdata.facetype, 0, ubound(npc_facetypes))
+    IF enter_space_click(ed.state) THEN
+     DIM constb as NPCFaceTypeBrowser
+     npcdata.facetype = constb.browse(npcdata.facetype)
+    END IF
    CASE 6
     IF intgrabber(npcdata.item, 0, gen(genMaxItem) + 1) THEN
      ed.itemname = load_item_name(npcdata.item, 0, 0)
@@ -5005,6 +5009,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 8
     intgrabber(npcdata.activation, 0, ubound(npc_usetypes))
+    IF enter_space_click(ed.state) THEN
+     DIM constb as NPCUseTypeBrowser
+     npcdata.activation = constb.browse(npcdata.activation)
+    END IF
    CASE 9'--tag conditionals
     tag_grabber npcdata.tag1, ed.state
    CASE 10'--tag conditionals
