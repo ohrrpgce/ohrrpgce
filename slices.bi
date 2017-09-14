@@ -472,7 +472,6 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval border as RectBorderTypes=borderUndef,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
-                      byval use_raw_box_border as integer=-2,_
                       byval raw_box_border as integer=-1)
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr

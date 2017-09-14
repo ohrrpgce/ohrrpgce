@@ -3341,15 +3341,47 @@ script, slice tests, begin
   assert(get rect fuzziness(sl) == 50)
   free slice(sl)
   
-  # Test rect border style
+  # Test rect box border
   sl := create rect(99, 99), w
   set slice x(sl, 10)
   set slice y(sl, 10)
+  assert(get rect style(sl) == 0)
+  assert(get rect border(sl) == 0)
   assert(get rect raw border(sl) == -1)
   set rect raw border(sl, 0), w
+  assert(get rect style(sl) == -1)
+  assert(get rect border(sl) == border:raw)
   assert(get rect raw border(sl) == 0)
+  set rect border(sl, border:none), w
+  assert(get rect border(sl) == border:none)
+  assert(get rect raw border(sl) == -1)
+  set rect border(sl, border:line), w
+  assert(get rect border(sl) == border:line)
+  assert(get rect raw border(sl) == -1)
   set rect raw border(sl, 1), w
+  assert(get rect border(sl) == border:raw)
   assert(get rect raw border(sl) == 1)
+  set rect border(sl, 14), w
+  assert(get rect border(sl) == 14)
+  assert(get rect raw border(sl) == -1)
+  free slice(sl)
+
+  # Test rect style
+  sl := create rect(120, 120, 14), w
+  assert(get rect style(sl) == 14)
+  # Testing that the style is as in the box style editor
+  assert(get rect border(sl) == 14)
+  assert(get rect raw border(sl) == -1)
+  assert(get rect fg col(sl) == 252)
+  assert(get rect bg col(sl) == 65)
+  set rect fg col(sl, 42), w
+  assert(get rect style(sl) == -1)
+  set rect style(sl, 0), w
+  assert(get rect style(sl) == 0)
+  assert(get rect border(sl) == 0)
+  assert(get rect raw border(sl) == -1)
+  assert(get rect fg col(sl) == 249)
+  assert(get rect bg col(sl) == 33)
   free slice(sl)
   
   # Text slices
@@ -4276,7 +4308,6 @@ end
 #get NPC usable (who)
 #get on keypress script
 #get outline(handle)
-#get rect border (handle)
 #get slice velocity x (handle)
 #get slice velocity y (handle)
 #get song name (ID, song)
@@ -4448,9 +4479,7 @@ end
 #set padding (handle, pixels)
 #set parent (handle, parent handle)
 #set rect bgcol (handle, color)
-#set rect border (handle, border)
 #set rect fgcol (handle, color)
-#set rect style (handle, style)
 #set right padding (handle, pixels)
 #set seconds of play (sec)
 #set slice clipping (handle, clip)

@@ -1850,6 +1850,7 @@ define constant, begin
 9,spritetype:backdrop
 -1,border:line
 -2,border:none
+-99,border:raw
 0,trans:solid
 1,trans:fuzzy
 2,trans:hollow

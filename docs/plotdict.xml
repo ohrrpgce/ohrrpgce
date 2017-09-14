@@ -6757,7 +6757,13 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getrectborder">
 			<canon>get rect border (handle)</canon>
 			<shortname>get rect border</shortname>
-			<description>Given a rect slice <p>handle</p>, return the style number of the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <p>border:line</p> for the old simple line border only, or <p>border:none</p> for no border at all.</description>
+			<description>
+				Given a rect slice <p>handle</p>, return the style number of the graphical border it uses.
+				This will be a number from 0 to 14 representing a text box border style,
+				or <p>border:line</p> for a simple line border only,
+				or <p>border:none</p> for no border at all,
+				or <p>border:raw</p> if the box uses a "raw" border number instead (see <ref>getrectrawborder</ref>).
+			</description>
 			<seealso>
 				<ref>setrectborder</ref>
 				<ref>getrectrawborder</ref>
@@ -6766,7 +6772,12 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="getrectrawborder">
 			<canon>get rect raw border (handle)</canon>
 			<shortname>get rect raw border</shortname>
-			<description>Given a rect slice <p>handle</p>, return the sprite set id number of the graphical border it uses. This will only return a value if the border has been overridden by sprite id number. If the border is being determined by box style number, then this command will return <p>-1</p>. In that case you should use <ref>getrectborder</ref> instead.</description>
+			<description>
+				Given a rect slice <p>handle</p>, return the sprite set id number of the graphical border it uses.
+				This will only return a value if the border has been set to a box border spriteset by ID number.
+				If the border is being determined by box style number, then this command will return <p>-1</p>.
+				In that case you should use <ref>getrectborder</ref> instead.
+</description>
 			<seealso>
 				<ref>setrectrawborder</ref>
 				<ref>getrectborder</ref>
@@ -6775,7 +6786,14 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setrectborder">
 			<canon>set rect border (handle, border)</canon>
 			<shortname>set rect border</shortname>
-			<description>Given a rect slice <p>handle</p>, change the graphical border it uses. The <p>border</p> should be a box style number from 0 to 14 representing a text box border style, or <p>border:line</p> for the old simple line border only, or <p>border:none</p> for no border at all.</description>
+			<description>
+				Given a rect slice <p>handle</p>, change the graphical border it uses.
+				The <p>border</p> should be a box style number from 0 to 14 representing a
+				text box border style, or <p>border:line</p> for a simple line border only,
+				or <p>border:none</p> for no border at all.
+				(You can't use <p>border:raw</p>.)
+				This command overrides both <ref>setrectstyle</ref> and <ref>setrectrawborder</ref>.
+			</description>
 			<seealso>
 				<ref>getrectborder</ref>
 				<ref>setrectrawborder</ref>
@@ -6784,7 +6802,12 @@ The third argument is the total number of ticks that the animation should run. Y
 		<command id="setrectrawborder">
 			<canon>set rect raw border (handle, border)</canon>
 			<shortname>set rect raw border</shortname>
-			<description>Given a rect slice <p>handle</p>, change the graphical border it uses. The <p>border</p> should be a border sprite set number, or <p>-1</p> to allow the rectangle's border to be set by style number. This command overrides both <ref>setrectstyle</ref> and <ref>setrectborder</ref>.</description>
+			<description>
+				Given a rect slice <p>handle</p>, change the graphical border it uses.
+				The <p>border</p> should be a border sprite set number.
+				(You can't use <tt>border:</tt> constants like <p>border:line</p>.)
+				This command overrides both <ref>setrectstyle</ref> and <ref>setrectborder</ref>.
+			</description>
 			<seealso>
 				<ref>getrectrawborder</ref>
 				<ref>setrectborder</ref>

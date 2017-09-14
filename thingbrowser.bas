@@ -429,7 +429,7 @@ Function BoxborderSpriteBrowser.create_thing_plank(byval id as integer) as Slice
  if id >= 0 then
   dim box2 as Slice Ptr
   box2 = NewSliceOfType(slRectangle, plank)
-  ChangeRectangleSlice box2, , , , , , , YES, id
+  ChangeRectangleSlice box2, , , , , , , id
   box2->AlignVert = alignCenter
   box2->AnchorVert = alignCenter
   box2->AlignHoriz = alignCenter

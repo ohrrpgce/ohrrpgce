@@ -2399,10 +2399,14 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotrect(retvals(0)) THEN
    DIM dat as RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
-   scriptret = dat->border
+   IF dat->use_raw_box_border THEN
+    scriptret = -99  'border:raw
+   ELSE
+    scriptret = dat->border
+   END IF
   END IF
  CASE 381 '--set rect border
-  IF bound_arg(retvals(1), -2, 14, "border") THEN
+  IF bound_arg(retvals(1), -2, 14, "border") THEN  'border:raw not allowed
    change_rect_plotslice retvals(0), , , ,retvals(1)
   END IF
  CASE 382 '--get rect trans
@@ -4400,12 +4404,8 @@ SUB script_functions(byval cmdid as integer)
   '(Break ties towards +inf, since that's what JS does; FB/x86 breaks ties towards even)
   scriptret = INT(bound(CDBL(retvals(0)) * retvals(1) / retvals(2), CDBL(INT_MIN), CDBL(INT_MAX)) + 0.5)
  CASE 650 '--set rect raw border
-  IF bound_arg(retvals(1), -1, gen(genMaxBoxBorder), "raw border") THEN
-   IF retvals(1) = -1 THEN
-    change_rect_plotslice retvals(0), , , , , , , NO
-   ELSE
-    change_rect_plotslice retvals(0), , , , , , , YES, retvals(1)
-   END IF
+  IF bound_arg(retvals(1), 0, gen(genMaxBoxBorder), "raw border") THEN
+   change_rect_plotslice retvals(0), , , , , , , retvals(1)
   END IF
  CASE 651 '--get rect raw border
   IF valid_plotrect(retvals(0)) THEN
@@ -4788,12 +4788,12 @@ SUB replace_sprite_plotslice(byval handle as integer, byval spritetype as Sprite
  END WITH
 END SUB
 
-SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as integer=-3, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval use_raw_box_border as integer=-2, byval raw_box_border as integer=-1)
+SUB change_rect_plotslice(byval handle as integer, byval style as integer=-2, byval bgcol as integer=-99, byval fgcol as integer=-99, byval border as RectBorderTypes=borderUndef, byval translucent as RectTransTypes=transUndef, byval fuzzfactor as integer=0, byval raw_box_border as integer=-1)
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle THEN
-   ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent, fuzzfactor, use_raw_box_border, raw_box_border
+   ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent, fuzzfactor, raw_box_border
   ELSE
    scripterr current_command_name() & ": " & SliceTypeName(sl) & " is not a rect", serrBadOp
   END IF
