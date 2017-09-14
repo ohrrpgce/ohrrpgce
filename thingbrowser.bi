@@ -41,6 +41,9 @@ Type ThingBrowser extends Object
 
 End Type
 
+'-----------------------------------------------------------------------
+'Data record browsers
+
 Type ItemBrowser extends ThingBrowser
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
@@ -52,6 +55,26 @@ Type ShopBrowser extends ThingBrowser
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
+
+'-----------------------------------------------------------------------
+'Constant list browsers
+
+Type ConstantListBrowser extends ThingBrowser
+ declare virtual sub enter_browser()
+ declare virtual sub build_constant_list() 
+ declare virtual function lowest_id() as integer
+ declare virtual function highest_id() as integer
+ declare virtual function thing_text_for_id(byval id as integer) as string
+ list(any) as string
+ longest as integer
+End Type
+
+Type NPCMoveTypeBrowser extends ConstantListBrowser
+ declare virtual sub build_constant_list() 
+End Type
+
+'-----------------------------------------------------------------------
+'Sprite browsers
 
 Type SpriteBrowser extends ThingBrowser
  declare virtual function sprite_kind() as integer
@@ -112,5 +135,7 @@ End Type
 Type SpriteOfTypeBrowser extends Object
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
 End Type
+
+'-----------------------------------------------------------------------
 
 #ENDIF

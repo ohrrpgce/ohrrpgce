@@ -252,6 +252,48 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Sub ConstantListBrowser.enter_browser()
+ build_constant_list()
+ for i as integer = lbound(list) to ubound(list)
+  longest = large(longest, len(list(i)))
+ next i
+End Sub
+
+Sub ConstantListBrowser.build_constant_list()
+ redim list(0 to 0) as string
+ list(0) = "Empty Constant List Browser"
+End Sub
+
+Function ConstantListBrowser.lowest_id() as integer
+ if or_none then return lbound(list) - 1
+ return lbound(list)
+End Function
+
+Function ConstantListBrowser.highest_id() as integer
+ return ubound(list)
+End Function
+
+Function ConstantListBrowser.thing_text_for_id(byval id as integer) as string
+ dim text as string
+ if id >= lbound(list) andalso id <= ubound(list) then
+  text = list(id)
+ else
+  text = "NOVALUE"
+ end if
+ return rpad(text, " ", longest)
+End Function
+
+'-----------------------------------------------------------------------
+
+Sub NPCMoveTypeBrowser.build_constant_list()
+ redim list(0 to ubound(npc_movetypes)) as string
+ for i as integer = 0 to ubound(npc_movetypes)
+  list(i) = npc_movetypes(i)
+ next i
+End Sub
+
+'-----------------------------------------------------------------------
+
 Function SpriteBrowser.sprite_kind() as integer
  'This should be overridden by a child class
  return sprTypeInvalid

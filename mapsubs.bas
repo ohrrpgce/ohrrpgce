@@ -4973,6 +4973,10 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     END IF
    CASE 2
     intgrabber(npcdata.movetype, 0, ubound(npc_movetypes))
+    IF enter_space_click(ed.state) THEN
+     DIM constb as NPCMoveTypeBrowser
+     npcdata.movetype = constb.browse(npcdata.movetype)
+    END IF
    CASE 3
     'yuck.
     IF npcdata.speed = 10 THEN npcdata.speed = 3
