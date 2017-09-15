@@ -15,10 +15,10 @@
 #include "slices.bi"
 
 #ifdef IS_GAME
- EXTERN plotslices() as slice ptr
- EXTERN next_slice_handle as integer
- EXTERN num_reusable_slice_handles as integer
- DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
+ 'For plotslices(), next_slice_handle, num_reusable_slice_handles
+ #include "gglobals.bi"
+ 'For set_plotslice_handle
+ #include "scriptcommands.bi"
 #endif
 
 '==============================================================================
@@ -32,14 +32,14 @@ EXTERN "C"
 
 DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
 DECLARE Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval as integer=0) as integer
-DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
+DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as bool=NO) as bool
 DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
 
 'Other local subs and functions
 DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
-DECLARE Sub ApplySliceVelocity(byval s as slice ptr)
-DECLARE Sub SeekSliceTarg(byval s as slice ptr)
+DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
+DECLARE Sub SeekSliceTarg(byval s as Slice ptr)
 DECLARE Function SliceColor(byval n as integer) as integer
 
 END EXTERN
@@ -81,15 +81,15 @@ EXTERN "C"
 
 'Stub functions.
 'These Null functions are used by Container, Root, and Special slices.
-Sub DisposeNullSlice(byval s as slice ptr) : end sub
-Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
-Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
-Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
+Sub DisposeNullSlice(byval s as Slice ptr) : end sub
+Sub CloneNullSlice(byval s as Slice ptr, byval cl as Slice ptr) : end sub
+Sub SaveNullSlice(byval s as Slice ptr, byval node as Reload.Nodeptr) : end sub
+Sub LoadNullSlice(byval s as Slice ptr, byval node as Reload.Nodeptr) : end sub
 
 'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake).
 'childindex is index of ch among its siblings. Pass -1 if not known,
 'which saves computing it if it's not needed. (Not used by DefaultChildRefresh)
-Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
+Sub DefaultChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
  with *ch
@@ -108,7 +108,7 @@ Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr, childinde
  end with
 End sub
 
-Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
+Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
  dim clippos as XYPair = any
@@ -132,7 +132,7 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
   end if
 
   'draw the slice's children
-  dim ch as slice ptr = .FirstChild
+  dim ch as Slice ptr = .FirstChild
   dim childindex as integer = 0
   do while ch <> 0
    DrawSlice(ch, page, childindex)
@@ -216,7 +216,7 @@ Sub SetupMapSlices(byval to_max as integer)
  SliceTable.NPCLayer->AutoSort = slAutoSortCustom
 End Sub
 
-Sub DestroyGameSlices (Byval dumpdebug as integer=0)
+Sub DestroyGameSlices (byval dumpdebug as integer=0)
 
  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
  '--after deleting root, all other slices should be gone, but the pointers
@@ -434,10 +434,11 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
 END FUNCTION
 
 'Creates a new Slice of type Root, Special, or Container (defaults to Special) and optionally, adds it to the heirarchy somewhere
-Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
+Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  dim ret as Slice Ptr
  ret = new Slice
- 
+ if ret = 0 then return 0
+
  setSliceParent(ret, parent)
  
  ret->SliceType = slSpecial
@@ -486,7 +487,7 @@ End Function
 #endif
 
 'Deletes a slice, and any children (and their children (and their...))
-Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
+Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
  '-- if debugme is true, dump some debug info about the slice being freed and all its children
 
  if s = 0 then exit sub  'can't do anything
@@ -525,7 +526,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
 End Sub
 
 'Deletes a slice's children but not itself
-Sub DeleteSliceChildren(Byval sl as Slice ptr, byval debugme as integer = 0)
+Sub DeleteSliceChildren(byval sl as Slice ptr, byval debugme as integer = 0)
  if sl = 0 then debug "DeleteSliceChildren null ptr": exit sub
  dim ch as slice ptr
  ch = sl->FirstChild
@@ -535,12 +536,12 @@ Sub DeleteSliceChildren(Byval sl as Slice ptr, byval debugme as integer = 0)
  loop
 End Sub
 
-Sub OrphanSlice(byval sl as slice ptr)
+Sub OrphanSlice(byval sl as Slice ptr)
  '-- Remove a slice from its current parent cleanly,
  '-- adjusting siblings, and leaving itself parentless.
  if sl = 0 then debug "OrphanSlice null ptr": exit sub
  
- dim as slice ptr nxt, prv, par
+ dim as Slice ptr nxt, prv, par
  nxt = sl->NextSibling
  prv = sl->PrevSibling
  par = sl->Parent
@@ -566,7 +567,7 @@ Sub OrphanSlice(byval sl as slice ptr)
  sl->Parent = 0
 end sub
 
-Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+Sub SetSliceParent(byval sl as Slice ptr, byval parent as Slice ptr)
  'Note: might be reparenting a slice to its parent, to make it the last child
  if sl = 0 then debug "SetSliceParent null ptr": exit sub
 
@@ -612,9 +613,9 @@ End sub
 
 'Orphan all the children of a slice, and insert pointer to them in slice_list(),
 'which must have length equal to number of children!
-Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
+Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as Slice ptr)
  if parent = 0 then debug "UnlinkChildren: null ptr"
- dim temp_sl as slice ptr = parent->FirstChild
+ dim temp_sl as Slice ptr = parent->FirstChild
  parent->FirstChild = 0
  parent->LastChild = 0
  parent->NumChildren = 0
@@ -632,7 +633,7 @@ end sub
 'Set the children of a slice with no children to be equal to
 'contents of array of orphaned child slice pointers.
 'NOTE: children need to be orphans, and that's not checked.
-Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
+Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as Slice ptr)
  if parent = 0 then debug "RelinkChildren: null ptr"
  if parent->NumChildren <> 0 then fatalerror "RelinkChildren: already has children"
  dim i as integer
@@ -648,14 +649,14 @@ Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
  next i
 end sub
 
-Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
+Sub SwapSiblingSlices(byval sl1 as Slice ptr, byval sl2 as Slice ptr)
  'Only intended for use by siblings of the same parent.
  'This is slow, but isn't yet used anywhere where that might be a problem.
  if sl1 = 0 or sl2 = 0 then EXIT SUB ' Exit quietly when an arg is null. Valid use case for attempted swap at the beginning or end of a list
  if sl1 = sl2 then EXIT SUB ' Ignore attempts to swap a slice with itself
  if sl1->Parent <> sl2->Parent then reporterr "SwapSiblingSlices: slices are not siblings": EXIT SUB
- dim parent as slice ptr = sl1->Parent
- dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim parent as Slice ptr = sl1->Parent
+ dim slice_list(parent->NumChildren - 1) as Slice ptr
  UnlinkChildren parent, slice_list()
  'Swap the two siblings
  for i as integer = 0 to ubound(slice_list)
@@ -668,13 +669,13 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub YSortChildSlices(byval parent as slice ptr)
+Sub YSortChildSlices(byval parent as Slice ptr)
  if parent = 0 then debug "YSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
- dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim slice_list(parent->NumChildren - 1) as Slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Y
- dim temp as slice ptr
+ dim temp as Slice ptr
  dim i as integer
  for j as integer = 1 to ubound(slice_list)
   temp = slice_list(j)
@@ -687,13 +688,13 @@ Sub YSortChildSlices(byval parent as slice ptr)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
+Sub CustomSortChildSlices(byval parent as Slice ptr, byval wipevals as integer)
  if parent = 0 then debug "CustomSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
- dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim slice_list(parent->NumChildren - 1) as Slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Sorter
- dim temp as slice ptr
+ dim temp as Slice ptr
  dim i as integer
  for j as integer = 1 to ubound(slice_list)
   temp = slice_list(j)
@@ -711,13 +712,13 @@ Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  RelinkChildren parent, slice_list()
 End sub
 
-Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
+Sub EdgeYSortChildSlices(byval parent as Slice ptr, byval edge as integer)
  if parent = 0 then debug "EdgeYSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
- dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim slice_list(parent->NumChildren - 1) as Slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings all by the same edge/corner
- dim temp as slice ptr
+ dim temp as Slice ptr
  dim i as integer
  for j as integer = 1 to ubound(slice_list)
   temp = slice_list(j)
@@ -730,7 +731,7 @@ Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
+Sub InsertSliceBefore(byval sl as Slice ptr, byval newsl as Slice ptr)
  'newsl will be removed from its current parent (if any) and attached to the same
  'parent as sl as the child before sl
  if sl = 0 then debug "InsertSliceBefore: null sl": EXIT SUB
@@ -776,7 +777,7 @@ Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
  
 end sub
 
-Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
+Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
  'This takes a new slice (normally from one of the New*Slice functions)
  'and copies its type and type-specific data over an existing tree member.
  'Newsl gets Deleted to prevent it from being used afterwards!
@@ -806,7 +807,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
+Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr = NULL) as Slice ptr
   IF start_sl = 0 THEN start_sl = SliceTable.root
   IF start_sl = 0 THEN debug "LookupSlice null default root slice": RETURN 0
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
@@ -848,7 +849,7 @@ Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 End Function
 
 'This function returns true if the ancestor slice is a parent or grandparent or great(*) grandparent...
-Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
+Function IsAncestor(byval sl as Slice ptr, byval ancestor as Slice ptr) as bool
  if sl = 0 THEN debug "IsAncestor null slice": RETURN NO
  dim parent as Slice ptr = sl->parent
  do while parent
@@ -859,8 +860,8 @@ Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 End Function
 
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
-Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
- dim s as slice ptr
+Function VerifySliceLineage(byval sl as Slice ptr, parent as Slice ptr) as integer
+ dim s as Slice ptr
  if sl = 0 then return no
  s = parent
  do while s <> 0
@@ -956,7 +957,7 @@ End Sub
 '==Special slice types=========================================================
 
 '--Rectangle--------------------------------------------------------------
-Sub DisposeRectangleSlice(byval sl as slice ptr)
+Sub DisposeRectangleSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
@@ -976,7 +977,7 @@ Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
  dat->style_loaded = YES
 end sub
 
-Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
@@ -993,7 +994,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  end if
 end sub
 
-Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneRectangleSlice null ptr": exit sub
  dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
@@ -1011,7 +1012,7 @@ Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveRectangleSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
  DIM dat as RectangleSliceData Ptr
  dat = sl->SliceData
@@ -1030,7 +1031,7 @@ Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "fuzzfactor", dat->fuzzfactor
 End Sub
 
-Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadRectangleSlice null ptr": exit sub
  dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
@@ -1049,13 +1050,10 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->use_raw_box_border = (dat->raw_box_border > -1)
 End Sub
 
-Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as RectangleSliceData ptr = new RectangleSliceData
  *d = dat
@@ -1071,13 +1069,13 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  return ret
 end function
 
-Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
+Function GetRectangleSliceData(byval sl as Slice ptr) as RectangleSliceData ptr
  if sl = 0 then debug "GetRectangleSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'All arguments default to no-change
-Sub ChangeRectangleSlice(byval sl as slice ptr,_
+Sub ChangeRectangleSlice(byval sl as Slice ptr,_
                       byval style as integer=-2,_
                       byval bgcol as integer=-99,_
                       byval fgcol as integer=-99,_
@@ -1133,7 +1131,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
 end sub
 
 '--Text-------------------------------------------------------------------
-Sub DisposeTextSlice(byval sl as slice ptr)
+Sub DisposeTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
@@ -1141,7 +1139,7 @@ Sub DisposeTextSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub WrapTextSlice(byval sl as slice ptr, lines() as string)
+Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
@@ -1161,7 +1159,7 @@ Sub WrapTextSlice(byval sl as slice ptr, lines() as string)
  dat->line_count = UBOUND(lines) + 1
 End sub
 
-Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
@@ -1206,7 +1204,7 @@ end sub
 'FIXME: this only happens when ChangeTextSlice is called, so the size can be out of date.
 'On the other hand we don't want to modify slices from within DrawTextSlice. However
 'sl->line_count *is* updated from within DrawTextSlice
-Sub UpdateTextSlice(byval sl as slice ptr)
+Sub UpdateTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
@@ -1229,12 +1227,12 @@ Sub UpdateTextSlice(byval sl as slice ptr)
  end if
 end sub
 
-Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
+Function GetTextSliceData(byval sl as Slice ptr) as TextSliceData ptr
  if sl = 0 then debug "GetTextSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
-Sub CloneTextSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneTextSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneTextSlice null ptr": exit sub
  dim dat as TextSliceData Ptr
  dat = sl->SliceData
@@ -1249,7 +1247,7 @@ Sub CloneTextSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveTextSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat as TextSliceData Ptr
  dat = sl->SliceData
@@ -1260,7 +1258,7 @@ Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "bgcol", dat->bgcol
 End Sub
 
-Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadTextSlice null ptr": exit sub
  dim dat as TextSliceData Ptr
  dat = sl->SliceData
@@ -1271,13 +1269,10 @@ Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->bgcol   = LoadProp(node, "bgcol")
 End Sub
 
-Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
+Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as TextSliceData ptr = new TextSliceData
  *d = dat
@@ -1297,7 +1292,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
 end function
 
 'All arguments default to no-change
-Sub ChangeTextSlice(byval sl as slice ptr,_
+Sub ChangeTextSlice(byval sl as Slice ptr,_
                       s as string=CHR(1) & CHR(255),_
                       byval col as integer=-99,_
                       byval outline as integer=-2,_
@@ -1326,7 +1321,7 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
  UpdateTextSlice sl
 end sub
 
-Function GetTextSliceString(byval sl as slice ptr) as string
+Function GetTextSliceString(byval sl as Slice ptr) as string
  if sl = 0 then debug "GetTextSliceString null ptr" : return ""
  if sl->SliceType <> slText then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : return ""
  dim dat as TextSliceData Ptr = sl->SliceData
@@ -1338,7 +1333,7 @@ End Function
 '--Sprite-----------------------------------------------------------------
 
 ' Frees any memory held by a sprite, leaving in a consistent state, but does not reset its type and other data
-Sub UnloadSpriteSlice(byval sl as slice ptr)
+Sub UnloadSpriteSlice(byval sl as Slice ptr)
  dim dat as SpriteSliceData ptr = sl->SliceData
  unload_sprite_and_pal dat->img
  if dat->assetfile then
@@ -1349,14 +1344,14 @@ Sub UnloadSpriteSlice(byval sl as slice ptr)
  dat->loaded = NO
 End Sub
 
-Sub DisposeSpriteSlice(byval sl as slice ptr)
+Sub DisposeSpriteSlice(byval sl as Slice ptr)
  if sl = 0 orelse sl->SliceData = 0 then exit sub
  UnloadSpriteSlice sl
  delete cast(SpriteSliceData ptr, sl->SliceData)
  sl->SliceData = 0
 end sub
 
-Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawSpriteSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
@@ -1433,7 +1428,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
  end with
 end sub
 
-Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
+Function GetSpriteSliceData(byval sl as Slice ptr) as SpriteSliceData ptr
  if sl = 0 then debug "GetSpriteSliceData null ptr": return 0
  return sl->SliceData
 End Function
@@ -1495,7 +1490,7 @@ End Sub
 ' fr will be unloaded when the sprite is deleted. Use frame_reference() to avoid this.
 ' Either pass pal16: an already loaded Palette16 (which will be freed when the slice is deleted),
 ' or pal: a palette number, or neither if the Frame is not paletted (indexes the master palette directly).
-Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
+Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = NULL, pal as integer = -2)
  if sl = 0 then debug "SetSpriteToFrame null ptr": exit sub
  dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
@@ -1527,7 +1522,7 @@ Sub SetSpriteToFrame(sl as slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
  end with
 End Sub
 
-Sub CloneSpriteSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneSpriteSlice null ptr": exit sub
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
@@ -1552,7 +1547,7 @@ Sub CloneSpriteSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
@@ -1579,7 +1574,7 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "d_auto", dat->d_auto
 end sub
 
-Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadSpriteSlice null ptr": exit sub
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
@@ -1606,13 +1601,10 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  end if
 End Sub
 
-Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
+Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as SpriteSliceData ptr = new SpriteSliceData
  *d = dat
@@ -1634,7 +1626,7 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
 end function
 
 'All arguments default to no-change
-Sub ChangeSpriteSlice(byval sl as slice ptr,_
+Sub ChangeSpriteSlice(byval sl as Slice ptr,_
                       byval spritetype as SpriteType = sprTypeInvalid,_
                       byval record as integer=-1,_
                       byval pal as integer = -2,_
@@ -1695,7 +1687,7 @@ Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  end with
 end sub
 
-Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
+Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
  if sl = 0 then debug "DissolveSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "Attempt to dissolve " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
@@ -1711,7 +1703,7 @@ Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, b
  end with
 end sub
 
-Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
+Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=YES) as bool
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
  if sl->SliceType <> slSprite then return NO
  dim dat as SpriteSliceData Ptr = sl->SliceData
@@ -1723,7 +1715,7 @@ end function
 
 '--Map-----------------------------------------------------------------
 
-Sub DisposeMapSlice(byval sl as slice ptr)
+Sub DisposeMapSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
@@ -1731,7 +1723,7 @@ Sub DisposeMapSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawMapSlice(byval sl as Slice ptr, byval p as integer)
  ' MapSlices are sadly exceptions to the slice system. Their size is ignored.
  ' Instead, they are drawn to cover the whole current clipping region.
  ' Their position corresponds to the camera offset.
@@ -1754,32 +1746,29 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
  end with
 end sub
 
-Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
+Function GetMapSliceData(byval sl as Slice ptr) as MapSliceData ptr
  if sl = 0 then debug "GetMapSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
-Sub SaveMapSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveMapSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveMapSlice null ptr": exit sub
  DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 end sub
 
-Sub LoadMapSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadMapSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadMapSlice null ptr": exit sub
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 End Sub
 
-Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
+Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as MapSliceData ptr = new MapSliceData
  *d = dat
@@ -1796,14 +1785,14 @@ Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as sl
  return ret
 end function
 
-Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData ptr)
+Sub ChangeMapSliceTileset(byval sl as Slice ptr, byval tileset as TilesetData ptr)
  if sl = 0 then debug "ChangeMapSliceTileset null ptr" : exit sub
  if sl->SliceType <> slMap then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  dat->tileset = tileset 'NOTE: *shiver* pointers make me cringe.
 end sub
 
-Sub ChangeMapSlice(byval sl as slice ptr,_
+Sub ChangeMapSlice(byval sl as Slice ptr,_
                    byval tiles as TileMap ptr = cast(TileMap ptr, 1),_
                    byval pass as TileMap ptr = cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
@@ -1837,7 +1826,7 @@ Sub ChangeMapSlice(byval sl as slice ptr,_
 end sub
 
 '--Grid-------------------------------------------------------------------
-Sub DisposeGridSlice(byval sl as slice ptr)
+Sub DisposeGridSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
@@ -1845,7 +1834,7 @@ Sub DisposeGridSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawGridSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
@@ -1866,7 +1855,7 @@ Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
  end if
 end sub
 
-Sub CloneGridSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneGridSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneGridSlice null ptr": exit sub
  dim dat as GridSliceData Ptr
  dat = sl->SliceData
@@ -1879,7 +1868,7 @@ Sub CloneGridSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveGridSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveGridSlice null ptr": exit sub
  DIM dat as GridSliceData Ptr
  dat = sl->SliceData
@@ -1888,7 +1877,7 @@ Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "show", dat->show
 End Sub
 
-Sub LoadGridSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadGridSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadGridSlice null ptr": exit sub
  dim dat as GridSliceData Ptr
  dat = sl->SliceData
@@ -1916,7 +1905,7 @@ Function GridSliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr, byva
 End Function
 
 'Computes ScreenX/Y, and also sets the width/height if filling
-Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex as integer = -1, visibleonly as bool = YES)
+Sub GridChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
 
@@ -1946,7 +1935,7 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex a
  end with
 End sub
 
-Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
+Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: this Sub only handles the clipping of the children of a Grid slice which
  '      is set to clip. It might seem the logical place to position the children
  '      too, but that's in GridChildRefresh. Drawing
@@ -1974,7 +1963,7 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
   dim childpage as integer
 
   'draw the slice's children
-  dim ch as slice ptr = .FirstChild
+  dim ch as Slice ptr = .FirstChild
   dim childindex as integer = 0
   for yslot as integer = 0 to dat->rows - 1
    for xslot as integer = 0 to dat->cols - 1
@@ -2009,13 +1998,10 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
  end with
 End Sub
 
-Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
+Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as GridSliceData ptr = new GridSliceData
  *d = dat
@@ -2032,17 +2018,17 @@ Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as 
  ret->Load = @LoadGridSlice
  ret->ChildRefresh = @GridChildRefresh
  ret->ChildDraw = @GridChildDraw
- 
+
  return ret
 end function
 
-Function GetGridSliceData(byval sl as slice ptr) as GridSliceData ptr
+Function GetGridSliceData(byval sl as Slice ptr) as GridSliceData ptr
  if sl = 0 then debug "GetGridSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'All arguments default to no-change
-Sub ChangeGridSlice(byval sl as slice ptr,_
+Sub ChangeGridSlice(byval sl as Slice ptr,_
                       byval rows as integer=0,_
                       byval cols as integer=0,_
                       byval show as integer=-2)
@@ -2062,7 +2048,7 @@ end sub
 
 '--Ellipse----------------------------------------------------------------
 
-Sub DisposeEllipseSlice(byval sl as slice ptr)
+Sub DisposeEllipseSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
@@ -2071,7 +2057,7 @@ Sub DisposeEllipseSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
+Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  
@@ -2114,7 +2100,7 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
  end with
 end sub
 
-Sub CloneEllipseSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneEllipseSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneEllipseSlice null ptr": exit sub
  dim dat as EllipseSliceData Ptr
  dat = sl->SliceData
@@ -2128,7 +2114,7 @@ Sub CloneEllipseSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveEllipseSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveEllipseSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveEllipseSlice null ptr": exit sub
  DIM dat as EllipseSliceData Ptr
  dat = sl->SliceData
@@ -2136,7 +2122,7 @@ Sub SaveEllipseSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "fillcol", dat->fillcol
 end sub
 
-Sub LoadEllipseSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadEllipseSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadEllipseSlice null ptr": exit sub
  dim dat as EllipseSliceData Ptr
  dat = sl->SliceData
@@ -2144,13 +2130,10 @@ Sub LoadEllipseSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->fillcol   = LoadProp(node, "fillcol")
 End Sub
 
-Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as slice ptr
+Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as EllipseSliceData ptr = new EllipseSliceData
  *d = dat
@@ -2171,7 +2154,7 @@ Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceDat
 end function
 
 'All arguments default to no-change
-Sub ChangeEllipseSlice(byval sl as slice ptr,_
+Sub ChangeEllipseSlice(byval sl as Slice ptr,_
                       byval bordercol as integer=-1,_
                       byval fillcol as integer=-1)
  if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
@@ -2188,7 +2171,7 @@ Sub ChangeEllipseSlice(byval sl as slice ptr,_
 end sub
 
 '--Scroll--------------------------------------------------------------
-Sub DisposeScrollSlice(byval sl as slice ptr)
+Sub DisposeScrollSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
@@ -2196,9 +2179,9 @@ Sub DisposeScrollSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+Function CalcScrollMinX(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
  dim n as integer = sl->ScreenX
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  do while ch <> 0
   if ch->Visible then
    n = small(n, ch->ScreenX)
@@ -2211,9 +2194,9 @@ Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byv
  return n
 End Function
 
-Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+Function CalcScrollMaxX(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
  dim n as integer = sl->ScreenX + sl->Width
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  do while ch <> 0
   if ch->Visible then
    n = large(n, ch->ScreenX + ch->Width)
@@ -2226,9 +2209,9 @@ Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byv
  return n
 End Function
 
-Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+Function CalcScrollMinY(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
  dim n as integer = sl->ScreenY
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  do while ch <> 0
   if ch->Visible then
    n = small(n, ch->ScreenY)
@@ -2241,9 +2224,9 @@ Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byv
  return n
 End Function
 
-Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+Function CalcScrollMaxY(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
  dim n as integer = sl->ScreenY + sl->Height
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  do while ch <> 0
   if ch->Visible then
    n = large(n, ch->ScreenY + ch->Height)
@@ -2256,7 +2239,7 @@ Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byv
  return n
 End Function
 
-Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
+Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  'NOTE: draws the scrollbars *after* all children have drawn, which is in
  '      stark contrast to how most other slices are drawn.
  'NOTE: we don't bother to null check s here because this sub is only
@@ -2313,7 +2296,7 @@ Sub ScrollChildDraw(byval sl as slice ptr, byval p as integer)
 
 end sub
 
-Sub CloneScrollSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneScrollSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneScrollSlice null ptr": exit sub
  dim dat as ScrollSliceData Ptr
  dat = sl->SliceData
@@ -2325,7 +2308,7 @@ Sub CloneScrollSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveScrollSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveScrollSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveScrollSlice null ptr": exit sub
  DIM dat as ScrollSliceData Ptr
  dat = sl->SliceData
@@ -2333,7 +2316,7 @@ Sub SaveScrollSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "check_depth", dat->check_depth
 End Sub
 
-Sub LoadScrollSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadScrollSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadScrollSlice null ptr": exit sub
  dim dat as ScrollSliceData Ptr
  dat = sl->SliceData
@@ -2341,13 +2324,10 @@ Sub LoadScrollSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->check_depth = LoadProp(node, "check_depth")
 End Sub
 
-Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData) as slice ptr
+Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  '--override the default value of Clip
  ret->Clip = YES
@@ -2368,13 +2348,13 @@ Function NewScrollSlice(byval parent as Slice ptr, byref dat as ScrollSliceData)
  return ret
 end function
 
-Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
+Function GetScrollSliceData(byval sl as Slice ptr) as ScrollSliceData ptr
  if sl = 0 then debug "GetScrollSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'All arguments default to no-change
-Sub ChangeScrollSlice(byval sl as slice ptr,_
+Sub ChangeScrollSlice(byval sl as Slice ptr,_
                       byval style as integer=-1,_
                       byval check_depth as integer=-1)
  if sl = 0 then debug "ChangeScrollSlice null ptr" : exit sub
@@ -2390,10 +2370,10 @@ Sub ChangeScrollSlice(byval sl as slice ptr,_
  end with
 end sub
 
-Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
+Sub ScrollAllChildren(byval sl as Slice ptr, byval xmove as integer, byval ymove as integer)
  'This is intended for ScrollSlice, but can actually work on any type.
  if sl = 0 then debug "ScrollAllChildren: null scroll slice ptr": exit sub
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  do while ch
   ch->X += xmove
   ch->Y += ymove
@@ -2401,7 +2381,7 @@ Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove
  loop
 End Sub
 
-Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
+Sub ScrollToChild(byval sl as Slice ptr, byval ch as Slice ptr)
  'This is intended for ScrollSlice, but can actually work on any container type.
  if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
  if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
@@ -2426,7 +2406,7 @@ Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 End Sub
 
 '--Select--------------------------------------------------------------
-Sub DisposeSelectSlice(byval sl as slice ptr)
+Sub DisposeSelectSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as SelectSliceData ptr = cptr(SelectSliceData ptr, sl->SliceData)
@@ -2455,7 +2435,7 @@ Sub SelectChildRefresh(par as Slice ptr, ch as Slice ptr, childindex as integer 
  DefaultChildRefresh(par, ch, childindex, visibleonly)
 end sub
 
-Sub CloneSelectSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub CloneSelectSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "SelectScrollSlice null ptr": exit sub
  dim dat as SelectSliceData Ptr
  dat = sl->SliceData
@@ -2466,7 +2446,7 @@ Sub CloneSelectSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SaveSelectSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SaveSelectSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSelectSlice null ptr": exit sub
  DIM dat as SelectSliceData Ptr
  dat = sl->SliceData
@@ -2474,7 +2454,7 @@ Sub SaveSelectSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  'override property is never saved. Only used by the Slice Collection Editor
 End Sub
 
-Sub LoadSelectSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadSelectSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadSelectSlice null ptr": exit sub
  dim dat as SelectSliceData Ptr
  dat = sl->SliceData
@@ -2483,13 +2463,10 @@ Sub LoadSelectSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  'override property is never loaded. Only used by the Slice Collection Editor
 End Sub
 
-Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData) as slice ptr
+Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as SelectSliceData ptr = new SelectSliceData
  *d = dat
@@ -2507,13 +2484,13 @@ Function NewSelectSlice(byval parent as Slice ptr, byref dat as SelectSliceData)
  return ret
 end function
 
-Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
+Function GetSelectSliceData(byval sl as Slice ptr) as SelectSliceData ptr
  if sl = 0 then debug "GetSelectSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'All arguments default to no-change
-Sub ChangeSelectSlice(byval sl as slice ptr,_
+Sub ChangeSelectSlice(byval sl as Slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2)
  if sl = 0 then debug "ChangeSelectSlice null ptr" : exit sub
@@ -2544,7 +2521,7 @@ Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
 end sub
 
 '--Panel-------------------------------------------------------------------
-Sub DisposePanelSlice(byval sl as slice ptr)
+Sub DisposePanelSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as PanelSliceData ptr = cptr(PanelSliceData ptr, sl->SliceData)
@@ -2552,7 +2529,7 @@ Sub DisposePanelSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub ClonePanelSlice(byval sl as slice ptr, byval cl as slice ptr)
+Sub ClonePanelSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "ClonePanelSlice null ptr": exit sub
  dim dat as PanelSliceData Ptr
  dat = sl->SliceData
@@ -2567,7 +2544,7 @@ Sub ClonePanelSlice(byval sl as slice ptr, byval cl as slice ptr)
  end with
 end sub
 
-Sub SavePanelSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+Sub SavePanelSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SavePanelSlice null ptr": exit sub
  DIM dat as PanelSliceData Ptr
  dat = sl->SliceData
@@ -2578,7 +2555,7 @@ Sub SavePanelSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "padding", dat->padding
 End Sub
 
-Sub LoadPanelSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadPanelSlice null ptr": exit sub
  dim dat as PanelSliceData Ptr
  dat = sl->SliceData
@@ -2644,7 +2621,7 @@ Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Sli
 
 End Sub
 
-Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex as integer = -1, visibleonly as bool = YES)
+Sub PanelChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES)
  if ch = 0 then debug "PanelChildRefresh null ptr": exit sub
  if visibleonly and (ch->Visible = NO) then exit sub
  
@@ -2686,7 +2663,7 @@ Sub PanelChildRefresh(byval par as slice ptr, byval ch as slice ptr, childindex 
  end with
 End sub
 
-Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
+Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
 
@@ -2698,7 +2675,7 @@ Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
 
   'draw the slice's children
   dim index as integer = 0
-  dim ch as slice ptr = .FirstChild
+  dim ch as Slice ptr = .FirstChild
   do while ch <> 0
    
    if .Clip then
@@ -2730,13 +2707,10 @@ Sub PanelChildDraw(Byval s as Slice Ptr, byval page as integer)
  end with
 End Sub
 
-Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
+Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
+ if ret = 0 then return 0
  
  dim d as PanelSliceData ptr = new PanelSliceData
  *d = dat
@@ -2755,13 +2729,13 @@ Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) a
  return ret
 end function
 
-Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
+Function GetPanelSliceData(byval sl as Slice ptr) as PanelSliceData ptr
  if sl = 0 then debug "GetPanelSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'All arguments default to no-change
-Sub ChangePanelSlice(byval sl as slice ptr,_
+Sub ChangePanelSlice(byval sl as Slice ptr,_
                       byval vertical as integer=-2,_ 'verical is actually bool, use -2 to signal no change
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
@@ -2863,7 +2837,7 @@ Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
  END SELECT
 End Function
 
-Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
+Sub SetSliceTarg(byval s as Slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
  if s = 0 then debug "SetSliceTarg null ptr": exit sub
  with *s
   .TargResidue_X = 0.0
@@ -2880,13 +2854,13 @@ Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, b
 end sub
 
 ' Apply slice movement to this slice and descendants
-Sub AdvanceSlice(byval s as slice ptr)
+Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Paused = NO then
   SeekSliceTarg s
   ApplySliceVelocity s
   'advance the slice's children
-  dim ch as slice ptr = s->FirstChild
+  dim ch as Slice ptr = s->FirstChild
   do while ch <> 0
    AdvanceSlice(ch)
    ch = ch->NextSibling
@@ -2895,7 +2869,7 @@ Sub AdvanceSlice(byval s as slice ptr)
 end sub
 
 ' Apply slice .Targ movement
-Sub SeekSliceTarg(byval s as slice ptr)
+Sub SeekSliceTarg(byval s as Slice ptr)
  'no null check because this is only called from AdvanceSlice
  with *s
   if .TargTicks > 0 then
@@ -2919,7 +2893,7 @@ Sub SeekSliceTarg(byval s as slice ptr)
  end with
 end sub
 
-Sub ApplySliceVelocity(byval s as slice ptr)
+Sub ApplySliceVelocity(byval s as Slice ptr)
  'no null check because this is only called from AdvanceSlice
  if s->VelTicks.X <> 0 then s->X += s->Velocity.X
  if s->VelTicks.X > 0 then
@@ -2935,7 +2909,7 @@ end sub
 
 'childindex is index of s among its siblings. Pass childindex -1 if not known,
 'which saves computing it if it's not needed.
-Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
+Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
  if s = 0 then debug "DrawSlice null ptr": exit sub
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
@@ -2958,7 +2932,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer
  end if
 end sub
 
-Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as integer = NO)
+Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
  'ignore_offset causes the slice's offset from its parent to be ignored
 
  if s = 0 then debug "DrawSliceAt null ptr": exit sub
@@ -2997,7 +2971,7 @@ Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, by
  end if
 end sub
 
-Function UpdateRootSliceSize(sl as slice ptr) as bool
+Function UpdateRootSliceSize(sl as Slice ptr) as bool
  'Update the size of a slice to match the window size.
  'Normally the root slice is set to fill; calling this function is only needed
  'when it isn't.
@@ -3023,7 +2997,7 @@ Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
  return changed
 end function
 
-Sub RefreshSliceScreenPos(slc as slice ptr)
+Sub RefreshSliceScreenPos(slc as Slice ptr)
  'This sub quickly updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice and its ancestors without needing to do a full DrawSlice of the whole tree
  'and without respect to the .Visible property
@@ -3255,9 +3229,9 @@ Function SliceColor(byval n as integer) as integer
  debugc errError, "Invalid slice color " & n
 End function
 
-Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice Ptr
+Function SliceChildByIndex_NotForLooping(byval sl as Slice ptr, byval index as integer) as Slice Ptr
  if sl = 0 then debug "SliceChildByIndex_NotForLooping null ptr": return 0
- dim ch as slice ptr = sl->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  for i as integer = 0 to sl->NumChildren
   if ch = NULL then exit for
   if i = index THEN return ch
@@ -3268,7 +3242,7 @@ End Function
 
 '==Slice cloning===============================================================
 
-Function CloneSliceTree(byval sl as slice ptr) as slice ptr
+Function CloneSliceTree(byval sl as Slice ptr) as Slice ptr
  'clone a duplicate of a slice and all its children.
  'only saveable properties are cloned.
  'The resulting clone is parentless
@@ -3451,7 +3425,7 @@ Function LoadProp(node as Reload.Nodeptr, propname as string, byval defaultval a
  return Reload.GetChildNodeInt(node, propname, CLNGINT(defaultval))
 End function
 
-Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as integer=NO) as integer
+Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval defaultval as bool=NO) as bool
  if node = 0 then debug "LoadPropBool null node ptr": return defaultval
  return Reload.GetChildNodeBool(node, propname, defaultval)
 End function
