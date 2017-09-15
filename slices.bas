@@ -3329,7 +3329,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "w", sl->Width
  SaveProp node, "h", sl->Height
  SaveProp node, "vis", sl->Visible
- SaveProp node, "edithidechildren", sl->EditorHideChildren
+ SaveProp node, "editorhidechildren", sl->EditorHideChildren
  SaveProp node, "paused", sl->Paused
  SaveProp node, "clip", sl->Clip
  SaveProp node, "vx", sl->Velocity.X
