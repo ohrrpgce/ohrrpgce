@@ -566,10 +566,10 @@ End Extern
 'INSTRUCTIONS: Copy the following block into Slices.bas.
 ' Then, select the block, and use Find and Replace to switch
 ' <TYPENAME> with whatever name you need. Then, add the drawing code to
-' Draw<TYPENAME>Slice.
+' Draw<TYPENAME>Slice if you need a Draw function.
 /'
 '==START OF <TYPENAME>SLICEDATA
-Sub Dispose<TYPENAME>Slice(byval sl as slice ptr)
+Sub Dispose<TYPENAME>Slice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
  dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
@@ -577,48 +577,53 @@ Sub Dispose<TYPENAME>Slice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub Draw<TYPENAME>Slice(byval sl as slice ptr, byval p as integer)
+Sub Draw<TYPENAME>Slice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
+
  dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
 
  '''DRAWING CODE GOES HERE!
 end sub
 
-Function Get<TYPENAME>SliceData(byval sl as slice ptr) as <TYPENAME>SliceData ptr
+Function Get<TYPENAME>SliceData(byval sl as Slice ptr) as <TYPENAME>SliceData ptr
+ if sl = 0 then return 0
  return sl->SliceData
 End Function
 
-Sub Save<TYPENAME>Slice(byval sl as slice ptr, byref f as SliceFileWrite)
- DIM dat as <TYPENAME>SliceData Ptr
- dat = sl->SliceData
- 'WriteSliceFileVal f, "keyname", dat->datamember
-End Sub
-
-Function Load<TYPENAME>Slice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+Sub Clone<TYPENAME>Slice(byval sl as Slice ptr, byval cl as Slice ptr)
+ if sl = 0 or cl = 0 then debug "Clone<TYPENAME>Slice null ptr": exit sub
  dim dat as <TYPENAME>SliceData Ptr
  dat = sl->SliceData
- select case key
-  'case "keyname": dat->datamember = n
-  case else: return NO
- end select
- return YES
-End Function
+ dim clonedat as <TYPENAME>SliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  '.s       = dat->s
+ end with
+End Sub
 
-Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>SliceData) as slice ptr
+Sub Save<TYPENAME>Slice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "Save<TYPENAME>Slice null ptr": exit sub
+ DIM dat as <TYPENAME>SliceData Ptr
+ dat = sl->SliceData
+ 'SaveProp node, "cols", dat->cols
+End Sub
+
+Sub Load<TYPENAME>Slice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "Load<TYPENAME>Slice null ptr": exit sub
+ dim dat as <TYPENAME>SliceData Ptr
+ dat = sl->SliceData
+ 'dat->cols = LoadProp(node, "cols", 1)
+End Sub
+
+Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>SliceData) as Slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
+ if ret = 0 then return 0
+
  dim d as <TYPENAME>SliceData ptr = new <TYPENAME>SliceData
  *d = dat
- 
+
  ret->SliceType = sl<TYPENAME>
  ret->SliceData = d
  ret->Draw = @Draw<TYPENAME>Slice
@@ -626,7 +631,9 @@ Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>Sl
  ret->Clone = @Clone<TYPENAME>Slice
  ret->Save = @Save<TYPENAME>Slice
  ret->Load = @Load<TYPENAME>Slice
- 
+ 'ret->ChildRefresh = @DefaultChildRefresh
+ 'ret->ChildDraw = @DefaultChildDraw
+
  return ret
 end function
 '==END OF <TYPENAME>SLICEDATA
