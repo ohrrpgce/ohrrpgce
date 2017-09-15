@@ -5859,7 +5859,6 @@ FUNCTION int_from_xy(pair as XYPair, byval wide as integer, byval high as intege
 END FUNCTION
 
 FUNCTION color_browser_256(byval start_color as integer=0) as integer
- DIM firsttick as bool = YES
  DIM ret as integer = start_color
  DIM tog as integer = 0
  DIM gridpos as XYPair = (64, 0)
@@ -5868,7 +5867,7 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
  DIM cursor as XYPair
  cursor = xy_from_int(start_color, 16, 16)
  DIM mouse as MouseInfo
- DIM gotmouse as bool = havemouse()
+ DIM mouse_active as bool = NO  'Whether the color under the mouse is the one displayed at bottom
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
  hidemousecursor
  setkeys
@@ -5876,56 +5875,61 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   setwait 17, 55
   setkeys
   mouse = readmouse
+  IF mouse.moved THEN mouse_active = YES
 
-  IF keyval(scESC) > 1 THEN
-   ret = start_color
-   EXIT DO
-  END IF
   IF keyval(scF1) > 1 THEN show_help "color_browser"
 
   DIM mousecursor as XYPair
   mousecursor = (mouse.pos - gridpos) \ tilesize
   DIM mouse_over_grid as bool = in_bound(mousecursor.x, 0, 15) AND in_bound(mousecursor.y, 0, 15)
+  DIM mouse_hover_col as integer = int_from_xy(mousecursor, 16, 16)
 
-  'Ignore mouse movement first tick to preserve start_color selection
-  IF mouse.moved AND mouse_over_grid AND firsttick = NO THEN
-   cursor = mousecursor
-  END IF
+  IF keyval(scUp) > 1 THEN    mouse_active = NO : cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(scDown) > 1 THEN  mouse_active = NO : cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(scLeft) > 1 THEN  mouse_active = NO : cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(scRight) > 1 THEN mouse_active = NO : cursor.x = loopvar(cursor.x, 0, 15, 1)
 
-  DIM moved as bool = NO
-  IF keyval(scUp) > 1 THEN    moved = YES : cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(scDown) > 1 THEN  moved = YES : cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(scLeft) > 1 THEN  moved = YES : cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(scRight) > 1 THEN moved = YES : cursor.x = loopvar(cursor.x, 0, 15, 1)
-
-  'Arrow keys move the mouse cursor if on the grid.
-  'Also, if the mouse starts on the grid, move it, otherwise we won't start on start_color.
-  IF (moved OR firsttick) AND mouse_over_grid THEN
-   mouse.x = gridpos.x + (cursor.x + 0.5) * tilesize.x
-   mouse.y = gridpos.y + (cursor.y + 0.5) * tilesize.y
-   movemouse mouse.x, mouse.y
-  END IF
   ret = int_from_xy(cursor, 16, 16)
 
-  IF enter_or_space() OR (mouse.clicks > 0 AND mouse_over_grid) THEN EXIT DO
+  IF mouse_over_grid THEN
+   IF mouse.buttons THEN cursor = mousecursor
+   IF mouse.release AND mouseLeft THEN
+    ret = mouse_hover_col
+    EXIT DO
+   END IF
+  END IF
+  IF enter_or_space() THEN EXIT DO
+
+  'The highlighted color, shown at the bottom
+  DIM showcol as integer = IIF(mouse_over_grid AND mouse_active, mouse_hover_col, ret)
+
+  'ESC or right click outside to go back
+  IF keyval(scESC) > 1 ORELSE (mouse_over_grid = NO ANDALSO (mouse.release AND mouseRight)) THEN
+   ret = start_color
+   EXIT DO
+  END IF
 
   clearpage dpage
+  'Draw the grid
   FOR i as integer = 0 TO 255
    spot = xy_from_int(i, 16, 16)
-   IF spot.x = cursor.x AND spot.y = cursor.y THEN
-    edgebox gridpos.x + spot.x * tilesize.x , gridpos.y + spot.y * tilesize.y , tilesize.x, tilesize.y, i, tog, dpage
-   ELSE
-    rectangle gridpos.x + spot.x * tilesize.x , gridpos.y + spot.y * tilesize.y , tilesize.x, tilesize.y, i, dpage
+   DIM where as XYPair = gridpos + spot * tilesize
+   rectangle where.x, where.y, tilesize.x, tilesize.y, i, dpage
+   IF i = showcol THEN
+    drawbox where.x, where.y, tilesize.x, tilesize.y, tog, 1, dpage
+   ELSEIF spot = cursor THEN
+    drawants vpages(dpage), where.x, where.y, tilesize.x, tilesize.y, tog
    END IF
   NEXT i
-  IF gotmouse THEN
-   textcolor tog, 0
-   'Mouse cursor tip is offset in the font
-   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
-  END IF
+
+  textcolor tog, 0
+  'Mouse cursor tip is offset in the font
+  printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
+
+  'Draw color info
   textcolor uilook(uiMenuItem), 0
-  printstr STR(ret), 296, 192, dpage
-  WITH master(ret)
+  printstr "Color " & showcol, 320 + ancRight, 192, dpage
+  WITH master(showcol)
    printstr "RGB" & lpad(STR(.r), , 4) & lpad(STR(.g), , 4) & lpad(STR(.b), , 4), 0, 192, dpage
   END WITH
 
@@ -5933,7 +5937,6 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   setvispage vpage
   'Only increment tog every 55ms (secondary setwait timer)
   IF dowait THEN tog = (tog + 1) MOD 256
-  firsttick = NO
  LOOP
  setcursorvisibility prev_mouse_vis
  RETURN ret
