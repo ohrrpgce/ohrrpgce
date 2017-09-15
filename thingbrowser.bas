@@ -253,15 +253,9 @@ End Function
 '-----------------------------------------------------------------------
 
 Sub ConstantListBrowser.enter_browser()
- build_constant_list()
  for i as integer = lbound(list) to ubound(list)
   longest = large(longest, len(list(i)))
  next i
-End Sub
-
-Sub ConstantListBrowser.build_constant_list()
- 'Override this for browsers that will hardcode an array of strings
- 'or those that can do str_array_copy() from a global array of strings
 End Sub
 
 Function ConstantListBrowser.lowest_id() as integer
@@ -285,20 +279,12 @@ End Function
 
 '-----------------------------------------------------------------------
 
-Sub NPCMoveTypeBrowser.build_constant_list()
- str_array_copy npc_movetypes(), list()
-End Sub
+Constructor ArrayBrowser(array() as string)
+ set_list array()
+End Constructor
 
-Sub NPCPushTypeBrowser.build_constant_list()
- str_array_copy npc_pushtypes(), list()
-End Sub
-
-Sub NPCUseTypeBrowser.build_constant_list()
- str_array_copy npc_usetypes(), list()
-End Sub
-
-Sub NPCFaceTypeBrowser.build_constant_list()
- str_array_copy npc_facetypes(), list()
+Sub ArrayBrowser.set_list(array() as string)
+ str_array_copy array(), list()
 End Sub
 
 '-----------------------------------------------------------------------

@@ -61,7 +61,6 @@ End Type
 
 Type ConstantListBrowser extends ThingBrowser
  declare virtual sub enter_browser()
- declare virtual sub build_constant_list() 
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
@@ -69,20 +68,9 @@ Type ConstantListBrowser extends ThingBrowser
  longest as integer
 End Type
 
-Type NPCMoveTypeBrowser extends ConstantListBrowser
- declare virtual sub build_constant_list() 
-End Type
-
-Type NPCPushTypeBrowser extends ConstantListBrowser
- declare virtual sub build_constant_list() 
-End Type
-
-Type NPCUseTypeBrowser extends ConstantListBrowser
- declare virtual sub build_constant_list() 
-End Type
-
-Type NPCFaceTypeBrowser extends ConstantListBrowser
- declare virtual sub build_constant_list() 
+Type ArrayBrowser extends ConstantListBrowser
+ declare constructor (array() as string)
+ declare sub set_list(array() as string)
 End Type
 
 Type FlexmenuCaptionBrowser extends ConstantListBrowser
