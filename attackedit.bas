@@ -13,6 +13,7 @@
 #include "loading.bi"
 #include "custom.bi"
 #include "thingbrowser.bi"
+#include "bcommon.bi"
 
 '--Local SUBs
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool

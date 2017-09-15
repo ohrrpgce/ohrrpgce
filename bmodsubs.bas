@@ -19,6 +19,7 @@
 #include "menustuf.bi"
 #include "scriptcommands.bi"
 #include "yetmore2.bi"
+#include "bcommon.bi"
 
 DECLARE SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
 DECLARE SUB confirm_auto_focus (byval who as integer, tmask() as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer)

@@ -30,6 +30,7 @@
 #include "game.bi"
 #include "gfx.bi"
 #include "pathfinding.bi"
+#include "bcommon.bi"
 
 
 'local subs and functions

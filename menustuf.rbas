@@ -13,7 +13,7 @@
 #include "game_udts.bi"
 #include "savegame.bi"
 #include "sliceedit.bi"
-
+#include "bcommon.bi"
 #include "game.bi"
 #include "scriptcommands.bi"
 #include "yetmore2.bi"

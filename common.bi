@@ -272,8 +272,6 @@ DECLARE FUNCTION max_tag() as integer
 
 DECLARE FUNCTION ideal_ticks_per_second() as double
 
-DECLARE FUNCTION describe_formation(formdata as Formation) as string
-
 DECLARE SUB cleanup_global_reload_doc ()
 DECLARE FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
 DECLARE FUNCTION get_reload_empty (nodename as string = "") as NodePtr
@@ -302,9 +300,6 @@ DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 
 DECLARE FUNCTION dissolve_type_caption(n as integer) as string
-
-DECLARE FUNCTION focuscost (byval cost as integer, byval focus as integer) as integer
-DECLARE FUNCTION attack_cost_info(byref atk as AttackData, byval focus as integer=0, byval cur_mp as integer=0, byval max_mp as integer=0, byval magic_list_type as integer=0, byval lmp_level as integer=0, byval cur_lmp as integer=0) as string
 
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
