@@ -1002,6 +1002,7 @@ Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  clonedat = cl->SliceData
  with *clonedat
   .style       = dat->style
+  .style_loaded= dat->style_loaded  'Doesn't matter
   .fgcol       = dat->fgcol
   .bgcol       = dat->bgcol
   .translucent = dat->translucent
@@ -1410,6 +1411,7 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval p as integer)
     if have_copy = NO then frame_reference spr
     frame_assign @spr, frame_dissolved(spr, dtime, dtick, .d_type)
     have_copy = YES
+    'FIXME: d_auto shouldn't take effect here, but when the slice is 'advanced'
     if .d_auto then
      .d_tick += 1
      if .d_tick > dtime then
@@ -1530,12 +1532,17 @@ Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  clonedat = cl->SliceData
  with *clonedat
   .spritetype = dat->spritetype
+  if dat->assetfile then
+   .assetfile = callocate(sizeof(string))
+   *.assetfile = *dat->assetfile
+  end if
   .record     = dat->record
   .paletted   = dat->paletted
   .pal        = dat->pal
   .frame      = dat->frame
   .flipHoriz  = dat->flipHoriz
   .flipVert   = dat->flipVert
+  .scaled     = dat->scaled
   .trans      = dat->trans
   .dissolving = dat->dissolving
   .d_type     = dat->d_type
@@ -1565,6 +1572,7 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  end if
  SaveProp node, "fliph", dat->flipHoriz
  SaveProp node, "flipv", dat->flipVert
+ SaveProp node, "scaled", dat->scaled
  SaveProp node, "trans", dat->trans
  SaveProp node, "dissolving", dat->dissolving
  SaveProp node, "d_type", dat->d_type
@@ -1583,12 +1591,13 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
   reporterr "LoadSpriteSlice: Unknown type " & dat->spritetype, serrError
  end if
  dat->record     = LoadProp(node, "rec")
+ dat->paletted   = (dat->spritetype <> sprTypeBackdrop)
  dat->pal        = LoadProp(node, "pal", -1)
  dat->frame      = LoadProp(node, "frame")
  dat->flipHoriz  = LoadProp(node, "fliph")
  dat->flipVert   = LoadProp(node, "flipv")
  dat->trans      = LoadProp(node, "trans", 1)
- dat->paletted   = (dat->spritetype <> sprTypeBackdrop)
+ dat->scaled     = LoadPropBool(node, "scaled")
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
  dat->d_time     = LoadProp(node, "d_time")
@@ -2064,7 +2073,7 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
  dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
 
  with *dat
- 
+
   dim w as integer = ABS(sl->Width)
   dim h as integer = ABS(sl->Height)
   if .frame = 0 _
@@ -3246,20 +3255,27 @@ End Function
 
 Function CloneSliceTree(byval sl as Slice ptr) as Slice ptr
  'clone a duplicate of a slice and all its children.
- 'only saveable properties are cloned.
  'The resulting clone is parentless
  dim clone as Slice Ptr
  '--Create another slice of the same type
  clone = NewSliceOfType(sl->SliceType)
  '--Clone all standard properties
  with *clone
-  .lookup = sl->lookup
-  .x = sl->x
-  .y = sl->y
+  'Parent, siblings, etc. not copied
+  'Function ptrs not copied.
+  '.Attach and .Attached not copied
+  '.TableSlot not copied
+  '.Protect not copied, because the copy won't have any special role
+  .Lookup = sl->Lookup
+  .X = sl->X
+  .Y = sl->Y
+  '.ScreenPos not copied
   .Width = sl->Width
   .Height = sl->Height
   .Visible = sl->Visible
   .Paused = sl->Paused
+  '.EditorColor not copied
+  .EditorHideChildren = sl->EditorHideChildren
   .Clip = sl->Clip
   .Velocity.X = sl->Velocity.X
   .Velocity.Y = sl->Velocity.Y
@@ -3280,6 +3296,11 @@ Function CloneSliceTree(byval sl as Slice ptr) as Slice ptr
   .PaddingBottom = sl->PaddingBottom
   .Fill = sl->Fill
   .FillMode = sl->FillMode
+  .AutoSort = sl->AutoSort
+  .Sorter = sl->Sorter
+  for i as integer = 0 to 2
+   .Extra(i) = sl->Extra(i)
+  next
  end with
  '--clone special properties for this slice type
  sl->Clone(sl, clone)

@@ -21,6 +21,7 @@ Nov/Dec ??? 2017 [Etheldreme]
   * Changes
 
   * Bugfixes
+    * Copy-paste in slice editor didn't copy slice extra data or autosort
 
   * Stuff Only Developers Will Notice
 

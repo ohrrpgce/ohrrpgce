@@ -232,7 +232,7 @@ TYPE Slice
   'For most slice types this is DefaultChildDraw.
   'This function can be overriden to either apply special clipping rules (Grid, Panel)
   'or to draw something on top of the children (Scroll), or to change recursion
-  '(Panel only draws the first two children)
+  '(Panel only draws the first two children, Grid only draws rows*cols many)
   ChildDraw as SliceChildDraw
 
   SliceData as any ptr
@@ -245,6 +245,7 @@ TYPE Slice
   'it can still be deleted or moved indirectly.
   Protect as bool
 
+  'NOTE: When adding to this, remember to update CloneSliceTree, SliceLoadFromNode and SliceSaveToNode
 END TYPE
 
 TYPE SliceTable_
@@ -276,8 +277,7 @@ TYPE RectangleSliceData
  style as integer = -1    '-1: None, 0-14: style
  style_loaded as bool 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
 
- 'When use use_raw_box_border is YES, ignore style ID and use raw_box_border instead.
- 'This is not currently exposed to users yet
+ 'When use_raw_box_border is YES, ignore style ID and use raw_box_border instead.
  use_raw_box_border as bool
  raw_box_border as integer
 
@@ -288,13 +288,15 @@ Type TextSliceData
  col as integer
  bgcol as integer
  outline as integer
- s as String
- s_orig as string 'Used when expanding ${} codes, so the codes can be re-expanded again later
- wrap as integer
+ s as string
+ s_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
+ wrap as bool     'Whether to wrap the text according to slice width. Otherwise slice width is determined by s.
  'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
+
+ 'All of the following are UNSAVED and not cloned and are not exposed to users in the editor or in scripts
  insert as integer 'char offset of insertion pointer. Zero-based!
  show_insert as integer ' set to YES to display insertion point
- insert_tog as integer 'flashing
+ insert_tog as integer 'flash state of insertion pointer
  first_line as integer 'Top-most line to show. Used for scrolling
  line_limit as integer = -1 'Number of lines to display. -1 is no limit
  line_count as integer 'automatically populated when the slice changes
@@ -317,7 +319,7 @@ Type SpriteSliceData
  trans as bool      'Draw transparently?
  flipHoriz as bool  'NO normal, YES horizontally flipped
  flipVert as bool   'NO normal, YES vertically flipped
- scaled as bool     'UNSAVED: Scale the sprite to the size of the slice.
+ scaled as bool     'Scale the sprite to the size of the slice.
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
  img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
  'dissolve state data
@@ -325,25 +327,25 @@ Type SpriteSliceData
  d_time as integer ' number of ticks that the dissolve should last
  d_tick as integer ' counts which tick the dissolve is in right now
  d_type as integer ' id number of the dissolve animation
- d_back as bool ' NO dissolve away, YES dissolve back in
+ d_back as bool ' backwards: NO dissolve away, YES dissolve back in
  d_auto as bool ' YES if the dissolve is animating automatically
+                ' (d_tick advances when drawn) (FIXME: wrong place for that)
 End Type
 
 'Shows the currently loaded map at the given slice pos
-'Doesn't yet have the ability to load other non-current maps
+'Doesn't yet have the ability to load other non-current maps.
+'Can NOT be saved, loaded or cloned. (Hmm... cloning could be useful...)
 Type MapSliceData
- 'FIXME: Should I even use this at all in this early
- 'incarnation? maybe not yet. (It certainly was a huge hassle when rewriting up tilemap stuff)
  map as integer 'Currently read-only informational
- transparent as integer 'Whether or not color 0 is transparent
- overlay as integer 'For backcompat with layers that observe the old overlay feature.
+ transparent as bool 'Whether or not color 0 in the tileset is transparent
+ overlay as integer  '0, 1, or 2. For backcompat with layers affect by obsolete overhead bits.
  tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)
  tiles as TileMap ptr 'NOTE: ptr to one of maptiles() in game.bas (Not owned!)
- pass as TileMap ptr 'NOTE: ptr to pass in game.bas (Not owned!) May be NULL for non-overhead layers
+ pass as TileMap ptr 'NOTE: ptr to the passmap ('pass' global) (Not owned!) May be NULL for non-overhead layers
 End Type
 
 Type GridSliceData
- show as integer
+ show as bool     'Whether to draw the lines of the grid
  rows as integer
  cols as integer
 End Type
@@ -351,14 +353,17 @@ End Type
 Type EllipseSliceData
  bordercol as integer
  fillcol as integer
- last_draw_size as XYPair  'UNSAVED: used to detect size changes to force a redraw of the frame
- last_draw_bordercol as integer 'UNSAVED
- last_draw_fillcol as integer   'UNSAVED
- frame as Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
+
+ 'A cache is kept of the ellipse drawn to a Frame, for speed. So the following are UNSAVED
+ 'FIXME: this backfires if the ellipse is larger than the screen
+ last_draw_size as XYPair  'used to detect size changes to force a redraw of the frame
+ last_draw_bordercol as integer
+ last_draw_fillcol as integer
+ frame as Frame Ptr
 End Type
 
 Type ScrollSliceData
- style as integer
+ style as integer       'The box style bg/edge colors used for drawing scroll bars
  check_depth as integer '0 = check all descendants.
                          '1 = children only.
                          '2 = children+grandchildren only.
@@ -368,8 +373,7 @@ End Type
 Type SelectSliceData
  index as integer ' The numeric index of the child that is currently visible.
                    ' If out of range, then no child will be visible. Default to 0
- override as integer ' Overrides the index, used only in the Slice Collection Editor
-                     ' and never saved/loaded
+ override as integer ' UNSAVED: Overrides the index, used only in the Slice Collection Editor
 End Type
 
 Type PanelSliceData
