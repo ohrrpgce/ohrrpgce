@@ -3713,7 +3713,7 @@ SUB recreate_map_slices()
   DeleteSlice @SliceTable.NPCLayer
   DeleteSlice @SliceTable.Walkabout
 
-  'Anything else attached to the map
+  'Anything else parented to the map
   DeleteSliceChildren SliceTable.MapRoot
 
   'And then create new ones

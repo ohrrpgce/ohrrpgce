@@ -300,7 +300,7 @@ SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byva
 END SUB
 
 PRIVATE FUNCTION create_draw_root () as Slice ptr
- 'Instead of attaching to the actual screen slice, attach to a
+ 'Instead of parenting to the actual screen slice, parent to a
  'fake screen slice which is the size of the ingame screen.
  'Also, center, so that if you're running at a higher resolution than in-game, the
  'menu doesn't overlap so much.

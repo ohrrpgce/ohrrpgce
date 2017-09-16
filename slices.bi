@@ -207,30 +207,44 @@ TYPE Slice
   ' the size of non-resizeable slices can be changed, which is a bug.
   Fill as bool
   FillMode as FillModes
-  
+
+  'Attach changes which slice is responsible for ChildRefresh (but not ChildDraw).
+  'In other words, changes where the child is drawn but not when.
   Attach as AttachTypes  'Not saved
   Union
    Attached as Slice ptr 'Not saved
   End Union
-  
+
+  'Draws the slice itself, not including its children, if visible.
   Draw as SliceDraw      'NULL for some slice types
+  'The following delete, clone or load/save SliceData to a RELOAD node.
+  'They aren't responsible for any data in this Slice UDT.
   Dispose as SliceDispose
   Clone as SliceClone
   Save as SliceSave
   Load as SliceLoad
+  'Updates the screen position and size of one child, according to parent position,
+  'alignment, anchoring, fill and slice-specific placement of children (Grid and Panel).
+  'Might also change .Visible (Select slices).
+  'For all other types this is DefaultChildRefresh.
   ChildRefresh as SliceChildRefresh
+  'Called after Draw. Draws each child (by calling DrawSlice) while handling clipping.
+  'For most slice types this is DefaultChildDraw.
+  'This function can be overriden to either apply special clipping rules (Grid, Panel)
+  'or to draw something on top of the children (Scroll), or to change recursion
+  '(Panel only draws the first two children)
   ChildDraw as SliceChildDraw
-  
+
   SliceData as any ptr
   SliceType as SliceTypes
-  
-  Protect as bool
+
   'Protect is used to mark slices that script authors should not be
   'allowed to directly delete or reparent.
   'Note that this is only checked when a slice is directly freed or
   'moved, so if a Protected slice has an unprotected ancestor, then
   'it can still be deleted or moved indirectly.
-  
+  Protect as bool
+
 END TYPE
 
 TYPE SliceTable_

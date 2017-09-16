@@ -732,7 +732,7 @@ Sub EdgeYSortChildSlices(byval parent as Slice ptr, byval edge as integer)
 end sub
 
 Sub InsertSliceBefore(byval sl as Slice ptr, byval newsl as Slice ptr)
- 'newsl will be removed from its current parent (if any) and attached to the same
+ 'newsl will be removed from its current parent (if any) and parented to the same
  'parent as sl as the child before sl
  if sl = 0 then debug "InsertSliceBefore: null sl": EXIT SUB
  if newsl = 0 then debug "InsertSliceBefore: null newsl": EXIT SUB
@@ -2763,8 +2763,10 @@ end sub
 
 '==General slice display=======================================================
 
-Function GetSliceDrawAttachParent(byval sl as Slice Ptr) as Slice Ptr
- if sl = 0 then debug "GetSliceDrawAttachParent null ptr": return 0
+'Returns the slice which provides the ChildRefresh method, in other words
+'the one that determines the screen position.
+Function GetSliceRefreshAttachParent(byval sl as Slice Ptr) as Slice Ptr
+ if sl = 0 then debug "GetSliceRefreshAttachParent null ptr": return 0
  WITH *sl
   SELECT CASE .Attach
    case slSlice
@@ -2915,7 +2917,7 @@ Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
  'or other attributes. Refreshing is skipped if the slice isn't visible.
  DIM attach as Slice Ptr
- attach = GetSliceDrawAttachParent(s)
+ attach = GetSliceRefreshAttachParent(s)
  if attach then attach->ChildRefresh(attach, s, childindex, YES)
 
  if s->Visible then
@@ -3003,7 +3005,7 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
  'and without respect to the .Visible property
  if slc = 0 then exit sub
  DIM attach as Slice Ptr
- attach = GetSliceDrawAttachParent(slc)
+ attach = GetSliceRefreshAttachParent(slc)
  if attach = 0 then exit sub
  if attach <> ScreenSlice then
   RefreshSliceScreenPos attach
@@ -3016,7 +3018,7 @@ Private Sub SliceRefreshRecurse(slc as Slice ptr)
  dim ch as Slice ptr = slc->FirstChild
  dim childindex as integer = 0
  do while ch <> 0
-  attach = GetSliceDrawAttachParent(ch)
+  attach = GetSliceRefreshAttachParent(ch)
   attach->ChildRefresh(attach, ch, childindex, NO)  'visibleonly=NO
   SliceRefreshRecurse ch
   ch = ch->NextSibling
