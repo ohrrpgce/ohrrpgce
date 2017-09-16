@@ -66,10 +66,13 @@ DECLARE FUNCTION check_is_scripts_file(filepath as string) as bool
 
 ' Returns an absolute path, or "" if the user cancelled.
 ' special: file type, see below
-' default: initially selected file or a directory.
-' fmask:   may not be used, depending on special
+' default: initially selected file or a directory. Gets set to the file selected,
+'          or if canceled, the last directory we were in.
+'          If this is "", then the initial directory is the directory from the
+'          last time browse() was called, anywhere.
+' fmask:   A mask like "*.bmp". May not be used, depending on special (see below)
 ' needf:   whether to fade screen in
-FUNCTION browse (special as integer, default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
+FUNCTION browse (special as integer, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 STATIC remember as string
 DIM ret as string
 

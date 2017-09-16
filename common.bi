@@ -238,7 +238,7 @@ DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
 DECLARE FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
 
-DECLARE FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
+DECLARE FUNCTION inputfilename (query as string, ext as string, byref directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
 DECLARE FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
 
 DECLARE FUNCTION get_home_dir() as string

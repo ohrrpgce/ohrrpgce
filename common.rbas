@@ -5497,14 +5497,16 @@ END FUNCTION
 
 'Prompts the user for a file (or directory) path
 'ext: The file extension; must start with '.'
-'directory:  If blank, default to curdir
+'directory:  If blank, default to curdir. Is set to the directory used, even if canceled.
 'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
 'be encoded before being used, but the whole path return still needs to be run through
 'decode_filename() before being displayed.
-FUNCTION inputfilename (query as string, ext as string, directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
+FUNCTION inputfilename (query as string, ext as string, byref directory as string, helpkey as string, default as string="", allow_overwrite as bool=YES) as string
  DIM filename as string = default
  DIM tog as integer
  DIM foldermode as bool = NO
+ 'Can get passed a filename maybe because it's shared with browse() (as it is in importbmp)
+ IF real_isfile(directory) THEN directory = trimfilename(directory)
  IF directory = "" THEN directory = CURDIR
  setkeys YES
  DO
