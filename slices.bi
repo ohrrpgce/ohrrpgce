@@ -192,7 +192,8 @@ TYPE Slice
   EditorHideChildren as bool 'Saved, but only matters for the editor
 
   AutoSort as AutoSortModes
-  Sorter as integer 'Only used by CustomSortChildSlices
+  Sorter as integer        'Sort order, used by CustomSortChildSlices. Lower to the bottom.
+
   Extra(2) as integer
 
   AlignHoriz as AlignType  'Relative to parent. Only used when not filling

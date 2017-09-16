@@ -1436,6 +1436,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   NEXT
   sliceed_rule_enum rules(), "autosort", @.AutoSort, 0, 5
   str_array_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
+  sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
+  DIM sortNA as string
+  IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN sortNA = " (N/A)"
+  str_array_append menu(), "Custom sort order" & sortNA & ": " & .Sorter
  END WITH
 
  init_menu_state state, menu(), menuopts

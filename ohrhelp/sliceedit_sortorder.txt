@@ -1,0 +1,1 @@
+This value only has any effect when the parent of this slice is set to "Auto-sort children: Custom". Then it determines the order of this slice: lower values get sorted to the bottom (first children, drawn first) and higher values to the top (later children, drawn last).

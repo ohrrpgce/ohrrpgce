@@ -22,6 +22,7 @@ Nov/Dec ??? 2017 [Etheldreme]
 
   * Bugfixes
     * Copy-paste in slice editor didn't copy slice extra data or autosort
+      (also, couldn't edit the autosort sort order) [Ralph]
 
   * Stuff Only Developers Will Notice
 
