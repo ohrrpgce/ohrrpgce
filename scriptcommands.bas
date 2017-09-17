@@ -4551,7 +4551,7 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
+FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as bool
  IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", serrBug : RETURN NO
  DIM dat as SpriteSliceData Ptr = sl->SliceData
  IF dat = 0 THEN
@@ -4561,7 +4561,7 @@ FUNCTION valid_spriteslice_dat(byval sl as Slice Ptr) as integer
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as integer
+FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum = serrBadOp) as bool
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   scripterr current_command_name() & ": invalid slice handle " & handle, errlev
   RETURN NO
@@ -4579,7 +4579,7 @@ FUNCTION valid_plotslice(byval handle as integer, byval errlev as scriptErrEnum 
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotsprite(byval handle as integer) as integer
+FUNCTION valid_plotsprite(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slSprite THEN
    IF valid_spriteslice_dat(plotslices(handle)) THEN
@@ -4592,7 +4592,7 @@ FUNCTION valid_plotsprite(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotrect(byval handle as integer) as integer
+FUNCTION valid_plotrect(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
@@ -4603,7 +4603,7 @@ FUNCTION valid_plotrect(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plottextslice(byval handle as integer) as integer
+FUNCTION valid_plottextslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
@@ -4618,7 +4618,7 @@ FUNCTION valid_plottextslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotgridslice(byval handle as integer) as integer
+FUNCTION valid_plotgridslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slGrid THEN
    RETURN YES
@@ -4629,7 +4629,7 @@ FUNCTION valid_plotgridslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotselectslice(byval handle as integer) as integer
+FUNCTION valid_plotselectslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slSelect THEN
    RETURN YES
@@ -4640,7 +4640,7 @@ FUNCTION valid_plotselectslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotscrollslice(byval handle as integer) as integer
+FUNCTION valid_plotscrollslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slScroll THEN
    RETURN YES
@@ -4651,7 +4651,7 @@ FUNCTION valid_plotscrollslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotpanelslice(byval handle as integer) as integer
+FUNCTION valid_plotpanelslice(byval handle as integer) as bool
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slPanel THEN
    RETURN YES
@@ -4662,7 +4662,7 @@ FUNCTION valid_plotpanelslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as integer
+FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as bool
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
@@ -4919,26 +4919,26 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION valid_item_slot(byval item_slot as integer) as integer
+FUNCTION valid_item_slot(byval item_slot as integer) as bool
  RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
 END FUNCTION
 
-FUNCTION valid_item(byval itemID as integer) as integer
+FUNCTION valid_item(byval itemID as integer) as bool
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
 'TODO: Only use this where a command should be able to act on empty caterpillar hero slots
-FUNCTION valid_hero_caterpillar_rank(who as integer) as integer
+FUNCTION valid_hero_caterpillar_rank(who as integer) as bool
  RETURN bound_arg(who, 0, 3, "hero caterpillar party rank")
 END FUNCTION
 
 'TODO: Only use this where a command should be able to act on empty hero slots
 '(for compatibility, that's most of them!)
-FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
+FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as bool
  RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as integer
+FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as bool
  'Defaults to a non-suppressed error
  IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
  IF gam.hero(who).id = -1 THEN
@@ -4948,26 +4948,26 @@ FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_stat(byval statid as integer) as integer
+FUNCTION valid_stat(byval statid as integer) as bool
  RETURN bound_arg(statid, 0, statLast, "stat ID", , , serrBadOp)
 END FUNCTION
 
-FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as integer
+FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as bool
  RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , , errlvl)
 END FUNCTION
 
-FUNCTION valid_formation(byval form as integer) as integer
+FUNCTION valid_formation(byval form as integer) as bool
  RETURN bound_arg(form, 0, gen(genMaxFormation), "formation ID")
 END FUNCTION
 
-FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as integer
+FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as bool
  IF bound_arg(form, 0, gen(genMaxFormation), "formation ID") THEN
   RETURN bound_arg(slot, 0, 7, "formation slot")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_zone(byval id as integer) as integer
+FUNCTION valid_zone(byval id as integer) as bool
  RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , , serrBadOp)
 END FUNCTION
 
@@ -4992,7 +4992,7 @@ FUNCTION valid_door(thisdoor as door, byval id as integer=-1) as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as integer
+FUNCTION valid_tile_pos(byval x as integer, byval y as integer) as bool
  IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
   scripterr current_command_name() + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", serrBadOp
   RETURN NO
@@ -5008,7 +5008,7 @@ FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBad
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_save_slot(slot as integer) as integer
+FUNCTION valid_save_slot(slot as integer) as bool
  RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
 END FUNCTION
 
