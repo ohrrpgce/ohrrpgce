@@ -1,0 +1,1 @@
+This slice is protected. That means that because it has a special purpose (such as belonging to an NPC) it can't be deleted or reparented, and there might be other restrictions too (eg NPC slices can't be moved directly). It might be possible to manipulate it indirectly (such as with NPC commands including "delete NPC").

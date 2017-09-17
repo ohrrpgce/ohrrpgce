@@ -34,8 +34,8 @@ CONST SL_COLLECT_THINGBROWSER = 22
 
 
 'Public functions
-DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "")
-DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
+DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", privileged as bool = NO)
+DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO, privileged as bool = NO)
 DECLARE SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integer, byval collection_num as integer=0)
 
 DECLARE FUNCTION align_caption(align as AlignType, vertical as bool) as string

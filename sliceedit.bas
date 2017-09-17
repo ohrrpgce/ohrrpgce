@@ -52,6 +52,8 @@ TYPE SliceEditState
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
+ privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
+                           'TODO: Doesn't do much yet. Should to handle lookup codes in particular better
 
  ' Internal state of lookup_code_grabber
  editing_lookup_name as bool
@@ -329,12 +331,14 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
 END FUNCTION
 
 ' Edit a group of slice collections - this is the overload used by the slice editor menus in Custom.
-' In this mode, the editor loads and saves collections to disk when you
-SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string = "")
+' In this mode, the editor loads and saves collections to disk when you exit
+' privileged: true if should be allowed to edit things that are hidden from users
+SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string = "", privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
  ses.collection_file = filename
  ses.use_index = (filename = "")
+ ses.privileged = privileged
 
  DIM edslice as Slice Ptr
  edslice = NewSlice
@@ -358,12 +362,14 @@ END SUB
 
 ' Edit an existing slice tree.
 ' recursive is true if using Ctrl+F. Probably should not use otherwise.
-SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO)
+' privileged: true if should be allowed to edit things that are hidden from users
+SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, recursive as bool = NO, privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
  ses.use_index = NO  'Can't browse collections
  ses.editing_existing = YES
  ses.recursive = recursive
+ ses.privileged = privileged
 
  DIM rootslice as Slice ptr
 
@@ -1274,6 +1280,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
    sliceed_rule_none rules(), "scripthandle"
   #ENDIF
+  IF ses.privileged THEN
+   str_array_append menu(), "Protected: " & yesorno(.Protect)
+   sliceed_rule_tog rules(), "protect", @.Protect
+  ELSEIF .Protect THEN
+   str_array_append menu(), "Protected"
+   sliceed_rule_none rules(), "protect"
+  END IF
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat as RectangleSliceData Ptr
