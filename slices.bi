@@ -587,6 +587,11 @@ End Extern
 ' Then, select the block, and use Find and Replace to switch
 ' <TYPENAME> with whatever name you need. Then, add the drawing code to
 ' Draw<TYPENAME>Slice if you need a Draw function.
+'
+' Also, aside from the obvious places, the following functions will need to be updated:
+' -valid_resizeable_slice
+' -AdjustSlicePosToNewParent (likely if there is a custom ChildRefresh function)
+' -slice_editor_mouse_over, to define whether clickable
 /'
 '==START OF <TYPENAME>SLICEDATA
 Sub Dispose<TYPENAME>Slice(byval sl as Slice ptr)

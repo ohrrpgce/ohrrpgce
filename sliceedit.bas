@@ -607,7 +607,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
      SwapSiblingSlices ses.curslice, ses.curslice->PrevSibling
      cursor_seek = ses.curslice
      state.need_update = YES
-    ELSEIF keyval(scDown) > 1 AND state.pt < state.last THEN
+    ELSEIF keyval(scDown) > 1 THEN
      SwapSiblingSlices ses.curslice, ses.curslice->NextSibling
      cursor_seek = ses.curslice
      state.need_update = YES
@@ -767,7 +767,8 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
-  'Ignore Map slices because it makes it impossible to click on things parented to map layers.
+  'Ignore Map slices because transparent overhead layers makes it impossible to
+  'click on things parented to map layers below.
   SELECT CASE sl->SliceType
    CASE slRoot, slRectangle, slSprite, slText, slEllipse
     topmost = sl
@@ -1582,21 +1583,16 @@ END SUB
 
 SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as Slice Ptr)
  '--Re-adjust ScreenX/ScreenY position for new parent
- IF newparent->SliceType = slGrid THEN
-  '--except if the new parent is a grid. Then it would be silly to preserve Screen pos.
-  sl->X = 0
-  sl->Y = 0
+ IF newparent->SliceType = slGrid OR newparent->SliceType = slPanel THEN
+  '--except if the new parent is a grid/panel, which have customised screenpos calc.
+  '--Then it would be silly to preserve Screen pos, and it can't actually be done anyway.
+  sl->Pos = XY(0,0)
   EXIT SUB
  END IF
- DIM oldpos as XYPair
- oldpos.x = sl->ScreenX
- oldpos.y = sl->ScreenY
+ DIM oldpos as XYPair = sl->ScreenPos
  RefreshSliceScreenPos sl
- DIM newpos as XYPair
- newpos.x = sl->ScreenX
- newpos.y = sl->ScreenY
- sl->X += oldpos.x - newpos.x
- sl->Y += oldpos.y - newpos.y
+ DIM newpos as XYPair = sl->ScreenPos
+ sl->Pos += oldpos - newpos
 END SUB
 
 SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
