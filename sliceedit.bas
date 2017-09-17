@@ -1576,12 +1576,7 @@ SUB SliceAdoptNiece (byval sl as Slice Ptr)
  DIM newparent as Slice Ptr = sl->Parent->Parent
  IF newparent = 0 THEN EXIT SUB ' No grandparent
  'Adopt self to parent's family
- DIM nextsib as Slice Ptr = oldparent->NextSibling
- IF nextsib THEN
-  InsertSliceBefore nextsib, sl
- ELSE
-  SetSliceParent sl, newparent
- END IF
+ InsertSliceAfter oldparent, sl
  AdjustSlicePosToNewParent sl, newparent
 END SUB
 

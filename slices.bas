@@ -774,7 +774,24 @@ Sub InsertSliceBefore(byval sl as Slice ptr, byval newsl as Slice ptr)
 
  'One more mouth to feed...
  newsl->Parent->NumChildren += 1
- 
+end sub
+
+Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
+ 'newsl will be removed from its current parent (if any) and parented to the same
+ 'parent as sl as the child after sl.
+ if sl = 0 then debug "InsertSliceAfter: null sl": exit sub
+ if newsl = 0 then debug "InsertSliceAfter: null newsl": exit sub
+ if sl = newsl then exit sub ' Fail quietly when trying to insert a slice as a sibling
+                             ' of itself because this is normal if you are using this function
+                             ' to move a slice to the end of its sibling list
+ if sl->NextSibling = newsl then exit sub 'already done
+ if sl->Parent = 0 then reporterr "InsertSliceAfter: Root shouldn't have siblings" : exit sub
+
+ if sl->NextSibling then
+  InsertSliceBefore sl->NextSibling, newsl
+ else
+  SetSliceParent newsl, sl->Parent
+ end if
 end sub
 
 Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)

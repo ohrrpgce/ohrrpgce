@@ -2800,36 +2800,28 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 446 '--move slice below
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
-   IF retvals(0) = retvals(1) THEN
-    scripterr "moveslicebelow: tried to move a slice below itself", serrBadOp
+   DIM as Slice ptr sl0 = plotslices(retvals(0)), sl1 = plotslices(retvals(1))
+   IF sl0 = sl1 THEN
+    scripterr "moveslicebelow: tried to move a slice below itself"
+   ELSEIF sl0->Protect ANDALSO sl0->Parent <> sl1->Parent THEN
+    scripterr "moveslicebelow: tried to change the parent of a protected slice"
+   ELSEIF sl1->Parent = NULL THEN
+    scripterr "moveslicebelow: Root can't have siblings"
    ELSE
-    IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "moveslicebelow: tried to change the parent of a protected slice", serrBadOp
-    ELSE
-     InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
-    END IF
+    InsertSliceBefore sl1, sl0
    END IF
   END IF
  CASE 447 '--move slice above
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
-   IF retvals(0) = retvals(1) THEN
-    scripterr "movesliceabove: tried to move a slice above itself", serrBadOp
+   DIM as Slice ptr sl0 = plotslices(retvals(0)), sl1 = plotslices(retvals(1))
+   IF sl0 = sl1 THEN
+    scripterr "movesliceabove: tried to move a slice above itself"
+   ELSEIF sl0->Protect ANDALSO sl0->Parent <> sl1->Parent THEN
+    scripterr "movesliceabove: tried to change the parent of a protected slice"
+   ELSEIF sl1->Parent = NULL THEN
+    scripterr "movesliceabove: Root can't have siblings"
    ELSE
-    IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "movesliceabove: tried to change the parent of a protected slice", serrBadOp
-    ELSE
-     DIM sl as Slice Ptr = plotslices(retvals(1))
-     IF sl->NextSibling THEN
-      InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
-     ELSE
-      IF sl->Parent = NULL THEN
-       scripterr "movesliceabove: Root shouldn't have siblings", serrBadOp
-      ELSE
-       'sets as last child
-       SetSliceParent plotslices(retvals(0)), sl->Parent
-      END IF
-     END IF
-    END IF
+    InsertSliceAfter sl1, sl0
    END IF
   END IF
  CASE 448 '--slice child

@@ -401,6 +401,7 @@ DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
+DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
