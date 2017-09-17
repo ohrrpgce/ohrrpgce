@@ -563,12 +563,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   IF state.need_update = NO THEN
    IF copy_keychord() THEN
-    #IFDEF IS_GAME
-     IF ses.curslice ANDALSO ses.curslice->Lookup < 0 THEN
-      notification "Can't copy special slices!"
-      CONTINUE DO
-     END IF
-    #ENDIF
     slice_editor_copy ses, ses.curslice, edslice
    ELSEIF paste_keychord() THEN
     slice_editor_paste ses, ses.curslice, edslice
@@ -890,7 +884,11 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byv
  DIM sl as Slice Ptr
  IF slice THEN
   ses.clipboard = NewSliceOfType(slContainer)
-  sl = CloneSliceTree(slice)
+  #IFDEF IS_GAME
+   sl = CloneSliceTree(slice, , NO)  'copy_special=NO
+  #ELSE
+   sl = CloneSliceTree(slice)
+  #ENDIF
   SetSliceParent sl, ses.clipboard
  ELSE
   ses.clipboard = CloneSliceTree(edslice)

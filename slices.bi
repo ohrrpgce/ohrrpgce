@@ -428,7 +428,7 @@ DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
-DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
+DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)

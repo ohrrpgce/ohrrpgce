@@ -3270,20 +3270,27 @@ End Function
 
 '==Slice cloning===============================================================
 
-Function CloneSliceTree(byval sl as Slice ptr) as Slice ptr
- 'clone a duplicate of a slice and all its children.
+Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
+ 'clone a duplicate of a slice and, if recurse=YES, all its children.
+ 'copy_special: copy Special slices and lookup codes. .Protect bit not copied.
  'The resulting clone is parentless
+ if sl->SliceType = slMap then return NULL
  dim clone as Slice Ptr
  '--Create another slice of the same type
- clone = NewSliceOfType(sl->SliceType)
+ dim newtype as SliceTypes = sl->SliceType
+ if copy_special = NO then
+  if newtype = slSpecial or newtype = slRoot then newtype = slContainer
+ end if
+ clone = NewSliceOfType(newtype)
  '--Clone all standard properties
  with *clone
   'Parent, siblings, etc. not copied
   'Function ptrs not copied.
   '.Attach and .Attached not copied
   '.TableSlot not copied
-  '.Protect not copied, because the copy won't have any special role
+  if copy_special then .Protect = sl->Protect  'Otherwise, the copy won't have any special role
   .Lookup = sl->Lookup
+  if copy_special = NO and .Lookup < 0 then .Lookup = 0
   .X = sl->X
   .Y = sl->Y
   '.ScreenPos not copied
@@ -3321,12 +3328,13 @@ Function CloneSliceTree(byval sl as Slice ptr) as Slice ptr
  end with
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
+ if recurse = NO then return clone
  '--Now clone all the children
  dim ch_slice as Slice Ptr = sl->FirstChild
  dim ch_clone as Slice Ptr
  do while ch_slice <> 0
-  ch_clone = CloneSliceTree(ch_slice)
-  SetSliceParent ch_clone, clone
+  ch_clone = CloneSliceTree(ch_slice, YES, copy_special)
+  if ch_clone then SetSliceParent ch_clone, clone
   ch_slice = ch_slice->NextSibling
  loop
  '--return the clone
