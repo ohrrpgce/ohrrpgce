@@ -95,8 +95,12 @@ FUNCTION embed_text_codes (text_in as string, byval callback as FnEmbedCode=0, b
   '--discourage bad arg values (not perfect)
   IF NOT (arg = 0 AND arg_str <> STRING(LEN(arg_str), "0")) THEN
    IF arg >= 0 THEN '--only permit postive args
-    '--evaluate standard insert actions
+    '--evaluate standard insert actions based on the currently loaded game
     insert = standard_embed_codes(act, arg)
+    SELECT CASE UCASE(act)
+     CASE "B": '--buttonname (platform-specific)
+      insert = get_buttonname_code(arg)
+    END SELECT
    END IF
   END IF
   IF callback <> NULL THEN
@@ -109,7 +113,7 @@ FUNCTION embed_text_codes (text_in as string, byval callback as FnEmbedCode=0, b
  RETURN text
 END FUNCTION
 
-FUNCTION standard_embed_codes(act as string, arg as integer) as string
+FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
  'act --- the code text. It is normally alpha only. For example, the "H" in ${H0}
  'arg --- the code argument. This is an integer. For example, the 0 in ${H0}
 
@@ -152,8 +156,58 @@ FUNCTION standard_embed_codes(act as string, arg as integer) as string
    IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
     insert = plotstr(arg).s
    END IF
-  CASE "B": '--buttonname (platform-specific)
-   insert = get_buttonname_code(arg)
+ END SELECT
+ RETURN insert
+END FUNCTION
+
+FUNCTION save_slot_embed_codes(byval saveslot as integer, act as string, byval arg as integer) as string
+ 'saveslot -- the save slot number that we should read values from. 1-32
+ 'act --- the code text. It is normally alpha only. For example, the "H" in ${H0}
+ 'arg --- the code argument. This is an integer. For example, the 0 in ${H0}
+
+ '--by default the embed is unchanged
+ DIM insert as string = "${" & act & arg & "}"
+
+ DIM node as NodePtr = saveslot_quick_root_node(saveslot - 1)
+ IF node = 0 THEN RETURN insert
+
+ SELECT CASE UCASE(act)
+  CASE "H": '--Hero name by ID
+   '--defaults blank if not found
+   insert = ""
+   '--first search for a copy of the hero in the party
+   DIM where as integer = saveslot_findhero(node, arg)
+   IF where >= 0 THEN
+    insert = saveslot_hero_name_by_slot(node, where)
+   ELSE
+    insert = getheroname(arg)
+   END IF
+  CASE "P": '--Hero name by Party position
+   IF arg < 40 THEN
+    '--defaults blank if not found
+    insert = ""
+    IF saveslot_hero_id_by_slot(node, arg) >= 0 THEN
+     insert = gam.hero(arg).name
+    END IF
+   END IF
+  'CASE "C": '--Hero name by caterpillar position
+  ' '--defaults blank if not found
+  ' insert = ""
+  ' DIM where as integer = rank_to_party_slot(arg)
+  ' IF where >= 0 AND where <= 3 THEN
+  '  insert = gam.hero(where).name
+  ' END IF
+  'CASE "V": '--global variable by ID
+  ' '--defaults blank if out-of-range
+  ' insert = ""
+  ' IF arg >= 0 AND arg <= maxScriptGlobals THEN
+  '  insert = STR(global(arg))
+  ' END IF
+  'CASE "S": '--string variable by ID
+  ' insert = ""
+  ' IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
+  '  insert = plotstr(arg).s
+  ' END IF
  END SELECT
  RETURN insert
 END FUNCTION
