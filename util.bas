@@ -1852,19 +1852,26 @@ FUNCTION fixfilename (filename as string) as string
   RETURN result
 END FUNCTION
 
-'This is a replacement for SHELL. It needs to be used on Windows if the executable was escaped (so contains quotes)
-'Returns the exit code, or -1 if it couldn't be run.
+'This is a replacement for SHELL, meaning it runs invokes a command interpreter like
+'cmd.exe instead of just running a program, and the standard search paths are searched,
+'don't need to get a full path.
+'Unlike SHELL on Windows, it doesn't pop up a terminal window.
+'Also it needs to be used on Windows if the executable was escaped (so contains quotes).
+'Returns the exit code, or -1 if it couldn't be run, or -2 if it timed out
 'NOTE: use instead run_and_get_output and check stderr if you want better ability to catch errors
 FUNCTION safe_shell (cmd as string) as integer
 #IFDEF __FB_WIN32__
   'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
   'cmd.exe will remove the first and last quotes from the string and leave the rest.
   'Therefore, there need to be two quotes at the beginning of the string!
-  RETURN SHELL("""" & cmd & """")
+  DIM handle as ProcessHandle
+  handle = open_process("cmd.exe", "/C """ & cmd & """", YES, NO)
+  RETURN wait_for_process(@handle, timeout * 1000)
 #ELSE
   ' (SHELL returns wrong exit code in FB 0.23 and earlier)
   'RETURN SHELL(cmd)
   ' Replacement for SHELL which checks the return code in more detail
+  ' Doesn't timeout.
   RETURN checked_system(STRPTR(cmd))
 #ENDIF
 END FUNCTION
@@ -1873,7 +1880,7 @@ END FUNCTION
 'By default stderr also gets debuginfo logged.
 'If stderr = "<ignore>" then stderr isn't captured, and writes to stderr pass through to our stderr stream.
 '
-'The return value is generally -1 on an error invoking the shell,
+'The return value is generally -1 on an error invoking the shell, -2 on timeout,
 '-4444/-4445 on an error running or capturing the output,
 'and otherwise the shell exit code, generally equal to the program exitcode and 0 on success.
 '

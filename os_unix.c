@@ -697,7 +697,7 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //==========================================================================================
 
 
-// Interpret system() return value. Returns exit code.
+// Interpret system() return value. Returns exit code or -1 on error.
 int checked_system(const char* cmdline) {
 	int waitstatus = system(cmdline);
 	int ret = -1;
@@ -844,6 +844,12 @@ ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args) {
 boolint process_running (ProcessHandle process, int *exitcode) {
 	//Unimplemented and not yet used
 	return false;
+}
+
+int wait_for_process (ProcessHandle *processp, int timeoutms) {
+	//Unimplemented and not yet used
+	cleanup_process(processp);
+	return -1;
 }
 
 void kill_process (ProcessHandle process) {

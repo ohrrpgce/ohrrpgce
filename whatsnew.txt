@@ -24,6 +24,8 @@ Nov/Dec ??? 2017 [Etheldreme]
   * Bugfixes
     * Copy-paste in slice editor didn't copy slice extra data or autosort
       (also, couldn't edit the autosort sort order) [Ralph]
+    * Windows only: Fixed a whole bunch of console windows popping up when
+      entering Distribute Game menu, and elsewhere [Ralph]
 
   * Stuff Only Developers Will Notice
 

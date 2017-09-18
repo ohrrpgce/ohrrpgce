@@ -574,11 +574,13 @@ end function
 '==========================================================================================
 
 
+'Try to launch a program asynchronously, searching for it in the standard search paths
+'(including windows/system32, current directory, and PATH).
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
-'program is an unescaped path. Any paths in the arguments should be escaped
-'If graphical=YES, launch a graphical process (displays a console for commandline programs on
-'Windows, does nothing on Unix).
+'program is an unescaped path. Any paths in the arguments should be escaped.
+'Allows only killing or waiting for the program, not communicating with it unless that is
+'done some other way (e.g. using channels)
 'graphical: if true, launch a graphical process (displays a console for commandline programs on
 '           Windows, does nothing on Unix).
 'waitable is true if you want process_cleanup to wait for the command to finish (ignored on
@@ -594,7 +596,10 @@ function open_process (program as string, args as string, waitable as boolint, g
 		flags or= CREATE_NO_WINDOW
 	end if
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
-	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+	'Passing NULL as lpApplicationName causes the first quote-delimited
+	'token in argstemp to be used, and to search for the program in standard
+	'paths. If lpApplicationName is provided then searching doesn't happen.
+	if CreateProcess(NULL, strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
 		dim errstr as string = error_string
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
@@ -604,7 +609,8 @@ function open_process (program as string, args as string, waitable as boolint, g
 	end if
 end function
 
-'Run a (hidden) commandline program and open a pipe which writes to its stdin & reads from stdout
+'Run a (hidden) commandline program asynchronously and open a pipe which writes
+'to its stdin & reads from stdout, searching for it in the standard search paths.
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
 function open_piped_process (program as string, args as string, byval iopipe as NamedPipeInfo ptr ptr) as ProcessHandle
@@ -650,7 +656,10 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 	flags or= CREATE_NO_WINDOW
 
 	pinfop = Callocate(sizeof(PROCESS_INFORMATION))
-	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 1, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+	'Passing NULL as lpApplicationName causes the first quote-delimited
+	'token in argstemp to be used, and to search for the program in standard
+	'paths. If lpApplicationName is provided then searching doesn't happen.
+	if CreateProcess(NULL, strptr(argstemp), NULL, NULL, 1, flags, NULL, NULL, @sinfo, pinfop) = 0 then
 		dim errstr as string = error_string
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		goto error_out
@@ -701,9 +710,9 @@ function open_console_process (program as string, args as string) as ProcessHand
 end function
 
 'If exitcode is nonnull and the process exited, the exit code will be placed in it
-function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as boolint
+private function _process_running (process as ProcessHandle, exitcode as integer ptr = NULL, timeoutms as integer) as boolint
 	if process = NULL then return NO
-	dim waitret as integer = WaitForSingleObject(process->hProcess, 0)
+	dim waitret as integer = WaitForSingleObject(process->hProcess, timeoutms)
 	if waitret = WAIT_FAILED then
 		dim errstr as string = error_string
 		debug "process_running failed: " & errstr
@@ -716,6 +725,22 @@ function process_running (byval process as ProcessHandle, byval exitcode as inte
 		end if
 	end if
 	return (waitret = WAIT_TIMEOUT)
+end function
+
+'If exitcode is nonnull and the process exited, the exit code will be placed in it
+function process_running (process as ProcessHandle, exitcode as integer ptr = NULL) as boolint
+	return _process_running(process, exitcode, 0)
+end function
+
+'Wait for and cleanup the process, returns exitcode, or -2 if the process had to be killed
+function wait_for_process (process as ProcessHandle ptr, timeoutms as integer = 4000) as integer
+	dim exitcode as integer
+	if _process_running(*process, @exitcode, timeoutms) then
+		kill_process *process
+		exitcode = -2
+	end if
+	cleanup_process process
+	return exitcode
 end function
 
 sub kill_process (byval process as ProcessHandle)
