@@ -2524,16 +2524,13 @@ FUNCTION open_url (url as string) as bool
  DIM cmd as string
  DIM result as string
 #IFDEF __FB_DARWIN__
- SHELL "open '" & url & "'"
+ safe_shell "open '" & url & "'"
  'Don't have a way of detecting if that worked
  RETURN YES
 #ENDIF
 
 #IFDEF __FB_WIN32__
- ' Using SHELL results in a console window popping up momentarily (also, this
- ' doesn't work under Wine because it doesn't support the console title arg).
- ' cmd = "START ""Spawning Web Browser"" """ & url & """"
- ' SHELL cmd
+ ' safe_shell "START """ & url & """"
  ' 'Well, Dang, I don't know how to check this for success either!
  ' RETURN YES
 
@@ -2546,8 +2543,7 @@ FUNCTION open_url (url as string) as bool
 #ENDIF
 
  '--Try the unix way
- cmd = "xdg-open '" & url & "'"
- SHELL cmd
+ safe_shell "xdg-open '" & url & "'"
  '-Unfortunately we can't test if it worked, so just pretend that it did.
  RETURN YES
  
@@ -2599,8 +2595,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  PRINT #fh, "clear"
  PRINT #fh, escape_filename(app) + " " + args
  CLOSE #fh
- SHELL "chmod +x " + escape_filename(dummyscript)
- SHELL escape_filename(term_wrap) + " " + escape_filename(dummyscript)
+ safe_shell "chmod +x " + escape_filename(dummyscript)
+ safe_shell escape_filename(term_wrap) + " " + escape_filename(dummyscript)
  safekill dummyscript
  RETURN ""
 
@@ -2647,7 +2643,7 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
  'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
  'os_* process handling functions only currently implemented on Windows
- 'We run SHELL (aka system()) which runs sh, which runs xterm, which runs app.
+ 'We run run_and_get_output which runs sh (via system()), which runs xterm, which runs app.
  'That's a lot that can go wrong!
 
  IF LEN(find_helper_app("xterm")) = 0 THEN
@@ -2720,7 +2716,7 @@ FUNCTION find_helper_app (appname as string, try_install as integer=NO, download
  #IFDEF __FB_UNIX__
   'Use the standard util "which" to search the path
   DIM where as string
-  run_and_get_output("which " & appname, where)
+  run_and_get_output("which " & appname, where, , NO)  'disable debuginfo spam
   'where is empty on failure
   RETURN RTRIM(where, !"\n")
  #ENDIF
@@ -2753,7 +2749,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO, 
   ' Check whether appname.exe is in the $PATH
   DIM ret as string
   ' Prepend a _ because if its args are blank echo prints "ECHO ON."
-  run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret
+  run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret, , NO 'disable debuginfo spam
   ret = RTRIM(ret, ANY !"\n\r")
   IF LEN(ret) > 1 THEN RETURN MID(ret, 2)  ' Trim the _.
  #ENDIF

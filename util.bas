@@ -1859,7 +1859,8 @@ END FUNCTION
 'Also it needs to be used on Windows if the executable was escaped (so contains quotes).
 'Returns the exit code, or -1 if it couldn't be run, or -2 if it timed out
 'NOTE: use instead run_and_get_output and check stderr if you want better ability to catch errors
-FUNCTION safe_shell (cmd as string) as integer
+FUNCTION safe_shell (cmd as string, timeout as double = 5., log_it as bool = YES) as integer
+  IF log_it THEN debuginfo cmd
 #IFDEF __FB_WIN32__
   'SHELL wraps system() which calls cmd.exe (or command.com on older OSes)
   'cmd.exe will remove the first and last quotes from the string and leave the rest.
@@ -1876,8 +1877,8 @@ FUNCTION safe_shell (cmd as string) as integer
 #ENDIF
 END FUNCTION
 
-'Like SHELL, but passes back the output in the 'stdout' string, and optionally 'stderr' in a string too.
-'By default stderr also gets debuginfo logged.
+'Like safe_shell, but passes back the output in the 'stdout' string, and optionally 'stderr' in a string too.
+'By default stderr also gets debuginfo logged, and cmd too when log_it is true.
 'If stderr = "<ignore>" then stderr isn't captured, and writes to stderr pass through to our stderr stream.
 '
 'The return value is generally -1 on an error invoking the shell, -2 on timeout,
@@ -1886,7 +1887,7 @@ END FUNCTION
 '
 '(There is a second implementation of this as run_process_and_get_output in os_unix.c
 ' which does't support stderr, but doesn't use temporary files or run the shell)
-FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as string = "") as integer
+FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stderr_s as string = "", log_it as bool = YES) as integer
   DIM ret as integer
   DIM as string stdout_file, stderr_file, cmdline
   DIM as bool grab_stderr
@@ -1899,7 +1900,7 @@ FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as strin
     ' This redirection works on Windows too
     cmdline &= " 2> " & escape_filename(stderr_file)
   END IF
-  ret = safe_shell(cmdline)
+  ret = safe_shell(cmdline, , log_it)
 
   IF grab_stderr THEN
     IF isfile(stderr_file) THEN
@@ -1919,7 +1920,9 @@ FUNCTION run_and_get_output(cmd as string, stdout_s as string, stderr_s as strin
     ret = -4444
   END IF
 
-  IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN debuginfo "SHELL(" & cmd & ")=" & ret & " " & stderr_s
+  IF ret ORELSE (grab_stderr AND LEN(stderr_s)) THEN
+   debuginfo "safe_shell(" & IIF(log_it, "", cmd) & ")=" & ret & " stderr:" & stderr_s
+  END IF
 
   RETURN ret
 END FUNCTION
@@ -2257,7 +2260,7 @@ FUNCTION makedir (directory as string) as integer
 #ifdef __FB_UNIX__  ' I don't know on which OSes this is necessary
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
-  SHELL "chmod +x " + escape_filename(directory)
+  safe_shell "chmod +x " + escape_filename(directory)
 #endif
   RETURN 0
 END FUNCTION

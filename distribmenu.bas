@@ -672,9 +672,9 @@ FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdi
 #IFDEF __FB_UNIX__
   '--just in case we are playing with a debug build,
   '--strip the copy of the binary that goes in the distribution file.
-  SHELL "strip " & escape_filename(destdir & SLASH & basename)
+  safe_shell "strip " & escape_filename(destdir & SLASH & basename)
   '--fix the permissions
-  SHELL "chmod +x " & escape_filename(destdir & SLASH & basename)
+  safe_shell "chmod +x " & escape_filename(destdir & SLASH & basename)
 #ENDIF
  RETURN YES
 END FUNCTION
@@ -1192,10 +1192,7 @@ SUB write_debian_postinst_script (filename as string)
  PUT #fh, , "fi" & LF
  CLOSE #fh
  #IFDEF __FB_UNIX__
- DIM cmd as string
- cmd = "chmod +x " & escape_filename(filename)
- debuginfo cmd
- SHELL cmd
+  safe_shell "chmod +x " & escape_filename(filename)
  #ENDIF
 END SUB
 
@@ -1210,21 +1207,15 @@ SUB write_debian_postrm_script (filename as string)
  PUT #fh, , "fi" & LF
  CLOSE #fh
  #IFDEF __FB_UNIX__
- DIM cmd as string
- cmd = "chmod +x " & escape_filename(filename)
- debuginfo cmd
- SHELL cmd
+  safe_shell "chmod +x " & escape_filename(filename)
  #ENDIF
 END SUB
 
 SUB fix_deb_group_permissions(start_at_dir as string)
-#IFDEF __FB_UNIX__
- 'This is needed because the user's umask might have given group write access to the files
- DIM cmd as string
- cmd = "chmod -R g-w " & escape_filename(start_at_dir)
- debuginfo cmd
- SHELL cmd
-#ENDIF
+ #IFDEF __FB_UNIX__
+  'This is needed because the user's umask might have given group write access to the files
+  safe_shell "chmod -R g-w " & escape_filename(start_at_dir)
+ #ENDIF
 END SUB
 
 SUB write_linux_menu_file(title as string, filename as string, basename as string)
@@ -1715,13 +1706,10 @@ SUB distribute_game_as_linux_tarball (which_arch as string)
   makedir tarballdir
   DIM dest_gameplayer as string = tarballdir & SLASH & gameshortname
   IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
-#IFDEF __FB_UNIX__
-  'Mac and Linux fix the permissions
-  DIM cmd as string
-  cmd = "chmod +x " & escape_filename(dest_gameplayer)
-  debuginfo cmd
-  SHELL cmd
-#ENDIF
+  #IFDEF __FB_UNIX__
+   'Mac and Linux fix the permissions
+   safe_shell "chmod +x " & escape_filename(dest_gameplayer)
+  #ENDIF
   DIM license as string = finddatafile("LICENSE-binary.txt")
   IF confirmed_copy(license, tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
 
