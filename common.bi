@@ -301,7 +301,7 @@ DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 DECLARE FUNCTION dissolve_type_caption(n as integer) as string
 
 TYPE FnNoArgsBool as FUNCTION () as bool
-DECLARE SUB progress_spinner (exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
+DECLARE FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
 
 DECLARE FUNCTION default_gen_bool(nodepath as string) as bool
 DECLARE FUNCTION get_gen_bool(nodepath as string) as bool

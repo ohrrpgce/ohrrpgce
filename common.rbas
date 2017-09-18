@@ -6491,10 +6491,11 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
  RETURN result
 END FUNCTION
 
-SUB progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double)
+FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
  'In contrast to a progress meter, a progress spinner has no idea how long this will take
- 'so it just needs to animate untill it succeeds or times out.
- 
+ 'so it just needs to animate until it succeeds or times out.
+ 'Returns YES if didn't time out
+
  'exit_condition_func should take no arguments and return YES when the progress is complete.
 
  DIM t as double = TIMER
@@ -6552,12 +6553,14 @@ SUB progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as stri
  
  DIM oscil as integer = 0
  DIM bub_size as integer = 0
+ DIM ret as bool = YES
 
  '--Display the spinner animation while waiting for the action to succeed (or time-out)
  '  Spinner is displayed as a row of oscilating bubbles
- 
+
  setkeys YES
- DO WHILE NOT exit_condition_func() ANDALSO TIMER - t < timeout_seconds
+ DO WHILE NOT exit_condition_func()
+  IF TIMER - t > timeout_seconds THEN ret = NO : EXIT DO
   setwait 55
   setkeys YES
   
@@ -6577,8 +6580,8 @@ SUB progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as stri
 
  freepage holdscreen
  DeleteSlice @root
-
-END SUB
+ RETURN ret
+END FUNCTION
 
 FUNCTION dissolve_type_caption(n as integer) as string
  SELECT CASE n
