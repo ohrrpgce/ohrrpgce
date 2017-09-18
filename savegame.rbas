@@ -1920,3 +1920,59 @@ FUNCTION old_count_used_save_slots() as integer
  NEXT i
  RETURN n
 END FUNCTION
+
+'-----------------------------------------------------------------------
+'Helper functions for reading specific data from save slots without loading
+
+FUNCTION saveslot_quick_root_node(byval saveslot as integer) as NodePtr
+ 'saveslot is the 0-based index of the save slot, 0-31
+ IF saveslot < 0 ORELSE saveslot > 31 THEN
+  debuginfo "saveslot_quick_load_node: called on invalid save slot " & saveslot
+  RETURN 0
+ END IF
+
+ DIM filename as string
+ filename = savedir & SLASH & saveslot & ".rsav"
+
+ IF NOT isfile(filename) THEN
+  'It is normal for this to be called on all save slots, including the empty ones
+  ' so just silently return 0
+  RETURN 0
+ END IF
+
+ DIM doc as DocPtr
+ doc = LoadDocument(filename)
+ 
+ DIM node as NodePtr
+ node = DocumentRoot(doc)
+ RETURN node
+END FUNCTION
+
+FUNCTION saveslot_findhero(byval saveroot as NodePtr, byval id as integer) as integer
+ 'NOTE: id is the real ID number, not ID+1 like findhero()
+ FOR i as integer = 0 to 40
+  DIM node as NodePtr = NodeByPath(saveroot, "/party/slot[" & i & "]/id")
+  IF node THEN
+   IF GetInteger(node) = id THEN RETURN i
+  END IF
+ NEXT i
+ RETURN -1 'not found
+END FUNCTION
+
+FUNCTION saveslot_hero_name_by_slot(byval saveroot as NodePtr, byval slot as integer) as string
+ IF saveslot_hero_id_by_slot(saveroot, slot) = -1 THEN RETURN "" 'Slot is empty
+ DIM node as NodePtr = NodeByPath(saveroot, "/party/slot[" & slot & "]/name")
+ IF node THEN
+  RETURN GetString(node)
+ END IF
+ RETURN "" 'not found
+END FUNCTION
+
+FUNCTION saveslot_hero_id_by_slot(byval saveroot as NodePtr, byval slot as integer) as integer
+ DIM node as NodePtr = NodeByPath(saveroot, "/party/slot[" & slot & "]/id")
+ IF node THEN
+  RETURN GetInteger(node)
+ END IF
+ RETURN -1 'not found
+END FUNCTION
+
