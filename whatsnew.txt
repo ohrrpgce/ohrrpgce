@@ -17,6 +17,7 @@ Nov/Dec ??? 2017 [Etheldreme]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
+    * "clone slice" [Ralph]
 
   * Changes
 

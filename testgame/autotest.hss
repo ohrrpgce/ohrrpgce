@@ -3399,6 +3399,34 @@ script, slice tests, begin
   $2=""
   $3=""
   free slice(sl)
+
+
+  # Test cloneslice
+  variable(sl2, ch, ch2)
+  sl := get npc slice(next npc reference)
+  set slice extra(sl, extra 2, 42)
+  sl2 := clone slice(sl)
+  assert(next sibling(sl) == sl2)
+  # Check that things got copied
+  assert(slice screen x(sl) == slice screen x(sl2))
+  assert(slice screen y(sl) == slice screen y(sl2))
+  assert(get slice extra(sl2, extra 2) == 42)
+  assert(child count(sl) == child count(sl2))
+  ch := first child(sl)
+  ch2 := first child(sl2)
+  assert(get slice lookup(ch) < 0)
+  assert(get slice lookup(ch2) == 0)  # special lookup codes removed
+  free slice(sl2)
+  sl := sprite layer
+  assert(slice is container(sl) == false)
+  sl2 := clone slice(sl)
+  assert(slice is container(sl2) == true)  # Special slices turn into containers
+  assert(next sibling(sl) == sl2)
+  assert(child count(sl) == child count(sl2))
+  free slice(sl2)
+  sl2 := clone slice(sl, false)  # recurse == false
+  assert(child count(sl2) == 0)  # Didn't recurse
+  free slice(sl2)
 end
 
 ########################################################################

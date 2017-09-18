@@ -4882,6 +4882,26 @@ end
 				<ref>freeslice</ref>
 			</seealso>
 		</command>
+		<command id="cloneslice">
+			<canon>clone slice (handle, recurse)</canon>
+			<shortname>clone slice</shortname>
+			<description>
+				Copies (clones) a slice.
+				If the optional argument <p>recurse</p> is true (which is the default),
+				then all its children and descendents are copied too.
+				Returns the slice handle for the copy, which has the same parent,
+				and becomes the next sibling to <p>handle</p>.
+				<lb/>
+				You can copy a protected slice (such as an NPC); the result isn't protected.
+				Any slices with special lookup codes (those listed in <ref>lookupslice</ref>)
+				won't have their lookup codes copied; they'll be set to 0 instead.
+				Passing the root slice or a Map slice as <p>handle</p> is an error.
+				Trying to clone a slice which has a Map slice as a descendent is OK,
+				the Map slices just won't be copied.
+				Any slices of type Special (such as the textbox or script layers) will be copied as
+				plain Container slices (there isn't really any difference between them).
+			</description>
+		</command>
 		<command id="setsliceextra">
 			<canon>set slice extra (handle, extra, value)</canon>
 			<shortname>set slice extra</shortname>
@@ -6465,9 +6485,15 @@ set horiz align(sl, edge:right)
 		<command id="clonesprite">
 			<canon>clone sprite (handle)</canon>
 			<shortname>clone sprite</shortname>
-			<description>Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <ref>spritelayer</ref> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
+			<description>Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <ref>spritelayer</ref> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.
+				<note>
+					If you want to copy a non-sprite slice, copy all the properties of the slice,
+					or copy its children, then use the <ref>cloneslice</ref> command instead.
+				</note>
+			</description>
 			<seealso>
 				<ref>freesprite</ref>
+				<ref>cloneslice</ref>
 			</seealso>
 		</command>
 		<command id="putsprite">
