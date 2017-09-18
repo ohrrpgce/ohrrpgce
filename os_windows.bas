@@ -590,11 +590,17 @@ function open_process (program as string, args as string, waitable as boolint, g
 	dim flags as integer = 0
 	dim sinfo as STARTUPINFO
 	sinfo.cb = sizeof(STARTUPINFO)
-        if graphical = NO then
-		sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
-		'(Apparently this flag doesn't work unless you also set standard input and output handle)
+	if graphical = NO then
+		'I wrote originally that
+		'"Apparently CREATE_NO_WINDOW doesn't work unless you also set standard input and output handle"
+		'however now I can't reproduce that problem (on Windows XP).
+		'However, passing STARTF_USESTDHANDLES causes pipe redirection (>, 2>)
+		'to not work when passed to cmd.exe as a commandline, breaking run_and_get_output.
+		'I can't understand why cmd.exe should care!
+		'sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
 		flags or= CREATE_NO_WINDOW
 	end if
+
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
 	'Passing NULL as lpApplicationName causes the first quote-delimited
 	'token in argstemp to be used, and to search for the program in standard
@@ -609,6 +615,7 @@ function open_process (program as string, args as string, waitable as boolint, g
 	end if
 end function
 
+'Untested?
 'Run a (hidden) commandline program asynchronously and open a pipe which writes
 'to its stdin & reads from stdout, searching for it in the standard search paths.
 'Returns 0 on failure.
@@ -651,6 +658,7 @@ function open_piped_process (program as string, args as string, byval iopipe as 
 	'sinfo.hStdError = clientpipe->fh
 	sinfo.hStdOutput = clientpipe->fh
 	sinfo.hStdInput = clientpipe->fh
+	'FIXME: not sure whether to use this flag (see open_process), since this function is untested
 	sinfo.dwFlags or= STARTF_USESTDHANDLES 'OR STARTF_USESHOWWINDOW
 	'(Apparently this flag doesn't work unless you also set standard input and output handle)
 	flags or= CREATE_NO_WINDOW
