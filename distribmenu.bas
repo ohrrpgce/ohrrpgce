@@ -1333,6 +1333,10 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  #IFDEF __FB_WIN32__
  'This is a hack to replace tar.exe's horrendous default permissions, and to (clumsily) mark the executables with the executable bit
   more_args = " --mode=755"
+  'This is a workaround for the dumbest misfeature: some versions of tar.exe
+  '(the one in msys, but not the one we distribute) will treat the name of the tarball
+  'as being a remote filename if it contains a ':'... even on Windows!!!!11asjdajd
+  more_args &= " --force-local"
  #ENDIF
  
  DIM spawn_ret as string
