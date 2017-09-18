@@ -149,7 +149,7 @@ class Context(object):
 class Platform(object):
     
     def __init__(self):
-        self.gamefiles = ["misc/gdbscripts", "misc/gdbcmds1.txt", "misc/gdbcmds2.txt"]
+        self.gamefiles = ["misc/gdbscripts", "misc/gdbcmds1.txt"]
         if sys.platform == "win32":
             self.gamefiles += ["game.exe", "gdbgame.bat"]
             self.game = "./gdbgame.bat"
