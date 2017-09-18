@@ -2192,7 +2192,9 @@ SUB killdir(directory as string, recurse as bool = NO)
 #endif
   DIM filetype as FileTypeEnum = get_file_type(directory)
   IF filetype <> fileTypeDirectory THEN
-    showerror "killdir: '" & directory & "' is not a directory, it is " & safe_caption(filetype_names(), filetype, "filetype") & ". Skipping."
+    DIM msg as string
+    msg = "killdir: '" & directory & "' is not a directory, it is " & safe_caption(filetype_names(), filetype, "filetype") & ". Skipping."
+    IF filetype <> fileTypeNonexistent THEN visible_debug msg ELSE debuginfo msg
     EXIT SUB
   END IF
   ' For safety. (You ought to pass absolute paths.) Check

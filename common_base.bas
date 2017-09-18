@@ -36,6 +36,11 @@ SUB showerror (msg as string, byval isfatal as integer = 0)
  END IF
 END SUB
 
+SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
+ debugc errlvl, msg
+ 'notification msg + !"\nPress any key..."
+END SUB
+
 SUB fatalerror (e as string)
   IF e <> "" THEN print "ERROR: " + e
   IF cleanup_function THEN cleanup_function()
