@@ -10,6 +10,15 @@ include, hstests.hss
 include, autotest.hsi
 include, "autotest-plotstr.hsi"
 
+# Save slots used:
+# 1 for save/load tests
+# 2 for save/load tests
+# 3 for export globals tests
+# 4 test expanding strings from save slots
+# 5 empty, for testing failure of expanding strings from empty save slots
+# 31 save slot: persistent
+
+
 ########################################################################
 
 define constant(1, default wait)
@@ -51,7 +60,7 @@ define constant(1000, array:zones)
 define constant(10, err arg string)
 define constant(11, assert expression string)
 
-# save slots 1 and 2, at least, also get used
+# see notes at the top of this file for what save slots get used
 define constant(31, save slot: persistent)
 
 ########################################################################
@@ -670,16 +679,103 @@ script, hero names embed tests, begin
   hero names embed helper
 
   show no value, w
-
-  # restore old party order
+  advance textbox
   swap by position(0, 1)  # Nolaf to front
   delete hero(hero:Olaf)
+  
+  # Test embedtext from save slots
+
+  # Control test, no change to hero name
+  save in slot(4), w
+  expand string($1="${H1}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Helga"))
+  
+  # Hero name by hero id
+  # Helga should be in the reserve when this happens, but we don't care exactly which reserve slot
+  variable(helgaslot)
+  helgaslot := find hero(hero:Helga)
+  assert(helgaslot > 3)
+  # Change Helga's name
+  set hero name($3="Hagar", helgaslot)
+  save in slot(4), w
+  expand string($1="${H1}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Hagar"))
+  # Restore hero name, check again
+  set hero name($3="Helga", helgaslot)
+  assert(string compare(get hero name(1, helgaslot), $2="Helga"))
+  expand string($1="${H1}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Hagar"))
+  
+  # Hero name by party slot
+  # Put helga in slot 2
+  swap by position(find hero(hero:Helga), 2)
+  assert(find hero(hero:Helga) == 2)
+  # Rename her and resave
+  set hero name($3="Humpty", 2)
+  save in slot(4), w
+  expand string($1="${P2}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Humpty"))
+  # Restore name, check again
+  set hero name($3="Helga", 2)
+  assert(string compare(get hero name(1, 2), $2="Helga"))
+  expand string($1="${P2}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Humpty"))
+
+  # Hero name by caterpillar slot  
+  # Put helga in slot 3
+  swap by position(find hero(hero:Helga), 3)
+  assert(find hero(hero:Helga) == 3)
+  # Make slot 2 empty
+  show string(get hero name(1, 2)), w
+  swap out hero(hero:Olaf)
+  assert(hero by slot(2) == -1)
+  # Make sure slot 0 is empty
+  assert(hero by slot(0) == -1)
+  # Helga should be rank 1 (2nd) in the caterpillar
+  assert(rank in caterpillar(hero:Helga) == 1)
+  # Rename Helga and save
+  set hero name($1="Hissy", 3)
+  save in slot(4), w
+  expand string($1="${C1}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Hissy"))
+  # Restore name, check again
+  set hero name($3="Helga", 3)
+  assert(string compare(get hero name(1, 3), $2="Helga"))
+  expand string($1="${C1}", 4)
+  show string(1), w
+  assert(string compare(1, $2="Hissy"))
+  show no value
+  
+  # Check strings being expanded from an empty slot
+  # Make sure slot 5 is really empty
+  delete save(5)
+
+  expand string($2="${H1}", 5)
+  assert(string compare($1="${H1}", 2))
+
+  expand string($2="${P0}", 5)
+  assert(string compare($1="${P0}", 2))
+
+  expand string($2="${C0}", 5)
+  assert(string compare($1="${C0}", 2))
+
+  expand string($2="${H1},${H2},${H3}", 5)
+  assert(string compare($1="${H1},${H2},${H3}", 2))
+
+  # restore old party order
   swap by position(0, find hero(h0))  
   swap by position(1, find hero(h1))
   swap by position(2, find hero(h2))
   swap by position(3, find hero(h3))
   show box names
   advance textbox
+  
 end
 
 script, hero names embed helper, begin

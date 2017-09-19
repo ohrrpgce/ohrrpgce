@@ -1963,8 +1963,12 @@ SUB script_functions(byval cmdid as integer)
    embedtext plotstr(retvals(0)).s
   END IF
  CASE 241'-- expand string(id)
+  retvals(1) = get_optional_arg(1, 0)
   IF valid_plotstr(retvals(0)) THEN
-   embedtext plotstr(retvals(0)).s
+   'Retvals(1) can be 0 for the default of using current game state, or a save slot 1-32
+   IF retvals(1) = 0 ORELSE valid_save_slot(retvals(1)) THEN
+    embedtext plotstr(retvals(0)).s, , retvals(1) - 1
+   END IF
   END IF
  CASE 242'-- joystick button(button, joystick)
   retvals(0) = bound(retvals(0)-1,0,15)

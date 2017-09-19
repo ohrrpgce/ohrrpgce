@@ -707,6 +707,9 @@
 		<a href="#about-clearstring">clear string(ID)</a><br>
 		
 	
+		<a href="#about-cloneslice">clone slice (handle, recurse)</a><br>
+		
+	
 		<a href="#about-clonesprite">clone sprite (handle)</a><br>
 		
 	
@@ -899,7 +902,7 @@
 		<a href="#about-exitscript">exit script</a><br>
 		
 	
-		<a href="#about-expandstring">expand string(ID)</a><br>
+		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
 		
 	
 		<a href="#about-experiencetolevel">experience to level (level)</a><br>
@@ -9352,9 +9355,9 @@ There is no limit on string length.<br>
 </div>
 		<div class="command">
 <a name="about-expandstring"></a>
-		<h4>expand string(ID)</h4>
+		<h4>expand string(ID, saveslot)</h4>
 <p>
-			Expands codes in <span class="param">ID</span> such as ${H1}. This does the same thing that textboxes do automatically.
+			Expands codes in <span class="param">ID</span> such as ${H1}. This does the same thing that textboxes do automatically. The <span class="param">saveslot</span> argument is optional. If you leave it out, the strings will be expanded based on the currently running game state. If you specify a save slot number from 1-32 then the string will be expanded based on hero names in that save slot.
 			
 			
 			
@@ -10973,6 +10976,31 @@ end
 			
 			<div class="seealso">See also: <ul><li><a href="#about-freeslice" class="ref">free slice</a></li></ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-cloneslice"></a>
+		<h4>clone slice (handle, recurse)</h4>
+<p>
+			
+				Copies (clones) a slice.
+				If the optional argument <span class="param">recurse</span> is true (which is the default),
+				then all its children and descendents are copied too.
+				Returns the slice handle for the copy, which has the same parent,
+				and becomes the next sibling to <span class="param">handle</span>.
+				<br>
+				You can copy a protected slice (such as an NPC); the result isn't protected.
+				Any slices with special lookup codes (those listed in <a href="#about-lookupslice" class="ref">lookup slice</a>)
+				won't have their lookup codes copied; they'll be set to 0 instead.
+				Passing the root slice or a Map slice as <span class="param">handle</span> is an error.
+				Trying to clone a slice which has a Map slice as a descendent is OK,
+				the Map slices just won't be copied.
+				Any slices of type Special (such as the textbox or script layers) will be copied as
+				plain Container slices (there isn't really any difference between them).
+			
+			
+			
+			
 		</p>
 </div>
 		<div class="command">
@@ -13595,9 +13623,19 @@ set horiz align(sl, edge:right)
 		<h4>clone sprite (handle)</h4>
 <p>
 			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <a href="#about-spritelayer" class="ref">sprite layer</a> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If you want to copy a non-sprite slice, copy all the properties of the slice,
+					or copy its children, then use the <a href="#about-cloneslice" class="ref">clone slice</a> command instead.
+				</div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-freesprite" class="ref">free sprite</a>, </li>
+<li><a href="#about-cloneslice" class="ref">clone slice</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -17860,7 +17898,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 804 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 805 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

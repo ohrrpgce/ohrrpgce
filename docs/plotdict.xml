@@ -4170,9 +4170,9 @@ get hero name (1, find hero (leader))
 		</command>
 
 		<command id="expandstring">
-			<canon>expand string(ID)</canon>
+			<canon>expand string(ID, saveslot)</canon>
 			<shortname>expand string</shortname>
-			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically.</description>
+			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the strings will be expanded based on the currently running game state. If you specify a save slot number from 1-32 then the string will be expanded based on hero names in that save slot.</description>
 		</command>
 	</section>
 

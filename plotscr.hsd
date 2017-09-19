@@ -258,7 +258,7 @@ define function, begin
 238,searchstring,3,0,0,1      #Search string, (ID1,ID2,start)
 239,trimstring,3,0,-1,1       #Trims the specified string, (ID, start,length)
 240,stringfromtextbox,4,0,0,0,0 #(obsolete) get a line from a textbox  (string, box, line, ignored)
-241,expandstring,1,0          #expand ${Hxx}, etc in a string(ID)
+241,expandstring,2,0,0        #expand ${Hxx}, etc in a string(ID)
 242,joystickbutton,2,0,0      #returns whether a given button is pressed (button, joystick)
 243,joystickaxis,3,0,100,0    #returns the axis position (axis,multiplier,joystick)
 244,waitforscancode,1,0       #waits for a specific scancode
