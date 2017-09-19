@@ -26,6 +26,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       (also, couldn't edit the autosort sort order) [Ralph]
     * Windows only: Fixed a whole bunch of console windows popping up when
       entering Distribute Game menu, and elsewhere [Ralph]
+    * "fill parent" and "set slice width/height" didn't work on Panel
+      or Special slices [Ralph]
 
   * Stuff Only Developers Will Notice
 

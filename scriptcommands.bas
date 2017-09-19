@@ -4733,10 +4733,9 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
  IF valid_plotslice(handle) THEN
   DIM sl as Slice Ptr
   sl = plotslices(handle)
-  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse OR sl->SliceType = slSelect OR sl->SliceType = slScroll THEN
-   IF sl->Fill = NO THEN
-    RETURN YES
-   ELSE
+  SELECT CASE sl->SliceType
+   CASE slRoot, slSpecial, slRectangle, slContainer, slGrid, slEllipse, slSelect, slScroll, slPanel
+    IF sl->Fill = NO THEN RETURN YES
     SELECT CASE sl->Fillmode
      CASE sliceFillFull
       IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
@@ -4746,9 +4745,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
       IF vert_fill_ok THEN RETURN YES
     END SELECT
     scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp
-   END IF
-  ELSE
-   IF sl->SliceType = slText THEN
+   CASE slText
     DIM dat as TextSliceData ptr
     dat = sl->SliceData
     IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", serrBug : RETURN NO
@@ -4757,10 +4754,9 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
     ELSE
      scripterr current_command_name() & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", serrBadOp
     END IF
-   ELSE
+   CASE ELSE 'slSprite, slMap
     scripterr current_command_name() & ": slice handle " & handle & " is not resizeable", serrBadOp
-   END IF
-  END IF
+  END SELECT
  END IF
  RETURN NO
 END FUNCTION
