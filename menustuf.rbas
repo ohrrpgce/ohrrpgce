@@ -1139,7 +1139,7 @@ DIM pv(last_slot) as SaveSlotPreview
 FOR i as integer = 0 TO last_slot
  get_save_slot_preview i, pv(i)
  IF pv(i).valid THEN
-  mapname(i) = getmapname(pv(i).cur_map)
+  mapname(i) = embed_text_codes(getmapname(pv(i).cur_map), i)
   '--leader level
   lev(i) = readglobalstring(43, "Level", 10) & " " & pv(i).leader_lev
   FOR o as integer = 0 TO 3

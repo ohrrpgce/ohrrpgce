@@ -7,9 +7,10 @@ TYPE FnEmbedCode as SUB(code as string, result as string, arg0 as any ptr, arg1 
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)
 
-DECLARE SUB embedtext (text as string, byval limit as integer = 0)
-DECLARE FUNCTION embed_text_codes (text_in as string, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as string
+DECLARE SUB embedtext (text as string, byval limit as integer = 0, byval saveslot as integer=-1)
+DECLARE FUNCTION embed_text_codes (text_in as string, byval saveslot as integer=-1, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as string
 DECLARE FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
+DECLARE FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval arg as integer) as string
 
 DECLARE FUNCTION herobyrank (byval slot as integer) as integer
 DECLARE FUNCTION rank_to_party_slot (byval rank as integer) as integer
