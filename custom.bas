@@ -1762,7 +1762,7 @@ SUB secret_menu ()
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
    IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
-   IF st.pt = 17 THEN slice_editor SL_COLLECT_THINGBROWSER, get_data_dir() & SLASH "thingbrowser.slice", YES
+   IF st.pt = 17 THEN slice_editor SL_COLLECT_THINGBROWSER, get_data_dir() & SLASH "thingbrowser.slice"
    IF st.pt = 18 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice", YES
    IF st.pt = 19 THEN new_spriteset_editor
    IF st.pt = 20 THEN backdrop_browser

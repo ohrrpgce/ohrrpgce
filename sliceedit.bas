@@ -53,7 +53,6 @@ TYPE SliceEditState
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
-                           'TODO: Doesn't do much yet. Should to handle lookup codes in particular better
 
  ' Internal state of lookup_code_grabber
  editing_lookup_name as bool
@@ -71,6 +70,7 @@ TYPE SliceEditState
  DECLARE FUNCTION curslice() as Slice ptr
 END TYPE
 
+CONST kindlimitNOTHING = -1
 CONST kindlimitANYTHING = 0
 CONST kindlimitGRID = 1
 CONST kindlimitSELECT = 2
@@ -145,6 +145,9 @@ DECLARE SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as
 DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
+DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
+DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
+DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
 DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
@@ -168,7 +171,7 @@ DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") a
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
-DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
+DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as integer) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE FUNCTION LowColorCode () as integer
 
@@ -557,7 +560,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
-   IF slice_edit_detail_browse_slicetype(slice_type) THEN
+   IF slice_edit_detail_browse_slicetype(slice_type, editable_slice_types()) THEN
     IF ses.curslice <> NULL ANDALSO ses.curslice <> edslice THEN
      InsertSliceBefore ses.curslice, NewSliceOfType(slice_type)
     ELSE
@@ -582,12 +585,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scDelete) > 1 THEN
-    #IFDEF IS_GAME
-     IF ses.curslice->Lookup < 0 THEN
-      notification "Can't delete special slices!"
-      CONTINUE DO
-     END IF
-    #ENDIF
+    IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(ses.curslice, ses.specialcodes()) THEN
+     notification "Can't delete special slices!"
+     CONTINUE DO
+    END IF
     IF ses.curslice = edslice THEN
      notification "Can't delete the root slice!"
      CONTINUE DO
@@ -788,19 +789,31 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
  RETURN topmost
 END FUNCTION
 
+'--Find index in specialcodes(), or -1
+FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
+ IF code >= 0 THEN RETURN -1
+ FOR i as integer = 0 TO UBOUND(specialcodes)
+  IF code = specialcodes(i).code THEN RETURN i
+ NEXT i
+ RETURN -1
+END FUNCTION
+
+'--Returns whether this lookup code is forbidden, meaning it's special and not whitelisted by specialcodes
+FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
+ RETURN code < 0 ANDALSO find_special_lookup_code(specialcodes(), code) = -1
+END FUNCTION
+
 '--Returns whether one of the descendents is forbidden
-FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as integer
+FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
  IF sl = 0 THEN RETURN NO
- IF sl->Lookup < 0 THEN
-  DIM okay as bool = NO
-  FOR i as integer = 0 TO UBOUND(specialcodes)
-   IF sl->Lookup = specialcodes(i).code THEN okay = YES
-  NEXT i
-  IF NOT okay THEN RETURN YES
- END IF
+ IF lookup_code_forbidden(specialcodes(), sl->Lookup) THEN RETURN YES
  IF int_array_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN RETURN YES
- IF slice_editor_forbidden_search(sl->FirstChild, specialcodes()) THEN RETURN YES
- RETURN slice_editor_forbidden_search(sl->NextSibling, specialcodes())
+ DIM ch as Slice ptr = sl->FirstChild
+ WHILE ch
+  IF slice_editor_forbidden_search(ch, specialcodes()) THEN RETURN YES
+  ch = ch->NextSibling
+ WEND
+ RETURN NO
 END FUNCTION
 
 SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
@@ -819,7 +832,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
  IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
-    AND ses.collection_file = "" THEN
+    AND ses.collection_file = "" AND ses.privileged = NO THEN
   DIM msg as string
   msg = "The slice collection you are trying to load includes special " _
         "slices (either due to their type or lookup code), probably " _
@@ -890,11 +903,14 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byv
  DIM sl as Slice Ptr
  IF slice THEN
   ses.clipboard = NewSliceOfType(slContainer)
-  #IFDEF IS_GAME
+  IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(slice, ses.specialcodes()) THEN
+   'If we're copying some special slices, so sanitise with copy_special=NO,
+   'which blanks out all special lookup codes
    sl = CloneSliceTree(slice, , NO)  'copy_special=NO
-  #ELSE
+  ELSE
+   ' Preserve lookup codes, including negative ones which are allowed in this editor
    sl = CloneSliceTree(slice)
-  #ENDIF
+  END IF
   SetSliceParent sl, ses.clipboard
  ELSE
   ses.clipboard = CloneSliceTree(edslice)
@@ -1024,23 +1040,43 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    DIM n as integer ptr = rule.dataptr
    state.need_update OR= lookup_code_grabber(*n, ses, rule.lower, rule.upper)
  END SELECT
- IF rule.group AND slgrPICKTYPE THEN
-  DIM switchtype as integer = NO
+
+ IF rule.group AND slgrPICKTYPE THEN  'Pick slice type
+  DIM switchtype as bool = NO
   DIM slice_type as SliceTypes = sl->SliceType
   DIM slice_type_num as integer = -1
-  FOR i as integer = 0 TO UBOUND(editable_slice_types)
-   IF slice_type = editable_slice_types(i) THEN slice_type_num = i
-  NEXT i
-  '--Don't autoclamp, because slice_type_num may be -1
-  IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types), , , , , NO) THEN
-   slice_type = editable_slice_types(slice_type_num)
-   state.need_update = YES
-   switchtype = YES
+  ' First build the list of types that are compatible with this lookup code
+  DIM allowed_types() as integer
+  DIM kindlimit as integer = kindlimitANYTHING  'If the lookup isn't special
+  IF sl->Lookup < 0 THEN
+   DIM which as integer = find_special_lookup_code(ses.specialcodes(), sl->Lookup)
+   IF which > -1 THEN
+    kindlimit = ses.specialcodes(which).kindlimit
+   ELSE 'If the lookup isn't recognised, don't allow changing it
+    kindlimit = IIF(ses.privileged, kindlimitANYTHING, kindlimitNOTHING)
+   END IF
+  ELSEIF sl->Protect ANDALSO ses.privileged = NO THEN
+   kindlimit = kindlimitNOTHING  'Can't change protected slices
   END IF
-  IF enter_space_click(state) THEN
-   IF slice_edit_detail_browse_slicetype(slice_type) THEN
+  ' Use kindlimit to filter editable_slice_types()
+  FOR i as integer = 0 TO UBOUND(editable_slice_types)
+   DIM edtype as SliceTypes = editable_slice_types(i)
+   IF special_code_kindlimit_check(kindlimit, edtype) THEN
+    int_array_append allowed_types(), edtype
+   END IF
+  NEXT i
+  slice_type_num = int_array_find(allowed_types(), slice_type)
+  IF slice_type_num > -1 THEN  'Can't change the type if it's a special type
+   IF intgrabber(slice_type_num, 0, UBOUND(allowed_types)) THEN
+    slice_type = allowed_types(slice_type_num)
     state.need_update = YES
     switchtype = YES
+   END IF
+   IF enter_space_click(state) THEN
+    IF slice_edit_detail_browse_slicetype(slice_type, allowed_types()) THEN
+     state.need_update = YES
+     switchtype = YES
+    END IF
    END IF
   END IF
   IF switchtype THEN
@@ -1247,16 +1283,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  menu(0) = "Previous Menu"
  WITH *sl
   menu(1) = "Slice type: " & SliceTypeName(sl)
-  #IFDEF IS_CUSTOM
-   sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
-  #ELSE
-   '--If this is a special slice, then you're not allowed to change the type.
-   IF .Lookup >= 0 THEN
-    sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
-   ELSE
-    sliceed_rule_none rules(), "slicetype"
-   END IF
-  #ENDIF
+  sliceed_rule_none rules(), "slicetype", slgrPICKTYPE  'May not be editable; see slgrPICKTYPE
   menu(2) = "X: " & .X
   sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   menu(3) = "Y: " & .Y
@@ -1267,16 +1294,14 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
-  DIM minlookup as integer = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, -999999999, 0)
-  #IFDEF IS_CUSTOM
+  DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
+  IF ses.privileged ORELSE lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
    sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
-  #ELSE
-   IF .Lookup >= 0 THEN
-    sliceed_rule rules(), "lookup", erLookupgrabber, @.Lookup, minlookup, INT_MAX, slgrPICKLOOKUP
-   ELSE
-    '--Not allowed to change lookup code at all
-    sliceed_rule_none rules(), "lookup"
-   END IF
+  ELSE
+   '--Not allowed to change lookup code at all
+   sliceed_rule_none rules(), "lookup"
+  END IF
+  #IFDEF IS_GAME
    str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
    sliceed_rule_none rules(), "scripthandle"
   #ENDIF
@@ -1457,16 +1482,18 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  init_menu_state state, menu(), menuopts
 END SUB
 
-FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes) as SliceTypes
+'Pick a slice type in allowed_types(), return YES if didn't cancel
+FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as integer) as bool
+ IF UBOUND(allowed_types) < 0 THEN RETURN NO
  DIM as integer default, choice
- DIM menu(UBOUND(editable_slice_types)) as string
+ DIM menu(UBOUND(allowed_types)) as string
  FOR i as integer = 0 TO UBOUND(menu)
-  menu(i) = SliceTypeName(cast(SliceTypes, editable_slice_types(i)))
-  IF editable_slice_types(i) = slice_type THEN default = i
+  menu(i) = SliceTypeName(cast(SliceTypes, allowed_types(i)))
+  IF allowed_types(i) = slice_type THEN default = i
  NEXT i
  choice = multichoice("What type of slice?", menu(), default, -1, "sliceedit_browse_slicetype")
  IF choice = -1 THEN RETURN NO
- slice_type = editable_slice_types(choice)
+ slice_type = allowed_types(choice)
  RETURN YES
 END FUNCTION
 
@@ -1649,9 +1676,10 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  RETURN s
 END FUNCTION
 
+'Returns whether this SpecialLookupCode.kindlimit allows a lookup code to be assigned to this slice type
 FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
- IF kindlimit = kindlimitANYTHING THEN RETURN YES
  SELECT CASE kindlimit
+  CASE kindlimitNOTHING:
   CASE kindlimitANYTHING:
    RETURN YES
   CASE kindlimitGRID:
@@ -1765,7 +1793,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   curcode = v_at(menu, st.pt)->dat
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
-  IF keyval(scEnter) > 1 THEN
+  IF enter_space_click(st) THEN
    IF curcode <> -1 THEN result = curcode  'Not 'Previous Menu'
    EXIT DO
   END IF
