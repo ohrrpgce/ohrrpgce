@@ -755,18 +755,10 @@ script, hero names embed tests, begin
   # Check strings being expanded from an empty slot
   # Make sure slot 5 is really empty
   delete save(5)
-
-  expand string($2="${H1}", 5)
-  assert(string compare($1="${H1}", 2))
-
-  expand string($2="${P0}", 5)
-  assert(string compare($1="${P0}", 2))
-
-  expand string($2="${C0}", 5)
-  assert(string compare($1="${C0}", 2))
-
-  expand string($2="${H1},${H2},${H3}", 5)
-  assert(string compare($1="${H1},${H2},${H3}", 2))
+  assert(string compare($1="${H1}", expand string($2="${H1}", 5)))
+  assert(string compare($1="${P0}", expand string($2="${P0}", 5)))
+  assert(string compare($1="${C0}", expand string($2="${C0}", 5)))
+  assert(string compare($1="${H1},${H2},${H3}", expand string($2="${H1},${H2},${H3}", 5)))
 
   # restore old party order
   swap by position(0, find hero(h0))  

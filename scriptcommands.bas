@@ -1969,6 +1969,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(1) = 0 ORELSE valid_save_slot(retvals(1)) THEN
     embedtext plotstr(retvals(0)).s, , retvals(1) - 1
    END IF
+   scriptret = retvals(0)
   END IF
  CASE 242'-- joystick button(button, joystick)
   retvals(0) = bound(retvals(0)-1,0,15)
