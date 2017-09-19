@@ -782,6 +782,23 @@ script, hero names embed tests, begin
   show string(expand string($1="Var=${V121}", 5)), w
   assert(string compare(1, $2="Var=${V121}"))
 
+  # Test strings
+  $3="A very fine mess"
+  save in slot(4), w
+  $3="Cleaned up"
+  show string(expand string($2="${S3}", 4)), w
+  assert(string compare(2, $1="A very fine mess"))
+  assert(string compare(3, $1="Cleaned up"))
+  # A different string
+  $2="Is better than sloppy order"
+  save in slot(4), w
+  $2=""
+  show string(expand string($3="${S2}", 4)), w
+  assert(string compare(3, $1="Is better than sloppy order"))
+  # An empty save slot (5)
+  show string(expand string($3="${S2}", 5)), w
+  assert(string compare(3, $1="${S2}"))
+
   # restore old party order
   swap by position(0, find hero(h0))  
   swap by position(1, find hero(h1))

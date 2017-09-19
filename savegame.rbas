@@ -2000,3 +2000,11 @@ FUNCTION saveslot_global(byval saveroot as NodePtr, byval global_id as integer) 
  RETURN 0 'not found
 END FUNCTION
 
+FUNCTION saveslot_plotstr(byval saveroot as NodePtr, byval string_id as integer) as string
+ DIM node as NodePtr = NodeByPath(saveroot, "/script/strings/string[" & string_id & "]/str")
+ IF node THEN
+  RETURN GetString(node)
+ END IF
+ RETURN "" 'not found
+END FUNCTION
+

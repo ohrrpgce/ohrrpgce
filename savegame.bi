@@ -31,6 +31,7 @@ DECLARE FUNCTION saveslot_rank_to_party_slot (byval saveroot as NodePtr, byval r
 DECLARE FUNCTION saveslot_hero_name_by_slot(byval saveroot as NodePtr, byval slot as integer) as string
 DECLARE FUNCTION saveslot_hero_id_by_slot(byval saveroot as NodePtr, byval slot as integer) as integer
 DECLARE FUNCTION saveslot_global(byval saveroot as NodePtr, byval global_id as integer) as integer
+DECLARE FUNCTION saveslot_plotstr(byval saveroot as NodePtr, byval string_id as integer) as string
 
 #endif
 

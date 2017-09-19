@@ -209,11 +209,11 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
    IF arg >= 0 AND arg <= maxScriptGlobals THEN
     insert = STR(saveslot_global(node, arg))
    END IF
-  'CASE "S": '--string variable by ID
-  ' insert = ""
-  ' IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
-  '  insert = plotstr(arg).s
-  ' END IF
+  CASE "S": '--string variable by ID
+   insert = ""
+   IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
+    insert = saveslot_plotstr(node, arg)
+   END IF
  END SELECT
  RETURN insert
 END FUNCTION
