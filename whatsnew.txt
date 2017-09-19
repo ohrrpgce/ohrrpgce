@@ -18,6 +18,9 @@ Nov/Dec ??? 2017 [Etheldreme]
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
     * "clone slice" [Ralph]
+    * "expand string" now has an optional argument that allows it to
+      expand ${} codes based on the data in a save slot instead of the
+      currently running game state [James]
 
   * Changes
 
@@ -28,6 +31,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       entering Distribute Game menu, and elsewhere [Ralph]
     * "fill parent" and "set slice width/height" didn't work on Panel
       or Special slices [Ralph]
+    * ${} codes in map names display correctly in the save/load screen
+      [James]
 
   * Stuff Only Developers Will Notice
 
