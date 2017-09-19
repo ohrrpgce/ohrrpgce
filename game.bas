@@ -1121,6 +1121,8 @@ SUB displayall()
  update_backdrop_slice
  IF txt.showing = YES THEN update_textbox
 
+ clearpage dpage
+
  NumDrawnSlices = 0
  DIM drawtime as double = TIMER
  DrawSlice(SliceTable.Root, dpage)
