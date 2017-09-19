@@ -1498,19 +1498,21 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allo
  RETURN YES
 END FUNCTION
 
+'Returns a description of a slice, used on the top-level list of slices
 FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
- 'This shows the absolute screen position of a slice.
  DIM s as string
  WITH *sl
-  s = (.ScreenX - rootsl->ScreenX) & "," & (.ScreenY - rootsl->ScreenY) & "(" & .Width & "x" & .Height & ")"
+  s = SliceTypeName(sl) & " "
+  s &= (.ScreenX - rootsl->ScreenX) & "," & (.ScreenY - rootsl->ScreenY) & "(" & .Width & "x" & .Height & ")"
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= " [root]"
   END IF
   s &= "${K" & uilook(uiText) & "} "
-  IF .Lookup > 0 AND .Lookup <= UBOUND(slicelookup) THEN
+  'Show the lookup code name instead of the ID, provided it doesn't have a blank name
+  IF .Lookup > 0 ANDALSO .Lookup <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(.Lookup))) THEN
    s &= slicelookup(.Lookup)
   ELSE
-   s &= SliceLookupCodeName(.Lookup)
+   s &= SliceLookupCodeName(.Lookup)  'returns STR(.Lookup) if not recognied
   END IF
  END WITH
  RETURN s
@@ -1582,8 +1584,7 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer,
   DIM caption as string
   caption = STRING(indent, " ")
   IF sl->EditorHideChildren THEN caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
-  caption = caption & SliceTypeName(sl)
-  caption = caption & " " & slice_caption(sl, ses.slicelookup(), ses.draw_root, edslice)
+  caption &= slice_caption(sl, ses.slicelookup(), ses.draw_root, edslice)
   IF sl <> hidden_slice THEN
    slice_editor_refresh_append index, ses.slicemenu(), caption, sl
    indent += 1
@@ -1669,7 +1670,7 @@ FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as strin
  ELSE
   s = STR(code)
   IF code <= UBOUND(slicelookup) THEN
-   s = s & " " & slicelookup(code)
+   s &= " " & slicelookup(code)
   ELSE
    s &= " (Unnamed)"
   END IF
