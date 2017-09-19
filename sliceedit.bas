@@ -586,7 +586,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
    IF keyval(scDelete) > 1 THEN
     IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(ses.curslice, ses.specialcodes()) THEN
-     notification "Can't delete special slices!"
+     notification "Can't delete special/protected slices!"
      CONTINUE DO
     END IF
     IF ses.curslice = edslice THEN
@@ -806,6 +806,7 @@ END FUNCTION
 '--Returns whether one of the descendents is forbidden
 FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode) as bool
  IF sl = 0 THEN RETURN NO
+ IF sl->Protect THEN RETURN YES
  IF lookup_code_forbidden(specialcodes(), sl->Lookup) THEN RETURN YES
  IF int_array_find(editable_slice_types(), cint(sl->SliceType)) < 0 THEN RETURN YES
  DIM ch as Slice ptr = sl->FirstChild
@@ -834,7 +835,7 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
     AND ses.collection_file = "" AND ses.privileged = NO THEN
   DIM msg as string
-  msg = "The slice collection you are trying to load includes special " _
+  msg = "The slice collection you are trying to load includes protected or special " _
         "slices (either due to their type or lookup code), probably " _
         "because it has been exported from a game. You can't import this " _
         "collection, but it will be now be opened in a new copy of the " _
@@ -905,7 +906,7 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byv
   ses.clipboard = NewSliceOfType(slContainer)
   IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(slice, ses.specialcodes()) THEN
    'If we're copying some special slices, so sanitise with copy_special=NO,
-   'which blanks out all special lookup codes
+   'which blanks out all special lookup codes and wipes .Protected
    sl = CloneSliceTree(slice, , NO)  'copy_special=NO
   ELSE
    ' Preserve lookup codes, including negative ones which are allowed in this editor
