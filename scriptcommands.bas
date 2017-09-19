@@ -203,12 +203,12 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
    IF where >= 0 AND where <= 3 THEN
     insert = saveslot_hero_name_by_slot(node, where)
    END IF
-  'CASE "V": '--global variable by ID
-  ' '--defaults blank if out-of-range
-  ' insert = ""
-  ' IF arg >= 0 AND arg <= maxScriptGlobals THEN
-  '  insert = STR(global(arg))
-  ' END IF
+  CASE "V": '--global variable by ID
+   '--defaults blank if out-of-range
+   insert = ""
+   IF arg >= 0 AND arg <= maxScriptGlobals THEN
+    insert = STR(saveslot_global(node, arg))
+   END IF
   'CASE "S": '--string variable by ID
   ' insert = ""
   ' IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN

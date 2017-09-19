@@ -130,6 +130,7 @@ SUB loadgame (byval slot as integer)
 END SUB
 
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+ 'see also saveslot_global() if you just need a very simple function to read a single global from a save slot
  IF keyval(scShift) = 0 THEN
   'bypass new loading if shift is held down when you load
   DIM filename as string
@@ -1988,5 +1989,14 @@ FUNCTION saveslot_hero_id_by_slot(byval saveroot as NodePtr, byval slot as integ
   RETURN GetInteger(node)
  END IF
  RETURN -1 'not found
+END FUNCTION
+
+FUNCTION saveslot_global(byval saveroot as NodePtr, byval global_id as integer) as integer
+ 'See also loadglobalvars which is more complicated, but similar
+ DIM node as NodePtr = NodeByPath(saveroot, "/script/globals/global[" & global_id & "]/int")
+ IF node THEN
+  RETURN GetInteger(node)
+ END IF
+ RETURN 0 'not found
 END FUNCTION
 

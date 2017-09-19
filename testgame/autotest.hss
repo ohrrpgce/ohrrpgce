@@ -45,6 +45,7 @@ global variable(117, savegame npc)
 global variable(118, called resetgame)
 global variable(119, hook loadgame)
 global variable(120, timer checkpoint interval)
+global variable(121, saveglobal)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -759,6 +760,27 @@ script, hero names embed tests, begin
   assert(string compare($1="${P0}", expand string($2="${P0}", 5)))
   assert(string compare($1="${C0}", expand string($2="${C0}", 5)))
   assert(string compare($1="${H1},${H2},${H3}", expand string($2="${H1},${H2},${H3}", 5)))
+
+  # Although not hero related, lets throw some tests for ${V} and ${S} in here too.
+  #saveglobal is global id 121
+  saveglobal := 54321
+  show string(expand string($1="Var=${V121}")), w
+  assert(string compare(1, $2="Var=54321"))
+  # Save the global to save slot 4, check it
+  save in slot(4), w
+  saveglobal := 1
+  show string(expand string($1="Var=${V121}", 4)), w
+  assert(string compare(1, $2="Var=54321"))
+  # Replace it with another value
+  saveglobal := 100001
+  save in slot(4), w
+  saveglobal := 1
+  show string(expand string($1="Var=${V121}", 4)), w
+  assert(string compare(1, $2="Var=100001"))
+  assert(saveglobal == 1)
+  # Check empty slot 5
+  show string(expand string($1="Var=${V121}", 5)), w
+  assert(string compare(1, $2="Var=${V121}"))
 
   # restore old party order
   swap by position(0, find hero(h0))  
