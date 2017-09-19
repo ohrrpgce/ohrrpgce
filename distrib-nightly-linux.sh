@@ -18,26 +18,29 @@ TODAY=`date "+%Y-%m-%d"`
 
 mkdir -p ~/src/nightly
 cd ~/src/nightly
+echo "Changed to ~/src/nightly"
 
+echo "First package the source distribution..."
 if [ ! -d ohrrpgce ] ; then
-  echo nightly snapshot not found, checking out from svn...
+  echo "Nightly snapshot not found, checking out from svn..."
   mkdir ohrrpgce
   svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce/wip
 fi
+rm ./ohrrpgce/wip/docs/plotdictionary.html
 svn cleanup ./ohrrpgce/wip
 svn update ./ohrrpgce/wip
 
 cd ohrrpgce
 
-echo removing old nightly source snapshot...
+echo "Removing old nightly source snapshot..."
 rm ohrrpgce-source-nightly.zip
 
-echo zipping up new nightly snapshot
+echo "Zipping up new nightly snapshot..."
 svn info wip > wip/svninfo.txt
 zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*"
 ls -l ohrrpgce-source-nightly.zip
 
-echo uploading new nightly source snapshot
+echo "Uploading new nightly source snapshot..."
 scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
 # This is duplicated in distrib-nightly-win[-wine].sh
