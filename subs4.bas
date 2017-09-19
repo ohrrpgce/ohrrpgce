@@ -306,7 +306,7 @@ SUB script_error_mode_menu ()
  box = NewSliceOfType(slRectangle, root)
  WITH *box
   .Fill = YES
-  .FillMode = 1
+  .FillMode = sliceFillHoriz
   .height = 48
   .AnchorHoriz = 1
   .AnchorVert = 2

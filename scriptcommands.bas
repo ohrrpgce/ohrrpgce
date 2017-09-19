@@ -4738,11 +4738,11 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
     RETURN YES
    ELSE
     SELECT CASE sl->Fillmode
-     CASE 0 'Filling both
+     CASE sliceFillFull
       IF horiz_fill_ok ANDALSO vert_fill_ok THEN RETURN YES
-     CASE 1 'Filling horiz only
+     CASE sliceFillHoriz
       IF horiz_fill_ok THEN RETURN YES
-     CASE 2 'Filling vert only
+     CASE sliceFillVert
       IF vert_fill_ok THEN RETURN YES
     END SELECT
     scripterr current_command_name() & ": slice handle " & handle & " cannot be resized while filling parent", serrBadOp

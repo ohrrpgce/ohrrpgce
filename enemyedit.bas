@@ -1252,7 +1252,7 @@ SUB individual_formation_editor ()
    WITH form.slots(slot)
     DIM sprite as Slice ptr = LookupSlice(SL_FORMEDITOR_ENEMY + slot, rootslice)
     DIM size as XYPair
-    IF sprite THEN size = SliceSize(sprite)
+    IF sprite THEN size = sprite->Size
     ' Note that enemy positions are the top-left corner of the sprite
     ' (which needs to be changed)
     IF keyval(scUp) > 0 THEN .pos.y -= movespeed

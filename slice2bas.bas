@@ -87,13 +87,11 @@ Sub WriteSliceNodeAsBasic(byval fh as integer, byval n as NodePtr, byval d as in
  end if
  WrInt fh, n, d, "lookup"
  if GetChildNodeInt(n, "fill") then
-  if GetChildNodeInt(n, "fillmode") = 1 then
-   'fill horizontal
+  if GetChildNodeInt(n, "fillmode") = sliceFillHoriz then
    WrInt fh, n, d, "y"
    WrInt fh, n, d, "height", "h"
   end if
-  if GetChildNodeInt(n, "fillmode") = 2 then
-   'fill vertical
+  if GetChildNodeInt(n, "fillmode") = sliceFillVert then
    WrInt fh, n, d, "x"
    WrInt fh, n, d, "width", "w"
   end if
