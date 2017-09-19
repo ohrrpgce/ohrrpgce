@@ -1732,7 +1732,9 @@ FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState,
   IF strgrabber(ses.slicelookup(code), 40) THEN
    ses.slicelookup(code) = sanitize_script_identifier(ses.slicelookup(code))
    shrink_lookup_list ses.slicelookup()
-   save_string_list ses.slicelookup(), workingdir & SLASH & "slicelookup.txt"
+   IF can_write_to_workingdir THEN  'not live previewing
+    save_string_list ses.slicelookup(), workingdir & SLASH & "slicelookup.txt"
+   END IF
    ses.editing_lookup_name = YES
    ses.last_lookup_name_edit = TIMER
    RETURN YES
@@ -1831,8 +1833,10 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  '--Make sure the 0 string is blank
  slicelookup(0) = ""
- 
- save_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+
+ IF can_write_to_workingdir THEN  'not live previewing
+  save_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+ END IF
 
  RETURN result
 END FUNCTION

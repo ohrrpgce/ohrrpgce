@@ -255,6 +255,9 @@ declare function get_filename(fnum as integer) as string
 
 end extern
 
+'This is always true except in Game when live previewing (running off Custom's workingdir)
+extern can_write_to_workingdir as bool
+
 declare function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
 declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", timeout_ms as integer = 500) as integer
 

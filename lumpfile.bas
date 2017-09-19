@@ -37,6 +37,8 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
  EXTERN running_as_slave as integer
 #endif
 
+DIM can_write_to_workingdir as bool = YES
+
 
 '----------------------------------------------------------------------
 '                          LumpIndex class

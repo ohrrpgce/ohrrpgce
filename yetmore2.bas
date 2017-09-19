@@ -1328,6 +1328,7 @@ SUB handshake_with_master ()
  'Set this hook to throw an error on any detected write in workingdir;
  'also needed to set a shared lock when reading a file
  set_OPEN_hook @inworkingdir, NO, NULL
+ can_write_to_workingdir = NO
 END SUB
 
 'Reads and handles messages from Custom, updating modified_lumps
