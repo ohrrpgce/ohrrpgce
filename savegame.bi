@@ -27,6 +27,7 @@ DECLARE FUNCTION count_used_save_slots() as integer
 'Helper functions to quickly read stuff from save slots without loading the whole save
 DECLARE FUNCTION saveslot_quick_root_node(byval saveslot as integer) as NodePtr
 DECLARE FUNCTION saveslot_findhero(byval saveroot as NodePtr, byval id as integer) as integer
+DECLARE FUNCTION saveslot_rank_to_party_slot (byval saveroot as NodePtr, byval rank as integer) as integer
 DECLARE FUNCTION saveslot_hero_name_by_slot(byval saveroot as NodePtr, byval slot as integer) as string
 DECLARE FUNCTION saveslot_hero_id_by_slot(byval saveroot as NodePtr, byval slot as integer) as integer
 

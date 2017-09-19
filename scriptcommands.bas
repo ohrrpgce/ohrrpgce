@@ -193,16 +193,16 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
     '--defaults blank if not found
     insert = ""
     IF saveslot_hero_id_by_slot(node, arg) >= 0 THEN
-     insert = gam.hero(arg).name
+     insert = saveslot_hero_name_by_slot(node, arg)
     END IF
    END IF
-  'CASE "C": '--Hero name by caterpillar position
-  ' '--defaults blank if not found
-  ' insert = ""
-  ' DIM where as integer = rank_to_party_slot(arg)
-  ' IF where >= 0 AND where <= 3 THEN
-  '  insert = gam.hero(where).name
-  ' END IF
+  CASE "C": '--Hero name by caterpillar position
+   '--defaults blank if not found
+   insert = ""
+   DIM where as integer = saveslot_rank_to_party_slot(node, arg)
+   IF where >= 0 AND where <= 3 THEN
+    insert = saveslot_hero_name_by_slot(node, where)
+   END IF
   'CASE "V": '--global variable by ID
   ' '--defaults blank if out-of-range
   ' insert = ""

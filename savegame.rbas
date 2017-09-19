@@ -1959,6 +1959,20 @@ FUNCTION saveslot_findhero(byval saveroot as NodePtr, byval id as integer) as in
  RETURN -1 'not found
 END FUNCTION
 
+FUNCTION saveslot_rank_to_party_slot (byval saveroot as NodePtr, byval rank as integer) as integer
+ 'Returns the party slot of the nth hero in the party
+ 'This is used for converting caterpillar rank into party slot.
+ 'Returns -1 if there are not that many heroes in the active party
+ DIM heronum as integer = -1
+ FOR party_slot as integer = 0 TO 3
+  IF saveslot_hero_id_by_slot(saveroot, party_slot) >= 0 THEN heronum += 1
+  IF heronum = rank THEN
+   RETURN party_slot
+  END IF
+ NEXT
+ RETURN -1
+END FUNCTION
+
 FUNCTION saveslot_hero_name_by_slot(byval saveroot as NodePtr, byval slot as integer) as string
  IF saveslot_hero_id_by_slot(saveroot, slot) = -1 THEN RETURN "" 'Slot is empty
  DIM node as NodePtr = NodeByPath(saveroot, "/party/slot[" & slot & "]/name")
