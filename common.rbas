@@ -1902,7 +1902,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
  dat = text_area->SliceData
  dat->line_limit = 15
 
- DIM deadkeys as integer = 25
+ DIM deadkeys as integer = 15
  DIM scrollbar_state as MenuState
  scrollbar_state.size = 16
 
@@ -1926,7 +1926,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
   deadkeys = large(deadkeys - 1, 0)
 
   'Animate the arrival of the pop-up
-  animate->Y = large(animate->Y - 20, 0)
+  animate->Y = large(animate->Y - vpages(vpage)->h \ 15, 0)
 
   DrawSlice root, dpage
   
@@ -1942,11 +1942,11 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
   dowait
  LOOP
 
- '--Animate the removal of the help screen
+ '--Animate the removal of the screen
  DO
   setkeys
   setwait 17
-  animate->Y = animate->Y + 20
+  animate->Y = animate->Y + vpages(vpage)->h \ 15
   IF animate->Y > 200 THEN EXIT DO
   DrawSlice root, dpage
   SWAP vpage, dpage
@@ -2198,7 +2198,7 @@ SUB show_help(helpkey as string)
   deadkeys = large(deadkeys -1, 0)
 
   'Animate the arrival of the help screen
-  animate->Y = large(animate->Y - 20, 0)
+  animate->Y = large(animate->Y - vpages(vpage)->h \ 15, 0)
 
   copypage holdscreen, vpage
 
@@ -2218,7 +2218,7 @@ SUB show_help(helpkey as string)
  DO
   setkeys
   setwait 17
-  animate->Y = animate->Y + 20
+  animate->Y = animate->Y + vpages(vpage)->h \ 15
   IF animate->Y > vpages(vpage)->h THEN EXIT DO
   copypage holdscreen, vpage
   DrawSlice help_root, vpage
