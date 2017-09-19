@@ -289,7 +289,9 @@ END FUNCTION
 
 
 FUNCTION rank_to_party_slot (byval rank as integer) as integer
- 'Returns the party slot of the nth hero in the party (not just caterpillar party), or -1
+ 'Returns the party slot of the nth hero in the party
+ 'This is used for converting caterpillar rank into party slot.
+ 'Returns -1 if there are not that many heroes in the active party
  DIM heronum as integer = -1
  FOR party_slot as integer = 0 TO 3
   IF gam.hero(party_slot).id >= 0 THEN heronum += 1
