@@ -1710,6 +1710,7 @@ END FUNCTION
 
 SUB secret_menu ()
  DIM menu(...) as string = { _
+     "Editor Slice Editor", _
      "Reload Editor", _
      "Editor Editor", _
      "Conditions and More Tests", _
@@ -1727,7 +1728,6 @@ SUB secret_menu ()
      "Edit Spell Screen Spell List Plank", _
      "Edit Spell Screen Spell Plank", _
      "Edit Virtual Keyboard Screen", _
-     "Editor Slice Editor", _
      "New Spriteset/Animation Editor", _
      "New backdrop browser", _
      "RGFX tests", _
@@ -1744,24 +1744,24 @@ SUB secret_menu ()
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF enter_space_click(st) THEN
-   IF st.pt = 0 THEN reload_editor
-   IF st.pt = 1 THEN editor_editor
-   IF st.pt = 2 THEN condition_test_menu
-   IF st.pt = 3 THEN quad_transforms_menu
-   IF st.pt = 4 THEN arbitrary_sprite_editor
-   IF st.pt = 5 THEN text_test_menu
-   IF st.pt = 6 THEN font_test_menu
-   IF st.pt = 7 THEN stat_growth_chart
-   IF st.pt = 8 THEN resolution_menu YES
-   IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
-   IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
-   IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
-   IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMPLANK
-   IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
-   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
-   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
-   IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
-   IF st.pt = 17 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice", YES
+   IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice", YES
+   IF st.pt = 1 THEN reload_editor
+   IF st.pt = 2 THEN editor_editor
+   IF st.pt = 3 THEN condition_test_menu
+   IF st.pt = 4 THEN quad_transforms_menu
+   IF st.pt = 5 THEN arbitrary_sprite_editor
+   IF st.pt = 6 THEN text_test_menu
+   IF st.pt = 7 THEN font_test_menu
+   IF st.pt = 8 THEN stat_growth_chart
+   IF st.pt = 9 THEN resolution_menu YES
+   IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSCREEN
+   IF st.pt = 11 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
+   IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMSCREEN
+   IF st.pt = 13 THEN slice_editor SL_COLLECT_ITEMPLANK
+   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLSCREEN
+   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
+   IF st.pt = 16 THEN slice_editor SL_COLLECT_SPELLPLANK
+   IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 18 THEN new_spriteset_editor
    IF st.pt = 19 THEN backdrop_browser
    IF st.pt = 20 THEN new_graphics_tests
