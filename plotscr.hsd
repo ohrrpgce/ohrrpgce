@@ -1939,8 +1939,6 @@ define constant, begin
 -102024, sl:virtual keyboard entrytext
 -102025, sl:virtual keyboard del
 -102026, sl:virtual keyboard enter
--102027, sl:thingbrowser grid
--102028, sl:thingbrowser plank sprite
 -102100, sl:pathfind dest display
 end
 #</SLICE LOOKUP CODES>

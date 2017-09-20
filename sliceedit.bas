@@ -244,6 +244,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
     CASE "choose_rpg.slice"
      append_specialcode ses, SL_EDITOR_SPLASH_MENU, kindlimitANYTHING
     CASE "thingbrowser.slice"
+     append_specialcode ses, SL_EDITOR_THINGBROWSER_GRID, kindlimitGRID
      append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
    END SELECT
@@ -1781,6 +1782,8 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
   append_simplemenu_item menu, "editor_splash_menu", , , -100
+  append_simplemenu_item menu, "editor_thingbrowser_grid", , , -200
+  append_simplemenu_item menu, "editor_thingbrowser_plank_sprite", , , -201
   append_simplemenu_item menu, "root", , , -100000
   append_simplemenu_item menu, "textbox_text", , , -100001
   append_simplemenu_item menu, "textbox_portrait", , , -100002
@@ -1845,8 +1848,6 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "virtual_keyboard_entrytext", , , -102024
   append_simplemenu_item menu, "virtual_keyboard_del", , , -102025
   append_simplemenu_item menu, "virtual_keyboard_enter", , , -102026
-  append_simplemenu_item menu, "thingbrowser_grid", , , -102027
-  append_simplemenu_item menu, "thingbrowser_plank_sprite", , , -102028
   append_simplemenu_item menu, "pathfind_dest_display", , , -102100
 '</SLICE LOOKUP NAMES>
 

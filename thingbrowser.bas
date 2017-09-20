@@ -34,7 +34,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  enter_browser
 
  dim grid as Slice Ptr
- grid = LookupSlice(SL_THINGBROWSER_GRID, root) 
+ grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
  build_thing_list()
  ChangeGridSlice grid, , grid->Width \ plank_size.x
@@ -157,7 +157,7 @@ Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integ
  'A crude and simple animation helper for sprites in planks.
  'Uses the Extra(1) slot to manage the animation speed.
  'FIXME: rip this all out and replace it when the new animation system is ready
- dim spr as Slice Ptr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if spr then
   spr->Extra(1) = loopvar(spr->Extra(1), 0, delay)
   if spr->Extra(1) = 0 then
@@ -173,7 +173,7 @@ End Function
 
 Sub ThingBrowser.build_thing_list()
  dim grid as slice ptr
- grid = LookupSlice(SL_THINGBROWSER_GRID, root)
+ grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root)
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
@@ -328,7 +328,7 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  box->Visible = NO
  ChangeRectangleSlice box, , , , borderNone
  dim spr as Slice Ptr
- spr = NewSliceOfType(slSprite, plank, SL_THINGBROWSER_PLANK_SPRITE)
+ spr = NewSliceOfType(slSprite, plank, SL_EDITOR_THINGBROWSER_PLANK_SPRITE)
  ChangeSpriteSlice spr, sprite_kind(), id, , sprite_frame()
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
@@ -450,7 +450,7 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
  plank = Base.create_thing_plank(id)
  plank->size = XY(98, 63)
  dim spr as Slice Ptr
- spr = LookupSlice(SL_THINGBROWSER_PLANK_SPRITE, plank)
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if id = -1 then
   DeleteSlice @spr
  end if
