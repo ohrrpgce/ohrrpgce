@@ -558,7 +558,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF keyval(scF3) > 1 AND ses.editing_existing = NO THEN
    DIM choice as integer
    DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
-   choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices())
+   choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
    IF choice >= 0 THEN
     slice_editor_import_file ses, edslice, (choice = 1)
    END IF
