@@ -59,6 +59,7 @@ class Lookup_Updater(object):
     def hspeak(self):
         result = "define constant, begin\n"
         for l in self.lookups:
+            if l.name.startswith("EDITOR_"): continue
             result += "%d, sl:%s\n" % (l.code, l.hspeak_name())
         result += "end\n"
         return result
@@ -66,6 +67,7 @@ class Lookup_Updater(object):
     def docs(self):
         result = ""
         for l in self.lookups:
+            if l.name.startswith("EDITOR_"): continue
             result += "lookup slice(sl:%s)\n" % (l.hspeak_name())
         return result
 
