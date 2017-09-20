@@ -589,7 +589,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  DIM root as Slice ptr
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("choose_rpg.slice")
- DIM menusl as Slice ptr = LookupSlice(-100, root)  'Editor lookup codes not implemented yet
+ DIM menusl as Slice ptr = LookupSlice(SL_EDITOR_SPLASH_MENU, root)
  IF menusl = 0 THEN menusl = NewSliceOfType(slContainer, root)
  
  DIM chooserpg_menu(2) as string

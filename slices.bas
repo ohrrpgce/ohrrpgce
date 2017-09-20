@@ -296,6 +296,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
+  CASE SL_EDITOR_SPLASH_MENU: RETURN "editor_splash_menu"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"

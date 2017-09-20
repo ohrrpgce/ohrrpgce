@@ -237,6 +237,16 @@ END FUNCTION
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
  REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
+  CASE SL_COLLECT_EDITOR:
+   'Editor slices might need access to many different kinds of special codes
+   'so we filter them by filename
+   SELECT CASE trimpath(ses.collection_file)
+    CASE "choose_rpg.slice"
+     append_specialcode ses, SL_EDITOR_SPLASH_MENU, kindlimitANYTHING
+    CASE "thingbrowser.slice"
+     append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
+     append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
+   END SELECT
   CASE SL_COLLECT_STATUSSCREEN:
    append_specialcode ses, SL_STATUS_STATLIST, kindlimitGRID
    append_specialcode ses, SL_STATUS_PAGE_SELECT, kindlimitSELECT
@@ -864,6 +874,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
   END IF
   slice_editor_load ses, edslice, filename
   ses.slicemenust.need_update = YES
+  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
  END IF
 END SUB
 
