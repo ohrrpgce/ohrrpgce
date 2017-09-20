@@ -238,8 +238,8 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
  REDIM ses.specialcodes(0) as SpecialLookupCode
  SELECT CASE group
   CASE SL_COLLECT_EDITOR:
-   'Editor slices might need access to many different kinds of special codes
-   'so we filter them by filename
+   'Editor slices have access to all lookup codes, but for convenience
+   'we should put certain codes at the top for certain filenames
    SELECT CASE trimpath(ses.collection_file)
     CASE "choose_rpg.slice"
      append_specialcode ses, SL_EDITOR_SPLASH_MENU, kindlimitANYTHING
@@ -1775,6 +1775,83 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   END WITH
  NEXT i
  
+ IF ses.collection_group_number = SL_COLLECT_EDITOR THEN
+  append_simplemenu_item menu, "All Special Lookup Codes", YES, uiLook(uiText) 
+
+'--the following is updated from slices.bi using the misc/sl_lookup.py script
+'<SLICE LOOKUP NAMES>
+  append_simplemenu_item menu, "editor_splash_menu", , , -100
+  append_simplemenu_item menu, "root", , , -100000
+  append_simplemenu_item menu, "textbox_text", , , -100001
+  append_simplemenu_item menu, "textbox_portrait", , , -100002
+  append_simplemenu_item menu, "textbox_choice0", , , -100003
+  append_simplemenu_item menu, "textbox_choice1", , , -100004
+  append_simplemenu_item menu, "textbox_box", , , -100016
+  append_simplemenu_item menu, "textbox_portrait_box", , , -100017
+  append_simplemenu_item menu, "textbox_choice_box", , , -100018
+  append_simplemenu_item menu, "textbox_root", , , -100019
+  append_simplemenu_item menu, "script_layer", , , -100005
+  append_simplemenu_item menu, "textbox_layer", , , -100006
+  append_simplemenu_item menu, "string_layer", , , -100007
+  append_simplemenu_item menu, "maproot", , , -100008
+  append_simplemenu_item menu, "obsolete_overhead", , , -100009
+  append_simplemenu_item menu, "map_overlay", , , -100020
+  append_simplemenu_item menu, "walkabout_layer", , , -100010
+  append_simplemenu_item menu, "hero_layer", , , -100011
+  append_simplemenu_item menu, "npc_layer", , , -100012
+  append_simplemenu_item menu, "walkabout_sprite_component", , , -100013
+  append_simplemenu_item menu, "walkabout_shadow_component", , , -100014
+  append_simplemenu_item menu, "backdrop", , , -100015
+  append_simplemenu_item menu, "map_layer0", , , -101000
+  append_simplemenu_item menu, "map_layer1", , , -101001
+  append_simplemenu_item menu, "map_layer2", , , -101002
+  append_simplemenu_item menu, "map_layer3", , , -101003
+  append_simplemenu_item menu, "map_layer4", , , -101004
+  append_simplemenu_item menu, "map_layer5", , , -101005
+  append_simplemenu_item menu, "map_layer6", , , -101006
+  append_simplemenu_item menu, "map_layer7", , , -101007
+  append_simplemenu_item menu, "map_layer8", , , -101008
+  append_simplemenu_item menu, "map_layer9", , , -101009
+  append_simplemenu_item menu, "map_layer10", , , -101010
+  append_simplemenu_item menu, "map_layer11", , , -101011
+  append_simplemenu_item menu, "map_layer12", , , -101012
+  append_simplemenu_item menu, "map_layer13", , , -101013
+  append_simplemenu_item menu, "map_layer14", , , -101014
+  append_simplemenu_item menu, "map_layer15", , , -101015
+  append_simplemenu_item menu, "status_portrait", , , -102000
+  append_simplemenu_item menu, "status_walkabout", , , -102001
+  append_simplemenu_item menu, "status_battlesprite", , , -102002
+  append_simplemenu_item menu, "status_page_select", , , -102003
+  append_simplemenu_item menu, "status_statlist", , , -102004
+  append_simplemenu_item menu, "status_hide_if_no_mp", , , -102005
+  append_simplemenu_item menu, "status_hide_if_no_lmp", , , -102006
+  append_simplemenu_item menu, "status_hide_if_max_lev", , , -102007
+  append_simplemenu_item menu, "plank_holder", , , -102008
+  append_simplemenu_item menu, "status_hide_if_no_portrait", , , -102009
+  append_simplemenu_item menu, "item_itemlist", , , -102010
+  append_simplemenu_item menu, "item_exitbutton", , , -102011
+  append_simplemenu_item menu, "item_sortbutton", , , -102012
+  append_simplemenu_item menu, "item_trashbutton", , , -102013
+  append_simplemenu_item menu, "plank_menu_selectable", , , -102014
+  append_simplemenu_item menu, "spell_listlist", , , -102015
+  append_simplemenu_item menu, "spell_spelllist", , , -102016
+  append_simplemenu_item menu, "spell_hide_if_no_list", , , -102017
+  append_simplemenu_item menu, "spell_cancelbutton", , , -102018
+  append_simplemenu_item menu, "virtual_keyboard_button", , , -102019
+  append_simplemenu_item menu, "virtual_keyboard_buttontext", , , -102020
+  append_simplemenu_item menu, "virtual_keyboard_shift", , , -102021
+  append_simplemenu_item menu, "virtual_keyboard_symbols", , , -102022
+  append_simplemenu_item menu, "virtual_keyboard_select", , , -102023
+  append_simplemenu_item menu, "virtual_keyboard_entrytext", , , -102024
+  append_simplemenu_item menu, "virtual_keyboard_del", , , -102025
+  append_simplemenu_item menu, "virtual_keyboard_enter", , , -102026
+  append_simplemenu_item menu, "thingbrowser_grid", , , -102027
+  append_simplemenu_item menu, "thingbrowser_plank_sprite", , , -102028
+  append_simplemenu_item menu, "pathfind_dest_display", , , -102100
+'</SLICE LOOKUP NAMES>
+
+ END IF
+ 
  append_simplemenu_item menu, "User Defined Lookup Codes", YES, uiLook(uiText) 
  DIM userdef_start as integer = v_len(menu) - 1
  
@@ -1787,7 +1864,10 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 
  FOR i as integer = 0 to v_len(menu) - 1
   'Move the cursor to pre-select the current code
-  IF v_at(menu, i)->dat = start_at_code THEN st.pt = i
+  IF v_at(menu, i)->dat = start_at_code THEN
+   st.pt = i
+   EXIT FOR
+  END IF
  NEXT i
 
  DIM menuopts as MenuOptions

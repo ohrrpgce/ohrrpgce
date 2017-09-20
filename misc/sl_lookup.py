@@ -77,6 +77,14 @@ class Lookup_Updater(object):
             n = l.basic_name()
             result += '  CASE SL_%s: RETURN "%s"\n' % (n, n.lower())
         return result
+    
+    def editor_list(self):
+        result = ""
+        for l in self.lookups:
+            n = l.basic_name().lower()
+            result += '  append_simplemenu_item menu, "%s", , , %s\n' % (n, l.code)
+        return result
+
 
 #-----------------------------------------------------------------------
 
@@ -138,3 +146,4 @@ reader = Reader("slices.bi", look)
 repl = Replacer("plotscr.hsd", look.hspeak())
 repl = DocReplacer("docs/plotdict.xml", look.docs())
 repl = NameReplacer("slices.bas", look.names())
+repl = NameReplacer("sliceedit.bas", look.editor_list())
