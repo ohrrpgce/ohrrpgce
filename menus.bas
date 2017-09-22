@@ -12,7 +12,7 @@
 #include "menus.bi"
 
 #IFDEF IS_GAME
-DECLARE SUB embedtext (text as string, byval limit as integer = 0)
+DECLARE SUB embedtext (text as string, byval limit as integer = 0, byval saveslot as integer=-1)
 #ENDIF
 
 'Local functions
