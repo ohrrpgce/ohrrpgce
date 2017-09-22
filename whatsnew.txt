@@ -10,7 +10,7 @@ September 22 2017 [Dwimmercrafty+1]
       a backup from before that date, you will have to re-add the
       missing On-Death-Bequest and Non-Elemental-Counter attacks
       to each enemy's attack list.
-      We are very sorry for missing the bug!
+      We are very sorry about the bug!
 
 August 31 2017 [Dwimmercrafty]
 
