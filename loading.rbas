@@ -3648,6 +3648,9 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
    END IF
    SerSingle buf(), 239 + i*2, outval
   NEXT
+
+  buf(367) = .bequest_attack
+  buf(368) = .non_elem_counter_attack
   
  END WITH
 
