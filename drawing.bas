@@ -3201,7 +3201,6 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
  'pickpos will be set to mouse cursor position
  pickpos.x = 0
  pickpos.y = 0
- DIM initialise_pickpos as bool = YES
  DIM imagepos as XYPair
  ' If it's smaller than the screen, offset the image so it's not sitting in the corner
  IF maxx * zoom + 4 < vpages(dpage)->w THEN
@@ -3217,11 +3216,13 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   setwait 20
   setkeys
   mouse = readmouse()
+  DIM mouse_in_bounds as bool
+  mouse_in_bounds = (mouse.pos >= imagepos) ANDALSO (mouse.pos < (imagepos + picksize * zoom))
   tog XOR= 1
   IF keyval(scESC) > 1 THEN ret = NO : EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
 
-  IF enter_or_space() OR (mouse.clicks AND mouseleft) THEN
+  IF enter_or_space() OR (mouse_in_bounds AND (mouse.release AND mouseleft)) THEN
    ret = YES
    EXIT DO
   END IF
@@ -3229,24 +3230,17 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
   picksize.x = small(vpages(dpage)->w, small(image->w, maxx))
   picksize.y = small(vpages(dpage)->h, small(image->h, maxy))
 
-  '--Moving mouse moves cursor and vice versa
-  IF mouse.moved OR initialise_pickpos THEN
-   pickpos.x = bound((mouse.x - imagepos.x) \ zoom, 0, picksize.x - 1)
-   pickpos.y = bound((mouse.y - imagepos.y) \ zoom, 0, picksize.y - 1)
-   initialise_pickpos = NO
+  IF mouse.moved AND mouse_in_bounds THEN
+   pickpos = (mouse.pos - imagepos) \ zoom
   ELSE
    DIM movespeed as integer
    IF keyval(scShift) THEN movespeed = 9 ELSE movespeed = 1
-   DIM moved as bool = NO
-   IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0) : moved = YES
-   IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1) : moved = YES
-   IF keyval(scleft) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 0) : moved = YES
-   IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1) : moved = YES
-   IF moved THEN
-    mouse.x = imagepos.x + (pickpos.x + 0.5) * zoom
-    mouse.y = imagepos.y + (pickpos.y + 0.5) * zoom
-    movemouse mouse.x, mouse.y
-   END IF
+   IF keyval(scUp)    > 1 THEN pickpos.y -= movespeed
+   IF keyval(scDown)  > 1 THEN pickpos.y += movespeed
+   IF keyval(scleft)  > 1 THEN pickpos.x -= movespeed
+   IF keyval(scRight) > 1 THEN pickpos.x += movespeed
+   pickpos.x = bound(pickpos.x, 0, picksize.x - 1)
+   pickpos.y = bound(pickpos.y, 0, picksize.y - 1)
   END IF
 
   clearpage dpage
