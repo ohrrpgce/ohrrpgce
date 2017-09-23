@@ -1084,6 +1084,11 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
  unloadtilemap tilesetview
 END SUB
 
+'This is four different sub-editors of the tileset editor!
+'tmode = 0: pick tile to edit (draw)
+'tmode = 1: cut tile from tileset
+'tmode = 2: cut tile from backdrop
+'tmode = 3: default tile passability
 SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile as string, bgcolor as bgType)
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
@@ -1200,10 +1205,10 @@ DO
    show_help "picktiletoedit"
   END IF
  END IF
- IF ts.gotmouse THEN
-  IF mouse.x < 320 AND mouse.y < 200 THEN
-   bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
-  END IF
+ DIM mouse_over_tile as bool = (mouse.x < 320 AND mouse.y < 200)
+ DIM mouse_click as bool = mouse_over_tile ANDALSO (mouse.release AND mouseLeft)
+ IF mouse_over_tile THEN
+  bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   DIM movedcsr as integer = NO
@@ -1226,14 +1231,21 @@ DO
     END IF
    END IF
   NEXT i
+  IF keyval(scSpace) > 1 OR (mouse.release AND mouseRight) THEN
+   'Space works exactly the same as in the wallmap editor
+   IF ts.defaultwalls[bnum] AND passAllWalls THEN
+    ts.defaultwalls[bnum] = 0
+   ELSE
+    ts.defaultwalls[bnum] OR= passAllWalls
+   END IF
+  END IF
  END IF
  IF copy_keychord() THEN tilecopy cutnpaste(), ts
  IF paste_keychord() THEN tilepaste cutnpaste(), ts
  IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
  ts.tiley = bnum \ 16
- IF enter_or_space() OR mouse.clicks > 0 THEN
-  setkeys
+ IF enter_or_space() OR mouse_click THEN
   IF tmode = 0 THEN
    editmaptile ts, mouse, area(), bgcolor
   END IF
@@ -1247,21 +1259,29 @@ DO
    ts.cutfrom = small(ts.cutfrom, gen(genNumBackdrops) - 1)
    tilecut ts, mouse
   END IF 
-  IF tmode = 3 THEN
+  IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, tilesetnum, vpages(3)
+ END IF
+ IF tmode = 3 THEN
+  IF (keyval(scAnyEnter) > 1) OR mouse_click THEN
    DIM buf() as integer
    vector_to_array buf(), ts.defaultwalls
    editbitset buf(), bnum, 7, bitmenu()
    array_to_vector ts.defaultwalls, buf()
   END IF
-  IF slave_channel <> NULL_CHANNEL THEN storemxs mapfile, tilesetnum, vpages(3)
  END IF
 
  clearpage dpage
  frame_draw_with_background vpages(3), , 0, 0, , bgcolor, chequer_scroll, vpages(dpage)
+
+ DIM msg as string
  IF tmode = 1 OR tmode = 2 THEN
   'Show tile number
-  edgeprint "Tile to overwrite: " & bnum, 0, IIF(bnum < 112, pBottom, 0), uilook(uiText), dpage
+  msg = "Select tile to overwrite: " & bnum
+ ELSEIF tmode = 3 THEN
+  msg = "ENTER: edit tile  CTRL+arrows: set walls"
  END IF
+ edgeprint msg, 0, IIF(get_resolution().h >= 210 OR bnum < 112, pBottom, 0), uilook(uiText), dpage
+
  IF tmode = 3 THEN
   FOR o as integer = 0 TO 9
    FOR i as integer = 0 TO 15
@@ -2029,6 +2049,11 @@ END SUB
 
 SUB tilecut (ts as TileEditState, mouse as MouseInfo)
 DIM area(24) as MouseArea
+'Tileset
+area(0).x = 0
+area(0).y = 0
+area(0).w = 320
+area(0).h = 200
 '"Prev" button
 area(10).x = 8
 area(10).y = 200 - 10
@@ -2094,14 +2119,14 @@ DO
  END IF
 
  '' Cut tile
- IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone = 0) THEN
+ IF enter_or_space() OR (mouse.release > 0 AND ts.zone = 1) THEN
   IF ts.delay = 0 THEN
    FOR i as integer = 0 TO 19
     FOR j as integer = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
-   IF keyval(scEnter) > 1 OR (mouse.clicks AND (mouseRight OR mouseMiddle)) THEN
+   IF keyval(scEnter) > 1 OR (mouse.release AND (mouseRight OR mouseMiddle)) THEN
     ts.tiley = (ts.tiley + (ts.tilex + 1) \ 16) MOD 10
     ts.tilex = (ts.tilex + 1) AND 15
     ts.x += 20
