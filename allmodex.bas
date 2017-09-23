@@ -7372,7 +7372,7 @@ function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	end if
 	dim wrapper as Frame ptr  'yuck
 	wrapper = frame_with_surface(surf)
-	frame_draw fr, intpal(), pal, 0, 0, , NO, wrapper
+	frame_draw fr, masterpal(), pal, 0, 0, , NO, wrapper
 	frame_unload @wrapper
 	return surf
 end function
