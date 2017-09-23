@@ -1,5 +1,8 @@
-Here you choose which of the Panel's two children will be the primary one.
+Here you choose which of the Panel's two children will be the primary one,
+either index 0 (the first) or 1 the (the second).
 
-The primary child is the one for which you choose a size in percentage or pixels.
+The primary child is the one for which you choose a size in percentage and/or pixels.
 
 The other non-primary child will get whatever space is left over.
+
+If the panel has more than two children, they don't appear, as if they weren't visible.

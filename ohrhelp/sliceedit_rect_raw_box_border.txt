@@ -1,0 +1,3 @@
+This is the ID of a box border spriteset, rather than a box style number. It's also called a "raw" border, set with the "set rect raw border" script command.
+
+If you want to instead select "Line" or "None" as the border, first switch to Box Style-type borders.

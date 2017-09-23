@@ -1,0 +1,8 @@
+You can specify the border of a rect slice in one of two ways:
+
+Box Style: the border is taken from one of the box styles (defined in the Edit Box Styles menu).
+Jus the border; the foreground and background colors of the style are ignored.
+
+Sprite Set: By directly specifying the box edge sprite set number. This is also called the "raw" border, set with the "set rect raw border" script command.
+
+Note: Select "Box Style" if you want to instead select "Line" or "None" as the border.

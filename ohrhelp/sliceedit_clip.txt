@@ -1,1 +1,3 @@
-If a slice is configured to clip its children, child slices will be clipped at the edges of the slice, even if they are too big to fit inside.
+If a slice is configured to clip its children, child slices will be clipped at the edges (shifted by its padding) of the slice if they go over them.
+
+That means that parts (or all) of child slices won't be drawn.
