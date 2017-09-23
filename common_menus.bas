@@ -91,6 +91,8 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
 
  '---MAIN LOOP---
  force_use_mouse += 1
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
  setkeys
  DO
   setwait 55
@@ -148,6 +150,7 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   dowait
  LOOP
  force_use_mouse -= 1
+ setcursorvisibility(prev_mouse_vis)
  IF remem_pt <> -2 THEN
   IF state.pt = -1 THEN
    remem_pt = -1
@@ -240,6 +243,8 @@ SUB edit_mouse_options ()
  DIM do_toggle as bool = NO
 
  force_use_mouse += 1
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
  setkeys YES
  DO
   setwait 55
@@ -341,6 +346,7 @@ SUB edit_mouse_options ()
   dowait
  LOOP
  force_use_mouse -= 1
+ setcursorvisibility(prev_mouse_vis)
 
  #IFNDEF IS_GAME
   ' Don't write changes, in case we're live-previewing or playing an .rpgdir
