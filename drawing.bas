@@ -843,7 +843,7 @@ END SUB
 
 SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
  DIM tog as integer
- DIM mouse as MouseInfo
+ DIM over_esc as bool  'Mouse over 'ESC when done'
 
  setkeys
  DO
@@ -856,19 +856,18 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
   IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
   IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
-  mouse = readmouse()
-  WITH mouse
-   IF .clicks AND mouseleft THEN
-    IF rect_collide_point(str_rect("ESC when done", 0, 0), .pos) THEN
-     EXIT DO
-    ELSE
-     tastuf(0 + 20 * taset) = small(cint(int(.x / 20) + int(.y / 20) * 16), 112)
-    END IF
+  WITH readmouse
+   over_esc = rect_collide_point(str_rect("ESC when done", 0, 0), .pos)
+   IF (.release AND mouseleft) ANDALSO over_esc THEN
+    EXIT DO
+   ELSEIF (.buttons AND mouseLeft) ANDALSO .pos < XY(320, 200) THEN
+    tastuf(0 + 20 * taset) = small(.x \ 20 + (.y \ 20) * 16, 160 - 48)  '48 is the size of the range
    END IF
   END WITH
+  clearpage dpage
   copypage 3, dpage
   tile_anim_draw_range tastuf(), taset, dpage
-  edgeprint "ESC when done", 0, 0, uilook(uiText), dpage
+  edgeprint "ESC when done", 0, 0, uilook(IIF(over_esc, uiMouseHoverItem, uiMenuItem)), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
