@@ -461,7 +461,7 @@ SUB calc_menustate_size(state as MenuState, menuopts as MenuOptions, x as RelPos
   ' Now position the menu, and clamp to screen size
   .rect.x = relative_pos(x, vpages(page)->w, .rect.wide)
   .rect.y = relative_pos(y, vpages(page)->h, .rect.high)
-  .rect.wide = small(.rect.wide, vpages(page)->w - .rect.y)
+  .rect.wide = small(.rect.wide, vpages(page)->w - .rect.x)
   .rect.high = small(.rect.high, vpages(page)->h - .rect.y)
  END WITH
 END SUB
