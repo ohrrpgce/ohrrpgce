@@ -398,9 +398,13 @@ DECLARE OPERATOR =  (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR =  (lhs as XYPair, rhs as integer) as bool
 DECLARE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR <> (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR <  (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR <  (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR <= (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR <= (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR >  (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR >  (lhs as XYPair, rhs as integer) as bool
+DECLARE OPERATOR >= (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR >= (lhs as XYPair, rhs as integer) as bool
 DECLARE OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
