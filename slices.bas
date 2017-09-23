@@ -3574,7 +3574,9 @@ Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as
 
 End sub
 
-'--slice debug stuff
+
+'==============================================================================
+'                              Sliice Debugging
 
 SUB SliceDebugRemember(sl as Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub

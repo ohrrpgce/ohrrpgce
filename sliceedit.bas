@@ -153,6 +153,7 @@ DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice 
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
+DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as integer ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
@@ -1007,6 +1008,28 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
  
 END SUB
 
+'Called after *dataptr is modified, which is one of the members of sl, in order
+'to perform any special resulting updates.
+'It's simpler to do updates once, here, if there are multiple places a piece of data is changed.
+SUB slice_edit_updates (sl as Slice ptr, dataptr as integer ptr)
+ WITH *sl
+  IF sl->Fill = YES THEN
+   'Stop filling when trying to edit the size
+   IF dataptr = @.Width THEN
+    'When filling, X is effectively 0, so actually set to 0 when disabling fill,
+    'to keep slice at same position
+    IF sl->FillMode = sliceFillHoriz THEN sl->Fill = NO : sl->X = 0
+    IF sl->FillMode = sliceFillFull THEN sl->FillMode = sliceFillVert : sl->X = 0
+   END IF
+   IF dataptr = @.Height THEN
+    'Ditto: set Y to 0
+    IF sl->FillMode = sliceFillVert THEN sl->Fill = NO : sl->Y = 0
+    IF sl->FillMode = sliceFillFull THEN sl->FillMode = sliceFillHoriz : sl->Y = 0
+   END IF
+  END IF
+ END WITH
+END SUB
+
 SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
  DIM rule as EditRule = rules(state.pt)
  SELECT CASE rule.mode
@@ -1196,8 +1219,11 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    dat->override = -1 'Cancel override when we manually change index
   END IF
  END IF
- IF state.need_update AND sl->SliceType = slText THEN
-  UpdateTextSlice sl
+
+ ' Special actions to take after some piece of data has been edited
+ IF state.need_update THEN
+  IF sl->SliceType = slText THEN UpdateTextSlice sl
+  slice_edit_updates sl, rule.dataptr
  END IF
 
  ' Update transient editing state
@@ -1229,10 +1255,12 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
   shift = ABS(keyval(scShift) > 0)
-  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift
-  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift
-  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
-  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
+  'The following calls to slice_edit_updates only do something if x/y are focussl->Width/Height.
+  'Perfectly harmless otherwise.
+  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift : slice_edit_updates focussl, @y
+  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift : slice_edit_updates focussl, @x
+  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift : slice_edit_updates focussl, @y
+  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift : slice_edit_updates focussl, @x
   draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
   RefreshSliceTreeScreenPos focussl
