@@ -1314,22 +1314,41 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr
 END SUB
 
 SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
- REDIM menu(6) as string
+ DIM prev_item as string
+ IF state.pt <= UBOUND(menu) THEN prev_item = menu(state.pt)
+
+ REDIM menu(0) as string
  REDIM rules(0) as EditRule
  rules(0).helpkey = "detail"
  menu(0) = "Previous Menu"
  WITH *sl
-  menu(1) = "Slice type: " & SliceTypeName(sl)
+  str_array_append menu(), "Slice type: " & SliceTypeName(sl)
   sliceed_rule_none rules(), "slicetype", slgrPICKTYPE  'May not be editable; see slgrPICKTYPE
-  menu(2) = "X: " & .X
-  sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
-  menu(3) = "Y: " & .Y
-  sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
-  menu(4) = "Width: " & .Width
+  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+   str_array_append menu(), "X: " & .X
+   sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
+  ELSE
+   'str_array_append menu(), "X: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
+   'sliceed_rule_none rules(), "pos"
+  END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+   str_array_append menu(), "Y: " & .Y
+   sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
+  ELSE
+   'str_array_append menu(), "Y: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
+   'sliceed_rule_none rules(), "pos"
+  END IF
+  str_array_append menu(), "Width: " & .Width
   sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
-  menu(5) = "Height: " & .Height
+  str_array_append menu(), "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
-  menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
+  str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
+  sliceed_rule_tog rules(), "fill", @.Fill
+  IF .Fill THEN
+   str_array_append menu(), "Fill Type: " & FillModeCaptions(.FillMode)
+   sliceed_rule_enum rules(), "FillMode", @.FillMode, 0, 2
+  END IF
+  str_array_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
   DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
   IF ses.privileged ORELSE lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
@@ -1472,29 +1491,23 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
-  str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
-  sliceed_rule_tog rules(), "fill", @.Fill
-  str_array_append menu(), "Fill Type: " & FillModeCaptions(.FillMode)
-  sliceed_rule_enum rules(), "FillMode", @.FillMode, 0, 2
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
-  IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
-   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-    str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
-    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
-   END IF
-   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-    str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
-    sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
-   END IF
-   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-    str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
-    sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
-   END IF
-   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-    str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
-    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
-   END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+   str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
+   sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
+  END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+   str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
+   sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
+  END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+   str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
+   sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
+  END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+   str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
+   sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
   END IF
   str_array_append menu(), "Padding Top: " & .PaddingTop
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingTop, -9999, 9999
@@ -1517,6 +1530,14 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  END WITH
 
  init_menu_state state, menu(), menuopts
+
+ 'Try to find the previously selected setting back, since its index might have changed
+ prev_item = LEFT(prev_item, INSTR(prev_item, ":"))
+ IF LEN(prev_item) THEN
+  FOR idx as integer = 0 TO UBOUND(menu)
+   IF LEFT(menu(idx), LEN(prev_item)) = prev_item THEN state.pt = idx
+  NEXT idx
+ END IF
 END SUB
 
 'Pick a slice type in allowed_types(), return YES if didn't cancel
