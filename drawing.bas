@@ -438,10 +438,10 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   setwait 55
   setkeys
   tog = tog XOR 1
-  image_pos = get_resolution() - XY(image->w, image->h)
+  image_pos = get_resolution() - image->size
   mouse = readmouse()
   WITH mouse
-   IF .clicks AND mouseleft THEN
+   IF .release AND mouseleft THEN
     IF rect_collide_point(str_rect("Previous Menu", 0, 0), .pos) THEN
      EXIT DO
     ELSE
@@ -1608,7 +1608,7 @@ DO
   IF mouse.buttons AND mouseLeft THEN clicktile ts, (mouse.clicks AND mouseLeft), clone
  CASE 2
   'Colour selector
-  IF mouse.clicks AND mouseLeft THEN
+  IF mouse.buttons AND mouseLeft THEN
    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
   END IF
  CASE 13 TO 16
@@ -3701,22 +3701,22 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
  IF ss.zonenum = 2 THEN
-  IF ss.mouse.clicks > 0 THEN
+  IF ss.mouse.buttons > 0 THEN
    ss.palindex = small(ss.zone.x \ 4, 15)
    ss.showcolnum = COLORNUM_SHOW_TICKS
   END IF
  END IF
 
  ' Changing to a different 16 color palette
- IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND ss.mouse.clicks > 0) THEN
+ IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND ss.mouse.release > 0) THEN
   ' Previous palette
   changepal ss, -1
  END IF
- IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND ss.mouse.clicks > 0) THEN
+ IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND ss.mouse.release > 0) THEN
   ' Next palette
   changepal ss, 1
  END IF
- IF keyval(scP) > 1 OR (ss.zonenum = 19 AND ss.mouse.clicks > 0) THEN
+ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND ss.mouse.release > 0) THEN
   ' Call palette browser
   spriteedit_pal16_browser ss
  END IF
@@ -3766,7 +3766,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   IF keyval(scLeft) > 1  AND ss.curcolor > 0   THEN ss.curcolor -= 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
   IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1  : ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
- IF (ss.mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
+ IF ss.mouse.buttons > 0 ANDALSO ss.zonenum = 3 THEN
   ss.curcolor = ((ss.zone.y \ 6) * 16) + (ss.zone.x \ 4)
   ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
@@ -4051,10 +4051,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   IF slowkey(scRight, 100) THEN scrolloff.x += stepsize
   spriteedit_scroll ss, scrolloff.x, scrolloff.y
  END IF
- IF keyval(scI) > 1 OR (ss.zonenum = 13 AND ss.mouse.clicks > 0) THEN
+ IF keyval(scI) > 1 OR (ss.zonenum = 13 AND (ss.mouse.release AND mouseLeft)) THEN
   spriteedit_import16 ss
  END IF
- IF keyval(scE) > 1 OR (ss.zonenum = 26 AND ss.mouse.clicks > 0) THEN
+ IF keyval(scE) > 1 OR (ss.zonenum = 26 AND (ss.mouse.release AND mouseLeft)) THEN
   palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
   spriteedit_export ss.default_export_filename, ss.sprite, ss.palette
  END IF
