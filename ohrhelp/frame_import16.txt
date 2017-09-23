@@ -1,4 +1,5 @@
-Use the LEFT and RIGHT, or [ and ], keys to select a 16 color palette.
+Use the LEFT and RIGHT, or [ and ] keys, or type an ID number, to select a 16 color palette.
+Or press P or click on "Pal ###" to browse for a palette.
 
 Overwrite Current Palette: overwrites the current palette with the one from the image.
 
