@@ -123,7 +123,7 @@ CONST slgrPICKXY = 2
 CONST slgrPICKWH = 4
 CONST slgrPICKCOL = 8
 CONST slgrUPDATESPRITE = 16
-CONST slgrUPDATERECTCOL = 32
+CONST slgrUPDATERECTCUSTOMSTYLE = 32
 CONST slgrUPDATERECTSTYLE = 64
 CONST slgrPICKLOOKUP = 128
 CONST slgrEDITSWITCHINDEX = 256
@@ -1197,7 +1197,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    state.need_update = YES
   END IF
  END IF
- IF rule.group AND slgrUPDATERECTCOL THEN
+ IF rule.group AND slgrUPDATERECTCUSTOMSTYLE THEN
   IF state.need_update THEN
    DIM dat as RectangleSliceData Ptr
    dat = sl->SliceData
@@ -1385,17 +1385,17 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     str_array_append menu(), " Style: " & defaultint(dat->style, "None (custom)")
     sliceed_rule rules(), "rect_style", erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
     str_array_append menu(), "  Background color: " & slice_color_caption(dat->bgcol)
-    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
     str_array_append menu(), "  Foreground color: " & slice_color_caption(dat->fgcol)
-    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), LowColorCode(), 255, (slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL)
     str_array_append menu(), "  Border type: " & IIF(dat->use_raw_box_border, "Spriteset", "Box Style")
-    sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border)
+    sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border), slgrUPDATERECTCUSTOMSTYLE
     IF dat->use_raw_box_border THEN
      str_array_append menu(), "   Raw Spriteset: " & dat->raw_box_border
      sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder), slgrBROWSEBOXBORDER
     ELSE
      str_array_append menu(), "   Border Style: " & caption_or_int(BorderCaptions(), dat->border)
-     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL
+     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCUSTOMSTYLE
     END IF
     str_array_append menu(), " Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, 2

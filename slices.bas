@@ -1033,7 +1033,7 @@ end sub
 
 Sub SaveRectangleSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
- DIM dat as RectangleSliceData Ptr
+ dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
  if dat->style >= 0 then
   SaveProp node, "style", dat->style
@@ -1067,6 +1067,7 @@ Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  end if
  dat->raw_box_border = LoadProp(node, "raw_box_border", -1)
  dat->use_raw_box_border = (dat->raw_box_border > -1)
+ if dat->raw_box_border = -1 then dat->raw_box_border = 0
 End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as Slice ptr

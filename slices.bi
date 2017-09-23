@@ -279,7 +279,7 @@ TYPE RectangleSliceData
  style as integer = -1    '-1: None, 0-14: style
  style_loaded as bool 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
 
- 'When use_raw_box_border is YES, ignore style ID and use raw_box_border instead.
+ 'When use_raw_box_border is YES, ignore .border and use .raw_box_border instead.
  use_raw_box_border as bool
  raw_box_border as integer
 
