@@ -37,6 +37,19 @@ Nov/Dec ??? 2017 [Etheldreme]
   * Stuff Only Developers Will Notice
 
 
+September 22 2017 [Dwimmercrafty+1]
+
+  * Bugfixes
+     * Fixed a critical bug that erased On-Death-Bequest attacks and
+       Non-Elemental-Counterattacks from all enemies when a game was
+       loaded into custom. If you lost enemy data, and you still have
+       a backup copy of your game from before August 29 2017, please
+       ask the developers for help on the Forums. If you do not have
+       a backup from before that date, you will have to re-add the
+       missing On-Death-Bequest and Non-Elemental-Counter attacks
+       to each enemy's attack list.
+       We are very sorry about the bug!
+
 August 31 2017 [Dwimmercrafty]
 
   Highlights:

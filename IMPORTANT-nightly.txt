@@ -16,6 +16,8 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+** 2017-08-31 Dwimmercrafty Released ***
+
 2017-04-06:
 64 bit builds of Custom are now (hopefully) safe to use, thanks to Wendigo
 completing a 12 year cleanup project!
