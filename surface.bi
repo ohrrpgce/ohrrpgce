@@ -31,9 +31,6 @@ Type FrameFwd as Frame
 Type SurfaceFwd as Surface
 
 Type Surface
-	handle as any ptr
-	refcount as int32
-	isview as int32  'Is a view onto a Frame or another Surface (see below)
 	Union
 		Type
 			width as int32
@@ -42,19 +39,21 @@ Type Surface
 		size as XYPair
 	End Union
 	pitch as int32
+	refcount as int32
+	isview as int32  'Is a view onto a Frame or another Surface (see below)
 			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
 	format as int32 ' SurfaceFormat
 	usage as int32  ' SurfaceUsage
+	' The following are only used if isview is true; at most one of them is non-NULL
+	base_frame as FrameFwd ptr  'If not NULL, is a view of a whole Frame
+	base_surf as SurfaceFwd ptr 'If not NULL, is a view of part of a Surface
 
+	handle as any ptr
 	Union
 		pRawData as any ptr
 		pColorData as RGBcolor ptr  'uint32s
 		pPaletteData as ubyte ptr
 	End Union
-
-	' The following are only used if isview is true; at most one of them is non-NULL
-	base_frame as FrameFwd ptr  'If not NULL, is a view of a whole Frame
-	base_surf as SurfaceFwd ptr 'If not NULL, is a view of part of a Surface
 End Type
 
 Type SurfaceRect

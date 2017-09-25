@@ -30,22 +30,23 @@ typedef struct Surface Surface;
 
 struct Surface
 {
-	void* handle;
-	int refcount;
-	int isview;         // Is a view onto a Frame or another Surface (see below)
 	int32_t width;
 	int32_t height;
 	int32_t pitch;
+	int refcount;
+	int isview;         // Is a view onto a Frame or another Surface (see below)
 	enum SurfaceFormat format;
 	enum SurfaceUsage usage;
+	// The following are only used if isview is true; at most one of them is non-NULL
+	Frame *base_frame;  // If not NULL, is a view of a whole Frame
+	Surface *base_surf; // If not NULL, is a view of part of a Surface
+
+	void* handle;
 	union {
 		void* pRawData;
 		uint32_t* pColorData;
 		uint8_t* pPaletteData;
 	};
-	// The following are only used if isview is true; at most one of them is non-NULL
-	Frame *base_frame;  // If not NULL, is a view of a whole Frame
-	Surface *base_surf; // If not NULL, is a view of part of a Surface
 
 #ifdef __cplusplus
 	uint8_t& pixel8(int x, int y) { return pPaletteData[pitch * y + x]; }

@@ -22,7 +22,10 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 		debug(errPromptBug, "surfaceCreate_SW: NULL out ptr");
 		return -1;
 	}
-	Surface *ret = new Surface {NULL, 1, 0, width, height, width, format, usage, NULL};
+	Surface *ret = new Surface {
+	  width: width, height: height, pitch: width,
+	  refcount: 1, isview: 0, format: format, usage: usage
+	};
 	if(format == SF_8bit)
 		ret->pPaletteData = new uint8_t[width*height];
 	else
@@ -52,7 +55,10 @@ int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int 
 	}
 	width = bound(width, 0, pSurfaceIn->width - x);
 	height = bound(height, 0, pSurfaceIn->height - y);
-	Surface *ret = new Surface {NULL, 1, 1, width, height, pSurfaceIn->pitch, pSurfaceIn->format, pSurfaceIn->usage, NULL};
+	Surface *ret = new Surface {
+	  width: width, height: height, pitch: pSurfaceIn->pitch,
+	  refcount: 1, isview: 1, format: pSurfaceIn->format, usage: pSurfaceIn->usage
+	};
 	if(ret->format == SF_8bit)
 		ret->pPaletteData = pSurfaceIn->pPaletteData + ret->pitch * y + x;
 	else
@@ -76,7 +82,13 @@ int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 		// This is a temporary kludge anyway.
 		return gfx_surfaceCreateView_SW(pFrameIn->surf, 0, 0, pFrameIn->w, pFrameIn->h, ppSurfaceOut);
 	}
-	Surface *ret = new Surface {NULL, 1, 1, pFrameIn->w, pFrameIn->h, pFrameIn->pitch, SF_8bit, SU_Source};
+	Surface *ret = new Surface {
+	  width: pFrameIn->w,
+	  height: pFrameIn->h,
+	  pitch: pFrameIn->pitch,
+	  refcount: 1, isview: 1, format: SF_8bit, usage: SU_Source
+	};
+
 	ret->base_frame = frame_reference(pFrameIn);
 	ret->pPaletteData = pFrameIn->image;
 	*ppSurfaceOut = ret;
