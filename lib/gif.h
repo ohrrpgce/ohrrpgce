@@ -76,14 +76,14 @@ const int kGifTransIndex = 0;
 union GifRGBA
 {
     struct {
-        uint8_t r, g, b, a;
+        uint8_t b, g, r, a;
     };
     uint8_t comps[4];
 };
 
 struct GifRGBA32
 {
-    uint32_t r, g, b, a;
+    uint32_t b, g, r, a;
 };
 
 struct GifPalette
