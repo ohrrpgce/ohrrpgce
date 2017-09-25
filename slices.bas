@@ -1352,6 +1352,8 @@ End Function
 
 '--Sprite-----------------------------------------------------------------
 
+Declare Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
+
 ' Frees any memory held by a sprite, leaving in a consistent state, but does not reset its type and other data
 Sub UnloadSpriteSlice(byval sl as Slice ptr)
  dim dat as SpriteSliceData ptr = sl->SliceData
@@ -1380,15 +1382,18 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval p as integer)
  with *dat
  
   if .loaded = NO then
-   if .spritetype = sprTypeFrame then fatalerror "sprTypeFrame not loaded"  'Can't happen
-   load_sprite_and_pal .img, .spritetype, .record, .pal
-   if .scaled then
-    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
-    palette16_unload @.img.pal
+   if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
+    LoadAssetSprite sl, NO
    else
-    sl->Size = .img.sprite->size
+    load_sprite_and_pal .img, .spritetype, .record, .pal
+    if .scaled then
+     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+     palette16_unload @.img.pal
+    else
+     sl->Size = .img.sprite->size
+    end if
+    .loaded = YES
    end if
-   .loaded = YES
   end if
 
   dim spr as Frame ptr
