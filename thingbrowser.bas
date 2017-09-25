@@ -430,11 +430,11 @@ End Sub
 
 'BACKDROP
 Sub BackdropSpriteBrowser.enter_browser()
- 'switch_to_32bit_vpages
+ switch_to_32bit_vpages
 End Sub
 
 Sub BackdropSpriteBrowser.leave_browser()
- 'switch_to_8bit_vpages
+ switch_to_8bit_vpages
 End Sub
 
 Function BackdropSpriteBrowser.highest_id() as integer
@@ -460,9 +460,7 @@ Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice 
   spr->AnchorVert = alignBottom
   spr->AnchorHoriz = alignCenter
   spr->y = -1
-  'This is such a delicious hack! >:) Will I regret it later? Never! I have no regrets! -- James (Sept 2017)
-  DissolveSpriteSlice spr, 9, 100, 70, NO, NO
-  'ScaleSpriteSlice spr, plank->size - XY(2,2)
+  ScaleSpriteSlice spr, plank->size - XY(2,2)
  end if
  return plank
 End Function
