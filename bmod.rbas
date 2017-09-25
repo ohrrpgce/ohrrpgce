@@ -632,6 +632,8 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
       .harm.pos.y = .y + (.h * .5)
       .harm.text = STR(attack.hp_cost)
     END WITH
+    'This triggerfade is needed because the hp cost might have killed the attacker
+    triggerfade bat.acting, bslot()
   END IF
  
   '--ditto for money

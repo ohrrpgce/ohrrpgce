@@ -35,6 +35,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       [James]
     * A nonsensical item ownership number was showing up when hiring
       heroes at a shop [James]
+    * Heroes killed by HP-cost in battle now correctly show their
+      death frame instead of vanishing [James]
 
   * Stuff Only Developers Will Notice
 
