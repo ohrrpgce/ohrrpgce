@@ -3543,6 +3543,15 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   
   .bequest_attack = buf(367)
   .non_elem_counter_attack = buf(368)
+
+  ''Print bequest attacks and non-elemental counters to the debug log for James's
+  ''convenience when repairing people's games after the dwimmercrafty dataloss bug
+  'if .bequest_attack > 0 then
+  ' debug index & " " & .name & " bequest = " & .bequest_attack - 1 & " " & readattackname(.bequest_attack - 1)
+  'end if
+  'if .non_elem_counter_attack > 0 then
+  ' debug index & " " & .name & " non-elem = " & .non_elem_counter_attack - 1 & " " & readattackname(.non_elem_counter_attack - 1)
+  'end if
   
  END WITH
 END SUB
