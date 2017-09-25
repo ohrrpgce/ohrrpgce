@@ -92,7 +92,8 @@ CONST SL_PATHFIND_DEST_DISPLAY       = -102100
 '</SLICE LOOKUP CODES>
 
 
-Enum SliceTypes
+Type SliceTypes as integer
+Enum 'SliceTypes
  slInvalid = -1
  slRoot = 0
  slSpecial

@@ -104,8 +104,7 @@ END TYPE
 
 DIM SHARED remember_draw_root_pos as XYPair
 
-' 64 bit FB treats ENUM SliceTypes as a different type to any other, can't pass to int_array_find()...
-REDIM SHARED editable_slice_types(8) as integer 'SliceTypes
+REDIM SHARED editable_slice_types(8) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
@@ -172,7 +171,7 @@ DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") a
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
-DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as integer) as bool
+DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE FUNCTION LowColorCode () as integer
 
@@ -1078,7 +1077,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   DIM slice_type as SliceTypes = sl->SliceType
   DIM slice_type_num as integer = -1
   ' First build the list of types that are compatible with this lookup code
-  DIM allowed_types() as integer
+  DIM allowed_types() as SliceTypes
   DIM kindlimit as integer = kindlimitANYTHING  'If the lookup isn't special
   IF sl->Lookup < 0 THEN
    DIM which as integer = find_special_lookup_code(ses.specialcodes(), sl->Lookup)
@@ -1560,12 +1559,12 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 END SUB
 
 'Pick a slice type in allowed_types(), return YES if didn't cancel
-FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as integer) as bool
+FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
  IF UBOUND(allowed_types) < 0 THEN RETURN NO
  DIM as integer default, choice
  DIM menu(UBOUND(allowed_types)) as string
  FOR i as integer = 0 TO UBOUND(menu)
-  menu(i) = SliceTypeName(cast(SliceTypes, allowed_types(i)))
+  menu(i) = SliceTypeName(allowed_types(i))
   IF allowed_types(i) = slice_type THEN default = i
  NEXT i
  choice = multichoice("What type of slice?", menu(), default, -1, "sliceedit_browse_slicetype")
