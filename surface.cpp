@@ -16,7 +16,7 @@ QuadRasterizer g_rasterizer;
 std::list< Surface* > g_surfaces;
 std::list< RGBPalette* > g_palettes;
 
-int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
+int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
 	if (!ppSurfaceOut) {
 		debug(errPromptBug, "surfaceCreate_SW: NULL out ptr");
@@ -47,7 +47,7 @@ int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 		// Well, we could maybe return pFrameIn->surf
 		return -1;
 	}
-	Surface *ret = new Surface {NULL, 1, (uint32_t)pFrameIn->w, (uint32_t)pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
+	Surface *ret = new Surface {NULL, 1, pFrameIn->w, pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
 	ret->pPaletteData = ret->frame->image;
 	*ppSurfaceOut = ret;
 	return 0;
@@ -211,13 +211,13 @@ Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 
 	// Scale surf horizontally, put result in temp
 	fixedpoint runlen = surf->width * FIXEDPNT / destWidth;  // Rounds down, so we will never read off the end
-	for (unsigned int y = 0; y < surf->height; y++) {
+	for (int y = 0; y < surf->height; y++) {
 		scalerow(&surf->pixel32(0, y), 1, &temp->pixel32(0, y), 1, dest->width, runlen);
 	}
 
 	// Scale temp vertically, put result in dest
 	runlen = surf->height * FIXEDPNT / destHeight;
-	for (unsigned int x = 0; x < temp->width; x++) {
+	for (int x = 0; x < temp->width; x++) {
 		scalerow(&temp->pixel32(x, 0), temp->width, &dest->pixel32(x, 0), dest->width, dest->height, runlen);
 	}
 
@@ -227,10 +227,10 @@ Surface* surface_scale(Surface *surf, int destWidth, int destHeight) {
 
 // (Not used.) Modify rect inplace
 void clampRectToSurface( SurfaceRect* pRect, Surface* pSurf ) {
-	pRect->top = bound(pRect->top, 0, (int)pSurf->height - 1);
-	pRect->left = bound(pRect->left, 0, (int)pSurf->width - 1);
-	pRect->bottom = bound(pRect->bottom, pRect->top, (int)pSurf->height - 1);
-	pRect->right = bound(pRect->right, pRect->left, (int)pSurf->width - 1);
+	pRect->top = bound(pRect->top, 0, pSurf->height - 1);
+	pRect->left = bound(pRect->left, 0, pSurf->width - 1);
+	pRect->bottom = bound(pRect->bottom, pRect->top, pSurf->height - 1);
+	pRect->right = bound(pRect->right, pRect->left, pSurf->width - 1);
 }
 
 // The src and dest rectangles may be different sizes; the image is not
@@ -255,9 +255,9 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 
 	SurfaceRect rectDest, rectSrc;
 	if (!pRectDest)
-		pRectDest = &(rectDest = {0, 0, (int)pSurfaceDest->width - 1, (int)pSurfaceDest->height - 1});
+		pRectDest = &(rectDest = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1});
 	if (!pRectSrc)
-		pRectSrc = &(rectSrc = {0, 0, (int)pSurfaceSrc->width - 1, (int)pSurfaceSrc->height - 1});
+		pRectSrc = &(rectSrc = {0, 0, pSurfaceSrc->width - 1, pSurfaceSrc->height - 1});
 
 	// Determine the top-left pixel on the src and dest surfaces which is copied.
 	int srcX = pRectSrc->left, srcY = pRectSrc->top;
@@ -280,10 +280,10 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 	}
 
 	// Clamp right/bottom to surface edges and find src/dest rect size (may be negative)
-	int srcWidth   = std::min(pRectSrc->right,   (int)pSurfaceSrc->width - 1)   - srcX  + 1;
-	int srcHeight  = std::min(pRectSrc->bottom,  (int)pSurfaceSrc->height - 1)  - srcY  + 1;
-	int destWidth  = std::min(pRectDest->right,  (int)pSurfaceDest->width - 1)  - destX + 1;
-	int destHeight = std::min(pRectDest->bottom, (int)pSurfaceDest->height - 1) - destY + 1;
+	int srcWidth   = std::min(pRectSrc->right,   pSurfaceSrc->width - 1)   - srcX  + 1;
+	int srcHeight  = std::min(pRectSrc->bottom,  pSurfaceSrc->height - 1)  - srcY  + 1;
+	int destWidth  = std::min(pRectDest->right,  pSurfaceDest->width - 1)  - destX + 1;
+	int destHeight = std::min(pRectDest->bottom, pSurfaceDest->height - 1) - destY + 1;
 
 	int itX_max = std::min(srcWidth, destWidth);
 	int itY_max = std::min(srcHeight, destHeight);
@@ -420,7 +420,7 @@ int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect*
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadColor(pQuad, argbModifier, pRectDest, pSurfaceDest);
@@ -432,7 +432,7 @@ int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, RGBPalette* pP
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadTexture(pQuad, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
@@ -444,7 +444,7 @@ int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, RGBPalet
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawQuadTextureColor(pQuad, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
@@ -456,7 +456,7 @@ int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, Surf
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleColor(pTriangle, argbModifier, pRectDest, pSurfaceDest);
@@ -468,7 +468,7 @@ int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, RGBPal
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleTexture(pTriangle, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
@@ -480,7 +480,7 @@ int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, 
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
 
-	SurfaceRect tmp = {0, 0, int32_t(pSurfaceDest->width) - 1, int32_t(pSurfaceDest->height) - 1};
+	SurfaceRect tmp = {0, 0, pSurfaceDest->width - 1, pSurfaceDest->height - 1};
 	if( !pRectDest )
 		pRectDest = &tmp;
 	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);

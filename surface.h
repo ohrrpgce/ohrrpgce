@@ -30,8 +30,8 @@ typedef struct Surface
 {
 	void* handle;
 	int refcount;
-	uint32_t width;
-	uint32_t height;
+	int32_t width;
+	int32_t height;
 	enum SurfaceFormat format;
 	enum SurfaceUsage usage;
 	Frame *frame;       // If not NULL, is a view onto a Frame which owns the data
@@ -67,7 +67,7 @@ extern "C"
 #endif
 
 	// Software implementation
-	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
+	int gfx_surfaceCreate_SW( int32_t width, int32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn );
 	Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn );
@@ -84,7 +84,7 @@ extern "C"
 	int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn );
 
 	// Function pointers to the selected implementation
-	extern int (*gfx_surfaceCreate)( uint32_t width, uint32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
+	extern int (*gfx_surfaceCreate)( int32_t width, int32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
 	extern int (*gfx_surfaceWithFrame)( Frame* pFrameIn, Surface** ppSurfaceOut );
 	extern int (*gfx_surfaceDestroy)( Surface** ppSurfaceIn );
 	extern Surface* (*gfx_surfaceReference)( Surface* pSurfaceIn );
