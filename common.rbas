@@ -334,11 +334,11 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
   CASE errPrompt
    showerror *s
   CASE errPromptBug
-   showerror "(BUG) " & *s
+   showerror *s, NO, YES
   CASE errFatal
-   showerror *s, YES
+   showerror *s, YES, NO
   CASE errFatalBug
-   showerror "(BUG) " & *s, YES
+   showerror *s, YES, YES
   CASE errDie
    'TODO: Maybe print a stacktrace
    PRINT "DIE: " & *s
@@ -484,10 +484,14 @@ FUNCTION notification (msg as string) as integer
  RETURN scancode
 END FUNCTION
 
+'Same as debugc, but always show a message to the user regardless of errlvl
 SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
  debugc errlvl, msg
- notification msg + !"\nPress any key..."
- 'pop_warning msg
+ IF errlvl < errPromptError OR errlvl = errBug THEN
+  'If it's not one of these error levels, then a message has already been shown
+  notification msg + !"\nPress any key..."
+  'pop_warning msg
+ END IF
 END SUB
 
 FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
@@ -1094,11 +1098,15 @@ SUB fatalerror (msg as string)
  showerror msg, YES
 END SUB
 
-'Ask the user if they want to continue (only if isfatal is false), otherwise quit.
-SUB showerror (msg as string, byval isfatal as bool = NO)
+'Show an error. If isfatal, doesn't return.
+'If multiple errors occur, give the user the option to quit instead of continuing.
+SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  DIM printmsg as string
- printmsg = IIF(isfatal, "FATAL: ", "ERROR: ") + msg
+ printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + msg
  PRINT printmsg
+
+ STATIC num_errors as integer = 0
+ num_errors += 1
 
  STATIC entered as integer = 0  'don't allow reentry
  IF entered THEN
@@ -1117,13 +1125,20 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
   fatal_error_shutdown
  END IF
 
+ IF isfatal THEN
+  msg = !"        --  FATAL ERROR  --\n" + msg
+ ELSEIF isbug THEN
+  msg = !"        --  OHRRPGCE BUG  --\n" + msg
+ END IF
+
  DIM quitmsg as string
  quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
- quitmsg += "An error has occurred!"
  IF isfatal THEN
-  quitmsg += " Press any key to quit."
+  quitmsg += "Press any key to quit."
+ ELSEIF num_errors >= 3 THEN
+  quitmsg += "Press ESC to cleanly quit, or any other key to ignore and try to continue."
  ELSE
-  quitmsg += " Press ESC to cleanly quit, or any other key to ignore the error and try to continue."
+  quitmsg += "Press any key to try to continue."
  END IF
  #IFDEF IS_CUSTOM
   IF cleanup_workingdir_on_error = NO THEN
@@ -1132,7 +1147,11 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
    quitmsg += "; run " + CUSTOMEXE + " again and you will be asked whether you want to recover it."
   END IF
  #ENDIF
- quitmsg += !"\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com"
+ IF isbug THEN
+  quitmsg += !"\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com"
+ ELSE
+  quitmsg += !"\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com"
+ END IF
 
  'Reset palette (in case the error happened in a fade-to-black or due to
  'corrupt/missing palette or UI colours)
@@ -1140,14 +1159,14 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
  load_default_master_palette default_palette()
  setpal default_palette()
  DefaultUIColors uilook(), boxlook()
- clearpage 0
- basic_textbox msg + quitmsg, uilook(uiText), 0
- setvispage 0, NO
+ clearpage vpage
+ basic_textbox msg + quitmsg, uilook(uiText), vpage
+ setvispage vpage, NO
 
  setwait 200  'Give user a chance to let go of keys
  dowait
  DIM key as integer = waitforanykey
- IF isfatal ORELSE key = scEsc THEN
+ IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN
   fatal_error_shutdown
  END IF
  debug "showerror: user continued"
@@ -1157,11 +1176,11 @@ SUB showerror (msg as string, byval isfatal as bool = NO)
   IF editing_a_game THEN
    setwait 200  'Give user a chance to let go of keys
    dowait
-   clearpage 0
+   clearpage vpage
    basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
                  "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _
-                 uilook(uiText), 0
-   setvispage 0
+                 uilook(uiText), vpage
+   setvispage vpage
    waitforanykey
   END IF
 

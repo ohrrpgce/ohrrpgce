@@ -2260,7 +2260,7 @@ FUNCTION makedir (directory as string) as integer
 #ifdef __FB_UNIX__  ' I don't know on which OSes this is necessary
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
-  safe_shell "chmod +x " + escape_filename(directory)
+  safe_shell "chmod +x " + escape_filename(directory), , NO
 #endif
   RETURN 0
 END FUNCTION

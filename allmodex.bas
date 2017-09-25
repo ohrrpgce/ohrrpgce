@@ -4651,7 +4651,7 @@ private function layout_line_fragment(z as string, byval endchar as integer, byv
 			.x += .thefont->w(z[ch])
 			if .x > .startx + .rightmargin then
 'debug "rm = " & .rightmargin & " lm = " & .leftmargin
-				if lastspace > -1 and .x - lastspace_x < (.rightmargin - .leftmargin) \ 2 then
+				if lastspace > -1 and .x - lastspace_x < 3 * (.rightmargin - .leftmargin) \ 5 then
 					'Split at the last space
 
 					if chars_to_add then
