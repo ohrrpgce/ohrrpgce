@@ -896,7 +896,7 @@ SUB reloadmap_zonemap()
 END SUB
 
 SUB deletetemps
-'deletes game-state temporary files from tmpdir when exiting back to the titlescreen
+'deletes game-state temporary files from tmpdir when exiting back to the titlescreen or loading a game
 
  REDIM filelist() as string
  findfiles tmpdir, ALLFILES, fileTypeFile, YES, filelist()
