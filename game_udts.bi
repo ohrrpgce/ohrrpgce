@@ -312,7 +312,7 @@ TYPE CaterpillarHistory
   pos as XYPair
  END UNION
  z as integer
- d as integer
+ d as DirNum
 END TYPE
 
 

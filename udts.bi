@@ -284,7 +284,7 @@ TYPE NPCInst
     END TYPE
     xygo as XYPair
   END UNION
-  dir as integer    'npcl+900
+  dir as DirNum     'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
   ignore_walls as bool  'ignore passmap, zones and map edges (but not NPC/hero obstructions)

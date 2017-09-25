@@ -4,7 +4,7 @@
 #include "slices.bi"
 
 DECLARE SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
-DECLARE SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as integer, byval frame as integer)
+DECLARE SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byval frame as integer)
 DECLARE SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
 DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) as Slice Ptr
 DECLARE SUB create_walkabout_shadow (byval walkabout_cont as Slice Ptr)
@@ -40,19 +40,19 @@ DECLARE FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as
 DECLARE FUNCTION wrapzonecheck (byval zone as integer, byval pos as XYPair, byval xygo as XYPair) as bool
 DECLARE FUNCTION wrapcollision (byval posa as XYPair, byval xygoa as XYPair, byval posb as XYPair, byval xygob as XYPair) as bool
 DECLARE FUNCTION wraptouch (byval pos1 as XYPair, byval pos2 as XYPair, byval distance as integer) as bool
-DECLARE FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
+DECLARE FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as DirNum, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
 
-DECLARE SUB aheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
+DECLARE SUB aheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as DirNum, byval distance as integer)
 DECLARE SUB wrapxy OVERLOAD (byref x as integer, byref y as integer, byval unitsize as integer = 1)
-DECLARE SUB wrapaheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
+DECLARE SUB wrapaheadxy OVERLOAD (byref x as integer, byref y as integer, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
 
-DECLARE SUB aheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer)
+DECLARE SUB aheadxy OVERLOAD (byref p as XYPair, byval direction as DirNum, byval distance as integer)
 DECLARE SUB wrapxy OVERLOAD (byref p as XYPair, byval unitsize as integer = 1)
-DECLARE SUB wrapaheadxy OVERLOAD (byref p as XYPair, byval direction as integer, byval distance as integer, byval unitsize as integer)
+DECLARE SUB wrapaheadxy OVERLOAD (byref p as XYPair, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
 
-DECLARE FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
+DECLARE FUNCTION walkrotate(byval d as DirNum, byval rota as integer, byval amount as integer=1) as DirNum
 
-DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
+DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as DirNum = -1) as DirNum
 
 DECLARE SUB cancel_npc_walk(npci as NPCInst)
 

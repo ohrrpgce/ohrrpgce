@@ -1268,16 +1268,16 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    SELECT CASE retvals(1)
     CASE 0'--north
-     (herodir(retvals(0))) = 0
+     (herodir(retvals(0))) = dirNorth
      herow(retvals(0)).ygo = retvals(2) * 20
     CASE 1'--east
-     (herodir(retvals(0))) = 1
+     (herodir(retvals(0))) = dirEast
      herow(retvals(0)).xgo = (retvals(2) * 20) * -1
     CASE 2'--south
-     (herodir(retvals(0))) = 2
+     (herodir(retvals(0))) = dirSouth
      herow(retvals(0)).ygo = (retvals(2) * 20) * -1
     CASE 3'--west
-     (herodir(retvals(0))) = 3
+     (herodir(retvals(0))) = dirWest
      herow(retvals(0)).xgo = retvals(2) * 20
    END SELECT
   END IF

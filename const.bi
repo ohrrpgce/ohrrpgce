@@ -388,11 +388,18 @@ Enum scriptErrEnum
   serrBug = 7        'impossible condition; engine bug (interpreter stops)
 End Enum
 
-Enum constDirection
-	dirUp
-	dirRight
-	dirDown
-	dirLeft
+Type DirNum as integer
+Enum 'DirNum
+  dirNone  = -1
+  dirUp    = 0
+  dirRight = 1
+  dirDown  = 2
+  dirLeft  = 3
+
+  dirNorth = 0
+  dirEast  = 1
+  dirSouth = 2
+  dirWest  = 3
 End Enum
 
 'map passability bits
@@ -405,10 +412,6 @@ CONST passVehA = 16
 CONST passVehB = 32
 CONST passHarm = 64
 CONST passOverhead = 128
-CONST dirNorth = 0
-CONST dirEast = 1
-CONST dirSouth = 2
-CONST dirWest = 3
 
 'Special zones
 CONST zoneLASTUSER = 9999      'The highest zone editable in the map editor, everything

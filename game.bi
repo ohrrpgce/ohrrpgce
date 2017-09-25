@@ -111,23 +111,23 @@ Enum WalkaboutCollisionType
   collideHero = 5
 End Enum
 
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
-DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
 DECLARE FUNCTION npc_collision_check OVERLOAD (npci as NPCInst, npcdata as NPCType, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
-DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
-DECLARE FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as integer) as bool
-DECLARE FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
-DECLARE FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+DECLARE FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+DECLARE FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as DirNum) as bool
+DECLARE FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as DirNum) as bool
+DECLARE FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as DirNum) as bool
 
 DECLARE FUNCTION hero_collision_check OVERLOAD (byval rank as integer, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
-DECLARE FUNCTION hero_collision_check OVERLOAD (byval rank as integer, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
-DECLARE FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+DECLARE FUNCTION hero_collision_check OVERLOAD (byval rank as integer, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+DECLARE FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
 
 DECLARE FUNCTION herox(byval rank as integer) byref as integer
 DECLARE FUNCTION heroy(byval rank as integer) byref as integer
 DECLARE FUNCTION heropos(byval rank as integer) byref as XYPair
 DECLARE FUNCTION heroz(byval rank as integer) byref as integer
-DECLARE FUNCTION herodir(byval rank as integer) byref as integer
+DECLARE FUNCTION herodir(byval rank as integer) byref as DirNum
 DECLARE FUNCTION herotx(byval rank as integer) as integer
 DECLARE FUNCTION heroty(byval rank as integer) as integer
 DECLARE FUNCTION herotpos(byval rank as integer) as XYPair

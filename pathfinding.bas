@@ -82,7 +82,7 @@ Sub AStarPathfinder.calculate(byval npc as NPCInst Ptr=0, byval should_collide_w
    exit do
   end if
 
-  for direction as integer = 0 to 3
+  for direction as DirNum = 0 to 3
    dim nearby as XYPair
    nearby = cursor
    wrapaheadxy nearby, direction, 1, 1

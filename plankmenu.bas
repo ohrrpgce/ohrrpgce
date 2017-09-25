@@ -31,8 +31,8 @@ DECLARE FUNCTION plank_menu_end(byref ps as PlankState) as bool
 
 '-----------------------------------------------------------------------
 
-'If operating on a grid arrangement of plank slices, the planks should be of uniform size for best results
-'because this goes by plank center points
+'axis:  0 for left/right, 1 for up/down
+'d:     1 for right or down, -1 for left or up
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
 
  IF ps.cur = 0 THEN
@@ -48,8 +48,7 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  find_all_planks ps, start_parent, planks()
  
  DIM old as XYPair
- old.x = ps.cur->ScreenX + ps.cur->Width / 2
- old.y = ps.cur->ScreenY + ps.cur->Height / 2
+ old = ps.cur->ScreenPos + ps.cur->Size / 2
 
  DIM best as integer = INT_MAX
  DIM p as XYPair

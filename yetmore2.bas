@@ -29,7 +29,7 @@ Using Reload
 Using Reload.Ext
 
 'Local subs and functions
-DECLARE SUB drawants_for_tile(tile as XYPair, byval direction as integer)
+DECLARE SUB drawants_for_tile(tile as XYPair, byval direction as DirNum)
 
 
 SUB defaultc
@@ -194,7 +194,7 @@ NEXT i
 '--hero's position
 (herox(0)) = gen(genStartX) * 20
 (heroy(0)) = gen(genStartY) * 20
-(herodir(0)) = 2
+(herodir(0)) = dirDown
 resetcaterpillar ()
 
 'plotstring colours
@@ -410,7 +410,7 @@ SUB verify_quit
  DIM quitprompt as string = readglobalstring(55, "Quit Playing?", 20)
  DIM quityes as string = readglobalstring(57, "Yes", 10)
  DIM quitno as string = readglobalstring(58, "No", 10)
- DIM direction as integer = 2
+ DIM direction as DirNum = dirSouth
  DIM ptr2 as integer = 0
  DIM tog as integer
  DIM wtog as integer
@@ -431,8 +431,8 @@ SUB verify_quit
    IF ptr2 < 0 THEN gam.quit = YES: fadeout 0, 0, 0
    EXIT DO
   END IF
-  IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
-  IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
+  IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = dirLeft
+  IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = dirRight
 
   DIM centerx as integer = vpages(vpage)->w \ 2
   DIM centery as integer = vpages(vpage)->h \ 2
@@ -1066,7 +1066,7 @@ SUB npc_debug_display (draw_walls as bool)
  npc_debug_display_tooltip
 END SUB
 
-SUB drawants_for_tile(tile as XYPair, byval direction as integer)
+SUB drawants_for_tile(tile as XYPair, byval direction as DirNum)
  DIM where as XYPair
  IF framewalkabout(tile * 20, where, mapsizetiles * 20, gmap(5), 0) THEN
   SELECT CASE direction

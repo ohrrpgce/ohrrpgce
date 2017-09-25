@@ -831,19 +831,31 @@ DO
    END IF
   END IF
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-   DO
-    IF carray(ccUp) > 0 THEN herow(0).ygo = 20: (herodir(0)) = 0    : cancel_hero_pathfinding() : EXIT DO
-    IF carray(ccDown) > 0 THEN herow(0).ygo = -20: (herodir(0)) = 2 : cancel_hero_pathfinding() : EXIT DO
-    IF carray(ccLeft) > 0 THEN herow(0).xgo = 20: (herodir(0)) = 3  : cancel_hero_pathfinding() : EXIT DO
-    IF carray(ccRight) > 0 THEN herow(0).xgo = -20: (herodir(0)) = 1: cancel_hero_pathfinding() : EXIT DO
+   DIM setdir as DirNum = -1
+   IF carray(ccUp) > 0 THEN
+    herow(0).ygo = 20
+    setdir = dirUp
+   ELSEIF carray(ccDown) > 0 THEN
+    herow(0).ygo = -20
+    setdir = dirDown
+   ELSEIF carray(ccLeft) > 0 THEN
+    herow(0).xgo = 20
+    setdir = dirLeft
+   ELSEIF carray(ccRight) > 0 THEN
+    herow(0).xgo = -20
+    setdir = dirRight
+   END IF
+   IF setdir <> -1 THEN
+    (herodir(0)) = setdir
+    cancel_hero_pathfinding()
+   ELSE
     'While on a vehicle, menu and use keys are handled in update_vehicle_state()
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
      cancel_hero_pathfinding()
      usenpc 0, find_useable_npc()
     END IF
     update_hero_pathfinding(0)
-    EXIT DO
-   LOOP
+   END IF
   END IF
  END IF
  IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
@@ -1201,7 +1213,7 @@ FUNCTION heroz(byval rank as integer) byref as integer
  RETURN cats(catindex(rank)).z
 END FUNCTION
 
-FUNCTION herodir(byval rank as integer) byref as integer
+FUNCTION herodir(byval rank as integer) byref as DirNum
  RETURN cats(catindex(rank)).d
 END FUNCTION
 
@@ -1319,10 +1331,10 @@ SUB update_heroes(force_step_check as bool=NO)
           '--push the NPC
           DIM push as integer = npcs(id).pushtype
           IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
-           IF herodir(whoi) = 0 AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
-           IF herodir(whoi) = 2 AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
-           IF herodir(whoi) = 3 AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
-           IF herodir(whoi) = 1 AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
+           IF herodir(whoi) = dirUp    AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
+           IF herodir(whoi) = dirDown  AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
+           IF herodir(whoi) = dirLeft  AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
+           IF herodir(whoi) = dirRight AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
            IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
             FOR o as integer = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
              IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
@@ -1649,42 +1661,42 @@ SUB npcmove_random_wander(npci as NPCInst)
   percent_chance_to_move = 5
  END IF
  IF randint(100) < percent_chance_to_move THEN
-  DIM dir_to_go as integer = randint(4)
+  DIM dir_to_go as DirNum = randint(4)
   npci.dir = dir_to_go
-  IF dir_to_go = 0 THEN npci.ygo = 20
-  IF dir_to_go = 2 THEN npci.ygo = -20
-  IF dir_to_go = 3 THEN npci.xgo = 20
-  IF dir_to_go = 1 THEN npci.xgo = -20
+  IF dir_to_go = dirUp    THEN npci.ygo = 20
+  IF dir_to_go = dirDown  THEN npci.ygo = -20
+  IF dir_to_go = dirLeft  THEN npci.xgo = 20
+  IF dir_to_go = dirRight THEN npci.xgo = -20
  END IF
 END SUB
 
 SUB npcmove_walk_ahead(npci as NPCInst)
- IF npci.dir = 0 THEN npci.ygo = 20
- IF npci.dir = 2 THEN npci.ygo = -20
- IF npci.dir = 3 THEN npci.xgo = 20
- IF npci.dir = 1 THEN npci.xgo = -20
+ IF npci.dir = dirUp    THEN npci.ygo = 20
+ IF npci.dir = dirDown  THEN npci.ygo = -20
+ IF npci.dir = dirLeft  THEN npci.xgo = 20
+ IF npci.dir = dirRight THEN npci.xgo = -20
 END SUB
 
 SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
- DIM d as integer
+ DIM d as DirNum
  IF randint(100) < 50 THEN
   'Vertical movement
-  IF heroy(0) < npci.y THEN d = 0
-  IF heroy(0) > npci.y THEN d = 2
+  IF heroy(0) < npci.y THEN d = dirUp
+  IF heroy(0) > npci.y THEN d = dirDown
   IF gmap(5) = 1 THEN
    'Special handling for wraparound maps
-   IF heroy(0) - mapsizetiles.y * 10 > npci.y THEN d = 0
-   IF heroy(0) + mapsizetiles.y * 10 < npci.y THEN d = 2
+   IF heroy(0) - mapsizetiles.y * 10 > npci.y THEN d = dirUp
+   IF heroy(0) + mapsizetiles.y * 10 < npci.y THEN d = dirDown
   END IF
   IF heroy(0) = npci.y THEN d = randint(4)
  ELSE
   'Horizontal movement
-  IF herox(0) < npci.x THEN d = 3
-  IF herox(0) > npci.x THEN d = 1
+  IF herox(0) < npci.x THEN d = dirLeft
+  IF herox(0) > npci.x THEN d = dirRight
   IF gmap(5) = 1 THEN
    'Special handling for wraparound maps
-   IF herox(0) - mapsizetiles.x * 10 > npci.x THEN d = 3
-   IF herox(0) + mapsizetiles.x * 10 < npci.x THEN d = 1
+   IF herox(0) - mapsizetiles.x * 10 > npci.x THEN d = dirLeft
+   IF herox(0) + mapsizetiles.x * 10 < npci.x THEN d = dirRight
   END IF
   IF herox(0) = npci.x THEN d = randint(4)
  END IF
@@ -1775,7 +1787,7 @@ SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
  npcmove_walk_ahead(npci)
 END SUB
 
-SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as integer)
+SUB npcmove_change_dir_and_walk_ahead(npci as NPCInst, byval new_dir as DirNum)
  npci.dir = new_dir
  npcmove_walk_ahead(npci)
 END SUB
@@ -1787,7 +1799,7 @@ END SUB
 
 SUB npcmove_follow_walls(npci as NPCInst, npcdata as NPCType, byval side as integer)
  'side is 1 for right-hand walls and -1 for left-hand walls
- DIM d as integer = npci.dir
+ DIM d as DirNum = npci.dir
  d = walkrotate(d, side)
  IF NOT npc_collision_check(npci, npcdata, d) THEN
   'No side-wall present, we might want to turn
@@ -1833,7 +1845,7 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
  END IF
 
  'side is 1 for right-hand walls and -1 for left-hand walls
- DIM d as integer = npci.dir
+ DIM d as DirNum = npci.dir
  d = walkrotate(d, side)
  IF NOT npc_collision_check_walls_and_zones(npci, d) THEN
   'No side-wall present, we might want to turn
@@ -2045,27 +2057,27 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  RETURN didgo
 END FUNCTION
 
-FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as integer) as bool
+FUNCTION npc_collision_check_npcs_and_heroes(npci as NPCInst, byval direction as DirNum) as bool
  DIM collide_type as WalkaboutCollisionType
  npc_collision_check(npci, direction, collide_type)
  RETURN (collide_type = collideNPC ORELSE collide_type = collideHero)
 END FUNCTION
 
-FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as integer) as bool
+FUNCTION npc_collision_check_walls_and_zones(npci as NPCInst, byval direction as DirNum) as bool
  DIM collide_type as WalkaboutCollisionType
  DIM result as bool = npc_collision_check(npci, direction, collide_type)
  IF collide_type = collideNPC ORELSE collide_type = collideHero THEN RETURN NO
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as integer) as bool
+FUNCTION npc_collision_check_at_walls_and_zones(npci as NPCInst, tile as XYPair, byval direction as DirNum) as bool
  DIM collide_type as WalkaboutCollisionType
  DIM result as bool = npc_collision_check_at(npci, tile, direction, collide_type)
  IF collide_type = collideNPC ORELSE collide_type = collideHero THEN RETURN NO
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns an NPC collision check as if the NPC was at a different location than it really is
  DIM savepos as XYPair = npci.pos
  DIM savego as XYPair = npci.xygo
@@ -2080,7 +2092,7 @@ FUNCTION npc_collision_check_at(npci as NPCInst, tile as XYPair, byval direction
  RETURN result
 END FUNCTION
 
-FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns an Hero collision check as if the Hero was at a different location than it really is
  DIM savepos as XYPair = heropos(rank)
  DIM savego as XYPair = herow(rank).xygo
@@ -2095,18 +2107,18 @@ FUNCTION hero_collision_check_at(byval rank as integer, tile as XYPair, byval di
  RETURN result
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+FUNCTION npc_collision_check(npci as NPCInst, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  RETURN npc_collision_check(npci, npcs(ABS(npci.id) - 1), direction, collision_type, npc_ccache)
 END FUNCTION
 
-FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  DIM go as XYPair
  xypair_move go, direction, 20
  'NPC xgo and ygo are backwards, so we invert the value we got from xypair_move()
  RETURN npc_collision_check(npci, npcdata, go.x * -1, go.y * -1, collision_type, npc_ccache)
 END FUNCTION
 
-FUNCTION hero_collision_check(byval rank as integer, byval direction as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
+FUNCTION hero_collision_check(byval rank as integer, byval direction as DirNum, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  DIM go as XYPair
  xypair_move go, direction, 20
  'Hero xgo and ygo are backwards, so we invert the value we got from xypair_move()
@@ -4848,10 +4860,10 @@ SUB update_hero_pathfinding_display(byval tile as XYpair)
 END SUB
 
 SUB heromove_walk_ahead(byval rank as integer)
- IF herodir(rank) = 0 THEN herow(rank).ygo = 20
- IF herodir(rank) = 2 THEN herow(rank).ygo = -20
- IF herodir(rank) = 3 THEN herow(rank).xgo = 20
- IF herodir(rank) = 1 THEN herow(rank).xgo = -20
+ IF herodir(rank) = dirUp    THEN herow(rank).ygo = 20
+ IF herodir(rank) = dirDown  THEN herow(rank).ygo = -20
+ IF herodir(rank) = dirLeft  THEN herow(rank).xgo = 20
+ IF herodir(rank) = dirRight THEN herow(rank).xgo = -20
 END SUB
 
 'This function assumes the menu is not disabled for any reason

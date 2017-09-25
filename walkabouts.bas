@@ -112,7 +112,7 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
  END IF
 END SUB
 
-SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as integer, byval frame as integer)
+SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byval frame as integer)
  DIM sprsl as Slice Ptr
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_frame"
@@ -475,22 +475,22 @@ FUNCTION movdivis (byval xygo as integer) as bool
  END IF
 END FUNCTION
 
-SUB aheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer)
+SUB aheadxy (byref x as integer, byref y as integer, byval direction as DirNum, byval distance as integer)
  '--alters the input X and Y, moving them "ahead" by distance in direction
 
- IF direction = 0 THEN y = y - distance
- IF direction = 1 THEN x = x + distance
- IF direction = 2 THEN y = y + distance
- IF direction = 3 THEN x = x - distance
+ IF direction = dirUp    THEN y = y - distance
+ IF direction = dirRight THEN x = x + distance
+ IF direction = dirDown  THEN y = y + distance
+ IF direction = dirLeft  THEN x = x - distance
 END SUB
 
-SUB aheadxy (byref p as XYPair, byval direction as integer, byval distance as integer)
+SUB aheadxy (byref p as XYPair, byval direction as DirNum, byval distance as integer)
  '--alters the input X and Y, moving them "ahead" by distance in direction
 
- IF direction = 0 THEN p.y = p.y - distance
- IF direction = 1 THEN p.x = p.x + distance
- IF direction = 2 THEN p.y = p.y + distance
- IF direction = 3 THEN p.x = p.x - distance
+ IF direction = dirUp    THEN p.y = p.y - distance
+ IF direction = dirRight THEN p.x = p.x + distance
+ IF direction = dirDown  THEN p.y = p.y + distance
+ IF direction = dirLeft  THEN p.x = p.x - distance
 END SUB
 
 SUB wrapxy (byref x as integer, byref y as integer, byval unitsize as integer = 1)
@@ -513,7 +513,7 @@ END SUB
 
 'alters X and Y ahead by distance in direction, wrapping if neccisary
 'unitsize is 20 for pixels, 1 for tiles
-SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
+SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
  aheadxy x, y, direction, distance
  
  IF gmap(5) = 1 THEN
@@ -523,7 +523,7 @@ END SUB
 
 'alters X and Y ahead by distance in direction, wrapping if neccisary
 'unitsize is 20 for pixels, 1 for tiles
-SUB wrapaheadxy (byref p as XYPair, byval direction as integer, byval distance as integer, byval unitsize as integer)
+SUB wrapaheadxy (byref p as XYPair, byval direction as DirNum, byval distance as integer, byval unitsize as integer)
  aheadxy p, direction, distance
  
  IF gmap(5) = 1 THEN
@@ -563,7 +563,7 @@ END FUNCTION
 ' Returns true if there is a wall or vehicle obstruction.
 ' walls_over_edges: map edges are obstructions
 ' ignore_passmap: map edges are obstructions but walls are not (note: walls_over_edges is ignored)
-FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as integer, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
+FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as DirNum, isveh as bool = NO, walls_over_edges as bool = YES, ignore_passmap as bool = NO) as bool
  DIM wallbit as integer = 1 SHL direction
  DIM oppositebit as integer = 1 SHL ((direction + 2) AND 3)
  DIM defwalls as integer = IIF(walls_over_edges, 15, 0)
@@ -601,12 +601,12 @@ FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo a
  ' Only check for walls at the beginning of every 20px step. Why? Well, this is
  ' quite wrong, but we continue to do this for compatibility.
  IF movdivis(ygo) THEN
-  IF ygo > 0 ANDALSO check_wall_edges(x, y, dirNorth, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
-  IF ygo < 0 ANDALSO check_wall_edges(x, y, dirSouth, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
+  IF ygo > 0 ANDALSO check_wall_edges(x, y, dirUp, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
+  IF ygo < 0 ANDALSO check_wall_edges(x, y, dirDown, isveh, , ignore_passmap) THEN ygo = 0: wrappass = 1
  END IF
  IF movdivis(xgo) THEN
-  IF xgo > 0 ANDALSO check_wall_edges(x, y, dirWest,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
-  IF xgo < 0 ANDALSO check_wall_edges(x, y, dirEast,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
+  IF xgo > 0 ANDALSO check_wall_edges(x, y, dirLeft,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
+  IF xgo < 0 ANDALSO check_wall_edges(x, y, dirRight,  isveh, , ignore_passmap) THEN xgo = 0: wrappass = 1
  END IF
 END FUNCTION
 
@@ -621,8 +621,8 @@ FUNCTION slide_wallmap(byval startpos as XYPair, byref pos as XYPair, byval size
   blocked = check_wallmap_collision(startpos, pos, size, xgo, ygo, isveh, walls_over_edges)
   IF blocked = 0 THEN RETURN NO  ' done
 
-  IF (blocked AND (1 SHL dirNorth)) = 0 AND ygo < 0 THEN
-   ' Move north to next alignment
+  IF (blocked AND (1 SHL dirUp)) = 0 AND ygo < 0 THEN
+   ' Move up to next alignment
 
    ' IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
    ' nextalign.y -= nextalign.y MOD tilesize.y
@@ -696,7 +696,8 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
   TL_tile = pos \ tilesize
   BR_tile = (pos + size - 1) \ tilesize
 
-  DIM as integer xtile, ytile, whichdir
+  DIM as integer xtile, ytile
+  DIM as DirNum whichdir
 
   ' If both x and y sides collide at once, then must check both.
   ' Ignore coincidental alignment if not moving in that direction.
@@ -707,42 +708,42 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    ' xtile,ytile iterates over each of the tiles immediately in front of the box
    ' and dir is direction from that tile towards the box.
    IF xgo > 0 THEN
-    whichdir = dirEast
+    whichdir = dirRight
     xtile = BR_tile.x + 1  'right
     nextalign.x += tilesize.x
    ELSE
-    whichdir = dirWest
+    whichdir = dirLeft
     xtile = TL_tile.x - 1  'left
     nextalign.x -= tilesize.x
    END IF
    FOR ytile = TL_tile.y TO BR_tile.y
-    ' Check east/west walls
+    ' Check right/left walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
     IF ytile < BR_tile.y THEN
      ' Check edge-on tiles
-     IF check_wall_edges(xtile, ytile, dirSouth, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
+     IF check_wall_edges(xtile, ytile, dirDown, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
    NEXT
   END IF
 
   IF pos.y = nextalign.y AND ygo <> 0 THEN
    IF ygo > 0 THEN
-    whichdir = dirSouth
+    whichdir = dirDown
     ytile = BR_tile.y + 1  'bottom
     nextalign.y += tilesize.y
    ELSE
-    whichdir = dirNorth
+    whichdir = dirUp
     ytile = TL_tile.y - 1  'top
     nextalign.y -= tilesize.y
    END IF
    FOR xtile = TL_tile.x TO BR_tile.x
-    ' Check north/south walls
+    ' Check up/down walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
     IF xtile < BR_tile.x THEN
      ' Check edge-on tiles
-     IF check_wall_edges(xtile, ytile, dirEast, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
+     IF check_wall_edges(xtile, ytile, dirRight, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
    NEXT
   END IF
@@ -819,7 +820,7 @@ FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byva
  RETURN rect_collide_point(bounds, screenpos)
 END FUNCTION
 
-FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as integer = -1) as integer
+FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as DirNum = dirNone) as DirNum
  IF src_v = dest_v THEN RETURN default 'Same XY
  DIM diff as XYPair = dest_v - src_v
  IF ABS(diff.x) = ABS(diff.y) THEN RETURN default 'Make no attempt to resolve diagonals
@@ -827,19 +828,19 @@ FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as inte
   'Horizontal
   IF gmap(5) = 1 ANDALSO ABS(diff.x) > mapsizetiles.x / 2 THEN
    'Wraparound map
-   IF diff.x < 0 THEN RETURN 1
+   IF diff.x < 0 THEN RETURN dirRight
    RETURN 3
   END IF
-  IF diff.x < 0 THEN RETURN 3
+  IF diff.x < 0 THEN RETURN dirLeft
   RETURN 1
  ELSE
   'Vertical
   IF gmap(5) = 1 ANDALSO ABS(diff.y) > mapsizetiles.y / 2 THEN
    'Wraparound map
-   IF diff.y < 0 THEN RETURN 2
+   IF diff.y < 0 THEN RETURN dirDown
    RETURN 0
   END IF
-  IF diff.y < 0 THEN RETURN 0
+  IF diff.y < 0 THEN RETURN dirUp
   RETURN 2
  END IF
  RETURN default 'fallback should not be reached
@@ -954,13 +955,13 @@ SUB update_vehicle_state ()
    'FIXME: Why is this here, when dismounting is apparently also handled by vehscramble?
    'Does this have to do with Bug 764 - "Blocked by" vehicle setting does nothing ?
    SELECT CASE herodir(0)
-    CASE 0
+    CASE dirUp
      herow(0).ygo = 20
-    CASE 1
+    CASE dirRight
      herow(0).xgo = -20
-    CASE 2
+    CASE dirDown
      herow(0).ygo = -20
-    CASE 3
+    CASE dirLeft
      herow(0).xgo = 20
    END SELECT
   END IF
@@ -1023,13 +1024,13 @@ SUB forcedismount ()
   IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
    '--dismount-ahead is true, dismount-passwalls is false
    SELECT CASE herodir(0)
-    CASE 0
+    CASE dirUp
      herow(0).ygo = 20
-    CASE 1
+    CASE dirRight
      herow(0).xgo = -20
-    CASE 2
+    CASE dirDown
      herow(0).ygo = -20
-    CASE 3
+    CASE dirLeft
      herow(0).xgo = 20
    END SELECT
   END IF
@@ -1146,7 +1147,7 @@ FUNCTION vehscramble(byval target as XYPair) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION walkrotate(byval d as integer, byval rota as integer, byval amount as integer=1) as integer
+FUNCTION walkrotate(byval d as DirNum, byval rota as integer, byval amount as integer=1) as DirNum
  'rota: 1 is a clockwise right turn.
  '    -1 is a counterclockwise left turn.
  RETURN loopvar(d, 0, 3, amount * rota)
