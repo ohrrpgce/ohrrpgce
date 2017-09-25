@@ -2000,7 +2000,7 @@ SUB quad_transforms_menu ()
    end select
 
    gfx_surfaceDestroy( @spriteSurface )
-   gfx_surfaceWithFrame( testframe, @spriteSurface )
+   gfx_surfaceCreateFrameView( testframe, @spriteSurface )
 
    DIM testframesize as Rect
    WITH testframesize

@@ -26,27 +26,32 @@ enum SurfaceUsage
 	SU_Staging = 2,      // Surfaces that don't get sent to GPU
 };
 
-typedef struct Surface
+typedef struct Surface Surface;
+
+struct Surface
 {
 	void* handle;
 	int refcount;
+	int isview;         // Is a view onto a Frame or another Surface (see below)
 	int32_t width;
 	int32_t height;
+	int32_t pitch;
 	enum SurfaceFormat format;
 	enum SurfaceUsage usage;
-	Frame *frame;       // If not NULL, is a view onto a Frame which owns the data
-	union
-	{
+	union {
 		void* pRawData;
 		uint32_t* pColorData;
 		uint8_t* pPaletteData;
 	};
+	// The following are only used if isview is true; at most one of them is non-NULL
+	Frame *base_frame;  // If not NULL, is a view of a whole Frame
+	Surface *base_surf; // If not NULL, is a view of part of a Surface
 
 #ifdef __cplusplus
-	uint8_t& pixel8(int x, int y) { return pPaletteData[width * y + x]; }
-	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[width * y + x]; }
+	uint8_t& pixel8(int x, int y) { return pPaletteData[pitch * y + x]; }
+	RGBcolor& pixel32(int x, int y) { return ((RGBcolor*)pColorData)[pitch * y + x]; }
 #endif
-} Surface;
+};
 
 typedef struct
 {
@@ -68,7 +73,8 @@ extern "C"
 
 	// Software implementation
 	int gfx_surfaceCreate_SW( int32_t width, int32_t height, enum SurfaceFormat format, enum SurfaceUsage usage, Surface** ppSurfaceOut );
-	int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
+	int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int height, Surface** ppSurfaceOut );
+	int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn );
 	Surface *gfx_surfaceReference_SW( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );

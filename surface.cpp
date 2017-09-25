@@ -22,7 +22,7 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 		debug(errPromptBug, "surfaceCreate_SW: NULL out ptr");
 		return -1;
 	}
-	Surface *ret = new Surface {NULL, 1, width, height, format, usage, NULL};
+	Surface *ret = new Surface {NULL, 1, 0, width, height, width, format, usage, NULL};
 	if(format == SF_8bit)
 		ret->pPaletteData = new uint8_t[width*height];
 	else
@@ -33,22 +33,52 @@ int gfx_surfaceCreate_SW( int32_t width, int32_t height, SurfaceFormat format, S
 	return 0;
 }
 
+// Return a Surface which is a view onto an existing Surface. Both should be
+// destroyed as usual.
+// Note: width and height are not inclusive
+int gfx_surfaceCreateView_SW( Surface *pSurfaceIn, int x, int y, int width, int height, Surface** ppSurfaceOut )
+{//done
+	if (!ppSurfaceOut) {
+		debug(errPromptBug, "surfaceCreateView_SW: NULL out ptr");
+		return -1;
+	}
+	if (x < 0) {
+		width -= -x;
+		x = 0;
+	}
+	if (y < 0) {
+		height -= -y;
+		y = 0;
+	}
+	width = bound(width, 0, pSurfaceIn->width - x);
+	height = bound(height, 0, pSurfaceIn->height - y);
+	Surface *ret = new Surface {NULL, 1, 1, width, height, pSurfaceIn->pitch, pSurfaceIn->format, pSurfaceIn->usage, NULL};
+	if(ret->format == SF_8bit)
+		ret->pPaletteData = pSurfaceIn->pPaletteData + ret->pitch * y + x;
+	else
+		ret->pColorData = pSurfaceIn->pColorData + ret->pitch * y + x;
+
+	ret->base_surf = pSurfaceIn;
+	gfx_surfaceReference_SW(pSurfaceIn);
+	g_surfaces.push_back(ret);
+	*ppSurfaceOut = ret;
+	return 0;
+}
+
 // Return a Surface which is a view onto a Frame. The Surface and Frame should both
 // be destroyed as normal.
 // (The Frame refcount is incremented)
-int gfx_surfaceWithFrame_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
+int gfx_surfaceCreateFrameView_SW( Frame* pFrameIn, Surface** ppSurfaceOut )
 {
-	if (pFrameIn->w != pFrameIn->pitch) {
-		debug(errPromptBug, "gfx_surfaceWithFrame_SW: pitch != width"); // Unimplemented: Would have to make a copy of the data
-		return -1;
-	}
 	if (pFrameIn->surf) {
-		debug(errPromptBug, "gfx_surfaceWithFrame_SW: can't use Surface-backed Frame");
-		// Well, we could maybe return pFrameIn->surf
-		return -1;
+		// The Frame is a view onto a surface. We assume that it's a view of
+		// the whole surface, because that's all that's currently possible.
+		// This is a temporary kludge anyway.
+		return gfx_surfaceCreateView_SW(pFrameIn->surf, 0, 0, pFrameIn->w, pFrameIn->h, ppSurfaceOut);
 	}
-	Surface *ret = new Surface {NULL, 1, pFrameIn->w, pFrameIn->h, SF_8bit, SU_Source, frame_reference(pFrameIn)};
-	ret->pPaletteData = ret->frame->image;
+	Surface *ret = new Surface {NULL, 1, 1, pFrameIn->w, pFrameIn->h, pFrameIn->pitch, SF_8bit, SU_Source};
+	ret->base_frame = frame_reference(pFrameIn);
+	ret->pPaletteData = pFrameIn->image;
 	*ppSurfaceOut = ret;
 	return 0;
 }
@@ -63,13 +93,15 @@ int gfx_surfaceDestroy_SW( Surface** ppSurfaceIn ) {
 	if (pSurfaceIn) {
 		if(--pSurfaceIn->refcount > 0)
 			return 0;
-		if(pSurfaceIn->frame)
-		{
-			// Is a view onto a Frame, so don't delete the pixel data ourselves
-			frame_unload(&pSurfaceIn->frame);
+		if(pSurfaceIn->isview) {
+			// We don't own the pixel data, deref the parent instead
+			if(pSurfaceIn->base_frame) {
+				frame_unload(&pSurfaceIn->base_frame);
+			} else {
+				gfx_surfaceDestroy_SW(&pSurfaceIn->base_surf);
+			}
 		}
-		else if(pSurfaceIn->pRawData)
-		{
+		else if(pSurfaceIn->pRawData) {
 			if(pSurfaceIn->format == SF_8bit)
 				delete [] pSurfaceIn->pPaletteData;
 			else
@@ -103,26 +135,18 @@ int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfac
 	if( !pSurfaceIn )
 		return -1;
 
-	if(pRect)
-	{
-		if(pSurfaceIn->format == SF_8bit)
-			for(int i = pRect->top; i <= pRect->bottom; i++)
-				for(int j = pRect->left; j <= pRect->right; j++)
-					pSurfaceIn->pPaletteData[i*pSurfaceIn->width + j] = fillColor;
-		else
-			for(int i = pRect->top; i <= pRect->bottom; i++)
-				for(int j = pRect->left; j <= pRect->right; j++)
-					pSurfaceIn->pColorData[i*pSurfaceIn->width + j] = fillColor;
-	}
+	SurfaceRect rect;
+	if (!pRect)
+		pRect = &(rect = {0, 0, pSurfaceIn->width - 1, pSurfaceIn->height - 1});
+
+	if(pSurfaceIn->format == SF_8bit)
+		for(int i = pRect->top; i <= pRect->bottom; i++)
+			for(int j = pRect->left; j <= pRect->right; j++)
+				pSurfaceIn->pPaletteData[i*pSurfaceIn->pitch + j] = fillColor;
 	else
-	{
-		if(pSurfaceIn->format == SF_8bit)
-			for(int i = 0, end = pSurfaceIn->width*pSurfaceIn->height; i < end; i++)
-				pSurfaceIn->pPaletteData[i] = fillColor;
-		else
-			for(int i = 0, end = pSurfaceIn->width*pSurfaceIn->height; i < end; i++)
-				pSurfaceIn->pColorData[i] = fillColor;
-	}
+		for(int i = pRect->top; i <= pRect->bottom; i++)
+			for(int j = pRect->left; j <= pRect->right; j++)
+				pSurfaceIn->pColorData[i*pSurfaceIn->pitch + j] = fillColor;
 
 	return 0;
 }
@@ -291,8 +315,8 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 		return 0;
 
 	// Number of pixels skipped from the end of one row to start of next
-	int srcLineEnd = pSurfaceSrc->width - itX_max;
-	int destLineEnd = pSurfaceDest->width - itX_max;
+	int srcLineEnd = pSurfaceSrc->pitch - itX_max;
+	int destLineEnd = pSurfaceDest->pitch - itX_max;
 
 	// Two of these are invalid
 	uint8_t *restrict srcp8 = &pSurfaceSrc->pixel8(srcX, srcY);
@@ -303,8 +327,8 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 	if (pSurfaceSrc->format == SF_32bit) { //both are 32bit (since already validated destination target)
 		for (int itY = 0; itY < itY_max; itY++) {
 			memcpy(destp32, srcp32, 4 * itX_max);
-			srcp32 += pSurfaceSrc->width;
-			destp32 += pSurfaceDest->width;
+			srcp32 += pSurfaceSrc->pitch;
+			destp32 += pSurfaceDest->pitch;
 		}
 	} else if (pSurfaceDest->format == SF_8bit) { //both are 8bit
 		if (bUseColorKey0) {
@@ -334,8 +358,8 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette*
 			} else {
 				for (int itY = 0; itY < itY_max; itY++) {
 					memcpy(destp8, srcp8, 1 * itX_max);
-					srcp8 += pSurfaceSrc->width;
-					destp8 += pSurfaceDest->width;
+					srcp8 += pSurfaceSrc->pitch;
+					destp8 += pSurfaceDest->pitch;
 				}
 			}
 		}

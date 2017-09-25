@@ -113,7 +113,7 @@ declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 	if (fr)->image = NULL then
 		' Probably usually indicates that the Frame is Surface-backed
 		debug __FUNCTION__ & ": NULL Frame.image"
-		return what
+		return what  'If what isn't given, just "return"
 	end if
 #endmacro
 
@@ -1003,7 +1003,7 @@ private sub present_internal_frame(drawpage as integer)
 	' end with
 
 	dim surf as Surface ptr
-	if gfx_surfaceWithFrame(vpages(drawpage), @surf) then return
+	if gfx_surfaceCreateFrameView(vpages(drawpage), @surf) then return
 
 	dim surface_pal as RGBPalette ptr
 	if surf->format = SF_8bit then
@@ -5613,7 +5613,7 @@ sub surface_export_bmp (f as string, byval surf as Surface Ptr, maspal() as RGBc
 		dim fr as Frame
 		fr.w = surf->width
 		fr.h = surf->height
-		fr.pitch = surf->width
+		fr.pitch = surf->pitch
 		fr.image = surf->pPaletteData
 		fr.mask = surf->pPaletteData
 		frame_export_bmp8(f, @fr, maspal())
@@ -5636,13 +5636,13 @@ sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 	skipbytes = 4 - (surf->width * 3 mod 4)
 	if skipbytes = 4 then skipbytes = 0
-	sptr = surf->pColorData + (surf->height - 1) * surf->width
+	sptr = surf->pColorData + (surf->height - 1) * surf->pitch
 	for y = surf->height - 1 to 0 step -1
 		'put is possibly the most screwed up FB builtin; the use of the fput wrapper soothes the soul
 		for x as integer = 0 to surf->width - 1
 			fput(of, , @sptr[x], 3)
 		next
-		sptr -= surf->width
+		sptr -= surf->pitch
 		'pad to 4-byte boundary
 		fput(of, , @buf(0), skipbytes)
 	next
@@ -5922,7 +5922,7 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 				ret = frame_to_surface32(paletted, bmppal())
 			else
 				' Keep 8-bit. We don't load the palette
-				gfx_surfaceWithFrame(paletted, @ret)  'Increments refcount
+				gfx_surfaceCreateFrameView(paletted, @ret)  'Increments refcount
 			end if
 			frame_unload @paletted
 		end if
@@ -6106,7 +6106,7 @@ private sub loadbmp32(byval bf as integer, byval surf as Surface ptr, infohd as 
 	end if
 
 	for y as integer = surf->height - 1 to 0 step -1
-		sptr = surf->pColorData + y * surf->width
+		sptr = surf->pColorData + y * surf->pitch
 		for x as integer = 0 to surf->width - 1
 			if infohd.biCompression = BI_BITFIELDS then
 				get #bf, , bitspix
@@ -6139,7 +6139,7 @@ private sub loadbmp24(byval bf as integer, byval surf as Surface ptr)
 	if pad = 4 then	pad = 0
 
 	for y as integer = surf->height - 1 to 0 step -1
-		sptr = surf->pColorData + y * surf->width
+		sptr = surf->pColorData + y * surf->pitch
 		for x as integer = 0 to surf->width - 1
 			get #bf, , pix
 			'First 3 bytes of RGBTRIPLE are the same as RGBcolor
@@ -6493,7 +6493,7 @@ function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options 
 	dim inptr as RGBcolor ptr
 	dim outptr as ubyte ptr
 	for y as integer = 0 to surf->height - 1
-		inptr = surf->pColorData + y * surf->width
+		inptr = surf->pColorData + y * surf->pitch
 		outptr = ret->image + y * ret->pitch
 		for x as integer = 0 to surf->width - 1
 			' Ignore alpha
@@ -6647,6 +6647,12 @@ sub toggle_recording_gif()
 	end if
 end sub
 
+private sub _gif_pitch_fail(what as string)
+	debugc errPromptBug, "Can't record gif from " & what & " with extra pitch"
+	'This will cause the following GifWriteFrame* call to fail
+	stop_recording_gif
+end sub
+
 ' Called with every frame that should be included in any ongoing gif recording
 private sub gif_record_frame(fr as Frame ptr, pal() as RGBcolor)
 	if recordgif.active = NO then exit sub
@@ -6659,6 +6665,7 @@ private sub gif_record_frame(fr as Frame ptr, pal() as RGBcolor)
 	if sf andalso sf->format = SF_32bit then
 		bits = 32
 		dim image as ubyte ptr = cast(ubyte ptr, sf->pColorData)
+		if sf->width <> sf->pitch then _gif_pitch_fail "32-bit Surface"
 		ret = GifWriteFrame(@recordgif.writer, image, sf->width, sf->height, delay, 8, NO)
 	else
 		' 8-bit Surface-backed Frames and regular Frames.
@@ -6666,8 +6673,10 @@ private sub gif_record_frame(fr as Frame ptr, pal() as RGBcolor)
 		dim gifpal as GifPalette
 		GifPalette_from_pal gifpal, pal()
 		if sf andalso sf->format = SF_8bit then
+			if sf->width <> sf->pitch then _gif_pitch_fail "8-bit Surface"
 			ret = GifWriteFrame8(@recordgif.writer, sf->pPaletteData, sf->width, sf->height, delay, @gifpal)
 		else
+			if fr->w <> fr->pitch then _gif_pitch_fail "Frame"
 			ret = GifWriteFrame8(@recordgif.writer, fr->image, fr->w, fr->h, delay, @gifpal)
 		end if
 	end if
@@ -7295,8 +7304,6 @@ end function
 'Create a frame which is a view onto part of a larger frame
 'Can return a zero-size view. Seems to work, but not yet sure that all operations will work correctly on such a frame.
 function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
-	CHECK_FRAME_8BIT(spr, NULL)
-
 	dim ret as frame ptr = callocate(sizeof(Frame))
 
 	if ret = 0 then
@@ -7315,9 +7322,17 @@ function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as i
 			.h = 0
 		end if
 		.pitch = spr->pitch
-		.image = spr->image + .pitch * y + x
-		if spr->mask then
-			.mask = spr->mask + .pitch * y + x
+
+		if spr->surf then
+			if gfx_surfaceCreateView(spr->surf, x, y, .w, .h, @.surf) then
+				deallocate ret
+				return NULL
+			end if
+		else
+			.image = spr->image + .pitch * y + x
+			if spr->mask then
+				.mask = spr->mask + .pitch * y + x
+			end if
 		end if
 		.refcount = 1
 		.arraylen = 1 'at the moment not actually used anywhere on sprites with isview = 1
@@ -7346,7 +7361,7 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 		.surf = surf
 		.w = surf->width
 		.h = surf->height
-		.pitch = surf->width  'Should never be used, but set it anyway
+		.pitch = surf->pitch
 		'image and mask are Null
 		.refcount = 1
 		.arraylen = 1
@@ -7355,8 +7370,8 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 end function
 
 ' Creates an (independent) 32 bit Surface which is a copy of an unpaletted Frame.
-' This is not the same as gfx_surfaceWithFrame, which creates a special Surface which
-' is just a view of a Frame (and may be a temporary hack!)
+' This is not the same as gfx_surfaceCreateFrameView, which creates a Surface which
+' is just a view of a Frame (and is a temporary hack!)
 function frame_to_surface32(fr as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Surface ptr
 	if fr->surf then
 		debug "frame_to_surface32 called on a Surface-backed Frame"
@@ -7571,9 +7586,10 @@ function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
 
 	if fr->surf then
 		dim surf as Surface ptr = fr->surf
-		dim rowlen as integer = surf->width * bits \ 8
+		dim rowbytes as integer = surf->width * bits \ 8
+		dim pitchbytes as integer = surf->pitch * bits \ 8
 		for y as integer = 0 TO surf->height - 1
-			memcpy(imdata + y * rowlen, cast(byte ptr, surf->pRawData) + y * rowlen, rowlen)
+			memcpy(imdata + y * rowbytes, cast(byte ptr, surf->pRawData) + y * pitchbytes, rowbytes)
 		next
 	else
 		for y as integer = 0 TO fr->h - 1
@@ -7909,7 +7925,7 @@ private sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal a
 			src_surface = src->surf
 		else
 			'debuginfo "frame_draw_internal: unnecessary allocation"
-			if gfx_surfaceWithFrame(src, @src_surface) then return
+			if gfx_surfaceCreateFrameView(src, @src_surface) then return
 		end if
 		dim master_pal as RGBPalette ptr
 		if src_surface->format = SF_8bit then

@@ -28,10 +28,12 @@ End Enum
 
 Type Palette16Fwd as Palette16
 Type FrameFwd as Frame
+Type SurfaceFwd as Surface
 
 Type Surface
 	handle as any ptr
 	refcount as int32
+	isview as int32  'Is a view onto a Frame or another Surface (see below)
 	Union
 		Type
 			width as int32
@@ -39,15 +41,20 @@ Type Surface
 		End Type
 		size as XYPair
 	End Union
+	pitch as int32
 			'FB enums are 64 bit on a 64 bit machine, unlike C/C++ which uses 'int'
 	format as int32 ' SurfaceFormat
 	usage as int32  ' SurfaceUsage
-	frame as FrameFwd ptr  ' If not NULL, is a view onto a Frame which owns the data
+
 	Union
 		pRawData as any ptr
 		pColorData as RGBcolor ptr  'uint32s
 		pPaletteData as ubyte ptr
 	End Union
+
+	' The following are only used if isview is true; at most one of them is non-NULL
+	base_frame as FrameFwd ptr  'If not NULL, is a view of a whole Frame
+	base_surf as SurfaceFwd ptr 'If not NULL, is a view of part of a Surface
 End Type
 
 Type SurfaceRect
@@ -94,7 +101,8 @@ End Type
 extern "C"
 
 	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
-	extern gfx_surfaceWithFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	extern gfx_surfaceCreateFrameView as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	extern gfx_surfaceCreateView as function ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 	extern gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 	extern gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -123,7 +131,8 @@ extern "C"
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
-	declare function gfx_surfaceWithFrame_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	declare function gfx_surfaceCreateFrameView_SW ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+	declare function gfx_surfaceCreateView_SW ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 	declare function gfx_surfaceDestroy_SW ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 	declare function gfx_surfaceReference_SW ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 	declare function gfx_surfaceUpdate_SW ( byval pSurfaceIn as Surface ptr ) as integer

@@ -98,7 +98,8 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 'New Surface-based graphics backend function pointers
 
 dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
-dim gfx_surfaceWithFrame as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+dim gfx_surfaceCreateFrameView as function ( byval pFrameIn as FrameFwd ptr, byval ppSurfaceOut as Surface ptr ptr) as integer
+dim gfx_surfaceCreateView as function ( byval pSurfaceIn as Surface ptr, byval x as integer, byval y as integer, byval width as integer, byval height as integer, byval ppSurfaceOut as Surface ptr ptr) as integer
 dim gfx_surfaceDestroy as function ( byval ppSurfaceIn as Surface ptr ptr ) as integer
 dim gfx_surfaceReference as function ( byval pSurfaceIn as Surface ptr ) as Surface ptr
 dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -430,7 +431,8 @@ End Function
 
 private sub default_gfx_render_procs()
 	gfx_surfaceCreate = @gfx_surfaceCreate_SW
-	gfx_surfaceWithFrame = @gfx_surfaceWithFrame_SW
+	gfx_surfaceCreateView = @gfx_surfaceCreateView_SW
+	gfx_surfaceCreateFrameView = @gfx_surfaceCreateFrameView_SW
 	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
 	gfx_surfaceReference = @gfx_surfaceReference_SW
 	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
