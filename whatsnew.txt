@@ -33,6 +33,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       or Special slices [Ralph]
     * ${} codes in map names display correctly in the save/load screen
       [James]
+    * A nonsensical item ownership number was showing up when hiring
+      heroes at a shop [James]
 
   * Stuff Only Developers Will Notice
 

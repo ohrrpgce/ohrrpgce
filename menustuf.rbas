@@ -353,7 +353,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  END IF
 
  DIM already_count as integer = countitem(thing_id)
- IF already_count > 0 THEN
+ IF thing_kind = "item" ANDALSO already_count > 0 THEN
   append_menu_item buyst.info, readglobalstring(324, "You own", 20) & " " & already_count
  END IF
 
