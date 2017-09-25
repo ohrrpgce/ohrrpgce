@@ -1108,6 +1108,9 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  STATIC num_errors as integer = 0
  num_errors += 1
 
+ STATIC last_error as string, ignore_error as string
+ IF msg = ignore_error AND isfatal = NO THEN EXIT SUB
+
  STATIC entered as integer = 0  'don't allow reentry
  IF entered THEN
   IF isfatal AND entered = 1 THEN
@@ -1125,20 +1128,20 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
   fatal_error_shutdown
  END IF
 
- IF isfatal THEN
-  msg = !"        --  FATAL ERROR  --\n" + msg
- ELSEIF isbug THEN
-  msg = !"        --  OHRRPGCE BUG  --\n" + msg
- END IF
-
  DIM quitmsg as string
  quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
  IF isfatal THEN
   quitmsg += "Press any key to quit."
- ELSEIF num_errors >= 3 THEN
-  quitmsg += "Press ESC to cleanly quit, or any other key to ignore and try to continue."
  ELSE
-  quitmsg += "Press any key to try to continue."
+  IF msg = last_error THEN
+   quitmsg += !"(Error repeated)\n"
+   ignore_error = msg
+  END IF
+  IF num_errors >= 3 THEN
+   quitmsg += "Press ESC to cleanly quit, or any other key to ignore and try to continue."
+  ELSE
+   quitmsg += "Press any key to try to continue."
+  END IF
  END IF
  #IFDEF IS_CUSTOM
   IF cleanup_workingdir_on_error = NO THEN
@@ -1151,6 +1154,13 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
   quitmsg += !"\nPlease report this engine bug by sending an e-mail to ohrrpgce-crash@HamsterRepublic.com"
  ELSE
   quitmsg += !"\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com"
+ END IF
+
+ last_error = msg
+ IF isfatal THEN
+  msg = !"        --  FATAL ERROR  --\n" + msg
+ ELSEIF isbug THEN
+  msg = !"        --  OHRRPGCE BUG  --\n" + msg
  END IF
 
  'Reset palette (in case the error happened in a fade-to-black or due to
