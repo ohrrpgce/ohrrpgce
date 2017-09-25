@@ -96,6 +96,7 @@ DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() a
 DECLARE FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
 DECLARE FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
+DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -177,12 +178,12 @@ FUNCTION battle (byval form as integer) as bool
   END IF
   
   '--An attack should happen, prepare its animation
-  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
+  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = vicNONE THEN
    generate_atkscript attack, bat, bslot(), bat.anim_t()
   END IF
   
   '--Playback the current attack animation
-  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
+  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = vicNONE AND bat.away = 0 THEN
    battle_attack_anim_playback attack, bat, bslot(), formdata
   END IF
   
@@ -195,7 +196,7 @@ FUNCTION battle (byval form as integer) as bool
    CASE turnTURN: turn_mode_state_machine bat, bslot(), formdata
   END SELECT
   
-  IF bat.vic.state = 0 THEN
+  IF bat.vic.state = vicNONE THEN
    IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata
    IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
@@ -219,7 +220,7 @@ FUNCTION battle (byval form as integer) as bool
   battle_display bat, bslot(), st(), page
   
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
-  IF bat.vic.state > 0 THEN show_victory bat, bslot(), page
+  IF bat.vic.state > vicNONE THEN show_victory bat, bslot(), page
   
   IF bat.show_info_mode = 1 THEN
    show_enemy_meters bat, bslot(), formdata, page
@@ -227,7 +228,7 @@ FUNCTION battle (byval form as integer) as bool
    display_attack_queue bslot()
   END IF
   
-  IF bat.death_mode = deathENEMIES AND bat.vic.state = 0 THEN
+  IF bat.death_mode = deathENEMIES AND bat.vic.state = vicNONE THEN
    IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
   END IF
   
@@ -889,7 +890,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
  '--user interface slices
  DIM i as integer
  DIM col as integer
- IF bat.vic.state = 0 THEN 'only display interface till you win
+ IF bat.vic.state = vicNONE THEN 'only display interface till you win
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
@@ -1032,7 +1033,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     NEXT i
    END IF
   END IF
- END IF'--end if bat.vic.state = 0
+ END IF'--end if bat.vic.state = vicNONE
  IF gam.debug_showtags THEN tagdisplay
 END SUB
 
@@ -1153,7 +1154,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
   ' so I don't see under what conditions this check is even needed... a hero is
   ' injured in the middle of an animation? Battlescripting?
   IF (bat.atk.id >= 0 AND bat.acting = i) = NO THEN enforce_weak_picture i, bslot(), bat
-  IF bat.vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
+  IF bat.vic.state > vicNONE AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
    IF bslot(i).frame = frameVICTORYB THEN bslot(i).frame = frameVICTORYA ELSE bslot(i).frame = frameVICTORYB
   END IF
  NEXT i
@@ -1598,6 +1599,7 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  import_battle_hero_stats bslot() 'Needed because we will likely be calling export_battle_hero_stats() again later
  '--Trigger the display of end-of-battle rewards
  bat.vic.state = vicGOLDEXP
+ bat.vic.display_ticks = 0
 END SUB
 
 FUNCTION distribute_party_experience (byval exper as integer) as integer
@@ -1639,10 +1641,22 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  RETURN exper
 END FUNCTION
 
+FUNCTION should_victory_advance(byref bat as BattleState) as bool
+ IF carray(ccUse) > 1 ORELSE carray(ccMenu) > 1 THEN RETURN YES
+ IF gen(genSkipBattleRewardsTicks) > 0 THEN
+  IF bat.vic.display_ticks > gen(genSkipBattleRewardsTicks) THEN
+   bat.vic.display_ticks = 0
+   RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as integer)
 DIM tempstr as string
 DIM as integer i, o
 IF bat.vic.box THEN centerfuz 160, 30, 280, 50, 1, page
+bat.vic.display_ticks += 1
 SELECT CASE bat.vic.state
  CASE vicGOLDEXP
   '--print acquired gold and experience
@@ -1655,7 +1669,7 @@ SELECT CASE bat.vic.state
    tempstr = bat.vic.exp_caption & " " & bat.rew.exper & " " & bat.vic.exp_name & "!"
    edgeprint tempstr, pCentered, 28, uilook(uiText), page
   END IF
-  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 OR (bat.rew.plunder = 0 AND bat.rew.exper = 0) THEN
+  IF should_victory_advance(bat) ORELSE (bat.rew.plunder = 0 ANDALSO bat.rew.exper = 0) THEN
    bat.vic.state = vicLEVELUP
   END IF
  CASE vicLEVELUP
@@ -1682,7 +1696,7 @@ SELECT CASE bat.vic.state
     o += 1
    END IF
   NEXT i
-  IF o = 0 OR (carray(ccUse) > 1 OR carray(ccMenu) > 1) THEN
+  IF o = 0 ORELSE should_victory_advance(bat) THEN
    bat.vic.state = vicSPELLS
    bat.vic.showlearn = NO
    bat.vic.learnwho = 0
@@ -1698,6 +1712,7 @@ SELECT CASE bat.vic.state
     IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho = bat.vic.learnwho + 1
     IF bat.vic.learnwho > UBOUND(gam.hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
      bat.vic.state = vicITEMS
+     bat.vic.display_ticks = 0
      bat.vic.item_name = ""
      bat.vic.found_index = 0
      bat.vic.box = NO
@@ -1715,7 +1730,7 @@ SELECT CASE bat.vic.state
     END IF
    LOOP
   ELSE' Found a learned spell to display, show it until a keypress
-   IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
+   IF should_victory_advance(bat) THEN
     bat.vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
    END IF
    edgeprint bat.vic.item_name, pCenteredLeft, 22, uilook(uiText), page
@@ -1725,7 +1740,11 @@ SELECT CASE bat.vic.state
   '--check to see if we are currently displaying a gotten item
   IF bat.vic.item_name = "" THEN
    '--if not, check to see if there are any more gotten items to display
-   IF bat.rew.found(bat.vic.found_index).num = 0 THEN bat.vic.state = vicEXITDELAY: EXIT SUB
+   IF bat.rew.found(bat.vic.found_index).num = 0 THEN
+    bat.vic.state = vicEXITDELAY
+    bat.vic.display_ticks = 0
+    EXIT SUB
+   END IF
    '--get the item name
    bat.vic.item_name = readitemname(bat.rew.found(bat.vic.found_index).id)
    '--actually acquire the item
@@ -1740,13 +1759,14 @@ SELECT CASE bat.vic.state
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
   edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
   '--check for a keypress
-  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
+  IF should_victory_advance(bat) THEN
    IF bat.rew.found(bat.vic.found_index).num = 0 THEN
     '--if there are no further items, exit
-    bat.vic.state = -1
+    bat.vic.state = vicEXITDELAY
    ELSE
     '--otherwize, increment the findpointer and reset the caption
-    bat.vic.found_index = bat.vic.found_index + 1: bat.vic.item_name = ""
+    bat.vic.found_index = bat.vic.found_index + 1
+    bat.vic.item_name = ""
    END IF
   END IF
 END SELECT
@@ -3332,7 +3352,7 @@ SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref ba
   '--enforce weak picture
   DIM weakhp as integer = 0
   weakhp = gen(genHeroWeakHP)
-  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp - 1e-8 AND bat.vic.state = 0 THEN bslot(who).frame = frameWEAK
+  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp - 1e-8 AND bat.vic.state = vicNONE THEN bslot(who).frame = frameWEAK
  END IF
 END SUB
 
@@ -3821,7 +3841,7 @@ END FUNCTION
 FUNCTION battle_time_can_pass(bat as BattleState) as bool
  ' Return YES if time is allowed to pass in active mode
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
- IF bat.vic.state <> 0 THEN RETURN NO 'victory has already happened
+ IF bat.vic.state <> vicNONE THEN RETURN NO 'victory has already happened
  IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO ' "Attack captions pause battle meters"
  RETURN YES
 END FUNCTION
@@ -4252,7 +4272,7 @@ END SUB
 
 SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
- IF bat.vic.state <> 0 THEN EXIT SUB 'victory has already happened
+ IF bat.vic.state <> vicNONE THEN EXIT SUB 'victory has already happened
  IF bat.death_mode <> deathNOBODY THEN EXIT SUB 'Death animation is happening
 
  IF bat.atk.id > 0 THEN EXIT SUB 'an attack is animating now, wait patiently.

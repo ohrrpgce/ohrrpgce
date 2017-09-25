@@ -206,6 +206,7 @@ TYPE VictoryState
  level_up_caption as string
  levels_up_caption as string
  learned_caption as string
+ display_ticks as integer ' Number of ticks that each victory screen has been displayed
 END TYPE
 
 '--Used by BattleState.death_mode

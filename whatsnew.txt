@@ -14,6 +14,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Rectangle slices can now optionally use any box border set.
       They are no longer limited to just the box borders defined in
       box styles [James]
+    * Battle victory screens can optionally auto-advance after a given
+      amount of time [James]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
