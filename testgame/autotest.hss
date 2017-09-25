@@ -2861,6 +2861,8 @@ script, battle tests, begin
   w(5)
   # The third one should always turn the tag on because the tag check is 0.
   assert(check tag(6)), w
+
+  test battle formation modification
 end
 
 # Formation set should be 1-2
@@ -2912,6 +2914,29 @@ plotscript, instead of battle, form, begin
   fight formation(form)
   $0="  finish instead of battle"
   trace(0)
+end
+
+script, test battle formation modification, begin
+  # Test formation editing commands
+  # use reward gold to keep track of how many enemies are present in each formation
+  variable(orig gold, gold)
+  orig gold := party money
+  gold := party money
+  fight formation(8), w
+  assert(party money == gold + 1)
+
+#_cancel runfast
+  # Add an enemy to the formation
+  add enemy to formation (8, 8, 100, 200, 1)
+  gold := party money
+  fight formation(8), w
+  assert(party money == gold + 2)
+
+  
+#wait for key
+#_runfast
+  # restore original money
+  set money(orig gold)
 end
 
 ########################################################################
@@ -4371,7 +4396,6 @@ end
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
 #### (Note: interactive commands should be in interactivetest.hss)
-#add enemy to formation (formation, enemy id, x, y, slot)
 #allow minimap (setting)
 #allow save anywhere (setting)
 #value,and,value
