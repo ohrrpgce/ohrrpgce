@@ -2928,6 +2928,9 @@ script, test battle formation modification, begin
 #_cancel runfast
   # Add an enemy to the formation
   add enemy to formation (8, 8, 100, 200, 1)
+  assert(formation slot enemy(8, 1) == 8)
+  assert(formation slot x(8, 1) == 100)
+  assert(formation slot y(8, 1) == 200)
   gold := party money
   fight formation(8), w
   assert(party money == gold + 2)

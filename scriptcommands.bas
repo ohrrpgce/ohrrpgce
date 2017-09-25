@@ -2112,7 +2112,7 @@ SUB script_functions(byval cmdid as integer)
      .id = retvals(1)
      ' Convert to top-left coord
      .pos.x = retvals(2) - size.w \ 2
-     .pos.x = retvals(3) - size.h
+     .pos.y = retvals(3) - size.h
      ' These are the same limits as used in the formation editor
      ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
      ' .pos.x = bound(.pos.x, -size.w\2, get_resolution().w - size.w\2)
