@@ -1380,10 +1380,11 @@ SUB generate_battlesystem_menu(menu() as string, enabled() as bool, greyout() as
  menu(22) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
  menu(23) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
  menu(24) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+ menu(25) = "Rewards Display: " & IIF(gen(genSkipBattleRewardsTicks) = 0, "Wait for keypress", gen(genSkipBattleRewardsTicks) & " ticks (" & seconds_estimate(gen(genSkipBattleRewardsTicks)) & " secs)")
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 24
+ CONST maxMenu = 25
  DIM menu(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1442,6 +1443,9 @@ SUB battleoptionsmenu ()
  index(24) = genDamageDisplayRise
  max(24) = 1000
  min(24) = -1000
+ index(25) = genSkipBattleRewardsTicks
+ max(25) = 100000
+ min(25) = 0
 
  generate_battlesystem_menu menu(), enabled(), greyout()
 
