@@ -1708,6 +1708,13 @@ END FUNCTION
 '                               Secret/testing/debug menus
 '==========================================================================================
 
+SUB backend_keyrepeat_bugtest
+ notification !"Holding down the key that triggered this box should not advance it\n" _
+              "waitforanykey:\n(Press any key, and hold it down)"
+ basic_textbox !"Nor this box\nwaitforkeyrelease:\n(Release key to advance)", uilook(uiText), vpage
+ setvispage vpage
+ waitforkeyrelease
+END SUB
 
 SUB secret_menu ()
  DIM menu(...) as string = { _
@@ -1732,6 +1739,7 @@ SUB secret_menu ()
      "New Spriteset/Animation Editor", _
      "New backdrop browser", _
      "RGFX tests", _
+     "Backend Keyrepeat Bugtest", _
      "Test Game under GDB", _
      "Test Game under Valgrind", _
      "Mouse Options" _
@@ -1766,9 +1774,10 @@ SUB secret_menu ()
    IF st.pt = 18 THEN new_spriteset_editor
    IF st.pt = 19 THEN backdrop_browser
    IF st.pt = 20 THEN new_graphics_tests
-   IF st.pt = 21 THEN spawn_game_menu YES
-   IF st.pt = 22 THEN spawn_game_menu NO, YES
-   IF st.pt = 23 THEN edit_mouse_options ()
+   IF st.pt = 21 THEN backend_keyrepeat_bugtest
+   IF st.pt = 22 THEN spawn_game_menu YES
+   IF st.pt = 23 THEN spawn_game_menu NO, YES
+   IF st.pt = 24 THEN edit_mouse_options ()
   END IF
   usemenu st
   clearpage vpage
