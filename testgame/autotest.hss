@@ -2927,17 +2927,42 @@ script, test battle formation modification, begin
 
 #_cancel runfast
   # Add an enemy to the formation
-  add enemy to formation (8, 8, 100, 200, 1)
+  add enemy to formation (8, 8, 100, 90, 1)
   assert(formation slot enemy(8, 1) == 8)
   assert(formation slot x(8, 1) == 100)
-  assert(formation slot y(8, 1) == 200)
+  assert(formation slot y(8, 1) == 90)
   gold := party money
   fight formation(8), w
   assert(party money == gold + 2)
 
+  # Fill the empty slots in the formation  
+  variable(i)
+  for(i, 2, 7) do(
+    add enemy to formation (8, 8, 100, 90 + i * 20, 1)
+  )
+  gold := party money
+  fight formation(8), w
+  assert(party money == gold + 8)
+  
+  # remove several enemies, including the original enemy in slot 0
+  delete enemy from formation (8, 0)
+  delete enemy from formation (8, 1)
+  delete enemy from formation (8, 2)
+  delete enemy from formation (8, 3)
+  w
+  assert(formation slot enemy(8, 0) == -1)
+  assert(formation slot enemy(8, 1) == -1)
+  assert(formation slot enemy(8, 2) == -1)
+  assert(formation slot enemy(8, 3) == -1)
+  gold := party money
+  fight formation(8), w
+  assert(party money == gold + 4)
+
+
   
 #wait for key
 #_runfast
+
   # restore original money
   set money(orig gold)
 end
@@ -4434,7 +4459,6 @@ end
 #days of play
 #decrement (variable,amount)
 #delete char (ID, position)
-#delete enemy from formation (formation, slot)
 #delete map state (whichdata)
 #delete save (slot)
 #destroy NPC (reference)
@@ -4461,9 +4485,6 @@ end
 #for(counter,start,finish,step) do(commands)
 #formation probability (formation set, formation)
 #formation set frequency (formation set)
-#formation slot enemy (formation, slot)
-#formation slot x (formation, slot)
-#formation slot y (formation, slot)
 #free slice (handle)
 #free slice children (handle)
 #free sprite (handle)
