@@ -23,6 +23,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "expand string" now has an optional argument that allows it to
       expand ${} codes based on the data in a save slot instead of the
       currently running game state [James]
+    * "reset formation" command to un-do scripted modifications to
+      battle formations. [James]
 
   * Changes
 

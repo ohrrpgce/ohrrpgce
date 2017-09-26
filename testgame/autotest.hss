@@ -2967,7 +2967,6 @@ script, test battle formation modification, begin
   assert(find enemy in formation (8, 8, 3) == 7)
   assert(find enemy in formation (8, 8, get count) == 4)
 
-#_cancel runfast
  
   # Test background changing
   assert(get formation background(8) == 1)
@@ -2982,13 +2981,27 @@ script, test battle formation modification, begin
   assert(get formation song(8) == song:tin glazed and noncommutative)
   # actually run the battle. We can't test the visuals, but -autosnap will see it
   fight formation(8), w
+
+#_cancel runfast
   
-  
+  # Test resetting the formation to default
+  reset formation(8), w
+  assert(get formation background(8) == 1)
+  assert(get formation song(8) == song:silence)
+  assert(find enemy in formation (8, 8, 0) == 0)
+  assert(find enemy in formation (8, 8, get count) == 1)
+  assert(formation slot enemy(8, 0) == 8)
+  assert(formation slot x(8, 0) == 131)
+  assert(formation slot y(8, 0) == 169)
+  show string(string sprintf(2, $1="%dx%d", formation slot x(8, 0), formation slot y(8, 0))), w
+  fight formation(8), w
+    
 #wait for key
 #_runfast
 
   # restore original money
   set money(orig gold)
+  show no value
 end
 
 ########################################################################

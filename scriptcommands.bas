@@ -4499,7 +4499,12 @@ SUB script_functions(byval cmdid as integer)
     scriptret = create_plotslice_handle(ret)
    END IF
   END IF
-
+ CASE 653 '--reset formation
+  IF valid_formation(retvals(0)) THEN
+   DIM form as Formation
+   LoadFormation form, game & ".for", retvals(0)
+   SaveFormation form, tmpdir & "for.tmp", retvals(0)
+  END IF
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
