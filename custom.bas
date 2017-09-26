@@ -1374,6 +1374,7 @@ END FUNCTION
 
 ' Argument is a timeserial
 FUNCTION format_date(timeser as double) as string
+ IF timeser = 0 THEN RETURN "0"
  RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
 END FUNCTION
 
@@ -1454,10 +1455,10 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  ret.partial_rpg = isfile(workdir + SLASH + "__danger.tmp")
 
  debuginfo "prev_session.workingdir = " & ret.workingdir
- debuginfo "prev_session.info_file_exists = " & ret.info_file_exists
+ debuginfo "prev_session.info_file_exists = " & yesorno(ret.info_file_exists)
  debuginfo "prev_session.pid = " & ret.pid & " (exe = " & exe & ")"
- debuginfo "prev_session.running = " & ret.running
- debuginfo "prev_session.partial_rpg = " & ret.partial_rpg
+ debuginfo "prev_session.running = " & yesorno(ret.running)
+ debuginfo "prev_session.partial_rpg = " & yesorno(ret.partial_rpg)
  debuginfo "prev_session.sourcerpg = " & ret.sourcerpg
  debuginfo "prev_session.sourcerpg_old_mtime = " & format_date(ret.sourcerpg_old_mtime)
  debuginfo "prev_session.sourcerpg_current_mtime = " & format_date(ret.sourcerpg_current_mtime)
@@ -1663,7 +1664,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
 
   IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
    ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
-   msg &= "Modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
+   msg &= "File modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
   END IF
 
   ' The }'s get replaced with either | or a space.

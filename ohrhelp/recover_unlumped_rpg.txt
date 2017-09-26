@@ -1,6 +1,6 @@
 It appears that another copy of the Custom game editor was editing a game, but crashed. It has left behind some temporary files that appear to be a copy of the game.
 
-"Modified": This is the current last modification time of the mentioned .rpg file -- probably when it was last saved.
+"File modified": This is the current last modification time of the mentioned .rpg file (or .rpgdir directory) -- probably when it was last saved.
 
 "Loaded or last saved by Custom": This is the time when either you loaded and started editing the game, or saved the game using "Save and continue editing".
 
