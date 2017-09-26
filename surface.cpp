@@ -8,7 +8,7 @@
 #include "surface.h"
 #include "gfxRender.hpp"
 #include "rasterizer.hpp"
-#include "common.h"
+#include "misc.h"
 
 #define bound(x, low, high)  std::max(std::min(x, high), low)
 

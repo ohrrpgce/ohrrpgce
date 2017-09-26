@@ -24,7 +24,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
-#include "common.h"
+#include "misc.h"
 #include "os.h"
 
 

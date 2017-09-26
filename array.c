@@ -7,7 +7,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "common.h"
+#include "misc.h"
 #include "array.h"
 
 

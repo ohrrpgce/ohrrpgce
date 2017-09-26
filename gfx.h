@@ -6,7 +6,7 @@
 
 #include "stdint.h"
 
-#include "common.h"  // for boolint
+#include "config.h"  // for boolint
 #include "gfx_common/DllFunctionInterface.h"
 #include "gfx_msg.h"
 #include "errorlevel.h"

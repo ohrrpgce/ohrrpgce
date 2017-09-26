@@ -36,7 +36,7 @@
 #include <dirent.h>
 #include <fnmatch.h>
 
-#include "common.h"
+#include "misc.h"
 #include "os.h"
 #include "array.h"
 

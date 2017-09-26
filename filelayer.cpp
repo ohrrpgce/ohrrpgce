@@ -8,7 +8,7 @@
 #include <cassert>
 #include <map>
 #include <cstring>
-#include "common.h"
+#include "misc.h"
 #include "errno.h"
 
 // When quitting FB closes all files from within a destructor, so globals may have already

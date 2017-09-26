@@ -8,7 +8,7 @@
 
 #include <locale.h>
 #include "os.h"
-#include "common.h"
+#include "misc.h"
 
 // In os_windows.bas
 FBSTRING *get_windows_error (int errcode);

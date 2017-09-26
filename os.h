@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include <stdio.h>
-#include "common.h"
 
 #ifdef _WIN32
 

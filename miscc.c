@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <string.h>
-#include "common.h"
+#include "misc.h"
 
 
 // This is here so that FBARRAY gets included in debug info and seen by gdb (it's not used anywhere else)

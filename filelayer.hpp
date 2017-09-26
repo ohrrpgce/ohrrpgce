@@ -5,10 +5,10 @@
 #ifndef FILELAYER_H
 #define FILELAYER_H
 
+#include "config.h"
 #include "fb/fb_stub.h"
 #include <string>
 #include "os.h"
-#include "common.h"
 
 using namespace std;
 
