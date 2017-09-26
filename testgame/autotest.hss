@@ -2925,7 +2925,6 @@ script, test battle formation modification, begin
   fight formation(8), w
   assert(party money == gold + 1)
 
-#_cancel runfast
   # Add an enemy to the formation
   add enemy to formation (8, 8, 100, 90, 1)
   assert(formation slot enemy(8, 1) == 8)
@@ -2968,7 +2967,22 @@ script, test battle formation modification, begin
   assert(find enemy in formation (8, 8, 3) == 7)
   assert(find enemy in formation (8, 8, get count) == 4)
 
-
+#_cancel runfast
+ 
+  # Test background changing
+  assert(get formation background(8) == 1)
+  set formation background(8, 0)
+  assert(get formation background(8) == 0)
+  # Test writing song id number
+  show value(get formation song(8))
+  assert(get formation song(8) == song:silence)
+  set formation song(8, song:same as map)
+  assert(get formation song(8) == song:same as map)
+  set formation song(8, song:tin glazed and noncommutative)
+  assert(get formation song(8) == song:tin glazed and noncommutative)
+  # actually run the battle. We can't test the visuals, but -autosnap will see it
+  fight formation(8), w
+  
   
 #wait for key
 #_runfast
@@ -4484,9 +4498,7 @@ end
 #extract color(color, component)
 #fade screen in
 #fade screen out (red,green,blue)
-#fight formation (number)
 #fill parent (handle, true_or_false)
-#find enemy in formation (formation, enemy id, copy number)
 #first child(handle)
 #first container child(handle)
 #first rect child(handle)
@@ -4507,8 +4519,6 @@ end
 #get ellipse border col (handle)
 #get ellipse fill col (handle)
 #get foot offset
-#get formation background (formation, background)
-#get formation song (formation)
 #get global string (ID, global)
 #get grid columns (handle)
 #get grid rows (handle)
@@ -4665,8 +4675,6 @@ end
 #set ellipse border col (handle, color)
 #set ellipse fill col (handle, color)
 #set foot offset (offset)
-#set formation background (formation, background, animation frames, animation ticks)
-#set formation song (formation, song)
 #set grid columns (handle, columns)
 #set grid rows (handle, rows)
 #set harm tile damage (amount)
