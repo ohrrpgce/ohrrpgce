@@ -1,17 +1,18 @@
 distver.bat
 ?_debug.txt
 ?_debug_archive.txt
+script_log.txt
 hs_debug.txt
 ex.err
 gmon.out
 ver.txt
 iver.txt
 
-*.xml
+#*.xml
 *.hs
-*.hsi
 *.sav
 *.saves
+*.ohrkeys
 *.pyc
 *.db
 *.bak
@@ -23,6 +24,8 @@ GRTAGS
 GTAGS
 
 build/
+distrib/
+node_modules/
 *.exe
 ohrrpgce-game
 ohrrpgce-custom
@@ -46,8 +49,14 @@ slice2bas
 verprint
 
 unittest.rld
+unittest.xml
 import/Music
 import/Sound Effects
+support/*.zip
+support/hsdecmpl.txt
+support/plotscr.hsd
+support/rules.txt
+support/zip-version-3.0.txt
 gfx_directx.dll.manifest
 gfx_directx.exp
 gfx_directx.ilk
@@ -64,3 +73,13 @@ android/tmp/
 android/extraconfig.cfg
 
 ohr.geany
+
+# Location-specific exclusions
+*.rpg
+*.hsi
+!testgame/**/*.rpg
+!testgame/**/*.hsi
+*.bmp
+*.gif
+# Everything under data
+!data/**
