@@ -3418,6 +3418,17 @@ end
 			<canon>reset formation (formation)</canon>
 			<shortname>reset formation</shortname>
 			<description>Reset any scripted changes to <p>formation</p>. This script erases changes made with <ref>addenemytoformation</ref>, <ref>deleteenemyfromformation</ref>, <ref>setformationbackground</ref>, and <ref>setformationsong</ref> and changes the formation back to the way it was defined in the Formation Editor in custom.</description>
+			<seealso>
+				<ref>resetformationslot</ref>
+			</seealso>
+		</command>
+		<command id="resetformationslot">
+			<canon>reset formation slot (formation, slot)</canon>
+			<shortname>reset formation slot</shortname>
+			<description>Reset any scripted changes to a specific <p>slot</p> in a <p>formation</p>. This script erases changes to enemy id, enemy x, and enemy y made with <ref>addenemytoformation</ref> or <ref>deleteenemyfromformation</ref> and changes the formation slot back to the way it was defined in the Formation Editor in custom.</description>
+			<seealso>
+				<ref>resetformation</ref>
+			</seealso>
 		</command>
 		<command id="lastformation">
 			<canon>last formation</canon>

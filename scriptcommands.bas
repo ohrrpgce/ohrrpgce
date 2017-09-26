@@ -4505,6 +4505,15 @@ SUB script_functions(byval cmdid as integer)
    LoadFormation form, game & ".for", retvals(0)
    SaveFormation form, tmpdir & "for.tmp", retvals(0)
   END IF
+ CASE 654 '--reset formation slot
+  IF valid_formation_slot(retvals(0), retvals(1)) THEN
+   DIM orig_form as Formation
+   LoadFormation orig_form, game & ".for", retvals(0)
+   DIM cur_form as Formation
+   LoadFormation cur_form, tmpdir & "for.tmp", retvals(0)
+   cur_form.slots(retvals(1)) = orig_form.slots(retvals(1))
+   SaveFormation cur_form, tmpdir & "for.tmp", retvals(0)
+  END IF
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _

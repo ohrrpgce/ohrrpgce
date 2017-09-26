@@ -2981,8 +2981,6 @@ script, test battle formation modification, begin
   assert(get formation song(8) == song:tin glazed and noncommutative)
   # actually run the battle. We can't test the visuals, but -autosnap will see it
   fight formation(8), w
-
-#_cancel runfast
   
   # Test resetting the formation to default
   reset formation(8), w
@@ -2995,10 +2993,42 @@ script, test battle formation modification, begin
   assert(formation slot y(8, 0) == 169)
   show string(string sprintf(2, $1="%dx%d", formation slot x(8, 0), formation slot y(8, 0))), w
   fight formation(8), w
-    
-#wait for key
-#_runfast
 
+  # Test modifying and resetting individual formation slots
+  # Assert original values
+  assert(formation slot enemy(9, 0) == 0)
+  assert(formation slot x(9, 0) == 18)
+  assert(formation slot y(9, 0) == 201)
+  assert(formation slot enemy(9, 1) == -1)
+  assert(formation slot x(9, 1) == 0)
+  assert(formation slot y(9, 1) == 0)
+  # Make changes
+  delete enemy from formation(9, 0)
+  add enemy to formation(9, 8, 50, 190, 1)
+  assert(formation slot enemy(9, 0) == -1)
+  # deleted enemies do not have their x,y deleted, but width/height are no longer included 
+  assert(formation slot x(9, 0) == 1)
+  assert(formation slot y(9, 0) == 167)
+  assert(formation slot enemy(9, 1) == 8)
+  assert(formation slot x(9, 1) == 50)
+  assert(formation slot y(9, 1) == 190)
+  fight formation(9)
+  # Reset single slots
+  reset formation slot(9, 0)
+  assert(formation slot enemy(9, 0) == 0)
+  assert(formation slot x(9, 0) == 18)
+  assert(formation slot y(9, 0) == 201)
+  assert(formation slot enemy(9, 1) == 8)
+  assert(formation slot x(9, 1) == 50)
+  assert(formation slot y(9, 1) == 190)
+  reset formation slot(9, 1)
+  assert(formation slot enemy(9, 0) == 0)
+  assert(formation slot x(9, 0) == 18)
+  assert(formation slot y(9, 0) == 201)
+  assert(formation slot enemy(9, 1) == -1)
+  assert(formation slot x(9, 1) == 0)
+  assert(formation slot y(9, 1) == 0)
+  
   # restore original money
   set money(orig gold)
   show no value

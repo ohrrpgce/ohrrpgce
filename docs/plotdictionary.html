@@ -2060,6 +2060,9 @@
 		<a href="#about-resetformation">reset formation (formation)</a><br>
 		
 	
+		<a href="#about-resetformationslot">reset formation slot (formation, slot)</a><br>
+		
+	
 		<a href="#about-resetgame">reset game(args...)</a><br>
 		
 	
@@ -8547,7 +8550,19 @@ end
 			Reset any scripted changes to <span class="param">formation</span>. This script erases changes made with <a href="#about-addenemytoformation" class="ref">add enemy to formation</a>, <a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation</a>, <a href="#about-setformationbackground" class="ref">set formation background</a>, and <a href="#about-setformationsong" class="ref">set formation song</a> and changes the formation back to the way it was defined in the Formation Editor in custom.
 			
 			
+			<div class="seealso">See also: <ul><li><a href="#about-resetformationslot" class="ref">reset formation slot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-resetformationslot"></a>
+		<h4>reset formation slot (formation, slot)</h4>
+<p>
+			Reset any scripted changes to a specific <span class="param">slot</span> in a <span class="param">formation</span>. This script erases changes to enemy id, enemy x, and enemy y made with <a href="#about-addenemytoformation" class="ref">add enemy to formation</a> or <a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation</a> and changes the formation slot back to the way it was defined in the Formation Editor in custom.
 			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-resetformation" class="ref">reset formation</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -17909,7 +17924,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 806 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 807 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
