@@ -3026,7 +3026,7 @@ END FUNCTION
 ' Used by spawn_game to run gdb or valgrind.
 ' Returns a ProcessHandle or NO/NULL.
 ' Note: these's a fair bit of overlap between this and spawn_and_wait for Unix,
-' but this is specific to spawn_game.
+' but this is specific to spawn_game. spawn_and_wait has better error checking.
 FUNCTION spawn_console_process(executable as string, args as string, title as string) as ProcessHandle
  #IFDEF __FB_UNIX__
   ' On Unix the spawned program doesn't inherit access to our tty even if we have one,
@@ -3042,9 +3042,11 @@ FUNCTION spawn_console_process(executable as string, args as string, title as st
    RETURN NO
   END IF
 
+  waitforkeyrelease
   RETURN open_process(executable, xtermargs, YES, YES)
 
  #ELSEIF defined(__FB_WIN32__)
+  waitforkeyrelease
   ' Likewise on Windows need a console. But this is only implemented on Windows
   RETURN open_console_process(executable, args)
  #ELSE
@@ -3138,6 +3140,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
   slave_process = spawn_console_process(executable, arguments, "valgame.sh")
 
  ELSE
+  waitforkeyrelease
   slave_process = open_process(executable, arguments, YES, YES)
  END IF
 

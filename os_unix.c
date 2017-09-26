@@ -836,6 +836,7 @@ ProcessHandle open_piped_process (FBSTRING *program, FBSTRING *args, IPCChannel 
 //This is currently designed for asynchronously running console applications.
 //On Windows it displays a visible console window, on Unix it doesn't.
 //Could be generalised in future as needed.
+//TODO: spawn_console_process() in customsubs.rbas basically implements this, move here!
 ProcessHandle open_console_process (FBSTRING *program, FBSTRING *args) {
 	return open_process(program, args, true, true);
 }

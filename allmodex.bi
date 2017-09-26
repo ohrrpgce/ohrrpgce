@@ -354,6 +354,7 @@ DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as integer = 1) as integer
 DECLARE FUNCTION waitforanykey () as integer
+DECLARE SUB waitforkeyrelease ()
 DECLARE SUB setkeyrepeat (byval repeat_wait as integer = 500, byval repeat_rate as integer = 55)
 DECLARE SUB setkeys (byval enable_inputtext as bool = NO)
 DECLARE SUB real_clearkey (byval k as integer)

@@ -1727,6 +1727,18 @@ function waitforanykey () as integer
 	loop
 end function
 
+'Wait for all keys, and joystick and mouse buttons to be released
+sub waitforkeyrelease ()
+	setkeys
+	'anykeypressed checks scAlt instead of scUnfilteredAlt
+	while anykeypressed(YES, YES, 0) or keyval(scUnfilteredAlt)
+		io_pollkeyevents()
+		setwait 15
+		setkeys
+		dowait
+	wend
+end sub
+
 'Without changing the results of keyval or readmouse, check whether a key has been pressed,
 'mouse button clicked, or window close requested since the last call to setkeys.
 'NOTE: any such keypresses or mouse clicks are lost! This is OK for the current purposes

@@ -2615,6 +2615,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  DIM term_wrap as string = find_helper_app("Terminal_wrapper.sh")
  IF term_wrap = "" THEN RETURN missing_helper_message("Terminal_wrapper.sh")
 
+ waitforkeyrelease
+
  DIM fh as integer
  DIM dummyscript as string = tmpdir + "dummyscript" & randint(10000) & ".sh"
  fh = FREEFILE
@@ -2631,6 +2633,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
 #ELSEIF defined(__FB_WIN32__)
 
+ waitforkeyrelease
+
  DIM handle as ProcessHandle
  handle = open_console_process(app, args)
  IF handle = 0 THEN
@@ -2639,7 +2643,6 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
  DIM dots as integer = 0
  DIM exitcode as integer
- setkeys
  DO
   setwait 400
   setkeys
@@ -2678,6 +2681,8 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
  IF LEN(find_helper_app("xterm")) = 0 THEN
   RETURN "Could not continue because xterm is not installed, please install it. For example run 'yum install xterm' or 'apt-get install xterm'."
  END IF
+
+ waitforkeyrelease
 
  DIM cmd as string, outbuffer as string, stderr_s as string
  cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
