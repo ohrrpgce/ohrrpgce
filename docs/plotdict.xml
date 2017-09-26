@@ -3391,7 +3391,7 @@ end
 			</seealso>
 		</command>
 		<command id="getformationbackground">
-			<canon>get formation background (formation, background)</canon>
+			<canon>get formation background (formation)</canon>
 			<shortname>get formation background</shortname>
 			<description>Gets the background used by a <p>formation</p>. If the backdrop is animated, this returns the ID of the first backdrop (the one set in Custom).</description>
 			<seealso>
