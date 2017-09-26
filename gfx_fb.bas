@@ -38,7 +38,7 @@ dim shared zoom as integer = 2
 dim shared screenmodex as integer = 640
 dim shared screenmodey as integer = 400
 dim shared bordered as integer = 0  '0 or 1
-dim shared depth as integer = 8
+dim shared depth as integer = 32   '0 means use native
 dim shared smooth as integer = 0  '0 or 1
 dim shared mouseclipped as bool = NO
 dim shared mouse_visibility as CursorVisibility = cursorDefault
@@ -53,13 +53,19 @@ dim shared truepal(255) as int32
 
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = NO then
-		calculate_screen_res
-		gfx_fb_screenres
-		screenset 1, 0
-		init_gfx = YES
 		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
 		dim refreshrate as size_t
 		dim driver as string
+		dim desktopsize as XYPair
+		'Poll the size of the screen
+		screeninfo desktopsize.w, desktopsize.h, bpp, , , refreshrate, driver
+		debuginfo "gfx_fb: native screensize=" & desktopsize & " bitdepth=" & bpp & " refreshrate=" & refreshrate
+		if depth = 0 then depth = iif(bpp = 24, 32, bpp)
+
+		calculate_screen_res
+		gfx_fb_screenres
+		screenset 1, 0    'Only want one FB video page
+		init_gfx = YES
 		screeninfo , , bpp, , , refreshrate, driver
 		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
 	end if
@@ -124,10 +130,10 @@ function gfx_fb_getversion() as integer
 	return 1
 end function
 
+'NOTE: showpage is no longer used. Could be deleted.
 sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 'takes a pointer to raw 8-bit data at 320x200 (don't claim that anything else is supported)
 	screenlock
-
 	dim as ubyte ptr sptr = screenptr + (screen_buffer_offset * 320 * zoom)
 
 	if depth = 8 then
@@ -162,8 +168,15 @@ end sub
 
 function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 '320x200 Surfaces supported only!
-	screenlock
+	dim ret as integer = 0
 
+	if surfaceIn->format = .SF_32bit and depth <> 32 then
+		debuginfo "gfx_fb_present: switching to 32 bit mode"
+		depth = 32
+		gfx_fb_screenres
+	end if
+
+	screenlock
 	dim as ubyte ptr screenpixels = screenptr + (screen_buffer_offset * 320 * zoom)
 
 	with *surfaceIn
@@ -176,11 +189,10 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uint32 ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth, @truepal(0))
 			end if
 		else  '32 bit
-			if depth = 8 then
-				debug "gfx_fb_present: can't present a 32 bit surface unless running in 32 bit mode! Run with '-d 32'"
-				return 1
-			elseif depth = 32 then
+			if depth = 32 then
 				smoothzoomblit_32_to_32bit(.pColorData, cast(uint32 ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth)
+			else
+				ret = 1
 			end if
 		end if
 	end with
@@ -188,7 +200,7 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 	screenunlock
 	flip
 
-	return 0
+	return ret
 end function
 
 function gfx_fb_screenshot(byval fname as zstring ptr) as integer
@@ -240,7 +252,7 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 		ret = 1
 	elseif *opt = "depth" or *opt = "d" then
 		if value = 24 or value = 32 then
-			depth = value
+			depth = 32  '24 would screw things up
 		else
 			depth = 8
 		end if
