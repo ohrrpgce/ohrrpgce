@@ -2957,6 +2957,16 @@ script, test battle formation modification, begin
   gold := party money
   fight formation(8), w
   assert(party money == gold + 4)
+  
+  # Test finding an enemy
+  w
+  # an enemy that will not be found
+  assert(find enemy in formation (8, 1, 0) == -1)
+  assert(find enemy in formation (8, 1, get count) == 0)
+  # an enemy that is actually present
+  assert(find enemy in formation (8, 8, 0) == 4)
+  assert(find enemy in formation (8, 8, 3) == 7)
+  assert(find enemy in formation (8, 8, get count) == 4)
 
 
   
