@@ -474,8 +474,6 @@ FUNCTION notification (msg as string) as integer
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
- IF getquitflag THEN entered = NO : RETURN 0
- sleep 250  'Avoid accidental advancement
  DIM scancode as integer = waitforanykey()
  freepage holdpage
  restore_previous_palette
@@ -1173,8 +1171,6 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  basic_textbox msg + quitmsg, uilook(uiText), vpage
  setvispage vpage, NO
 
- setwait 200  'Give user a chance to let go of keys
- dowait
  DIM key as integer = waitforanykey
  IF isfatal ORELSE (num_errors >= 3 ANDALSO key = scEsc) THEN
   fatal_error_shutdown
@@ -1184,8 +1180,6 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
  #IFDEF IS_CUSTOM
   'Continuing to edit
   IF editing_a_game THEN
-   setwait 200  'Give user a chance to let go of keys
-   dowait
    clearpage vpage
    basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
                  "BEFORE attempting to save, because there is a chance that saving will produce a corrupt file.", _

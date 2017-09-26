@@ -1670,10 +1670,12 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	for i as integer = 0 to scLAST
 		'check scAlt only, so Alt-filtering (see setkeys) works
 		if i = scLeftAlt or i = scRightAlt or i = scUnfilteredAlt then continue for
-		' Ignore capslock because it always appears pressed when on,
-		' and it doesn't really matter if it doesn't work for 'press a key' prompts.
-		' At least w/ gfx_sdl under Linux only bit 1 is ever set.
-		if i = scCapsLock then continue for
+		' Ignore capslock and numlock because they always appear pressed when on,
+		' and it doesn't really matter if they doesn't work for 'press a key' prompts.
+		' To be on the safe said, ignore scroll lock too. Though with gfx_sdl,
+		' on Windows howing down scrolllock causes SDL to report key_up/key_down
+		' wait every tick, while on linux it seems to behave like a normal key
+		if i = scCapsLock or i = scNumLock or i = scScrollLock then continue for
 
 		if keyval(i) > trigger_level then
 			return i
@@ -1699,7 +1701,7 @@ function anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, t
 	end if
 end function
 
-'Returns the keyboard, mouse or joystick button scancode
+'Waits for a new keyboard key, mouse or joystick button press. Returns the scancode
 function waitforanykey () as integer
 	dim as integer key, sleepjoy = 3
 	dim remem_speed_control as bool = use_speed_control
@@ -1710,7 +1712,7 @@ function waitforanykey () as integer
 		setwait 60, 200
 		io_pollkeyevents()
 		setkeys
-		key = anykeypressed(sleepjoy = 0)
+		key = anykeypressed(sleepjoy = 0, YES, 3)  'New keypresses only
 		if key then
 			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
 			setkeys  'Clear the keypress
@@ -1732,6 +1734,7 @@ sub waitforkeyrelease ()
 	setkeys
 	'anykeypressed checks scAlt instead of scUnfilteredAlt
 	while anykeypressed(YES, YES, 0) or keyval(scUnfilteredAlt)
+		if getquitflag() then exit sub
 		io_pollkeyevents()
 		setwait 15
 		setkeys
