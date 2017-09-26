@@ -21,7 +21,7 @@ char *escape_filenamec (const char *filename);
 // in filelayer.cpp
 const char *trimpath(const char *filename);
 
-// in common.bas
+// in common.rbas (NOTE: also defined separately in gfx_directx/debugmsg.hpp)
 void debugc(enum ErrorLevel errorlevel, const char *msg);
 
 // libfb.a

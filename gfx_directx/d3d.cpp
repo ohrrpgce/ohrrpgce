@@ -105,25 +105,25 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 
 	if(Direct3DCreate9 == NULL)
 	{
-		debugc(errError, "Direct3DCreate9() failed to load! Possibly d3d9.dll missing.");
+		debug(errError, "Direct3DCreate9() failed to load! Possibly d3d9.dll missing.");
 		return E_FAIL;
 	}
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 	{
-		debugc(errError, "IDirect3D9 object failed to be created! (Header and runtime version mismatch?)");
+		debug(errError, "IDirect3D9 object failed to be created! (Header and runtime version mismatch?)");
 		return E_FAIL;
 	}
 
 	D3DADAPTER_IDENTIFIER9 adapterID;
 	hr = m_d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterID);
 	if(FAILED(hr)) {
-		debugc(errError, "Unable to query adapter information! Error %s", HRESULTString(hr));
+		debug(errError, "Unable to query adapter information! Error %s", HRESULTString(hr));
 	}
 	else
 	{
-		debugc(errInfo, "Adapter: %s", adapterID.Description);
-		debugc(errInfo, "Driver: %s", adapterID.Driver);
+		debug(errInfo, "Adapter: %s", adapterID.Description);
+		debug(errInfo, "Driver: %s", adapterID.Driver);
 	}
 
 	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
@@ -142,17 +142,17 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 								 &m_d3ddev);
 		if(FAILED(hr))
 		{
-			debugc(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Error %s", HRESULTString(hr));
+			debug(errError, "IDirect3DDevice9 object failed to be created! Possibly lack of hardware support. Error %s", HRESULTString(hr));
 			return hr;
 		}
 		else
-			debugc(errInfo, "IDirect3DDevice9 object created as software device.");
+			debug(errInfo, "IDirect3DDevice9 object created as software device.");
 	}
 	else
-		debugc(errInfo, "IDirect3DDevice9 object created as hardware device.");
+		debug(errInfo, "IDirect3DDevice9 object created as hardware device.");
 	if(FAILED(m_surface.initialize(m_d3ddev, 320, 200)))
 	{
-		debugc(errError, "IDirect3DSurface9 object failed to be created! Error %s", HRESULTString(hr));
+		debug(errError, "IDirect3DSurface9 object failed to be created! Error %s", HRESULTString(hr));
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;
@@ -167,9 +167,9 @@ HRESULT D3D::initialize(gfx::Window *pWin)
 
 	if(D3DXSaveSurfaceToFile == NULL)
 		// Not an interesting error
-		debugc(errInfo, "D3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
+		debug(errInfo, "D3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
 	else
-		debugc(errInfo, "D3DXSaveSurfaceToFile() successfully loaded.");
+		debug(errInfo, "D3DXSaveSurfaceToFile() successfully loaded.");
 
 	return S_OK;
 }
@@ -237,7 +237,7 @@ HRESULT D3D::presentInternal()
 	}
 	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
 	{
-		debugc(errError, "presentInternal: D3DERR_DRIVERINTERNALERROR");
+		debug(errError, "presentInternal: D3DERR_DRIVERINTERNALERROR");
 		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 			return shutdown();
 		shutdown();
@@ -338,7 +338,7 @@ void D3D::onResetDevice()
 	HRESULT hr;
 	if(FAILED(hr = m_d3ddev->Reset(&m_d3dpp)))
 	{
-		debugc(errError, "d3ddev->Reset() failed: %s", HRESULTString(hr));
+		debug(errError, "d3ddev->Reset() failed: %s", HRESULTString(hr));
 	}
 	m_surface.onResetDevice();
 }

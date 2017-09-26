@@ -49,7 +49,7 @@ void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 }
 
 // For informative messages use errInfo
-void ::debugc(ErrorLevel errlvl, const char* szMessage, ...)
+void gfx::debug(ErrorLevel errlvl, const char* szMessage, ...)
 {
 	if (g_State.DebugMsg)
 	{
@@ -63,6 +63,11 @@ void ::debugc(ErrorLevel errlvl, const char* szMessage, ...)
 		va_end(vl);
 		g_State.DebugMsg(errlvl, buf);
 	}
+}
+
+void ::debugc(ErrorLevel errlvl, const char* szMessage)
+{
+	debug(errlvl, szMessage);
 }
 
 static void _TrimTrailingNewline(char *buf)
@@ -145,7 +150,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 // its recieved before gfx_Initialize
 DFI_IMPLEMENT_CDECL(void, gfx_setwindowed, int iswindow)
 {
-	debugc(errInfo, "setwindowed(%d)", iswindow);
+	debug(errInfo, "setwindowed(%d)", iswindow);
 	gfx_SendMessage(OM_GFX_SETWINDOWED, iswindow, 0);
 }
 
@@ -346,17 +351,17 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	g_State.PostEvent = pCreationData->PostEvent;
 
 	if(g_State.PostEvent == NULL || g_State.DebugMsg == NULL) {
-		debugc(errError, "Required GfxInitData callbacks missing!");
+		debug(errError, "Required GfxInitData callbacks missing!");
 		return FALSE;
 	}
-	debugc(errInfo, "gfx_Initialize()...");
+	debug(errInfo, "gfx_Initialize()...");
 
 	HRESULT hr;
 	if(FAILED(hr = g_Window.initialize(::GetModuleHandle(MODULENAME), 
 	                                   (pCreationData->windowicon ? g_State.szWindowIcon.c_str() : NULL), 
 	                                   (WNDPROC)OHRWndProc, g_DirectX.getWindowedSize())))
 	{
-		debugc(errError, "Window initialization failed! %s", HRESULTString(hr));
+		debug(errError, "Window initialization failed! %s", HRESULTString(hr));
 		return FALSE;
 	}
 
@@ -364,15 +369,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
-		debugc(errError, "Failed at d3d initialization!");
+		debug(errError, "Failed at d3d initialization!");
 		return FALSE;
 	}
 
 	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
-		debugc(errError, "Joystick support failed!");
+		debug(errError, "Joystick support failed!");
 	else
 	{
-		debugc(errInfo, "Joysticks supported.");
+		debug(errInfo, "Joysticks supported.");
 
 		/* Ask for more detailed WM_DEVICECHANGE messages (WinXP+)
 		DEV_BROADCAST_DEVICEINTERFACE notificationFilter = {0};
@@ -380,7 +385,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 		notificationFilter.dbcc_size = sizeof(notificationFilter);
 		if(!RegisterDeviceNotification( g_Window.getWindowHandle(), &notificationFilter,
 						DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES))
-			debugc(errError, "RegisterDeviceNotification failed");
+			debug(errError, "RegisterDeviceNotification failed");
 		*/
 	}
 
@@ -391,24 +396,24 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GfxInitData *pCreationData)
 	// At this point, the window is still hidden
 	g_Window.showWindow();
 
-	debugc(errInfo, "Initialization success");
+	debug(errInfo, "Initialization success");
 	return TRUE;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
-	debugc(errInfo, "gfx_Shutdown()...");
+	debug(errInfo, "gfx_Shutdown()...");
 	g_Joystick.shutdown();
 	g_DirectX.shutdown();
 	g_Window.shutdown();
 	gfx_PumpMessages();
-	debugc(errInfo, "Shutdown complete");
+	debug(errInfo, "Shutdown complete");
 	CoUninitialize();
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
-	debugc(errInfo, "gfx_SendMessage %d %d %d", msg, dwParam, (int)pvParam);
+	debug(errInfo, "gfx_SendMessage %d %d %d", msg, dwParam, (int)pvParam);
 	switch(msg)
 	{
 	case OM_GFX_SETWIDTH:
