@@ -138,7 +138,7 @@ DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
 DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED as int32 privatemx, privatemy, lastmx, lastmy
-DIM SHARED keybdstate(127) as integer  '"real"time keyboard array
+DIM SHARED keybdstate(127) as integer  '"real"time keyboard array. See io_sdl_keybits for docs.
 DIM SHARED input_buffer as wstring * 128
 DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked (SDL order, not OHR), since last io_mousebits
 DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
@@ -350,6 +350,11 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       debuginfo "SDL: screen size "  & screen_width & "x" & screen_height
     END IF
   END IF
+  ' This enables key repeat both for text input and for keys. We only
+  ' want it for text input (only with --native-keybd), and otherwise filter out
+  ' repeat keypresses.
+  ' However, we still get key repeats, apparently from Windows, even if SDL
+  ' keyrepeat is disabled (see SDL_KEYDOWN handling).
   SDL_EnableKeyRepeat(400, 50)
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
@@ -565,6 +570,7 @@ FUNCTION gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette
   END WITH
 END FUNCTION
 
+'NOTE: showpage is no longer used. Could be deleted.
 SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to a raw 8-bit image, with pitch = w
   gfx_sdl_present_internal(raw, w, h, 8)
@@ -900,18 +906,27 @@ SUB gfx_sdl_process_events()
         DIM as integer key = scantrans(evnt.key.keysym.sym)
         IF LEN(input_buffer) >= 127 THEN input_buffer = RIGHT(input_buffer, 126)
         input_buffer += WCHR(evnt.key.keysym.unicode_)
-        'lowest bit is now set in io_keybits, from SDL_GetKeyState
-        'IF key THEN keybdstate(key) = 3
-        IF key THEN keybdstate(key) = 2
         IF debugging_io THEN
-          debuginfo "SDL_KEYDOWN " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_
+          debuginfo "SDL_KEYDOWN " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_ & " prev_keystate=" & keybdstate(key)
+        END IF
+        IF key THEN
+          'Filter out key repeats (key already down, or we just saw a keyup):
+          'On Windows (XP at least) we get key repeats even if we don't enable
+          'SDL's key repeats, but with a much longer initial delay than the SDL ones.
+          'SDL repeats keys by sending extra KEYDOWNs, while Windows sends keyup-keydown
+          'pairs. Unfortunately for some reason we don't always get the keydown until
+          'the next tick, so that it doesn't get filtered out.
+          'gfx_fb suffers the same problem.
+          IF keybdstate(key) = 0 THEN keybdstate(key) OR= 2  'new keypress
+          keybdstate(key) OR= 1  'key down
         END IF
       CASE SDL_KEYUP
         DIM as integer key = scantrans(evnt.key.keysym.sym)
-        IF key THEN keybdstate(key) AND= NOT 1
         IF debugging_io THEN
-          debuginfo "SDL_KEYUP " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_
+          debuginfo "SDL_KEYUP " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_ & " prev_keystate=" & keybdstate(key)
         END IF
+        'Clear 2nd bit (new keypress) and turn on 3rd bit (keyup)
+        IF key THEN keybdstate(key) = (keybdstate(key) AND 2) OR 4
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
         'Interestingly, although (on Linux/X11) SDL doesn't report mouse motion events
@@ -1012,26 +1027,24 @@ SUB io_sdl_waitprocessing()
 END SUB
 
 SUB io_sdl_keybits (byval keybdarray as integer ptr)
-  FOR a as integer = 0 TO &h7f
-    keybdarray[a] = keybdstate(a)
-    keybdstate(a) = keybdstate(a) and 1
-  NEXT
+  'keybdarray bits:
+  ' bit 0 - key down
+  ' bit 1 - new keypress event
+  'keybdstate bits:
+  ' bit 0 - key down
+  ' bit 1 - new keypress event
+  ' bit 2 - keyup event
 
-  'calling SHELL on Windows when not compiled with -s console seems to cause SDL to not send
-  'key up events for currently held keys, so we have to abandon the events-only scheme
-  'FIXME: this workaround did not work, so now we can un-abandon events-only
-  DIM keystate as uint8 ptr = NULL
-  keystate = SDL_GetKeyState(NULL)
-  FOR a as integer = 0 TO 322
-    IF keystate[a] THEN
-      IF debugging_io THEN
-        debuginfo "io_sdl_keybits: OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
-      END IF
-      IF scantrans(a) THEN
-        keybdarray[scantrans(a)] OR= 1
-      END IF
+  DIM msg as string
+  FOR a as integer = 0 TO &h7f
+    keybdstate(a) = keybdstate(a) and 3  'Clear key-up bit
+    keybdarray[a] = keybdstate(a)
+    IF debugging_io ANDALSO keybdarray[a] THEN
+      msg &= "  key[" & a & "](" & scancodename(a) & ")=" & keybdarray[a]
     END IF
+    keybdstate(a) = keybdstate(a) and 1  'Clear new-keypress bit
   NEXT
+  IF LEN(msg) THEN debuginfo "io_sdl_keybits returning:" & msg
 
   keybdarray[scShift] = keybdarray[scLeftShift] OR keybdarray[scRightShift]
   keybdarray[scUnfilteredAlt] = keybdarray[scLeftAlt] OR keybdarray[scRightAlt]
