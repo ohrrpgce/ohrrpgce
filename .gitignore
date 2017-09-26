@@ -53,9 +53,12 @@ unittest.xml
 import/Music
 import/Sound Effects
 support/*.zip
+# The following are from hsdecmpl
 support/hsdecmpl.txt
 support/plotscr.hsd
+support/scancode.hsi
 support/rules.txt
+# Indicator file
 support/zip-version-3.0.txt
 gfx_directx.dll.manifest
 gfx_directx.exp
