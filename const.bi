@@ -47,6 +47,8 @@ CONST CURRENT_RSAV_VERSION = 3
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing
 
+'For CURRENT_GFX_API_VERSION, see gfx.bi and gfx.h
+
 CONST CURRENT_HSZ_VERSION = 3
 ' .hsz script binary format
 

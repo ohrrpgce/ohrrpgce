@@ -295,11 +295,10 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	hFile = dylibload(filename)
 	if hFile = NULL then return NO
 
-	TRYLOAD(gfx_getversion)
-	dim as integer apiver = 0
-	if gfx_getversion <> NULL then apiver = gfx_getversion()
-	if (apiver and 1) = 0 then
-		queue_error = "gfx_version: does not support v1--reports bitfield " & apiver
+	MUSTLOAD(gfx_getversion)
+	dim as integer apiver = gfx_getversion()
+	if apiver <> CURRENT_GFX_API_VERSION then
+		queue_error = "gfx_version: " & filename & " supports API version " & apiver & " rather than current version " & CURRENT_GFX_API_VERSION
 		debug(queue_error)
 		dylibfree(hFile)
 		hFile = NULL
@@ -308,11 +307,12 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 
 
 	' Switching over to new gfx API gradually; accept either init routine.
+	' (Although we only support recent gfx_directx which have gfx_Initialize)
 	TRYLOAD(gfx_Initialize)
 	if gfx_Initialize = NULL then
 		MUSTLOAD(gfx_init)
 	else
-		TRYLOAD (gfx_init)   'Support old gfx_directx with incompatible gfx_Initialize
+		TRYLOAD (gfx_init)
 	end if
 	MUSTLOAD(gfx_close)
 	TRYLOAD (gfx_setdebugfunc)
@@ -376,6 +376,7 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	return YES
 end function
 
+'(NOT USED - and probably never will be)
 'Loads dynamic library graphics backends' procs into memory - new interface.
 'Returns true on success
 'filename is the name of the file, ie. "gfx_directx.dll" 

@@ -13,6 +13,9 @@
 
 #include "surface.h"
 
+// See documentation of this constant in gfx.bi
+#define CURRENT_GFX_API_VERSION 2
+
 struct WindowState
 {
 	int structsize;    // Number of members

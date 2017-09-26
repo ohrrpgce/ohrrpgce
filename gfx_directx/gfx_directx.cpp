@@ -512,8 +512,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 {
-	// Bitfield of support API versions (counting from 1)
-	return 1U << (DX_VERSION_MAJOR - 1);
+	return DX_API_VERSION;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_PresentOld, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
@@ -1092,7 +1091,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_DisableSystemMessages, (g_State.bDisableSysMsg ? BST_CHECKED : BST_UNCHECKED));
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str());
 			TCHAR strInfoBuffer[128] = TEXT("");
-			::_stprintf_s(strInfoBuffer, 128, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
+			::_stprintf_s(strInfoBuffer, 128, TEXT("DirectX Backend version: %d.%d.%d API v%d\r\nhttps://hamsterrepublic.com/ohrrpgce"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD, DX_API_VERSION);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 			::_stprintf_s(strInfoBuffer, 128, TEXT("Re-scan For Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);

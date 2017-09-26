@@ -61,7 +61,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,290,177,50,14
     CONTROL         "Enable Vsync",IDC_OPTIONS_EnableVsync,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,74,58,10
     CONTROL         "OhrrpgceBmp",IDC_OPTIONS_Image,"Static",SS_BITMAP,7,7,15,13
-    LTEXT           "DirectX Backend version: Unknown\r\nhttp://www.hamsterrepublic.com",IDC_OPTIONS_Info,220,60,120,24,0,WS_EX_RIGHT
+    LTEXT           "DirectX Backend version: Unknown\r\nhttps://www.hamsterrepublic.com/ohrrpgce",IDC_OPTIONS_Info,195,60,140,24,0,WS_EX_RIGHT
     CONTROL         "Enable Smooth Draw",IDC_OPTIONS_EnableSmooth,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,82,10
     CONTROL         "Enable Aspect Ratio Preservation",IDC_OPTIONS_EnablePreserveAspectRatio,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,62,123,10

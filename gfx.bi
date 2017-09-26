@@ -17,6 +17,17 @@
 #include "surface.bi"
 #include "util.bi"  'For XYPair
 
+#define CURRENT_GFX_API_VERSION 2
+' This is used by dynamically linked backends to report their compatibility
+' (returned by gfx_getversion).
+' Increment this when a change means that both the backend and the engine can't
+' support previous versions.
+' It isn't incremented when an optional feature is added to the API,
+' (such as by increasing WINDOWSTATE_SZ), and might not be incremented if
+' the engine can detect incompatible backends by missing functions.
+' 1 - Original version, but there were actually multiple incompatible breaks
+' 2 - Changes to Surface (inc. addition of pitch)
+
 
 extern "C"
 
@@ -97,8 +108,8 @@ extern Gfx_close as sub ()
 '(optional, ptr may be NULL)
 extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 
-'(optional, ptr may be NULL) Returns a bitfield, eg. bit 1 on if supports API version 1.
-'Not used by compiled-in backends. Dynamically linked backends must support version 1.
+' Returns CURRENT_GFX_API_VERSION (see above)
+' Only used by dynamically linked, not compiled-in backends.
 extern Gfx_getversion as function () as integer
 
 ' Tell backend to display an 8-bit screen buffer, using the previous palette.
