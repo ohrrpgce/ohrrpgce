@@ -56,10 +56,10 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		dim bpp as size_t 'bits, not bytes. see, bits is b, bytes is B
 		dim refreshrate as size_t
 		dim driver as string
-		dim desktopsize as XYPair
+		dim as size_t w, h
 		'Poll the size of the screen
-		screeninfo desktopsize.w, desktopsize.h, bpp, , , refreshrate, driver
-		debuginfo "gfx_fb: native screensize=" & desktopsize & " bitdepth=" & bpp & " refreshrate=" & refreshrate
+		screeninfo w, h, bpp, , , refreshrate, driver
+		debuginfo "gfx_fb: native screensize=" & w & "*" & h & " bitdepth=" & bpp & " refreshrate=" & refreshrate
 		if depth = 0 then depth = iif(bpp = 24, 32, bpp)
 
 		calculate_screen_res
