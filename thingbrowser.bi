@@ -23,6 +23,7 @@ Type ThingBrowser extends Object
  index as integer
  or_none as bool
 
+ declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
@@ -54,12 +55,14 @@ End Type
 'Data record browsers
 
 Type ItemBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
 Type ShopBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
@@ -69,6 +72,7 @@ End Type
 'Constant list browsers
 
 Type ConstantListBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
  declare virtual sub enter_browser()
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
@@ -90,6 +94,7 @@ End Type
 'Sprite browsers
 
 Type SpriteBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
  declare virtual function sprite_kind() as integer
  declare virtual function sprite_frame() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr

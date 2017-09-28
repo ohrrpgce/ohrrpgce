@@ -34,8 +34,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  enter_browser
 
  dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
- 'This is not used for anything yet
- ChangeTextSlice mode_indicator, ""
+ ChangeTextSlice mode_indicator, "Browsing " & thing_kind_name()
+ if editor_func <> 0 then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
 
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
 
@@ -101,7 +101,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
      result = ps.cur->Extra(0)
      exit do
     else
-     dim editor as FnThingBrowserEditor = editor_func
+     dim editor as FnThingBrowserEditor = *editor_func
      editor(ps.cur->Extra(0))
     end if
    elseif IsAncestor(ps.cur, back_holder) then
@@ -178,6 +178,11 @@ Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integ
  end if
 End Sub
 
+Function ThingBrowser.thing_kind_name() as string
+ 'Should be plural
+ return "Things"
+End Function
+
 Function ThingBrowser.init_helpkey() as string
  return ""
 End Function
@@ -227,6 +232,10 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Function ItemBrowser.thing_kind_name() as string
+ return "Items"
+End Function
+
 Function ItemBrowser.init_helpkey() as string
  return "item_browser"
 End Function
@@ -245,6 +254,10 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Function ShopBrowser.thing_kind_name() as string
+ return "Shops"
+End Function
+
 Function ShopBrowser.init_helpkey() as string
  return "shop_browser"
 End Function
@@ -262,6 +275,10 @@ Function ShopBrowser.thing_text_for_id(byval id as integer) as string
 End Function
 
 '-----------------------------------------------------------------------
+
+Function ConstantListBrowser.thing_kind_name() as string
+ return "Values"
+End Function
 
 Sub ConstantListBrowser.enter_browser()
  for i as integer = lbound(list) to ubound(list)
@@ -320,6 +337,10 @@ Sub FlexmenuCaptionBrowser.set_list_from_flexmenu(caption() as string, byval cap
 End Sub
 
 '-----------------------------------------------------------------------
+
+Function SpriteBrowser.thing_kind_name() as string
+ return sprite_sizes(sprite_kind()).name & " Sprites"
+End Function
 
 Function SpriteBrowser.sprite_kind() as integer
  'This should be overridden by a child class
