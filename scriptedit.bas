@@ -671,7 +671,10 @@ SUB export_scripts()
   dest = inputfilename("Export scripts to which (new) directory?", "", trimfilename(sourcerpg), "", _
                        trimpath(trimextension(sourcerpg)) & " scripts")
 
-  IF isdir(dest) THEN
+  IF LEN(dest) = 0 THEN
+   EXIT SUB  'cancelled
+  ELSEIF isdir(dest) THEN
+   'Overwrite existing files
   ELSEIF isfile(dest) THEN
    notification "Destination directory `" & dest & "' already exists as a file! Pick a different name."
    EXIT SUB
