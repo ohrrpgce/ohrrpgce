@@ -301,6 +301,8 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_EDITOR_THINGBROWSER_PLANK_SPRITE: RETURN "editor_thingbrowser_plank_sprite"
   CASE SL_EDITOR_THINGBROWSER_BACK_HOLDER: RETURN "editor_thingbrowser_back_holder"
   CASE SL_EDITOR_THINGBROWSER_MODE_INDICATOR: RETURN "editor_thingbrowser_mode_indicator"
+  CASE SL_EDITOR_THINGBROWSER_NEW_HOLDER: RETURN "editor_thingbrowser_new_holder"
+  CASE SL_EDITOR_THINGBROWSER_NOSCROLL_AREA: RETURN "editor_thingbrowser_noscroll_area"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
@@ -3204,8 +3206,8 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  return NULL
 end function
 
-Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
- if sl = 0 then debug "SliceIsInvisibleOrClipped: null slice": return YES 'Treating a null slice as invisible is probably safest here
+Function SliceIsInvisible(byval sl as Slice Ptr) as bool
+ if sl = 0 then debug "SliceIsInvisible: null slice": return YES 'Treating a null slice as invisible is probably safest here
  'First check the slice itself
  if sl->Visible = NO then return YES
  'Then check for any invisible parents
@@ -3215,7 +3217,13 @@ Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
   if parent->Visible = NO then return YES
   parent = parent->Parent
  loop
- 'Finally check for any parents that are clipping this slice
+ return NO
+End Function
+
+Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
+ if SliceIsInvisible(sl) then return YES
+ 'Check for any parents that are clipping this slice
+ dim parent as Slice Ptr
  parent = sl->Parent
  do while parent
   if parent->Clip then

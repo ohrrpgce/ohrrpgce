@@ -26,6 +26,8 @@ CONST SL_EDITOR_THINGBROWSER_GRID           = -200
 CONST SL_EDITOR_THINGBROWSER_PLANK_SPRITE   = -201
 CONST SL_EDITOR_THINGBROWSER_BACK_HOLDER    = -202
 CONST SL_EDITOR_THINGBROWSER_MODE_INDICATOR = -203
+CONST SL_EDITOR_THINGBROWSER_NEW_HOLDER     = -204
+CONST SL_EDITOR_THINGBROWSER_NOSCROLL_AREA  = -205
 CONST SL_ROOT                 = -100000
 CONST SL_TEXTBOX_TEXT         = -100001
 CONST SL_TEXTBOX_PORTRAIT     = -100002
@@ -426,6 +428,7 @@ DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair)
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
 DECLARE Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
 DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+DECLARE Function SliceIsInvisible(byval sl as Slice Ptr) as bool
 DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)

@@ -241,10 +241,15 @@ END FUNCTION
 
 FUNCTION default_is_plank(byval sl as Slice Ptr) as bool
  IF sl = 0 THEN debug "default_is_plank: null slice ptr" : RETURN NO
- RETURN sl->Lookup = SL_PLANK_HOLDER
+ IF sl->Lookup = SL_PLANK_HOLDER THEN
+  IF SliceIsInvisible(sl) THEN RETURN NO
+  RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 ' Fill planks() with all descendents of m that are planks (according to the callback)
+' By default this excludes invisible planks (also planks with invisible parents)
 SUB find_all_planks(byref ps as PlankState, byval m as Slice Ptr, planks() as Slice Ptr)
  IF m = 0 THEN debug "find_all_planks: null m ptr" : EXIT SUB
 

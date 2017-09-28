@@ -22,11 +22,13 @@ Type ThingBrowser extends Object
  helpkey as string
  index as integer
  or_none as bool
+ can_edit as bool 'gets turned on when editor_func is supplied to .browse()
 
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
 
  'Any special initialisation needed. Called after root created but before build_thing_list()
  declare virtual sub enter_browser()
@@ -58,6 +60,7 @@ Type ItemBrowser extends ThingBrowser
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
@@ -65,6 +68,7 @@ Type ShopBrowser extends ThingBrowser
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 

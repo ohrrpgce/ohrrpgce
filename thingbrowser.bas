@@ -30,14 +30,19 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("thingbrowser.slice")
+ 
+ can_edit = (editor_func <> 0)
 
  enter_browser
 
  dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
  ChangeTextSlice mode_indicator, "Browsing " & thing_kind_name()
- if editor_func <> 0 then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
+ if can_edit <> 0 then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
 
+ dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
+ dim new_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
+ if not can_edit then new_holder->Visible = NO
 
  dim grid as Slice Ptr
  grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
@@ -73,12 +78,21 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   if hover then set_plank_state ps, hover, plankNORMAL
   if orig_cur then set_plank_state ps, orig_cur, plankNORMAL
   
-  if plank_menu_arrows(ps, grid) then
-   'Give priority to the grid
-   cursor_moved = YES
-  elseif plank_menu_arrows(ps) then
-   'Only if no movement happened in the grid do we consider outside the grid
-   cursor_moved = YES
+  if IsAncestor(ps.cur, grid) then
+   if plank_menu_arrows(ps, grid) then
+    'Give priority to the grid
+    cursor_moved = YES
+   end if
+  elseif IsAncestor(ps.cur, noscroll_area) then
+   if plank_menu_arrows(ps, noscroll_area) then
+    cursor_moved = YES
+   end if
+  end if
+  if not cursor_moved then
+   if plank_menu_arrows(ps) then
+   'Only if no movement happened in one of the areas do we consider global movement
+    cursor_moved = YES
+   end if
   end if
   plank_menu_mouse_wheel(ps)
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
@@ -92,27 +106,46 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    ps.cur = hover
   end if
 
+  dim do_edit as bool = false
+  dim edit_record as integer
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
-    if editor_func = 0 then
+    if can_edit = NO then
      'Selected a thing
      result = ps.cur->Extra(0)
      exit do
     else
      'Editing a thing
-     dim editor as FnThingBrowserEditor = editor_func
-     editor(ps.cur->Extra(0))
-     save_plank_selection ps
-     build_thing_list()
-     restore_plank_selection ps
-     hover = 0
-     orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+     edit_record = ps.cur->Extra(0)
+     do_edit = YES
     end if
    elseif IsAncestor(ps.cur, back_holder) then
     'Cancel out of the browser
     result = start_id
     exit do
+   elseif can_edit andalso isAncestor(ps.cur, new_holder) then
+    'Add a new thing
+    if highest_id() + 1 > highest_possible_id() then
+     visible_debug "There are already " & highest_possible_id() & " " & thing_kind_name() & ", which is the most " & thing_kind_name() & " you can have."
+    else
+     edit_record = highest_id() + 1
+     do_edit = YES
+    end if
    end if
+  end if
+
+  if do_edit then
+   do_edit = NO
+   dim editor as FnThingBrowserEditor = editor_func
+   dim ed_ret as integer = editor(edit_record)
+   save_plank_selection ps
+   build_thing_list()
+   restore_plank_selection ps
+   if ed_ret >= 0 then
+    focus_plank_by_extra_id(ps, ed_ret, grid)
+   end if
+   hover = 0
+   orig_cur = find_plank_by_extra_id(ps, start_id, grid)
   end if
 
   'Set selection indicators
@@ -218,6 +251,10 @@ Function ThingBrowser.highest_id() as integer
  return -1
 End Function
 
+Function ThingBrowser.highest_possible_id() as integer
+ return 32767
+End Function
+
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
  dim plank as Slice Ptr
  plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
@@ -251,6 +288,10 @@ Function ItemBrowser.highest_id() as integer
  return gen(genMaxItem)
 End Function
 
+Function ItemBrowser.highest_possible_id() as integer
+ return maxMaxItems
+End Function
+
 Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
  if id = -1 then
@@ -271,6 +312,10 @@ End Function
 
 Function ShopBrowser.highest_id() as integer
  return gen(genMaxShop)
+End Function
+
+Function ShopBrowser.highest_possible_id() as integer
+ return 99
 End Function
 
 Function ShopBrowser.thing_text_for_id(byval id as integer) as string

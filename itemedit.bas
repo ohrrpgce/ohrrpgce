@@ -109,7 +109,21 @@ END SUB
 
 FUNCTION individual_item_editor(item_id as integer) as integer
 'Return value is the item_id (for thingbrowser)
+
  DIM itembuf(dimbinsize(binITM)) as integer
+
+ 'Add new item
+ IF item_id > maxMaxItems THEN
+  visible_debug "Can't edit item id > " & maxMaxItems
+  RETURN -1
+ END IF
+ IF item_id > gen(genMaxItem) THEN
+  gen(genMaxItem) += 1
+  item_id = gen(genMaxItem)
+  item_editor_init_new itembuf()
+  saveitemdata itembuf(), item_id
+ END IF
+
  CONST menusize as integer = 21
  DIM menu(menusize) as string
  DIM menu_display(menusize) as string
