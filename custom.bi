@@ -33,6 +33,8 @@ DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
 DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()
+DECLARE SUB new_item_editor ()
+DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
 DECLARE SUB menu_editor ()

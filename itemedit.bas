@@ -18,14 +18,17 @@
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
-DECLARE SUB individual_item_editor(item_id as integer)
 DECLARE SUB item_editor_equipbits(itembuf() as integer)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
 DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
 
+SUB new_item_editor ()
+ DIM itemb as ItemBrowser
+ itemb.browse(-1, , @individual_item_editor)
+END SUB
 
-SUB item_editor
+SUB item_editor ()
  DIM menu() as string
  DIM menu_display() as string
  DIM shaded() as bool
@@ -104,7 +107,8 @@ SUB item_editor
  LOOP
 END SUB
 
-SUB individual_item_editor(item_id as integer)
+FUNCTION individual_item_editor(item_id as integer) as integer
+'Return value is the item_id (for thingbrowser)
  DIM itembuf(dimbinsize(binITM)) as integer
  CONST menusize as integer = 21
  DIM menu(menusize) as string
@@ -308,7 +312,8 @@ SUB individual_item_editor(item_id as integer)
  writebadbinstring item_name, itembuf(), 0, 8
  writebadbinstring info, itembuf(), 9, 36
  saveitemdata itembuf(), item_id
-END SUB
+ RETURN item_id
+END FUNCTION
 
 SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
  DIM weapon as string = readglobalstring(38, "Weapon", 10)

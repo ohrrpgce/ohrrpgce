@@ -96,9 +96,14 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
-    'Selected a thing from the grid
-    result = ps.cur->Extra(0)
-    exit do
+    if editor_func = 0 then
+     'Selected a thing from the grid
+     result = ps.cur->Extra(0)
+     exit do
+    else
+     dim editor as FnThingBrowserEditor = editor_func
+     editor(ps.cur->Extra(0))
+    end if
    elseif IsAncestor(ps.cur, back_holder) then
     'Cancel out of the browser
     result = start_id
