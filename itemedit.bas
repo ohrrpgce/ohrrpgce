@@ -25,7 +25,7 @@ DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
 
 SUB new_item_editor ()
  DIM itemb as ItemBrowser
- itemb.browse(-1, , CAST(FnThingBrowserEditor Ptr, @individual_item_editor))
+ itemb.browse(-1, , @individual_item_editor)
 END SUB
 
 SUB item_editor ()

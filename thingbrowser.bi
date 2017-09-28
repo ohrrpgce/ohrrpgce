@@ -11,7 +11,7 @@ Type FnThingBrowserEditor as function(record as integer) as integer
 
 Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
- declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor Ptr=0) as integer
+ declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0) as integer
 
  declare sub build_thing_list()
  declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
