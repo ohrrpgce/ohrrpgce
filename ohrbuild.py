@@ -39,7 +39,7 @@ def get_command_output(cmd, args, shell = True):
     return outtext.strip()
 
 ########################################################################
-# Scanning for include files
+# Scanning for FB include files
 
 include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 
@@ -61,7 +61,28 @@ def basfile_scan(node, env, path):
     contents = node.get_text_contents()
     included = scrub_includes (include_re.findall (contents))
     #print str(node) + " includes", included
-    return included
+    return env.File(included)
+
+########################################################################
+# Scanning for HS include files
+
+hss_include_re = re.compile(r'^\s*include\s*,\s*"?([^"\n]+)"?', re.M | re.I)
+
+def hssfile_scan(node, env, path):
+    """Find files included into a .hss."""
+    contents = node.get_text_contents()
+    included = []
+    subdir = os.path.dirname(node.srcnode().path)
+    for include in hss_include_re.findall (contents):
+        include = include.strip()
+        # Search for the included file in the same directory as 'node'
+        check_for = os.path.join(subdir, include)
+        if os.path.isfile(check_for):
+            include = check_for
+        included.append(include)
+    #print str(node) + " includes", included
+    # Turning into File nodes allows plotscr.hsd & scancode.hsi to be found in the root dir
+    return env.File(included)
 
 ########################################################################
 # Querying svn, git

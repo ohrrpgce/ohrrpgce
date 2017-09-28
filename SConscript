@@ -336,14 +336,18 @@ rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output
 
 bas_scanner = Scanner (function = ohrbuild.basfile_scan,
                        skeys = ['.bas', '.bi'], recursive = True)
+hss_scanner = Scanner (function = ohrbuild.hssfile_scan,
+                       skeys = ['.hss', '.hsi', '.hsd'], recursive = True)
 
 env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLAGS')
+# These are needed for Object() auto-dependency detection
 SourceFileScanner.add_scanner ('.bas', bas_scanner)
 SourceFileScanner.add_scanner ('.bi', bas_scanner)
+SourceFileScanner.add_scanner ('.hss', hss_scanner)
 
 env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'BASMAINO':basmaino, 'VARIANT_BASO':variant_baso,
                         'RB':rbasic_builder, 'RC':rc_builder, 'ASM':basasm},
-            SCANNERS = bas_scanner)
+            SCANNERS = [bas_scanner, hss_scanner])
 
 
 ################ Find fbc and get fbcinfo fbcversion
@@ -1060,11 +1064,30 @@ def Phony(name, source, action, message = None):
     AlwaysBuild(node)  # Run even if there happens to be a file of the same name
     return node
 
-AUTOTEST = Phony ('autotest_rpg', source = GAME, action =
+def RPGWithScripts(rpg, main_script):
+    """Construct an (Action) node for an .rpg, which updates it by re-importing
+    an .hss if it (or any included script file) has been modified."""
+    # Do not include hspeak as dependency because Euphoria may not be installed
+    sources = [main_script, "plotscr.hsd"]  #, HSPEAK]
+    action = env.Action(CUSTOM.abspath + ' --nowait ' + rpg + ' ' + main_script)
+    # Prepending # means relative to rootdir, otherwise this a rule to build
+    # a file in build/
+    node = env.Command('#' + rpg, source = sources, action = action)
+    env.Precious(node)  # Don't delete the .rpg before "rebuilding" it
+    env.NoClean(node)   # Don't delete the .rpg with -c
+    SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
+    return node
+
+T = 'testgame/'
+AUTOTEST = Phony ('autotest_rpg',
+                  source = [GAME, RPGWithScripts(T+'autotest.rpg', T+'autotest.hss')],
+                  action =
                   [GAME.abspath + ' --log . --runfast testgame/autotest.rpg -z 2',
                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
 env.Alias ('autotest', source = AUTOTEST)
-INTERTEST = Phony ('interactivetest', source = GAME, action =
+INTERTEST = Phony ('interactivetest',
+                   source = [GAME, RPGWithScripts(T+'interactivetest.rpg', T+'interactivetest.hss')],
+                   action =
                    [GAME.abspath + ' --log . --runfast testgame/interactivetest.rpg -z 2'
                     ' --replayinput testgame/interactivetest.ohrkey',
                     'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'])
