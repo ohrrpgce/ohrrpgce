@@ -307,9 +307,15 @@ End Function
 
 '-----------------------------------------------------------------------
 
-Constructor ArrayBrowser(array() as string)
+Constructor ArrayBrowser(array() as string, thing_name as string)
  set_list array()
+ thing_name_override = thing_name
 End Constructor
+
+Function ArrayBrowser.thing_kind_name() as string
+ if thing_name_override <> "" then return thing_name_override
+ return "Values"
+End Function
 
 Sub ArrayBrowser.set_list(array() as string)
  str_array_copy array(), list()

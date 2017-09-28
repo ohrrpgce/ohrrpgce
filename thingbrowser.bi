@@ -82,7 +82,9 @@ Type ConstantListBrowser extends ThingBrowser
 End Type
 
 Type ArrayBrowser extends ConstantListBrowser
- declare constructor (array() as string)
+ thing_name_override as string
+ declare constructor (array() as string, thing_name as string="")
+ declare virtual function thing_kind_name() as string
  declare sub set_list(array() as string)
 End Type
 

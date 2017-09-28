@@ -4974,7 +4974,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 2
     intgrabber(npcdata.movetype, 0, ubound(npc_movetypes))
     IF enter_space_click(ed.state) THEN
-     DIM constb as ArrayBrowser = ArrayBrowser(npc_movetypes())
+     DIM constb as ArrayBrowser = ArrayBrowser(npc_movetypes(), "Movement Types")
      npcdata.movetype = constb.browse(npcdata.movetype)
     END IF
    CASE 3
@@ -4989,7 +4989,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 5
     intgrabber(npcdata.facetype, 0, ubound(npc_facetypes))
     IF enter_space_click(ed.state) THEN
-     DIM constb as ArrayBrowser = ArrayBrowser(npc_facetypes())
+     DIM constb as ArrayBrowser = ArrayBrowser(npc_facetypes(), "Facing Types")
      npcdata.facetype = constb.browse(npcdata.facetype)
     END IF
    CASE 6
@@ -5004,13 +5004,13 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
    CASE 7
     intgrabber(npcdata.pushtype, 0, ubound(npc_pushtypes))
     IF enter_space_click(ed.state) THEN
-     DIM constb as ArrayBrowser = ArrayBrowser(npc_pushtypes())
+     DIM constb as ArrayBrowser = ArrayBrowser(npc_pushtypes(), "Pushing Types")
      npcdata.pushtype = constb.browse(npcdata.pushtype)
     END IF
    CASE 8
     intgrabber(npcdata.activation, 0, ubound(npc_usetypes))
     IF enter_space_click(ed.state) THEN
-     DIM constb as ArrayBrowser = ArrayBrowser(npc_usetypes())
+     DIM constb as ArrayBrowser = ArrayBrowser(npc_usetypes(), "Activation Types")
      npcdata.activation = constb.browse(npcdata.activation)
     END IF
    CASE 9'--tag conditionals
