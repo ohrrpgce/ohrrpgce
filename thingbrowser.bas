@@ -19,7 +19,7 @@
 
 '-----------------------------------------------------------------------
 
-Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO) as integer
+Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor Ptr=0) as integer
  dim result as integer = start_id
  this.or_none = or_none
  
@@ -32,6 +32,12 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  SliceLoadFromFile root, finddatafile("thingbrowser.slice")
 
  enter_browser
+
+ dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
+ 'This is not used for anything yet
+ ChangeTextSlice mode_indicator, ""
+
+ dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
 
  dim grid as Slice Ptr
  grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
@@ -93,7 +99,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     'Selected a thing from the grid
     result = ps.cur->Extra(0)
     exit do
-   else
+   elseif IsAncestor(ps.cur, back_holder) then
     'Cancel out of the browser
     result = start_id
     exit do

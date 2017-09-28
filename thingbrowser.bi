@@ -1,9 +1,18 @@
 #IFNDEF THINGBROWSER_BI
 #DEFINE THINGBROWSER_BI
 
+' pass the record number that the editor should edit.
+' A record number greater than the current max record number will add a new record
+' The return value is -1 for cancellation, or the last edited record number,
+' which might differ from the record argument, particularly for editors that
+' allow record-switching
+' (This is similar to, but not exactly the same as FnEditor in custom.bi)
+Type FnThingBrowserEditor as function(record as integer) as integer
+
 Type ThingBrowser extends Object
  'Displays the browser, and retuns the selected result (or start_id if canceled)
- declare function browse(byref start_id as integer=0, byval or_none as bool=NO) as integer
+ declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor Ptr=0) as integer
+
  declare sub build_thing_list()
  declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
 
@@ -136,6 +145,7 @@ Type BoxborderSpriteBrowser extends SpriteBrowser
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 End Type
 
+'This is not a real subclass of ThingBrowser, just sort of a duck-type
 Type SpriteOfTypeBrowser extends Object
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO, byval spr_type as spriteType) as integer
 End Type
