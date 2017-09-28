@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tb 2017-09-28 Added -j option; warn on unknown options
 --3Ta 2017-07-28 Increased MAXGLOBAL to 50000
 --    2017-06-13 0x, 0o and 0b number prefixes
 --3T  2017-06-11 Allow subscript vars/args to shadow outer locals
@@ -164,8 +165,11 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ta"
+constant COMPILER_SUB_VERSION="Tb"
 constant COPYRIGHT_DATE="2017"
+
+--Known single-character commandline options
+constant VALID_OPTIONS="abcdfjknstwuyz"
 
 --This is the oldest version of plotscr.hsd which is supported (feel free to
 --increment this whenever using an older plotscr.hsd means you're missing out
@@ -643,11 +647,12 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure opt_wait_for_key()
-  integer key
-  if not find('k',optlist) then
+procedure opt_wait_for_key(integer iserror)
+  if (not iserror and find('j',optlist)) or find('k',optlist) then
+    --skip
+  else
     color_print("[Press Any Key]\n",{})
-    key=timeless_wait_key()
+    timeless_wait_key()
   end if
 end procedure
 
@@ -832,7 +837,7 @@ procedure simple_error(string s)
   if end_anchor_kludge then
     error_file_print("</a>\n<hr>\n")
   end if
-  opt_wait_for_key()
+  opt_wait_for_key(true)
   abort(1)
 end procedure
 
@@ -843,9 +848,10 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%s%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-abcdfknstwuyz] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-%s] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{VALID_OPTIONS,hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
-    color_print("   -k do not wait for a keypress when finished\n",{})
+    color_print("   -j don't wait for a keypress when finished if there's no error\n",{})
+    color_print("   -k don't wait for a keypress when finished\n",{})
     color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -u show warnings for unused variables\n",{})
@@ -869,7 +875,7 @@ procedure check_arg_count(sequence args)
     --                 Read the provided scripts.bin file from a previous compilation, and reuse script ID mapping
     wrap_print("\nFor more info about HamsterSpeak visit "&COLBWHI&"http://HamsterRepublic.com/ohrrpgce"&COLWHI&"\n",{})
     wrap_print("\nThis is a command-line program. You should either run it from the command-line, or drag and drop your script file onto it. You don't ever need to run HSpeak yourself; Custom will do that for you.\n",{})
-    opt_wait_for_key()
+    opt_wait_for_key(false)
     abort(0)
   end if
 end procedure
@@ -955,6 +961,11 @@ procedure init()
       index+=1
     end if
   end while
+  for i=1 to length(optlist) do
+    if not find(optlist[i], VALID_OPTIONS) then
+      simple_warn("Unknown commandline option -" & optlist[i])
+    end if
+  end for
   check_arg_count(args)
   source_file=normalize_filename(args[3])
   if length(args)>3 then
@@ -4967,7 +4978,7 @@ color_print("done (%g seconds)\n",{run_time})
 if find('t',optlist) then
   print_timing_data()
 end if
-opt_wait_for_key()
+opt_wait_for_key(false)
 if was_warnings = true then
   abort(2)
 end if
