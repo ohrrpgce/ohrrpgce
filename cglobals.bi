@@ -12,4 +12,5 @@ EXTERN slave_process as ProcessHandle
 EXTERN cleanup_workingdir_on_exit as bool
 EXTERN cleanup_workingdir_on_error as bool
 EXTERN auto_distrib as string
+EXTERN option_nowait as bool
 EXTERN editing_a_game as bool

@@ -4707,6 +4707,9 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
   END SELECT
   debug "-distrib doesn't know how to export """ & arg & """"
   RETURN 1
+ ELSEIF opt = "nowait" THEN
+  option_nowait = YES
+  RETURN 1
  END IF
  RETURN 0
 END FUNCTION

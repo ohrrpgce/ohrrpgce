@@ -37,7 +37,7 @@ DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
 DECLARE SUB menu_editor ()
 DECLARE SUB maptile ()
-DECLARE SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
+DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
 DECLARE SUB reimport_previous_scripts ()
 DECLARE SUB write_session_info ()
 

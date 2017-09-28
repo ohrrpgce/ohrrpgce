@@ -28,7 +28,7 @@ DIM SHARED script_import_defaultdir as string
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
-DECLARE SUB importscripts (f as string, quickimport as bool)
+DECLARE FUNCTION importscripts (f as string, quickimport as bool) as bool
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames () as string
 DECLARE SUB export_scripts()
@@ -248,22 +248,27 @@ SUB addtrigger (scrname as string, byval id as integer, triggers as TriggerSet)
  END WITH
 END SUB
 
+' Returns true on success
 ' If quickimport is true, doesn't display the names of imported scripts
-SUB compile_andor_import_scripts (f as string, quickimport as bool = NO)
+FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
+ DIM ret as bool = NO
  DIM extn as string = LCASE(justextension(f))
  IF extn <> "hs" AND extn <> "hsp" THEN
   DIM hsifile as string = exportnames
   f = compilescripts(f, hsifile)
-  IF f <> "" THEN
-   importscripts f, quickimport
+  IF f <> "" THEN  'success
+   ret = importscripts(f, quickimport)
    safekill f  'reduce clutter
   END IF
  ELSE
-  importscripts f, quickimport
+  ret = importscripts(f, quickimport)
  END IF
-END SUB
+ RETURN ret
+END FUNCTION
 
-SUB importscripts (f as string, quickimport as bool)
+' Returns true on success
+' If quickimport is true, doesn't display the names of imported scripts
+FUNCTION importscripts (f as string, quickimport as bool) as bool
  DIM triggers as TriggerSet
  DIM triggercount as integer
  DIM temp as short
@@ -275,7 +280,7 @@ SUB importscripts (f as string, quickimport as bool)
  'Under the best conditions this check is redundant, but it is still good to check anyway...
  IF NOT isfile(f) THEN
   pop_warning f & " does not exist."
-  EXIT SUB
+  RETURN NO
  END IF
 
  DIM headerbuf(1) as integer
@@ -286,12 +291,12 @@ SUB importscripts (f as string, quickimport as bool)
   load_hsp_header tmpdir & "hs", header
   IF header.valid = NO THEN
    pop_warning f & " appears to be corrupt."
-   EXIT SUB
+   RETURN NO
   END IF
   IF header.hsp_format > CURRENT_HSP_VERSION THEN
    debug f & " hsp_format=" & header.hsp_format & " from future, hspeak version " & header.hspeak_version
    pop_warning "This compiled .hs script file is in a format not understood by this version of Custom. Please ensure Custom and HSpeak are from the same release of the OHRRPGCE."
-   EXIT SUB
+   RETURN NO
   END IF
 
   writeablecopyfile f, game + ".hsp"
@@ -311,7 +316,7 @@ SUB importscripts (f as string, quickimport as bool)
    'the scripts.bin lump does not have a format version field in its header, instead use header size
    IF headersize <> 4 THEN
     pop_warning f + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
-    EXIT SUB
+    RETURN NO
    END IF
   ELSE
    dotbin = 0
@@ -319,7 +324,7 @@ SUB importscripts (f as string, quickimport as bool)
 
    IF isfile(tmpdir + "scripts.txt") = 0 THEN
     pop_warning f + " appears to be corrupt. Please try to recompile your scripts."
-    EXIT SUB
+    RETURN NO
    END IF
 
    fptr = FREEFILE
@@ -342,7 +347,7 @@ SUB importscripts (f as string, quickimport as bool)
     .trigs = CALLOCATE(allocnum, SIZEOF(TriggerData))
     .usedbits = CALLOCATE(allocnum \ 8)
 
-    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
+    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": RETURN NO
    
     IF fh THEN
      FOR j as integer = 0 TO .size - 1
@@ -374,7 +379,7 @@ SUB importscripts (f as string, quickimport as bool)
   IF OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, plotscr_lsth) THEN
    visible_debug "Could not open " + workingdir + SLASH + "plotscr.lst"
    CLOSE fptr
-   EXIT SUB
+   RETURN NO
   END IF
 
   show_message "Imported:  "
@@ -450,6 +455,9 @@ SUB importscripts (f as string, quickimport as bool)
 
   textcolor uilook(uiText), 0
   show_message "Imported " & viscount & " plotscripts."
+  IF option_nowait THEN
+   PRINT "Imported " & viscount & " plotscripts."
+  END IF
 
   IF quickimport THEN
    ' The show_messages above will be gone before the user can see them
@@ -461,11 +469,15 @@ SUB importscripts (f as string, quickimport as bool)
   pop_warning f + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _
               " ends in .hs and hoped it would work? Use hspeak.exe to create real .hs files"
+  RETURN NO
  END IF
 
  'Cause the cache in scriptname() (and also in commandname()) to be dropped
+ '(Yuck!)
  game_unique_id = STR(randint(INT_MAX))
-END SUB
+
+ RETURN YES
+END FUNCTION
 
 SUB reimport_previous_scripts ()
  DIM fname as string
@@ -621,6 +633,8 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
  IF LEN(hsifile) > 0 AND strcmp(STRPTR(hspeak_ver), STRPTR("3S ")) >= 0 THEN
   args += " --include " & escape_filename(hsifile)
  END IF
+
+ IF option_nowait THEN args += " -j"
 
  outfile = trimextension(fname) + ".hs"
  safekill outfile

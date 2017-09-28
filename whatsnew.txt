@@ -45,6 +45,7 @@ Nov/Dec ??? 2017 [Etheldreme]
       Y coordinate [James]
 
   * Stuff Only Developers Will Notice
+    * --nowait option when importing scripts from the commandline [Ralph]
 
 
 September 22 2017 [Dwimmercrafty+1]

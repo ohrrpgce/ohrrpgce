@@ -73,7 +73,7 @@ DECLARE SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
 DECLARE SUB shop_add_new (shopst as ShopEditState)
 
-DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES)
+DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
 
 DECLARE SUB prompt_for_password()
@@ -99,7 +99,8 @@ DIM vpage as integer = 0
 DIM dpage as integer = 1
 DIM activepalette as integer = -1
 DIM fadestate as bool
-DIM auto_distrib as string
+DIM auto_distrib as string 'Which distribution option to package automatically
+DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
 
 DIM editing_a_game as bool
 DIM game as string
@@ -731,14 +732,18 @@ END SUB
 
 SUB import_scripts_and_terminate (scriptfile as string)
  debuginfo "Importing scripts from " & scriptfile
- compile_andor_import_scripts absolute_with_orig_path(scriptfile)
- xbsave game & ".gen", gen(), 1000
- save_current_game
+ DIM success as bool
+ success = compile_andor_import_scripts(absolute_with_orig_path(scriptfile), option_nowait)
+ IF success THEN
+  xbsave game & ".gen", gen(), 1000
+  save_current_game
+ END IF
  cleanup_workingdir_on_exit = YES  'Cleanup even if saving the .rpg failed: no loss
- cleanup_and_terminate NO
+ IF success = NO AND option_nowait THEN PRINT "Compiling or importing failed"
+ cleanup_and_terminate NO, IIF(success, 0, 1)
 END SUB
 
-SUB cleanup_and_terminate (show_quit_msg as bool = YES)
+SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  IF slave_channel <> NULL_CHANNEL THEN
   channel_write_line(slave_channel, "Q ")
   #IFDEF __FB_WIN32__
@@ -775,7 +780,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES)
  END IF
  end_debug
  restoremode
- SYSTEM
+ SYSTEM retval
 END SUB
 
 

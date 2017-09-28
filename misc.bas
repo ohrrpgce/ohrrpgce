@@ -54,9 +54,15 @@ function global_setoption(opt as string, arg as string) as integer
 	elseif opt = "?" or opt = "help" or opt = "h" then
 		load_preferred_gfx_backend()
 
-		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END & LINE_END
+		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END
+#IFDEF IS_CUSTOM
+		help = help & "   Or: " & trimpath(command(0)) & " [options] <.rpg or .rpgdir> <.hss file>" & LINE_END
+		help = help & "          (Import the scripts and then quit. See also --nowait)" & LINE_END
+#ENDIF
+		help &= LINE_END
 		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END
 		help = help & "additional command line arguments will be read from it, one per line." & LINE_END
+		help &= LINE_END
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
@@ -74,6 +80,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-distrib [zip|win|mac|tarball|debian|all] When opening a game, export a copy for" & LINE_END
 		help = help & "                    distribution in the requested format. Not all formats are " & LINE_END
 		help = help & "                    available on all platforms. See c_debug.txt for error messages" & LINE_END
+		help = help & "-nowait             When importing scripts quit immediately on success (otherwise ignored)" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
