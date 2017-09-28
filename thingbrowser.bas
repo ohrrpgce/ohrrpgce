@@ -43,7 +43,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
  RefreshSliceScreenPos grid
  build_thing_list()
- DrawSlice root, vpage
  
  dim ps as PlankState
  ps.m = root
@@ -103,7 +102,11 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
      'Editing a thing
      dim editor as FnThingBrowserEditor = editor_func
      editor(ps.cur->Extra(0))
-     'build_thing_list()
+     save_plank_selection ps
+     build_thing_list()
+     restore_plank_selection ps
+     hover = 0
+     orig_cur = find_plank_by_extra_id(ps, start_id, grid)
     end if
    elseif IsAncestor(ps.cur, back_holder) then
     'Cancel out of the browser
@@ -203,6 +206,7 @@ Sub ThingBrowser.build_thing_list()
   grid->Height = plank_size.y
  next id
  ChangeGridSlice grid, , grid->Width \ plank_size.x
+ DrawSlice root, vpage 'refresh screen positions
 End Sub
 
 Function ThingBrowser.lowest_id() as integer
