@@ -48,7 +48,7 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  find_all_planks ps, start_parent, planks()
  
  DIM old as XYPair
- old = ps.cur->ScreenPos + ps.cur->Size / 2
+ old = ps.cur->ScreenPos + ps.cur->Size \ 2
 
  DIM best as integer = INT_MAX
  DIM p as XYPair
@@ -57,8 +57,8 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  DIM sl as Slice Ptr
  FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
-  p.x = sl->ScreenX + sl->Width / 2
-  p.y = sl->ScreenY + sl->Height / 2
+  p.x = sl->ScreenX + sl->Width \ 2
+  p.y = sl->ScreenY + sl->Height \ 2
   IF (d = 1 ANDALSO p.n(axis) > old.n(axis)) ORELSE (d = -1 ANDALSO p.n(axis) < old.n(axis)) THEN
    dist = (old.x - p.x) ^ 2 + (old.y - p.y) ^ 2
    IF dist < best THEN

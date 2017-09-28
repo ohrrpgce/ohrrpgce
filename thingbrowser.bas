@@ -493,7 +493,7 @@ End Function
 Function BackdropSpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim plank as Slice Ptr
  plank = Base.create_thing_plank(id)
- plank->size = XY(98, 62)
+ plank->size = XY(98, 63)
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if id = -1 then
