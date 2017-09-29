@@ -476,7 +476,6 @@ DECLARE Sub SliceSetY( byval s as Slice ptr, byval y as integer )
 DECLARE Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
 DECLARE Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
 DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
-DECLARE Sub SliceSetMobility( byval s as Slice ptr, byval b as integer )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
 
 DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr

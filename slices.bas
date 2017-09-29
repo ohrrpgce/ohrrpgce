@@ -28,6 +28,10 @@ DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
 
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
+DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as string, s as string)
+
 EXTERN "C"
 
 DECLARE Function LoadPropStr(node as Reload.Nodeptr, propname as string, defaultval as string="") as string
@@ -1040,18 +1044,18 @@ Sub SaveRectangleSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dim dat as RectangleSliceData Ptr
  dat = sl->SliceData
  if dat->style >= 0 then
-  SaveProp node, "style", dat->style
+  SavePropAlways node, "style", dat->style
  else
   SaveProp node, "fg", dat->fgcol
   SaveProp node, "bg", dat->bgcol
   if dat->use_raw_box_border then
-   SaveProp node, "raw_box_border", dat->raw_box_border
+   SavePropAlways node, "raw_box_border", dat->raw_box_border
   else
-   SaveProp node, "border", dat->border
+   SavePropAlways node, "border", dat->border
   end if
  end if
  SaveProp node, "trans", dat->translucent
- SaveProp node, "fuzzfactor", dat->fuzzfactor
+ SavePropAlways node, "fuzzfactor", dat->fuzzfactor
 End Sub
 
 Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -1275,7 +1279,7 @@ Sub SaveTextSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat as TextSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "s", dat->s
+ SavePropAlways node, "s", dat->s
  SaveProp node, "col", dat->col
  SaveProp node, "outline", dat->outline
  SaveProp node, "wrap", dat->wrap
@@ -1586,22 +1590,22 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat as SpriteSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "sprtype", dat->spritetype
+ SavePropAlways node, "sprtype", dat->spritetype
  if dat->spritetype = sprTypeFrame then
   ' If it's not an asset sprite, then the Frame came from an unknown source and can't be saved
   if dat->assetfile = NULL then reporterr "SaveSpriteSlice: tried to save Frame sprite", serrBug : exit sub
-  SaveProp node, "asset", *dat->assetfile
+  SavePropAlways node, "asset", *dat->assetfile
  else
-  SaveProp node, "rec", dat->record
+  SavePropAlways node, "rec", dat->record
   if dat->paletted then
-   SaveProp node, "pal", dat->pal
+   SavePropAlways node, "pal", dat->pal
   end if
   SaveProp node, "frame", dat->frame
  end if
  SaveProp node, "fliph", dat->flipHoriz
  SaveProp node, "flipv", dat->flipVert
  SaveProp node, "scaled", dat->scaled
- SaveProp node, "trans", dat->trans
+ SavePropAlways node, "trans", dat->trans
  SaveProp node, "dissolving", dat->dissolving
  SaveProp node, "d_type", dat->d_type
  SaveProp node, "d_time", dat->d_time
@@ -1909,9 +1913,9 @@ Sub SaveGridSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveGridSlice null ptr": exit sub
  DIM dat as GridSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "cols", dat->cols
- SaveProp node, "rows", dat->rows
- SaveProp node, "show", dat->show
+ SavePropAlways node, "cols", dat->cols
+ SavePropAlways node, "rows", dat->rows
+ SavePropAlways node, "show", dat->show
 End Sub
 
 Sub LoadGridSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -2155,8 +2159,8 @@ Sub SaveEllipseSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveEllipseSlice null ptr": exit sub
  DIM dat as EllipseSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "bordercol", dat->bordercol
- SaveProp node, "fillcol", dat->fillcol
+ SavePropAlways node, "bordercol", dat->bordercol
+ SavePropAlways node, "fillcol", dat->fillcol
 end sub
 
 Sub LoadEllipseSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -2349,7 +2353,7 @@ Sub SaveScrollSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveScrollSlice null ptr": exit sub
  DIM dat as ScrollSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "style", dat->style
+ SavePropAlways node, "style", dat->style
  SaveProp node, "check_depth", dat->check_depth
 End Sub
 
@@ -2487,7 +2491,7 @@ Sub SaveSelectSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSelectSlice null ptr": exit sub
  DIM dat as SelectSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "index", dat->index
+ SavePropAlways node, "index", dat->index
  'override property is never saved. Only used by the Slice Collection Editor
 End Sub
 
@@ -2585,8 +2589,8 @@ Sub SavePanelSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SavePanelSlice null ptr": exit sub
  DIM dat as PanelSliceData Ptr
  dat = sl->SliceData
- SaveProp node, "vertical", dat->vertical
- SaveProp node, "primary", dat->primary
+ SavePropAlways node, "vertical", dat->vertical
+ SavePropAlways node, "primary", dat->primary
  SaveProp node, "pixels", dat->pixels
  SaveProp node, "percent", dat->percent
  SaveProp node, "padding", dat->padding
@@ -3364,19 +3368,33 @@ end function
 
 End Extern
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
+Sub SavePropAlways(node as Reload.Nodeptr, propname as string, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
+ if value = 0 then Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as double)
+'Doesn't save anything = 0
+Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as integer)
+ if value <> 0 then SavePropAlways node, propname, value
+End Sub
+
+Sub SavePropAlways(node as Reload.Nodeptr, propname as string, byval value as double)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, value)
 End Sub
 
-Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
+Sub SaveProp(node as Reload.Nodeptr, propname as string, byval value as double)
+ if value <> 0. then SavePropAlways node, propname, value
+End Sub
+
+Sub SavePropAlways(node as Reload.Nodeptr, propname as string, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, s)
+End Sub
+
+Sub SaveProp(node as Reload.Nodeptr, propname as string, s as string)
+ if len(s) then SavePropAlways node, propname, s
 End Sub
 
 Extern "C"
@@ -3386,14 +3404,14 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  if node = 0 then debug "SliceSaveToNode null node ptr": Exit Sub
  if Reload.NumChildren(node) <> 0 then debug "SliceSaveToNode non-empty node has " & Reload.NumChildren(node) & " children"
  '--Save standard slice properties
- if sl->lookup <> 0 then
-  SaveProp node, "lookup", sl->lookup
- end if
+ 'NOTE: if something has a non-zero default load value, then you must use SavePropAlways
+ SaveProp node, "lookup", sl->lookup
  SaveProp node, "x", sl->x
  SaveProp node, "y", sl->Y
- SaveProp node, "w", sl->Width
- SaveProp node, "h", sl->Height
- SaveProp node, "vis", sl->Visible
+ 'Have to save size even if set to fill
+ SavePropAlways node, "w", sl->Width
+ SavePropAlways node, "h", sl->Height
+ SavePropAlways node, "vis", sl->Visible
  SaveProp node, "editorhidechildren", sl->EditorHideChildren
  SaveProp node, "paused", sl->Paused
  SaveProp node, "clip", sl->Clip
@@ -3417,12 +3435,8 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "padb", sl->PaddingBottom
  SaveProp node, "fill", sl->Fill
  SaveProp node, "fillmode", sl->FillMode
- if sl->Sorter <> 0 then
-  SaveProp node, "sort", sl->Sorter
- end if
- if sl->AutoSort <> 0 then
-  SaveProp node, "autosort", sl->AutoSort
- end if
+ SaveProp node, "sort", sl->Sorter
+ SaveProp node, "autosort", sl->AutoSort
  SaveProp node, "extra0", sl->Extra(0)
  SaveProp node, "extra1", sl->Extra(1)
  SaveProp node, "extra2", sl->Extra(2)
@@ -3430,9 +3444,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  #IFDEF IS_GAME
   if save_handles then
    ' This only occurs when saving a game.
-   if sl->TableSlot then
-    SaveProp node, "tableslot_handle", sl->TableSlot
-   end if
+   SaveProp node, "tableslot_handle", sl->TableSlot
   end if
  #ENDIF
  '--Save properties specific to this slice type
@@ -3505,6 +3517,7 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
  if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & sl->numChildren & " children"
  '--Load standard slice properties
+ 'NOTE: if something has a non-zero default value, then you must use SavePropAlways
  sl->lookup = LoadProp(node, "lookup")
  sl->x = LoadProp(node, "x")
  sl->y = LoadProp(node, "y")
