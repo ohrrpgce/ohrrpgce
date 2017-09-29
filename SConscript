@@ -1070,11 +1070,11 @@ def RPGWithScripts(rpg, main_script):
     # Do not include hspeak as dependency because Euphoria may not be installed
     sources = [main_script, "plotscr.hsd"]  #, HSPEAK]
     action = env.Action(CUSTOM.abspath + ' --nowait ' + rpg + ' ' + main_script)
-    # Prepending # means relative to rootdir, otherwise this a rule to build
-    # a file in build/
+    # Prepending # means relative to rootdir, otherwise this a rule to build a file in build/
     node = env.Command('#' + rpg, source = sources, action = action)
-    env.Precious(node)  # Don't delete the .rpg before "rebuilding" it
-    env.NoClean(node)   # Don't delete the .rpg with -c
+    Precious(node)  # Don't delete the .rpg before "rebuilding" it
+    NoClean(node)   # Don't delete the .rpg with -c
+    Ignore(node, ["plotscr.hsd", "scancode.hsi"])  # Avoid probably-unnecessary reimporting
     SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
     return node
 
