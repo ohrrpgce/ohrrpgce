@@ -14,6 +14,11 @@ plotscript, follow loop, begin
   show string at($1="[Space] use moveslicewithwallchecking", 0, 180)
   show string at($0="[R] to resize rect", 150, 190)
 
+  # Located at a tile surrounded by walls, for immediate error throwin
+  variable(disallow square)
+  disallow square := create container(20,20)
+  put slice(disallow square, 220, 100)
+
   while(true) do (
     if (keyval(key:R) > 1) then (
       set slice width(box, random(1, 50))
@@ -40,9 +45,11 @@ plotscript, follow loop, begin
             show value( move slice with wallchecking(box, xgo, ygo) )
     ) else (
             variable(new xgo, new ygo)
+            tracevalue(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
             new xgo := check wall collision x(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
             new ygo := check wall collision y(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
             move slice by(box, new xgo, new ygo, 1)
+            if (slice collide(box, disallow square)) then (scripterror)
             show no value
     )
     wait
