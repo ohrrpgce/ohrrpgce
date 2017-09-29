@@ -10,6 +10,7 @@ iver.txt
 
 #*.xml
 *.hs
+*.hsi
 *.sav
 *.saves
 *.ohrkeys
@@ -79,9 +80,7 @@ ohr.geany
 
 # Location-specific exclusions
 *.rpg
-*.hsi
 !testgame/**/*.rpg
-!testgame/**/*.hsi
 *.bmp
 *.gif
 # Everything under data
