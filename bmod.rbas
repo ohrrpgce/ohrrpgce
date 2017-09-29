@@ -156,7 +156,7 @@ FUNCTION battle (byval form as integer) as bool
   '--background animation
   battle_background_anim bat, formdata
 
-  IF always_enable_debug_keys <> 0 OR readbit(gen(), genBits, 8) = 0 THEN
+  IF always_enable_debug_keys <> 0 OR readbit(gen(), genBits, 8) = 0 THEN '"Disable debugging keys"
    check_battle_debug_keys bat, bslot(), formdata
 
    /' Currently unused...
@@ -894,8 +894,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
-    IF readbit(gen(), genBits, 6) = 0 THEN
-     '--show the ready meter
+    IF readbit(gen(), genBits, 6) = 0 THEN  '"Hide ready meter in battle" off
      col = uilook(uiTimeBar)
      IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
      edgeboxstyle 1, 4 + i * 10, 132, 11, 0, page, YES, YES
@@ -908,8 +907,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
       rectangle 2, 5 + i * 10, j, 9, col, page
      END IF
     END IF
-    IF readbit(gen(), genBits, 7) = 0 THEN
-     '--hp-meter--
+    IF readbit(gen(), genBits, 7) = 0 THEN  '"Hide health bar in battle" off
      col = uiLook(uiHealthBar)
      DIM target_lifemeter_len as integer = CINT(bslot(i).stat.cur.hp * 87 / large(bslot(i).stat.max.hp, 1))
      IF bslot(i).lifemeter < target_lifemeter_len THEN bslot(i).lifemeter += 1
@@ -1221,7 +1219,7 @@ END SUB
 
 SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
- IF carray(ccRun) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
+ IF carray(ccRun) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN '"Disable ESC to run from battle" off
   bat.flee = bat.flee + 1
  END IF
  DIM i as integer
@@ -1409,8 +1407,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  NEXT i
  
  FOR i = 0 TO 11
-  IF readbit(gen(), genBits2, 6) = 0 THEN
-   bslot(i).ready_meter = randint(500) '--randomize ready-meter
+  IF readbit(gen(), genBits2, 6) = 0 THEN  '"Don't randomize battle ready meters" off
+   bslot(i).ready_meter = randint(500)
   END IF
  NEXT i
  
@@ -1627,7 +1625,7 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  NEXT
  'debug "distribute_party_experience: exper = " & exper & " sumheroes = " & sumheroes
 
- 'if there is more than one hero, and the bitset to disable experience dividing is off,
+ 'if there is more than one hero, and "Don't divide experience between heroes" is off,
  ' then divide the experience between the heroes
  IF sumheroes > 0 ANDALSO readbit(gen(), genBits2, 14) = 0 THEN exper = exper / sumheroes
 
@@ -3854,9 +3852,9 @@ FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSp
  
  IF NOT hero_has_a_turn THEN RETURN YES
  
- DIM pause_on_all as bool = readbit(gen(), genBits, 13)
- DIM pause_on_spell_and_item as bool = readbit(gen(), genBits, 0)
- DIM pause_on_targeting as bool = readbit(gen(), genbits2, 19)
+ DIM pause_on_all as bool = readbit(gen(), genBits, 13) '"Pause in battle on all menus"
+ DIM pause_on_spell_and_item as bool = readbit(gen(), genBits, 0) '"Pause in battle on spell and item menus"
+ DIM pause_on_targeting as bool = readbit(gen(), genbits2, 19) '"Pause when targeting attacks"
 
  DIM isenemytargs as bool = (targenemycount(bslot()) > 0)
  
@@ -3982,7 +3980,7 @@ SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprit
  END IF
 
  IF readbit(gen(), genBits2, 7) AND bat.atk.id > -1 THEN
-  '--an attack is currently animating, and the bitset tells us we must wait for it
+  '--an attack is currently animating, and "Pause for attack animations" tells us we must wait for it
   EXIT SUB
  END IF
 
@@ -4199,7 +4197,7 @@ END SUB
 SUB show_first_battle_timer (page as integer)
  '--show the timer
  ' Why doesn't this use the string's position, colour, or font?!
- IF readbit(gen(), genBits2, 22) <> 0 THEN EXIT SUB
+ IF readbit(gen(), genBits2, 22) <> 0 THEN EXIT SUB  '"Never show script timer during battles"
  FOR i as integer = 0 to UBOUND(timers)
   IF timers(i).speed > 0 ANDALSO timers(i).st > 0 ANDALSO timers(i).flags AND TIMERFLAG_BATTLE THEN
    edgeprint plotstr(timers(i).st-1).s, pRight - 10, pBottom - 5, uilook(uiText), page

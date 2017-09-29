@@ -367,7 +367,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
     IF .type AND 16 THEN effectiveval = ABS(effectiveval)
     IF .type AND 64 THEN effectiveval = rando() * effectiveval
     IF t = compLt OR t = compLe THEN
-     'Simulate old fail vs element resist bit:
+     '"Simulate old fail vs element resist bit":
      'The old bit checked only the target's Strong bits, ignoring their Absorb bits
      '(For consistency, this bit also affects compLe, although it didn't exist at the time.
      'But we can't 100% safely apply it to compGt, because we didn't used to do that in the past.)
@@ -400,7 +400,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
  
   'cap under
   IF immune ANDALSO readbit(gen(), genBits2, 10) THEN
-   'zero damage from elemental immunity, even without attack.damage_can_be_zero
+   '"0 damage when immune to attack elements", even without attack.damage_can_be_zero
    h = 0
   ELSEIF h <= 0 THEN
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
@@ -785,7 +785,7 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
     .stat.base.sta(statnum) += statgain
    NEXT
 
-   'simulate ancient levelup bug
+   '"Simulate Old Levelup bonus-accretion Bug"
    IF readbit(gen(), genBits, 9) = 1 THEN
     DIM bonuses(statLast) as integer
     hero_total_equipment_bonuses hero_slot, bonuses()
@@ -797,12 +797,12 @@ SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer
    recompute_hero_max_stats hero_slot
 
    'stat restoration
-   IF readbit(gen(), genBits, 2) = 0 THEN
-    '--HP restoration ON
+   IF readbit(gen(), genBits, 2) = 0 THEN '"Don't restore HP on level-up" OFF
+    '--HP restoration
     .stat.cur.hp = .stat.max.hp 'set external cur to external max
    END IF
-   IF readbit(gen(), genBits, 3) = 0 THEN
-    '--MP restoration ON
+   IF readbit(gen(), genBits, 3) = 0 THEN '"Don't restore MP on level-up" OFF
+    '--MP restoration
     .stat.cur.mp = .stat.max.mp 'set external cur to external max
     resetlmp hero_slot, .lev
    END IF

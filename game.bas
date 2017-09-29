@@ -2637,6 +2637,8 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  mstates(topmenu).active = YES
  check_menu_tags
  IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
+  'FIXME: maybe we shouldn't cancel here since it doesn't allow a script to pause movement
+  'and display a menu. Instead, could cancel pathfinding when the player pressed ESC.
   cancel_hero_pathfinding()
  END IF
  RETURN assign_menu_handles(menus(topmenu))
