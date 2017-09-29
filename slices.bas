@@ -3370,7 +3370,6 @@ End Extern
 
 Sub SavePropAlways(node as Reload.Nodeptr, propname as string, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- if value = 0 then Exit Sub
  Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
