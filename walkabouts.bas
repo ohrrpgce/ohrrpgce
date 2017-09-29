@@ -569,6 +569,8 @@ FUNCTION check_wall_edges(tilex as integer, tiley as integer, direction as DirNu
  DIM defwalls as integer = IIF(walls_over_edges, 15, 0)
  DIM wallblock as integer
 
+ 'debug "check_wall_edges(" & tilex & "," & tiley & ", dir=" & direction & ", isveh=" & isveh & ", walls_over_edges=" & walls_over_edges & ", ignore_passmap=" & ignore_passmap & ")"
+
  IF gmap(5) = 1 THEN
   wrapxy tilex, tiley
  END IF
@@ -652,21 +654,20 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
  ' Calculate the next X and Y positions (of the topleft of the box) at which the front X/Y edges of the
  ' box will be aligned with the wallmap.
  nextalign = startpos
-
  IF xgo > 0 THEN nextalign.x += size.x + (tilesize.x - 1)
- nextalign.x -= nextalign.x MOD tilesize.x
+ nextalign.x -= POSMOD(nextalign.x, tilesize.x)
  IF xgo > 0 THEN nextalign.x -= size.x
  IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
- nextalign.y -= nextalign.y MOD tilesize.y
+ nextalign.y -= POSMOD(nextalign.y, tilesize.y)
  IF ygo > 0 THEN nextalign.y -= size.y
 
  ' This loop advances nextalign to each successive tile-aligned position until x/ygo are exceeded.
  DO
 
-  ' Distance moved so far
+  ' Displacement moved so far
   dist = nextalign - startpos
 
-  IF ABS(dist.x) >= ABS(xgo) AND ABS(dist.y) >= ABS(ygo) THEN
+  IF ABS(dist.x) >= ABS(xgo) ANDALSO ABS(dist.y) >= ABS(ygo) THEN
    pos = startpos + XY(xgo, ygo)
    RETURN 0
   END IF
@@ -690,11 +691,12 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    pos.y = startpos.y + dist.y
   END IF
 
-  'debug "  x/yfrac=" & xfrac & " , " & yfrac & "    pos = " & pos
-
-  ' Tile positions of top-left/bottom-right corners
+  ' Tile positions of top-left/bottom-right corners of the colliding box
+  ' (Bottom-right corner is exclusive)
   TL_tile = pos \ tilesize
   BR_tile = (pos + size - 1) \ tilesize
+
+  'debug "  x/yfrac=" & xfrac & " , " & yfrac & "    pos = " & pos & " TL " & TL_tile & " BR " & BR_tile
 
   DIM as integer xtile, ytile
   DIM as DirNum whichdir
@@ -716,11 +718,21 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
     xtile = TL_tile.x - 1  'left
     nextalign.x -= tilesize.x
    END IF
-   FOR ytile = TL_tile.y TO BR_tile.y
+   DIM as integer ybegin = TL_tile.y, yend = BR_tile.y
+
+   ' If the other axis is also aligned on a tile edge (and there's side-ways movement)
+   ' then we must check 1 tile further to check that wall that the edge of the hitbox is flush against,
+   ' even if nextalign.y has already been incremented past that edge
+   ' (we might have reached alignment on the other axis a fraction of a pixel earlier)
+   IF ygo ANDALSO (pos.y - nextalign.y) MOD tilesize.y = 0 THEN
+    IF ygo < 0 THEN ybegin -= 1 ELSE yend += 1
+   END IF
+   'debug "x-aligned, xtile=" & xtile & " ytile=" & ybegin & "-" & yend
+   FOR ytile = ybegin TO yend
     ' Check right/left walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
-    IF ytile < BR_tile.y THEN
+    IF ytile < yend THEN
      ' Check edge-on tiles
      IF check_wall_edges(xtile, ytile, dirDown, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
@@ -737,11 +749,17 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
     ytile = TL_tile.y - 1  'top
     nextalign.y -= tilesize.y
    END IF
-   FOR xtile = TL_tile.x TO BR_tile.x
+   DIM as integer xbegin = TL_tile.x, xend = BR_tile.x
+   ' See above.
+   IF xgo ANDALSO (pos.x - nextalign.x) MOD tilesize.x = 0 THEN
+    IF xgo < 0 THEN xbegin -= 1 ELSE xend += 1
+   END IF
+   'debug "y-aligned, xtile=" & xbegin & "-" & xend & " xtile=" & xtile
+   FOR xtile = xbegin TO xend
     ' Check up/down walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
-    IF xtile < BR_tile.x THEN
+    IF xtile < xend THEN
      ' Check edge-on tiles
      IF check_wall_edges(xtile, ytile, dirRight, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF

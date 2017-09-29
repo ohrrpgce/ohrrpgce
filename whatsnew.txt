@@ -43,6 +43,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       death frame instead of vanishing [James]
     * "add enemy to formation" was not putting enemies at the correct
       Y coordinate [James]
+    * Fixed "check wall collision x/y" and "move slice with wallchecking"
+      often failing to detect collision with corners of walls [Ralph]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]
