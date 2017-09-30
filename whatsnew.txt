@@ -48,7 +48,9 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "add enemy to formation" was not putting enemies at the correct
       Y coordinate [James]
     * Fixed "check wall collision x/y" and "move slice with wallchecking"
-      often failing to detect collision with corners of walls [Ralph]
+      often failing to detect collision with corners of walls. Also,
+      "move slice with wallchecking" now returns special values when it hit
+      a corner rather than returing that it hit walls on two sides [Ralph]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]

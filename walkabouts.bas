@@ -638,8 +638,11 @@ END FUNCTION
 ' Check for a collision with the wallmap of an arbitrarily sized and positioned
 ' axis-aligned box moving in a straight line.
 ' (Only used by the "check wallmap collision" command currently.)
-' Returns a bitmask indicating the directions in which collision occurred, and sets pos to be as far as
-' possible along the line until the point of collision or to the target.
+' Return value:
+'  -0 if hit nothing
+'  -a bitmask of 1 or 2 pass*Wall bits indicating the directions in which collision occurred
+'  -one of the values passNortheastCorner, etc, if hit the end/corner of a wall diagonally
+' Sets pos to be as far as possible along the line until the point of collision or to the target.
 ' NOTE: pos is NOT wrapped around the map (so can be used to calc distance moved).
 ' Walls already overlapping with the rectangle are ignored.
 ' Side-on walls are checked. xgo/ygo may be more than 20.
@@ -701,11 +704,12 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
   DIM as integer xtile, ytile
   DIM as DirNum whichdir
 
-  ' If both x and y sides collide at once, then must check both.
   ' Ignore coincidental alignment if not moving in that direction.
 
   DIM ret as integer
 
+  ' Could write (pos.x - nextalign.x) MOD = 0 instead, though that would lose
+  ' sub-pixel precision (which isn't important)
   IF pos.x = nextalign.x ANDALSO go.x <> 0 THEN
    ' xtile,ytile iterates over each of the tiles immediately in front of the box
    ' and dir is direction from that tile towards the box.
@@ -718,21 +722,12 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
     xtile = TL_tile.x - 1  'left
     nextalign.x -= tilesize.x
    END IF
-   DIM as integer ybegin = TL_tile.y, yend = BR_tile.y
-
-   ' If the other axis is also aligned on a tile edge (and there's side-ways movement)
-   ' then we must check 1 tile further to check that wall that the edge of the hitbox is flush against,
-   ' even if nextalign.y has already been incremented past that edge
-   ' (we might have reached alignment on the other axis a fraction of a pixel earlier)
-   IF go.y ANDALSO (pos.y - nextalign.y) MOD tilesize.y = 0 THEN
-    IF go.y < 0 THEN ybegin -= 1 ELSE yend += 1
-   END IF
-   'debug "x-aligned, xtile=" & xtile & " ytile=" & ybegin & "-" & yend
-   FOR ytile = ybegin TO yend
+   'debug "x-aligned, xtile=" & xtile
+   FOR ytile = TL_tile.y TO BR_tile.y
     ' Check right/left walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
-    IF ytile < yend THEN
+    IF ytile < BR_tile.y THEN
      ' Check edge-on tiles
      IF check_wall_edges(xtile, ytile, dirDown, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
@@ -749,24 +744,50 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
     ytile = TL_tile.y - 1  'top
     nextalign.y -= tilesize.y
    END IF
-   DIM as integer xbegin = TL_tile.x, xend = BR_tile.x
-   ' See above.
-   IF go.x ANDALSO (pos.x - nextalign.x) MOD tilesize.x = 0 THEN
-    IF go.x < 0 THEN xbegin -= 1 ELSE xend += 1
-   END IF
-   'debug "y-aligned, xtile=" & xbegin & "-" & xend & " xtile=" & xtile
-   FOR xtile = xbegin TO xend
+   'debug "y-aligned, ytile=" & ytile
+   FOR xtile = TL_tile.x TO BR_tile.x
     ' Check up/down walls
     IF check_wall_edges(xtile, ytile, whichdir XOR 2, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
 
-    IF xtile < xend THEN
+    IF xtile < BR_tile.x THEN
      ' Check edge-on tiles
      IF check_wall_edges(xtile, ytile, dirRight, isveh, walls_over_edges) THEN ret OR= 1 SHL whichdir
     END IF
    NEXT
   END IF
 
+  ' If we hit a wall, don't do a check for hitting a corner, because that's uninteresting and
+  ' would cause strange return values
   IF ret THEN RETURN ret
+
+  ' If both x and y sides collide, then must do a special check for hitting
+  ' a corner exactly, since we need to check walls which are one tile further
+  ' ahead, in both x and y directions (at xtile,ytile).
+  ' Note that have to do this even if we hit the corner a fraction of a pixel in
+  ' one axis before the other, in which case one of nextalign.x or .y have
+  ' already been incremented, meaning that we can't check (pos = nextalign).
+  IF go.x ANDALSO go.y ANDALSO (pos - nextalign) MOD tilesize = 0 THEN
+   DIM as DirNum xdir, ydir
+   IF go.x < 0 THEN
+    xtile = TL_tile.x - 1
+    xdir = dirRight
+   ELSE
+    xtile = BR_tile.x + 1
+    xdir = dirLeft
+   END IF
+   IF go.y < 0 THEN
+    ytile = TL_tile.y - 1
+    ydir = dirDown
+   ELSE
+    ytile = BR_tile.y + 1
+    ydir = dirUp
+   END IF
+   IF check_wall_edges(xtile, ytile, ydir, isveh, walls_over_edges) ORELSE _
+      check_wall_edges(xtile, ytile, xdir, isveh, walls_over_edges) THEN
+    RETURN ((1 SHL (xdir XOR 2)) OR (1 SHL (ydir XOR 2))) SHL 24
+   END IF
+  END IF
+
  LOOP
 END FUNCTION
 

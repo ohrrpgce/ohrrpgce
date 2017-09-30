@@ -1693,6 +1693,13 @@ define constant, begin
 0b100000,vehicleB
 0b1000000,harmtile
 0b10000000,overheadtile
+# Special constants used only by 'move slice with wallchecking'
+# Each is euqal to the wall bits for two directions, shifted 24 bits left
+0b0011 00000000 00000000 00000000,northeast corner
+0b1001 00000000 00000000 00000000,northwest corner
+0b0110 00000000 00000000 00000000,southeast corner
+0b1100 00000000 00000000 00000000,southwest corner
+# Special zones
 10000,zone:OneWayExit
 0,inside battle
 1,outside battle

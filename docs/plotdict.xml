@@ -7768,7 +7768,7 @@ write pass block(15,3,none)
 				<p>relative x/y</p> provide the point to move to, relative to the slice's current position.
 				This command can be used on any slice, regardless of whether it is parented to a map layer.
 				Its position on the map is calculated based on its on-screen position (<ref>slicescreenx</ref>, etc).
-				The slice's "colliding box" is, as you expect, the same as its size.
+				The slice's "colliding box" (or "hitbox") is, as you expect, the same as its size.
 				<lb/>
 				It works on slices of any size (as long as the size isn't negative),
 				even several tiles wide.
@@ -7781,9 +7781,19 @@ write pass block(15,3,none)
 				blocked by a wall.
 				The value is 0 if there was no collision.
 				You can use the constants <ref>northwall</ref>, <ref>southwall</ref>, <ref>eastwall</ref>, <ref>westwall</ref>
-				and the bitwise-<ref>and</ref> operator to test the bitmask.
-				For example <tt>bitmask, and, northwall</tt> tells whether <p>sl</p>
-				is hit and is now resting against a wall on its north side.
+				and the bitwise-<ref>and</ref> operator to 'test' the bitmask.
+				For example <tt>bitmask, and, southwall</tt> 'tests' whether <p>sl</p>
+				hit and is now resting against a wall on its south side (useful for a platformer).
+				<lb/>
+				Diagonally hitting the corner or end  of a wall exactly (including thin wall segments) is a special case.
+				In that case the slice stops at the corner/end of the wall but is only touching it diagonally,
+				and the return value is equal to one of
+				the special constants <p>northeast corner</p>, <p>northwest corner</p>,
+				<p>southeast corner</p>, <p>southwest corner</p>,
+				all of which 'test' false when checked with
+				<ref>northwall</ref>, <ref>southwall</ref>, <ref>eastwall</ref>, <ref>westwall</ref>.
+				That's because the slice isn't actually resting against any walls, although it stopped!
+				Use <ref>equal</ref>, not <ref>and</ref>, to check for these values.
 				<lb/>
 				You can check for walls without needing a slice using the alternative <ref>checkwallcollisionxy</ref> commands.
 				<danger>

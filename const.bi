@@ -415,6 +415,11 @@ CONST passVehA = 16
 CONST passVehB = 32
 CONST passHarm = 64
 CONST passOverhead = 128
+'Special values returned from sliding/check_wallmap_collision
+CONST passNortheastCorner = &b0011 SHL 24
+CONST passNorthwestCorner = &b1001 SHL 24
+CONST passSoutheastCorner = &b0110 SHL 24
+CONST passSouthwestCorner = &b1100 SHL 24
 
 'Special zones
 CONST zoneLASTUSER = 9999      'The highest zone editable in the map editor, everything

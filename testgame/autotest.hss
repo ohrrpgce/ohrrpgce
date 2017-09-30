@@ -4181,14 +4181,34 @@ script, wallchecking tests, begin
 
   # hitbox size
   variable(hitboxw, hitboxh)
+  variable(hitbox)
+  hitbox := create container
+  set parent(hitbox, lookupslice(sl:map layer 0))
 
-  subscript, testcollide, testnum, x, y, xgo, ygo, expectedx, expectedy, begin
+  subscript, set hitbox size, wide, high, begin
+    hitboxw := wide
+    hitboxh := high
+    set slice size(hitbox, wide, high)
+  end
+
+  subscript, testcollide, testnum, x, y, xgo, ygo, expectedx, expectedy, expectedret = -1, begin
     #show value(testnum)
     #tracevalue(testnum, x, y, xgo, ygo, expectedx, expectedy)
-    variable(resultx, resulty)
-    resultx := check wall collision x(x, y, hitboxw, hitboxh, xgo, ygo)
-    resulty := check wall collision y(x, y, hitboxw, hitboxh, xgo, ygo)
+    variable(resultx, resulty, ret)
+    # if (false) then (
+    #   resultx := check wall collision x(x, y, hitboxw, hitboxh, xgo, ygo)
+    #   resulty := check wall collision y(x, y, hitboxw, hitboxh, xgo, ygo)
+    # ) else (
+      putslice(hitbox, x, y)
+      ret := moveslicewithwallchecking(hitbox, xgo, ygo)
+      resultx := slicex(hitbox) -- x
+      resulty := slicey(hitbox) -- y
+    # )
     #tracevalue(resultx, resulty)
+    if (expectedret <> -1) then (
+      #trace(string sprintf(98, $99="ret: %b  wanted %b", ret, expectedret))
+      assert(ret == expectedret)
+    )
     assert(resultx == expectedx)
     assert(resulty == expectedy)
   end
@@ -4197,7 +4217,7 @@ script, wallchecking tests, begin
   # Test 45° and near-45° collisions with one of the 4 corners of the center tile
   # cornerx and cornery are 0 or 1 for left/up or right/bottom,
   # and also possibly the far corner if there are no walls at the first one.
-  subscript, test corner, cornerx, cornery, begin
+  subscript, test corner, cornerx, cornery, cornermask, begin
     #tracevalue(cornerx, cornery)
 
     # The four walls of the center tile
@@ -4260,33 +4280,39 @@ script, wallchecking tests, begin
 
     if (vside || hside) then (
       # Hit the corner at 45°
-      testcollide(1, startx, starty, xgo, ygo, xgodir * strikedist, ygodir * strikedist)
+      testcollide(1, startx, starty, xgo, ygo, xgodir * strikedist, ygodir * strikedist, cornermask)
 
       # Move parallel to the corner, so we miss it by 1 pixel, but still at 45°
       testcollide(2, startx + xgodir, starty,          xgo, ygo, xgodir * strikedist, ygodir * strikedist)
       testcollide(3, startx,          starty + ygodir, xgo, ygo, xgodir * strikedist, ygodir * strikedist)
 
       # Try angles slightly above and below 45° but which still hit the corner at the same time
-      testcollide(4, startx+1, starty,   xgo -- 2, ygo,      xgodir * strikedist -- 1, ygodir * strikedist)
-      testcollide(5, startx,   starty+1, xgo,      ygo -- 2, xgodir * strikedist, ygodir * strikedist -- 1)
-      testcollide(6, startx--1, starty,   xgo + 2, ygo,      xgodir * strikedist + 1, ygodir * strikedist)
-      testcollide(7, startx,   starty--1, xgo,      ygo + 2, xgodir * strikedist, ygodir * strikedist + 1)
+      testcollide(4, startx+1, starty,   xgo -- 2, ygo,      xgodir * strikedist -- 1, ygodir * strikedist, cornermask)
+      testcollide(5, startx,   starty+1, xgo,      ygo -- 2, xgodir * strikedist, ygodir * strikedist -- 1, cornermask)
+      testcollide(6, startx--1, starty,   xgo + 2, ygo,      xgodir * strikedist + 1, ygodir * strikedist, cornermask)
+      testcollide(7, startx,   starty--1, xgo,      ygo + 2, xgodir * strikedist, ygodir * strikedist + 1, cornermask)
 
       # Hit the corner in one axis a fraction of a pixel before the other
-      testcollide(8, startx+1, starty,   xgo -- 1, ygo,      xgodir * strikedist -- 1, ygodir * strikedist)
-      testcollide(9, startx--1, starty,   xgo + 1, ygo,      xgodir * strikedist + 1, ygodir * strikedist)
-      testcollide(10, startx, starty -- 1,  xgo, ygo + 1,  xgodir * strikedist, ygodir * strikedist + 1)
-      testcollide(11, startx, starty + 1,  xgo, ygo -- 1,  xgodir * strikedist, ygodir * strikedist -- 1)
+      testcollide(8, startx+1, starty,   xgo -- 1, ygo,      xgodir * strikedist -- 1, ygodir * strikedist, cornermask)
+      testcollide(9, startx--1, starty,   xgo + 1, ygo,      xgodir * strikedist + 1, ygodir * strikedist, cornermask)
+      testcollide(10, startx, starty -- 1,  xgo, ygo + 1,  xgodir * strikedist, ygodir * strikedist + 1, cornermask)
+      testcollide(11, startx, starty + 1,  xgo, ygo -- 1,  xgodir * strikedist, ygodir * strikedist -- 1, cornermask)
 
-    ) else if (strikedist > 20 && (far vside || far hside)) then (
+    ) else if (strikedist > 20 && (far vside || farhside)) then (
       # Pass through the corner, but hit a wall on the opposite side
 
-      variable(expectx, expecty)
+      variable(expectx, expecty, expect ret)
       expectx := xgodir * (strikedist+20)
       expecty := ygodir * (strikedist+20)
 
       # Hit the inside corner at 45°
-      testcollide(20, startx, starty, xgo, ygo, expectx, expecty)
+      if (far vside) then (
+        if (cornerx == 0) then (expectret += eastwall) else (expectret += westwall)
+      )
+      if (far hside) then (
+        if (cornery == 0) then (expectret += southwall) else (expectret += northwall)
+      )
+      testcollide(20, startx, starty, xgo, ygo, expectx, expecty, expectret)
 
       # Hit the inside corner in one axis a fraction of a pixel before the other
       testcollide(21, startx + 1,  starty,      xgo -- 1, ygo,      expectx -- 1, expecty)
@@ -4296,7 +4322,7 @@ script, wallchecking tests, begin
 
     ) else (
       # Hit no walls
-      testcollide(30, startx, starty, xgo, ygo, xgo, ygo)
+      testcollide(30, startx, starty, xgo, ygo, xgo, ygo, 0)
     )
 
   end
@@ -4306,69 +4332,74 @@ script, wallchecking tests, begin
   variable(x,y)
   x := tilex*20
   y := tiley*20
-  hitboxw := (hitboxh := 10)
-  testcollide(100, x--20, y--5,  20, 0, 10, 0)  # hit wall from west
-  testcollide(101, x+40,  y--5, -40, 0, -20, 0) # ...east
-  testcollide(102, x--5,  y--15,  0, 20, 0, 5) # ...north
-  testcollide(103, x--5,  y+35,   0, -20, 0, -15) # ...south
+  set hitbox size(10, 10)
+  testcollide(100, x--20, y--5,  20, 0, 10, 0, eastwall)  # hit wall from west
+  testcollide(101, x+40,  y--5, -40, 0, -20, 0, westwall) # ...east
+  testcollide(102, x--5,  y--15,  0, 20, 0, 5, southwall) # ...north
+  testcollide(103, x--5,  y+35,   0, -20, 0, -15, northwall) # ...south
 
   # Diagonal movement that hits the corner in one axis a fraction of a pixel
   # before the other axis
   variable(hitx, hity)  # position of the the corner to hit
   hitx := tilex*20 + 20
   hity := tiley*20 + 20
-  testcollide(110, hitx + 2,  hity + 3, -5, -6, -2, -3)
-  testcollide(111, hitx + 3,  hity + 2, -6, -5, -3, -2)
+  testcollide(110, hitx + 2,  hity + 3, -5, -6, -2, -3, northwest corner)
+  testcollide(111, hitx + 3,  hity + 2, -6, -5, -3, -2, northwest corner)
   hitx := tilex*20 -- hitboxw
-  testcollide(112, hitx -- 3, hity + 2,  6, -5,  3, -2)
-  testcollide(113, hitx -- 2, hity + 3,  5, -6,  2, -3)
+  testcollide(112, hitx -- 3, hity + 2,  6, -5,  3, -2, northeast corner)
+  testcollide(113, hitx -- 2, hity + 3,  5, -6,  2, -3, northeast corner)
   hity := tiley*20 -- hitboxh
-  testcollide(114, hitx -- 3, hity -- 2, 6,  5,  3,  2)
-  testcollide(115, hitx -- 2, hity -- 3, 5,  6,  2,  3)
+  testcollide(114, hitx -- 3, hity -- 2, 6,  5,  3,  2, southeast corner)
+  testcollide(115, hitx -- 2, hity -- 3, 5,  6,  2,  3, southeast corner)
 
   # Test collision with the ends and center of a large hitbox (only x axis)
-  hitboxw := 1
-  hitboxh := 58
+  set hitbox size(1, 58)
   variable(dx)  # the sign of xgo (whether hit from left or right)
+  variable(expected)  # expected return value (wall mask)
   for(dx, 1, -1, -2) do (
     x := tilex*20
     if (dx == 1) then (x -= 10 + hitboxw) else (x += 10 + 20)
-    testcollide(104, x, y--19,dx*30, 9,  dx*10, 3) # hitting with the center of the hitbox
-    testcollide(105, x, y+9,  dx*30, 30, dx*10, 10) # just hit the corner w/ the top by 1 pixel
-    testcollide(106, x, y+10, dx*30, 30, dx*30, 30) # just miss
-    testcollide(107, x, y--47,dx*30, -30, dx*10, -10) # just hit the corner w/ the bottom by 1 pixel
-    testcollide(108, x, y--58,dx*30, -30, dx*30, -30) # just miss
+    if (dx == 1) then (expected := eastwall) else (expected := westwall)
+    testcollide(104, x, y--19,dx*30, 9,   dx*10,   3, expected) # hitting with the center of the hitbox
+    testcollide(105, x, y+9,  dx*30, 30,  dx*10,  10, expected) # just hit the corner w/ the top by 1 pixel
+    testcollide(106, x, y+10, dx*30, 30,  dx*30,  30, 0)        # just miss
+    testcollide(107, x, y--47,dx*30, -30, dx*10, -10, expected) # just hit the corner w/ the bottom by 1 pixel
+    testcollide(108, x, y--58,dx*30, -30, dx*30, -30, 0)        # just miss
   )
 
   # Test hitting diagonal hits of corners of various wall configurations walls.
   # We test multiple hitbox sizes, but we're not actually doing a serious test of that
   for (hitboxw, 10, 30, 10) do (
     for (hitboxh, 10, 30, 10) do (
+      set hitbox size(hitboxw, hitboxh)
       variable(tt, walls)
       tt := microseconds
       # Try all possible walls on the center tile
       for (walls, 15, 0, -1) do (
+        #tracevalue(hitboxw, hitboxh, walls, 1)
         write pass block(tilex, tiley, walls)
-        testcorner(0,0)
-        testcorner(0,1)
-        testcorner(1,0)
-        testcorner(1,1)
+        testcorner(0,0, southeast corner)
+        testcorner(0,1, northeast corner)
+        testcorner(1,0, southwest corner)
+        testcorner(1,1, northwest corner)
       )
       # Test walls in the same places, but on the adjacent 4 tiles instead
       for (walls, 15, 0, -1) do (
+        #tracevalue(hitboxw, hitboxh, walls, 2)
         write pass block(tilex+1, tiley, walls,and,westwall)
         write pass block(tilex, tiley+1, walls,and,northwall)
         write pass block(tilex--1, tiley, walls,and,eastwall)
         write pass block(tilex, tiley--1, walls,and,southwall)
-        testcorner(0,0)
-        testcorner(0,1)
-        testcorner(1,0)
-        testcorner(1,1)
+        testcorner(0,0, southeast corner)
+        testcorner(0,1, northeast corner)
+        testcorner(1,0, southwest corner)
+        testcorner(1,1, northwest corner)
       )
     )
   )
   tracevalue(microseconds--tt)
   show no value
+  free slice(hitbox)
 end
 
 ########################################################################
