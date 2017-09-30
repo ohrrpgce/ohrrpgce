@@ -36,7 +36,7 @@ DECLARE FUNCTION cropmovement (byref pos as XYPair, byref xygo as XYPair) as boo
 DECLARE FUNCTION framewalkabout (byval mappos as XYPair, byref screenpos as XYPair, byval mapsize as XYPair, wrapmode as integer, margin as integer = -1) as bool
 DECLARE SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo as integer, isveh as bool, ignore_passmap as bool = NO) as bool
-DECLARE FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
+DECLARE FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, byval xygo as XYPair, isveh as bool, walls_over_edges as bool = YES) as integer
 DECLARE FUNCTION wrapzonecheck (byval zone as integer, byval pos as XYPair, byval xygo as XYPair) as bool
 DECLARE FUNCTION wrapcollision (byval posa as XYPair, byval xygoa as XYPair, byval posb as XYPair, byval xygob as XYPair) as bool
 DECLARE FUNCTION wraptouch (byval pos1 as XYPair, byval pos2 as XYPair, byval distance as integer) as bool

@@ -615,15 +615,15 @@ END FUNCTION
 ' UNFINISHED
 ' Same as check_wallmap_collision, but if it's not possible to move in a
 ' straight line, then try to slide along walls if moving diagonally.
-FUNCTION slide_wallmap(byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as bool
+FUNCTION slide_wallmap(byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xygo as XYPair, isveh as bool, walls_over_edges as bool = YES) as bool
 
  DO
   DIM moved as XYPair
   DIM blocked as integer
-  blocked = check_wallmap_collision(startpos, pos, size, xgo, ygo, isveh, walls_over_edges)
+  blocked = check_wallmap_collision(startpos, pos, size, xygo, isveh, walls_over_edges)
   IF blocked = 0 THEN RETURN NO  ' done
 
-  IF (blocked AND (1 SHL dirUp)) = 0 AND ygo < 0 THEN
+  IF (blocked AND (1 SHL dirUp)) = 0 AND xygo.y < 0 THEN
    ' Move up to next alignment
 
    ' IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
@@ -646,7 +646,7 @@ END FUNCTION
 ' walls_over_edges: true if edges of non-wrapping maps treated as walls.
 ' FIXME: if 'size' is smaller than a tile, it's possible to move a few pixels inside the
 ' walls of an off-map tile.
-FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xgo as integer, ygo as integer, isveh as bool, walls_over_edges as bool = YES) as integer
+FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, byval go as XYPair, isveh as bool, walls_over_edges as bool = YES) as integer
 
  DIM tilesize as XYPair = (20, 20)
  DIM as XYPair nextalign, dist, TL_tile, BR_tile
@@ -654,40 +654,40 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
  ' Calculate the next X and Y positions (of the topleft of the box) at which the front X/Y edges of the
  ' box will be aligned with the wallmap.
  nextalign = startpos
- IF xgo > 0 THEN nextalign.x += size.x + (tilesize.x - 1)
+ IF go.x > 0 THEN nextalign.x += size.x + (tilesize.x - 1)
  nextalign.x -= POSMOD(nextalign.x, tilesize.x)
- IF xgo > 0 THEN nextalign.x -= size.x
- IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
+ IF go.x > 0 THEN nextalign.x -= size.x
+ IF go.y > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
  nextalign.y -= POSMOD(nextalign.y, tilesize.y)
- IF ygo > 0 THEN nextalign.y -= size.y
+ IF go.y > 0 THEN nextalign.y -= size.y
 
- ' This loop advances nextalign to each successive tile-aligned position until x/ygo are exceeded.
+ ' This loop advances nextalign to each successive tile-aligned position until go.x/y are exceeded.
  DO
 
   ' Displacement moved so far
   dist = nextalign - startpos
 
-  IF ABS(dist.x) >= ABS(xgo) ANDALSO ABS(dist.y) >= ABS(ygo) THEN
-   pos = startpos + XY(xgo, ygo)
+  IF ABS(dist.x) >= ABS(go.x) ANDALSO ABS(dist.y) >= ABS(go.y) THEN
+   pos = startpos + go
    RETURN 0
   END IF
 
   ' Check whether X or Y alignment happens first and calculate that position (pos)
 
   DIM as double xfrac = 999., yfrac = 999.
-  IF xgo <> 0 THEN xfrac = dist.x / xgo
-  IF ygo <> 0 THEN yfrac = dist.y / ygo
+  IF go.x <> 0 THEN xfrac = dist.x / go.x
+  IF go.y <> 0 THEN yfrac = dist.y / go.y
 
-  'debug "start = " & startpos & " size=" & size & " xygo=" & xgo & "," & ygo & " nextalign=" & nextalign & " dist=" & dist
+  'debug "start = " & startpos & " size=" & size & " go=" & go & " nextalign=" & nextalign & " dist=" & dist
 
   ' min(xfrac,yfrac) is in the interval [0.0, 1.0)
   IF xfrac < yfrac THEN
    ' Due to rounding, pos.y might be 1 pixel past the collision point, but this
    ' should not allow it to exceed nextalign.y.
    pos.x = startpos.x + dist.x
-   pos.y = startpos.y + (ygo / xgo) * dist.x
+   pos.y = startpos.y + (go.y / go.x) * dist.x
   ELSE
-   pos.x = startpos.x + (xgo / ygo) * dist.y
+   pos.x = startpos.x + (go.x / go.y) * dist.y
    pos.y = startpos.y + dist.y
   END IF
 
@@ -706,10 +706,10 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
 
   DIM ret as integer
 
-  IF pos.x = nextalign.x AND xgo <> 0 THEN
+  IF pos.x = nextalign.x ANDALSO go.x <> 0 THEN
    ' xtile,ytile iterates over each of the tiles immediately in front of the box
    ' and dir is direction from that tile towards the box.
-   IF xgo > 0 THEN
+   IF go.x > 0 THEN
     whichdir = dirRight
     xtile = BR_tile.x + 1  'right
     nextalign.x += tilesize.x
@@ -724,8 +724,8 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    ' then we must check 1 tile further to check that wall that the edge of the hitbox is flush against,
    ' even if nextalign.y has already been incremented past that edge
    ' (we might have reached alignment on the other axis a fraction of a pixel earlier)
-   IF ygo ANDALSO (pos.y - nextalign.y) MOD tilesize.y = 0 THEN
-    IF ygo < 0 THEN ybegin -= 1 ELSE yend += 1
+   IF go.y ANDALSO (pos.y - nextalign.y) MOD tilesize.y = 0 THEN
+    IF go.y < 0 THEN ybegin -= 1 ELSE yend += 1
    END IF
    'debug "x-aligned, xtile=" & xtile & " ytile=" & ybegin & "-" & yend
    FOR ytile = ybegin TO yend
@@ -739,8 +739,8 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    NEXT
   END IF
 
-  IF pos.y = nextalign.y AND ygo <> 0 THEN
-   IF ygo > 0 THEN
+  IF pos.y = nextalign.y ANDALSO go.y <> 0 THEN
+   IF go.y > 0 THEN
     whichdir = dirDown
     ytile = BR_tile.y + 1  'bottom
     nextalign.y += tilesize.y
@@ -751,8 +751,8 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    END IF
    DIM as integer xbegin = TL_tile.x, xend = BR_tile.x
    ' See above.
-   IF xgo ANDALSO (pos.x - nextalign.x) MOD tilesize.x = 0 THEN
-    IF xgo < 0 THEN xbegin -= 1 ELSE xend += 1
+   IF go.x ANDALSO (pos.x - nextalign.x) MOD tilesize.x = 0 THEN
+    IF go.x < 0 THEN xbegin -= 1 ELSE xend += 1
    END IF
    'debug "y-aligned, xtile=" & xbegin & "-" & xend & " xtile=" & xtile
    FOR xtile = xbegin TO xend

@@ -1132,7 +1132,7 @@ SUB script_functions(byval cmdid as integer)
    scripterr current_command_name() & ": negative width or height not allowed"
   ELSE
    DIM as XYPair startpos = (retvals(0), retvals(1)), pos
-   check_wallmap_collision(startpos, pos, XY(retvals(2), retvals(3)), retvals(4), retvals(5), NO)
+   check_wallmap_collision(startpos, pos, XY(retvals(2), retvals(3)), XY(retvals(4), retvals(5)), NO)
    IF cmdid = 623 THEN
     scriptret = pos.x - startpos.x
    ELSE
@@ -1147,7 +1147,7 @@ SUB script_functions(byval cmdid as integer)
    WITH *sl
     ' This will work regardless of what the slice is parented to.
     DIM as XYPair startpos = .ScreenPos + XY(mapx, mapy), pos
-    scriptret = check_wallmap_collision(startpos, pos, .Size, retvals(1), retvals(2), NO)
+    scriptret = check_wallmap_collision(startpos, pos, .Size, XY(retvals(1), retvals(2)), NO)
     .Pos += pos - startpos
    END WITH
   END IF
