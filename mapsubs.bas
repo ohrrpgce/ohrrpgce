@@ -5041,7 +5041,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
     intgrabber(npcdata.ignore_passmap, 0, 1)
     IF enter_space_click(ed.state) THEN npcdata.ignore_passmap XOR= 1
    CASE 18
-    intgrabber(npcdata.pathfinding_obstruction_mode, 0, 2)
+    intgrabber(npcdata.pathfinding_obstruction_mode, 0, obmodeLAST)
    CASE -1' previous menu
     IF enter_space_click(ed.state) THEN EXIT DO
   END SELECT

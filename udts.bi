@@ -218,6 +218,13 @@ END TYPE
 
 CONST maxNPCDataField = 18  'Highest valid argument to Get/SetNPCD and read/alterNPC commands
 
+ENUM PathfindingObstructionMode
+  obmodeDefault = 0
+  obmodeNPCsObstruct = 1
+  obmodeNPCsIgnored = 2
+  obmodeLAST = 2
+END ENUM
+
 'Warning: when editing NPCType, update Get/SetNPCD,
 'readnpc, alternpc, plotscr.hsd constants, and plotdict.xml
 'Note that instances of this type are copied in edit_npc (w/ default copy constructor)
@@ -240,7 +247,7 @@ TYPE NPCType
   defaultzone as integer '+15
   defaultwallzone as integer '+16
   ignore_passmap as integer '+17  (0 or 1) Can walk through walls (but not zones or map edges)
-  pathfinding_obstruction_mode as integer '+18 (only matters if .movetype=15)
+  pathfinding_obstruction_mode as PathfindingObstructionMode '+18 (only matters if .movetype=15)
 END TYPE
 
 ENUM NPCOverrideMove

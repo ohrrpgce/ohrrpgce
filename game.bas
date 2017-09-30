@@ -72,7 +72,7 @@ DECLARE FUNCTION user_triggered_main_menu() as bool
 DECLARE FUNCTION player_menu_should_close() as bool
 DECLARE SUB debug_mouse_state()
 DECLARE FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_links() as Doorlink) as integer
-DECLARE FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as integer
+DECLARE FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as PathfindingObstructionMode
 
 '=================================== Globals ==================================
 
@@ -1918,7 +1918,7 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  end select
  
  dim should_collide_with_npcs as bool = YES
- if npc_pathfinding_collision_rule(npci) = 2 then should_collide_with_npcs = NO
+ if npc_pathfinding_collision_rule(npci) = obmodeNPCsIgnored then should_collide_with_npcs = NO
 
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(@npci, should_collide_with_hero, , should_collide_with_npcs)
@@ -1934,12 +1934,13 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  end if
 END SUB
 
-FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as integer
- DIM obs_mode as integer = npcs(npci.id - 1).pathfinding_obstruction_mode
+FUNCTION npc_pathfinding_collision_rule(npci as NPCInst) as PathfindingObstructionMode
+ DIM obs_mode as PathfindingObstructionMode
+ obs_mode = npcs(npci.id - 1).pathfinding_obstruction_mode
  'Check to see if we should use the map default
- IF obs_mode = 0 THEN obs_mode = gmap(378)
+ IF obs_mode = obmodeDefault THEN obs_mode = gmap(378)
  'Check to see if we should use the global default
- IF obs_mode = 0 THEN obs_mode = 1
+ IF obs_mode = obmodeDefault THEN obs_mode = obmodeNPCsObstruct
  RETURN obs_mode
 END FUNCTION
 
