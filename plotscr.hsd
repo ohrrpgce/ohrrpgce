@@ -1580,6 +1580,11 @@ script, set slice screen y, hsd:sl, hsd:newy, begin
   set slice y(hsd:sl, slice y(hsd:sl) + hsd:diff)
 end
 
+script, set slice size, hsd:sl, hsd:width, hsd:height, begin
+  set slice width(hsd:sl, hsd:width)
+  set slice height(hsd:sl, hsd:height)
+end
+
 script, put slice screen, hsd:sl, hsd:newx, hsd:newy, begin
   put slice(hsd:sl, slice x(hsd:sl) + hsd:newx -- slice screen x(hsd:sl),
                     slice y(hsd:sl) + hsd:newy -- slice screen y(hsd:sl))

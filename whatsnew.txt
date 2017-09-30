@@ -25,6 +25,7 @@ Nov/Dec ??? 2017 [Etheldreme]
       currently running game state [James]
     * "reset formation" and "reset formation slot" command to undo
       scripted modifications to battle formations. [James]
+    * "set slice size" and "slice is map layer" [Ralph]
 
   * Changes
 

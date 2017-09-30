@@ -5118,19 +5118,45 @@ end
 		<command id="setslicewidth">
 			<canon>set slice width (handle, width)</canon>
 			<shortname>set slice width</shortname>
-			<description>Changes the width of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed width.</description>
+			<description>
+				Changes the width of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			</description>
 			<seealso>
 				<ref>slicewidth</ref>
 				<ref>setsliceheight</ref>
+				<ref>setslicesize</ref>
 			</seealso>
 		</command>
 		<command id="setsliceheight">
 			<canon>set slice height (handle, height)</canon>
 			<shortname>set slice height</shortname>
-			<description>Changes the height of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed height.</description>
+			<description>
+				Changes the height of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			</description>
 			<seealso>
 				<ref>sliceheight</ref>
 				<ref>setslicewidth</ref>
+				<ref>setslicesize</ref>
+			</seealso>
+		</command>
+		<command id="setslicesize">
+			<canon>set slice size (handle, width, height)</canon>
+			<shortname>set slice size</shortname>
+			<description>
+				Changes the width and height of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			</description>
+			<seealso>
+				<ref>setslicewidth</ref>
+				<ref>setsliceheight</ref>
 			</seealso>
 		</command>
 		<command id="clampslice">
