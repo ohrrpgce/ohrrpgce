@@ -644,9 +644,9 @@ define function, begin
 620,rungame,1,0               # Run another game (string id)
 621,getbattlecountdown,0      # Get random battle counter
 622,setbattlecountdown,1,100  # Set random battle counter
-623,checkwallcollisionx,6,0,0,0,0,20,20  # Check for wall collision (pixel x, pixel y, width, height, xgo, ygo)
-624,checkwallcollisiony,6,0,0,0,0,20,20  # Check for wall collision (pixel x, pixel y, width, height, xgo, ygo)
-625,moveslicewithwallchecking,3,0,0,0    # Move a slice by xgo,ygo or until it hits a wall (sl, xgo, ygo)
+623,checkwallcollisionx,7,0,0,0,0,20,20,100  # Check for wall collision (pixel x, pixel y, width, height, xgo, ygo, friction)
+624,checkwallcollisiony,7,0,0,0,0,20,20,100  # Check for wall collision (pixel x, pixel y, width, height, xgo, ygo, friction)
+625,moveslicewithwallchecking,4,0,0,0,100    # Move a slice by xgo,ygo or until it hits a wall (sl, xgo, ygo, friction)
 626,textboxtext,4,0,0,1,0                # Get whole text from a textbox (string, box, expand, strip)
 627,checkgameexists,1,-1      # Check an .rpg/.rpgdir exists (string id)
 628,pathfindnpcto,4,0,0,0,0   # Make an NPC pathfind to a specific position (npc, tile x, tile y, stop after stuckticks)

@@ -1126,28 +1126,30 @@ SUB script_functions(byval cmdid as integer)
     EXIT FOR
    END IF
   NEXT
- CASE 623, 624'--check wall collision x/y (pixel x, pixel y, width, height, xgo, ygo)
+ CASE 623, 624'--check wall collision x/y (pixel x, pixel y, width, height, xgo, ygo, friction)
   ' It's fine for X/Y to be over the map edge, whether wrapping or not.
   IF retvals(2) < 0 OR retvals(3) < 0 THEN
    scripterr current_command_name() & ": negative width or height not allowed"
   ELSE
+   DIM friction as integer = bound(get_optional_arg(6, 100), 0, 100)
    DIM as XYPair startpos = (retvals(0), retvals(1)), pos
-   check_wallmap_collision(startpos, pos, XY(retvals(2), retvals(3)), XY(retvals(4), retvals(5)), NO)
+   sliding_wallmap_collision(startpos, pos, XY(retvals(2), retvals(3)), XY(retvals(4), retvals(5)), NO, YES, friction)
    IF cmdid = 623 THEN
     scriptret = pos.x - startpos.x
    ELSE
     scriptret = pos.y - startpos.y
    END IF
   END IF
- CASE 625'--move slice with wallchecking (sl, xgo, ygo)
+ CASE 625'--move slice with wallchecking (sl, xgo, ygo, friction)
   IF valid_plotslice(retvals(0)) THEN
+   DIM friction as integer = bound(get_optional_arg(3, 100), 0, 100)
    DIM sl as Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    WITH *sl
     ' This will work regardless of what the slice is parented to.
     DIM as XYPair startpos = .ScreenPos + XY(mapx, mapy), pos
-    scriptret = check_wallmap_collision(startpos, pos, .Size, XY(retvals(1), retvals(2)), NO)
+    scriptret = sliding_wallmap_collision(startpos, pos, .Size, XY(retvals(1), retvals(2)), NO, YES, friction)
     .Pos += pos - startpos
    END WITH
   END IF

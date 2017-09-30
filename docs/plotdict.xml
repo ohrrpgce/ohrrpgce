@@ -7701,19 +7701,21 @@ write pass block(15,3,none)
 		<reference ref="checknpcwall" />
 		
 		<command id="checkwallcollisionxy">
-			<canon>check wall collision x (x, y, width, height, relative x, relative y)</canon>
+			<canon>check wall collision x (x, y, width, height, relative x, relative y, friction%)</canon>
 			<shortname>check wall collision x/y</shortname>
 			<description>
 				and<lb/>
-				<p>check wall collision y (x, y, width, height, relative x, relative y)</p>
+				<p>check wall collision y (x, y, width, height, relative x, relative y, friction%)</p>
 				<lb/>
 				Check how far an object (with a rectangular "hitbox") could move in a straight line on the map
-				before hitting a wall.
+				before hitting a wall (and possibly sliding along that wall).
 				Provide the starting <p>x</p> and <p>y</p> map position in pixels of the top left
 				corner of the hitbox (relative to the top-left of the map),
 				its <p>width</p> and <p>height</p> in pixels,
 				and the <p>relative x/y</p> offset of the target position of the object
 				(for example <tt>relative x</tt> is 20 for one tile to the right).
+				See <ref>moveslicewithwallchecking</ref> for information about what the optional <p>friction%</p>
+				argument (which defaults to 100) does.
 				<lb/>
 				The return value is the maximum x/y offset that the object could move
 				in a straight line towards the target before hitting a wall.
@@ -7760,11 +7762,11 @@ write pass block(15,3,none)
 		</command>
 		-->
 		<command id="moveslicewithwallchecking">
-			<canon>move slice with wallchecking (sl, relative x, relative y)</canon>
+			<canon>move slice with wallchecking (sl, relative x, relative y, friction%)</canon>
 			<shortname>move slice with wallchecking</shortname>
 			<description>
 				Instantly moves a slice <p>sl</p> as far as possible in a straight line towards a point until
-				it hits a wall in the map's wallmap.
+				it hits a wall in the map's wallmap (and possibly slides along that wall).
 				<p>relative x/y</p> provide the point to move to, relative to the slice's current position.
 				This command can be used on any slice, regardless of whether it is parented to a map layer.
 				Its position on the map is calculated based on its on-screen position (<ref>slicescreenx</ref>, etc).
@@ -7776,6 +7778,18 @@ write pass block(15,3,none)
 				and edge-on walls count as obstructions too, as do tiles past the edge of the map
 				(unless the map wraps around).
 				However, if the slice already overlaps any walls they will be ignored.
+				<lb/>
+				<p>friction%</p> is an optional percentage value from 0 to 100 which defaults to 100.
+				When it's 100, movement stops as soon as a wall is hit.
+				If it's less than 100 then the slice slides down the wall with part of its remaining
+				movement (<p>relative x/y</p>), reduced by <p>friction%</p> percent.
+				For example if <tt>relative x == 15, relative y == 3, friction% == 30</tt> and
+				the slice travelled right 5 pixels before hitting a wall to the north
+				(x = 10, y = 2 movement remaining to go), then y movement gets set to 0 (because
+				we hit a wall to the north) and x movement gets reduced by 30% to 7, and the slice
+				slides up to another 7 pixels to the right (unless it hits another wall).
+				<lb/>
+				If you're creating a platformer or zelda-like, you probably want friction to be 0% or a low value.
 				<lb/>
 				The return value is a bitmask giving the directions in which the slice was
 				blocked by a wall.

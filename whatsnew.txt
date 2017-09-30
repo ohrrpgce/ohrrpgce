@@ -29,6 +29,9 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "NPCstat:tag1", "NPCstat:tag2" and "NPCstat:onetime use flag"
       constants for "read NPC"/"alter NPC" [Ralph]
     * "string sprintf" takes %b and %o codes for binary and octal [Ralph]
+    * "check wall collision x/y" and "move slice with wallchecking" now
+      allow sliding along walls instead of stopping on touching them:
+      added a 'friction%' argument to each [Ralph]
 
   * Changes
 

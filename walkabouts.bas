@@ -612,29 +612,6 @@ FUNCTION wrappass (x as integer, y as integer, byref xgo as integer, byref ygo a
  END IF
 END FUNCTION
 
-' UNFINISHED
-' Same as check_wallmap_collision, but if it's not possible to move in a
-' straight line, then try to slide along walls if moving diagonally.
-FUNCTION slide_wallmap(byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, xygo as XYPair, isveh as bool, walls_over_edges as bool = YES) as bool
-
- DO
-  DIM moved as XYPair
-  DIM blocked as integer
-  blocked = check_wallmap_collision(startpos, pos, size, xygo, isveh, walls_over_edges)
-  IF blocked = 0 THEN RETURN NO  ' done
-
-  IF (blocked AND (1 SHL dirUp)) = 0 AND xygo.y < 0 THEN
-   ' Move up to next alignment
-
-   ' IF ygo > 0 THEN nextalign.y += size.y + (tilesize.y - 1)
-   ' nextalign.y -= nextalign.y MOD tilesize.y
-   ' IF ygo > 0 THEN nextalign.y -= size.y
-
-  END IF
- LOOP
-
-END FUNCTION
-
 ' Check for a collision with the wallmap of an arbitrarily sized and positioned
 ' axis-aligned box moving in a straight line.
 ' (Only used by the "check wallmap collision" command currently.)
@@ -789,6 +766,37 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
   END IF
 
  LOOP
+END FUNCTION
+
+' See check_wallmap_collision.
+' This is a wrapper to that, which implements friction/sliding down walls.
+' Friction is a percentage value from 0 to 100, the amount to decrease the remaining
+' xygo by when hitting a wall and sliding down it (100 prevents any sliding).
+FUNCTION sliding_wallmap_collision (byval startpos as XYPair, byref pos as XYPair, byval size as XYPair, byval xygo as XYPair, isveh as bool, walls_over_edges as bool = YES, friction as integer = 100) as integer
+ DIM ret as integer
+ DO
+  ret = check_wallmap_collision(startpos, pos, size, xygo, isveh, walls_over_edges)
+  IF ret = 0 OR friction >= 100 THEN EXIT DO
+  xygo -= (pos - startpos)
+  'debug "after collisions, pos = " & pos & " xygo = " & xygo
+  IF (ret AND passAllWalls) = 0 THEN
+   ' Hit a corner. Break ties based on angle.
+   ' If hitting the corner at 45, prefer vertical, for sidescrollers
+   IF ABS(xygo.x) <= ABS(xygo.y) THEN
+    xygo.x = 0
+   ELSE
+    xygo.y = 0
+   END IF
+  ELSE
+   IF ret AND (passWestWall OR passEastWall) THEN xygo.x = 0
+   IF ret AND (passNorthWall OR passSouthWall) THEN xygo.y = 0
+  END IF
+  startpos = pos
+  'Decrease by friction %
+  xygo = (xygo * (100 - friction)) \ 100
+  IF xygo = 0 THEN EXIT DO
+ LOOP
+ RETURN ret
 END FUNCTION
 
 FUNCTION wrapzonecheck (byval zone as integer, byval pos as XYPair, byval xygo as XYPair) as bool
