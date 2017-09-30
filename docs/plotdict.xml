@@ -6221,6 +6221,15 @@ end
 			<shortname>slice is panel</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a panel slice, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
+		<command id="sliceismaplayer">
+			<canon>slice is map layer (handle)</canon>
+			<shortname>slice is map layer</shortname>
+			<description>
+				Returns true if the given slice <p>handle</p> is a map layer,
+				or false for any other type. It's an error to provide an invalid <p>handle</p>.
+			</description>
+		</command>
+
 
 		</section>		<!-- Checking Slice Type-->
 
@@ -7291,6 +7300,21 @@ The third argument is the total number of ticks that the animation should run. Y
 		</command>
 		</section>		<!-- Panel Slices-->
 
+
+		<section title="Map Layer Slices">
+		<description>
+			Map Layer slices (also called Map slices) are special slices which display one of the
+			tilemap layers of the current map.
+			You can't create them; they always exist. Use <ref>lookupslice</ref> to get a handle
+			for one of the map layer slices.
+			They don't have any special attributes that you can access
+			(use the <a href="#Tweaking Maps">map script commands</a> to modify the map instead),
+			and you can't resize them or change their parent, but you can do anything else,
+			such as move them about to create parallax effects,
+			make them invisible, reorder them, change their autosort mode, and so forth.
+		</description>
+		<reference ref="sliceismaplayer" />
+		</section>		<!-- Map Layer Slices-->
 
 		</section>		<!-- Slice Types-->
 

@@ -676,6 +676,7 @@ define function, begin
 652,cloneslice,2,0,1          # Copy a slice (handle, recurse)
 653,resetformation,1,0        # resets any scripted modifications to a battle formation
 654,resetformationslot,2,0,0  # resets scripted modifications to a specific slot in a battle formation
+655,sliceismaplayer,1,0       # Check slice type
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

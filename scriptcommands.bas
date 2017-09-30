@@ -4514,6 +4514,11 @@ SUB script_functions(byval cmdid as integer)
    cur_form.slots(retvals(1)) = orig_form.slots(retvals(1))
    SaveFormation cur_form, tmpdir & "for.tmp", retvals(0)
   END IF
+ CASE 655 '--slice is map layer
+  IF valid_plotslice(retvals(0)) THEN
+   IF plotslices(retvals(0))->SliceType = slMap THEN scriptret = 1
+  END IF
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
