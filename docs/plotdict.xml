@@ -4021,6 +4021,8 @@ showstring($1="\"A quote\"")</example>
 			<description>Builds a string from a template (given by <p>format string ID</p>) and zero or more additional arguments, and puts the result in the string <p>dest string ID</p>. This is a restricted version of the sprintf function in other programming languages. This function takes at least 2 arguments. The format string is a mix of regular text and codes like %d. For each code, one argument is read and used to substitute for the code. The codes are:<lb/>
 <p>%d</p>: substituted with a number, printed as a decimal.<lb/>
 <p>%x</p>: substituted with a number, printed as a unsigned 32 bit hexidecimal, in lower case and without a leading 0x.<lb/>
+<p>%o</p>: substituted with a number, printed as a unsigned 32 bit octal number, without a leading 0o.<lb/>
+<p>%b</p>: substituted with a number, printed as a unsigned 32 bit binary number, with a space between every 8 bits, without a leading 0b.<lb/>
 <p>%s</p>: substituted with a string. The argument should be a valid string ID.<lb/>
 <p>%c</p>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<lb/>
 <p>%%</p>: substituted with a single %. In this case an argument is NOT used up.<lb/>

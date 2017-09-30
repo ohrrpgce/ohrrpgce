@@ -260,6 +260,19 @@ FUNCTION script_sprintf() as string
     ELSEIF percentptr[1] = ASC("x") THEN
      ' Hexidecimal
      ret &= LCASE(HEX(retvals(nextarg)))
+    ELSEIF percentptr[1] = ASC("o") THEN
+     ' Octal
+     ret &= OCT(retvals(nextarg))
+    ELSEIF percentptr[1] = ASC("b") THEN
+     ' Binary
+     DIM temp as string = BIN(retvals(nextarg))
+     ' Split into groups of 8 digits
+     WHILE LEN(temp)
+      DIM numbits as integer = LEN(temp) MOD 8
+      IF numbits = 0 THEN numbits = 8 : ret &= " "
+      ret &= LEFT(temp, numbits)
+      temp = MID(temp, numbits + 1)
+     WEND
     ELSEIF percentptr[1] = ASC("c") THEN
      ' Character
      IF bound_arg(retvals(nextarg), 0, 255, "%c character code", , , serrBadOp) THEN

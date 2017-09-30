@@ -28,6 +28,7 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "set slice size" and "slice is map layer" [Ralph]
     * "NPCstat:tag1", "NPCstat:tag2" and "NPCstat:onetime use flag"
       constants for "read NPC"/"alter NPC" [Ralph]
+    * "string sprintf" takes %b and %o codes for binary and octal [Ralph]
 
   * Changes
 
