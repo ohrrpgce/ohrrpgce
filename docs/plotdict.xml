@@ -3008,6 +3008,25 @@ end</example>
 							<li>NPCactivation:stepon</li>
 						</ul>
 					</li>
+					<li>
+						Alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
+						<lb/>
+						The onetime flag (see <ref>checkonetime</ref>) is zero if the
+						NPC is usable repeatedly.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:tag1,tag ID)
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:tag2,tag ID)
+						<lb/>
+						These are two tag conditions which both have to be true for the NPC
+						to appear. A tag ID of 0 means no check is done (the condition is true).
+						A positive condition means that tag needs to be ON, a negative means
+						that tag needs to be OFF.
+						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
+						tag 4 is OFF.
+					</li>
 					<li>Alter NPC (who,NPCstat:script,script ID)</li>
 					<li>Alter NPC (who,NPCstat:script argument,number)</li>
 					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
