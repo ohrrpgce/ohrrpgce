@@ -28,7 +28,7 @@ DIM SHARED script_import_defaultdir as string
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
-DECLARE FUNCTION importscripts (f as string, quickimport as bool) as bool
+DECLARE FUNCTION importscripts (hsfile as string, srcfile as string, quickimport as bool = NO) as bool
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames () as string
 DECLARE SUB export_scripts()
@@ -250,25 +250,27 @@ END SUB
 
 ' Returns true on success
 ' If quickimport is true, doesn't display the names of imported scripts
-FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
+FUNCTION compile_andor_import_scripts (filename as string, quickimport as bool = NO) as bool
  DIM ret as bool = NO
- DIM extn as string = LCASE(justextension(f))
+ DIM extn as string = LCASE(justextension(filename))
  IF extn <> "hs" AND extn <> "hsp" THEN
-  DIM hsifile as string = exportnames
-  f = compilescripts(f, hsifile)
-  IF f <> "" THEN  'success
-   ret = importscripts(f, quickimport)
-   safekill f  'reduce clutter
+  DIM hsifile as string = exportnames()
+  DIM hsfile as string = compilescripts(filename, hsifile)
+  IF hsfile <> "" THEN  'success
+   ret = importscripts(hsfile, filename, quickimport)
+   safekill hsfile  'reduce clutter
   END IF
  ELSE
-  ret = importscripts(f, quickimport)
+  ret = importscripts(filename, filename, quickimport)
  END IF
  RETURN ret
 END FUNCTION
 
+' Imports scripts from an .hs file.
 ' Returns true on success
+' srcfile is used as the filename in messages to the user.
 ' If quickimport is true, doesn't display the names of imported scripts
-FUNCTION importscripts (f as string, quickimport as bool) as bool
+FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as bool = NO) as bool
  DIM triggers as TriggerSet
  DIM triggercount as integer
  DIM temp as short
@@ -278,28 +280,28 @@ FUNCTION importscripts (f as string, quickimport as bool) as bool
  DIM recordsize as integer
 
  'Under the best conditions this check is redundant, but it is still good to check anyway...
- IF NOT isfile(f) THEN
-  pop_warning f & " does not exist."
+ IF NOT isfile(hsfile) THEN
+  pop_warning hsfile & " does not exist."
   RETURN NO
  END IF
 
  DIM headerbuf(1) as integer
- loadrecord headerbuf(), f, 2
+ loadrecord headerbuf(), hsfile, 2
  IF headerbuf(0) = 21320 AND headerbuf(1) = 0 THEN  'Check first 4 bytes are "HS\0\0"
-  unlumpfile(f, "hs", tmpdir)
+  unlumpfile(hsfile, "hs", tmpdir)
   DIM header as HSHeader
   load_hsp_header tmpdir & "hs", header
   IF header.valid = NO THEN
-   pop_warning f & " appears to be corrupt."
+   pop_warning hsfile & " appears to be corrupt."
    RETURN NO
   END IF
   IF header.hsp_format > CURRENT_HSP_VERSION THEN
-   debug f & " hsp_format=" & header.hsp_format & " from future, hspeak version " & header.hspeak_version
+   debug hsfile & " hsp_format=" & header.hsp_format & " from future, hspeak version " & header.hspeak_version
    pop_warning "This compiled .hs script file is in a format not understood by this version of Custom. Please ensure Custom and HSpeak are from the same release of the OHRRPGCE."
    RETURN NO
   END IF
 
-  writeablecopyfile f, game + ".hsp"
+  writeablecopyfile hsfile, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
@@ -315,7 +317,7 @@ FUNCTION importscripts (f as string, quickimport as bool) as bool
    
    'the scripts.bin lump does not have a format version field in its header, instead use header size
    IF headersize <> 4 THEN
-    pop_warning f + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
+    pop_warning hsfile + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
     RETURN NO
    END IF
   ELSE
@@ -323,7 +325,7 @@ FUNCTION importscripts (f as string, quickimport as bool) as bool
    unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
 
    IF isfile(tmpdir + "scripts.txt") = 0 THEN
-    pop_warning f + " appears to be corrupt. Please try to recompile your scripts."
+    pop_warning hsfile + " appears to be corrupt. Please try to recompile your scripts."
     RETURN NO
    END IF
 
@@ -461,12 +463,12 @@ FUNCTION importscripts (f as string, quickimport as bool) as bool
 
   IF quickimport THEN
    ' The show_messages above will be gone before the user can see them
-   show_overlay_message "Imported " & viscount & " plotscripts from " & trimpath(f), 2.5
+   show_overlay_message "Imported " & viscount & " plotscripts from " & trimpath(srcfile), 3.
   ELSE
    waitforanykey
   END IF
  ELSE
-  pop_warning f + " is not really a compiled .hs file. Did you create it by compiling a" _
+  pop_warning hsfile + " is not really a compiled .hs file. Did you create it by compiling a" _
               " script file with hspeak.exe, or did you just give your script a name that" _
               " ends in .hs and hoped it would work? Use hspeak.exe to create real .hs files"
   RETURN NO
@@ -510,7 +512,6 @@ SUB scriptman ()
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
- DIM f as string
  state.pt = 1
  state.size = 24
  state.last = UBOUND(menu)
