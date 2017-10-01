@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tc 2017-10-02 Make -j wait for warnings too
 --3Tb 2017-09-28 Added -j option; warn on unknown options
 --3Ta 2017-07-28 Increased MAXGLOBAL to 50000
 --    2017-06-13 0x, 0o and 0b number prefixes
@@ -165,7 +166,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tb"
+constant COMPILER_SUB_VERSION="Tc"
 constant COPYRIGHT_DATE="2017"
 
 --Known single-character commandline options
@@ -647,8 +648,8 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure opt_wait_for_key(integer iserror)
-  if (not iserror and find('j',optlist)) or find('k',optlist) then
+procedure opt_wait_for_key(integer error_or_warning)
+  if (not error_or_warning and find('j',optlist)) or find('k',optlist) then
     --skip
   else
     color_print("[Press Any Key]\n",{})
@@ -850,10 +851,10 @@ procedure check_arg_count(sequence args)
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
     wrap_print(COLYEL&"%s [-%s] [long-options] source.hss [dest.hs]"&COLWHI&"\n\n",{VALID_OPTIONS,hs_upper(file_only(args[2]))})
     color_print("   -f fast mode. Disables some optimization\n",{})
-    color_print("   -j don't wait for a keypress when finished if there's no error\n",{})
+    color_print("   -j don't wait for a keypress when finished if there's no error or warning\n",{})
     color_print("   -k don't wait for a keypress when finished\n",{})
     color_print("   -n don't add debug info, or a copy of the source code, to .hs file\n",{})
-    color_print("   -w suppress minor warnings\n",{})
+    color_print("   -w suppress warnings\n",{})
     color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
     color_print("   --incdir <path>\n" &
@@ -4978,7 +4979,7 @@ color_print("done (%g seconds)\n",{run_time})
 if find('t',optlist) then
   print_timing_data()
 end if
-opt_wait_for_key(false)
+opt_wait_for_key(was_warnings)
 if was_warnings = true then
   abort(2)
 end if

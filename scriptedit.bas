@@ -27,7 +27,7 @@ END TYPE
 DIM SHARED script_import_defaultdir as string
 
 '--Local subs and functions
-DECLARE FUNCTION compilescripts (fname as string, hsifile as string) as string
+DECLARE FUNCTION compilescripts (fname as string, hsifile as string, quickimport as bool = NO) as string
 DECLARE FUNCTION importscripts (hsfile as string, srcfile as string, quickimport as bool = NO) as bool
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames () as string
@@ -255,7 +255,7 @@ FUNCTION compile_andor_import_scripts (filename as string, quickimport as bool =
  DIM extn as string = LCASE(justextension(filename))
  IF extn <> "hs" AND extn <> "hsp" THEN
   DIM hsifile as string = exportnames()
-  DIM hsfile as string = compilescripts(filename, hsifile)
+  DIM hsfile as string = compilescripts(filename, hsifile, quickimport)
   IF hsfile <> "" THEN  'success
    ret = importscripts(hsfile, filename, quickimport)
    safekill hsfile  'reduce clutter
@@ -590,7 +590,7 @@ FUNCTION get_hspeak_version(hspeak_path as string) as string
 END FUNCTION
 
 'Returns filename of .hs file, or "" on failure
-FUNCTION compilescripts(fname as string, hsifile as string) as string
+FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool = NO) as string
 
  clearpage vpage
  wrapprint "Compiling " & simplify_path_further(fname, CURDIR) & !"...\nPlease wait for HSpeak to finish, then close it.", pCentered, pCentered, uilook(uiText), vpage, rWidth - 40
@@ -635,7 +635,7 @@ FUNCTION compilescripts(fname as string, hsifile as string) as string
   args += " --include " & escape_filename(hsifile)
  END IF
 
- IF option_nowait THEN args += " -j"
+ IF quickimport THEN args += " -j"
 
  outfile = trimextension(fname) + ".hs"
  safekill outfile
