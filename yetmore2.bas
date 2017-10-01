@@ -1022,7 +1022,7 @@ END SUB
 
 SUB npc_debug_display (draw_walls as bool)
  DIM temp as string
- FOR i as integer = 0 TO 299
+ FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN
     DIM where as XYPair

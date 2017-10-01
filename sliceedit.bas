@@ -1369,6 +1369,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
    sliceed_rule_none rules(), "scripthandle"
   #ENDIF
+  IF .Metadata THEN
+   str_array_append menu(), "ID: " & .Metadata->description()
+   sliceed_rule_none rules(), "metadata"
+  END IF
   IF ses.privileged THEN
    str_array_append menu(), "Protected: " & yesorno(.Protect)
    sliceed_rule_tog rules(), "protect", @.Protect
@@ -1514,19 +1518,19 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    sliceed_header menu(), rules(), "[Alignment]"
   END IF
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   str_array_append menu(), "Align horiz. to: " & HorizCaptions(.AlignHoriz)
+   str_array_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
   END IF
   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   str_array_append menu(), "Align vert. to: " & VertCaptions(.AlignVert)
+   str_array_append menu(), " Align vert.  to: " & VertCaptions(.AlignVert)
    sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
   END IF
   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   str_array_append menu(), "Anchor horiz. at: " & HorizCaptions(.AnchorHoriz)
+   str_array_append menu(), " Anchor horiz. at: " & HorizCaptions(.AnchorHoriz)
    sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
   END IF
   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   str_array_append menu(), "Anchor vert. at: " & VertCaptions(.AnchorVert)
+   str_array_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
   END IF
   sliceed_header menu(), rules(), "[Padding]", "padding"
@@ -1587,6 +1591,7 @@ FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slic
    s &= " [root]"
   END IF
   s &= "${K" & uilook(uiText) & "} "
+  IF sl->Metadata THEN s &= sl->Metadata->description()
   'Show the lookup code name instead of the ID, provided it doesn't have a blank name
   IF .Lookup > 0 ANDALSO .Lookup <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(.Lookup))) THEN
    s &= slicelookup(.Lookup)

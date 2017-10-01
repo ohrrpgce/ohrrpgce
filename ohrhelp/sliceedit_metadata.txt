@@ -1,0 +1,5 @@
+This entry in the slice editor tells that this slice has some special purpose in the engine, such as being the slice representing an NPC. It's informative only; you can't change anything here.
+
+For an NPC, its ID and reference numbers are shown.
+
+For a hero, the caterpillar rank, hero ID and name are shown.

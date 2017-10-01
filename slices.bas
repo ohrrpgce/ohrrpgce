@@ -529,10 +529,14 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
  DeleteSliceChildren sl, debugme
 
  SliceDebugForget sl
- 
+
+ delete sl->Metadata
  delete sl
  *s = 0
 End Sub
+
+Destructor SliceMetadata()
+End Destructor
 
 'Deletes a slice's children but not itself
 Sub DeleteSliceChildren(byval sl as Slice ptr, byval debugme as integer = 0)

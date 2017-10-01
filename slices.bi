@@ -133,6 +133,13 @@ Enum FillModes
  sliceFillVert = 2
 End Enum
 
+' Stores information about what this slice is used for, if that isn't explained
+' by the lookup code.
+Type SliceMetadata Extends Object
+ Declare Virtual Destructor()
+ Declare Abstract Function description() as string
+End Type
+
 Extern "C"
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
@@ -191,6 +198,7 @@ TYPE Slice
   TargResidue_Y as double
   TargTicks as integer
 
+  Metadata as SliceMetadata ptr  'NULL if none
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup as integer
 

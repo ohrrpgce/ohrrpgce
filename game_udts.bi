@@ -63,6 +63,16 @@ TYPE HeroWalkabout
   Declare Destructor()  'Free curzones
 END TYPE
 
+TYPE HeroSliceMetadata EXTENDS SliceMetadata
+  DECLARE VIRTUAL FUNCTION description() as string
+  rank as integer
+END TYPE
+
+TYPE NPCSliceMetadata EXTENDS SliceMetadata
+  DECLARE VIRTUAL FUNCTION description() as string
+  npcindex as integer
+END TYPE
+
 TYPE ScriptLoggingState
   enabled as bool
   filename as string

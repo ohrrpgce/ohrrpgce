@@ -17,6 +17,7 @@
 #include "allmodex.bi"
 #include "game.bi"
 #include "scripting.bi"
+#include "scriptcommands.bi"
 #include "moresubs.bi"
 #include "walkabouts.bi"
 
@@ -349,6 +350,9 @@ SUB visnpc()
    '--NPC exists and is visible
    IF npc(i).sl = 0 THEN
     npc(i).sl = create_walkabout_slices(npc_layer())
+    DIM meta as NPCSliceMetadata ptr = NEW NPCSliceMetadata
+    meta->npcindex = i
+    npc(i).sl->Metadata = meta
     'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
     '--set sprite
     set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
@@ -364,6 +368,16 @@ SUB visnpc()
 
  NEXT i
 END SUB
+
+FUNCTION NPCSliceMetadata.description() as string
+ RETURN "NPC ID " & npc(npcindex).id & " ref " & -(1 + npcindex)
+END FUNCTION
+
+FUNCTION HeroSliceMetadata.description() as string
+ DIM slot as integer = rank_to_party_slot(rank)
+ IF slot = -1 THEN RETURN "Hero rank " & rank & " (doesn't exist)"  'FIXME: why do we create unused hero slices???
+ RETURN "Hero rank " & rank & ": ID " & gam.hero(slot).id & " " & gam.hero(slot).name
+END FUNCTION
 
 
 '==========================================================================================

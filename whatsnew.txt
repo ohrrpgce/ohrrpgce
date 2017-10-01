@@ -16,6 +16,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       box styles [James]
     * Battle victory screens can optionally auto-advance after a given
       amount of time [James]
+    * Slice editor/debugger improvements: cleaned up, irrelevant settings
+      hidden, and info about NPCs, heroes, and protected status [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
