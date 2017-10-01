@@ -2,9 +2,7 @@
 #define SCRIPTCOMMANDS_BI
 
 #include "slices.bi"
-
-' Used by embed_text_codes to 
-TYPE FnEmbedCode as SUB(code as string, result as string, arg0 as any ptr, arg1 as any ptr, arg2 as any ptr)
+#include "plankmenu.bi"  'For FnEmbedCode (this could probably be avoided)
 
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)

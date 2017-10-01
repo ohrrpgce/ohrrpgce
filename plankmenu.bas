@@ -6,16 +6,17 @@
 #include "allmodex.bi"
 #include "common.bi" 
 #include "loading.bi"
-#include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"
-#include "game_udts.bi"
 #include "slices.bi"
 #include "sliceedit.bi"
-
-#include "scriptcommands.bi"
-
 #include "plankmenu.bi"
+
+#ifdef IS_GAME
+#include "gglobals.bi"
+#include "scriptcommands.bi"  'For embed_text_codes
+#endif
+
 
 'Local subs and functions
 DECLARE FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
