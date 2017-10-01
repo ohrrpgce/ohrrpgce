@@ -36,7 +36,7 @@ DECLARE FUNCTION runscript (byval id as integer, byval newcall as bool, byval do
 DECLARE FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
 DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)
-DECLARE SUB reload_scripts ()
+DECLARE SUB reload_scripts (force_full_message as bool = YES)
 
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION current_command_name() as string

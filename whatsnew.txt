@@ -34,6 +34,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "check wall collision x/y" and "move slice with wallchecking" now
       allow sliding along walls instead of stopping on touching them:
       added a 'friction%' argument to each [Ralph]
+    * Script reloading while live previewing now defaults to on; it no
+      longer tries to reload unmodified scripts [Ralph]
 
   * Changes
 

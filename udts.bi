@@ -356,6 +356,7 @@ TYPE ScriptData
   id as integer         'id number of script  (set to 0 to mark as unused slot)
                         'The id number is negated if this is a stale unreloaded script and
                         'shouldn't be used for new scripts.
+  hash as ulongint      'file_hash64 of the .hsx/.hsz file
   ptr as integer ptr    'pointer to script commands
   scrformat as integer  'hsz file format version number
   headerlen as integer  'header length in bytes

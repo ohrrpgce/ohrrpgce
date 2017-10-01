@@ -24,7 +24,7 @@
 '------------ Local functions -------------
 
 DECLARE SUB freescripts (byval mem as integer)
-DECLARE FUNCTION loadscript_open_script(n as integer) as integer
+DECLARE FUNCTION loadscript_open_script(n as integer, expect_exists as bool = YES) as integer
 DECLARE FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptData ptr
 DECLARE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) as bool
 DECLARE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
@@ -565,7 +565,7 @@ RETURN 1 '--success
 END FUNCTION
 
 'Returns an open file handle to an hsz lump, or 0 if not found (which isn't a valid handle).
-PRIVATE FUNCTION loadscript_open_script (n as integer) as integer
+PRIVATE FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES) as integer
  DIM scriptfile as string = tmpdir & n & ".hsz"
  IF NOT isfile(scriptfile) THEN
   scriptfile = tmpdir & n & ".hsx"
@@ -573,13 +573,15 @@ PRIVATE FUNCTION loadscript_open_script (n as integer) as integer
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
-    scripterr "script " & n & " " & scriptname(n) & " does not exist", serrError
+    IF expect_exists THEN
+     scripterr "script " & n & " " & scriptname(n) & " does not exist", serrError
+    END IF
     RETURN 0
    END IF
   END IF
  END IF
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(scriptfile, FOR_BINARY, fh)
  RETURN fh
 END FUNCTION
@@ -630,6 +632,7 @@ PRIVATE FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptD
  DIM ret as ScriptData ptr = NEW ScriptData
  WITH *ret
   .id = id
+  .hash = 0
   'minimum length of a valid 16-bit .hsx
   IF LOF(fh) < 10 THEN
    scripterr "script " & id & " corrupt (too short: " & LOF(fh) & " bytes)", serrError
@@ -732,6 +735,8 @@ PRIVATE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) a
  DIM shortvar as short
 
  WITH *header
+  .hash = file_hash64(fh)
+
   DIM wordsize as integer
   IF .scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
   .ptr = allocate(.size * sizeof(integer))
@@ -927,11 +932,15 @@ SUB reloadscript (si as ScriptInst, oss as OldScriptState, byval updatestats as 
 END SUB
 
 'Unload all scripts not in use, so they will get loaded again when used.
+'force_full_message: even if the player previously asked to hide notifications
+'    about reloading failing, show the error rather than just an overlay message.
 'TODO: it would be preferable to keep the bookkeeping data by only deleting the script commands and strings
-SUB reload_scripts
- IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
+SUB reload_scripts (force_full_message as bool = YES)
+ STATIC dont_show_again as bool = NO  'Don't pop up the full error message
 
- DIM unfreeable as integer = 0
+ IF isfile(game + ".hsp") THEN unlump game + ".hsp", tmpdir
+ DIM unfreeable as string, still_unfreeable as string
+ DIM num_unfreeable as integer
 
  ' Iterate over the hashmap bucket chains
  FOR i as integer = 0 TO UBOUND(script)
@@ -942,11 +951,35 @@ SUB reload_scripts
     IF .refcount = 0 THEN
      delete_ScriptData scrp
     ELSE
-     unfreeable += 1
-     debuginfo "not reloading script " & scriptname(ABS(.id)) & " because it's in use: refcount=" & .refcount
-     ' Negate the ID number. This will prevent this script data from being used when starting a new script.
-     ' It won't be automatically evicted from the cache, but that's ok.
-     .id = ABS(.id) * -1
+     ' It's in use. But has it actually been changed?
+     'debug scriptname(ABS(.id)) & " in use"
+
+     DIM fh as integer
+     fh = loadscript_open_script(ABS(.id), NO)
+     IF fh = 0 THEN
+      debuginfo "reload_scripts: " & scriptname(ABS(.id)) & " no longer exists!"
+     ELSE
+      DIM newhash as ulongint = file_hash64(fh)
+      CLOSE #fh
+
+      'debug scriptname(ABS(.id)) & " old hash=" & HEX(.hash) & " new=" & HEX(newhash)
+      IF newhash <> .hash THEN
+       num_unfreeable += 1
+       IF .id > 0 THEN
+        unfreeable &= scriptname(ABS(.id)) & " "
+       ELSE
+        still_unfreeable &= scriptname(ABS(.id)) & " "
+       END IF
+
+       debuginfo "not reloading script " & scriptname(ABS(.id)) & " because it's in use: refcount=" & .refcount
+       ' Negate the ID number. This will prevent this script data from being used when starting a new script.
+       ' It won't be automatically evicted from the cache, but that's ok.
+       .id = ABS(.id) * -1
+      ELSEIF .id < 0 ANDALSO newhash = .hash THEN
+       ' This script was previously marked as un-reloadable, but the changes were reverted.
+       .id = -.id
+      END IF
+     END IF
     END IF
    END WITH
 
@@ -954,14 +987,32 @@ SUB reload_scripts
   WEND
  NEXT
 
- IF unfreeable THEN
-  notification unfreeable & " scripts are in use and couldn't be freed (see g_debug.txt for details)"
+ DIM msg as string
+ IF LEN(unfreeable) THEN
+  msg = !"These scripts were modified but are in use and can't be reloaded:\n" & unfreeable
  END IF
- ' Set changed to NO because there's nothing the user can do by hitting "Force reload scripts";
- ' new instances of the script use the new data already
- lump_reloading.hsp.changed = NO
+ IF LEN(still_unfreeable) THEN
+  IF LEN(msg) THEN msg &= !"\n"
+  msg &= !"These scripts modified earlier still can't be reloaded:\n" & still_unfreeable
+ END IF
+ IF LEN(msg) THEN
+  IF dont_show_again AND force_full_message = NO THEN
+   show_overlay_message num_unfreeable & " scripts not reloaded (see F5 menu)", 2.5
+  ELSE
+   dont_show_again = (twochoice(msg, "OK", "Don't tell me again", 0, 0) = 1)
+  END IF
 
- 'Cause the cache in scriptname() (and also in commandname()) to be dropped
+  ' "Force reload scripts" is still available in the Reload menu, but
+  ' selecting it has no actual effect on script data, other than re-checking, telling
+  ' the user which scripts are still in use, and possibly freeing some memory.
+ ELSE
+  ' All modified scripts unloaded successfully.
+  lump_reloading.hsp.changed = NO
+
+  show_overlay_message "Scripts successfully reloaded", 2.5
+ END IF
+
+ 'Cause the cache in scriptname() (and also in commandname()) to be dropped (yuck)
  game_unique_id = STR(randint(INT_MAX))
 END SUB
 

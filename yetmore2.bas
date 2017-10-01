@@ -1725,17 +1725,16 @@ SUB try_reload_lumps_anywhere ()
                                                                           ''' Script stufff
 
   ELSEIF extn = "hsp" THEN                                                '.HSP
-   'Could add an option for automatic reloading, with suitable warnings...
    lump_reloading.hsp.changed = YES
-   IF lump_reloading.hsp.mode = loadmodeAlways THEN reload_scripts
+   IF lump_reloading.hsp.mode = loadmodeAlways THEN reload_scripts NO
    handled = YES
 
   ELSEIF modified_lumps[i] = "plotscr.lst" THEN                           'PLOTSCR.LST
-   load_script_triggers_and_names
+   load_script_triggers_and_names  'Reloads both plotscr.lst and lookup1.bin
    handled = YES
 
   ELSEIF modified_lumps[i] = "lookup1.bin" THEN                           'LOOKUP1.BIN
-   load_script_triggers_and_names
+   load_script_triggers_and_names  'Reloads both plotscr.lst and lookup1.bin
    handled = YES
 
   END IF
