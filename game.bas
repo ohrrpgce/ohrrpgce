@@ -2408,7 +2408,7 @@ END SUB
 
 SUB loadmap_npcl(byval mapnum as integer)
  lump_reloading.npcl.changed = NO
- lump_reloading.npcl.hash = hash_file(maplumpname(mapnum, "l"))
+ lump_reloading.npcl.hash = file_hash64(maplumpname(mapnum, "l"))
  LoadNPCL maplumpname(mapnum, "l"), npc()
 
  'Evaluate whether NPCs should appear or disappear based on tags
@@ -2418,7 +2418,7 @@ END SUB
 SUB loadmap_npcd(byval mapnum as integer)
  lump_reloading.npcd.dirty = NO
  lump_reloading.npcd.changed = NO
- lump_reloading.npcd.hash = hash_file(maplumpname(mapnum, "n"))
+ lump_reloading.npcd.hash = file_hash64(maplumpname(mapnum, "n"))
  LoadNPCD maplumpname(mapnum, "n"), npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
@@ -2431,7 +2431,7 @@ END SUB
 SUB loadmap_tilemap(byval mapnum as integer)
  lump_reloading.maptiles.dirty = NO
  lump_reloading.maptiles.changed = NO
- lump_reloading.maptiles.hash = hash_file(maplumpname(mapnum, "t"))
+ lump_reloading.maptiles.hash = file_hash64(maplumpname(mapnum, "t"))
  LoadTileMaps maptiles(), maplumpname(mapnum, "t")
  mapsizetiles.w = maptiles(0).wide
  mapsizetiles.h = maptiles(0).high
@@ -2444,14 +2444,14 @@ END SUB
 SUB loadmap_passmap(byval mapnum as integer)
  lump_reloading.passmap.dirty = NO
  lump_reloading.passmap.changed = NO
- lump_reloading.passmap.hash = hash_file(maplumpname(mapnum, "p"))
+ lump_reloading.passmap.hash = file_hash64(maplumpname(mapnum, "p"))
  LoadTileMap pass, maplumpname(mapnum, "p")
 END SUB
 
 SUB loadmap_foemap(byval mapnum as integer)
  lump_reloading.foemap.dirty = NO
  lump_reloading.foemap.changed = NO
- lump_reloading.foemap.hash = hash_file(maplumpname(mapnum, "e"))
+ lump_reloading.foemap.hash = file_hash64(maplumpname(mapnum, "e"))
  LoadTileMap foemap, maplumpname(mapnum, "e")
 END SUB
 
@@ -2462,7 +2462,7 @@ SUB loadmap_zonemap(byval mapnum as integer)
  DIM filename as string = maplumpname(mapnum, "z")
  IF isfile(filename) THEN
   LoadZoneMap zmap, filename
-  lump_reloading.zonemap.hash = hash_file(filename)
+  lump_reloading.zonemap.hash = file_hash64(filename)
  ELSE
   CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
   lump_reloading.zonemap.hash = 0

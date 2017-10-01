@@ -9,6 +9,7 @@
 #include "crt/stddef.bi"
 #include "file.bi"   'FB header, for FILELEN
 
+#include "lib/sha1.bi"
 #include "os.bi"
 #include "vector.bi"
 
@@ -283,9 +284,19 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 
 
 '----------------------------------------------------------------------
-'                          File Functions
+'                         Hash Functions
 
-declare function hash_file(filename as string) as unsigned integer
+
+declare sub file_hash_SHA1 overload (filename as string, result_out as SHA160 ptr)
+declare sub file_hash_SHA1 overload (fh as integer, result_out as SHA160 ptr)
+declare function file_hash64 overload (filename as string) as ulongint
+declare function file_hash64 overload (fh as integer) as ulongint
+declare function SHA1_to_string(hash as SHA160) as string
+declare function strhash (hstr as string) as unsigned integer
+
+'----------------------------------------------------------------------
+'                      Path and File Functions
+
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
 declare function simplify_path_further (pathname as string, fromwhere as string) as string
@@ -647,7 +658,6 @@ declare function string_compare cdecl (byval a as string ptr, byval b as string 
 declare sub invert_permutation overload (indices() as integer, inverse() as integer)
 declare sub invert_permutation overload (indices() as integer)
 
-declare function strhash (hstr as string) as unsigned integer
 declare function starts_with(s as string, prefix as string) as integer
 declare function ends_with(s as string, suffix as string) as integer
 

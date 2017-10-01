@@ -762,7 +762,7 @@ SUB reloadmap_npcl(merge as bool)
  safekill mapstatetemp(gam.map.id, "map") + "_l.reld.tmp"
 
  DIM filename as string = maplumpname(gam.map.id, "l")
- lump_reloading.npcl.hash = hash_file(filename)
+ lump_reloading.npcl.hash = file_hash64(filename)
  IF merge THEN
   REDIM npcnew(UBOUND(npc)) as NPCInst
   REDIM npcbase(UBOUND(npc)) as NPCInst
@@ -796,7 +796,7 @@ SUB reloadmap_npcd()
  safekill mapstatetemp(gam.map.id, "map") + "_n.tmp"
 
  DIM filename as string = maplumpname(gam.map.id, "n")
- lump_reloading.npcd.hash = hash_file(filename)
+ lump_reloading.npcd.hash = file_hash64(filename)
  LoadNPCD filename, npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
@@ -815,7 +815,7 @@ SUB reloadmap_tilemap_and_tilesets(merge as bool)
   lump_reloading.maptiles.changed = NO
 
   DIM filename as string = maplumpname(gam.map.id, "t")
-  lump_reloading.maptiles.hash = hash_file(filename)
+  lump_reloading.maptiles.hash = file_hash64(filename)
   IF merge THEN
    'Note: Its possible for this to fail if the number of layers differs
    MergeTileMaps maptiles(), filename, tmpdir + "mapbackup.t"
@@ -850,7 +850,7 @@ SUB reloadmap_passmap(merge as bool)
   lump_reloading.passmap.changed = NO
 
   DIM filename as string = maplumpname(gam.map.id, "p")
-  lump_reloading.passmap.hash = hash_file(filename)
+  lump_reloading.passmap.hash = file_hash64(filename)
   IF merge THEN
    MergeTileMap pass, filename, tmpdir + "mapbackup.p"
   ELSE
@@ -872,7 +872,7 @@ SUB reloadmap_foemap()
   lump_reloading.foemap.dirty = NO
   DIM filename as string = maplumpname(gam.map.id, "e")
   LoadTileMap foemap, filename
-  lump_reloading.foemap.hash = hash_file(filename)
+  lump_reloading.foemap.hash = file_hash64(filename)
  END IF
 END SUB
 
@@ -888,7 +888,7 @@ SUB reloadmap_zonemap()
  DIM filename as string = maplumpname(gam.map.id, "z")
  IF isfile(filename) THEN
   LoadZoneMap zmap, filename
-  lump_reloading.zonemap.hash = hash_file(filename)
+  lump_reloading.zonemap.hash = file_hash64(filename)
  ELSE
   CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
   lump_reloading.zonemap.hash = 0
@@ -1551,7 +1551,7 @@ FUNCTION try_reload_map_lump(basename as string, extn as string) as integer
 
   'This is one of the current map's lumps
 
-  DIM newhash as integer = hash_file(workingdir + basename + "." + extn)
+  DIM newhash as ulongint = file_hash64(workingdir + basename + "." + extn)
 
   SELECT CASE typecode
    CASE "t"  '--all modes supported

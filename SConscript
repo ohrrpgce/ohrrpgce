@@ -784,6 +784,7 @@ base_modules +=   ['util.bas',
                    'unicode.c',
                    'array.c',
                    'miscc.c',
+                   'lib/sha1.c',
                    'filelayer.cpp',
                    'vector.bas']
 

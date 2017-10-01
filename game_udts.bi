@@ -275,7 +275,7 @@ TYPE LumpReloadState
   mode      as integer  'one of the loadmode constants in const.bi
   dirty     as bool     'whether a script has modified this (referring to current map, if applicable)
   changed   as bool     'whether modified by Custom and not reloaded
-  hash      as integer  'used to store file_hash of last version loaded
+  hash      as ulongint 'used to store file_hash64 of last version loaded
 END TYPE
 
 TYPE LumpReloadOptions

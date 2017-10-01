@@ -14,6 +14,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "config.bi"
 #include "util.bi"
 #include "cutil.bi"
+#include "lib/sha1.bi"
 #include "os.bi"
 #include "common_base.bi"
 #include "lumpfile.bi"
@@ -1274,40 +1275,76 @@ SUB remove_string_cache (cache() as IntStrPair, byval key as integer)
  NEXT
 END SUB
 
-FUNCTION strhash(hstr as string) as unsigned integer
- RETURN stringhash(cptr(zstring ptr, strptr(hstr)), len(hstr))
-END FUNCTION
+
+'---------------- Hash Functions --------------
 
 
-'------------- File Functions -------------
-
-
-'Uses strhash, which is pretty fast despite being FB. I get 56MB/s on my netbook.
-'Please not do depend on the algorithm not changing.
-FUNCTION hash_file(filename as string) as unsigned integer
+'Return the SHA1 hash of a file.
+SUB file_hash_SHA1(filename as string, result_out as SHA160 ptr)
   DIM fh as integer = FREEFILE
   IF OPENFILE(filename, FOR_BINARY, fh) THEN
-    debug "hash_file: couldn't open " & filename
-    RETURN 0
+    debug "file_hash: couldn't open " & filename
+    memset result_out, 0, 20
+    EXIT SUB
   END IF
+  file_hash_SHA1(fh, result_out)
+  CLOSE #fh
+END SUB
+
+'Read a whole file (clobbering file position) and return its SHA1 hash.
+SUB file_hash_SHA1(fh as integer, result_out as SHA160 ptr)
   DIM size as integer = LOF(fh)
-  DIM hash as unsigned integer = size
-  hash += hash SHL 8
+  SEEK fh, 1
   DIM buf(4095) as ubyte
+  DIM ctx as SHA1_CTX
+  SHA1Init(@ctx)
   WHILE size > 0
     DIM readamnt as size_t
     fgetiob fh, , @buf(0), 4096, @readamnt
-    IF readamnt < size AND readamnt <> 4096 THEN
-      debug "hash_file: fgetiob failed!"
-      RETURN 0
+    IF readamnt <= 0 THEN
+      debug "file_hash: fgetiob failed!"
+      memset result_out, 0, 20
+      EXIT SUB
     END IF
-    hash xor= stringhash(cptr(zstring ptr, @buf(0)), readamnt)
-    hash += ROT(hash, 5)
-    size -= 4096
+    SHA1Update(@ctx, cptr(zstring ptr, @buf(0)), readamnt)
+    size -= readamnt
   WEND
-  CLOSE #fh
-  RETURN hash
+  SHA1Final(result_out, @ctx)
+END SUB
+
+'Return a 64 bit hash (first 64 bits of SHA1) of a file
+'(Note: if you use HEX to print this, the bytes will appear reversed on a little-endian machine)
+FUNCTION file_hash64(filename as string) as ulongint
+  DIM hash as SHA160
+  file_hash_SHA1 filename, @hash
+  RETURN *CAST(ulongint ptr, @hash)
 END FUNCTION
+
+'Return a 64 bit hash (first 64 bits of SHA1) of a file (clobbers file position)
+'(Note: if you use HEX to print this, the bytes will appear reversed on a little-endian machine)
+FUNCTION file_hash64(fh as integer) as ulongint
+  DIM hash as SHA160
+  file_hash_SHA1 fh, @hash
+  RETURN *CAST(ulongint ptr, @hash)
+END FUNCTION
+
+'Format a SHA1 hash to a hex string (length 40)
+FUNCTION SHA1_to_string(hash as SHA160) as string
+  DIM ret as string
+  FOR idx as integer = 0 TO 19
+   ret &= LCASE(HEX(hash[idx], 2))
+  NEXT
+  RETURN ret
+END FUNCTION
+
+'A fast hash function suitable for hashmaps
+FUNCTION strhash(hstr as string) as unsigned integer
+  RETURN stringhash(cptr(zstring ptr, strptr(hstr)), len(hstr))
+END FUNCTION
+
+
+'---------- Path and File functions -----------
+
 
 'Change / to \ in paths on Windows
 FUNCTION normalize_path(filename as string) as string

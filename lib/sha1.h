@@ -37,7 +37,11 @@ void SHA1Final(
     );
 
 void SHA1(
-    char *hash_out,
+    unsigned char hash_out[20],
+    const char *str,
+    int len);
+
+uint64_t SHA1_64(
     const char *str,
     int len);
 
