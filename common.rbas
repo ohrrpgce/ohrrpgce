@@ -442,7 +442,7 @@ END FUNCTION
 'Draw a wrapped string in a box, by default at the middle of the page.
 'You can optionally specify a maximum width (default whole screen)
 'If shrink=NO then the textbox extends to maximum width, otherwise its width is minimal.
-SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO)
+SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as RelPos = pCentered, width as RelPos = -1, shrink as bool = NO, suppress_borders as bool = NO)
  IF col = -1 THEN col = uilook(uiText)
  IF width = -1 THEN width = small(vpages(page)->w - 20, 450)
  DIM size as XYPair = textsize(msg, width, fontEdged)
@@ -452,7 +452,7 @@ SUB basic_textbox (msg as string, col as integer = -1, page as integer, ypos as 
   size.w = relative_pos(width, vpages(page)->w)
   text_xpos = rCenter - size.w \ 2
  END IF
- edgeboxstyle pCentered, ypos - 5, size.w + 10, size.h + 10, 2, page
+ edgeboxstyle pCentered, ypos - 5, size.w + 10, size.h + 10, 2, page, , suppress_borders
  wrapprint msg, text_xpos, ypos, col, page, width '- rCenter + size.w \ 2
 END SUB
 

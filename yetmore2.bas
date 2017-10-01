@@ -1860,8 +1860,10 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
   LPM_append_force_reload_item menu1, tooltips(), "npc instances", .npcl, 105, YES  'NPCL is virtually always dirty
   LPM_append_force_reload_item menu1, tooltips(), "npc definitions", .npcd, 106
 
-  LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
-  tooltips(UBOUND(tooltips)) += " (Read Help file!)"
+  IF running_as_slave THEN 'Not useful otherwise
+   LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
+   tooltips(UBOUND(tooltips)) += " (Read Help file!)"
+  END IF
 
   init_menu_state st1, menu1
   REDIM PRESERVE tooltips(menu1.numitems - 1)
@@ -1881,11 +1883,14 @@ SUB live_preview_menu ()
  menu1.boxstyle = 3
  menu1.translucent = YES
  menu1.min_chars = 38
+ menu1.offset.y = -6
 
  REDIM tooltips() as string
 
  ensure_normal_palette
  force_use_mouse += 1
+ DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
+ showmousecursor
  setkeys
  DO
   setwait 55
@@ -1962,7 +1967,7 @@ SUB live_preview_menu ()
   copypage holdscreen, vpage
   draw_menu menu1, st1, vpage
   IF LEN(tooltips(st1.pt)) THEN
-   basic_textbox tooltips(st1.pt), , vpage, pBottom - 2, , YES
+   basic_textbox tooltips(st1.pt), , vpage, pBottom, , YES, YES
   END IF
   setvispage vpage
   dowait
@@ -1970,5 +1975,6 @@ SUB live_preview_menu ()
  setkeys
  restore_previous_palette
  force_use_mouse -= 1
+ setcursorvisibility(prev_mouse_vis)
  freepage holdscreen
 END SUB
