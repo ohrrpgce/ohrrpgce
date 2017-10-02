@@ -1743,6 +1743,22 @@ SUB DrawSliceAnts (byval sl as Slice Ptr, byval dpage as integer)
    NEXT idx
   END IF
  END IF
+
+ '--For panels, draw the outlines of the two panel areas
+ '--(This is a bit different from outlines for all other slices, because it takes padding,
+ '--etc. into account. Arguably Grids could do the same)
+ IF sl->SliceType = slPanel THEN
+  DIM dat as PanelSliceData Ptr = sl->SliceData
+  IF dat THEN
+   FOR childindex as integer = 0 TO 1
+    DIM ppos as XYPair
+    DIM psize as XYPair
+    CalcPanelArea ppos, psize, sl, childindex
+    ppos += sl->ScreenPos
+    drawants vpages(dpage), ppos.x, ppos.y, psize.x, psize.y
+   NEXT
+  END IF
+ END IF
 END SUB
 
 FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string

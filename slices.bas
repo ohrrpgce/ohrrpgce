@@ -2611,9 +2611,8 @@ Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->padding = LoadProp(node, "padding")
 End Sub
 
-Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval ch as Slice ptr, byval index as integer)
+Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
 
- if ch = 0 then debug "CalcPanelArea null ch ptr": exit sub
  if par = 0 then debug "CalcPanelArea null par ptr": exit sub
 
  if index > 1 then
@@ -2682,7 +2681,7 @@ Sub PanelChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex 
 
  dim ppos as XYPair
  dim psize as XYPair
- CalcPanelArea ppos, psize, par, ch, childindex
+ CalcPanelArea ppos, psize, par, childindex
  
  with *ch
   select case ch->AlignHoriz
@@ -2724,7 +2723,7 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
   do while ch <> 0
    
    if .Clip then
-    CalcPanelArea clippos, clipsize, s, ch, index
+    CalcPanelArea clippos, clipsize, s, index
     clippos.x += .ScreenX
     clippos.y += .ScreenY
     dim clipview as Frame ptr

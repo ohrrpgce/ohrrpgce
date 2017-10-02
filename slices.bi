@@ -579,6 +579,7 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
 DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
 DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
 DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
+DECLARE Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
