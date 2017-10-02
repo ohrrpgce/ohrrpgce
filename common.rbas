@@ -1126,10 +1126,12 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
   fatal_error_shutdown
  END IF
 
+ DIM prompt_to_quit as bool = NO
  DIM quitmsg as string
  quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
  IF isfatal THEN
   quitmsg += "Press any key to quit."
+  prompt_to_quit = YES
  ELSE
   IF msg = last_error THEN
    quitmsg += !"(Error repeated)\n"
@@ -1137,12 +1139,13 @@ SUB showerror (msg as string, byval isfatal as bool = NO, isbug as bool = NO)
   END IF
   IF num_errors >= 3 THEN
    quitmsg += "Press ESC to cleanly quit, or any other key to ignore and try to continue."
+   prompt_to_quit = YES
   ELSE
    quitmsg += "Press any key to try to continue."
   END IF
  END IF
  #IFDEF IS_CUSTOM
-  IF cleanup_workingdir_on_error = NO THEN
+  IF prompt_to_quit ANDALSO cleanup_workingdir_on_error = NO THEN
    quitmsg += !"\nThe editing state of the game will be preserved"
    IF isfatal = NO THEN quitmsg += " if you quit immediately"
    quitmsg += "; run " + CUSTOMEXE + " again and you will be asked whether you want to recover it."
