@@ -3847,7 +3847,7 @@ SUB load_script_triggers_and_names()
   REDIM lookup1_bin_cache(-1 TO records - 1)
 
   DIM idx as integer = 0
-  WHILE loadrecord(buf(), fh, 20, idx)
+  WHILE loadrecord(buf(), fh, 20, idx, NO)
    DIM script_id as integer = buf(0)
    DIM trigger_id as integer = idx + 16384
    DIM scrname as string = readbinstring(buf(), 1, 36)
@@ -3870,7 +3870,7 @@ SUB load_script_triggers_and_names()
   debuginfo "plotscr.lst missing"  'Never imported any scripts
  ELSE
   DIM idx as integer = 0
-  WHILE loadrecord(buf(), fh, 20, idx)
+  WHILE loadrecord(buf(), fh, 20, idx, NO)
    DIM script_id as integer = buf(0)
    DIM scrname as string = readbinstring(buf(), 1, 38)
    'debug "plotscr.lst:  script " & id & " " & scrname

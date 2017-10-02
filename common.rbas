@@ -1358,9 +1358,9 @@ END SUB
 
 FUNCTION getmapname (byval mapnum as integer) as string
  DIM nameread(39) as integer
- ' Ignore a missing .mn file
+ ' Ignore a missing .mn file, but allow partially missing records...
  IF loadrecord(nameread(), game + ".mn", 40, mapnum, NO, YES) THEN
-  ' Note the size of the record is twice the max size of the map name, which is a mistake.
+  ' ...because the size of the record is twice the max size of the map name, which is a mistake.
   DIM a as string = STRING(small((nameread(0) AND 255), 39), " ")
   array2str nameread(), 1, a
   RETURN a

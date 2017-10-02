@@ -253,22 +253,26 @@ end function
 'handled transparently by the Lump object rather than actually occurring
 
 
-function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, partial_retval as bool = NO) as bool
-'loads 16bit records in an array
-'buf() = buffer to load shorts into, starting at buf(0)
-'fh = open file handle
-'recordsize = record size in shorts (not bytes)
-'record = record number, defaults to read from current file position
+function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1, expectexists as bool = YES, partial_retval as bool = NO) as bool
+'Loads a 16bit record into an array (performing 16 -> 32 bit expansion)
+'buf():   Buffer to load shorts into, starting at buf(0)
+'fh:      Open file handle
+'recordsize:
+'         Record size in shorts (not bytes)
+'record:  Record number, defaults to read from current file position
+'partial_retval:
+'         Return value if the record is partially off the end of the file.
+'expectexists:
+'         If true, log an error if the record is off the end of the file.
 'Returns true if successful, false if failure (eg. file too short,
-'in which case buf() is filled with zeroes.). If the record is partially
-'off the end of the file, the return value is partial_retval.
+'in which case buf() is filled with zeroes.).
 'Even if the file is too short, reads as much as possible, regardless of partial_retval.
 
 	dim starttime as double = timer
 	dim idx as integer
 	if recordsize <= 0 then return NO
 	if ubound(buf) < recordsize - 1 then
-		debugc errBug, "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
+		debugc errPromptBug, "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array, in " & get_filename(fh)
 		'continue, fit in as much as possible
 	end if
 	dim readbuf(recordsize - 1) as short
@@ -286,8 +290,10 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 		else
 			ret = NO
 		end if
-		' Warning: filename will be wrong if OPENFILE wasn't used
-		debuginfo "loadrecord: record " & record & " is " & partially & "off the end of (?)" & get_filename(fh)
+		if expectexists andalso ret = NO then
+			' Warning: filename will be wrong if OPENFILE wasn't used
+			debug "loadrecord: record " & record & " is " & partially & "off the end of (?)" & get_filename(fh)
+		end if
 	end if
 	get #fh, , readbuf()
 	for idx = 0 to small(recordsize - 1, ubound(buf))
@@ -297,21 +303,22 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	return ret
 end function
 
-function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as bool = YES, partial_retval as bool = NO) as bool
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectexists as bool = YES, partial_retval as bool = NO) as bool
 'wrapper for above
-'set expectfile = NO to suppress errors
+'Set expectexists = NO to suppress errors (debug messages), both missing file and missing record.
+'Errors about partially missing records are still logged unless partial_retval=YES.
 	if recordsize <= 0 then return NO
 
-	dim fh as integer = freefile
+	dim fh as integer
 	if openfile(filen, for_binary + access_read, fh) then
-		if expectfile = YES then debug "File not found loading record " & record & " from " & filen
+		if expectexists = YES then debug "File not found loading record " & record & " from " & filen
 		for i as integer = 0 to recordsize - 1
 			buf(i) = 0
 		next
 		return NO
 	end if
 
-	loadrecord = loadrecord (buf(), fh, recordsize, record, partial_retval)
+	loadrecord = loadrecord(buf(), fh, recordsize, record, expectexists, partial_retval)
 	close #fh
 end function
 
