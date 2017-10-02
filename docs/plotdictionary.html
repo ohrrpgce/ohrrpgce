@@ -2208,9 +2208,6 @@
 		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
 		
 	
-		<a href="#about-setactivebattlepauseforanimations">set active battle pause for animations (state)</a><br>
-		
-	
 		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
 		
 	
@@ -16643,22 +16640,6 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		</p>
 </div>
 		<div class="command">
-<a name="about-setactivebattlepauseforanimations"></a>
-		<h4>set active battle pause for animations (state)</h4>
-<p>
-			
-				Set the active-time battle bitset "Battle menus wait for attack animations"
-				(<span class="param">state</span> should be <span class="param">true</span> to wait, or <span class="param">false</span> to not wait),
-				which specifies whether hero battle menus should wait until attacks have finished animating before they open.
-				This option is not stored in save-games,
-				so changing it only lasts until the game is quit and reloaded.
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 <a name="about-getactivebattlepauseonallmenus"></a>
 		<h4>get active battle pause on all menus</h4>
 <p>
@@ -18059,7 +18040,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 809 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 808 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
