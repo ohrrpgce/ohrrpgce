@@ -273,11 +273,9 @@ END FUNCTION
 FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as bool = NO) as bool
  DIM triggers as TriggerSet
  DIM triggercount as integer
- DIM temp as short
  DIM fptr as integer
- DIM dotbin as integer
- DIM headersize as integer
- DIM recordsize as integer
+ DIM dotbin as bool
+ DIM scripts_bin_recordsize as integer
 
  'Under the best conditions this check is redundant, but it is still good to check anyway...
  IF NOT isfile(hsfile) THEN
@@ -302,17 +300,20 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   END IF
 
   writeablecopyfile hsfile, game + ".hsp"
-  textcolor uilook(uiMenuItem), 0
+
+  'Open either scripts.bin or (if compiled by ancient hspeak) scripts.txt to read list of scripts
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
-   dotbin = -1
+   dotbin = YES
    fptr = FREEFILE
    OPENFILE(tmpdir + "scripts.bin", FOR_BINARY, fptr)
    'load header
+   DIM headersize as integer
+   DIM temp as short
    GET #fptr, , temp
    headersize = temp
    GET #fptr, , temp
-   recordsize = temp
+   scripts_bin_recordsize = temp
    SEEK #fptr, headersize + 1
    
    'the scripts.bin lump does not have a format version field in its header, instead use header size
@@ -321,7 +322,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     RETURN NO
    END IF
   ELSE
-   dotbin = 0
+   dotbin = NO
    unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
 
    IF isfile(tmpdir + "scripts.txt") = 0 THEN
@@ -367,14 +368,12 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   END IF
 
   reset_console
+  textcolor uilook(uiMenuItem), 0
 
   gen(genNumPlotscripts) = 0
   gen(genMaxRegularScript) = 0
   DIM viscount as integer = 0
-  DIM names as string = ""
-  DIM num as string
-  DIM argc as string
-  DIM dummy as string
+  DIM scrname as string = ""
   DIM id as integer
   DIM trigger as integer
   DIM plotscr_lsth as integer = FREEFILE
@@ -387,42 +386,46 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   show_message "Imported:  "
   DO
    IF EOF(fptr) THEN EXIT DO
-   IF dotbin THEN 
+   IF dotbin THEN
     'read from scripts.bin
-    loadrecord buffer(), fptr, recordsize \ 2
+    loadrecord buffer(), fptr, scripts_bin_recordsize \ 2
     id = buffer(0)
     trigger = buffer(1)
-    names = readbinstring(buffer(), 2, 36)
+    scrname = readbinstring(buffer(), 2, 36)
    ELSE
     'read from scripts.txt
-    LINE INPUT #fptr, names
+    DIM num as string
+    DIM argc as string
+    LINE INPUT #fptr, scrname
     LINE INPUT #fptr, num
     LINE INPUT #fptr, argc
+    'Skip the default arguments (note: they're actually garbage in old hspeak versions)
     FOR i as integer = 1 TO str2int(argc)
+     DIM dummy as string
      LINE INPUT #fptr, dummy
     NEXT i
     id = str2int(num)
     trigger = 0
-    names = LEFT(names, 36)
+    scrname = LEFT(scrname, 36)
    END IF
 
    'save to plotscr.lst
    buffer(0) = id
-   writebinstring names, buffer(), 1, 36
+   writebinstring scrname, buffer(), 1, 36
    storerecord buffer(), plotscr_lsth, 20, gen(genNumPlotscripts)
    gen(genNumPlotscripts) = gen(genNumPlotscripts) + 1
    IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
    'process trigger
    IF trigger > 0 THEN
-    addtrigger names, id, triggers
+    addtrigger scrname, id, triggers
     triggercount += 1
    END IF
 
    'display progress
    IF id < 16384 OR trigger > 0 THEN
     viscount = viscount + 1
-    IF quickimport = NO THEN append_message names & ", "
+    IF quickimport = NO THEN append_message scrname & ", "
    END IF
   LOOP
   CLOSE plotscr_lsth
@@ -542,7 +545,7 @@ SUB scriptman ()
       compile_andor_import_scripts fname
      END IF
     CASE 2
-     DIM dummy as string = exportnames()
+     exportnames()
      waitforanykey
     CASE 3
      export_scripts()

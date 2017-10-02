@@ -726,11 +726,14 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 
 	of = freefile
 	if openfile(destfile, for_binary + access_write, of) then
-		debug "unlumpfile(" + srcfile + "): " + destfile + " not writable, skipping"
+		if showerrors then
+			showerror "Could not unlump " & destfile & " (file not writeable) from " & srcfile & ". Some game data will be missing."
+		else
+			debug "unlumpfile(" + srcfile + "): " + destfile + " not writable, skipping"
+		end if
 		if isfile(destfile) then
 			debug "(file already exists)"
 		end if
-		if showerrors then showerror "Could not unlump " & destfile & " (file not writeable) from " & srcfile & ". Some game data will be missing."
 		return NO
 	else
 		'copy the data
@@ -936,11 +939,12 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors 
 	errmsg = unlumpfile_internal(lumpfile, fmask, path, showerrors, verbose)
 	if len(errmsg) then
 		errmsg = lumpfile + " appears to be corrupt: " + errmsg
-		debug errmsg
 		if showerrors then
 			errmsg += !"\nIt might be possible to ignore this error, or to fix this file by running the 'unlump' tool with the --recover argument." _
 			           " Otherwise, email the developers for help. See http://rpg.hamsterrepublic.com/ohrrpgce/UNLUMP"
 			showerror errmsg
+		else
+			debug errmsg
 		end if
 	end if
 end sub
