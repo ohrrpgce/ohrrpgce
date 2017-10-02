@@ -12,6 +12,6 @@ These bitsets only apply to Active-time battle mode. They are ignored for Turn-b
 
 "Attack captions pause battle meters" pauses the battle ready meters whenever an attack dispays a text caption. Captions can possibly last longer than the attack animation that triggered them.
 
-"Pause for attack animations" pauses the battle ready meters whenever an attack is animating.
+"Battle menus wait for attack animations" prevents hero's turns from starting in the middle of attack animations. The battle menu will not appear until all animating attacks are finished.
 
 "Pause when targeting attacks" pauses the battle ready meters while the player is choosing a target.

@@ -8415,10 +8415,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			<canon>set active battle pause for animations (state)</canon>
 			<shortname>set active battle pause for animations</shortname>
 			<description>
-				Set the active-time battle bitset "Pause for attack animations"
-				(<p>state</p> should be <p>true</p> to pause, or <p>false</p> to not pause),
-				which specifies whether battle ready meters continue to increase while an attack
-				is animating.
+				Set the active-time battle bitset "Battle menus wait for attack animations"
+				(<p>state</p> should be <p>true</p> to wait, or <p>false</p> to not wait),
+				which specifies whether hero battle menus should wait until attacks have finished animating before they open.
 				This option is not stored in save-games,
 				so changing it only lasts until the game is quit and reloaded.
 			</description>

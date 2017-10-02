@@ -226,7 +226,7 @@ SUB edit_active_time_battle_bitsets()
  bitname(0) = "Pause on Spells & Items menus"
  bitname(13) = "Pause on all battle menus & targeting"
  bitname(21) = "Attack captions pause battle meters"
- bitname(23) = "Pause for attack animations"
+ bitname(23) = "Battle menus wait for attack animations"
  bitname(35) = "Pause when targeting attacks"
  edit_global_bitsets bitname(), "general_game_active_battle_bitsets"
 END SUB

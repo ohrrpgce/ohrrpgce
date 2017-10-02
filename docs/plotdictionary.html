@@ -451,6 +451,10 @@
 <a href="#Panel%20Slices">Panel Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Map%20Layer%20Slices">Map Layer Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -695,7 +699,7 @@
 		<a href="#about-checktag">check tag (tag)</a><br>
 		
 	
-		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y)</a><br>
+		<a href="#about-checkwallcollisionxy">check wall collision x (x, y, width, height, relative x, relative y, friction%)</a><br>
 		
 	
 		<a href="#about-childcount">child count (handle)</a><br>
@@ -1751,7 +1755,7 @@
 		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
 		
 	
-		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y)</a><br>
+		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
 		
 	
 		<a href="#about-multiply">number * number</a><br>
@@ -2573,6 +2577,9 @@
 		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
 		
 	
+		<a href="#about-setslicesize">set slice size (handle, width, height)</a><br>
+		
+	
 		<a href="#about-setslicetext">set slice text(handle, string id)</a><br>
 		
 	
@@ -2727,6 +2734,9 @@
 		
 	
 		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
+		
+	
+		<a href="#about-sliceismaplayer">slice is map layer (handle)</a><br>
 		
 	
 		<a href="#about-sliceismoving">slice is moving (handle)</a><br>
@@ -7976,6 +7986,25 @@ end</pre>
 							<li>NPCactivation:stepon</li>
 						</ul>
 					</li>
+					<li>
+						Alter NPC (who,NPCstat:onetime use flag,onetime flag ID)
+						<br>
+						The onetime flag (see <a href="#about-checkonetime" class="ref">check onetime</a>) is zero if the
+						NPC is usable repeatedly.
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:tag1,tag ID)
+					</li>
+					<li>
+						Alter NPC (who,NPCstat:tag2,tag ID)
+						<br>
+						These are two tag conditions which both have to be true for the NPC
+						to appear. A tag ID of 0 means no check is done (the condition is true).
+						A positive condition means that tag needs to be ON, a negative means
+						that tag needs to be OFF.
+						For example, tag1 = -4 and tag2 = 0 means the NPC appears only when
+						tag 4 is OFF.
+					</li>
 					<li>Alter NPC (who,NPCstat:script,script ID)</li>
 					<li>Alter NPC (who,NPCstat:script argument,number)</li>
 					<li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
@@ -9479,6 +9508,8 @@ showstring($1="\"A quote\"")</pre>
 			Builds a string from a template (given by <span class="param">format string ID</span>) and zero or more additional arguments, and puts the result in the string <span class="param">dest string ID</span>. This is a restricted version of the sprintf function in other programming languages. This function takes at least 2 arguments. The format string is a mix of regular text and codes like %d. For each code, one argument is read and used to substitute for the code. The codes are:<br>
 <span class="param">%d</span>: substituted with a number, printed as a decimal.<br>
 <span class="param">%x</span>: substituted with a number, printed as a unsigned 32 bit hexidecimal, in lower case and without a leading 0x.<br>
+<span class="param">%o</span>: substituted with a number, printed as a unsigned 32 bit octal number, without a leading 0o.<br>
+<span class="param">%b</span>: substituted with a number, printed as a unsigned 32 bit binary number, with a space between every 8 bits, without a leading 0b.<br>
 <span class="param">%s</span>: substituted with a string. The argument should be a valid string ID.<br>
 <span class="param">%c</span>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<br>
 <span class="param">%%</span>: substituted with a single %. In this case an argument is NOT used up.<br>
@@ -10795,6 +10826,10 @@ set menu on close script(m, @my menu exit handler)
 <a href="#Panel%20Slices">Panel Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Map%20Layer%20Slices">Map Layer Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 </li>
 		<li>
@@ -11311,13 +11346,20 @@ end
 <a name="about-setslicewidth"></a>
 		<h4>set slice width (handle, width)</h4>
 <p>
-			Changes the width of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed width.
+			
+				Changes the width of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			
 			
 			
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-slicewidth" class="ref">slice width</a>, </li>
-<li><a href="#about-setsliceheight" class="ref">set slice height</a></li>
+<li>
+<a href="#about-setsliceheight" class="ref">set slice height</a>, </li>
+<li><a href="#about-setslicesize" class="ref">set slice size</a></li>
 </ul>
 </div>
 		</p>
@@ -11326,13 +11368,40 @@ end
 <a name="about-setsliceheight"></a>
 		<h4>set slice height (handle, height)</h4>
 <p>
-			Changes the height of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed height.
+			
+				Changes the height of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			
 			
 			
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-sliceheight" class="ref">slice height</a>, </li>
-<li><a href="#about-setslicewidth" class="ref">set slice width</a></li>
+<li>
+<a href="#about-setslicewidth" class="ref">set slice width</a>, </li>
+<li><a href="#about-setslicesize" class="ref">set slice size</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setslicesize"></a>
+		<h4>set slice size (handle, width, height)</h4>
+<p>
+			
+				Changes the width and height of a slice.
+				This command doesn't work (and shows an error)
+				on sprite and map slices, on text slices that aren't set to wrap,
+				and on slices set to Fill Parent, because they all have a fixed size.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setslicewidth" class="ref">set slice width</a>, </li>
+<li><a href="#about-setsliceheight" class="ref">set slice height</a></li>
 </ul>
 </div>
 		</p>
@@ -12435,7 +12504,7 @@ end
 		</p>
 </div>
 		<div class="command">
-		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+		<h4>move slice with wallchecking (sl, relative x, relative y, friction%)</h4>
 		<p><a href="#about-moveslicewithwallchecking">Defined in the Wall checking section.</a></p>
 		</div>
 		<hr>
@@ -13044,6 +13113,10 @@ end
 <a href="#Panel%20Slices">Panel Slices</a><br>
 		<ul></ul>
 </li>
+		<li>
+<a href="#Map%20Layer%20Slices">Map Layer Slices</a><br>
+		<ul></ul>
+</li>
 </ul>
 <p>
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
@@ -13156,6 +13229,19 @@ end
 		<h4>slice is panel (handle)</h4>
 <p>
 			Returns true if the given slice <span class="param">handle</span> is a panel slice, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-sliceismaplayer"></a>
+		<h4>slice is map layer (handle)</h4>
+<p>
+			
+				Returns true if the given slice <span class="param">handle</span> is a map layer,
+				or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			
 			
 			
 			
@@ -14947,6 +15033,32 @@ The third argument is the total number of ticks that the animation should run. Y
 		<hr>
 		</div>
 		<div class="subsection">
+<a name="Map%20Layer%20Slices"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			<a href="#Slice%20Types">Slice Types</a> →
+			</span>Map Layer Slices</h3>
+		<ul></ul>
+<p>
+			Map Layer slices (also called Map slices) are special slices which display one of the
+			tilemap layers of the current map.
+			You can't create them; they always exist. Use <a href="#about-lookupslice" class="ref">lookup slice</a> to get a handle
+			for one of the map layer slices.
+			They don't have any special attributes that you can access
+			(use the <a href="#Tweaking%20Maps">map script commands</a> to modify the map instead),
+			and you can't resize them or change their parent, but you can do anything else,
+			such as move them about to create parallax effects,
+			make them invisible, reorder them, change their autosort mode, and so forth.
+		</p>
+		
+		
+		<div class="command">
+		<h4>slice is map layer (handle)</h4>
+		<p><a href="#about-sliceismaplayer">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<hr>
+		</div>
+		<div class="subsection">
 <a name="Slice%20Collision%20Testing"></a>
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
@@ -15111,7 +15223,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		</p>
 </div>
 		<div class="command">
-		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+		<h4>move slice with wallchecking (sl, relative x, relative y, friction%)</h4>
 		<p><a href="#about-moveslicewithwallchecking">Defined in the Wall checking section.</a></p>
 		</div>
 		<hr>
@@ -15554,19 +15666,21 @@ write pass block(15,3,none)
 		</div>
 		<div class="command">
 <a name="about-checkwallcollisionxy"></a>
-		<h4>check wall collision x (x, y, width, height, relative x, relative y)</h4>
+		<h4>check wall collision x (x, y, width, height, relative x, relative y, friction%)</h4>
 <p>
 			
 				and<br>
-				<span class="param">check wall collision y (x, y, width, height, relative x, relative y)</span>
+				<span class="param">check wall collision y (x, y, width, height, relative x, relative y, friction%)</span>
 				<br>
 				Check how far an object (with a rectangular "hitbox") could move in a straight line on the map
-				before hitting a wall.
+				before hitting a wall (and possibly sliding along that wall).
 				Provide the starting <span class="param">x</span> and <span class="param">y</span> map position in pixels of the top left
 				corner of the hitbox (relative to the top-left of the map),
 				its <span class="param">width</span> and <span class="param">height</span> in pixels,
 				and the <span class="param">relative x/y</span> offset of the target position of the object
 				(for example <span class="code">relative x</span> is 20 for one tile to the right).
+				See <a href="#about-moveslicewithwallchecking" class="ref">move slice with wallchecking</a> for information about what the optional <span class="param">friction%</span>
+				argument (which defaults to 100) does.
 				<br>
 				The return value is the maximum x/y offset that the object could move
 				in a straight line towards the target before hitting a wall.
@@ -15612,15 +15726,15 @@ write pass block(15,3,none)
 </div>
 		<div class="command">
 <a name="about-moveslicewithwallchecking"></a>
-		<h4>move slice with wallchecking (sl, relative x, relative y)</h4>
+		<h4>move slice with wallchecking (sl, relative x, relative y, friction%)</h4>
 <p>
 			
 				Instantly moves a slice <span class="param">sl</span> as far as possible in a straight line towards a point until
-				it hits a wall in the map's wallmap.
+				it hits a wall in the map's wallmap (and possibly slides along that wall).
 				<span class="param">relative x/y</span> provide the point to move to, relative to the slice's current position.
 				This command can be used on any slice, regardless of whether it is parented to a map layer.
 				Its position on the map is calculated based on its on-screen position (<a href="#about-slicescreenx" class="ref">slice screen x</a>, etc).
-				The slice's "colliding box" is, as you expect, the same as its size.
+				The slice's "colliding box" (or "hitbox") is, as you expect, the same as its size.
 				<br>
 				It works on slices of any size (as long as the size isn't negative),
 				even several tiles wide.
@@ -15629,13 +15743,35 @@ write pass block(15,3,none)
 				(unless the map wraps around).
 				However, if the slice already overlaps any walls they will be ignored.
 				<br>
+				<span class="param">friction%</span> is an optional percentage value from 0 to 100 which defaults to 100.
+				When it's 100, movement stops as soon as a wall is hit.
+				If it's less than 100 then the slice slides down the wall with part of its remaining
+				movement (<span class="param">relative x/y</span>), reduced by <span class="param">friction%</span> percent.
+				For example if <span class="code">relative x == 15, relative y == 3, friction% == 30</span> and
+				the slice travelled right 5 pixels before hitting a wall to the north
+				(x = 10, y = 2 movement remaining to go), then y movement gets set to 0 (because
+				we hit a wall to the north) and x movement gets reduced by 30% to 7, and the slice
+				slides up to another 7 pixels to the right (unless it hits another wall).
+				<br>
+				If you're creating a platformer or zelda-like, you probably want friction to be 0% or a low value.
+				<br>
 				The return value is a bitmask giving the directions in which the slice was
 				blocked by a wall.
 				The value is 0 if there was no collision.
 				You can use the constants <a href="#about-tileconstants" class="ref">north wall</a>, <a href="#about-tileconstants" class="ref">south wall</a>, <a href="#about-tileconstants" class="ref">east wall</a>, <a href="#about-tileconstants" class="ref">west wall</a>
-				and the bitwise-<a href="#about-and" class="ref">and</a> operator to test the bitmask.
-				For example <span class="code">bitmask, and, northwall</span> tells whether <span class="param">sl</span>
-				is hit and is now resting against a wall on its north side.
+				and the bitwise-<a href="#about-and" class="ref">and</a> operator to 'test' the bitmask.
+				For example <span class="code">bitmask, and, southwall</span> 'tests' whether <span class="param">sl</span>
+				hit and is now resting against a wall on its south side (useful for a platformer).
+				<br>
+				Diagonally hitting the corner or end  of a wall exactly (including thin wall segments) is a special case.
+				In that case the slice stops at the corner/end of the wall but is only touching it diagonally,
+				and the return value is equal to one of
+				the special constants <span class="param">northeast corner</span>, <span class="param">northwest corner</span>,
+				<span class="param">southeast corner</span>, <span class="param">southwest corner</span>,
+				all of which 'test' false when checked with
+				<a href="#about-tileconstants" class="ref">north wall</a>, <a href="#about-tileconstants" class="ref">south wall</a>, <a href="#about-tileconstants" class="ref">east wall</a>, <a href="#about-tileconstants" class="ref">west wall</a>.
+				That's because the slice isn't actually resting against any walls, although it stopped!
+				Use <a href="#about-equal" class="ref">==</a>, not <a href="#about-and" class="ref">and</a>, to check for these values.
 				<br>
 				You can check for walls without needing a slice using the alternative <a href="#about-checkwallcollisionxy" class="ref">check wall collision x/y</a> commands.
 				<div style="background-color:#DCC;" class="notice">
@@ -16511,10 +16647,9 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<h4>set active battle pause for animations (state)</h4>
 <p>
 			
-				Set the active-time battle bitset "Pause for attack animations"
-				(<span class="param">state</span> should be <span class="param">true</span> to pause, or <span class="param">false</span> to not pause),
-				which specifies whether battle ready meters continue to increase while an attack
-				is animating.
+				Set the active-time battle bitset "Battle menus wait for attack animations"
+				(<span class="param">state</span> should be <span class="param">true</span> to wait, or <span class="param">false</span> to not wait),
+				which specifies whether hero battle menus should wait until attacks have finished animating before they open.
 				This option is not stored in save-games,
 				so changing it only lasts until the game is quit and reloaded.
 			
@@ -17924,7 +18059,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 807 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 809 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
