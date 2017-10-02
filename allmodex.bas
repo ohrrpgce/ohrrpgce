@@ -200,7 +200,8 @@ dim shared skipped_frame as SkippedFrame    'Records the last setvispage call if
 
 dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if none.
                                             'Virtually always vpage; in fact using anything other than vpage
-                                            'would cause a lot of functions like multichoice to glitch
+                                            'would cause a lot of functions like multichoice to glitch.
+                                            'Don't use this directly; call getvispage instead!
 
 #IFDEF __FB_DARWIN__
 	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
@@ -899,6 +900,15 @@ sub SkippedFrame.show ()
 	end if
 end sub
 
+' The last/currently displayed  videopage (or a substitute: guaranteed to be valid)
+function getvispage() as integer
+	if last_setvispage >= 0 andalso last_setvispage <= ubound(vpages) _
+	   andalso vpages(last_setvispage) then
+		return last_setvispage
+	end if
+	return vpage
+end function
+
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 'skippable: if true, allowed to frameskip this frame at high framerates
@@ -1073,7 +1083,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 
 	if updatepal then
 		maybe_do_gfx_setpal
-		gif_record_frame vpages(last_setvispage), intpal()
+		gif_record_frame vpages(getvispage()), intpal()
 	end if
 
 	for i = 1 to 32
@@ -1105,7 +1115,7 @@ sub fadeto (byval red as integer, byval green as integer, byval blue as integer)
 
 		if i mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
-			gif_record_frame vpages(last_setvispage), intpal()
+			gif_record_frame vpages(getvispage()), intpal()
 		end if
 
 		dowait
@@ -1126,7 +1136,7 @@ sub fadetopal (pal() as RGBcolor)
 
 	if updatepal then
 		maybe_do_gfx_setpal
-		gif_record_frame vpages(last_setvispage), intpal()
+		gif_record_frame vpages(getvispage()), intpal()
 	end if
 
 	for i = 1 to 32
@@ -1157,7 +1167,7 @@ sub fadetopal (pal() as RGBcolor)
 
 		if i mod 3 = 0 then
 			' We're assuming that the page hasn't been modified since the last setvispage
-			gif_record_frame vpages(last_setvispage), intpal()
+			gif_record_frame vpages(getvispage()), intpal()
 		end if
 
 		maybe_do_gfx_setpal
@@ -1724,7 +1734,7 @@ function waitforanykey () as integer
 		end if
 		if dowait then
 			' Redraw the screen occasionally in case something like an overlay is drawn
-			setvispage last_setvispage, , YES  'Preserve contents
+			setvispage getvispage, , YES  'Preserve contents
 		end if
 	loop
 end function
@@ -6721,9 +6731,7 @@ function screenshot (basename as string) as string
 	if gfx_screenshot(basename) = 0 then
 		'otherwise save it ourselves
 		ret = basename & ".bmp"
-		if last_setvispage >= 0 then
-			frame_export_bmp(ret, vpages(last_setvispage), intpal())
-		end if
+		frame_export_bmp(ret, vpages(getvispage), intpal())
 		return ret
 	end if
 	' The reason for this for loop is that we don't know what extension the gfx backend
@@ -6739,9 +6747,7 @@ end function
 sub bmp_screenshot(basename as string)
 	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
 	'screenshot type used by the current gfx backend
-	if last_setvispage >= 0 then
-		frame_export_bmp(basename & ".bmp", vpages(last_setvispage), intpal())
-	end if
+	frame_export_bmp(basename & ".bmp", vpages(getvispage), intpal())
 end sub
 
 ' Find an available screenshot name in the current directory.
