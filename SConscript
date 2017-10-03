@@ -938,18 +938,31 @@ env_exe ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 
-hspeak_builddir = builddir + "hspeak"
-# Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
-# copy of Euphoria is installed system-wide
-euc_extra_args = ''
-if 'EUDIR' in env['ENV']:
-    euc_extra_args = '-eudir ' + env['ENV']['EUDIR']
+# Put this into a function so that we only call get_euphoria_version() when compiling
+def compile_hspeak(target, source, env):
+    hspeak_builddir = builddir + "hspeak"
+    euc_extra_args = ''
+    # Work around Euphoria bug (in 4.0/4.1), where $EUDIR is ignored if another
+    # copy of Euphoria is installed system-wide
+    if 'EUDIR' in env['ENV']:
+        euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
+    if ohrbuild.get_euphoria_version() >= 40100:
+        # On some systems, such as Arch Linux x86_64, gcc defaults to building PIE
+        # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
+        # resulting in a "recompile with -fPIC" error.
+        # But the -extra-lflags option is new in Eu 4.1
+        euc_extra_args += ' -extra-lflags -no-pie'
+
+    actions = [
+        # maxsize: cause euc to split hspeak.exw to multiple .c files
+        "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
+        "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
+    ]
+    Action(actions)(target, source, env)
+
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'), action = [
-    # maxsize: cause euc to split hspeak.exw to multiple .c files
-    "euc -con -gcc hspeak.exw -verbose -maxsize 5000 -makefile -build-dir %s " % hspeak_builddir + euc_extra_args,
-    "%s -j%d -C %s -f hspeak.mak" % (MAKE, GetOption('num_jobs'), hspeak_builddir)
-])
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e', WhereIs("euc")] + Glob('euphoria/*.e'),
+                      action = Action(compile_hspeak, "Compiling hspeak"))
 
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
