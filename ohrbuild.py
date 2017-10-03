@@ -20,7 +20,7 @@ host_win32 = platform.system() == 'Windows'
 ########################################################################
 # Utilities
 
-def get_command_output(cmd, args, shell = True):
+def get_command_output(cmd, args, shell = True, ignore_stderr = False):
     """Runs a shell command and returns stdout as a string"""
     if shell:
         # Argument must be a single string (additional arguments get passed as extra /bin/sh args)
@@ -30,13 +30,18 @@ def get_command_output(cmd, args, shell = True):
     else:
         assert isinstance(args, (list, tuple))
         cmdargs = [cmd] + args
-    proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ignore_stderr:
+        proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE)
+        errtext = ""
+    else:
+        proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.wait()  # To get returncode
-    errtext = proc.stderr.read()
     outtext = proc.stdout.read()
-    # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
-    if len(errtext) > 0 or proc.returncode:
-        exit("subprocess.Popen(%s) failed:\n%s\n%s" % (cmdargs, outtext, errtext))
+    if not ignore_stderr:
+        errtext = proc.stderr.read()
+        # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
+    if proc.returncode or errtext:
+        exit("subprocess.Popen(%s) failed:\n%s\nstderr:%s" % (cmdargs, outtext, errtext))
     return outtext.strip()
 
 ########################################################################
@@ -116,6 +121,18 @@ def query_git (rootdir):
     else:
         date, rev = '', 0
     return date, rev
+
+########################################################################
+
+def get_euphoria_version():
+    """Returns an integer like 40103 meaning 4.1.3"""
+    # euc does something really weird when you try to capture stderr. Seems to
+    # duplicate stdout to stderr
+    eucver = get_command_output("euc", ["--version"], ignore_stderr = True)
+    eucver = re.findall(" v([0-9.]+) ", eucver)[0]
+    print "Euphoria version", eucver
+    x,y,z = eucver.split('.')
+    return int(x)*10000 + int(y)*100 + int(z)
 
 ########################################################################
 # Querying fbc
