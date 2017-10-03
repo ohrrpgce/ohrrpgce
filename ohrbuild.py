@@ -31,11 +31,12 @@ def get_command_output(cmd, args, shell = True):
         assert isinstance(args, (list, tuple))
         cmdargs = [cmd] + args
     proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.wait()  # To get returncode
     errtext = proc.stderr.read()
     outtext = proc.stdout.read()
     # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
     if len(errtext) > 0 or proc.returncode:
-        raise Exception("subprocess.Popen(%s) failed;\n%s\n%s" % (cmdargs, outtext, errtext))
+        exit("subprocess.Popen(%s) failed:\n%s\n%s" % (cmdargs, outtext, errtext))
     return outtext.strip()
 
 ########################################################################
