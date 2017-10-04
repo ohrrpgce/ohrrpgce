@@ -150,7 +150,7 @@ def get_euphoria_version():
     # euc does something really weird when you try to capture stderr. Seems to
     # duplicate stdout to stderr
     eucver = get_command_output("euc", ["--version"], ignore_stderr = True)
-    eucver = re.findall(" v([0-9.]+) ", eucver)[0]
+    eucver = re.findall(" v([0-9.]+)", eucver)[0]
     print "Euphoria version", eucver
     x,y,z = eucver.split('.')
     return int(x)*10000 + int(y)*100 + int(z)
