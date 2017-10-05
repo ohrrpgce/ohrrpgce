@@ -946,11 +946,12 @@ def compile_hspeak(target, source, env):
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
         euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
-    if ohrbuild.get_euphoria_version() >= 40100:
+    if not mac and ohrbuild.get_euphoria_version() >= 40100:
         # On some systems, such as Arch Linux x86_64, gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
-        # resulting in a "recompile with -fPIC" error.
-        # But the -extra-lflags option is new in Eu 4.1
+        # resulting in a "recompile with -fPIC" error. Not needed on Mac (and only
+        # very recent clang supports -no-pie, it's -nopie in older versions).
+        # But the -extra-lflags option is new in Eu 4.1.
         euc_extra_args += ' -extra-lflags -no-pie'
 
     actions = [
