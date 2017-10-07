@@ -299,10 +299,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    RETURN NO
   END IF
 
-  writeablecopyfile hsfile, game + ".hsp"
-
   'Open either scripts.bin or (if compiled by ancient hspeak) scripts.txt to read list of scripts
-  unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
+  safekill tmpdir & "scripts.bin"
+  unlumpfile(hsfile, "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = YES
    fptr = FREEFILE
@@ -323,8 +322,8 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    END IF
   ELSE
    dotbin = NO
-   unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
-
+   safekill tmpdir + "scripts.txt"
+   unlumpfile(hsfile, "scripts.txt", tmpdir)
    IF isfile(tmpdir + "scripts.txt") = 0 THEN
     pop_warning hsfile + " appears to be corrupt. Please try to recompile your scripts."
     RETURN NO
@@ -362,23 +361,18 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     END IF
   END WITH
 
-  '--save a temporary backup copy of plotscr.lst
-  IF isfile(workingdir & SLASH & "plotscr.lst") THEN
-   copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
-  END IF
-
   reset_console
   textcolor uilook(uiMenuItem), 0
 
-  gen(genNumPlotscripts) = 0
-  gen(genMaxRegularScript) = 0
+  DIM numscripts as integer = 0
+  DIM maxscriptid as integer = 0
   DIM viscount as integer = 0
   DIM scrname as string = ""
   DIM id as integer
   DIM trigger as integer
   DIM plotscr_lsth as integer = FREEFILE
-  IF OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, plotscr_lsth) THEN
-   visible_debug "Could not open " + workingdir + SLASH + "plotscr.lst"
+  IF OPENFILE(workingdir + SLASH + "plotscr.lst.tmp", FOR_BINARY, plotscr_lsth) THEN
+   showerror "Could not open " + workingdir + SLASH + "plotscr.lst.tmp"
    CLOSE fptr
    RETURN NO
   END IF
@@ -412,9 +406,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    'save to plotscr.lst
    buffer(0) = id
    writebinstring scrname, buffer(), 1, 36
-   storerecord buffer(), plotscr_lsth, 20, gen(genNumPlotscripts)
-   gen(genNumPlotscripts) = gen(genNumPlotscripts) + 1
-   IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
+   storerecord buffer(), plotscr_lsth, 20, numscripts
+   numscripts += 1
+   IF buffer(0) > maxscriptid AND buffer(0) < 16384 THEN maxscriptid = buffer(0)
 
    'process trigger
    IF trigger > 0 THEN
@@ -431,21 +425,36 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   CLOSE plotscr_lsth
 
   'output the updated trigger table
+  DIM lookupfh as integer
+  IF OPENFILE(workingdir + SLASH + "lookup1.bin.tmp", FOR_BINARY, lookupfh) THEN
+   showerror "Couldn't open " + workingdir + SLASH + "lookup1.bin.tmp"
+   CLOSE fptr
+   RETURN NO
+  END IF
   WITH triggers
     FOR j as integer = 0 TO .size - 1
      IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .trigs[j].id = 0
      buffer(0) = .trigs[j].id
      writebinstring .trigs[j].name, buffer(), 1, 36
-     storerecord buffer(), workingdir + SLASH + "lookup1.bin", 20, j
+     storerecord buffer(), lookupfh, 20, j
      .trigs[j].DESTRUCTOR()
     NEXT
 
     DEALLOCATE(.trigs)
     DEALLOCATE(.usedbits)
   END WITH
-
-  CLOSE #fptr
+  CLOSE lookupfh
+  CLOSE fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
+
+  '--No error has occurred, so commit changes
+  writeablecopyfile hsfile, game + ".hsp"
+  '--Make a copy of the old plotscr.lst, used by autofix_broken_old_scripts
+  local_file_move workingdir + SLASH + "plotscr.lst", workingdir + SLASH + "plotscr.lst.old.tmp"
+  local_file_move workingdir + SLASH + "plotscr.lst.tmp", workingdir + SLASH + "plotscr.lst"
+  local_file_move workingdir + SLASH + "lookup1.bin.tmp", workingdir + SLASH + "lookup1.bin"
+  gen(genNumPlotscripts) = numscripts
+  gen(genMaxRegularScript) = maxscriptid
 
   '--reload lookup1.bin and plotscr.lst
   load_script_triggers_and_names
@@ -454,9 +463,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   show_message ""
   show_message "Scanning script triggers..."
   autofix_broken_old_scripts
-
-  '--erase the temporary backup copy of plotscr.lst
-  safekill tmpdir & "plotscr.lst.tmp"
+  safekill tmpdir & "plotscr.lst.old.tmp"
 
   textcolor uilook(uiText), 0
   show_message "Imported " & viscount & " plotscripts."
@@ -1422,8 +1429,7 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
   
  DIM found_name as string = ""
  
- fh = FREEFILE
- OPENFILE(tmpdir & "plotscr.lst.tmp", FOR_BINARY + ACCESS_READ, fh)
+ OPENFILE(workingdir & "plotscr.lst.tmp", FOR_BINARY + ACCESS_READ, fh)
  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF buf(0) = id THEN '--Yay! found it in the old file!
@@ -1456,8 +1462,8 @@ END FUNCTION
 'This is called after importing scripts.
 SUB autofix_broken_old_scripts()
  '--sanity test
- IF NOT isfile(tmpdir & "plotscr.lst.tmp") THEN
-  debug "can't autofix broken old scripts, can't find: " & tmpdir & "plotscr.lst.tmp"
+ IF NOT isfile(workingdir & "plotscr.lst.old.tmp") THEN
+  debug "can't autofix broken old scripts, can't find: " & workingdir & "plotscr.lst.old.tmp"
   EXIT SUB
  END IF
 
