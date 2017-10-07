@@ -1089,7 +1089,7 @@ def RPGWithScripts(rpg, main_script):
     node = env.Command('#' + rpg, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
-    Ignore(node, ["plotscr.hsd", "scancode.hsi"])  # Avoid probably-unnecessary reimporting
+    Ignore(node, [CUSTOM, "plotscr.hsd", "scancode.hsi"])  # Avoid probably-unnecessary reimporting
     SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
     return node
 
