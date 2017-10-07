@@ -1329,21 +1329,6 @@ SUB script_usage_list ()
  LOOP 
 END SUB
 
-'--This could be used in more places; makes sense to load plotscr.lst into a global
-DIM SHARED script_ids_list() as integer
-
-SUB load_script_ids_list()
- REDIM script_ids_list(large(0, gen(genNumPlotscripts) - 1))
- DIM buf(19) as integer
- DIM fh as integer
- OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
- FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
-  loadrecord buf(), fh, 20, i
-  script_ids_list(i) = buf(0)
- NEXT i
- CLOSE #fh
-END SUB
-
 '--For script_broken_trigger_list and check_broken_script_trigger
 DIM SHARED missing_script_trigger_list() as string
 
@@ -1357,7 +1342,7 @@ PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description 
   str_array_append missing_script_trigger_list(), description & " " & scriptname(trig) & " missing. " & caption 
  ELSEIF id < 16384 THEN
   '--now check for missing old-style scripts
-  IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+  IF intstr_array_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
 
   str_array_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
  ELSEIF id >= 16384 AND id = trig THEN
@@ -1369,9 +1354,6 @@ PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description 
 END FUNCTION
 
 SUB script_broken_trigger_list()
- 'Cache plotscr.lst
- load_script_ids_list
-
  REDIM missing_script_trigger_list(1) as string
  missing_script_trigger_list(0) = "Back to Previous Menu"
  missing_script_trigger_list(1) = "Export to File..."
@@ -1415,7 +1397,7 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
  IF id >= 16384 THEN RETURN NO 'New-style script
- IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+ IF intstr_array_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
 
  DIM buf(19) as integer
  DIM fh as integer
@@ -1458,9 +1440,6 @@ SUB autofix_broken_old_scripts()
   debug "can't autofix broken old scripts, can't find: " & workingdir & "plotscr.lst.old.tmp"
   EXIT SUB
  END IF
-
- 'Cache plotscr.lst
- load_script_ids_list()
 
  visit_scripts @autofix_old_script_visitor
 END SUB
