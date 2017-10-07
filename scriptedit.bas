@@ -1061,7 +1061,8 @@ END SUB
 '--is a script set there; however fields which specify either a script or
 '--something else, eg. either a script or a textbox, may be skipped)
 SUB visit_scripts(byval visitor as FnScriptVisitor)
- DIM as integer i, j, idtmp, resave
+ DIM as integer i, j, idtmp
+ DIM resave as bool
 
  '--global scripts
  visitor(gen(genNewGameScript), "new game", "")
@@ -1179,7 +1180,7 @@ END SUB
 DIM SHARED plotscript_order() as integer
 DIM SHARED script_usage_menu() as IntStrPair
 
-PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as integer
+PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as bool
  IF trig = 0 THEN RETURN NO
  '--See script_usage_list about rank calculation
  DIM rank as integer = trig
@@ -1354,7 +1355,7 @@ END SUB
 '--For script_broken_trigger_list and check_broken_script_trigger
 DIM SHARED missing_script_trigger_list() as string
 
-PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as integer
+PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as bool
  IF trig <= 0 THEN RETURN NO ' No script trigger
  '--decode script trigger
  DIM id as integer
@@ -1418,7 +1419,7 @@ SUB script_broken_trigger_list()
  REDIM missing_script_trigger_list(0)
 END SUB
 
-FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as integer
+FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as bool
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
  IF id >= 16384 THEN RETURN NO 'New-style script

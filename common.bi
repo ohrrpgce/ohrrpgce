@@ -323,6 +323,7 @@ DECLARE FUNCTION read_config_int (key as string, default as integer=0) as intege
 EXTERN sourcerpg as string
 EXTERN as string game, exename
 EXTERN game_unique_id as string
+EXTERN running_as_slave as bool
 EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle
 EXTERN as integer vpage, dpage
@@ -342,7 +343,7 @@ EXTERN app_dir as string
 EXTERN app_resources_dir as string
 EXTERN global_config_file as string
 EXTERN config_prefix as string
-EXTERN negative_zero as integer
+EXTERN negative_zero as bool
 EXTERN global_reload_doc as DocPtr
 EXTERN herotags() as HeroTagsCache
 EXTERN itemtags() as ItemTagsCache

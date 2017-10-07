@@ -10,7 +10,7 @@
 #include "slices.bi"
 #include "custom_udts.bi"
 
-TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as integer
+TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as bool
 
 DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES) as integer
 DECLARE FUNCTION tag_grabber OVERLOAD (byref n as integer, state as MenuState, byval min as integer=-99999, byval max as integer=99999, byval allowspecial as integer=YES, byval always_choice as bool=NO) as integer

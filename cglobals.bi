@@ -5,7 +5,6 @@
 '
 #include "os.bi"
 
-EXTERN timing() as integer
 EXTERN activepalette as integer
 EXTERN slave_channel as IPCChannel
 EXTERN slave_process as ProcessHandle

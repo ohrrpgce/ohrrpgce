@@ -113,8 +113,7 @@ DIM app_dir as string
 DIM slave_channel as IPCChannel = NULL_CHANNEL
 DIM slave_process as ProcessHandle = 0
 
-EXTERN running_as_slave as integer
-DIM running_as_slave as integer = NO  'This is just for the benefit of gfx_sdl
+DIM running_as_slave as bool = NO  'This is just for the benefit of gfx_sdl
 
 'Should we delete workingdir when quitting normally?
 'False if relumping workingdir failed.

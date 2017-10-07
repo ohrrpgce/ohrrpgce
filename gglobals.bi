@@ -15,7 +15,6 @@
 EXTERN prefsdir as string
 EXTERN config_file as string
 EXTERN savedir as string
-EXTERN timing() as integer
 EXTERN speedcontrol as double
 EXTERN autotestmode as bool
 EXTERN always_enable_debug_keys as bool
@@ -28,7 +27,6 @@ EXTERN err_suppress_lvl as scriptErrEnum
 EXTERN backcompat_sound_slot_mode as bool
 EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
-EXTERN running_as_slave as bool
 EXTERN custom_version as string
 EXTERN master_channel as IPCChannel
 EXTERN modified_lumps as string vector

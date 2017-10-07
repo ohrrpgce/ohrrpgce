@@ -108,16 +108,16 @@ DIM SHARED show_upgrade_messages as bool
 DIM SHARED got_upgrade_messages as bool
 
 'upgrading timing stuff
-DIM SHARED time_rpg_upgrade as integer = NO  'Change to YES, or pass --time-upgrade
+DIM SHARED time_rpg_upgrade as bool = NO  'Change to YES, or pass --time-upgrade
 DIM SHARED last_upgrade_time as double
 DIM SHARED upgrade_overhead_time as double
 DIM SHARED upgrade_start_time as double
 
 'Upgrade all game data (required for writing), or only enough to allow reading?
 #IFDEF IS_CUSTOM
-DIM SHARED full_upgrade as integer = YES
+DIM SHARED full_upgrade as bool = YES
 #ELSE
-DIM SHARED full_upgrade as integer = NO
+DIM SHARED full_upgrade as bool = NO
 #ENDIF
 
 ' Debug log stuff

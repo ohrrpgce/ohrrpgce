@@ -50,10 +50,6 @@ end type
 #endif
 
 
-
-'Not extern C
-EXTERN running_as_slave as integer
-
 EXTERN "C"
 
 #IFDEF __FB_ANDROID__
