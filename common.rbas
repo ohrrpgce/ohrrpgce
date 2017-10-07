@@ -267,9 +267,8 @@ PRIVATE SUB archive_log_file(logfile as string, archivefile as string)
  END IF
 
  CLOSE #archive
- safekill archivefile
  archive = FREEFILE
- OPEN archivefile FOR BINARY as archive
+ OPEN archivefile FOR BINARY ACCESS WRITE as archive
  PUT #archive, , *buf, copyamount
 
  IF LOF(dlog) > buflen THEN
@@ -3802,10 +3801,7 @@ END IF
 IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  upgrade_message "Upgrading Song Name format..."
  DIM song(99) as string
- fh = FREEFILE
- OPENFILE(game + ".sng", FOR_BINARY, fh)
- DIM temp as integer = LOF(fh)
- CLOSE #fh
+ DIM temp as integer = FILELEN(game + ".sng")
  IF temp > 0 THEN
   OPENFILE(game + ".sng", FOR_INPUT, fh)
   FOR i as integer = 0 TO 99

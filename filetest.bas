@@ -74,6 +74,24 @@ startTest(readFile)
 	if line_in <> "hello" then fail
 endTest
 
+startTest(openForReadWriteOk)
+	if openfile("_testfile.tmp", for_binary + access_read_write, fh) then fail
+	' The length is 6 on unix and 7 on windows
+	if lof(fh) <> 6 andalso lof(fh) <> 7 then fail
+	close fh
+	' Should be the same, default is access_read_write
+	if openfile("_testfile.tmp", for_binary, fh) then fail
+	if lof(fh) <> 6 andalso lof(fh) <> 7 then fail
+	close fh
+endTest
+
+startTest(openForWriteTruncates)
+	if openfile("_testfile.tmp", for_binary + access_write, fh) then fail
+	if lof(fh) <> 0 then fail
+	close fh
+	if real_isfile("_testfile.tmp") = NO then fail
+endTest
+
 startTest(makeReadOnly)
 	' setwriteable only implemented on Windows
 	#ifdef __FB_WIN32__

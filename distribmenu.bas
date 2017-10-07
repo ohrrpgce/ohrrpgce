@@ -347,7 +347,6 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
  IF isfile(txtfile) THEN
   IF dist_yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
  END IF
- safekill txtfile
  write_readme_text_file txtfile, LE
  IF isfile(txtfile) THEN dist_info "Created " & shortname, errInfo
  
@@ -390,7 +389,7 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
 
  '--write the file to disk
  DIM fh as integer = FREEFILE
- OPEN filename for binary as #fh
+ OPEN filename for binary access write as #fh
  PUT #fh, , s
  CLOSE #fh
   

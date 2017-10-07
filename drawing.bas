@@ -4225,6 +4225,7 @@ SUB SpriteSetEditor.export_gif(fname as string, anim_name as string, transparent
   IF GifBegin(@writer, fopen(fname, "wb"), outsize.w, outsize.h, 1, transparent, @gifpal) = NO THEN
     debug "GifWriter(" & fname & ") failed"
     safekill fname
+    EXIT SUB
   END IF
 
   CONST frameTime as integer = 5  'In hundreds of a second

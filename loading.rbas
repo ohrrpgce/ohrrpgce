@@ -100,10 +100,7 @@ END SUB
 SUB SaveNPCD(file as string, dat() as NPCType)
   DIM as integer i, j, f
 
-  'We want to truncate the file to the right length
-  safekill file
-
-  OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'Should also truncate
+  OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'Truncate to zero
   SEEK #f, 8  'Skip garbage bsave header
 
   DIM as integer recordlen = getbinsize(binN) \ 2
@@ -702,8 +699,7 @@ END FUNCTION
 
 SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
-  safekill filename
-  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
+  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Truncate to zero
   writeshort fh, 8, tmap.wide
   writeshort fh, 10, tmap.high
   PUT #fh, 12, *tmap.data, tmap.wide * tmap.high
@@ -712,8 +708,7 @@ END SUB
 
 SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
-  safekill filename
-  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
+  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Truncate to zero
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
   SEEK #fh, 12

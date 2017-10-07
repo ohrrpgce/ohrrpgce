@@ -2746,7 +2746,6 @@ sub start_recording_input (filename as string)
 	end if
 	if isfile(filename) then
 		debug "Replacing the input recording that already existed at """ & filename & """"
-		safekill filename
 	end if
 	record.constructor()  'Clear data
 	if openfile(filename, for_binary + access_write, record.file) then
@@ -5786,8 +5785,7 @@ private function write_bmp_header(filen as string, w as integer, h as integer, b
 	info.biClrUsed = 1 shl bitdepth
 	info.biClrImportant = 1 shl bitdepth
 
-	safekill filen
-	if openfile(filen, for_binary + access_write, of) then
+	if openfile(filen, for_binary + access_write, of) then  'Truncate
 		debugc errError, "write_bmp_header: couldn't open " & filen
 		return -1
 	end if
