@@ -46,6 +46,8 @@ break exit
 commands 3
 	bye
 end
+# Hook engine shutting itself down abnormally
+break FATAL_ERROR_SHUTDOWN
 
 handle SIGPIPE nostop noprint pass
 source misc/gdbscripts
