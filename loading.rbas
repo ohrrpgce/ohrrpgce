@@ -1423,7 +1423,7 @@ End SUB
 Sub SerDoorLinks(filename as string, array() as doorlink, byval withhead as bool = YES)
 	dim as integer f, i
 
-	if openfile(filename, for_output + access_write, f) <> fberrOK then  'truncates
+	if openfile(filename, for_output, f) <> fberrOK then  'truncates
 		showerror "Couldn't save " & filename
 		exit sub
 	end if
@@ -3911,7 +3911,7 @@ SUB load_string_list(array() as string, filename as string)
  IF isfile(filename) THEN
 
   DIM fh as integer = FREEFILE
-  OPENFILE(filename, FOR_INPUT + ACCESS_READ, fh)
+  OPENFILE(filename, FOR_INPUT, fh)
 
   DIM s as string
  

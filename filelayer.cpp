@@ -185,8 +185,13 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			mode = FB_FILE_MODE_APPEND;
 			break;
 		default:
-			fatal_error("OPENFILE: bad flags %x", openbits);
+			debug(errPromptBug, "OPENFILE: bad flags (bad FOR): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
+	}
+
+	if ((openbits & FOR_MASK) != FOR_BINARY && (openbits & ACCESS_MASK)) {
+		debug(errPromptBug, "OPENFILE: bad flags (ACCESS_* only valid with FOR_BINARY): %x", openbits);
+		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	switch(openbits & ACCESS_MASK) {
@@ -205,7 +210,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			access = FB_FILE_ACCESS_READWRITE;
 			break;
 		default:
-			fatal_error("OPENFILE: bad flags %x", openbits);
+			debug(errPromptBug, "OPENFILE: bad flags (bad ACCESS): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
@@ -224,20 +229,21 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			encod = FB_FILE_ENCOD_UTF32;
 			break;
 		default:
-			fatal_error("OPENFILE: bad flags %x", openbits);
+			debug(errPromptBug, "OPENFILE: bad flags (bad ENCODING): %x", openbits);
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	if ((fnum = fb_FileFree()) == 0) {
-		fatal_error("OPENFILE: too many open files");
+		debug(errPrompt, "OPENFILE: too many open files");
 		return FB_RTERROR_ILLEGALFUNCTIONCALL;
 	}
 
 	FnFileOpen fnOpen;
 
-	// Tests for an explicit ACCESS WRITE;
+	// Test for explicitly opening for writing (but ignore opening for
+	// read+write, as that's the default).
 	// pfnLumpfileFilter is responsible for showing an error if allow_lump_writes = NO.
-	bool explicit_write = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE);
+	bool explicit_write = openbits & (ACCESS_WRITE | ACCESS_READ_WRITE | FOR_OUTPUT | FOR_APPEND);
 
 	// Create a temp copy of filename, so that the filter function can modify it
 	FBSTRING file_to_open;
@@ -253,7 +259,7 @@ FB_RTERROR OPENFILE(FBSTRING *filename, enum OPENBits openbits, int &fnum) {
 			access = FB_FILE_ACCESS_READ;
 		}
 		if (encod != FB_FILE_ENCOD_ASCII) {
-			fatal_error("OPENFILE: ENCODING not implemented for hooked files");
+			debug(errPromptBug, "OPENFILE: ENCODING not implemented for hooked files");
 			return FB_RTERROR_ILLEGALFUNCTIONCALL;
 		}
 		fnOpen = lump_file_opener;

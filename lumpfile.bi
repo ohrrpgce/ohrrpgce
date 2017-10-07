@@ -193,16 +193,17 @@ declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
 enum OPENBits
 	' FOR RANDOM (fixed sized records) not supported. Use load/storerecord() instead.
 	FOR_BINARY =        &h0010000  ' default
-	FOR_INPUT =         &h0020000  ' Text files only!
-	FOR_OUTPUT =        &h0040000  ' Text files only!
-	FOR_APPEND =        &h0080000  ' Text files only! Start at the end; can't be read from
+	FOR_INPUT =         &h0020000  ' Text files only! Reading only, not opened if doesn't exist.
+	FOR_OUTPUT =        &h0040000  ' Text files only! Write only. File created, or truncated if exists.
+	FOR_APPEND =        &h0080000  ' Text files only! Write only. Start at the end, can only write to the end.
 	FOR_MASK =          &h00F0000
-	' For files, ACCESS ANY (FB's default) means try READ_WRITE, failing that use READ.
+	' ACCESS flags can only be used with FOR_BINARY
+	' FB's OPEN defaults to ACCESS ANY.
 	' Which sounds like a misfeature to me, so let's default to ACCESS_READ_WRITE instead.
-	ACCESS_ANY =        &h0100000
-	ACCESS_READ =       &h0200000
-	ACCESS_WRITE =      &h0400000
-	ACCESS_READ_WRITE = &h0800000  ' default
+	ACCESS_ANY =        &h0100000  ' Create if needed, otherwise open for read+write, or read-only if that fails
+	ACCESS_READ =       &h0200000  ' Read only. Not created if doesn't exist.
+	ACCESS_WRITE =      &h0400000  ' Write only. Create if needed, truncate to zero length otherwise.
+	ACCESS_READ_WRITE = &h0800000  ' [Default] Read+Write. Create if needed, does not truncate
 	ACCESS_MASK =       &h0F00000
 	' Not implemented yet for hooked files, so no point using these
 	'ENCODING_ASCII =   &h1000000  ' default
@@ -240,7 +241,7 @@ Type FBErrorEnum as integer  'For compatibility with C
 'Replacement for OPEN (and FREEFILE) which is used to hook accesses to lumps, and send messages from Custom
 'to a spawned instance of Game when a modified file is closed.
 'Sets fh to a FREEFILE file number (initial value ignored).
-'Returns 0 on success, 1 on error, 2 if file doesn't exist.
+'Returns 0 on success, 1 on error, 2 if file doesn't exist and didn't open for writing.
 'Example:
 '  OPEN file FOR BINARY ACCESS READ as #fh
 'becomes:

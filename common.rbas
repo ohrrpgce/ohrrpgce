@@ -5839,7 +5839,7 @@ FUNCTION load_help_file(helpkey as string) as string
   helpfile = help_dir & SLASH & helpkey & ".txt"
   IF isfile(helpfile) THEN
    DIM fh as integer = FREEFILE
-   OPENFILE(helpfile, FOR_INPUT + ACCESS_READ, fh)
+   OPENFILE(helpfile, FOR_INPUT, fh)
    DIM helptext as string = ""
    DIM s as string
    DO WHILE NOT EOF(fh)
