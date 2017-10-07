@@ -1722,7 +1722,6 @@ SUB startingdatamenu
    state.need_update = NO
    IF lastmap <> gen(genStartMap) THEN
     DIM fh as integer
-    fh = FREEFILE
     OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY, fh)
     SEEK #fh, 8
     max(1) = Readshort(fh, -1) - 1 'map width

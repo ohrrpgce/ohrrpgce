@@ -489,7 +489,7 @@ FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 END FUNCTION
 
 SUB savemapstate_gmap(mapnum as integer, prefix as string)
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(mapstatetemp(mapnum, prefix) & "_map.tmp", FOR_BINARY, fh)
  PUT #fh, , gmap()
  CLOSE #fh
@@ -539,7 +539,7 @@ END IF
 END SUB
 
 SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool = NO)
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  DIM filebase as string = mapstatetemp(mapnum, prefix)
  IF NOT isfile(filebase & "_map.tmp") THEN
   IF dontfallback = NO THEN loadmap_gmap mapnum

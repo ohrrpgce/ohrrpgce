@@ -572,7 +572,7 @@ FUNCTION getfixbit(byval bitnum as integer) as integer
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  IF NOT isfile(f) THEN RETURN 0
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) THEN debug "Could not read " & f : RETURN 0
  DIM ub as UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
@@ -584,7 +584,7 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  IF bitnum >= sizeFixBits THEN fatalerror "setfixbit(" & bitnum & "): You forgot sizefixbits!"
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(f, FOR_BINARY, fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
  extendfile fh, (bitnum \ 8) + 1  'Prevent writing garbage
  DIM ub as UBYTE
@@ -866,7 +866,7 @@ END FUNCTION
 SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
   FOR i as integer = 0 to sets
    GET #fh, 1 + i * 2, v
@@ -881,7 +881,7 @@ END SUB
 SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, byval sets as integer)
  DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(f, FOR_BINARY, fh)
  FOR i as integer = 0 to sets
   v = poffset(i)
@@ -1030,7 +1030,7 @@ SUB setbinsize (byval id as integer, byval size as integer)
   showerror "Tried to set unknown binsize entry " & id
   RETURN
  END IF
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(workingdir & SLASH & "binsize.bin", FOR_BINARY, fh) THEN
   showerror "Failed to write binsize.bin(" & id & "), will cause data corruption!"
   RETURN
@@ -1045,7 +1045,6 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
  DIM iname as string
  DIM fh as integer
  IF isfile(gamedir + SLASH + "archinym.lmp") THEN
-  fh = FREEFILE
   OPENFILE(gamedir + SLASH + "archinym.lmp", FOR_INPUT, fh)
   LINE INPUT #fh, iname
   CLOSE #fh
@@ -1280,7 +1279,7 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
   DIM as short headsize, recsize
   DIM palbuf(767) as ubyte
 
-  DIM fh as integer = FREEFILE
+  DIM fh as integer
   OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
   GET #fh, , headsize
   GET #fh, , recsize
@@ -1299,7 +1298,7 @@ END SUB
 SUB savepalette(pal() as RGBcolor, byval palnum as integer)
  DIM as short headsize = 4, recsize = 768  'Defaults
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
  IF LOF(fh) >= 4 THEN
   GET #fh, 1, headsize
@@ -3206,9 +3205,9 @@ SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersi
     fatalerror "Impossible to upgrade game: Could not move " & lumpf
    END IF
 
-   DIM inputf as integer = FREEFILE
+   DIM inputf as integer
    OPENFILE(tempf, FOR_BINARY, inputf)
-   DIM outputf as integer = FREEFILE
+   DIM outputf as integer
    OPENFILE(lumpf, FOR_BINARY, outputf)
 
    'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
@@ -3749,7 +3748,6 @@ END IF
 IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
  '--create archinym information lump
- fh = FREEFILE
  OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, RIGHT(game, LEN(game) - LEN(workingdir + SLASH))
  PRINT #fh, version + "(previous)"
@@ -3809,7 +3807,6 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  DIM temp as integer = LOF(fh)
  CLOSE #fh
  IF temp > 0 THEN
-  fh = FREEFILE
   OPENFILE(game + ".sng", FOR_INPUT, fh)
   FOR i as integer = 0 TO 99
    INPUT #fh, song(i)
@@ -4205,7 +4202,6 @@ IF full_upgrade AND getfixbit(fixTextBoxPortrait) = 0 THEN
  'DIM box as TextBox
  DIM boxbuf(dimbinsize(binSAY)) as integer
  DIM recsize as integer = getbinsize(binSAY) \ 2
- fh = FREEFILE
  OPENFILE(game & ".say", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genMaxTextBox)
   'This was stupefying slow, by far the slowest of all upgrades
@@ -4389,7 +4385,7 @@ END SUB
 'Initialise, if needed, a lump that is missing or has length <= headersize by padding the file with zeros so that
 'it has a header if any and one record.
 SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(lumpname, FOR_BINARY, fh) THEN
   debugc errError, "Error while opening " & lumpname
   EXIT SUB
@@ -4432,7 +4428,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   END IF
   debug "fix_record_count mismatch for " & info & " lump, " & total_bytes & " is not evenly divisible by " & record_byte_size & " (" & mismatch & ")"
   '--expand the lump to have a valid total size
-  DIM fh as integer = FREEFILE
+  DIM fh as integer
   OPENFILE(lumpname, FOR_BINARY, fh)
   DO WHILE total_bytes MOD record_byte_size <> 0
    total_bytes += 1
@@ -4592,7 +4588,7 @@ END SUB
 SUB loadglobalstrings
 'we load the whole lump into memory because readglobalstring can be called
 'hunderds of times a second. It's stored in a raw format; good enough.
-DIM fh as integer = FREEFILE
+DIM fh as integer
 OPENFILE(game + ".stt", FOR_BINARY, fh)
 IF LOF(fh) > 0 THEN
  global_strings_buffer = STRING(LOF(fh), 0)
@@ -5838,7 +5834,7 @@ FUNCTION load_help_file(helpkey as string) as string
   DIM helpfile as string
   helpfile = help_dir & SLASH & helpkey & ".txt"
   IF isfile(helpfile) THEN
-   DIM fh as integer = FREEFILE
+   DIM fh as integer
    OPENFILE(helpfile, FOR_INPUT, fh)
    DIM helptext as string = ""
    DIM s as string
@@ -5864,7 +5860,7 @@ SUB save_help_file(helpkey as string, text as string)
  END IF
  DIM helpfile as string
  helpfile = help_dir & SLASH & helpkey & ".txt"
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(helpfile, FOR_OUTPUT, fh) = 0 THEN
   DIM trimmed_text as string
   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))

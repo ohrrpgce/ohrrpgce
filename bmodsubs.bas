@@ -158,7 +158,6 @@ Function GetWeaponPos(byval w as integer, byval f as integer, byval isY as integ
  'FIXME: Ack! Already did the above... using this sub!
  DIM fh as integer
  IF w >= 0 THEN
-  fh = FREEFILE
   OPENFILE(game + ".itm", FOR_BINARY, fh)
   DIM recoff as integer = w * getbinsize(binITM) + 1
   'debug "weapon " & w & " offset: " & (recoff + 156 + f * 4 + isY * 2)

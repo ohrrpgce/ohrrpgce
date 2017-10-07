@@ -544,7 +544,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    '--master palettes
    IF br.special = 4 THEN
     IF LCASE(justextension(filepath)) = "mas" THEN
-     DIM masfh as integer = FREEFILE
+     DIM masfh as integer
      OPENFILE(filepath, FOR_BINARY, masfh)
      DIM a as string = "       "
      GET #masfh, 1, a
@@ -612,7 +612,7 @@ END SUB
 ' Check whether valid RELOAD file (return true), and modify info argument
 FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
  DIM header as string = "    "
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(filepath, FOR_BINARY + ACCESS_READ, fh)
   GET #fh, 1, header
  CLOSE #fh
@@ -917,7 +917,7 @@ FUNCTION check_is_scripts_file(filepath as string) as bool
   "include,", "script,", "plotscript,", "globalvariable", "defineconstant" _
  }
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(filepath, FOR_INPUT, fh) THEN RETURN NO
  DIM s as string
  FOR i as integer = 0 TO 49 'Only bother to check the first 50 lines uncommented lines

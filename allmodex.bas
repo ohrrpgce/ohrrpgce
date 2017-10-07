@@ -2749,7 +2749,6 @@ sub start_recording_input (filename as string)
 		safekill filename
 	end if
 	record.constructor()  'Clear data
-	record.file = FREEFILE
 	if openfile(filename, for_binary + access_write, record.file) then
 		stop_recording_input "Couldn't open " & filename
 		record.file = -1
@@ -2815,7 +2814,6 @@ sub start_replaying_input (filename as string, num_repeats as integer = 1)
 	replay.constructor()     'Reset
 	replay_kb.constructor()  'Reset
 	replay.filename = filename
-	replay.file = FREEFILE
 	if openfile(filename, for_binary + access_read, replay.file) then
 		stop_replaying_input "Couldn't open " & filename
 		replay.file = -1
@@ -3606,9 +3604,7 @@ sub storemxs (fil as string, byval record as integer, byval fr as Frame ptr)
 
 	CHECK_FRAME_8BIT(fr)
 
-	if NOT fileiswriteable(fil) then exit sub
-	f = freefile
-	openfile(fil, for_binary + access_read_write, f)
+	if openfile(fil, for_binary + access_read_write, f) then exit sub
 
 	'skip to index
 	seek #f, (record*64000) + 1 'will this work with write access?
@@ -3658,7 +3654,6 @@ function frame_load_mxs (filen as string, record as integer) as Frame ptr
 		debugc errBug, "frame_load_mxs: attempted to read a negative record number " & record
 		return dest
 	end if
-	fh = freefile
 	if openfile(filen, for_binary + access_read, fh) then
 		debugc errError, "frame_load_mxs: Couldn't open " & filen
 		return dest
@@ -5792,7 +5787,6 @@ private function write_bmp_header(filen as string, w as integer, h as integer, b
 	info.biClrImportant = 1 shl bitdepth
 
 	safekill filen
-	of = freefile
 	if openfile(filen, for_binary + access_write, of) then
 		debugc errError, "write_bmp_header: couldn't open " & filen
 		return -1
@@ -5809,7 +5803,7 @@ end function
 'Only 1, 4, 8, 24, and 32 bit BMPs are accepted
 'Afterwards, the file is positioned at the start of the palette, if there is one
 function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER) as integer
-	dim bf as integer = freefile
+	dim bf as integer
 	if openfile(bmp, for_binary + access_read, bf) then
 		debug "open_bmp_and_read_header: couldn't open " & bmp
 		return -1
@@ -7535,7 +7529,7 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 	dim frsize as integer = wid * hei / 2
 	dim recsize as integer = frsize * numframes
 
-	dim fh as integer = freefile
+	dim fh as integer
 	if openfile(filen, for_binary + access_read, fh) then
 		debugc errError, "frame_load_4bit: could not open " & filen
 		return 0

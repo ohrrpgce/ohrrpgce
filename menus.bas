@@ -1061,7 +1061,6 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   ClearMenuData dat
   EXIT SUB
  END IF
- f = FREEFILE
  OPENFILE(menu_set.menufile, FOR_BINARY, f)
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
@@ -1107,7 +1106,6 @@ SUB LoadMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
  'we find the, first we store them in this temp array:
  REDIM itemarray(0) as MenuDefItem ptr
 
- f = FREEFILE
  OPENFILE(menu_set.itemfile, FOR_BINARY, f)
  'FIXME: this shouldn't be here, it's covered in upgrade() (but commented out currently)
  actual_record_count = LOF(f) / getbinsize(binMENUITEM)
@@ -1169,7 +1167,6 @@ END SUB
 SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
  DIM f as integer
  DIM bits(0) as integer
- f = FREEFILE
  OPENFILE(menu_set.menufile, FOR_BINARY, f)
  SEEK #f, record * getbinsize(binMENUS) + 1
  WITH dat
@@ -1204,7 +1201,6 @@ SUB SaveMenuItems(menu_set as MenuSet, menu as MenuDef, byval record as integer)
  DIM mi as MenuDefItem ptr
  DIM blankmi as MenuDefItem
  
- f = FREEFILE
  OPENFILE(menu_set.itemfile, FOR_BINARY, f)
  'Loop through each record and orphan all old entries for this menu
  FOR i = 0 TO gen(genMaxMenuItem)

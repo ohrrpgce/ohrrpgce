@@ -65,7 +65,6 @@ sub bam2mid(infile as string, outfile as string)
 	end if
 
 	'open both files
-	f1 = freefile
 	openfile(infile, for_binary, f1)
 	if err <> 0 then
 		'debug "File " + infile + " could not be opened."
@@ -81,7 +80,6 @@ sub bam2mid(infile as string, outfile as string)
 
 	kill outfile
 
-	f2 = freefile
 	openfile(outfile, for_binary, f2)
 	if err <> 0 then
 		'debug "Output file " + outfile + " could not be opened."

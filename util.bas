@@ -1281,7 +1281,7 @@ END SUB
 
 'Return the SHA1 hash of a file.
 SUB file_hash_SHA1(filename as string, result_out as SHA160 ptr)
-  DIM fh as integer = FREEFILE
+  DIM fh as integer
   IF OPENFILE(filename, FOR_BINARY, fh) THEN
     debug "file_hash: couldn't open " & filename
     memset result_out, 0, 20
@@ -1965,7 +1965,7 @@ FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stder
 END FUNCTION
 
 SUB touchfile (filename as string)
-  dim as integer fh = FREEFILE
+  DIM as integer fh
   IF OPENFILE(filename, FOR_BINARY, fh) THEN
     debug "touchfile(): could not open " + filename
     EXIT SUB
@@ -2697,7 +2697,6 @@ SUB xbload (filename as string, array() as integer, errmsg as string)
 		dim ilength as integer
 		dim i as integer
 		
-		ff = FreeFile
 		IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, ff) THEN
 			fatalerror errmsg
 		END IF
@@ -2748,7 +2747,6 @@ SUB xbsave (filename as string, array() as integer, bsize as integer)
 		buf(i) = array(i)
 	next
 
-	ff = FreeFile
 	OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, ff)  'Truncate
 	PUT #ff, , byt				'Magic number
 	PUT #ff, , seg				'segment - obsolete
@@ -2874,7 +2872,7 @@ END FUNCTION
 FUNCTION string_from_first_line_of_file (filename as string) as string
  'Read the first line of a text file and return it as a string.
  'ignore/removes any line-ending chars
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  DIM result as string
  OPENFILE(filename, for_input, fh)
  LINE INPUT #fh, result
@@ -2885,7 +2883,7 @@ END FUNCTION
 FUNCTION string_from_file (filename as string) as string
  'Read an entire file as a string.
  'convert the line endings to LF only
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  DIM result as string = ""
  DIM s as string
  OPENFILE(filename, for_input, fh)
@@ -2902,7 +2900,7 @@ SUB string_to_file (string_to_write as string, filename as string)
  'Write a string to a text file using native line endings
  DIM s as string = string_to_write
  replacestr string_to_write, !"\n", LINE_END
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(filename, FOR_BINARY, FH)
  PUT #fh, , s
  CLOSE #fh

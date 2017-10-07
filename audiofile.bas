@@ -42,7 +42,7 @@ function isawav(fi as string) as bool
 
 	dim chnk_ID as integer
 	dim chnk_size as integer
-	dim fh as integer = freefile
+	dim fh as integer
 	openfile(fi, for_binary + access_read, fh)
 
 	get #fh, , chnk_ID
@@ -188,7 +188,6 @@ FUNCTION valid_audio_file (filepath as string) as bool
  END SELECT
 
  IF LEN(hdmask) THEN
-  musfh = FREEFILE
   OPENFILE(filepath, FOR_BINARY, musfh)
   GET #musfh, 1, hdmask
   CLOSE #musfh

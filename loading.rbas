@@ -103,7 +103,6 @@ SUB SaveNPCD(file as string, dat() as NPCType)
   'We want to truncate the file to the right length
   safekill file
 
-  f = FREEFILE
   OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'Should also truncate
   SEEK #f, 8  'Skip garbage bsave header
 
@@ -225,7 +224,6 @@ END SUB
 SUB LoadNPCL(file as string, dat() as NPCInst)
   DIM i as integer
   DIM f as integer
-  f = FREEFILE
   OPENFILE(file, FOR_BINARY + ACCESS_READ, f)
   SEEK #f, 8
   CleanNPCL dat()
@@ -251,7 +249,6 @@ END SUB
 SUB SaveNPCL(file as string, dat() as NPCInst)
   DIM i as integer
   DIM f as integer
-  f = FREEFILE
   OPENFILE(file, FOR_BINARY + ACCESS_WRITE, f)  'truncates
   SEEK #f, 8
   FOR i = 0 to 299
@@ -623,7 +620,7 @@ END SUB
 
 'Get size of a tilemap file; returns false if badly formed
 FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as bool
-  DIM as integer fh = FREEFILE
+  DIM as integer fh
   IF OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh) <> 0 THEN RETURN NO
   WITH info
     .wide = readshort(fh, 8)  'skip over BSAVE header
@@ -648,7 +645,6 @@ SUB LoadTilemap(map as TileMap, filename as string)
   IF map.data THEN DEALLOCATE map.data
 
   DIM as integer fh
-  fh = FREEFILE
   OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
   map.wide = bound(readshort(fh, 8), 16, 32678)
   map.high = bound(readshort(fh, 10), 10, 32678)
@@ -674,7 +670,6 @@ FUNCTION LoadTilemaps(layers() as TileMap, filename as string, allowfail as bool
     layers(i).data = NULL
   NEXT
 
-  fh = FREEFILE
   OPENFILE(filename, FOR_BINARY + ACCESS_READ, fh)
   DIM as integer tempw = readshort(fh, 8)
   DIM as integer temph = readshort(fh, 10)
@@ -708,7 +703,6 @@ END FUNCTION
 SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
   safekill filename
-  fh = FREEFILE
   OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
   writeshort fh, 8, tmap.wide
   writeshort fh, 10, tmap.high
@@ -719,7 +713,6 @@ END SUB
 SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
   safekill filename
-  fh = FREEFILE
   OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)  'Should also truncate
   writeshort fh, 8, tmaps(0).wide
   writeshort fh, 10, tmaps(0).high
@@ -1392,7 +1385,6 @@ SUB DeserDoorLinks(filename as string, array() as doorlink)
 		exit sub
 	end if
 	
-	f = freefile
 	openfile(filename, for_binary + access_read, f)
 	
 	
@@ -1608,7 +1600,7 @@ Sub load_hero_from_old_dt0(filename as string, hero as herodef, byval record as 
 	if record < 0 or record > gen(genMaxHero) then debug "load_hero_from_old_dt0: fail on record:" & record : exit sub
 	if not fileisreadable(filename) then exit sub
 	
-	dim as integer f = freefile, i, j
+	dim as integer f, i, j
 	
 	ClearHeroData hero
 	
@@ -1668,7 +1660,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 	'FIXME: this sub is deprecated, and will eventually be removed.
 	if not fileiswriteable(filename) then exit sub
 	
-	dim as integer f = freefile, i, j
+	dim as integer f, i, j
 	
 	openfile(filename, for_binary, f)
 	
@@ -2081,7 +2073,6 @@ Function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer, 
  'which-frame is 0 for attack A and 1 for attack B
  'isY is NO for x and YES for y
  DIM fh as integer
- fh = FREEFILE
  OPENFILE(game & ".dt0", FOR_BINARY, fh)
  GetHeroHandPos = ReadShort(fh,hero_id * getbinsize(binDT0) + 595 + which_frame * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
@@ -2417,7 +2408,6 @@ SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  END IF
 
  DIM f as integer
- f = FREEFILE
  OPENFILE(filename, FOR_BINARY + ACCESS_READ, f)
  SEEK #f, palnum * getbinsize(binUIColors) + 1
  FOR i as integer = 0 TO uiColorOldLast
@@ -2507,7 +2497,6 @@ SUB SaveUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as
  filename = workingdir & SLASH & "uicolors.bin"
 
  DIM f as integer
- f = FREEFILE
  OPENFILE(filename, FOR_BINARY, f)
  SEEK #f, palnum * getbinsize(binUICOLORS) + 1
  FOR i as integer = 0 TO uiColorOldLast
@@ -3795,7 +3784,7 @@ END SUB
 SUB load_hsp_header(filename as string, header as HSHeader)
  WITH header
   .valid = NO
-  DIM fh as integer = FREEFILE
+  DIM fh as integer
   IF OPENFILE(filename, FOR_INPUT, fh) THEN
    debug "load_hsp_header: Could not open " & filename
    EXIT SUB
@@ -3838,7 +3827,7 @@ SUB load_script_triggers_and_names()
  REDIM script_names(0)
 
  ' Load lookup1.bin (script trigger -> script ID and name)
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh) THEN
   debuginfo "lookup1.bin missing"
   REDIM lookup1_bin_cache(-1 TO -1)
@@ -3865,7 +3854,6 @@ SUB load_script_triggers_and_names()
  END IF
 
  ' Load plotscr.lst (ID -> script name)
- fh = FREEFILE
  IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh) THEN
   debuginfo "plotscr.lst missing"  'Never imported any scripts
  ELSE
@@ -3890,7 +3878,7 @@ END SUB
 
 SUB save_string_list(array() as string, filename as string)
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh)
 
  DIM s as string
@@ -3910,7 +3898,7 @@ SUB load_string_list(array() as string, filename as string)
 
  IF isfile(filename) THEN
 
-  DIM fh as integer = FREEFILE
+  DIM fh as integer
   OPENFILE(filename, FOR_INPUT, fh)
 
   DIM s as string

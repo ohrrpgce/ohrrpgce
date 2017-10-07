@@ -2124,7 +2124,7 @@ END SUB
 
 SUB writeglobalstring (index as integer, s as string, maxlen as integer)
  IF index < 0 THEN EXIT SUB
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(game & ".stt", FOR_BINARY, fh)
  DIM ch as string
  ch = CHR(small(LEN(s), small(maxlen, 255)))

@@ -96,7 +96,7 @@ FUNCTION exportnames () as string
  printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
  setvispage 0, NO
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(outf, FOR_OUTPUT, fh)
  PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath(sourcerpg)
  PRINT #fh, ""
@@ -304,7 +304,6 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   unlumpfile(hsfile, "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
    dotbin = YES
-   fptr = FREEFILE
    OPENFILE(tmpdir + "scripts.bin", FOR_BINARY, fptr)
    'load header
    DIM headersize as integer
@@ -329,7 +328,6 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     RETURN NO
    END IF
 
-   fptr = FREEFILE
    OPENFILE(tmpdir + "scripts.txt", FOR_INPUT, fptr)
   END IF
 
@@ -339,7 +337,6 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     .size = 0
     DIM fname as string = workingdir & SLASH & "lookup1.bin"
     IF isfile(fname) THEN
-     fh = FREEFILE
      OPENFILE(fname, FOR_BINARY, fh)
      .size = LOF(fh) \ 40
     END IF
@@ -370,7 +367,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   DIM scrname as string = ""
   DIM id as integer
   DIM trigger as integer
-  DIM plotscr_lsth as integer = FREEFILE
+  DIM plotscr_lsth as integer
   IF OPENFILE(workingdir + SLASH + "plotscr.lst.tmp", FOR_BINARY, plotscr_lsth) THEN
    showerror "Could not open " + workingdir + SLASH + "plotscr.lst.tmp"
    CLOSE fptr
@@ -798,7 +795,6 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  IF missing_script_name <> "[none]" AND LEFT(missing_script_name, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
  'Look through lists of definescript scripts too
- fh = FREEFILE
  OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, fh)
  'numberedlast = firstscript + LOF(fh) \ 40 - 1
  numberedlast = firstscript + gen(genNumPlotscripts) - 1
@@ -818,7 +814,6 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
 
  CLOSE #fh
 
- fh = FREEFILE
  OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh)
  scriptmax = numberedlast + LOF(fh) \ 40
 
@@ -1008,7 +1003,7 @@ PRIVATE SUB seekscript (byref temp as integer, byval seekdir as integer, byval t
  DIM recordsloaded as integer = 0
  DIM screxists as integer = NO
 
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  DIM num_triggers as integer = LOF(fh) \ 40
  IF temp = -1 THEN temp = num_triggers + 16384
@@ -1230,7 +1225,6 @@ SUB script_usage_list ()
  DIM num_fixed_menu_items as integer = 2
 
  'Loop through old-style non-autonumbered scripts
- fh = FREEFILE
  OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
@@ -1245,7 +1239,6 @@ SUB script_usage_list ()
  'Loop through new-style plotscripts
 
  'First, a detour: determine the alphabetic rank of each plotscript
- fh = FREEFILE
  OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  REDIM plotscripts(0) as string
  WHILE loadrecord(buf(), fh, 20)
@@ -1343,7 +1336,6 @@ SUB load_script_ids_list()
  REDIM script_ids_list(large(0, gen(genNumPlotscripts) - 1))
  DIM buf(19) as integer
  DIM fh as integer
- fh = FREEFILE
  OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh)
  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
@@ -1442,7 +1434,6 @@ FUNCTION autofix_old_script_visitor(byref id as integer, description as string, 
  
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
- fh = FREEFILE
  OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY, fh)
  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i

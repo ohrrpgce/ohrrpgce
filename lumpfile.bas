@@ -343,7 +343,7 @@ end sub
 
 sub storerecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0)
 'wrapper for above
-	dim fh as integer = freefile
+	dim fh as integer
 	if openfile(filen, for_binary + access_read_write, fh) then
 		debug "could not write record to " & filen
 		exit sub
@@ -364,9 +364,7 @@ function compare_files_by_record(differences() as integer, leftfile as string, r
 	redim differences(0)
 
 	dim as integer fh1, fh2
-	fh1 = freefile
 	if openfile(leftfile, for_binary + access_read, fh1) then return NO
-	fh2 = freefile
 	if openfile(rightfile, for_binary + access_read, fh2) then
 		close #fh1
 		return NO
@@ -731,7 +729,6 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 	dim of as integer
 	dim csize as integer
 
-	of = freefile
 	if openfile(destfile, for_binary + access_write, of) then
 		if showerrors then
 			showerror "Could not unlump " & destfile & " (file not writeable) from " & srcfile & ". Some game data will be missing."
@@ -830,7 +827,6 @@ sub recover_lumped_file(lumpfile as string, destpath as string = "")
 	dim filename_chars as zstring ptr = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-~."
 
 	dim lf as integer
-	lf = freefile
 	if openfile(lumpfile, for_binary + access_read, lf) <> 0 then
 		debug "recover_lumped_file: Could not open file " + lumpfile
 		exit sub
@@ -967,7 +963,6 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	dim nowildcards as integer = 0
 	dim errmsg as string  'return value
 
-	lf = freefile
 	if openfile(lumpfile, for_binary + access_read, lf) <> 0 then
 		return "Can't open file"
 	end if
@@ -1080,7 +1075,6 @@ function islumpfile (lumpfile as string, fmask as string) as bool
 	dim namelen as integer  'not including nul
 	dim ret as bool = NO
 
-	lf = freefile
 	if openfile(lumpfile, for_binary + access_read, lf) <> 0 then
 		debug "islumpfile: Can't open " + lumpfile
 		return NO
@@ -1151,7 +1145,6 @@ function lumpfiles (filelist() as string, lumpfile as string, path as string) as
 	dim csize as integer
 	dim total_size as integer
 
-	lf = freefile
 	if openfile(lumpfile, for_binary + access_write, lf) <> 0 then
 		ret = "Could not write to destination file " + lumpfile
 		debug "lumpfiles: " & ret
@@ -1170,7 +1163,6 @@ function lumpfiles (filelist() as string, lumpfile as string, path as string) as
 			continue for
 		end if
 
-		tl = freefile
 		openfile(path + filelist(i), for_binary + access_read, tl)
 		if err <> 0 then
 			ret = "Failed to open " + path + lname + " for lumping"
@@ -1326,7 +1318,6 @@ function Buffered_open (filename as string) as BufferedFile ptr
 	bfile = callocate(sizeof(BufferedFile))
 
 	with *bfile
-		.fh = freefile
 		if openfile(filename, for_output, .fh) then
 			debug "BufferedFile: Could not open " & filename
 			deallocate bfile

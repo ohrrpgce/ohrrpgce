@@ -1287,7 +1287,7 @@ FUNCTION commandname (byval id as integer) as string
  DIM as short headersz, formatv, records, offset
 
  '--could check workingdir as well like we do in runscript; but doesn't seem necessary
- DIM fh as integer = FREEFILE
+ DIM fh as integer
  IF OPENFILE(tmpdir + "commands.bin", FOR_BINARY + ACCESS_READ, fh) THEN
   add_string_cache cache(), id, ret
   RETURN ret
