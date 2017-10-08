@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Td 2017-10-07 Add parent ID to scripts.bin, for --reuse-ids
 --3Tc 2017-10-02 Make -j wait for warnings too
 --3Tb 2017-09-28 Added -j option; warn on unknown options
 --3Ta 2017-07-28 Increased MAXGLOBAL to 50000
@@ -166,7 +167,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tc"
+constant COMPILER_SUB_VERSION="Td"
 constant COPYRIGHT_DATE="2017"
 
 --Known single-character commandline options
@@ -255,6 +256,7 @@ constant CONST_VALUE=1
 constant CONST_POS=2
 constant VAR_FRAME=3    --VarToken index, integer giving frame number of a variable (0 is current script, 1 is parent...)
 constant VAR_ID=4       --VarToken index, integer giving ID in frame
+constant REUSE_PARENT_AND_NAME=2
 
 constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
 constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
@@ -316,7 +318,7 @@ sequence additional_includes
 integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
-sequence reuse_ids        reuse_ids={}
+sequence reuse_ids        reuse_ids={}            --type {PAIR_NUM, REUSE_PARENT_AND_NAME={parent_id, PAIR_NAME}}
 sequence constant_list    constant_list=alpha_tree_create()
 sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
 sequence operator_list    operator_list={}        --type {PAIR_NUM, PAIR_NAME, OPER_TRUENAME, OPER_POS}
@@ -2208,11 +2210,40 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+--Decide which ID number to assign to an autonumbered script.
+--name isn't fully-scoped.
+function pick_script_id(integer parent_id, string name)
+  integer at, id
+  sequence encoded
+
+  if length(reuse_ids) then
+    encoded=encode_ohr(name)
+    if length(encoded)>36 then
+      encoded=encoded[1..36]
+    end if
+    at=find_in_column({parent_id,encoded},reuse_ids,REUSE_PARENT_AND_NAME)
+    if at then
+      return reuse_ids[at][PAIR_NUM]
+    end if
+  end if
+
+  id=autonumber_id
+  loop do
+    autonumber_id-=1
+    id=autonumber_id
+    until find_in_column(id,reuse_ids,PAIR_NUM)=0
+  end loop
+  return id
+end function
+
+---------------------------------------------------------------------------
+
 --arglist is either a sequence of default values (which may equal to the NO_DEFAULT constant), or it's equal to
 --VAR_ARGS indicating a variable (unlimited) number of arguments.
+--id may only be -1 (autonumbered) when there is no parent script (so that the unscoped
+--and fully-scoped name are the same), otherwise pick_script_id must be called explicitly!
 function create_function(sequence list, integer id, string name, object arglist, integer func_type, srcpos pos)
   integer at
-  sequence encoded
   if func_type=RESERVE_SCRIPT then
     at=find(id,column(list,PAIR_NUM))
     if at then
@@ -2221,25 +2252,8 @@ function create_function(sequence list, integer id, string name, object arglist,
     if id=0 or id<-1 then
       src_error(sprintf_utf("ID "&COLYEL&"%d"&COLRED&" is not valid",{id}),pos)
     elsif id=-1 then
-      --autonumbered
-      if length(reuse_ids) then
-        encoded=encode_ohr(name)
-        if length(encoded)>36 then
-          encoded=encoded[1..36]
-        end if
-        at=find_in_column(encoded,reuse_ids,PAIR_NAME)
-        if at then
-          id=reuse_ids[at][PAIR_NUM]
-        end if
-      end if
-      if id<0 then
-        id=autonumber_id
-        loop do
-          autonumber_id-=1
-          id=autonumber_id
-          until find_in_column(id,reuse_ids,PAIR_NUM)=0
-        end loop
-      end if
+      --autonumber
+      id=pick_script_id(0,name)
     end if
   end if
   list=append(list,{id,name,arglist,pos})
@@ -2616,13 +2630,21 @@ end function
 ---------------------------------------------------------------------------
 
 function read_word(sequence encoded)
-  --opposite of output_word
+  --opposite of output_word. encoded should be length 2 or more
   integer temp
   temp=and_bits(encoded[1],#FF)+and_bits(encoded[2],#FF)*#100
   if and_bits(temp,#8000) then
     return(temp-#10000)
   end if
   return(temp)
+end function
+
+---------------------------------------------------------------------------
+
+--Convenience wrapper around read_word, to read an int16 with offset given
+--in int16 words and starting from 0 instead of 1.
+function read_int16(sequence encoded, integer offset)
+  return read_word(encoded[1+2*offset..2+2*offset])
 end function
 
 ---------------------------------------------------------------------------
@@ -3991,7 +4013,6 @@ function binary_compile_recurse(Node tree, VarList vars)
   sequence kind_and_id
   sequence value_temp
   string str_temp
-  integer parent_idx
   integer recurse_result
   integer can_reference  --whether can return a pointer to an earlier node
   integer initial_data_len
@@ -4100,19 +4121,22 @@ end function
 
 ---------------------------------------------------------------------------
 
+function get_parent_id(Script script)
+  integer parent_idx
+  parent_idx=script[SCRIPT_PARENT_IDX]
+  if parent_idx=0 then
+    return(0)
+  else
+    return(all_scripts[parent_idx][SCRIPT_ID])
+  end if
+end function
+
+---------------------------------------------------------------------------
+
 function binary_compile(Script script)
   NodeList tree
   sequence result
   integer recurse_ret
-  integer parent_idx
-  integer parent_id
-
-  parent_idx=script[SCRIPT_PARENT_IDX]
-  if parent_idx=0 then
-    parent_id=0
-  else
-    parent_id=all_scripts[parent_idx][SCRIPT_ID]
-  end if
 
   string_table={}
   compiled_data={}
@@ -4133,7 +4157,7 @@ function binary_compile(Script script)
   result&=output_word(0)
   result&=output_word(0)
   --12..13: parent script ID or 0 if none
-  result&=output_word(parent_id)
+  result&=output_word(get_parent_id(script))
   --14..15: Nesting depth
   result&=output_word(script[SCRIPT_NEST_DEPTH]) 
   --16..17: number of nonlocals
@@ -4636,11 +4660,14 @@ procedure check_script_declarations()
   sequence src_position
   string fullname
   srcpos script_pos
+  integer id, parent_id
 
   scripts_found=repeat(false,length(script_list))
 
   for i=1 to length(all_scripts) do
     fullname=all_scripts[i][SCRIPT_FULL_NAME]
+    parent_id=get_parent_id(all_scripts[i])
+
     current_script=fullname  --global
     script_pos=all_scripts[i][SCRIPT_POS]
     at=find(fullname,column(script_list,PAIR_NAME))
@@ -4649,7 +4676,8 @@ procedure check_script_declarations()
     args_and_defaults=process_arglist(all_scripts[i][SCRIPT_ARG_TOKS])
     if not at then
       --define script optional, add to script list
-      script_list=create_function(script_list,-1,current_script,args_and_defaults[2],RESERVE_SCRIPT,script_pos)
+      id=pick_script_id(parent_id,all_scripts[i][PAIR_NAME])
+      script_list=create_function(script_list,id,current_script,args_and_defaults[2],RESERVE_SCRIPT,script_pos)
       at=length(script_list)
       scripts_found&={true}
     else
@@ -4761,13 +4789,14 @@ end function
 
 ---------------------------------------------------------------------------
 
+
 function generate_scripts_dot_bin()
   sequence result
   sequence encoded_name
   --header size in bytes
   result=output_word(4)
   --record size in bytes
-  result&=output_word(42)
+  result&=output_word(44)
 
   for i=1 to length(all_scripts) do
     result&=output_word(all_scripts[i][SCRIPT_ID])
@@ -4776,19 +4805,21 @@ function generate_scripts_dot_bin()
     result&=output_word(length(encoded_name))
     result&=encoded_name
     result&=repeat(0,36-length(encoded_name))
+    result&=output_word(get_parent_id(all_scripts[i]))
   end for
   return(result)
 end function
 
 ---------------------------------------------------------------------------
 
---Returns a list of {id, encode_ohr(script_name)[1..36]} pairs
+--Returns a list of {id, {parent_id, encode_ohr(script_name)[1..36]}} pairs
 function read_scripts_dot_bin(string filename)
   object data
   integer header_size
   integer rec_size
   integer offset
-  integer id
+  sequence record, name
+  integer id, parent_id
   integer name_len
   sequence ret
 
@@ -4797,18 +4828,25 @@ function read_scripts_dot_bin(string filename)
     simple_error("Could not read "&filename)
   end if
 
-  header_size=read_word(data[1..2])
-  if header_size!=4 then
+  header_size=read_int16(data,0)
+  rec_size=read_int16(data,1)
+  if header_size!=4 or rec_size<42 then
     simple_error(filename&" in unrecognised format. Use the latest version of HSpeak")
   end if
-  rec_size=read_word(data[3..4])
 
   ret={}
   for i=0 to (length(data)-header_size) / rec_size - 1 do
     offset=header_size + i*rec_size
-    id=read_word(data[offset+1..offset+2])
-    name_len=read_word(data[offset+5..offset+6])
-    ret&={ {id,data[offset+7..offset+7+name_len-1]} }
+    record=data[offset+1..offset+rec_size]
+    id=read_int16(record,0)
+    name_len=read_int16(record,2)
+    name=record[7..7+name_len-1]
+    parent_id=0
+    if rec_size>=44 then
+      --Scripts compiled by older copies of hspeak didn't include the parent ID
+      parent_id=read_int16(record,21)
+    end if
+    ret&={ {id, {parent_id,name}} }
   end for
   --pretty_print(stdout,ret,{3})
   return ret
