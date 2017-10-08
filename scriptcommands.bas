@@ -4533,7 +4533,18 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotslice(retvals(0)) THEN
    IF plotslices(retvals(0))->SliceType = slMap THEN scriptret = 1
   END IF
-
+ CASE 656 '--npc reference from slice
+  IF valid_plotslice(retvals(0)) THEN
+   DIM sl as Slice ptr = plotslices(retvals(0))
+   scriptret = 0
+   IF *sl->Context IS NPCSliceContext THEN scriptret = -1 * (1 + CAST(NPCSliceContext ptr, sl->Context)->npcindex)
+  END IF
+ CASE 657 '--hero rank from slice
+  IF valid_plotslice(retvals(0)) THEN
+   DIM sl as Slice ptr = plotslices(retvals(0))
+   scriptret = -1
+   IF *sl->Context IS HeroSliceContext THEN scriptret = CAST(HeroSliceContext ptr, sl->Context)->rank
+  END IF
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _

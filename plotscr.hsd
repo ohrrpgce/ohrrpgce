@@ -677,6 +677,8 @@ define function, begin
 653,resetformation,1,0        # resets any scripted modifications to a battle formation
 654,resetformationslot,2,0,0  # resets scripted modifications to a specific slot in a battle formation
 655,sliceismaplayer,1,0       # Check slice type
+656,npcreferencefromslice,1,0 # Return the NPC reference for an NPC slice, or else 0
+657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else 0
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

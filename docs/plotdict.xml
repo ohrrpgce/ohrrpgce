@@ -1919,7 +1919,16 @@ wait for text box # wait until the player continues</example>
 
 	
 	<section title="The Party">
+		<description>
+			<note>
+			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
+			(including <tt>hero:name</tt> constants), hero party slots, and walkabout rank!
+			</note>
+		</description>
+
 		<section title="Inspecting the Party">
+
 		<command id="leader">
 			<canon>leader</canon>
 			<shortname>leader</shortname>
@@ -1995,9 +2004,11 @@ wait for text box # wait until the player continues</example>
 			<description>Swaps two named heroes in your party no matter what position they are in. Use the names defined in your HSI file in the form hero:name</description>
 		</command>
 		<command id="swapbyposition">
-			<canon>swap by position (position,position)</canon>
+			<canon>swap by position (slot1, slot2)</canon>
 			<shortname>swap by position</shortname>
-			<description>Swaps two heroes in your party based on their positions in the party</description>
+			<description>
+				Swaps two heroes in your party by their positions in the party (ie, by party slot).
+			</description>
 		</command>
 		</section>		<!--Changing the Party-->
 	</section>		<!-- The Party-->
@@ -5100,21 +5111,86 @@ end
 			</seealso>
 		</command>
 		<command id="getheroslice">
-			<canon>get hero slice (who)</canon>
+			<canon>get hero slice (rank)</canon>
 			<shortname>get hero slice</shortname>
-			<description>Get the slice for a hero walkabout. The argument is the hero's position in the walkabout caterpillar. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to a hero walkabout.</description>
+			<description>
+				Get the slice for a hero walkabout, which is a container slice.
+				The argument is the hero's rank in the walkabout caterpillar.
+				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work).
+				The main purpose of getting this slice is so you can access the sprite slice attached to it
+				(use <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get hero slice(rank))</tt> to get it),
+				or if you want to attach other slices to a hero walkabout.
+			</description>
 			<seealso>
+				<ref>herorankfromslice</ref>
 				<ref>getnpcslice</ref>
+			</seealso>
+		</command>
+		<command id="herorankfromslice">
+			<canon>hero rank from slice (handle)</canon>
+			<shortname>hero rank from slice</shortname>
+			<description>
+				The opposite of <ref>getheroslice</ref>:
+				Given a slice <p>handle</p>, check whether it's the walkabout slice of some hero,
+				and if so, returns the hero walkabout rank (a number between 0 and 3).
+				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
+				<ref>npcreferencefromslice</ref> does!
+				<lb/>
+				This also returns -1 for slices parented to a hero slice, such as the 'walkabout
+				sprite component'.
+				<lb/>
+				This command is useful if you've detected a collision between two slices
+				(e.g. using <ref>findcollidingslice</ref>), such as a projectile and another slice,
+				and you want to check whether the projectile hit a hero, and which one.
+				<danger>
+					There are always four hero walkabout slices, even if there aren't that
+					many heroes in the active party!
+					The extra hero slices are set to hidden.
+				</danger>
+			</description>
+			<seealso>
+				<ref>getheroslice</ref>
+				<ref>npcreferencefromslice</ref>
 			</seealso>
 		</command>
 		<command id="getnpcslice">
 			<canon>get npc slice (npc)</canon>
 			<shortname>get npc slice</shortname>
-			<description>Get the slice for an NPC walkabout. The argument is the NPC id or an <ref>npcreference</ref>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.</description>
+			<description>
+				Get the slice for an NPC walkabout, which is a container slice.
+				The argument is the NPC id or an <ref>npcreference</ref>.
+				You will not be able to manually reposition this slice (e.g. <ref>putslice</ref> does not work).
+				The main purpose of getting this slice is so you can access the sprite slice attached to it
+				(use <ref>lookupslice</ref><tt>(sl:walkabout sprite component, get npc slice(npc))</tt> to get it),
+				or if you want to attach other slices to an NPC.
+			</description>
 			<seealso>
+				<ref>npcreferencefromslice</ref>
 				<ref>getheroslice</ref>
 			</seealso>
 		</command>
+		<command id="npcreferencefromslice">
+			<canon>npc reference from slice (handle)</canon>
+			<shortname>npc reference from slice</shortname>
+			<description>
+				The opposite of <ref>getnpcslice</ref>:
+				Given a slice <p>handle</p>, check whether it's the walkabout slice of some NPC,
+				and if so, returns the <ref>npcreference</ref> number.
+				If it doesn't belong to any NPC, returns 0.
+				<lb/>
+				This also returns 0 for slices parented to the NPC's slices, such as the 'walkabout
+				sprite component'.
+				<lb/>
+				This command is useful if you've detected a collision between two slices
+				(e.g. using <ref>findcollidingslice</ref>), such as a projectile and another slice,
+				and you want to check whether the projectile hit an NPC, and which one.
+			</description>
+			<seealso>
+				<ref>herorankfromslice</ref>
+				<ref>getnpcslice</ref>
+			</seealso>
+		</command>
+
 		</section>		<!-- Getting Slices-->
 
 		<section title="Slice Sizing">

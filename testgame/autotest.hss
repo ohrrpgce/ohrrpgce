@@ -3566,6 +3566,7 @@ script, slice tests, begin
   slice collection tests
   slice find tests
   slice tree tests
+  slice correspondence tests
 
   # Test rect transparency
   variable (sl)
@@ -3898,6 +3899,7 @@ script, root child index, lookup code, begin
 end
 
 # Unfinished, only inspects children of root.
+# But see also "slice correspondence tests" for NPC & hero slices
 script, slice tree tests, begin
   $0="Slice tree tests"
 
@@ -3919,6 +3921,76 @@ script, slice tree tests, begin
   assert(backdrop < scr)
   assert(scr < textbox)
   assert(textbox < strings)
+end
+
+########################################################################
+
+# This tests commands for converting between slices and hero/npc references
+script, slice correspondence tests, begin
+
+  #### Test NPC slices
+
+  variable(npc, sl, sl2, walkabout layer)
+  walkabout layer := lookup slice(sl:npc layer)
+  npc := next npc reference
+  while (npc) do (
+    sl := get npc slice(npc)
+    assert(sl)
+    assert(npc reference from slice(sl) == npc)
+    # Should be the top-level walkabout container
+    assert(slice parent(sl) == walkabout layer)
+    assert(slice x(sl) == npc pixel x(npc))
+    assert(slice y(sl) == npc pixel y(npc))
+    sl2 := lookup slice(sl:walkabout sprite component, sl)
+    assert(sl2)
+    assert(npc reference from slice(sl2) == 0)
+
+    npc := next npc reference(npc)
+  )
+
+  sl := get hero slice(0)
+  assert(sl && npc reference from slice(sl) == 0)
+
+  #### Test hero slices
+  # Preconditions
+  assert(hero by slot(0) == hero:Freki)
+  assert(hero by slot(1) == -1)
+  assert(hero by slot(2) == -1)
+  assert(hero by slot(3) == -1)
+
+  sl := get hero slice(0)
+  assert(sl)
+  assert(slice parent(sl) == lookup slice(sl:hero layer))
+  assert(slice x(sl) == hero pixel x(0))
+  assert(slice y(sl) == hero pixel y(0))
+  assert(hero rank from slice(sl) == 0)
+  assert(lookup slice(sl:walkabout sprite component, sl))
+
+  # Defaults to -1
+  assert(hero rank from slice(get npc slice(next npc reference)) == -1)
+
+  # Check it returns rank, not party slot
+  swap by position(0, 1)
+  sl := get hero slice(0)
+  assert(sl)
+  assert(hero rank from slice(sl) == 0)
+
+  # Test rank > 0
+  add hero(hero:Bram)
+  sl := get hero slice(1)
+  assert(sl)
+  assert(hero rank from slice(sl) == 1)
+
+  # Test hero slices belonging to non-existent heroes! There are always 4 hero slices!!
+  # I don't really want to lock in this weird behaviour. Probably we should add a general bitset to disable it.
+  sl := get hero slice(2)
+  assert(sl)
+  assert(get slice visible(sl) == false)
+  assert(hero rank from slice(sl) == 2)
+
+  # Restore
+  delete hero(hero:Bram)
+  swap by position(0, 1)
 end
 
 ########################################################################
@@ -4802,7 +4874,6 @@ end
 #get global string (ID, global)
 #get grid columns (handle)
 #get grid rows (handle)
-#get hero slice (who)
 #get instead of battle script
 #get item name (ID, item)
 #get load script
@@ -4813,7 +4884,6 @@ end
 #get NPC ignores walls (who)
 #get NPC moves (who)
 #get NPC obstructs (who)
-#get NPC slice (who)
 #get NPC usable (who)
 #get on keypress script
 #get outline(handle)
