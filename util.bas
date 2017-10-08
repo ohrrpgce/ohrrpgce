@@ -1313,19 +1313,19 @@ SUB file_hash_SHA1(fh as integer, result_out as SHA160 ptr)
 END SUB
 
 'Return a 64 bit hash (first 64 bits of SHA1) of a file
-'(Note: if you use HEX to print this, the bytes will appear reversed on a little-endian machine)
+'(The bytes are reversed so that HEX() prints the first 8 bytes of the hash)
 FUNCTION file_hash64(filename as string) as ulongint
   DIM hash as SHA160
   file_hash_SHA1 filename, @hash
-  RETURN *CAST(ulongint ptr, @hash)
+  RETURN int64_to_bigendian(*CAST(ulongint ptr, @hash))
 END FUNCTION
 
 'Return a 64 bit hash (first 64 bits of SHA1) of a file (clobbers file position)
-'(Note: if you use HEX to print this, the bytes will appear reversed on a little-endian machine)
+'(The bytes are reversed so that HEX() prints the first 8 bytes of the hash)
 FUNCTION file_hash64(fh as integer) as ulongint
   DIM hash as SHA160
   file_hash_SHA1 fh, @hash
-  RETURN *CAST(ulongint ptr, @hash)
+  RETURN int64_to_bigendian(*CAST(ulongint ptr, @hash))
 END FUNCTION
 
 'Format a SHA1 hash to a hex string (length 40)

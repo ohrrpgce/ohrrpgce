@@ -989,7 +989,7 @@ SUB reload_scripts (force_full_message as bool = YES)
 
  DIM msg as string
  IF LEN(unfreeable) THEN
-  msg = !"These scripts were modified but are in use and can't be reloaded:\n" & unfreeable
+  msg = !"These scripts were modified but are in use and can't be reloaded yet:\n" & unfreeable
  END IF
  IF LEN(still_unfreeable) THEN
   IF LEN(msg) THEN msg &= !"\n"

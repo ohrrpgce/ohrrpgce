@@ -41,6 +41,9 @@ void SHA1(
     const char *str,
     int len);
 
+uint64_t int64_to_bigendian(
+    uint64_t v);
+
 uint64_t SHA1_64(
     const char *str,
     int len);

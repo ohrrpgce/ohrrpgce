@@ -293,6 +293,20 @@ void SHA1(
     SHA1Final((unsigned char *)hash_out, &ctx);
 }
 
+uint64_t int64_to_bigendian(
+    uint64_t v)
+{
+#if BYTE_ORDER == LITTLE_ENDIAN
+    char temp, *ptr = (char*)&v;
+    for (int ii=0; ii<4; ii++) {
+        temp = ptr[ii];
+        ptr[ii] = ptr[7-ii];
+        ptr[7-ii] = temp;
+    }
+#endif
+    return v;
+}
+
 /* The first 64 bits */
 uint64_t SHA1_64(
     const char *str,
@@ -300,6 +314,6 @@ uint64_t SHA1_64(
 {
     unsigned char hash[20];
     SHA1(hash, str, len);
-    return *(uint64_t*)hash;
+    return int64_to_bigendian(*(uint64_t*)hash);
 }
 

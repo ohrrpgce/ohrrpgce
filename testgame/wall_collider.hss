@@ -68,7 +68,7 @@ plotscript, follow loop, begin
             show value( move slice with wallchecking(box, xgo, ygo, friction) )
     ) else (
             variable(new xgo, new ygo)
-            tracevalue(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
+            #tracevalue(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo)
             new xgo := check wall collision x(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo, friction)
             new ygo := check wall collision y(slice x(box), slice y(box), slice width(box), slice height(box), xgo, ygo, friction)
             move slice by(box, new xgo, new ygo, 1)
