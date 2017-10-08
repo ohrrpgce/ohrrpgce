@@ -604,16 +604,11 @@ startTest(testSwapNodes)
 	FreeDocument(swapdoc)
 endTest
 
-
 startTest(serializeXML)
-	print
-	
 	dim fh as integer = freefile
-	open cons for output as fh
+	open "unittest.xml" for output as fh
 	serializeXML(doc, fh)
 	close fh
-	
-	'if 0 = ask("Did this render correctly?") then fail
 endTest
 
 dim shared skip_xml2reload as bool

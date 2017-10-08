@@ -965,7 +965,8 @@ def compile_hspeak(target, source, env):
 HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e', WhereIs("euc")] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
 
-RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
+# These #/ prefixes (meaning put in root dir) allow these nodes to be executed directly as actions
+RELOADTEST = env_exe ('#/reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
     # Hack around our provided libxml2.a lacking a function. (Was less work than recompiling)
@@ -973,11 +974,11 @@ if win32:
 XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFLAGS'] + ['-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
-RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
-VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
+RBTEST = env_exe ('#/rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
+VECTORTEST = env_exe ('#/vectortest', source = ['vectortest.bas'] + base_objects)
 # Compile util.bas as a main module to utiltest.o to prevent its linkage in other binaries
-UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
-FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
+UTILTEST = env_exe ('#/utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
+FILETEST = env_exe ('#/filetest', source = ['filetest.bas'] + base_objects)
 env_exe ('slice2bas', source = ['slice2bas.bas'] + reload_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
@@ -1089,7 +1090,10 @@ def RPGWithScripts(rpg, main_script):
     node = env.Command('#' + rpg, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
-    Ignore(node, [CUSTOM, "plotscr.hsd", "scancode.hsi"])  # Avoid probably-unnecessary reimporting
+    Ignore(node, [CUSTOM, "plotscr.hsd", "scancode.hsi"])  # Don't reimport just because these changed...
+    Requires(node, CUSTOM)  # ...but do rebuild Custom before reimporting (because of maxScriptCmdID, etc, checks)
+    # Note: unfortunately this Requires causes scons to make sure CUSTOM is
+    # up to date even if it's not calls; I don't know how to avoid that.
     SideEffect (Alias ('c_debug.txt'), node)  # Prevent more than one copy of Custom from running at once
     return node
 
@@ -1114,9 +1118,8 @@ SideEffect (Alias ('g_debug.txt'), [AUTOTEST, INTERTEST])
 HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
                     [rootdir + 'hspeaktest.py testgame/parser_tests.hss'])
 
-# Note: does not include hspeaktest, because compiling hspeak is very slow and Euphoria may not be installed
-# There has to be some better way to do this...
-tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST])]
+# Note: does not include hspeaktest, because it fails, and Euphoria may not be installed
+tests =  [RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST]
 TESTS = Phony ('test', source = tests + [AUTOTEST, INTERTEST], action = tests)
 Alias ('tests', TESTS)
 
