@@ -2803,7 +2803,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 437'--lookup slice
   IF retvals(1) = 0 THEN
    '--search the whole slice tree
-   scriptret = find_plotslice_handle(LookupSlice(retvals(0)))
+   scriptret = find_plotslice_handle(LookupSlice(retvals(0), SliceTable.Root))
   ELSE
    '--search starting from a certain slice
    IF valid_plotslice(retvals(1)) THEN

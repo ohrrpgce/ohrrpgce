@@ -7,6 +7,22 @@
 'This file contains UDTs that only get used in game mode, and not in custom,
 'so as to prevent them from cluttering up the global udts.bi file
 
+TYPE SliceTableType
+  root as Slice Ptr
+  maproot as Slice Ptr
+  maplayer(maplayerMax) as Slice Ptr
+  obsoleteoverhead as Slice Ptr
+  MapOverlay as Slice Ptr
+  Backdrop as Slice Ptr
+  Walkabout as Slice Ptr
+  HeroLayer as Slice Ptr
+  NPCLayer as Slice Ptr
+  scriptsprite as Slice Ptr
+  textbox as Slice Ptr
+  menu as Slice Ptr
+  scriptstring as Slice Ptr
+END TYPE
+
 TYPE MapModeState
   id       as integer
   lastmap  as integer 'ID of the last loaded map

@@ -274,22 +274,6 @@ TYPE Slice
   'NOTE: When adding to this, remember to update CloneSliceTree, SliceLoadFromNode and SliceSaveToNode
 END TYPE
 
-TYPE SliceTable_
-  root as Slice Ptr
-  maproot as Slice Ptr
-  maplayer(maplayerMax) as Slice Ptr
-  obsoleteoverhead as Slice Ptr
-  MapOverlay as Slice Ptr
-  Backdrop as Slice Ptr
-  Walkabout as Slice Ptr
-  HeroLayer as Slice Ptr
-  NPCLayer as Slice Ptr
-  scriptsprite as Slice Ptr
-  textbox as Slice Ptr
-  menu as Slice Ptr
-  scriptstring as Slice Ptr
-END TYPE
-
 '--Data containers for various slice types
 
 TYPE RectangleSliceData
@@ -413,9 +397,6 @@ End Type
 
 Extern "C"
 
-DECLARE Sub SetupGameSlices
-DECLARE Sub SetupMapSlices(byval to_max as integer)
-DECLARE Sub DestroyGameSlices(byval dumpdebug as integer=0)
 DECLARE Function NewSlice(byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Function NewSliceOfType(byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
 DECLARE Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer = 0)
@@ -449,7 +430,7 @@ DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
 DECLARE Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice ptr
-DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
+DECLARE Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr) as Slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
@@ -611,8 +592,6 @@ DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData pt
 DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
 DECLARE Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
 
-
-EXTERN as SliceTable_ SliceTable
 
 EXTERN NumDrawnSlices as integer
 

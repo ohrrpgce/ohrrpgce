@@ -49,6 +49,9 @@ DECLARE SUB advance_text_box ()
 DECLARE SUB add_rem_swap_lock_hero (box as TextBox)
 DECLARE FUNCTION immediate_showtextbox() as bool
 
+DECLARE SUB SetupGameSlices
+DECLARE SUB SetupMapSlices(byval to_max as integer)
+DECLARE SUB DestroyGameSlices(dumpdebug as bool = NO)
 DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()

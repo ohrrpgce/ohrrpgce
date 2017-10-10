@@ -444,8 +444,8 @@ END IF
 IF txt.box.choice_enabled THEN
  '--Make the selected choice flash
  DIM choice_sl(1) as Slice Ptr
- choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0)
- choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1)
+ choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0, SliceTable.Root)
+ choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1, SliceTable.Root)
  DIM col as integer
  IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
   FOR i as integer = 0 TO 1

@@ -769,10 +769,10 @@ DO
     IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
     dissolve_ticks = 0
    CASE EnMenuCursorOffset
-    '--temporarily move the preview image
-    SetSliceParent(preview, SliceTable.Root)
-    preview->AnchorVert = 1
-    preview->AlignVert = 1
+    '--temporarily move the preview image, centering it on the screen
+    OrphanSlice preview
+    preview->AnchorVert = alignCenter
+    preview->AlignVert = alignCenter
     WITH sprite_sizes(recbuf(EnDatPicSize) + sprTypeSmallEnemy)
      recbuf(EnDatCursorX) += .size.x / 2 '--offset relative to the top middle
      xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
@@ -780,8 +780,8 @@ DO
     END WITH
     '--move the preview image back how it was before
     SetSliceParent(preview, preview_box)
-    preview->AnchorVert = 2
-    preview->AlignVert = 2
+    preview->AnchorVert = alignBottom
+    preview->AlignVert = alignBottom
   END SELECT
  END IF
 

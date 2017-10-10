@@ -50,8 +50,6 @@ END EXTERN
 
 '==============================================================================
 
-Dim SliceTable as SliceTable_
-
 ReDim Shared SliceDebug(50) as Slice Ptr
 
 'Number of non-trivial drawn slices (Container, Special, Root and invisible excluded)
@@ -156,98 +154,6 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
 
  end with
 End sub
-
-Sub SetupGameSlices
- 'Note that the map root and walkabout layers are containers, while
- 'inconsistently everything else except for the root slice is a special slice.
-
- SliceTable.Root = NewSliceOfType(slRoot, NULL, SL_ROOT)
- 
- SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
- SliceTable.MapRoot->Protect = YES
- 
- 'If "recreate map slices" is off, then all possible map layer slices always exist,
- 'but are hidden if there is no corresponding map layer.
- 'If "recreate map slices" is on then these map layer slices will immediately be
- 'deleted and replaced by a call to prepare_map.
- 'Either way, the walkabout layer slices created here will immediately be replaced.
- SetupMapSlices maplayerMax
-
- SliceTable.Backdrop = NewSliceOfType(slSprite, SliceTable.Root, SL_BACKDROP)
- SliceTable.Backdrop->Protect = YES
- ChangeSpriteSlice SliceTable.Backdrop, sprTypeBackdrop
-
- SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
- SliceTable.ScriptSprite->Fill = YES
- RefreshSliceScreenPos(SliceTable.ScriptSprite)
-
- '"Draw Backdrop slice above Script layer" (backcompat)
- IF readbit(gen(), genBits2, 23) THEN
-  SwapSiblingSlices SliceTable.Backdrop, SliceTable.ScriptSprite
- END IF
- 
- SliceTable.TextBox = NewSliceOfType(slSpecial, SliceTable.Root, SL_TEXTBOX_LAYER)
- SliceTable.TextBox->Fill = YES
- RefreshSliceScreenPos(SliceTable.TextBox)
- 
- 'Not used yet, so don't create it!
- 'SliceTable.Menu = NewSliceOfType(slSpecial, SliceTable.Root)
-
- 'Not used yet either, actually 
- SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
-End Sub
-
-Sub SetupMapSlices(byval to_max as integer)
- FOR i as integer = 0 TO to_max
-  SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
-  ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
- NEXT
- 
- SliceTable.ObsoleteOverhead = NewSliceOfType(slMap, SliceTable.MapRoot, SL_OBSOLETE_OVERHEAD)
- ChangeMapSlice SliceTable.ObsoleteOverhead, , , 0, 2   'non-transparent, overhead
-
- SliceTable.MapOverlay = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_MAP_OVERLAY)
- SliceTable.MapOverlay->Fill = YES
- SliceTable.MapOverlay->Protect = YES
-
- 'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
- SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
- SliceTable.Walkabout->Fill = YES
- SliceTable.Walkabout->Protect = YES
- SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
- SliceTable.HeroLayer->Fill = YES
- SliceTable.HeroLayer->Protect = YES
- SliceTable.HeroLayer->AutoSort = slAutoSortY
- SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
- SliceTable.NPCLayer->Fill = YES
- SliceTable.NPCLayer->Protect = YES
- SliceTable.NPCLayer->AutoSort = slAutoSortCustom
-End Sub
-
-Sub DestroyGameSlices (byval dumpdebug as integer=0)
-
- DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
- '--after deleting root, all other slices should be gone, but the pointers
- '--in SliceTable still need zeroing
- SliceTable.MapRoot = 0
- FOR i as integer = 0 TO maplayerMax
-  SliceTable.MapLayer(i) = 0
- NEXT
- SliceTable.ObsoleteOverhead = 0
- SliceTable.MapOverlay = 0
- SliceTable.Backdrop = 0
- SliceTable.ScriptSprite = 0
- SliceTable.TextBox = 0
- SliceTable.Menu = 0
- SliceTable.ScriptString = 0
-
- #IFDEF IS_GAME
-  'Correct accounting of these globals is unnecessary! I guess
-  'it's good for determinism though
-  num_reusable_slice_handles = 0
-  next_slice_handle = lbound(plotslices)
- #ENDIF
-End Sub
 
 FUNCTION SliceTypeByName (s as string) as SliceTypes
  SELECT CASE s
@@ -501,8 +407,9 @@ End Function
 #endif
 
 'Deletes a slice, and any children (and their children (and their...))
+'If debugme is YES, dump some debug info about the slice being freed and all its children
+'(debugme > 0 is indentation depth)
 Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
- '-- if debugme is true, dump some debug info about the slice being freed and all its children
 
  if s = 0 then exit sub  'can't do anything
  if *s = 0 then exit sub 'already freed
@@ -544,6 +451,7 @@ Destructor SliceContext()
 End Destructor
 
 'Deletes a slice's children but not itself
+'If debugme is YES, log debug info about the slices.
 Sub DeleteSliceChildren(byval sl as Slice ptr, byval debugme as integer = 0)
  if sl = 0 then debug "DeleteSliceChildren null ptr": exit sub
  dim ch as slice ptr
@@ -843,9 +751,8 @@ Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr = NULL) as Slice ptr
-  IF start_sl = 0 THEN start_sl = SliceTable.root
-  IF start_sl = 0 THEN debug "LookupSlice null default root slice": RETURN 0
+Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr) as Slice ptr
+  IF start_sl = 0 THEN debug "LookupSlice null root slice": RETURN 0
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
   IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
   DIM child as Slice Ptr
