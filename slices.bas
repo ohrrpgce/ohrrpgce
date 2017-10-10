@@ -2862,6 +2862,7 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  with *sl
   if .SliceType = slPanel orelse .SliceType = slGrid then return coverNone  'Not implemented
   if .SliceType = slScroll then return coverNone  'That would be daft
+  if .SliceType = slSprite then return coverNone  'Not resizable
 
   dim ret as CoverModes = coverFull
   if .Fill andalso .FillMode <> sliceFillVert then ret -= coverHoriz    'filling_horiz

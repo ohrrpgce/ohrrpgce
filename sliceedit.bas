@@ -152,7 +152,7 @@ DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice 
 DECLARE SUB slice_editor_refresh_delete (byref index as integer, slicemenu() as SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (byref index as integer, slicemenu() as SliceEditMenuItem, caption as string, sl as Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref index as integer, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
-DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as integer ptr)
+DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
@@ -1016,25 +1016,63 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
  
 END SUB
 
+'Filling is so yuck we need helpers just to turn it off
+SUB disable_horiz_fill (sl as Slice ptr)
+ WITH *sl
+  'When filling, X is effectively 0, so actually set to 0 when disabling fill,
+  'to keep slice at same position
+  IF .Fill THEN
+   IF .FillMode = sliceFillHoriz THEN .Fill = NO : .X = 0
+   IF .FillMode = sliceFillFull THEN .FillMode = sliceFillVert : .X = 0
+  END IF
+ END WITH
+END SUB
+
+SUB disable_vert_fill (sl as Slice ptr)
+ WITH *sl
+  'Ditto: set Y to 0
+  IF .Fill THEN
+   IF .FillMode = sliceFillVert THEN .Fill = NO : .Y = 0
+   IF .FillMode = sliceFillFull THEN .FillMode = sliceFillHoriz : .Y = 0
+  END IF
+ END WITH
+END SUB
+
 'Called after *dataptr is modified, which is one of the members of sl, in order
 'to perform any special resulting updates.
 'It's simpler to do updates once, here, if there are multiple places a piece of data is changed.
-SUB slice_edit_updates (sl as Slice ptr, dataptr as integer ptr)
+SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
  WITH *sl
-  IF sl->Fill = YES THEN
-   'Stop filling when trying to edit the size
-   IF dataptr = @.Width THEN
-    'When filling, X is effectively 0, so actually set to 0 when disabling fill,
-    'to keep slice at same position
-    IF sl->FillMode = sliceFillHoriz THEN sl->Fill = NO : sl->X = 0
-    IF sl->FillMode = sliceFillFull THEN sl->FillMode = sliceFillVert : sl->X = 0
-   END IF
-   IF dataptr = @.Height THEN
-    'Ditto: set Y to 0
-    IF sl->FillMode = sliceFillVert THEN sl->Fill = NO : sl->Y = 0
-    IF sl->FillMode = sliceFillFull THEN sl->FillMode = sliceFillHoriz : sl->Y = 0
-   END IF
+  'Stop filling and covering when trying to edit the size
+  IF dataptr = @.Width THEN
+   disable_horiz_fill(sl)
+   .CoverChildren AND= NOT coverHoriz
   END IF
+  IF dataptr = @.Height THEN
+   disable_vert_fill(sl)
+   .CoverChildren AND= NOT coverVert
+  END IF
+
+  'Covering and Filling are mutually exclusive
+  IF dataptr = @.Fill OR dataptr = @.FillMode THEN
+   .CoverChildren AND= SliceLegalCoverModes(sl)
+  END IF
+  IF dataptr = @.CoverChildren THEN
+   IF .CoverChildren AND coverHoriz THEN disable_horiz_fill(sl)
+   IF .CoverChildren AND coverVert THEN disable_vert_fill(sl)
+
+   'Restrict .CoverChildren to only the allowed modes.
+   'It's ugly to do this here when all other slice data editing restrictions are
+   'implemented using "rule groups", but this has to be done AFTER filling is
+   'disabled, above, or else you need to manually disable filling before covering.
+   .CoverChildren AND= SliceLegalCoverModes(sl)
+  END IF
+
+  'After the type changes
+  IF dataptr = @.SliceType THEN
+   .CoverChildren AND= SliceLegalCoverModes(sl)
+  END IF
+
  END WITH
 END SUB
 
@@ -1121,7 +1159,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   END IF
   IF switchtype THEN
    ReplaceSliceType sl, NewSliceOfType(slice_type)
-   switchtype = NO
+   slice_edit_updates sl, @sl->SliceType
   END IF
  END IF
  IF rule.group AND slgrPICKXY THEN
