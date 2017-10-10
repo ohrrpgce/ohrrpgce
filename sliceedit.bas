@@ -211,6 +211,11 @@ REDIM SHARED FillModeCaptions(2) as string
 FillModeCaptions(0) = "Full"
 FillModeCaptions(1) = "Horizontal"
 FillModeCaptions(2) = "Vertical"
+REDIM SHARED CoverModeCaptions(3) as string
+CoverModeCaptions(0) = "NO"
+CoverModeCaptions(1) = "Horizontal"
+CoverModeCaptions(2) = "Vertical"
+CoverModeCaptions(3) = "Full"
 
 '==============================================================================
 
@@ -1350,6 +1355,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   str_array_append menu(), "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
+  IF ses.privileged THEN
+   str_array_append menu(), "Cover Children: " & CoverModeCaptions(.CoverChildren)
+   sliceed_rule_enum rules(), "cover", @.CoverChildren, 0, 3
+  END IF
   str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN

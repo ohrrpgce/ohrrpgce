@@ -2721,7 +2721,9 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
  end if
 end sub
 
-'==General slice display=======================================================
+
+'=============================================================================
+'                        Slice refreshing & positioning
 
 'Returns the slice which provides the ChildRefresh method, in other words
 'the one that determines the screen position.
@@ -2799,6 +2801,79 @@ Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
  END SELECT
 End Function
 
+'How wide/high does a parent slice have to be to cover a child slice with this position,
+'size and alignment?
+'Position of the X or Y of the top-left corner of the slice relative to is align point,
+'size is the width or height, align is AlignHoriz or AlignVert.
+Private Function SliceExtent(position as integer, size as integer, align as AlignType) as integer
+ if align = alignLeft then
+  return position + size
+ elseif align = alignRight then
+  return -position
+ else
+  return large(-position * 2, (position + size) * 2)
+ end if
+end Function
+
+'Called on slices which CoverChildren, in order to update their size.
+'If a child is aligned to the left, we only care about it going over the right
+'edge, etc. Children center-aligned on the parent matter for both edges.
+'And the padding acts as a min size.
+Sub UpdateCoverSize(par as Slice ptr)
+ 'Don't bother checking whether we're filling. You shouldn't be able to set a slice
+ 'to both fill and cover.
+
+ 'Panel & grid are special, and will have to implement covering in their own way if at all.
+ if par->SliceType = slPanel orelse par->SliceType = slGrid then exit sub
+
+ dim size as XYPair
+
+ dim ch as Slice ptr = par->FirstChild
+ while ch
+  with *ch
+   dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
+   dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
+
+   'Position of the top-left corner of the slice relative to is align point
+   dim pos as XYPair = .Pos - XY(SliceXAnchor(ch), SliceYAnchor(ch))
+
+   if not filling_horiz then
+    size.w = large(size.w, SliceExtent(pos.X, .Width, .AlignHoriz))
+   end if
+   if not filling_vert then
+    size.h = large(size.h, SliceExtent(pos.Y, .Height, .AlignVert))
+   end if
+  end with
+  ch = ch->NextSibling
+ wend
+
+ with *par
+  if .CoverChildren and coverHoriz then
+   .Width = large(0, size.w + .PaddingLeft + .PaddingRight)
+  end if
+  if .CoverChildren and coverVert then
+   .Height = large(0, size.h + .PaddingTop + .PaddingBottom)
+  end if
+ end with
+end Sub
+
+'Returns whether it's legal to set this slice to cover its children horizontally or vertically.
+Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
+ with *sl
+  if .SliceType = slPanel orelse .SliceType = slGrid then return coverNone  'Not implemented
+  if .SliceType = slScroll then return coverNone  'That would be daft
+
+  dim ret as CoverModes = coverFull
+  if .Fill andalso .FillMode <> sliceFillVert then ret -= coverHoriz    'filling_horiz
+  if .Fill andalso .FillMode <> sliceFillHoriz then ret -= coverVert
+  return ret
+ end with
+end Function
+
+
+'=============================================================================
+'                                Slice Velocity
+
 Sub SetSliceTarg(byval s as Slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
  if s = 0 then debug "SetSliceTarg null ptr": exit sub
  with *s
@@ -2869,6 +2944,10 @@ Sub ApplySliceVelocity(byval s as Slice ptr)
  end if
 end sub
 
+
+'=============================================================================
+
+
 'childindex is index of s among its siblings. Pass childindex -1 if not known,
 'which saves computing it if it's not needed.
 Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
@@ -2883,6 +2962,8 @@ Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer
  if attach then attach->ChildRefresh(attach, s, childindex, YES)
 
  if s->Visible then
+  if s->CoverChildren then UpdateCoverSize(s)
+
   if s->Draw then
    NumDrawnSlices += 1
    'translate screenX/Y by the position difference between page (due to it
@@ -3269,6 +3350,7 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   .PaddingLeft = sl->PaddingLeft
   .PaddingRight = sl->PaddingRight
   .PaddingBottom = sl->PaddingBottom
+  .CoverChildren = sl->CoverChildren
   .Fill = sl->Fill
   .FillMode = sl->FillMode
   .AutoSort = sl->AutoSort
@@ -3362,6 +3444,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "padl", sl->PaddingLeft
  SaveProp node, "padr", sl->PaddingRight
  SaveProp node, "padb", sl->PaddingBottom
+ SaveProp node, "cover", sl->CoverChildren
  SaveProp node, "fill", sl->Fill
  SaveProp node, "fillmode", sl->FillMode
  SaveProp node, "sort", sl->Sorter
@@ -3471,6 +3554,7 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  sl->PaddingLeft = LoadProp(node, "padl")
  sl->PaddingRight = LoadProp(node, "padr")
  sl->PaddingBottom = LoadProp(node, "padb")
+ sl->CoverChildren = LoadProp(node, "cover")
  sl->Fill = LoadPropBool(node, "fill")
  sl->FillMode = LoadProp(node, "fillmode")
  sl->Sorter = LoadProp(node, "sort")

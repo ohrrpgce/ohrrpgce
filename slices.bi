@@ -133,6 +133,13 @@ Enum FillModes
  sliceFillVert = 2
 End Enum
 
+Enum CoverModes
+ coverNone = 0
+ coverHoriz = 1
+ coverVert = 2
+ coverFull = 3
+End Enum
+
 ' Stores information about what this slice is used for, if that isn't explained
 ' by the lookup code.
 Type SliceContext Extends Object
@@ -223,6 +230,8 @@ TYPE Slice
   ' the size of non-resizeable slices can be changed, which is a bug.
   Fill as bool
   FillMode as FillModes
+
+  CoverChildren as CoverModes
 
   'Attach changes which slice is responsible for ChildRefresh, but not ChildDraw
   'or ChildrenRefresh. (It's not possible to support Attach for ChildrenRefresh,
@@ -441,6 +450,8 @@ DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
+
+DECLARE Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
 
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
