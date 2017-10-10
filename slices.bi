@@ -148,6 +148,7 @@ Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
+Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
 End Extern
 
@@ -223,7 +224,9 @@ TYPE Slice
   Fill as bool
   FillMode as FillModes
 
-  'Attach changes which slice is responsible for ChildRefresh (but not ChildDraw).
+  'Attach changes which slice is responsible for ChildRefresh, but not ChildDraw
+  'or ChildrenRefresh. (It's not possible to support Attach for ChildrenRefresh,
+  'because the parent needs to be aware of all the attached slices to lay them out).
   'In other words, changes where the child is drawn but not when.
   Attach as AttachTypes  'Not saved
   Union
@@ -243,6 +246,14 @@ TYPE Slice
   'Might also change .Visible (Select slices).
   'For all other types this is DefaultChildRefresh.
   ChildRefresh as SliceChildRefresh
+  'Alternative to ChildRefresh, updates the screen positions of all children at once.
+  'This should be used if all children need to be updated together.
+  'Note this isn't exactly equivalent to doing the work in ChildRefresh instead:
+  'FindSliceCollision and FindSliceAtPoint don't call ChildrenRefresh.
+  'Also, ChildrenRefresh is always called on the parent of a slice,
+  'not the slice it's attached to. Attach isn't supported for that.
+  'NOTE: If ChildrenRefresh is implemented, you must set ChildRefresh to NullChildRefresh.
+  ChildrenRefresh as SliceChildrenRefresh  'NULL for most slice types
   'Called after Draw. Draws each child (by calling DrawSlice) while handling clipping.
   'For most slice types this is DefaultChildDraw.
   'This function can be overriden to either apply special clipping rules (Grid, Panel)

@@ -89,6 +89,8 @@ Sub DisposeNullSlice(byval s as Slice ptr) : end sub
 Sub CloneNullSlice(byval s as Slice ptr, byval cl as Slice ptr) : end sub
 Sub SaveNullSlice(byval s as Slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(byval s as Slice ptr, byval node as Reload.Nodeptr) : end sub
+'And this is used if ChildrenRefresh is provided instead
+Sub NullChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex as integer = -1, visibleonly as bool = YES) : end sub
 
 'Computes ScreenX/Y, and also sets the width/height if filling (which is basically an implementation mistake).
 'childindex is index of ch among its siblings. Pass -1 if not known,
@@ -117,6 +119,8 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  '      ever called from DrawSlice which does null check it.
  dim clippos as XYPair = any
  with *s
+  if .ChildrenRefresh then .ChildrenRefresh(s)
+
   if .Clip then
    dim clipview as Frame ptr
    clippos.X = .ScreenX + .paddingLeft + GlobalCoordOffset.X
@@ -461,6 +465,7 @@ Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
  ret->ChildRefresh = @DefaultChildRefresh
+ ret->ChildrenRefresh = NULL
  ret->ChildDraw = @DefaultChildDraw
 
  SliceDebugRemember ret
@@ -827,6 +832,7 @@ Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
   sl->Save      = .Save
   sl->Load      = .Load
   sl->ChildRefresh = .ChildRefresh
+  sl->ChildrenRefresh = .ChildrenRefresh
   sl->ChildDraw = .ChildDraw
   sl->SliceData = .SliceData
   sl->SliceType = .SliceType
@@ -1997,6 +2003,8 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  end if
  
  with *s
+  'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
+
   '--get grid data
   dim dat as GridSliceData ptr
   dat = .SliceData
@@ -2712,6 +2720,7 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
  '      ever called from DrawSlice which does null check it.
 
  with *s
+  'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
 
   dim clippos as XYPair
   dim clipsize as XYPair
@@ -2960,6 +2969,8 @@ Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
  'or other attributes. Refreshing is skipped if the slice isn't visible.
+ '(Note: if ChildrenRefresh is set, it was already called from the parent's
+ 'ChildDraw, and ChildRefresh will do nothing.)
  DIM attach as Slice Ptr
  attach = GetSliceRefreshAttachParent(s)
  if attach then attach->ChildRefresh(attach, s, childindex, YES)
@@ -3048,16 +3059,21 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
  'of a slice and its ancestors without needing to do a full DrawSlice of the whole tree
  'and without respect to the .Visible property
  if slc = 0 then exit sub
- DIM attach as Slice Ptr
+ dim attach as Slice ptr
  attach = GetSliceRefreshAttachParent(slc)
  if attach = 0 then exit sub
  if attach <> ScreenSlice then
   RefreshSliceScreenPos attach
  end if
+ dim par as Slice ptr = slc->Parent
+ if par andalso par->ChildrenRefresh then par->ChildrenRefresh(par)
  attach->ChildRefresh(attach, slc, -1, NO)  'visibleonly=NO
 end sub
 
+'Refresh all descendents of slc
 Private Sub SliceRefreshRecurse(slc as Slice ptr)
+ if slc->ChildrenRefresh then slc->ChildrenRefresh(slc)
+
  dim attach as Slice Ptr
  dim ch as Slice ptr = slc->FirstChild
  dim childindex as integer = 0
@@ -3139,7 +3155,9 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  while s
   if s <> sl then
    with *s
-    'We refresh the child even if not visible, unlike DrawSlice
+    'We refresh the child even if not visible, unlike DrawSlice.
+    'We don't call ChildrenRefresh if applicable, because we need (and should)
+    'only update the screen positions, not do complex positioning recalc.
     parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
     dim recurse as bool = descend
@@ -3184,7 +3202,9 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  s = parent->FirstChild
  while s
   with *s
-   'We refresh the child even if not visible, unlike DrawSlice
+   'We refresh the child even if not visible, unlike DrawSlice.
+   'We don't call ChildrenRefresh if applicable, because we need (and should)
+   'only update the screen positions, not do complex positioning recalc.
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
 
    if .Visible or (visibleonly = NO) then
