@@ -1356,6 +1356,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), " Fill Type: " & FillModeCaptions(.FillMode)
    sliceed_rule_enum rules(), "fillmode", @.FillMode, 0, 2
   END IF
+
   str_array_append menu(), "Lookup code: " & slice_lookup_code_caption(.Lookup, ses.slicelookup())
   IF ses.editing_lookup_name THEN menu(6) &= fgtag(uilook(uiText), "_")
   DIM minlookup as integer = IIF(ses.privileged, -999999999, 0)
@@ -1380,6 +1381,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), "Protected"
    sliceed_rule_none rules(), "protect"
   END IF
+
   SELECT CASE .SliceType
    CASE slMap, slRoot, slSpecial, slContainer
    CASE ELSE
@@ -1410,6 +1412,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      str_array_append menu(), "  Fuzziness: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
     END IF
+
    CASE slText
     DIM dat as TextSliceData Ptr
     dat = .SliceData
@@ -1425,6 +1428,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     str_array_append menu(), " Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
+
    CASE slSprite
     DIM dat as SpriteSliceData Ptr
     dat = .SliceData
@@ -1467,6 +1471,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      str_array_append menu(), "  Backwards: " & yesorno(dat->d_back)
      sliceed_rule_tog rules(), "sprite_d_back", @(dat->d_back)
     END IF
+
    CASE slGrid
     DIM dat as GridSliceData Ptr
     dat = .SliceData
@@ -1476,6 +1481,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "grid_cols", erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
     str_array_append menu(), " Show Grid: " & yesorno(dat->show)
     sliceed_rule_tog rules(), "grid_show", @(dat->show)
+
    CASE slEllipse
     DIM dat as EllipseSliceData Ptr
     dat = .SliceData
@@ -1483,6 +1489,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), LowColorCode(), 255, slgrPICKCOL
     str_array_append menu(), " Fill Color: " & slice_color_caption(dat->fillcol, "Transparent")
     sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), LowColorCode(), 255, slgrPICKCOL
+
    CASE slScroll
     DIM dat as ScrollSliceData Ptr
     dat = .SliceData
@@ -1490,11 +1497,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "scroll_style", erIntgrabber, @(dat->style), 0, 14
     str_array_append menu(), " Check Depth: " & zero_default(dat->check_depth, "No limit")
     sliceed_rule rules(), "scroll_check_depth", erIntgrabber, @(dat->check_depth), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+
    CASE slSelect
     DIM dat as SelectSliceData Ptr
     dat = .SliceData
     str_array_append menu(), " Selected Child: " & dat->index
     sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999, slgrEDITSWITCHINDEX 'FIXME: this is an arbitrary upper limit
+
    CASE slPanel
     DIM dat as PanelSliceData Ptr
     dat = .SliceData
@@ -1514,6 +1523,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_tog rules(), "vis", @.Visible
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
+
   IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
    sliceed_header menu(), rules(), "[Alignment]"
   END IF
@@ -1533,6 +1543,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    str_array_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
   END IF
+
   sliceed_header menu(), rules(), "[Padding]", "padding"
   str_array_append menu(), " Top: " & .PaddingTop
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingTop, -9999, 9999
@@ -1542,6 +1553,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingBottom, -9999, 9999
   str_array_append menu(), " Left: " & .PaddingLeft
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingLeft, -9999, 9999
+
   sliceed_header menu(), rules(), "[Extra Data]", "extra"
   FOR i as integer = 0 TO 2
    str_array_append menu(), " extra" & i & ": " & .Extra(i)

@@ -706,7 +706,7 @@ Sub YSortChildSlices(byval parent as Slice ptr)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub CustomSortChildSlices(byval parent as Slice ptr, byval wipevals as integer)
+Sub CustomSortChildSlices(byval parent as Slice ptr, byval wipevals as bool)
  if parent = 0 then debug "CustomSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as Slice ptr
@@ -896,15 +896,15 @@ Function IsAncestor(byval sl as Slice ptr, byval ancestor as Slice ptr) as bool
 End Function
 
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
-Function VerifySliceLineage(byval sl as Slice ptr, parent as Slice ptr) as integer
+Function VerifySliceLineage(byval sl as Slice ptr, parent as Slice ptr) as bool
  dim s as Slice ptr
- if sl = 0 then return no
+ if sl = 0 then return NO
  s = parent
  do while s <> 0
-  if s = sl then return no
+  if s = sl then return NO
   s = s->parent
  loop
- return yes
+ return YES
 end function
 
 'Returns the 0-based index of this slice among is siblings.
@@ -958,13 +958,13 @@ End Function
 Function SliceGetHeight( byval s as Slice ptr ) as integer
  return s->Height
 End Function
-Function SliceIsVisible( byval s as Slice ptr ) as integer
+Function SliceIsVisible( byval s as Slice ptr ) as bool
  return s->Visible
 End Function
-Function SliceIsPaused( byval s as Slice ptr ) as integer
+Function SliceIsPaused( byval s as Slice ptr ) as bool
  return s->Paused
 End Function
-Function SliceIsClipping( byval s as Slice ptr ) as integer
+Function SliceIsClipping( byval s as Slice ptr ) as bool
  return s->Clip
 End Function
 'slice mutators
@@ -980,13 +980,13 @@ End Sub
 Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
  s->Height = h
 End Sub
-Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
+Sub SliceSetVisibility( byval s as Slice ptr, byval b as bool )
  s->Visible = b
 End Sub
-Sub SliceSetPaused( byval s as Slice ptr, byval b as integer )
+Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
  s->Paused = b
 End Sub
-Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
+Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
  s->Clip = b
 End Sub
 
@@ -3660,7 +3660,7 @@ SUB SliceDebugForget(sl as Slice Ptr)
 END SUB
 
 'This is used for hunting down leaked slices
-SUB SliceDebugDump(byval noisy as integer = NO)
+SUB SliceDebugDump(byval noisy as bool = NO)
  if ENABLE_SLICE_DEBUG = NO then exit sub
  debug "===SLICE DEBUG DUMP==="
  dim count as integer = 0

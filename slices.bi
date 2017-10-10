@@ -415,54 +415,72 @@ Extern "C"
 
 DECLARE Sub SetupGameSlices
 DECLARE Sub SetupMapSlices(byval to_max as integer)
-DECLARE Sub DestroyGameSlices(Byval dumpdebug as integer=0)
-DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
-DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
-DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr, byval debugme as integer = 0)
-DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
-DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
-DECLARE Sub AdvanceSlice(byval s as slice ptr)
+DECLARE Sub DestroyGameSlices(byval dumpdebug as integer=0)
+DECLARE Function NewSlice(byval parent as Slice ptr = 0) as Slice Ptr
+DECLARE Function NewSliceOfType(byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
+DECLARE Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer = 0)
+DECLARE Sub DeleteSliceChildren(byval s as Slice ptr, byval debugme as integer = 0)
+DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
+
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
+
+'--Saving and loading slices
+DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
+DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as bool=NO)
+DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
+DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO)
+
+DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
+DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
+
+DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
+DECLARE Sub AdvanceSlice(byval s as slice ptr)
+
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
+
+DECLARE Sub YSortChildSlices(byval parent as slice ptr)
+DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
+DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as bool)
+DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
+
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
+DECLARE Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice ptr
 DECLARE Function LookupSlice (byval lookup_code as integer, byval start_sl as slice ptr = NULL) as slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
-DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
+DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
+
 DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
+DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
+
 DECLARE Function SliceXAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
 DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
+
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
 DECLARE Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
 DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+
 DECLARE Function SliceIsInvisible(byval sl as Slice Ptr) as bool
 DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
-DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
-DECLARE Sub YSortChildSlices(byval parent as slice ptr)
-DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
-DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
-DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
-DECLARE Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
-DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
+
 DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
 DECLARE Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
 DECLARE Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
-DECLARE Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice Ptr
 
 End Extern
 
@@ -486,26 +504,27 @@ DECLARE Function SliceGetX( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetY( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetWidth( byval s as Slice ptr ) as integer
 DECLARE Function SliceGetHeight( byval s as Slice ptr ) as integer
-DECLARE Function SliceIsVisible( byval s as Slice ptr ) as integer
-DECLARE Function SliceIsPaused( byval s as Slice ptr ) as integer
-DECLARE Function SliceIsClipping( byval s as Slice ptr ) as integer
+DECLARE Function SliceIsVisible( byval s as Slice ptr ) as bool
+DECLARE Function SliceIsPaused( byval s as Slice ptr ) as bool
+DECLARE Function SliceIsClipping( byval s as Slice ptr ) as bool
 'slice mutators
 DECLARE Sub SliceSetX( byval s as Slice ptr, byval x as integer )
 DECLARE Sub SliceSetY( byval s as Slice ptr, byval y as integer )
 DECLARE Sub SliceSetWidth( byval s as Slice ptr, byval w as integer )
 DECLARE Sub SliceSetHeight( byval s as Slice ptr, byval h as integer )
-DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as integer )
-DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as integer )
+DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as bool )
+DECLARE Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
+DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
 
-DECLARE FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
 
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
 DECLARE SUB SliceDebugForget(sl as Slice Ptr)
-DECLARE SUB SliceDebugDump(byval noisy as integer = NO)
+DECLARE SUB SliceDebugDump(byval noisy as bool = NO)
 DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
 DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
 DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
 
+'''' SliceType-specific functions
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
@@ -591,12 +610,6 @@ DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData pt
 DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
 DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
 DECLARE Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
-
-'--Saving and loading slices
-DECLARE Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles as bool=NO)
-DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_handles as bool=NO)
-DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
-DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO)
 
 
 EXTERN as SliceTable_ SliceTable
