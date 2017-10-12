@@ -131,11 +131,13 @@ function spamCallBack($editor, $text, $section, &$error, $summary){
 
     // alert the administrator of the spam attempt
     // (unless there is more than 1 urls, in which case assume spam)
-    if($urlcount <= 1) mail($wgEmergencyContact,
-         sprintf('%s %s',$wgSitename,$title->mTextform),
-         sprintf("spam attempt blocked from \"%s\"\nReason: %s\n\n%s",
-                 $log_name,$reason,$diff),
-         sprintf('From: %s',$wgEmergencyContact));
+    // (this mail is completely disabled, because it is always spam)
+
+    //if($urlcount <= 1) mail($wgEmergencyContact,
+    //     sprintf('%s %s',$wgSitename,$title->mTextform),
+    //     sprintf("spam attempt blocked from \"%s\"\nReason: %s\n\n%s",
+    //             $log_name,$reason,$diff),
+    //     sprintf('From: %s',$wgEmergencyContact));
 
     // attempt to deceive the spammer into thinking their edit succeeded
     $parserOptions = ParserOptions::newFromUser( $wgUser );
