@@ -1,4 +1,7 @@
 /*
+  Windows Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -18,18 +21,22 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
 
 #ifndef _SDL_windowsclipboard_h
 #define _SDL_windowsclipboard_h
 
-/* Forward declaration */
-struct SDL_VideoData;
+#include <stdbool.h>
 
-extern int WIN_SetClipboardText(_THIS, const char *text);
-extern char *WIN_GetClipboardText(_THIS);
-extern SDL_bool WIN_HasClipboardText(_THIS);
-extern void WIN_CheckClipboardUpdate(struct SDL_VideoData * data);
+#define WIN32_LEAN_AND_MEAN
+#define STRICT
+#define UNICODE 1
+#undef _WIN32_WINNT
+#define _WIN32_WINNT  0x501   /* Need 0x410 for AlphaBlend() and 0x500 for EnumDisplayDevices(), 0x501 for raw input */
+#include <windows.h>
+
+extern int WIN_SetClipboardText(HWND hWindow, const char *text);
+extern char *WIN_GetClipboardText(HWND hWindow);
+extern bool WIN_HasClipboardText(HWND hWindow);
 
 #endif /* _SDL_windowsclipboard_h */
 

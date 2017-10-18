@@ -703,6 +703,8 @@ if win32:
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
+    if 'sdl' in gfx:
+        common_modules += ['lib/SDL/SDL_windowsclipboard.c', 'gfx_common/ohrstring.cpp']
     if 'console' in gfx:
         common_libraries += ['pdcurses']
     # if 'sdl' in music:

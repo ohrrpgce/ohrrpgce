@@ -7,7 +7,8 @@
 #include "config.bi"
 
 #ifdef __FB_WIN32__
-	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+	'Headers such as SDL.bi include windows.bi; we have to include it first
+        'to do the necessary conflict prevention.
 	include_windows_bi()
 #endif
 
@@ -27,6 +28,10 @@
 
 #ifdef USE_X11
 #include "lib/SDL/SDL_x11clipboard.bi"
+#endif
+
+#ifdef __FB_WIN32__
+#include "lib/SDL/SDL_windowsclipboard.bi"
 #endif
 
 #ifdef __FB_DARWIN__
@@ -1414,14 +1419,13 @@ END FUNCTION
 
 'Loads the wminfo global, returns success
 PRIVATE FUNCTION load_wminfo() as bool
+  SDL_VERSION_(@wminfo.version)
+  IF SDL_GetWMInfo(@wminfo) <> 1 THEN RETURN NO
   #IFDEF USE_X11
-    SDL_VERSION_(@wminfo.version)
-    IF SDL_GetWMInfo(@wminfo) <> 1 THEN RETURN NO
     IF wminfo.subsystem <> SDL_SYSWM_X11 THEN RETURN NO
-    RETURN YES
-  #ELSE
-    RETURN NO
   #ENDIF
+  'Other platforms don't have the equivalent of subsystem
+  RETURN YES
 END FUNCTION
 
 SUB io_sdl_set_clipboard_text(text as ustring)
@@ -1432,6 +1436,9 @@ SUB io_sdl_set_clipboard_text(text as ustring)
       X11_SetClipboardText(.display, .window, cstring(text))
       .unlock_func()
     END WITH
+  #ELSEIF DEFINED(__FB_WIN32__)
+    IF load_wminfo() = NO THEN EXIT SUB
+    WIN_SetClipboardText(wminfo.window, cstring(text))
   #ELSEIF DEFINED(__FB_DARWIN__)
     Cocoa_SetClipboardText(cstring(text))
   #ENDIF
@@ -1446,6 +1453,9 @@ FUNCTION io_sdl_get_clipboard_text() as ustring
       ret = X11_GetClipboardText(.display, .window)
       .unlock_func()
     END WITH
+  #ELSEIF DEFINED(__FB_WIN32__)
+    IF load_wminfo() = NO THEN RETURN ""
+    ret = WIN_GetClipboardText(wminfo.window)
   #ELSEIF DEFINED(__FB_DARWIN__)
     ret = Cocoa_GetClipboardText()
   #ENDIF

@@ -1,4 +1,7 @@
 /*
+  Windows Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -18,48 +21,56 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
-
-#if SDL_VIDEO_DRIVER_WINDOWS
-
-#include "SDL_windowsvideo.h"
-#include "SDL_windowswindow.h"
-#include "../../events/SDL_clipboardevents_c.h"
 
 
-#ifdef UNICODE
+#include "SDL_windowsclipboard.h"
+#include "../../config.h"
+#include "internal.h"
+#include "../../misc.h"
+#include "../../gfx_common/ohrstring.hpp"
+
 #define TEXT_FORMAT  CF_UNICODETEXT
-#else
-#define TEXT_FORMAT  CF_TEXT
-#endif
+//#define TEXT_FORMAT  CF_TEXT
 
+int clipboard_count = 0;
 
-/* Get any application owned window handle for clipboard association */
-static HWND
-GetWindowHandle(_THIS)
+////<< The following are from SDL_windows.c
+
+/* Sets an error message based on GetLastError() */
+int
+WIN_SetErrorFromHRESULT(const char *prefix, HRESULT hr)
 {
-    SDL_Window *window;
-
-    window = _this->windows;
-    if (window) {
-        return ((SDL_WindowData *) window->driverdata)->hwnd;
-    }
-    return NULL;
+    TCHAR buffer[1024];
+    char *message;
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, 0,
+                  buffer, SDL_arraysize(buffer), NULL);
+    message = WstringToMBstring(buffer, CP_UTF8);
+    debug(errError, "%s%s%s", prefix ? prefix : "", prefix ? ": " : "", message);
+    free(message);
+    return -1;
 }
 
+/* Sets an error message based on GetLastError() */
 int
-WIN_SetClipboardText(_THIS, const char *text)
+WIN_SetError(const char *prefix)
 {
-    SDL_VideoData *data = (SDL_VideoData *) _this->driverdata;
+    return WIN_SetErrorFromHRESULT(prefix, GetLastError());
+}
+
+////>> End SDL_windows.c
+
+int
+WIN_SetClipboardText(HWND hWindow, const char *text)
+{
     int result = 0;
 
-    if (OpenClipboard(GetWindowHandle(_this))) {
+    if (OpenClipboard(hWindow)) {
         HANDLE hMem;
         LPTSTR tstr;
         SIZE_T i, size;
 
         /* Convert the text from UTF-8 to Windows Unicode */
-        tstr = WIN_UTF8ToString(text);
+        tstr = MBstringToWstring(text, CP_UTF8);
         if (!tstr) {
             return -1;
         }
@@ -93,9 +104,9 @@ WIN_SetClipboardText(_THIS, const char *text)
             if (!SetClipboardData(TEXT_FORMAT, hMem)) {
                 result = WIN_SetError("Couldn't set clipboard data");
             }
-            data->clipboard_count = GetClipboardSequenceNumber();
+            clipboard_count = GetClipboardSequenceNumber();
         }
-        SDL_free(tstr);
+        free(tstr);
 
         CloseClipboard();
     } else {
@@ -105,20 +116,20 @@ WIN_SetClipboardText(_THIS, const char *text)
 }
 
 char *
-WIN_GetClipboardText(_THIS)
+WIN_GetClipboardText(HWND hWindow)
 {
     char *text;
 
     text = NULL;
     if (IsClipboardFormatAvailable(TEXT_FORMAT) &&
-        OpenClipboard(GetWindowHandle(_this))) {
+        OpenClipboard(hWindow)) {
         HANDLE hMem;
         LPTSTR tstr;
 
         hMem = GetClipboardData(TEXT_FORMAT);
         if (hMem) {
             tstr = (LPTSTR)GlobalLock(hMem);
-            text = WIN_StringToUTF8(tstr);
+            text = WstringToMBstring(tstr, CP_UTF8);
             GlobalUnlock(hMem);
         } else {
             WIN_SetError("Couldn't get clipboard data");
@@ -126,35 +137,33 @@ WIN_GetClipboardText(_THIS)
         CloseClipboard();
     }
     if (!text) {
-        text = SDL_strdup("");
+        text = strdup("");
     }
     return text;
 }
 
-SDL_bool
-WIN_HasClipboardText(_THIS)
+bool
+WIN_HasClipboardText(HWND hWindow)
 {
-    SDL_bool result = SDL_FALSE;
-    char *text = WIN_GetClipboardText(_this);
+    bool result = false;
+    char *text = WIN_GetClipboardText(hWindow);
     if (text) {
-        result = text[0] != '\0' ? SDL_TRUE : SDL_FALSE;
-        SDL_free(text);
+        result = text[0] != '\0';
+        free(text);
     }
     return result;
 }
 
+/*
 void
 WIN_CheckClipboardUpdate(struct SDL_VideoData * data)
 {
     const DWORD count = GetClipboardSequenceNumber();
-    if (count != data->clipboard_count) {
-        if (data->clipboard_count) {
+    if (count != clipboard_count) {
+        if (clipboard_count) {
             SDL_SendClipboardUpdate();
         }
-        data->clipboard_count = count;
+        clipboard_count = count;
     }
 }
-
-#endif /* SDL_VIDEO_DRIVER_WINDOWS */
-
-/* vi: set ts=4 sw=4 expandtab: */
+*/
