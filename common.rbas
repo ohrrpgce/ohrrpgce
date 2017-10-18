@@ -5334,7 +5334,7 @@ END SUB
 
 ' Convert a UTF8 string to the encoding used for the current game (Latin-1 or ASCII)
 ' Any codepoints not in Latin-1/ASCII get converted to '?'
-FUNCTION utf8_to_OHR(utf8string as string) as string
+FUNCTION utf8_to_OHR(utf8string as ustring) as string
  DIM ret as string = utf8_to_latin1(utf8string)
 
  DIM as integer icons_low, icons_high

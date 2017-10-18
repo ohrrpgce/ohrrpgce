@@ -147,9 +147,9 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 		for idx as integer = 0 TO comments->comments - 1
 			' .ogg comment strings are UTF8, not null-terminated
 			' They're usually formatted like "AUTHOR=virt", but sometimes lower case or no 'tag' name.
-			dim cmmt as string
-			cmmt = blob_to_string(comments->user_comments[idx], comments->comment_lengths[idx])
-			cmmt = utf8_to_OHR(cmmt)
+			dim ucmmt as ustring, cmmt as string
+			ucmmt = blob_to_string(comments->user_comments[idx], comments->comment_lengths[idx])
+			cmmt = utf8_to_OHR(ucmmt)
 			dim as integer eqpos = instr(cmmt, "="), spcpos = instr(cmmt, " ")
 			if eqpos > 1 andalso (spcpos = 0 orelse spcpos > eqpos) then
 				'Seems to be a tag, format it like "Author: virt"

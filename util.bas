@@ -1988,7 +1988,7 @@ END SUB
 
 ' Convert a UTF8 string to Latin-1. Any codepoints not in Latin-1 (ie above 255) get converted to '?'
 ' NOTE: you should normally use utf8_to_OHR instead!
-FUNCTION utf8_to_latin1(utf8string as string) as string
+FUNCTION utf8_to_latin1(utf8string as ustring) as string
   'Avoid FB's builtin conversion to wstring because it's locale-dependent
   DIM length as integer = utf8_length(strptr(utf8string))
   IF length < 0 THEN

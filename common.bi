@@ -231,7 +231,7 @@ DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, by
 DECLARE FUNCTION get_text_box_height(byref box as TextBox) as integer
 DECLARE FUNCTION last_inv_slot() as integer
 
-DECLARE FUNCTION utf8_to_OHR(utf8string as string) as string
+DECLARE FUNCTION utf8_to_OHR(utf8string as ustring) as string
 DECLARE FUNCTION decode_backslash_codes(s as string, context as string = "", byref show_warnings as bool = NO) as string
 DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string

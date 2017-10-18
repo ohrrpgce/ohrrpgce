@@ -6,6 +6,7 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
+#include "config.bi"
 #include "crt/stddef.bi"
 #include "file.bi"   'FB header, for FILELEN
 
@@ -586,7 +587,7 @@ End Enum
 declare function cstring (s as string) as zstring ptr
 declare function copy_zstring (str_ptr as zstring ptr) as zstring ptr
 declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
-declare function utf8_to_latin1(utf8string as string) as string
+declare function utf8_to_latin1(utf8string as ustring) as string
 
 declare function rpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipRight) as string
 declare function lpad (s as string, pad_char as string = " ", size as integer, clip as clipDir = clipLeft) as string

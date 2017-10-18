@@ -103,6 +103,12 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 #define ALLFILES "*.*"
 #endif
 
+
+'======================================= More defines =====================================
+
+'A UTF8 unicode string. This is just for code documentation.
+type USTRING as STRING
+
 'This is useful as a prefix in ohrrpgce_config.ini
 #ifdef IS_GAME
  #define EXEPREFIX "game."
@@ -111,6 +117,8 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 #endif
 
 '---For some crazy reason TRUE and FALSE don't work well as const even though they are not reserved
+'(Postscript: true and false are FB builtin constants, of type 'boolean' rather than 'integer'.
+'That may or may not cause problems.)
 CONST YES = -1
 CONST NO = 0
 
