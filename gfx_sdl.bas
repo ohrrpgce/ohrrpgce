@@ -29,6 +29,10 @@
 #include "lib/SDL/SDL_x11clipboard.bi"
 #endif
 
+#ifdef __FB_DARWIN__
+#include "lib/SDL/SDL_cocoaclipboard.bi"
+#endif
+
 ''' FB SDL headers were pretty out of date until FB 1.04, when they were replaced with completely new versions
 #if __FB_VERSION__ < "1.04"
 #undef SDL_VideoInfo
@@ -1421,30 +1425,32 @@ PRIVATE FUNCTION load_wminfo() as bool
 END FUNCTION
 
 SUB io_sdl_set_clipboard_text(text as ustring)
-  IF load_wminfo() = NO THEN EXIT SUB
   #IFDEF USE_X11
+    IF load_wminfo() = NO THEN EXIT SUB
     WITH wminfo.info.x11
       .lock_func()
       X11_SetClipboardText(.display, .window, cstring(text))
       .unlock_func()
     END WITH
+  #ELSEIF DEFINED(__FB_DARWIN__)
+    Cocoa_SetClipboardText(cstring(text))
   #ENDIF
 END SUB
 
 FUNCTION io_sdl_get_clipboard_text() as ustring
   DIM ret as zstring ptr
-  IF load_wminfo() = NO THEN RETURN ""
   #IFDEF USE_X11
+    IF load_wminfo() = NO THEN RETURN ""
     WITH wminfo.info.x11
       .lock_func()
       ret = X11_GetClipboardText(.display, .window)
-      io_sdl_get_clipboard_text = *ret
-      DEALLOCATE ret
       .unlock_func()
     END WITH
-  #ELSE
-    RETURN ""
+  #ELSEIF DEFINED(__FB_DARWIN__)
+    ret = Cocoa_GetClipboardText()
   #ENDIF
+  io_sdl_get_clipboard_text = *ret
+  DEALLOCATE ret
 END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer

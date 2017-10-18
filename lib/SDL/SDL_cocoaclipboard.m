@@ -1,4 +1,7 @@
 /*
+  Mac OSX Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -18,30 +21,32 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_COCOA
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "SDL_cocoavideo.h"
-#include "../../events/SDL_clipboardevents_c.h"
+#include <ApplicationServices/ApplicationServices.h>
+#include <Cocoa/Cocoa.h>
+
+int clipboard_count;
 
 int
-Cocoa_SetClipboardText(_THIS, const char *text)
+Cocoa_SetClipboardText(const char *text)
 { @autoreleasepool
 {
-    SDL_VideoData *data = (SDL_VideoData *) _this->driverdata;
     NSPasteboard *pasteboard;
     NSString *format = NSPasteboardTypeString;
 
     pasteboard = [NSPasteboard generalPasteboard];
-    data->clipboard_count = [pasteboard declareTypes:[NSArray arrayWithObject:format] owner:nil];
+    clipboard_count = [pasteboard declareTypes:[NSArray arrayWithObject:format] owner:nil];
     [pasteboard setString:[NSString stringWithUTF8String:text] forType:format];
 
     return 0;
 }}
 
 char *
-Cocoa_GetClipboardText(_THIS)
+Cocoa_GetClipboardText()
 { @autoreleasepool
 {
     NSPasteboard *pasteboard;
@@ -61,28 +66,29 @@ Cocoa_GetClipboardText(_THIS)
         } else {
             utf8 = [string UTF8String];
         }
-        text = SDL_strdup(utf8);
+        text = strdup(utf8);
     } else {
-        text = SDL_strdup("");
+        text = strdup("");
     }
 
     return text;
 }}
 
-SDL_bool
-Cocoa_HasClipboardText(_THIS)
+bool
+Cocoa_HasClipboardText()
 {
-    SDL_bool result = SDL_FALSE;
-    char *text = Cocoa_GetClipboardText(_this);
+    bool result = false;
+    char *text = Cocoa_GetClipboardText();
     if (text) {
-        result = text[0] != '\0' ? SDL_TRUE : SDL_FALSE;
-        SDL_free(text);
+        result = text[0] != '\0';
+        free(text);
     }
     return result;
 }
 
+/*
 void
-Cocoa_CheckClipboardUpdate(struct SDL_VideoData * data)
+Cocoa_CheckClipboardUpdate()
 { @autoreleasepool
 {
     NSPasteboard *pasteboard;
@@ -90,14 +96,11 @@ Cocoa_CheckClipboardUpdate(struct SDL_VideoData * data)
 
     pasteboard = [NSPasteboard generalPasteboard];
     count = [pasteboard changeCount];
-    if (count != data->clipboard_count) {
-        if (data->clipboard_count) {
+    if (count != clipboard_count) {
+        if (clipboard_count) {
             SDL_SendClipboardUpdate();
         }
-        data->clipboard_count = count;
+        clipboard_count = count;
     }
 }}
-
-#endif /* SDL_VIDEO_DRIVER_COCOA */
-
-/* vi: set ts=4 sw=4 expandtab: */
+*/

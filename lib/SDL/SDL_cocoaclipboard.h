@@ -1,4 +1,7 @@
 /*
+  Mac OSX Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -18,18 +21,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
 
 #ifndef _SDL_cocoaclipboard_h
 #define _SDL_cocoaclipboard_h
 
-/* Forward declaration */
-struct SDL_VideoData;
-
-extern int Cocoa_SetClipboardText(_THIS, const char *text);
-extern char *Cocoa_GetClipboardText(_THIS);
-extern SDL_bool Cocoa_HasClipboardText(_THIS);
-extern void Cocoa_CheckClipboardUpdate(struct SDL_VideoData * data);
+extern int Cocoa_SetClipboardText(const char *text);
+extern char *Cocoa_GetClipboardText();
+extern SDL_bool Cocoa_HasClipboardText();
 
 #endif /* _SDL_cocoaclipboard_h */
 

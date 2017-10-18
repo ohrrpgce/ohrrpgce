@@ -713,7 +713,7 @@ elif mac:
     common_modules += ['os_unix_wm.c']
     common_libraries += ['Cocoa']  # For CoreServices
     if 'sdl' in gfx:
-        common_modules += ['mac/SDLmain.m']
+        common_modules += ['mac/SDLmain.m', 'lib/SDL/SDL_cocoaclipboard.m']
         commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
         if env.WhereIs('sdl-config'):
             commonenv.ParseConfig('sdl-config --cflags')
