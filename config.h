@@ -8,10 +8,20 @@
 #include "errorlevel.h"
 #include <stdint.h>
 
+// For Windows (changes declarations in windows.h from ANSI to UTF16)
+#define UNICODE 1
+#define _UNICODE 1
+
+#if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__)
+# define USE_X11 1
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+/****** Cross-platform workarounds ******/
 
 
 // For alloca declaration
@@ -21,6 +31,34 @@ extern "C" {
 // Doesn't exist in BSD
 #include <alloca.h>
 #endif
+
+
+#ifdef _MSC_VER
+ /* Microsoft C++ */
+
+ #define DLLEXPORT __declspec(dllexport)
+
+#else
+ /* standard C++ compiler/Mingw */
+
+ #define DLLEXPORT
+
+ #ifndef __cdecl
+  // #define __cdecl __attribute__((__cdecl__))
+  #define __cdecl
+ #endif
+
+ /* Replacements for Microsoft extensions (no guarantees about correctness) */
+
+ #define memcpy_s(dest, destsize, src, count)  memcpy(dest, src, count)
+ #define strcpy_s(dest, destsize, src)  strcpy(dest, src)
+ #define wcstombs_s(pReturnValue, mbstr, sizeInBytes, wcstr, count) \
+   ((*(pReturnValue) = wcstombs(mbstr, wcstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+ #define mbstowcs_s(pReturnValue, wcstr, sizeInWords, mbstr, count) \
+   ((*(pReturnValue) = mbstowcs(wcstr, mbstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+
+#endif
+
 
 /* I will use boolint in declarations of C/C++ functions where we would like to use
    bool (C/C++) or boolean (FB), but shouldn't, to support FB pre-1.04. So instead,
@@ -41,6 +79,10 @@ typedef int boolint;
 # define SLASH '/'
 # define ispathsep(chr) ((chr) == '/')
 #endif
+
+
+/************* Attributes ***************/
+
 
 // __has_attribute is supported since gcc 5.0 and clang 2.9. That's very recent
 // but I don't think we care if the attributes accidentally don't get used.

@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
-#include "config.h"
+#include "../config.h"
 #include "_tstring.h"
 
 tstring::tstring() : _tstring()

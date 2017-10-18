@@ -227,7 +227,7 @@ dim shared replay_kb as KeyboardState       'Contains replayed state of keyboard
 dim shared last_setkeys_time as double      'Used to compute real_kb.setkeys_elapsed_ms
 dim shared inputtext_enabled as bool = NO   'Whether to fetch real_kb.inputtext, not applied to replay_kb
 
-#IFDEF __X11__
+#IFDEF USE_X11
 	'As a workaround for bug 2005, we disable native text input by default
 	'on X11 (Linux/BSD). This can be removed when we figure out a better fix for that bug
 	dim shared disable_native_text_input as bool = YES

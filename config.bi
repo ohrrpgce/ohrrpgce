@@ -82,7 +82,7 @@ CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
 #endif
 
 #if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__))
- #define __X11__
+ #define USE_X11
 #endif
 
 #ifdef __FB_UNIX__

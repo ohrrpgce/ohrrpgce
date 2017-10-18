@@ -195,7 +195,7 @@
 //
 #pragma once
 
-#include "config.h"
+#include "../config.h"
 
 #define _DFI_MASHER(a, b) a##b
 #define _DFI_STRINGER(arg) #arg

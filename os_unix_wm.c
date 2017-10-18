@@ -4,15 +4,11 @@
 //
 // Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
-
-#if !defined(__APPLE__) && !defined(__ANDROID__)
-#define X_WINDOWS 1
-#endif
-
 //fb_stub.h MUST be included first, to ensure fb_off_t is 64 bit
 #include "fb/fb_stub.h"
+#include "config.h"
 
-#ifdef X_WINDOWS
+#ifdef USE_X11
 #include <X11/Xlib.h>
 #endif
 
@@ -58,7 +54,7 @@ void os_get_screen_size(int *wide, int *high) {
 //==========================================================================================
 
 
-#elif defined(X_WINDOWS)
+#elif defined(USE_X11)
 
 void os_get_screen_size(int *wide, int *high) {
 	Display *display;
