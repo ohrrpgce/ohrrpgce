@@ -48,7 +48,7 @@ WIN_SetErrorFromHRESULT(const char *prefix, HRESULT hr)
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, 0,
                   buffer, SDL_arraysize(buffer), NULL);
     message = WstringToMBstring(buffer, CP_UTF8);
-    debug(errError, "%s%s%s", prefix ? prefix : "", prefix ? ": " : "", message);
+    debug(errInfo, "%s%s%s", prefix ? prefix : "", prefix ? ": " : "", message);
     free(message);
     return -1;
 }
@@ -113,6 +113,7 @@ WIN_SetClipboardText(HWND hWindow, const char *text)
 
         CloseClipboard();
     } else {
+        // Can happen if another program is using the clipboard
         result = WIN_SetError("Couldn't open clipboard");
     }
     return result;
@@ -135,7 +136,8 @@ WIN_GetClipboardText(HWND hWindow)
             text = WstringToMBstring(tstr, CP_UTF8);
             GlobalUnlock(hMem);
         } else {
-            WIN_SetError("Couldn't get clipboard data");
+            // Not an error; e.g. the clipboard doesn't contain text
+            //WIN_SetError("Couldn't get clipboard data");
         }
         CloseClipboard();
     }
