@@ -4869,16 +4869,16 @@ end sub
 'If withtags is false then no tags are processed.
 'If withtags is true, the follow "basic texttags" are processed:
 '  (These will change!)
-' ${F#}  changes to font # or return to initial font if # == -1
-' ${K#}  changes foreground/first colour, or return to initial colour if # == -1
+'-${F#}  changes to font # or return to initial font if # == -1
+'-${K#}  changes foreground/first colour, or return to initial colour if # == -1
 '        (Note that this does disable the foreground colour, unless the initial fg colour was -1!)
-' ${KB#} changes the background colour, and turns on not_transparent.
+'-${KB#} changes the background colour, and turns on not_transparent.
 '        Specify -1 to restore previous background colour and transparency
 '        FIXME: ${KB0} does NOT switch to transparency, but an initial bgcol of 0 IS transparent!
-' ${KP#} changes to palette # (-1 is invalid) (Maybe should make ${F-1} return to the default)
+'-${KP#} changes to palette # (-1 is invalid) (Maybe should make ${F-1} return to the default)
 '        (Note, palette changes are per-font, and expire when the font changes)
-' ${LM#} sets left margin for the current line, in pixels
-' ${RM#} sets right margin for the current line, in pixels
+'-${LM#} sets left margin for the current line, in pixels
+'-${RM#} sets right margin for the current line, in pixels
 'Purposefully no way to set background colour.
 'Unrecognised and invalid basic texttags are printed as normal.
 'ASCII character 8 can be used to hide texttags by overwriting the $, like so: \008{X#}
