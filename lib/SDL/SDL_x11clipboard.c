@@ -27,10 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-
+#include "internal.h"
 #include "../../misc.h"
 
 void fb_Sleep(int msecs);
@@ -78,7 +75,7 @@ X11_SetClipboardText(Display *display, Window window, const char *text)
 }
 
 char *
-X11_GetClipboardText(Display *display, Window window)
+X11_GetClipboardText(Display *display, Window window, void (*event_loop_callback)())
 {
     Atom format;
     Window owner;
@@ -114,29 +111,29 @@ X11_GetClipboardText(Display *display, Window window)
         XConvertSelection(display, XA_CLIPBOARD, format, selection, owner,
             CurrentTime);
 
-#if 1
-        // Wait for the response, if any, to arrive
-        fb_Sleep(4);
-#else
-        // This code relies on recieving the X11 SelectionNotify event in SDL_x11events.c
-        /* When using synergy on Linux and when data has been put in the clipboard
-           on the remote (Windows anyway) machine then selection_waiting may never
-           be set to False. Time out after a while. */
-        double waitStart = fb_Timer();
-        selection_waiting = true;
-        while (selection_waiting) {
-            SDL_PumpEvents();
-            /* Wait one second for a clipboard response. */
-            if (fb_Timer() - waitStart > 1.) {
-                selection_waiting = false;
-                debug(errError, "X11_GetClipboardText: Clipboard timeout");
-                /* We need to set the clipboard text so that next time we won't
-                   timeout, otherwise we will hang on every call to this function. */
-                X11_SetClipboardText(display, window, "");
-                return strdup("");
+        // Wait for an SelectionNotify event
+        if (!event_loop_callback) {
+            fb_Sleep(40);
+        } else {
+            /* When using synergy on Linux and when data has been put in the clipboard
+               on the remote (Windows anyway) machine then selection_waiting may never
+               be set to False. Time out after a while. */
+            double waitStart = fb_Timer();
+            selection_waiting = true;
+            while (selection_waiting) {
+                event_loop_callback();
+                /* Wait 300ms for a clipboard response. */
+                if (fb_Timer() - waitStart > 0.3) {
+                    selection_waiting = false;
+                    debug(errDebug, "X11_GetClipboardText: Clipboard timeout");
+                    /* We need to set the clipboard text so that next time we won't
+                       timeout, otherwise we will hang on every call to this function. */
+                    X11_SetClipboardText(display, window, "");
+                    return strdup("");
+                }
+                fb_Sleep(5);
             }
         }
-#endif
     }
 
     if (XGetWindowProperty(display, owner, selection, 0, INT_MAX/4, False,
@@ -160,10 +157,10 @@ X11_GetClipboardText(Display *display, Window window)
 }
 
 bool
-X11_HasClipboardText(Display *display, Window window)
+X11_HasClipboardText(Display *display, Window window, void (*event_loop_callback)())
 {
     bool result = false;
-    char *text = X11_GetClipboardText(display, window);
+    char *text = X11_GetClipboardText(display, window, event_loop_callback);
     if (text) {
         result = text[0] != '\0';
         free(text);

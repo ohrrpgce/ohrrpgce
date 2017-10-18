@@ -1445,13 +1445,21 @@ SUB io_sdl_set_clipboard_text(text as zstring ptr)  'ustring
   #ENDIF
 END SUB
 
+PRIVATE SUB check_events()
+  WITH wminfo.info.x11
+    .unlock_func()
+    update_state()
+    .lock_func()
+  END WITH
+END SUB
+
 FUNCTION io_sdl_get_clipboard_text() as zstring ptr  'ustring
   DIM ret as zstring ptr
   #IFDEF USE_X11
     IF load_wminfo() = NO THEN RETURN NULL
     WITH wminfo.info.x11
       .lock_func()
-      ret = X11_GetClipboardText(.display, .window)
+      ret = X11_GetClipboardText(.display, .window, @check_events)
       .unlock_func()
     END WITH
   #ELSEIF DEFINED(__FB_WIN32__)

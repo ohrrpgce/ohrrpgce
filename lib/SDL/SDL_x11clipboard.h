@@ -25,8 +25,8 @@
 #include <X11/Xlib.h>
 
 extern int X11_SetClipboardText(Display *display, Window window, const char *text);
-extern char *X11_GetClipboardText(Display *display, Window window);
-extern bool X11_HasClipboardText(Display *display, Window window);
+extern char *X11_GetClipboardText(Display *display, Window window, void (*event_loop_callback)());
+extern bool X11_HasClipboardText(Display *display, Window window, void (*event_loop_callback)());
 extern void X11_HandleClipboardEvent(Display *display, XEvent *xevent);
 
 #endif /* SDL_x11clipboard_h_ */
