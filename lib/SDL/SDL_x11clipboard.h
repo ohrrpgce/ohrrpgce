@@ -18,15 +18,16 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
 
 #ifndef SDL_x11clipboard_h_
 #define SDL_x11clipboard_h_
 
-extern int X11_SetClipboardText(_THIS, const char *text);
-extern char *X11_GetClipboardText(_THIS);
-extern SDL_bool X11_HasClipboardText(_THIS);
-extern Atom X11_GetSDLCutBufferClipboardType(Display *display);
+#include <X11/Xlib.h>
+
+extern int X11_SetClipboardText(Display *display, Window window, const char *text);
+extern char *X11_GetClipboardText(Display *display, Window window);
+extern bool X11_HasClipboardText(Display *display, Window window);
+extern void X11_HandleClipboardEvent(Display *display, XEvent *xevent);
 
 #endif /* SDL_x11clipboard_h_ */
 

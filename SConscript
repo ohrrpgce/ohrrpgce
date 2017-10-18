@@ -733,12 +733,14 @@ elif android:
     base_libraries += ['log']
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
-elif unix:  # Linux & BSD
+elif unix:  # Unix+X11 systems: Linux & BSD
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
+    if 'sdl' in gfx:
+        common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender'.split (' ')

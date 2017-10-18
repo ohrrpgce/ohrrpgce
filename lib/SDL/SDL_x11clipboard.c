@@ -1,4 +1,7 @@
 /*
+  X11 Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -18,83 +21,66 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-#include "../../SDL_internal.h"
-
-#if SDL_VIDEO_DRIVER_X11
 
 #include <limits.h> /* For INT_MAX */
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "SDL_events.h"
-#include "SDL_x11video.h"
-#include "SDL_timer.h"
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
 
+#include "../../misc.h"
+
+void fb_Sleep(int msecs);
+double fb_Timer();
 
 /* If you don't support UTF-8, you might use XA_STRING here */
-#ifdef X_HAVE_UTF8_STRING
-#define TEXT_FORMAT X11_XInternAtom(display, "UTF8_STRING", False)
-#else
-#define TEXT_FORMAT XA_STRING
-#endif
+#define TEXT_FORMAT XInternAtom(display, "UTF8_STRING", False)
+//#define TEXT_FORMAT XA_STRING
 
-/* Get any application owned window handle for clipboard association */
-static Window
-GetWindow(_THIS)
-{
-    SDL_Window *window;
-
-    window = _this->windows;
-    if (window) {
-        return ((SDL_WindowData *) window->driverdata)->xwindow;
-    }
-    return None;
-}
 
 /* We use our own cut-buffer for intermediate storage instead of  
    XA_CUT_BUFFER0 because their use isn't really defined for holding UTF8. */ 
 Atom
 X11_GetSDLCutBufferClipboardType(Display *display)
 {
-    return X11_XInternAtom(display, "SDL_CUTBUFFER", False);
+    return XInternAtom(display, "SDL_CUTBUFFER", False);
 }
 
 int
-X11_SetClipboardText(_THIS, const char *text)
+X11_SetClipboardText(Display *display, Window window, const char *text)
 {
-    Display *display = ((SDL_VideoData *) _this->driverdata)->display;
     Atom format;
-    Window window;
-    Atom XA_CLIPBOARD = X11_XInternAtom(display, "CLIPBOARD", 0);
+    Atom XA_CLIPBOARD = XInternAtom(display, "CLIPBOARD", 0);
 
-    /* Get the SDL window that will own the selection */
-    window = GetWindow(_this);
     if (window == None) {
-        return SDL_SetError("Couldn't find a window to own the selection");
+        debug(errError, "X11_SetClipboardText: Couldn't find a window to own the selection");
+        return -1;
     }
 
     /* Save the selection on the root window */
     format = TEXT_FORMAT;
-    X11_XChangeProperty(display, DefaultRootWindow(display),
+    XChangeProperty(display, DefaultRootWindow(display),
         X11_GetSDLCutBufferClipboardType(display), format, 8, PropModeReplace,
-        (const unsigned char *)text, SDL_strlen(text));
+        (const unsigned char *)text, strlen(text));
 
     if (XA_CLIPBOARD != None &&
-        X11_XGetSelectionOwner(display, XA_CLIPBOARD) != window) {
-        X11_XSetSelectionOwner(display, XA_CLIPBOARD, window, CurrentTime);
+        XGetSelectionOwner(display, XA_CLIPBOARD) != window) {
+        XSetSelectionOwner(display, XA_CLIPBOARD, window, CurrentTime);
     }
 
-    if (X11_XGetSelectionOwner(display, XA_PRIMARY) != window) {
-        X11_XSetSelectionOwner(display, XA_PRIMARY, window, CurrentTime);
+    if (XGetSelectionOwner(display, XA_PRIMARY) != window) {
+        XSetSelectionOwner(display, XA_PRIMARY, window, CurrentTime);
     }
     return 0;
 }
 
 char *
-X11_GetClipboardText(_THIS)
+X11_GetClipboardText(Display *display, Window window)
 {
-    SDL_VideoData *videodata = (SDL_VideoData *) _this->driverdata;
-    Display *display = videodata->display;
     Atom format;
-    Window window;
     Window owner;
     Atom selection;
     Atom seln_type;
@@ -103,20 +89,16 @@ X11_GetClipboardText(_THIS)
     unsigned long overflow;
     unsigned char *src;
     char *text;
-    Uint32 waitStart;
-    Uint32 waitElapsed;
-    Atom XA_CLIPBOARD = X11_XInternAtom(display, "CLIPBOARD", 0);
+    Atom XA_CLIPBOARD = XInternAtom(display, "CLIPBOARD", 0);
     if (XA_CLIPBOARD == None) {
-        SDL_SetError("Couldn't access X clipboard");
-        return SDL_strdup("");
+        debug(errError, "X11_GetClipboardText: Couldn't access X clipboard");
+        return strdup("");
     }
 
     text = NULL;
 
-    /* Get the window that holds the selection */
-    window = GetWindow(_this);
     format = TEXT_FORMAT;
-    owner = X11_XGetSelectionOwner(display, XA_CLIPBOARD);
+    owner = XGetSelectionOwner(display, XA_CLIPBOARD);
     if (owner == None) {
         /* Fall back to ancient X10 cut-buffers which do not support UTF8 strings*/
         owner = DefaultRootWindow(display);
@@ -128,62 +110,63 @@ X11_GetClipboardText(_THIS)
     } else {
         /* Request that the selection owner copy the data to our window */
         owner = window;
-        selection = X11_XInternAtom(display, "SDL_SELECTION", False);
-        X11_XConvertSelection(display, XA_CLIPBOARD, format, selection, owner,
+        selection = XInternAtom(display, "SDL_SELECTION", False);
+        XConvertSelection(display, XA_CLIPBOARD, format, selection, owner,
             CurrentTime);
 
+#if 1
+        // Wait for the response, if any, to arrive
+        fb_Sleep(4);
+#else
+        // This code relies on recieving the X11 SelectionNotify event in SDL_x11events.c
         /* When using synergy on Linux and when data has been put in the clipboard
            on the remote (Windows anyway) machine then selection_waiting may never
            be set to False. Time out after a while. */
-        waitStart = SDL_GetTicks();
-        videodata->selection_waiting = SDL_TRUE;
-        while (videodata->selection_waiting) {
+        double waitStart = fb_Timer();
+        selection_waiting = true;
+        while (selection_waiting) {
             SDL_PumpEvents();
-            waitElapsed = SDL_GetTicks() - waitStart;
             /* Wait one second for a clipboard response. */
-            if (waitElapsed > 1000) {
-                videodata->selection_waiting = SDL_FALSE;
-                SDL_SetError("Clipboard timeout");
+            if (fb_Timer() - waitStart > 1.) {
+                selection_waiting = false;
+                debug(errError, "X11_GetClipboardText: Clipboard timeout");
                 /* We need to set the clipboard text so that next time we won't
                    timeout, otherwise we will hang on every call to this function. */
-                X11_SetClipboardText(_this, "");
-                return SDL_strdup("");
+                X11_SetClipboardText(display, window, "");
+                return strdup("");
             }
         }
+#endif
     }
 
-    if (X11_XGetWindowProperty(display, owner, selection, 0, INT_MAX/4, False,
+    if (XGetWindowProperty(display, owner, selection, 0, INT_MAX/4, False,
             format, &seln_type, &seln_format, &nbytes, &overflow, &src)
             == Success) {
         if (seln_type == format) {
-            text = (char *)SDL_malloc(nbytes+1);
+            text = (char *)malloc(nbytes+1);
             if (text) {
-                SDL_memcpy(text, src, nbytes);
+                memcpy(text, src, nbytes);
                 text[nbytes] = '\0';
             }
         }
-        X11_XFree(src);
+        XFree(src);
     }
 
     if (!text) {
-        text = SDL_strdup("");
+        text = strdup("");
     }
 
     return text;
 }
 
-SDL_bool
-X11_HasClipboardText(_THIS)
+bool
+X11_HasClipboardText(Display *display, Window window)
 {
-    SDL_bool result = SDL_FALSE;
-    char *text = X11_GetClipboardText(_this);
+    bool result = false;
+    char *text = X11_GetClipboardText(display, window);
     if (text) {
-        result = text[0] != '\0' ? SDL_TRUE : SDL_FALSE;
-        SDL_free(text);
+        result = text[0] != '\0';
+        free(text);
     }
     return result;
 }
-
-#endif /* SDL_VIDEO_DRIVER_X11 */
-
-/* vi: set ts=4 sw=4 expandtab: */

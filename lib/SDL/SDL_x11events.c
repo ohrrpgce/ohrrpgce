@@ -1,4 +1,7 @@
 /*
+  X11 Clipboard routines -- adapted from SDL 2 for the OHRRPGCE.
+  Copyright 2017. This file is distributed under the original license, as
+  follows, rather than the OHRRPGCE's license.
   Simple DirectMedia Layer
   Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
@@ -19,60 +22,42 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-static void
-X11_DispatchEvent(_THIS)
+#include <limits.h> /* For INT_MAX */
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "internal.h"
+
+bool selection_waiting = false;
+
+
+// Originally part of X11_DispatchEvent() in SDL
+void
+X11_HandleClipboardEvent(Display *display, XEvent *xevent)
 {
-    SDL_VideoData *videodata = (SDL_VideoData *) _this->driverdata;
-    Display *display;
-    SDL_WindowData *data;
-    XEvent xevent;
-    int orig_event_type;
-    KeyCode orig_keycode;
-    XClientMessageEvent m;
-    int i;
-
-    if (!videodata) {
-        return;
-    }
-    display = videodata->display;
-
-    SDL_zero(xevent);           /* valgrind fix. --ryan. */
-    X11_XNextEvent(display, &xevent);
-
 #if 0
     printf("type = %d display = %d window = %d\n",
-           xevent.type, xevent.xany.display, xevent.xany.window);
+           xevent->type, xevent->xany.display, xevent->xany.window);
 #endif
 
-    data = NULL;
-    if (videodata && videodata->windowlist) {
-        for (i = 0; i < videodata->numwindows; ++i) {
-            if ((videodata->windowlist[i] != NULL) &&
-                (videodata->windowlist[i]->xwindow == xevent.xany.window)) {
-                data = videodata->windowlist[i];
-                break;
-            }
-        }
-    }
-
-    switch (xevent.type) {
+    switch (xevent->type) {
 
     /* Copy the selection from our own CUTBUFFER to the requested property */
     case SelectionRequest: {
             XSelectionRequestEvent *req;
-            XEvent sevent;
+            XEvent sevent = {};
             int seln_format;
             unsigned long nbytes;
             unsigned long overflow;
             unsigned char *seln_data;
 
-            req = &xevent.xselectionrequest;
+            req = &xevent->xselectionrequest;
 #ifdef DEBUG_XEVENTS
-            printf("window %p: SelectionRequest (requestor = %ld, target = %ld)\n", data,
+            printf("SelectionRequest (requestor = %ld, target = %ld)\n",
                 req->requestor, req->target);
 #endif
 
-            SDL_zero(sevent);
             sevent.xany.type = SelectionNotify;
             sevent.xselection.selection = req->selection;
             sevent.xselection.target = None;
@@ -80,52 +65,56 @@ X11_DispatchEvent(_THIS)
             sevent.xselection.requestor = req->requestor;
             sevent.xselection.time = req->time;
 
-            if (X11_XGetWindowProperty(display, DefaultRootWindow(display),
+            if (XGetWindowProperty(display, DefaultRootWindow(display),
                     X11_GetSDLCutBufferClipboardType(display), 0, INT_MAX/4, False, req->target,
                     &sevent.xselection.target, &seln_format, &nbytes,
                     &overflow, &seln_data) == Success) {
-                Atom XA_TARGETS = X11_XInternAtom(display, "TARGETS", 0);
+                Atom XA_TARGETS = XInternAtom(display, "TARGETS", 0);
                 if (sevent.xselection.target == req->target) {
-                    X11_XChangeProperty(display, req->requestor, req->property,
+                    XChangeProperty(display, req->requestor, req->property,
                         sevent.xselection.target, seln_format, PropModeReplace,
                         seln_data, nbytes);
                     sevent.xselection.property = req->property;
                 } else if (XA_TARGETS == req->target) {
                     Atom SupportedFormats[] = { XA_TARGETS, sevent.xselection.target };
-                    X11_XChangeProperty(display, req->requestor, req->property,
+                    XChangeProperty(display, req->requestor, req->property,
                         XA_ATOM, 32, PropModeReplace,
                         (unsigned char*)SupportedFormats,
                         SDL_arraysize(SupportedFormats));
                     sevent.xselection.property = req->property;
                     sevent.xselection.target = XA_TARGETS;
                 }
-                X11_XFree(seln_data);
+                XFree(seln_data);
             }
-            X11_XSendEvent(display, req->requestor, False, 0, &sevent);
-            X11_XSync(display, False);
+            XSendEvent(display, req->requestor, False, 0, &sevent);
+            XSync(display, False);
         }
         break;
 
     case SelectionNotify: {
-            Atom target = xevent.xselection.target;
 #ifdef DEBUG_XEVENTS
-            printf("window %p: SelectionNotify (requestor = %ld, target = %ld)\n", data,
-                xevent.xselection.requestor, xevent.xselection.target);
+            printf("SelectionNotify (requestor = %ld, target = %ld)\n",
+                xevent->xselection.requestor, xevent->xselection.target);
 #endif
+
+#if 0
+            // Support for dragging-and-dropping
+            //SDL_WindowData *data = ...
+            Atom target = xevent->xselection.target;
             if (target == data->xdnd_req) {
                 /* read data */
                 SDL_x11Prop p;
-                X11_ReadProperty(&p, display, data->xwindow, videodata->PRIMARY);
+                ReadProperty(&p, display, data->xwindow, XInternAtom(display, "PRIMARY", 0));
 
                 if (p.format == 8) {
                     /* !!! FIXME: don't use strtok here. It's not reentrant and not in SDL_stdinc. */
-                    char* name = X11_XGetAtomName(display, target);
+                    char* name = XGetAtomName(display, target);
                     char *token = strtok((char *) p.data, "\r\n");
                     while (token != NULL) {
-                        if (SDL_strcmp("text/plain", name)==0) {
+                        if (strcmp("text/plain", name)==0) {
                             SDL_SendDropText(data->window, token);
-                        } else if (SDL_strcmp("text/uri-list", name)==0) {
-                            char *fn = X11_URIToLocal(token);
+                        } else if (strcmp("text/uri-list", name)==0) {
+                            char *fn = URIToLocal(token);
                             if (fn) {
                                 SDL_SendDropFile(data->window, fn);
                             }
@@ -134,41 +123,45 @@ X11_DispatchEvent(_THIS)
                     }
                     SDL_SendDropComplete(data->window);
                 }
-                X11_XFree(p.data);
+                XFree(p.data);
 
                 /* send reply */
-                SDL_memset(&m, 0, sizeof(XClientMessageEvent));
+                XClientMessageEvent m;
+                memset(&m, 0, sizeof(XClientMessageEvent));
                 m.type = ClientMessage;
                 m.display = display;
                 m.window = data->xdnd_source;
-                m.message_type = videodata->XdndFinished;
+                m.message_type = XInternAtom(display, "XdndFinished", 0);
                 m.format = 32;
                 m.data.l[0] = data->xwindow;
                 m.data.l[1] = 1;
-                m.data.l[2] = videodata->XdndActionCopy;
-                X11_XSendEvent(display, data->xdnd_source, False, NoEventMask, (XEvent*)&m);
+                m.data.l[2] = XInternAtom(display, "XdndActionCopy", 0);
+                XSendEvent(display, data->xdnd_source, False, NoEventMask, (XEvent*)&m);
 
-                X11_XSync(display, False);
+                XSync(display, False);
 
             } else {
-                videodata->selection_waiting = SDL_FALSE;
+                selection_waiting = false;
             }
+#else
+            selection_waiting = false;
+#endif
         }
         break;
 
     case SelectionClear: {
-            Atom XA_CLIPBOARD = X11_XInternAtom(display, "CLIPBOARD", 0);
+            Atom XA_CLIPBOARD = XInternAtom(display, "CLIPBOARD", 0);
 
-            if (xevent.xselectionclear.selection == XA_PRIMARY ||
-                (XA_CLIPBOARD != None && xevent.xselectionclear.selection == XA_CLIPBOARD)) {
-                SDL_SendClipboardUpdate();
+            if (xevent->xselectionclear.selection == XA_PRIMARY ||
+                (XA_CLIPBOARD != None && xevent->xselectionclear.selection == XA_CLIPBOARD)) {
+                //SDL_SendClipboardUpdate();
             }
         }
         break;
 
     default:{
 #ifdef DEBUG_XEVENTS
-            printf("window %p: Unhandled event %d\n", data, xevent.type);
+            printf("window %p: Unhandled event %d\n", data, xevent->type);
 #endif
         }
         break;

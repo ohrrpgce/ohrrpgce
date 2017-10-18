@@ -25,6 +25,10 @@
 
 #include "SDL\SDL.bi"
 
+#ifdef USE_X11
+#include "lib/SDL/SDL_x11clipboard.bi"
+#endif
+
 ''' FB SDL headers were pretty out of date until FB 1.04, when they were replaced with completely new versions
 #if __FB_VERSION__ < "1.04"
 #undef SDL_VideoInfo
@@ -93,6 +97,8 @@ DECLARE SUB set_forced_mouse_clipping(byval newvalue as bool)
 DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
+DECLARE FUNCTION load_wminfo() as bool
+
 
 #IFDEF __FB_DARWIN__
 
@@ -109,6 +115,7 @@ DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscre
 DIM SHARED smooth as integer = 0
 DIM SHARED screensurface as SDL_Surface ptr = NULL
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
+DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
 DIM SHARED screen_width as integer = 0
 DIM SHARED screen_height as integer = 0
@@ -352,6 +359,9 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   ' However, we still get key repeats, apparently from Windows, even if SDL
   ' keyrepeat is disabled (see SDL_KEYDOWN handling).
   SDL_EnableKeyRepeat(400, 50)
+
+  ' Needed for X11 clipboard
+  SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE)
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
   SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
@@ -999,6 +1009,25 @@ SUB gfx_sdl_process_events()
           'finished moving their mouse.  One possibility would be to hook into X11, or to do
           'some delayed SDL_SetVideoMode calls.
         END IF
+
+      CASE SDL_SYSWMEVENT
+        'On X11, it's necessary to handle SelectionRequest events in order to be able
+        'to "copy to the clipboard" (there is no global clipboard; we declare we have the
+        'current selection and then other applications can request it).
+        WITH *evnt.syswm.msg
+          #IFDEF USE_X11
+            IF .subsystem = SDL_SYSWM_X11 THEN
+              DIM xeventp as XEvent ptr = @.event.xevent
+              IF load_wminfo() THEN
+                WITH wminfo.info.x11
+                  .lock_func()
+                  X11_HandleClipboardEvent(.display, xeventp)
+                  .unlock_func()
+                END WITH
+              END IF
+            END IF
+          #ENDIF
+        END WITH
     END SELECT
   WEND
 END SUB
@@ -1379,6 +1408,45 @@ FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as 
  RETURN 0
 END FUNCTION
 
+'Loads the wminfo global, returns success
+PRIVATE FUNCTION load_wminfo() as bool
+  #IFDEF USE_X11
+    SDL_VERSION_(@wminfo.version)
+    IF SDL_GetWMInfo(@wminfo) <> 1 THEN RETURN NO
+    IF wminfo.subsystem <> SDL_SYSWM_X11 THEN RETURN NO
+    RETURN YES
+  #ELSE
+    RETURN NO
+  #ENDIF
+END FUNCTION
+
+SUB io_sdl_set_clipboard_text(text as ustring)
+  IF load_wminfo() = NO THEN EXIT SUB
+  #IFDEF USE_X11
+    WITH wminfo.info.x11
+      .lock_func()
+      X11_SetClipboardText(.display, .window, cstring(text))
+      .unlock_func()
+    END WITH
+  #ENDIF
+END SUB
+
+FUNCTION io_sdl_get_clipboard_text() as ustring
+  DIM ret as zstring ptr
+  IF load_wminfo() = NO THEN RETURN ""
+  #IFDEF USE_X11
+    WITH wminfo.info.x11
+      .lock_func()
+      ret = X11_GetClipboardText(.display, .window)
+      io_sdl_get_clipboard_text = *ret
+      DEALLOCATE ret
+      .unlock_func()
+    END WITH
+  #ELSE
+    RETURN ""
+  #ENDIF
+END FUNCTION
+
 FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_init = @gfx_sdl_init
   gfx_close = @gfx_sdl_close
@@ -1413,6 +1481,8 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_updatekeys = @io_sdl_updatekeys
   io_enable_textinput = @io_sdl_enable_textinput
   io_textinput = @io_sdl_textinput
+  io_get_clipboard_text = @io_sdl_get_clipboard_text
+  io_set_clipboard_text = @io_sdl_set_clipboard_text
   io_show_virtual_keyboard = @io_sdl_show_virtual_keyboard
   io_hide_virtual_keyboard = @io_sdl_hide_virtual_keyboard
   io_show_virtual_gamepad = @io_sdl_show_virtual_gamepad
