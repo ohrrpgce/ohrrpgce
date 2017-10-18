@@ -314,6 +314,7 @@ uint64_t SHA1_64(
 {
     unsigned char hash[20];
     SHA1(hash, str, len);
-    return int64_to_bigendian(*(uint64_t*)hash);
+    void *p = hash; /* Prevent gcc warning */
+    return int64_to_bigendian(*(uint64_t*)p);
 }
 
