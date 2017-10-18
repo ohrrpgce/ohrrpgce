@@ -21,13 +21,13 @@ char *escape_filenamec (const char *filename);
 // in filelayer.cpp
 const char *trimpath(const char *filename);
 
-// in common.rbas (NOTE: also defined separately in gfx_directx/debugmsg.hpp)
+// in common.rbas (NOTE: also defined separately in gfx_directx.cpp)
 void debugc(enum ErrorLevel errorlevel, const char *msg);
 
 // libfb.a
 void _noreturn (*fb_ErrorThrowAt(int line_num, const char *mod_name, void *res_label, void *resnext_label))(void);
 
-// in miscc.c
+// in miscc.c (NOTE: _throw_error also defined separately in gfx_directx.cpp)
 void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, const char *msg, ...) format_chk(4);
 extern void (*debug_hook)(enum ErrorLevel errorlevel, const char *msg);
 void set_debug_hook(void (*new_debug_hook)(enum ErrorLevel errorlevel, const char *msg));

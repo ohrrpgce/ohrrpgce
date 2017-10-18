@@ -22,6 +22,9 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+#define WIN32_LEAN_AND_MEAN
+#define STRICT
+#define UNICODE 1
 
 #include "SDL_windowsclipboard.h"
 #include "../../config.h"

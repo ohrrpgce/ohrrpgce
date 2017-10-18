@@ -9,6 +9,7 @@
 #include "joystick.hpp"
 #include "version.h"
 #include "util.hpp"
+#include "../lib/SDL/SDL_windowsclipboard.h"
 #include <dbt.h>
 
 using namespace gfx;
@@ -49,7 +50,7 @@ void DefaultDebugMsg(ErrorLevel errlvl, const char* szMessage) {
 }
 
 // For informative messages use errInfo
-void gfx::debug(ErrorLevel errlvl, const char* szMessage, ...)
+void ::_throw_error(ErrorLevel errlvl, const char *srcfile, int linenum, const char* szMessage, ...)
 {
 	if (g_State.DebugMsg)
 	{
@@ -58,8 +59,10 @@ void gfx::debug(ErrorLevel errlvl, const char* szMessage, ...)
 		const int BUFLEN = 512;
 		char buf[BUFLEN];
 		strcpy_s(buf, BUFLEN, "gfx_directx: ");
-		int len = strlen(buf);
-		vsnprintf_s(buf + len, BUFLEN - len, _TRUNCATE, szMessage, vl);
+		int emitted = strlen(buf);
+		if (srcfile)
+			emitted += _snprintf_s(buf + emitted, BUFLEN - emitted, _TRUNCATE, "On line %d in %s: ", linenum, srcfile);
+		vsnprintf_s(buf + emitted, BUFLEN - emitted, _TRUNCATE, szMessage, vl);
 		va_end(vl);
 		g_State.DebugMsg(errlvl, buf);
 	}
@@ -105,6 +108,7 @@ const char *gfx::HRESULTString(HRESULT hresult)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
 D3D g_DirectX;
+Window g_Window;
 
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
@@ -271,6 +275,16 @@ DFI_IMPLEMENT_CDECL(void, io_textinput, wchar_t *buffer, int bufferLen)
 	gfx_GetText(buffer, bufferLen);
 }
 
+DFI_IMPLEMENT_CDECL(char*, io_get_clipboard_text)
+{
+	return WIN_GetClipboardText(g_Window.getWindowHandle());
+}
+
+DFI_IMPLEMENT_CDECL(void, io_set_clipboard_text, const char *text)
+{
+	WIN_SetClipboardText(g_Window.getWindowHandle(), text);
+}
+
 DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, CursorVisibility visibility)
 {
 	gfx_SetCursorVisibility(visibility);
@@ -304,7 +318,6 @@ DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int* button, int* x, int* y
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 2.0 interfaces
 
-Window g_Window;
 HWND g_hWndDlg;
 Keyboard g_Keyboard;
 Mouse g_Mouse;

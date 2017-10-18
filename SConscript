@@ -1005,7 +1005,7 @@ if platform.system () == 'Windows':
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
-    directx_sources += ['gfx_common/ohrstring.cpp']
+    directx_sources += ['gfx_common/ohrstring.cpp', 'lib/SDL/SDL_windowsclipboard.c']
 
     # Create environment for compiling gfx_directx.dll
     w32_env = Environment ()

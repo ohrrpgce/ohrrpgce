@@ -70,7 +70,7 @@ void init_fbstring_copy(FBSTRING *fbstr, FBSTRING *src) {
 }
 
 // Set an existing FBSTRING to a C string
-// *fbstr must already initialised!
+// *fbstr must already be initialised!
 void set_fbstring(FBSTRING *fbstr, const char *cstr) {
 	fb_StrAssign(fbstr, -1, (char*)cstr, strlen(cstr), 0);
 }

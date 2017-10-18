@@ -25,13 +25,8 @@
 #ifndef _SDL_windowsclipboard_h
 #define _SDL_windowsclipboard_h
 
-#include <stdbool.h>
+#include "../../config.h"
 
-#define WIN32_LEAN_AND_MEAN
-#define STRICT
-#define UNICODE 1
-#undef _WIN32_WINNT
-#define _WIN32_WINNT  0x501   /* Need 0x410 for AlphaBlend() and 0x500 for EnumDisplayDevices(), 0x501 for raw input */
 #include <windows.h>
 
 extern int WIN_SetClipboardText(HWND hWindow, const char *text);

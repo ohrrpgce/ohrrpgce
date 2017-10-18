@@ -4,6 +4,10 @@
 
 #define SDL_arraysize(array)    (sizeof(array)/sizeof(array[0]))
 
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
+
 #ifdef USE_X11
 
 #include <X11/Xlib.h>
