@@ -6,15 +6,6 @@
 
 extern "C"
 
-type GfxInitData
-	structsize as integer    ' Number of members
-	windowtitle as zstring ptr
-	windowicon as zstring ptr
-	PostTerminateSignal as sub cdecl()
-	DebugMsg as sub cdecl(errlvl as integer, byval message as const zstring ptr)
-end type
-#define GFXINITDATA_SZ 5
-
 #ifdef GFX_EXTERNAL_DLL
 
 DECLARE FUNCTION gfx_Initialize (byval pCreationData as const GfxInitData ptr) as integer 'initializes the backend; if failed, returns 0

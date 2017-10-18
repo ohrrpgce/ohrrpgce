@@ -79,8 +79,8 @@ dim io_keybits as sub (byval keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
 dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
-dim io_get_clipboard_text as function () as ustring
-dim io_set_clipboard_text as sub (text as ustring)
+dim io_get_clipboard_text as function () as zstring ptr
+dim io_set_clipboard_text as sub (text as zstring ptr)
 dim io_show_virtual_keyboard as sub ()
 dim io_hide_virtual_keyboard as sub ()
 dim io_show_virtual_gamepad as sub ()
@@ -212,8 +212,8 @@ sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
 sub io_dummy_enable_textinput(byval enable as integer) : end sub
-function io_dummy_get_clipboard_text() as ustring : return "" : end function
-sub io_dummy_set_clipboard_text(text as ustring) : end sub
+function io_dummy_get_clipboard_text() as zstring ptr : return NULL : end function
+sub io_dummy_set_clipboard_text(text as zstring ptr) : end sub
 sub io_dummy_show_virtual_keyboard() : end sub
 sub io_dummy_hide_virtual_keyboard() : end sub
 sub io_dummy_show_virtual_gamepad() : end sub

@@ -1428,39 +1428,39 @@ PRIVATE FUNCTION load_wminfo() as bool
   RETURN YES
 END FUNCTION
 
-SUB io_sdl_set_clipboard_text(text as ustring)
+SUB io_sdl_set_clipboard_text(text as zstring ptr)  'ustring
+  IF text = NULL THEN text = @""
   #IFDEF USE_X11
     IF load_wminfo() = NO THEN EXIT SUB
     WITH wminfo.info.x11
       .lock_func()
-      X11_SetClipboardText(.display, .window, cstring(text))
+      X11_SetClipboardText(.display, .window, text)
       .unlock_func()
     END WITH
   #ELSEIF DEFINED(__FB_WIN32__)
     IF load_wminfo() = NO THEN EXIT SUB
-    WIN_SetClipboardText(wminfo.window, cstring(text))
+    WIN_SetClipboardText(wminfo.window, text)
   #ELSEIF DEFINED(__FB_DARWIN__)
-    Cocoa_SetClipboardText(cstring(text))
+    Cocoa_SetClipboardText(text)
   #ENDIF
 END SUB
 
-FUNCTION io_sdl_get_clipboard_text() as ustring
+FUNCTION io_sdl_get_clipboard_text() as zstring ptr  'ustring
   DIM ret as zstring ptr
   #IFDEF USE_X11
-    IF load_wminfo() = NO THEN RETURN ""
+    IF load_wminfo() = NO THEN RETURN NULL
     WITH wminfo.info.x11
       .lock_func()
       ret = X11_GetClipboardText(.display, .window)
       .unlock_func()
     END WITH
   #ELSEIF DEFINED(__FB_WIN32__)
-    IF load_wminfo() = NO THEN RETURN ""
+    IF load_wminfo() = NO THEN RETURN NULL
     ret = WIN_GetClipboardText(wminfo.window)
   #ELSEIF DEFINED(__FB_DARWIN__)
     ret = Cocoa_GetClipboardText()
   #ENDIF
-  io_sdl_get_clipboard_text = *ret
-  DEALLOCATE ret
+  RETURN ret
 END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer

@@ -88,6 +88,9 @@ DFI_DECLARE_CDECL( void, io_pollkeyevents );
 //DFI_DECLARE_CDECL( void, io_keybits, int* keybdarray );
 DFI_DECLARE_CDECL( void, io_keybits, int *keybd );
 DFI_DECLARE_CDECL( void, io_textinput, wchar_t* buffer, int bufferLen );
+DFI_DECLARE_CDECL( char*, io_get_clipboard_text );
+DFI_DECLARE_CDECL( void, io_set_clipboard_text, const char* text );
+
 //DFI_DECLARE_CDECL( void, io_mousebits, int* mx, int* my, int* mwheel, int* mbuttons, int* mclicks );
 DFI_DECLARE_CDECL( int, io_setmousevisibility, enum CursorVisibility visibility );
 DFI_DECLARE_CDECL( void, io_getmouse, int* mx, int* my, int* mwheel, int* mbuttons );
