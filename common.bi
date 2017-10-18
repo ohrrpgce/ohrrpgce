@@ -170,6 +170,7 @@ DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval qualit
 DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas
 DECLARE FUNCTION strgrabber (s as string, maxl as integer) as bool
+DECLARE SUB handle_text_copy_paste (byref text as string, byref clip as string)
 
 DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool

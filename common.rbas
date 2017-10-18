@@ -1724,6 +1724,24 @@ PRIVATE SUB stredit_delete_keys(pre as string, post as string)
  END IF
 END SUB
 
+'Handle copy/paste edits to 'text'. Attempt to use the OS clipboard if possible,
+'otherwise use 'clip' as the clipboard.
+SUB handle_text_copy_paste (byref text as string, byref clip as string)
+ IF copy_keychord() THEN
+  clip = text
+  io_set_clipboard_text(text)  'Don't need ohr_to_utf8
+ END IF
+ IF paste_keychord() THEN
+  DIM osclip as ustring
+  osclip = io_get_clipboard_text()
+  'Intentionally using utf8_to_latin1 instead of utf8_to_ohr here, so that
+  'round trips of text from OHR -> clipboard/other programs -> OHR don't lose
+  'icon characters.
+  IF LEN(osclip) THEN clip = utf8_to_latin1(osclip)
+  text = clip
+ END IF
+END SUB
+
 'Returns true if the string has changed
 FUNCTION strgrabber (text as string, maxl as integer) as bool
  STATIC clip as string
@@ -1733,8 +1751,8 @@ FUNCTION strgrabber (text as string, maxl as integer) as bool
 
  #IFDEF IS_CUSTOM
   '--copy+paste support
-  IF copy_keychord() THEN clip = text
-  IF paste_keychord() THEN text = LEFT(clip, maxl)
+  handle_text_copy_paste text, clip
+  text = LEFT(text, maxl)
  #ENDIF
 
  '--adding chars
@@ -1763,8 +1781,8 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer, numline
  STATIC clip as string
 
  '--copy+paste support
- IF copy_keychord() THEN clip = s
- IF paste_keychord() THEN s = LEFT(clip, maxl)
+ handle_text_copy_paste s, clip
+ s = LEFT(s, maxl)
 
  IF insert < 0 THEN insert = LEN(s)
  insert = bound(insert, 0, LEN(s))
