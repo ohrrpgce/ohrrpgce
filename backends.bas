@@ -79,6 +79,8 @@ dim io_keybits as sub (byval keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
 dim io_enable_textinput as sub (byval enable as integer)
 dim io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
+dim io_get_clipboard_text as function () as ustring
+dim io_set_clipboard_text as sub (text as ustring)
 dim io_show_virtual_keyboard as sub ()
 dim io_hide_virtual_keyboard as sub ()
 dim io_show_virtual_gamepad as sub ()
@@ -210,6 +212,8 @@ sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
 sub io_dummy_enable_textinput(byval enable as integer) : end sub
+function io_dummy_get_clipboard_text() as ustring : return "" : end function
+sub io_dummy_set_clipboard_text(text as ustring) : end sub
 sub io_dummy_show_virtual_keyboard() : end sub
 sub io_dummy_hide_virtual_keyboard() : end sub
 sub io_dummy_show_virtual_gamepad() : end sub
@@ -252,6 +256,8 @@ private sub set_default_gfx_function_ptrs
 	io_updatekeys = @io_dummy_updatekeys
 	io_enable_textinput = @io_dummy_enable_textinput
 	io_textinput = NULL
+	io_get_clipboard_text = @io_dummy_get_clipboard_text
+	io_set_clipboard_text = @io_dummy_set_clipboard_text
 	io_show_virtual_keyboard = @io_dummy_show_virtual_keyboard
 	io_hide_virtual_keyboard = @io_dummy_hide_virtual_keyboard
 	io_show_virtual_gamepad = @io_dummy_show_virtual_gamepad
@@ -354,6 +360,8 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	TRYLOAD (io_updatekeys)
 	TRYLOAD (io_enable_textinput)
 	TRYLOAD (io_textinput)
+	TRYLOAD (io_get_clipboard_text)
+	TRYLOAD (io_set_clipboard_text)
 	TRYLOAD (io_show_virtual_keyboard)
 	TRYLOAD (io_hide_virtual_keyboard)
 	TRYLOAD (io_show_virtual_gamepad)

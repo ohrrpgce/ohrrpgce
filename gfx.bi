@@ -200,6 +200,11 @@ extern Io_enable_textinput as sub (byval enable as integer)
 '(optional, ptr might be NULL) Get the inputted text since the last call, in UCS2 encoded unicode
 extern Io_textinput as sub (byval buf as wstring ptr, byval bufsize as integer)
 
+'(optional) Returns a UTF8 string, or "" if the clipboard is unavailable or doesn't contain text
+extern Io_get_clipboard_text as function () as ustring
+'(optional) Sets the OS clipboard to a UTF8 string
+extern Io_set_clipboard_text as sub (text as ustring)
+
 '(optional) Display the virtual keyboard, but only for platforms like Android that need it
 extern Io_show_virtual_keyboard as sub ()
 '(optional) Hide the virtual keyboard, but only for platforms like Android that need it
