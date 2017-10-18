@@ -25,9 +25,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT
 #define UNICODE 1
+#define _WIN32_WINNT 0x0500  // For GetClipboardSequenceNumber
 
 #include "SDL_windowsclipboard.h"
-#include "../../config.h"
 #include "internal.h"
 #include "../../misc.h"
 #include "../../gfx_common/ohrstring.hpp"

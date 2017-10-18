@@ -1445,6 +1445,7 @@ SUB io_sdl_set_clipboard_text(text as zstring ptr)  'ustring
   #ENDIF
 END SUB
 
+#IFDEF USE_X11
 PRIVATE SUB check_events()
   WITH wminfo.info.x11
     .unlock_func()
@@ -1452,6 +1453,7 @@ PRIVATE SUB check_events()
     .lock_func()
   END WITH
 END SUB
+#ENDIF
 
 FUNCTION io_sdl_get_clipboard_text() as zstring ptr  'ustring
   DIM ret as zstring ptr

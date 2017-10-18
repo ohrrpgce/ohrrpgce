@@ -10,7 +10,9 @@
 
 // For Windows (changes declarations in windows.h from ANSI to UTF16)
 #define UNICODE 1
-#define _UNICODE 1
+#ifndef _UNICODE
+# define _UNICODE 1
+#endif
 
 #if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__)
 # define USE_X11 1
