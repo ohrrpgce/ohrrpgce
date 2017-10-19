@@ -1,0 +1,3 @@
+This is the direction in which "rows" of children grow. You can pick any of the four directions. Even if the rows are vertical, they're still called "rows". Once a row is full, a new row is created.
+
+For example, if you imagine text on a page, with each word being like a slice, the rows (lines) of text grow towards the right in English, down in Chinese, and left in Hebrew.

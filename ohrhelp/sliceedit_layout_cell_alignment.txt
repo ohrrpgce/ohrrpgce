@@ -1,0 +1,4 @@
+The "thickness" (the height of a horizontal row, or width of a vertical row) is determined by the thickness of the thickest child slice on it.
+So other children on the same row have some extra padding. This setting determines on which side to put that padding, or whether to center them
+
+For example, in English text, if you use multiple fonts with different heights then different bits of text on the same line (row) are bottom-aligned to sit on the bottom of the line.

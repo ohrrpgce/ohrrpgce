@@ -1,0 +1,5 @@
+Which edge of the parent each row is aligned to.
+
+This is like the left-aligned, center-aligned or right-aligned settings for positioning text in a text editor.
+
+If Justified is YES, then this only affects rows with just one child.

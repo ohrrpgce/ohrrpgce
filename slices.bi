@@ -111,6 +111,7 @@ Enum 'SliceTypes
  slScroll
  slSelect
  slPanel
+ slLayout
 End Enum
 
 Enum AttachTypes
@@ -157,7 +158,6 @@ Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr, childindex as integer = -1, visibleonly as bool = YES)
 Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
-End Extern
 
 TYPE Slice
   Parent as Slice Ptr
@@ -369,6 +369,24 @@ Type GridSliceData
  cols as integer
 End Type
 
+Type LayoutSliceData
+ primary_dir as DirNum = dirRight  'Direction that rows grow
+ secondary_dir as DirNum = dirDown 'Direction to shift after a row is full (must be perpendicular to primary_dir)
+ primary_padding as integer   'Padding between children, in the primary_dir (within rows)
+ secondary_padding as integer '...and between rows
+ skip_hidden as bool          'Don't leave gaps for hidden children
+ min_row_breadth as integer   'Min height/width in pixels of rows, in the secondary_dir
+ justified as bool            'Like justified text: add extra padding to rows to be flush against both edges
+ cell_alignment as AlignType  'Which edge of its 'cell' in a row that children 'sit' on (eg text sits on a line)
+ row_alignment as AlignType   'Which edge of the parent each row is aligned to
+                              'Note: if justified is true, then row_alignment only affects rows with just 1 child
+
+
+ Declare Function SkipForward(ch as Slice ptr) as Slice ptr
+ Declare Sub SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as integer, dir0 as integer, byref offsets as integer vector, byref breadth as integer)
+ Declare Sub Validate()
+End Type
+
 Type EllipseSliceData
  bordercol as integer
  fillcol as integer
@@ -403,8 +421,6 @@ Type PanelSliceData
                     'stored as a float. 1.0=100% 0.5=50% 0.01=1%
  padding as integer ' pixels of padding between the sub-panels
 End Type
-
-Extern "C"
 
 DECLARE Function NewSlice(byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Function NewSliceOfType(byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
@@ -573,6 +589,8 @@ DECLARE Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval cols as integer=0,_
                       byval show as integer=-2)
 
+DECLARE Function NewLayoutSlice(byval parent as Slice ptr, byref dat as LayoutSliceData) as slice ptr
+
 DECLARE Sub DisposeEllipseSlice(byval sl as slice ptr)
 DECLARE Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as slice ptr
@@ -624,7 +642,7 @@ End Extern
 Sub Dispose<TYPENAME>Slice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
+ dim dat as <TYPENAME>SliceData ptr = sl->SliceData
  delete dat
  sl->SliceData = 0
 end sub
@@ -633,7 +651,7 @@ Sub Draw<TYPENAME>Slice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
- dim dat as <TYPENAME>SliceData ptr = cptr(<TYPENAME>SliceData ptr, sl->SliceData)
+ dim dat as <TYPENAME>SliceData ptr = sl->SliceData
 
  '''DRAWING CODE GOES HERE!
 end sub
@@ -656,7 +674,7 @@ End Sub
 
 Sub Save<TYPENAME>Slice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "Save<TYPENAME>Slice null ptr": exit sub
- DIM dat as <TYPENAME>SliceData Ptr
+ dim dat as <TYPENAME>SliceData Ptr
  dat = sl->SliceData
  'SaveProp node, "cols", dat->cols
 End Sub

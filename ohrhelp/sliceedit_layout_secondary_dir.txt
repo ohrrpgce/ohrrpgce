@@ -1,0 +1,3 @@
+The direction to shift after a row is full and a new one is started. Always perpendicular to the row growth direction.
+
+For example, lines of text on a page stack downwards.

@@ -169,6 +169,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Scroll":         RETURN slScroll
   CASE "Select":         RETURN slSelect
   CASE "Panel":          RETURN slPanel
+  CASE "Layout":         RETURN slLayout
  END SELECT
  debugc errError, "Unrecognized slice name """ & s & """"
  RETURN slInvalid
@@ -195,6 +196,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slScroll:         RETURN "Scroll"
   CASE slSelect:         RETURN "Select"
   CASE slPanel:          RETURN "Panel"
+  CASE slLayout:         RETURN "Layout"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -344,6 +346,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slPanel:
    DIM dat as PanelSliceData
    newsl = NewPanelSlice(parent, dat)
+  CASE slLayout:
+   DIM dat as LayoutSliceData
+   newsl = NewLayoutSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -2006,6 +2011,253 @@ Sub ChangeGridSlice(byval sl as Slice ptr,_
  end if
 end sub
 
+'--Layout-----------------------------------------------------------------
+
+Sub DisposeLayoutSlice(byval sl as Slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as LayoutSliceData ptr = sl->SliceData
+ delete dat
+ sl->SliceData = 0
+end sub
+
+'Skip over hidden slices as needed
+Function LayoutSliceData.SkipForward(ch as Slice ptr) as Slice ptr
+' ch = ch->NextSibling
+ if skip_hidden = NO then return ch
+ while ch andalso ch->Visible = NO
+  ch = ch->NextSibling
+ wend
+ return ch
+end Function
+
+'Calculate offsets of children in a row along axis0, and the breadth of the row.
+'Offsets don't including parent's padding.
+Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as integer, dir0 as integer, byref offsets as integer vector, byref breadth as integer)
+
+ v_resize offsets, 0  'clear
+
+ dim available_size as integer  'Max length of a row
+ available_size = par->Size.n(axis0)
+ if axis0 = 0 then
+  available_size -= par->PaddingLeft + par->PaddingRight
+ else
+  available_size -= par->PaddingTop + par->PaddingBottom
+ end if
+
+ dim offset as integer = 0 ' along axis 0
+ breadth = this.min_row_breadth  ' in axis 1
+
+ first = SkipForward(first)
+ dim as Slice ptr ch = first, last
+ 'Should never happen
+ if ch = 0 then debugc errPromptBug, "SpaceRow: no children" : exit sub
+
+ while ch
+  'Always place at least one child on each row
+  if ch <> first then
+   if offset + ch->Size.n(axis0) > available_size then
+    'Can't fit any more on this row
+    exit while
+   end if
+  end if
+
+  dim temp as integer = dir0 * offset
+  if dir0 = -1 then temp += available_size - ch->Size.n(axis0)
+  v_append offsets, temp
+  offset += ch->Size.n(axis0) + this.primary_padding
+  breadth = large(breadth, ch->Size.n(1 xor axis0))
+
+  ch = SkipForward(ch->NextSibling)
+ wend
+
+ dim row_length as integer = offset - this.primary_padding
+ dim extra_space as integer = available_size - row_length  'at the end of the row
+
+ dim shift as integer = 0  'To add to each offset
+
+ if v_len(offsets) > 1 andalso justified then
+  '(This implies extra_space >= 0.)
+  'Add extra spacing to cause the children to be spaced out across the row.
+  dim spacing as double = extra_space / (v_len(offsets) - 1)
+  for idx as integer = 1 to v_len(offsets) - 1
+   offsets[idx] += dir0 * int(idx * spacing)
+  next
+ else
+  'Handle row_alignment, possibly shifting the whole row
+  if dir0 = -1 then shift = -extra_space
+  select case this.row_alignment
+   case alignLeft:
+   case alignMiddle: shift += extra_space \ 2
+   case alignRight:  shift += extra_space
+  end select
+ end if
+
+ 'Handle parent padding in the primary dir
+ select case this.primary_dir
+  case dirUp, dirDown:    shift += par->PaddingTop
+  case dirLeft, dirRight: shift += par->PaddingLeft
+ end select
+
+ if shift <> 0 then
+  for idx as integer = 0 to v_len(offsets) - 1
+   offsets[idx] += shift
+  next
+ end if
+end Sub
+
+Sub LayoutSliceData.Validate()
+ if (this.primary_dir and 1) = (this.secondary_dir and 1) then
+  'The directions aren't orthogonal
+  this.secondary_dir = (this.primary_dir and 1) xor 1
+ end if
+ 'Could do everything else too...
+end Sub
+
+'Layout slices work
+Sub LayoutChildrenRefresh(byval par as Slice ptr)
+ if par = 0 then debug "LayoutChildRefresh null ptr": exit sub
+
+ dim dat as LayoutSliceData ptr
+ dat = par->SliceData
+ dat->Validate()
+
+ dim as integer axis0, axis1 'primary and secondary axes: 0 or 1 for x or y
+ dim as integer dir0, dir1  '1 if offsets are measured from top or left, -1 otherwise
+ select case dat->primary_dir
+  case dirLeft:  axis0 = 0 : axis1 = 1 : dir0 = -1
+  case dirRight: axis0 = 0 : axis1 = 1 : dir0 = 1
+  case dirUp:    axis0 = 1 : axis1 = 0 : dir0 = -1
+  case dirDown:  axis0 = 1 : axis1 = 0 : dir0 = 1
+ end select
+ select case dat->secondary_dir
+  case dirLeft:  dir1 = -1
+  case dirRight: dir1 = 1
+  case dirUp:    dir1 = -1
+  case dirDown:  dir1 = 1
+ end select
+
+ dim offsets as integer vector
+ v_new offsets
+
+ dim offset as XYPair  'Offset of the next child, relative to par
+ dim breadth as integer
+ select case dat->secondary_dir
+  case dirDown:  offset.Y = par->PaddingTop
+  case dirUp:    offset.Y = par->Height - par->PaddingBottom
+  case dirRight: offset.X = par->PaddingLeft
+  case dirLeft:  offset.X = par->Width - par->PaddingRight
+ end select
+
+ dim as Slice ptr ch = dat->SkipForward(par->FirstChild)
+ while ch
+  dat->SpaceRow(par, ch, axis0, dir0, offsets, breadth)
+
+  'Iterate over each child on this row and set the final position
+  for idx as integer = 0 to v_len(offsets) - 1
+   with *ch
+    offset.n(axis0) = offsets[idx]
+    ' offset.n(axis0) = dir0 * offsets[idx]
+    ' if dir0 = -1 then offset.n(axis0) += par->Size.n(axis0) - .Size.n(axis0)
+
+    'The child's X/Y offsets it from its computed position,
+    'but doesn't affect the positioning out of anything else.
+    'Anchor, align points and Fill are ignored
+    .ScreenX = par->ScreenX + offset.x + .X
+    .ScreenY = par->ScreenY + offset.y + .Y
+
+    dim within_cell_space as integer = breadth - .Size.n(axis1) 'Always positive if Size is non-negative
+
+    if dir1 = -1 then .ScreenPos.n(axis1) -= .Size.n(axis1) + within_cell_space
+    select case dat->cell_alignment
+     case alignLeft:
+     case alignMiddle: .ScreenPos.n(axis1) += within_cell_space \ 2
+     case alignRight:  .ScreenPos.n(axis1) += within_cell_space
+    end select
+   end with
+   ch = dat->SkipForward(ch->NextSibling)
+
+   ' ch = ch->NextSibling
+   ' if skip_hidden then
+   '  while ch andalso ch->Visible = NO
+   '   ch->ScreenPos = par->ScreenPos
+   '   ch = ch->NextSibling
+   '  wend
+   ' end if
+  next
+
+  offset.n(axis1) += dir1 * (breadth + dat->secondary_padding)
+ wend
+ v_free offsets
+end sub
+
+Function GetLayoutSliceData(byval sl as Slice ptr) as LayoutSliceData ptr
+ if sl = 0 then return 0
+ return sl->SliceData
+End Function
+
+Sub CloneLayoutSlice(byval sl as Slice ptr, byval cl as Slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneLayoutSlice null ptr": exit sub
+ dim as LayoutSliceData ptr dat, clonedat
+ dat = sl->SliceData
+ clonedat = cl->SliceData
+ *clonedat = *dat
+end sub
+
+Sub SaveLayoutSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveLayoutSlice null ptr": exit sub
+ dim dat as LayoutSliceData ptr
+ dat = sl->SliceData
+ SavePropAlways node, "dir0", dat->primary_dir
+ SavePropAlways node, "dir1", dat->secondary_dir
+ SaveProp node, "padding0", dat->primary_padding
+ SaveProp node, "padding1", dat->secondary_padding
+ SaveProp node, "skip_hidden", dat->skip_hidden
+ SaveProp node, "min_breadth", dat->min_row_breadth
+ SaveProp node, "justified", dat->justified
+ if dat->justified = NO then
+  SaveProp node, "row_align", dat->row_alignment
+ end if
+ SaveProp node, "cell_align", dat->cell_alignment
+End Sub
+
+Sub LoadLayoutSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadLayoutSlice null ptr": exit sub
+ dim dat as LayoutSliceData Ptr
+ dat = sl->SliceData
+ dat->primary_dir = LoadProp(node, "dir0")
+ dat->secondary_dir = LoadProp(node, "dir1")
+ dat->primary_padding = LoadProp(node, "padding0")
+ dat->secondary_padding = LoadProp(node, "padding1")
+ dat->skip_hidden = LoadPropBool(node, "skip_hidden")
+ dat->justified = LoadPropBool(node, "justified")
+ dat->min_row_breadth = LoadProp(node, "min_breadth")
+ dat->cell_alignment = LoadProp(node, "cell_align")
+ dat->row_alignment = LoadProp(node, "row_align")
+ dat->Validate()
+End Sub
+
+Function NewLayoutSlice(byval parent as Slice ptr, byref dat as LayoutSliceData) as Slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then return 0
+
+ dim d as LayoutSliceData ptr = new LayoutSliceData
+ *d = dat
+
+ ret->SliceType = slLayout
+ ret->SliceData = d
+ ret->Draw = NULL
+ ret->Dispose = @DisposeLayoutSlice
+ ret->Clone = @CloneLayoutSlice
+ ret->Save = @SaveLayoutSlice
+ ret->Load = @LoadLayoutSlice
+ ret->ChildRefresh = @NullChildRefresh
+ ret->ChildrenRefresh = @LayoutChildrenRefresh
+
+ return ret
+end function
+
 '--Ellipse----------------------------------------------------------------
 
 Sub DisposeEllipseSlice(byval sl as Slice ptr)
@@ -2823,8 +3075,8 @@ Sub UpdateCoverSize(par as Slice ptr)
  'Don't bother checking whether we're filling. You shouldn't be able to set a slice
  'to both fill and cover.
 
- 'Panel & grid are special, and will have to implement covering in their own way if at all.
- if par->SliceType = slPanel orelse par->SliceType = slGrid then exit sub
+ 'Panel, grid, layout are special, and will have to implement covering in their own way if at all.
+ if par->SliceType = slPanel orelse par->SliceType = slGrid orelse par->SliceType = slLayout then exit sub
 
  dim size as XYPair
 

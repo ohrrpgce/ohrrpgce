@@ -1,0 +1,4 @@
+The "thickness" (the height of a horizontal row, or width of a vertical row) is determined by the thickness of the thickest child slice on it.
+But you can force the thickness to be at least a minimum amount with this setting.
+
+Setting padding between rows has a similar effect.

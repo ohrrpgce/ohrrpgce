@@ -1,0 +1,3 @@
+If this is NO, then hidden children are placed just like visible children, although you can't see them.
+
+If it's YES, they're skipped, and won't leave a gap.

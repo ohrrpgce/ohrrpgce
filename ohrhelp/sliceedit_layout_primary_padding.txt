@@ -1,0 +1,3 @@
+This is the pixels of padding between children in a row.
+
+If the layout is Justified, then this is instead the minimum padding between children (determining how many children can fit on a row). The actual padding could be more.

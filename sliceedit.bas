@@ -129,6 +129,7 @@ CONST slgrEDITSWITCHINDEX = 256
 CONST slgrBROWSESPRITEASSET = 512
 CONST slgrBROWSESPRITEID = 1024
 CONST slgrBROWSEBOXBORDER = 2048
+CONST slgrLAYOUT2NDDIR = 4096
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -216,11 +217,20 @@ CoverModeCaptions(0) = "NO"
 CoverModeCaptions(1) = "Horizontal"
 CoverModeCaptions(2) = "Vertical"
 CoverModeCaptions(3) = "Full"
+REDIM SHARED DirectionCaptions(3) as string
+DirectionCaptions(0) = "Up"
+DirectionCaptions(1) = "Right"
+DirectionCaptions(2) = "Down"
+DirectionCaptions(3) = "Left"
 
 '==============================================================================
 
 FUNCTION align_caption(align as AlignType, vertical as bool) as string
  IF vertical THEN RETURN VertCaptions(align) ELSE RETURN HorizCaptions(align)
+END FUNCTION
+
+FUNCTION dir_align_caption(dirn as DirNum, align as AlignType) as string
+ RETURN align_caption(align, dirn = dirUp ORELSE dirn = dirDown)
 END FUNCTION
 
 FUNCTION anchor_and_align_string(anchor as AlignType, align as AlignType, vertical as bool) as string
@@ -416,6 +426,9 @@ END SUB
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
+
+ REDIM PRESERVE editable_slice_types(8)
+ IF ses.privileged THEN int_array_append editable_slice_types(), slLayout
 
  '--user-defined slice lookup codes
  REDIM ses.slicelookup(10) as string
@@ -1285,6 +1298,16 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    dat->override = -1 'Cancel override when we manually change index
   END IF
  END IF
+ IF rule.group AND slgrLAYOUT2NDDIR THEN
+  DIM dat as LayoutSliceData ptr = sl->SliceData
+  DIM byref secdir as DirNum = dat->secondary_dir
+  DIM n as integer = 0
+  IF secdir = dirRight OR secdir = dirDown THEN n = 1
+  IF intgrabber(n, 0, 1) THEN
+   state.need_update = YES
+   secdir XOR= 2  'Swap dirUp and dirDown, swap dirLeft and dirRight
+  END IF
+ END IF
 
  ' Special actions to take after some piece of data has been edited
  IF state.need_update THEN
@@ -1585,6 +1608,32 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     str_array_append menu(), " Padding Between Children: " & dat->padding
     sliceed_rule rules(), "panel_padding", erIntgrabber, @(dat->padding), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
 
+   CASE slLayout
+    DIM dat as LayoutSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), " Row grow direction: " & DirectionCaptions(dat->primary_dir)
+    sliceed_rule rules(), "layout_primary_dir", erIntgrabber, @dat->primary_dir, 0, 3
+    str_array_append menu(), " Row-stacking direction: " & DirectionCaptions(dat->secondary_dir)
+    sliceed_rule_none rules(), "layout_secondary_dir", slgrLAYOUT2NDDIR
+    str_array_append menu(), " Justified: " & yesorno(dat->justified)
+    sliceed_rule_tog rules(), "layout_justified", @dat->justified
+    str_array_append menu(), " Row alignment: " & dir_align_caption(dat->primary_dir, dat->row_alignment)
+    sliceed_rule_enum rules(), "layout_row_alignment", @dat->row_alignment, 0, 2
+    str_array_append menu(), " Within-row alignment: " & dir_align_caption(dat->secondary_dir, dat->cell_alignment)
+    sliceed_rule_enum rules(), "layout_cell_alignment", @dat->cell_alignment, 0, 2
+    IF dat->justified THEN
+     str_array_append menu(), " Minimum within-row padding: " & dat->primary_padding
+    ELSE
+     str_array_append menu(), " Within-row padding: " & dat->primary_padding
+    END IF
+    sliceed_rule rules(), "layout_primary_padding", erIntgrabber, @dat->primary_padding, -9999, 9999
+    str_array_append menu(), " Between-row padding: " & dat->secondary_padding
+    sliceed_rule rules(), "layout_secondary_padding", erIntgrabber, @dat->secondary_padding, -9999, 9999
+    str_array_append menu(), " Min row thickness: " & dat->min_row_breadth
+    sliceed_rule rules(), "layout_min_row_breadth", erIntgrabber, @dat->min_row_breadth, 0, 9999
+    str_array_append menu(), " Skip hidden: " & yesorno(dat->skip_hidden)
+    sliceed_rule_tog rules(), "layout_skip_hidden", @dat->skip_hidden
+
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
@@ -1786,8 +1835,8 @@ END SUB
 
 SUB AdjustSlicePosToNewParent (byval sl as Slice Ptr, byval newparent as Slice Ptr)
  '--Re-adjust ScreenX/ScreenY position for new parent
- IF newparent->SliceType = slGrid OR newparent->SliceType = slPanel THEN
-  '--except if the new parent is a grid/panel, which have customised screenpos calc.
+ IF newparent->SliceType = slGrid OR newparent->SliceType = slPanel OR newparent->SliceType = slLayout THEN
+  '--except if the new parent is a grid/panel/layout, which have customised screenpos calc.
   '--Then it would be silly to preserve Screen pos, and it can't actually be done anyway.
   sl->Pos = XY(0,0)
   EXIT SUB
