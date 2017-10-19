@@ -487,15 +487,15 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice
    state.need_update = YES
   END IF
-  IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
-   'Toggle visibility (does nothing on Select slice children)
-   IF ses.curslice THEN
+
+  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
+
+   IF keyval(scCtrl) = 0 AND keyval(scV) > 1 THEN
+    'Toggle visibility (does nothing on Select slice children)
     ses.curslice->Visible XOR= YES
    END IF
-  END IF
-  IF keyval(scH) > 1 THEN
-   'Toggle editor visibility of children
-   IF ses.curslice THEN
+   IF keyval(scH) > 1 THEN
+    'Toggle editor visibility of children
     IF ses.curslice->NumChildren > 0 THEN
      ses.curslice->EditorHideChildren XOR= YES
     ELSE
@@ -503,7 +503,24 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     END IF
     state.need_update = YES
    END IF
+   IF keyval(scR) > 1 THEN
+    'Reset position
+    WITH *ses.curslice
+     'Fill Parent changes position, so reset that. Cover Children doesn't.
+     .Fill = NO
+     .FillMode = sliceFillFull
+     .Pos = XY(0, 0)
+     .AlignHoriz = alignLeft
+     .AlignVert = alignTop
+     .AnchorHoriz = alignLeft
+     .AnchorVert = alignTop
+     slice_edit_updates ses.curslice, @.Fill
+     slice_edit_updates ses.curslice, @.CoverChildren
+    END WITH
+   END IF
+
   END IF
+
   IF keyval(scF7) > 1 THEN
    IF ses.curslice ANDALSO ses.curslice->SliceType = slSprite THEN
     'Make a sprite melt, just for a fun test
@@ -600,6 +617,12 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
+   IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
+    'Edit this slice alone ("fullscreen")
+    slice_editor ses.curslice, , YES
+    state.need_update = YES
+   END IF
+
    IF keyval(scDelete) > 1 THEN
     IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(ses.curslice, ses.specialcodes()) THEN
      notification "Can't delete special/protected slices!"
@@ -614,9 +637,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
       state.need_update = YES
      END IF
     END IF
-   ELSEIF keyval(scF) > 1 THEN
-    slice_editor ses.curslice, , YES
-    state.need_update = YES
 
    ELSEIF keyval(scShift) > 0 THEN
 

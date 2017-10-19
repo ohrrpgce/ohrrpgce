@@ -20,6 +20,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       hidden, and info about NPCs, heroes, and protected status [Ralph]
     * Ctrl+C/V to copy-and-paste text now uses the Mac/Windows/X11
       clipboard, so you can copy-paste from/to other applications [Ralph]
+    * Press R in the slice editor to reset a slice's position to 0,0 and
+      alignment/anchoring to top-left corner [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
