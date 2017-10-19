@@ -6,6 +6,26 @@
 ''
 
 #include "config.bi"
+
+#ifdef USE_X11
+	#include "lib/SDL/SDL_x11clipboard.bi"
+	#undef font
+
+	' HACK: FB 1.05 and earlier don't have a way to get the Display ptr, only the Window
+	' But the Window ptr happens to be the first member of fb_x11
+	type X11DRIVER
+		display as Display ptr
+		'rest omitted
+	end type
+	extern fb_x11 alias "fb_x11" as X11DRIVER
+
+#elseif defined(__FB_WIN32__)
+	include_windows_bi()
+	#include "lib/SDL/SDL_windowsclipboard.bi"
+#elseif defined(__FB_DARWIN__)
+	#include "lib/SDL/SDL_cocoaclipboard.bi"
+#endif
+
 #include "util.bi"
 #include "fbgfx.bi"
 #include "surface.bi"
@@ -538,6 +558,43 @@ function io_fb_readjoysane(byval joynum as integer, byref button as integer, byr
 	return 1
 end function
 
+sub io_fb_set_clipboard_text(text as zstring ptr)  'ustring
+	if text = NULL then text = @""
+	#ifdef USE_X11
+		' Not supported. For the selection to work, we would need to handle SelectionRequest
+		' X11 events, but FB discards these and doesn't forward them. We would have to do peeking
+		' of the X11 event queue.
+		exit sub
+	#elseif defined(__FB_WIN32__)
+		dim hwnd as ssize_t 'as HWND
+		screencontrol GET_WINDOW_HANDLE, hwnd
+		WIN_SetClipboardText(cast(HWND, hwnd), text)
+	#elseif defined(__FB_DARWIN__)
+		Cocoa_SetClipboardText(text)
+	#endif
+end sub
+
+function io_fb_get_clipboard_text() as zstring ptr  'ustring
+	dim ret as zstring ptr
+	#ifdef USE_X11
+		dim wndw as Window
+		dim displayi as ssize_t
+		dim display as Display ptr
+		screencontrol GET_WINDOW_HANDLE, wndw, displayi
+		display = cptr(Display ptr, displayi)
+		'Getting display via GET_WINDOW_HANDLE is only in FB 1.06.0
+		display = fb_x11.display
+		ret = X11_GetClipboardText(display, wndw, NULL)  'No callback, just waits 40ms
+	#elseif defined(__FB_WIN32__)
+		dim hwnd as ssize_t 'as HWND
+		screencontrol GET_WINDOW_HANDLE, hwnd
+		ret = WIN_GetClipboardText(cast(HWND, hwnd))
+	#elseif defined(__FB_DARWIN__)
+		ret = Cocoa_GetClipboardText()
+	#endif
+	return ret
+end function
+
 function gfx_fb_setprocptrs() as integer
 	gfx_init = @gfx_fb_init
 	gfx_close = @gfx_fb_close
@@ -557,6 +614,8 @@ function gfx_fb_setprocptrs() as integer
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_fb_updatekeys
 	io_textinput = @io_fb_textinput
+	io_get_clipboard_text = @io_fb_get_clipboard_text
+	io_set_clipboard_text = @io_fb_set_clipboard_text
 	io_show_virtual_keyboard = @io_fb_show_virtual_keyboard
 	io_hide_virtual_keyboard = @io_fb_hide_virtual_keyboard
 	io_mousebits = @io_amx_mousebits
