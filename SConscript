@@ -1008,7 +1008,8 @@ if platform.system () == 'Windows':
     directx_sources += ['gfx_common/ohrstring.cpp', 'lib/SDL/SDL_windowsclipboard.c']
 
     # Create environment for compiling gfx_directx.dll
-    w32_env = Environment ()
+    # $OBJPREFIX is prefixed to the name of each object file, to ensure there are no clashes
+    w32_env = Environment (OBJPREFIX = 'gfx_directx-')
     w32_env['ENV']['PATH'] = os.environ['PATH']
     if "Include" in os.environ:
         w32_env.Append(CPPPATH = os.environ['Include'].split(';'))
