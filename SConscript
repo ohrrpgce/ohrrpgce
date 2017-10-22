@@ -217,6 +217,13 @@ gfx = [g.lower () for g in gfx]
 music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
+if 'sdl' in gfx and 'sdl2' in gfx:
+    print "Can't link both gfx_sdl and gfx_sdl2"
+    Exit(1)
+if 'sdl' in music and 'sdl2' in gfx:
+    print "Can't link both music_sdl and gfx_sdl2"
+    Exit(1)
+
 
 ################ Create base environment
 
@@ -660,6 +667,7 @@ common_libpaths = []
 gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': libfbgfx},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
+           'sdl2' : {'shared_modules': 'gfx_sdl2.bas', 'common_libraries': 'SDL2'},
            'console' : {'shared_modules': 'gfx_console.bas', 'common_modules': 'curses_wrap.c'},
            'directx' : {}, # nothing needed
            'sdlpp': {}     # nothing needed
@@ -703,7 +711,7 @@ if win32:
     common_libraries += [libfbgfx]
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
-    if 'sdl' in gfx:
+    if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_windowsclipboard.c', 'gfx_common/ohrstring.cpp']
     if 'console' in gfx:
         common_libraries += ['pdcurses']
@@ -721,6 +729,12 @@ elif mac:
             commonenv.ParseConfig('sdl-config --cflags')
         else:
             commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+    if 'sdl2' in gfx:
+        # SDLmain is gone
+        if env.WhereIs('sdl2-config'):
+            commonenv.ParseConfig('sdl2-config --cflags')
+        else:
+            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL2.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL2.framework/Headers"]
     # if 'sdl' in music:
     #     # libvorbisfile is linked into SDL_mixer.framework which has been compiled to export its symbols
     #     commonenv['FBFLAGS'] += ['-d', 'HAVE_VORBISFILE']
@@ -741,7 +755,7 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
-    if 'sdl' in gfx:
+    if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
     if gfx != ['console']:
         # All graphical gfx backends need the X11 libs

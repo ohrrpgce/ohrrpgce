@@ -130,6 +130,7 @@ type FnGfxLoad as function cdecl () as integer
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
+declare function gfx_sdl2_setprocptrs() as integer
 declare function gfx_console_setprocptrs() as integer
 'declare function gfx_sdlpp_setprocptrs() as integer
 
@@ -157,6 +158,9 @@ dim shared as GfxBackendStuff fb_stuff = ("fb", "", "", @gfx_fb_setprocptrs, YES
 #ifdef GFX_SDL_BACKEND
 dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", "", @gfx_sdl_setprocptrs, NO)
 #endif
+#ifdef GFX_SDL2_BACKEND
+dim shared as GfxBackendStuff sdl2_stuff = ("sdl2", "", "", @gfx_sdl2_setprocptrs, NO)
+#endif
 #ifdef GFX_CONSOLE_BACKEND
 dim shared as GfxBackendStuff console_stuff = ("console", "", "", @gfx_console_setprocptrs, NO)
 #endif
@@ -166,7 +170,7 @@ dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL)
 #endif
 
 ' Alternative spellings allowed
-dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "fb", "sdl", "console", "sdlpp", "sdl++"}
+dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "fb", "sdl", "sdl2", "console", "sdlpp", "sdl++"}
 
 dim shared gfx_choices() as GfxBackendStuff ptr
 'Initialises gfx_choices with pointers to *_stuff variables, in some build-dependent order

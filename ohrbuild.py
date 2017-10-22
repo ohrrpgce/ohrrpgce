@@ -261,7 +261,7 @@ svninfo.txt should have been included with the source code if you downloaded a
     # Backends
     supported_gfx = []
     for gfx in used_gfx:
-        if gfx in ('sdl','fb','alleg','directx','sdlpp','console'):
+        if gfx in ('sdl','sdl2','fb','alleg','directx','sdlpp','console'):
             results.append ('#DEFINE GFX_%s_BACKEND' % gfx.upper())
             supported_gfx.append (gfx)
         else:
