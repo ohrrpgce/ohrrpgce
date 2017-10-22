@@ -59,7 +59,8 @@ DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
 
-DECLARE FUNCTION gfx_sdl2_set_screen_mode(byval bitdepth as integer = 0) as integer
+DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
+DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE SUB gfx_sdl2_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl2_8bit_update_screen()
 DECLARE SUB update_state()
@@ -81,23 +82,20 @@ DECLARE SUB sdlCocoaMinimise()
 
 #ENDIF
 
-DIM SHARED zoom as integer = 2
-DIM SHARED zoom_has_been_changed as integer = NO
-DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it
-DIM SHARED smooth as integer = 0
-DIM SHARED screensurface as SDL_Surface ptr = NULL
+DIM SHARED zoom as integer = 2  'Window size
+DIM SHARED smooth_zoom as integer = 2  'Amount to zoom before applying smoothing
+DIM SHARED smooth as integer = 0  'Smoothing mode (0 or 1)
+DIM SHARED mainwindow as SDL_Window ptr = NULL
+DIM SHARED mainrenderer as SDL_Renderer ptr = NULL
+DIM SHARED maintexture as SDL_Texture ptr = NULL
+
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
-DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
+
+'DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
-DIM SHARED screen_width as integer = 0
-DIM SHARED screen_height as integer = 0
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
-DIM SHARED force_video_reset as bool = NO
-'(This used to be set to true on OSX, due to problems years ago without it, but
-'it's harmful with SDL 1.2.14 and OS 10.8.5)
-DIM SHARED always_force_video_reset as bool = NO
 DIM SHARED remember_windowtitle as string
 DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
@@ -289,22 +287,15 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
   
-  ' SDL_VIDEO_CENTERED has no effect on Mac (Quartz backend); the window is always
-  ' centred unless SDL_VIDEO_WINDOW_POS is in effect.
-
-  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
-    putenv("SDL_VIDEO_CENTERED=1")
-  ELSE
-    putenv("SDL_VIDEO_WINDOW_POS=5,5")
-  END IF
 
 #ifdef IS_CUSTOM
   'By default SDL prevents screensaver (new in SDL 1.2.10)
   putenv("SDL_VIDEO_ALLOW_SCREENSAVER=1")
 #endif
 
-  DIM ver as const SDL_version ptr = SDL_Linked_Version()
-  *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
+  DIM ver as SDL_version
+  SDL_GetVersion(@ver)
+  *info_buffer = MID("SDL " & ver.major & "." & ver.minor & "." & ver.patch, 1, info_buffer_size)
 
   DIM video_already_init as bool = (SDL_WasInit(SDL_INIT_VIDEO) <> 0)
 
@@ -313,30 +304,20 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
     RETURN 0
   END IF
 
-  IF video_already_init = NO THEN
-    'Get resolution of the screen, must be done before opening a window,
-    'as after that this gives the size of the window instead.
-    DIM videoinfo as const SDL_VideoInfo ptr = SDL_GetVideoInfo()
-    IF videoinfo = NULL THEN
-      debug "SDL_GetVideoInfo failed: " & *SDL_GetError()
-    ELSE
-      screen_width = videoinfo->current_w
-      screen_height = videoinfo->current_h
-      debuginfo "SDL: screen size "  & screen_width & "x" & screen_height
-    END IF
-  END IF
   ' This enables key repeat both for text input and for keys. We only
   ' want it for text input (only with --native-keybd), and otherwise filter out
   ' repeat keypresses.
   ' However, we still get key repeats, apparently from Windows, even if SDL
   ' keyrepeat is disabled (see SDL_KEYDOWN handling).
-  SDL_EnableKeyRepeat(400, 50)
+'  SDL_EnableKeyRepeat(400, 50)
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
-  SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
+'  SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
 
   framesize.w = 320
   framesize.h = 200
+
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
 
 #IFDEF __FB_ANDROID__
   IF SDL_ANDROID_IsRunningOnConsole() THEN
@@ -347,54 +328,32 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   END IF
 #ENDIF
 
-  RETURN gfx_sdl2_set_screen_mode()
+  RETURN recreate_window()
 END FUNCTION
 
-FUNCTION gfx_sdl2_set_screen_mode(byval bitdepth as integer = 0) as integer
+PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
+  IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
+  mainrenderer = NULL
+  maintexture = NULL
+  IF mainwindow THEN SDL_DestroyWindow(mainwindow)
+  mainwindow = NULL
+
   last_used_bitdepth = bitdepth
   DIM flags as Uint32 = 0
-  IF resizable THEN flags = flags OR SDL_RESIZABLE
+  IF resizable THEN flags = flags OR SDL_WINDOW_RESIZABLE
   IF windowedmode = NO THEN
-    flags = flags OR SDL_FULLSCREEN
+    'flags = flags OR SDL_WINDOW_FULLSCREEN
+    ' This means don't change the resolution, instead create a fullscreen window, like gfx_directx
+    flags = flags OR SDL_WINDOW_FULLSCREEN_DESKTOP
   END IF
-  IF always_force_video_reset OR force_video_reset THEN
-    'Sometimes need to quit and reinit the video subsystem for changes to take effect
-    force_video_reset = NO
-    IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-      SDL_QuitSubSystem(SDL_INIT_VIDEO)
-      IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
-        debug "Can't start SDL video subsys (resize): " & *SDL_GetError
-      END IF
-    END IF
-  END IF
-#IFDEF __FB_ANDROID__
-  'On Android, the requested screen size will be stretched.
-  'We also want the option of a margin around the edges for
-  'when the game is being played on a TV that needs safe zones
 
-  IF smooth THEN
-   'smoothing is enabled, use default zoom of 2 (or the zoom specified on the command line)
+  DIM windowpos as integer
+  IF running_as_slave = NO THEN   'Don't display the window straight on top of Custom's
+    windowpos = SDL_WINDOWPOS_CENTERED
   ELSE
-   'smoothing is disabled, force zoom to 1 on Android
-   zoom = 1
+    windowpos = SDL_WINDOWPOS_UNDEFINED
   END IF
-  
-  DIM android_screen_size as XYPair
-  android_screen_size.x = (framesize.w + INT(CDBL(framesize.w) * (safe_zone_margin * 2.0))) * zoom
-  android_screen_size.y = (framesize.h + INT(CDBL(framesize.h) * (safe_zone_margin * 2.0))) * zoom
-  screensurface = SDL_SetVideoMode(android_screen_size.x, android_screen_size.y, bitdepth, flags)
-  IF screensurface = NULL THEN
-    debug "Failed to open display (bitdepth = " & bitdepth & ", flags = " & flags & "): " & *SDL_GetError()
-    RETURN 0
-  END IF
-  debuginfo "gfx_sdl2: screen size is " & screensurface->w & "*" & screensurface->h
-  WITH dest_rect
-    .x = INT(CDBL(framesize.w) * safe_zone_margin) * zoom
-    .y = INT(CDBL(framesize.h) * safe_zone_margin) * zoom
-    .w = framesize.w * zoom
-    .h = framesize.h * zoom
-  END WITH
-#ELSE
+
   'Start with initial zoom and repeatedly decrease it if it is too large
   '(This is necessary to run in fullscreen in OSX IIRC)
   DO
@@ -405,14 +364,12 @@ FUNCTION gfx_sdl2_set_screen_mode(byval bitdepth as integer = 0) as integer
       .h = framesize.h * zoom
     END WITH
     debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
-    screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
-    IF screensurface = NULL THEN
+    mainwindow = SDL_CreateWindow(remember_windowtitle, windowpos, windowpos, _
+                                  dest_rect.w, dest_rect.h, flags)
+    IF mainwindow = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
       IF zoom > 1 ANDALSO strstr(SDL_GetError(), "No video mode large enough") THEN
         debug "Failed to open display (windowed = " & windowedmode & ") (retrying with smaller zoom): " & *SDL_GetError
-        IF remember_zoom = -1 THEN
-          remember_zoom = zoom
-        END IF
         zoom -= 1
         CONTINUE DO
       END IF
@@ -421,39 +378,64 @@ FUNCTION gfx_sdl2_set_screen_mode(byval bitdepth as integer = 0) as integer
     END IF
     EXIT DO
   LOOP
-  'Don't recenter the window as the user resizes it
-  '  putenv("SDL_VIDEO_CENTERED=0") does not work because SDL only tests whether the variable is defined
-  'Note: on OSX unfortunately SDL will always recenter the window if its resizability changes, and the only
-  'way to override that is to set SDL_VIDEO_WINDOW_POS.
-#IFDEF __FB_WIN32__
-  putenv("SDL_VIDEO_CENTERED=")
-#ELSE
-  unsetenv("SDL_VIDEO_CENTERED")
-#ENDIF
 
-#ENDIF  ' Not __FB_ANDROID__
+  mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_PRESENTVSYNC)
+  IF mainrenderer = NULL THEN
+    ' Don't kill the program yet; we might be able to switch to a different backend
+    debug "SDL_CreateRenderer failed: " & *SDL_GetError
+    RETURN 0
+  END IF
 
-  WITH *screensurface->format
-   debuginfo "gfx_sdl2: created screensurface size=" & screensurface->w & "*" & screensurface->h _
-             & " depth=" & .BitsPerPixel & " flags=0x" & HEX(screensurface->flags) _
+  SDL_RenderSetLogicalSize(mainrenderer, framesize.w, framesize.h)
+  #IFDEF SDL_RenderSetIntegerScale
+    'Whether to stick to integer scaling amounts. SDL 2.0.5+
+    'SDL_RenderSetIntegerScale(mainrenderer, NO)
+  #ENDIF
+
+  IF recreate_screen_texture() = NO THEN RETURN 0
+
+/'
+  WITH *mainwindow->format
+   debuginfo "gfx_sdl2: created mainwindow size=" & mainwindow->w & "*" & mainwindow->h _
+             & " depth=" & .BitsPerPixel & " flags=0x" & HEX(mainwindow->flags) _
              & " R=0x" & hex(.Rmask) & " G=0x" & hex(.Gmask) & " B=0x" & hex(.Bmask)
    'FIXME: should handle the screen surface not being BGRA, or ask SDL for a surface in that encoding
   END WITH
+'/
 
-#IFDEF __FB_DARWIN__
-  ' SDL on OSX forgets the Unicode input state after a setvideomode
-  SDL_EnableUNICODE(IIF(remember_enable_textinput, 1, 0))
-#ENDIF
-
-  SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
   update_mouse_visibility()
   RETURN 1
 END FUNCTION
 
+PRIVATE FUNCTION recreate_screen_texture() as bool
+  IF maintexture THEN SDL_DestroyTexture(maintexture)
+  maintexture = SDL_CreateTexture(mainrenderer, _
+                               SDL_PIXELFORMAT_BGRA8888, _
+                               SDL_TEXTUREACCESS_STREAMING, _
+                               framesize.w, framesize.h)
+  IF maintexture = NULL THEN
+    debug "SDL_CreateTexture: " & *SDL_GetError()
+    RETURN NO
+  END IF
+  RETURN YES
+END FUNCTION
+
+PRIVATE SUB set_window_size(newsize as XYPair, newzoom as integer)
+  framesize = newsize
+  zoom = newzoom
+  'TODO: this doesn't work if fullscreen
+  SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+  recreate_screen_texture
+END SUB
+
 SUB gfx_sdl2_close()
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-    IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
-    screensurface = NULL
+    IF mainrenderer THEN SDL_DestroyRenderer(mainrenderer)  'Also destroys textures
+    mainrenderer = NULL
+    maintexture = NULL
+    IF mainwindow THEN SDL_DestroyWindow(mainwindow)
+    mainwindow = NULL
+    IF screenbuffer THEN SDL_FreeSurface(screenbuffer)
     screenbuffer = NULL
     FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
       IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
@@ -473,61 +455,61 @@ END FUNCTION
 FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
   'debuginfo "gfx_sdl2_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
 
+  DIM pitch as integer
+
   'variable resolution handling
   IF framesize.w <> w OR framesize.h <> h THEN
     'debuginfo "gfx_sdl2_present_internal: framesize changing from " & framesize.w & "*" & framesize.h & " to " & w & "*" & h
-    framesize.w = w
-    framesize.h = h
-    'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
-    'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now
-    gfx_sdl2_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth))
-    IF screenbuffer THEN
-      SDL_FreeSurface(screenbuffer)
-      screenbuffer = NULL
-    END IF
+    set_window_size(XY(w, h), zoom)
   END IF
 
-  IF bitdepth = 8 THEN
+  IF smooth = 0 THEN
+    ' Copy directly to maintexture
+    pitch = w * IIF(bitdepth = 32, 4, 1)
 
-    'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
-    'and then smoothzoom, with smoothzoomblit_anybit
-    'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
+  ELSE
+    ' Intermediate step: do an enlarged blit to a surface and then do smoothing
 
-    IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
-      SDL_FreeSurface(screenbuffer)
-      screenbuffer = NULL
+    IF screenbuffer THEN
+      IF (screenbuffer->w <> w * smooth_zoom OR _
+          screenbuffer->h <> h * smooth_zoom OR _
+          screenbuffer->format->BitsPerPixel <> bitdepth) THEN
+        SDL_FreeSurface(screenbuffer)
+        screenbuffer = NULL
+      END IF
     END IF
 
     IF screenbuffer = NULL THEN
-      screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * zoom, h * zoom, 8, 0,0,0,0)
+      IF bitdepth = 32 THEN
+        'BGRA
+        screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, &h00ff0000, &h0000ff00, &h000000ff, &hff000000)
+      ELSE
+        screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, 0,0,0,0)
+      END IF
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
-      debug "gfx_sdl2_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
-      SYSTEM
+      debugc errDie, "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError()
     END IF
 
-    smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
-    gfx_sdl2_8bit_update_screen()
-
-  ELSE
-    '32 bit surface
-
-    IF screensurface->format->BitsPerPixel <> 32 THEN
-      gfx_sdl2_set_screen_mode(32)
-    END IF
-    IF screensurface = NULL THEN
-      debug "gfx_sdl2_present_internal: no screen!"
-      RETURN 1
+    IF bitdepth = 8 THEN
+      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, smooth_zoom, smooth)
+    ELSE
+      '32 bit surface
+      'smoothzoomblit takes the pitch in pixels, not bytes!
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), w, h, screenbuffer->pitch \ 4, smooth_zoom, smooth)
     END IF
 
-    'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
-    IF SDL_Flip(screensurface) THEN
-      debug "gfx_sdl2_present_internal: SDL_Flip failed: " & *SDL_GetError
-    END IF
-    update_state()
+    raw = screenbuffer->pixels
+    pitch = screenbuffer->pitch
   END IF
+
+  SDL_UpdateTexture(maintexture, NULL, raw, pitch)
+  'SDL_RenderClear(mainrenderer)
+  SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL)
+  SDL_RenderPresent(mainrenderer)
+
+  update_state()
 
   RETURN 0
 END FUNCTION
@@ -551,21 +533,22 @@ SUB gfx_sdl2_showpage(byval raw as ubyte ptr, byval w as integer, byval h as int
   gfx_sdl2_present_internal(raw, w, h, 8)
 END SUB
 
+/'
 'Update the screen image and palette
 SUB gfx_sdl2_8bit_update_screen()
-  IF screenbuffer <> NULL and screensurface <> NULL THEN
+  IF screenbuffer <> NULL and mainwindow <> NULL THEN
     IF SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256) = 0 THEN
       debug "gfx_sdl2_8bit_update_screen: SDL_SetColors failed: " & *SDL_GetError
     END IF
-    IF SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect) THEN
+    IF SDL_BlitSurface(screenbuffer, NULL, mainwindow, @dest_rect) THEN
       debug "gfx_sdl2_8bit_update_screen: SDL_BlitSurface failed: " & *SDL_GetError
     END IF
-    IF SDL_Flip(screensurface) THEN
+    IF SDL_Flip(mainwindow) THEN
       debug "gfx_sdl2_8bit_update_screen: SDL_Flip failed: " & *SDL_GetError
     END IF
-    update_state()
   END IF
 END SUB
+'/
 
 SUB gfx_sdl2_setpal(byval pal as RGBcolor ptr)
   DIM i as integer
@@ -574,7 +557,8 @@ SUB gfx_sdl2_setpal(byval pal as RGBcolor ptr)
     sdlpalette(i).g = pal[i].g
     sdlpalette(i).b = pal[i].b
   NEXT
-  gfx_sdl2_8bit_update_screen()
+'  gfx_sdl2_8bit_update_screen()
+  update_state()
 END SUB
 
 FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
@@ -582,46 +566,19 @@ FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
 END FUNCTION
 
 SUB gfx_sdl2_setwindowed(byval towindowed as bool)
-#IFDEF __FB_DARWIN__
-  IF towindowed = NO THEN
-    'Low resolution looks bad in fullscreen, so change zoom temporarily
-    IF zoom_has_been_changed = NO THEN
-      remember_zoom = zoom
-      zoom = large(zoom, 4)  'Rather crude
-    END IF
-  ELSE
-    'Change zoom back?
-    IF remember_zoom <> -1 AND zoom_has_been_changed = NO THEN
-      zoom = remember_zoom
-    END IF
+  DIM flags as int32 = 0
+  IF towindowed = NO THEN flags = SDL_WINDOW_FULLSCREEN_DESKTOP
+  IF SDL_SetWindowFullscreen(mainwindow, flags) THEN
+    debugc errPrompt, "Could not toggle fullscreen mode: " & *SDL_GetError()
+    EXIT SUB
   END IF
-#ENDIF
-  IF towindowed = 0 THEN
-    windowedmode = NO
-  ELSE
-    windowedmode = YES
-  END IF
-  gfx_sdl2_set_screen_mode()
-  IF screensurface = NULL THEN
-   debuginfo "setwindowed: fallback to previous zoom"
-   'Attempt to fallback
-   windowedmode XOR= YES
-   IF remember_zoom <> -1 THEN
-     zoom = remember_zoom
-   END IF
-   DIM remem_error as string = *SDL_GetError
-   gfx_sdl2_set_screen_mode()
-   IF screensurface THEN
-     notification "Could not toggle fullscreen mode: " & remem_error
-   ELSE
-     debugc errDie, "gfx_sdl2: Could not recover after toggling fullscreen mode failed"
-   END IF
-  END IF
+  windowedmode = towindowed
+  'TODO: call gfx_sdl2_set_resizable here, since that doesn't work on fullscreen windows?
 END SUB
 
 SUB gfx_sdl2_windowtitle(byval title as zstring ptr)
   IF SDL_WasInit(SDL_INIT_VIDEO) then
-    SDL_WM_SetCaption(title, title)
+    SDL_SetWindowTitle(mainwindow, title)
   END IF
   remember_windowtitle = *title
 END SUB
@@ -629,18 +586,32 @@ END SUB
 FUNCTION gfx_sdl2_getwindowstate() as WindowState ptr
   STATIC state as WindowState
   state.structsize = WINDOWSTATE_SZ
-  DIM temp as integer = SDL_GetAppState()
-  state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
-  state.minimised = (temp AND SDL_APPACTIVE) = 0
-  state.fullscreen = (windowedmode = 0)
-  state.mouse_over = (temp AND SDL_APPMOUSEFOCUS) <> 0
+  DIM flags as uint32 = SDL_GetWindowFlags(mainwindow)
+  'TODO: what about SDL_WINDOW_SHOWN/SDL_WINDOW_HIDDEN?
+  state.focused = (flags AND SDL_WINDOW_INPUT_FOCUS) <> 0
+  state.minimised = (flags AND SDL_WINDOW_MINIMIZED) = 0
+  state.fullscreen = (flags AND (SDL_WINDOW_FULLSCREEN OR SDL_WINDOW_FULLSCREEN_DESKTOP)) <> 0
+  state.mouse_over = (flags AND SDL_WINDOW_MOUSE_FOCUS) <> 0
   RETURN @state
 END FUNCTION
 
 SUB gfx_sdl2_get_screen_size(wide as integer ptr, high as integer ptr)
-  'SDL only lets you check screen resolution before you've created a window.
-  *wide = screen_width
-  *high = screen_height
+  'Query the first display.
+  'SDL_GetDisplayUsableBounds excludes area for taskbar, OSX menubar, dock, etc.,
+  'but was only added in SDL 2.0.5 (Oct 2016), and isn't even in FB's headers
+  DIM rect as SDL_Rect
+#IFDEF SDL_GetDisplayUsableBounds
+  IF SDL_GetDisplayUsableBounds(0, @rect) THEN
+#ELSE
+  IF SDL_GetDisplayBounds(0, @rect) THEN
+#ENDIF
+    debug "SDL_GetDisplayUsableBounds: " & *SDL_GetError()
+    *wide = 0
+    *high = 0
+  ELSE
+    *wide = rect.w
+    *high = rect.h
+  END IF
 END SUB
 
 FUNCTION gfx_sdl2_supports_variable_resolution() as bool
@@ -659,15 +630,21 @@ FUNCTION gfx_sdl2_vsync_supported() as bool
 END FUNCTION
 
 FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_height as integer) as bool
-  'Ignore minimum width and height.
-  'See SDL_VIDEORESIZE handling for discussing of enforcing min window size.
-
   resizable = enable
-  gfx_sdl2_set_screen_mode()
-  IF screensurface THEN
-    RETURN (screensurface->flags AND SDL_RESIZABLE) <> 0
-  END IF
-  RETURN NO
+  IF mainwindow = NULL THEN RETURN resizable
+
+  'Note: Can't change resizability of a fullscreen window
+  'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
+  #IFDEF SDL_SetWindowResizable
+    IF SDL_SetWindowResizable(mainwindow, resizable) THEN
+      debug "SDL_SetWindowResizable failed: " & *SDL_GetError()
+      RETURN NO
+    END IF
+  #ELSE
+    recreate_window()
+  #ENDIF
+  SDL_SetWindowMinimumSize(mainwindow, zoom * min_width, zoom * min_height)
+  RETURN resizable
 END FUNCTION
 
 FUNCTION gfx_sdl2_get_resize(byref ret as XYPair) as bool
@@ -686,21 +663,15 @@ SUB gfx_sdl2_recenter_window_hint()
   debuginfo "recenter_window_hint()"
   putenv("SDL_VIDEO_CENTERED=1")
   '(Note this is overridden by SDL_VIDEO_WINDOW_POS, so this function may do nothing when running as slave)
-#IFDEF __FB_WIN32__
-  'Under Windows SDL_VIDEO_CENTERED only has an effect when the window is recreated, which happens if
-  'the resolution (and probably other settings) change. So force recreating by quitting and restarting
-  'the video subsystem
-  force_video_reset = YES
-#ENDIF
 END SUB
 
 SUB gfx_sdl2_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
-    zoom_has_been_changed = YES
+    smooth_zoom = value
     gfx_sdl2_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-    IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-      gfx_sdl2_set_screen_mode()
+    IF mainwindow THEN
+      set_window_size(framesize, zoom)
     END IF
 
     'Update the clip rectangle
@@ -731,9 +702,6 @@ FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) 
   ELSEIF *opt = "input-debug" THEN
     debugging_io = YES
     ret = 1
-  ELSEIF *opt = "reset-videomode" THEN
-    always_force_video_reset = YES
-    ret = 1
   END IF
   'globble numerical args even if invalid
   IF ret = 1 AND is_int(*arg) THEN ret = 2
@@ -743,8 +711,7 @@ END FUNCTION
 FUNCTION gfx_sdl2_describe_options() as zstring ptr
   return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input" LINE_END _
-          "-reset-videomode    Reset SDL video subsys when changing video mode; may work around problems"
+          "-input-debug        Print extra debug info to c/g_debug.txt related to keyboard, mouse, etc. input"
 END FUNCTION
 
 FUNCTION gfx_sdl2_get_safe_zone_margin() as single
@@ -753,7 +720,7 @@ END FUNCTION
 
 SUB gfx_sdl2_set_safe_zone_margin(margin as single)
  safe_zone_margin = margin
- gfx_sdl2_set_screen_mode(last_used_bitdepth)
+ recreate_window(last_used_bitdepth)
 END SUB
 
 FUNCTION gfx_sdl2_supports_safe_zone_margin() as bool
@@ -1204,13 +1171,13 @@ FUNCTION update_mouse() as integer
       'debuginfo "gfx_sdl2: mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"  'Very spammy
       privatemx += x - lastmx
       privatemy += y - lastmy
-      IF x < 3 * screensurface->w \ 8 OR x > 5 * screensurface->w \ 8 OR _
-         y < 3 * screensurface->h \ 8 OR y > 5 * screensurface->h \ 8 THEN
-        SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+      IF x < 3 * mainwindow->w \ 8 OR x > 5 * mainwindow->w \ 8 OR _
+         y < 3 * mainwindow->h \ 8 OR y > 5 * mainwindow->h \ 8 THEN
+        SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
         'Required after warping the mouse for it to take effect. Discovered with much blood, sweat, and murderous rage
         SDL_PumpEvents
-        lastmx = screensurface->w \ 2
-        lastmy = screensurface->h \ 2
+        lastmx = mainwindow->w \ 2
+        lastmy = mainwindow->h \ 2
         IF debugging_io THEN
           debuginfo "gfx_sdl2: clipped mouse warped"
         END IF
@@ -1249,7 +1216,7 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
     privatemx = x * zoom
     privatemy = y * zoom
     'IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
-    '  SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+    '  SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
     'END IF
   ELSE
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
@@ -1273,14 +1240,15 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
     'we stick the mouse at the centre of the window. It's a very common hack.
+    'SDL2: this is now SDL_SetRelativeMouseMode(SDL_TRUE)
     mouseclipped = YES
     SDL_GetMouseState(@privatemx, @privatemy)
     IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
-      SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+      SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
       SDL_PumpEvents
     END IF
-    lastmx = screensurface->w \ 2
-    lastmy = screensurface->h \ 2
+    lastmx = mainwindow->w \ 2
+    lastmy = mainwindow->h \ 2
   ELSEIF mouseclipped = YES AND (xmin = -1) THEN
     'exit clipping mode
     mouseclipped = NO

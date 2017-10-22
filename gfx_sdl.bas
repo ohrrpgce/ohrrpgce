@@ -119,7 +119,7 @@ DECLARE SUB sdlCocoaMinimise()
 #ENDIF
 
 DIM SHARED zoom as integer = 2
-DIM SHARED zoom_has_been_changed as integer = NO
+DIM SHARED zoom_has_been_changed as bool = NO
 DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it
 DIM SHARED smooth as integer = 0
 DIM SHARED screensurface as SDL_Surface ptr = NULL
@@ -529,9 +529,9 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
 
   IF bitdepth = 8 THEN
 
-    'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
-    'and then smoothzoom, with smoothzoomblit_anybit
-    'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
+    'We could conceivably either blit to screensurface (doing 8 bit -> display pixel format conversion) first
+    'and then smooth it (since it's also a SW surface)
+    'Or what we actually do: smoothzoom first to screenbuffer, with smoothzoomblit_8_to_8bit, and then blit to screensurface
 
     IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
       SDL_FreeSurface(screenbuffer)
@@ -543,8 +543,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
-      debug "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
-      SYSTEM
+      debugc errDie, "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
     END IF
 
     smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
