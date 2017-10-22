@@ -169,7 +169,7 @@ END EXTERN ' Can't put assignment statements in an extern block
 'it.
 'If there is no ASCII equivalent character, the key has a SDLK_WORLD_## scancode.
 
-DIM SHARED scantrans(0 to 322) as integer
+DIM SHARED scantrans(0 to SDLK_LAST - 1) as integer
 scantrans(SDLK_UNKNOWN) = 0
 scantrans(SDLK_BACKSPACE) = scBackspace
 scantrans(SDLK_TAB) = scTab

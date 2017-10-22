@@ -130,7 +130,7 @@ END EXTERN ' Can't put assignment statements in an extern block
 'it.
 'If there is no ASCII equivalent character, the key has a SDLK_WORLD_## scancode.
 
-DIM SHARED scantrans(0 to 322) as integer
+DIM SHARED scantrans(0 to SDL_NUM_SCANCODES) as integer
 scantrans(SDL_SCANCODE_UNKNOWN) = 0
 scantrans(SDL_SCANCODE_BACKSPACE) = scBackspace
 scantrans(SDL_SCANCODE_TAB) = scTab
@@ -139,18 +139,8 @@ scantrans(SDL_SCANCODE_RETURN) = scEnter
 scantrans(SDL_SCANCODE_PAUSE) = scPause
 scantrans(SDL_SCANCODE_ESCAPE) = scEsc
 scantrans(SDL_SCANCODE_SPACE) = scSpace
-scantrans(SDL_SCANCODE_EXCLAIM) = scExclamation
-scantrans(SDL_SCANCODE_QUOTEDBL) = scQuote
-scantrans(SDL_SCANCODE_HASH) = scHash
-scantrans(SDL_SCANCODE_DOLLAR) = scDollarSign
-scantrans(SDL_SCANCODE_AMPERSAND) = scAmpersand
-scantrans(SDL_SCANCODE_QUOTE) = scQuote
-scantrans(SDL_SCANCODE_LEFTPAREN) = scLeftParenthesis
-scantrans(SDL_SCANCODE_RIGHTPAREN) = scRightParenthesis
-scantrans(SDL_SCANCODE_ASTERISK) = scAsterisk
-scantrans(SDL_SCANCODE_PLUS) = scPlus
+scantrans(SDL_SCANCODE_APOSTROPHE) = scQuote
 scantrans(SDL_SCANCODE_COMMA) = scComma
-scantrans(SDL_SCANCODE_MINUS) = scMinus
 scantrans(SDL_SCANCODE_PERIOD) = scPeriod
 scantrans(SDL_SCANCODE_SLASH) = scSlash
 scantrans(SDL_SCANCODE_0) = sc0
@@ -163,19 +153,13 @@ scantrans(SDL_SCANCODE_6) = sc6
 scantrans(SDL_SCANCODE_7) = sc7
 scantrans(SDL_SCANCODE_8) = sc8
 scantrans(SDL_SCANCODE_9) = sc9
-scantrans(SDL_SCANCODE_COLON) = scColon
 scantrans(SDL_SCANCODE_SEMICOLON) = scSemicolon
-scantrans(SDL_SCANCODE_LESS) = scLeftCaret
 scantrans(SDL_SCANCODE_EQUALS) = scEquals
-scantrans(SDL_SCANCODE_GREATER) = scRightCaret
-scantrans(SDL_SCANCODE_QUESTION) = scQuestionMark
-scantrans(SDL_SCANCODE_AT) = scAtSign
 scantrans(SDL_SCANCODE_LEFTBRACKET) = scLeftBracket
 scantrans(SDL_SCANCODE_BACKSLASH) = scBackslash
 scantrans(SDL_SCANCODE_RIGHTBRACKET) = scRightBracket
-scantrans(SDL_SCANCODE_CARET) = scCircumflex
-scantrans(SDL_SCANCODE_UNDERSCORE) = scUnderscore
-scantrans(SDL_SCANCODE_BACKQUOTE) = scBackquote
+scantrans(SDL_SCANCODE_MINUS) = scMinus
+scantrans(SDL_SCANCODE_GRAVE) = scBackquote
 scantrans(SDL_SCANCODE_a) = scA
 scantrans(SDL_SCANCODE_b) = scB
 scantrans(SDL_SCANCODE_c) = scC
@@ -203,16 +187,16 @@ scantrans(SDL_SCANCODE_x) = scX
 scantrans(SDL_SCANCODE_y) = scY
 scantrans(SDL_SCANCODE_z) = scZ
 scantrans(SDL_SCANCODE_DELETE) = scDelete
-scantrans(SDL_SCANCODE_KP0) = scNumpad0
-scantrans(SDL_SCANCODE_KP1) = scNumpad1
-scantrans(SDL_SCANCODE_KP2) = scNumpad2
-scantrans(SDL_SCANCODE_KP3) = scNumpad3
-scantrans(SDL_SCANCODE_KP4) = scNumpad4
-scantrans(SDL_SCANCODE_KP5) = scNumpad5
-scantrans(SDL_SCANCODE_KP6) = scNumpad6
-scantrans(SDL_SCANCODE_KP7) = scNumpad7
-scantrans(SDL_SCANCODE_KP8) = scNumpad8
-scantrans(SDL_SCANCODE_KP9) = scNumpad9
+scantrans(SDL_SCANCODE_KP_0) = scNumpad0
+scantrans(SDL_SCANCODE_KP_1) = scNumpad1
+scantrans(SDL_SCANCODE_KP_2) = scNumpad2
+scantrans(SDL_SCANCODE_KP_3) = scNumpad3
+scantrans(SDL_SCANCODE_KP_4) = scNumpad4
+scantrans(SDL_SCANCODE_KP_5) = scNumpad5
+scantrans(SDL_SCANCODE_KP_6) = scNumpad6
+scantrans(SDL_SCANCODE_KP_7) = scNumpad7
+scantrans(SDL_SCANCODE_KP_8) = scNumpad8
+scantrans(SDL_SCANCODE_KP_9) = scNumpad9
 scantrans(SDL_SCANCODE_KP_PERIOD) = scNumpadPeriod
 scantrans(SDL_SCANCODE_KP_DIVIDE) = scNumpadSlash
 scantrans(SDL_SCANCODE_KP_MULTIPLY) = scNumpadAsterisk
@@ -244,28 +228,25 @@ scantrans(SDL_SCANCODE_F12) = scF12
 scantrans(SDL_SCANCODE_F13) = scF13
 scantrans(SDL_SCANCODE_F14) = scF14
 scantrans(SDL_SCANCODE_F15) = scF15
-scantrans(SDL_SCANCODE_NUMLOCK) = scNumlock
+' scantrans(SDL_SCANCODE_NUMLOCK) = scNumlock
 scantrans(SDL_SCANCODE_CAPSLOCK) = scCapslock
-scantrans(SDL_SCANCODE_SCROLLOCK) = scScrollLock
+' scantrans(SDL_SCANCODE_SCROLLOCK) = scScrollLock
 scantrans(SDL_SCANCODE_RSHIFT) = scRightShift
 scantrans(SDL_SCANCODE_LSHIFT) = scLeftShift
 scantrans(SDL_SCANCODE_RCTRL) = scRightCtrl
 scantrans(SDL_SCANCODE_LCTRL) = scLeftCtrl
 scantrans(SDL_SCANCODE_RALT) = scRightAlt
 scantrans(SDL_SCANCODE_LALT) = scLeftAlt
-scantrans(SDL_SCANCODE_RMETA) = scRightCommand
-scantrans(SDL_SCANCODE_LMETA) = scLeftCommand
-scantrans(SDL_SCANCODE_LSUPER) = scLeftWinLogo
-scantrans(SDL_SCANCODE_RSUPER) = scRightWinLogo
-scantrans(SDL_SCANCODE_MODE) = scRightAlt   'Alt Gr, but treat it as alt
-scantrans(SDL_SCANCODE_COMPOSE) = 0
+scantrans(SDL_SCANCODE_RGUI) = scRightMeta
+scantrans(SDL_SCANCODE_LGUI) = scLeftMeta
+scantrans(SDL_SCANCODE_MODE) = scRightAlt   'Possibly (probably not) Alt Gr? So treat it as alt
 scantrans(SDL_SCANCODE_HELP) = 0
-scantrans(SDL_SCANCODE_PRINT) = scPrintScreen
+scantrans(SDL_SCANCODE_PRINTSCREEN) = scPrintScreen
 scantrans(SDL_SCANCODE_SYSREQ) = scPrintScreen
-scantrans(SDL_SCANCODE_BREAK) = scPause
+scantrans(SDL_SCANCODE_PAUSE) = scPause
 scantrans(SDL_SCANCODE_MENU) = scContext
+scantrans(SDL_SCANCODE_APPLICATION) = scContext
 scantrans(SDL_SCANCODE_POWER) = 0
-scantrans(SDL_SCANCODE_EURO) = 0
 scantrans(SDL_SCANCODE_UNDO) = 0
 EXTERN "C"
 
@@ -785,11 +766,11 @@ SUB keycombos_logic(evnt as SDL_Event)
   'Check for platform-dependent key combinations
 
   IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
-    IF evnt.key.keysym.sym = SDL_SCANCODE_RETURN THEN  'alt-enter (not processed normally when using SDL)
+    IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
       gfx_sdl2_setwindowed(windowedmode XOR YES)
       post_event(eventFullscreened, windowedmode = NO)
     END IF
-    IF evnt.key.keysym.sym = SDL_SCANCODE_F4 THEN  'alt-F4
+    IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
       post_terminate_signal
     END IF
   END IF
@@ -799,30 +780,30 @@ SUB keycombos_logic(evnt as SDL_Event)
   '(many of those actually generate an SDL keypress event, which is then handled here)
 
   IF evnt.key.keysym.mod_ AND KMOD_META THEN  'Command key
-    IF evnt.key.keysym.sym = SDL_SCANCODE_m THEN
+    IF evnt.key.keysym.sym = SDLK_m THEN
       sdlCocoaMinimise()
     END IF
-    IF evnt.key.keysym.sym = SDL_SCANCODE_h THEN
+    IF evnt.key.keysym.sym = SDLK_h THEN
       IF evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
         sdlCocoaHideOthers()  'Cmd-Shift-H
       ELSE
         sdlCocoaHide()  'Cmd-H
       END IF
     END IF
-    IF evnt.key.keysym.sym = SDL_SCANCODE_q THEN
+    IF evnt.key.keysym.sym = SDLK_q THEN
       post_terminate_signal
     END IF
-    IF evnt.key.keysym.sym = SDL_SCANCODE_f THEN
+    IF evnt.key.keysym.sym = SDLK_f THEN
       gfx_sdl2_setwindowed(windowedmode XOR YES)
       post_event(eventFullscreened, windowedmode = NO)
       ' Includes Cmd+F to fullscreen
     END IF
-    'SDL doesn't actually seem to send SDL_SCANCODE_QUESTION...
-    IF evnt.key.keysym.sym = SDL_SCANCODE_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
+    'SDL doesn't actually seem to send SDLK_QUESTION...
+    IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
       keybdstate(scF1) = 2
     END IF
     FOR i as integer = 1 TO 4
-      IF evnt.key.keysym.sym = SDL_SCANCODE_0 + i THEN
+      IF evnt.key.keysym.sym = SDLK_0 + i THEN
         gfx_sdl2_set_zoom(i)
       END IF
     NEXT
