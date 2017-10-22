@@ -907,7 +907,7 @@ SUB gfx_sdl_process_events()
 'The SDL event queue only holds 128 events, after which SDL_QuitEvents will be lost
 'Of course, we might actually like to do something with some of the other events
   DIM evnt as SDL_Event
-
+  'I assume this uses SDL_PeepEvents instead of SDL_PollEvent because the latter calls SDL_PumpEvents
   WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
     SELECT CASE evnt.type
       CASE SDL_QUIT_

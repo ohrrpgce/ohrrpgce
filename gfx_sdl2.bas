@@ -15,6 +15,7 @@
 #include "gfx.bi"
 #include "surface.bi"
 #include "common.bi"
+#include "cutil.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
 
@@ -97,7 +98,6 @@ DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
 DIM SHARED remember_windowtitle as string
-DIM SHARED remember_enable_textinput as bool = NO
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
@@ -110,9 +110,9 @@ DIM SHARED forced_mouse_clipping as bool = NO
 DIM SHARED remember_mouserect as RectPoints = ((-1, -1), (-1, -1))
 'These are the actual zoomed clip bounds
 DIM SHARED as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
-DIM SHARED as int32 privatemx, privatemy, lastmx, lastmy
+DIM SHARED as int32 privatemx, privatemy
 DIM SHARED keybdstate(127) as integer  '"real"time keyboard array. See io_sdl2_keybits for docs.
-DIM SHARED input_buffer as wstring * 128
+DIM SHARED input_buffer as ustring
 DIM SHARED mouseclicks as integer    'Bitmask of mouse buttons clicked (SDL order, not OHR), since last io_mousebits
 DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
 DIM SHARED virtual_keyboard_shown as bool = NO
@@ -813,11 +813,9 @@ SUB keycombos_logic(evnt as SDL_Event)
 END SUB
 
 SUB gfx_sdl2_process_events()
-'The SDL event queue only holds 128 events, after which SDL_QuitEvents will be lost
-'Of course, we might actually like to do something with some of the other events
+  'I assume this uses SDL_PeepEvents instead of SDL_PollEvent because the latter calls SDL_PumpEvents
   DIM evnt as SDL_Event
-
-  WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
+  WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)
     SELECT CASE evnt.type
       CASE SDL_QUIT_
         IF debugging_io THEN
@@ -826,13 +824,11 @@ SUB gfx_sdl2_process_events()
         post_terminate_signal
       CASE SDL_KEYDOWN
         keycombos_logic(evnt)
-        DIM as integer key = scantrans(evnt.key.keysym.sym)
-        IF LEN(input_buffer) >= 127 THEN input_buffer = RIGHT(input_buffer, 126)
-        input_buffer += WCHR(evnt.key.keysym.unicode_)
+        DIM as integer key = scantrans(evnt.key.keysym.scancode)
         IF debugging_io THEN
-          debuginfo "SDL_KEYDOWN " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_ & " prev_keystate=" & keybdstate(key)
+          debuginfo "SDL_KEYDOWN scan=" & evnt.key.keysym.scancode & " key=" & evnt.key.keysym.sym & " -> ohr=" & key & " (" & scancodename(key) & ") prev_keystate=" & keybdstate(key)
         END IF
-        IF key THEN
+        IF key ANDALSO evnt.key.repeat = 0 THEN
           'Filter out key repeats (key already down, or we just saw a keyup):
           'On Windows (XP at least) we get key repeats even if we don't enable
           'SDL's key repeats, but with a much longer initial delay than the SDL ones.
@@ -844,12 +840,15 @@ SUB gfx_sdl2_process_events()
           keybdstate(key) OR= 1  'key down
         END IF
       CASE SDL_KEYUP
-        DIM as integer key = scantrans(evnt.key.keysym.sym)
+        DIM as integer key = scantrans(evnt.key.keysym.scancode)
         IF debugging_io THEN
-          debuginfo "SDL_KEYUP " & evnt.key.keysym.sym & " -> scan=" & key & " (" & scancodename(key) & ") char=" & evnt.key.keysym.unicode_ & " prev_keystate=" & keybdstate(key)
+          debuginfo "SDY_KEYUP scan=" & evnt.key.keysym.scancode & " key=" & evnt.key.keysym.sym & " -> ohr=" & key & " (" & scancodename(key) & ") prev_keystate=" & keybdstate(key)
         END IF
         'Clear 2nd bit (new keypress) and turn on 3rd bit (keyup)
         IF key THEN keybdstate(key) = (keybdstate(key) AND 2) OR 4
+      CASE SDL_TEXTINPUT
+        input_buffer += evnt.text.text  'UTF8
+
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
         'Interestingly, although (on Linux/X11) SDL doesn't report mouse motion events
@@ -857,8 +856,6 @@ SUB gfx_sdl2_process_events()
         '(other buttons focus the window).
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
-          IF .button = SDL_BUTTON_WHEELUP THEN mousewheel += 120
-          IF .button = SDL_BUTTON_WHEELDOWN THEN mousewheel -= 120
           IF debugging_io THEN
             debuginfo "SDL_MOUSEBUTTONDOWN mouse " & .which & " button " & .button & " at " & .x & "," & .y
           END IF
@@ -870,61 +867,57 @@ SUB gfx_sdl2_process_events()
           END IF
         END WITH
 
-'Warning: I don't know which one FB versions between 0.91 and 1.04 need
-#IF __FB_VERSION__ < "0.91" OR __FB_VERSION__ >= "1.04"
-      CASE SDL_ACTIVEEVENT
-#ELSE
-      CASE SDL_ACTIVEEVENT_
-#ENDIF
-        IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
-          IF debugging_io THEN
-            debuginfo "SDL_ACTIVEEVENT state=" & evnt.active.state & " gain=" & evnt.active.gain
-          END IF
+      CASE SDL_MOUSEWHEEL
+        IF debugging_io THEN
+          debuginfo "SDL_MOUSEWHEEL " & evnt.wheel.x & "," & evnt.wheel.y & " mouse=" & evnt.wheel.which
+          'SDL 2.0.4+:  & " dir=" & evnt.wheel.direction
+        END IF
+        mousewheel += evnt.wheel.y  ' * 120
+
+      CASE SDL_WINDOWEVENT
+        IF debugging_io THEN
+          debuginfo "SDL_WINDOWEVENT event=" & evnt.window.event
+        END IF
+        IF evnt.window.event = SDL_WINDOWEVENT_ENTER THEN
+          'Gained mouse focus
+          /'
           IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
-            IF mouseclipped THEN
-              SDL_WarpMouse privatemx, privatemy
-              SDL_PumpEvents
-            END IF
           ELSE
             update_mouse_visibility()
-            IF mouseclipped THEN
-              SDL_GetMouseState(@privatemx, @privatemy)
-              lastmx = privatemx
-              lastmy = privatemy
-              'SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
-              'SDL_PumpEvents
-              'lastmx = screensurface->w \ 2
-              'lastmy = screensurface->h \ 2
-            END IF
           END IF
+          '/
         END IF
-      CASE SDL_VIDEORESIZE
-        IF debugging_io THEN
-          debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
-        END IF
-        IF resizable THEN
-          'Round upwards
-          resize_request.w = (evnt.resize.w + zoom - 1) \ zoom
-          resize_request.h = (evnt.resize.h + zoom - 1) \ zoom
-          IF framesize.w <> resize_request.w OR framesize.h <> resize_request.h THEN
-            'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
-            'to be sent with the size you just set... this would produce annoying overlay
-            'messages in screen_size_update() if we don't filter them out.
-            resize_requested = YES
-          END IF
-          'Nothing happens until the engine calls gfx_get_resize,
-          'changes its internal window size (windowsize) as a result,
-          'and starts pushing Frames with the new size to gfx_showpage.
 
-          'Calling SDL_SetVideoMode changes the window size.  Unfortunately it's not possible
-          'to reliably override a user resize event with a different window size, at least with
-          'X11+KDE, because the window size isn't changed by SDL_SetVideoMode while the user is
-          'still dragging the window, and as far as I can tell there is no way to tell what the
-          'actual window size is, or whether the user still has the mouse button down while
-          'resizing (it isn't reported); usually they do hold it down until after they've
-          'finished moving their mouse.  One possibility would be to hook into X11, or to do
-          'some delayed SDL_SetVideoMode calls.
+        IF evnt.window.event = SDL_WINDOWEVENT_RESIZED THEN
+          'This event is delivered when the window size is changed by the user/WM
+          'rather than because we changed it.
+          IF debugging_io THEN
+            debuginfo "SDL_WINDOWEVENT_RESIZED: w=" & evnt.window.data1 & " h=" & evnt.window.data2
+          END IF
+          IF resizable THEN
+            'Round upwards
+            resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
+            resize_request.h = (evnt.window.data2 + zoom - 1) \ zoom
+            IF framesize.w <> resize_request.w OR framesize.h <> resize_request.h THEN
+              'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
+              'to be sent with the size you just set... this would produce annoying overlay
+              'messages in screen_size_update() if we don't filter them out.
+              resize_requested = YES
+            END IF
+            'Nothing happens until the engine calls gfx_get_resize,
+            'changes its internal window size (windowsize) as a result,
+            'and starts pushing Frames with the new size to gfx_showpage.
+
+            'Calling SDL_SetVideoMode changes the window size.  Unfortunately it's not possible
+            'to reliably override a user resize event with a different window size, at least with
+            'X11+KDE, because the window size isn't changed by SDL_SetVideoMode while the user is
+            'still dragging the window, and as far as I can tell there is no way to tell what the
+            'actual window size is, or whether the user still has the mouse button down while
+            'resizing (it isn't reported); usually they do hold it down until after they've
+            'finished moving their mouse.  One possibility would be to hook into X11, or to do
+            'some delayed SDL_SetVideoMode calls.
+          END IF
         END IF
     END SELECT
   WEND
@@ -939,9 +932,11 @@ END SUB
 
 SUB io_sdl2_pollkeyevents()
   'might need to redraw the screen if exposed
-  IF SDL_Flip(screensurface) THEN
+/'
+  IF SDL_Flip(mainwindow) THEN
     debug "pollkeyevents: SDL_Flip failed: " & *SDL_GetError
   END IF
+'/
   update_state()
 END SUB
 
@@ -983,19 +978,17 @@ END SUB
 'On both X11 and Windows, disabling unicode input means SDL_KEYDOWN events
 'don't report the character value (.unicode_).
 SUB io_sdl2_enable_textinput (byval enable as integer)
-  DIM oldstate as integer
-  oldstate = SDL_EnableUNICODE(IIF(enable, 1, 0))
-  remember_enable_textinput = enable  ' Needed only because of an SDL bug on OSX
-  IF debugging_io THEN
-    debuginfo "SDL_EnableUNICODE(" & enable & ") = " & oldstate & " (prev state)"
-  END IF
 END SUB
 
 SUB io_sdl2_textinput (byval buf as wstring ptr, byval bufsize as integer)
-  'Both FB and SDL only support UCS2, which doesn't have variable len wchars.
-  DIM buflen as integer = bufsize \ 2 - 1
-  *buf = LEFT(input_buffer, buflen)
-  input_buffer = MID(input_buffer, buflen)
+  DIM out as wstring ptr = utf8_decode(@input_buffer[0])
+  IF out = NULL THEN
+    debug "io_sdl2_textinput: utf8_decode failed"
+  ELSE
+    *buf = LEFT(*out, bufsize)
+    DEALLOCATE out
+  END IF
+  input_buffer = ""
 END SUB
 
 SUB io_sdl2_show_virtual_keyboard()
@@ -1142,33 +1135,16 @@ END FUNCTION
 FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32
-  DIM buttons as Uint8
+  DIM buttons as int32
 
-  buttons = SDL_GetMouseState(@x, @y)
-  IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+  IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
     IF mouseclipped THEN
-      'Not moving the mouse back to the centre of the window rapidly is widely recommended, but I haven't seen (nor looked for) evidence that it's bad.
-      'Implemented only due to attempting to fix eventually unrelated problem. Possibly beneficial to keep
-      'debuginfo "gfx_sdl2: mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"  'Very spammy
-      privatemx += x - lastmx
-      privatemy += y - lastmy
-      IF x < 3 * mainwindow->w \ 8 OR x > 5 * mainwindow->w \ 8 OR _
-         y < 3 * mainwindow->h \ 8 OR y > 5 * mainwindow->h \ 8 THEN
-        SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
-        'Required after warping the mouse for it to take effect. Discovered with much blood, sweat, and murderous rage
-        SDL_PumpEvents
-        lastmx = mainwindow->w \ 2
-        lastmy = mainwindow->h \ 2
-        IF debugging_io THEN
-          debuginfo "gfx_sdl2: clipped mouse warped"
-        END IF
-      ELSE
-        lastmx = x
-        lastmy = y
-      END IF
-      privatemx = bound(privatemx, mxmin, mxmax)
-      privatemy = bound(privatemy, mymin, mymax)
+      buttons = SDL_GetRelativeMouseState(@x, @y)
+      'debuginfo "gfx_sdl2: relativemousestate " & x & " " & y
+      privatemx = bound(privatemx + x, mxmin, mxmax)
+      privatemy = bound(privatemy + y, mymin, mymax)
     ELSE
+      buttons = SDL_GetMouseState(@x, @y)
       privatemx = x
       privatemy = y
     END IF
@@ -1196,13 +1172,10 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
   IF mouseclipped THEN
     privatemx = x * zoom
     privatemy = y * zoom
-    'IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
-    '  SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
-    'END IF
   ELSE
-    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
-      SDL_WarpMouse x * zoom, y * zoom
-      SDL_PumpEvents
+    IF SDL_GetWindowFlags(mainwindow) AND SDL_WINDOW_MOUSE_FOCUS THEN
+      SDL_WarpMouseInWindow mainwindow, x * zoom, y * zoom
+      SDL_PumpEvents  'Needed for SDL_WarpMouse to work?
 #IFDEF __FB_DARWIN__
       ' SDL Mac bug (SDL 1.2.14, OS 10.8.5): if the cursor is off the window
       ' when SDL_WarpMouse is called then the mouse gets moved onto the window,
@@ -1217,23 +1190,19 @@ SUB io_sdl2_setmouse(byval x as integer, byval y as integer)
 END SUB
 
 SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+  'In SDL 1.2 SDL_WM_GrabInput causes most WM key combinations to be blocked
+  'Now in SDL 2, keyboard is not grabbed by default (see SDL_HINT_GRAB_KEYBOARD),
+  'but I assume switching to relative mouse mode is effectively grabbing anyway.
   IF mouseclipped = NO AND (xmin >= 0) THEN
     'enter clipping mode
-    'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
-    'we stick the mouse at the centre of the window. It's a very common hack.
-    'SDL2: this is now SDL_SetRelativeMouseMode(SDL_TRUE)
     mouseclipped = YES
     SDL_GetMouseState(@privatemx, @privatemy)
-    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
-      SDL_WarpMouse mainwindow->w \ 2, mainwindow->h \ 2
-      SDL_PumpEvents
-    END IF
-    lastmx = mainwindow->w \ 2
-    lastmy = mainwindow->h \ 2
+    SDL_SetRelativeMouseMode YES
   ELSEIF mouseclipped = YES AND (xmin = -1) THEN
     'exit clipping mode
     mouseclipped = NO
-    SDL_WarpMouse privatemx, privatemy
+    SDL_SetRelativeMouseMode NO
+    SDL_WarpMouseInWindow mainwindow, privatemx, privatemy
   END IF
   mxmin = xmin * zoom
   mxmax = xmax * zoom + zoom - 1
@@ -1312,11 +1281,14 @@ PRIVATE FUNCTION load_wminfo() as bool
   RETURN NO
 END FUNCTION
 
-SUB io_sdl2_set_clipboard_text(text as ustring)
+SUB io_sdl2_set_clipboard_text(text as zstring ptr)  'ustring
+  IF SDL_SetClipboardText(text) THEN
+    debug "io_sdl2_set_clipboard_text: " & *SDL_GetError()
+  END IF
 END SUB
 
-FUNCTION io_sdl2_get_clipboard_text() as ustring
-  RETURN ""
+FUNCTION io_sdl2_get_clipboard_text() as zstring ptr  'ustring
+  RETURN SDL_GetClipboardText()
 END FUNCTION
 
 FUNCTION gfx_sdl2_setprocptrs() as integer
