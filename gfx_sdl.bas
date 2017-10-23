@@ -847,7 +847,7 @@ SUB io_sdl_init
   'nothing needed at the moment...
 END SUB
 
-SUB keycombos_logic(evnt as SDL_Event)
+PRIVATE SUB keycombos_logic(evnt as SDL_Event)
   'Check for platform-dependent key combinations
 
   IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
@@ -1035,7 +1035,7 @@ SUB gfx_sdl_process_events()
 END SUB
 
 'may only be called from the main thread
-SUB update_state()
+PRIVATE SUB update_state()
   SDL_PumpEvents()
   update_mouse()
   gfx_sdl_process_events()
@@ -1140,7 +1140,7 @@ SUB io_sdl_hide_virtual_gamepad()
 #ENDIF
 END SUB
 
-SUB internal_disable_virtual_gamepad()
+PRIVATE SUB internal_disable_virtual_gamepad()
  'Does nothing on other platforms
 #IFDEF __FB_ANDROID__
  io_sdl_hide_virtual_gamepad
@@ -1234,7 +1234,7 @@ SUB io_sdl_setmousevisibility(visibility as CursorVisibility)
 END SUB
 
 'Change from SDL to OHR mouse button numbering (swap middle and right)
-FUNCTION fix_buttons(byval buttons as integer) as integer
+PRIVATE FUNCTION fix_buttons(byval buttons as integer) as integer
   DIM mbuttons as integer = 0
   IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR mouseLeft
   IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR mouseRight
@@ -1243,7 +1243,7 @@ FUNCTION fix_buttons(byval buttons as integer) as integer
 END FUNCTION
 
 ' Returns currently down mouse buttons, in SDL order, not OHR order
-FUNCTION update_mouse() as integer
+PRIVATE FUNCTION update_mouse() as integer
   DIM x as int32
   DIM y as int32
   DIM buttons as Uint8
@@ -1320,7 +1320,7 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+PRIVATE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
   IF mouseclipped = NO AND (xmin >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
@@ -1345,7 +1345,7 @@ SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval y
 END SUB
 
 'This turns forced mouse clipping on or off
-SUB set_forced_mouse_clipping(byval newvalue as bool)
+PRIVATE SUB set_forced_mouse_clipping(byval newvalue as bool)
   newvalue = (newvalue <> 0)
   IF newvalue <> forced_mouse_clipping THEN
     forced_mouse_clipping = newvalue
@@ -1400,7 +1400,7 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   RETURN 1
 END FUNCTION
 
-FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
+PRIVATE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
  'Convert an OHR scancode into an SDL scancode
  '(the reverse can be accomplished just by using the scantrans array)
  IF ohr_scancode = 0 THEN RETURN default_sdl_scancode

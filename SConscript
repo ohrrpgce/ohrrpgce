@@ -217,9 +217,6 @@ gfx = [g.lower () for g in gfx]
 music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
-if 'sdl' in gfx and 'sdl2' in gfx:
-    print "Can't link both gfx_sdl and gfx_sdl2"
-    Exit(1)
 if 'sdl' in music and 'sdl2' in gfx:
     print "Can't link both music_sdl and gfx_sdl2"
     Exit(1)
