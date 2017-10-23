@@ -117,6 +117,10 @@ declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 	end if
 #endmacro
 
+'Used to dereference a ptr only if not NULL
+#define IF_PTR(arg)  if arg then arg
+
+
 '------------ Global variables ------------
 
 dim modex_initialised as bool = NO
@@ -1333,7 +1337,7 @@ sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1
 	end if
 	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume
 	sound_play(slot, loopcount, volume_mult * global_sfx_volume)
-	sound_slotdata(slot)->original_volume = volume_mult
+	IF_PTR(sound_slotdata(slot))->original_volume = volume_mult
 end sub
 
 sub stopsfx (num as integer)
@@ -1376,7 +1380,7 @@ sub set_sfx_volume (num as integer, volume_mult as single)
 	slot = sound_slot_with_id(num)
 	if slot = -1 then exit sub
 	sound_setvolume(slot, volume_mult * global_sfx_volume)
-	sound_slotdata(slot)->original_volume = volume_mult
+	IF_PTR(sound_slotdata(slot))->original_volume = volume_mult
 end sub
 
 ' Set the global volume multiplier for sound effects.
