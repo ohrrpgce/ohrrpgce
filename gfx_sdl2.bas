@@ -63,7 +63,7 @@ DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE SUB gfx_sdl2_set_zoom(byval value as integer)
-DECLARE SUB gfx_sdl2_8bit_update_screen()
+DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB update_mouse_visibility()
@@ -73,6 +73,8 @@ DECLARE SUB internal_disable_virtual_gamepad()
 DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as integer, byval default_sdl_scancode as integer=0) as integer
 DECLARE FUNCTION load_wminfo() as bool
 
+DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
+#define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
 
 #IFDEF __FB_DARWIN__
 
@@ -91,6 +93,7 @@ DIM SHARED mainrenderer as SDL_Renderer ptr = NULL
 DIM SHARED maintexture as SDL_Texture ptr = NULL
 
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
+DIM SHARED last_bitdepth as integer   'Bitdepth of the last gfx_present call
 
 'DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
@@ -101,7 +104,7 @@ DIM SHARED remember_windowtitle as string
 DIM SHARED mouse_visibility as CursorVisibility = cursorDefault
 DIM SHARED debugging_io as bool = NO
 DIM SHARED joystickhandles(7) as SDL_Joystick ptr
-DIM SHARED sdlpalette(0 TO 255) as SDL_Color
+DIM SHARED sdlpalette as SDL_Palette ptr
 DIM SHARED framesize as XYPair
 DIM SHARED dest_rect as SDL_Rect
 DIM SHARED mouseclipped as bool = NO   'Whether we are ACTUALLY clipped
@@ -251,6 +254,10 @@ scantrans(SDL_SCANCODE_UNDO) = 0
 EXTERN "C"
 
 
+PRIVATE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
+  debugc errError, *funcname & " " & *failed_call & ": " & *SDL_GetError()
+END SUB
+
 FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 /' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
 #ifdef __FB_WIN32__
@@ -299,6 +306,9 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   framesize.h = 200
 
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest")
+
+  sdlpalette = SDL_AllocPalette(256)
+  CheckOK(sdlpalette = NULL, RETURN 0)
 
 #IFDEF __FB_ANDROID__
   IF SDL_ANDROID_IsRunningOnConsole() THEN
@@ -361,11 +371,8 @@ PRIVATE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   LOOP
 
   mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_PRESENTVSYNC)
-  IF mainrenderer = NULL THEN
-    ' Don't kill the program yet; we might be able to switch to a different backend
-    debug "SDL_CreateRenderer failed: " & *SDL_GetError
-    RETURN 0
-  END IF
+  ' Don't kill the program yet; we might be able to switch to a different backend
+  CheckOK(mainrenderer = NULL, RETURN 0)
 
   SDL_RenderSetLogicalSize(mainrenderer, framesize.w, framesize.h)
   #IFDEF SDL_RenderSetIntegerScale
@@ -391,13 +398,10 @@ END FUNCTION
 PRIVATE FUNCTION recreate_screen_texture() as bool
   IF maintexture THEN SDL_DestroyTexture(maintexture)
   maintexture = SDL_CreateTexture(mainrenderer, _
-                               SDL_PIXELFORMAT_BGRA8888, _
+                               SDL_PIXELFORMAT_ARGB8888, _
                                SDL_TEXTUREACCESS_STREAMING, _
                                framesize.w, framesize.h)
-  IF maintexture = NULL THEN
-    debug "SDL_CreateTexture: " & *SDL_GetError()
-    RETURN NO
-  END IF
+  CheckOK(maintexture = NULL, RETURN NO)
   RETURN YES
 END FUNCTION
 
@@ -418,6 +422,9 @@ SUB gfx_sdl2_close()
     mainwindow = NULL
     IF screenbuffer THEN SDL_FreeSurface(screenbuffer)
     screenbuffer = NULL
+    IF sdlpalette THEN SDL_FreePalette(sdlpalette)
+    sdlpalette = NULL
+
     FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
       IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
       joystickhandles(i) = NULL
@@ -433,8 +440,12 @@ FUNCTION gfx_sdl2_getversion() as integer
   RETURN 1
 END FUNCTION
 
-FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+'Handles smoothing and changes to the frame size, then calls present_internal2
+'to update the screen
+PRIVATE FUNCTION present_internal(raw as any ptr, w as integer, h as integer, bitdepth as integer) as integer
   'debuginfo "gfx_sdl2_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
+
+  last_bitdepth = bitdepth
 
   DIM pitch as integer
 
@@ -444,11 +455,9 @@ FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byv
     set_window_size(XY(w, h), zoom)
   END IF
 
-  IF smooth = 0 THEN
-    ' Copy directly to maintexture
-    pitch = w * IIF(bitdepth = 32, 4, 1)
+  pitch = w * IIF(bitdepth = 32, 4, 1)
 
-  ELSE
+  IF smooth THEN
     ' Intermediate step: do an enlarged blit to a surface and then do smoothing
 
     IF screenbuffer THEN
@@ -462,7 +471,7 @@ FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byv
 
     IF screenbuffer = NULL THEN
       IF bitdepth = 32 THEN
-        'BGRA
+        'screenbuffer = SDL_CreateRGBSurfaceWithFormat(0, w * smooth_zoom, h * smooth_zoom, 32, SDL_PIXELFORMAT_ARGB8888)
         screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, &h00ff0000, &h0000ff00, &h000000ff, &hff000000)
       ELSE
         screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, 0,0,0,0)
@@ -470,7 +479,7 @@ FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byv
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
-      debugc errDie, "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError()
+      debugc errDie, "present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError()
     END IF
 
     IF bitdepth = 8 THEN
@@ -483,62 +492,121 @@ FUNCTION gfx_sdl2_present_internal(byval raw as any ptr, byval w as integer, byv
 
     raw = screenbuffer->pixels
     pitch = screenbuffer->pitch
+
+  ELSEIF bitdepth = 8 THEN
+    'Need to make a copy of the input, in case gfx_setpal is called
+
+    IF screenbuffer = NULL THEN
+      screenbuffer = SDL_CreateRGBSurface(0, w * smooth_zoom, h * smooth_zoom, bitdepth, 0,0,0,0)
+    END IF
+
+    'Copy over
+    'smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, 1, smooth)
+    SDL_ConvertPixels(w, h, SDL_PIXELFORMAT_INDEX8, raw, pitch, SDL_PIXELFORMAT_INDEX8, screenbuffer->pixels, screenbuffer->pitch)
+
+  ELSE
+    ' Can copy directly to maintexture
   END IF
 
-  SDL_UpdateTexture(maintexture, NULL, raw, pitch)
+  RETURN present_internal2(screenbuffer, raw, pitch, bitdepth)
+END FUNCTION
+
+'Updates the screen. Assumes all size changes have been handled.
+'If bitdepth=8 then srcsurf is used, otherwise raw is used, and is a block of
+'pixels in SDL_PIXELFORMAT_ARGB8888 with the given pitch.
+'The surface or block of pixels must be the same size as maintexture.
+PRIVATE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, pitch as integer, bitdepth as integer) as bool
+  DIM ret as bool = YES
+
+  DIM as integer texw, texh
+  DIM texpixels as any ptr
+  DIM texpitch as integer
+  SDL_QueryTexture(maintexture, NULL, NULL, @texw, @texh)
+  CheckOK(SDL_LockTexture(maintexture, NULL, @texpixels, @texpitch), RETURN NO)
+
+  IF bitdepth = 8 THEN
+    'SDL2 has two different ways to specify a pixel format:
+    ' struct SDL_PixelFormat - the struct used by SDL_Surfaces. Very flexible, includes an SDL_Palette*
+    ' enum SDL_PixelFormatEnum - available texture formats.
+    'Conversion functions:
+    ' SDL_ConvertPixels - convert raw pixel buffer from one SDL_PixelFormatEnum to another
+    ' SDL_ConvertSurface - copy of a Surface converted to a SDL_PixelFormat
+    ' SDL_ConvertSurfaceFormat - copy of a Surface converted to a SDL_PixelFormatEnum
+    ' SDL_BlitSurface - between Surfaces. Does a conversion
+    'Also relevant:
+    ' SDL_AllocFormat - Get a SDL_PixelFormat from a SDL_PixelFormatEnum
+    ' SDL_SetSurfacePalette - Modify's a Surface's SDL_PixelFormat
+    ' SDL_CreateRGBSurfaceFrom - A Surface wrapping an existing pixel buffer, defined by masks
+    ' SDL_CreateRGBSurfaceWithFormatFrom - A Surface wrapping an existing pixel buffer, defined by SDL_PixelFormatEnum.
+
+    'So can't use SDL_ConvertPixels as it doesn't support a palette.
+
+    CheckOK(SDL_SetSurfacePalette(srcsurf, sdlpalette))
+
+    DIM destsurf as SDL_Surface ptr
+    'Avoid SDL_CreateRGBSurfaceWithFormatFrom because it's SDL 2.0.5+
+    'destsurf = SDL_CreateRGBSurfaceWithFormatFrom(texpixels, texw, texh, 32, texpitch, SDL_PIXELFORMAT_ARGB8888)
+    destsurf = SDL_CreateRGBSurfaceFrom(texpixels, texw, texh, 32, texpitch, &h00ff0000, &h0000ff00, &h000000ff, &hff000000)
+    CheckOK(destsurf = NULL)
+
+    CheckOK(SDL_BlitSurface(srcsurf, NULL, destsurf, NULL), ret = NO)
+
+    SDL_FreeSurface(destsurf)
+  ELSE
+
+    'Formats are the same, so this will be a simple copy
+    CheckOK(SDL_ConvertPixels(texw, texh, SDL_PIXELFORMAT_ARGB8888, raw, pitch, SDL_PIXELFORMAT_ARGB8888, texpixels, texpitch), ret = NO)
+    'CheckOK(SDL_UpdateTexture(maintexture, NULL, raw, pitch), ret = NO)
+  END IF
+
+  SDL_UnlockTexture(maintexture)
+
   'SDL_RenderClear(mainrenderer)
-  SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL)
+  CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL), ret = NO)
   SDL_RenderPresent(mainrenderer)
 
   update_state()
 
-  RETURN 0
+  RETURN ret
 END FUNCTION
+
+'Copies an RGBColor[256] array to sdlpalette
+PRIVATE SUB set_palette(pal as RGBColor ptr)
+  DIM cols(255) as SDL_Color
+  FOR i as integer = 0 TO 255
+    cols(i).r = pal[i].r
+    cols(i).g = pal[i].g
+    cols(i).b = pal[i].b
+  NEXT
+  SDL_SetPaletteColors(sdlpalette, @cols(0), 0, 256)
+END SUB
+
+SUB gfx_sdl2_setpal(byval pal as RGBcolor ptr)
+  IF last_bitdepth = 8 THEN
+    set_palette pal
+    present_internal2(screenbuffer, NULL, 0, last_bitdepth)
+  ELSE
+    debuginfo "gfx_sdl2_setpal called after a 32bit present"
+  END IF
+  update_state()
+END SUB
 
 FUNCTION gfx_sdl2_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
   WITH *surfaceIn
     IF .format = SF_8bit AND pal <> NULL THEN
-      FOR i as integer = 0 TO 255
-        sdlpalette(i).r = pal->col(i).r
-        sdlpalette(i).g = pal->col(i).g
-        sdlpalette(i).b = pal->col(i).b
-      NEXT
+      set_palette @pal->col(0)
     END IF
-    RETURN gfx_sdl2_present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+    DIM ret as integer
+    ret = present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+    update_state()
+    RETURN ret
   END WITH
 END FUNCTION
 
 'NOTE: showpage is no longer used. Could be deleted.
 SUB gfx_sdl2_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to a raw 8-bit image, with pitch = w
-  gfx_sdl2_present_internal(raw, w, h, 8)
-END SUB
-
-/'
-'Update the screen image and palette
-SUB gfx_sdl2_8bit_update_screen()
-  IF screenbuffer <> NULL and mainwindow <> NULL THEN
-    IF SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256) = 0 THEN
-      debug "gfx_sdl2_8bit_update_screen: SDL_SetColors failed: " & *SDL_GetError
-    END IF
-    IF SDL_BlitSurface(screenbuffer, NULL, mainwindow, @dest_rect) THEN
-      debug "gfx_sdl2_8bit_update_screen: SDL_BlitSurface failed: " & *SDL_GetError
-    END IF
-    IF SDL_Flip(mainwindow) THEN
-      debug "gfx_sdl2_8bit_update_screen: SDL_Flip failed: " & *SDL_GetError
-    END IF
-  END IF
-END SUB
-'/
-
-SUB gfx_sdl2_setpal(byval pal as RGBcolor ptr)
-  DIM i as integer
-  FOR i = 0 TO 255
-    sdlpalette(i).r = pal[i].r
-    sdlpalette(i).g = pal[i].g
-    sdlpalette(i).b = pal[i].b
-  NEXT
-'  gfx_sdl2_8bit_update_screen()
+  present_internal(raw, w, h, 8)
   update_state()
 END SUB
 
@@ -617,10 +685,7 @@ FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_
   'Note: Can't change resizability of a fullscreen window
   'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
   #IFDEF SDL_SetWindowResizable
-    IF SDL_SetWindowResizable(mainwindow, resizable) THEN
-      debug "SDL_SetWindowResizable failed: " & *SDL_GetError()
-      RETURN NO
-    END IF
+    CheckOK(SDL_SetWindowResizable(mainwindow, resizable), RETURN NO)
   #ELSE
     recreate_window()
   #ENDIF
@@ -1282,9 +1347,7 @@ PRIVATE FUNCTION load_wminfo() as bool
 END FUNCTION
 
 SUB io_sdl2_set_clipboard_text(text as zstring ptr)  'ustring
-  IF SDL_SetClipboardText(text) THEN
-    debug "io_sdl2_set_clipboard_text: " & *SDL_GetError()
-  END IF
+  CheckOK(SDL_SetClipboardText(text))
 END SUB
 
 FUNCTION io_sdl2_get_clipboard_text() as zstring ptr  'ustring
