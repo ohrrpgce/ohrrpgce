@@ -67,7 +67,7 @@ DFI_DECLARE_CDECL( void, gfx_close );
 DFI_DECLARE_CDECL( int, gfx_getversion );
 DFI_DECLARE_CDECL( void, gfx_setdebugfunc, FnDebug DebugMsg );
 
-DFI_DECLARE_CDECL( void, gfx_showpage, unsigned char *raw, int w, int h ); //the main event
+DFI_DECLARE_CDECL( void, gfx_showpage, unsigned char *raw, int w, int h ); //obsolete
 DFI_DECLARE_CDECL( int, gfx_present, Surface* pSurfaceIn, RGBPalette* palette ); //new interface for presentation
 DFI_DECLARE_CDECL( void, gfx_setpal, unsigned int *pal ); //set colour palette, DWORD where colors ordered b,g,r,a
 DFI_DECLARE_CDECL( int, gfx_screenshot, const char* fname );

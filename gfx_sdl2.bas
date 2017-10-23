@@ -603,13 +603,6 @@ FUNCTION gfx_sdl2_present(byval surfaceIn as Surface ptr, byval pal as RGBPalett
   END WITH
 END FUNCTION
 
-'NOTE: showpage is no longer used. Could be deleted.
-SUB gfx_sdl2_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-  'takes a pointer to a raw 8-bit image, with pitch = w
-  present_internal(raw, w, h, 8)
-  update_state()
-END SUB
-
 FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
   gfx_sdl2_screenshot = 0
 END FUNCTION
@@ -972,7 +965,7 @@ SUB gfx_sdl2_process_events()
             END IF
             'Nothing happens until the engine calls gfx_get_resize,
             'changes its internal window size (windowsize) as a result,
-            'and starts pushing Frames with the new size to gfx_showpage.
+            'and starts pushing Frames with the new size to gfx_present.
 
             'Calling SDL_SetVideoMode changes the window size.  Unfortunately it's not possible
             'to reliably override a user resize event with a different window size, at least with
@@ -1358,7 +1351,6 @@ FUNCTION gfx_sdl2_setprocptrs() as integer
   gfx_init = @gfx_sdl2_init
   gfx_close = @gfx_sdl2_close
   gfx_getversion = @gfx_sdl2_getversion
-  gfx_showpage = @gfx_sdl2_showpage
   gfx_setpal = @gfx_sdl2_setpal
   gfx_screenshot = @gfx_sdl2_screenshot
   gfx_setwindowed = @gfx_sdl2_setwindowed

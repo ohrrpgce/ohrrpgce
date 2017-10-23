@@ -150,24 +150,6 @@ function gfx_fb_getversion() as integer
 	return 1
 end function
 
-'NOTE: showpage is no longer used. Could be deleted.
-sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-'takes a pointer to raw 8-bit data at 320x200 (don't claim that anything else is supported)
-	screenlock
-	dim as ubyte ptr sptr = screenptr + (screen_buffer_offset * 320 * zoom)
-
-	if depth = 8 then
-		smoothzoomblit_8_to_8bit(raw, sptr, w, h, w * zoom, zoom, smooth)
-	elseif depth = 32 then
-		smoothzoomblit_8_to_32bit(raw, cast(uint32 ptr, sptr), w, h, w * zoom, zoom, smooth, @truepal(0))
-	else
-		debugc errDie, "gfx_fb_showpage: bad depth " & depth
-	end if
-
-	screenunlock
-	flip
-end sub
-
 sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	dim as integer i
 	if depth = 8 then
@@ -599,7 +581,6 @@ function gfx_fb_setprocptrs() as integer
 	gfx_init = @gfx_fb_init
 	gfx_close = @gfx_fb_close
 	gfx_getversion = @gfx_fb_getversion
-	gfx_showpage = @gfx_fb_showpage
 	gfx_setpal = @gfx_fb_setpal
 	gfx_screenshot = @gfx_fb_screenshot
 	gfx_setwindowed = @gfx_fb_setwindowed

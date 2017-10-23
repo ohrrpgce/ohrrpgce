@@ -415,7 +415,6 @@ function gfx_console_setprocptrs() as integer
 	gfx_init = @gfx_console_init
 	gfx_close = @gfx_console_close
 	gfx_getversion = @gfx_console_getversion
-	gfx_showpage = @gfx_console_showpage
 	gfx_setpal = @gfx_console_setpal
 	gfx_screenshot = @gfx_console_screenshot
 	gfx_setwindowed = @gfx_console_setwindowed

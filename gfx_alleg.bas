@@ -284,7 +284,6 @@ function gfx_alleg_setprocptrs() as integer
 	gfx_init = @gfx_alleg_init
 	gfx_close = @gfx_alleg_close
 	gfx_getversion = @gfx_alleg_getversion
-	gfx_showpage = @gfx_alleg_showpage
 	gfx_present = @gfx_alleg_present
 	gfx_setpal = @gfx_alleg_setpal
 	gfx_screenshot = @gfx_alleg_screenshot

@@ -112,17 +112,13 @@ extern Gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as E
 ' Only used by dynamically linked, not compiled-in backends.
 extern Gfx_getversion as function () as integer
 
-' Tell backend to display an 8-bit screen buffer, using the previous palette.
-' Obsolete. No longer used.
-extern Gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
-
 ' Tell backend to display an 8-bit or 32-bit screen buffer.
 ' pPalette is required for 8-bit Surfaces and ignored for 32-bit ones.
 ' Returns 0 on success
 extern Gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as RGBPalette ptr ) as integer
 
-' Change colour palette. If the last gfx_showpage/gfx_present was 8-bit it will be redisplayed.
-' The palette is also stored for future gfx_showpage calls.
+' Change colour palette. If the last gfx_present was 8-bit it will be
+' redisplayed, otherwise this does nothing.
 extern Gfx_setpal as sub (byval pal as RGBcolor ptr)
 
 extern Gfx_screenshot as function (byval fname as zstring ptr) as integer
@@ -134,7 +130,7 @@ extern Gfx_getwindowstate as function () as WindowState ptr
 'NOTE: call get_screen_size instead of this.
 extern Gfx_get_screen_size as sub (wide as integer ptr, high as integer ptr)
 
-'(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_showpage/gfx_present)
+'(optional) Returns whether the resolution can be changed to something other than 320x200 (via gfx_present)
 '(This doesn't imply that gfx_set_resizable is supported)
 'Returns false if the backend hasn't been updated or there are other constraints.
 extern Gfx_supports_variable_resolution as function () as bool
@@ -144,7 +140,7 @@ extern Gfx_get_resize as function (byref ret as XYPair) as bool
 'Returns new resizability state: false if the backend doesn't support it.
 'Minimum window width/height may not work!
 extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
-'(optional) At the next gfx_showpage/gfx_present call, recentering the window would be a good idea.
+'(optional) At the next gfx_present call, recentering the window would be a good idea.
 'Called when starting a game.
 extern Gfx_recenter_window_hint as sub ()
 '(optional) Whether vsync is supported
@@ -176,7 +172,7 @@ extern Gfx_ouya_receipts_result as function () as string
 
 extern Io_init as sub ()
 
-'(optional) called in loops where gfx_showpage/gfx_present is not.
+'(optional) called in loops where gfx_present is not.
 extern Io_pollkeyevents as sub ()
 
 '(optional) called every 5ms during waits

@@ -1008,14 +1008,6 @@ end sub
 
 'setvispage internal function for presenting a regular Frame page on the screen
 private sub present_internal_frame(drawpage as integer)
-	' if updatepal then
-	' 	gfx_setpal(@intpal(0))
-	' 	updatepal = NO
-	' end if
-	' with *vpages(drawpage)
-	' 	gfx_showpage(.image, .w, .h)
-	' end with
-
 	dim surf as Surface ptr
 	if gfx_surfaceCreateFrameView(vpages(drawpage), @surf) then return
 
@@ -1194,8 +1186,8 @@ sub enable_speed_control(byval setting as bool = YES)
 end sub
 
 'Decides whether to time when to display the next frame (deciding whether to skip
-'a frame or not) based on when the last gfx_showpage/gfx_present returned instead
-'of when it was called.
+'a frame or not) based on when the last gfx_present returned instead of when it
+'was called.
 'Normally we should just try to display a frame every refresh-interval, but on OSX
 'presenting the window blocks until vsync, which means if we time from the call
 'time rather than the return time, then we'll always be unnecessarily waiting

@@ -47,7 +47,6 @@ dim gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval 
 dim gfx_close as sub ()
 dim gfx_setdebugfunc as sub (byval debugc as sub cdecl (byval errorlevel as ErrorLevelEnum, byval message as zstring ptr))
 dim gfx_getversion as function () as integer
-dim gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
 dim gfx_setpal as sub (byval pal as RGBcolor ptr)
 dim gfx_screenshot as function (byval fname as zstring ptr) as integer
 dim gfx_setwindowed as sub (byval iswindow as integer)
@@ -327,7 +326,6 @@ private function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, file
 	MUSTLOAD(gfx_close)
 	TRYLOAD (gfx_setdebugfunc)
 	'gfx_getversion already loaded
-	MUSTLOAD(gfx_showpage)
 	MUSTLOAD(gfx_setpal)
 	MUSTLOAD(gfx_screenshot)
 	MUSTLOAD(gfx_setwindowed)
