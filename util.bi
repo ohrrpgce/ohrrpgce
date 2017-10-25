@@ -298,6 +298,7 @@ declare function strhash (hstr as string) as unsigned integer
 '----------------------------------------------------------------------
 '                      Path and File Functions
 
+declare function join_path (path1 as string, path2 as string) as string
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
 declare function simplify_path_further (pathname as string, fromwhere as string) as string

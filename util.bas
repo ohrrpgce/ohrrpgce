@@ -1345,6 +1345,13 @@ END FUNCTION
 
 '---------- Path and File functions -----------
 
+' Same as os.path.join in Python.
+' path1 is a directory (possibly empty) and
+FUNCTION join_path(path1 as string, path2 as string) as string
+ IF is_absolute_path(path2) THEN RETURN path2
+ IF LEN(path1) = 0 THEN RETURN path2
+ RETURN trim_trailing_slashes(path1) & SLASH & path2
+END FUNCTION
 
 'Change / to \ in paths on Windows
 FUNCTION normalize_path(filename as string) as string
@@ -1358,9 +1365,30 @@ FUNCTION normalize_path(filename as string) as string
 END FUNCTION
 
 #IFDEF __FB_MAIN__
+
+#DEFINE testjoin(path1, path2, expected) testEqual(join_path(path1, path2), expected)
+
+startTest(join_path)
+  testjoin("",         "foo.bar", "foo.bar")
+  testjoin("",         "",        "")
+  #IFDEF __FB_WIN32__
+    testjoin("foo/bar/", "qux",   "foo/bar\qux")
+    testjoin("foo.bar",  "",      "foo.bar\")
+    testjoin("foo\bar",  "qux\",  "foo\bar\qux\")
+    testjoin("c:\foo",   "bar",   "c:\foo\bar")
+    testjoin("foo",      "c:\bar","c:\bar")
+  #ELSE
+    testjoin("foo/bar/", "qux",   "foo/bar/qux")
+    testjoin("foo.bar",  "",      "foo.bar/")
+    testjoin("foo\bar",  "qux\",  "foo\bar/qux\")
+    testjoin("/foo",     "bar",   "/foo/bar")
+    testjoin("foo",      "/bar",  "/bar")
+  #ENDIF
+endTest
+
 #DEFINE testnorm(path, expected) testEqual(normalize_path(path), expected)
 
-startTest(normalizepath)
+startTest(normalize_path)
   #IFDEF __FB_WIN32__
     testnorm("a/b/cat//",  "a\b\cat\\")
     testnorm("/cat/",      "\cat\")
