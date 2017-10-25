@@ -1376,9 +1376,13 @@ startTest(normalizepath)
 endTest
 #ENDIF
 
+'On Windows both slashes are trimmed, on Unix only /
+'This will NOT trim a trailing slash if it's part of the root,
+'"/" on Unix; "X:\" or "X:/" on Windows.
 FUNCTION trim_trailing_slashes(filename as string) as string
+  DIM root_length as integer = LEN(get_path_root(filename))
   DIM retend as integer = LEN(filename)
-  WHILE retend > 0
+  WHILE retend > root_length
     DIM ch as byte = filename[retend - 1]
     IF ispathsep(ch) THEN
       retend -= 1
@@ -1386,11 +1390,11 @@ FUNCTION trim_trailing_slashes(filename as string) as string
       EXIT WHILE
     END IF
   WEND
-  RETURN MID(filename, 1, retend)
+  RETURN LEFT(filename, retend)
 END FUNCTION
 
 FUNCTION trimpath(filename as string) as string
-  'Return the file/directory name without path, and without trailing slash
+  'Return the file/directory name without path, and without trailing (or any) slashes.
   'See testcases below
   DIM temp as string = trim_trailing_slashes(filename)
   FOR i as integer = LEN(temp) TO 1 STEP -1
@@ -1402,16 +1406,47 @@ FUNCTION trimpath(filename as string) as string
 END FUNCTION
 
 #IFDEF __FB_MAIN__
-#DEFINE testtrimp(path, expected) testEqual(trimpath(path), normalize_path(expected))
+
+#DEFINE testtrims(path, expected) testEqual(trim_trailing_slashes(path), expected)
+
+startTest(trim_trailing_slashes)
+  testtrims("a/b/cat//", "a/b/cat")
+  testtrims("a/b/cat/",  "a/b/cat")
+  testtrims("a/b/cat",   "a/b/cat")
+  testtrims("cat/",      "cat")
+  testtrims("/cat/",     "/cat")
+  testtrims("/c",        "/c")
+  #IFDEF __FB_WIN32__
+    testtrims("c:\",      "c:\")
+    testtrims("c:\/",     "c:\")
+    testtrims("c:\foo",   "c:\foo")
+    testtrims("c:\f\",    "c:\f")
+    testtrims("c:\foo/",  "c:\foo")
+  #ELSE
+    testtrims("/",        "/")
+    testtrims("//",       "/")
+  #ENDIF
+  testtrims("",          "")
+endTest
+
+#DEFINE testtrimp(path, expected) testEqual(trimpath(path), expected)
 
 startTest(trimpath)
   testtrimp("a/b/cat//", "cat")
   testtrimp("a/b/cat/",  "cat")
   testtrimp("a/b/cat",   "cat")
+  testtrimp("a/b//cat",  "cat")
   testtrimp("cat/",      "cat")
   testtrimp("/cat/",     "cat")
-  testtrimp("/",         ""   )
-  testtrimp("",          ""   )
+  #IFDEF __FB_WIN32__
+    testtrimp("c:\",      "")
+    testtrimp("c:\foo",   "foo")
+    testtrimp("c:\foo\",  "foo")
+    testtrimp("c:\foo/",  "foo")
+  #ELSE
+    testtrimp("/",        "")
+  #ENDIF
+  testtrimp("",          "")
 endTest
 #ENDIF
 
@@ -1420,6 +1455,7 @@ FUNCTION trimfilename (filename as string) as string
   'Trim the last component of a path (which may be a directory rather than file!)
   'Return path without trailing slash. See testcases.
   'This is the complement to trimpath
+  'Quite similar to parentdir().
   DIM ret as string = trim_trailing_slashes(normalize_path(filename))
   ret = MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
   IF is_absolute_path(filename) AND is_absolute_path(ret) = NO THEN
@@ -1438,11 +1474,13 @@ startTest(trimfilename)
   testtrimf("a/b/cat",   "a/b")
   testtrimf("cat/",      "")
   testtrimf("/cat/",     "/")
+  testtrimf("/",         "/")
   #IFDEF __FB_WIN32__
     testtrimf("c:/vak",          "c:\")
     testtrimf("c:\vak/",         "c:\")
     testtrimf("c:\",             "c:\")
   #ENDIF
+  testtrimf("",          "")
 endTest
 #ENDIF
 
