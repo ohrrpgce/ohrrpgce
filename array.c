@@ -480,9 +480,20 @@ void array_resize(array_t *array, int len) {
 
 // (E)
 void *array_expand(array_t *array, int amount) {
+	if (amount < 0) {
+		// The returned pointer would be off the end of the array
+		throw_error("array_expand: invalid amount %d. Use array_shrink instead", amount);
+	}
+
 	int oldlen = length(*array);
 	array_resize(array, oldlen + amount);
 	return nth_elem(*array, oldlen);
+}
+
+// (E)
+// Reduce length. Don't care if you pass a negative amount, which expands the array.
+void array_shrink(array_t *array, int amount) {
+	array_resize(array, length(*array) - amount);
 }
 
 // (A)

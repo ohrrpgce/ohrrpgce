@@ -81,6 +81,7 @@ end extern
   declare function array_length (byval this as any vector) as int32
   declare sub array_resize (byref this as any vector, byval len as int32)
   declare function array_expand (byref this as any vector, byval amount as int32 = 1) as any ptr
+  declare sub array_shrink (byref this as any vector, byval amount as int32 = 1)
   declare function array_index (byval this as any vector, byval index as int32) as any ptr
   declare function array_end (byval this as any vector) as any ptr
   declare function array_type (byval this as any vector) as TypeTable ptr
@@ -106,6 +107,7 @@ end extern
   #DEFINE v_len array_length
   #DEFINE v_resize array_resize
   '#DEFINE v_expand(this, amount) cast(typeof(this), array_expand(this, amount))
+  #DEFINE v_shrink(this, amount) array_shrink
   #DEFINE v_at(this, index) cast(typeof(this), array_index(this, index))
   #DEFINE v_end(this) cast(typeof(this), array_end(this))
   #DEFINE v_type array_type
@@ -170,6 +172,9 @@ end extern
 
   'Increases the number of elements of a vector. Returns a pointer to the first new element created
   declare function v_expand overload alias "array_expand" (byref this as T vector, byval amount as int32 = 1) as T ptr
+
+  'Reduces the number of elements of a vector.
+  declare sub v_shrink overload alias "array_shrink" (byref this as T vector, byval amount as int32 = 1)
 
   'Return pointer to some element. Throws a fatal error if out of range. Useful for polymorphism.
   declare function v_at overload alias "array_index" (byval this as T vector, byval index as int32) as T ptr

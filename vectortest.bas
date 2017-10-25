@@ -181,6 +181,12 @@ startTest(findInsertDeleteInteger)
 	assertVector(arr, "[100, 101, 103, 104]")
 	v_delete_slice arr, 2, 3
 	assertVector(arr, "[100, 101, 104]")
+	v_shrink arr, 0
+	assertVector(arr, "[100, 101, 104]")
+	v_shrink arr
+	assertVector(arr, "[100, 101]")
+	v_shrink arr, -3
+	assertVector(arr, "[100, 101, 0, 0, 0]")
 	v_delete_slice arr, 0, v_len(arr)
 	assertVector(arr, "[]")
 	v_free arr
