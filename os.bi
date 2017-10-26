@@ -26,6 +26,7 @@ declare function memory_usage_string() as string
 
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as boolint
+declare function renamefile(source as string, destination as string) as boolint
 
 declare function copy_file_replacing(source as zstring ptr, destination as zstring ptr) as bool
 

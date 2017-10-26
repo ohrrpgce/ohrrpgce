@@ -301,12 +301,41 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 	FilterActionEnum action = DONT_HOOK;
 	if (pfnLumpfileFilter)
 		action = pfnLumpfileFilter(destination, -1, allow_lump_writes ? -1 : 0);
-	if (action == DENY)
+	if (action == DENY) {
+		// The filter ought to have already shown an error
+		debug(errError, "copyfile(%s, %s) denied by filter", source->data, destination->data);
 		return 0;
+	}
 	int ret = copy_file_replacing(source->data, destination->data);
 	if (ret && action == HOOK)
 		send_lump_modified_msg(destination->data);
 	return ret;
+}
+
+// Rename a file, while respecting the filter/hook fnction.
+// Returns true for success.
+// Warning! rename() is quite different on Windows and Unix. Call the
+// local_file_move wrapper in util.bas instead; this is a lower level function.
+boolint renamefile(FBSTRING *source, FBSTRING *destination) {
+	FilterActionEnum actionsrc = DONT_HOOK, actiondest = DONT_HOOK;
+	if (pfnLumpfileFilter) {
+		actionsrc = pfnLumpfileFilter(source, -1, allow_lump_writes ? -1 : 0);
+		actiondest = pfnLumpfileFilter(destination, -1, allow_lump_writes ? -1 : 0);
+	}
+	if (actionsrc == DENY || actiondest == DENY) {
+		// The filter ought to have already shown an error
+		debug(errError, "renamefile(%s, %s) denied by filter", source->data, destination->data);
+		return 0;
+	}
+	if (rename(source->data, destination->data)) {
+		debug(errPrompt, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
+		return 0;
+	}
+	if (actionsrc == HOOK)
+		send_lump_modified_msg(source->data);
+	if (actiondest == HOOK)
+		send_lump_modified_msg(destination->data);
+	return -1;
 }
 
 // TODO: there's no reason to pass lump_writes_allowed; instead the filter function

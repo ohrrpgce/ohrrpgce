@@ -2399,21 +2399,18 @@ FUNCTION safekill (filename as string) as bool
   RETURN YES
 END FUNCTION
 
+
 'FIXME/NOTE: On Unix this can not move between different filesystems, so only use between "nearby" locations!
 'NOTE: An alternative function is os_shell_move 
-'Returns zero on success 
-FUNCTION local_file_move(frompath as string, topath as string) as integer
+'Returns true on success.
+FUNCTION local_file_move(frompath as string, topath as string) as bool
   'On Windows, rename() doesn't replace an existing file
   #IFDEF __FB_WIN32__
     safekill topath
   #ENDIF
-  'FB's NAME is translated directly to a rename() call, so is no better
-  IF rename(frompath, topath) THEN
-    DIM err_string as string = *get_sys_err_string()  'errno would get overwritten while building the error message
-    showerror "rename(" & frompath & ", " & topath & ") failed (dest exists=" & isfile(topath) & ") Reason: " & err_string
-    RETURN 1
-  END IF
-  RETURN 0
+  'FB's NAME is translated directly to a rename() call, so is no better.
+  'renamefile calls rename(), while handling lump modification messages and error reporting.
+  RETURN renamefile(frompath, topath)
 END FUNCTION
 
 FUNCTION fileisreadable(filename as string) as integer
