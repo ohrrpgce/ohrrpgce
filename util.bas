@@ -2403,10 +2403,14 @@ END FUNCTION
 'NOTE: An alternative function is os_shell_move 
 'Returns zero on success 
 FUNCTION local_file_move(frompath as string, topath as string) as integer
+  'On Windows, rename() doesn't replace an existing file
+  #IFDEF __FB_WIN32__
+    safekill topath
+  #ENDIF
   'FB's NAME is translated directly to a rename() call, so is no better
   IF rename(frompath, topath) THEN
     DIM err_string as string = *get_sys_err_string()  'errno would get overwritten while building the error message
-    debug "rename(" & frompath & ", " & topath & ") failed (dest exists=" & isfile(topath) & ") Reason: " & err_string
+    showerror "rename(" & frompath & ", " & topath & ") failed (dest exists=" & isfile(topath) & ") Reason: " & err_string
     RETURN 1
   END IF
   RETURN 0
