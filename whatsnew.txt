@@ -63,6 +63,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       often failing to detect collision with corners of walls. Also,
       "move slice with wallchecking" now returns special values when it hit
       a corner rather than returing that it hit walls on two sides [Ralph]
+    * Fix lots of g_debug.txt errors and long lags when using the Ctrl-F1
+      teleport tool [Ralph]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]

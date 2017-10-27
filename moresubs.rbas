@@ -1002,7 +1002,7 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  maxzoom = bound(INT(2.5 * screen_ratio), 4, 20)
 
  frame_unload @mini
- mini = createminimap(maptilesX(), tilesetsX(), @pass, zoom)
+ mini = createminimap(maptilesX(), tilesetsX(), @passX, zoom)
  offset.x = large(screenw \ 2 - mini->w \ 2, 0)
  offset.y = large(screenh \ 2 - mini->h \ 2, 0)
  minisize.x = screenw - offset.x * 2
