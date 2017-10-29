@@ -112,6 +112,7 @@ Enum 'SliceTypes
  slSelect
  slPanel
  slLayout
+ 'Remember to update slicetype constants in plotscr.hsd
 End Enum
 
 Enum AttachTypes

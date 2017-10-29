@@ -41,6 +41,7 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Script reloading while live previewing now defaults to on; it no
       longer tries to reload unmodified scripts [Ralph]
     * "npc reference from slice", "hero rank from slice" [Ralph]
+    * "slice type" [Ralph]
 
   * Changes
 

@@ -6299,6 +6299,26 @@ end
 				</note>
 			</description>
 		<section title="Checking Slice Type">
+		<command id="slicetype">
+			<canon>slice type (handle)</canon>
+			<shortname>slice type</shortname>
+			<description>
+				Returns the type of the given slice <p>handle</p>, one of the constants:
+				<tt>slicetype:Root</tt>,
+				<tt>slicetype:Special</tt>,
+				<tt>slicetype:Container</tt>,
+				<tt>slicetype:Rect</tt>,
+				<tt>slicetype:Sprite</tt>,
+				<tt>slicetype:Text</tt>,
+				<tt>slicetype:Map</tt>,
+				<tt>slicetype:Grid</tt>,
+				<tt>slicetype:Ellipse</tt>,
+				<tt>slicetype:Scroll</tt>,
+				<tt>slicetype:Select</tt>,
+				<tt>slicetype:Panel</tt>,
+				<tt>slicetype:Layout</tt>.
+			</description>
+		</command>
 		<command id="sliceiscontainer">
 			<canon>slice is container (handle)</canon>
 			<shortname>slice is container</shortname>

@@ -679,6 +679,7 @@ define function, begin
 655,sliceismaplayer,1,0       # Check slice type
 656,npcreferencefromslice,1,0 # Return the NPC reference for an NPC slice, or else 0
 657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else 0
+658,slicetype,1,0             # Returns a slicetype:* constant
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
@@ -1859,6 +1860,20 @@ define constant, begin
 0,edge:top
 1,edge:middle
 2,edge:bottom
+0,slicetype:Root
+1,slicetype:Special
+2,slicetype:Container
+3,slicetype:Rectangle
+3,slicetype:Rect
+4,slicetype:Sprite
+5,slicetype:Text
+6,slicetype:Map
+7,slicetype:Grid
+8,slicetype:Ellipse
+9,slicetype:Scroll
+10,slicetype:Select
+11,slicetype:Panel
+12,slicetype:Layout
 0,spritetype:hero
 1,spritetype:smallenemy
 2,spritetype:mediumenemy

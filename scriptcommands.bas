@@ -4545,6 +4545,11 @@ SUB script_functions(byval cmdid as integer)
    scriptret = -1
    IF *sl->Context IS HeroSliceContext THEN scriptret = CAST(HeroSliceContext ptr, sl->Context)->rank
   END IF
+ CASE 658 '--slice type
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = plotslices(retvals(0))->SliceType
+  END IF
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _

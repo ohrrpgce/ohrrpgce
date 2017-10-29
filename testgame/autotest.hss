@@ -3571,6 +3571,8 @@ script, slice tests, begin
   # Test rect transparency
   variable (sl)
   sl := create rect(100, 100), w
+  assert(slice is rect(sl))
+  assert(slice type(sl) == slicetype:rect)
   assert(get rect trans(sl) == trans:solid)
   assert(get rect fuzziness(sl) == 100)
   set rect trans(sl, trans:hollow), w
@@ -3642,6 +3644,8 @@ script, slice tests, begin
   # Text slices
   $2="fee Fi\n \n foe"
   sl := create text
+  assert(slice is text(sl))
+  assert(slice type(sl) == slicetype:text)
   set slice text(sl, 3)
   get slice text(2, sl)
   assert(string compare(2, 3))
@@ -3667,9 +3671,9 @@ script, slice tests, begin
   assert(get slice lookup(ch2) == 0)  # special lookup codes removed
   free slice(sl2)
   sl := sprite layer
-  assert(slice is container(sl) == false)
+  assert(slice type(sl) == slicetype:special)
   sl2 := clone slice(sl)
-  assert(slice is container(sl2) == true)  # Special slices turn into containers
+  assert(slice is container(sl2))  # Special slices turn into containers
   assert(next sibling(sl) == sl2)
   assert(child count(sl) == child count(sl2))
   free slice(sl2)
@@ -4799,6 +4803,7 @@ end
 
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
+#### (Actually, this list is totally out of date)
 #### (Note: interactive commands should be in interactivetest.hss)
 #allow minimap (setting)
 #allow save anywhere (setting)
@@ -5085,7 +5090,6 @@ end
 #set tile animation offset (animation pattern, offset, layer)
 #set timer (id, count, speed, trigger, string, flags)
 #set top padding (handle, pixels)
-#variable := value
 #set vert align (handle, edge)
 #set vert anchor (handle, edge)
 #set wrap(handle, wrap)
@@ -5094,18 +5098,15 @@ end
 #show map
 #show no value
 #show value (number)
-#sign (number)
 #slice child (handle, number)
 #slice collide (handle1, handle2)
 #slice collide point (handle, x, y)
 #slice contains (handle1, handle2)
 #slice edge x (handle, edge)
 #slice edge y (handle, edge)
-#slice is container (handle)
 #slice is ellipse (handle)
 #slice is grid (handle)
 #slice is moving (handle)
-#slice is text (handle)
 #slice is valid (id)
 #slice to back (handle)
 #slice to front (handle)
