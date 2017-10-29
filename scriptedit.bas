@@ -30,7 +30,7 @@ DIM SHARED script_import_defaultdir as string
 DECLARE FUNCTION compilescripts (fname as string, hsifile as string, quickimport as bool = NO) as string
 DECLARE FUNCTION importscripts (hsfile as string, srcfile as string, quickimport as bool = NO) as bool
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
-DECLARE FUNCTION exportnames () as string
+DECLARE FUNCTION exportnames (outdir as string = "") as string
 DECLARE SUB export_scripts()
 DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TriggerSet)
 DECLARE SUB decompile_scripts()
@@ -77,7 +77,8 @@ SUB writeconstant (byval filehandle as integer, byval num as integer, names as s
 END SUB
 
 'Returns name of .hsi file
-FUNCTION exportnames () as string
+'outdir is where to put it (defaults to CURDIR, ie next to the .rpg)
+FUNCTION exportnames (outdir as string = "") as string
  REDIM u(0) as string
  DIM her as HeroDef
  DIM menu_set as MenuSet
@@ -86,7 +87,8 @@ FUNCTION exportnames () as string
  DIM elementnames() as string
  getelementnames elementnames()
 
- DIM outf as string = trimextension(trimpath(sourcerpg)) + ".hsi"
+ DIM outf as string = join_path(outdir, trimextension(trimpath(sourcerpg)) + ".hsi")
+ outf = simplify_path_further(outf)
 
  clearpage 0
  setvispage 0
@@ -254,7 +256,9 @@ FUNCTION compile_andor_import_scripts (filename as string, quickimport as bool =
  DIM ret as bool = NO
  DIM extn as string = LCASE(justextension(filename))
  IF extn <> "hs" AND extn <> "hsp" THEN
-  DIM hsifile as string = exportnames()
+  'Put the .hsi next to the .hss
+  DIM hssdir as string = trimfilename(filename)
+  DIM hsifile as string = exportnames(hssdir)
   DIM hsfile as string = compilescripts(filename, hsifile, quickimport)
   IF hsfile <> "" THEN  'success
    ret = importscripts(hsfile, filename, quickimport)
