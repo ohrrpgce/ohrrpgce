@@ -3083,17 +3083,19 @@ Sub UpdateCoverSize(par as Slice ptr)
  dim ch as Slice ptr = par->FirstChild
  while ch
   with *ch
-   dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
-   dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
+   if .Visible then
+    dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
+    dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
 
-   'Position of the top-left corner of the slice relative to is align point
-   dim pos as XYPair = .Pos - XY(SliceXAnchor(ch), SliceYAnchor(ch))
+    'Position of the top-left corner of the slice relative to is align point
+    dim pos as XYPair = .Pos - XY(SliceXAnchor(ch), SliceYAnchor(ch))
 
-   if not filling_horiz then
-    size.w = large(size.w, SliceExtent(pos.X, .Width, .AlignHoriz))
-   end if
-   if not filling_vert then
-    size.h = large(size.h, SliceExtent(pos.Y, .Height, .AlignVert))
+    if not filling_horiz then
+     size.w = large(size.w, SliceExtent(pos.X, .Width, .AlignHoriz))
+    end if
+    if not filling_vert then
+     size.h = large(size.h, SliceExtent(pos.Y, .Height, .AlignVert))
+    end if
    end if
   end with
   ch = ch->NextSibling
