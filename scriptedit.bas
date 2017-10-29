@@ -600,7 +600,7 @@ END FUNCTION
 FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool = NO) as string
 
  clearpage vpage
- wrapprint "Compiling " & simplify_path_further(fname, CURDIR) & !"...\nPlease wait for HSpeak to finish, then close it.", pCentered, pCentered, uilook(uiText), vpage, rWidth - 40
+ wrapprint "Compiling " & simplify_path_further(fname) & !"...\nPlease wait for HSpeak to finish, then close it.", pCentered, pCentered, uilook(uiText), vpage, rWidth - 40
  setvispage vpage, NO
 
  DIM as string outfile, hspeak, errmsg, hspeak_ver, args
@@ -647,7 +647,7 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
  outfile = trimextension(fname) + ".hs"
  safekill outfile
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
- errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname, curdir)))
+ errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname)))
  IF LEN(errmsg) THEN
   visible_debug errmsg + !"\n\nNo scripts were imported."
   RETURN ""

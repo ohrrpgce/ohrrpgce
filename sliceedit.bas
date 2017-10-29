@@ -580,7 +580,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    '--Export
    DIM filename as string
    IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
-    IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file, CURDIR) & "?", NO, NO) THEN
+    IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file) & "?", NO, NO) THEN
      filename = ses.collection_file
     END IF
    ELSE
@@ -940,7 +940,7 @@ SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice
    DIM quitting as bool = getquitflag()
    setquitflag NO
    IF yesno("Save collection before leaving, overwriting " & _
-            simplify_path_further(filename, CURDIR) & "?", YES, NO) THEN
+            simplify_path_further(filename) & "?", YES, NO) THEN
     SliceSaveToFile edslice, filename
    END IF
    IF quitting THEN setquitflag
@@ -1748,7 +1748,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   slice_editor_refresh_append index, ses.slicemenu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  ELSEIF LEN(ses.collection_file) THEN
-  DIM msg as string = "Editing " & simplify_path_further(ses.collection_file, CURDIR)
+  DIM msg as string = "Editing " & simplify_path_further(ses.collection_file)
   ses.collection_name_pt = index
   slice_editor_refresh_append index, ses.slicemenu(), msg
   ses.last_non_slice += 1

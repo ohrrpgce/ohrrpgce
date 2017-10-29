@@ -1660,44 +1660,70 @@ startTest(simplify_path)
   testsimplify("/../.", "/")
   testsimplify("./../../../../a",   "../../../../a")
   testsimplify("//.//../a/../c/b/../d", "/c/d")
-  '? simplify_path(absolute_path(".."))
-  '? "curdir=" & curdir
-  '? "reallysimplify('" & path & "')=" + simplify_path_further(absolute_path("a/b/.svn"), curdir)
 endTest
 #ENDIF
 
+'If one path is absolute and the other isn't, returns false!
+'It doesn't make a difference if one has a trailing slash and not the other.
 FUNCTION paths_equal(path1 as string, path2 as string) as bool
   RETURN simplify_path(path1) = simplify_path(path2)
 END FUNCTION
 
-'Make a path relative if it's below 'fromwhere' (which is a path, not a file)
+'Run pathname through simplify_path, and also make it relative if it's below
+''fromwhere' (which ought to be a dir, not a file, and defaults to CURDIR).
+'Returns "." if both are equal.
 'It would be possible to also possibly return something starting with some ../'s, but it's more trouble
-FUNCTION simplify_path_further(pathname as string, fromwhere as string) as string
+'Warning, either both paths should be absolute, or both relative, otherwise
+'no parts of the path can be removed.
+FUNCTION simplify_path_further(pathname as string, fromwhere as string = "") as string
   DIM path as string = simplify_path(pathname)
-  DIM source as string = simplify_path(fromwhere)
-  IF RIGHT(source, 1) <> SLASH THEN source += SLASH  'need a slash so we don't match foo/ and foo.rpgdir/
-  IF is_absolute_path(path) THEN
-#IFDEF __FB_WIN32__
+  DIM source as string = fromwhere
+  IF source = "" THEN source = CURDIR
+  source = simplify_path(source)
+  'source and path now have no trailing slash (unless they're the root dir)
+  #IFDEF __FB_WIN32__
     DIM matchlen as integer = length_matching(LCASE(source), LCASE(path))
-#ELSE
+  #ELSE
     DIM matchlen as integer = length_matching(source, path)
-#ENDIF
-    IF matchlen = LEN(source) THEN
-      IF matchlen >= LEN(path) THEN
-        'they are equal  (>= for the extra slash on source)
-        RETURN "."
-      ELSE   
-        RETURN MID(path, matchlen + 1)
-      END IF
+  #ENDIF
+  IF matchlen = LEN(source) THEN
+    IF matchlen = LEN(path) THEN
+      'They are equal
+      RETURN "."
+    ELSEIF ispathsep(path[matchlen]) THEN
+      'Need a slash following the part matching source, so we don't match foo and foo.rpgdir
+      'Strip the slash.
+      RETURN MID(path, matchlen + 2)
     END IF
-
-    'DIM driveletter as string = get_driveletter(path)
-    'IF get_driveletter(source) <> driveletter THEN RETURN path
-    'matchlen = instrrev(path, SLASH, matchlen)
-    'path = MID(path, matchlen + 1)
   END IF
   RETURN path
 END FUNCTION
+
+#IFDEF __FB_MAIN__
+#DEFINE testsimplify2(path, fromwhere, expected) testEqual(simplify_path_further(path, fromwhere), normalize_path(expected))
+
+startTest(simplify_path_further)
+  testsimplify2("testcases",    "",          "testcases")
+  testsimplify2("testcases/",   "",          "testcases")
+  testsimplify2("testcases",    "testcases", ".")
+  testsimplify2("testcases",    "test",      "testcases")
+  testsimplify2("/foo/bar",     "foo",       "/foo/bar")
+  testsimplify2("/foo/bar/",    "foo/",      "/foo/bar")
+  testsimplify2("/foo/bar",     "/foo",      "bar")
+  testsimplify2("/foo/bar/",    "/foo/",     "bar")
+  testsimplify2("../bar",       "..",        "bar")
+  testsimplify2(".././../foo/", "",          "../../foo")
+  testsimplify2(".././../foo/", "..",        "../foo")
+  testsimplify2(".././../foo/", "..",        "../foo")
+  testsimplify2(".././a/../../foo/", "",     "../../foo")
+  testsimplify2("/..",           "",         "/")
+  testsimplify2("",              "",         ".")
+  testsimplify2(".",             ".",        ".")
+  testsimplify2("/../.",         "",         "/")
+  testsimplify2("//.//../a/../c/b/../d",  "/c",  "d")
+  testsimplify2(CURDIR & SLASH & "bar",   "",    "bar")
+endTest
+#ENDIF
 
 'Go up a number of directories. Simplifies and normalises.
 'pathname is interpreted as a directory even if missing the final slash!
