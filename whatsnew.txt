@@ -42,6 +42,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       longer tries to reload unmodified scripts [Ralph]
     * "npc reference from slice", "hero rank from slice" [Ralph]
     * "slice type" [Ralph]
+    * "first slice of type", "next sibling of type", and missing commands
+      like "first text slice", "next text sibling", etc. [Ralph]
 
   * Changes
 

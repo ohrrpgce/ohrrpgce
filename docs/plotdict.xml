@@ -5993,60 +5993,6 @@ end
 				<ref>moveslicebelow</ref>
 			</seealso>
 		</command>
-		<command id="firstspritechild">
-			<canon>first sprite child(handle)</canon>
-			<shortname>first sprite child</shortname>
-			<description>Returns a slice handle for the first sprite child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no sprite children. Children of other types will be ignored. This is useful when looping through sprites.</description>
-			<seealso>
-				<ref>firstchild</ref>
-				<ref>nextspritesibling</ref>
-			</seealso>
-		</command>
-		<command id="nextspritesibling">
-			<canon>next sprite sibling(handle)</canon>
-			<shortname>next sprite sibling</shortname>
-			<description>Returns a slice handle for the next sprite sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping through sprites.</description>
-			<seealso>
-				<ref>firstspritechild</ref>
-				<ref>nextsibling</ref>
-			</seealso>
-		</command>
-		<command id="firstrectchild">
-			<canon>first rect child(handle)</canon>
-			<shortname>first rect child</shortname>
-			<description>Returns a slice handle for the first rect child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no rect children. Children of other types will be ignored. This is useful when looping through rects.</description>
-			<seealso>
-				<ref>firstchild</ref>
-				<ref>nextrectsibling</ref>
-			</seealso>
-		</command>
-		<command id="nextrectsibling">
-			<canon>next rect sibling(handle)</canon>
-			<shortname>next rect sibling</shortname>
-			<description>Returns a slice handle for the next rect sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping through rects.</description>
-			<seealso>
-				<ref>firstrectchild</ref>
-				<ref>nextsibling</ref>
-			</seealso>
-		</command>
-		<command id="firstcontainerchild">
-			<canon>first container child(handle)</canon>
-			<shortname>first container child</shortname>
-			<description>Returns a slice handle for the first container child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no container children. Children of other types will be ignored. This is useful when looping through containers.</description>
-			<seealso>
-				<ref>firstchild</ref>
-				<ref>nextcontainersibling</ref>
-			</seealso>
-		</command>
-		<command id="nextcontainersibling">
-			<canon>next container sibling(handle)</canon>
-			<shortname>next container sibling</shortname>
-			<description>Returns a slice handle for the next container sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping through containers.</description>
-			<seealso>
-				<ref>firstcontainerchild</ref>
-				<ref>nextsibling</ref>
-			</seealso>
-		</command>
 		<command id="sliceparent">
 			<alias>parentslice</alias>
 			<shortname>slice parent</shortname>
@@ -6070,8 +6016,182 @@ end
 				<ref>setparent</ref>
 			</seealso>
 		</command>
-		</section>		<!-- Moving Around the Slice Tree-->
 
+		<section title="Type-specific iteration commands">
+
+		<command id="firstchildoftype">
+			<canon>first child of type(handle, type)</canon>
+			<shortname>first child of type</shortname>
+			<description>
+				Returns a slice handle for the first child of a given
+				slice <p>handle</p> which has the given <p>type</p>.
+				<p>type</p> is one of the <tt>slicetype:</tt>
+				constants, such as <tt>slicetype:sprite</tt>.
+				See <ref>slicetype</ref> for the full list.
+				Returns <p>false</p> if the slice has no children of that type.
+				Children of other types will be ignored.
+				This is useful when looping through slices.
+			</description>
+			<seealso>
+				<ref>firstchild</ref>
+			</seealso>
+		</command>
+		<command id="nextsiblingoftype">
+			<canon>next sibling of type(handle, type)</canon>
+			<shortname>next sibling of type</shortname>
+			<description>
+				Returns a slice handle for the next sibling of a given
+				slice <p>handle</p> which has the given <p>type</p>.
+				<p>type</p> is one of the <tt>slicetype:</tt>
+				constants, such as <tt>slicetype:sprite</tt>.
+				See <ref>slicetype</ref> for the full list.
+				Returns <p>false</p> if there are no more children of that type.
+				Children of other types will be ignored.
+				This is useful when looping through slices.
+			</description>
+			<seealso>
+				<ref>nextsibling</ref>
+			</seealso>
+		</command>
+
+		<command id="firstcontainerchild">
+			<canon>first container child(handle)</canon>
+			<shortname>first container child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:container)</tt>.
+			</description>
+		</command>
+		<command id="nextcontainersibling">
+			<canon>next container sibling(handle)</canon>
+			<shortname>next container sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:container)</tt>.
+			</description>
+		</command>
+
+		<command id="firstrectchild">
+			<canon>first rect child(handle)</canon>
+			<shortname>first rect child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:rect)</tt>.
+			</description>
+		</command>
+		<command id="nextrectsibling">
+			<canon>next rect sibling(handle)</canon>
+			<shortname>next rect sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:rect)</tt>.
+			</description>
+		</command>
+
+		<command id="firstspritechild">
+			<canon>first sprite child(handle)</canon>
+			<shortname>first sprite child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:sprite)</tt>.
+			</description>
+		</command>
+		<command id="nextspritesibling">
+			<canon>next sprite sibling(handle)</canon>
+			<shortname>next sprite sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:sprite)</tt>.
+			</description>
+		</command>
+
+		<command id="firsttextchild">
+			<canon>first text child(handle)</canon>
+			<shortname>first text child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:text)</tt>.
+			</description>
+		</command>
+		<command id="nexttextsibling">
+			<canon>next text sibling(handle)</canon>
+			<shortname>next text sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:text)</tt>.
+			</description>
+		</command>
+
+		<command id="firstellipsechild">
+			<canon>first ellipse child(handle)</canon>
+			<shortname>first ellipse child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:ellipse)</tt>.
+			</description>
+		</command>
+		<command id="nextellipsesibling">
+			<canon>next ellipse sibling(handle)</canon>
+			<shortname>next ellipse sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:ellipse)</tt>.
+			</description>
+		</command>
+
+		<command id="firstgridchild">
+			<canon>first grid child(handle)</canon>
+			<shortname>first grid child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:grid)</tt>.
+			</description>
+		</command>
+		<command id="nextgridsibling">
+			<canon>next grid sibling(handle)</canon>
+			<shortname>next grid sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:grid)</tt>.
+			</description>
+		</command>
+
+		<command id="firstscrollchild">
+			<canon>first scroll child(handle)</canon>
+			<shortname>first scroll child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:scroll)</tt>.
+			</description>
+		</command>
+		<command id="nextscrollsibling">
+			<canon>next scroll sibling(handle)</canon>
+			<shortname>next scroll sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:scroll)</tt>.
+			</description>
+		</command>
+
+		<command id="firstselectchild">
+			<canon>first select child(handle)</canon>
+			<shortname>first select child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:select)</tt>.
+			</description>
+		</command>
+		<command id="nextselectsibling">
+			<canon>next select sibling(handle)</canon>
+			<shortname>next select sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:select)</tt>.
+			</description>
+		</command>
+
+		<command id="firstpanelchild">
+			<canon>first panel child(handle)</canon>
+			<shortname>first panel child</shortname>
+			<description>
+				An alias for <ref>firstchildoftype</ref><tt>(handle, slicetype:panel)</tt>.
+			</description>
+		</command>
+		<command id="nextpanelsibling">
+			<canon>next panel sibling(handle)</canon>
+			<shortname>next panel sibling</shortname>
+			<description>
+				An alias for <ref>nextsiblingoftype</ref><tt>(handle, slicetype:panel)</tt>.
+			</description>
+		</command>
+
+		</section>	        <!-- Type-specific iteration commands-->
+
+		</section>		<!-- Moving Around the Slice Tree-->
 
 
 		<section title="Reordering Slices">

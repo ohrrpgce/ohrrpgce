@@ -1500,53 +1500,98 @@ script, replace enemy sprite, hsd:ID, hsd:size, hsd:number, hsd:pal = -1, begin
   if(hsd:size == EnemySize:large) then(return(replace large enemy sprite(hsd:ID, hsd:number, hsd:pal)))
 end
 
-script, first sprite child, hsd:parent, begin
+#### first child/next sibling wrappers
+
+script, first child of type, hsd:parent, hsd:type, begin
   variable(hsd:sl)
   hsd:sl := first child(hsd:parent)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is sprite(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next sprite sibling(hsd:sl))
+  if(hsd:sl==0) then(exit returning(hsd:sl))
+  if(slice type(hsd:sl) == hsd:type) then(exit returning(hsd:sl))
+  exit returning(next sibling of type(hsd:sl, hsd:type))
 end
 
-script, next sprite sibling, hsd:sib, begin
-  variable(hsd:sl)
-  hsd:sl := next sibling(hsd:sib)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is sprite(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next sprite sibling(hsd:sl))
+script, next sibling of type, hsd:sl, hsd:type, begin
+  hsd:sl := next sibling(hsd:sl)
+  while(hsd:sl) do (
+    if(slice type(hsd:sl) == hsd:type) then(exit returning(hsd:sl))
+    hsd:sl := next sibling(hsd:sl)
+  )
+  exit returning(hsd:sl)
 end
 
 script, first container child, hsd:parent, begin
-  variable(hsd:sl)
-  hsd:sl := first child(hsd:parent)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is container(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next container sibling(hsd:sl))
+  return(first child of type(hsd:parent, slicetype:container))
 end
 
 script, next container sibling, hsd:sib, begin
-  variable(hsd:sl)
-  hsd:sl := next sibling(hsd:sib)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is container(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next container sibling(hsd:sl))
+  return(next sibling of type(hsd:sib, slicetype:container))
 end
 
 script, first rect child, hsd:parent, begin
-  variable(hsd:sl)
-  hsd:sl := first child(hsd:parent)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is rect(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next rect sibling(hsd:sl))
+  return(first child of type(hsd:parent, slicetype:rect))
 end
 
 script, next rect sibling, hsd:sib, begin
-  variable(hsd:sl)
-  hsd:sl := next sibling(hsd:sib)
-  if(hsd:sl==0) then(exit returning(0))
-  if(slice is rect(hsd:sl)) then(exit returning(hsd:sl))
-  exit returning(next rect sibling(hsd:sl))
+  return(next sibling of type(hsd:sib, slicetype:rect))
 end
+
+script, first sprite child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:sprite))
+end
+
+script, next sprite sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:sprite))
+end
+
+script, first text child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:text))
+end
+
+script, next text sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:text))
+end
+
+script, first ellipse child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:ellipse))
+end
+
+script, next ellipse sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:ellipse))
+end
+
+script, first grid child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:grid))
+end
+
+script, next grid sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:grid))
+end
+
+script, first scroll child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:scroll))
+end
+
+script, next scroll sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:scroll))
+end
+
+script, first select child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:select))
+end
+
+script, next select sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:select))
+end
+
+script, first panel child, hsd:parent, begin
+  return(first child of type(hsd:parent, slicetype:panel))
+end
+
+script, next panel sibling, hsd:sib, begin
+  return(next sibling of type(hsd:sib, slicetype:panel))
+end
+
+#### More slice commands
 
 script, free slice children, hsd:parent, begin
   variable(hsd:sl, hsd:next)
