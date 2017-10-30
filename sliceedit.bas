@@ -159,7 +159,7 @@ DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state 
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
-DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
+DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
@@ -571,7 +571,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
      slice_editor_save_when_leaving ses, edslice
      ses.collection_file = ""
      ses.collection_number = jump_to_collection
-     slice_editor_load ses, edslice, slice_editor_filename(ses)
+     slice_editor_load ses, edslice, slice_editor_filename(ses), YES
      state.need_update = YES
     END IF
    END IF
@@ -866,7 +866,7 @@ FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as 
  RETURN NO
 END FUNCTION
 
-SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string)
+SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
  ' Check for programmer error (doesn't work because of the games slice_editor plays with the draw_root)
  IF ses.editing_existing THEN showerror "slice_editor_load does work when existing existing collection"
  DIM newcollection as Slice Ptr
@@ -881,25 +881,33 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
-    AND ses.collection_file = "" AND ses.privileged = NO THEN
-  DIM msg as string
-  msg = "The slice collection you are trying to load includes protected or special " _
-        "slices (either due to their type or lookup code), probably " _
-        "because it has been exported from a game. You can't import this " _
-        "collection, but it will be now be opened in a new copy of the " _
-        "slice collection editor so that you may view, edit, and reexport " _
-        "it. Exit the editor to go back to your previous slice collection. " _
-        "Try removing the special slices and exporting the collection; " _
-        "you'll then be able to import normally."
-  slice_editor newcollection
- ELSE
-  remember_draw_root_pos = ses.draw_root->Pos
-  DeleteSlice @ses.draw_root
-  edslice = newcollection
-  ses.draw_root = create_draw_root()
-  SetSliceParent edslice, ses.draw_root
+ IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) THEN
+  IF ses.collection_file = "" AND edit_separately = NO AND ses.privileged = NO THEN
+   'Trying to import a tree into an in-game collection
+   DIM msg as string
+   msg = "The slice collection you are trying to load includes protected or special " _
+         "slices (either due to their type or lookup code), probably " _
+         "because it has been exported from a game. You can't import this " _
+         "collection, but it will be now be opened in a new copy of the " _
+         "slice collection editor so that you may view, edit, and reexport " _
+         "it. Exit the editor to go back to your previous slice collection. " _
+         "Try removing the special slices and exporting the collection; " _
+         "you'll then be able to import normally."
+   notification msg
+   slice_editor newcollection
+   EXIT SUB
+  ELSE
+   'If it's already been imported into the game, only warn
+   notification "Hmm, your slice collection includes protected or special " _
+                "slices (either due to their type or lookup code). This " _
+                "shouldn't happen, and may be an engine bug! Please report it."
+  END IF
  END IF
+ remember_draw_root_pos = ses.draw_root->Pos
+ DeleteSlice @ses.draw_root
+ edslice = newcollection
+ ses.draw_root = create_draw_root()
+ SetSliceParent edslice, ses.draw_root
 END SUB
 
 ' Browse for a slice collection to import or edit.
@@ -915,7 +923,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
    ses.use_index = NO
    ses.editing_existing = NO
   END IF
-  slice_editor_load ses, edslice, filename
+  slice_editor_load ses, edslice, filename, edit_separately
   ses.slicemenust.need_update = YES
   init_slice_editor_for_collection_group(ses, ses.collection_group_number)
  END IF
