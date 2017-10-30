@@ -107,7 +107,7 @@ end extern
   #DEFINE v_len array_length
   #DEFINE v_resize array_resize
   '#DEFINE v_expand(this, amount) cast(typeof(this), array_expand(this, amount))
-  #DEFINE v_shrink(this, amount) array_shrink
+  #DEFINE v_shrink array_shrink
   #DEFINE v_at(this, index) cast(typeof(this), array_index(this, index))
   #DEFINE v_end(this) cast(typeof(this), array_end(this))
   #DEFINE v_type array_type
