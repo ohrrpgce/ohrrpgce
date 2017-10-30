@@ -33,7 +33,8 @@
 ' Stores information about a previous or ongoing Custom editing session
 TYPE SessionInfo
  workingdir as string              'The directory containing this session's files
- partial_rpg as bool               '__danger.tmp exists: is unlumping or deleting lumps
+ partial_rpg as bool               '__danger.tmp exists: was in process of unlumping or deleting lumps
+ fresh_danger_tmp as bool          '__danger.tmp exists and isn't stale: may still be running
  info_file_exists as bool          'session_info.txt.tmp exists. If not, everything in this UDT below this point is unknown.
  pid as integer                    'Process ID or 0
  running as bool                   'That process is still running
@@ -1463,12 +1464,21 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
  NEXT
 
  ret.partial_rpg = isfile(workdir + SLASH + "__danger.tmp")
+ IF ret.partial_rpg THEN
+  'Check if the file is stale
+  DIM daysago as double = NOW - FILEDATETIME(workdir + SLASH + "__danger.tmp")
+  debuginfo "Found __danger.tmp file, " & (daysago * 24 * 60) & " minutes old"
+  IF daysago * 24 * 60 < 1 THEN  'Less than 1 minute old
+   ret.fresh_danger_tmp = YES
+  END IF
+ END IF
 
  debuginfo "prev_session.workingdir = " & ret.workingdir
  debuginfo "prev_session.info_file_exists = " & yesorno(ret.info_file_exists)
  debuginfo "prev_session.pid = " & ret.pid & " (exe = " & exe & ")"
  debuginfo "prev_session.running = " & yesorno(ret.running)
  debuginfo "prev_session.partial_rpg = " & yesorno(ret.partial_rpg)
+ debuginfo "prev_session.fresh_danger_tmp = " & yesorno(ret.fresh_danger_tmp)
  debuginfo "prev_session.sourcerpg = " & ret.sourcerpg
  debuginfo "prev_session.sourcerpg_old_mtime = " & format_date(ret.sourcerpg_old_mtime)
  debuginfo "prev_session.sourcerpg_current_mtime = " & format_date(ret.sourcerpg_current_mtime)
@@ -1494,7 +1504,7 @@ FUNCTION empty_workingdir (workdir as string) as bool
    RETURN NO
   END IF
  NEXT
- killdir workdir
+ killdir workdir, YES  'recursively, just in case
  RETURN YES
 END FUNCTION
 
@@ -1570,9 +1580,9 @@ SUB check_for_crashed_workingdirs ()
   END IF
 
   ' Does this look like a game, or should we just delete it?
-  IF NOT sessinfo.partial_rpg THEN
+  IF NOT sessinfo.fresh_danger_tmp THEN
    DIM filelist() as string
-   findfiles sessinfo.workingdir, ALLFILES, fileTypeFile, NO, filelist()
+   findfiles sessinfo.workingdir, ALLFILES, fileTypeFileOrDir, NO, filelist()
 
    IF UBOUND(filelist) <= 5 THEN
     'Just some stray files that refused to delete last time,
@@ -1648,14 +1658,16 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
  IF isfile(sessinfo.workingdir + SLASH + "__danger.tmp") THEN
   ' Don't provide option to recover, as this looks like garbage.
   ' If we've reached this point, then already checked whether it's a modern Custom
+  ' ...but once, I saw a dirty working.tmp with __danger.tmp but no other
+  ' files. Usually, __danger.tmp wouldn't appear without the session info file.
   ' However, maybe another copy of custom is busy unlumping a big game, so ask before deleting.
   DIM choice as integer
-  choice = twochoice("Found a partial temporary copy of a game.\n" _
-                     "It looks like an old version of " + CUSTOMEXE + " was in the process of " _
+  choice = twochoice("Found a partial temporary copy of a game. " _
+                     "It looks like a copy of " + CUSTOMEXE + " is or was in the process of " _
                      "either unlumping a game or deleting its temporary files. " _
                      "It might have crashed, or still be running. What do you want to do?", _
                      "Ignore", _
-                     "Erase temporary files (crashed)", _
+                     "Erase temporary files", _
                      0, 0)
   IF choice = 0 THEN
    RETURN NO
