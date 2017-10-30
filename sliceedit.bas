@@ -369,19 +369,10 @@ SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string 
  ses.use_index = (filename = "")
  ses.privileged = privileged
 
- DIM edslice as Slice Ptr
- edslice = NewSlice
- WITH *edslice
-  .SliceType = slContainer
-  .Fill = YES
- END WITH
-
- IF isfile(slice_editor_filename(ses)) THEN
-  SliceLoadFromFile edslice, slice_editor_filename(ses)
- END IF
-
- ses.draw_root = create_draw_root()
- SetSliceParent edslice, ses.draw_root
+ 'This creates ses.draw_root and loads edslice (if it exists, otherwise
+ 'a new blank slice)
+ DIM edslice as Slice ptr
+ slice_editor_load ses, edslice, slice_editor_filename(ses), YES
 
  slice_editor_main ses, edslice
 
@@ -903,8 +894,10 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
                 "shouldn't happen, and may be an engine bug! Please report it."
   END IF
  END IF
- remember_draw_root_pos = ses.draw_root->Pos
- DeleteSlice @ses.draw_root
+ IF ses.draw_root THEN
+  remember_draw_root_pos = ses.draw_root->Pos
+  DeleteSlice @ses.draw_root
+ END IF
  edslice = newcollection
  ses.draw_root = create_draw_root()
  SetSliceParent edslice, ses.draw_root
