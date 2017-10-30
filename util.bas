@@ -2179,7 +2179,7 @@ END FUNCTION
 '(If you want to find a single file, use find_file_portably())
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
-'filetype is one of fileTypeFile, fileTypeDirectory
+'filetype is one of fileTypeFile, fileTypeDirectory, fileTypeFileOrDir
 SUB findfiles (directory as string, namemask as string = "", filetype as FileTypeEnum = fileTypeFile, findhidden as bool = NO, filelist() as string)
   REDIM filelist(-1 TO -1)
   IF directory = "" THEN
@@ -2188,7 +2188,7 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
    showerror "findfiles called with empty directory"
    EXIT SUB
   END IF
-  IF filetype <> fileTypeDirectory and filetype <> fileTypeFile THEN
+  IF filetype <> fileTypeDirectory and filetype <> fileTypeFile and filetype <> fileTypeFileOrDir THEN
    showerror "findfiles: bad filetype"
    EXIT SUB
   END IF
@@ -2197,8 +2197,11 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   DIM as string nmask = anycase(namemask)
   IF LEN(nmask) = 0 THEN nmask = ALLFILES
 #ifdef DEBUG_FILE_IO
+  DIM filetypestr as string = "fileTypeFile"
+  IF filetype = fileTypeDirectory THEN filetypestr = "fileTypeDirectory"
+  IF filetype = fileTypeFileOrDir THEN filetypestr = "fileTypeFileOrDir"
   debuginfo "findfiles(directory = " & directory & ", namemask = " & namemask & ", " _
-            & IIF(filetype = fileTypeFile, "fileTypeFile", "fileTypeDirectory") & ", findhidden = " & findhidden & ")"
+            & filetypestr & ", findhidden = " & findhidden & ")"
 #endif
 
 #ifdef __FB_UNIX__
@@ -2206,8 +2209,10 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
 
   IF filetype = fileTypeDirectory THEN
     v_move filenames, list_subdirs(searchdir, nmask, findhidden)
-  ELSE
+  ELSEIF filetype = fileTypeFile THEN
     v_move filenames, list_files(searchdir, nmask, findhidden)
+  ELSE
+    v_move filenames, list_files_or_subdirs(searchdir, nmask, findhidden, -1)
   END IF
         
   FOR i as integer = 0 TO v_len(filenames) - 1
@@ -2245,8 +2250,10 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   ' with a bit that we didn't specify
   IF filetype = fileTypeDirectory THEN
     attrib = 32+16+4+1
-  ELSE
+  ELSEIF filetype = fileTypeFile THEN
     attrib = 255 XOR (16+2)
+  ELSE
+    attrib = 255 XOR 2
   END IF
   IF findhidden THEN attrib += 2
   foundfile = DIR(searchdir + nmask, attrib)

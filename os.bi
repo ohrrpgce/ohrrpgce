@@ -36,6 +36,8 @@ enum FileTypeEnum
   fileTypeDirectory   ' Directory or a symlink to one
   fileTypeOther       ' A device, fifo, or other special file type
   fileTypeError       ' Something unreadable (including broken symlinks)
+
+  fileTypeFileOrDir = 10 ' Special argument to findfiles ONLY. NOT a file type!
 end enum
 
 declare function get_file_type (fname as string) as FileTypeEnum
