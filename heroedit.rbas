@@ -1384,7 +1384,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite, YES)
      CASE 6
-      experience_chart her.def_expcurve
+      her.def_expcurve = experience_chart(her.def_expcurve)
      CASE 7
       DIM itemb as ItemBrowser
       her.def_weapon = itemb.browse(her.def_weapon)

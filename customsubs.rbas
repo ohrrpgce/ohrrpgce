@@ -2795,7 +2795,7 @@ SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as 
  NEXT
 END SUB
 
-SUB experience_chart (byval expcurve as double=0.2)
+FUNCTION experience_chart (byval expcurve as double=0.2) as double
 
  'DIM exp_first_level as integer = 30
  'DIM exp_adder as integer = 5
@@ -2808,7 +2808,7 @@ SUB experience_chart (byval expcurve as double=0.2)
 
  STATIC form_id as integer = 0
 
- DIM startfrom as integer = 3
+ DIM startfrom as integer = 4
  DIM menu(startfrom + gen(genMaxLevel)) as string
  menu(0) = "Previous menu..."
  DIM state as MenuState
@@ -2834,29 +2834,37 @@ SUB experience_chart (byval expcurve as double=0.2)
    IF state.pt = 0 THEN EXIT DO
   END IF
   IF state.pt = 1 THEN
-   IF intgrabber(mode, 0, 2) THEN state.need_update = YES
+   DIM curve_int as integer = expcurve * 100
+   IF intgrabber(curve_int, 0, 100) THEN
+    expcurve = curve_int / 100
+    state.need_update = YES
+   END IF
   END IF
   IF state.pt = 2 THEN
+   IF intgrabber(mode, 0, 2) THEN state.need_update = YES
+  END IF
+  IF state.pt = 3 THEN
    IF mode = 1 THEN
     IF enemygrabber(enemy_id, state) THEN state.need_update = YES
    ELSEIF mode = 2 THEN
     IF intgrabber(form_id, 0, gen(genMaxFormation)) THEN state.need_update = YES
    END IF
   END IF
-  IF state.pt = 3 THEN
+  IF state.pt = 4 THEN
    IF intgrabber(hero_count, 1, 4) THEN state.need_update = YES
   END IF
 
   IF state.need_update THEN
    DIM test_exp as integer = 0
    DIM test_name as string
+   menu(1) = "Experience curve: " & format(expcurve, "0.00")
    IF mode = 0 THEN
-    menu(1) = "Preview mode: Total Exp."
-    menu(2) = "Compared to N/A"
+    menu(2) = "Preview mode: Total Exp."
+    menu(3) = "Compared to N/A"
    ELSEIF mode = 1 THEN
     loadenemydata enemy, enemy_id
-    menu(1) = "Preview mode: Enemy"
-    menu(2) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & " exp)"
+    menu(2) = "Preview mode: Enemy"
+    menu(3) = "Compared to enemy: " & enemy_id & " " & enemy.name & " (" & enemy.reward.exper & " exp)"
     test_exp = enemy.reward.exper
     test_name = enemy.name
    ELSEIF mode = 2 THEN
@@ -2869,11 +2877,11 @@ SUB experience_chart (byval expcurve as double=0.2)
       test_exp += enemy.reward.exper
      END IF
     NEXT i
-    menu(1) = "Compare mode: Formation"
-    menu(2) = "Compared to formation: " & form_id & " (" & test_exp & " exp)"
+    menu(2) = "Compare mode: Formation"
+    menu(3) = "Compared to formation: " & form_id & " (" & test_exp & " exp)"
     test_name = "Formation" & form_id
    END IF
-   menu(3) = "Distributed to a party of: " & hero_count & " heroes"
+   menu(4) = "Distributed to a party of: " & hero_count & " heroes"
    DIM suffix as string
    DIM killcount as string
    FOR lev as integer = 1 TO gen(genMaxLevel)
@@ -2903,7 +2911,8 @@ SUB experience_chart (byval expcurve as double=0.2)
    'notification "This screen is informational only. You cannot customize the experience formula yet."
   END IF
  LOOP 
-END SUB
+ RETURN expcurve
+END FUNCTION
 
 SUB stat_growth_chart ()
  'midpoint should stored in gen()
