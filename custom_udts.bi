@@ -375,8 +375,8 @@ TYPE AttackChainBrowserState
  current as Slice Ptr
  after as MenuState
  before as MenuState
- chainfrom(50) as Slice Ptr 'FIXME: when FreeBasic types support resizeable arrays, this would be a great place to use one
- chainto(2) as Slice Ptr
+ chainfrom as Slice ptr vector
+ chainto as Slice ptr vector
  column as integer
  refresh as integer
  focused as Slice Ptr
