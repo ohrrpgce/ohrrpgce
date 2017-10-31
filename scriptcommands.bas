@@ -2916,7 +2916,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 448 '--slice child
   IF valid_plotslice(retvals(0)) THEN
-   scriptret = find_plotslice_handle(SliceChildByIndex_NotForLooping(plotslices(retvals(0)), retvals(1)))
+   scriptret = find_plotslice_handle(SliceChildByIndex(plotslices(retvals(0)), retvals(1)))
   END IF
  CASE 451 '--set slice clipping
   IF valid_plotslice(retvals(0)) THEN

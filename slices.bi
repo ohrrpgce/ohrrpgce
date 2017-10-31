@@ -286,6 +286,9 @@ TYPE Slice
   'NOTE: When adding to this, remember to update CloneSliceTree, SliceLoadFromNode and SliceSaveToNode
 END TYPE
 
+'NOTE: the Slices are not freed when the vector is freed!
+DECLARE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
+
 '--Data containers for various slice types
 
 TYPE RectangleSliceData
@@ -457,7 +460,7 @@ DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as b
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 
 DECLARE Function SliceIndexAmongSiblings(byval sl as slice ptr) as integer
-DECLARE Function SliceChildByIndex_NotForLooping(byval sl as slice ptr, byval index as integer) as Slice ptr
+DECLARE Function SliceChildByIndex(byval sl as slice ptr, byval index as integer) as Slice ptr
 DECLARE Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr) as Slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr

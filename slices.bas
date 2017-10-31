@@ -78,6 +78,7 @@ END WITH
 'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
 Dim Shared GlobalCoordOffset as XYPair
 
+DEFINE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
 DEFINE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
 
 'Built up while inside DrawSlice, otherwise NULL.
@@ -2577,30 +2578,35 @@ Sub ChangeScrollSlice(byval sl as Slice ptr,_
 end sub
 
 Sub ScrollAllChildren(byval sl as Slice ptr, byval xmove as integer, byval ymove as integer)
+ 'Shift all children's X/Y by an offset.
+ 'Doesn't work on Grid slices
  'This is intended for ScrollSlice, but can actually work on any type.
  if sl = 0 then debug "ScrollAllChildren: null scroll slice ptr": exit sub
+ if sl->SliceType = slGrid then reporterr "ScrollAllChildren: can't scroll a Grid slice": exit sub
  dim ch as Slice ptr = sl->FirstChild
  do while ch
   ch->X += xmove
   ch->Y += ymove
   ch = ch->NextSibling
  loop
-End Sub
+end sub
 
 Sub ScrollToChild(byval sl as Slice ptr, byval ch as Slice ptr)
- 'This is intended for ScrollSlice, but can actually work on any container type.
+ 'Similar to SliceClamp, but shifts all children of sl so that ch (which is any desendent
+ 'of sl) is within the bounds of sl. Ignores padding.
+ 'This is intended for ScrollSlice, but can actually work on any type except Grid.
  if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
  if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
- if not IsAncestor(ch, sl) then debug "ScrollToChild: can't scroll to an unrelated slice": exit sub
+ if not IsAncestor(ch, sl) then reporterr "ScrollToChild: can't scroll to a slice that's not a descendant": exit sub
 
  dim xmove as integer = 0
  dim ymove as integer = 0 
  dim diff as integer
- diff = (sl->ScreenY + sl->Height) - (ch->ScreenY +ch->Height)
+ diff = (sl->ScreenY + sl->Height) - (ch->ScreenY + ch->Height)
  if diff < 0 then ymove = diff
  diff = sl->ScreenY - ch->ScreenY
  if diff > 0 then ymove = diff
- diff = (sl->ScreenX + sl->Width) - (ch->ScreenX +ch->Width)
+ diff = (sl->ScreenX + sl->Width) - (ch->ScreenX + ch->Width)
  if diff < 0 then xmove = diff
  diff = sl->ScreenX - ch->ScreenX
  if diff > 0 then xmove = diff
@@ -2608,8 +2614,7 @@ Sub ScrollToChild(byval sl as Slice ptr, byval ch as Slice ptr)
  if xmove <> 0 orelse ymove <> 0 then
   ScrollAllChildren(sl, xmove, ymove)
  end if
- 
-End Sub
+end sub
 
 '--Select--------------------------------------------------------------
 Sub DisposeSelectSlice(byval sl as Slice ptr)
@@ -3532,6 +3537,7 @@ End Function
 Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
  'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
  'to fit sl2 inside sl1 without doing any resizing.
+ 'NOTE: ignores padding. And doesn't work for Grid slices.
  if sl1 = 0 or sl2 = 0 then exit sub
  if sl2->Fill then reporterr "SliceClamp cannot move slices with .Fill=ON" : exit sub
  RefreshSliceScreenPos(sl1)
@@ -3560,17 +3566,20 @@ Function SliceColor(byval n as integer) as integer
  if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
   dim uiC as integer = (n * -1) - 1
   select case uiC
-   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, uiItemScreenSelected2, uiItemScreenSelectedDisabled2, uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, uiItemScreenSwapHighlight2:
-   'Some colors auto-animate
-   if get_tickcount() mod 2 = 0 then uiC = uiC - 1
+   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, _
+        uiItemScreenSelected2, uiItemScreenSelectedDisabled2, _
+        uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, _
+        uiItemScreenSwapHighlight2:
+    'Some colors auto-animate
+    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
   end select
   return uilook(uiC)
  end if
  debugc errError, "Invalid slice color " & n
 End function
 
-Function SliceChildByIndex_NotForLooping(byval sl as Slice ptr, byval index as integer) as Slice Ptr
- if sl = 0 then debug "SliceChildByIndex_NotForLooping null ptr": return 0
+Function SliceChildByIndex(byval sl as Slice ptr, byval index as integer) as Slice Ptr
+ if sl = 0 then debug "SliceChildByIndex null ptr": return 0
  dim ch as Slice ptr = sl->FirstChild
  for i as integer = 0 to sl->NumChildren
   if ch = NULL then exit for
