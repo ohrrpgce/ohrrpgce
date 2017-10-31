@@ -869,6 +869,15 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  IF isfile(filename) THEN
   SliceLoadFromFile newcollection, filename
  END IF
+
+ 'Special case fix: in the ancient slicetest.rpg file, collection 0 was rooted by a Root slice
+ '(now loaded as a Special). Don't know whether other games were affected.
+ IF ses.collection_file = "" THEN
+  IF newcollection->SliceType = slSpecial THEN
+   newcollection->SliceType = slContainer
+  END IF
+ END IF
+
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
