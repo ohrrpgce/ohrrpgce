@@ -157,7 +157,7 @@ End sub
 
 FUNCTION SliceTypeByName (s as string) as SliceTypes
  SELECT CASE s
-  CASE "Root":           RETURN slRoot
+  CASE "Root":           RETURN slSpecial  'Root slices removed
   CASE "Special":        RETURN slSpecial
   CASE "Container":      RETURN slContainer
   CASE "Rectangle":      RETURN slRectangle
@@ -184,7 +184,6 @@ END FUNCTION
 
 FUNCTION SliceTypeName (t as SliceTypes) as string
  SELECT CASE t
-  CASE slRoot:           RETURN "Root"
   CASE slSpecial:        RETURN "Special"
   CASE slContainer:      RETURN "Container"
   CASE slRectangle:      RETURN "Rectangle"
@@ -298,19 +297,6 @@ EXTERN "C"
 FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byval lookup_code as integer=0) as Slice Ptr
  DIM newsl as Slice Ptr
  SELECT CASE t
-  CASE slRoot:
-   newsl = NewSlice(parent)
-   WITH *newsl
-    .SliceType = slRoot
-    '.Attach = slScreen  ' Don't explicitly set, to allow reparenting root; defaults to screen anyway.
-    .Protect = YES
-    'We manually set these here so that Root will have the correct
-    'size even if DrawSlice has not been called on it yet. This
-    'is needed to make second-level roots .Fill=YES work correctly
-    'in the transitional phase when root is not yet drawn
-    .Width = get_resolution().w
-    .Height = get_resolution().h
-   END WITH
   CASE slSpecial:
    newsl = NewSlice(parent)
    newsl->SliceType = slSpecial
@@ -3566,7 +3552,7 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  '--Create another slice of the same type
  dim newtype as SliceTypes = sl->SliceType
  if copy_special = NO then
-  if newtype = slSpecial or newtype = slRoot then newtype = slContainer
+  if newtype = slSpecial then newtype = slContainer
  end if
  clone = NewSliceOfType(newtype)
  '--Clone all standard properties

@@ -99,8 +99,8 @@ CONST SL_PATHFIND_DEST_DISPLAY       = -102100
 Type SliceTypes as integer
 Enum 'SliceTypes
  slInvalid = -1
- slRoot = 0
- slSpecial
+ '0 was slRoot
+ slSpecial = 1
  slContainer
  slRectangle
  slSprite

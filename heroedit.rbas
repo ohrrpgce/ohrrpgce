@@ -515,7 +515,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
  DIM bgcol as integer
 
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  WITH *root
   .Fill = YES
  END WITH

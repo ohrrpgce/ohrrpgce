@@ -4507,7 +4507,7 @@ SUB script_functions(byval cmdid as integer)
    sl = plotslices(retvals(0))
    IF sl->Parent THEN ret = CloneSliceTree(sl, retvals(1) <> 0, NO)
    IF ret = 0 THEN  'Returned in the following case:
-    scripterr "cloneslice: Can't copy a Map slice or the Root slice"
+    scripterr "cloneslice: Can't copy a Map slice"
    ELSE
     'sl has a parent
     InsertSliceAfter sl, ret
@@ -4797,7 +4797,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
   DIM sl as Slice Ptr
   sl = plotslices(handle)
   SELECT CASE sl->SliceType
-   CASE slRoot, slSpecial, slRectangle, slContainer, slGrid, slEllipse, slSelect, slScroll, slPanel
+   CASE slSpecial, slRectangle, slContainer, slGrid, slEllipse, slSelect, slScroll, slPanel
     IF sl->Fill = NO THEN RETURN YES
     SELECT CASE sl->Fillmode
      CASE sliceFillFull

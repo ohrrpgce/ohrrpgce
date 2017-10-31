@@ -197,7 +197,7 @@ END SUB
 SUB edit_distrib_info ()
 
  DIM rootsl as Slice Ptr
- rootsl = NewSliceOfType(slRoot)
+ rootsl = NewSliceOfType(slContainer)
  rootsl->Fill = YES
  DIM infosl as Slice Ptr
  infosl = NewSliceOfType(slText, rootsl)

@@ -319,7 +319,7 @@ SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byval state 
 END SUB
 
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection_kind as integer, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
- DIM collection as Slice Ptr = NewSliceOfType(slRoot)
+ DIM collection as Slice Ptr = NewSliceOfType(slContainer)
  load_slice_collection collection, collection_kind
  IF collection = 0 THEN debug "plank_menu_append: plank collection not found " & collection_kind : RETURN 0
  DIM result as Slice Ptr

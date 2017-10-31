@@ -1905,7 +1905,6 @@ define constant, begin
 0,edge:top
 1,edge:middle
 2,edge:bottom
-0,slicetype:Root
 1,slicetype:Special
 2,slicetype:Container
 3,slicetype:Rectangle

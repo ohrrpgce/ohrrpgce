@@ -811,7 +811,7 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
   'Ignore Map slices because transparent overhead layers makes it impossible to
   'click on things parented to map layers below.
   SELECT CASE sl->SliceType
-   CASE slRoot, slRectangle, slSprite, slText, slEllipse
+   CASE slRectangle, slSprite, slText, slEllipse, slScroll
     topmost = sl
    CASE slGrid
     IF cptr(GridSliceData ptr, sl->SliceData)->show THEN
@@ -1474,7 +1474,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   END IF
 
   SELECT CASE .SliceType
-   CASE slMap, slRoot, slSpecial, slContainer
+   CASE slMap, slSpecial, slContainer
    CASE ELSE
     sliceed_header menu(), rules(), "[" & SliceTypeName(sl) & " settings]"
   END SELECT

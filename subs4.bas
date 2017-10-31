@@ -297,7 +297,7 @@ SUB script_error_mode_menu ()
  state.need_update = YES
 
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  WITH *root
   .Fill = YES
  END WITH

@@ -2208,7 +2208,7 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
    state.chainfrom(i) = 0
   NEXT i
   
-  state.root = NewSliceOfType(slRoot)
+  state.root = NewSliceOfType(slContainer)
 
   state.lbox = NewSliceOfType(slContainer, state.root)
   state.lbox->Width = 80
@@ -3782,7 +3782,7 @@ FUNCTION prompt_for_scancode () as integer
  DIM bartog as bool = NO
  
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  WITH *root
   .Fill = YES
  END WITH

@@ -6410,11 +6410,11 @@ end
 			<description>
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<note>
-					There are currently three types of slice for which there are no commands, not even to identify them:
-					the 'root' slice (of which there is only one), 'special' slices (like <ref>sprite layer</ref>),
+					There are two types of slice used by the engine for which there are no commands:
+					'special' slices (like <ref>sprite layer</ref>),
 					and 'map' slices (which are map layers).
 					However you can use <ref>lookupslice</ref> to find each instance of these.
-					Root and special slices are nothing but container slices with special purposes.
+					Special slices are nothing but container slices with special purposes (but not special behaviour).
 					None of these kinds of slices can be created or manipulated in the slice collection editor either.
 				</note>
 			</description>
@@ -6424,7 +6424,6 @@ end
 			<shortname>slice type</shortname>
 			<description>
 				Returns the type of the given slice <p>handle</p>, one of the constants:
-				<tt>slicetype:Root</tt>,
 				<tt>slicetype:Special</tt>,
 				<tt>slicetype:Container</tt>,
 				<tt>slicetype:Rect</tt>,

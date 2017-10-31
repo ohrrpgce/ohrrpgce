@@ -1897,7 +1897,7 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
 
  '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  WITH *root
   .Fill = YES
  END WITH
@@ -2006,7 +2006,7 @@ END SUB
 FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
  '--Construct the prompt UI. FIXME: redo this when the Slice Editor can save/load)
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  root->Fill = YES
  DIM outer_box as Slice Ptr
  outer_box = NewSliceOfType(slRectangle, root)
@@ -2095,7 +2095,7 @@ SUB show_help(helpkey as string)
  
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
  DIM help_root as Slice Ptr
- help_root = NewSliceOfType(slRoot)
+ help_root = NewSliceOfType(slContainer)
  WITH *help_root
   .Y = vpages(vpage)->h
   .Fill = NO
@@ -2281,7 +2281,7 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
  
  '--Construct the UI (loading a slice collection might be better here? but not from the RPG file!)
  DIM root as Slice Ptr
- root = NewSliceOfType(slRoot)
+ root = NewSliceOfType(slContainer)
  WITH *root
   .Y = 200
   .Fill = NO
@@ -4710,7 +4710,7 @@ SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
 END SUB
 
 SUB load_special_tag_caches()
- DIM her as herodef
+ DIM her as HeroDef
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
   loadherodata her, i
   herotags(i).have_tag = her.have_tag

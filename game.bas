@@ -3690,10 +3690,11 @@ END SUB
 
 SUB SetupGameSlices ()
  'Note that the map root and walkabout layers are containers, while
- 'inconsistently everything else except for the root slice is a special slice.
+ 'inconsistently everything else is a special slice.
 
- SliceTable.Root = NewSliceOfType(slRoot, NULL, SL_ROOT)
- 
+ SliceTable.Root = NewSliceOfType(slSpecial, NULL, SL_ROOT)
+ SliceTable.Root->Fill = YES
+
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  SliceTable.MapRoot->Protect = YES
  
