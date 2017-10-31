@@ -149,6 +149,8 @@ Type SliceContext Extends Object
  Declare Abstract Function description() as string
 End Type
 
+DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
+
 Extern "C"
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
@@ -439,7 +441,7 @@ DECLARE Sub SliceSaveToFile(byval sl as Slice Ptr, filename as string, save_hand
 DECLARE Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handles as bool=NO)
 DECLARE Sub SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO)
 
-DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer, childindex as integer = -1)
+DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub DrawSliceAt(byval s as slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
 
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
@@ -461,7 +463,7 @@ DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
-
+DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
 DECLARE Function UpdateRootSliceSize(sl as slice ptr) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)

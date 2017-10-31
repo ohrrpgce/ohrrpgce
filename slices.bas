@@ -23,6 +23,8 @@
 
 '==============================================================================
 
+DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
+
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
@@ -76,6 +78,12 @@ END WITH
 'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
 Dim Shared GlobalCoordOffset as XYPair
 
+DEFINE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
+
+'Built up while inside DrawSlice, otherwise NULL.
+'A stack of all the non-NULL .Context ptrs for all the ancestors of the current slice.
+Dim Shared context_stack as SliceContext ptr vector
+
 EXTERN "C"
 
 
@@ -114,7 +122,7 @@ End sub
 
 Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSlice which does null check it.
+ '      ever called from DrawSliceRecurse which does null check it.
  dim clippos as XYPair = any
  with *s
   if .ChildrenRefresh then .ChildrenRefresh(s)
@@ -141,7 +149,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
   dim ch as Slice ptr = .FirstChild
   dim childindex as integer = 0
   do while ch <> 0
-   DrawSlice(ch, page, childindex)
+   DrawSliceRecurse(ch, page, childindex)
    ch = ch->NextSibling
    childindex += 1
   Loop
@@ -1890,7 +1898,7 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  '      too, but that's in GridChildRefresh. Drawing
  '      and calculating position are independent.
  'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSlice which does null check it.
+ '      ever called from DrawSliceRecurse which does null check it.
 
  if s->SliceType <> slGrid then debug "GridChildDraw illegal slice type": exit sub
 
@@ -1936,7 +1944,7 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
     GlobalCoordOffset.X -= large(clippos.X, 0)
     GlobalCoordOffset.Y -= large(clippos.Y, 0)
 
-    DrawSlice(ch, childpage, childindex)
+    DrawSliceRecurse(ch, childpage, childindex)
 
     freepage childpage
     GlobalCoordOffset.X += large(clippos.X, 0)
@@ -2441,7 +2449,7 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  'NOTE: draws the scrollbars *after* all children have drawn, which is in
  '      stark contrast to how most other slices are drawn.
  'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSlice which does null check it.
+ '      ever called from DrawSliceRecurse which does null check it.
 
  'First draw the children normally
  DefaultChildDraw sl, p
@@ -2862,7 +2870,7 @@ End sub
 
 Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSlice which does null check it.
+ '      ever called from DrawSliceRecurse which does null check it.
 
  with *s
   'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
@@ -2888,7 +2896,7 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
     GlobalCoordOffset.Y -= clippos.y
    end if
 
-   DrawSlice(ch, page, index)
+   DrawSliceRecurse(ch, page, index)
    
    if .Clip then
     freepage page
@@ -3189,10 +3197,27 @@ end sub
 '=============================================================================
 
 
+'The context_stack global is built up during a DrawSlice call.
+'Use this function to compute the stack if you need it outside of DrawSlice.
+'The returned vector must be freed.
+Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
+ dim ret as SliceContext ptr vector
+ v_new ret
+ while sl
+  if sl->Context then v_append ret, sl->Context
+  sl = sl->Parent
+ wend
+ v_reverse ret
+ return ret
+end function
+
+'The central slice drawing function, called regardless of what slice-specific methods have been set.
 'childindex is index of s among its siblings. Pass childindex -1 if not known,
 'which saves computing it if it's not needed.
-Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
- if s = 0 then debug "DrawSlice null ptr": exit sub
+Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
+ if s = 0 then debug "DrawSliceRecurse null ptr": exit sub
+
+ if s->Context then v_append context_stack, s->Context
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
  'or other attributes. Refreshing is skipped if the slice isn't visible.
@@ -3216,13 +3241,26 @@ Sub DrawSlice(byval s as Slice ptr, byval page as integer, childindex as integer
   AutoSortChildren(s)
   s->ChildDraw(s, page)
  end if
+
+ if s->Context then v_shrink context_stack
 end sub
 
+'Draw a slice tree
+Sub DrawSlice(byval s as Slice ptr, byval page as integer)
+ v_new context_stack
+ DrawSliceRecurse s, page
+ v_free context_stack
+end sub
+
+'Draw a slice tree (usually a subtree of the full tree) as if it were parented
+'to a container slice with given position and size.
 Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, byval w as integer = 100, byval h as integer = 100, byval page as integer, byval ignore_offset as bool = NO)
  'ignore_offset causes the slice's offset from its parent to be ignored
 
  if s = 0 then debug "DrawSliceAt null ptr": exit sub
  if s->Visible then
+  v_new context_stack
+
   'calc the slice's X,Y
 
   'Is this actually necessary? I guess it should always be 0,0 when not inside a DrawSlice call...
@@ -3254,6 +3292,7 @@ Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, by
    s->Pos = oldpos
   end if
   DeleteSlice @dummyparent
+  v_free context_stack
  end if
 end sub
 
@@ -3318,7 +3357,7 @@ end sub
 Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
  'Updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice tree (specially, all its ancestors and descendents but not siblings)
- 'while ignoring .Visible. DrawSlice skips refreshing nonvisible slices.
+ 'while ignoring .Visible. DrawSliceRecurse skips refreshing nonvisible slices.
  if slc = 0 then exit sub
 
  'Update slc and ancestors
@@ -3384,7 +3423,7 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  while s
   if s <> sl then
    with *s
-    'We refresh the child even if not visible, unlike DrawSlice.
+    'We refresh the child even if not visible, unlike DrawSliceRecurse.
     'We don't call ChildrenRefresh if applicable, because we need (and should)
     'only update the screen positions, not do complex positioning recalc.
     parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
@@ -3431,7 +3470,7 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  s = parent->FirstChild
  while s
   with *s
-   'We refresh the child even if not visible, unlike DrawSlice.
+   'We refresh the child even if not visible, unlike DrawSliceRecurse.
    'We don't call ChildrenRefresh if applicable, because we need (and should)
    'only update the screen positions, not do complex positioning recalc.
    parent->ChildRefresh(parent, s, childindex, NO)  'visibleonly=NO
