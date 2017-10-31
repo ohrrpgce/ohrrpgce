@@ -594,6 +594,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
        .lev_gain = slot."lev_gain"
        .exp_cur = slot."exp"
        .exp_next = slot."exp_next"
+       .def_expcurve = slot."def_expcurve".default(her.def_expcurve).double
        .def_wep = slot."def_wep"
 
        READNODE slot."wep".warn as ch, default
@@ -1091,6 +1092,7 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "lev_gain", .lev_gain)
    SetChildNode(slot, "exp", .exp_cur)
    SetChildNode(slot, "exp_next", .exp_next)
+   SetChildNode(slot, "def_expcurve", .def_expcurve)
    SetChildNode(slot, "def_wep", .def_wep)
    
    IF gam.hero(i).id >= 0 THEN

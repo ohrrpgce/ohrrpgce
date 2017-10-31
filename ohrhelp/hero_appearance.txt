@@ -14,6 +14,8 @@ Walkabout Palette: "default" is the palette you used to draw the sprite, but if 
 
 Base Level: This is the level that the hero will start at when they join the party. You can type in a number, or press left to choose "party average" which sets the base level according to the level of the other heroes in the party. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
+Experience Curve: Amount by which the experience curve increases for this hero. Lower values let the hero level up faster, higher values make it harder to keep leveling up. (1 means twice more exp is needed to reach the next level)
+
 Default Weapon: This is an item which will be used by the hero as a weapon if no other weapon is equipped. Press the right and left arrow keys to browse through available items. Default should usually be something like "Fist" "Punch" or "Nothing".  However, you cannot type in a name here; you must create the default as an item in the Item Editor. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
 Max Name Length: By default, the maximum length of a hero's name is 16 letters. Here you can type a shorter limit. (This only matters for heroes that can be renamed by the player)

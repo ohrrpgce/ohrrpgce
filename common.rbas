@@ -5984,23 +5984,22 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
  RETURN ret
 END FUNCTION
 
-FUNCTION exptolevel (byval level as integer) as integer
+FUNCTION exptolevel (byval level as integer, byval curve as double = 0.2) as integer
 ' HINT: Customisation goes here :)
-
  IF level = 0 THEN RETURN 0
  DIM exper as integer = 30
  FOR o as integer = 2 TO level
-  exper = exper * 1.2 + 5
+  exper = exper * (1 + curve) + 5
   'FIXME: arbitrary experience cap should be removable
   IF exper > 1000000 THEN exper = 1000000
  NEXT
  RETURN exper
 END FUNCTION
 
-FUNCTION total_exp_to_level (byval level as integer) as integer
+FUNCTION total_exp_to_level (byval level as integer, byval curve as double = 0.2) as integer
  DIM total as integer = 0
  FOR i as integer = 1 TO level
-  total += exptolevel(i)
+  total += exptolevel(i, curve)
  NEXT
  RETURN total
 END FUNCTION

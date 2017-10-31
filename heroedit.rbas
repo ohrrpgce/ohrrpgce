@@ -2,6 +2,7 @@
 '(C) Copyright 1997-2017 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
+#include "string.bi"
 #include "config.bi"
 #include "const.bi"
 #include "udts.bi"
@@ -1215,12 +1216,13 @@ SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her
  menu(4) = "Walkabout Palette: " & defaultint(her.walk_sprite_pal)
  menu(5) = "Base Level: " & her.def_level
  IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
- menu(6) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
- menu(7) = "Max Name Length: " & zero_default(her.max_name_len)
- menu(8) = "Hand position A..."
- menu(9) = "Hand position B..."
- menu(10) = "Portrait Picture: " & defaultint(her.portrait, "None")
- menu(11) = "Portrait Palette: " & defaultint(her.portrait_pal)
+ menu(6) = "Experience Curve: " & format(her.def_expcurve, "0.00")
+ menu(7) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
+ menu(8) = "Max Name Length: " & zero_default(her.max_name_len)
+ menu(9) = "Hand position A..."
+ menu(10) = "Hand position B..."
+ menu(11) = "Portrait Picture: " & defaultint(her.portrait, "None")
+ menu(12) = "Portrait Palette: " & defaultint(her.portrait_pal)
  update_hero_preview_pics st, her
  st.changed = NO
 END SUB
@@ -1286,21 +1288,22 @@ END SUB
 
 SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
  
- DIM menu(11) as string
- DIM min(11) as integer
- DIM max(11) as integer
+ DIM menu(12) as string
+ DIM min(12) as integer
+ DIM max(12) as integer
  menu(0) = "Previous Menu"
  min(1) = 0: max(1) = gen(genMaxHeroPic)
  min(2) = -1: max(2) = 32767
  min(3) = 0: max(3) = gen(genMaxNPCPic)
  min(4) = -1: max(4) = 32767
  min(5) = -1: max(5) = 99
- min(6) = 0: max(6) = gen(genMaxItem)
- min(7) = 0: max(7) = 16
- min(8) = -100:max(8) = 100
+ min(6) = 0: max(6) = 100
+ min(7) = 0: max(7) = gen(genMaxItem)
+ min(8) = 0: max(8) = 16
  min(9) = -100:max(9) = 100
- min(10) = -1:max(10) = gen(genMaxPortrait)
- min(11) = -1:max(11) = 32767
+ min(10) = -100:max(10) = 100
+ min(11) = -1:max(11) = gen(genMaxPortrait)
+ min(12) = -1:max(12) = 32767
 
  DIM state as MenuState
  WITH state
@@ -1320,8 +1323,8 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
   IF keyval(scF1) > 1 THEN show_help "hero_appearance"
   usemenu state
   st.previewframe = -1
-  IF state.pt = 8 THEN st.previewframe = 0
-  IF state.pt = 9 THEN st.previewframe = 1
+  IF state.pt = 9 THEN st.previewframe = 0
+  IF state.pt = 10 THEN st.previewframe = 1
   IF enter_space_click(state) AND state.pt = 0 THEN EXIT DO
   IF state.pt > 0 THEN
    SELECT CASE state.pt
@@ -1346,18 +1349,24 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       st.changed = YES
      END IF
     CASE 6
-     IF intgrabber(her.def_weapon, min(state.pt), max(state.pt)) THEN
+     DIM def_expcurve_int as integer = her.def_expcurve * 100
+     IF intgrabber(def_expcurve_int, min(state.pt), max(state.pt)) THEN
+      her.def_expcurve = def_expcurve_int / 100
       st.changed = YES
      END IF
     CASE 7
+     IF intgrabber(her.def_weapon, min(state.pt), max(state.pt)) THEN
+      st.changed = YES
+     END IF
+    CASE 8
      IF intgrabber(her.max_name_len, min(state.pt), max(state.pt)) THEN
       st.changed = YES
      END IF
-    CASE 10
+    CASE 11
      IF intgrabber(her.portrait, min(state.pt), max(state.pt)) THEN
       st.changed = YES
      END IF
-    CASE 11
+    CASE 12
      IF intgrabber(her.portrait_pal, min(state.pt), max(state.pt)) THEN
       st.changed = YES
      END IF
@@ -1374,17 +1383,17 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       her.walk_sprite = spriteb.browse(her.walk_sprite)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite, YES)
-     CASE 6
+     CASE 7
       DIM itemb as ItemBrowser
       her.def_weapon = itemb.browse(her.def_weapon)
-     CASE 8
-      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 9
-      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+      xy_position_on_sprite st.battle, her.hand_pos(0).x, her.hand_pos(0).y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 10
+      xy_position_on_sprite st.battle, her.hand_pos(1).x, her.hand_pos(1).y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
+     CASE 11
       DIM spriteb as PortraitSpriteBrowser
       her.portrait = spriteb.browse(her.portrait)
-     CASE 11
+     CASE 12
       her.portrait_pal = pal16browse(her.portrait_pal, sprTypePortrait, her.portrait, YES)
     END SELECT
     st.changed = YES

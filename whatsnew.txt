@@ -22,6 +22,7 @@ Nov/Dec ??? 2017 [Etheldreme]
       clipboard, so you can copy-paste from/to other applications [Ralph]
     * Press R in the slice editor to reset a slice's position to 0,0 and
       alignment/anchoring to top-left corner [Ralph]
+    * Customizable Experience Curve for each hero [Taoki]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

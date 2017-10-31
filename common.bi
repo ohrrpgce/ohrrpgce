@@ -262,8 +262,8 @@ DECLARE FUNCTION color_browser_256(byval start_color as integer=0) as integer
 DECLARE SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
 DECLARE SUB unload_sprite_and_pal (byref img as GraphicPair)
 
-DECLARE FUNCTION exptolevel (byval level as integer) as integer
-DECLARE FUNCTION total_exp_to_level (byval level as integer) as integer
+DECLARE FUNCTION exptolevel (byval level as integer, byval curve as double = 0.2) as integer
+DECLARE FUNCTION total_exp_to_level (byval level as integer, byval curve as double = 0.2) as integer
 DECLARE FUNCTION current_max_level() as integer
 DECLARE FUNCTION atlevel (byval lev as integer, byval a0 as integer, byval aMax as integer) as integer
 DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax as double, byval midpercent as double) as double
