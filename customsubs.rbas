@@ -2795,10 +2795,9 @@ SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as 
  NEXT
 END SUB
 
-SUB experience_chart ()
+SUB experience_chart (byval expcurve as double=0.2)
 
  'DIM exp_first_level as integer = 30
- 'DIM exp_multiplier as single = 1.2
  'DIM exp_adder as integer = 5
  'DIM exp_uppercap as integer = 1000000
 
@@ -2814,7 +2813,7 @@ SUB experience_chart ()
  menu(0) = "Previous menu..."
  DIM state as MenuState
  WITH state
-  .size = 24
+  .autosize = YES
   .last = UBOUND(menu)
   .need_update = YES
  END WITH
@@ -2879,16 +2878,16 @@ SUB experience_chart ()
    DIM killcount as string
    FOR lev as integer = 1 TO gen(genMaxLevel)
     IF mode = 0 THEN
-     suffix = "total " & total_exp_to_level(lev)
+     suffix = "total " & total_exp_to_level(lev, expcurve)
     ELSE
      IF test_exp > 0 THEN
-      killcount = STR(ceiling(exptolevel(lev) / test_exp * hero_count))
+      killcount = STR(ceiling(exptolevel(lev, expcurve) / test_exp * hero_count))
      ELSE
       killcount = "infinite"
      END IF
      suffix = "= " & test_name & "*" & killcount
     END IF
-    menu(startfrom + lev) = "Level " & lev & " +" & exptolevel(lev) & " " & suffix
+    menu(startfrom + lev) = "Level " & lev & " +" & exptolevel(lev, expcurve) & " " & suffix
    NEXT lev
    state.need_update = NO
   END IF
@@ -2901,7 +2900,7 @@ SUB experience_chart ()
 
   IF first_view THEN
    first_view = NO
-   notification "This screen is informational only. You cannot customize the experience formula yet."
+   'notification "This screen is informational only. You cannot customize the experience formula yet."
   END IF
  LOOP 
 END SUB

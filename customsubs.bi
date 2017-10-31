@@ -77,7 +77,7 @@ DECLARE FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
 DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
 DECLARE FUNCTION numbertail (s as string) as string
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
-DECLARE SUB experience_chart ()
+DECLARE SUB experience_chart (byval expcurve as double=0.2)
 DECLARE SUB stat_growth_chart ()
 DECLARE SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
 
