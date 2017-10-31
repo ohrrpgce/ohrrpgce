@@ -4186,7 +4186,17 @@ SUB script_functions(byval cmdid as integer)
    scriptret = hero_total_exp(retvals(0))
   END IF
  CASE 270'--experience to level
-  scriptret = total_exp_to_level(retvals(0))
+  retvals(1) = get_optional_arg(1, -1)
+  IF retvals(1) = -1 ORELSE valid_hero_party(retvals(1)) THEN
+   IF retvals(1) = -1 THEN
+    'Default experience curve
+    scriptret = total_exp_to_level(retvals(0))
+   ELSEIF gam.hero(retvals(1)).id >= 0 THEN
+    scriptret = total_exp_to_level(retvals(0), gam.hero(retvals(1)).def_expcurve)
+   ELSE
+    scripterr interpreter_context_name() + "empty hero slot " & retvals(1)
+   END IF
+  END IF
  CASE 271'--experience to next level
   IF valid_hero_party(retvals(0)) THEN
    scriptret = gam.hero(retvals(0)).exp_next - gam.hero(retvals(0)).exp_cur

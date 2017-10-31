@@ -402,7 +402,12 @@
 </li>
 		<li>
 <a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a><br>
+		<ul>
+		<li>
+<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#Reordering%20Slices">Reordering Slices</a><br>
@@ -909,7 +914,7 @@
 		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
 		
 	
-		<a href="#about-experiencetolevel">experience to level (level)</a><br>
+		<a href="#about-experiencetolevel">experience to level (level, hero slot)</a><br>
 		
 	
 		<a href="#about-experiencetonextlevel">experience to next level (who)</a><br>
@@ -960,16 +965,37 @@
 		<a href="#about-firstchild">first child(handle)</a><br>
 		
 	
+		<a href="#about-firstchildoftype">first child of type(handle, type)</a><br>
+		
+	
 		<a href="#about-firstcontainerchild">first container child(handle)</a><br>
+		
+	
+		<a href="#about-firstellipsechild">first ellipse child(handle)</a><br>
+		
+	
+		<a href="#about-firstgridchild">first grid child(handle)</a><br>
 		
 	
 		<a href="#about-firstmenuitem">first menu item(menu handle)</a><br>
 		
 	
+		<a href="#about-firstpanelchild">first panel child(handle)</a><br>
+		
+	
 		<a href="#about-firstrectchild">first rect child(handle)</a><br>
 		
 	
+		<a href="#about-firstscrollchild">first scroll child(handle)</a><br>
+		
+	
+		<a href="#about-firstselectchild">first select child(handle)</a><br>
+		
+	
 		<a href="#about-firstspritechild">first sprite child(handle)</a><br>
+		
+	
+		<a href="#about-firsttextchild">first text child(handle)</a><br>
 		
 	
 		
@@ -1125,7 +1151,7 @@
 		<a href="#about-getheropicture">get hero picture (who,type)</a><br>
 		
 	
-		<a href="#about-getheroslice">get hero slice (who)</a><br>
+		<a href="#about-getheroslice">get hero slice (rank)</a><br>
 		
 	
 		<a href="#about-getherospeed">get hero speed (who)</a><br>
@@ -1470,6 +1496,9 @@
 		<a href="#about-heroportrait">hero portrait</a><br>
 		
 	
+		<a href="#about-herorankfromslice">hero rank from slice (handle)</a><br>
+		
+	
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
 		
 	
@@ -1764,6 +1793,12 @@
 		<a href="#about-nextcontainersibling">next container sibling(handle)</a><br>
 		
 	
+		<a href="#about-nextellipsesibling">next ellipse sibling(handle)</a><br>
+		
+	
+		<a href="#about-nextgridsibling">next grid sibling(handle)</a><br>
+		
+	
 		<a href="#about-nextmenu">next menu(menu handle)</a><br>
 		
 	
@@ -1773,13 +1808,28 @@
 		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		
 	
+		<a href="#about-nextpanelsibling">next panel sibling(handle)</a><br>
+		
+	
 		<a href="#about-nextrectsibling">next rect sibling(handle)</a><br>
+		
+	
+		<a href="#about-nextscrollsibling">next scroll sibling(handle)</a><br>
+		
+	
+		<a href="#about-nextselectsibling">next select sibling(handle)</a><br>
 		
 	
 		<a href="#about-nextsibling">next sibling(handle)</a><br>
 		
 	
+		<a href="#about-nextsiblingoftype">next sibling of type(handle, type)</a><br>
+		
+	
 		<a href="#about-nextspritesibling">next sprite sibling(handle)</a><br>
+		
+	
+		<a href="#about-nexttextsibling">next text sibling(handle)</a><br>
 		
 	
 		
@@ -1834,6 +1884,9 @@
 		
 	
 		<a href="#about-npcreference">NPC reference (ID, copy)</a><br>
+		
+	
+		<a href="#about-npcreferencefromslice">npc reference from slice (handle)</a><br>
 		
 	
 		<a href="#about-npcsaresuspended">npcs are suspended</a><br>
@@ -2775,6 +2828,9 @@
 		<a href="#about-slicetofront">slice to front (handle)</a><br>
 		
 	
+		<a href="#about-slicetype">slice type (handle)</a><br>
+		
+	
 		<a href="#about-slicewidth">slice width (handle)</a><br>
 		
 	
@@ -2928,7 +2984,7 @@
 		<a href="#about-swapbyname">swap by name (name,name)</a><br>
 		
 	
-		<a href="#about-swapbyposition">swap by position (position,position)</a><br>
+		<a href="#about-swapbyposition">swap by position (slot1, slot2)</a><br>
 		
 	
 		<a href="#about-swapinhero">swap in hero (who)</a><br>
@@ -6097,7 +6153,14 @@ resume box advance # go back to normal</pre>
 		<ul></ul>
 </li>
 </ul>
-<p></p>
+<p>
+			<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
+			(including <span class="code">hero:name</span> constants), hero party slots, and walkabout rank!
+			</div>
+		</p>
 		
 		
 		<hr>
@@ -6256,9 +6319,11 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 <a name="about-swapbyposition"></a>
-		<h4>swap by position (position,position)</h4>
+		<h4>swap by position (slot1, slot2)</h4>
 <p>
-			Swaps two heroes in your party based on their positions in the party
+			
+				Swaps two heroes in your party by their positions in the party (ie, by party slot).
+			
 			
 			
 			
@@ -7711,9 +7776,9 @@ if (herolevelled (find hero (hero: Bob))) then (
 </div>
 		<div class="command">
 <a name="about-experiencetolevel"></a>
-		<h4>experience to level (level)</h4>
+		<h4>experience to level (level, hero slot)</h4>
 <p>
-			Returns the total experience required to reach a specified level from level 0.
+			Returns the total experience required to reach a specified level from level 0. The second argument is a hero slot. Different heroes may have different experience curves. If the <span class="param">hero slot</span> argument is left out, then the default experience curve will be used.
 			
 			
 			
@@ -10774,7 +10839,12 @@ set menu on close script(m, @my menu exit handler)
 </li>
 		<li>
 <a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a><br>
+		<ul>
+		<li>
+<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 </li>
 		<li>
 <a href="#Reordering%20Slices">Reordering Slices</a><br>
@@ -11278,12 +11348,57 @@ end
 </div>
 		<div class="command">
 <a name="about-getheroslice"></a>
-		<h4>get hero slice (who)</h4>
+		<h4>get hero slice (rank)</h4>
 <p>
-			Get the slice for a hero walkabout. The argument is the hero's position in the walkabout caterpillar. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to a hero walkabout.
+			
+				Get the slice for a hero walkabout, which is a container slice.
+				The argument is the hero's rank in the walkabout caterpillar.
+				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work).
+				The main purpose of getting this slice is so you can access the sprite slice attached to it
+				(use <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get hero slice(rank))</span> to get it),
+				or if you want to attach other slices to a hero walkabout.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getnpcslice" class="ref">get npc slice</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-herorankfromslice" class="ref">hero rank from slice</a>, </li>
+<li><a href="#about-getnpcslice" class="ref">get npc slice</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-herorankfromslice"></a>
+		<h4>hero rank from slice (handle)</h4>
+<p>
+			
+				The opposite of <a href="#about-getheroslice" class="ref">get hero slice</a>:
+				Given a slice <span class="param">handle</span>, check whether it's the walkabout slice of some hero,
+				and if so, returns the hero walkabout rank (a number between 0 and 3).
+				If it doesn't belong to any hero, returns -1, <b>not</b> 0/false, like
+				<a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a> does!
+				<br>
+				This also returns -1 for slices parented to a hero slice, such as the 'walkabout
+				sprite component'.
+				<br>
+				This command is useful if you've detected a collision between two slices
+				(e.g. using <a href="#about-findcollidingslice" class="ref">find colliding slice</a>), such as a projectile and another slice,
+				and you want to check whether the projectile hit a hero, and which one.
+				<div style="background-color:#DCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					There are always four hero walkabout slices, even if there aren't that
+					many heroes in the active party!
+					The extra hero slices are set to hidden.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getheroslice" class="ref">get hero slice</a>, </li>
+<li><a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -11291,10 +11406,48 @@ end
 <a name="about-getnpcslice"></a>
 		<h4>get npc slice (npc)</h4>
 <p>
-			Get the slice for an NPC walkabout. The argument is the NPC id or an <a href="#about-npcreference" class="ref">NPC reference</a>. You will not be able to manually reposition this slice. The main purpose of getting this slice is so you can access the sprite slice attached to it, or if you want to attach other slices to an NPC.
+			
+				Get the slice for an NPC walkabout, which is a container slice.
+				The argument is the NPC id or an <a href="#about-npcreference" class="ref">NPC reference</a>.
+				You will not be able to manually reposition this slice (e.g. <a href="#about-putslice" class="ref">put slice</a> does not work).
+				The main purpose of getting this slice is so you can access the sprite slice attached to it
+				(use <a href="#about-lookupslice" class="ref">lookup slice</a><span class="code">(sl:walkabout sprite component, get npc slice(npc))</span> to get it),
+				or if you want to attach other slices to an NPC.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getheroslice" class="ref">get hero slice</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-npcreferencefromslice" class="ref">npc reference from slice</a>, </li>
+<li><a href="#about-getheroslice" class="ref">get hero slice</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-npcreferencefromslice"></a>
+		<h4>npc reference from slice (handle)</h4>
+<p>
+			
+				The opposite of <a href="#about-getnpcslice" class="ref">get npc slice</a>:
+				Given a slice <span class="param">handle</span>, check whether it's the walkabout slice of some NPC,
+				and if so, returns the <a href="#about-npcreference" class="ref">NPC reference</a> number.
+				If it doesn't belong to any NPC, returns 0.
+				<br>
+				This also returns 0 for slices parented to the NPC's slices, such as the 'walkabout
+				sprite component'.
+				<br>
+				This command is useful if you've detected a collision between two slices
+				(e.g. using <a href="#about-findcollidingslice" class="ref">find colliding slice</a>), such as a projectile and another slice,
+				and you want to check whether the projectile hit an NPC, and which one.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-herorankfromslice" class="ref">hero rank from slice</a>, </li>
+<li><a href="#about-getnpcslice" class="ref">get npc slice</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -12511,7 +12664,12 @@ end
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Moving Around the Slice Tree</h3>
+		<ul>
+		<li>
+<a href="#Type-specific%20iteration%20commands">Type-specific iteration commands</a><br>
 		<ul></ul>
+</li>
+</ul>
 <p></p>
 		
 		
@@ -12673,96 +12831,6 @@ end
 		</p>
 </div>
 		<div class="command">
-<a name="about-firstspritechild"></a>
-		<h4>first sprite child(handle)</h4>
-<p>
-			Returns a slice handle for the first sprite child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no sprite children. Children of other types will be ignored. This is useful when looping through sprites.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextspritesibling" class="ref">next sprite sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-nextspritesibling"></a>
-		<h4>next sprite sibling(handle)</h4>
-<p>
-			Returns a slice handle for the next sprite sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping through sprites.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstspritechild" class="ref">first sprite child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-firstrectchild"></a>
-		<h4>first rect child(handle)</h4>
-<p>
-			Returns a slice handle for the first rect child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no rect children. Children of other types will be ignored. This is useful when looping through rects.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextrectsibling" class="ref">next rect sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-nextrectsibling"></a>
-		<h4>next rect sibling(handle)</h4>
-<p>
-			Returns a slice handle for the next rect sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping through rects.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstrectchild" class="ref">first rect child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-firstcontainerchild"></a>
-		<h4>first container child(handle)</h4>
-<p>
-			Returns a slice handle for the first container child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no container children. Children of other types will be ignored. This is useful when looping through containers.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextcontainersibling" class="ref">next container sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-<a name="about-nextcontainersibling"></a>
-		<h4>next container sibling(handle)</h4>
-<p>
-			Returns a slice handle for the next container sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping through containers.
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-firstcontainerchild" class="ref">first container child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
 <a name="about-sliceparent"></a>
 		
 				<h4>slice parent</h4>
@@ -12798,6 +12866,274 @@ end
 <li><a href="#about-setparent" class="ref">set parent</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Type-specific%20iteration%20commands"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			<a href="#Moving%20Around%20the%20Slice%20Tree">Moving Around the Slice Tree</a> →
+			</span>Type-specific iteration commands</h3>
+		<ul></ul>
+<p></p>
+		
+		
+		<div class="command">
+<a name="about-firstchildoftype"></a>
+		<h4>first child of type(handle, type)</h4>
+<p>
+			
+				Returns a slice handle for the first child of a given
+				slice <span class="param">handle</span> which has the given <span class="param">type</span>.
+				<span class="param">type</span> is one of the <span class="code">slicetype:</span>
+				constants, such as <span class="code">slicetype:sprite</span>.
+				See <a href="#about-slicetype" class="ref">slice type</a> for the full list.
+				Returns <span class="param">false</span> if the slice has no children of that type.
+				Children of other types will be ignored.
+				This is useful when looping through slices.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-firstchild" class="ref">first child</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextsiblingoftype"></a>
+		<h4>next sibling of type(handle, type)</h4>
+<p>
+			
+				Returns a slice handle for the next sibling of a given
+				slice <span class="param">handle</span> which has the given <span class="param">type</span>.
+				<span class="param">type</span> is one of the <span class="code">slicetype:</span>
+				constants, such as <span class="code">slicetype:sprite</span>.
+				See <a href="#about-slicetype" class="ref">slice type</a> for the full list.
+				Returns <span class="param">false</span> if there are no more children of that type.
+				Children of other types will be ignored.
+				This is useful when looping through slices.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-nextsibling" class="ref">next sibling</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstcontainerchild"></a>
+		<h4>first container child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:container)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextcontainersibling"></a>
+		<h4>next container sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:container)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstrectchild"></a>
+		<h4>first rect child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:rect)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextrectsibling"></a>
+		<h4>next rect sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:rect)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstspritechild"></a>
+		<h4>first sprite child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:sprite)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextspritesibling"></a>
+		<h4>next sprite sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:sprite)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firsttextchild"></a>
+		<h4>first text child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:text)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nexttextsibling"></a>
+		<h4>next text sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:text)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstellipsechild"></a>
+		<h4>first ellipse child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:ellipse)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextellipsesibling"></a>
+		<h4>next ellipse sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:ellipse)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstgridchild"></a>
+		<h4>first grid child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:grid)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextgridsibling"></a>
+		<h4>next grid sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:grid)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstscrollchild"></a>
+		<h4>first scroll child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:scroll)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextscrollsibling"></a>
+		<h4>next scroll sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:scroll)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstselectchild"></a>
+		<h4>first select child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:select)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextselectsibling"></a>
+		<h4>next select sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:select)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-firstpanelchild"></a>
+		<h4>first panel child(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-firstchildoftype" class="ref">first child of type</a><span class="code">(handle, slicetype:panel)</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-nextpanelsibling"></a>
+		<h4>next panel sibling(handle)</h4>
+<p>
+			
+				An alias for <a href="#about-nextsiblingoftype" class="ref">next sibling of type</a><span class="code">(handle, slicetype:panel)</span>.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -13119,11 +13455,11 @@ end
 				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
-					There are currently three types of slice for which there are no commands, not even to identify them:
-					the 'root' slice (of which there is only one), 'special' slices (like <a href="#sprite%20layer" class="undef">sprite layer</a>),
+					There are two types of slice used by the engine for which there are no commands:
+					'special' slices (like <a href="#sprite%20layer" class="undef">sprite layer</a>),
 					and 'map' slices (which are map layers).
 					However you can use <a href="#about-lookupslice" class="ref">lookup slice</a> to find each instance of these.
-					Root and special slices are nothing but container slices with special purposes.
+					Special slices are nothing but container slices with special purposes (but not special behaviour).
 					None of these kinds of slices can be created or manipulated in the slice collection editor either.
 				</div>
 			</p>
@@ -13141,6 +13477,30 @@ end
 <p></p>
 		
 		
+		<div class="command">
+<a name="about-slicetype"></a>
+		<h4>slice type (handle)</h4>
+<p>
+			
+				Returns the type of the given slice <span class="param">handle</span>, one of the constants:
+				<span class="code">slicetype:Special</span>,
+				<span class="code">slicetype:Container</span>,
+				<span class="code">slicetype:Rect</span>,
+				<span class="code">slicetype:Sprite</span>,
+				<span class="code">slicetype:Text</span>,
+				<span class="code">slicetype:Map</span>,
+				<span class="code">slicetype:Grid</span>,
+				<span class="code">slicetype:Ellipse</span>,
+				<span class="code">slicetype:Scroll</span>,
+				<span class="code">slicetype:Select</span>,
+				<span class="code">slicetype:Panel</span>,
+				<span class="code">slicetype:Layout</span>.
+			
+			
+			
+			
+		</p>
+</div>
 		<div class="command">
 <a name="about-sliceiscontainer"></a>
 		<h4>slice is container (handle)</h4>
@@ -18040,7 +18400,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 808 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 825 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

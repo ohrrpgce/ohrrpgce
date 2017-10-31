@@ -2831,9 +2831,9 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<description>Returns experience required by a hero to reach the next level. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>.</description>
 		</command>
 		<command id="experiencetolevel">
-			<canon>experience to level (level)</canon>
+			<canon>experience to level (level, hero slot)</canon>
 			<shortname>experience to level</shortname>
-			<description>Returns the total experience required to reach a specified level from level 0.</description>
+			<description>Returns the total experience required to reach a specified level from level 0. The second argument is a hero slot. Different heroes may have different experience curves. If the <p>hero slot</p> argument is left out, then the default experience curve will be used.</description>
 		</command>
 		<command id="giveexperience">
 			<canon>give experience (hero,amount)</canon>

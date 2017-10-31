@@ -287,7 +287,7 @@ define function, begin
 267,mainmenu,0                #opens the main menu
 268,loadpalette,1,0           #load master palette
 269,totalexperience,1,0       #experience gained by a hero
-270,experiencetolevel,1,0     #total experience to reach a level
+270,experiencetolevel,2,0,-1  #total experience to reach a level (level,hero)
 271,experiencetonextlevel,1,0 #experience to level up
 272,setexperience,3,0,0,1     #set total experience (who,amount,allow spell forgetting)
 273,milliseconds,0            #timer in milliseconds
