@@ -94,11 +94,11 @@ gam.hero(slot).rename_on_status = readbit(her.bits(), 0, 25)
 resetlmp slot, her.def_level
 
 '--setup experience
-gam.hero(slot).def_expcurve = her.def_expcurve
+gam.hero(slot).exp_mult = her.exp_mult
 gam.hero(slot).lev = her.def_level
 gam.hero(slot).lev_gain = 0
 gam.hero(slot).exp_cur = 0
-gam.hero(slot).exp_next = exptolevel(her.def_level + 1, her.def_expcurve)
+gam.hero(slot).exp_next = exptolevel(her.def_level + 1, her.exp_mult)
 
 '--clear learnmask slots (just to be really thorough)
 FOR i as integer = slot * 6 TO slot * 6 + 5

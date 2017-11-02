@@ -729,7 +729,7 @@ Type HeroDef
 	portrait as integer
 	portrait_pal as integer
 	def_level as integer
-	def_expcurve as double
+	exp_mult as double
 	def_weapon as integer
 	Lev0 as stats
 	LevMax as stats

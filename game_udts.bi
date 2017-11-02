@@ -50,7 +50,7 @@ TYPE HeroState
  wep_pal as integer
  battle_pic as integer
  battle_pal as integer
- def_expcurve as double
+ exp_mult as double
  def_wep as integer  'default weapon
  pic as integer
  pal as integer

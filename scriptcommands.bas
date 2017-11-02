@@ -4147,7 +4147,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_party(retvals(0)) AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
    gam.hero(retvals(0)).lev = retvals(1)
-   gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1, gam.hero(retvals(0)).def_expcurve)
+   gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1, gam.hero(retvals(0)).exp_mult)
    gam.hero(retvals(0)).exp_cur = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
   END IF
@@ -4192,7 +4192,7 @@ SUB script_functions(byval cmdid as integer)
     'Default experience curve
     scriptret = total_exp_to_level(retvals(0))
    ELSEIF gam.hero(retvals(1)).id >= 0 THEN
-    scriptret = total_exp_to_level(retvals(0), gam.hero(retvals(1)).def_expcurve)
+    scriptret = total_exp_to_level(retvals(0), gam.hero(retvals(1)).exp_mult)
    ELSE
     scripterr interpreter_context_name() + "empty hero slot " & retvals(1)
    END IF

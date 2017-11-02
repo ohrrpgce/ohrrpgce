@@ -1789,7 +1789,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    END WITHNODE
   END READNODE
   hero.def_level = parent."default_level".default(-1).integer
-  hero.def_expcurve = parent."default_expcurve".default(0.2).double
+  hero.exp_mult = parent."default_expcurve".default(0.2).double
   hero.def_weapon = parent."default_weapon".integer
   ReadStatsNode parent."stats_at_zero".ptr, hero.Lev0
   ReadStatsNode parent."stats_at_max".ptr, hero.LevMax
@@ -1912,7 +1912,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  WriteXYPairNode ch, "hand_a", hero.hand_pos(0)
  WriteXYPairNode ch, "hand_b", hero.hand_pos(1)
  IF hero.def_level >= 0 THEN SetChildNode parent, "default_level", hero.def_level
- SetChildNode parent, "default_expcurve", hero.def_expcurve
+ SetChildNode parent, "default_expcurve", hero.exp_mult
  SetChildNode parent, "default_weapon", hero.def_weapon
 
  WriteStatsNode(parent, "stats_at_zero", hero.Lev0)

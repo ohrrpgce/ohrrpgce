@@ -1216,7 +1216,7 @@ SUB update_hero_appearance_menu(byref st as HeroEditState, menu() as string, her
  menu(4) = "Walkabout Palette: " & defaultint(her.walk_sprite_pal)
  menu(5) = "Base Level: " & her.def_level
  IF her.def_level < 0 THEN menu(5) = "Base Level: Party Average"
- menu(6) = "Experience Curve: " & format(her.def_expcurve, "0.00")
+ menu(6) = "Experience Curve: " & format(her.exp_mult, "0.00")
  menu(7) = "Default Weapon: " & load_item_name(her.def_weapon, 0, 1)
  menu(8) = "Max Name Length: " & zero_default(her.max_name_len)
  menu(9) = "Hand position A..."
@@ -1349,9 +1349,9 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
       st.changed = YES
      END IF
     CASE 6
-     DIM def_expcurve_int as integer = her.def_expcurve * 100
-     IF intgrabber(def_expcurve_int, min(state.pt), max(state.pt)) THEN
-      her.def_expcurve = def_expcurve_int / 100
+     DIM exp_mult_int as integer = her.exp_mult * 100
+     IF intgrabber(exp_mult_int, min(state.pt), max(state.pt)) THEN
+      her.exp_mult = exp_mult_int / 100
       st.changed = YES
      END IF
     CASE 7
@@ -1384,7 +1384,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, sprTypeWalkabout, her.walk_sprite, YES)
      CASE 6
-      her.def_expcurve = experience_chart(her.def_expcurve)
+      her.exp_mult = experience_chart(her.exp_mult)
      CASE 7
       DIM itemb as ItemBrowser
       her.def_weapon = itemb.browse(her.def_weapon)

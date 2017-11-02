@@ -752,7 +752,7 @@ FUNCTION trytheft (bat as BattleState, byval who as integer, byval targ as integ
 END FUNCTION
 
 FUNCTION hero_total_exp (byval hero_slot as integer) as integer
- RETURN total_exp_to_level(gam.hero(hero_slot).lev, gam.hero(hero_slot).def_expcurve) + gam.hero(hero_slot).exp_cur
+ RETURN total_exp_to_level(gam.hero(hero_slot).lev, gam.hero(hero_slot).exp_mult) + gam.hero(hero_slot).exp_cur
 END FUNCTION
 
 SUB updatestatslevelup (byval hero_slot as integer, byval allowforget as integer)
@@ -910,7 +910,7 @@ SUB giveheroexperience (byval who as integer, byval exper as integer)
     .exp_cur -= .exp_next
     .lev += 1 'current level
     .lev_gain += 1 'levelup counter
-    .exp_next = exptolevel(.lev + 1, .def_expcurve)
+    .exp_next = exptolevel(.lev + 1, .exp_mult)
     IF .lev >= current_max_level THEN
      'You can't gain experience once you've hit the level cap
      .exp_cur = 0
@@ -928,12 +928,12 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
  DIM lostlevels as bool = NO
  
  FOR i as integer = 0 TO gam.hero(who).lev - 1
-  total += exptolevel(i + 1, gam.hero(who).def_expcurve)
+  total += exptolevel(i + 1, gam.hero(who).exp_mult)
  NEXT
  IF total > amount THEN
   'losing levels; lvl up from level 0
   gam.hero(who).lev = 0
-  gam.hero(who).exp_next = exptolevel(1, gam.hero(who).def_expcurve)
+  gam.hero(who).exp_next = exptolevel(1, gam.hero(who).exp_mult)
   lostlevels = YES
  ELSE
   'set spell learnt bits correctly
