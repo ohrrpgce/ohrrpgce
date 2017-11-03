@@ -96,7 +96,7 @@ DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-DECLARE FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
+DECLARE FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
 DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
@@ -390,7 +390,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
+FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
   last_used_bitdepth = bitdepth
   DIM flags as Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
@@ -444,7 +444,7 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
       .w = framesize.w * zoom
       .h = framesize.h * zoom
     END WITH
-    debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
+    IF quiet = NO THEN debuginfo "setvideomode zoom=" & zoom & " w*h = " & dest_rect.w &"*"& dest_rect.h
     screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
     IF screensurface = NULL THEN
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
@@ -473,12 +473,14 @@ FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
 
 #ENDIF  ' Not __FB_ANDROID__
 
-  WITH *screensurface->format
-   debuginfo "gfx_sdl: created screensurface size=" & screensurface->w & "*" & screensurface->h _
-             & " depth=" & .BitsPerPixel & " flags=0x" & HEX(screensurface->flags) _
-             & " R=0x" & hex(.Rmask) & " G=0x" & hex(.Gmask) & " B=0x" & hex(.Bmask)
-   'FIXME: should handle the screen surface not being BGRA, or ask SDL for a surface in that encoding
-  END WITH
+  IF quiet = NO THEN
+    WITH *screensurface->format
+     debuginfo "gfx_sdl: created screensurface size=" & screensurface->w & "*" & screensurface->h _
+               & " depth=" & .BitsPerPixel & " flags=0x" & HEX(screensurface->flags) _
+               & " R=0x" & hex(.Rmask) & " G=0x" & hex(.Gmask) & " B=0x" & hex(.Bmask)
+     'FIXME: should handle the screen surface not being BGRA, or ask SDL for a surface in that encoding
+    END WITH
+  END IF
 
 #IFDEF __FB_DARWIN__
   ' SDL on OSX forgets the Unicode input state after a setvideomode
@@ -520,7 +522,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     framesize.h = h
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
     'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now
-    gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth))
+    gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth), YES)
     IF screenbuffer THEN
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
