@@ -1182,7 +1182,11 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
   IF keyval(scF1) > 1 THEN show_help "edit_tag_range_check_" & kind_name
   IF keyval(scEsc) > 1 THEN EXIT DO
   
-  usemenu st
+  IF usemenu(st) THEN
+   check.max = bound(check.max, check.min, 99)
+   check.min = bound(check.min, 0, check.max)
+   st.need_update = YES
+  END IF
 
   SELECT CASE st.pt
    CASE 0:
@@ -1192,15 +1196,9 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
    CASE 1:
     IF tag_set_grabber(check.tag, st, 0) THEN st.need_update = YES
    CASE 2:
-    IF intgrabber(check.min, 0, 99) THEN
-     check.max = bound(check.max, check.min, 99)
-     st.need_update = YES
-    END IF
+    IF intgrabber(check.min, 0, 99) THEN st.need_update = YES
    CASE 3:
-    IF intgrabber(check.max, 0, 99) THEN
-     check.min = bound(check.min, 0, check.max)
-     st.need_update = YES
-    END IF
+    IF intgrabber(check.max, 0, 99) THEN st.need_update = YES
   END SELECT
   
   IF st.need_update THEN
