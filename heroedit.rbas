@@ -1271,9 +1271,19 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
      IF tag_set_grabber(.active_tag, st, 0) THEN st.need_update = YES
     CASE 7 TO UBOUND(menu) - 1
      'Edit an existing one here
+     DIM check_id as integer = st.pt - 7
      IF enter_space_click(st) THEN
-      edit_tag_range_check hero.checks(st.pt - 7)
+      edit_tag_range_check hero.checks(check_id)
       st.need_update = YES
+     END IF
+     IF keyval(scDelete) > 1 THEN
+      IF yesno("Really delete this range check? : " & tag_range_check_string(hero.checks(check_id)), NO, NO) THEN
+       FOR j as integer = check_id + 1 TO UBOUND(hero.checks)
+        hero.checks(j - 1) = hero.checks(j)
+       NEXT j
+       REDIM PRESERVE hero.checks(UBOUND(hero.checks) - 1) as TagRangeCheck 
+       st.need_update = YES
+      END IF
      END IF
     CASE UBOUND(menu)
      'Add a new range-check
