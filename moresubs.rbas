@@ -481,7 +481,7 @@ SUB evalherotags ()
    IF id = leaderid THEN settag herotags(id).leader_tag, YES
    IF i < 4 THEN settag herotags(id).active_tag, YES
    FOR j as integer = 0 TO v_len(herotags(id).checks) - 1
-    WITH herotags(i).checks[j]
+    WITH herotags(id).checks[j]
      SELECT CASE .kind
       CASE TagRangeCheckKind.level
        IF gam.hero(i).lev >= .min ANDALSO gam.hero(i).lev <= .max THEN
