@@ -1840,7 +1840,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    hero.alive_tag = tags."is_alive".integer
    hero.leader_tag = tags."is_leader".integer
    hero.active_tag = tags."is_active".integer
-   READNODE tags."checks" as checks, default
+   READNODE tags."checks" as checks
     WITHNODE checks."range" as range_node
      SELECT CASE range_node."kind".string
       CASE "level":
