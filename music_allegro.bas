@@ -101,10 +101,10 @@ function music_settings_menu () as bool
 	return NO
 end function
 
-sub music_play(songname as string, fmt as MusicFormatEnum)
+sub music_play(filename as string, fmt as MusicFormatEnum)
 	if music_on = 1 then
-		songname = rtrim(songname)	'lose any added nulls
-		
+		dim songname as string = filename
+
 		if fmt = FORMAT_BAM then
 			dim midname as string
 			dim as integer flen = filelen(songname)
@@ -149,8 +149,8 @@ sub music_play(songname as string, fmt as MusicFormatEnum)
 			debug "Could not load song " + songname
 			exit sub
 		end if
-		
-		play_midi(music_song, 1)			
+
+		play_midi(music_song, 1)
 		music_paused = 0
 	end if
 end sub

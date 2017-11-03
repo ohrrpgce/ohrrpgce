@@ -728,10 +728,11 @@ end function
 sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 end sub
 
-sub music_play(songname as string, byval fmt as MusicFormatEnum)
+sub music_play(filename as string, byval fmt as MusicFormatEnum)
 	dim erro as MMRESULT
 	if music_init_count then
-		songname = rtrim(songname)	'lose any added nulls
+		dim songname as string = filename
+
 		dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
 			dim midname as string

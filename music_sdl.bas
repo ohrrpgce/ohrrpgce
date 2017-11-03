@@ -248,10 +248,9 @@ sub music_play(byval lump as Lump ptr, byval fmt as MusicFormatEnum)
 
 end sub
 
-sub music_play(songname as string, byval fmt as MusicFormatEnum)
+sub music_play(filename as string, byval fmt as MusicFormatEnum)
 	if music_status = musicOn then
-		songname = rtrim(songname)	'lose any added nulls
-
+		dim songname as string = filename
 		if fmt = FORMAT_BAM then
 			dim midname as string
 			dim as integer flen

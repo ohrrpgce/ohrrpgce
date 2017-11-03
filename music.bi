@@ -17,7 +17,7 @@ declare sub music_close()
 declare function music_get_info() as string
 
 'The fmt arg is not very useful, and mostly ignored.
-declare sub music_play overload(songname as string, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
+declare sub music_play overload(filename as string, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
 declare sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
 declare sub music_pause()
 declare sub music_resume()
