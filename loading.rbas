@@ -1933,6 +1933,10 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  SetChildNode parent, "default_weapon", hero.def_weapon
  SetChildNode parent, "exp_mult", hero.exp_mult
 
+ 'FIXME: This is just to remove debug warnings for people like James who
+ 'use nightlies frequently. It can be removed before the etheldreme stable release
+ FreeChildNode parent, "default_expcurve"
+
  WriteStatsNode(parent, "stats_at_zero", hero.Lev0)
  WriteStatsNode(parent, "stats_at_max", hero.LevMax)
 
