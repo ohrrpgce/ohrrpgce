@@ -11,3 +11,6 @@ OGG is the preferred sound file format, but you can also import WAV and MP3 soun
 Only short sound files are suitable for use as sound effects. The importer will not allow you to import files larger than 500kB, but even 500kB is really very large.
 
 You can also give names to your sound effects, but this is not strictly necessary because when you import a sound file, its filename will automatically be used as the sound effect name.
+
+Extra metadata like file comments is shown for some audio file formats, especially OGG files.
+The `quality' of OGG files is the approximate equivalent quality setting used to encode them (if encoded by the OHRRPGCE's oggenc tool).

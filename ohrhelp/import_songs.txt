@@ -53,3 +53,6 @@ Here is a list of the supported song formats:
   is usually bigger than MIDI or BAM
   but is usually smaller than OGG
   or MP3.
+
+Extra metadata like file comments is shown for some audio file formats, especially OGG files.
+The `quality' of OGG files is the approximate equivalent quality setting used to encode them (if encoded by the OHRRPGCE's oggenc tool).

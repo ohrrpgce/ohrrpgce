@@ -17,10 +17,14 @@ extern "C"
 #undef ov_clear
 #undef ov_fopen
 #undef ov_info
+#undef ov_bitrate
+#undef ov_time_total
 #undef ov_comment
 dim shared ov_clear as function(byval vf as OggVorbis_File ptr) as long
 dim shared ov_fopen as function(byval path as const zstring ptr, byval vf as OggVorbis_File ptr) as long
 dim shared ov_info as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_info ptr
+dim shared ov_bitrate as function(byval vf as OggVorbis_File ptr, byval link as long) as clong
+dim shared ov_time_total as function(byval vf as OggVorbis_File ptr, byval link as long) as double
 dim shared ov_comment as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_comment ptr
 end extern
 
@@ -81,6 +85,8 @@ private function _load_libvorbisfile(libfile as string) as bool
 	MUSTLOAD(libvorbisfile, ov_clear)
 	MUSTLOAD(libvorbisfile, ov_fopen)
 	MUSTLOAD(libvorbisfile, ov_info)
+	MUSTLOAD(libvorbisfile, ov_bitrate)
+	MUSTLOAD(libvorbisfile, ov_time_total)
 	MUSTLOAD(libvorbisfile, ov_comment)
 	return YES
 end function
@@ -99,6 +105,26 @@ private function load_vorbisfile() as bool
 	' We can load them even if we're using a different music backend
 	if _load_libvorbisfile("SDL_mixer") then return YES
 	RETURN NO
+end function
+
+' First index is number of channels, second is quality
+dim oggenc_quality_levels(1 to 2, -1 to 10) as integer = { _
+	{32, 48, 60, 70, 80, 86, 96, 110, 120, 140, 160, 240}, _
+	{45, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 500} _
+}
+
+'Return the oggenc quality level most closely matching this bitrate. Assumes 44.1kHz.
+function oggenc_quality(channels as integer, bitrate as integer) as integer
+        if bitrate <= 0 then return -1
+        channels = bound(channels, 1, 2)
+        dim bestmatch as double = 999
+        dim bestidx as integer
+        for idx as integer = lbound(oggenc_quality_levels, 2) to ubound(oggenc_quality_levels, 2)
+                dim ratio as double = bitrate / oggenc_quality_levels(channels, idx)
+                if ratio < 1 then ratio = 1 / ratio
+                if ratio < bestmatch then bestmatch = ratio : bestidx = idx
+        next
+        return bestidx
 end function
 
 ' Append one or more lines to menu() describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
@@ -127,16 +153,47 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 		exit sub
 	end if
 
+	' Length
+	dim length as double
+	length = ov_time_total(@oggfile, -1)
+	if length <> OV_EINVAL then
+		dim msg as string = "Length:   "
+		if length >= 60 then
+			msg &= (int(length) \ 60) & "m"
+			'Avoid printing 1m60.0s for length 119.99
+			length = small(fmod(length, 60), 59.9)
+			msg &= format(length, "00.0") & "s"
+		else
+			msg &= format(length, "0.0") & "s"
+		end if
+		str_array_append menu(), msg
+	else
+		debug "ov_time_total failed on " & songfile
+	end if
+
 	' Bit and sample rate, channels
 	dim info as vorbis_info ptr
 	info = ov_info(@oggfile, -1)
 	if info then
-		dim msg as string
-		msg = info->channels & " channel(s)  " &  format(info->rate / 1000, "0.0") & "kHz  "
-		if info->bitrate_nominal then msg &= cint(info->bitrate_nominal / 1000) & "kbps"
-		str_array_append menu(), msg
+		str_array_append menu(), info->channels & " channel(s)  " &  format(info->rate / 1000, "0.0") & "kHz  "
 	else
-		debug "ov_info failed: " & songfile
+		debug "ov_info failed on " & songfile
+	end if
+
+	' Bitrate
+	dim msg as string
+	dim bitrate as integer = ov_bitrate(@oggfile, -1)
+	if bitrate > 0 then
+		msg &= cint(bitrate / 1000) & "kbps"
+	elseif info andalso info->bitrate_nominal > 0 then
+		' Don't show both the average and the nominal bitrates, that's too much info
+		msg &= cint(info->bitrate_nominal / 1000) & "kbps (Nominal)"
+	end if
+	if info andalso info->bitrate_nominal > 0 andalso in_bound(info->channels, 1, 2) then
+		msg &= " (quality ~" & oggenc_quality(info->channels, info->bitrate_nominal \ 1000) & ")"
+	end if
+	if msg <> "" then
+		str_array_append menu(), "Bitrate:  " & msg
 	end if
 
 	' Comments

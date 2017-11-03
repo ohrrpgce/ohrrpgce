@@ -709,7 +709,7 @@ SUB importsong_get_song_info (songname as string, songfile as string, byval song
  menu(1) = "<- Song " & songnum & " of " & gen(genMaxSong) & " ->"
  IF songfile <> "" THEN menu(2) = "Name: " & songname ELSE menu(2) = "-Unused-"
  menu(7) = ""
- menu(8) = "Type: " & songtype
+ menu(8) = "Type:     " & songtype
  menu(9) = "Filesize: " & filesize(songfile)
  IF bamfile <> songfile AND bamfile <> "" THEN
   REDIM PRESERVE menu(10)
@@ -941,7 +941,7 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
  menu(1) = "<- SFX " & sfxnum & " of " & gen(genMaxSFX) & " ->"
  IF sfxfile <> "" THEN menu(2) = "Name: " & sfxname ELSE menu(2) = "-Unused-"
  menu(8) = ""
- menu(9) = "Type: " & sfxtype
+ menu(9) = "Type:     " & sfxtype
  menu(10) = "Filesize: " & filesize(sfxfile)
 
  '-- add author, length, etc, info here

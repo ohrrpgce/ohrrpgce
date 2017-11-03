@@ -1,4 +1,4 @@
-Here you can choose the OGG quality level of the sound effect or MP3 file you are importing.
+Here you can choose the OGG quality level of the MP3 or WAV sound effect or music file you are importing.
 
 Press the left arrow key to reduce quality, or the right arrow key to increase quality. Press ENTER or SPACE to confirm.
 
