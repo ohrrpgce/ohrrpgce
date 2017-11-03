@@ -36,4 +36,6 @@ DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 DECLARE FUNCTION find_music_lump (songnum as integer) as string
 DECLARE FUNCTION find_sfx_lump (sfxnum as integer) as string
 
+EXTERN oggenc_quality_levels(1 to 2, -1 to 10) as integer
+
 #ENDIF

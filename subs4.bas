@@ -1245,7 +1245,7 @@ END SUB
 
 SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
  DIM ogg_quality as integer
- IF (pick_ogg_quality(ogg_quality)) THEN mp3 = "" : EXIT SUB
+ IF pick_ogg_quality(ogg_quality) = NO THEN mp3 = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
@@ -1267,7 +1267,7 @@ END SUB
 
 SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  DIM ogg_quality as integer
- IF (pick_ogg_quality(ogg_quality)) THEN wav = "" : EXIT SUB
+ IF pick_ogg_quality(ogg_quality) = NO THEN wav = "" : EXIT SUB
  oggtemp = tmpdir & "temp." & randint(100000) & ".ogg"
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
