@@ -23,8 +23,6 @@
 
 '==============================================================================
 
-DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
-
 'Reload helper functions used by saving/loading
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as string, byval value as double)
@@ -42,6 +40,7 @@ DECLARE Function LoadPropBool(node as Reload.Nodeptr, propname as string, byval 
 DECLARE Function LoadPropFloat(node as Reload.Nodeptr, propname as string, byval defaultval as double=0.0) as double
 
 'Other local subs and functions
+DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
 DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
