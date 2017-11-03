@@ -2446,7 +2446,8 @@ FUNCTION local_file_move(frompath as string, topath as string) as bool
   RETURN renamefile(frompath, topath)
 END FUNCTION
 
-FUNCTION fileisreadable(filename as string) as integer
+FUNCTION fileisreadable(filename as string) as bool
+  if len(filename) = 0 then debug "fileisreadable: no filename"
   dim ret as bool = NO
   dim fh as integer, err_code as integer
 
@@ -2469,7 +2470,8 @@ FUNCTION fileisreadable(filename as string) as integer
 END FUNCTION
 
 ' Whether an existing file can be opened for writing, or else if a new file can be written.
-FUNCTION fileiswriteable(filename as string) as integer
+FUNCTION fileiswriteable(filename as string) as bool
+  if len(filename) = 0 then debug "fileisreadable: no filename"
   dim ret as bool = NO
   dim fh as integer
   dim exists as bool = (get_file_type(filename) <> fileTypeNonexistent)
@@ -2523,6 +2525,7 @@ FUNCTION isfile (filename as string) as bool
 END FUNCTION
 
 FUNCTION real_isfile(filename as string) as bool
+  if len(filename) = 0 then debug "real_isfile: no filename"
   dim ret as bool = (get_file_type(filename) = fileTypeFile)
   #ifdef DEBUG_FILE_IO
     debuginfo "real_isfile(" & filename & ") = " & ret

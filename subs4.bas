@@ -36,8 +36,8 @@ DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() 
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
-DECLARE SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
-DECLARE SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
+DECLARE SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
+DECLARE SUB importsong_import_song_file (songname as string, songfile as string, bamfile as string, byval songnum as integer)
 DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
 DECLARE SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
 DECLARE SUB importsfx_exportsfx(sfxfile as string, file_ext as string, sfxname as string)
@@ -483,7 +483,7 @@ SUB generalmusicsfxmenu ()
   resetsfx
 END SUB
 
-SUB delete_song (byval songnum as integer, songfile as string)
+SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF slave_channel <> NULL_CHANNEL THEN
@@ -495,7 +495,10 @@ SUB delete_song (byval songnum as integer, songfile as string)
   END IF
  #ENDIF
  safekill songfile
+ IF LEN(bamfile) THEN safekill bamfile
  'FIXME: handle deleting from rpgdirs (bug 247)... and the same for soundeffects
+
+ IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
 END SUB
 
 SUB importsong ()
@@ -515,10 +518,10 @@ state.pt = 1
 DIM songnum as integer = 0
 DIM songname as string = ""
 DIM songfile as string = ""
-DIM bamfile as string = ""
+DIM bamfile as string = ""  '"" if none, differs from songfile if it's a BAM fallback
 DIM file_ext as string
 DIM metadata as string
-importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, selectable(), state
 
 setkeys YES
 DO
@@ -540,25 +543,25 @@ DO
   IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
    importsong_save_song_data songname, songnum
    songnum = newsong
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+   state.need_update = YES
   END IF
   IF keyval(scLeft) > 1 AND songnum > 0 THEN
    importsong_save_song_data songname, songnum
    songnum -= 1
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+   state.need_update = YES
   END IF
   IF keyval(scRight) > 1 AND songnum < 32767 THEN
    importsong_save_song_data songname, songnum
    songnum += 1
    IF needaddset(songnum, gen(genMaxSong), "song") THEN songname = ""
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+   state.need_update = YES
   END IF
  END IF
  IF enter_space_click(state) THEN
   IF state.pt = 0 THEN EXIT DO
   IF state.pt = 3 THEN
-   importsong_import_song_file songname, songfile, songnum
-   importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+   importsong_import_song_file songname, songfile, bamfile, songnum
+   state.need_update = YES
   END IF
   IF state.pt = 4 AND songfile <> "" THEN importsong_exportsong songfile, bamfile, file_ext, songname
   IF state.pt = 5 AND songfile <> "" THEN  'delete song
@@ -566,19 +569,22 @@ DO
     music_stop
     'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
     'setupmusic
-    delete_song songnum, songfile
-    safekill bamfile
-    IF slave_channel <> NULL_CHANNEL THEN send_lump_modified_msg(songfile)  'only need to send any valid filename for this song
-    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+    delete_song songnum, songfile, bamfile
+    state.need_update = YES
    END IF
   END IF
   IF state.pt = 6 THEN  'delete BAM fallback
    IF yesno("Really delete this BAM song?", NO, NO) THEN
     safekill bamfile
-    importsong_get_song_info songname, songfile, songnum, file_ext, menu(), metadata, selectable(), state
+    state.need_update = YES
     state.pt = 0
    END IF
   END IF
+ END IF
+
+ IF state.need_update THEN
+  state.need_update = NO
+  importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, selectable(), state
  END IF
 
  clearpage dpage
@@ -596,7 +602,7 @@ EXIT SUB
 
 END SUB
 
-SUB importsong_import_song_file (songname as string, songfile as string, byval songnum as integer)
+SUB importsong_import_song_file (songname as string, songfile as string, bamfile as string, byval songnum as integer)
  STATIC default as string
  music_stop
  'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
@@ -621,7 +627,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, byval s
   EXIT SUB
  END IF
 
- delete_song songnum, songfile
+ delete_song songnum, songfile, bamfile
 
  songname = newname
 
@@ -641,7 +647,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, byval s
  importsong_save_song_data songname, songnum
 END SUB
 
-SUB importsong_get_song_info (songname as string, songfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
+SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
  music_stop
 
  DIM temp as string
@@ -664,7 +670,7 @@ SUB importsong_get_song_info (songname as string, songfile as string, byval song
    songtype = "Bob's Adlib Music (BAM)"
   END IF
  END IF
- DIM bamfile as string = songfile
+ bamfile = songfile
 
  IF isfile(temp & ".ogg") THEN
   file_ext = ".ogg"
@@ -740,13 +746,11 @@ END SUB
 'bamfile: The .bam fallback file, if any
 SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
  IF bamfile <> songfile AND LEN(bamfile) THEN
-  DIM submenu(2) as string
-  submenu(0) = "Export " + file_ext + " file"
-  submenu(1) = "Export .bam fallback file"
-  submenu(2) = "Cancel"
-  DIM choice as integer = sublist(submenu(), "export_song")
+  DIM choice as integer = twochoice("Export which version of this song?", _
+                                    file_ext + " file", _
+                                    ".bam fallback file")
   IF choice = 1 THEN file_ext = ".bam" : songfile = bamfile
-  IF choice = 2 THEN EXIT SUB
+  IF choice = -1 THEN EXIT SUB
  END IF
  DIM query as string = "Name of file to export to?"
  DIM outfile as string = inputfilename(query, file_ext, "", "input_file_export_song", songname)
