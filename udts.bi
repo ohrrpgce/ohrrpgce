@@ -720,8 +720,12 @@ Type SpellList
 	learned as integer  '0 if learnable from an item, or level+1 if learnt at level
 End Type
 
+Enum TagRangeCheckKind
+	level = 1
+End Enum
+
 Type TagRangeCheck
-	kind as string
+	kind as TagRangeCheckKind
 	tag as integer
 	min as integer
 	max as integer

@@ -1143,17 +1143,20 @@ SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, ini
 END SUB
 
 FUNCTION tag_range_check_string(byval check as TagRangeCheck) as string
- IF check.kind <> "level" THEN RETURN "Check of kind """ & check.kind & """ is not supported"
+ IF check.kind <> TagRangeCheckKind.level THEN RETURN "Check of kind """ & check.kind & """ is not supported"
+ DIM kind_name as string = "level"
  IF check.tag < 0 THEN RETURN "Invalid tag value " & check.tag
  IF check.tag = 1 THEN RETURN "Tag 1 cannot be changed"
  IF check.tag = 0 THEN RETURN "(Select to edit the range check)"
  IF check.min = check.max THEN
-  RETURN "Set tag " & check.tag & " if " & check.kind & " = " & check.min & " (" & load_tag_name(check.tag) & ")"
+  RETURN "Set tag " & check.tag & " if " & kind_name & " = " & check.min & " (" & load_tag_name(check.tag) & ")"
  END IF
- RETURN "Set tag " & check.tag & " if " & check.kind & " from " & check.min & " to " & check.max & " (" & load_tag_name(check.tag) & ")"
+ RETURN "Set tag " & check.tag & " if " & kind_name & " from " & check.min & " to " & check.max & " (" & load_tag_name(check.tag) & ")"
 END FUNCTION
 
 SUB edit_tag_range_check (byref check as TagRangeCheck)
+ IF check.kind <> TagRangeCheckKind.level THEN visible_debug("edit_tag_range_check: unsupported check kind " & check.kind)
+ DIM kind_name as string = "level"
  DIM menu as MenuDef
  ClearMenuData menu
  append_menu_item menu, "Previous menu..."
@@ -1176,7 +1179,7 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
  DO
   setwait 55
   setkeys
-  IF keyval(scF1) > 1 THEN show_help "edit_tag_range_check_" & check.kind
+  IF keyval(scF1) > 1 THEN show_help "edit_tag_range_check_" & kind_name
   IF keyval(scEsc) > 1 THEN EXIT DO
   
   usemenu st
@@ -1205,8 +1208,8 @@ SUB edit_tag_range_check (byref check as TagRangeCheck)
    DIM cap as string = tag_condition_caption(check.tag, "Set tag", "NONE", "Not usable")
    cap = LEFT(rpad(cap, " ", w), w)
    menu.items[1]->caption = cap
-   menu.items[2]->caption = "At or above " & check.kind & " " & check.min
-   menu.items[3]->caption = "At or below " & check.kind & " " & check.max
+   menu.items[2]->caption = "At or above " & kind_name & " " & check.min
+   menu.items[3]->caption = "At or below " & kind_name & " " & check.max
    st.need_update = NO
   END IF
 
@@ -1275,10 +1278,10 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     CASE UBOUND(menu)
      'Add a new range-check
      IF enter_space_click(st) THEN
-      REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1)
-      hero.checks(UBOUND(hero.checks)).kind = "level"
+      REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1) as TagRangeCheck 
+      hero.checks(UBOUND(hero.checks)).kind = TagRangeCheckKind.level
+      st.need_update = YES
      END IF
-     st.need_update = YES
    END SELECT
 
   END WITH

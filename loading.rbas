@@ -1846,7 +1846,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
       CASE "level":
        REDIM PRESERVE hero.checks(check_index)
        WITH hero.checks(check_index)
-        .kind = "level"
+        .kind = TagRangeCheckKind.level
         .tag = range_node."tag".integer
         .min = range_node."min".integer
         .max = range_node."max".integer
@@ -1998,11 +1998,11 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  FOR i as integer = 0 TO UBOUND(hero.checks)
   WITH hero.checks(i)
    SELECT CASE .kind
-    CASE "level"
+    CASE TagRangeCheckKind.level
      DIM range_node as NodePtr
      range_node = AppendChildNode(checks, "range") 'Makes a new node named range under the "checks" node
      '-- Copy the members of the check data into reload nodes
-     SetChildNode range_node, "kind", .kind
+     SetChildNode range_node, "kind", "level"
      SetChildNode range_node, "tag", .tag
      SetChildNode range_node, "min", .min
      SetChildNode range_node, "max", .max

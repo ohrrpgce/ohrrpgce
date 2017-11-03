@@ -4697,6 +4697,8 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
  tag_id = ABS(tag_id)
 
  IF tag_id <= 1 THEN RETURN ""
+ 
+ DIM kind_name as string
 
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags)) '--for each available hero
   IF tag_id = herotags(i).have_tag THEN ret += "Hero " & i & !" in party tag\n"
@@ -4704,7 +4706,15 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
   IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
   IF tag_id = herotags(i).active_tag THEN ret += "Hero " & i & !" in active party tag\n"
   FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   IF tag_id = herotags(i).checks[j].tag THEN ret += "Hero " & i & " " & herotags(i).checks[j].kind & " check " & j & !"\n"
+   WITH herotags(i).checks[j]
+    SELECT CASE .kind
+     CASE TagRangeCheckKind.level
+      kind_name = "level"
+     CASE ELSE
+      kind_name = "???(" & .kind & ")"
+    END SELECT
+    IF tag_id = .tag THEN ret += "Hero " & i & " " & kind_name & " check " & j & !"\n"
+   END WITH
   NEXT j
  NEXT i
 
