@@ -1196,11 +1196,16 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
      IF tag_set_grabber(.active_tag, st, 0) THEN st.need_update = YES
     CASE 7 TO UBOUND(menu) - 1
      'Edit an existing one here
+     IF enter_space_click(st) THEN
+      st.need_update = YES
+     END IF
     CASE UBOUND(menu)
      'Add a new range-check
      IF enter_space_click(st) THEN
       REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1)
+      hero.checks(UBOUND(hero.checks)).kind = "level"
      END IF
+     st.need_update = YES
    END SELECT
 
    'Update cached hero tags
@@ -1223,6 +1228,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     END SELECT
     shaded(i) = NOT selectable(i)
    NEXT i
+   st.need_update = NO
   END IF
 
   clearpage dpage
