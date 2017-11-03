@@ -15,8 +15,9 @@
 
 '''' Local functions
 
-DECLARE SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
-DECLARE SUB import_convert_wav(byref wav as string, byref oggtemp as string)
+DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
+DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
 
 DECLARE SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
@@ -30,9 +31,126 @@ DECLARE SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval 
 
 
 '==========================================================================================
-'                                Audio format conversion
+'                                   Audio re-encoding
 '==========================================================================================
 
+
+FUNCTION find_madplay () as string
+ STATIC cached as bool = NO
+ STATIC cached_app as string
+ IF cached THEN RETURN cached_app
+ cached_app = find_helper_app("madplay", YES)
+ cached = YES
+ RETURN cached_app
+END FUNCTION
+
+FUNCTION find_oggenc () as string
+ STATIC cached as bool = NO
+ STATIC cached_app as string
+ IF cached THEN RETURN cached_app
+ cached_app = find_helper_app("oggenc", YES)
+ IF cached_app = "" THEN cached_app = find_helper_app("oggenc2")
+ cached = YES
+ RETURN cached_app
+END FUNCTION
+
+'Returns error message, or "" on success
+FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+ DIM as string tempwav
+ DIM as string ret
+ tempwav = tmpdir & "temp." & randint(100000) & ".wav"
+ ret = mp3_to_wav(in_file, tempwav)
+ IF LEN(ret) THEN RETURN ret
+ ret = wav_to_ogg(tempwav, out_file, quality)
+ safekill tempwav
+ RETURN ret
+END FUNCTION
+
+'Returns error message, or "" on success
+FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
+ DIM as string app, args, ret
+ IF NOT isfile(in_file) THEN RETURN "mp3 to wav conversion: " & in_file & " does not exist"
+ app = find_madplay()
+ IF app = "" THEN RETURN "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
+
+ args = " -o wave:" & escape_filename(out_file) & " " & escape_filename(in_file)
+ ret = spawn_and_wait(app, args)
+ IF LEN(ret) THEN
+  safekill out_file
+  RETURN ret
+ END IF
+
+ IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
+ RETURN ""
+END FUNCTION
+
+'Returns error message, or "" on success
+FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+ DIM as string app, args, ret
+ IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
+ app = find_oggenc()
+ IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
+
+ args = " -q " & quality & " -o " & escape_filename(out_file) & " " & escape_filename(in_file)
+ ret = spawn_and_wait(app, args)
+ IF LEN(ret) THEN
+  safekill out_file
+  RETURN "wav to ogg conversion failed: " & ret
+ END IF
+
+ IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
+ RETURN ""
+END FUNCTION
+
+
+'==========================================================================================
+'                                Audio re-encoding menus
+'==========================================================================================
+
+
+'Returns true and sets 'quality' if not cancelled
+FUNCTION pick_ogg_quality(byref quality as integer) as bool
+ STATIC q as integer = 2
+ DIM i as integer
+ DIM descrip as string
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN
+   RETURN NO  'cancelled
+  END IF
+  IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
+  IF enter_or_space() THEN EXIT DO
+  intgrabber q, -1, 10
+  clearpage vpage
+  centerbox rCenter, 105, 300, 54, 4, vpage
+  'We don't know the number of channels, so assume 2...
+  edgeprint "Pick Ogg quality level: " & q & " (~" & oggenc_quality_levels(2, q) & "kbps)", pCentered, 86, uilook(uiText), vpage
+  FOR i = 0 TO q + 1
+   rectangle rCenter - (12 * 21) \ 2 + 21 * i, 100, 20, 16, uilook(uiText), vpage
+  NEXT i
+  SELECT CASE q
+   CASE -1: descrip = "scratchy, smallest"
+   CASE 0: descrip = "not too bad, very small"
+   CASE 1: descrip = "pretty good, quite small"
+   CASE 2: descrip = "good, pretty small"
+   CASE 3: descrip = "good, smallish"
+   CASE 4: descrip = "good, medium sized"
+   CASE 5: descrip = "good, biggish"
+   CASE 6: descrip = "better than you need, big"
+   CASE 7: descrip = "much better than you need, too big"
+   CASE 8: descrip = "excessive, wasteful"
+   CASE 9: descrip = "very excessive, very wasteful"
+   CASE 10: descrip = "flagrantly excessive and wasteful"
+  END SELECT
+  edgeprint descrip, pCentered, 118, uilook(uiText), vpage
+  setvispage vpage
+  dowait
+ LOOP
+ quality = q
+ RETURN YES
+END FUNCTION
 
 SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
  DIM ogg_quality as integer

@@ -2714,25 +2714,6 @@ FUNCTION spawn_and_wait (app as string, args as string) as string
 
 END FUNCTION
 
-FUNCTION find_madplay () as string
- STATIC cached as integer = 0
- STATIC cached_app as string
- IF cached THEN RETURN cached_app
- cached_app = find_helper_app("madplay", YES)
- cached = -1
- RETURN cached_app
-END FUNCTION
-
-FUNCTION find_oggenc () as string
- STATIC cached as integer = 0
- STATIC cached_app as string
- IF cached THEN RETURN cached_app
- cached_app = find_helper_app("oggenc", YES)
- IF cached_app = "" THEN cached_app = find_helper_app("oggenc2")
- cached = -1
- RETURN cached_app
-END FUNCTION
-
 FUNCTION find_support_dir () as string
  'Returns, creating if needed, the support directory path.
  'The support dir is only normally used on Windows and Mac (on Mac, hspeak lives there).
@@ -2897,18 +2878,6 @@ FUNCTION download_file (url as string, destdir as string, forcefilename as strin
  RETURN NO
 END FUNCTION
 
-'Not used
-FUNCTION can_convert_mp3 () as integer
- IF find_madplay() = "" THEN RETURN 0
- RETURN can_convert_wav()
-END FUNCTION
-
-'Not used
-FUNCTION can_convert_wav () as integer
- IF find_oggenc() = "" THEN RETURN 0
- RETURN -1 
-END FUNCTION
-
 'There is way too much stuff in this function, would probably be cleaner to remove it
 FUNCTION missing_helper_message (appname as string) as string
  DIM ret as string
@@ -2939,54 +2908,6 @@ FUNCTION missing_helper_message (appname as string) as string
   END IF
  #ENDIF
  RETURN ret
-END FUNCTION
-
-'Returns error message, or "" on success
-FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
- DIM as string tempwav
- DIM as string ret
- tempwav = tmpdir & "temp." & randint(100000) & ".wav"
- ret = mp3_to_wav(in_file, tempwav)
- IF LEN(ret) THEN RETURN ret
- ret = wav_to_ogg(tempwav, out_file, quality)
- safekill tempwav
- RETURN ret
-END FUNCTION
-
-'Returns error message, or "" on success
-FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
- DIM as string app, args, ret
- IF NOT isfile(in_file) THEN RETURN "mp3 to wav conversion: " & in_file & " does not exist"
- app = find_madplay()
- IF app = "" THEN RETURN "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
-
- args = " -o wave:" & escape_filename(out_file) & " " & escape_filename(in_file)
- ret = spawn_and_wait(app, args)
- IF LEN(ret) THEN
-  safekill out_file
-  RETURN ret
- END IF
-
- IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
- RETURN ""
-END FUNCTION
-
-'Returns error message, or "" on success
-FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
- DIM as string app, args, ret
- IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
- app = find_oggenc()
- IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
-
- args = " -q " & quality & " -o " & escape_filename(out_file) & " " & escape_filename(in_file)
- ret = spawn_and_wait(app, args)
- IF LEN(ret) THEN
-  safekill out_file
-  RETURN "wav to ogg conversion failed: " & ret
- END IF
-
- IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
- RETURN ""
 END FUNCTION
 
 SUB upgrade_message (s as string)

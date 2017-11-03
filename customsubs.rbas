@@ -1240,50 +1240,6 @@ SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
  NEXT i
 END SUB
 
-'Returns true and sets 'quality' if not cancelled
-FUNCTION pick_ogg_quality(byref quality as integer) as bool
- STATIC q as integer = 2
- DIM i as integer
- DIM descrip as string
- setkeys
- DO
-  setwait 55
-  setkeys
-  IF keyval(scESC) > 1 THEN
-   RETURN NO  'cancelled
-  END IF
-  IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
-  IF enter_or_space() THEN EXIT DO
-  intgrabber q, -1, 10
-  clearpage vpage
-  centerbox rCenter, 105, 300, 54, 4, vpage
-  'We don't know the number of channels, so assume 2...
-  edgeprint "Pick Ogg quality level: " & q & " (~" & oggenc_quality_levels(2, q) & "kbps)", pCentered, 86, uilook(uiText), vpage
-  FOR i = 0 TO q + 1
-   rectangle rCenter - (12 * 21) \ 2 + 21 * i, 100, 20, 16, uilook(uiText), vpage
-  NEXT i
-  SELECT CASE q
-   CASE -1: descrip = "scratchy, smallest"
-   CASE 0: descrip = "not too bad, very small"
-   CASE 1: descrip = "pretty good, quite small"
-   CASE 2: descrip = "good, pretty small"
-   CASE 3: descrip = "good, smallish"
-   CASE 4: descrip = "good, medium sized"
-   CASE 5: descrip = "good, biggish"
-   CASE 6: descrip = "better than you need, big"
-   CASE 7: descrip = "much better than you need, too big"
-   CASE 8: descrip = "excessive, wasteful"
-   CASE 9: descrip = "very excessive, very wasteful"
-   CASE 10: descrip = "flagrantly excessive and wasteful"
-  END SELECT
-  edgeprint descrip, pCentered, 118, uilook(uiText), vpage
-  setvispage vpage
-  dowait
- LOOP
- quality = q
- RETURN YES
-END FUNCTION
-
 FUNCTION needaddset (byref pt as integer, byref check as integer, what as string) as integer
  IF pt <= check THEN RETURN NO
  IF yesno("Add new " & what & "?") THEN

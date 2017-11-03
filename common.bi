@@ -159,13 +159,6 @@ DECLARE FUNCTION find_helper_app (appname as string, try_install as integer=NO, 
 DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
 DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as integer
 DECLARE FUNCTION missing_helper_message (appname as string) as string
-DECLARE FUNCTION find_madplay () as string
-DECLARE FUNCTION find_oggenc () as string
-DECLARE FUNCTION can_convert_mp3 () as integer
-DECLARE FUNCTION can_convert_wav () as integer
-DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
-DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
-DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
 
 DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer
 'strgrabber has separate versions in customsubs.bas and yetmore2.bas
