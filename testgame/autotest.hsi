@@ -10,6 +10,8 @@ define constant, begin
 8,tag:textbox 14 happened
 9,tag:textbox 15 happened
 10,tag:Victory
+11,tag:Freki level 0
+12,tag:Freki level teens
 1,song:tinglazedandnoncommutative
 0,hero:UNUSED
 1,hero:Helga

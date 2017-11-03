@@ -1239,6 +1239,23 @@ script, hero exp and levels tests, begin
   assert(hero levelled(0) == 0)
   assert(get hero level(0) == 2)
   set level cap(99)
+  # Hero level range check tags
+  assert(hero by slot(0) == hero:Freki)
+  set hero level(0, 0, true), w
+  assert(check tag(tag: freki level 0) == true)
+  assert(check tag(tag: freki level teens) == false)
+  set hero level(0, 12, true), w
+  assert(check tag(tag: freki level 0) == false)
+  assert(check tag(tag: freki level teens) == false)
+  set hero level(0, 13, true), w
+  assert(check tag(tag: freki level 0) == false)
+  assert(check tag(tag: freki level teens) == true)
+  set hero level(0, 19, true), w
+  assert(check tag(tag: freki level 0) == false)
+  assert(check tag(tag: freki level teens) == true)
+  set hero level(0, 20, true), w
+  assert(check tag(tag: freki level 0) == false)
+  assert(check tag(tag: freki level teens) == false)
   # reset
   set hero level(0, 0, true)
   set hero level(1, 0, true)
