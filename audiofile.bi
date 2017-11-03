@@ -29,7 +29,7 @@ END ENUM
 
 
 DECLARE FUNCTION isawav(fi as string) as bool
-DECLARE SUB read_ogg_metadata(songfile as string, menu() as string)
+DECLARE FUNCTION read_ogg_metadata(songfile as string) as string
 DECLARE FUNCTION valid_audio_file (filepath as string) as bool
 DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 

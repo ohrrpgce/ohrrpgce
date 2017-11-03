@@ -127,31 +127,31 @@ function oggenc_quality(channels as integer, bitrate as integer) as integer
         return bestidx
 end function
 
-' Append one or more lines to menu() describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
-sub read_ogg_metadata(songfile as string, menu() as string)
+' Return one or more lines of text describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
+function read_ogg_metadata(songfile as string) as string
 	if load_vorbisfile() = NO then
-		str_array_append menu(), "Can't read OGG metadata: missing library"
-		exit sub
+		return "Can't read OGG metadata: missing library"
 	end if
 	'We don't unload libvorbisfile afterwards. No need.
 
 '#ifdef HAVE_VORBISFILE
 	dim oggfile as OggVorbis_File
-	dim ret as integer
-	ret = ov_fopen(songfile, @oggfile)
-	if ret then
+	dim errcode as integer
+	errcode = ov_fopen(songfile, @oggfile)
+	if errcode then
 		dim msg as string
-		select case ret
+		select case errcode
 			case OV_EREAD:      msg = "ERROR: Can't read file!"
 			case OV_ENOTVORBIS: msg = "ERROR: Not a Vorbis (audio) .ogg file!"
 			case OV_EVERSION:   msg = "ERROR: Unknown .ogg format version!"
 			case OV_EBADHEADER: msg = "ERROR: Corrupt .ogg file!"
-			case else:          msg = "ERROR: Can't parse file (error " & ret & ")"
+			case else:          msg = "ERROR: Can't parse file (error " & errcode & ")"
 		end select
-		str_array_append menu(), msg
 		debug "ov_fopen( " & songfile & ") failed : " & msg
-		exit sub
+		return msg
 	end if
+
+	dim ret as string
 
 	' Length
 	dim length as double
@@ -166,7 +166,7 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 		else
 			msg &= format(length, "0.0") & "s"
 		end if
-		str_array_append menu(), msg
+		ret &= msg & !"\n"
 	else
 		debug "ov_time_total failed on " & songfile
 	end if
@@ -175,7 +175,7 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 	dim info as vorbis_info ptr
 	info = ov_info(@oggfile, -1)
 	if info then
-		str_array_append menu(), info->channels & " channel(s)  " &  format(info->rate / 1000, "0.0") & "kHz  "
+		ret &= info->channels & " channel(s)  " &  format(info->rate / 1000, "0.0") & !"kHz  \n"
 	else
 		debug "ov_info failed on " & songfile
 	end if
@@ -192,15 +192,13 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 	if info andalso info->bitrate_nominal > 0 andalso in_bound(info->channels, 1, 2) then
 		msg &= " (quality ~" & oggenc_quality(info->channels, info->bitrate_nominal \ 1000) & ")"
 	end if
-	if msg <> "" then
-		str_array_append menu(), "Bitrate:  " & msg
-	end if
+	if msg <> "" then ret &= "Bitrate:  " & msg & !"\n"
 
 	' Comments
 	dim comments as vorbis_comment ptr
 	comments = ov_comment(@oggfile, -1)
 	if comments then
-		str_array_append menu(), ""
+		ret &= !"\n"
 		for idx as integer = 0 TO comments->comments - 1
 			' .ogg comment strings are UTF8, not null-terminated
 			' They're usually formatted like "AUTHOR=virt", but sometimes lower case or no 'tag' name.
@@ -212,17 +210,18 @@ sub read_ogg_metadata(songfile as string, menu() as string)
 				'Seems to be a tag, format it like "Author: virt"
 				cmmt = titlecase(left(cmmt, eqpos - 1)) & ": " & mid(cmmt, eqpos + 1)
 			end if
-			str_array_append menu(), cmmt
+                        ret &= cmmt & !"\n"
 		next
 	else
 		debug "ov_comment failed: " & songfile
 	end if
 
 	ov_clear(@oggfile)
+	return rtrim(ret)
 ' #else
-' 	str_array_append menu(), "(OGG metadata not enabled in this build)"
+' 	return "(OGG metadata not enabled in this build)"
 ' #endif
-end sub
+end function
 
 ' Check that an audio file really is the format it appears to be
 ' (This isn't and was never really necessary...)
