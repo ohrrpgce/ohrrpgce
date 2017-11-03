@@ -720,6 +720,13 @@ Type SpellList
 	learned as integer  '0 if learnable from an item, or level+1 if learnt at level
 End Type
 
+Type TagRangeCheck
+	kind as string
+	tag as integer
+	min as integer
+	max as integer
+End Type
+
 Type HeroDef
 	name as string
 	sprite as integer
@@ -742,6 +749,7 @@ Type HeroDef
 	alive_tag as integer
 	leader_tag as integer
 	active_tag as integer
+	checks(any) as TagRangeCheck
 	max_name_len as integer
 	hand_pos(1) as XYPair
 	reld as Reload.NodePtr

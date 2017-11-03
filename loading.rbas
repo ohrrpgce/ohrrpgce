@@ -1761,6 +1761,7 @@ END SUB
 SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
  ClearHeroData hero
  free_hero_reld hero
+ DIM check_index as integer = 0
  READNODE parent, default
   WITHNODE parent."name" as heroname
    hero.name = GetString(heroname)
@@ -1839,6 +1840,23 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
    hero.alive_tag = tags."is_alive".integer
    hero.leader_tag = tags."is_leader".integer
    hero.active_tag = tags."is_active".integer
+   READNODE tags."checks" as checks, default
+    WITHNODE checks."range" as range_node
+     SELECT CASE range_node."kind".string
+      CASE "level":
+       REDIM PRESERVE hero.checks(check_index)
+       WITH hero.checks(check_index)
+        .kind = "level"
+        .tag = range_node."tag".integer
+        .min = range_node."min".integer
+        .max = range_node."max".integer
+       END WITH
+       check_index += 1
+      CASE ELSE
+       debug "load_hero_from_reload: Unsupported hero tag check range kind """ & range_node."kind".string & """ for " & hero.name
+     END SELECT
+    END WITHNODE
+   END READNODE
   END READNODE
   '-- Ignore the following because they are kept as Nodes
   parent."battle_menus".ignore
@@ -1971,7 +1989,25 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  IF hero.alive_tag > 0 THEN SetChildNode tagnode, "is_alive", hero.alive_tag
  IF hero.leader_tag > 0 THEN SetChildNode tagnode, "is_leader", hero.leader_tag
  IF hero.active_tag > 0 THEN SetChildNode tagnode, "is_active", hero.active_tag
-
+ 'Now save the checks list
+ DIM checks as NodePtr = SetChildNode(tagnode, "checks") ' Makes a new checks node that will contain the range checks list
+ FOR i as integer = 0 TO UBOUND(hero.checks)
+  WITH hero.checks(i)
+   SELECT CASE .kind
+    CASE "level"
+     DIM range_node as NodePtr
+     range_node = AppendChildNode(checks, "range") 'Makes a new node named range under the "checks" node
+     '-- Copy the members of the check data into reload nodes
+     SetChildNode range_node, "kind", .kind
+     SetChildNode range_node, "tag", .tag
+     SetChildNode range_node, "min", .min
+     SetChildNode range_node, "max", .max
+    CASE ELSE
+     debug "save_hero_as_reload: Unsupported hero tag check range kind """ & .kind & """ for " & hero.name
+   END SELECT
+  END WITH
+ NEXT i
+ 
  IF reld."stat_options".exists THEN
   AddChild(parent, CloneNodeTree(reld."stat_options".ptr, GetDocument(parent)))
  ELSE
@@ -2042,6 +2078,7 @@ SUB ClearHeroData (hero as HeroDef)
   FOR i as integer = 0 TO maxElements - 1
     hero.elementals(i) = 1.0f
   NEXT
+  ERASE hero.checks
   create_blank_hero_reld hero
 END SUB
 
