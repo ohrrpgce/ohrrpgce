@@ -53,6 +53,8 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 #ENDIF
 
 
+DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
+
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
 'Used for search_string_cache. Should change every time the current game changes; changing
@@ -4648,7 +4650,7 @@ SUB load_special_tag_caches()
   herotags(i).active_tag = her.active_tag
   v_resize herotags(i).checks, 0
   FOR j as integer = 0 to UBOUND(her.checks)
-   v_append herotags(i).checks, her.checks(j).tag
+   v_append herotags(i).checks, her.checks(j)
   NEXT j
  NEXT i
  REDIM item_data(dimbinsize(binITM)) as integer
@@ -4675,7 +4677,7 @@ FUNCTION tag_is_autoset(byval tag_id as integer) as bool
   IF tag_id = herotags(i).leader_tag THEN count += 1
   IF tag_id = herotags(i).active_tag THEN count += 1
   FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   IF tag_id = herotags(i).checks[j] THEN count += 1
+   IF tag_id = herotags(i).checks[j].tag THEN count += 1
   NEXT j
  NEXT i
 
@@ -4702,7 +4704,7 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
   IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
   IF tag_id = herotags(i).active_tag THEN ret += "Hero " & i & !" in active party tag\n"
   FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
-   IF tag_id = herotags(i).checks[j] THEN ret += "Hero " & i & " range check " & j & !"\n"
+   IF tag_id = herotags(i).checks[j].tag THEN ret += "Hero " & i & " " & herotags(i).checks[j].kind & " check " & j & !"\n"
   NEXT j
  NEXT i
 

@@ -726,6 +726,7 @@ Type TagRangeCheck
 	min as integer
 	max as integer
 End Type
+DECLARE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck) 'DEFINE_ in common.rbas
 
 Type HeroDef
 	name as string
@@ -765,7 +766,7 @@ TYPE HeroTagsCache
 	alive_tag as integer
 	leader_tag as integer
 	active_tag as integer
-	checks as integer vector
+	checks as TagRangeCheck vector
 END TYPE
 
 'This is part of the UDT for items, which hasn't been written yet
