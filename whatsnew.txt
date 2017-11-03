@@ -23,6 +23,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Press R in the slice editor to reset a slice's position to 0,0 and
       alignment/anchoring to top-left corner [Ralph]
     * Customizable Experience Curve for each hero [Taoki]
+    * You can choose tags that will be turned on when heroes are at
+      specific levels [James]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
