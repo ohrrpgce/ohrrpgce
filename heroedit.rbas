@@ -41,7 +41,8 @@ DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
 DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
 DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
-
+DECLARE FUNCTION tag_range_check_string(byval check as TagRangeCheck) as string
+DECLARE SUB edit_tag_range_check (byref check as TagRangeCheck)
 
 
 SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
@@ -1146,8 +1147,79 @@ FUNCTION tag_range_check_string(byval check as TagRangeCheck) as string
  IF check.tag < 0 THEN RETURN "Invalid tag value " & check.tag
  IF check.tag = 1 THEN RETURN "Tag 1 cannot be changed"
  IF check.tag = 0 THEN RETURN "(Select to edit the range check)"
- RETURN "Turn ON tag " & check.tag & " if " & check.kind & " in range " & check.min & " to " & check.max
+ IF check.min = check.max THEN
+  RETURN "Set tag " & check.tag & " if " & check.kind & " = " & check.min & " (" & load_tag_name(check.tag) & ")"
+ END IF
+ RETURN "Set tag " & check.tag & " if " & check.kind & " from " & check.min & " to " & check.max & " (" & load_tag_name(check.tag) & ")"
 END FUNCTION
+
+SUB edit_tag_range_check (byref check as TagRangeCheck)
+ DIM menu as MenuDef
+ ClearMenuData menu
+ append_menu_item menu, "Previous menu..."
+ append_menu_item menu, "Tag:"
+ append_menu_item menu, "At or above"
+ append_menu_item menu, "At or below"
+ menu.textalign = alignLeft
+ 
+ DIM st as MenuState
+ init_menu_state st, menu
+ st.pt = 1
+ st.need_update = YES
+ st.active = YES
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "edit_tag_range_check_" & check.kind
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  usemenu st
+
+  SELECT CASE st.pt
+   CASE 0:
+    IF enter_space_click(st) THEN
+     EXIT DO
+    END IF
+   CASE 1:
+    IF tag_set_grabber(check.tag, st, 0) THEN st.need_update = YES
+   CASE 2:
+    IF intgrabber(check.min, 0, 99) THEN
+     check.max = bound(check.max, check.min, 99)
+     st.need_update = YES
+    END IF
+   CASE 3:
+    IF intgrabber(check.max, 0, 99) THEN
+     check.min = bound(check.min, 0, check.max)
+     st.need_update = YES
+    END IF
+  END SELECT
+  
+  IF st.need_update THEN
+   DIM w as integer = vpages(vpage)->w / 8 - 2
+   DIM cap as string = tag_condition_caption(check.tag, "Set tag", "NONE", "Not usable")
+   cap = LEFT(rpad(cap, " ", w), w)
+   menu.items[1]->caption = cap
+   menu.items[2]->caption = "At or above " & check.kind & " " & check.min
+   menu.items[3]->caption = "At or below " & check.kind & " " & check.max
+   st.need_update = NO
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
 
 SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string, byref st as MenuState)
  REDIM menu(7 + UBOUND(hero.checks) + 1)
@@ -1197,6 +1269,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     CASE 7 TO UBOUND(menu) - 1
      'Edit an existing one here
      IF enter_space_click(st) THEN
+      edit_tag_range_check hero.checks(st.pt - 7)
       st.need_update = YES
      END IF
     CASE UBOUND(menu)
