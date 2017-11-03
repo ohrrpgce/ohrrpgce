@@ -951,6 +951,9 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
    learnmask(i) = 0
   NEXT
  END IF
+ 'Update tags
+ evalherotags
+ tag_updates
 END SUB
 
 FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as integer

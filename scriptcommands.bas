@@ -4150,6 +4150,8 @@ SUB script_functions(byval cmdid as integer)
    gam.hero(retvals(0)).exp_next = exptolevel(retvals(1) + 1, gam.hero(retvals(0)).exp_mult)
    gam.hero(retvals(0)).exp_cur = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
+   evalherotags
+   tag_updates
   END IF
  CASE 184'--give experience (who, how much)
   'who = -1 targets battle party
@@ -4157,13 +4159,13 @@ SUB script_functions(byval cmdid as integer)
    IF valid_hero_party(retvals(0)) THEN
     giveheroexperience retvals(0), retvals(1)
     updatestatslevelup retvals(0), 0
-    evalherotags  'could revive a dead hero, I think
-    tag_updates
    END IF
   ELSE
    'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
    distribute_party_experience retvals(1)
   END IF
+  evalherotags
+  tag_updates
  CASE 185'--hero levelled (who)
   scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
  CASE 186'--spells learnt
