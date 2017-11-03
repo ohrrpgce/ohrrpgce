@@ -4630,6 +4630,14 @@ SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
  debugc errPromptBug, msg
 END SUB
 
+Constructor HeroTagsCache()
+ v_new this.checks
+End Constructor
+
+Destructor HeroTagsCache()
+ v_free this.checks
+End Destructor
+
 SUB load_special_tag_caches()
  DIM her as HeroDef
  FOR i as integer = 0 TO small(gen(genMaxHero), UBOUND(herotags))
@@ -4638,6 +4646,10 @@ SUB load_special_tag_caches()
   herotags(i).alive_tag = her.alive_tag
   herotags(i).leader_tag = her.leader_tag
   herotags(i).active_tag = her.active_tag
+  v_resize herotags(i).checks, 0
+  FOR j as integer = 0 to UBOUND(her.checks)
+   v_append herotags(i).checks, her.checks(j).tag
+  NEXT j
  NEXT i
  REDIM item_data(dimbinsize(binITM)) as integer
  FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
@@ -4649,7 +4661,8 @@ SUB load_special_tag_caches()
  NEXT i
 END SUB
 
-'Return whether a tag is automatically set by consulting herotags(), itemtags() arrays
+'Return whether a tag is automatically set by consulting the
+'herotags() and itemtags() arrays and the hero level checks
 FUNCTION tag_is_autoset(byval tag_id as integer) as bool
  DIM count as integer = 0
  tag_id = ABS(tag_id)
@@ -4661,6 +4674,9 @@ FUNCTION tag_is_autoset(byval tag_id as integer) as bool
   IF tag_id = herotags(i).alive_tag THEN count += 1
   IF tag_id = herotags(i).leader_tag THEN count += 1
   IF tag_id = herotags(i).active_tag THEN count += 1
+  FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
+   IF tag_id = herotags(i).checks[j] THEN count += 1
+  NEXT j
  NEXT i
 
  FOR i as integer = 0 TO small(gen(genMaxItem), UBOUND(itemtags))
@@ -4685,6 +4701,9 @@ FUNCTION describe_tag_autoset_places(byval tag_id as integer) as string
   IF tag_id = herotags(i).alive_tag THEN ret += "Hero " & i & !" is alive tag\n"
   IF tag_id = herotags(i).leader_tag THEN ret += "Hero " & i & !" is leader tag\n"
   IF tag_id = herotags(i).active_tag THEN ret += "Hero " & i & !" in active party tag\n"
+  FOR j as integer = 0 TO v_len(herotags(i).checks) - 1
+   IF tag_id = herotags(i).checks[j] THEN ret += "Hero " & i & " range check " & j & !"\n"
+  NEXT j
  NEXT i
 
  FOR i as integer = 0 TO maxMaxItems

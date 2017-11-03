@@ -759,10 +759,13 @@ End Type
 
 'This caches the tags needed by evalherotag/tag_is_special
 TYPE HeroTagsCache
+	Declare Constructor () 'defined in common.bas
+	Declare Destructor () 'defined in common.bas
 	have_tag as integer
 	alive_tag as integer
 	leader_tag as integer
 	active_tag as integer
+	checks as integer vector
 END TYPE
 
 'This is part of the UDT for items, which hasn't been written yet

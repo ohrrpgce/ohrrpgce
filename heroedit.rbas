@@ -1281,11 +1281,6 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
      st.need_update = YES
    END SELECT
 
-   'Update cached hero tags
-   herotags(hero_id).have_tag = .have_tag
-   herotags(hero_id).alive_tag = .alive_tag
-   herotags(hero_id).leader_tag = .leader_tag
-   herotags(hero_id).active_tag = .active_tag
   END WITH
 
   IF st.need_update THEN
@@ -1302,6 +1297,9 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
     shaded(i) = NOT selectable(i)
    NEXT i
    st.need_update = NO
+   'Save the hero, and then regenerate the tag cache
+   saveherodata hero, hero_id
+   load_special_tag_caches ()
   END IF
 
   clearpage dpage
