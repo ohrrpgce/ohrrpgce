@@ -3362,6 +3362,27 @@ SUB import_enemy_elementals_from_dt1 (copy_enemytypes_from as string)
 END SUB
 '/
 
+'Wandering Hamster demo from 1997 stored map tilesets in GEN, as it had no MAP lump
+SUB upgrade_1997 ()
+ DIM gmap(dimbinsize(binMAP)) as integer
+ FOR mapnum as integer = 0 TO gen(genMaxMap)
+  gmap(0) = gen(1 + mapnum)
+  gen(1 + mapnum) = 0
+  storerecord gmap(), game & ".map", getbinsize(binMAP) \ 2, mapnum
+  'NPCs didn't have facing direction stored, and just defaulted to south
+  DIM npcl(299) as NPCInst
+  LoadNPCL maplumpname(mapnum, "l"), npcl()
+  FOR i as integer = 0 TO UBOUND(npcl)
+   npcl(i).dir = dirSouth
+  NEXT
+  SaveNPCL maplumpname(mapnum, "l"), npcl()
+ NEXT
+ 'Also, had no title screen, so set "Skip title screen"
+ setbit gen(), genBits, 11, 1
+ 'Other stuff: textbox to add a hero has .hero_swap = 99 and .hero_lock = 99,
+ 'global text strings diff
+END SUB
+
 SUB upgrade (show_messages as bool)
 DIM fh as integer
 DIM master_temp(255) as RGBcolor
@@ -3446,6 +3467,11 @@ DIM dt6_records as integer = (filelen(game & ".dt6") + 79) \ 80
 IF dt6_records > gen(genMaxAttack) + 1 THEN
  upgrade_message "Increasing number of attacks from " & (gen(genMaxAttack) + 1) & " to " & dt6_records
  gen(genMaxAttack) = dt6_records - 1
+END IF
+
+IF gen(genVersion) = 0 ANDALSO isfile(game & ".map") = NO THEN
+ upgrade_message "Wow! Upgrading .RPG file from 1997"
+ upgrade_1997
 END IF
 
 'Check the number of maps, updating gen(genMaxMap), and check all lumps are present

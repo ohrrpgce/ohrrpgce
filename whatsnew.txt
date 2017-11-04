@@ -25,6 +25,7 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Customizable Experience Curve for each hero [Taoki]
     * You can choose tags that will be turned on when heroes are at
       specific levels [James]
+    * Support for games created in 1997 (OK, just the one game) [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]
@@ -72,6 +73,7 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Fix lots of g_debug.txt errors and long lags when using the Ctrl-F1
       teleport tool [Ralph]
     * Ancient .rpg files couldn't be played if they were renamed [Ralph]
+    * Couldn't delete BAM files [Ralph]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]
