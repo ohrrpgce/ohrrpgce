@@ -6722,8 +6722,10 @@ END SUB
 FUNCTION read_config_str (key as string, default as string="") as string
  DIM as string ret, prefix = config_prefix
  #IFDEF IS_GAME
-  ret = read_ini_str(config_file, key, CHR(0))
-  IF ret <> CHR(0) THEN RETURN ret
+  IF config_file <> "" THEN
+   ret = read_ini_str(config_file, key, CHR(0))
+   IF ret <> CHR(0) THEN RETURN ret
+  END IF
  #ENDIF
 
  DO
