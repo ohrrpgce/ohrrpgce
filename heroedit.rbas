@@ -1235,7 +1235,7 @@ SUB update_hero_tags_menu (byref hero as HeroDef, menu() as string, byref st as 
   FOR i as integer = 0 to UBOUND(hero.checks)
    menu(7 + i) = tag_range_check_string(hero.checks(i))
   NEXT i
-  menu(UBOUND(menu)) = "Add a range check.."
+  menu(UBOUND(menu)) = "Add a range check..."
  END WITH
  st.last = UBOUND(menu)
 END SUB
@@ -1275,18 +1275,22 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
       st.need_update = YES
      END IF
      IF keyval(scDelete) > 1 THEN
-      IF yesno("Really delete this range check? : " & tag_range_check_string(hero.checks(check_id)), NO, NO) THEN
-       FOR j as integer = check_id + 1 TO UBOUND(hero.checks)
-        hero.checks(j - 1) = hero.checks(j)
-       NEXT j
-       REDIM PRESERVE hero.checks(UBOUND(hero.checks) - 1) as TagRangeCheck 
+      IF yesno("Really delete this range check? """ & tag_range_check_string(hero.checks(check_id)) & """", NO, NO) THEN
+       IF UBOUND(hero.checks) = 0 THEN
+        ERASE hero.checks  'REDIMing would throw an error
+       ELSE
+        FOR j as integer = check_id + 1 TO UBOUND(hero.checks)
+         hero.checks(j - 1) = hero.checks(j)
+        NEXT j
+        REDIM PRESERVE hero.checks(UBOUND(hero.checks) - 1) as TagRangeCheck
+       END IF
        st.need_update = YES
       END IF
      END IF
     CASE UBOUND(menu)
      'Add a new range-check
      IF enter_space_click(st) THEN
-      REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1) as TagRangeCheck 
+      REDIM PRESERVE hero.checks(UBOUND(hero.checks) + 1) as TagRangeCheck
       hero.checks(UBOUND(hero.checks)).kind = TagRangeCheckKind.level
       st.need_update = YES
      END IF

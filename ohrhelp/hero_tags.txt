@@ -5,3 +5,5 @@ You can also choose tags that will be turned ON if the hero's current level is i
 Use the Up and Down arrow keys to navigate the menu.
 
 Press ENTER or SPACE to open the tag browser.
+
+Select a level range check and press DELETE to remove it.
