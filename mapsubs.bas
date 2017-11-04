@@ -2719,6 +2719,7 @@ SUB mapedit_layers (st as MapEditState)
      END IF
     CASE ltDefaultTileset
      IF intgrabber(map.gmap(0), 0, gen(genMaxTile)) THEN
+      loadmaptilesets st.tilesets(), map.gmap()
       state.need_update = YES
      END IF
     CASE ltLayerName
@@ -2789,7 +2790,7 @@ SUB mapedit_layers (st as MapEditState)
   setvispage vpage
   dowait
  LOOP
- mapedit_load_tilesets st
+ mapedit_load_tilesets st  'Reload default passability
  IF layerisenabled(map.gmap(), st.layer) = 0 THEN st.layer = 0
  v_free menu
  frame_unload @layerpreview
