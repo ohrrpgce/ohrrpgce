@@ -412,35 +412,38 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
   songname = ""
  END IF
 
- DIM optionsbottom as integer
-
  menu(1) = "<- Song " & songnum & " of " & gen(genMaxSong) & " ->"
- IF songfile <> "" THEN menu(2) = "Name: " & songname ELSE menu(2) = "-Unused-"
- IF bamfile <> songfile AND bamfile <> "" THEN
-  menu(6) = "Delete BAM fallback"
-  optionsbottom = 6
+
+ IF songfile = "" THEN
+  menu(2) = "-Unused-"
+  state.last = 3
+  metadata = ""
+
  ELSE
-  menu(6) = ""
-  optionsbottom = 5
- END IF
+  menu(2) = "Name: " & songname
+  IF bamfile <> songfile AND bamfile <> "" THEN
+   menu(6) = "Delete BAM fallback"
+   state.last = 6
+  ELSE
+   state.last = 5
+  END IF
 
- metadata  = "Type:     " & songtype & !"\n"
- metadata &= "Filesize: " & filesize(songfile) & !"\n"
- IF bamfile <> songfile AND bamfile <> "" THEN
-  metadata &= "BAM fallback exists. Filesize: " & filesize(bamfile) & !"\n"
- END IF
+  metadata  = "Type:     " & songtype & !"\n"
+  metadata &= "Filesize: " & filesize(songfile) & !"\n"
+  IF bamfile <> songfile AND bamfile <> "" THEN
+   metadata &= "BAM fallback exists. Filesize: " & filesize(bamfile) & !"\n"
+  END IF
 
- '-- add author, length, etc, info here
- IF file_ext = ".ogg" THEN
-  metadata &= read_ogg_metadata(songfile)
+  '-- add author, length, etc, info here
+  IF file_ext = ".ogg" THEN
+   metadata &= read_ogg_metadata(songfile)
+  END IF
  END IF
 
  REDIM PRESERVE selectable(UBOUND(menu))
  FOR i as integer = 0 TO UBOUND(selectable)
-  selectable(i) = (i <= optionsbottom)
+  selectable(i) = YES
  NEXT
-
- state.last = UBOUND(menu)
 END SUB
 
 'songfile: Complete path to the song file to be exported
@@ -671,21 +674,28 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
  END IF
 
  menu(1) = "<- SFX " & sfxnum & " of " & gen(genMaxSFX) & " ->"
- IF sfxfile <> "" THEN menu(2) = "Name: " & sfxname ELSE menu(2) = "-Unused-"
+ IF sfxfile = "" THEN
+  menu(2) = "-Unused-"
+  state.last = 3  ' Hide Export/Delete/Play Sound
 
- metadata  = "Type:     " & sfxtype & !"\n"
- metadata &= "Filesize: " & filesize(sfxfile) & !"\n"
+  metadata = ""
+ ELSE
+  menu(2) = "Name: " & sfxname
+  state.last = 6  ' Show Export/Delete/Play Sound
 
- '-- add author, length, etc, info here
- IF file_ext = ".ogg" THEN
-  metadata &= read_ogg_metadata(sfxfile)
+  metadata  = "Type:     " & sfxtype & !"\n"
+  metadata &= "Filesize: " & filesize(sfxfile) & !"\n"
+
+  '-- add author, length, etc, info here
+  IF file_ext = ".ogg" THEN
+   metadata &= read_ogg_metadata(sfxfile)
+  END IF
  END IF
 
  REDIM selectable(UBOUND(menu))
  FOR i as integer = 0 TO 6
   selectable(i) = YES
  NEXT
- state.last = UBOUND(menu)
 END SUB
 
 
