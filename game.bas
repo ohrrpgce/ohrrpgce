@@ -3274,6 +3274,7 @@ END FUNCTION
 'the "instead" conditionals to pick a different box.
 SUB loadsay (byval box_id as integer)
  DO '--This loop is where we find which box will be displayed right now
+  context_string = "Textbox " & box_id
   '--load data from the textbox lump
   LoadTextBox txt.box, box_id
 
@@ -3283,6 +3284,7 @@ SUB loadsay (byval box_id as integer)
    IF txt.box.instead < 0 THEN
     trigger_script -txt.box.instead, 0, YES, "textbox instead", "box " & box_id, mainFibreGroup
     txt.sayer = -1
+    context_string = ""
     EXIT SUB
    ELSEIF txt.box.instead > 0 THEN ' box 0, the template, is never a valid instead-box
     IF box_id <> txt.box.instead THEN
@@ -3355,9 +3357,12 @@ SUB loadsay (byval box_id as integer)
  IF get_gen_bool("/mouse/move_hero/cancel_on_textbox") THEN
   cancel_hero_pathfinding()
  END IF
+
+ context_string = ""
 END SUB
 
 SUB advance_text_box ()
+ context_string = "Textbox " & txt.id
  '--Remove backdrop if any
  gen(genTextboxBackdrop) = 0
  '---IF MADE A CHOICE---
@@ -3460,6 +3465,7 @@ SUB advance_text_box ()
  ClearTextBox txt.box
  setkeys
  flusharray carray(), 7, 0
+ context_string = ""
 END SUB
 
 SUB add_rem_swap_lock_hero (byref box as TextBox)

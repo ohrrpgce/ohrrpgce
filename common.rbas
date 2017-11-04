@@ -66,6 +66,10 @@ DIM game_unique_id as string
 REDIM sprite_sizes(sprTypeFirst TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
+'Used as a description of the context of what we were doing when an error occurs,
+'if reporterr is called from outside the script interpreter.
+DIM context_string as string
+
 'The directory to write logs like g/c_debug[_archive].txt
 '(Should have a slash. For very short time during initialisation equal to "" to write to CWD)
 DIM log_dir as string
@@ -4632,24 +4636,26 @@ END FUNCTION
 'the script interpreter. It hides some errors when playing a game in release mode,
 'just like scripterr.
 SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
+ DIM full_msg as string = msg
+ IF LEN(context_string) THEN full_msg = context_string & ": " & msg
 #IFDEF IS_GAME
  IF insideinterpreter THEN
   scripterr interpreter_context_name() & msg, errlvl
   EXIT SUB
  END IF
  IF should_display_error_to_user(errlvl) = NO THEN
-  debugc errDebug, msg
+  debugc errDebug, full_msg
  END IF
 #ENDIF
  IF errlvl >= serrBug THEN
-  debugc errPromptBug, msg
+  debugc errPromptBug, full_msg
  ELSEIF errlvl >= serrWarn THEN
   'errlvl >= serrError: Something like an unreadable data file
   'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
-  debugc errPromptError, msg
+  debugc errPromptError, full_msg
  ELSE
   'Info or ignore
-  debugc errDebug, msg
+  debugc errInfo, full_msg
  END IF
 END SUB
 

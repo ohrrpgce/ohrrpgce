@@ -317,6 +317,7 @@ DECLARE FUNCTION read_config_int (key as string, default as integer=0) as intege
 EXTERN sourcerpg as string
 EXTERN as string game, exename
 EXTERN game_unique_id as string
+EXTERN context_string as string
 EXTERN running_as_slave as bool
 EXTERN uilook() as integer
 EXTERN boxlook() as BoxStyle
