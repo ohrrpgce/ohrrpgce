@@ -551,7 +551,11 @@ setvispage vpage, NO
 DIM archinym as string
 
 '--pre-extract (if needed) .gen and load it
-IF usepreunlump THEN
+IF running_as_slave THEN
+ 'Spawned from Custom, so must read everything from workingdir, not sourcerpg
+ archinym = readarchinym(workingdir, sourcerpg)
+ copylump workingdir, "*.gen", tmpdir, YES
+ELSEIF usepreunlump THEN
  archinym = readarchinym(workingdir, sourcerpg)
  copylump sourcerpg, "*.gen", tmpdir, YES
 ELSE
@@ -561,6 +565,7 @@ ELSE
  archinym = readarchinym(tmpdir, sourcerpg)
 END IF
 xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
+killfile tmpdir + archinym + ".gen"  'So it doesn't override the copy in workingdir
 
 DIM forcerpgcopy as integer = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
