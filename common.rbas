@@ -4045,9 +4045,9 @@ IF getfixbit(fixPushNPCBugCompat) = 0 THEN
 END IF
 
 IF getfixbit(fixDefaultMaxItem) = 0 THEN
- upgrade_message "Store max item number in GEN..."
  setfixbit(fixDefaultMaxItem, 1)
- gen(genMaxItem) = 254
+ 'This is no longer done; genMaxItem has already been set above.
+ 'gen(genMaxItem) = 254
 END IF
 
 IF getfixbit(fixBlankDoorLinks) = 0 THEN
