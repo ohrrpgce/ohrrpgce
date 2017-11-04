@@ -326,8 +326,8 @@ declare sub findfiles (directory as string, namemask as string = "", filetype as
 declare function find_file_portably (path as string) as string
 declare function find_file_anycase (path as string, file_type as FileTypeEnum = fileTypeFile) as string
 declare function writeablecopyfile (src as string, dest as string) as bool
-declare sub copyfiles (src as string, dest as string, byval copyhidden as integer = 0)
-declare function copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
+declare sub copyfiles (src as string, dest as string, copyhidden as bool = NO, lowercase as bool = NO)
+declare function copydirectory (src as string, dest as string, byval copyhidden as bool = YES) as string
 declare sub killdir (directory as string, recurse as bool = NO)
 declare function makedir (directory as string) as integer
 declare function safekill (filename as string) as bool

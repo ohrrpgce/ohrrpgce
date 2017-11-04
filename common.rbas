@@ -1061,11 +1061,19 @@ FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
  END IF
 
  ' for backwards compatibility with ancient games that lack archinym.lmp
- iname = LCASE(trimextension(trimpath(sourcefile)))
- 'IF isfile(gamedir + SLASH + iname + ".gen") = 0 THEN
- ' fatalerror "archinym.lmp unusable, and internal name could not be determined"
- 'ENDIF
- RETURN iname
+ 'iname = LCASE(trimextension(trimpath(sourcefile)))
+ 'IF isfile(gamedir + SLASH + iname + ".gen") THEN RETURN iname
+
+ ' Otherwise just scan the directory for a .GEN lump
+ ' (findfiles is case-insensitive)
+ DIM listing() as string
+ findfiles gamedir, "*.gen", , , listing()
+ IF UBOUND(listing) = 0 THEN
+  debuginfo "But found " & listing(0)
+  RETURN LCASE(trimextension(listing(0)))
+ END IF
+
+ fatalerror sourcefile & " doesn't appear to be an OHRRPGCE game: doesn't contain crucial data files"
 END FUNCTION
 
 FUNCTION maplumpname (byval map_id as integer, oldext as string) as string

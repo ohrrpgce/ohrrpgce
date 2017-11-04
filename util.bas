@@ -2292,15 +2292,16 @@ FUNCTION writeablecopyfile(src as string, dest as string) as bool
 END FUNCTION
 
 'Copy files in one directory to another (ignores directories)
-SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
+SUB copyfiles(src as string, dest as string, copyhidden as bool = NO, lowercase as bool = NO)
  DIM filelist() as string
  findfiles src, ALLFILES, fileTypeFile, copyhidden, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  writeablecopyfile src + SLASH + filelist(i), dest + SLASH + filelist(i)
+  DIM destname as string = IIF(lowercase, LCASE(filelist(i)), filelist(i))
+  writeablecopyfile src + SLASH + filelist(i), dest + SLASH + destname
  NEXT
 END SUB
 
-FUNCTION copydirectory (src as string, dest as string, byval copyhidden as integer = -1) as string
+FUNCTION copydirectory (src as string, dest as string, byval copyhidden as bool = YES) as string
  'Recursively copy directory src to directory dest. Dest should not already exist
  'returns "" on success, or an error string on failure. Failure might leave behind a partial copy.
  IF isdir(dest) THEN RETURN "copydirectory: Destination """ & dest & """ must not already exist"

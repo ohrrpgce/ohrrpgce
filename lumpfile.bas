@@ -1040,18 +1040,19 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	return errmsg
 end function
 
+'lump may include * wildcases
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
 	if isdir(package) then
 		#ifdef DEBUG_FILE_IO
 			debuginfo "copylump " & lump & " in " & package & " -> " & dest
 		#endif
-
-		'unlumped folder
+		'unlumped folder. We downcase the lump name as we copy it
+		dim lumpfile as string = find_file_anycase(package + SLASH + lump)
 		if ignoremissing then
-			if not isfile(package + SLASH + lump) then exit sub
+			if not isfile(lumpfile) then exit sub
 		end if
-		writeablecopyfile package + SLASH + lump, dest + lump
+		writeablecopyfile lumpfile, dest + trimpath(lcase(lumpfile))
 	else
 		'lumpfile
 		'Don't show errors if we don't really care (actually this matters only in one place:

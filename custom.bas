@@ -309,6 +309,7 @@ setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym
 copylump sourcerpg, "archinym.lmp", workingdir, YES
+copylump sourcerpg, "*.gen", workingdir, YES
 DIM archinym as string
 archinym = readarchinym(workingdir, sourcerpg)
 game = workingdir + SLASH + archinym
@@ -331,7 +332,8 @@ setvispage vpage, NO
 touchfile workingdir + SLASH + "__danger.tmp"
 IF isdir(sourcerpg) THEN
  'work on an unlumped RPG file. Don't take hidden files
- copyfiles sourcerpg, workingdir
+ 'Convert to lowercase while copying (only needed for ancient unlumped games)
+ copyfiles sourcerpg, workingdir, , YES
 ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF

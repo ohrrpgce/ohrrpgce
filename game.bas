@@ -553,13 +553,14 @@ DIM archinym as string
 '--pre-extract (if needed) .gen and load it
 IF usepreunlump THEN
  archinym = readarchinym(workingdir, sourcerpg)
- xbload workingdir & SLASH & archinym & ".gen", gen(), "general game data missing from " + sourcerpg
+ copylump sourcerpg, "*.gen", tmpdir, YES
 ELSE
  copylump sourcerpg, "archinym.lmp", tmpdir, YES
+ 'If archinym.lmp is missing, use the gen lump name
+ copylump sourcerpg, "*.gen", tmpdir, YES
  archinym = readarchinym(tmpdir, sourcerpg)
- copylump sourcerpg, archinym + ".gen", tmpdir, YES
- xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
 END IF
+xbload tmpdir + archinym + ".gen", gen(), "general game data missing from " + sourcerpg
 
 DIM forcerpgcopy as integer = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
@@ -585,7 +586,8 @@ ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
  #ENDIF
  IF forcerpgcopy THEN
   workingdir = tmpdir + "playing.tmp"
-  copyfiles sourcerpg, workingdir + SLASH
+  'Convert to lowercase while copying (only needed for ancient unlumped games)
+  copyfiles sourcerpg, workingdir, , YES
   usepreunlump = NO
  END IF
 END IF
