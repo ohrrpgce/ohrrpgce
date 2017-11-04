@@ -578,6 +578,11 @@ ELSEIF NOT running_as_slave THEN  'Won't unlump or upgrade if running as slave
   debuginfo workingdir + " not writeable"
   forcerpgcopy = YES
  END IF
+ #IFNDEF __FB_ANDROID__
+  'Copy the .rpgdir, because otherwise upgrade() would modify it, which is annoying
+  '(In future we want to instead use copy-on-write, for both .rpgs and .rpgdirs)
+  forcerpgcopy = YES
+ #ENDIF
  IF forcerpgcopy THEN
   workingdir = tmpdir + "playing.tmp"
   copyfiles sourcerpg, workingdir + SLASH
