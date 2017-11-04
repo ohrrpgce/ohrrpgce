@@ -1634,7 +1634,7 @@ end sub
 'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then reporterr "ScaleSpriteSlice: bad slice type " & SliceTypeName(sl) : exit sub
+ if sl->SliceType <> slSprite then reporterr "ScaleSpriteSlice: only works on sprites, not " & SliceTypeName(sl) : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   .loaded = NO

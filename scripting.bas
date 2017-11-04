@@ -1329,12 +1329,12 @@ END FUNCTION
 
 'This is called for error messages occurring inside scripts, and gives a description of the current context
 FUNCTION interpreter_context_name() as string
- IF insideinterpreter = NO THEN debugc errPromptBug, "interpreter_context_name called outside interpreter"
- IF curcmd->kind = tyfunct THEN
+ IF insideinterpreter = NO THEN
+  debugc errPromptBug, "interpreter_context_name called outside interpreter"
+ ELSEIF curcmd->kind = tyfunct THEN
   RETURN commandname(curcmd->value) + ": "
- ELSEIF insideinterpreter THEN
-  RETURN ""
  END IF
+ RETURN ""
 END FUNCTION
 
 FUNCTION script_call_chain (byval trim_front as integer = YES) as string
@@ -1358,8 +1358,7 @@ END FUNCTION
 '==========================================================================================
 
 FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
- IF errorlevel = serrError THEN RETURN YES
- IF errorlevel >= serrBug THEN RETURN YES
+ IF errorlevel >= serrError THEN RETURN YES  'Unreadable data or engine bugs
  IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, supress most error display
   RETURN NO
  END IF

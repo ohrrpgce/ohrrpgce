@@ -546,7 +546,7 @@ FUNCTION findhero (byval id as integer, byval first as integer, byval last as in
   END IF
  NEXT i
  IF errlvl > serrIgnore THEN
-  scripterr interpreter_context_name() + "Couldn't find hero with ID " & id & " in the party", errlvl
+  reporterr "Couldn't find hero with ID " & id & " in the party", errlvl
  END IF
  RETURN -1 'not found
 END FUNCTION

@@ -4628,16 +4628,29 @@ FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as intege
  RETURN YES
 END FUNCTION
 
+'This is a drop-in replacement for scripterr which can be called from outside
+'the script interpreter. It hides some errors when playing a game in release mode,
+'just like scripterr.
 SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
- 'this is a placeholder for some more detailed replacement of debug, so scripterrs can be thrown from slices.bas
 #IFDEF IS_GAME
  IF insideinterpreter THEN
   scripterr interpreter_context_name() & msg, errlvl
   EXIT SUB
  END IF
+ IF should_display_error_to_user(errlvl) = NO THEN
+  debugc errDebug, msg
+ END IF
 #ENDIF
- 'If not caused by a script, this error is a bug
- debugc errPromptBug, msg
+ IF errlvl >= serrBug THEN
+  debugc errPromptBug, msg
+ ELSEIF errlvl >= serrWarn THEN
+  'errlvl >= serrError: Something like an unreadable data file
+  'errlvl = serrBadOp or errlvl = serrWarn: Likely something like out-of-bounds data
+  debugc errPromptError, msg
+ ELSE
+  'Info or ignore
+  debugc errDebug, msg
+ END IF
 END SUB
 
 Constructor HeroTagsCache()

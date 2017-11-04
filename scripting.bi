@@ -42,6 +42,7 @@ DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION current_command_name() as string
 DECLARE FUNCTION interpreter_context_name() as string
 DECLARE FUNCTION script_call_chain (byval trim_front as integer = YES) as string
+DECLARE FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
 DECLARE SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION script_interrupt () as integer
 
