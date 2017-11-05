@@ -185,10 +185,10 @@ DECLARE FUNCTION notification (msg as string) as integer
 DECLARE SUB pop_warning(s as string, byval autoquit as integer = NO)
 DECLARE FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as string="", centerlines as bool=YES, extra_message as string = "") as integer
 DECLARE FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as string="") as integer
-DECLARE FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
-DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
-DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
-DECLARE FUNCTION os_shell_move(src as string, dest as string) as integer
+DECLARE FUNCTION yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
+DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
+DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
+DECLARE FUNCTION os_shell_move(src as string, dest as string) as bool
 
 DECLARE SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
 DECLARE SUB create_volume_menu(menu as MenuDef)

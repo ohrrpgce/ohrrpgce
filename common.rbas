@@ -497,7 +497,7 @@ SUB visible_debug (msg as string, errlvl as errorLevelEnum = errDebug)
  END IF
 END SUB
 
-FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
+FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
  'Copy a file, check to make sure it really was copied, and show an error message if not.
  '(FIXME: The real error message is printed to debug by copy_file_replacing())
  ' Returns true if the copy was okay, false if it failed
@@ -517,7 +517,7 @@ FUNCTION confirmed_copy (srcfile as string, destfile as string) as integer
  RETURN YES
 END FUNCTION
 
-FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
+FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
  'Copy a directory, but if it fails, clean up any partial copy and show a visible warning
  'Returns YES for success and NO for failure
  DIM result as string
@@ -532,7 +532,7 @@ FUNCTION confirmed_copydirectory(src as string, dest as string) as integer
  RETURN YES
 END FUNCTION
 
-FUNCTION os_shell_move(src as string, dest as string) as integer
+FUNCTION os_shell_move(src as string, dest as string) as bool
  'When used to move a directory on unixes, this should preserve bits and symlinks.
  'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
  'Returns YES for success or NO for failure
@@ -2557,9 +2557,9 @@ FUNCTION twochoice(capt as string, strA as string="Yes", strB as string="No", by
  RETURN multichoice(capt, choices(), defaultval, escval, helpkey)
 END FUNCTION
 
-'Asks a yes-or-no pop-up question.
+'Asks a yes-or-no pop-up question. Less flexible than twochoice, since it only returns a bool.
 '(Not to be confused with yesorno(), which returns a yes/no string)
-FUNCTION yesno(capt as string, byval defaultval as integer=YES, byval escval as integer=NO) as integer
+FUNCTION yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
  IF defaultval THEN defaultval = 0 ELSE defaultval = 1
  IF escval THEN escval = 0 ELSE escval = 1
  DIM result as integer

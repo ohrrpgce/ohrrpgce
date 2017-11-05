@@ -161,7 +161,7 @@ DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focus
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
-DECLARE SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
+DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
 DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as string, byval start_at_code as integer, byval slicekind as SliceTypes) as integer
@@ -468,7 +468,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    IF ses.hide_mode <> hideNothing THEN
     ses.hide_mode = hideNothing
    ELSE
-    EXIT DO
+    IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    END IF
   END IF
   #IFDEF IS_CUSTOM
@@ -544,7 +544,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
 
   IF state.need_update = NO ANDALSO enter_space_click(state) THEN
    IF state.pt = 0 THEN
-    EXIT DO
+    IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    ELSEIF state.pt = ses.collection_name_pt THEN
     ' Selected the 'Editing <collection file>' menu item
     slice_editor_import_file ses, edslice, YES
@@ -559,11 +559,12 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
     '--Browse collections
     jump_to_collection = ses.collection_number
     IF intgrabber(jump_to_collection, 0, 32767, , , , NO) THEN  'Disable copy/pasting
-     slice_editor_save_when_leaving ses, edslice
-     ses.collection_file = ""
-     ses.collection_number = jump_to_collection
-     slice_editor_load ses, edslice, slice_editor_filename(ses), YES
-     state.need_update = YES
+     IF slice_editor_save_when_leaving(ses, edslice) THEN
+      ses.collection_file = ""
+      ses.collection_number = jump_to_collection
+      slice_editor_load ses, edslice, slice_editor_filename(ses), YES
+      state.need_update = YES
+     END IF
     END IF
    END IF
   END IF
@@ -747,8 +748,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   dowait
  LOOP
 
- slice_editor_save_when_leaving ses, edslice
-
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
@@ -920,7 +919,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
  IF filename <> "" THEN
   IF edit_separately THEN
    ' We are no longer editing whatever we were before
-   slice_editor_save_when_leaving ses, edslice
+   IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT SUB  'User can cancel
    ses.collection_file = filename
    ses.use_index = NO
    ses.editing_existing = NO
@@ -932,7 +931,8 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
 END SUB
 
 ' Called when you leave the editor or switch to a different collection: saves if necessary.
-SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr)
+' Returns false if the user cancelled rather than made a decision
+FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
  DIM filename as string = slice_editor_filename(ses)
  IF ses.use_index THEN
   ' Autosave on quit, unless the collection is empty
@@ -949,14 +949,18 @@ SUB slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice
    'Prevent attempt to quit the program, stop and wait for response first
    DIM quitting as bool = getquitflag()
    setquitflag NO
-   IF yesno("Save collection before leaving, overwriting " & _
-            simplify_path_further(filename) & "?", YES, NO) THEN
+   DIM dowhat as integer
+   dowhat = twochoice("Save collection before leaving, overwriting " & _
+                      simplify_path_further(filename) & "?", "Yes", "No", 0, -1)
+   IF dowhat = -1 AND quitting = NO THEN RETURN NO  'cancel
+   IF dowhat = 0 THEN  'yes
     SliceSaveToFile edslice, filename
    END IF
    IF quitting THEN setquitflag
   END IF
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 'Copy a slice to the internal clipboard
 SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
