@@ -2487,12 +2487,20 @@ gain hero stat(who, stat:mp, 0)</example>
 		<command id="renamehero">
 			<canon>rename hero(who)</canon>
 			<shortname>rename hero</shortname>
-			<description>Pops up a name-editing box that allows you to change a hero&apos;s name. The argument is the hero&apos;s ID number, or name in the format hero:name</description>
+			<description>
+				Pops up a name-editing box that allows you to change a hero&apos;s name.
+				The argument is the hero&apos;s ID number, or name in the format hero:name.
+				The return value is true if the player renamed the hero, or false if they cancelled.
+</description>
 		</command>
 		<command id="renameherobyslot">
 			<canon>rename hero by slot(who)</canon>
 			<shortname>rename hero by slot</shortname>
-			<description>Pops up a name-editing box that allows you to change a hero&apos;s name. The argument is the hero&apos;s position in the party as returned by <ref>findhero</ref></description>
+			<description>
+				Pops up a name-editing box that allows you to change a hero&apos;s name.
+				The argument is the hero&apos;s position in the party as returned by <ref>findhero</ref>.
+				The return value is true if the player the hero renamed, or false if they cancelled.
+			</description>
 		</command>
 
 		<section title="Hero Graphics">

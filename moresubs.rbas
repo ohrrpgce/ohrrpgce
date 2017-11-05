@@ -1132,8 +1132,10 @@ END IF
 
 END SUB
 
-SUB renamehero (byval who as integer, byval escapable as bool)
+FUNCTION renamehero (byval who as integer, byval escapable as bool) as bool
 'If escapable is true, then ESC exits, otherwise it resets the entered name
+'Returns true if the player didn't cancel.
+DIM ret as bool
 
 DIM her as herodef
 loadherodata her, gam.hero(who).id
@@ -1159,10 +1161,12 @@ copypage vpage, holdscreen
 IF running_on_console() THEN
  'native virtual keyboard does not work on OUYA right now, so do this instead.
  gam.hero(who).name = gamepad_virtual_keyboard(gam.hero(who).name, limit)
+ ret = YES
 ELSEIF running_on_mobile() THEN
  hide_virtual_gamepad()
  gam.pad.being_shown = NO
  gam.hero(who).name = touch_virtual_keyboard(gam.hero(who).name, limit, prompt)
+ ret = YES
 ELSE
  'On platforms that need it (<s>currently</s> just Android) show the virtual keyboard.
  'This does nothing on platforms that don't need it.
@@ -1178,9 +1182,17 @@ ELSE
   setkeys YES
   playtimer
   control
-  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
+  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN
+   IF LEN(gam.hero(who).name) > 0 THEN
+    ret = YES
+    EXIT DO
+   ELSE
+    menusound gen(genCancelSFX)
+   END IF
+  END IF
   IF carray(ccMenu) > 1 THEN
    gam.hero(who).name = remember
+   menusound gen(genCancelSFX)
    IF escapable THEN EXIT DO
   END IF
   strgrabber gam.hero(who).name, limit
@@ -1194,17 +1206,18 @@ ELSE
   setvispage vpage
   dowait
  LOOP
- menusound gen(genAcceptSFX)
 
  hide_virtual_keyboard
 END IF
+
+IF ret THEN menusound gen(genAcceptSFX)
 
 IF need_fade_out THEN
  fadeout 0, 0, 0
 END IF
 freepage holdscreen
-
-END SUB
+RETURN ret
+END FUNCTION
 
 SUB resetgame ()
 'Warning: don't put necessary initialisation in here,

@@ -29,7 +29,7 @@ DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as bool
 DECLARE FUNCTION onwho (caption as string, alone as bool) as integer
 DECLARE SUB readjoysettings
-DECLARE SUB renamehero (who as integer, escapable as bool)
+DECLARE FUNCTION renamehero (who as integer, escapable as bool) as bool
 DECLARE SUB resetgame ()
 DECLARE SUB get_max_levelmp (ret() as integer, byval hero_level as integer)
 DECLARE SUB resetlmp (byval slot as integer, byval hero_level as integer)

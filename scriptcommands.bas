@@ -1630,7 +1630,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF gam.hero(retvals(0)).id >= 0 THEN
-    renamehero retvals(0), YES
+    scriptret = IIF(renamehero(retvals(0), YES), 1, 0)
    END IF
   END IF
  CASE 171'--save slot used
