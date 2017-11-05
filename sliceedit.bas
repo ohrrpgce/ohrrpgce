@@ -880,8 +880,9 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
  '--You can export slice collections from the in-game slice debugger. These
  '--collections are full of forbidden slices, so we must detect these and
  '--prevent importing. Attempting to do so instead will open a new editor.
- IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) THEN
-  IF ses.collection_file = "" AND edit_separately = NO AND ses.privileged = NO THEN
+ IF slice_editor_forbidden_search(newcollection, ses.specialcodes()) _
+    AND edit_separately = NO AND ses.privileged = NO THEN
+  IF ses.collection_file = "" THEN
    'Trying to import a tree into an in-game collection
    DIM msg as string
    msg = "The slice collection you are trying to load includes protected or special " _
