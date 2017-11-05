@@ -2297,8 +2297,12 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
  DIM root as Slice Ptr
  root = NewSliceOfType(slContainer)
  WITH *root
+  'TODO: this doesn't handle changes to window size. Have a look at
+  'how pop_warning handles this instead.
   .Y = 200
   .Fill = NO
+  .Width = get_resolution().w
+  .Height = get_resolution().h
  END WITH
  DIM outer_box as Slice Ptr
  outer_box = NewSliceOfType(slContainer, root)
@@ -2307,7 +2311,7 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
   .paddingBottom = 4
   .paddingLeft = 4
   .paddingRight = 4
-  .Fill = Yes
+  .Fill = YES
  END WITH
  DIM box as Slice Ptr
  box = NewSliceOfType(slRectangle, outer_box)
