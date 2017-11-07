@@ -1792,12 +1792,14 @@ END FUNCTION
 CONST GTSnumitems = 209
 
 TYPE GlobalTextStringsMenu
+ 'st.top in this menu is -1
  index(-1 TO GTSnumitems) as integer
  description(-1 TO GTSnumitems) as string
  shaded(-1 TO GTSnumitems) as bool
  text(-1 TO GTSnumitems) as string
- maxlen(GTSnumitems) as integer
- help(GTSnumitems) as string
+ default(-1 TO GTSnumitems) as string
+ maxlen(-1 TO GTSnumitems) as integer
+ help(-1 TO GTSnumitems) as string
  curitem as integer
 END TYPE
 
@@ -1807,6 +1809,7 @@ PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as strin
   .index(.curitem) = index
   .description(.curitem) = description
   .text(.curitem) = readglobalstring(index, default, maxlen)
+  .default(.curitem) = default
   .maxlen(.curitem) = maxlen
   IF LEN(helpfile) THEN .help(.curitem) = "globalstring_" + helpfile
   .curitem += 1
@@ -2006,6 +2009,7 @@ SUB edit_global_text_strings()
 
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command
+ '(although that command is actually undocumented)
 
  WITH state
   .top = -1
@@ -2021,7 +2025,7 @@ SUB edit_global_text_strings()
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN
-   IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
+   IF LEN(menu.help(state.pt)) THEN
     show_help menu.help(state.pt)
    ELSE
     show_help "edit_global_strings"
@@ -2039,6 +2043,13 @@ SUB edit_global_text_strings()
     NEXT i
    END IF
   END IF
+  IF keyval(scCTRL) > 0 AND keyval(scD) > 1 THEN
+   'Revert to default
+   IF LEN(menu.default(state.pt)) THEN
+    menu.text(state.pt) = menu.default(state.pt)
+   END IF
+  END IF
+
   usemenu state
   IF state.pt = -1 THEN
    IF enter_space_click(state) THEN EXIT DO
@@ -2055,7 +2066,10 @@ SUB edit_global_text_strings()
   state.tog XOR= 1
   standardmenu menu.description(), state, menu.shaded(), 0, 0, dpage
   edgeprint "CTRL+S Search", 0, pBottom, uilook(uiDisabledItem), dpage
-  IF state.pt >= 0 ANDALSO LEN(menu.help(state.pt)) THEN
+  IF LEN(menu.default(state.pt)) THEN
+   edgeprint "Default: " & menu.default(state.pt), pRight, pBottom, uilook(uiDisabledItem), dpage
+  END IF
+  IF LEN(menu.help(state.pt)) THEN
    edgeprint "Press F1 for help about this string", 0, pBottom - 10, uilook(uiDisabledItem), dpage
   END IF
   IF menu.index(state.pt) >= 0 THEN
