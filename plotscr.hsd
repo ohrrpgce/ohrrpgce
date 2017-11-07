@@ -5,8 +5,9 @@
 
 # Use same capitalisation as HSpeak does, pad to length 3
 plotscr version, begin
-  "3P ",  # Version number used for feature checking
-          # and displaying future-version warnings in Game/Custom;
+  "3Tf",  # Version number used by hspeak to test whether this file
+          # supports necessary features, and also causes the
+          # display of future-version warnings in Game/Custom;
           # only very rarely necessary to increment (don't when
           # new commands are added; that's detected separately),
           # otherwise leave alone to allow forwards compatibility.
@@ -680,6 +681,7 @@ define function, begin
 656,npcreferencefromslice,1,0 # Return the NPC reference for an NPC slice, or else 0
 657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else 0
 658,slicetype,1,0             # Returns a slicetype:* constant
+659,_asserteq,4,0,0,0,0       # Used in the macro expansion of assert(x==y)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

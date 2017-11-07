@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tf 2017-11-08 Specialise assert(x==y) to use _asserteq
 --3Te 2017-10-29 Look for plotscr.hsd/scancode.hsi first in global dirs
 --3Td 2017-10-07 Add parent ID to scripts.bin, for --reuse-ids
 --3Tc 2017-10-02 Make -j wait for warnings too
@@ -168,7 +169,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Te"
+constant COMPILER_SUB_VERSION="Tf"
 constant COPYRIGHT_DATE="2017"
 
 --Known single-character commandline options
@@ -178,7 +179,7 @@ constant VALID_OPTIONS="abcdfjknstwuyz"
 --increment this whenever using an older plotscr.hsd means you're missing out
 --on new but nonessential features; there's no harm)
 --*Should be 3 characters long, same captialisation as COMPILER_SUB_VERSION*
-constant MIN_PLOTSCR_VERSION="3P "
+constant MIN_PLOTSCR_VERSION="3Tf"
 
 --these constants are color-flags. May add more colors, up to #F8FF
 --(these codes are at the end of the first private use area)
@@ -3287,7 +3288,7 @@ function expand_macros(NodeList tree)
   NodeList newtree
   NodeList newargs
   string new_string
-  Token string_token
+  Token string_node, assertstr_node
   sequence src_position
   sequence temp
   srcpos pos
@@ -3306,29 +3307,51 @@ function expand_macros(NodeList tree)
       for i=1 to length(tree[ptr][TREE_BRANCHES]) do
         new_string=tree_original_text(tree[ptr][TREE_BRANCHES][i])
         string_list=append(string_list,new_string)
-        string_token={sprintf("@$string%d",{length(string_list)}),pos}
-        newargs&={{string_token,{}},tree[ptr][TREE_BRANCHES][i]}
+        string_node={ {sprintf("@$string%d",{length(string_list)}),pos}, {} }
+        newargs&={string_node,tree[ptr][TREE_BRANCHES][i]}
       end for
       tree[ptr][TREE_BRANCHES]=newargs
     end if
 
     if equal("assert",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
       --assert(condition)  -->  if (not(condition)) then ($assert expression string="condition", assertfailure)
+      -- and
+      --assert(x == y)  -->  if(_asserteq(x, y, assert expression string, "condition")) then (assertfailure)
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
       src_position=decode_srcpos(pos)
       if length(tree[ptr][TREE_BRANCHES])!=1 then
         src_error(sprintf_utf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)
       end if
-      newtree={{{"if",pos},{}}, {{"then",pos},{}}}
-      newtree[1][TREE_BRANCHES]={{{"not",pos},{tree[ptr][TREE_BRANCHES][1]}}}
 
       new_string=sprintf_utf("%s:%d: %s",{src_position[POS_FILENAME],src_position[POS_LINE],tree_original_text(tree[ptr][TREE_BRANCHES][1])})
       string_list=append(string_list,new_string)
-      string_token={sprintf("@$string%d",{length(string_list)}),pos}
+      string_node={ {sprintf("@$string%d",{length(string_list)}),pos}, {} }
 
-      temp={{{"setstringfromtable",pos},{}}, {{"assertfailure",pos},{}}}
-      temp[1][TREE_BRANCHES]={{{enforce_constants("assertexpressionstring"),pos},{}},{string_token,{}}}  --stringnum, string
-      newtree[2][TREE_BRANCHES]=temp
+      assertstr_node={ {enforce_constants("assertexpressionstring"),pos}, {} }
+
+      newtree={{{"if",pos},{}}, {{"then",pos},{}}}
+
+      if equal(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],"equal") then
+        --Use _asserteq
+
+        sequence x,y
+        temp=tree[ptr][TREE_BRANCHES][1][TREE_BRANCHES]  --x, y
+        x=temp[1]
+        y=temp[2]
+        --if(...)
+        newtree[1][TREE_BRANCHES]={{ {"_asserteq",pos}, {x,y,assertstr_node,string_node} }}
+        --then(assertfailure)
+        newtree[2][TREE_BRANCHES]={{ {"assertfailure",pos}, {} }}
+
+      else
+        --if(not(condition))
+        newtree[1][TREE_BRANCHES]={{ {"not",pos}, {tree[ptr][TREE_BRANCHES][1]} }}
+
+        temp={{{"setstringfromtable",pos},{}}, {{"assertfailure",pos},{}}}
+        temp[1][TREE_BRANCHES]={assertstr_node,string_node}  --stringnum, string
+        --then(...)
+        newtree[2][TREE_BRANCHES]=temp
+      end if
 
       tree=replace_slice(tree,ptr,ptr,newtree)  --tree[ptr..ptr]=newtree
       ptr+=1

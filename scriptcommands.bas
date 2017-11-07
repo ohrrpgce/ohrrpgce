@@ -4540,6 +4540,14 @@ SUB script_functions(byval cmdid as integer)
   IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->SliceType
   END IF
+ CASE 659 '--_asserteq(x, y, stringid, stringoffset)
+  IF retvals(0) <> retvals(1) THEN
+   IF bound_arg(retvals(2), 0, UBOUND(plotstr), "string ID", "assert expression string") THEN
+    plotstr(retvals(2)).s = script_string_constant(nowscript, retvals(3)) & _
+                            " [actual values were " & retvals(0) & " == " & retvals(1) & "]"
+    scriptret = 1
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

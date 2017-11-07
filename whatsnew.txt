@@ -48,6 +48,7 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "slice type" [Ralph]
     * "first slice of type", "next sibling of type", and missing commands
       like "first text slice", "next text sibling", etc. [Ralph]
+    * "assert(x==y)" now adds x and y values to the assert message [Ralph]
 
   * Changes
 

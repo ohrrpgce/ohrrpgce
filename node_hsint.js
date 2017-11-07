@@ -124,7 +124,16 @@ let commands = {
             return 2147483647;
         // Math.round breaks ties by rounding up, which differs from FB/x86's rounding to even
         return Math.round(ret);
-    }
+    },
+    659: function _asserteq(stab, x, y, stringid, stringoffset) {
+        if (x != y) {
+            interpreter.plotstring[stringid] =
+                hspeakrt.getString(stab, stringoffset) +
+                " [actual values were " + x + " == " + y + "]";
+            return 1;
+        } else
+            return 0;
+    },
 };
 
 // Execute a script instance returned by interpreter.call()
