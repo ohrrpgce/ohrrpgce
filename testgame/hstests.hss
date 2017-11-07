@@ -332,6 +332,19 @@ script, math tests, begin
   assert((m := 3) == 3)
   assert((m -= 6) == -3)
 
+  # mod and divide
+  n := -9
+  assert(n / 10 == 0)
+  assert(n, mod, 10 == -9)
+  assert(n / 9 == -1)
+  assert(n, mod, 9 == 0)
+  assert(n / 5 == -1)
+  assert(n, mod, 5 == -4)
+  assert(n / -9 == 1)
+  assert(n, mod, -9 == 0)
+  assert(n / -10 == 0)
+  assert(n, mod, -10 == -9)
+
   # This brackets are mandatory, := is left-associative
   n := (m := 9)
   assert(m == 9)
