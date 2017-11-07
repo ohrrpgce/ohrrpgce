@@ -1273,6 +1273,18 @@ END SUB
 '==========================================================================================
 
 
+'Read one of the strings from a script's string table.
+FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
+ WITH *scriptinsts(scriptinsts_slot).scr
+  DIM stringp as integer ptr = .ptr + .strtable + offset
+  IF .strtable + offset >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
+   scripterr "script data corrupt: illegal string offset", serrError
+  ELSE
+   RETURN read32bitstring(stringp)
+  END IF
+ END WITH
+END FUNCTION
+
 FUNCTION commandname (byval id as integer) as string
  'cmd_default_names array
 #include "scrcommands.bi"

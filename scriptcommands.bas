@@ -2019,27 +2019,13 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
-   WITH *scriptinsts(nowscript).scr
-    DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
-    IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-     scripterr "script corrupt: illegal string offset", serrError
-    ELSE
-     plotstr(retvals(0)).s = read32bitstring(stringp)
-     scriptret = retvals(0)
-    END IF
-   END WITH
+   plotstr(retvals(0)).s = script_string_constant(nowscript, retvals(1))
+   scriptret = retvals(0)
   END IF
  CASE 252'--append string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
-   WITH *scriptinsts(nowscript).scr
-    DIM stringp as integer ptr = .ptr + .strtable + retvals(1)
-    IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-     scripterr "script corrupt: illegal string offset", serrError
-    ELSE
-     plotstr(retvals(0)).s += read32bitstring(stringp)
-     scriptret = retvals(0)
-    END IF
-   END WITH
+   plotstr(retvals(0)).s += script_string_constant(nowscript, retvals(1))
+   scriptret = retvals(0)
   END IF
  CASE 256'--suspend map music
   setbit gen(), genSuspendBits, suspendambientmusic, 1
@@ -3015,14 +3001,7 @@ SUB script_functions(byval cmdid as integer)
   FOR i as integer = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
-    WITH *scriptinsts(nowscript).scr
-     DIM stringp as integer ptr = .ptr + .strtable + retvals(i)
-     IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-      scripterr "script corrupt: illegal string offset", serrError
-     ELSE
-      result &= read32bitstring(stringp) & " = "
-     END IF
-    END WITH
+    result &= script_string_constant(nowscript, retvals(i)) & " = "
    ELSE
     result &= retvals(i)
    END IF

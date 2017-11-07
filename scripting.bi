@@ -38,6 +38,7 @@ DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)
 DECLARE SUB reload_scripts (force_full_message as bool = YES)
 
+DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION current_command_name() as string
 DECLARE FUNCTION interpreter_context_name() as string
