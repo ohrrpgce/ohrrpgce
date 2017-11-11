@@ -402,7 +402,7 @@ addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "% * " &
 addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
-max(AtkLimBaseAtk) = 58
+max(AtkLimBaseAtk) = 62
 menucapoff(AtkBaseAtk) = capindex
 addcaption caption(), capindex, statnames(statAtk) & " (attacker)"
 addcaption caption(), capindex, statnames(statMagic) & " (attacker)"
@@ -427,6 +427,10 @@ NEXT
 FOR i = 0 TO 11
  addcaption caption(), capindex, "Max " & statnames(i) & " (target)"
 NEXT
+addcaption caption(), capindex, "100 * number of targets"
+addcaption caption(), capindex, "Lost MP (attacker)"
+addcaption caption(), capindex, "Lost MP (target)"
+addcaption caption(), capindex, "Lost HP (target)"
 
 CONST AtkLimExtraDamage = 11
 max(AtkLimExtraDamage) = 32767
@@ -2453,8 +2457,8 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  menu(0).last->extra(0) = 0
  append_menu_item(menu(0), "100")
  menu(0).last->extra(0) = 5
- append_menu_item(menu(0), "Lost HP")
- menu(0).last->extra(0) = 3
+ append_menu_item(menu(0), "100 * number of targets")
+ menu(0).last->extra(0) = 59
  append_menu_item(menu(0), "Random 0-999")
  menu(0).last->extra(0) = 4
  append_menu_item(menu(0), "Previous attack")
@@ -2467,6 +2471,14 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  menu(0).last->extra(0) = 21
  append_menu_item(menu(0), "Last cure to target")
  menu(0).last->extra(0) = 22
+ append_menu_item(menu(0), "Lost HP (attacker)")
+ menu(0).last->extra(0) = 3
+ append_menu_item(menu(0), "Lost MP (attacker)")
+ menu(0).last->extra(0) = 60
+ append_menu_item(menu(0), "Lost HP (target)")
+ menu(0).last->extra(0) = 62
+ append_menu_item(menu(0), "Lost MP (target)")
+ menu(0).last->extra(0) = 61
 
  FOR i as integer = 0 TO 11
   append_menu_item(menu(1), statnames(i) & " (attacker)")
@@ -2552,11 +2564,11 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
 
   IF menu(hstate.pt).rect.x < 0 THEN
    FOR i as integer = 0 TO 4
-    menu(i).offset.x += 16
+    menu(i).offset.x += 32
    NEXT i
   ELSEIF menu(hstate.pt).rect.x + menu(hstate.pt).rect.wide > vpages(vpage)->w THEN
    FOR i as integer = 0 TO 4
-    menu(i).offset.x -= 16
+    menu(i).offset.x -= 32
    NEXT i
   END IF
 
