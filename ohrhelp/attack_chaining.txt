@@ -43,7 +43,15 @@ For each chain, there are several different options.
     targets, as appropriate. The
     threshold can be specified
     either as an absolute number
-    or as a percentage.
+    or as a percentage, or a
+    comparison to another stat.
+
+  * Scaled stat chance - A random
+    number will be generated between
+    0.0 and 1.0. If it is smaller
+    than a stat divided by a constant
+    then the chain will be allowed.
+
 
 [NOTE: Same-Target Chains With 0 Delay]
 Note that for all three chain types, if the target class and target setting of the chain-starter and the chaned attack are the same, and the chained attack has 0 delay, then the chained attack will use the exact same target as the chain-starter. Same-target chains will be interrupted if the target dies.
