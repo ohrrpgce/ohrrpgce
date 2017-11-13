@@ -568,7 +568,7 @@ addcaption caption(), capindex, "stun register"  '15
 addcaption caption(), capindex, "mute register"  '16
 
 CONST AtkLimChainMode = 31
-max(AtkLimChainMode) = 15
+max(AtkLimChainMode) = 16
 menucapoff(AtkChainMode) = capindex
 addcaption caption(), capindex, "No special conditions" '0
 addcaption caption(), capindex, "Tag Check"     '1
@@ -586,6 +586,7 @@ addcaption caption(), capindex, "All targets' stats > %"     '12
 addcaption caption(), capindex, "All targets' stats < %"     '13
 addcaption caption(), capindex, "All targets' stats > attacker stat" '14
 addcaption caption(), capindex, "All targets' stats < attacker stat" '15
+addcaption caption(), capindex, "Attacker stat < attacker stat" '16
 
 CONST AtkLimChainVal1 = 32
 max(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
