@@ -2129,12 +2129,13 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
    max2 = max_tag()
    min2 = -max_tag()
    menutype2 = 2
-  CASE 2 TO 17 ' stat checks
+  CASE 2 TO 18 ' stat checks
    SELECT CASE mode
     CASE 2 TO 5, 16: caption1 = "  if attacker"
     CASE 6 TO 9: caption1 = "  if any target's"
     CASE 10 TO 15: caption1 = "  if all targets'"
     CASE 17: caption1 = "  if random 0 to 1 < attacker"
+    CASE 18: caption1 = "  if random 0 to 1 < max any target"
    END SELECT
    max1 = 15
    min1 = 0
@@ -2175,7 +2176,7 @@ SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as str
      max2 = 15
      min2 = 0
      menutype2 = 16 ' stat
-    CASE 17
+    CASE 17, 18
      caption2 = "  divided by"
      max2 = 32767
      min2 = 1
