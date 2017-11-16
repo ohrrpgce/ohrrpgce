@@ -302,11 +302,12 @@ FOR i = 16 TO gen(genNumElements) - 1
 NEXT i
 
 
-DIM atk_chain_bitset_names(3) as string
+DIM atk_chain_bitset_names(4) as string
 atk_chain_bitset_names(0) = "Attacker must know chained attack"
 atk_chain_bitset_names(1) = "Ignore chained attack's delay"
 atk_chain_bitset_names(2) = "Delay doesn't block further actions"
 atk_chain_bitset_names(3) = "Don't retarget if target is lost"
+atk_chain_bitset_names(4) = "Invert condition"
 
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
