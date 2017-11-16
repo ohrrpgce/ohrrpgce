@@ -625,6 +625,8 @@ END WITH
 
 '--Need a copy of the sprite to call frame_dissolved on
 DIM preview_sprite as Frame ptr
+DIM setup_preview_dissolve as bool = NO
+DIM setup_preview_appear as bool = NO
 
 '--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
 DIM as integer dissolve_time, dissolve_type, dissolve_ticks
@@ -796,19 +798,9 @@ DO
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets", remember_bit
    CASE EnMenuDissolve, EnMenuDissolveTime
-    IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
-    dissolve_time = recbuf(EnDatDissolveTime) 
-    IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
-    dissolve_ticks = 0
-    dissolve_backwards = NO
+    setup_preview_dissolve = YES
    CASE EnMenuDissolveIn, EnMenuDissolveInTime
-    IF recbuf(EnDatDissolveIn) > 0 THEN
-     dissolve_type = recbuf(EnDatDissolveIn) - 1
-     dissolve_time = recbuf(EnDatDissolveInTime) 
-     IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
-     dissolve_ticks = 0
-    END IF
-    dissolve_backwards = YES
+    setup_preview_appear = YES
    CASE EnMenuCursorOffset
     '--temporarily move the preview image, centering it on the screen
     OrphanSlice preview
@@ -830,6 +822,25 @@ DO
   IF editflexmenu(state, workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    state.need_update = YES
   END IF
+ END IF
+
+ IF setup_preview_dissolve THEN
+  IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
+  dissolve_time = recbuf(EnDatDissolveTime) 
+  IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
+  dissolve_ticks = 0
+  dissolve_backwards = NO
+  setup_preview_dissolve = NO
+ END IF 
+ IF setup_preview_appear THEN
+  IF recbuf(EnDatDissolveIn) > 0 THEN
+   dissolve_type = recbuf(EnDatDissolveIn) - 1
+   dissolve_time = recbuf(EnDatDissolveInTime) 
+   IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
+   dissolve_ticks = 0
+  END IF
+  dissolve_backwards = YES
+  setup_preview_appear = NO
  END IF
 
  IF flexmenu_handle_crossrefs(state, workmenu(state.pt), menutype(), menuoff(), recindex, recbuf(), NO) THEN
