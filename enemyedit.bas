@@ -842,7 +842,9 @@ DO
 
  IF dissolve_ticks >= 0 THEN
   dissolve_ticks += 1
-  IF dissolve_ticks > dissolve_time + 15 THEN
+  DIM stop_at as integer = dissolve_time + 15
+  IF dissolve_backwards THEN stop_at = dissolve_time
+  IF dissolve_ticks > stop_at THEN
    dissolve_ticks = -1
    state.need_update = YES
   ELSE
