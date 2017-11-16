@@ -4501,7 +4501,7 @@ SUB script_functions(byval cmdid as integer)
     scripterr "cloneslice: Can't copy a Map slice"
    ELSE
     'sl has a parent
-    InsertSliceAfter sl, ret
+    InsertSliceBefore sl, ret
     scriptret = create_plotslice_handle(ret)
    END IF
   END IF

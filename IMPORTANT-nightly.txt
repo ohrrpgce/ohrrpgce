@@ -16,6 +16,10 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2017-11-11:
+"clone slice" now puts the cloned slice before the slice it was cloned from,
+rather than after.
+
 2017-11-03:
 If you set custom per-hero XP curves, since that was implemented a couple of
 days ago, they have been erased and you need to re-do that.

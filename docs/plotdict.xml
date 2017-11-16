@@ -4946,7 +4946,7 @@ end
 				If the optional argument <p>recurse</p> is true (which is the default),
 				then all its children and descendents are copied too.
 				Returns the slice handle for the copy, which has the same parent,
-				and becomes the next sibling to <p>handle</p>.
+				and becomes the previous sibling to <p>handle</p>.
 				<lb/>
 				You can copy a protected slice (such as an NPC); the result isn't protected.
 				Any slices with special lookup codes (those listed in <ref>lookupslice</ref>)
