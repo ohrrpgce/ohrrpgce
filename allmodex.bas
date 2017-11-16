@@ -3960,32 +3960,7 @@ sub drawline (x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as i
 end sub
 
 sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer)
-'uses Bresenham's run-length slice algorithm
-	dim as integer xdiff,ydiff
-	dim as integer xdirection       'direction of X travel from top to bottom point (1 or -1)
-	dim as integer minlength        'minimum length of a line strip
-	dim as integer startLength      'length of start strip (approx half 'minLength' to balance line)
-	dim as integer runLength        'current run-length to be used (minLength or minLength+1)
-	dim as integer endLength        'length of end of line strip (usually same as startLength)
-
-	dim as integer instep           'xdirection or 320 (inner loop)
-	dim as integer outstep          'xdirection or 320 (outer loop)
-	dim as integer shortaxis        'outer loop control
-	dim as integer longaxis
-
-	dim as integer errorterm        'when to draw an extra pixel
-	dim as integer erroradd         'add to errorTerm for each strip drawn
-	dim as integer errorsub         'subtract from errorterm when triggered
-
-	dim sptr as ubyte ptr
-
-'Macro to simplify code
-#macro DRAW_SLICE(a)
-	for i as integer = 0 to a-1
-		*sptr = c
-		sptr += instep
-	next
-#endmacro
+	'Uses Bresenham's algorithm
 
 	if clippedframe <> dest then
 		setclip , , , , dest
@@ -4003,98 +3978,64 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 		swap x1, x2
 	end if
 
-	'point to start
+	dim as integer stepX, stepY
+
+	if x2 > x1 then
+		stepX = 1
+	elseif x2 < x1 then
+		stepX = -1
+	else
+		stepX = 0
+	end if
+
+	if y2 > y1 then
+		stepY = 1
+	else
+		stepY = 0
+	end if
+
+	'If the line is mostly-horizontal, then the 'major' direction
+	'is X and the minor is Y.
+	'All the deltas are fractions of a pixel scaled to integers
+	'by multiplying by 2*deltaMAJOR
+
+	dim as integer deltaX, deltaY
+
+	deltax = abs(x2 - x1)
+	deltay = y2 - y1  'is positive due to above swap
+
+	dim as integer delta    'Accumulated fraction of a pixel error
+
+	dim as integer delta_add, delta_sub
+	dim as integer length, majorstep, minorstep
+
+	if deltaX > deltaY then
+		length = deltaX
+		delta_add = 2*deltaY
+		delta_sub = 2*deltaX
+		minorstep = stepY * dest->pitch
+		majorstep = stepX
+	else
+		length = deltaY
+		delta_add = 2*deltaX
+		delta_sub = 2*deltaY
+		minorstep = stepX
+		majorstep = stepY * dest->pitch
+	end if
+	delta = -delta_sub \ 2  'Start at the center of a pixel
+
+	dim sptr as ubyte ptr
 	sptr = dest->image + (y1 * dest->pitch) + x1
 
-	xdiff = x2 - x1
-	ydiff = y2 - y1
-
-	if xDiff < 0 then
-		'right to left
-		xdiff = -xdiff
-		xdirection = -1
-	else
-		xdirection = 1
-	end if
-
-	'special case for vertical
-	if xdiff = 0 then
-		instep = dest->pitch
-		DRAW_SLICE(ydiff+1)
-		exit sub
-	end if
-
-	'and for horizontal
-	if ydiff = 0 then
-		instep = xdirection
-		DRAW_SLICE(xdiff+1)
-		exit sub
-	end if
-
-	'and also for pure diagonals
-	if xdiff = ydiff then
-		instep = dest->pitch + xdirection
-		DRAW_SLICE(ydiff+1)
-		exit sub
-	end if
-
-	'now the actual bresenham
-	if xdiff > ydiff then
-		longaxis = xdiff
-		shortaxis = ydiff
-
-		instep = xdirection
-		outstep = dest->pitch
-	else
-		'other way round, draw vertical slices
-		longaxis = ydiff
-		shortaxis = xdiff
-
-		instep = dest->pitch
-		outstep = xdirection
-	end if
-
-	'calculate stuff
-	minlength = longaxis \ shortaxis
-	erroradd = (longaxis mod shortaxis) * 2
-	errorsub = shortaxis * 2
-
-	'errorTerm must be initialized properly since first pixel
-	'is about in the center of a strip ... not the start
-	errorterm = (erroradd \ 2) - errorsub
-
-	startLength = (minLength \ 2) + 1
-	endLength = startlength 'half +1 of normal strip length
-
-	'If the minimum strip length is even
-	if (minLength and 1) <> 0 then
-		errorterm += shortaxis 'adjust errorTerm
-	else
-		'If the line had no remainder (x&yDiff divided evenly)
-		if erroradd = 0 then
-			startLength -= 1 'leave out extra start pixel
+	for it as integer = 0 to length
+		*sptr = c
+		delta += delta_add
+		if delta > 0 then
+			sptr += minorstep
+			delta -= delta_sub
 		end if
-	end if
-
-	'draw the start strip
-	DRAW_SLICE(startlength)
-	sptr += outstep
-
-	'draw the middle strips
-	for j as integer = 1 to shortaxis - 1
-		runLength = minLength
-		errorTerm += erroradd
-
-		if errorTerm > 0 then
-			errorTerm -= errorsub
-			runLength += 1
-		end if
-
-		DRAW_SLICE(runlength)
-		sptr += outstep
+		sptr += majorstep
 	next
-
-	DRAW_SLICE(endlength)
 end sub
 
 sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
