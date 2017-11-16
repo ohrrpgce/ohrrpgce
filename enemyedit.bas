@@ -628,6 +628,7 @@ DIM preview_sprite as Frame ptr
 
 '--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
 DIM as integer dissolve_time, dissolve_type, dissolve_ticks
+DIM as bool dissolve_backwards = NO
 dissolve_ticks = -1
 
 '--default starting menu
@@ -799,6 +800,15 @@ DO
     dissolve_time = recbuf(EnDatDissolveTime) 
     IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
     dissolve_ticks = 0
+    dissolve_backwards = NO
+   CASE EnMenuDissolveIn, EnMenuDissolveInTime
+    IF recbuf(EnDatDissolveIn) > 0 THEN
+     dissolve_type = recbuf(EnDatDissolveIn) - 1
+     dissolve_time = recbuf(EnDatDissolveInTime) 
+     IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
+     dissolve_ticks = 0
+    END IF
+    dissolve_backwards = YES
    CASE EnMenuCursorOffset
     '--temporarily move the preview image, centering it on the screen
     OrphanSlice preview
@@ -837,7 +847,9 @@ DO
    state.need_update = YES
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
-    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), , _
+    DIM dticks as integer = dissolve_ticks
+    IF dissolve_backwards THEN dticks = dissolve_time - dissolve_ticks
+    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dticks, dissolve_type), , _
                      abs_pal_num(recbuf(EnDatPal), sprTypeSmallEnemy + recbuf(EnDatPicSize), recbuf(EnDatPic))
    END IF
   END IF
