@@ -170,7 +170,7 @@ function get_file_type (fname as string) as FileTypeEnum
 		else
 			' Returns an error for folders which are network shares (but not subdirs thereof)
 			dim errstr as string = error_string
-			debug "get_file_type: " & errc & " " & errstr
+			debug "get_file_type(" & fname & "): " & errc & " " & errstr
 			return fileTypeError
 		end if
 	elseif res and FILE_ATTRIBUTE_DIRECTORY then
