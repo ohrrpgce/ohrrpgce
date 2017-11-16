@@ -70,6 +70,7 @@ TYPE BattleSprite
   menust as MenuState
   '--misc
   dissolve as integer
+  dissolve_appear as integer
   flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
   attack_succeeded as integer
   sprites as Frame ptr 'the graphic set
@@ -81,6 +82,8 @@ TYPE BattleSprite
   pal as palette16 ptr 'yeah
   deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
   deathtime as integer '0 = default, otherwise is time + 1
+  appeartype as integer '-1 means appear instantly
+  appeartime as integer '0 = default, otherwise is time + 1
   death_sfx as integer '0 = default, -1 = none, >0 = sfx ID + 1
   revengeharm as integer 'The last damage dealt TO this hero or enemy
   thankvengecure as integer 'The cure damage undealt TO this hero or enemy (as a positive number!)

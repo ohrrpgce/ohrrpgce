@@ -5,8 +5,8 @@ Nov/Dec ??? 2017 [Etheldreme]
   Highlights: (fill this in right before release)
 
   * New Features
-    * You can now browse for items rather than typing in their ID
-      numbers [James]
+    * You can now browse for items, and many other properties rather than
+      typing in their ID numbers. [James]
     * In the text box condition editor, you can browse for shops [James]
     * Menu bit "Remember selection when reopening" [Ralph]
     * Removed 100% upper limits on attack chain stat % conditions, and
@@ -26,6 +26,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * You can choose tags that will be turned on when heroes are at
       specific levels [James]
     * Support for games created in 1997 (OK, just the one game) [Ralph]
+    * Enemies can use optional "Appear" animations, which are reversed
+      versions of the death fades. [James]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

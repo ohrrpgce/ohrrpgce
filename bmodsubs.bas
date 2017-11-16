@@ -1683,11 +1683,15 @@ SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprit
   .vis = 1
   .d = 0
   .dissolve = 0
+  .dissolve_appear = 0
   .flee = 0
   .deathtype = .enemy.dissolve - 1
   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
   .deathtime = .enemy.dissolve_length
   IF .deathtime = 0 THEN .deathtime = default_dissolve_time(.deathtype, .w, .h)
+  .appeartype = .enemy.dissolve_in - 1
+  .appeartime = .enemy.dissolve_in_length
+  IF .appeartime = 0 ANDALSO .appeartype >= 0 THEN .appeartime = default_dissolve_time(.appeartype, .w, .h)
   .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound

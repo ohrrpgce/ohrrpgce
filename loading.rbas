@@ -3492,6 +3492,8 @@ SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
    .dissolve = 0
    .dissolve_length = 0
   END IF
+  .dissolve_in = buf(369)
+  .dissolve_in_length = buf(370)
   .death_sound = buf(24)
   .cursor_offset.x = buf(25)
   .cursor_offset.y = buf(26)
@@ -3607,6 +3609,8 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   buf(21) = .steal.rare_item_rate
   buf(22) = .dissolve
   buf(23) = .dissolve_length
+  buf(369) = .dissolve_in
+  buf(370) = .dissolve_in_length
   buf(24) = .death_sound
   buf(25) = .cursor_offset.x
   buf(26) = .cursor_offset.y

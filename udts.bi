@@ -814,6 +814,8 @@ TYPE EnemyDef
   reward as EnemyRewardDef
   dissolve as integer
   dissolve_length as integer
+  dissolve_in as integer
+  dissolve_in_length as integer
   death_sound as integer ' id+1, 0=default, -1=none
   cursor_offset as XYPair
   pic as integer

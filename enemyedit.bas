@@ -125,13 +125,15 @@ CONST EnDatSpawnElement2 = 183' to 238
 CONST EnDatElemResist = 239' to 366
 CONST EnDatAtkBequest = 367
 CONST EnDatNonElemCtr = 368
+CONST EnDatDissolveIn = 369
+CONST EnDatDissolveInTime = 370
 
 '-------------------------------------------------------------------------
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(26) as integer
-DIM min(26) as integer
+DIM max(28) as integer
+DIM min(28) as integer
 'Limit 0 is not used
 
 CONST EnLimPic = 1
@@ -206,14 +208,27 @@ FOR i as integer = 0 TO gen(genNumElements) - 1
  addcaption caption(), capindex, ""  '--updated in update_enemy_editor_for_elementals
 NEXT
 
-'--next limit 27, remeber to update dim!
+CONST EnLimDissolveIn = 27
+min(EnLimDissolveIn) = 0
+max(EnLimDissolveIn) = dissolveTypeMax + 1
+DIM EnCapDissolveIn as integer = capindex
+addcaption caption(), capindex, "Appear Instantly"
+FOR i as integer = 0 TO dissolveTypeMax
+ addcaption caption(), capindex, dissolve_type_caption(i)
+NEXT
+
+CONST EnLimDissolveInTime = 28
+min(EnLimDissolveInTime) = 0
+max(EnLimDissolveInTime) = 99
+
+'--next limit 29, remember to update dim!
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(265) as string
-DIM menutype(265) as integer
-DIM menuoff(265) as integer
-DIM menulimits(265) as integer
+DIM menu(267) as string
+DIM menutype(267) as integer
+DIM menuoff(267) as integer
+DIM menulimits(267) as integer
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -477,6 +492,20 @@ menutype(EnMenuNonElemCtr) = 7
 menuoff(EnMenuNonElemCtr) = EnDatNonElemCtr
 menulimits(EnMenuNonElemCtr) = EnLimAtk
 
+CONST EnMenuDissolveIn = 266
+menu(EnMenuDissolveIn) = "Appear Animation:"
+menutype(EnMenuDissolveIn) = 2000 + EnCapDissolveIn
+menuoff(EnMenuDissolveIn) = EnDatDissolveIn
+menulimits(EnMenuDissolveIn) = EnLimDissolveIn
+
+CONST EnMenuDissolveInTime = 267
+menu(EnMenuDissolveInTime) = "Appear Animation ticks:"
+menutype(EnMenuDissolveInTime) = 13
+menuoff(EnMenuDissolveInTime) = EnDatDissolveInTime
+menulimits(EnMenuDissolveInTime) = EnLimDissolveInTime
+
+'Next is 268, don't forget to update the DIMs
+
 '-------------------------------------------------------------------------
 '--menu structure
 'WARNING: make these big enough to hold atkMenu when genNumElements is maxed out
@@ -499,7 +528,7 @@ mainMenu(7) = EnMenuElementalsAct
 mainMenu(8) = EnMenuSpawnAct
 mainMenu(9) = EnMenuAtkAct
 
-DIM appearMenu(7) as integer
+DIM appearMenu(9) as integer
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
@@ -507,7 +536,9 @@ appearMenu(3) = EnMenuPal
 appearMenu(4) = EnMenuDissolve
 appearMenu(5) = EnMenuDissolveTime
 appearMenu(6) = EnMenuDeathSFX
-appearMenu(7) = EnMenuCursorOffset
+appearMenu(7) = EnMenuDissolveIn
+appearMenu(8) = EnMenuDissolveInTime
+appearMenu(9) = EnMenuCursorOffset
 
 DIM rewardMenu(11) as integer
 rewardMenu(0) = EnMenuBackAct
