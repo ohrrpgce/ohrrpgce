@@ -701,6 +701,7 @@ DO
     IF enemy_edit_add_new(recbuf(), preview_box) THEN
      'Added a new record (blank or copy)
      saveenemydata recbuf(), recindex
+     enemy_edit_load recindex, recbuf(), state, caption(), EnCapElemResist
     ELSE
      'cancelled add, reload the old last record
      recindex -= 1
