@@ -214,7 +214,7 @@ max(EnLimDissolveIn) = dissolveTypeMax + 1
 DIM EnCapDissolveIn as integer = capindex
 addcaption caption(), capindex, "Appear Instantly"
 FOR i as integer = 0 TO dissolveTypeMax
- addcaption caption(), capindex, dissolve_type_caption(i)
+ addcaption caption(), capindex, appear_type_caption(i)
 NEXT
 
 CONST EnLimDissolveInTime = 28

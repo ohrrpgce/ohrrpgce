@@ -293,6 +293,7 @@ DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
 
 DECLARE FUNCTION dissolve_type_caption(n as integer) as string
+DECLARE FUNCTION appear_type_caption(n as integer) as string
 
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool

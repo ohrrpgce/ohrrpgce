@@ -6651,6 +6651,25 @@ FUNCTION dissolve_type_caption(n as integer) as string
  END SELECT
 END FUNCTION
 
+FUNCTION appear_type_caption(n as integer) as string
+ 'These are names for the inverted dissolve animations.
+ 'They should only differ where the dissolve name doesn't make sense backwards
+ SELECT CASE n
+  CASE 0: RETURN "Random scatter"
+  CASE 1: RETURN "Crossfade"
+  CASE 2: RETURN "Diagonal Appear"
+  CASE 3: RETURN "Rise from Ground"
+  CASE 4: RETURN "Un-Squash"
+  CASE 5: RETURN "Un-Melt"
+  CASE 6: RETURN "Un-Vapourise"
+  CASE 7: RETURN "Phase In"
+  CASE 8: RETURN "Un-Squeeze"
+  CASE 9: RETURN "Expand"
+  CASE 10: RETURN "Flicker"
+  CASE ELSE: RETURN n & " Invalid!"
+ END SELECT
+END FUNCTION
+
 '--Wrapper functions for getting and setting values from general.reld
 
 FUNCTION default_gen_bool(nodepath as string) as bool
