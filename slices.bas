@@ -3862,7 +3862,7 @@ Sub SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_handle
  dim typestr as string = LoadPropStr(node, "type")
  dim typenum as SliceTypes = SliceTypeByName(typestr)
  if typenum = slInvalid then
-  debugc errPromptError, "Could not load slice (invalid type): " & Reload.Ext.GetNodePath(node)
+  reporterr "Could not load slice: invalid type " & typestr, serrError
   exit sub
  else
   dim newsl as Slice Ptr = NewSliceOfType(typenum)
