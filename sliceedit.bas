@@ -52,6 +52,7 @@ TYPE SliceEditState
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
  show_root as bool         'Whether to show edslice
+ show_ants as bool = YES   'Whether to draw a box around the selected slice
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
 
  ' Internal state of lookup_code_grabber
@@ -157,7 +158,7 @@ DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
-DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
+DECLARE SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr, byref show_ants as bool)
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, edit_separately as bool)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
@@ -488,8 +489,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
    'even if it's not drawn. The root gets deleted when leaving slice_editor, so
    'changes are temporary.
    DIM true_root as Slice ptr = FindRootSlice(edslice)
-   slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice
+   slice_editor_xy true_root->X, true_root->Y, ses.draw_root, edslice, ses.show_ants
    state.need_update = YES
+  END IF
+  IF keyval(scF7) > 1 THEN
+   ses.show_ants = NOT ses.show_ants
   END IF
 
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
@@ -712,11 +716,13 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
-  IF ses.curslice THEN
-   DrawSliceAnts ses.curslice, dpage
-  END IF
-  IF topmost THEN
-   DrawSliceAnts topmost, dpage
+  IF ses.show_ants THEN
+   IF ses.curslice THEN
+    DrawSliceAnts ses.curslice, dpage
+   END IF
+   IF topmost THEN
+    DrawSliceAnts topmost, dpage
+   END IF
   END IF
   IF ses.hide_mode <> hideMenu THEN
    'Determine the colour for each menu item
@@ -1031,6 +1037,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
   IF keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD 3
+  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -1050,7 +1057,9 @@ SUB slice_edit_detail (byref ses as SliceEditState, sl as Slice Ptr)
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END If
-  DrawSliceAnts sl, dpage
+  IF ses.show_ants THEN
+   DrawSliceAnts sl, dpage
+  END IF
   IF ses.hide_mode <> hideMenu THEN
    standardmenu menu(), state, 0, 0, dpage, menuopts
   END IF
@@ -1212,13 +1221,13 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
  END IF
  IF rule.group AND slgrPICKXY THEN
   IF enter_space_click(state) THEN
-   slice_editor_xy sl->X, sl->Y, sl, ses.draw_root
+   slice_editor_xy sl->X, sl->Y, sl, ses.draw_root, ses.show_ants
    state.need_update = YES
   END IF
  END IF
  IF rule.group AND slgrPICKWH THEN
   IF enter_space_click(state) THEN
-   slice_editor_xy sl->Width, sl->Height, sl, ses.draw_root
+   slice_editor_xy sl->Width, sl->Height, sl, ses.draw_root, ses.show_ants
    state.need_update = YES
   END IF
  END IF
@@ -1350,7 +1359,7 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 END FUNCTION
 
 'Editor to visually edit an x/y position or a width/height
-SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr)
+SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Slice Ptr, byval rootsl as Slice Ptr, byref show_ants as bool)
  DIM shift as integer = 0
  setkeys
  DO
@@ -1358,18 +1367,20 @@ SUB slice_editor_xy (byref x as integer, byref y as integer, byval focussl as Sl
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
-  shift = ABS(keyval(scShift) > 0)
+  IF keyval(scF1) > 1 THEN show_help "sliceedit_xy"
+  IF keyval(scF7) > 1 THEN show_ants = NOT show_ants
+  DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   'The following calls to slice_edit_updates only do something if x/y are focussl->Width/Height.
   'Perfectly harmless otherwise.
-  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift : slice_edit_updates focussl, @y
-  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift : slice_edit_updates focussl, @x
-  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift : slice_edit_updates focussl, @y
-  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift : slice_edit_updates focussl, @x
+  IF keyval(scUp)    > 0 THEN y -= speed : slice_edit_updates focussl, @y
+  IF keyval(scRight) > 0 THEN x += speed : slice_edit_updates focussl, @x
+  IF keyval(scDown)  > 0 THEN y += speed : slice_edit_updates focussl, @y
+  IF keyval(scLeft)  > 0 THEN x -= speed : slice_edit_updates focussl, @x
   draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
   RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage
-  DrawSliceAnts focussl, dpage
+  IF show_ants THEN DrawSliceAnts focussl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage

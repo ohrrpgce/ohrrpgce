@@ -1,0 +1,5 @@
+You are editing the position or size of a slice, or shifting the position the slice collection on the screen (which is only a temporary change, it doesn't change the slice collection).
+
+Press arrow keys to change the position/size, and hold down Shift to move more quickly.
+
+Press F7 to toggle whether the slice outline is shown.

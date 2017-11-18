@@ -46,3 +46,5 @@ Press F5 to toggle whether the root slice is shown. For a slice collection, the 
 NOTE: if you add no children to the root slice, it won't be saved!
 
 Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
+
+Press F7 to toggle whether outline boxes are drawn around the currently selected slice and the one under the mouse.

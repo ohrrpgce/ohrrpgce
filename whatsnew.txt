@@ -16,12 +16,15 @@ Nov/Dec ??? 2017 [Etheldreme]
       box styles [James]
     * Battle victory screens can optionally auto-advance after a given
       amount of time [James]
-    * Slice editor/debugger improvements: cleaned up, irrelevant settings
-      hidden, and info about NPCs, heroes, and protected status [Ralph]
+    * Slice editor/debugger improvements:
+      * Organised the menu, irrelevant settings hidden
+      * Indicate NPC and hero slices, and protected status
+      * Press R to reset a slice's position to 0,0 and alignment/anchoring
+        to top-left corner
+      * Press F7 to hide the 'ants' outline around the selected slice
+      [Ralph]
     * Ctrl+C/V to copy-and-paste text now uses the Mac/Windows/X11
       clipboard, so you can copy-paste from/to other applications [Ralph]
-    * Press R in the slice editor to reset a slice's position to 0,0 and
-      alignment/anchoring to top-left corner [Ralph]
     * Customizable Experience Curve for each hero [Taoki]
     * You can choose tags that will be turned on when heroes are at
       specific levels [James]
