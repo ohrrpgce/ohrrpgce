@@ -16,7 +16,7 @@
 
 'Local functions
 declare function unlumpfile_internal (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO) as string
-declare function matchmask(match as string, mask as string) as integer
+declare function matchmask(match as string, mask as string) as bool
 
 declare sub Lump_destruct(byref this as Lump)
 declare sub LumpedLump_destruct (byref this as LumpedLump)
@@ -34,7 +34,7 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
 
 
 #ifdef IS_GAME
- EXTERN running_as_slave as integer
+ #include "common.bi"  'For running_as_slave
 #endif
 
 DIM can_write_to_workingdir as bool = YES
@@ -960,7 +960,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	dim size as integer
 	dim maxsize as integer
 	dim namelen as integer  'not including nul
-	dim nowildcards as integer = 0
+	dim nowildcards as bool = NO
 	dim errmsg as string  'return value
 
 	if openfile(lumpfile, for_binary + access_read, lf) <> 0 then
@@ -973,7 +973,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	'should make browsing a bit faster
 	if len(fmask) > 0 then
 		if instr(fmask, "*") = 0 and instr(fmask, "?") = 0 then
-			nowildcards = -1
+			nowildcards = YES
 		end if
 	end if
 
@@ -1210,31 +1210,28 @@ function lumpfiles (filelist() as string, lumpfile as string, path as string) as
 	return ret
 end function
 
-function matchmask(match as string, mask as string) as integer
+function matchmask(match as string, mask as string) as bool
 	dim i as integer
 	dim m as integer
 	dim si as integer, sm as integer
 
 	'special cases
 	if mask = "" then
-		matchmask = 1
-		exit function
+		return YES
 	end if
 
 	i = 0
 	m = 0
 	while (i < len(match)) and (m < len(mask)) and (mask[m] <> asc("*"))
 		if (match[i] <> mask[m]) and (mask[m] <> asc("?")) then
-			matchmask = 0
-			exit function
+			return NO
 		end if
 		i = i+1
 		m = m+1
 	wend
 
 	if (m >= len(mask)) and (i < len(match)) then
-		matchmask = 0
-		exit function
+		return NO
 	end if
 
 	while i < len(match)
@@ -1248,8 +1245,7 @@ function matchmask(match as string, mask as string) as integer
 				m = m + 1
 				if m >= len(mask) then
 					'* eats the rest of the string
-					matchmask = 1
-					exit function
+					return YES
 				end if
 				i = i + 1
 				'store the positions in case we need to rewind
@@ -1274,11 +1270,7 @@ function matchmask(match as string, mask as string) as integer
   		m = m + 1
   	wend
 
-  	if m < len(mask) then
-		matchmask = 0
-	else
-		matchmask = 1
-	end if
+	return m >= len(mask)
 end function
 
 'Given a list of lumps reorder them to speed up RPG browsing, and exclude *.tmp files
