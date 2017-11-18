@@ -1040,7 +1040,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	return errmsg
 end function
 
-'lump may include * wildcases
+'lump may include * or ? wildcards
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as integer = NO)
 	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
 	if isdir(package) then

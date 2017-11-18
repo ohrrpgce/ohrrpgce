@@ -1827,22 +1827,24 @@ END FUNCTION
 
 'If the given file or directory with possibly changed case already exists then
 'return its filename, otherwise returns 'fname' unchanged.
+'Also, path can contain ? or * wildcards in the final component.
 '(Only does case-insensitive matching of the final component. Try find_file_portably for the whole path)
 FUNCTION find_file_anycase(path as string, file_type as FileTypeEnum = fileTypeFile) as string
  #IFDEF __FB_WIN32__
-  RETURN path
- #ELSE
-  DIM filelist() as string
-  DIM dirname as string = trimfilename(path)
-  IF LEN(dirname) = 0 THEN dirname = CURDIR
-  'findfiles is always case-insensitive
-  findfiles dirname, trimpath(path), file_type, YES, filelist()
-  IF UBOUND(filelist) < 0 THEN RETURN path
-  IF UBOUND(filelist) > 0 THEN
-   debug "find_path_anycase: multiple files case-insensitively match " & path
-  END IF
-  RETURN dirname & SLASH & filelist(0)
+  'If the path contains a wildcard, then we have to run it through findfiles to get rid of it,
+  'otherwise there's no need to do a search
+  IF INSTR(path, "*") = 0 ANDALSO INSTR(path, "?") = 0 THEN RETURN path
  #ENDIF
+ DIM filelist() as string
+ DIM dirname as string = trimfilename(path)
+ IF LEN(dirname) = 0 THEN dirname = CURDIR
+ 'findfiles is always case-insensitive
+ findfiles dirname, trimpath(path), file_type, YES, filelist()
+ IF UBOUND(filelist) < 0 THEN RETURN path
+ IF UBOUND(filelist) > 0 THEN
+  debug "find_path_anycase: multiple files case-insensitively match " & path
+ END IF
+ RETURN dirname & SLASH & filelist(0)
 END FUNCTION
 
 #IFDEF __FB_MAIN__
@@ -1928,6 +1930,10 @@ startTest(find_file_portably_and_anycase)
   '(Looking for a file, not a subdir)
   testanycase("../subdir",                   "../subdir",  "../subdir")
   testanycase("..",                          "..",         "..")
+  ' Test wildcard support
+  testanycase("*.tmp",                       CURDIR + "/bar.TMP",   CURDIR + "\bar.TMP")
+  testanycase("bar.?mp",                     CURDIR + "/bar.TMP",   CURDIR + "\bar.TMP")
+  testanycase("doesn't exist *",             "doesn't exist *",     "doesn't exist *")
   CHDIR "../.."
 
   killdir(tempdir, YES)  'recursively
