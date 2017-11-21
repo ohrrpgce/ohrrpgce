@@ -76,6 +76,7 @@ DECLARE SUB show_load_index(byval z as integer, caption as string, byval slot as
 DECLARE SUB rebuild_inventory_captions (invent() as InventSlot)
 DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
 DECLARE FUNCTION old_count_used_save_slots() as integer
+DECLARE SUB old_erase_save_slot (byval slot as integer)
 
 DIM SHARED old_savefile as string
 DIM savedir as string  'Global
@@ -1329,6 +1330,7 @@ SUB erase_save_slot (byval slot as integer)
  DIM filename as string
  filename = savedir & SLASH & slot & ".rsav"
  safekill filename
+ old_erase_save_slot slot
 END SUB
 
 FUNCTION new_save_slot_used (byval slot as integer) as integer
