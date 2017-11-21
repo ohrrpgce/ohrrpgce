@@ -159,7 +159,7 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
    END IF
   CASE "S": '--string variable by ID
    insert = ""
-   IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
+   IF in_bound(arg, 0, UBOUND(plotstr)) THEN
     insert = plotstr(arg).s
    END IF
  END SELECT
@@ -211,7 +211,7 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
    END IF
   CASE "S": '--string variable by ID
    insert = ""
-   IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
+   IF in_bound(arg, 0, UBOUND(plotstr)) THEN
     insert = saveslot_plotstr(node, arg)
    END IF
  END SELECT
@@ -275,7 +275,7 @@ FUNCTION script_sprintf() as string
      WEND
     ELSEIF percentptr[1] = ASC("c") THEN
      ' Character
-     IF bound_arg(retvals(nextarg), 0, 255, "%c character code", , , serrBadOp) THEN
+     IF bound_arg(retvals(nextarg), 0, 255, "%c character code", , serrBadOp) THEN
       ret &= CHR(retvals(nextarg))
      END IF
     END IF
@@ -1685,7 +1685,7 @@ SUB script_functions(byval cmdid as integer)
   IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.x
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , serrBadOp) THEN
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , serrBadOp) THEN
     DIM as TilemapInfo mapsize
     GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
     scriptret = mapsize.wide
@@ -1697,7 +1697,7 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
    scriptret = mapsizetiles.y
   ELSE
-   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , serrBadOp) THEN
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , serrBadOp) THEN
     DIM as TilemapInfo mapsize
     GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
     scriptret = mapsize.high
@@ -1909,7 +1909,7 @@ SUB script_functions(byval cmdid as integer)
   'prevent further damage
   'Note: elemental/enemytype bits no longer exist (should still be able to read them
   'from old games, though)
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , , serrBadOp) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    scriptret = ReadShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1)
   END IF
  CASE 231'--write enemy data
@@ -1917,7 +1917,7 @@ SUB script_functions(byval cmdid as integer)
   '106 was the largest used offset until very recently, so we'll limit it there to
   'prevent further damage
   'Note: writing elemental/enemytype bits no longer works
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , , serrBadOp) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    'Show an error if out of range, but be lenient and continue anyway, capping
    'stats (and other data...) to 32767
    bound_arg(retvals(2), -32768, 32767, "value")
@@ -2323,25 +2323,25 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 354 '--set horiz align
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , serrBadOp) THEN
     plotslices(retvals(0))->AlignHoriz = retvals(1)
    END IF
   END IF
  CASE 355 '--set vert align
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , serrBadOp) THEN
     plotslices(retvals(0))->AlignVert = retvals(1)
    END IF
   END IF
  CASE 356 '--set horiz anchor
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , serrBadOp) THEN
     plotslices(retvals(0))->AnchorHoriz = retvals(1)
    END IF
   END IF
  CASE 357 '--set vert anchor
   IF valid_plotslice(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge:... constant", , serrBadOp) THEN
     plotslices(retvals(0))->AnchorVert = retvals(1)
    END IF
   END IF
@@ -3036,7 +3036,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
  CASE 470'--allocate timers
-  IF bound_arg(retvals(0), 0, 100000, "number of timers", , , serrBadOp) THEN
+  IF bound_arg(retvals(0), 0, 100000, "number of timers", , serrBadOp) THEN
    REDIM PRESERVE timers(large(0, retvals(0) - 1))
    IF retvals(0) = 0 THEN
     'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the player
@@ -3117,11 +3117,11 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = GetZoneInfo(zmap, retvals(1))->name
   END IF
  CASE 488'--get zone extra (id, extra)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , serrBadOp) THEN
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , serrBadOp) THEN
    scriptret = GetZoneInfo(zmap, retvals(0))->extra(retvals(1))
   END IF
  CASE 489'--set zone extra (id, extra, value)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , serrBadOp) THEN
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , serrBadOp) THEN
    GetZoneInfo(zmap, retvals(0))->extra(retvals(1)) = retvals(2)
    lump_reloading.zonemap.dirty = YES
   END IF
@@ -3317,7 +3317,7 @@ SUB script_functions(byval cmdid as integer)
    scriptret = readbit(thisdoor.bits(), 0, 0)
   END IF
  CASE 526 '--get attack caption
-  IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , , serrBadOp) THEN
+  IF valid_plotstr(retvals(0), 5) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID", , serrBadOp) THEN
    plotstr(retvals(0)).s = readattackcaption(retvals(1) - 1)
    scriptret = 1
   END IF
@@ -3335,7 +3335,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 528 '--set rect fuzziness (slice, percent)
   IF valid_plotrect(retvals(0)) THEN
-   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , , serrBadOp) THEN
+   IF bound_arg(retvals(1), 0, 100, "fuzziness percentage", , serrBadOp) THEN
     IF retvals(1) = 0 THEN
      'Reset fuzzfactor to default 50% for future "set rect trans (sl, trans:fuzzy)"
      ChangeRectangleSlice plotslices(retvals(0)), , , , , transHollow, 50
@@ -3348,7 +3348,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 529 '-- textbox line (string, box, line, expand, strip)
   IF valid_plotstr(retvals(0), 5) ANDALSO _
-     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , serrBadOp) THEN
+     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , serrBadOp) THEN
    IF retvals(2) < 0 THEN
     'There's no upper bound on valid textbox line numbers
     scripterr "textbox line: invalid line number " & retvals(2), serrBadOp
@@ -3434,7 +3434,7 @@ SUB script_functions(byval cmdid as integer)
   ' bits for microsecond precision.
   scriptret = fmod((TIMER * 1e6) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 543 '--enemy elemental resist as int (enemy, element)
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy id", , , serrBadOp) THEN
+  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy id", , serrBadOp) THEN
    IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
     DIM enemy as EnemyDef
     loadenemydata enemy, retvals(0), YES
@@ -4394,7 +4394,7 @@ SUB script_functions(byval cmdid as integer)
   gam.random_battle_countdown = large(0, retvals(0))
  CASE 626 '--textbox text (string, box, expand, strip)
   IF valid_plotstr(retvals(0), serrBadOp) ANDALSO _
-     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , , serrBadOp) THEN
+     bound_arg(retvals(1), 0, gen(genMaxTextbox), "textbox", , serrBadOp) THEN
    DIM box as TextBox
    LoadTextBox box, retvals(1)
    plotstr(retvals(0)).s = textbox_lines_to_string(box)
@@ -5065,7 +5065,7 @@ END FUNCTION
 
 FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as bool
  'Defaults to a non-suppressed error
- IF bound_arg(who, 0, maxslot, "hero party slot", , , errlvl) = NO THEN RETURN NO
+ IF bound_arg(who, 0, maxslot, "hero party slot", , errlvl) = NO THEN RETURN NO
  IF gam.hero(who).id = -1 THEN
   scripterr current_command_name() + ": Party hero slot " & who & " is empty", errlvl
   RETURN NO
@@ -5074,11 +5074,11 @@ FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=
 END FUNCTION
 
 FUNCTION valid_stat(byval statid as integer) as bool
- RETURN bound_arg(statid, 0, statLast, "stat ID", , , serrBadOp)
+ RETURN bound_arg(statid, 0, statLast, "stat ID", , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as bool
- RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , , errlvl)
+ RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID", , errlvl)
 END FUNCTION
 
 FUNCTION valid_formation(byval form as integer) as bool
@@ -5093,11 +5093,11 @@ FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as b
 END FUNCTION
 
 FUNCTION valid_zone(byval id as integer) as bool
- RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , , serrBadOp)
+ RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_door(byval id as integer) as bool
- IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , , serrBadOp) = NO THEN RETURN NO
+ IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , serrBadOp) = NO THEN RETURN NO
  IF readbit(gam.map.door(id).bits(), 0, 0) = 0 THEN
   'Door doesn't exist
   scripterr current_command_name() & ": invalid door id " & id, serrBadOp
@@ -5134,7 +5134,7 @@ FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBad
 END FUNCTION
 
 FUNCTION valid_save_slot(slot as integer) as bool
- RETURN bound_arg(slot, 1, 32, "save slot", , , serrBound)
+ RETURN bound_arg(slot, 1, 32, "save slot", , serrBadOp)
 END FUNCTION
 
 FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool
@@ -5144,7 +5144,7 @@ FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as int
   thisdoor = gam.map.door(door_id)
   RETURN YES
  END IF
- IF bound_arg(map_id, 0, gen(genMaxMap), "map ID", , , serrBadOp) THEN
+ IF bound_arg(map_id, 0, gen(genMaxMap), "map ID", , serrBadOp) THEN
   IF read_one_door(thisdoor, map_id, door_id) THEN
    RETURN YES
   END IF

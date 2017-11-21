@@ -67,7 +67,9 @@ REDIM sprite_sizes(sprTypeFirst TO sprTypeLast) as SpriteSize
 setup_sprite_sizes
 
 'Used as a description of the context of what we were doing when an error occurs,
-'if reporterr is called from outside the script interpreter.
+'useful if bound_arg or reporterr is called from outside the script interpreter
+'(it's always printed by reporterr)
+'NOTE: you must remember to reset this to "" when leaving a context!
 DIM context_string as string
 
 'The directory to write logs like g/c_debug[_archive].txt
@@ -4642,21 +4644,11 @@ SUB create_volume_menu(menu as MenuDef)
  ClearMenuData mainmenu
 END SUB
 
-FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr=NULL, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
+FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as integer
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
-#IFDEF IS_GAME
-  IF fromscript THEN
-   IF LEN(*context) THEN
-    scripterr *context & ": invalid " & *argname & " " & n, errlvl
-   ELSE 
-    scripterr interpreter_context_name() + "invalid " & *argname & " " & n, errlvl
-   END IF
-   RETURN NO
-  END IF
-#ENDIF
-  debug *context & ": invalid " & *argname & " " & n
+  reporterr "invalid " & *argname & " " & n, errlvl, context
   RETURN NO
  END IF
  RETURN YES
@@ -4665,16 +4657,33 @@ END FUNCTION
 'This is a drop-in replacement for scripterr which can be called from outside
 'the script interpreter. It hides some errors when playing a game in release mode,
 'just like scripterr.
-SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
- DIM full_msg as string = msg
- IF LEN(context_string) THEN full_msg = context_string & ": " & msg
+'context overrides the name of the current script command, if any. It does not override
+'the context_string global, which is also reported.
+SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
+ 'It's possible to be currently executing a script command, and for
+ 'context_string to be set, eg "advance textbox" calls advance_text_box, which
+ 'can cause an error. If we have both contexts, then the script command is
+ 'the outer, and context_string the inner, eg "advancetextbox: Textbox 1: invalid hero ID"
+ 'But 'context' is always the innermost
+ DIM full_msg as string = *msg
+ IF context THEN
+  full_msg = *context & ": "
+ END IF
+ IF LEN(context_string) THEN
+  full_msg = context_string & ": " & full_msg
+ END IF
 #IFDEF IS_GAME
  IF insideinterpreter THEN
-  scripterr interpreter_context_name() & msg, errlvl
+  IF context = NULL THEN
+   full_msg = interpreter_context_name() & full_msg
+  END IF
+  'Let scripterr deal with whether to show the error
+  scripterr full_msg, errlvl
   EXIT SUB
  END IF
  IF should_display_error_to_user(errlvl) = NO THEN
   debugc errDebug, full_msg
+  EXIT SUB
  END IF
 #ENDIF
  IF errlvl >= serrBug THEN

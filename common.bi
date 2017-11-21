@@ -193,8 +193,8 @@ DECLARE FUNCTION os_shell_move(src as string, dest as string) as bool
 DECLARE SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
 DECLARE SUB create_volume_menu(menu as MenuDef)
 
-DECLARE FUNCTION bound_arg(byval n as integer, byval min as integer, byval max as integer, argname as zstring ptr, context as zstring ptr = NULL, byval fromscript as integer=YES, byval errlvl as scriptErrEnum = serrBound) as integer
-DECLARE SUB reporterr(msg as string, byval errlvl as scriptErrEnum = serrBadOp)
+DECLARE FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as integer
+DECLARE SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)

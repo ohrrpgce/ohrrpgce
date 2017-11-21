@@ -3425,9 +3425,8 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 FUNCTION valid_statnum(byval statnum as integer, context as string) as integer
- RETURN bound_arg(statnum, 0, 15, "stat number", context, NO)
+ RETURN bound_arg(statnum, 0, 15, "stat number", context, serrError)
 END FUNCTION
-
 
 FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as bool
  'Returns YES if the chain may proceed, or NO if it fails
