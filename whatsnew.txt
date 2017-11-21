@@ -31,6 +31,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * Support for games created in 1997 (OK, just the one game) [Ralph]
     * Enemies can use optional "Appear" animations, which are reversed
       versions of the death fades. [James]
+    * New textbox conditionals to save, load, or end the game, delete a
+      save, or show the load/save menus [Taoki]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

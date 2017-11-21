@@ -2623,6 +2623,10 @@ SUB LoadTextBox (byref box as TextBox, byval record as integer)
   .hero_lock   = bound(condbuf(20), -99, 99)
   .menu_tag    = bound(boxbuf(192), -max_tag(), max_tag())
   .menu        = bound(boxbuf(199), 0 ,gen(genMaxMenu))
+  .game_tag    = bound(boxbuf(207), -max_tag(), max_tag())
+  .game_delete = bound(boxbuf(208), -1, 32)
+  .game_save   = bound(boxbuf(209), -2, 32)
+  .game_load   = bound(boxbuf(210), -3, 32)
   '--Get box bitsets
   .choice_enabled = xreadbit(boxbuf(), 0, 174)
   .no_box         = xreadbit(boxbuf(), 1, 174)
@@ -2700,6 +2704,10 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
   str2array condtemp, boxbuf(), 305
   boxbuf(192) = .menu_tag
   boxbuf(199) = .menu
+  boxbuf(207) = .game_tag
+  boxbuf(208) = .game_delete
+  boxbuf(209) = .game_save
+  boxbuf(210) = .game_load
   '--Save bitsets
   setbit boxbuf(), 174, 0, .choice_enabled
   setbit boxbuf(), 174, 1, .no_box
@@ -2757,6 +2765,10 @@ SUB ClearTextBox (byref box as TextBox)
   .hero_addrem = 0
   .hero_swap   = 0
   .hero_lock   = 0
+  .game_tag    = 0
+  .game_delete = 0
+  .game_save   = 0
+  .game_load   = 0
   .after_tag   = 0
   .after       = 0
   .money_tag   = 0

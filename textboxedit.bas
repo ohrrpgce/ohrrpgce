@@ -48,17 +48,20 @@ DECLARE FUNCTION import_textboxes (filename as string, byref warn as string) as 
 
 
 'These are used in the TextBox conditional editor
-CONST condEXIT   = -1
-CONST condTAG    = 0
-CONST condBATTLE = 1
-CONST condSHOP   = 2
-CONST condHERO   = 3
-CONST condMONEY  = 4
-CONST condDOOR   = 5
-CONST condITEM   = 6
-CONST condBOX    = 7
-CONST condMENU   = 8
-CONST condSETTAG = 9
+CONST condEXIT       = -1
+CONST condTAG        = 0
+CONST condBATTLE     = 1
+CONST condSHOP       = 2
+CONST condHERO       = 3
+CONST condGAMEDELETE = 4
+CONST condGAMESAVE   = 5
+CONST condGAMELOAD   = 6
+CONST condMONEY      = 7
+CONST condDOOR       = 8
+CONST condITEM       = 9
+CONST condBOX        = 10
+CONST condMENU       = 11
+CONST condSETTAG     = 12
 
 'whichbox is the box to edit, -1 for default, or past last textbox to add a new
 'one. Returns -1 if cancelled add-new, or else last box edited.
@@ -318,17 +321,17 @@ END FUNCTION
 
 
 SUB textbox_conditionals(byref box as TextBox)
- DIM menu(-1 TO 22) as string
+ DIM menu(-1 TO 26) as string
  
  DIM state as MenuState
  state.top = -1
  state.pt = 0
  state.first = -1
- state.last = 22
+ state.last = 26
  state.spacing = 9  'Necessary because not using standardmenu
  state.autosize = YES
 
- DIM grey(-1 TO 22) as integer
+ DIM grey(-1 TO 26) as integer
  'This array tells which rows in the conditional editor are grey
  grey(-1) = NO
  grey(0) = YES
@@ -352,8 +355,12 @@ SUB textbox_conditionals(byref box as TextBox)
  grey(18) = NO
  grey(19) = YES
  grey(20) = NO
- grey(21) = YES 'Menu Tag
+ grey(21) = YES
  grey(22) = NO
+ grey(23) = NO
+ grey(24) = NO
+ grey(25) = YES 'Menu Tag
+ grey(26) = NO
 
  DIM num as integer
  DIM temptrig as integer
@@ -376,7 +383,7 @@ SUB textbox_conditionals(byref box as TextBox)
      temptrig = large(-box.instead, 0)
      scriptbrowse temptrig, plottrigger, "instead of textbox plotscript"
      box.instead = -temptrig
-    CASE 22 '--after script
+    CASE 26 '--after script
      temptrig = large(-box.after, 0)
      scriptbrowse temptrig, plottrigger, "after textbox plotscript"
      box.after = -temptrig
@@ -405,6 +412,12 @@ SUB textbox_conditionals(byref box as TextBox)
      END IF
     CASE condHERO
      intgrabber num, -99, 99
+    CASE condGAMEDELETE
+     intgrabber num, -1, 32
+    CASE condGAMESAVE
+     intgrabber num, -2, 32
+    CASE condGAMELOAD
+     intgrabber num, -3, 32
     CASE condMONEY
      intgrabber num, -32000, 32000
     CASE condDOOR
@@ -523,11 +536,30 @@ SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
  menu(18) = " instantly use door " & box.door
  menu(19) = textbox_condition_caption(box.menu_tag, "MENU")
  menu(20) = " open menu " & box.menu & " " & getmenuname(box.menu)
- menu(21) = textbox_condition_caption(box.after_tag, "AFTER")
+ menu(21) = textbox_condition_caption(box.game_tag, "GAME")
+ SELECT CASE box.game_delete
+  CASE 0 :      menu(22) = " don't delete save slot"
+  CASE -1 :     menu(22) = " delete active save slot"
+  CASE IS > 0 : menu(22) = " delete save slot " & box.game_delete
+ END SELECT
+ SELECT CASE box.game_save
+  CASE 0 :      menu(23) = " don't save game"
+  CASE -1 :     menu(23) = " save to active slot"
+  CASE -2 :     menu(23) = " show save menu"
+  CASE IS > 0 : menu(23) = " save to slot " & box.game_save
+ END SELECT
+ SELECT CASE box.game_load
+  CASE 0 :      menu(24) = " don't load/end game"
+  CASE -1 :     menu(24) = " load from active slot"
+  CASE -2 :     menu(24) = " show load menu"
+  CASE -3 :     menu(24) = " game over"
+  CASE IS > 0 : menu(24) = " load from slot " & box.game_load
+ END SELECT
+ menu(25) = textbox_condition_caption(box.after_tag, "AFTER")
  SELECT CASE box.after
-  CASE 0 :      menu(22) = " use [text box or script] next"
-  CASE IS < 0 : menu(22) = " run " & scriptname(-box.after) & " next"
-  CASE IS > 0 : menu(22) = " jump to text box " & box.after & " next"
+  CASE 0 :      menu(26) = " use [text box or script] next"
+  CASE IS < 0 : menu(26) = " run " & scriptname(-box.after) & " next"
+  CASE IS > 0 : menu(26) = " jump to text box " & box.after & " next"
  END SELECT
 END SUB
 
@@ -658,8 +690,12 @@ SUB write_box_conditional_by_menu_index(byref box as TextBox, menuindex as integ
    CASE 18: .door        = num
    CASE 19: .menu_tag    = num
    CASE 20: .menu        = num
-   CASE 21: .after_tag   = num
-   CASE 22: .after       = num
+   CASE 21: .game_tag    = num
+   CASE 22: .game_delete = num
+   CASE 23: .game_save   = num
+   CASE 24: .game_load   = num
+   CASE 25: .after_tag   = num
+   CASE 26: .after       = num
   END SELECT
  END WITH
 END SUB
@@ -688,8 +724,12 @@ FUNCTION read_box_conditional_by_menu_index(byref box as TextBox, menuindex as i
    CASE 18: RETURN .door
    CASE 19: RETURN .menu_tag
    CASE 20: RETURN .menu
-   CASE 21: RETURN .after_tag
-   CASE 22: RETURN .after
+   CASE 21: RETURN .game_tag
+   CASE 22: RETURN .game_delete
+   CASE 23: RETURN .game_save
+   CASE 24: RETURN .game_load
+   CASE 25: RETURN .after_tag
+   CASE 26: RETURN .after
   END SELECT
  END WITH
 END FUNCTION
@@ -697,7 +737,7 @@ END FUNCTION
 FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
  SELECT CASE menuindex
   CASE -1      : RETURN condEXIT
-  CASE 1, 22   : RETURN condBOX
+  CASE 1, 26   : RETURN condBOX
   CASE 3, 4    : RETURN condSETTAG
   CASE 6       : RETURN condMONEY
   CASE 8       : RETURN condBATTLE
@@ -706,6 +746,9 @@ FUNCTION box_conditional_type_by_menu_index(menuindex as integer) as integer
   CASE 14,15,16: RETURN condHERO
   CASE 18      : RETURN condDOOR
   CASE 20      : RETURN condMENU
+  CASE 22      : RETURN condGAMEDELETE
+  CASE 23      : RETURN condGAMESAVE
+  CASE 24      : RETURN condGAMELOAD
   CASE ELSE    : RETURN condTAG
  END SELECT
 END FUNCTION
@@ -1554,6 +1597,14 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
         box.menu_tag = VALINT(v)
        CASE "menu"
         box.menu = VALINT(v)
+       CASE "game tag"
+        box.game_tag = VALINT(v)
+       CASE "game delete"
+        box.game_delete = VALINT(v)
+       CASE "game save"
+        box.game_save = VALINT(v)
+       CASE "game load"
+        box.game_load = VALINT(v)
        CASE "next tag"
         box.after_tag = VALINT(v)
        CASE "next box"
@@ -1728,6 +1779,44 @@ FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
       PRINT #fh, " (Lock " & escape_nonprintable_ascii(getheroname((box.hero_lock * -1) - 1)) & ")"
      ELSE
       PRINT #fh, " (Unlock " & escape_nonprintable_ascii(getheroname(box.hero_lock - 1)) & ")"
+     END IF
+    END IF
+    
+   END IF
+   
+   IF box.game_tag <> 0 THEN
+    PRINT #fh, "Game Tag: " & box.game_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.game_tag, , "Never")) & ")"
+    
+    IF box.game_delete <> 0 THEN
+     PRINT #fh, "Game Delete: " & box.game_delete;
+     IF box.game_delete = -1 THEN
+      PRINT #fh, " (Delete active save slot)"
+     ELSE
+      PRINT #fh, " (Delete save slot " & box.game_delete & ")"
+     END IF
+    END IF
+    
+    IF box.game_save <> 0 THEN
+     PRINT #fh, "Game Save: " & box.game_save;
+     IF box.game_save = -1 THEN
+      PRINT #fh, " (Save to active slot)"
+     ELSEIF box.game_save = -2 THEN
+      PRINT #fh, " (Show save menu)"
+     ELSE
+      PRINT #fh, " (Save to slot " & box.game_save & ")"
+     END IF
+    END IF
+    
+    IF box.game_load <> 0 THEN
+     PRINT #fh, "Game Load: " & box.game_load;
+     IF box.game_load = -1 THEN
+      PRINT #fh, " (Load from active slot)"
+     ELSEIF box.game_load = -2 THEN
+      PRINT #fh, " (Show load menu)"
+     ELSEIF box.game_load = -3 THEN
+      PRINT #fh, " (Game over)"
+     ELSE
+      PRINT #fh, " (Load from slot " & box.game_load & ")"
      END IF
     END IF
     

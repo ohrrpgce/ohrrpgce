@@ -3431,6 +3431,8 @@ SUB advance_text_box ()
  END IF
  '---ADD/REMOVE/SWAP/LOCK HERO-----------------
  IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box
+ '---DELETE/SAVE/LOAD GAME-----------------
+ IF istag(txt.box.game_tag, 0) THEN delete_save_load_game txt.box
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
   usedoor txt.box.door
@@ -3524,6 +3526,49 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
 
  '--indirect effects
  party_change_updates
+END SUB
+
+SUB delete_save_load_game (byref box as TextBox)
+ '---DELETE/SAVE/LOAD/END GAME
+ '---DELETE---
+ 'TODO: ought to support loading a save and deleting it at the same time,
+ 'for permadeath games. Will need to add a new gam.want variable for that.
+ IF box.game_delete = -1 THEN
+  IF lastsaveslot > 0 ANDALSO save_slot_used(lastsaveslot - 1) THEN
+   erase_save_slot lastsaveslot - 1
+  END IF
+ ELSEIF box.game_delete > 0 THEN
+  IF save_slot_used(box.game_delete - 1) THEN
+   erase_save_slot box.game_delete - 1
+  END IF
+ END IF
+ '---SAVE---
+ IF box.game_save = -2 THEN
+  DIM slot as integer = picksave()
+  IF slot >= 0 THEN savegame slot
+ ELSEIF box.game_save = -1 THEN
+  IF lastsaveslot > 0 THEN
+   savegame lastsaveslot - 1
+  END IF
+ ELSEIF box.game_save > 0 THEN
+  IF valid_save_slot(box.game_save) THEN
+   savegame box.game_save - 1
+  END IF
+ END IF
+ '---LOAD/END---
+ IF box.game_load = -3 THEN
+  gam.quit = YES
+ ELSEIF box.game_load = -2 THEN
+  gam.want.loadgame = pickload(NO) + 1
+ ELSEIF box.game_load = -1 THEN
+  IF lastsaveslot > 0 ANDALSO save_slot_used(lastsaveslot - 1) THEN
+   gam.want.loadgame = lastsaveslot
+  END IF
+ ELSEIF box.game_load > 0 THEN
+  IF save_slot_used(box.game_load - 1) THEN
+   gam.want.loadgame = box.game_load
+  END IF
+ END IF
 END SUB
 
 SUB init_text_box_slices(txt as TextBoxState)
@@ -4649,6 +4694,7 @@ SUB show_textbox_debug_info ()
  after &= box_cond_info(txt.box.item_tag, "Item")
  after &= box_cond_info(txt.box.shop_tag, "Shop/Inn")
  after &= box_cond_info(txt.box.hero_tag, "Party change")
+ after &= box_cond_info(txt.box.game_tag, "Game saving")
  IF txt.box.restore_music THEN after &= "[Restore music] "
  IF txt.box.backdrop THEN after &= "[Remove backdrop] "
  IF LEN(after) THEN

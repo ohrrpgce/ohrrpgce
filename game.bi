@@ -47,6 +47,7 @@ DECLARE SUB init_text_box_slices(txt as TextBoxState)
 DECLARE SUB cleanup_text_box ()
 DECLARE SUB advance_text_box ()
 DECLARE SUB add_rem_swap_lock_hero (box as TextBox)
+DECLARE SUB delete_save_load_game (box as TextBox)
 DECLARE FUNCTION immediate_showtextbox() as bool
 
 DECLARE SUB SetupGameSlices

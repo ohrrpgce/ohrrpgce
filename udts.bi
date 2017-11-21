@@ -886,6 +886,10 @@ TYPE TextBox
   hero_addrem as integer
   hero_swap   as integer
   hero_lock   as integer
+  game_tag    as integer
+  game_delete as integer
+  game_save   as integer
+  game_load   as integer
   after_tag   as integer
   after       as integer
   money_tag   as integer
