@@ -3723,7 +3723,7 @@ script, slice tests, begin
   sl := get npc slice(next npc reference)
   set slice extra(sl, extra 2, 42)
   sl2 := clone slice(sl)
-  assert(next sibling(sl) == sl2)
+  assert(next sibling(sl2) == sl)
   # Check that things got copied
   assert(slice screen x(sl) == slice screen x(sl2))
   assert(slice screen y(sl) == slice screen y(sl2))
@@ -3738,7 +3738,7 @@ script, slice tests, begin
   assert(slice type(sl) == slicetype:special)
   sl2 := clone slice(sl)
   assert(slice is container(sl2))  # Special slices turn into containers
-  assert(next sibling(sl) == sl2)
+  assert(previous sibling(sl) == sl2)
   assert(child count(sl) == child count(sl2))
   free slice(sl2)
   sl2 := clone slice(sl, false)  # recurse == false
