@@ -33,6 +33,11 @@ Nov/Dec ??? 2017 [Etheldreme]
       versions of the death fades. [James]
     * New textbox conditionals to save, load, or end the game, delete a
       save, or show the load/save menus [Taoki]
+    * The option to use resolutions other than 320x200 (in the
+      Window-size Options menu). This has been in testing for a long
+      time, but still isn't complete -- for example backdrops and battles
+      are still 320x200. Nothing has changed in this release except that
+      the option isn't hidden any more [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

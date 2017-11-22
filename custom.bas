@@ -1751,7 +1751,6 @@ SUB secret_menu ()
      "Text tests", _
      "Font tests", _
      "Stat Growth Chart", _
-     "Resolution Menu", _
      "Edit Status Screen", _
      "Edit Status Screen Stat Plank", _
      "Edit Item Screen", _
@@ -1786,22 +1785,21 @@ SUB secret_menu ()
    IF st.pt = 6 THEN text_test_menu
    IF st.pt = 7 THEN font_test_menu
    IF st.pt = 8 THEN stat_growth_chart
-   IF st.pt = 9 THEN resolution_menu YES
-   IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSCREEN
-   IF st.pt = 11 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
-   IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMSCREEN
-   IF st.pt = 13 THEN slice_editor SL_COLLECT_ITEMPLANK
-   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLSCREEN
-   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
-   IF st.pt = 16 THEN slice_editor SL_COLLECT_SPELLPLANK
-   IF st.pt = 17 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
-   IF st.pt = 18 THEN new_spriteset_editor
-   IF st.pt = 19 THEN backdrop_browser
-   IF st.pt = 20 THEN new_graphics_tests
-   IF st.pt = 21 THEN backend_keyrepeat_bugtest
-   IF st.pt = 22 THEN spawn_game_menu YES
-   IF st.pt = 23 THEN spawn_game_menu NO, YES
-   IF st.pt = 24 THEN edit_mouse_options ()
+   IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
+   IF st.pt = 10 THEN slice_editor SL_COLLECT_STATUSSTATPLANK
+   IF st.pt = 11 THEN slice_editor SL_COLLECT_ITEMSCREEN
+   IF st.pt = 12 THEN slice_editor SL_COLLECT_ITEMPLANK
+   IF st.pt = 13 THEN slice_editor SL_COLLECT_SPELLSCREEN
+   IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
+   IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
+   IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   IF st.pt = 17 THEN new_spriteset_editor
+   IF st.pt = 18 THEN backdrop_browser
+   IF st.pt = 19 THEN new_graphics_tests
+   IF st.pt = 20 THEN backend_keyrepeat_bugtest
+   IF st.pt = 21 THEN spawn_game_menu YES
+   IF st.pt = 22 THEN spawn_game_menu NO, YES
+   IF st.pt = 23 THEN edit_mouse_options ()
   END IF
   usemenu st
   clearpage vpage
@@ -1821,11 +1819,14 @@ FUNCTION window_size_description(scale as integer) as string
  END IF
 END FUNCTION
 
-SUB resolution_menu (secret_options as bool)
- DIM menu(6) as string
+SUB resolution_menu ()
+ DIM menu(7) as string
  DIM st as MenuState
  st.size = 24
- st.last = IIF(secret_options, UBOUND(menu), 4)
+ st.last = UBOUND(menu)
+ DIM selectable(UBOUND(menu)) as bool
+ flusharray selectable(), , YES
+ selectable(5) = NO
 
  'FIXME: selecting a resolution other than 320x200 causes the distrib menu
  'to not package gfx_directx.dll; remove that when gfx_directx is updated
@@ -1834,22 +1835,22 @@ SUB resolution_menu (secret_options as bool)
   setwait 55
   setkeys
   DIM quit as bool = (keyval(scEsc) > 1 OR (enter_space_click(st) AND st.pt = 0))
-  IF usemenu(st) ORELSE quit THEN
+  IF usemenu(st, selectable()) ORELSE quit THEN
    ' Reinforce limits, because we temporarily allow 0 while typing for convenience
    gen(genResolutionX) = large(MinResolutionX, gen(genResolutionX))
    gen(genResolutionY) = large(MinResolutionY, gen(genResolutionY))
   END IF
   IF quit THEN EXIT DO
   IF keyval(scF1) > 1 THEN
-    show_help IIF(secret_options, "window_settings", "window_settings_partial")
+    show_help "window_settings"
   END IF
   SELECT CASE st.pt
    CASE 1: st.need_update OR= intgrabber(gen(genFullscreen), 0, 1)
    CASE 2: st.need_update OR= intgrabber(gen(genWindowSize), 1, 10)
    CASE 3: st.need_update OR= intgrabber(gen(genLivePreviewWindowSize), 1, 10)
    CASE 4: st.need_update OR= intgrabber(gen(genRungameFullscreenIndependent), 0, 1)
-   CASE 5: st.need_update OR= intgrabber(gen(genResolutionX), 0, MaxResolutionX)  'Arbitrary limits
-   CASE 6: st.need_update OR= intgrabber(gen(genResolutionY), 0, MaxResolutionY)
+   CASE 6: st.need_update OR= intgrabber(gen(genResolutionX), 0, MaxResolutionX)  'Arbitrary limits
+   CASE 7: st.need_update OR= intgrabber(gen(genResolutionY), 0, MaxResolutionY)
   END SELECT
   IF st.need_update THEN
    xbsave game + ".gen", gen(), 1000   'Instant live previewing update
@@ -1865,8 +1866,9 @@ SUB resolution_menu (secret_options as bool)
   ELSE
    menu(4) &= "shared with this game"
   END IF
-  menu(5) = "Display Width: " & gen(genResolutionX) & " pixels"
-  menu(6) = "Display Height:" & gen(genResolutionY) & " pixels"
+  menu(5) = fgtag(uilook(uiDisabledItem), "Experimental options:")
+  menu(6) = "Game horizontal resolution: " & gen(genResolutionX) & " pixels"
+  menu(7) = "Game vertical resolution: " & gen(genResolutionY) & " pixels"
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
   setvispage vpage

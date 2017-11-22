@@ -1249,7 +1249,7 @@ SUB general_data_editor ()
    IF state.pt = 11 THEN generalmusicsfxmenu
    IF state.pt = 12 THEN masterpalettemenu
    IF state.pt = 13 THEN inputpasw
-   IF state.pt = 14 THEN resolution_menu NO
+   IF state.pt = 14 THEN resolution_menu
    IF state.pt = 15 THEN edit_platform_options
   END IF
   IF state.pt = 1 THEN
