@@ -285,6 +285,7 @@ sub FreeDocument(byval doc as DocPtr)
 	if doc->fileHandle then
 		'debuginfo "reload: closing file " & doc->fileName
 		fclose(doc->fileHandle)
+		doc->fileHandle = null
 	end if
 	
 	RDeallocate(doc->nameIndexTable, doc)
@@ -461,7 +462,7 @@ Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
 	next
 end sub
 
-Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
+Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
 	dim starttime as double = timer
 	dim ret as DocPtr
 	dim f as FILE ptr
@@ -513,9 +514,9 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	'debuginfo "reload: opened " & fil
 	
 	if options and optNoDelay then
-		ret->delayLoading = no
+		ret->delayLoading = NO
 	else
-		ret->delayLoading = yes
+		ret->delayLoading = YES
 		ret->fileHandle = f
 	end if
 	

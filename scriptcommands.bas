@@ -215,6 +215,9 @@ FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval ar
     insert = saveslot_plotstr(node, arg)
    END IF
  END SELECT
+
+ FreeDocument(GetDocument(node))
+
  RETURN insert
 END FUNCTION
 
