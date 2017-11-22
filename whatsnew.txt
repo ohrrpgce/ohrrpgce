@@ -25,14 +25,14 @@ Nov/Dec ??? 2017 [Etheldreme]
       [Ralph]
     * Ctrl+C/V to copy-and-paste text now uses the Mac/Windows/X11
       clipboard, so you can copy-paste from/to other applications [Ralph]
-    * Customizable Experience Curve for each hero [Taoki]
+    * Customizable Experience Curve for each hero [MirceaKitsune]
     * You can choose tags that will be turned on when heroes are at
       specific levels [James]
     * Support for games created in 1997 (OK, just the one game) [Ralph]
     * Enemies can use optional "Appear" animations, which are reversed
       versions of the death fades. [James]
     * New textbox conditionals to save, load, or end the game, delete a
-      save, or show the load/save menus [Taoki]
+      save, or show the load/save menus [MirceaKitsune]
     * The option to use resolutions other than 320x200 (in the
       Window-size Options menu). This has been in testing for a long
       time, but still isn't complete -- for example backdrops and battles
