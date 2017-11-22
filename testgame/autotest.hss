@@ -4354,7 +4354,7 @@ script, wallchecking tests, begin
   end
 
 
-  # Test 45° and near-45° collisions with one of the 4 corners of the center tile
+  # Test 45 degree and near-45 degree collisions with one of the 4 corners of the center tile
   # cornerx and cornery are 0 or 1 for left/up or right/bottom,
   # and also possibly the far corner if there are no walls at the first one.
   subscript, test corner, cornerx, cornery, cornermask, begin
@@ -4419,14 +4419,14 @@ script, wallchecking tests, begin
     starty := y -- ygodir * strikedist
 
     if (vside || hside) then (
-      # Hit the corner at 45°
+      # Hit the corner at 45 degree
       testcollide(1, startx, starty, xgo, ygo, xgodir * strikedist, ygodir * strikedist, cornermask)
 
-      # Move parallel to the corner, so we miss it by 1 pixel, but still at 45°
+      # Move parallel to the corner, so we miss it by 1 pixel, but still at 45 degree
       testcollide(2, startx + xgodir, starty,          xgo, ygo, xgodir * strikedist, ygodir * strikedist)
       testcollide(3, startx,          starty + ygodir, xgo, ygo, xgodir * strikedist, ygodir * strikedist)
 
-      # Try angles slightly above and below 45° but which still hit the corner at the same time
+      # Try angles slightly above and below 45 degree but which still hit the corner at the same time
       testcollide(4, startx+1, starty,   xgo -- 2, ygo,      xgodir * strikedist -- 1, ygodir * strikedist, cornermask)
       testcollide(5, startx,   starty+1, xgo,      ygo -- 2, xgodir * strikedist, ygodir * strikedist -- 1, cornermask)
       testcollide(6, startx--1, starty,   xgo + 2, ygo,      xgodir * strikedist + 1, ygodir * strikedist, cornermask)
@@ -4445,7 +4445,7 @@ script, wallchecking tests, begin
       expectx := xgodir * (strikedist+20)
       expecty := ygodir * (strikedist+20)
 
-      # Hit the inside corner at 45°
+      # Hit the inside corner at 45 degree
       if (far vside) then (
         if (cornerx == 0) then (expectret += eastwall) else (expectret += westwall)
       )
