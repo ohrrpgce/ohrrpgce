@@ -5,3 +5,5 @@ You can type in a new width and height, or press Enter or Space to resize the sl
 Some slice types like Sprites and non-wrapping Text automatically adjust their size when their content changes.
 
 Slices that are set to fill their parent are also automatically sized.
+
+Line slices are a bit special; their size is actually used as the offset between their ends. E.g. a width 10 height 0 Line slice might be drawn from x=50,y=20 to x=60,y=20, a line that's actually 11 pixels long.

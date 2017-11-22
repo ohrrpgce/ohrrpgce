@@ -1920,6 +1920,7 @@ define constant, begin
 10,slicetype:Select
 11,slicetype:Panel
 12,slicetype:Layout
+13,slicetype:Line
 0,spritetype:hero
 1,spritetype:smallenemy
 2,spritetype:mediumenemy

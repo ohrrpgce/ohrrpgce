@@ -1,0 +1,1 @@
+Press Enter or Space to browse for a color that will be used for this line. You can also pick a UI color by selecting color 0 and pressing Left.

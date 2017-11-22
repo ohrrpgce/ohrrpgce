@@ -38,6 +38,7 @@ Nov/Dec ??? 2017 [Etheldreme]
       time, but still isn't complete -- for example backdrops and battles
       are still 320x200. Nothing has changed in this release except that
       the option isn't hidden any more [Ralph]
+    * Line slices [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

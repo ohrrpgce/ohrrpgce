@@ -4799,7 +4799,8 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval horiz_fill_ok as 
   DIM sl as Slice Ptr
   sl = plotslices(handle)
   SELECT CASE sl->SliceType
-   CASE slSpecial, slRectangle, slContainer, slGrid, slEllipse, slSelect, slScroll, slPanel
+   CASE slSpecial, slRectangle, slLine, slContainer, slGrid, slEllipse, _
+        slSelect, slScroll, slPanel
     IF sl->Fill = NO THEN RETURN YES
     SELECT CASE sl->Fillmode
      CASE sliceFillFull

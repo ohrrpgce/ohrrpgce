@@ -112,6 +112,7 @@ Enum 'SliceTypes
  slSelect
  slPanel
  slLayout
+ slLine
  'Remember to update slicetype constants in plotscr.hsd
 End Enum
 
@@ -162,7 +163,7 @@ Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd pt
 Type SliceChildrenRefresh as Sub(Byval par as SliceFwd ptr)
 Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as integer)
 
-TYPE Slice
+Type Slice
   Parent as Slice Ptr
   FirstChild as Slice Ptr
   LastChild as Slice Ptr
@@ -284,14 +285,14 @@ TYPE Slice
   Protect as bool
 
   'NOTE: When adding to this, remember to update CloneSliceTree, SliceLoadFromNode and SliceSaveToNode
-END TYPE
+End Type
 
 'NOTE: the Slices are not freed when the vector is freed!
 DECLARE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
 
 '--Data containers for various slice types
 
-TYPE RectangleSliceData
+Type RectangleSliceData
  'If anything aside from translucent/fuzzfactor is manually changed, set style=-1 and style_loaded=NO
  fgcol as integer
  border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
@@ -307,7 +308,12 @@ TYPE RectangleSliceData
  raw_box_border as integer
 
  'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
-END TYPE
+End Type
+
+Type LineSliceData
+ col as integer
+ 'flipped as bool
+End Type
 
 Type TextSliceData
  col as integer
@@ -549,6 +555,8 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval translucent as RectTransTypes=transUndef,_
                       byval fuzzfactor as integer=0,_
                       byval raw_box_border as RectBorderTypes=borderUndef)
+
+DECLARE Function NewLineSlice(byval parent as Slice ptr, byref dat as LineSliceData) as Slice ptr
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)

@@ -105,16 +105,18 @@ END TYPE
 
 DIM SHARED remember_draw_root_pos as XYPair
 
-REDIM SHARED editable_slice_types(8) as SliceTypes
+REDIM SHARED editable_slice_types(9) as SliceTypes
 editable_slice_types(0) = SlContainer
-editable_slice_types(1) = SlRectangle
-editable_slice_types(2) = SlSprite
-editable_slice_types(3) = SlText
-editable_slice_types(4) = SlGrid
+editable_slice_types(1) = SlSprite
+editable_slice_types(2) = SlText
+editable_slice_types(3) = SlRectangle
+editable_slice_types(4) = SlLine
 editable_slice_types(5) = SlEllipse
 editable_slice_types(6) = SlScroll
 editable_slice_types(7) = SlSelect
-editable_slice_types(8) = SlPanel
+editable_slice_types(8) = SlGrid
+editable_slice_types(9) = SlPanel
+'editable_slice_types(10) = SlLayout
 
 '==============================================================================
 
@@ -817,6 +819,10 @@ FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEdit
   'click on things parented to map layers below.
   SELECT CASE sl->SliceType
    CASE slRectangle, slSprite, slText, slEllipse, slScroll
+    topmost = sl
+   CASE slLine
+    'TODO: test how close the mouse is to the line, rather than giving it
+    'a huge hitbox
     topmost = sl
    CASE slGrid
     IF cptr(GridSliceData ptr, sl->SliceData)->show THEN
@@ -1528,6 +1534,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      str_array_append menu(), "  Fuzziness: " & dat->fuzzfactor & "%"
      sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
     END IF
+
+   CASE slLine
+    DIM dat as LineSliceData ptr = .SliceData
+    str_array_append menu(), "  Color: " & slice_color_caption(dat->col)
+    sliceed_rule rules(), "line_col", erIntgrabber, @dat->col, LowColorCode(), 255, slgrPICKCOL
+    ' str_array_append menu(), "  Flipped: " & yesorno(dat->flipped)
+    ' sliceed_rule_tog rules(), "line_flipped", @dat->flipped
 
    CASE slText
     DIM dat as TextSliceData Ptr

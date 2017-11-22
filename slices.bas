@@ -169,6 +169,7 @@ FUNCTION SliceTypeByName (s as string) as SliceTypes
   CASE "Special":        RETURN slSpecial
   CASE "Container":      RETURN slContainer
   CASE "Rectangle":      RETURN slRectangle
+  CASE "Line":           RETURN slLine
   CASE "Sprite":         RETURN slSprite
   CASE "Text":           RETURN slText
   CASE "Map":            RETURN slMap
@@ -195,6 +196,7 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
   CASE slSpecial:        RETURN "Special"
   CASE slContainer:      RETURN "Container"
   CASE slRectangle:      RETURN "Rectangle"
+  CASE slLine:           RETURN "Line"
   CASE slSprite:         RETURN "Sprite"
   CASE slText:           RETURN "Text"
   CASE slMap:            RETURN "Map"
@@ -315,6 +317,9 @@ FUNCTION NewSliceOfType (byval t as SliceTypes, byval parent as Slice Ptr=0, byv
   CASE slRectangle:
    DIM dat as RectangleSliceData
    newsl = NewRectangleSlice(parent, dat)
+  CASE slLine:
+   DIM dat as LineSliceData
+   newsl = NewLineSlice(parent, dat)
   CASE slSprite:
    DIM dat as SpriteSliceData
    newsl = NewSpriteSlice(parent, dat)
@@ -1073,6 +1078,80 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
   UpdateRectangleSliceStyle dat
  end if
 end sub
+
+'--Line-------------------------------------------------------------------
+
+Sub DisposeLineSlice(byval sl as Slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as LineSliceData ptr = sl->SliceData
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawLineSlice(byval sl as Slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as LineSliceData ptr = sl->SliceData
+
+ dim point2 as XYPair = sl->ScreenPos + sl->Size
+ dim col as integer = SliceColor(dat->col)
+ 'if dat->flipped then
+ ' drawline sl->ScreenX, point2.y, point2.x, sl->ScreenY, col, p
+ 'else
+  drawline sl->ScreenX, sl->ScreenY, point2.x, point2.y, col, p
+ 'end if
+end sub
+
+Function GetLineSliceData(byval sl as Slice ptr) as LineSliceData ptr
+ if sl = 0 then return 0
+ return sl->SliceData
+End Function
+
+Sub CloneLineSlice(byval sl as Slice ptr, byval cl as Slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneLineSlice null ptr": exit sub
+ dim dat as LineSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as LineSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .col       = dat->col
+  '.flipped   = dat->flipped
+ end with
+End Sub
+
+Sub SaveLineSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveLineSlice null ptr": exit sub
+ dim dat as LineSliceData ptr = sl->SliceData
+ SavePropAlways node, "col", dat->col
+ 'SaveProp node, "flipped", dat->flipped
+End Sub
+
+Sub LoadLineSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadLineSlice null ptr": exit sub
+ dim dat as LineSliceData ptr = sl->SliceData
+ dat->col = LoadProp(node, "col")
+ 'dat->flipped = LoadPropBool(node, "flipped")
+End Sub
+
+Function NewLineSlice(byval parent as Slice ptr, byref dat as LineSliceData) as Slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then return 0
+
+ dim d as LineSliceData ptr = new LineSliceData
+ *d = dat
+
+ ret->SliceType = slLine
+ ret->SliceData = d
+ ret->Draw = @DrawLineSlice
+ ret->Dispose = @DisposeLineSlice
+ ret->Clone = @CloneLineSlice
+ ret->Save = @SaveLineSlice
+ ret->Load = @LoadLineSlice
+
+ return ret
+end function
 
 '--Text-------------------------------------------------------------------
 Sub DisposeTextSlice(byval sl as Slice ptr)

@@ -4,6 +4,8 @@ Container - An invisible slice used for positioning other slices.
 
 Rectangle - A box which can be give a color and a border-style
 
+Line - A straight line drawn between two opposite corners of the slice.
+
 Sprite - A sprite. Draw sprites in the graphics menu (go back to the main menu to find it)
 
 Text - A string of text. Can optionally wrap as multiple lines.
