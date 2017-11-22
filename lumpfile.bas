@@ -1446,6 +1446,14 @@ function inworkingdir(filename as string, writable as boolint, writes_allowed as
 	return ret
 end function
 
+'For debugging, so that dump_openfiles() can work
+function hook_all_files(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+	if RIGHT(filename, 10) = "_debug.txt" then return FilterActionEnum.dont_hook
+
+	'debuginfo "OPEN(" & filename & ")"
+	return FilterActionEnum.hook
+end function
+
 'A crude synchronisation measure. Waits until receiving a message with the given prefix,
 'placing it in line_in, discarding everything else. Returns true on success
 function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer

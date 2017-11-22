@@ -251,6 +251,8 @@ app_dir = EXEPATH  'FreeBasic builtin
  log_dir = CURDIR & SLASH
 #ENDIF
 
+'set_OPEN_hook @hook_all_files, YES, NULL  'For debugging
+
 'Once log_dir is set, can create debug log.
 external_log "main() started; starting debug log..."
 start_new_debug "Starting OHRRPGCE Game"

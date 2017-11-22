@@ -328,6 +328,7 @@ boolint renamefile(FBSTRING *source, FBSTRING *destination) {
 		return 0;
 	}
 	if (rename(source->data, destination->data)) {
+		dump_openfiles();  // On Windows rename() typical fails because the file is open
 		debug(errPrompt, "rename(%s, %s) failed: %s", source->data, destination->data, strerror(errno));
 		return 0;
 	}

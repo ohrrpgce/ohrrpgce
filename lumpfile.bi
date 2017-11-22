@@ -260,6 +260,8 @@ end extern
 extern can_write_to_workingdir as bool
 
 declare function inworkingdir(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+declare function hook_all_files(filename as string, writable as boolint, writes_allowed as boolint) as FilterActionEnum
+
 declare function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", timeout_ms as integer = 500) as integer
 
 #endif
