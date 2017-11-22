@@ -53,6 +53,8 @@ void init_runtime() {
 		debug(errError, "setlocale failed");
 	}
 #endif
+
+	disable_extended_precision();
 }
 
 void external_log(FBSTRING *str) {

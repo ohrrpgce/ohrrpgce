@@ -20,6 +20,8 @@ void init_runtime() {
 		// This will actually end up in ?_debug_archive.txt; see init_runtime in os_unix.c
 		debug(errError, "setlocale failed");
 	}
+
+	disable_extended_precision();
 }
 
 // (This could have been written in os_windows.bas and there's no special reason it isn't)

@@ -139,3 +139,61 @@ uint32_t stringhash(const unsigned char *strp, int length) {
 	hash += ROT(hash, 16);
 	return hash;
 }
+
+
+/////////////////////// Put x87 FPU in double-precision mode //////////////////
+
+// For cross-platform portability, force x87 floating-point calculations to be
+// done with intermediate results stored in double precision (53 bit mantissa)
+// instead of extended double precision (64 bit mantissa) registers.  We change
+// the x87 control register to accomplish this.  But it only affects the
+// mantissa, not the exponent, so does not remove all inconsistencies.
+//
+// See http://yosefk.com/blog/consistency-how-to-defeat-the-purpose-of-ieee-floating-point.html
+// and http://christian-seiler.de/projekte/fpmath/
+
+// Indirectly include features.h (for glibc detection), which might not exist
+#include <limits.h>
+
+// Check for x86 or amd64, for Visual C++, GCC
+#if defined(_M_IX86) || defined(_M_AMD64) || defined(__i386__) || defined(__x86_64__)
+
+#if defined(_MSC_VER) || defined(_WIN32)
+// Windows, either Visual C++ or MinGW. Note, Windows defaults to double-precision,
+// but MinGW switches on extended precision
+
+#include <float.h>
+
+void disable_extended_precision() {
+	_controlfp(_PC_53, _MCW_PC);
+}
+
+#elif defined(__gnu_linux__) || defined(__GNU_LIBRARY__) || defined(__GLIBC__)
+// For glibc
+
+#include <fpu_control.h>
+
+void disable_extended_precision() {
+	fpu_control_t cw;
+	_FPU_GETCW(cw);
+	cw = (cw & ~_FPU_EXTENDED) | _FPU_DOUBLE;
+	_FPU_SETCW(cw);
+}
+
+#else
+
+// Mac: apparently no macro provided to switch the precision, but apparently not
+// needed on Macs because SSE is used for everything when possible?
+// According to one source, all BSD*s use double precision by default, although
+// they did not always, so don't know if this is still true either.
+
+void disable_extended_precision() {}
+
+#endif
+
+#else
+
+// Not x86
+void disable_extended_precision() {}
+
+#endif

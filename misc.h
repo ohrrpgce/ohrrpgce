@@ -46,6 +46,8 @@ void delete_fbstring(FBSTRING *str);
 
 uint32_t stringhash(const unsigned char *strp, int length);
 
+void disable_extended_precision();
+
 #ifdef __cplusplus
 }
 #endif
