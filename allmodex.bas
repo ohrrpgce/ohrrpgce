@@ -22,6 +22,7 @@ using Reload
 
 #ifdef IS_GAME
  #include "game.bi"  'For exit_gracefully
+ #include "gglobals.bi"  'For carray
 #endif
 
 #ifdef __FB_ANDROID__
@@ -81,7 +82,6 @@ declare sub screen_size_update ()
 declare sub pollingthread(as any ptr)
 declare function read_inputtext () as string
 declare sub update_mouse_state ()
-declare sub check_for_released_mouse_button(buttonnum as MouseButton)
 
 declare sub load_replay_header ()
 declare sub record_input_tick ()
@@ -1985,6 +1985,21 @@ sub clearkey(k as integer)
 	end if
 end sub
 
+'Mark all keyboard keys and mouse buttons as unpressed.
+'(TODO: joystick)
+'If a key is being held down then this can't hide it.
+sub clearkeys()
+	for k as integer = 0 to scLAST
+		clearkey(k)
+	next
+	#ifdef IS_GAME
+		flusharray carray(), 7, 0
+	#endif
+	mouse_state.clearclick(mouseLeft)
+	mouse_state.clearclick(mouseRight)
+	mouse_state.clearclick(mouseMiddle)
+end sub
+
 'Clear the new keypress flag for a key.
 sub clear_newkeypress(k as integer)
 	if replay.active then
@@ -2077,7 +2092,7 @@ function getcursorvisibility () as CursorVisibility
 	return cursorvisibility
 end function
 
-sub check_for_released_mouse_button(buttonnum as MouseButton)
+private sub check_for_released_mouse_button(buttonnum as MouseButton)
 	if (mouse_state.last_buttons and buttonnum) andalso (mouse_state.buttons and buttonnum) = 0 then
 		'If the button was released since the last tick, turn on .release
 		mouse_state.release or= buttonnum

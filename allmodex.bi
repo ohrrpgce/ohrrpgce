@@ -360,6 +360,7 @@ DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer =
 DECLARE SUB setkeys (enable_inputtext as bool = NO)
 DECLARE SUB real_clearkey (k as integer)
 DECLARE SUB clearkey (k as integer)
+DECLARE SUB clearkeys()
 DECLARE SUB real_clear_newkeypress(k as integer)
 DECLARE SUB clear_newkeypress(k as integer)
 DECLARE SUB setquitflag (newstate as bool = YES)

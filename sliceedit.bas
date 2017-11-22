@@ -758,7 +758,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
  restore_previous_palette
- setkeys
+ clearkeys
  setcursorvisibility(prev_mouse_vis)
  force_use_mouse -= 1
  #IFDEF IS_GAME
