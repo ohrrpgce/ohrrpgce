@@ -105,17 +105,17 @@ END TYPE
 
 DIM SHARED remember_draw_root_pos as XYPair
 
-REDIM SHARED editable_slice_types(9) as SliceTypes
+REDIM SHARED editable_slice_types(8) as SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlSprite
 editable_slice_types(2) = SlText
 editable_slice_types(3) = SlRectangle
-editable_slice_types(4) = SlLine
-editable_slice_types(5) = SlEllipse
-editable_slice_types(6) = SlScroll
-editable_slice_types(7) = SlSelect
-editable_slice_types(8) = SlGrid
-editable_slice_types(9) = SlPanel
+'editable_slice_types(4) = SlLine
+editable_slice_types(4) = SlEllipse
+editable_slice_types(5) = SlScroll
+editable_slice_types(6) = SlSelect
+editable_slice_types(7) = SlGrid
+editable_slice_types(8) = SlPanel
 'editable_slice_types(10) = SlLayout
 
 '==============================================================================
@@ -421,8 +421,10 @@ END SUB
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
 
- REDIM PRESERVE editable_slice_types(8)
- IF ses.privileged THEN int_array_append editable_slice_types(), slLayout
+ IF ses.privileged THEN
+  int_array_append editable_slice_types(), slLayout
+  int_array_append editable_slice_types(), slLine
+ END IF
 
  '--user-defined slice lookup codes
  REDIM ses.slicelookup(10) as string

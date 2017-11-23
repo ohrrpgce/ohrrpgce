@@ -16,6 +16,10 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2017-11-23:
+Line slices have been removed again, to allow more time to finalise them after
+the release. If you're already using them, don't!
+
 2017-11-11:
 "clone slice" now puts the cloned slice before the slice it was cloned from,
 rather than after.
