@@ -1466,10 +1466,11 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    'str_array_append menu(), "Y: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
    'sliceed_rule_none rules(), "pos"
   END IF
+  DIM minsize as integer = IIF(.SliceType = slLine, -9999, 0)
   str_array_append menu(), "Width: " & .Width
-  sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Width, minsize, 9999, slgrPICKWH
   str_array_append menu(), "Height: " & .Height
-  sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
   IF ses.privileged THEN
    str_array_append menu(), "Cover Children: " & CoverModeCaptions(.CoverChildren)
    sliceed_rule_enum rules(), "cover", @.CoverChildren, 0, 3
