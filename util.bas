@@ -2074,9 +2074,10 @@ FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stder
   RETURN ret
 END FUNCTION
 
+'Create if it doesn't exist. Does NOT update its timestamp!
 SUB touchfile (filename as string)
   DIM as integer fh
-  IF OPENFILE(filename, FOR_BINARY, fh) THEN
+  IF OPENFILE(filename, FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
     debug "touchfile(): could not open " + filename
     EXIT SUB
   END IF

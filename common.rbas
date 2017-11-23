@@ -593,7 +593,7 @@ SUB setfixbit(byval bitnum as integer, byval bitval as integer)
  DIM f as string
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh as integer
- IF OPENFILE(f, FOR_BINARY, fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
+ IF OPENFILE(f, FOR_BINARY + ACCESS_READ_WRITE, fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
  extendfile fh, (bitnum \ 8) + 1  'Prevent writing garbage
  DIM ub as UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
@@ -852,7 +852,7 @@ FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as i
  lumpsdir = IIF(LEN(game), workingdir, finddatadir("defaultgfx"))
  fname = lumpsdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer
- IF OPENFILE(fname, FOR_BINARY, fh) = 0 THEN
+ IF OPENFILE(fname, FOR_BINARY + ACCESS_READ, fh) = 0 THEN
   DIM v as short
   GET #fh, 1 + index * 2, v
   CLOSE #fh
@@ -875,7 +875,7 @@ SUB loaddefaultpals(byval fileset as SpriteType, poffset() as integer, byval set
  DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer
- IF OPENFILE(f, FOR_BINARY, fh) = 0 THEN
+ IF OPENFILE(f, FOR_BINARY + ACCESS_READ, fh) = 0 THEN
   FOR i as integer = 0 to sets
    GET #fh, 1 + i * 2, v
    poffset(i) = v
@@ -890,7 +890,7 @@ SUB savedefaultpals(byval fileset as SpriteType, poffset() as integer, byval set
  DIM v as short
  DIM f as string = workingdir & SLASH & "defpal" & fileset & ".bin"
  DIM fh as integer
- OPENFILE(f, FOR_BINARY, fh)
+ OPENFILE(f, FOR_BINARY + ACCESS_WRITE, fh)
  FOR i as integer = 0 to sets
   v = poffset(i)
   PUT #fh, 1 + i * 2, v
@@ -998,7 +998,7 @@ PRIVATE SUB load_binsize_cache ()
  NEXT
  DIM fh as integer = FREEFILE
  ' No error if missing
- IF OPENFILE(workingdir + SLASH + "binsize.bin", FOR_BINARY, fh) = 0 THEN
+ IF OPENFILE(workingdir + SLASH + "binsize.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
   DIM as short recordsize
   ' If binsize.bin is larger than expected that is reported in rpg_sanity_checks
   DIM as integer recs = LOF(fh) \ 2
@@ -1039,7 +1039,7 @@ SUB setbinsize (byval id as integer, byval size as integer)
   RETURN
  END IF
  DIM fh as integer
- IF OPENFILE(workingdir & SLASH & "binsize.bin", FOR_BINARY, fh) THEN
+ IF OPENFILE(workingdir & SLASH & "binsize.bin", FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
   showerror "Failed to write binsize.bin(" & id & "), will cause data corruption!"
   RETURN
  END IF
@@ -1286,7 +1286,8 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
   debug "loadpalette: invalid palnum " & palnum
   palnum = 0
  END IF
- IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
+ DIM fh as integer
+ IF OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY + ACCESS_READ, fh) <> fberrOK THEN
   '.MAS fallback, palnum ignored because it doesn't matter
   DIM oldpalbuf(767) as integer
   xbload game + ".mas", oldpalbuf(), "master palette missing from " + sourcerpg
@@ -1295,8 +1296,6 @@ SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
   DIM as short headsize, recsize
   DIM palbuf(767) as ubyte
 
-  DIM fh as integer
-  OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
   GET #fh, , headsize
   GET #fh, , recsize
   GET #fh, recsize * palnum + headsize + 1, palbuf()
@@ -1315,7 +1314,7 @@ SUB savepalette(pal() as RGBcolor, byval palnum as integer)
  DIM as short headsize = 4, recsize = 768  'Defaults
 
  DIM fh as integer
- OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY, fh)
+ OPENFILE(workingdir + SLASH + "palettes.bin", FOR_BINARY + ACCESS_READ_WRITE, fh)
  IF LOF(fh) >= 4 THEN
   GET #fh, 1, headsize
   GET #fh, 3, recsize
@@ -4189,7 +4188,7 @@ IF full_upgrade AND getfixbit(fixTextBoxPortrait) = 0 THEN
  'DIM box as TextBox
  DIM boxbuf(dimbinsize(binSAY)) as integer
  DIM recsize as integer = getbinsize(binSAY) \ 2
- OPENFILE(game & ".say", FOR_BINARY, fh)
+ OPENFILE(game & ".say", FOR_BINARY + ACCESS_READ_WRITE, fh)
  FOR i as integer = 0 TO gen(genMaxTextBox)
   'This was stupefying slow, by far the slowest of all upgrades
   'LoadTextBox box, i
@@ -4373,7 +4372,7 @@ END SUB
 'it has a header if any and one record.
 SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
  DIM fh as integer
- IF OPENFILE(lumpname, FOR_BINARY, fh) THEN
+ IF OPENFILE(lumpname, FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
   debugc errError, "Error while opening " & lumpname
   EXIT SUB
  END IF
@@ -4416,7 +4415,7 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   debug "fix_record_count mismatch for " & info & " lump, " & total_bytes & " is not evenly divisible by " & record_byte_size & " (" & mismatch & ")"
   '--expand the lump to have a valid total size
   DIM fh as integer
-  OPENFILE(lumpname, FOR_BINARY, fh)
+  OPENFILE(lumpname, FOR_BINARY + ACCESS_READ_WRITE, fh)
   DO WHILE total_bytes MOD record_byte_size <> 0
    total_bytes += 1
    PUT #fh, skip_header_bytes + total_bytes, CHR(0)
@@ -4573,15 +4572,16 @@ SUB rpg_sanity_checks
 END SUB
 
 SUB loadglobalstrings
-'we load the whole lump into memory because readglobalstring can be called
-'hunderds of times a second. It's stored in a raw format; good enough.
-DIM fh as integer
-OPENFILE(game + ".stt", FOR_BINARY, fh)
-IF LOF(fh) > 0 THEN
- global_strings_buffer = STRING(LOF(fh), 0)
- GET #fh, 1, global_strings_buffer
-END IF
-CLOSE #fh
+ 'we load the whole lump into memory because readglobalstring can be called
+ 'hunderds of times a second. It's stored in a raw format; good enough.
+ DIM fh as integer
+ IF OPENFILE(game + ".stt", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
+  IF LOF(fh) > 0 THEN
+   global_strings_buffer = STRING(LOF(fh), 0)
+   GET #fh, 1, global_strings_buffer
+  END IF
+  CLOSE #fh
+ END IF
 END SUB
 
 FUNCTION readglobalstring (byval index as integer, default as string, byval maxlen as integer=10) as string
