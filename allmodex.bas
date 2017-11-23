@@ -3982,11 +3982,6 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	end if
 	CHECK_FRAME_8BIT(dest)
 
-	if POINT_CLIPPED(x1, y1) orelse POINT_CLIPPED(x2, y2) then
-		debug "drawline: outside clipping"
-		exit sub
-	end if
-
 	if y1 > y2 then
 		'swap ends, we only draw downwards
 		swap y1, y2
@@ -4039,17 +4034,45 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	end if
 	delta = -delta_sub \ 2  'Start at the center of a pixel
 
+	/'
+	'Perform clipping (not correct/finished)
+	dim itstart as integer
+	if y1 < clipt then
+		if y2 < clipt then exit sub  'Ensures delta_add & delta_sub > 0
+		if deltaX > deltaY then
+			delta += (clipt - y1) * delta_add
+			itstart = delta \ delta_add
+			delta = delta mod delta_sub
+		else
+			itstart = clipt - y1
+			delta += itstart * delta_add
+			x1 += stepX * (delta mod delta_sub)
+			delta = delta mod delta_sub
+			if delta > 0 then
+				x1 += stepX
+				'sptr += minorstep
+				delta -= delta_sub
+			end if
+		end if
+		y1 = clipt
+	end if
+	'/
+
 	dim sptr as ubyte ptr
 	sptr = dest->image + (y1 * dest->pitch) + x1
 
 	for it as integer = 0 to length
-		*sptr = c
+		if POINT_CLIPPED(x1, y1) = NO then
+			*sptr = c
+		end if
 		delta += delta_add
 		if delta > 0 then
 			sptr += minorstep
 			delta -= delta_sub
+			if deltaX > deltaY then y1 += stepY else x1 += stepX
 		end if
 		sptr += majorstep
+		if deltaX > deltaY then x1 += stepX else y1 += stepY
 	next
 end sub
 
