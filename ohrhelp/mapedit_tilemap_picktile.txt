@@ -1,6 +1,6 @@
-This screen allows you to select a maptile to use in the map editor. Use the arrow keys to highlight a maptile, and press ENTER or SPACE to choose it.
+This screen allows you to select a maptile to use in the map editor. Use the arrow keys to highlight a maptile, and press ENTER or SPACE to choose it, or CLICK on it. RIGHT CLICK to move the cursor.
 
-Hold down ENTER or SPACE and move the cursor to select multiple tiles to paint with as a brush for the Clone tool. All the tiles will be placed on the current map layer when painting with this brush.
+Hold down ENTER or SPACE and move the cursor, or LEFT CLICK and drag, to select multiple tiles to paint with as a brush for the Clone tool. All the tiles will be placed on the current map layer when painting with this brush.
 
 Hold SHIFT to move the cursor faster.
 

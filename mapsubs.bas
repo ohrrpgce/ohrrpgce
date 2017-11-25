@@ -4677,6 +4677,7 @@ END SUB
 'FIXME: if this were cleaned up to return a tile instead of modifying st.usetile, it could be called
 'from the general map settings menu.
 SUB mapedit_pickblock(st as MapEditState)
+ DIM byref mouse as MouseInfo = readmouse
  DIM tilepick as XYPair  'Coordinates (in tiles) of the selected tile in tilesetview
  DIM dragging as bool = NO
  DIM chequer_scroll as integer
@@ -4706,13 +4707,27 @@ SUB mapedit_pickblock(st as MapEditState)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
 
-  IF (keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
+  tilesetview.high = IIF(show_animated_tiles, real_tilesetview_high, 10)
+
+  ' Cursor movement
+  DIM repeatms as integer = 80
+  IF keyval(scShift) > 0 THEN repeatms = 40
+  IF slowkey(scUp, repeatms) AND tilepick.y > 0 THEN tilepick.y -= 1
+  IF slowkey(scDown, repeatms) AND tilepick.y < tilesetview.high - 1 THEN tilepick.y += 1
+  IF slowkey(scLeft, repeatms) AND tilepick.x > 0 THEN tilepick.x -= 1
+  IF slowkey(scRight, repeatms) AND tilepick.x < tilesetview.wide - 1 THEN tilepick.x += 1
+  IF mouse.buttons THEN
+   IF mouse.x < tilesetview.wide * tilew AND mouse.y + scrolly < tilesetview.high * tileh THEN
+    tilepick = (mouse.pos + XY(0, scrolly)) \ tilesize
+   END IF
+  END IF
+
+  IF (keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1 OR (mouse.clicks AND mouseLeft)) AND dragging = NO THEN
    'start drag-selecting a box
    dragging = YES
    holdpos = tilepick
   END IF
-  IF keyval(scAnyEnter) = 0 AND keyval(scSpace) = 0 AND dragging = YES THEN
-   update_tilepicker st
+  IF keyval(scAnyEnter) = 0 AND keyval(scSpace) = 0 AND mouse.buttons = 0 AND dragging = YES THEN
    mapedit_pick_tileset_rect st, tilesetview, tilepick, holdpos
    EXIT DO
   END IF
@@ -4720,14 +4735,6 @@ SUB mapedit_pickblock(st as MapEditState)
    show_animated_tiles XOR= YES
   END IF
 
-  tilesetview.high = IIF(show_animated_tiles, real_tilesetview_high, 10)
-
-  DIM repeatms as integer = 80
-  IF keyval(scShift) > 0 THEN repeatms = 40
-  IF slowkey(scUp, repeatms) AND tilepick.y > 0 THEN tilepick.y -= 1
-  IF slowkey(scDown, repeatms) AND tilepick.y < tilesetview.high - 1 THEN tilepick.y += 1
-  IF slowkey(scLeft, repeatms) AND tilepick.x > 0 THEN tilepick.x -= 1
-  IF slowkey(scRight, repeatms) AND tilepick.x < tilesetview.wide - 1 THEN tilepick.x += 1
   ' This is NOT tile ID, it's linearised index in tilesetview
   DIM tileoffset as integer = int_from_xy(tilepick, tilesetview.wide, tilesetview.high)
   IF slowkey(scComma, repeatms) AND tileoffset > 0 THEN tileoffset -= 1
@@ -4735,6 +4742,7 @@ SUB mapedit_pickblock(st as MapEditState)
   tilepick = xy_from_int(tileoffset, tilesetview.wide, tilesetview.high)
   set_usetile st, readblock(tilesetview, tilepick.x, tilepick.y)
 
+  scrolly += mouse.wheel_delta \ 6
   ' Keep the selected tile in view
   scrolly = bound(scrolly, tilepick.y * 20 + 30 - vpages(vpage)->h, tilepick.y * 20 - 10)
   ' Don't over-scroll
@@ -4753,9 +4761,9 @@ SUB mapedit_pickblock(st as MapEditState)
    infotext & = !"\nAnimation set " & ((st.usetile(st.layer) - 160) \ 48)
   END IF
   edgeprint infotext, 0, infoline_y, uilook(uiText), vpage, YES, YES
-  infotext = " Hold to select a rectangle"
+  infotext = " Hold/drag to select a rectangle"
   IF show_animated_tiles = NO THEN
-   infotext &= !"\nCtrl+A: show animated tiles"
+   infotext &= !"\nA: show animated tiles"
   END IF
   edgeprint infotext, pRight, infoline_y, uilook(uiText), vpage, YES, YES
 
