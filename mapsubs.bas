@@ -42,7 +42,7 @@ ENUM MouseAttention
  focusTopbar
 END ENUM
 
-DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
+DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 DECLARE SUB mapedit_constrain_camera(st as MapEditState)
@@ -159,7 +159,7 @@ DECLARE SUB mapedit_delete_layer(st as MapEditState, byval which as integer)
 DECLARE SUB mapedit_swap_layers(st as MapEditState, byval l1 as integer, byval l2 as integer)
 DECLARE SUB mapedit_gmapdata(st as MapEditState)
 DECLARE SUB mapedit_draw_icon(st as MapEditState, icon as string, x as RelPos, y as RelPos, highlight as bool = NO)
-DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState)
+DECLARE SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
 
 DECLARE SUB mapedit_import_export(st as MapEditState)
 
@@ -1108,15 +1108,39 @@ DO
      END WITH
     NEXT i
    END IF
+
+   'Mouse controls
+   DIM spot as XYPair = st.pos
+   DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
+   IF mouse_attention = focusTopBar then
+    IF mouse.release AND (mouseLeft OR mouseRight) THEN
+     mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
+    END IF
+   ELSEIF mouse_attention = focusMap then
+    IF mouse.release AND mouseLeft THEN
+     'As a kludge, we didn't move the cursor to the mouse, to avoid the
+     'cursor overlapping the NPC which we will now place
+     spot = mouse_over_tile
+     'Click and drag to set an NPC's direction
+     npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
+    END IF
+    IF mouse.release AND mouseRight THEN
+     IF mapedit_npc_at_spot(st, mouse_over_tile) > -1 THEN
+      mapedit_list_npcs_by_tile st, mouse_over_tile
+     ELSE
+      st.pos = mouse_over_tile
+     END IF
+    END IF
+   END IF
+
+   'Keyboard
    IF keyval(scAnyEnter) > 1 THEN
-    IF mapedit_npc_at_spot(st) > -1 THEN
-     'TODO: also do this when right-clicking on an NPC
-     mapedit_list_npcs_by_tile st
+    IF mapedit_npc_at_spot(st, spot) > -1 THEN
+     mapedit_list_npcs_by_tile st, spot
     ELSE
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
    END IF
-   DIM npc_d as integer = -1
    'Note that pressing SPACE+arrow keys at the same time will place an NPC and
    'move the cursor: "RMZ-style NPC placement"
    IF (keyval(scCtrl) > 0 AND keyval(scShift) = 0) OR keyval(scSpace) > 1 THEN
@@ -1125,11 +1149,12 @@ DO
     IF slowkey(scDown, 660)  THEN npc_d = 2
     IF slowkey(scLeft, 660)  THEN npc_d = 3
    END IF
-   'TODO: click and drag to set an NPC's direction
+
+   'Place or delete an NPC
    IF tool_actkeypress OR npc_d > -1 THEN
     DIM npc_slot as integer = 0
     IF npc_d = -1 THEN
-     DIM npci as integer = mapedit_npc_at_spot(st)
+     DIM npci as integer = mapedit_npc_at_spot(st, spot)
      IF npci > -1 THEN
       WITH st.map.npc(npci)
        .id = 0
@@ -1147,7 +1172,7 @@ DO
       IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
      IF npc_slot >= 0 THEN
-      st.map.npc(npc_slot).pos = st.pos * 20
+      st.map.npc(npc_slot).pos = spot * 20
       st.map.npc(npc_slot).id = st.cur_npc + 1
       st.map.npc(npc_slot).dir = npc_d
      END IF
@@ -1625,7 +1650,7 @@ DO
   DIM oldwallzone as integer = st.cur_npc_wall_zone
   st.cur_npc_zone = 0
   st.cur_npc_wall_zone = 0
-  DIM npci as integer = mapedit_npc_at_spot(st)
+  DIM npci as integer = mapedit_npc_at_spot(st, st.pos)
   IF npci > -1 THEN
    WITH st.map.npc_def(st.map.npc(npci).id - 1)
     IF .defaultzone = -1 THEN
@@ -1983,7 +2008,7 @@ END FUNCTION
 
 '==========================================================================================
 
-PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as string, npcrefs() as integer)
+PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, menu() as string, npcrefs() as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
 
  REDIM npcrefs(0) as integer
@@ -1994,7 +2019,7 @@ PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as stri
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
-    IF .x = st.x * 20 AND .y = st.y * 20 THEN
+    IF .x = pos.x * 20 AND .y = pos.y * 20 THEN
      DIM s as string
      s = "NPC ID=" & (.id - 1) & " facing " & dir_str(.dir)
      str_array_append menu(), s
@@ -2005,8 +2030,8 @@ PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as stri
  NEXT i
 END SUB
 
-'Menu which shows the NPCs at the currently selected tile, and allows you to edit them
-SUB mapedit_list_npcs_by_tile (st as MapEditState)
+'Menu which shows the NPCs at the specified tile, and allows you to edit them
+SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
  REDIM npcrefs(0) as integer  'Index of NPC in st.map.npc() for each menu item
  REDIM menu(0) as string
  DIM boxpreview as string
@@ -2038,7 +2063,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
 
   IF state.need_update THEN
    state.need_update = NO
-   mapedit_list_npcs_by_tile_update st, menu(), npcrefs()
+   mapedit_list_npcs_by_tile_update st, pos, menu(), npcrefs()
    state.last = UBOUND(menu)
    npcinst = NULL
    npcdef = NULL
@@ -2050,10 +2075,10 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
   END IF
 
   clearpage dpage
-  edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & st.x & " Y=" & st.y, 0, 0, uilook(uiSelectedDisabled), dpage
+  edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & pos.x & " Y=" & pos.y, 0, 0, uilook(uiSelectedDisabled), dpage
   standardmenu menu(), state, 0, 10, dpage
   IF npcdef THEN
-   edgeprint "Enter/Space/Ctrl to edit", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage
+   edgeprint "Enter/Space/Click to edit", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage
    'Display a frame in right direction
    npcdefedit_preview_npc *npcdef, st.npc_img(npcinst->id - 1), boxpreview, npcinst->dir * 2
   END IF
@@ -2064,11 +2089,11 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState)
  LOOP
 END SUB
 
-FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
+FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id > 0 THEN
-    IF .x = st.x * 20 AND .y = st.y * 20 THEN RETURN i
+    IF .x = pos.x * 20 AND .y = pos.y * 20 THEN RETURN i
    END IF
   END WITH
  NEXT i

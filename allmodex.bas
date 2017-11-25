@@ -2160,7 +2160,7 @@ sub update_mouse_state ()
 		'Test whether drag ended
 		if (mouse_state.clicks and mouse_state.dragging) orelse (mouse_state.buttons and mouse_state.dragging) = 0 then
 			mouse_state.dragging = 0
-			mouse_state.clickstart = XY(0, 0)
+			'Preserve .clickstart so that you can see what the drag was upon release
 		end if
 	else
 		'Dragging is only tracked for a single button at a time, and clickstart is not updated

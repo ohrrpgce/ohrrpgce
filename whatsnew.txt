@@ -39,10 +39,14 @@ Nov/Dec ??? 2017 [Etheldreme]
       are still 320x200. Nothing has changed in this release except that
       the option isn't hidden any more [Ralph]
     * Three new ways to visualise map layers in the map editor:
-      * Press Ctrl+Shift+arrows or right-click-drag to "skew" map layers
+      * Press Ctrl+Shift+arrows or Ctrl+right-click-drag to "skew" map
+        layers (offset from each other)
       * Press T to tint each map layer a different color
       * Press T twice to grey out layers other than the selected one
       [Ralph]
+    * Mouse support in the map editor! Not complete, but has basics. You
+      can't click on any of the overlays or bits of text (eg the list of
+      zones) but you can click on toolbars and NPCs, doors, etc. [Ralph]
     * Option to export a full resolution image of a map, optionally with
       NPCs [Ralph]
 

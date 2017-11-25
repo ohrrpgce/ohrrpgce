@@ -19,14 +19,14 @@ Press the SPACE bar or LEFT CLICK to place an NPC on the map.
 
 To remove an NPC, position the cursor over the NPC and press SPACE or CLICK again.
 
-If you want to control which direction an NPC will be facing, you can use CTRL+arrow keys.
+If you want to control which direction an NPC will be facing, you can use CTRL+arrow keys, or LEFT CLICK and drag with the mouse.
 
 CTRL+Up: Place an NPC facing up
 CTRL+Down: Place an NPC facing down
 CTRL+Left: Place an NPC facing left
 CTRL+Right: Place and NPC facing right
 
-It is also possible to put more than one NPC on the same tile using CTRL+arrows.
+It is also possible to put more than one NPC on the same tile using CTRL+arrows or click-dragging.
 
 Two numbers are displayed on each NPC you place. The top number is the NPC's ID, and the bottom number is the NPC's copy-number. You may need the ID and copy number if you want to manipulate the NPC using plotscripting.
 
@@ -38,5 +38,6 @@ TAB toggles a blue rectangle that shows roughly what area of the map you are cur
 
 ~ shows a preview of the entire map.
 
-Press ENTER to see a list of NPCs on the currently selected tile.
+Press ENTER to see a list of NPCs on the currently selected tile. Or RIGHT CLICK on an NPC.
 If there are no NPCs here, press ENTER to edit the current NPC definition.
+Or LEFT or RIGHT CLICK on the bar at the top of the screen (with the NPC textbox preview) to edit the NPC definition.
