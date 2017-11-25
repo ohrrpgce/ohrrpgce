@@ -3778,6 +3778,20 @@ sub drawbox (dest as Frame ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	end IF
 end sub
 
+'Draw a box in perspective, its top 'offset' from its bottom; 12 lines in total
+'Note, thickness doesn't affect the four angled lines
+sub drawcube(dest as Frame ptr, rect as RectType, off as XYPair, col as integer, thickness as integer = 1)
+	drawbox dest, rect.x, rect.y, rect.wide, rect.high, col, thickness
+	dim shifted as RectType = rect + off
+	drawbox dest, shifted.x, shifted.y, shifted.wide, shifted.high, col, thickness
+
+	dim br as XYPair = rect.topleft + rect.size - 1  'bottom-right
+	drawline dest, rect.x, rect.y, rect.x + off.x, rect.y + off.y, col
+	drawline dest, rect.x, br.y,   rect.x + off.x, br.y + off.y,   col
+	drawline dest, br.x,   rect.y, br.x + off.x,   rect.y + off.y, col
+	drawline dest, br.x,   br.y,   br.x + off.x,   br.y + off.y,   col
+end sub
+
 ' This function is slightly different from drawbox/rectangle, in that draws boxes with
 ' width/height 0 as width/height 1 instead of not at all.
 ' color is the main highlight color; if -1, use default
