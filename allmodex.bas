@@ -8752,7 +8752,7 @@ end function
 'Modifies a palette in-place, tinting it with a color
 sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 	for idx as integer = 0 to pal->numcolors - 1
-		dim as integer r, g, b
+		dim as integer r, g, b, temp
 		with intpal(pal->col(idx))
 			if method = copLuminance then
 				'Best choice for converting to grey
@@ -8765,6 +8765,16 @@ sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
 				r = iif(r > .b, r, .b)
 				g = r
 				b = r
+			elseif method = copTintValue then
+				'Like copValue, but better suited for tinting:
+				'only return 255 for pure white for better distrinctions,
+				'and don't return 0 to allow tinting black.
+				temp = iif(.r > .g, .r, .g)
+				temp = iif(temp > .b, temp, .b)
+				temp = (temp * 4 + .r + .g + .b + 255) \ 8
+				r = temp
+				g = temp
+				b = temp
 			end if
 
 		end with

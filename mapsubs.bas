@@ -2068,7 +2068,7 @@ FUNCTION mapedit_layer_tint_palette(st as MapEditState, layer as integer, lastla
  DIM ret as Palette16 ptr = palette16_new_identity(256)
  'Convert to grey, taking the Value rather than Luminance,
  'which is far too dark, especially for greys
- palette16_transform_n_match ret, copValue
+ palette16_transform_n_match ret, copTintValue   'copValue
  palette16_mix_n_match ret, col, 1, mixMult  'Tint
  RETURN ret
 END FUNCTION

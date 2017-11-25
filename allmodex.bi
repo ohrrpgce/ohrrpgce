@@ -503,6 +503,7 @@ end enum
 enum ColorOperator
 	copLuminance
 	copValue
+	copTintValue
 
 	copGreyscale = copLuminance
 end enum
