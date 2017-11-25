@@ -31,7 +31,7 @@ DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as int
 DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 
 DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
-DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, overhead as bool = NO)
+DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
@@ -42,6 +42,8 @@ DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType)
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
 DECLARE FUNCTION tool_cube_offset(st as MapEditState) as XYPair
+
+DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
@@ -399,6 +401,8 @@ IF LEN(datafile) THEN
  frame_unload @arrowset
 END IF
 
+st.shadowpal = layer_shadow_palette()
+
 '--These tilesets indicate up to 8 zones at once
 '--create three alternative zone tilemaps, I can't decide!
 st.zonetileset(0) = frame_new(20, 20 * 256, , YES)  'large tilesets
@@ -627,6 +631,7 @@ frame_unload @st.zoneminimap
 FOR idx as integer = 0 TO 4
  frame_unload @st.arrow_icons(idx)
 NEXT
+palette16_unload @st.shadowpal
 v_free st.mode_tools
 v_free st.zonemenu
 ' Contents of st.map are freed by destructor
@@ -1381,12 +1386,26 @@ DO
  'Draw map layers
  FOR i as integer = 0 TO UBOUND(st.map.tiles)
   IF should_draw_layer(st, i) THEN
-   mapedit_draw_layer st, i
+   mapedit_draw_layer st, i, i
+  END IF
+
+  IF i = 0 ANDALSO st.per_layer_skew <> 0 THEN
+   'Draw the shadows on top of layer 0
+   FOR layeri as integer = 1 TO UBOUND(st.map.tiles)
+    IF should_draw_layer(st, layeri) THEN
+     mapedit_draw_layer st, layeri, 0, , st.shadowpal
+    END IF
+   NEXT
+   'And shadow of overhead tiles
+   IF should_draw_layer(st, 0) THEN
+    mapedit_draw_layer st, 0, 0, YES, st.shadowpal
+   END IF
   END IF
  NEXT
  'Draw obsolete overhead tiles
  IF should_draw_layer(st, 0) THEN
-  mapedit_draw_layer st, 0, YES
+  DIM height as integer = UBOUND(st.map.tiles) + 1
+  mapedit_draw_layer st, 0, height, YES
  END IF
 
  '--hero start location display--
@@ -1971,8 +1990,8 @@ FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
 END FUNCTION
 
 'overhead: draw the overhead layer (layernum should be 0)
-SUB mapedit_draw_layer(st as MapEditState, layernum as integer, overhead as bool = NO)
- DIM pos as XYPair = st.camera + mapedit_layer_offset(st, layernum)
+SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
+ DIM pos as XYPair = st.camera + mapedit_layer_offset(st, height)
  DIM trans as bool
  DIM overheadmode as integer
  IF overhead THEN
@@ -1983,8 +2002,20 @@ SUB mapedit_draw_layer(st as MapEditState, layernum as integer, overhead as bool
   overheadmode = IIF(layernum = 0, 1, 0)
  END IF
  drawmap st.map.tiles(layernum), pos.x, pos.y, st.tilesets(layernum), dpage, _
-         trans, overheadmode, @st.map.pass, 20
+         trans, overheadmode, @st.map.pass, 20, , pal
 END SUB
+
+
+'==========================================================================================
+'                                     Layer palettes
+
+FUNCTION layer_shadow_palette() as Palette16 ptr
+ DIM ret as Palette16 ptr = palette16_new_identity(256)
+ palette16_transform_n_match ret, copGreyscale
+ DIM black as RGBcolor
+ palette16_mix_n_match ret, black, 0.60, mixBlend  'Darken by 60%
+ RETURN ret
+END FUNCTION
 
 
 '==========================================================================================
