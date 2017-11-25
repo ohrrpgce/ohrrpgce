@@ -39,6 +39,7 @@ DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
 
+DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
@@ -701,11 +702,14 @@ DO
    CASE pass_mode
     st.brush = @wallbitbrush
    CASE door_mode
+    st.tool = select_tool
    CASE npc_mode
     st.npczone_needupdate = YES
+    st.tool = npc_tool
    CASE foe_mode
     st.brush = @foebrush
     st.reader = @foereader
+    st.tool = select_tool
    CASE zone_mode
     st.brush = @zonebrush
     st.reader = @zonereader
@@ -717,10 +721,8 @@ DO
     st.zones_needupdate = YES
   END SELECT
 
-  'Reset tool
-  IF v_len(st.mode_tools) = 0 THEN
-   st.tool = -1  'None
-  ELSEIF v_find(st.mode_tools, st.tool) = -1 THEN
+  'Reset tool (if the tool isn't fixed according to the mode in the above)
+  IF v_len(st.mode_tools) ANDALSO v_find(st.mode_tools, st.tool) = -1 THEN
    st.tool = st.mode_tools[0]
   END IF
   st.reset_tool = YES
@@ -1184,7 +1186,7 @@ DO
 
  '--Tools
  IF st.drawing_allowed AND v_len(st.mode_tools) > 0 THEN
-  '--Select tool
+  '--Select the tool
   IF st.toolsbar_available THEN
    FOR i as integer = 0 TO v_len(st.mode_tools) - 1
     IF keyval(scCtrl) = 0 AND keyval(st.toolinfo(st.mode_tools[i]).shortcut) > 1 THEN
@@ -1547,26 +1549,6 @@ DO
    END IF
   END IF
  END IF
- 
- '--tools overlays  (TODO)
- SELECT CASE st.tool
-  CASE box_tool, mark_tool
-   IF st.tool_hold THEN
-    'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
-    'for different brushes is non-trivial, and besides, how should layers work?
-    DIM as RectType select_rect = map_to_screen(st, mapedit_tool_rect(st))
-    'corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
-    drawbox select_rect.x, select_rect.y, select_rect.wide, select_rect.high, _
-            uilook(uiHighlight + tog), 4, dpage
-   END IF
-
-  CASE clone_tool
-   DIM as RectType select_rect = map_to_screen(st, mapedit_tool_rect(st))
-   drawbox select_rect.x, select_rect.y, select_rect.wide, select_rect.high, _
-           uilook(uiHighlight + tog), 1, dpage
-
- END SELECT
-
 
  '--Draw menubar (includes tileset preview)
  IF st.editmode = tile_mode THEN
@@ -1582,6 +1564,11 @@ DO
  END IF
  rectangle 0, 19, rWidth, 1, uilook(uiText), dpage
 
+ '--menubar cursor
+ IF st.editmode = tile_mode THEN
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
+ END IF
+
  '--position finder--
  IF st.tiny THEN
   fuzzyrect 0, 35, st.map.wide, st.map.high, uilook(uiHighlight), dpage
@@ -1590,23 +1577,12 @@ DO
    frame_draw st.zoneminimap, NULL, 0, 35, , , dpage
   END IF
  END IF
- 
- '--normal cursor--
- IF st.editmode <> npc_mode AND st.tool <> clone_tool THEN
-  frame_draw st.cursor.sprite + tog, st.cursor.pal, (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 20, , , dpage
- END IF
- '--menubar cursor
- IF st.editmode = tile_mode THEN
-  frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
- END IF
- 
- '--npc placement cursor--
+
+ 'Draw the cursor, including box, mark, and clone outlines, or NPC cursor
+ mapedit_draw_cursor st
+
+ '--npc info
  IF st.editmode = npc_mode THEN
-  WITH st.npc_img(st.cur_npc)
-   frame_draw .sprite + (2 * st.walk), .pal, st.x * 20 - st.mapx, st.y * 20 - st.mapy + 20 + st.map.gmap(11), 1, -1, dpage
-  END WITH
-  textcolor uilook(uiSelectedItem + tog), 0
-  printstr STR(st.cur_npc), (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
   edgeprint npc_preview_text(st.map.npc_def(st.cur_npc)), 0, 0, uilook(uiText), dpage
   edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map", 0, 10, uilook(uiText), dpage
  END IF
@@ -1767,8 +1743,43 @@ LOOP
 st.message_ticks = 0
 END SUB
 
+'==========================================================================================
 
 '==========================================================================================
+'                                Cursor and tool helpers
+
+'Draw the appropriate cursor and box for the selected tool
+SUB mapedit_draw_cursor(st as MapEditState)
+ DIM as RectType tool_rect = map_to_screen(st, mapedit_tool_rect(st))
+ SELECT CASE st.tool
+  CASE box_tool, mark_tool
+   IF st.tool_hold THEN
+    'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
+    'for different brushes is non-trivial, and besides, how should layers work?
+    drawbox tool_rect.x, tool_rect.y, tool_rect.wide, tool_rect.high, _
+            uilook(uiHighlight + global_tog), 4, dpage
+    EXIT SUB
+   END IF
+   'Otherwise, draw the default cursor
+
+  CASE clone_tool
+   drawbox tool_rect.x, tool_rect.y, tool_rect.wide, tool_rect.high, uilook(uiHighlight + global_tog), 1, dpage
+   EXIT SUB
+
+  CASE npc_tool
+   'Don't draw a cursor
+   WITH st.npc_img(st.cur_npc)
+    frame_draw .sprite + (2 * st.walk), .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
+   END WITH
+   textcolor uilook(uiSelectedItem + global_tog), 0
+   printstr STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, dpage
+
+   EXIT SUB
+ END SELECT
+
+ 'Normal cursor
+ frame_draw st.cursor.sprite + global_tog, st.cursor.pal, tool_rect.x, tool_rect.y, , , dpage
+END SUB
 
 FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
  SELECT CASE st.tool

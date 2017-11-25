@@ -21,6 +21,9 @@ ENUM ToolIDs
   SPRITEEDITOR_NUM_TOOLS
 
   paint_tool = SPRITEEDITOR_NUM_TOOLS
+  'The following tools don't do anything, but just determine what cursor to use
+  select_tool   'Show a normal cursor (door and foe mapping)
+  npc_tool      'NPC placement mode - the cursor is an NPC
   NUM_TOOLS
 END ENUM
 
