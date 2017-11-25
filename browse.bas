@@ -381,6 +381,7 @@ SUB browse_preview_bmp(byref br as BrowseMenuState, filepath as string)
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
   'DIM as double t = TIMER
   DIM as Surface ptr temp = surface_import_bmp(filepath, YES)  'always_32bit=YES
+  IF temp = NULL THEN EXIT SUB
   '? "import32 in " & (TIMER - t)
   't = TIMER
   DIM ratio as double = 1.0
