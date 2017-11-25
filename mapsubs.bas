@@ -907,7 +907,9 @@ DO
     IF mouse.release AND mouseRight THEN mapedit_pickblock st
    END IF
    '...via selecting from the map
-   IF keyval(scG) > 1 THEN 'grab tile
+   'G or right click twice to select (st.pos has already been updated so check oldpos)
+   IF ((mouse.clicks AND mouseRight) ANDALSO mouse_attention = focusMap _
+       ANDALSO st.pos = oldpos) OR keyval(scG) > 1 THEN 'grab tile
     set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
    END IF
    '...via scrolling
@@ -915,7 +917,9 @@ DO
     IF keyval(scComma) > 1 THEN set_usetile st, st.usetile(st.layer) - 1
     IF keyval(scPeriod) > 1 THEN set_usetile st, st.usetile(st.layer) + 1
    END IF
-   set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
+   IF mouse.buttons = 0 THEN
+    set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
+   END IF
 
    st.tool_value = st.usetile(st.layer)
 
@@ -961,6 +965,10 @@ DO
      END IF
     NEXT
    '#ENDIF
+
+   IF mouse.buttons THEN
+    set_layer st, st.layer + mouse.wheel_clicks
+   END IF
 
    'Alt+number to toggle layer 1-10 enabled, Alt+Shift+number to toggle layer 11-15
    FOR i as integer = 1 TO small(maplayerMax, 20)
@@ -1049,7 +1057,7 @@ DO
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
-   IF keyval(scAnyEnter) > 1 THEN ' enter to link a door
+   IF keyval(scAnyEnter) > 1 OR (mouse.release AND mouseRight) THEN ' enter/right click to link a door
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
@@ -3737,7 +3745,9 @@ SUB set_usetile(st as MapEditState, tile as integer)
  END IF
 END SUB
 
+'Safely set the selected layer
 SUB set_layer(st as MapEditState, layer as integer)
+ IF layer < 0 OR layer > UBOUND(st.map.tiles) THEN EXIT SUB
  st.layer = layer
  update_tilepicker st
  mapedit_update_layer_palettes st

@@ -15,7 +15,7 @@ Use ALT+arrow keys to move the view of the map.
 
 Along the top of the screen you will see a row of maptiles, with your currently selected maptile highlighted. You can click on them, press < and > to change your selected maptile, or use the MOUSE WHEEL, or press ENTER or RIGHT CLICK on the top bar to bring up a full-screen maptile picker.
 
-Press G if you want to get the tile under the cursor as the current tile to place.
+Press G or RIGHT CLICK twice if you want to get the tile under the cursor as the current tile to place.
 
 At the top right corner the current drawing tool is shown. Press SPACE or LEFT CLICK to draw on the current map layer. The tools are:
 
@@ -93,11 +93,13 @@ CTRL+L opens the Layer menu, where you can change tilesets and layer visibility 
 
 PageUp and PageDown change which layer you are working on. Remember that layer 0 is the bottommost. (You can also use CTRL+period and CTRL+comma in case you are one of those poor souls with a laptop that doesn't have PageUp and PageDown keys!)
 
+Or hold the LEFT or RIGHT MOUSE button and use the MOUSE WHEEL to change map layer.
+
 CTRL+J makes the current layer jiggle. This can be useful to visually distinguish a layer you are working on from another layer that covers it up. Press CTRL+J again to stop the jiggling.
 
 ALT+~ toggles visibility of the current map layer.
 
-ALT+a number disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.
+ALT+# (a number key) disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.
 
 CTRL+F# toggles visibility of a layer: F1 is layer 0, and so on.
 

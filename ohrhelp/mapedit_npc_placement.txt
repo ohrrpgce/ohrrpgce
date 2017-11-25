@@ -26,11 +26,11 @@ CTRL+Down: Place an NPC facing down
 CTRL+Left: Place an NPC facing left
 CTRL+Right: Place and NPC facing right
 
-It is also possible to put more than one NPC on the same tile using CTRL+arrows or click-dragging.
+It's also possible to put more than one NPC on the same tile using CTRL+arrows or click-dragging.
 
 Two numbers are displayed on each NPC you place. The top number is the NPC's ID, and the bottom number is the NPC's copy-number. You may need the ID and copy number if you want to manipulate the NPC using plotscripting.
 
-Moving the cursor over an NPC displays the movement and avoidance zones for the NPC, if any, in two different colours.
+Moving the cursor over an NPC displays the movement and avoidance zones for the NPC, if any, in two different colours. (You can't see this with the mouse.)
 
 CTRL+S immediately saves, useful when live-previewing a game.
 
