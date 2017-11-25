@@ -44,6 +44,8 @@ DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
 DECLARE FUNCTION tool_cube_offset(st as MapEditState) as XYPair
 
 DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
+DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
+DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
@@ -401,6 +403,8 @@ IF LEN(datafile) THEN
  frame_unload @arrowset
 END IF
 
+mapedit_update_layer_palettes st
+
 st.shadowpal = layer_shadow_palette()
 
 '--These tilesets indicate up to 8 zones at once
@@ -631,6 +635,7 @@ frame_unload @st.zoneminimap
 FOR idx as integer = 0 TO 4
  frame_unload @st.arrow_icons(idx)
 NEXT
+mapedit_free_layer_palettes st
 palette16_unload @st.shadowpal
 v_free st.mode_tools
 v_free st.zonemenu
@@ -769,7 +774,14 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN
   mapedit_layers st  'ctrl-L
   update_tilepicker st
+  mapedit_update_layer_palettes st
  END IF
+
+ IF keyval(scT) > 1 THEN  'Tint
+  st.layer_display_mode = loopvar(st.layer_display_mode, 0, layerDisplayNUM - 1)
+  mapedit_update_layer_palettes st
+ END IF
+
  IF keyval(scTab) > 1 THEN st.tiny XOR= YES
  IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
@@ -1386,7 +1398,7 @@ DO
  'Draw map layers
  FOR i as integer = 0 TO UBOUND(st.map.tiles)
   IF should_draw_layer(st, i) THEN
-   mapedit_draw_layer st, i, i
+   mapedit_draw_layer st, i, i, , st.layerpals(i)
   END IF
 
   IF i = 0 ANDALSO st.per_layer_skew <> 0 THEN
@@ -1405,7 +1417,7 @@ DO
  'Draw obsolete overhead tiles
  IF should_draw_layer(st, 0) THEN
   DIM height as integer = UBOUND(st.map.tiles) + 1
-  mapedit_draw_layer st, 0, height, YES
+  mapedit_draw_layer st, 0, height, YES, st.layerpals(height)
  END IF
 
  '--hero start location display--
@@ -2016,6 +2028,62 @@ FUNCTION layer_shadow_palette() as Palette16 ptr
  palette16_mix_n_match ret, black, 0.60, mixBlend  'Darken by 60%
  RETURN ret
 END FUNCTION
+
+SUB mapedit_free_layer_palettes(st as MapEditState)
+ FOR idx as integer = 0 TO UBOUND(st.layerpals)
+  palette16_unload @st.layerpals(idx)
+ NEXT
+END SUB
+
+'Set layer palettes to tint according to layer no.
+FUNCTION mapedit_layer_tint_palette(st as MapEditState, layer as integer, lastlayer as integer) as Palette16 ptr
+ DIM as double hfrac, heightfrac = layer / lastlayer
+ DIM col as RGBcolor
+ ' Cyan - green - yellow - red - purple
+ IF heightfrac < 1/4 THEN
+  ' (Blueish) cyan to green
+  hfrac = heightfrac * 3
+  col.r = 0
+  col.g = 196 + hfrac * 59
+  col.b = (1 - hfrac) * 255
+ ELSEIF heightfrac < 2/4 THEN
+  ' Green to yellow
+  hfrac = (heightfrac - 1/4) * 4
+  col.r = hfrac * 255
+  col.g = 255
+  col.b = 0
+ ELSEIF heightfrac < 3/4 THEN
+  ' Yellow to red
+  hfrac = (heightfrac - 2/4) * 4
+  col.r = 255
+  col.g = (1 - hfrac) * 255
+  col.b = 0
+ ELSE
+  ' Red to purple
+  hfrac = (heightfrac - 3/4) * 4
+  col.r = 255
+  col.g = 0
+  col.b = hfrac * 255
+ END IF
+ DIM ret as Palette16 ptr = palette16_new_identity(256)
+ 'Convert to grey, taking the Value rather than Luminance,
+ 'which is far too dark, especially for greys
+ palette16_transform_n_match ret, copValue
+ palette16_mix_n_match ret, col, 1, mixMult  'Tint
+ RETURN ret
+END FUNCTION
+
+SUB mapedit_update_layer_palettes(st as MapEditState)
+ 'By default no palette
+ mapedit_free_layer_palettes st
+
+ DIM lastlayer as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
+ FOR layer as integer = 0 TO lastlayer
+  IF st.layer_display_mode = layerDisplayTinted THEN
+   st.layerpals(layer) = mapedit_layer_tint_palette(st, layer, lastlayer)
+  END IF
+ NEXT
+END SUB
 
 
 '==========================================================================================

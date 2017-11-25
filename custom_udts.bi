@@ -226,6 +226,12 @@ ENUM ZoneEditSubmode
   zone_view_mode
 END ENUM
 
+ENUM LayerDisplayMode
+  layerDisplayNormal
+  layerDisplayTinted  'Tinted by height
+  layerDisplayNUM
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM MapID
@@ -276,6 +282,8 @@ TYPE MapEditState
   layer as integer
   visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
   jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling
+  layer_display_mode as LayerDisplayMode  'What effect to apply to layers
+  layerpals(maplayerMax + 1) as Palette16 ptr  '+1 for overhead layer
   shadowpal as Palette16 ptr 'Palette used for things in shadow
   per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
 

@@ -86,7 +86,7 @@ CTRL+D toggles whether default tile passability (which you assign to tiles in th
 --------------------
 ---- Map layers ----
 
-CTRL+L opens the Layer menu, where you can change tilesets and layer visibility.
+CTRL+L opens the Layer menu, where you can change tilesets and layer visibility and add or name layers.
 
 PageUp and PageDown change which layer you are working on. Remember that layer 0 is the bottommost. (You can also use CTRL+period and CTRL+comma in case you are one of those poor souls with a laptop that doesn't have PageUp and PageDown keys!)
 
@@ -99,6 +99,8 @@ ALT+a number disables or enables that layer (you can't disable layer 0). Disable
 CTRL+F# toggles visibility of a layer: F1 is layer 0, and so on.
 
 Hold CTRL+ALT and press arrow keys, or drag with the right mouse button, to "skew" the map layers, drawing them with a 3D perspective so that you can tell them apart.
+
+T tints the map layers, so that you can tell them apart: from layer 0 to the topmost (including overhead tiles), layer tints shift through cyan, green, yellow, red and purple. Press T again to cancel.
 
 -------------------
 
