@@ -276,6 +276,7 @@ TYPE MapEditState
   layer as integer
   visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
   jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling
+  per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement

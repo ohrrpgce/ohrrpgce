@@ -67,8 +67,6 @@ C - Clone tool:
   be visible both when Marking and
   when Cloning.
 
-Also,
-
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
 CTRL+Y redoes an undone change.
@@ -85,6 +83,9 @@ Hold CTRL and press 1 or 2 to make all tiles on the current layer like the one u
 
 CTRL+D toggles whether default tile passability (which you assign to tiles in the tileset editor) will be used for any new tiles that you place.
 
+--------------------
+---- Map layers ----
+
 CTRL+L opens the Layer menu, where you can change tilesets and layer visibility.
 
 PageUp and PageDown change which layer you are working on. Remember that layer 0 is the bottommost. (You can also use CTRL+period and CTRL+comma in case you are one of those poor souls with a laptop that doesn't have PageUp and PageDown keys!)
@@ -96,6 +97,10 @@ ALT+~ toggles visibility of the current map layer.
 ALT+a number disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.
 
 CTRL+F# toggles visibility of a layer: F1 is layer 0, and so on.
+
+Hold CTRL+ALT and press arrow keys, or drag with the right mouse button, to "skew" the map layers, drawing them with a 3D perspective so that you can tell them apart.
+
+-------------------
 
 CTRL+BACKSPACE deletes everything placed at a tile: tiles in all layers, walls, doors, and NPCs. But not zones.
 

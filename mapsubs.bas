@@ -923,14 +923,15 @@ DO
    END IF
 
    DIM wallbit as integer = 0
-   IF keyval(scCtrl) > 0 THEN
+   IF keyval(scCtrl) > 0 AND keyval(scShift) = 0 THEN
     IF keyval(scUp) > 1    THEN wallbit = passNorthWall
     IF keyval(scRight) > 1 THEN wallbit = passEastWall
     IF keyval(scDown) > 1  THEN wallbit = passSouthWall
     IF keyval(scLeft) > 1  THEN wallbit = passWestWall
     IF keyval(scA) > 1 THEN wallbit = passVehA
     IF keyval(scB) > 1 THEN wallbit = passVehB
-   ELSE
+   END IF
+   IF keyval(scCtrl) = 0 THEN
     IF keyval(scH) > 1 THEN wallbit = passHarm
     IF keyval(scO) > 1 THEN wallbit = passOverhead
    END IF
@@ -1012,7 +1013,7 @@ DO
     END IF
    END IF
    st.npc_d = -1
-   IF keyval(scCtrl) > 0 OR keyval(scSpace) > 1 THEN
+   IF (keyval(scCtrl) > 0 AND keyval(scShift) = 0) OR keyval(scSpace) > 1 THEN
     IF slowkey(scUp, 660)    THEN st.npc_d = 0
     IF slowkey(scRight, 660) THEN st.npc_d = 1
     IF slowkey(scDown, 660)  THEN st.npc_d = 2
@@ -1176,6 +1177,21 @@ DO
   st.y = st.mapy / 20 + st.oldrel.y
  END IF
  st.moved = (st.oldpos.x <> st.x OR st.oldpos.y <> st.y)
+
+ 'Skew map layers (note that skew is measured in tenths of a pixel
+ IF keyval(scShift) > 0 AND keyval(scCtrl) > 0 THEN
+  IF keyval(scLeft) > 0 THEN st.per_layer_skew.x -= 10
+  IF keyval(scRight) > 0 THEN st.per_layer_skew.x += 10
+  IF keyval(scUp) > 0 THEN st.per_layer_skew.y -= 10
+  IF keyval(scDown) > 0 THEN st.per_layer_skew.y += 10
+ ELSEIF readmouse().dragging AND mouseRight THEN
+  DIM numlayers as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
+  st.per_layer_skew = (readmouse.pos - readmouse.clickstart) '* 5 / numlayers
+ ELSE
+  'Reset once you let go of the right mouse button or shift+ctrl
+  st.per_layer_skew = 0
+ END IF
+
 
  ' 'Actual size of the map viewport showing the map
  ' '(Since the window can be larger than the map, have to clamp it)
@@ -1360,11 +1376,14 @@ DO
 
  '--draw map
  animatetilesets st.tilesets()
+
+ 'Draw map layers
  FOR i as integer = 0 TO UBOUND(st.map.tiles)
   IF should_draw_layer(st, i) THEN
    mapedit_draw_layer st, i
   END IF
  NEXT
+ 'Draw obsolete overhead tiles
  IF should_draw_layer(st, 0) THEN
   mapedit_draw_layer st, 0, YES
  END IF
@@ -1940,6 +1959,7 @@ FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
   offset.x *= i \ 8 + 1
   offset.y *= i \ 8 + 1
  END IF
+ offset -= st.per_layer_skew * i / 10
  RETURN offset
 END FUNCTION
 
