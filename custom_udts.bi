@@ -316,13 +316,7 @@ TYPE MapEditState
   arrow_icons(4) as Frame ptr
   lockedzonelist(any) as integer
  
-  'Most of these could become locals now that the mapping gosub is broken into real subs
   tiny as bool               'whether or not to show the tiny screen relative to map area
-  npc_d as integer          'used when placing npcs
-  oldpos as XYPair           'used when detecting cursor movement
-  oldrel as XYPair           'used when detecting cursor movement
-  rate as XYPair             'used for fast cursor movement when holding shift
-  jig as XYPair              'used for display jiggling
   wallmap_mask as integer    'used by wallbitsbrush
 
   message as string          'Message shown at the top of the screen

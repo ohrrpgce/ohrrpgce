@@ -18,6 +18,7 @@
 
 CONST tilew = 20
 CONST tileh = 20
+DIM SHARED tilesize as XYPair = (20, 20)
 
 '---------------------------- Local subs/functions & types -------------------------------
 
@@ -1033,16 +1034,18 @@ DO
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
    END IF
-   st.npc_d = -1
+   DIM npc_d as integer = -1
+   'Note that pressing SPACE+arrow keys at the same time will place an NPC and
+   'move the cursor: "RMZ-style NPC placement"
    IF (keyval(scCtrl) > 0 AND keyval(scShift) = 0) OR keyval(scSpace) > 1 THEN
-    IF slowkey(scUp, 660)    THEN st.npc_d = 0
-    IF slowkey(scRight, 660) THEN st.npc_d = 1
-    IF slowkey(scDown, 660)  THEN st.npc_d = 2
-    IF slowkey(scLeft, 660)  THEN st.npc_d = 3
+    IF slowkey(scUp, 660)    THEN npc_d = 0
+    IF slowkey(scRight, 660) THEN npc_d = 1
+    IF slowkey(scDown, 660)  THEN npc_d = 2
+    IF slowkey(scLeft, 660)  THEN npc_d = 3
    END IF
-   IF keyval(scSpace) > 1 OR st.npc_d > -1 THEN
+   IF keyval(scSpace) > 1 OR npc_d > -1 THEN
     DIM npc_slot as integer = 0
-    IF st.npc_d = -1 THEN
+    IF npc_d = -1 THEN
      DIM npci as integer = mapedit_npc_at_spot(st)
      IF npci > -1 THEN
       WITH st.map.npc(npci)
@@ -1054,7 +1057,7 @@ DO
       END WITH
      END IF
     END IF
-    IF st.npc_d = -1 THEN st.npc_d = 2
+    IF npc_d = -1 THEN npc_d = 2
     IF npc_slot = 0 THEN
      npc_slot = -1
      FOR i as integer = 299 TO 0 STEP -1
@@ -1063,7 +1066,7 @@ DO
      IF npc_slot >= 0 THEN
       st.map.npc(npc_slot).pos = st.pos * 20
       st.map.npc(npc_slot).id = st.cur_npc + 1
-      st.map.npc(npc_slot).dir = st.npc_d
+      st.map.npc(npc_slot).dir = npc_d
      END IF
     END IF
    END IF
@@ -1166,37 +1169,33 @@ DO
  maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
 
  '--General purpose controls (keyboard)
- st.oldpos = st.pos
- IF keyval(scShift) > 0 THEN
-  st.rate.x = 8
-  st.rate.y = 5
- ELSE
-  st.rate.x = 1
-  st.rate.y = 1
- END IF
+ DIM rate as XYPair = (1, 1)
+ IF keyval(scShift) > 0 THEN rate = XY(8, 5)
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
   'Move cursor position
-  IF slowkey(scUp, 110) THEN st.y = large(st.y - st.rate.y, 0)
-  IF slowkey(scDown, 110) THEN st.y = small(st.y + st.rate.y, st.map.high - 1)
-  IF slowkey(scLeft, 110) THEN st.x = large(st.x - st.rate.x, 0)
-  IF slowkey(scRight, 110) THEN st.x = small(st.x + st.rate.x, st.map.wide - 1)
+  IF slowkey(scUp, 110) THEN st.y = large(st.y - rate.y, 0)
+  IF slowkey(scDown, 110) THEN st.y = small(st.y + rate.y, st.map.high - 1)
+  IF slowkey(scLeft, 110) THEN st.x = large(st.x - rate.x, 0)
+  IF slowkey(scRight, 110) THEN st.x = small(st.x + rate.x, st.map.wide - 1)
   st.mapx = bound(st.mapx, (st.x + 1) * 20 - mapviewsize.w, st.x * 20)
   st.mapy = bound(st.mapy, (st.y + 1) * 20 - mapviewsize.h, st.y * 20)
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   'Move camera position
-  st.oldrel.x = st.x - st.mapx / 20
-  st.oldrel.y = st.y - st.mapy / 20
-  IF slowkey(scUp, 110) THEN st.mapy = large(st.mapy - 20 * st.rate.y, 0)
-  IF slowkey(scDown, 110) THEN st.mapy = small(st.mapy + 20 * st.rate.y, st.map.high * 20 - mapviewsize.h)
-  IF slowkey(scLeft, 110) THEN st.mapx = large(st.mapx - 20 * st.rate.x, 0)
-  IF slowkey(scRight, 110) THEN st.mapx = small(st.mapx + 20 * st.rate.x, st.map.wide * 20 - mapviewsize.w)
-  st.mapx = large(0, st.mapx)
-  st.mapy = large(0, st.mapy)
-  st.x = st.mapx / 20 + st.oldrel.x
-  st.y = st.mapy / 20 + st.oldrel.y
+  DIM oldrel as XYPair = st.pos - st.camera \ 20
+  IF slowkey(scUp, 110) THEN st.mapy -= 20 * rate.y
+  IF slowkey(scDown, 110) THEN st.mapy += 20 * rate.y
+  IF slowkey(scLeft, 110) THEN st.mapx -= 20 * rate.x
+  IF slowkey(scRight, 110) THEN st.mapx += 20 * rate.x
+  st.mapx = small(st.mapx, st.map.wide * 20 - mapviewsize.w)
+  st.mapy = small(st.mapy, st.map.high * 20 - mapviewsize.h)
+  st.mapx = large(st.mapx, 0)
+  st.mapy = large(st.mapy, 0)
+  st.pos = st.camera \ 20 + oldrel
  END IF
- st.moved = (st.oldpos.x <> st.x OR st.oldpos.y <> st.y)
+
+
+ st.moved = oldpos <> st.pos
 
  'Skew map layers (note that skew is measured in tenths of a pixel
  IF keyval(scShift) > 0 AND keyval(scCtrl) > 0 THEN
