@@ -125,6 +125,7 @@ DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, rs as MapResizeState, byre
 DECLARE SUB resizetiledata OVERLOAD (tmaps() as TileMap, rs as MapResizeState, byref yout as integer, page as integer)
 DECLARE SUB resizetiledata OVERLOAD (tmap as TileMap, x_off as integer, y_off as integer, new_width as integer, new_height as integer, byref yout as integer, page as integer)
 
+DECLARE SUB set_usetile(st as MapEditState, tile as integer)
 DECLARE SUB update_tilepicker(st as MapEditState)
 DECLARE SUB verify_map_size (st as MapEditState)
 DECLARE SUB fix_tilemaps(map as MapData)
@@ -824,28 +825,28 @@ DO
   CASE tile_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
 
+   'Selecting a tile in the tileset...
+   '...via top bar
    IF keyval(scAnyEnter) > 1 THEN mapedit_pickblock st
+   '...via selecting from the map
    IF keyval(scG) > 1 THEN 'grab tile
-    st.usetile(st.layer) = readblock(st.map.tiles(st.layer), st.x, st.y)
-    update_tilepicker st
+    set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
    END IF
+   '...via scrolling
    IF keyval(scCtrl) = 0 THEN
-    IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
-     st.usetile(st.layer) -= 1
-     update_tilepicker st
-    END IF
-    IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < st.menubar.wide - 1 THEN
-     st.usetile(st.layer) += 1
-     update_tilepicker st
-    END IF
+    IF keyval(scComma) > 1 THEN set_usetile st, st.usetile(st.layer) - 1
+    IF keyval(scPeriod) > 1 THEN set_usetile st, st.usetile(st.layer) + 1
    END IF
    st.tool_value = st.usetile(st.layer)
 
+   'Ctrl+J to jiggle (although the other layer visualisation works in any
+   'edit mode...)
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
     setbit st.jiggle(), 0, st.layer, (readbit(st.jiggle(), 0, st.layer) XOR 1)
    END IF
+
+   'Try to animate a tile
    FOR i as integer = 0 TO 1
-    'Try to animate a tile
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      DIM as integer oldtile, newtile
      newtile = -1
@@ -1608,9 +1609,9 @@ DO
   st.menubar.layernum = st.layer
   draw_background vpages(dpage), IIF(st.layer > 0, bgChequerScroll, 0), chequer_scroll, 0, 0, rWidth - 40, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, YES, , , 0, 20
-  'Don't show (black out) the last two tiles on the menubar, because they
+  'Don't show (black out) the last three tiles on the menubar, because they
   'are overlaid too much by the icons.
-  rectangle rRight - 40, 0, 40, 20, uilook(uiBackground), dpage
+  rectangle pRight, 0, 60, 20, uilook(uiBackground), dpage
  ELSE
   rectangle 0, 0, rWidth, 20, uilook(uiBackground), dpage
  END IF
@@ -1784,6 +1785,7 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
+ update_tilepicker st  'Call in case the window size changed
  IF dowait THEN slowtog XOR= 1
 LOOP
 st.message_ticks = 0
@@ -3572,8 +3574,21 @@ END SUB
 
 '==========================================================================================
 
+'Update the scroll position of the tilepicker in the top bar
 SUB update_tilepicker(st as MapEditState)
- st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - 13, 0), small(st.usetile(st.layer), st.menubar.wide - 14))
+ 'Menu width, as number of visible tiles (right 60 pixels is blacked out)
+ DIM vistiles as integer = (vpages(dpage)->w - 60) \ tilew
+ st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - vistiles + 1, 0), _
+                                   small(st.usetile(st.layer), st.menubar.wide - vistiles))
+END SUB
+
+'Set the selected tile in the tileset. Not an error to try to set to something out-of-range.
+SUB set_usetile(st as MapEditState, tile as integer)
+ IF tile < 0 ORELSE tile >= st.menubar.wide THEN EXIT SUB
+ IF st.usetile(st.layer) = tile THEN EXIT SUB
+ st.usetile(st.layer) = tile
+ update_tilepicker st
+
  IF st.tool = clone_tool AND st.multitile_draw_brush THEN
   'Clone tool behaves like Draw: upon changing the drawing tile (including when changing layer), reset
   st.tool = draw_tool
@@ -4688,10 +4703,7 @@ SUB mapedit_pickblock(st as MapEditState)
  DO
   setwait 27, 55
   setkeys
-  IF keyval(scESC) > 1 THEN
-   update_tilepicker st
-   EXIT DO
-  END IF
+  IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
 
   IF (keyval(scAnyEnter) > 1 OR keyval(scSpace) > 1) AND dragging = NO THEN
@@ -4721,7 +4733,7 @@ SUB mapedit_pickblock(st as MapEditState)
   IF slowkey(scComma, repeatms) AND tileoffset > 0 THEN tileoffset -= 1
   IF slowkey(scPeriod, repeatms) AND tileoffset < tilesetview.wide * tilesetview.high - 1 THEN tileoffset += 1
   tilepick = xy_from_int(tileoffset, tilesetview.wide, tilesetview.high)
-  st.usetile(st.layer) = readblock(tilesetview, tilepick.x, tilepick.y)
+  set_usetile st, readblock(tilesetview, tilepick.x, tilepick.y)
 
   ' Keep the selected tile in view
   scrolly = bound(scrolly, tilepick.y * 20 + 30 - vpages(vpage)->h, tilepick.y * 20 - 10)
