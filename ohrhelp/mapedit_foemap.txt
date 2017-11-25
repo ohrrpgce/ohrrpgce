@@ -9,7 +9,7 @@ F5 switch to NPC placement mode
 F6 switch to foemap mode
 F7 switch to zonemap mode
 
-Use the arrow keys to move around the map.
+Use the arrow keys or RIGHT CLICK and drag to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
 

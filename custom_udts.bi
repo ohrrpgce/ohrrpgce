@@ -288,6 +288,7 @@ TYPE MapEditState
   layerpals(maplayerMax + 1) as Palette16 ptr  '+1 for overhead layer
   shadowpal as Palette16 ptr 'Palette used for things in shadow
   per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
+  mouse_skewing as bool      'Currently using the right mouse button to skew the map
 
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement

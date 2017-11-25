@@ -11,7 +11,7 @@ F7 switch to zonemap mode
 
 Z to switch to zone editing submode.
 
-Use the arrow keys to move around the map.
+Use the arrow keys or RIGHT CLICK and drag to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
 

@@ -36,7 +36,8 @@ DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height a
 
 ENUM MouseAttention
  focusNowhere
- focusViewport  'Main part of the screen, but may be off map edge
+ focusMap
+ focusViewport  'Main part of the screen, but off the map edge
  focusToolbar   'The tool buttons
  focusTopbar
 END ENUM
@@ -44,6 +45,7 @@ END ENUM
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
+DECLARE SUB mapedit_constrain_camera(st as MapEditState)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
 DECLARE FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
@@ -708,22 +710,32 @@ DO
  'Space or left mouse button is down (and the map has focus)
  DIM tool_buttonpressed as bool = keyval(scSpace) > 0
 
- 'Check how to handle mouse input
+ '--Check how to handle mouse input
  DIM mouse_over_tool as ToolIDs = no_tool
  DIM mouse_over as MouseAttention
  mouse_over = mapedit_mouse_over_what(st)
  IF mouse.buttons = 0 THEN mouse_attention = mouse_over
+ DIM mouse_over_tile as XYPair
+ IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
+
  'If you drag off an UI element, ignore mouse input
  IF mouse_attention = mouse_over THEN
 
-  IF mouse_attention = focusViewport THEN
-   'Over the map viewport, but might still be over the map edge
-   DIM mappixel as XYPair = screen_to_map(st, mouse.pos)
-   IF mappixel.x >= 0 THEN
+  IF mouse_attention = focusMap THEN
+   'Also, ignore mouse while skewing the map (started by holding down Ctrl)
+   IF (st.mouse_skewing OR keyval(scCtrl)) = NO THEN
     'In-bounds
-    IF (mouse.buttons AND (mouseLeft OR mouseRight)) OR st.tool_hold THEN
-     st.pos = mappixel \ tilesize
+
+    'Move cursor to mouse position?
+    'NPC edit mode is a special case, because placing the cursor over an NPC you
+    'place is very annoying, so it handles this itself.
+    IF st.editmode <> npc_mode THEN
+     IF st.tool_hold OR (mouse.clicks AND mouseRight) OR (mouse.buttons AND mouseLeft) THEN
+      st.pos = mouse_over_tile
+     END IF
     END IF
+
+    'Left mouse button can activate tools
     IF mouse.buttons AND mouseLeft THEN
      tool_buttonpressed = YES
     END IF
@@ -738,7 +750,7 @@ DO
   ELSEIF mouse_attention = focusToolbar THEN
    mouse_over_tool = st.mode_tools[(mouse.x - toolbar_rect(st).x) \ 10]
 
-   IF mouse.release AND mouseLeft THEN  'Select tool
+   IF mouse.release AND mouseLeft THEN  'Select a tool
     st.tool = mouse_over_tool
     st.reset_tool = YES
     st.tool_hold = NO
@@ -1240,9 +1252,24 @@ DO
  maprect.p1 = Type(0, 20)
  maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
 
- '--General purpose controls (keyboard)
- '(Mouse controls were handled above, because we need to update cursor
- 'position before handling clicks)
+ '--Camera and cursor movement
+ '(Cursor movement with mouse was handled above, because we generally need to update
+ 'cursor position before handling clicks)
+
+ DIM mouse_pan as bool
+ IF mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
+    ANDALSO st.mouse_skewing = NO THEN
+  mouse_pan = YES
+  st.camera += (mouse.pos - mouse.clickstart) \ 4
+  mapedit_constrain_camera st
+  'Don't ensure the cursor is on-screen
+ ELSE
+  'After finishing a pan, ensure cursor on the screen
+  st.x = bound(st.x, (st.mapx + 19) \ 20, (st.mapx + mapviewsize.w) \ 20 - 1)
+  st.y = bound(st.y, (st.mapy + 19) \ 20, (st.mapy + mapviewsize.h) \ 20 - 1)
+ END IF
+
+ 'Keyboard camera+cursor controls
  DIM rate as XYPair = (1, 1)
  IF keyval(scShift) > 0 THEN rate = XY(8, 5)
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
@@ -1251,8 +1278,10 @@ DO
   IF slowkey(scDown, 110) THEN st.y = small(st.y + rate.y, st.map.high - 1)
   IF slowkey(scLeft, 110) THEN st.x = large(st.x - rate.x, 0)
   IF slowkey(scRight, 110) THEN st.x = small(st.x + rate.x, st.map.wide - 1)
-  st.mapx = bound(st.mapx, (st.x + 1) * 20 - mapviewsize.w, st.x * 20)
-  st.mapy = bound(st.mapy, (st.y + 1) * 20 - mapviewsize.h, st.y * 20)
+  IF mouse_pan = NO THEN  'Cursor can be offscreen while panning
+   st.mapx = bound(st.mapx, (st.x + 1) * 20 - mapviewsize.w, st.x * 20)
+   st.mapy = bound(st.mapy, (st.y + 1) * 20 - mapviewsize.h, st.y * 20)
+  END IF
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   'Move camera position
@@ -1261,27 +1290,29 @@ DO
   IF slowkey(scDown, 110) THEN st.mapy += 20 * rate.y
   IF slowkey(scLeft, 110) THEN st.mapx -= 20 * rate.x
   IF slowkey(scRight, 110) THEN st.mapx += 20 * rate.x
-  st.mapx = small(st.mapx, st.map.wide * 20 - mapviewsize.w)
-  st.mapy = small(st.mapy, st.map.high * 20 - mapviewsize.h)
-  st.mapx = large(st.mapx, 0)
-  st.mapy = large(st.mapy, 0)
+  mapedit_constrain_camera st
   st.pos = st.camera \ 20 + oldrel
  END IF
-
  st.moved = oldpos <> st.pos
 
- 'Skew map layers (note that skew is measured in tenths of a pixel
+ 'Skew map layers (note that skew is measured in tenths of a pixel)
+ IF (keyval(scCtrl) > 0 OR st.per_layer_skew <> 0) ANDALSO (mouse.dragging AND mouseRight) THEN
+  'Record that we've started skewing the map with the mouse, so that we can
+  'ignore this right-drag if Ctrl is released
+  st.mouse_skewing = YES
+ END IF
  IF keyval(scShift) > 0 AND keyval(scCtrl) > 0 THEN
   IF keyval(scLeft) > 0 THEN st.per_layer_skew.x -= 10
   IF keyval(scRight) > 0 THEN st.per_layer_skew.x += 10
   IF keyval(scUp) > 0 THEN st.per_layer_skew.y -= 10
   IF keyval(scDown) > 0 THEN st.per_layer_skew.y += 10
- ELSEIF mouse.dragging AND mouseRight THEN
+ ELSEIF st.mouse_skewing ANDALSO mouse.dragging AND mouseRight THEN
   DIM numlayers as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
   st.per_layer_skew = (mouse.pos - mouse.clickstart) '* 5 / numlayers
  ELSE
   'Reset once you let go of the right mouse button or shift+ctrl
   st.per_layer_skew = 0
+  st.mouse_skewing = NO
  END IF
 
 
@@ -1679,6 +1710,9 @@ DO
   END IF
  END IF
 
+ 'Draw the cursor, including box, mark, and clone outlines, or NPC cursor
+ mapedit_draw_cursor st
+
  '--Draw menubar (includes tileset preview)
  IF st.editmode = tile_mode THEN
   'This is to draw tile 0 as fully transparent on layer > 0
@@ -1706,9 +1740,6 @@ DO
    frame_draw st.zoneminimap, NULL, 0, 35, , , dpage
   END IF
  END IF
-
- 'Draw the cursor, including box, mark, and clone outlines, or NPC cursor
- mapedit_draw_cursor st
 
  '--npc info
  IF st.editmode = npc_mode THEN
@@ -5195,8 +5226,14 @@ FUNCTION map_to_screen(st as MapEditState, map_rect as RectType) as RectType
  RETURN TYPE(map_rect.x - st.mapx, map_rect.y - st.mapy + 20, map_rect.wide, map_rect.high)
 END FUNCTION
 
+'Translate a pixel position on the screen to a pixel position on the map;
+'returns -1,-1 if off the map edge
 FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
- RETURN XY(pos.x + st.mapx, pos.y + st.mapy - 20)
+ DIM ret as XYPair = (pos.x + st.mapx, pos.y + st.mapy - 20)
+ IF ret.x < 0 OR ret.y < 0 OR ret.x >= st.map.wide * tilew OR ret.y >= st.map.high * tileh THEN
+  RETURN XY(-1, -1)
+ END IF
+ RETURN ret
 END FUNCTION
 
 FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
@@ -5206,7 +5243,11 @@ FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
  IF st.toolsbar_available ANDALSO rect_collide_point(toolbar_rect(st), mouse.pos) THEN
   RETURN focusToolbar
  ELSEIF mouse.y >= 20 THEN
-  RETURN focusViewport
+  IF screen_to_map(st, mouse.pos).x < 0 THEN
+   RETURN focusViewport
+  ELSE
+   RETURN focusMap
+  END IF
  ELSE
   RETURN focusTopbar
  END IF
@@ -5226,11 +5267,20 @@ END FUNCTION
 'Center the camera on a tile
 SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
  'Size of the map viewport
- DIM mapviewsize as XYPair
- mapviewsize.w = vpages(dpage)->w
- mapviewsize.h = vpages(dpage)->h - 20  '20 pixels for menubar
+ DIM mapviewsize as XYPair = vpages(dpage)->size
+ mapviewsize.h -= 20  'For menubar
  st.mapx = bound(x * 20 - mapviewsize.w \ 2, 0, st.map.wide * 20 - mapviewsize.w)
  st.mapy = bound(y * 20 - mapviewsize.h \ 2, 0, st.map.high * 20 - mapviewsize.h)
+END SUB
+
+'Make sure the camera position is within map limits. Ignores cursor.
+SUB mapedit_constrain_camera(st as MapEditState)
+ DIM mapviewsize as XYPair = vpages(dpage)->size
+ mapviewsize.h -= 20  'For menubar
+ st.mapx = small(st.mapx, st.map.wide * 20 - mapviewsize.w)
+ st.mapy = small(st.mapy, st.map.high * 20 - mapviewsize.h)
+ st.mapx = large(st.mapx, 0)
+ st.mapy = large(st.mapy, 0)
 END SUB
 
 
