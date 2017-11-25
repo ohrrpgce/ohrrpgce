@@ -41,6 +41,7 @@ DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType)
 
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
+DECLARE FUNCTION tool_cube_offset(st as MapEditState) as XYPair
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
@@ -1772,14 +1773,13 @@ SUB mapedit_draw_cursor(st as MapEditState)
    IF st.tool_hold THEN
     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
     'for different brushes is non-trivial, and besides, how should layers work?
-    drawbox tool_rect.x, tool_rect.y, tool_rect.wide, tool_rect.high, _
-            uilook(uiHighlight + global_tog), 4, dpage
+    drawcube vpages(dpage), tool_rect, tool_cube_offset(st), uilook(uiHighlight + global_tog), 4
     EXIT SUB
    END IF
    'Otherwise, draw the default cursor
 
   CASE clone_tool
-   drawbox tool_rect.x, tool_rect.y, tool_rect.wide, tool_rect.high, uilook(uiHighlight + global_tog), 1, dpage
+   drawcube vpages(dpage), tool_rect, tool_cube_offset(st), uilook(uiHighlight + global_tog)
    EXIT SUB
 
   CASE npc_tool
@@ -1788,11 +1788,12 @@ SUB mapedit_draw_cursor(st as MapEditState)
     frame_draw .sprite + (2 * st.walk), .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
    END WITH
    edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
-
    EXIT SUB
  END SELECT
 
  'Normal cursor
+ drawcube vpages(dpage), tool_rect, tool_cube_offset(st), uilook(uiMenuItem)
+ tool_rect += st.per_layer_skew * st.layer / 10
  frame_draw st.cursor.sprite + global_tog, st.cursor.pal, tool_rect.x, tool_rect.y, , , dpage
 END SUB
 
@@ -1821,6 +1822,12 @@ FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
   cursor_box.size = XY(20, 20)
   RETURN cursor_box
 END FUNCTION
+
+'Compute the offset arg to drawcube, when drawing the cursor
+FUNCTION tool_cube_offset(st as MapEditState) as XYPair
+ RETURN st.per_layer_skew * UBOUND(st.map.tiles) / 10
+END FUNCTION
+
 
 '==========================================================================================
 
