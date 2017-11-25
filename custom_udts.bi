@@ -263,8 +263,13 @@ TYPE MapEditState
     END TYPE
     pos as XYPair
   END UNION
-  mapx as integer            'Camera position (top left of viewable area), in pixels
-  mapy as integer
+  UNION
+    TYPE
+      mapx as integer            'Camera position (top left of viewable area), in pixels
+      mapy as integer
+    END TYPE
+    camera as XYPair
+  END UNION
   layer as integer
   visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
   jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling

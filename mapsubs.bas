@@ -33,6 +33,10 @@ DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
+DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
+DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
+
+DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
 
 DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
@@ -1556,25 +1560,23 @@ DO
   END IF
  END IF
  
- '--tools overlays
+ '--tools overlays  (TODO)
  SELECT CASE st.tool
   CASE box_tool, mark_tool
    IF st.tool_hold THEN
     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
     'for different brushes is non-trivial, and besides, how should layers work?
-    DIM as RectType select_rect
-    corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
-    drawbox select_rect.x * 20 - st.mapx, select_rect.y * 20 - st.mapy + 20, _
-            select_rect.wide * 20, select_rect.high * 20, _
+    DIM as RectType select_rect = map_to_screen(st, mapedit_tool_rect(st))
+    'corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
+    drawbox select_rect.x, select_rect.y, select_rect.wide, select_rect.high, _
             uilook(uiHighlight + tog), 4, dpage
    END IF
 
   CASE clone_tool
-   DIM as RectType clone_box
-   clone_box = TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y, st.clone_size.w, st.clone_size.h)
-   drawbox clone_box.x * 20 - st.mapx, clone_box.y * 20 - st.mapy + 20, _
-           clone_box.wide * 20, clone_box.high * 20, _
+   DIM as RectType select_rect = map_to_screen(st, mapedit_tool_rect(st))
+   drawbox select_rect.x, select_rect.y, select_rect.wide, select_rect.high, _
            uilook(uiHighlight + tog), 1, dpage
+
  END SELECT
 
 
@@ -1780,6 +1782,33 @@ END SUB
 
 '==========================================================================================
 
+FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
+ SELECT CASE st.tool
+  CASE box_tool, mark_tool
+   IF st.tool_hold THEN
+    'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
+    'for different brushes is non-trivial, and besides, how should layers work?
+    DIM as RectType select_rect
+    corners_to_rect_inclusive st.pos, st.tool_hold_pos, select_rect
+    RETURN select_rect * 20
+   END IF
+   'Otherwise, return the default
+
+  CASE clone_tool
+   DIM as RectType clone_box
+   clone_box.topleft = st.pos - st.clone_offset
+   clone_box.size = st.clone_size
+   RETURN clone_box * 20
+ END SELECT
+
+ 'Default
+  DIM as RectType cursor_box
+  cursor_box.topleft = st.pos * 20
+  cursor_box.size = XY(20, 20)
+  RETURN cursor_box
+END FUNCTION
+
+'==========================================================================================
 
 PRIVATE SUB mapedit_list_npcs_by_tile_update (st as MapEditState, menu() as string, npcrefs() as integer)
  DIM dir_str(...) as string = {"north", "east", "south", "west"}
@@ -4800,7 +4829,16 @@ END SUB
 
 
 '==========================================================================================
+'                                         Camera
 
+'Translate a pixel position on the map to a pixel position on the screen
+FUNCTION map_to_screen(st as MapEditState, map_pos as XYPair) as XYPair
+ RETURN XY(map_pos.x - st.mapx, map_pos.y - st.mapy + 20)
+END FUNCTION
+
+FUNCTION map_to_screen(st as MapEditState, map_rect as RectType) as RectType
+ RETURN TYPE(map_rect.x - st.mapx, map_rect.y - st.mapy + 20, map_rect.wide, map_rect.high)
+END FUNCTION
 
 'Can a tile be seen? (Specifically, the centre of the tile)
 FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
