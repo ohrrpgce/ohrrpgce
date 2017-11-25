@@ -888,6 +888,12 @@ DO
    'Selecting a tile in the tileset...
    '...via top bar
    IF keyval(scAnyEnter) > 1 THEN mapedit_pickblock st
+   IF mouse_attention = focusTopBar THEN
+    IF mouse.buttons AND mouseLeft THEN
+     set_usetile st, st.menubarstart(st.layer) + mouse.x \ tilew
+    END IF
+    IF mouse.release AND mouseRight THEN mapedit_pickblock st
+   END IF
    '...via selecting from the map
    IF keyval(scG) > 1 THEN 'grab tile
     set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
@@ -1092,6 +1098,7 @@ DO
    END IF
    IF keyval(scAnyEnter) > 1 THEN
     IF mapedit_npc_at_spot(st) > -1 THEN
+     'TODO: also do this when right-clicking on an NPC
      mapedit_list_npcs_by_tile st
     ELSE
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
@@ -1333,6 +1340,7 @@ DO
       NEXT
      END IF
     ELSE
+     'TODO: allow dragging the cursor or mouse, rather than needing to click twice
      IF tool_newkeypress THEN
       st.tool_hold = YES
       st.tool_hold_pos = st.pos
@@ -1364,6 +1372,8 @@ DO
 
    CASE mark_tool
     IF tool_newkeypress THEN
+     'Note that if using the mouse, you need to click twice, to can't drag to
+     'select. Might want to change that, but it's the same as the sprite editor.
      IF st.tool_hold THEN
       'We have two corners
       st.tool_hold = NO
@@ -3645,10 +3655,16 @@ END SUB
 
 'Update the scroll position of the tilepicker in the top bar
 SUB update_tilepicker(st as MapEditState)
+ 'Based on correct_menu_state.
+ DIM byref top as integer = st.menubarstart(st.layer)
+ DIM byref pt as integer = st.usetile(st.layer)
  'Menu width, as number of visible tiles (right 60 pixels is blacked out)
- DIM vistiles as integer = (vpages(dpage)->w - 60) \ tilew
- st.menubarstart(st.layer) = bound(st.menubarstart(st.layer), large(st.usetile(st.layer) - vistiles + 1, 0), _
-                                   small(st.usetile(st.layer), st.menubar.wide - vistiles))
+ DIM size as integer = (vpages(dpage)->w - 60) \ tilew - 1
+
+ 'Selected item must be visible, with a margin of 2 tiles to left and right
+ '(this indirectly allows scrolling by clicking at the edges)
+ top = large(small(top, pt - 2), pt - size + 2)
+ top = large(small(top, (st.menubar.wide - 1) - size), 0)
 END SUB
 
 'Set the selected tile in the tileset. Not an error to try to set to something out-of-range.

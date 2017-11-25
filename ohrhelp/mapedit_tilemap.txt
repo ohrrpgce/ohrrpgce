@@ -13,7 +13,7 @@ Use SHIFT+arrow keys to move around the map faster.
 
 Use ALT+arrow keys to move the view of the map.
 
-Along the top of the screen you will see a row of maptiles, with your currently selected maptile highlighted. You can press < and > to change your selected maptile, or use the MOUSE WHEEL, or press ENTER to bring up a full-screen maptile picker.
+Along the top of the screen you will see a row of maptiles, with your currently selected maptile highlighted. You can click on them, press < and > to change your selected maptile, or use the MOUSE WHEEL, or press ENTER or RIGHT CLICK on the top bar to bring up a full-screen maptile picker.
 
 Press G if you want to get the tile under the cursor as the current tile to place.
 
