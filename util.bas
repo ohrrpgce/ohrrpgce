@@ -186,15 +186,26 @@ OPERATOR RectType.CAST () as string
   RETURN x & "," & y & ",w" & wide & ",h" & high
 END OPERATOR
 
-FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
+FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as DirNum = dirNone) as DirNum
  IF axis = 0 THEN
-  IF v.x < 0 THEN RETURN 3
-  IF v.x > 0 THEN RETURN 1
+  IF v.x < 0 THEN RETURN dirLeft
+  IF v.x > 0 THEN RETURN dirRight
  ELSEIF axis = 1 THEN
-  IF v.y < 0 THEN RETURN 0
-  IF v.y > 0 THEN RETURN 2
+  IF v.y < 0 THEN RETURN dirUp
+  IF v.y > 0 THEN RETURN dirDown
  END IF
  RETURN default
+END FUNCTION
+
+FUNCTION xypair_to_direction (v as XYPair) as DirNum
+ IF v.x = 0 AND v.y = 0 THEN RETURN dirNone
+ IF ABS(v.x) > ABS(v.y) THEN
+  IF v.x < 0 THEN RETURN dirLeft
+  IF v.x > 0 THEN RETURN dirRight
+ ELSE
+  IF v.y < 0 THEN RETURN dirUp
+  IF v.y > 0 THEN RETURN dirDown
+ END IF
 END FUNCTION
 
 SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)

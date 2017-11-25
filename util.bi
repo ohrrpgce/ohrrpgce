@@ -13,6 +13,7 @@
 #include "lib/sha1.bi"
 #include "os.bi"
 #include "vector.bi"
+#include "const.bi"  'For DirNum
 
 '#ifdef __FB_ANDROID__
 '#define DEBUG_FILE_IO
@@ -439,7 +440,8 @@ DECLARE OPERATOR - (lhs as XYPair) as XYPair
 'This allows us to create vectors of XYPair using vector.bas
 DECLARE_VECTOR_OF_TYPE(XYPair, XYPair)
 
-DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as integer=-1) as integer
+DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as DirNum = dirNone) as DirNum
+DECLARE FUNCTION xypair_to_direction (v as XYPair) as DirNum
 DECLARE SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)
 DECLARE FUNCTION xypair_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
 DECLARE FUNCTION xypair_distance_squared(v1 as XYPair, v2 as XYPair) as integer
