@@ -8571,6 +8571,14 @@ function Palette16_new(numcolors as integer = 16) as Palette16 ptr
 	return ret
 end function
 
+function Palette16_new_identity(numcolors as integer = 16) as Palette16 ptr
+	dim ret as Palette16 ptr = Palette16_new(numcolors)
+	for cidx as integer = 0 TO numcolors - 1
+		ret->col(cidx) = cidx
+	next
+	return ret
+end function
+
 'pal() is an array of master palette indices, to convert into a Palette16
 function Palette16_new_from_indices(pal() as integer) as Palette16 ptr
 	if ubound(pal) > 255 then
@@ -8687,7 +8695,7 @@ sub Palette16_unload(p as Palette16 ptr ptr)
 end sub
 
 function Palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
-	dim ret as Palette16 ptr = palette16_new()
+	dim ret as Palette16 ptr = palette16_new(pal->numcolors)
 	for i as integer = 0 to ubound(pal->col)
 		ret->col(i) = pal->col(i)
 	next
@@ -8733,6 +8741,48 @@ function Palette16_describe(pal as Palette16 ptr) as string
 	return temp & ">"
 end function
 
+'Modifies a palette in-place, tinting it with a color
+sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
+	for idx as integer = 0 to pal->numcolors - 1
+		dim as integer r, g, b
+		with intpal(pal->col(idx))
+			if method = copLuminance then
+				'Best choice for converting to grey
+				r = .r * 0.3 + .g * 0.59 + .b * 0.11
+				g = r
+				b = r
+			elseif method = copValue then
+				'Just the value component of HSV, converted to grey
+				r = iif(.r > .g, .r, .g)
+				r = iif(r > .b, r, .b)
+				g = r
+				b = r
+			end if
+
+		end with
+		pal->col(idx) = nearcolor(intpal(), r, g, b)
+	next
+end sub
+
+'Modifies a palette in-place, tinting it with a color
+sub Palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac as double, method as ColorMixMethod, scale as double = 1.0)
+	for idx as integer = 0 to pal->numcolors - 1
+		dim as integer mixr, mixg, mixb
+		with intpal(pal->col(idx))
+			if method = mixBlend then
+				mixr = scale * .r * (1 - colfrac) + col.r * colfrac
+				mixg = scale * .g * (1 - colfrac) + col.g * colfrac
+				mixb = scale * .b * (1 - colfrac) + col.b * colfrac
+			elseif method = mixMult then
+				dim nonmult as double = 255 * (1 - colfrac)
+				mixr = scale * .r * (nonmult + col.r * colfrac) / 255
+				mixg = scale * .g * (nonmult + col.g * colfrac) / 255
+				mixb = scale * .b * (nonmult + col.b * colfrac) / 255
+			end if
+		end with
+		pal->col(idx) = nearcolor(intpal(), mixr, mixg, mixb)
+	next
+end sub
 
 
 '==========================================================================================

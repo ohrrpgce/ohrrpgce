@@ -495,7 +495,20 @@ declare function frame_with_surface(surf as Surface ptr) as Frame ptr
 '==========================================================================================
 '                                       Palette16
 
+enum ColorMixMethod
+	mixBlend
+	mixMult
+end enum
+
+enum ColorOperator
+	copLuminance
+	copValue
+
+	copGreyscale = copLuminance
+end enum
+
 declare function palette16_new(numcolors as integer = 16) as Palette16 ptr
+declare function Palette16_new_identity(numcolors as integer = 16) as Palette16 ptr
 declare function palette16_new_from_indices(pal() as integer) as Palette16 ptr
 declare function palette16_new_from_buffer(pal() as integer, po as integer) as Palette16 ptr
 declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
@@ -504,6 +517,8 @@ declare sub palette16_unload(p as Palette16 ptr ptr)
 declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, num as integer)
+declare sub Palette16_transform_n_match(pal as Palette16 ptr, method as ColorOperator)
+declare sub palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, colfrac as double, method as ColorMixMethod, scale as double = 1.0)
 
 
 '==========================================================================================
