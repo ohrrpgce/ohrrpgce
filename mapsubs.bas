@@ -38,10 +38,12 @@ DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
+DECLARE FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
 
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
 DECLARE FUNCTION tool_cube_offset(st as MapEditState) as XYPair
+DECLARE FUNCTION toolbar_rect(st as MapEditState) as RectType
 
 DECLARE FUNCTION layer_shadow_palette() as Palette16 ptr
 DECLARE SUB mapedit_free_layer_palettes(st as MapEditState)
@@ -666,6 +668,7 @@ st.npczone_needupdate = YES
 DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
+DIM byref mouse as MouseInfo = readmouse
 
 setkeys
 DO
@@ -1162,9 +1165,8 @@ DO
  maprect.p1 = Type(0, 20)
  maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
 
- '--general purpose controls----
- st.oldpos.x = st.x
- st.oldpos.y = st.y
+ '--General purpose controls (keyboard)
+ st.oldpos = st.pos
  IF keyval(scShift) > 0 THEN
   st.rate.x = 8
   st.rate.y = 5
@@ -1202,9 +1204,9 @@ DO
   IF keyval(scRight) > 0 THEN st.per_layer_skew.x += 10
   IF keyval(scUp) > 0 THEN st.per_layer_skew.y -= 10
   IF keyval(scDown) > 0 THEN st.per_layer_skew.y += 10
- ELSEIF readmouse().dragging AND mouseRight THEN
+ ELSEIF mouse.dragging AND mouseRight THEN
   DIM numlayers as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
-  st.per_layer_skew = (readmouse.pos - readmouse.clickstart) '* 5 / numlayers
+  st.per_layer_skew = (mouse.pos - mouse.clickstart) '* 5 / numlayers
  ELSE
   'Reset once you let go of the right mouse button or shift+ctrl
   st.per_layer_skew = 0
@@ -1301,7 +1303,7 @@ DO
       'We have two corners
       st.tool_hold = NO
       DIM select_rect as RectType
-      corners_to_rect_inclusive TYPE(st.x, st.y), st.tool_hold_pos, select_rect
+      corners_to_rect_inclusive st.pos, st.tool_hold_pos, select_rect
 
       v_free st.cloned
       st.cloned = create_changelist(st, select_rect)
@@ -1313,7 +1315,7 @@ DO
       st.multitile_draw_brush = NO  'Normal clone tool behaviour
      ELSE
       st.tool_hold = YES
-      st.tool_hold_pos = TYPE(st.x, st.y)
+      st.tool_hold_pos = st.pos
      END IF
     END IF
 
@@ -1322,7 +1324,7 @@ DO
      st.tool = mark_tool
     ELSE
      IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
-      apply_changelist st, st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
+      apply_changelist st, st.cloned, st.pos - st.clone_offset
      END IF
      IF keyval(scCtrl) > 0 AND keyval(scM) > 1 THEN
       st.clone_merge XOR= YES
@@ -1349,7 +1351,7 @@ DO
  IF st.secondary_undo_buffer THEN debugc errPromptBug, "mapedit preview: secondary_undo_buffer already exists!"
  IF st.tool = clone_tool AND st.cloned <> NULL THEN
   v_new st.secondary_undo_buffer
-  apply_changelist st, st.cloned, TYPE(st.x - st.clone_offset.x, st.y - st.clone_offset.y)
+  apply_changelist st, st.cloned, st.pos - st.clone_offset
  END IF
  IF st.editmode = tile_mode AND st.tool = draw_tool THEN
   IF slowtog AND keyval(scSpace) = 0 THEN
@@ -1387,7 +1389,7 @@ DO
   st.zones_needupdate = NO
  END IF
 
- st.last_pos = TYPE(st.x, st.y)
+ st.last_pos = st.pos
 
  '--Draw Screen
  clearpage dpage
@@ -1643,11 +1645,8 @@ DO
 
  '--Tool selection
  IF st.toolsbar_available THEN
-  DIM toolbarpos as XYPair = XY(rRight - 10 * v_len(st.mode_tools), 0)
-  IF st.editmode = tile_mode THEN
-   toolbarpos.y = 12
-  END IF
-  rectangle toolbarpos.x, toolbarpos.y, 10 * v_len(st.mode_tools), 8, uilook(uiBackground), dpage
+  DIM toolbarpos as RectType = toolbar_rect(st)
+  rectangle toolbarpos.x, toolbarpos.y, toolbarpos.wide, toolbarpos.high, uilook(uiBackground), dpage
   FOR i as integer = 0 TO v_len(st.mode_tools) - 1
    mapedit_draw_icon st, st.toolinfo(st.mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = st.mode_tools[i])
   NEXT
@@ -1857,6 +1856,17 @@ END FUNCTION
 'Compute the offset arg to drawcube, when drawing the cursor
 FUNCTION tool_cube_offset(st as MapEditState) as XYPair
  RETURN st.per_layer_skew * UBOUND(st.map.tiles) / 10
+END FUNCTION
+
+FUNCTION toolbar_rect(st as MapEditState) as RectType
+ DIM ret as RectType
+ ret.wide = 10 * v_len(st.mode_tools)
+ ret.high = 8
+ ret.x = vpages(dpage)->w - ret.wide
+ IF st.editmode = tile_mode THEN
+  ret.y = 12
+ END IF
+ RETURN ret
 END FUNCTION
 
 
@@ -4624,12 +4634,12 @@ SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, 
  cleantilemap tilesetview, 16, 16
  ' If the selected tile isn't found (because we hide animated tiles if the animation
  ' pattern is empty), default
- tilepick = TYPE(0, 0)
+ tilepick = XY(0, 0)
 
  'First 10 rows are regular tiles
  FOR i as integer = 0 TO 159
   writeblock tilesetview, i MOD 16, i \ 16, i
-  IF i = st.usetile(st.layer) THEN tilepick = TYPE(i MOD 16, i \ 16)
+  IF i = st.usetile(st.layer) THEN tilepick = XY(i MOD 16, i \ 16)
  NEXT
 
  'Then draw the two animation pattern ranges if they're used,
@@ -5079,6 +5089,10 @@ END FUNCTION
 
 FUNCTION map_to_screen(st as MapEditState, map_rect as RectType) as RectType
  RETURN TYPE(map_rect.x - st.mapx, map_rect.y - st.mapy + 20, map_rect.wide, map_rect.high)
+END FUNCTION
+
+FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
+ RETURN XY(pos.x + st.mapx, pos.y + st.mapy - 20)
 END FUNCTION
 
 'Can a tile be seen? (Specifically, the centre of the tile)
