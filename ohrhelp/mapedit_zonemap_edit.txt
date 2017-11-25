@@ -15,7 +15,7 @@ Use the arrow keys to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
 
-Press < and > or PageDown and PageUp to change the current zone number, or type in an ID number. There's no need to use sequential ID numbers.
+Press < and > or PageDown and PageUp to change the current zone number, or type in an ID number, or use the MOUSE WHEEL. There's no need to use sequential ID numbers.
 
 Press E to go to the zone info editor, where you can edit the triggers attached to this zone.
 

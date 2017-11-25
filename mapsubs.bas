@@ -837,6 +837,8 @@ DO
     IF keyval(scComma) > 1 THEN set_usetile st, st.usetile(st.layer) - 1
     IF keyval(scPeriod) > 1 THEN set_usetile st, st.usetile(st.layer) + 1
    END IF
+   set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
+
    st.tool_value = st.usetile(st.layer)
 
    'Ctrl+J to jiggle (although the other layer visualisation works in any
@@ -986,7 +988,7 @@ DO
      END IF
     END IF
    END IF
-   IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret) THEN
+   IF intgrabber(st.cur_door, 0, UBOUND(st.map.door), scLeftCaret, scRightCaret, , , , wheelAlways) THEN
     IF door_exists(st.map.door(), st.cur_door) THEN
      st.x = st.map.door(st.cur_door).x
      st.y = st.map.door(st.cur_door).y - 1
@@ -1071,12 +1073,12 @@ DO
      END IF
     END IF
    END IF
-   intgrabber(st.cur_npc, 0, UBOUND(st.map.npc_def), scLeftCaret, scRightCaret)
+   intgrabber(st.cur_npc, 0, UBOUND(st.map.npc_def), scLeftCaret, scRightCaret, , , , wheelAlways)
 
    '---FOEMODE--------
   CASE foe_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_foemap"
-   intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
+   intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret, , , , wheelAlways)
    IF keyval(scG) > 1 THEN st.cur_foe = readblock(st.map.foemap, st.x, st.y)
    st.tool_value = st.cur_foe
 
@@ -1108,7 +1110,8 @@ DO
    IF st.zonesubmode = zone_edit_mode THEN
 
     '--Tiling/editing mode
-    st.zones_needupdate OR= intgrabber(st.cur_zone, 1, zoneLASTREADABLE, scLeftCaret, scRightCaret)
+
+    st.zones_needupdate OR= intgrabber(st.cur_zone, 1, zoneLASTREADABLE, scLeftCaret, scRightCaret, , , , wheelAlways)
     IF st.tool <> paint_tool THEN
      'Using the paint tool enables pageup/pagedown for changing selected map layer
      st.zones_needupdate OR= keygrabber(st.cur_zone, 1, zoneLASTREADABLE, scPageDown, scPageUp)
@@ -1722,14 +1725,15 @@ DO
      printstr hilite("+") + "/" + hilite("-") + IIF(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
    END SELECT
 
-   printstr "(" + hilite("Z") + ": Editing)", 140, 24, dpage, YES
+   edgeprint "(" + hilite("Z") + ": Editing)", 140, 24, uilook(uiText), dpage, YES
   ELSE
-   printstr "(" + hilite("Z") + ": Viewing)", 140, 24, dpage, YES
+   edgeprint "(" + hilite("Z") + ": Viewing)", 140, 24, uilook(uiText), dpage, YES
    IF st.zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
   IF zoneselected THEN
-   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, rBottom - 20, dpage, YES
+   edgeprint hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, _
+             0, rBottom - 20, uilook(uiText), dpage, YES
   END IF
 
   IF st.zonesubmode = zone_edit_mode THEN

@@ -15,7 +15,7 @@ Use SHIFT+arrow keys to move around the map faster.
 
 Use ALT+arrow keys to move the view of the map.
 
-Press < and > to change the current formation set number, or type in a number.
+Press < and > to change the current formation set number, or type in a number or use the MOUSE WHEEL.
 
 At the top right corner the current drawing tool is shown. Press SPACE to draw on the foemap. The tools are:
 
