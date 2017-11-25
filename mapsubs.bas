@@ -1509,9 +1509,9 @@ DO
      IF .x >= st.mapx AND .x < st.mapx + mapviewsize.w AND .y >= st.mapy - 20 AND .y < st.mapy + mapviewsize.h + 20 THEN
       DIM image as GraphicPair = st.npc_img(.id - 1)
       frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy + st.map.gmap(11), 1, -1, dpage
-      textcolor uilook(uiSelectedItem + tog), 0
-      printstr STR(.id - 1), .x - st.mapx, .y + 20 - st.mapy + 3, dpage
-      printstr STR(npcnum(.id - 1)), .x - st.mapx, .y + 20 - st.mapy + 12, dpage
+      DIM col as integer = uilook(uiSelectedItem + tog)
+      edgeprint STR(.id - 1), .x - st.mapx, .y + 20 - st.mapy + 2, col, dpage
+      edgeprint STR(npcnum(.id - 1)), .x - st.mapx, .y + 20 - st.mapy + 11, col, dpage
      END IF
      npcnum(.id - 1) += 1
     END IF
@@ -1587,10 +1587,8 @@ DO
   edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map", 0, 10, uilook(uiText), dpage
  END IF
  
- textcolor uilook(uiSelectedItem + tog), 0 
- printstr "X " & st.x & "   Y " & st.y, 0, maprect.p2.y - 8, dpage
- textcolor uilook(uiText), 0
- printstr st.modenames(st.editmode), 0, 24, dpage
+ edgeprint "X " & st.x & "   Y " & st.y, 0, maprect.p2.y - 9, uilook(uiSelectedItem + tog), dpage
+ edgeprint st.modenames(st.editmode), 0, 24, uilook(uiText), dpage
 
  '--Tool selection
  IF st.toolsbar_available THEN
@@ -1609,27 +1607,26 @@ DO
   ELSE
    tmpstr = "Tool: " & st.toolinfo(st.tool).name
   END IF
-  textcolor uilook(uiText), 0 
-  printstr tmpstr, pRight, toolbarpos.y + 10, dpage, YES
+  edgeprint tmpstr, pRight, toolbarpos.y + 10, uilook(uiText), dpage, YES
  ELSEIF st.editmode = zone_mode AND st.zonesubmode = zone_view_mode AND st.drawing_allowed THEN
   'Nasty
-  textcolor uilook(uiText), 0 
-  printstr "Tool: Draw", pRight, 22, dpage
+  edgeprint "Tool: Draw", pRight, 22, uilook(uiText), dpage
  END IF
 
  IF st.editmode = tile_mode THEN
+  DIM col as integer
   IF st.tool = mark_tool OR (st.tool = clone_tool AND st.multitile_draw_brush = NO) THEN
    'Hint that the current layer doesn't matter
-   textcolor uilook(uiText), 0
+   col = uilook(uiText)
   ELSE
-   textcolor uilook(uiSelectedItem + tog), 0
+   col = uilook(uiSelectedItem + tog)
   END IF
   DIM layername as string
   layername = "Layer " & st.layer
   IF layerisvisible(st.visible(), st.layer) = NO THEN layername &= " (invisible)"
   layername &= " " & read_map_layer_name(st.map.gmap(), st.layer)
   layername = RIGHT(layername, 40)
-  printstr layername, 0, maprect.p2.y - 20, dpage
+  edgeprint layername, 0, maprect.p2.y - 20, col, dpage
  END IF
 
  IF st.editmode = tile_mode OR st.tool = clone_tool THEN
@@ -1771,8 +1768,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
    WITH st.npc_img(st.cur_npc)
     frame_draw .sprite + (2 * st.walk), .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
    END WITH
-   textcolor uilook(uiSelectedItem + global_tog), 0
-   printstr STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, dpage
+   edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
 
    EXIT SUB
  END SELECT
