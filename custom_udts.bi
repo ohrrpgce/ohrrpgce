@@ -228,7 +228,8 @@ END ENUM
 
 ENUM LayerDisplayMode
   layerDisplayNormal
-  layerDisplayTinted  'Tinted by height
+  layerDisplayTinted    'Tinted by height
+  layerDisplayHighlight 'Highlight the selected one, greyscale others
   layerDisplayNUM
 END ENUM
 

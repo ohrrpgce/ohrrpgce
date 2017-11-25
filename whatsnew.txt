@@ -38,6 +38,11 @@ Nov/Dec ??? 2017 [Etheldreme]
       time, but still isn't complete -- for example backdrops and battles
       are still 320x200. Nothing has changed in this release except that
       the option isn't hidden any more [Ralph]
+    * Three new ways to visualise map layers in the map editor:
+      * Press Ctrl+Shift+arrows or right-click-drag to "skew" map layers
+      * Press T to tint each map layer a different color
+      * Press T twice to grey out layers other than the selected one
+      [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

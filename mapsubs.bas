@@ -111,6 +111,7 @@ DECLARE SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bo
 DECLARE SUB ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE SUB ToggleLayerEnabled(vis() as integer, byval l as integer)
 DECLARE FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
+DECLARE SUB set_layer(st as MapEditState, layer as integer)
 
 DECLARE SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
 
@@ -754,8 +755,7 @@ DO
    END IF
    FOR i as integer = st.layer + 1 TO UBOUND(st.map.tiles)
     IF layerisenabled(st.map.gmap(), i) THEN
-     st.layer = i
-     update_tilepicker st
+     set_layer st, i
      EXIT FOR
     END IF
    NEXT i
@@ -763,8 +763,7 @@ DO
   IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
    FOR i as integer = st.layer - 1 TO 0 STEP -1
     IF layerisenabled(st.map.gmap(), i) THEN
-     st.layer = i
-     update_tilepicker st
+     set_layer st, i
      EXIT FOR
     END IF
    NEXT
@@ -891,13 +890,13 @@ DO
        IF yesno("Layer " & i & " doesn't exist yet. Create " & _
                 IIF(howmany = 1, "a new map layer?", howmany & " new map layers?")) THEN
         mapedit_append_new_layers st, howmany
+        mapedit_update_layer_palettes st
        END IF
       END IF
      ELSE
       IF st.layer = i THEN
        DO UNTIL layerisenabled(st.map.gmap(), st.layer)
-        st.layer -= 1
-        update_tilepicker st
+        set_layer st, st.layer - 1
        LOOP
       END IF
      END IF
@@ -2073,6 +2072,20 @@ FUNCTION mapedit_layer_tint_palette(st as MapEditState, layer as integer, lastla
  RETURN ret
 END FUNCTION
 
+'Set layer palettes to highlight the selected one
+FUNCTION mapedit_layer_highlight_palette(st as MapEditState, layer as integer, lastlayer as integer) as Palette16 ptr
+ 'For all layers except selected (including overhead for layer 0)
+ IF st.layer = layer OR (st.layer = 0 AND layer = lastlayer) THEN RETURN NULL
+
+ DIM ret as Palette16 ptr = palette16_new_identity(256)
+ palette16_transform_n_match ret, copGreyscale
+ 'And pull a little towards a mid-grey, in case the tiles are already grey
+ DIM grey as RGBcolor
+ grey.col = &h505050
+ palette16_mix_n_match ret, grey, 0.2, mixBlend
+ RETURN ret
+END FUNCTION
+
 SUB mapedit_update_layer_palettes(st as MapEditState)
  'By default no palette
  mapedit_free_layer_palettes st
@@ -2081,6 +2094,8 @@ SUB mapedit_update_layer_palettes(st as MapEditState)
  FOR layer as integer = 0 TO lastlayer
   IF st.layer_display_mode = layerDisplayTinted THEN
    st.layerpals(layer) = mapedit_layer_tint_palette(st, layer, lastlayer)
+  ELSEIF st.layer_display_mode = layerDisplayHighlight THEN
+   st.layerpals(layer) = mapedit_layer_highlight_palette(st, layer, lastlayer)
   END IF
  NEXT
 END SUB
@@ -3554,6 +3569,12 @@ SUB update_tilepicker(st as MapEditState)
   st.tool = draw_tool
   v_free st.cloned
  END IF
+END SUB
+
+SUB set_layer(st as MapEditState, layer as integer)
+ st.layer = layer
+ update_tilepicker st
+ mapedit_update_layer_palettes st
 END SUB
 
 
