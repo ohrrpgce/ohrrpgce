@@ -63,6 +63,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "assert(x==y)" now adds x and y values to the assert message [Ralph]
 
   * Changes
+    * "greyscale palette" command now looks better; just averaging red,
+      green and blue is perceptually very wrong [Ralph]
 
   * Bugfixes
     * Copy-paste in slice editor didn't copy slice extra data or autosort

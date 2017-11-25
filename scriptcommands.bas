@@ -1530,7 +1530,7 @@ SUB script_functions(byval cmdid as integer)
   ELSE
    mersenne_twister TIMER
   END IF
- CASE 109'--grey scale palette
+ CASE 109'--greyscale palette
   greyscalepal
  CASE 114'--read global
   IF retvals(0) >= 0 AND retvals(0) <= maxScriptGlobals THEN
@@ -5182,11 +5182,14 @@ SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, by
  NEXT i
 END SUB
 
-SUB greyscalepal
+'"greyscale palette" command
+SUB greyscalepal ()
  FOR i as integer = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
-  master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
-  master(i).g = master(i).r
-  master(i).b = master(i).r
+  WITH master(i)
+   .r = bound(CINT(.r * 0.3 + .g * 0.59 + .b * 0.11), 0, 255)
+   .g = .r
+   .b = .r
+   END WITH
  NEXT i
 END SUB
 
