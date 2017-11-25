@@ -7,6 +7,7 @@
 #include "slices.bi"
 
 ENUM ToolIDs
+  no_tool = -1
   'These are the tools available in the sprite, tile and map editors
   draw_tool
   box_tool

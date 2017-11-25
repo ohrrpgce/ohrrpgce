@@ -34,12 +34,20 @@ DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y
 DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 
+ENUM MouseAttention
+ focusNowhere
+ focusViewport  'Main part of the screen, but may be off map edge
+ focusToolbar   'The tool buttons
+ focusTopbar
+END ENUM
+
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
 DECLARE FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
+DECLARE FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
 
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
@@ -671,6 +679,7 @@ DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
 DIM byref mouse as MouseInfo = readmouse
+DIM mouse_attention as MouseAttention = focusNowhere  'What currently recieves mouse input
 
 setkeys
 DO
@@ -688,19 +697,62 @@ DO
   NEXT
  END IF
 
+ DIM oldpos as XYPair = st.pos     'used when detecting cursor movement
+
  'A mouse click on the map (uses readmouse.release rather than .click, as you
  'should normally should) or Space keypress, which can activate a tool.
+ '(The mouse component is added below)
  DIM tool_actkeypress as bool = (keyval(scSpace) AND 4) > 0
  'As above, but using .click instead of .release, for stuff that affects dragging.
  DIM tool_newkeypress as bool = (keyval(scSpace) AND 4) > 0
  'Space or left mouse button is down (and the map has focus)
  DIM tool_buttonpressed as bool = keyval(scSpace) > 0
 
+ 'Check how to handle mouse input
+ DIM mouse_over_tool as ToolIDs = no_tool
+ DIM mouse_over as MouseAttention
+ mouse_over = mapedit_mouse_over_what(st)
+ IF mouse.buttons = 0 THEN mouse_attention = mouse_over
+ 'If you drag off an UI element, ignore mouse input
+ IF mouse_attention = mouse_over THEN
+
+  IF mouse_attention = focusViewport THEN
+   'Over the map viewport, but might still be over the map edge
+   DIM mappixel as XYPair = screen_to_map(st, mouse.pos)
+   IF mappixel.x >= 0 THEN
+    'In-bounds
+    IF (mouse.buttons AND (mouseLeft OR mouseRight)) OR st.tool_hold THEN
+     st.pos = mappixel \ tilesize
+    END IF
+    IF mouse.buttons AND mouseLeft THEN
+     tool_buttonpressed = YES
+    END IF
+    IF mouse.clicks AND mouseLeft THEN
+     tool_newkeypress = YES
+    END IF
+    IF mouse.release AND mouseLeft THEN
+     tool_actkeypress = YES
+    END IF
+   END IF
+
+  ELSEIF mouse_attention = focusToolbar THEN
+   mouse_over_tool = st.mode_tools[(mouse.x - toolbar_rect(st).x) \ 10]
+
+   IF mouse.release AND mouseLeft THEN  'Select tool
+    st.tool = mouse_over_tool
+    st.reset_tool = YES
+    st.tool_hold = NO
+   END IF
+
+  END IF
+  'focusTopbar input is edit mode-specific, handled below
+ END IF
+
  ' This can be modified to override/augment the normal key for activating the current tool
  ' if it is a 'drawing' tool (Currently used just for wallmap bit keys)
  DIM use_draw_tool as bool = tool_newkeypress
 
- IF st.new_stroke = NO AND keyval(scSpace) = 0 THEN
+ IF st.new_stroke = NO AND keyval(scSpace) = 0 AND mouse.buttons = 0 THEN
   'Yes, a bit of a hack, not sure what a more rigourous test would be
   st.new_stroke = YES
  END IF
@@ -1182,6 +1234,8 @@ DO
  maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
 
  '--General purpose controls (keyboard)
+ '(Mouse controls were handled above, because we need to update cursor
+ 'position before handling clicks)
  DIM rate as XYPair = (1, 1)
  IF keyval(scShift) > 0 THEN rate = XY(8, 5)
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
@@ -1663,7 +1717,9 @@ DO
    mapedit_draw_icon st, st.toolinfo(st.mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = st.mode_tools[i])
   NEXT
   DIM tmpstr as string
-  IF st.tool = paint_tool THEN
+  IF mouse_over_tool <> no_tool THEN
+   tmpstr = "Tool: " & st.toolinfo(mouse_over_tool).name
+  ELSEIF st.tool = paint_tool THEN
    'Show the current layer if using the paint tool, since that depends on selected tilemap layer
    tmpstr = "Tool:Paint on " & hilite("Layer " & st.layer)
   ELSE
@@ -5125,6 +5181,19 @@ END FUNCTION
 
 FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
  RETURN XY(pos.x + st.mapx, pos.y + st.mapy - 20)
+END FUNCTION
+
+FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
+ DIM byref mouse as MouseInfo = readmouse
+ IF mouse.active = NO THEN RETURN focusNowhere
+
+ IF st.toolsbar_available ANDALSO rect_collide_point(toolbar_rect(st), mouse.pos) THEN
+  RETURN focusToolbar
+ ELSEIF mouse.y >= 20 THEN
+  RETURN focusViewport
+ ELSE
+  RETURN focusTopbar
+ END IF
 END FUNCTION
 
 'Can a tile be seen? (Specifically, the centre of the tile)

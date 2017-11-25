@@ -22,10 +22,11 @@ D - Draw tool:
   walls that are described below (see
   "Drawing Keys"), or press and hold
   down SPACE while moving the cursor
-  to draw walls in a line.
+  or DRAG the mouse to draw walls in
+  a line.
 
 B - Box tool:
-  Press SPACE once to place one
+  Press SPACE/CLICK once to place one
   corner of a rectangle, move the
   cursor to the opposite corner, and
   then press one of the Drawing Keys
@@ -48,34 +49,35 @@ P - Paint on Layer # tool:
 
 M - Mark tool:
   Use to select a rectangular of the
-  map to copy. Press SPACE once to
-  place one corner of the rectangle,
-  and SPACE a second time at the
-  opposite corner. The tool will then
-  be changed to the Clone tool. Mark
-  copies the visible tilemap layers,
-  wallmap, foemap, and zones in the
-  rectangle.
+  map to copy. Press SPACE/CLICK once
+  to place one corner of the
+  rectangle, and SPACE/CLICK a second
+  time at the opposite corner. The
+  tool will then be changed to the
+  Clone tool. Mark copies the visible
+  tilemap layers, wallmap, foemap,
+  and zones in the rectangle.
 
 C - Clone tool:
-  Press SPACE to paste a selection
-  copied with the Mark tool.  You can
-  switch to different editing modes
-  to preview the changes to walls,
-  foemap, and zones.  If default
-  passability is on (press CTRL+D to
-  toggle), the wallmap will updated
-  using default walls instead of the
-  copied walls.  Only visible map
-  layers are modified (press ALT+~ to
-  toggle visibility of the current
-  map layer), so a map layer has to
-  be visible both when Marking and
-  when Cloning.
+  Press SPACE/CLICK to paste a
+  selection copied with the Mark
+  tool.  You can switch to different
+  editing modes to preview the
+  changes to walls, foemap, and
+  zones.  If default passability is
+  on (press CTRL+D to toggle), the
+  wallmap will updated using default
+  walls instead of the copied walls.
+  Only visible map layers are
+  modified (press ALT+~ to toggle
+  visibility of the current map
+  layer), so a map layer has to be
+  visible both when Marking and when
+  Cloning.
 
 Drawing Keys:
 
-Press SPACE to make the tile under the cursor fully impassable in all four directions. Press SPACE again to remove the walls and make the tile passable.
+Press SPACE/CLICK to make the tile under the cursor fully impassable in all four directions. Press SPACE/CLICK again to remove the walls and make the tile passable.
 
 CTRL+Up makes the selected tile impassable on the top.
 

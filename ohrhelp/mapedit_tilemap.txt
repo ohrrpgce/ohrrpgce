@@ -17,17 +17,19 @@ Along the top of the screen you will see a row of maptiles, with your currently 
 
 Press G if you want to get the tile under the cursor as the current tile to place.
 
-At the top right corner the current drawing tool is shown. Press SPACE to draw on the current map layer. The tools are:
+At the top right corner the current drawing tool is shown. Press SPACE or LEFT CLICK to draw on the current map layer. The tools are:
 
 D - Draw tool:
   Place a maptile on the map. Hold 
-  down SPACE and move to draw lines.
+  down SPACE and move, or drag the
+  mouse to draw lines.
 
 B - Box tool:
-  Press SPACE once to place one 
-  corner of the box, and SPACE a 
-  second time at the opposite corner 
-  to draw a rectangle of tiles.
+  Press SPACE/CLICK once to place one 
+  corner of the box, and SPACE/CLICK 
+  a second time at the opposite
+  corner to draw a rectangle of
+  tiles.
 
 F - Fill (Paint bucket) tool:
   Flood fills a continuous region (on
@@ -42,30 +44,31 @@ R - Replace tool:
 
 M - Mark tool:
   Use to select a rectangular of the
-  map to copy. Press SPACE once to
-  place one corner of the rectangle,
-  and SPACE a second time at the
-  opposite corner. The tool will then
-  be changed to the Clone tool. Mark
-  copies the visible tilemap layers,
-  wallmap, foemap, and zones in the
-  rectangle.
+  map to copy. Press SPACE/CLICK once
+  to place one corner of the
+  rectangle, and SPACE/CLICK a second
+  time at the opposite corner. The
+  tool will then be changed to the
+  Clone tool. Mark copies the visible
+  tilemap layers, wallmap, foemap,
+  and zones in the rectangle.
 
 C - Clone tool:
-  Press SPACE to paste a selection
-  copied with the Mark tool.  You can
-  switch to different editing modes
-  to preview the changes to walls,
-  foemap, and zones.  If default
-  passability is on (press CTRL+D to
-  toggle), the wallmap will updated
-  using default walls instead of the
-  copied walls.  Only visible map
-  layers are modified (press ALT+~ to
-  toggle visibility of the current
-  map layer), so a map layer has to
-  be visible both when Marking and
-  when Cloning.
+  Press SPACE/CLICK to paste a
+  selection copied with the Mark
+  tool.  You can switch to different
+  editing modes to preview the
+  changes to walls, foemap, and
+  zones.  If default passability is
+  on (press CTRL+D to toggle), the
+  wallmap will updated using default
+  walls instead of the copied walls.
+  Only visible map layers are
+  modified (press ALT+~ to toggle
+  visibility of the current map
+  layer), so a map layer has to be
+  visible both when Marking and when
+  Cloning.
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
