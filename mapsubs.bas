@@ -688,9 +688,17 @@ DO
   NEXT
  END IF
 
+ 'A mouse click on the map (uses readmouse.release rather than .click, as you
+ 'should normally should) or Space keypress, which can activate a tool.
+ DIM tool_actkeypress as bool = (keyval(scSpace) AND 4) > 0
+ 'As above, but using .click instead of .release, for stuff that affects dragging.
+ DIM tool_newkeypress as bool = (keyval(scSpace) AND 4) > 0
+ 'Space or left mouse button is down (and the map has focus)
+ DIM tool_buttonpressed as bool = keyval(scSpace) > 0
+
  ' This can be modified to override/augment the normal key for activating the current tool
  ' if it is a 'drawing' tool (Currently used just for wallmap bit keys)
- DIM use_draw_tool as bool = (keyval(scSpace) AND 4) > 0
+ DIM use_draw_tool as bool = tool_newkeypress
 
  IF st.new_stroke = NO AND keyval(scSpace) = 0 THEN
   'Yes, a bit of a hack, not sure what a more rigourous test would be
@@ -940,7 +948,7 @@ DO
    END IF
 
    DIM pass_overtile as integer = readblock(st.map.pass, st.x, st.y)
-   IF keyval(scSpace) AND 4 THEN
+   IF tool_newkeypress THEN
     st.wallmap_mask = 255  'Remove all other bits
     IF (pass_overtile AND 15) = 0 THEN st.tool_value = 15
     IF (pass_overtile AND 15) = 15 THEN st.tool_value = 0
@@ -995,7 +1003,7 @@ DO
      mapedit_focus_camera st, st.x, st.y
     END IF
    END IF
-   IF keyval(scSpace) > 1 THEN ' space to place a door
+   IF tool_actkeypress THEN ' space/click to place a door
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
      'clear an existing door
@@ -1046,7 +1054,8 @@ DO
     IF slowkey(scDown, 660)  THEN npc_d = 2
     IF slowkey(scLeft, 660)  THEN npc_d = 3
    END IF
-   IF keyval(scSpace) > 1 OR npc_d > -1 THEN
+   'TODO: click and drag to set an NPC's direction
+   IF tool_actkeypress OR npc_d > -1 THEN
     DIM npc_slot as integer = 0
     IF npc_d = -1 THEN
      DIM npci as integer = mapedit_npc_at_spot(st)
@@ -1101,7 +1110,7 @@ DO
     END IF
    END IF
    IF st.reset_tool THEN st.tool_value = YES
-   IF st.tool = draw_tool ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
+   IF st.tool = draw_tool ANDALSO tool_newkeypress THEN 'pick value intelligently
     st.tool_value = CheckZoneAtTile(st.map.zmap, st.cur_zone, st.x, st.y) XOR YES
    END IF
    IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
@@ -1198,7 +1207,6 @@ DO
   st.pos = st.camera \ 20 + oldrel
  END IF
 
-
  st.moved = oldpos <> st.pos
 
  'Skew map layers (note that skew is measured in tenths of a pixel
@@ -1254,7 +1262,7 @@ DO
   SELECT CASE st.tool
    CASE draw_tool
     'IF keyval(scSpace) > 0 AND (st.new_stroke OR st.moved) THEN
-    IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
+    IF use_draw_tool OR (tool_buttonpressed AND st.moved) THEN
      '(No need to reapply brush until the cursor moves)
      st.brush(st, st.x, st.y, st.tool_value)
     END IF
@@ -1271,9 +1279,9 @@ DO
       NEXT
      END IF
     ELSE
-     IF keyval(scSpace) AND 4 THEN  'new keypress
+     IF tool_newkeypress THEN
       st.tool_hold = YES
-      st.tool_hold_pos = TYPE(st.x, st.y)
+      st.tool_hold_pos = st.pos
      END IF
     END IF
 
@@ -1301,7 +1309,7 @@ DO
     END IF
 
    CASE mark_tool
-    IF keyval(scSpace) AND 4 THEN  'new keypress
+    IF tool_newkeypress THEN
      IF st.tool_hold THEN
       'We have two corners
       st.tool_hold = NO
@@ -1326,7 +1334,7 @@ DO
     IF st.cloned = NULL THEN
      st.tool = mark_tool
     ELSE
-     IF use_draw_tool OR (keyval(scSpace) > 0 AND st.moved) THEN
+     IF use_draw_tool OR (tool_buttonpressed AND st.moved) THEN
       apply_changelist st, st.cloned, st.pos - st.clone_offset
      END IF
      IF keyval(scCtrl) > 0 AND keyval(scM) > 1 THEN
@@ -1357,6 +1365,7 @@ DO
   apply_changelist st, st.cloned, st.pos - st.clone_offset
  END IF
  IF st.editmode = tile_mode AND st.tool = draw_tool THEN
+  'TODO: some kind of equivalent for the mouse. When holding down right button?
   IF slowtog AND keyval(scSpace) = 0 THEN
    v_new st.secondary_undo_buffer
    tilebrush(st, st.x, st.y, st.tool_value)
