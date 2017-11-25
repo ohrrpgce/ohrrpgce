@@ -6433,18 +6433,20 @@ end function
 'Returns a non-negative integer which is 0 if both colors in a color table are the same
 function color_distance(pal() as RGBcolor, index1 as integer, index2 as integer) as integer
 	with pal(index1)
-		dim as integer rdif, bdif, gdif
+		dim as integer rdif, bdif, gdif, rmean
+		rmean = (.r + pal(index2).r) shr 1
 		rdif = .r - pal(index2).r
 		gdif = .g - pal(index2).g
 		bdif = .b - pal(index2).b
-		return rdif*rdif + gdif*gdif + bdif*bdif
+		'Formula taken from https://www.compuphase.com/cmetric.htm
+		return (((512 + rmean)*rdif*rdif) shr 8) + 4*gdif*gdif + (((767-rmean)*bdif*bdif) shr 8)
 	end with
 end function
 
 function nearcolor(pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyte, firstindex as integer = 0, indexhint as integer = -1) as ubyte
 'Figure out nearest palette colour in range [firstindex..255] using Euclidean distance
 'A perfect match against pal(indexhint) is tried first
-	dim as integer i, diff, best, save, rdif, bdif, gdif
+	dim as integer i, diff, best, save, rdif, bdif, gdif, rmean
 
 	if indexhint > -1 and indexhint <= UBOUND(pal) and indexhint >= firstindex then
 		with pal(indexhint)
@@ -6455,11 +6457,17 @@ function nearcolor(pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyt
 	best = 1000000
 	save = 0
 	for i = firstindex to 255
-		rdif = red - pal(i).r
-		gdif = green - pal(i).g
-		bdif = blue - pal(i).b
+		with pal(i)
+			rmean = (red + .r) shr 1
+			rdif = red - .r
+			gdif = green - .g
+			bdif = blue - .b
+		end with
 		'diff = abs(rdif) + abs(gdif) + abs(bdif)
-		diff = rdif*rdif + gdif*gdif + bdif*bdif
+		'diff = 3*rdif*rdif + 4*gdif*gdif + 2*bdif*bdif
+		'Formula taken from https://www.compuphase.com/cmetric.htm
+		diff = (((512 + rmean)*rdif*rdif) shr 8) + 4*gdif*gdif + (((767-rmean)*bdif*bdif) shr 8)
+
 		if diff = 0 then
 			'early out on direct hit
 			save = i
