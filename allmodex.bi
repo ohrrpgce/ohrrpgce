@@ -147,7 +147,8 @@ DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tiles
 DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL)
 DECLARE SUB draw_layers_at_tile(composed_tile as Frame ptr, tiles() as TileMap, tilesets() as TilesetData ptr, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
 
-DECLARE SUB setanim (cycle1 as integer, cycle2 as integer)
+DECLARE SUB setanim OVERLOAD (cycle1 as integer, cycle2 as integer)
+DECLARE sub setanim OVERLOAD (tileset as TilesetData ptr)
 DECLARE SUB setoutside (defaulttile as integer)
 
 

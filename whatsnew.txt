@@ -43,6 +43,8 @@ Nov/Dec ??? 2017 [Etheldreme]
       * Press T to tint each map layer a different color
       * Press T twice to grey out layers other than the selected one
       [Ralph]
+    * Option to export a full resolution image of a map, optionally with
+      NPCs [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

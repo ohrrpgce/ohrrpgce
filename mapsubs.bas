@@ -217,6 +217,7 @@ SUB map_picker ()
   END IF
 
   clearpage vpage
+  draw_fullscreen_scrollbar state, 0, vpage
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
   highlight_menu_typing_selection topmenu(), topmenu_display(), selectst, state
@@ -3803,14 +3804,68 @@ SUB mapedit_export_bmp_tilemap(st as MapEditState)
  IF LEN(outfile) THEN layer_to_bmp st, outfile + ".bmp", choice - 1
 END SUB
 
+'Simplified, used only when exporting a map image
+SUB draw_all_npcs(st as MapEditState, dest as Frame ptr, including_conditional as bool)
+ FOR i as integer = 0 TO UBOUND(st.map.npc)
+  WITH st.map.npc(i)
+   IF .id <= 0 THEN CONTINUE FOR
+   WITH st.map.npc_def(.id - 1)
+    IF including_conditional = NO ANDALSO (.tag1 ORELSE .tag2) THEN CONTINUE FOR
+   END WITH
+   DIM image as GraphicPair = st.npc_img(.id - 1)
+   frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x, .y + st.map.gmap(11), , , dest
+  END WITH
+ NEXT
+END SUB
+
+'Export the map at full resolution
+SUB mapedit_export_map_image(st as MapEditState)
+ DIM filename as string
+ filename = inputfilename("Filename to save as?", ".bmp", "", "", _
+                          trimextension(trimpath(sourcerpg)) & " map " & st.map.id & " " & st.map.name)
+ IF LEN(filename) = 0 THEN EXIT SUB
+ filename += ".bmp"
+ DIM menu(2) as string = {"Only NPCs without tag conditions", "All", "None"}
+ DIM npc_choice as integer = multichoice("Draw NPCs?", menu())
+ IF npc_choice = -1 THEN EXIT SUB
+
+ DIM dest as Frame ptr
+ dest = frame_new(st.map.wide * 20, st.map.high * 20)
+
+ 'Need to make sure this has been called at least once
+ animatetilesets st.tilesets()
+
+ FOR layer as integer = 0 TO UBOUND(st.map.tiles)
+  IF LayerIsEnabled(st.map.gmap(), layer) THEN
+   setanim st.tilesets(layer)
+   drawmap st.map.tiles(layer), 0, 0, st.tilesets(layer)->spr, dest, _
+           layer > 0, IIF(layer > 0, 0, 1), @st.map.pass
+  END IF
+  'Draw NPCs?
+  IF layer = small(st.map.gmap(31) - 1, UBOUND(st.map.tiles)) THEN
+   IF npc_choice < 2 THEN draw_all_npcs st, dest, (npc_choice = 1)
+  END IF
+ NEXT
+ IF LayerIsEnabled(st.map.gmap(), 0) THEN
+   setanim st.tilesets(0)
+   drawmap st.map.tiles(0), 0, 0, st.tilesets(0)->spr, dest, _
+           NO, 2, @st.map.pass
+ END IF
+
+ frame_export_bmp8 filename, dest, master()
+ frame_unload @dest
+ show_overlay_message "Saved as " & trimpath(filename)
+END SUB
+
 SUB mapedit_import_export(st as MapEditState)
- DIM menu(5) as string
+ DIM menu(6) as string
  menu(0) = "Previous menu"
  menu(1) = "Export tilemap"
  menu(2) = "Import tilemap, overwriting existing"
  menu(3) = "Import tilemap, as new layers"
  menu(4) = "Export map layer as pixel-a-tile BMP"
  menu(5) = "Import pixel-a-tile BMP as map layer"
+ menu(6) = "Export full map image"
 
  DIM state as menustate
  state.top = 0
@@ -3844,6 +3899,9 @@ SUB mapedit_import_export(st as MapEditState)
    END IF
    IF state.pt = 5 THEN
     mapedit_import_bmp_tilemap st
+   END IF
+   IF state.pt = 6 THEN
+    mapedit_export_map_image st
    END IF
   END IF
 

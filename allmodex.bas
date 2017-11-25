@@ -3152,9 +3152,7 @@ function translate_animated_tile(todraw as integer) as integer
 end function
 
 sub drawmap (tmap as TileMap, x as integer, y as integer, tileset as TilesetData ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, pal as Palette16 ptr = NULL)
-	'overrides setanim
-	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
-	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
+	setanim tileset
 	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight, , pal
 end sub
 
@@ -3248,9 +3246,15 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	wend
 end sub
 
+'Set tile animation state for drawmap... yuck
 sub setanim (cycle1 as integer, cycle2 as integer)
 	anim1 = cycle1
 	anim2 = cycle2
+end sub
+
+sub setanim (tileset as TilesetData ptr)
+	anim1 = tileset->tastuf(0) +  tileset->anim(0).cycle
+	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
 end sub
 
 sub setoutside (defaulttile as integer)
@@ -3263,9 +3267,8 @@ sub draw_layers_at_tile(composed_tile as Frame ptr, tiles() as TileMap, tilesets
 	for idx as integer = 0 to ubound(tiles)
 		'It's possible that layer <> idx if for example drawing a minimap of a single map layer
 		dim layer as integer = tiles(idx).layernum
+		setanim tilesets(idx)
 		with *tilesets(idx)
-			setanim .tastuf(0) + .anim(0).cycle, .tastuf(20) + .anim(1).cycle
-
 			dim todraw as integer = calcblock(tiles(idx), tx, ty, 0, 0)
 			if todraw = -1 then continue for
 			todraw = translate_animated_tile(todraw)
