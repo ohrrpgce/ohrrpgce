@@ -165,9 +165,16 @@ DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as in
 DECLARE FUNCTION strgrabber (s as string, maxl as integer) as bool
 DECLARE SUB handle_text_copy_paste (byref text as string, byref clip as string)
 
+'When to accept mouse wheel input
+ENUM WheelHandlingEnum
+  wheelNever
+  wheelAlways
+  wheelRightButton  'When the right mouse button is down
+END ENUM
+
 DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
-DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as integer=scLeft, more as integer=scRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
 DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
 DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as integer=scLeft, more as integer=scRight) as integer
 
