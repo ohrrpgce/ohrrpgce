@@ -30,6 +30,9 @@ DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as int
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 
+DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
+DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, overhead as bool = NO)
+
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
@@ -101,6 +104,7 @@ DECLARE SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as boo
 DECLARE SUB SetLayerEnabled(gmap() as integer, byval l as integer, byval v as bool)
 DECLARE SUB ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE SUB ToggleLayerEnabled(vis() as integer, byval l as integer)
+DECLARE FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
 
 DECLARE SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
 
@@ -1355,28 +1359,12 @@ DO
  '--draw map
  animatetilesets st.tilesets()
  FOR i as integer = 0 TO UBOUND(st.map.tiles)
-  IF layerisvisible(st.visible(), i) AND layerisenabled(st.map.gmap(), i) THEN
-   st.jig.x = 0
-   st.jig.y = 0
-   IF readbit(st.jiggle(), 0, i) AND tog THEN
-    st.jig.x = 0
-    IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN st.jig.x = 1
-    IF (i mod 8) >= 5 THEN st.jig.x = -1
-    st.jig.y = 0
-    IF (i mod 8) <= 1 OR (i mod 8) = 7 THEN st.jig.y = -1
-    IF (i mod 8) >= 3 AND (i mod 8) <= 5 THEN st.jig.y = 1
-    st.jig.x *= i \ 8 + 1
-    st.jig.y *= i \ 8 + 1
-   END IF
-   drawmap st.map.tiles(i), st.mapx + st.jig.x, st.mapy + st.jig.y, st.tilesets(i), dpage, iif(i = 0, 0, 1), iif(i = 0, 1, 0), @st.map.pass, 20
+  IF should_draw_layer(st, i) THEN
+   mapedit_draw_layer st, i
   END IF
  NEXT
- IF layerisvisible(st.visible(), 0) AND layerisenabled(st.map.gmap(), 0) THEN
-  IF readbit(st.jiggle(), 0, 0) AND tog THEN
-   drawmap st.map.tiles(0), st.mapx, st.mapy - 1, st.tilesets(0), dpage, 0, 2, @st.map.pass, 20
-  ELSE
-   drawmap st.map.tiles(0), st.mapx, st.mapy, st.tilesets(0), dpage, 0, 2, @st.map.pass, 20
-  END IF
+ IF should_draw_layer(st, 0) THEN
+  mapedit_draw_layer st, 0, YES
  END IF
 
  '--hero start location display--
@@ -1928,6 +1916,40 @@ SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
  FOR i as integer = 0 TO UBOUND(npc_def)
   load_sprite_and_pal npc_img(i), sprTypeWalkabout, npc_def(i).picture, npc_def(i).palette
  NEXT i
+END SUB
+
+
+'==========================================================================================
+
+
+'The amount to offset the position of a map layer due to jiggling and other cues
+FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
+ DIM offset as XYPair
+ IF readbit(st.jiggle(), 0, i) AND global_tog THEN
+  IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN offset.x = 1
+  IF (i mod 8) >= 5 THEN offset.x = -1
+  IF (i mod 8) <= 1 OR (i mod 8) = 7 THEN offset.y = -1
+  IF (i mod 8) >= 3 AND (i mod 8) <= 5 THEN offset.y = 1
+  offset.x *= i \ 8 + 1
+  offset.y *= i \ 8 + 1
+ END IF
+ RETURN offset
+END FUNCTION
+
+'overhead: draw the overhead layer (layernum should be 0)
+SUB mapedit_draw_layer(st as MapEditState, layernum as integer, overhead as bool = NO)
+ DIM pos as XYPair = st.camera + mapedit_layer_offset(st, layernum)
+ DIM trans as bool
+ DIM overheadmode as integer
+ IF overhead THEN
+  trans = NO
+  overheadmode = 2
+ ELSE
+  trans = layernum > 0
+  overheadmode = IIF(layernum = 0, 1, 0)
+ END IF
+ drawmap st.map.tiles(layernum), pos.x, pos.y, st.tilesets(layernum), dpage, _
+         trans, overheadmode, @st.map.pass, 20
 END SUB
 
 
@@ -3880,17 +3902,24 @@ END SUB
 
 '==========================================================================================
 
+'If a layer is marked visible but not enabled, it isn't drawn. Call should_draw_layer().
 FUNCTION LayerIsVisible(vis() as integer, byval l as integer) as bool
  IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
  'debug "layer #" & l & " is: " & readbit(vis(), 0, l)
  RETURN xreadbit(vis(), l)
 END FUNCTION
 
+'Whether a map layer is visible in-game
 FUNCTION LayerIsEnabled(gmap() as integer, byval l as integer) as bool
  IF l < 0 OR l > maplayerMax THEN showerror "Bad map layer " & l
  IF l = 0 THEN RETURN YES
  'debug "layer #" & l & " is: " & readbit(gmap(), 19, l-1)
  RETURN xreadbit(gmap(), l - 1, 19)
+END FUNCTION
+
+'This layer is drawn, while editing.
+FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
+ RETURN layerisvisible(st.visible(), l) AND layerisenabled(st.map.gmap(), l)
 END FUNCTION
 
 SUB SetLayerVisible(vis() as integer, byval l as integer, byval v as bool)
@@ -4802,7 +4831,7 @@ SUB apply_changelist(st as MapEditState, byref changelist as MapEditUndoTile vec
 
    IF .mapid >= mapIDLayer THEN
     DIM layer as integer = .mapid - mapIDLayer
-    IF LayerIsEnabled(st.map.gmap(), layer) AND LayerIsVisible(st.visible(), layer) THEN
+    IF should_draw_layer(st, layer) THEN
      tilebrush st, x, y, .value, layer
     END IF
    ELSEIF .mapid = mapIDPass THEN
