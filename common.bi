@@ -68,7 +68,9 @@ DECLARE SUB edgebox OVERLOAD (x as RelPos, y as RelPos, w as RelPos, h as RelPos
 DECLARE SUB edgebox_rawborder (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, fr as Frame Ptr, trans as RectTransTypes=transOpaque, borderindex as RectBorderTypes=borderLine, fuzzfactor as integer=50, relcoords as bool=YES)
 
 DECLARE FUNCTION decodetrigger (byval trigger as integer) as integer
+DECLARE FUNCTION trigger_or_default(trigger as integer, default as integer) as integer
 DECLARE FUNCTION scriptname (byval num as integer) as string
+DECLARE FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as integer) as string
 
 DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
 
