@@ -4068,7 +4068,7 @@ SUB mapedit_import_export(st as MapEditState)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_importexport"
   usemenu state
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN
     mapedit_export_tilemaps st
@@ -4221,6 +4221,8 @@ SUB link_one_door(st as MapEditState, linknum as integer)
  state.size = 22
  state.first = LBOUND(menu)
  state.last = UBOUND(menu)
+ calc_menustate_size state, MenuOptions(), 1, 1, dpage
+ state.spacing = 10
  
  DIM preview_delay as integer = 0
  DIM outmap as string
@@ -4530,8 +4532,8 @@ SUB resizemapmenu (st as MapEditState, byref rs as MapResizeState)
   usemenu state
   IF keyval(scShift) > 0 THEN incval = 8 ELSE incval = 1
   SELECT CASE state.pt
-   CASE 0
-    IF keyval(scAnyEnter) > 1 THEN
+   CASE 0  'Cancel
+    IF enter_space_click(state) THEN
      rs.rect.wide = -1
      rs.rect.high = -1
      EXIT DO
