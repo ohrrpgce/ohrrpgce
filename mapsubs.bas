@@ -1293,16 +1293,21 @@ DO
  'cursor position before handling clicks)
 
  DIM mouse_pan as bool
+ IF mouse_attention = focusMap ANDALSO (mouse.clicks AND mouseRight) ANDALSO st.mouse_skewing = NO THEN
+   'Possible drag just started
+   st.drag_camera_start = XY(st.camera.x, st.camera.y)
+ END IF
  IF mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
     ANDALSO st.mouse_skewing = NO THEN
   mouse_pan = YES
-  st.camera += (mouse.pos - mouse.clickstart) \ 4
+  st.camera = st.drag_camera_start - (mouse.pos - mouse.clickstart)
   mapedit_constrain_camera st
   'Don't ensure the cursor is on-screen
  ELSE
   'After finishing a pan, ensure cursor on the screen
   st.x = bound(st.x, (st.mapx + 19) \ 20, (st.mapx + mapviewsize.w) \ 20 - 1)
   st.y = bound(st.y, (st.mapy + 19) \ 20, (st.mapy + mapviewsize.h) \ 20 - 1)
+  mouse_pan = NO
  END IF
 
  'Keyboard camera+cursor controls
