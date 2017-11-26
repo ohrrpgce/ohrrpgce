@@ -777,79 +777,69 @@ END SUB
 
 
 'Modifies 'trigger' (a script trigger) and returns the display name of the selected script (which might "[none]")
-FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string) as string
+'allow_default: true when 0 means default and -1 means none.
+'default: only when allow_default. The ID/trigger of the default script.
+FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string, allow_default as bool = NO, default as integer = 0) as string
  DIM localbuf(20) as integer
  REDIM scriptnames(0) as string
  REDIM scriptids(0) as integer
- DIM numberedlast as integer = 0
- DIM firstscript as integer = 0
- DIM scriptmax as integer = 0
- 
- DIM chara as integer
- DIM charb as integer
  
  DIM fh as integer
  DIM i as integer
- DIM j as integer
 
- DIM missing_script_name as string
- missing_script_name = scriptname(trigger)
+ 'First option is [none]
+ scriptnames(0) = "[none]"
+ scriptids(0) = IIF(allow_default, -1, 0)
+ 'Then maybe comes "[default] default-script-name"
+ IF allow_default THEN
+  str_array_append scriptnames(), scriptname_default(0, default)
+  int_array_append scriptids(), 0
+ END IF
+
  'If trigger is a script that isn't imported, either numbered or a plotscript, then
  'show it as a special option at the top of the menu, equivalent to cancelling
- IF missing_script_name <> "[none]" AND LEFT(missing_script_name, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
-
- 'Look through lists of definescript scripts too
- OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY, fh)
- 'numberedlast = firstscript + LOF(fh) \ 40 - 1
- numberedlast = firstscript + gen(genNumPlotscripts) - 1
-
- REDIM scriptnames(numberedlast) as string, scriptids(numberedlast)
-
- i = firstscript
- FOR j as integer = firstscript TO numberedlast
-  loadrecord localbuf(), fh, 20
-  IF localbuf(0) < 16384 THEN
-   scriptids(i) = localbuf(0)
-   scriptnames(i) = STR(localbuf(0)) + " " + readbinstring(localbuf(), 1, 36)
-   i += 1
+ IF trigger > 0 THEN
+  IF intstr_array_find(script_names(), trigger) = -1 THEN
+   str_array_append scriptnames(), scriptname(trigger)
+   int_array_append scriptids(), trigger
   END IF
- NEXT
- numberedlast = i - 1
-
- CLOSE #fh
-
- OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY, fh)
- scriptmax = numberedlast + LOF(fh) \ 40
-
- IF scriptmax < firstscript THEN
-  RETURN "[no scripts]"
  END IF
 
  ' 0 to firstscript - 1 are special options (none, current script)
  ' firstscript to numberedlast are oldstyle numbered scripts
  ' numberedlast + 1 to scriptmax are newstyle trigger scripts
- REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
- scriptnames(0) = "[none]"
- scriptids(0) = 0
- IF firstscript = 2 THEN
-  scriptnames(1) = missing_script_name
-  scriptids(1) = trigger
- END IF
+ DIM firstscript as integer = UBOUND(scriptids) + 1
 
- i = numberedlast + 1
- FOR j as integer = numberedlast + 1 TO scriptmax
+ 'Look through lists of definescript scripts too
+ OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY + ACCESS_READ, fh)
+ FOR record as integer = 0 TO gen(genNumPlotscripts) - 1
   loadrecord localbuf(), fh, 20
-  IF localbuf(0) <> 0 THEN
-   scriptids(i) = 16384 + j - (numberedlast + 1)
-   scriptnames(i) = readbinstring(localbuf(), 1, 36)
-   i += 1
+  'Add any non-autonumbered scripts (definescript was used)
+  IF localbuf(0) < 16384 THEN
+   str_array_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
+   int_array_append scriptids(), localbuf(0)
   END IF
  NEXT
- scriptmax = i - 1
- REDIM PRESERVE scriptnames(scriptmax), scriptids(scriptmax)
- DIM scriptnames_display(scriptmax) as string
-
  CLOSE #fh
+
+ DIM numberedlast as integer = UBOUND(scriptids)
+
+ 'And list of plotscripts
+ OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh)
+ FOR record as integer = 0 TO (LOF(fh) \ 40) - 1
+  loadrecord localbuf(), fh, 20
+  IF localbuf(0) <> 0 THEN
+   int_array_append scriptids(), 16384 + record
+   str_array_append scriptnames(), readbinstring(localbuf(), 1, 36)
+  END IF
+ NEXT
+ CLOSE #fh
+
+ DIM scriptmax as integer = UBOUND(scriptids)
+
+ IF scriptmax < firstscript AND allow_default = NO THEN
+  RETURN "[no scripts]"
+ END IF
 
  'insertion sort numbered scripts by id
  FOR i = firstscript + 1 TO numberedlast
@@ -866,19 +856,14 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  'sort trigger scripts by name
  FOR i = numberedlast + 1 TO scriptmax - 1
   FOR j as integer = scriptmax TO i + 1 STEP -1
-   FOR k as integer = 0 TO small(LEN(scriptnames(i)), LEN(scriptnames(j)))
-    chara = ASC(LCASE(CHR(scriptnames(i)[k])))
-    charb = ASC(LCASE(CHR(scriptnames(j)[k])))
-    IF chara < charb THEN
-     EXIT FOR
-    ELSEIF chara > charb THEN
-     SWAP scriptids(i), scriptids(j)
-     SWAP scriptnames(i), scriptnames(j)
-     EXIT FOR
-     END IF
-   NEXT
+   IF LCASE(scriptnames(i)) > LCASE(scriptnames(j)) THEN
+    SWAP scriptids(i), scriptids(j)
+    SWAP scriptnames(i), scriptnames(j)
+   END IF
   NEXT
  NEXT
+
+ DIM scriptnames_display(scriptmax) as string
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -888,20 +873,18 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   .autosize_ignore_lines = 2
  END WITH
  init_menu_state state, scriptnames()
- IF firstscript = 2 THEN
-  state.pt = 1
- ELSE
-  FOR i = 1 TO scriptmax
-   IF trigger = scriptids(i) THEN state.pt = i: EXIT FOR
-  NEXT
- END IF
+ 'Preselect the current script (which could include [none], [default],
+ 'or the special missing option)
+ FOR i = 0 TO scriptmax
+  IF trigger = scriptids(i) THEN state.pt = i: EXIT FOR
+ NEXT
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
 
  setkeys YES
  DO
   setwait 55
   setkeys YES
-  IF keyval(scESC) > 1 THEN RETURN missing_script_name
+  IF keyval(scESC) > 1 THEN RETURN scriptname(trigger)
   IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
   IF enter_space_click(state) THEN EXIT DO
   usemenu state
@@ -913,7 +896,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
-  printstr "Pick a " & scrtype, 0, 0, dpage
+  printstr "Pick a " & LCASE(scrtype), 0, 0, dpage
   highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
   standardmenu scriptnames_display(), state, 8, 10, dpage
   SWAP dpage, vpage
@@ -923,6 +906,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
 
  trigger = scriptids(state.pt)
  IF scriptids(state.pt) < 16384 THEN
+  'ID is prepended: strip "123 Spifflicate" to "Spifflicate"
   RETURN MID(scriptnames(state.pt), INSTR(scriptnames(state.pt), " ") + 1)
  ELSE
   RETURN scriptnames(state.pt)
