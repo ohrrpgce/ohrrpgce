@@ -1129,8 +1129,11 @@ DO
      'As a kludge, we didn't move the cursor to the mouse, to avoid the
      'cursor overlapping the NPC which we will now place
      spot = mouse_over_tile
-     'Click and drag to set an NPC's direction
-     npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
+     DIM diff as XYPair = ABS(mouse.pos - mouse.clickstart)
+     IF diff.x > 5 OR diff.y > 5 THEN
+      'Click and drag to set an NPC's direction
+      npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
+     END IF
     END IF
     IF mouse.release AND mouseRight THEN
      IF mapedit_npc_at_spot(st, mouse_over_tile) > -1 THEN
