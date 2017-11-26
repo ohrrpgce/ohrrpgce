@@ -1530,7 +1530,8 @@ SUB update_heroes(force_step_check as bool=NO)
      IF gam.random_battle_countdown <= 0 THEN
       gam.random_battle_countdown = range(100, 60)
       DIM battle_formation as integer = random_formation(battle_formation_set)
-      IF gmap(13) <= 0 THEN 'if no random battle script is defined
+      DIM trigger as integer = trigger_or_default(gmap(13), gen(genDefInsteadOfBattleScript))
+      IF trigger = 0 THEN 'if no random battle script is defined
        IF battle_formation >= 0 THEN 'and if the randomly selected battle is valid
         'trigger a normal random battle
         fatal = NO
@@ -1540,7 +1541,7 @@ SUB update_heroes(force_step_check as bool=NO)
        END IF
       ELSE
        'trigger the instead-of-battle script
-       trigger_script gmap(13), 2, YES, "instead-of-battle", "triggered at " & herotx(0) & "," & heroty(0), mainFibreGroup
+       trigger_script trigger, 2, YES, "instead-of-battle", "triggered at " & herotx(0) & "," & heroty(0), mainFibreGroup
        trigger_script_arg 0, battle_formation, "formation"
        trigger_script_arg 1, battle_formation_set, "formation set"
       END IF
@@ -1550,8 +1551,9 @@ SUB update_heroes(force_step_check as bool=NO)
   END IF
 
   'Each step trigger
-  IF gmap(14) > 0 THEN
-   trigger_script gmap(14), 3, YES, "eachstep", "map " & gam.map.id, mainFibreGroup
+  DIM trigger as integer = trigger_or_default(gmap(14), gen(genDefEachStepScript))
+  IF trigger THEN
+   trigger_script trigger, 3, YES, "eachstep", "map " & gam.map.id, mainFibreGroup
    trigger_script_arg 0, herotx(0), "tile x"
    trigger_script_arg 1, heroty(0), "tile y"
    trigger_script_arg 2, herodir(0), "direction"
@@ -3135,13 +3137,15 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  END IF
 
  IF afterbat = NO THEN
-  IF gmap(7) > 0 THEN
-   trigger_script gmap(7), 1, YES, "map autorun", "map " & gam.map.id, mainFibreGroup
+  DIM trigger as integer = trigger_or_default(gmap(7), gen(genDefMapAutorunScript))
+  IF trigger THEN
+   trigger_script trigger, 1, YES, "map autorun", "map " & gam.map.id, mainFibreGroup
    trigger_script_arg 0, gmap(8), "arg"
   END IF
  ELSE
-  IF gmap(12) > 0 THEN
-   trigger_script gmap(12), 1, NO, "afterbattle", "", mainFibreGroup
+  DIM trigger as integer = trigger_or_default(gmap(12), gen(genDefAfterBattleScript))
+  IF trigger THEN
+   trigger_script trigger, 1, NO, "afterbattle", "", mainFibreGroup
    '--afterbattle script gets one arg telling if you won or ran
    trigger_script_arg 0, IIF(gam.wonbattle, 1, 0), "wonbattle"
   END IF

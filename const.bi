@@ -185,7 +185,13 @@ CONST genFullscreen = 210       ' Whether to start in fullscreen by default
 CONST genMusicVolume = 211      ' Initial music volume as a percentage.
 CONST genSFXVolume = 212        ' Initial global sound effects volume as a percentage.
 CONST genRungameFullscreenIndependent = 213  ' If false, fullscreen settings/config for games spawned by rungame are ignored
-CONST genSkipBattleRewardsTicks = 214 ' If > 0 then the battle rewards messages will automatically advance after this many ticks
+CONST genSkipBattleRewardsTicks = 214   ' If > 0 then the battle rewards messages will automatically advance after this many ticks
+CONST genDefOnkeypressScript = 215      ' Default on-keypress script, if not overridden by map
+CONST genDefEachStepScript = 216        ' Default each-step script, if not overridden by map
+CONST genDefAfterBattleScript = 217     ' Default after-battle script, if not overridden by map
+CONST genDefInsteadOfBattleScript = 218 ' Default instead-of-battle script, if not overridden by map
+CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overridden by map
+
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
 'Also, gen() is reloaded by resetgame() when starting a new/loaded game,

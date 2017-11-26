@@ -433,7 +433,10 @@ SUB trigger_onkeypress_script ()
  END IF
 
  IF doit THEN
-  trigger_script gmap(15), 1, YES, "on-key", "", mainFibreGroup
+  DIM trigger as integer = trigger_or_default(gmap(15), gen(genDefOnKeypressScript))
+  IF trigger THEN
+   trigger_script trigger, 1, YES, "on-key", "", mainFibreGroup
+  END IF
  END IF
 END SUB
 

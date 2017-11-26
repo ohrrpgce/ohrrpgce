@@ -227,14 +227,30 @@ SaveVehicle game + ".veh", veh(), vehname, vehicle_id
 END SUB
 
 SUB generalscriptsmenu ()
- DIM menu(4) as string
- DIM menu_display(4) as string
- DIM scripttype(4) as string
- scripttype(1) = "New-game plotscript"
- scripttype(2) = "Game-over plotscript"
- scripttype(3) = "Load-game plotscript"
- scripttype(4) = "Menu-action plotscript"
- DIM scriptgenoff(4) as integer = {0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript}
+ CONST menusize = 11
+ DIM menu(menusize) as string
+ DIM menu_display(menusize) as string
+ DIM selectable(menusize) as bool
+ flusharray selectable(), , YES
+ DIM scripttype(menusize) as string
+ selectable(1) = NO
+ scripttype(2) = "New game"
+ scripttype(3) = "Game over"
+ scripttype(4) = "Load game"
+ scripttype(5) = "Menu action"
+ selectable(6) = NO
+ 'Map default scripts:
+ scripttype(7) = "Map autorun"
+ scripttype(8) = "After battle"
+ scripttype(9) = "Instead of battle"
+ scripttype(10) = "Each-step"
+ scripttype(11) = "On-keypress"
+
+ DIM scriptgenoff(menusize) as integer = { _
+     0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, 0, _
+     genDefMapAutorunScript, genDefAfterBattleScript, genDefInsteadOfBattleScript, _
+     genDefEachStepScript, genDefOnKeypressScript _
+ }
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -247,20 +263,26 @@ SUB generalscriptsmenu ()
   setkeys YES
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "global_scripts"
-  usemenu state
+  usemenu state, selectable()
   IF state.pt = 0 THEN
    IF enter_space_click(state) THEN EXIT DO
+  ELSEIF scriptgenoff(state.pt) = 0 THEN
+   'This menu item is a header
   ELSE
    IF enter_space_click(state) THEN
-    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt))
+    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt) + " script")
    ELSE
     scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, scLeft, scRight, 1, plottrigger)
    END IF
   END IF
 
   menu(0) = "Previous Menu"
-  FOR i as integer = 1 TO 4
-   menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
+  menu(1) = fgtag(uilook(uiDisabledItem)) + "Global script triggers:"
+  menu(6) = fgtag(uilook(uiDisabledItem)) + "Map default scripts:"
+  FOR i as integer = 1 TO menusize
+   IF scriptgenoff(i) THEN
+    menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
+   END IF
   NEXT
 
   IF select_by_typing(selectst, NO) THEN

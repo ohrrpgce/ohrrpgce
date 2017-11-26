@@ -2665,7 +2665,7 @@ FUNCTION need_default_edge_tile(map as MapData) as bool
 END FUNCTION
 
 'st.map.gmap() is passed as gmap(), for convenience.
-SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer)
+SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer, script_defaults() as integer)
 
  v_new menu
  REDIM gdidx(25)
@@ -2737,17 +2737,19 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  ELSE
   menu[midx(6)].text &= "N/A"
  END IF
+
  ' Scripts
- menu[midx(7)].text &= scriptname(gmap(7))
+ menu[midx(7)].text  &= scriptname_default(gmap(7), script_defaults(7))
  FOR i as integer = 12 TO 15
-  menu[midx(i)].text &= scriptname(gmap(i))
+  menu[midx(i)].text &= scriptname_default(gmap(i), script_defaults(i))
  NEXT
  ' Autorun script argument
- IF gmap(7) = 0 THEN
+ IF trigger_or_default(gmap(7), gen(genDefMapAutorunScript)) = 0 THEN
   menu[midx(8)].text &= "N/A"
  ELSE
   menu[midx(8)].text &= gmap(8)
  END IF
+
  ' Harm tile damage
  menu[midx(9)].text &= gmap(9)
  ' Harm tile flash
@@ -2806,10 +2808,17 @@ SUB mapedit_gmapdata(st as MapEditState)
  menuopts.scrollbar = YES
  DIM BYREF map as MapData = st.map
 
+ DIM script_defaults(7 TO 15) as integer  'Only covers gmap indices used by scripts
+ script_defaults(7) =  gen(genDefMapAutorunScript)
+ script_defaults(12) = gen(genDefAfterBattleScript)
+ script_defaults(13) = gen(genDefInsteadOfBattleScript)
+ script_defaults(14) = gen(genDefEachStepScript)
+ script_defaults(15) = gen(genDefOnKeypressScript)
+
  'Maps gmap() index to menu() index
  DIM midx(dimbinsize(binMAP)) as integer
 
- mapedit_gmapdata_buildmenu st, menu, map.gmap(), gdidx(), midx()
+ mapedit_gmapdata_buildmenu st, menu, map.gmap(), gdidx(), midx(), script_defaults()
 
  'These are indexed by *gmap index*, not by menu item index!
  DIM gdmax(dimbinsize(binMAP)) as integer
@@ -2878,9 +2887,9 @@ SUB mapedit_gmapdata(st as MapEditState)
     END IF
    CASE 7, 12 TO 15 'scripts
     IF enter_space_click(state) THEN
-     scriptbrowse(map.gmap(idx), plottrigger, "plotscript")
+     scriptbrowse(map.gmap(idx), plottrigger, "plotscript", YES, script_defaults(idx))
      state.need_update = YES
-    ELSEIF scrintgrabber(map.gmap(idx), 0, 0, scLeft, scRight, 1, plottrigger) THEN
+    ELSEIF scrintgrabber(map.gmap(idx), -1, 0, scLeft, scRight, 1, plottrigger) THEN
      state.need_update = YES
     END IF
    CASE 10 'Harm tile color
@@ -2893,7 +2902,7 @@ SUB mapedit_gmapdata(st as MapEditState)
   END SELECT
 
   IF state.need_update THEN
-   mapedit_gmapdata_buildmenu st, menu, st.map.gmap(), gdidx(), midx()
+   mapedit_gmapdata_buildmenu st, menu, st.map.gmap(), gdidx(), midx(), script_defaults()
    state.need_update = NO
   END IF
 

@@ -72,6 +72,8 @@ Nov/Dec ??? 2017 [Etheldreme]
     * "first slice of type", "next sibling of type", and missing commands
       like "first text slice", "next text sibling", etc. [Ralph]
     * "assert(x==y)" now adds x and y values to the assert message [Ralph]
+    * Global default Map autorun, On-keypress, Instead-of-battle, After-
+      battle and Each-step script triggers [Ralph]
 
   * Changes
     * "greyscale palette" command now looks better; just averaging red,

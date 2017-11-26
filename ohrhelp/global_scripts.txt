@@ -1,3 +1,5 @@
+This menu lists all script triggers that take global effect. You can also attach scripts to individual maps, NPCs, etc.
+
 The new-game plotscript is run whenever the player starts playing your game from the beginning. This is intended for introduction sequences.
 
 The game-over plotscript is run whenever the player dies in battle. If this is not specified, the game will end and the player will return to the title screen.
@@ -5,3 +7,6 @@ The game-over plotscript is run whenever the player dies in battle. If this is n
 The load-game plotscript is run whenever the player loads from a save-slot.
 
 The menu-action plotscript is run whenever the player presses the ESC or ALT buttons to open the menu. The script will be run instead of the menu. This can be useful if you want to script your own customized menu, or if you want to disable the menu entirely. If this is not specified, then menu 0 will be opened.
+
+The map default scripts are run only if a map has "[default]" selected for a script trigger. If you want the default script to run along with a script set in the map's settings, then you need to explicitly call the default script from that other script.
+See the help page for the General Map Data menu for descriptions of the triggers.

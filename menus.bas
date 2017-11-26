@@ -697,8 +697,9 @@ FUNCTION highlight_menu_typing_selection_string(z as string, selectst as SelectT
     IF tolower(z[i - 1]) <> .query[i - .highlight_at] THEN EXIT FOR
     match_len += 1
    NEXT
-   'In order to have something visible
-   IF match_len = 0 THEN match_len = 1
+   'In order to have something visible, highlight first character
+   'on a failed match... unless it's part of a markup tag
+   IF match_len = 0 ANDALSO LEFT(z, 2) <> "${" THEN match_len = 1
 
    'FIXME: should add a set of Custom-only UI colours instead of using these
    DIM col as integer
