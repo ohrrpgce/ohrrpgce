@@ -682,6 +682,7 @@ DIM slowtog as integer
 DIM chequer_scroll as integer
 DIM byref mouse as MouseInfo = readmouse
 DIM mouse_attention as MouseAttention = focusNowhere  'What currently recieves mouse input
+DIM mouse_pan as bool
 
 setkeys
 DO
@@ -715,6 +716,7 @@ DO
  DIM mouse_over as MouseAttention
  mouse_over = mapedit_mouse_over_what(st)
  IF mouse.buttons = 0 THEN mouse_attention = mouse_over
+ IF mouse_pan THEN mouse_attention = focusMap 'While drag-panning the map, ignore toolbar and buttons
  DIM mouse_over_tile as XYPair
  IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
 
@@ -1292,7 +1294,6 @@ DO
  '(Cursor movement with mouse was handled above, because we generally need to update
  'cursor position before handling clicks)
 
- DIM mouse_pan as bool
  IF mouse_attention = focusMap ANDALSO (mouse.clicks AND mouseRight) ANDALSO st.mouse_skewing = NO THEN
    'Possible drag just started
    st.drag_camera_start = XY(st.camera.x, st.camera.y)
