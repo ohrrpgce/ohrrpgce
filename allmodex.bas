@@ -2667,6 +2667,12 @@ private function draw_allmodex_recordable_overlays (page as integer) as bool
 			dim col as integer = uilook(uiSelectedItem + global_tog)
 			rectangle .x - 4, .y, 9, 1, col, page
 			rectangle .x, .y - 4, 1, 9, col, page
+			if .buttons and mouseLeft then
+				rectangle .x - 3, .y - 3, 3, 3, col, page
+			end if
+			if .buttons and mouseRight then
+				rectangle .x + 1, .y - 3, 3, 3, col, page
+			end if
 		end with
 		dirty = YES
 	end if
