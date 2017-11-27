@@ -1,8 +1,13 @@
 WHAT IS NEW?
 
-Nov/Dec ??? 2017 [Etheldreme]
+Dec 1 2017 [Etheldreme]
 
   Highlights: (fill this in right before release)
+    * Many new map-editor features, including mouse support.
+    * Many slice editor improvements.
+    * Customizable hero experience curve.
+    * Copy-paste text between the editor and other applications.
+    * See below for other new features and bugfixes...
 
   * New Features
     * You can now browse for items, and many other properties rather than
