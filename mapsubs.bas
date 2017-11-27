@@ -715,8 +715,7 @@ DO
  DIM mouse_over_tool as ToolIDs = no_tool
  DIM mouse_over as MouseAttention
  mouse_over = mapedit_mouse_over_what(st)
- IF mouse.buttons = 0 THEN mouse_attention = mouse_over
- IF mouse_pan THEN mouse_attention = focusMap 'While drag-panning the map, ignore toolbar and buttons
+ IF mouse.buttons = 0 AND mouse.release = 0 THEN mouse_attention = mouse_over
  DIM mouse_over_tile as XYPair
  IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
 
