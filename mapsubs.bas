@@ -719,6 +719,10 @@ DO
  DIM mouse_over_tile as XYPair
  IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
 
+ 'Mouse right button is overloaded for a few different things; filter them out
+ DIM normal_right_release as bool = (mouse.release AND mouseRight) > 0
+ IF mouse.drag_dist > 5 THEN normal_right_release = NO
+
  'If you drag off an UI element, ignore mouse input
  IF mouse_attention = mouse_over THEN
 
@@ -731,7 +735,7 @@ DO
     'NPC edit mode is a special case, because placing the cursor over an NPC you
     'place is very annoying, so it handles this itself.
     IF st.editmode <> npc_mode THEN
-     IF st.tool_hold OR (mouse.clicks AND mouseRight) OR (mouse.buttons AND mouseLeft) THEN
+     IF st.tool_hold OR normal_right_release OR (mouse.buttons AND mouseLeft) THEN
       st.pos = mouse_over_tile
      END IF
     END IF
@@ -905,12 +909,12 @@ DO
     IF mouse.buttons AND mouseLeft THEN
      set_usetile st, st.menubarstart(st.layer) + mouse.x \ tilew
     END IF
-    IF mouse.release AND mouseRight THEN mapedit_pickblock st
+    IF normal_right_release THEN mapedit_pickblock st
    END IF
    '...via selecting from the map
    'G or right click twice to select (st.pos has already been updated so check oldpos)
-   IF ((mouse.clicks AND mouseRight) ANDALSO mouse_attention = focusMap _
-       ANDALSO st.pos = oldpos) OR keyval(scG) > 1 THEN 'grab tile
+   IF (normal_right_release ANDALSO st.mouse_attention = focusMap _
+       ANDALSO st.pos = oldpos) ORELSE keyval(scG) > 1 THEN 'grab tile
     set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
    END IF
    '...via scrolling
@@ -918,7 +922,7 @@ DO
     IF keyval(scComma) > 1 THEN set_usetile st, st.usetile(st.layer) - 1
     IF keyval(scPeriod) > 1 THEN set_usetile st, st.usetile(st.layer) + 1
    END IF
-   IF mouse.buttons = 0 THEN
+   IF mouse.buttons = 0 THEN  'Otherwise the wheel changes layer
     set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
    END IF
 
@@ -1058,7 +1062,7 @@ DO
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scCtrl) = 0 AND keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
-   IF keyval(scAnyEnter) > 1 OR (mouse.release AND mouseRight) THEN ' enter/right click to link a door
+   IF keyval(scAnyEnter) > 1 OR normal_right_release THEN ' enter/right click to link a door
     st.doorid = find_door_at_spot(st.x, st.y, st.map.door())
     IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
@@ -1122,7 +1126,7 @@ DO
    DIM spot as XYPair = st.pos
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF mouse_attention = focusTopBar then
-    IF mouse.release AND (mouseLeft OR mouseRight) THEN
+    IF mouse.release AND normal_right_release THEN
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
    ELSEIF mouse_attention = focusMap then
@@ -1135,7 +1139,7 @@ DO
       npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
      END IF
     END IF
-    IF mouse.release AND mouseRight THEN
+    IF normal_right_release THEN
      IF mapedit_npc_at_spot(st, mouse_over_tile) > -1 THEN
       mapedit_list_npcs_by_tile st, mouse_over_tile
      ELSE
