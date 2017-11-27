@@ -954,7 +954,7 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 		drawpage = duplicatepage(page)
 	end if
 
-	'Dray those overlays that are always recorded in .gifs/screenshots
+	'Draw those overlays that are always recorded in .gifs/screenshots
 	draw_allmodex_recordable_overlays drawpage
 
 	if screenshot_record_overlays = YES then
@@ -2161,6 +2161,9 @@ sub update_mouse_state ()
 		if (mouse_state.clicks and mouse_state.dragging) orelse (mouse_state.buttons and mouse_state.dragging) = 0 then
 			mouse_state.dragging = 0
 			'Preserve .clickstart so that you can see what the drag was upon release
+		else
+			dim diff as XYPair = lastpos - mouse_state.pos
+			mouse_state.drag_dist += sqrt(diff.x * diff.x + diff.y * diff.y)
 		end if
 	else
 		'Dragging is only tracked for a single button at a time, and clickstart is not updated
@@ -2176,6 +2179,8 @@ sub update_mouse_state ()
 				exit for
 			end if
 		next
+		'Note that we delay zeroing this until the tick after a drag ends
+		mouse_state.drag_dist = 0
 	end if
 
 	' If you released a mouse grab (mouserect) and then click on the

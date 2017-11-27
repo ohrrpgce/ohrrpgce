@@ -1130,8 +1130,7 @@ DO
      'As a kludge, we didn't move the cursor to the mouse, to avoid the
      'cursor overlapping the NPC which we will now place
      spot = mouse_over_tile
-     DIM diff as XYPair = ABS(mouse.pos - mouse.clickstart)
-     IF diff.x > 5 OR diff.y > 5 THEN
+     IF mouse.drag_dist > 5 THEN
       'Click and drag to set an NPC's direction
       npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
      END IF

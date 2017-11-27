@@ -407,6 +407,9 @@ Type MouseInfo
 	                      'A dragged button is one held down for at least 2 ticks.
 	                      'So on the first tick, you see click=button=true, dragging=false
 	                      'And on the subsequent ticks, you see dragging=button=true, click=false
+			      '(TODO: rename to holding)
+	drag_dist as integer  'The total distance the mouse has been dragged; check to see whether
+	                      'actually dragging rather than holding
 	clickstart as XYPair  'Mouse position at start of click/drag (Note: no backend currently
 	                      'supports reporting the position of click, so currently equal to .x/.y)
 
