@@ -37,6 +37,7 @@ DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height a
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
+DECLARE FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
 DECLARE SUB mapedit_constrain_camera(st as MapEditState)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
@@ -722,17 +723,15 @@ DO
  IF st.mouse_attention = mouse_over THEN
 
   IF st.mouse_attention = focusMap THEN
-   'Also, ignore mouse while skewing the map (started by holding down Ctrl)
-   IF (st.mouse_skewing OR keyval(scCtrl)) = NO THEN
+   'Also, ignore normal mouse controls while panning or skewing the map
+   '(Including if st.mouse_skewing not set yet: started by holding down Ctrl)
+   IF (st.mouse_skewing OR mouse_pan OR keyval(scCtrl)) = NO THEN
     'In-bounds
 
     'Move cursor to mouse position?
-    'NPC edit mode is a special case, because placing the cursor over an NPC you
-    'place is very annoying, so it handles this itself.
-    IF st.editmode <> npc_mode THEN
-     IF st.tool_hold OR normal_right_release OR (mouse.buttons AND mouseLeft) THEN
-      st.pos = mouse_over_tile
-     END IF
+    'Ignore small movements, in case you bump the mouse while moving with the keyboard
+    IF mouse.moved_dist > 3 OR normal_right_release OR (mouse.buttons AND mouseLeft) THEN
+     st.pos = mouse_over_tile
     END IF
 
     'Left mouse button can activate tools
@@ -907,9 +906,9 @@ DO
     IF normal_right_release THEN mapedit_pickblock st
    END IF
    '...via selecting from the map
-   'G or right click twice to select (st.pos has already been updated so check oldpos)
-   IF (normal_right_release ANDALSO st.mouse_attention = focusMap _
-       ANDALSO st.pos = oldpos) ORELSE keyval(scG) > 1 THEN 'grab tile
+   'G or right click to select
+   IF (normal_right_release ANDALSO st.mouse_attention = focusMap) _
+      ORELSE keyval(scG) > 1 THEN 'grab tile
     set_usetile st, readblock(st.map.tiles(st.layer), st.x, st.y)
    END IF
    '...via scrolling
@@ -1118,7 +1117,6 @@ DO
    END IF
 
    'Mouse controls
-   DIM spot as XYPair = st.pos
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
    IF st.mouse_attention = focusTopBar then
     IF mouse.release AND normal_right_release THEN
@@ -1126,27 +1124,22 @@ DO
     END IF
    ELSEIF st.mouse_attention = focusMap then
     IF mouse.release AND mouseLeft THEN
-     'As a kludge, we didn't move the cursor to the mouse, to avoid the
-     'cursor overlapping the NPC which we will now place
-     spot = mouse_over_tile
      IF mouse.drag_dist > 5 THEN
       'Click and drag to set an NPC's direction
       npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
      END IF
     END IF
     IF normal_right_release THEN
-     IF mapedit_npc_at_spot(st, mouse_over_tile) > -1 THEN
-      mapedit_list_npcs_by_tile st, mouse_over_tile
-     ELSE
-      st.pos = mouse_over_tile
+     IF mapedit_npc_at_spot(st, st.pos) > -1 THEN
+      mapedit_list_npcs_by_tile st, st.pos
      END IF
     END IF
    END IF
 
    'Keyboard
    IF keyval(scAnyEnter) > 1 THEN
-    IF mapedit_npc_at_spot(st, spot) > -1 THEN
-     mapedit_list_npcs_by_tile st, spot
+    IF mapedit_npc_at_spot(st, st.pos) > -1 THEN
+     mapedit_list_npcs_by_tile st, st.pos
     ELSE
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
@@ -1164,7 +1157,7 @@ DO
    IF tool_actkeypress OR npc_d > -1 THEN
     DIM npc_slot as integer = 0
     IF npc_d = -1 THEN
-     DIM npci as integer = mapedit_npc_at_spot(st, spot)
+     DIM npci as integer = mapedit_npc_at_spot(st, st.pos)
      IF npci > -1 THEN
       WITH st.map.npc(npci)
        .id = 0
@@ -1182,7 +1175,7 @@ DO
       IF st.map.npc(i).id = 0 THEN npc_slot = i
      NEXT i
      IF npc_slot >= 0 THEN
-      st.map.npc(npc_slot).pos = spot * 20
+      st.map.npc(npc_slot).pos = st.pos * 20
       st.map.npc(npc_slot).id = st.cur_npc + 1
       st.map.npc(npc_slot).dir = npc_d
      END IF
@@ -1293,8 +1286,7 @@ DO
   'Don't ensure the cursor is on-screen
  ELSE
   'After finishing a pan, ensure cursor on the screen
-  st.x = bound(st.x, (st.mapx + 19) \ 20, (st.mapx + mapviewsize.w) \ 20 - 1)
-  st.y = bound(st.y, (st.mapy + 19) \ 20, (st.mapy + mapviewsize.h) \ 20 - 1)
+  st.pos = mapedit_clamp_tile_to_screen(st, st.pos)
   mouse_pan = NO
  END IF
 
@@ -1481,7 +1473,6 @@ DO
   apply_changelist st, st.cloned, st.pos - st.clone_offset
  END IF
  IF st.editmode = tile_mode AND st.tool = draw_tool THEN
-  'TODO: some kind of equivalent for the mouse. When holding down right button?
   IF slowtog AND keyval(scSpace) = 0 THEN
    v_new st.secondary_undo_buffer
    tilebrush(st, st.x, st.y, st.tool_value)
@@ -5297,6 +5288,15 @@ FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as in
  mapview.wide = vpages(dpage)->w
  mapview.high = vpages(dpage)->h - 20  '20 pixels for menubar
  RETURN rect_collide_point(mapview, XY(x * 20 + 10, y * 20 + 10))
+END FUNCTION
+
+'Given a map coordinate in tiles, return nearest tile that is totally on-screen
+'(FIXME actually it's a few pixels out from that
+FUNCTION mapedit_clamp_tile_to_screen(st as MapEditState, tile as XYPair) as XYPair
+ DIM ret as XYPair
+ ret.x = bound(st.x, (st.mapx + 19) \ 20, (st.mapx + st.viewport.wide) \ 20 - 1)
+ ret.y = bound(st.y, (st.mapy + 19) \ 20, (st.mapy + st.viewport.high) \ 20 - 1)
+ RETURN ret
 END FUNCTION
 
 'Center the camera on a tile

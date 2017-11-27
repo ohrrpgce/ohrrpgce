@@ -302,7 +302,9 @@ TYPE MapEditState
   shadowpal as Palette16 ptr 'Palette used for things in shadow
   per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
   mouse_skewing as bool      'Currently using the right mouse button to skew the map
+
   drag_camera_start as XYPair 'st.camera at start of pan
+  camera_drag_mult as double 'When panning the map with the mouse, how much to multiply the movements by
 
   mouse_attention as MapMouseAttention 'What currently recieves mouse input
   defpass as bool            'Default passability ON/OFF
