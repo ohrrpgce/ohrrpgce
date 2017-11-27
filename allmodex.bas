@@ -2106,7 +2106,7 @@ end sub
 sub update_mouse_state ()
 	dim starttime as double = timer
 
-	dim lastpos as XYPair = mouse_state.pos
+	mouse_state.lastpos = mouse_state.pos
 
 	mouse_state.last_buttons = mouse_state.buttons
 
@@ -2144,7 +2144,10 @@ sub update_mouse_state ()
 	'         mouse is over the window, even if it's not focused. SDL 1.2 doesn't
 	'         know about the OS's wheel speed setting.
 
-	mouse_state.moved = lastpos <> mouse_state.pos
+	mouse_state.moved = mouse_state.lastpos <> mouse_state.pos
+
+	dim diff as XYPair = mouse_state.lastpos - mouse_state.pos
+	mouse_state.moved_dist = sqrt(diff.x * diff.x + diff.y * diff.y)
 
 	mouse_state.active = window_state->mouse_over and window_state->focused
 
@@ -2162,8 +2165,7 @@ sub update_mouse_state ()
 			mouse_state.dragging = 0
 			'Preserve .clickstart so that you can see what the drag was upon release
 		else
-			dim diff as XYPair = lastpos - mouse_state.pos
-			mouse_state.drag_dist += sqrt(diff.x * diff.x + diff.y * diff.y)
+			mouse_state.drag_dist += mouse_state.moved_dist
 		end if
 	else
 		'Dragging is only tracked for a single button at a time, and clickstart is not updated

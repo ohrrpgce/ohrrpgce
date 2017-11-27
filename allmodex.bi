@@ -393,7 +393,9 @@ Type MouseInfo
 		End Type
 		pos as XYPair
 	End Union
+	lastpos as XYPair     'pos, last tick
 	moved as bool         'Whether mouse has moved since the last setkeys call
+	moved_dist as integer 'Distance moved since last tick
 	active as bool        'Is over the window and the window is focused
 	clicks as integer     'Button down since the last setkeys call; MouseButton bitvector (see scancodes.bi)
 	buttons as integer    'Buttons currently down OR clicked; MouseButton bitvector
