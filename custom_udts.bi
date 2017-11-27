@@ -316,6 +316,7 @@ TYPE MapEditState
   menubarstart(0 to maplayerMax) as integer
   menubar as TileMap
   cursor as GraphicPair
+  npc_cursor_frame as integer  'frame num for the NPC cursor in npc_mode
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   npc_img(any) as GraphicPair
   defaultwalls as integer vector vector  'indexed by layer (variable length) and then by tile (always 0-159)

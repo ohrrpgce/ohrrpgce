@@ -677,6 +677,7 @@ DIM slowtog as integer
 DIM chequer_scroll as integer
 DIM byref mouse as MouseInfo = readmouse
 DIM mouse_pan as bool
+DIM npc_cursor_dir as DirNum = -1
 
 setkeys
 DO
@@ -1123,10 +1124,19 @@ DO
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
    ELSEIF st.mouse_attention = focusMap then
+    IF mouse.drag_dist > 5 THEN
+     'Click and drag to set an NPC's direction
+     IF mouse.moved_dist > 1 THEN  'ignore jitter as you move the mouse
+      npc_cursor_dir = xypair_to_direction(mouse.pos - mouse.lastpos)
+     END IF
+    ELSE
+     npc_cursor_dir = -1
+    END IF
+
     IF mouse.release AND mouseLeft THEN
-     IF mouse.drag_dist > 5 THEN
+     IF npc_cursor_dir > -1 THEN
       'Click and drag to set an NPC's direction
-      npc_d = xypair_to_direction(mouse.pos - mouse.clickstart)
+      npc_d = npc_cursor_dir
      END IF
     END IF
     IF normal_right_release THEN
@@ -1134,6 +1144,12 @@ DO
       mapedit_list_npcs_by_tile st, st.pos
      END IF
     END IF
+   END IF
+
+   IF npc_cursor_dir = -1 THEN
+    st.npc_cursor_frame = loopvar(st.npc_cursor_frame, 0, 7, 1)
+   ELSE
+    st.npc_cursor_frame = npc_cursor_dir * 2
    END IF
 
    'Keyboard
@@ -1936,9 +1952,9 @@ SUB mapedit_draw_cursor(st as MapEditState)
    EXIT SUB
 
   CASE npc_tool
-   'Don't draw a cursor
+   'Draw an NPC instead of a square cursor
    WITH st.npc_img(st.cur_npc)
-    frame_draw .sprite + (2 * st.walk), .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
+    frame_draw .sprite + st.npc_cursor_frame, .pal, tool_rect.x, tool_rect.y + st.map.gmap(11), 1, -1, dpage
    END WITH
    edgeprint STR(st.cur_npc), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
    EXIT SUB
