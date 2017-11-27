@@ -234,6 +234,14 @@ ENUM LayerDisplayMode
   layerDisplayNUM
 END ENUM
 
+ENUM MapMouseAttention
+ focusNowhere
+ focusMap
+ focusViewport  'Main part of the screen, but off the map edge
+ focusToolbar   'The tool buttons
+ focusTopbar
+END ENUM
+
 'MapIDs used for undo steps
 'FIXME:a bit of a mess, clean up later
 ENUM MapID
@@ -281,6 +289,11 @@ TYPE MapEditState
     END TYPE
     camera as XYPair
   END UNION
+  viewport as RectType       'The part of the screen where the map is drawn
+                             '(not clamped to actual map size)
+  viewport_p2 as XYPair      'For convenience, bottom-right corner of viewport
+
+  'Layer state
   layer as integer
   visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
   jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling
@@ -289,13 +302,15 @@ TYPE MapEditState
   shadowpal as Palette16 ptr 'Palette used for things in shadow
   per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
   mouse_skewing as bool      'Currently using the right mouse button to skew the map
-  drag_camera_start as XYPair
+  drag_camera_start as XYPair 'st.camera at start of pan
 
+  mouse_attention as MapMouseAttention 'What currently recieves mouse input
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
   cur_door as integer        'Door number selected
   usetile(0 to maplayerMax) as integer  'Tile selected for each layer
+
   menubarstart(0 to maplayerMax) as integer
   menubar as TileMap
   cursor as GraphicPair

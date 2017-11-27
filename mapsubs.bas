@@ -25,6 +25,7 @@ DIM SHARED tilesize as XYPair = (20, 20)
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
+DECLARE SUB mapedit_window_size_updates(st as MapEditState)
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
@@ -34,14 +35,6 @@ DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y
 DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 
-ENUM MouseAttention
- focusNowhere
- focusMap
- focusViewport  'Main part of the screen, but off the map edge
- focusToolbar   'The tool buttons
- focusTopbar
-END ENUM
-
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
 DECLARE SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
@@ -49,7 +42,7 @@ DECLARE SUB mapedit_constrain_camera(st as MapEditState)
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as XYPair) as XYPair
 DECLARE FUNCTION map_to_screen OVERLOAD(st as MapEditState, map_pos as RectType) as RectType
 DECLARE FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
-DECLARE FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
+DECLARE FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
 
 DECLARE SUB mapedit_draw_cursor(st as MapEditState)
 DECLARE FUNCTION mapedit_tool_rect(st as MapEditState) as RectType
@@ -677,11 +670,11 @@ st.showzonehints = YES
 st.zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 st.zones_needupdate = YES
 st.npczone_needupdate = YES
+st.mouse_attention = focusNowhere
 DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
 DIM byref mouse as MouseInfo = readmouse
-DIM mouse_attention as MouseAttention = focusNowhere  'What currently recieves mouse input
 DIM mouse_pan as bool
 
 setkeys
@@ -692,6 +685,8 @@ DO
  chequer_scroll += 1
  st.gauze_ticker = (st.gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  st.message_ticks = large(0, st.message_ticks - 1) 
+
+ mapedit_window_size_updates st
 
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
@@ -713,9 +708,9 @@ DO
 
  '--Check how to handle mouse input
  DIM mouse_over_tool as ToolIDs = no_tool
- DIM mouse_over as MouseAttention
+ DIM mouse_over as MapMouseAttention
  mouse_over = mapedit_mouse_over_what(st)
- IF mouse.buttons = 0 AND mouse.release = 0 THEN mouse_attention = mouse_over
+ IF mouse.buttons = 0 AND mouse.release = 0 THEN st.mouse_attention = mouse_over
  DIM mouse_over_tile as XYPair
  IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
 
@@ -724,9 +719,9 @@ DO
  IF mouse.drag_dist > 5 THEN normal_right_release = NO
 
  'If you drag off an UI element, ignore mouse input
- IF mouse_attention = mouse_over THEN
+ IF st.mouse_attention = mouse_over THEN
 
-  IF mouse_attention = focusMap THEN
+  IF st.mouse_attention = focusMap THEN
    'Also, ignore mouse while skewing the map (started by holding down Ctrl)
    IF (st.mouse_skewing OR keyval(scCtrl)) = NO THEN
     'In-bounds
@@ -752,7 +747,7 @@ DO
     END IF
    END IF
 
-  ELSEIF mouse_attention = focusToolbar THEN
+  ELSEIF st.mouse_attention = focusToolbar THEN
    mouse_over_tool = st.mode_tools[(mouse.x - toolbar_rect(st).x) \ 10]
 
    IF mouse.release AND mouseLeft THEN  'Select a tool
@@ -905,7 +900,7 @@ DO
    'Selecting a tile in the tileset...
    '...via top bar
    IF keyval(scAnyEnter) > 1 THEN mapedit_pickblock st
-   IF mouse_attention = focusTopBar THEN
+   IF st.mouse_attention = focusTopBar THEN
     IF mouse.buttons AND mouseLeft THEN
      set_usetile st, st.menubarstart(st.layer) + mouse.x \ tilew
     END IF
@@ -1125,11 +1120,11 @@ DO
    'Mouse controls
    DIM spot as XYPair = st.pos
    DIM npc_d as DirNum = -1  'If not -1, create an NPC facing this direction
-   IF mouse_attention = focusTopBar then
+   IF st.mouse_attention = focusTopBar then
     IF mouse.release AND normal_right_release THEN
      mapedit_edit_npcdef st, st.map.npc_def(st.cur_npc)
     END IF
-   ELSEIF mouse_attention = focusMap then
+   ELSEIF st.mouse_attention = focusMap then
     IF mouse.release AND mouseLeft THEN
      'As a kludge, we didn't move the cursor to the mouse, to avoid the
      'cursor overlapping the NPC which we will now place
@@ -1282,25 +1277,15 @@ DO
  END SELECT
  st.reset_tool = NO   'The above SELECT block is responsible for doing resetting
 
- 'Size of the map viewport
- DIM mapviewsize as XYPair
- mapviewsize.w = vpages(dpage)->w
- mapviewsize.h = vpages(dpage)->h - 20  '20 pixels for menubar
-
- 'Position of the map viewport
- DIM maprect as RectPoints
- maprect.p1 = Type(0, 20)
- maprect.p2 = Type(vpages(dpage)->w, vpages(dpage)->h)
-
  '--Camera and cursor movement
  '(Cursor movement with mouse was handled above, because we generally need to update
  'cursor position before handling clicks)
 
- IF mouse_attention = focusMap ANDALSO (mouse.clicks AND mouseRight) ANDALSO st.mouse_skewing = NO THEN
-   'Possible drag just started
-   st.drag_camera_start = XY(st.camera.x, st.camera.y)
+ IF st.mouse_attention = focusMap ANDALSO (mouse.clicks AND mouseRight) ANDALSO st.mouse_skewing = NO THEN
+  'Possible drag just started
+  st.drag_camera_start = st.camera
  END IF
- IF mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
+ IF st.mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
     ANDALSO st.mouse_skewing = NO THEN
   mouse_pan = YES
   st.camera = st.drag_camera_start - (mouse.pos - mouse.clickstart)
@@ -1323,8 +1308,8 @@ DO
   IF slowkey(scLeft, 110) THEN st.x = large(st.x - rate.x, 0)
   IF slowkey(scRight, 110) THEN st.x = small(st.x + rate.x, st.map.wide - 1)
   IF mouse_pan = NO THEN  'Cursor can be offscreen while panning
-   st.mapx = bound(st.mapx, (st.x + 1) * 20 - mapviewsize.w, st.x * 20)
-   st.mapy = bound(st.mapy, (st.y + 1) * 20 - mapviewsize.h, st.y * 20)
+   st.mapx = bound(st.mapx, (st.x + 1) * 20 - st.viewport.wide, st.x * 20)
+   st.mapy = bound(st.mapy, (st.y + 1) * 20 - st.viewport.high, st.y * 20)
   END IF
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
@@ -1358,14 +1343,6 @@ DO
   st.per_layer_skew = 0
   st.mouse_skewing = NO
  END IF
-
-
- ' 'Actual size of the map viewport showing the map
- ' '(Since the window can be larger than the map, have to clamp it)
- ' DIM maprect as RectType
- ' maprect.topleft = Type(0, 20)
- ' maprect.wide = small(st.map.wide * 20 - st.mapx, mapviewsize.w)  
- ' maprect.high = small(st.map.high * 20 - st.mapy, mapviewsize.h)
 
  '--Tools
  IF st.drawing_allowed AND v_len(st.mode_tools) > 0 THEN
@@ -1575,7 +1552,7 @@ DO
 
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
-  IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + mapviewsize.w) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + mapviewsize.h) \ 20 THEN
+  IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + st.viewport.wide) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + st.viewport.high) \ 20 THEN
    frame_draw st.hero_gfx.sprite + 4, st.hero_gfx.pal, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, , , dpage
    textcolor uilook(uiText), 0
    printstr "Hero", gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 30 - st.mapy, dpage
@@ -1585,8 +1562,8 @@ DO
  '--point out overhead tiles so that you can see what's wrong if you accidentally use them
  IF st.editmode = tile_mode AND UBOUND(st.map.tiles) > 0 THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR yidx as integer = 0 TO mapviewsize.h \ 20 + 1
-   FOR xidx as integer = 0 TO mapviewsize.w \ 20 + 1
+  FOR yidx as integer = 0 TO st.viewport.high \ 20 + 1
+   FOR xidx as integer = 0 TO st.viewport.wide \ 20 + 1
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
     IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
@@ -1602,8 +1579,8 @@ DO
  '--show passmap
  IF st.editmode = pass_mode THEN
   DIM col as integer = uilook(uiMenuItem + tog)
-  FOR yidx as integer = 0 TO mapviewsize.h \ 20 + 1
-   FOR xidx as integer = 0 TO mapviewsize.w \ 20 + 1
+  FOR yidx as integer = 0 TO st.viewport.high \ 20 + 1
+   FOR xidx as integer = 0 TO st.viewport.wide \ 20 + 1
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
     IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
@@ -1652,8 +1629,8 @@ DO
   textcolor uilook(uiBackground), 0
   FOR i as integer = 0 TO UBOUND(st.map.door)
    WITH st.map.door(i)
-    IF .x >= st.mapx \ 20 AND .x <= (st.mapx + mapviewsize.w) \ 20 AND _
-       .y >  st.mapy \ 20 AND .y <= (st.mapy + mapviewsize.h) \ 20 + 1 AND _
+    IF .x >= st.mapx \ 20 AND .x <= (st.mapx + st.viewport.wide) \ 20 AND _
+       .y >  st.mapy \ 20 AND .y <= (st.mapy + st.viewport.high) \ 20 + 1 AND _
        door_exists(st.map.door(), i) THEN
      rectangle .x * 20 - st.mapx, .y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
      printstr STR(i), .x * 20 - st.mapx + 10 - (4 * LEN(STR(i))), .y * 20 - st.mapy + 6, dpage
@@ -1710,7 +1687,7 @@ DO
    WITH st.map.npc(i)
     IF .id > 0 THEN
      ' +/-20 Y must be for the footoffset
-     IF .x >= st.mapx AND .x < st.mapx + mapviewsize.w AND .y >= st.mapy - 20 AND .y < st.mapy + mapviewsize.h + 20 THEN
+     IF .x >= st.mapx AND .x < st.mapx + st.viewport.wide AND .y >= st.mapy - 20 AND .y < st.mapy + st.viewport.high + 20 THEN
       DIM image as GraphicPair = st.npc_img(.id - 1)
       frame_draw image.sprite + (2 * .dir) + st.walk \ 2, image.pal, .x - st.mapx, .y + 20 - st.mapy + st.map.gmap(11), 1, -1, dpage
       DIM col as integer = uilook(uiSelectedItem + tog)
@@ -1726,8 +1703,8 @@ DO
  '--show foemap--
  IF st.editmode = foe_mode THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR i as integer = 0 TO mapviewsize.w \ 20 + 1
-   FOR o as integer = 0 TO mapviewsize.h \ 20 + 1
+  FOR i as integer = 0 TO st.viewport.wide \ 20 + 1
+   FOR o as integer = 0 TO st.viewport.high \ 20 + 1
     IF (st.mapx \ 20) + i < st.map.wide ANDALSO (st.mapy \ 20) + o < st.map.high THEN
      DIM foe_val as integer = readblock(st.map.foemap, st.mapx \ 20 + i, st.mapy \ 20 + o)
      DIM pixelx as integer = (st.mapx \ 20 + i) * 20 - st.mapx
@@ -1791,7 +1768,7 @@ DO
   edgeprint mapedit_npc_instance_count(st, st.cur_npc) & " copies of " & CHR(27) & "NPC " & st.cur_npc & CHR(26) & " on this map", 0, 10, uilook(uiText), dpage
  END IF
  
- edgeprint "X " & st.x & "   Y " & st.y, 0, maprect.p2.y - 9, uilook(uiSelectedItem + tog), dpage
+ edgeprint "X " & st.x & "   Y " & st.y, 0, st.viewport_p2.y - 9, uilook(uiSelectedItem + tog), dpage
  edgeprint st.modenames(st.editmode), 0, 24, uilook(uiText), dpage
 
  '--Tool selection
@@ -1829,7 +1806,7 @@ DO
   IF layerisvisible(st.visible(), st.layer) = NO THEN layername &= " (invisible)"
   layername &= " " & read_map_layer_name(st.map.gmap(), st.layer)
   layername = RIGHT(layername, 40)
-  edgeprint layername, 0, maprect.p2.y - 20, col, dpage
+  edgeprint layername, 0, st.viewport_p2.y - 20, col, dpage
  END IF
 
  IF st.editmode = tile_mode OR st.tool = clone_tool THEN
@@ -1838,7 +1815,7 @@ DO
   DIM defpass_msg as string = hilite("Ctrl+D: ")
   IF st.defpass = NO THEN defpass_msg &= "No "
   defpass_msg &= "Default Walls"
-  printstr defpass_msg, maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES
+  printstr defpass_msg, st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES
  END IF
 
  IF st.editmode = pass_mode THEN
@@ -1846,13 +1823,13 @@ DO
   printstr ticklite("`+`/`-`: thickness"), 0, 10, dpage, YES
 
   IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
-   printstr hilite("W") + ": one-way walls", maprect.p2.x - 196, maprect.p2.y - 8, dpage, YES
+   printstr hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES
   END IF
  END IF
 
  IF st.tool = clone_tool THEN
   textcolor uilook(uiText), 0
-  printstr hilite("Ctrl+M: ") & IIF(st.clone_merge, "Tile Merging On", "Tile Merging Off"), maprect.p2.x - 196, maprect.p2.y - 16, dpage, YES
+  printstr hilite("Ctrl+M: ") & IIF(st.clone_merge, "Tile Merging On", "Tile Merging Off"), st.viewport_p2.x - 196, st.viewport_p2.y - 16, dpage, YES
  END IF
 
  IF st.editmode = door_mode THEN
@@ -1939,11 +1916,11 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- update_tilepicker st  'Call in case the window size changed
  IF dowait THEN slowtog XOR= 1
 LOOP
 st.message_ticks = 0
 END SUB
+
 
 '==========================================================================================
 
@@ -2013,6 +1990,7 @@ FUNCTION tool_cube_offset(st as MapEditState) as XYPair
  RETURN st.per_layer_skew * UBOUND(st.map.tiles) / 10
 END FUNCTION
 
+'The position/size of the toolbar on the screen
 FUNCTION toolbar_rect(st as MapEditState) as RectType
  DIM ret as RectType
  ret.wide = 10 * v_len(st.mode_tools)
@@ -5293,7 +5271,7 @@ FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
  RETURN ret
 END FUNCTION
 
-FUNCTION mapedit_mouse_over_what(st as MapEditState) as MouseAttention
+FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
  DIM byref mouse as MouseInfo = readmouse
  IF mouse.active = NO THEN RETURN focusNowhere
 
@@ -5323,23 +5301,40 @@ END FUNCTION
 
 'Center the camera on a tile
 SUB mapedit_focus_camera(st as MapEditState, byval x as integer, byval y as integer)
- 'Size of the map viewport
- DIM mapviewsize as XYPair = vpages(dpage)->size
- mapviewsize.h -= 20  'For menubar
- st.mapx = bound(x * 20 - mapviewsize.w \ 2, 0, st.map.wide * 20 - mapviewsize.w)
- st.mapy = bound(y * 20 - mapviewsize.h \ 2, 0, st.map.high * 20 - mapviewsize.h)
+ st.mapx = bound(x * 20 - st.viewport.wide \ 2, 0, st.map.wide * 20 - st.viewport.wide)
+ st.mapy = bound(y * 20 - st.viewport.high \ 2, 0, st.map.high * 20 - st.viewport.high)
 END SUB
 
 'Make sure the camera position is within map limits. Ignores cursor.
 SUB mapedit_constrain_camera(st as MapEditState)
- DIM mapviewsize as XYPair = vpages(dpage)->size
- mapviewsize.h -= 20  'For menubar
- st.mapx = small(st.mapx, st.map.wide * 20 - mapviewsize.w)
- st.mapy = small(st.mapy, st.map.high * 20 - mapviewsize.h)
+ st.mapx = small(st.mapx, st.map.wide * 20 - st.viewport.wide)
+ st.mapy = small(st.mapy, st.map.high * 20 - st.viewport.high)
  st.mapx = large(st.mapx, 0)
  st.mapy = large(st.mapy, 0)
 END SUB
 
+'Stuff that should happen whenever the screen size changes
+'(Currently simply called every tick)
+SUB mapedit_window_size_updates(st as MapEditState)
+ update_tilepicker st
+
+ 'Update size of the map viewport
+ st.viewport.topleft = XY(0, 20)
+ st.viewport.wide = vpages(dpage)->w
+ st.viewport.high = vpages(dpage)->h - 20  '20 pixels for menubar
+
+ 'For convenience
+ 'DIM maprect as RectPoints
+ 'maprect.p1 = st.viewport.topleft
+ st.viewport_p2 = XY(vpages(dpage)->w, vpages(dpage)->h)
+
+ ' 'Actual size of the map viewport showing the map
+ ' '(Since the window can be larger than the map, have to clamp it)
+ ' DIM maprect as RectType
+ ' maprect.topleft = Type(0, 20)
+ ' maprect.wide = small(st.map.wide * 20 - st.mapx, st.viewport.wide)
+ ' maprect.high = small(st.map.high * 20 - st.mapy, st.viewport.high)
+END SUB
 
 '======================================= NPC Editor =======================================
 
