@@ -2547,8 +2547,8 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  max.y = CalcScrollMaxY(sl, dat->check_depth)
  
  dim screenpos as XYPair
- screenpos.X = sl->ScreenX
- screenpos.Y = sl->ScreenY
+ screenpos.X = sl->ScreenX + GlobalCoordOffset.X
+ screenpos.Y = sl->ScreenY + GlobalCoordOffset.Y
  
  dim slsize as XYPair
  slsize.W = sl->Width
