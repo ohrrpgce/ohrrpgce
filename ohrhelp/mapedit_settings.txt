@@ -1,0 +1,11 @@
+This is the Settings menu for the map editor. These settings are saved and remembered for editing any game.
+
+Press ESC or F8 to leave or F2 thru F7 to switch to a different editing mode.
+
+Show 'O' for Overhead tiles: This affects picture (tilemap) mode only. Because Overhead tiles (set with O in wallmap mode) override map layers, it can be helpful to see them.
+
+Wall thickness changes the way that the walls are drawn on the map in passability (wallmap) mode. In wallmap mode, you can also press CTRL +/- to adjust it.
+
+Cursor follows mouse: True keyboard aficionados may want to turn this off. When off, you can still RIGHT CLICK to move the cursor (as well as LEFT CLICK). 
+
+Mouse pan speed: How much to exaggerate (multiply) mouse movements when right-click dragging.

@@ -1759,7 +1759,7 @@ SUB ModularMenu.draw()
   'TODO: In fact, this is a pretty ugly way to draw a floating menu. And state.rect
   'takes a tick to update.
   'So this should probably be replaced with MenuDef draw_menu
-  edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 2, vpage
+  edgeboxstyle pCentered, pCentered, state.rect.wide + 10, state.rect.high + 10, 1, vpage
   where = XY(pCentered, pCentered)
  END IF
  standardmenu menu(), state, where.x, where.y, vpage, menuopts

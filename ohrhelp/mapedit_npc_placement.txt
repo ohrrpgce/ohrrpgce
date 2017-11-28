@@ -6,6 +6,7 @@ F4 switch to door placement mode
 F5 switch to NPC placement mode
 F6 switch to foemap mode
 F7 switch to zonemap mode
+F8 show settings menu
 
 Use the arrow keys or RIGHT CLICK and drag to move around the map.
 

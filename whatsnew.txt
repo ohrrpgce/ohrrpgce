@@ -54,6 +54,7 @@ Dec 1 2017 [Etheldreme]
       zones) but you can click on toolbars and NPCs, doors, etc. [Ralph]
     * Option to export a full resolution image of a map, optionally with
       NPCs [Ralph]
+    * Map editor settings menu, accessed with F8 [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

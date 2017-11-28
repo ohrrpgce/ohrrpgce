@@ -4,6 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 #include "config.bi"
+#include "string.bi"
 #include "const.bi"
 #include "udts.bi"
 #include "custom.bi"
@@ -25,6 +26,9 @@ DIM SHARED tilesize as XYPair = (20, 20)
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
+DECLARE SUB mapedit_load_settings (st as MapEditState)
+DECLARE SUB mapedit_settings_menu (st as MapEditState)
+
 DECLARE SUB mapedit_window_size_updates(st as MapEditState)
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
@@ -383,6 +387,8 @@ v_new st.history
 st.history_step = 0
 st.new_stroke = YES
 
+mapedit_load_settings st
+
 '--create a palette for the cursor
 st.cursor.pal = palette16_new()
 'set the colors that actually get used
@@ -512,7 +518,6 @@ st.layer = 0
 st.cur_zone = 1
 st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
 st.clone_merge = YES
-st.wallthickness = 2
 
 st.cur_door = find_first_free_door(st.map.door())
 
@@ -692,6 +697,7 @@ DO
 
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
+  IF keyval(scF8) > 1 THEN mapedit_settings_menu st 'If quit by F2-F7, will catch it here
   FOR i as integer = tile_mode TO zone_mode
    IF keyval(scF2 + i) > 1 THEN st.seteditmode = i
   NEXT
@@ -718,7 +724,11 @@ DO
 
  'Mouse right button is overloaded for a few different things; filter them out
  DIM normal_right_release as bool = (mouse.release AND mouseRight) > 0
- IF mouse.drag_dist > 5 THEN normal_right_release = NO
+ DIM actually_panning as bool = NO
+ IF mouse.drag_dist > 5 THEN
+  normal_right_release = NO
+  actually_panning = mouse_pan  'This mouse_pan variable seems useless
+ END IF
 
  'If you drag off an UI element, ignore mouse input
  IF st.mouse_attention = mouse_over THEN
@@ -726,12 +736,13 @@ DO
   IF st.mouse_attention = focusMap THEN
    'Also, ignore normal mouse controls while panning or skewing the map
    '(Including if st.mouse_skewing not set yet: started by holding down Ctrl)
-   IF (st.mouse_skewing OR mouse_pan OR keyval(scCtrl)) = NO THEN
+   IF (st.mouse_skewing OR actually_panning OR keyval(scCtrl)) = NO THEN
     'In-bounds
 
     'Move cursor to mouse position?
     'Ignore small movements, in case you bump the mouse while moving with the keyboard
-    IF mouse.moved_dist > 3 OR normal_right_release OR (mouse.buttons AND mouseLeft) THEN
+    IF (st.cursor_follows_mouse ANDALSO mouse.moved_dist > 3) ORELSE _
+       normal_right_release OR (mouse.buttons AND mouseLeft) THEN
      st.pos = mouse_over_tile
     END IF
 
@@ -1297,12 +1308,17 @@ DO
  IF st.mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
     ANDALSO st.mouse_skewing = NO THEN
   mouse_pan = YES
-  st.camera = st.drag_camera_start - (mouse.pos - mouse.clickstart)
+  st.camera = st.drag_camera_start - (mouse.pos - mouse.clickstart) * st.mouse_pan_mult
   mapedit_constrain_camera st
   'Don't ensure the cursor is on-screen
  ELSE
   'After finishing a pan, ensure cursor on the screen
-  st.pos = mapedit_clamp_tile_to_screen(st, st.pos)
+  IF mapedit_on_screen(st, st.x, st.y) = NO THEN
+   'Move to mouse, if possible (might not be over the map)
+   DIM mappos as XYPair = screen_to_map(st, mouse.pos)
+   IF mappos.x >= 0 THEN st.pos = mappos \ 20
+   st.pos = mapedit_clamp_tile_to_screen(st, st.pos)
+  END IF
   mouse_pan = NO
  END IF
 
@@ -1530,7 +1546,7 @@ DO
  clearpage dpage
 
  '--draw map
- animatetilesets st.tilesets()
+ IF st.animations_enabled THEN animatetilesets st.tilesets()
 
  'Draw map layers
  FOR i as integer = 0 TO UBOUND(st.map.tiles)
@@ -1577,7 +1593,9 @@ DO
      DIM pass_overtile as integer = readblock(st.map.pass, tilex, tiley)
      DIM pixelx as integer = tilex * 20 - st.mapx
      DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
-     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+     IF st.show_overhead_bit THEN
+      IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+     END IF
     END IF
    NEXT xidx
   NEXT yidx
@@ -1827,7 +1845,6 @@ DO
 
  IF st.editmode = pass_mode THEN
   printstr ticklite("one`W`ay  `H`arm  vehicle Ctrl-`A B`"), 0, 0, dpage, YES
-  printstr ticklite("`+`/`-`: thickness"), 0, 10, dpage, YES
 
   IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
    printstr hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES
@@ -4857,7 +4874,9 @@ SUB mapedit_pickblock(st as MapEditState)
 
  'The animated tiles are very annoying, so hide them by default unless already selected
  DIM show_animated_tiles as bool = YES
- IF st.usetile(st.layer) < 160 THEN show_animated_tiles = NO
+ IF st.animations_enabled = YES THEN  'If disabled, no annoyance
+  IF st.usetile(st.layer) < 160 THEN show_animated_tiles = NO
+ END IF
  DIM real_tilesetview_high as integer = tilesetview.high
 
  setkeys
@@ -4940,8 +4959,10 @@ SUB mapedit_pickblock(st as MapEditState)
   IF dowait THEN
    tog = tog XOR 1
    chequer_scroll += 1
-   'Update tile animations
-   cycletile tilesetdata->anim(), tilesetdata->tastuf()
+   IF st.animations_enabled THEN
+    'Update tile animations
+    cycletile tilesetdata->anim(), tilesetdata->tastuf()
+   END IF
   END IF
  LOOP
  unloadtilemap tilesetview
@@ -5354,7 +5375,10 @@ SUB mapedit_window_size_updates(st as MapEditState)
  ' maprect.high = small(st.map.high * 20 - st.mapy, st.viewport.high)
 END SUB
 
-'======================================= NPC Editor =======================================
+
+'==========================================================================================
+'                                        NPC Editor
+'==========================================================================================
 
 
 ' State of edit_npc (single NPC definition editor)
@@ -5795,4 +5819,84 @@ DO
  dowait
 LOOP
 
+END SUB
+
+
+'==========================================================================================
+'                                       Settings menu
+'==========================================================================================
+
+
+TYPE MapSettingsMenu EXTENDS ModularMenu
+ st as MapEditState ptr
+
+ pan_mult_str as string
+
+ DECLARE SUB update ()
+ DECLARE FUNCTION each_tick () as bool
+END TYPE
+
+SUB MapSettingsMenu.update ()
+ REDIM menu(5)
+ state.last = UBOUND(menu)
+
+ menu(0) = "[Close settings menu]"
+ menu(1) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
+ menu(2) = "Wall display thickness (Ctrl +/-): " & _
+     IIF(st->wallthickness, STR(st->wallthickness), "ants")
+ menu(3) = "Tile animations: " & yesorno(st->animations_enabled)
+ menu(4) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
+ menu(5) = "Mouse pan speed: " & pan_mult_str
+END SUB
+
+FUNCTION MapSettingsMenu.each_tick () as bool
+ IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
+  'We act like an edit mode
+  FOR fn as integer = scF2 TO scF8
+   IF keyval(fn) > 1 THEN RETURN YES
+  NEXT
+ END IF
+
+ DIM changed as bool
+ SELECT CASE state.pt
+  CASE 0
+   IF enter_space_click(state) THEN RETURN YES
+  CASE 1
+   changed = intgrabber(st->show_overhead_bit, -1, 0)
+  CASE 2
+   changed = intgrabber(st->wallthickness, 0, 5)
+  CASE 3
+   changed = intgrabber(st->animations_enabled, -1, 0)
+  CASE 4
+   changed = intgrabber(st->cursor_follows_mouse, -1, 0)
+  CASE 5
+   changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
+
+ END SELECT
+ state.need_update OR= changed
+END FUNCTION
+
+SUB mapedit_settings_menu (st as MapEditState)
+ DIM menu as MapSettingsMenu
+ menu.floating = YES
+ menu.menuopts.edged = YES
+ menu.st = @st
+ menu.helpkey = "mapedit_settings"
+ menu.pan_mult_str = format_percent(st.mouse_pan_mult, 1)
+ menu.run()
+
+ 'Save settings
+ write_config "mapedit.cursor_follows_mouse", yesorno(st.cursor_follows_mouse)
+ write_config "mapedit.show_overhead", yesorno(st.show_overhead_bit)
+ write_config "mapedit.wall_thickness", st.wallthickness
+ write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
+ write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
+END SUB
+
+SUB mapedit_load_settings (st as MapEditState)
+ st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
+ st.show_overhead_bit = read_config_bool("mapedit.show_overhead", YES)
+ st.wallthickness = read_config_int("mapedit.wall_thickness", 2)
+ st.animations_enabled = read_config_bool("mapedit.tile_animations", YES)
+ st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 1.0, 5.0)
 END SUB

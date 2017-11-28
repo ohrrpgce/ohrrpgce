@@ -302,9 +302,7 @@ TYPE MapEditState
   shadowpal as Palette16 ptr 'Palette used for things in shadow
   per_layer_skew as XYPair   'Amount to displace map layer 1. In tenths of a pixel
   mouse_skewing as bool      'Currently using the right mouse button to skew the map
-
   drag_camera_start as XYPair 'st.camera at start of pan
-  camera_drag_mult as double 'When panning the map with the mouse, how much to multiply the movements by
 
   mouse_attention as MapMouseAttention 'What currently recieves mouse input
   defpass as bool            'Default passability ON/OFF
@@ -344,7 +342,11 @@ TYPE MapEditState
   message_ticks as integer   'Remaining ticks to display message
 
   'Editor customisation options
+  cursor_follows_mouse as bool 'st.pos follows the mouse
   wallthickness as integer   'How many pixels think to draw the walls in pass_mode
+  show_overhead_bit as bool  'Show 'O' while in tilemap mode
+  animations_enabled as bool 'Tile animations
+  mouse_pan_mult as double   'When panning the map with the mouse, how much to multiply the movements by
 
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
