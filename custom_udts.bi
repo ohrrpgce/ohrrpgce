@@ -342,12 +342,14 @@ TYPE MapEditState
   message_ticks as integer   'Remaining ticks to display message
 
   'Editor customisation options
+  shift_speed as XYPair      'Cursor move speen when holding Shift
   cursor_follows_mouse as bool 'st.pos follows the mouse
   wallthickness as integer   'How many pixels think to draw the walls in pass_mode
   show_overhead_bit as bool  'Show 'O' while in tilemap mode
   animations_enabled as bool 'Tile animations
   layers_share_usetile as bool 'Current tile is per-tileset
   mouse_pan_mult as double   'When panning the map with the mouse, how much to multiply the movements by
+  shadows_when_skewing as bool
 
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)

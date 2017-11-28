@@ -1324,7 +1324,7 @@ DO
 
  'Keyboard camera+cursor controls
  DIM rate as XYPair = (1, 1)
- IF keyval(scShift) > 0 THEN rate = XY(8, 5)
+ IF keyval(scShift) > 0 THEN rate = st.shift_speed
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
   'Move cursor position
   IF slowkey(scUp, 110) THEN st.y = large(st.y - rate.y, 0)
@@ -1554,16 +1554,18 @@ DO
    mapedit_draw_layer st, i, i, , st.layerpals(i)
   END IF
 
-  IF i = 0 ANDALSO st.per_layer_skew <> 0 THEN
-   'Draw the shadows on top of layer 0
-   FOR layeri as integer = 1 TO UBOUND(st.map.tiles)
-    IF should_draw_layer(st, layeri) THEN
-     mapedit_draw_layer st, layeri, 0, , st.shadowpal
+  IF st.shadows_when_skewing THEN
+   IF i = 0 ANDALSO st.per_layer_skew <> 0 THEN
+    'Draw the shadows on top of layer 0
+    FOR layeri as integer = 1 TO UBOUND(st.map.tiles)
+     IF should_draw_layer(st, layeri) THEN
+      mapedit_draw_layer st, layeri, 0, , st.shadowpal
+     END IF
+    NEXT
+    'And shadow of overhead tiles
+    IF should_draw_layer(st, 0) THEN
+     mapedit_draw_layer st, 0, 0, YES, st.shadowpal
     END IF
-   NEXT
-   'And shadow of overhead tiles
-   IF should_draw_layer(st, 0) THEN
-    mapedit_draw_layer st, 0, 0, YES, st.shadowpal
    END IF
   END IF
  NEXT
@@ -5846,17 +5848,20 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(6)
+ REDIM menu(9)
  state.last = UBOUND(menu)
 
  menu(0) = "[Close]"
- menu(1) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
- menu(2) = "Wall display thickness (Ctrl +/-): " & _
+ menu(1) = "Cursor SHIFT-move speed X: " & st->shift_speed.x
+ menu(2) = "Cursor SHIFT-move speed Y: " & st->shift_speed.y
+ menu(3) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
+ menu(4) = "Wall display thickness (Ctrl +/-): " & _
      IIF(st->wallthickness, STR(st->wallthickness), "ants")
- menu(3) = "Tile animations: " & yesorno(st->animations_enabled)
- menu(4) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
- menu(5) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
- menu(6) = "Mouse pan speed: " & pan_mult_str
+ menu(5) = "Tile animations: " & yesorno(st->animations_enabled)
+ menu(6) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
+ menu(7) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
+ menu(8) = "Mouse pan speed: " & pan_mult_str
+ menu(9) = "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -5872,17 +5877,23 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 0
    IF enter_space_click(state) THEN RETURN YES
   CASE 1
-   changed = boolgrabber(st->show_overhead_bit, state)
+   changed = intgrabber(st->shift_speed.x, 0, 100)  'Because why limit?
   CASE 2
-   changed = intgrabber(st->wallthickness, 0, 5)
+   changed = intgrabber(st->shift_speed.y, 0, 100)
   CASE 3
-   changed = boolgrabber(st->animations_enabled, state)
+   changed = boolgrabber(st->show_overhead_bit, state)
   CASE 4
-   changed = boolgrabber(st->layers_share_usetile, state)
+   changed = intgrabber(st->wallthickness, 0, 5)
   CASE 5
-   changed = boolgrabber(st->cursor_follows_mouse, state)
+   changed = boolgrabber(st->animations_enabled, state)
   CASE 6
+   changed = boolgrabber(st->layers_share_usetile, state)
+  CASE 7
+   changed = boolgrabber(st->cursor_follows_mouse, state)
+  CASE 8
    changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
+  CASE 9
+   changed = boolgrabber(st->shadows_when_skewing, state)
 
  END SELECT
  state.need_update OR= changed
@@ -5898,19 +5909,25 @@ SUB mapedit_settings_menu (st as MapEditState)
  menu.run()
 
  'Save settings
+ write_config "mapedit.shift_speed_x", st.shift_speed.x
+ write_config "mapedit.shift_speed_y", st.shift_speed.y
  write_config "mapedit.cursor_follows_mouse", yesorno(st.cursor_follows_mouse)
  write_config "mapedit.show_overhead", yesorno(st.show_overhead_bit)
  write_config "mapedit.wall_thickness", st.wallthickness
  write_config "mapedit.per-tileset_current_tile", st.layers_share_usetile
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
+ write_config "mapedit.shadows_when_skewing",  st.shadows_when_skewing
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
+ st.shift_speed.x = read_config_int("mapedit.shift_speed_x", 8)
+ st.shift_speed.y = read_config_int("mapedit.shift_speed_y", 5)
  st.show_overhead_bit = read_config_bool("mapedit.show_overhead", YES)
  st.wallthickness = read_config_int("mapedit.wall_thickness", 2)
  st.animations_enabled = read_config_bool("mapedit.tile_animations", YES)
  st.layers_share_usetile = read_config_bool("mapedit.per-tileset_current_tile", YES)
  st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
  st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 1.0, 5.0)
+ st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
 END SUB
