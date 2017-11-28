@@ -5862,13 +5862,13 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 0
    IF enter_space_click(state) THEN RETURN YES
   CASE 1
-   changed = intgrabber(st->show_overhead_bit, -1, 0)
+   changed = boolgrabber(st->show_overhead_bit, state)
   CASE 2
    changed = intgrabber(st->wallthickness, 0, 5)
   CASE 3
-   changed = intgrabber(st->animations_enabled, -1, 0)
+   changed = boolgrabber(st->animations_enabled, state)
   CASE 4
-   changed = intgrabber(st->cursor_follows_mouse, -1, 0)
+   changed = boolgrabber(st->cursor_follows_mouse, state)
   CASE 5
    changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
 

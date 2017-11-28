@@ -1157,10 +1157,9 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    END IF
   CASE erToggle
    DIM n as integer ptr = rule.dataptr
-   IF intgrabber(*n, -1, 0) THEN
+   IF boolgrabber(*n, state) THEN
     state.need_update = YES
    END IF
-   IF enter_space_click(state) THEN *n = NOT *n : state.need_update = YES
   CASE erShortStrgrabber
    DIM s as string ptr = rule.dataptr
    state.need_update OR= strgrabber(*s, rule.upper)
