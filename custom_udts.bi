@@ -346,6 +346,7 @@ TYPE MapEditState
   wallthickness as integer   'How many pixels think to draw the walls in pass_mode
   show_overhead_bit as bool  'Show 'O' while in tilemap mode
   animations_enabled as bool 'Tile animations
+  layers_share_usetile as bool 'Current tile is per-tileset
   mouse_pan_mult as double   'When panning the map with the mouse, how much to multiply the movements by
 
   'Tool stuff

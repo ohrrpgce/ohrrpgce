@@ -3756,8 +3756,17 @@ END SUB
 'Set the selected tile in the tileset. Not an error to try to set to something out-of-range.
 SUB set_usetile(st as MapEditState, tile as integer)
  IF tile < 0 ORELSE tile >= st.menubar.wide THEN EXIT SUB
+ IF st.layers_share_usetile THEN
+  'All layers with the same tileset get changed
+  FOR layer as integer = 0 TO UBOUND(st.map.tiles)
+   IF st.tilesets(layer)->num = st.tilesets(st.layer)->num THEN
+    st.usetile(layer) = tile
+   END IF
+  NEXT
+ END IF
  IF st.usetile(st.layer) = tile THEN EXIT SUB
  st.usetile(st.layer) = tile
+
  update_tilepicker st
 
  IF st.tool = clone_tool AND st.multitile_draw_brush THEN
@@ -5837,16 +5846,17 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(5)
+ REDIM menu(6)
  state.last = UBOUND(menu)
 
- menu(0) = "[Close settings menu]"
+ menu(0) = "[Close]"
  menu(1) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
  menu(2) = "Wall display thickness (Ctrl +/-): " & _
      IIF(st->wallthickness, STR(st->wallthickness), "ants")
  menu(3) = "Tile animations: " & yesorno(st->animations_enabled)
- menu(4) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
- menu(5) = "Mouse pan speed: " & pan_mult_str
+ menu(4) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
+ menu(5) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
+ menu(6) = "Mouse pan speed: " & pan_mult_str
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -5868,8 +5878,10 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 3
    changed = boolgrabber(st->animations_enabled, state)
   CASE 4
-   changed = boolgrabber(st->cursor_follows_mouse, state)
+   changed = boolgrabber(st->layers_share_usetile, state)
   CASE 5
+   changed = boolgrabber(st->cursor_follows_mouse, state)
+  CASE 6
    changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
 
  END SELECT
@@ -5889,14 +5901,16 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.cursor_follows_mouse", yesorno(st.cursor_follows_mouse)
  write_config "mapedit.show_overhead", yesorno(st.show_overhead_bit)
  write_config "mapedit.wall_thickness", st.wallthickness
+ write_config "mapedit.per-tileset_current_tile", st.layers_share_usetile
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
- st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
  st.show_overhead_bit = read_config_bool("mapedit.show_overhead", YES)
  st.wallthickness = read_config_int("mapedit.wall_thickness", 2)
  st.animations_enabled = read_config_bool("mapedit.tile_animations", YES)
+ st.layers_share_usetile = read_config_bool("mapedit.per-tileset_current_tile", YES)
+ st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
  st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 1.0, 5.0)
 END SUB
