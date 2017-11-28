@@ -950,7 +950,9 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 
 	' The page to which to draw overlays, and display
 	dim drawpage as integer = page
-	if preserve_page then
+	'We avoid duplicating the page to allow really high fps, but that leads to
+	'accidentally including overlays in gifs a lot, due to "copypage vpage, holdscreen"
+	if preserve_page or recordgif.active then
 		drawpage = duplicatepage(page)
 	end if
 
