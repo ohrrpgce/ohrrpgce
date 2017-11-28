@@ -6818,6 +6818,7 @@ END SUB
 
 'Try to read the value of a key from global_config_file while respecting
 'config_prefix and finding the most specific setting that applies.
+'(Do NOT manually prepend config_prefix.)
 'For example if config_prefix is "edit.game_genesis." and key is "hspeak", then try
 '"edit.game_genesis.hspeak", "edit.hspeak", "hspeak" in order.
 'Also, in-game, check the game-specific .ini file first.
@@ -6825,6 +6826,8 @@ FUNCTION read_config_str (key as string, default as string="") as string
  DIM as string ret, prefix = config_prefix
  #IFDEF IS_GAME
   IF config_file <> "" THEN
+   'Settings in the game's .ini file override others (I think it may be nicer
+   'if this were a more general fallback to other files)
    ret = read_ini_str(config_file, key, CHR(0))
    IF ret <> CHR(0) THEN RETURN ret
   END IF
@@ -6843,16 +6846,47 @@ FUNCTION read_config_int (key as string, default as integer=0) as integer
  RETURN str2int(read_config_str(key), default)
 END FUNCTION
 
-/'
-'TODO: should this write to config_file in Game?
-'Should this even exist? You may want to use different prefixes in different
-'situations. So for now let's force you to use write_ini_value and prepend the
-'prefix explicitly until we see what our needs are.
+FUNCTION read_config_bool (key as string, default as bool=NO) as bool
+ DIM v as string = LCASE(read_config_str(key))
+ IF LEN(v) = 0 ORELSE str2int(v, -1) = 0 ORELSE v = "no" ORELSE v = "false" _
+    ORELSE v = "off" THEN RETURN NO
+ RETURN YES
+END FUNCTION
+
+'Write to global_config_file (in general) or the game-specific config_file
+'(only in Game if key starts with config_prefix).
+'If you want a setting to be game-specific, prepend config_prefix (which is
+'"game.", "edit.", "game.game_<gameid>.", 'or "edit.game_<gameid>.").
+'Otherwise, Here are some guidelines for naming a key, not nailed down:
+'-Something specific to an editor, shared between all games should look like
+' "mapedit.show_overhead" (eg "sliceedit." can be shared by Game + Custom)
+'-Shared gfx backend options go under "gfx."
+'-Backend-specific options go under eg "gfx.sdl."
+'-A setting for Custom and not falling into another category can start with "edit.".
+'-Stuff for Game but not game-specific goes under "game."
 SUB write_config (key as string, value as string)
- write_ini_value global_config_file, config_prefix & key, value
+ 'FIXME: if "edit.game_foo.thing" exists and you load and then save "thing",
+ 'it gets saved to "thing", resulting in a local setting accidentally becoming global,
+ 'and not being able to change it locally!
+ #IFDEF IS_GAME
+  IF starts_with(key, config_prefix) ANDALSO starts_with(config_prefix, "game.game_") THEN
+   IF LEN(config_file) THEN
+    DIM trimmedkey as string = MID(key, LEN(config_prefix) + 1)
+    write_ini_value config_file, trimmedkey, value
+    EXIT SUB
+   ELSE
+    debug "write_config: config_file isn't set!"
+   END IF
+  END IF
+ #ENDIF
+
+ write_ini_value global_config_file, key, value
 END SUB
 
 SUB write_config (key as string, value as integer)
  write_config key, STR(value)
 END SUB
-'/
+
+SUB write_config (key as string, value as double)
+ write_config key, FORMAT(value, "0.000")
+END SUB

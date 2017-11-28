@@ -322,6 +322,9 @@ DECLARE FUNCTION gen_intgrabber(nodepath as string) as bool
 DECLARE SUB set_global_config_file()
 DECLARE FUNCTION read_config_str (key as string, default as string="") as string
 DECLARE FUNCTION read_config_int (key as string, default as integer=0) as integer
+DECLARE FUNCTION read_config_bool (key as string, default as bool=NO) as bool
+DECLARE SUB write_config OVERLOAD (key as string, value as string)
+DECLARE SUB write_config OVERLOAD (key as string, value as integer)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string

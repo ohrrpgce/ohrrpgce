@@ -508,9 +508,11 @@ END IF
 '================= Setup game-specific directories & debug log ================
 
 '-- set up prefs dir
-prefsdir = settings_dir & SLASH & trimextension(trimpath(sourcerpg))
+DIM game_id as string = trimpath(trimextension(sourcerpg))  'some unique ID scheme would be nice
+prefsdir = settings_dir & SLASH & game_id
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 config_file = prefsdir & SLASH & "gameconfig.ini"
+config_prefix = "game.game_" & game_id & "."
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to $HOME
 DIM newcwd as string = trimfilename(sourcerpg)
