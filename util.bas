@@ -129,6 +129,10 @@ OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
   RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
 END OPERATOR
 
+OPERATOR * (lhs as XYPair, rhs as double) as XYPair
+  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
 OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
   RETURN TYPE(lhs.x \ rhs.x, lhs.y \ rhs.y)
 END OPERATOR

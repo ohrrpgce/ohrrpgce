@@ -426,6 +426,7 @@ DECLARE OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR - (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR * (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
+DECLARE OPERATOR * (lhs as XYPair, rhs as double) as XYPair
 DECLARE OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR / (lhs as XYPair, rhs as XYPair) as XYPair

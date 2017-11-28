@@ -711,5 +711,5 @@ function modplug_settings_menu () as bool
 end function
 
 function music_settings_menu () as bool
-	return modplug_settings_menu
+	return modplug_settings_menu()
 end function

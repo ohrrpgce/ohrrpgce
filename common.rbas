@@ -4867,7 +4867,7 @@ END FUNCTION
 'Returns true if float or repr changed
 'decimalplaces actually limits the number of sig. fig.s too, except in front of the decimal point.
 'Note: min and max are not in percent: max=1 is 100%
-FUNCTION percent_grabber(byref float as double, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+FUNCTION percent_grabber(byref float as double, byref repr as string, min as double, max as double, decimalplaces as integer = 4) as bool
  STATIC clip as double
  DIM oldfloat as double = float
  DIM oldrepr as string = repr
@@ -4939,9 +4939,9 @@ FUNCTION percent_grabber(byref float as double, repr as string, byval min as dou
  RETURN (oldfloat <> float) ORELSE (oldrepr <> repr)
 END FUNCTION
 
-FUNCTION percent_grabber(byref float as single, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+FUNCTION percent_grabber(byref float as single, byref repr as string, min as double, max as double, decimalplaces as integer = 4) as bool
  DIM temp as double = float
- DIM ret as integer = percent_grabber(temp, repr, min, max, decimalplaces)
+ DIM ret as bool = percent_grabber(temp, repr, min, max, decimalplaces)
  float = temp
  RETURN ret
 END FUNCTION
