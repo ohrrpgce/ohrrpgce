@@ -2,16 +2,19 @@ WHAT IS NEW?
 
 Dec 1 2017 [Etheldreme]
 
-  Highlights: (fill this in right before release)
+  Highlights:
     * Many new map-editor features, including mouse support.
-    * Many slice editor improvements.
+    * Enemy "appear" animations.
     * Customizable hero experience curve.
+    * Textbox save/load/delete/end game conditionals.
+    * Unhid still-experimental option for non-320x200 games.
     * Copy-paste text between the editor and other applications.
-    * See below for other new features and bugfixes...
+    * Visual browsers for sprites and many other things.
+    * See below for more...
 
   * New Features
-    * You can now browse for items, and many other properties rather than
-      typing in their ID numbers. [James]
+    * You can now browse for sprites, items, and many other properties
+      rather than typing in their ID numbers. [James]
     * In the text box condition editor, you can browse for shops [James]
     * Menu bit "Remember selection when reopening" [Ralph]
     * Removed 100% upper limits on attack chain stat % conditions, and
@@ -111,7 +114,6 @@ Dec 1 2017 [Etheldreme]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]
-
 
 September 22 2017 [Dwimmercrafty+1]
 
