@@ -1583,13 +1583,16 @@ DO
    'col = uilook(uiSelectedItem + (get_tickcount() \ 2) MOD 2)
    col = (get_tickcount() \ 4) MOD 16
   END IF
-  FOR y as integer = 20 - (st.mapy MOD 20) TO st.viewport.high STEP 20
+  DIM mapedge as XYPair  'Size of the part of the map visible in the viewport
+  mapedge.w = small(st.viewport.wide, st.map.wide * 20 - st.mapx)
+  mapedge.h = small(st.viewport.high, st.map.high * 20 - st.mapy)
+  FOR y as integer = 20 - (st.mapy MOD 20) TO mapedge.h STEP 20
    DIM start as XYPair = st.viewport.topleft + XY(0, y)
-   drawline start.x, start.y, start.x + st.viewport.wide, start.y, col, dpage, 8, 2
+   drawline start.x, start.y, start.x + mapedge.w, start.y, col, dpage, 8, 2
   NEXT
-  FOR x as integer = 20 - (st.mapx MOD 20) TO st.viewport.wide STEP 20
+  FOR x as integer = 20 - (st.mapx MOD 20) TO mapedge.w STEP 20
    DIM start as XYPair = st.viewport.topleft + XY(x, 0)
-   drawline start.x, start.y, start.x, start.y + st.viewport.high, col, dpage, 8, 2
+   drawline start.x, start.y, start.x, start.y + mapedge.h, col, dpage, 8, 2
   NEXT
  END IF
 
@@ -1801,7 +1804,13 @@ DO
  '--position finder--
  IF st.tiny THEN
   fuzzyrect 0, 35, st.map.wide, st.map.high, uilook(uiHighlight), dpage
-  rectangle st.mapx \ 20, (st.mapy \ 20) + 35, 16, 9, uilook(uiDescription), dpage
+  DIM screct as RectType  'Position and size of the rectangle showing the screen position
+  screct.topleft = st.camera \ 20  'Position relative to the minimap
+  screct.size = st.viewport.size \ 20
+  'Don't go over the map edge
+  screct.wide = small(screct.wide, st.map.wide - screct.x)
+  screct.high = small(screct.high, st.map.high - screct.y)
+  rectangle screct.x, screct.y + 35, screct.wide, screct.high, uilook(uiDescription), dpage
   IF st.editmode = zone_mode THEN
    frame_draw st.zoneminimap, NULL, 0, 35, , , dpage
   END IF
@@ -2200,6 +2209,7 @@ SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as intege
   trans = layernum > 0
   overheadmode = IIF(layernum = 0, 1, 0)
  END IF
+ setoutside -2 'Don't draw over map edge
  drawmap st.map.tiles(layernum), pos.x, pos.y, st.tilesets(layernum), dpage, _
          trans, overheadmode, @st.map.pass, 20, , pal
 END SUB

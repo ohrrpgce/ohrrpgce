@@ -3272,6 +3272,9 @@ sub setanim (tileset as TilesetData ptr)
 	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
 end sub
 
+'-2: draw nothing beyond the map edge
+'-1: wrap map
+'0+: draw this tile beyong the map edge (but only when drawing layer 0)
 sub setoutside (defaulttile as integer)
 	bordertile = defaulttile
 end sub
@@ -3285,7 +3288,7 @@ sub draw_layers_at_tile(composed_tile as Frame ptr, tiles() as TileMap, tilesets
 		setanim tilesets(idx)
 		with *tilesets(idx)
 			dim todraw as integer = calcblock(tiles(idx), tx, ty, 0, 0)
-			if todraw = -1 then continue for
+			if todraw < 0 then continue for
 			todraw = translate_animated_tile(todraw)
 
 			frame_draw .spr, , 0, -todraw * 20, 1, (layer > 0), composed_tile
