@@ -1529,11 +1529,11 @@ DO
 
   'Generate minimap
   IF st.zonesubmode = zone_edit_mode THEN
-   draw_zone_minimap st, st.zoneoverlaymap, 0, uilook(uiGold)
+   draw_zone_minimap st, st.zoneoverlaymap, 0, findrgb(255,255,0)
   ELSE
    DIM bitnum as integer = int_array_find(st.zonecolours(), st.cur_zone)
    IF bitnum <> -1 THEN
-    draw_zone_minimap st, st.zoneviewmap, bitnum, uilook(uiGold)
+    draw_zone_minimap st, st.zoneviewmap, bitnum, findrgb(255,255,0)
    END IF
   END IF
 
@@ -1803,14 +1803,14 @@ DO
 
  '--position finder--
  IF st.tiny THEN
-  fuzzyrect 0, 35, st.map.wide, st.map.high, uilook(uiHighlight), dpage
+  fuzzyrect 0, 35, st.map.wide, st.map.high, findrgb(0,0,170), dpage
   DIM screct as RectType  'Position and size of the rectangle showing the screen position
   screct.topleft = st.camera \ 20  'Position relative to the minimap
   screct.size = st.viewport.size \ 20
   'Don't go over the map edge
   screct.wide = small(screct.wide, st.map.wide - screct.x)
   screct.high = small(screct.high, st.map.high - screct.y)
-  rectangle screct.x, screct.y + 35, screct.wide, screct.high, uilook(uiDescription), dpage
+  rectangle screct.x, screct.y + 35, screct.wide, screct.high, findrgb(0,220,0), dpage
   IF st.editmode = zone_mode THEN
    frame_draw st.zoneminimap, NULL, 0, 35, , , dpage
   END IF

@@ -97,7 +97,7 @@ DECLARE FUNCTION unsetenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
 DECLARE FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as integer
-DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
+DECLARE SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
 DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
@@ -729,32 +729,46 @@ SUB gfx_sdl_recenter_window_hint()
 #ENDIF
 END SUB
 
-SUB gfx_sdl_set_zoom(byval value as integer)
+SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
   IF value >= 1 AND value <= 16 AND value <> zoom THEN
     zoom = value
     zoom_has_been_changed = YES
-    gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
-    IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-      gfx_sdl_set_screen_mode()
-    END IF
+    IF change_windowsize THEN
+      gfx_sdl_recenter_window_hint()  'Recenter because the window might go off the screen edge.
 
-    'Update the clip rectangle
-    'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
-    WITH remember_mouserect
-      IF .p1.x <> -1 THEN
-        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
-      ELSEIF forced_mouse_clipping THEN
-        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+
+      IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+        gfx_sdl_set_screen_mode()
       END IF
-    END WITH
+
+      'Update the clip rectangle
+      'FIXME: we ought to be doing this whenever the window size or zoom changes, not only here
+      WITH remember_mouserect
+        IF .p1.x <> -1 THEN
+          internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
+        ELSEIF forced_mouse_clipping THEN
+          internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+        END IF
+      END WITH
+    ELSE
+      'Keep window size the same
+      resize_request.w = screensurface->w \ zoom
+      resize_request.h = screensurface->h \ zoom
+      resize_requested = YES
+    END IF
   END IF
 END SUB
 
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
-  IF *opt = "zoom" or *opt = "z" THEN
-    gfx_sdl_set_zoom(value)
+  IF *opt = "zoomonly" THEN
+    'Set zoom without changing window size.
+    'Used by set_scale_factor(), not intended for cmdline use.
+    gfx_sdl_set_zoom(value, NO)
+    ret = 1
+  ELSEIF *opt = "zoom" or *opt = "z" THEN
+    gfx_sdl_set_zoom(value, YES)
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
     IF value = 1 OR value = -1 THEN  'arg optional (-1)
@@ -891,7 +905,11 @@ PRIVATE SUB keycombos_logic(evnt as SDL_Event)
     END IF
     FOR i as integer = 1 TO 4
       IF evnt.key.keysym.sym = SDLK_0 + i THEN
-        gfx_sdl_set_zoom(i)
+        #IFDEF IS_CUSTOM
+          gfx_sdl_set_zoom(i, NO)
+        #ELSE
+          gfx_sdl_set_zoom(i, YES)
+        #ENDIF
       END IF
     NEXT
   END IF
@@ -1365,6 +1383,7 @@ PRIVATE SUB set_forced_mouse_clipping(byval newvalue as bool)
 END SUB
 
 SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+  'TODO: clamp the rect
   WITH remember_mouserect
     .p1.x = xmin
     .p1.y = ymin

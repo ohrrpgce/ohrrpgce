@@ -726,6 +726,9 @@ END SUB
 FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
+  'IF *opt = "zoomonly" THEN  'TODO
+    'Set zoom without changing window size.
+    'Used by set_scale_factor(), not intended for cmdline use.
   IF *opt = "zoom" or *opt = "z" THEN
     gfx_sdl2_set_zoom(value)
     ret = 1

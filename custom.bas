@@ -822,7 +822,7 @@ END SUB
 
 ' Accessible with F8 if we are editing a game
 SUB Custom_global_menu
- REDIM menu(7) as string
+ REDIM menu(8) as string
  menu(0) = "Reimport scripts"
  menu(1) = "Test Game"
  menu(2) = "Volume"
@@ -830,7 +830,8 @@ SUB Custom_global_menu
  menu(4) = "Zoom 1x"
  menu(5) = "Zoom 2x"
  menu(6) = "Zoom 3x"
- menu(7) = "Switch graphics backend (Ctrl-F8)"
+ menu(7) = "Zoom 4x"
+ menu(8) = "Switch graphics backend (Ctrl-F8)"
  'menu(8) = "Music backend settings"
  IF editing_a_game = NO THEN
   str_array_pop menu(), 1
@@ -851,14 +852,16 @@ SUB Custom_global_menu
  ELSEIF choice = 3 THEN
   macro_controls
  ELSEIF choice = 4 THEN
-  set_scale_factor 1
+  set_scale_factor 1, NO
  ELSEIF choice = 5 THEN
-  set_scale_factor 2
+  set_scale_factor 2, NO
  ELSEIF choice = 6 THEN
-  set_scale_factor 3
+  set_scale_factor 3, NO
  ELSEIF choice = 7 THEN
-  gfx_backend_menu
+  set_scale_factor 4, NO
  ELSEIF choice = 8 THEN
+  gfx_backend_menu
+ ELSEIF choice = 9 THEN
   music_backend_menu
  END IF
 END SUB

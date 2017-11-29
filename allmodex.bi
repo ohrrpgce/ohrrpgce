@@ -99,7 +99,7 @@ DECLARE FUNCTION resolution_unlocked () as bool
 DECLARE SUB set_resolution (w as integer, h as integer)
 DECLARE FUNCTION get_resolution () as XYPair
 DECLARE SUB get_screen_size (byref screenwidth as integer, byref screenheight as integer)
-DECLARE SUB set_scale_factor (scale as integer)
+DECLARE SUB set_scale_factor (scale as integer, change_windowsize as bool = YES)
 DECLARE SUB toggle_fps_display ()
 
 DECLARE FUNCTION supports_fullscreen_well () as bool
@@ -343,6 +343,8 @@ DECLARE FUNCTION color_distance(pal() as RGBcolor, index1 as integer, index2 as 
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyte, firstindex as integer = 0, indexhint as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, index as integer, firstindex as integer = 0) as ubyte
 DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
+'firstindex is optional
+#DEFINE findrgb(r, g, b, firstindex...)  nearcolor(master(), r, g, b, firstindex)
 
 'Export .gifs
 DECLARE SUB GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)

@@ -838,10 +838,14 @@ end sub
 
 'Set the size that a pixel appears on the screen.
 'Supported by all backends except gfx_alleg.
-sub set_scale_factor (scale as integer)
+sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
 	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
-	debuginfo "Setting graphics scaling to x" & scale
+	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
+	if change_windowsize = NO then
+		' Only supported by gfx_sdl currently
+		if gfx_setoption("zoomonly", str(scale)) then exit sub
+	end if
 	if gfx_setoption("zoom", str(scale)) = 0 then
 		' Old versions of gfx_directx don't support zoom (TODO: delete this)
 		gfx_setoption("width", str(windowsize.w * scale))
