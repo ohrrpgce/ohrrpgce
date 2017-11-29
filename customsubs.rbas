@@ -31,6 +31,15 @@ DECLARE SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState,
 DECLARE FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
 DECLARE FUNCTION edit_font_draw_point(byval pixelpos as XYPair) as XYPair
 
+DECLARE FUNCTION create_attack_preview_dummy_slice(caption as string, byval parent as Slice Ptr) as Slice Ptr
+DECLARE FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
+DECLARE SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBrowserState)
+DECLARE SUB attack_preview_slice_focus(byval sl as Slice Ptr)
+DECLARE SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
+DECLARE FUNCTION find_free_attack_preview_slot(slots() as Slice Ptr) as integer
+DECLARE SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState)
+
+
 'Module-local variables
 DIM SHARED comp_strings() as string
 REDIM comp_strings(7) as string 
@@ -2242,9 +2251,11 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
 
    IF enter_or_space() THEN
     IF state.focused <> 0 THEN
-     IF state.column = 1 THEN state.done = YES
-     selected = state.focused->extra(0)
-     EXIT DO
+     IF state.focused->extra(0) >= 0 THEN  '"(None)" isn't selected
+      IF state.column = 1 THEN state.done = YES
+      selected = state.focused->extra(0)
+      EXIT DO
+     END IF
     END IF
    END IF
 
@@ -2310,6 +2321,10 @@ SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBro
   v_append state.chainto, create_attack_preview_slice("Else", atk.elsechain.atk_id - 1, state.rbox)
  END IF
 
+ IF v_len(state.chainto) = 0 THEN
+  v_append state.chainto, create_attack_preview_dummy_slice("(None)", state.rbox)
+ END IF
+
  state.after.last = v_len(state.chainto) - 1
 
  '--now search for attacks that chain to this one
@@ -2327,8 +2342,28 @@ SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBro
   END IF
  NEXT i
 
+ IF v_len(state.chainfrom) = 0 THEN
+  v_append state.chainfrom, create_attack_preview_dummy_slice("(None)", state.lbox)
+ END IF
+
  state.before.last = v_len(state.chainfrom) - 1
 END SUB
+
+FUNCTION create_attack_preview_dummy_slice(caption as string, byval parent as Slice Ptr) as Slice Ptr
+ DIM box as Slice ptr = NewSliceOfType(slRectangle, parent)
+ box->Width = 80
+ box->Height = 10
+ ChangeRectangleSlice box, 0
+ ChangeRectangleSlice box, , , , -1
+
+ DIM numsl as Slice Ptr = NewSliceOfType(slText, box)
+ ChangeTextSlice numsl, caption, , YES
+ numsl->AnchorHoriz = 1
+ numsl->AlignHoriz = 1
+
+ box->extra(0) = -1  'Not an attack
+ RETURN box
+END FUNCTION
 
 FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
  DIM atk as AttackData

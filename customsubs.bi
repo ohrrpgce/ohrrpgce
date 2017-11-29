@@ -63,12 +63,6 @@ DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index as integer, s as string, maxlen as integer)
 DECLARE SUB update_attack_editor_for_chain (byval mode as integer, byref caption1 as string, byref max1 as integer, byref min1 as integer, byref menutype1 as integer, byref caption2 as string, byref max2 as integer, byref min2 as integer, byref menutype2 as integer)
 DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer
-DECLARE FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
-DECLARE SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBrowserState)
-DECLARE SUB attack_preview_slice_focus(byval sl as Slice Ptr)
-DECLARE SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
-DECLARE FUNCTION find_free_attack_preview_slot(slots() as Slice Ptr) as integer
-DECLARE SUB position_chain_preview_boxes(sl_list() as Slice ptr, st as MenuState)
 DECLARE SUB fontedit (font() as integer)
 DECLARE SUB fontedit_export_font(font() as integer)
 DECLARE SUB fontedit_import_font(font() as integer)
