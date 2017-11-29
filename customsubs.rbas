@@ -2259,10 +2259,14 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
    IF state.refresh THEN
     state.refresh = NO
     attack_preview_slice_defocus state.focused
+    state.focused = NULL
     SELECT CASE state.column
-     CASE 0: state.focused = state.chainfrom[state.before.pt]
-     CASE 1: state.focused = state.current
-     CASE 2: state.focused = state.chainto[state.after.pt]
+     CASE 0:
+      IF state.before.pt >= 0 THEN state.focused = state.chainfrom[state.before.pt]
+     CASE 1:
+      state.focused = state.current
+     CASE 2:
+      IF state.after.pt >= 0 THEN state.focused = state.chainto[state.after.pt]
     END SELECT
     attack_preview_slice_focus state.focused
     state.lbox->Y = state.before.top * -56
@@ -2306,7 +2310,7 @@ SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBro
   v_append state.chainto, create_attack_preview_slice("Else", atk.elsechain.atk_id - 1, state.rbox)
  END IF
 
- state.after.last = large(0, v_len(state.chainto) - 1)
+ state.after.last = v_len(state.chainto) - 1
 
  '--now search for attacks that chain to this one
  v_resize state.chainfrom, 0
@@ -2323,7 +2327,7 @@ SUB init_attack_chain_screen(byval attack_id as integer, state as AttackChainBro
   END IF
  NEXT i
 
- state.before.last = large(0, v_len(state.chainfrom) - 1)
+ state.before.last = v_len(state.chainfrom) - 1
 END SUB
 
 FUNCTION create_attack_preview_slice(caption as string, byval attack_id as integer, byval parent as Slice Ptr) as Slice Ptr
