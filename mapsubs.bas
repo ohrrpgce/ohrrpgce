@@ -1575,6 +1575,24 @@ DO
   mapedit_draw_layer st, 0, height, YES, st.layerpals(height)
  END IF
 
+ '--Grid lines
+ IF st.show_grid THEN
+  DIM col as integer = st.grid_color
+  IF st.grid_color = 0 THEN
+   'Don't use tog, flashes too quickly
+   'col = uilook(uiSelectedItem + (get_tickcount() \ 2) MOD 2)
+   col = (get_tickcount() \ 4) MOD 16
+  END IF
+  FOR y as integer = 20 - (st.mapy MOD 20) TO st.viewport.high STEP 20
+   DIM start as XYPair = st.viewport.topleft + XY(0, y)
+   drawline start.x, start.y, start.x + st.viewport.wide, start.y, col, dpage, 8, 2
+  NEXT
+  FOR x as integer = 20 - (st.mapx MOD 20) TO st.viewport.wide STEP 20
+   DIM start as XYPair = st.viewport.topleft + XY(x, 0)
+   drawline start.x, start.y, start.x, start.y + st.viewport.high, col, dpage, 8, 2
+  NEXT
+ END IF
+
  '--hero start location display--
  IF gen(genStartMap) = st.map.id THEN
   IF gen(genStartX) >= st.mapx \ 20 AND gen(genStartX) <= (st.mapx + st.viewport.wide) \ 20 AND gen(genStartY) >= st.mapy \ 20 AND gen(genStartY) <= (st.mapy + st.viewport.high) \ 20 THEN
@@ -5848,7 +5866,7 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(9)
+ REDIM menu(11)
  state.last = UBOUND(menu)
 
  menu(0) = "[Close]"
@@ -5862,6 +5880,13 @@ SUB MapSettingsMenu.update ()
  menu(7) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
  menu(8) = "Mouse pan speed: " & pan_mult_str
  menu(9) = "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
+ menu(10) = "Show grid: " & yesorno(st->show_grid)
+ menu(11) = "Grid color: "
+ IF st->show_grid THEN
+  menu(11) &= IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
+ ELSE
+  menu(11) &= "N/A"
+ END IF
 END SUB
 
 FUNCTION MapSettingsMenu.each_tick () as bool
@@ -5894,6 +5919,14 @@ FUNCTION MapSettingsMenu.each_tick () as bool
    changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
   CASE 9
    changed = boolgrabber(st->shadows_when_skewing, state)
+  CASE 10
+   changed = boolgrabber(st->show_grid, state)
+  CASE 11
+   changed = intgrabber(st->grid_color, 0, 255)
+   IF enter_space_click(state) THEN
+    st->grid_color = color_browser_256(st->grid_color)
+    changed = YES
+   END IF
 
  END SELECT
  state.need_update OR= changed
@@ -5917,7 +5950,9 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.per-tileset_current_tile", st.layers_share_usetile
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
- write_config "mapedit.shadows_when_skewing",  st.shadows_when_skewing
+ write_config "mapedit.shadows_when_skewing", st.shadows_when_skewing
+ write_config "mapedit.show_grid", yesorno(st.show_grid)
+ write_config "mapedit.grid_color", IIF(st.grid_color, rgb_to_string(master(st.grid_color)), "0")
 END SUB
 
 SUB mapedit_load_settings (st as MapEditState)
@@ -5930,4 +5965,6 @@ SUB mapedit_load_settings (st as MapEditState)
  st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)
  st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 1.0, 5.0)
  st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
+ st.show_grid = read_config_bool("mapedit.show_grid", NO)
+ st.grid_color = string_to_color(read_config_str("mapedit.grid_color", "rgb(0,190,190)"), 0)
 END SUB

@@ -350,6 +350,8 @@ TYPE MapEditState
   layers_share_usetile as bool 'Current tile is per-tileset
   mouse_pan_mult as double   'When panning the map with the mouse, how much to multiply the movements by
   shadows_when_skewing as bool
+  show_grid as bool
+  grid_color as integer      'Master pal color index, or 0 to flash instead
 
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
