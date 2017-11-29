@@ -202,8 +202,9 @@ DECLARE SUB putpixel OVERLOAD (spr as Frame ptr, x as integer, y as integer, c a
 DECLARE SUB putpixel OVERLOAD (x as integer, y as integer, c as integer, p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (spr as Frame ptr, x as integer, y as integer) as integer
 DECLARE FUNCTION readpixel OVERLOAD (x as integer, y as integer, p as integer) as integer
-DECLARE SUB drawline OVERLOAD (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer)
-DECLARE SUB drawline OVERLOAD (x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, p as integer)
+DECLARE SUB drawline OVERLOAD (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
+DECLARE SUB drawline OVERLOAD (x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, p as integer, dash_cycle as integer = 0, dash_len as integer = 0)
+
 DECLARE SUB paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 DECLARE SUB ellipse (fr as Frame ptr, x as double, y as double, radius as double, c as integer, fillcol as integer = -1, semiminor as double = 0.0, angle as double = 0.0)
 DECLARE SUB replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)

@@ -4002,11 +4002,16 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 	end if
 end sub
 
-sub drawline (x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, p as integer)
-	drawline vpages(p), x1, y1, x2, y2, c
+sub drawline (x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, p as integer, dash_cycle as integer = 0, dash_len as integer = 0)
+	drawline vpages(p), x1, y1, x2, y2, c, dash_cycle, dash_len
 end sub
 
-sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer)
+'dash_cycle:
+'    If nonzero, draw dots/dashes. The cycle length is the number of
+'    pixels from the start of one dash to the next one. Should be >= 2.
+'dash_len:
+'    Dash length in pixels. Shoudl be < dash_cycle.
+sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
 	'Uses Bresenham's algorithm
 
 	if clippedframe <> dest then
@@ -4093,9 +4098,19 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	dim sptr as ubyte ptr
 	sptr = dest->image + (y1 * dest->pitch) + x1
 
+	dim dash_accum as integer
+
 	for it as integer = 0 to length
 		if POINT_CLIPPED(x1, y1) = NO then
-			*sptr = c
+			if dash_cycle = 0 then
+				*sptr = c
+			else
+				if dash_accum < dash_len then
+					*sptr = c
+				end if
+				dash_accum += 1
+				if dash_accum = dash_cycle then dash_accum = 0
+			end if
 		end if
 		delta += delta_add
 		if delta > 0 then
