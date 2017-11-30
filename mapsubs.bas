@@ -699,7 +699,7 @@ DO
  mapedit_window_size_updates st
 
  IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
+ IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN  'Ignore OS keys and Ctrl+F# to toggle layer vis
   IF keyval(scF8) > 1 THEN mapedit_settings_menu st 'If quit by F2-F7, will catch it here
   FOR i as integer = tile_mode TO zone_mode
    IF keyval(scF2 + i) > 1 THEN st.seteditmode = i
@@ -776,7 +776,7 @@ DO
 
  ' This can be modified to override/augment the normal key for activating the current tool
  ' if it is a 'drawing' tool (Currently used just for wallmap bit keys)
- DIM use_draw_tool as bool = tool_newkeypress
+ DIM use_current_tool as bool = tool_newkeypress
 
  IF st.new_stroke = NO AND keyval(scSpace) = 0 AND mouse.buttons = 0 THEN
   'Yes, a bit of a hack, not sure what a more rigourous test would be
@@ -937,7 +937,7 @@ DO
 
    st.tool_value = st.usetile(st.layer)
 
-   'Ctrl+J to jiggle (although the other layer visualisation works in any
+   'Ctrl+J to jiggle (although the other layer visualisation keys work in any
    'edit mode...)
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
     setbit st.jiggle(), 0, st.layer, (readbit(st.jiggle(), 0, st.layer) XOR 1)
@@ -1039,12 +1039,13 @@ DO
     st.wallthickness = large(st.wallthickness - 1, 0)
    END IF
 
-   DIM pass_overtile as integer = readblock(st.map.pass, st.x, st.y)
+   DIM cur_wallbits as integer = readblock(st.map.pass, st.x, st.y)
    IF tool_newkeypress THEN
+    'Set/remove all 4 walls at once
     st.wallmap_mask = 255  'Remove all other bits
-    IF (pass_overtile AND 15) = 0 THEN st.tool_value = 15
-    IF (pass_overtile AND 15) = 15 THEN st.tool_value = 0
-    IF (pass_overtile AND 15) > 0 AND (pass_overtile AND 15) < 15 THEN st.tool_value = 0
+    IF (cur_wallbits AND 15) = 0 THEN st.tool_value = 15
+    IF (cur_wallbits AND 15) = 15 THEN st.tool_value = 0
+    IF (cur_wallbits AND 15) > 0 AND (cur_wallbits AND 15) < 15 THEN st.tool_value = 0
    END IF
 
    DIM wallbit as integer = 0
@@ -1064,8 +1065,8 @@ DO
     ' Examine the tile under the cursor, toggle the bit on that tile, and perform the
     ' same action on all other selected tiles
     st.wallmap_mask = wallbit
-    st.tool_value = (pass_overtile AND wallbit) XOR wallbit
-    use_draw_tool = YES
+    st.tool_value = (cur_wallbits AND wallbit) XOR wallbit
+    use_current_tool = YES
    END IF
 
    '---DOORMODE-----
@@ -1402,14 +1403,14 @@ DO
   SELECT CASE st.tool
    CASE draw_tool
     'IF keyval(scSpace) > 0 AND (st.new_stroke OR st.moved) THEN
-    IF use_draw_tool OR (tool_buttonpressed AND st.moved) THEN
+    IF use_current_tool OR (tool_buttonpressed AND st.moved) THEN
      '(No need to reapply brush until the cursor moves)
      st.brush(st, st.x, st.y, st.tool_value)
     END IF
 
    CASE box_tool
     IF st.tool_hold THEN
-     IF use_draw_tool THEN
+     IF use_current_tool THEN
       'We have two corners
       st.tool_hold = NO
       FOR tx as integer = small(st.tool_hold_pos.x, st.x) TO large(st.tool_hold_pos.x, st.x)
@@ -1427,17 +1428,17 @@ DO
     END IF
 
    CASE fill_tool
-    IF use_draw_tool THEN
+    IF use_current_tool THEN
      fill_map_area st, st.x, st.y, st.reader
     END IF
 
    CASE paint_tool
-    IF use_draw_tool THEN
+    IF use_current_tool THEN
      fill_with_other_area st, st.x, st.y, @tilereader
     END IF
 
    CASE replace_tool
-    IF use_draw_tool THEN
+    IF use_current_tool THEN
      DIM replace_old as integer
      replace_old = st.reader(st, st.x, st.y)
      FOR ty as integer = 0 to st.map.high - 1
@@ -1477,7 +1478,7 @@ DO
     IF st.cloned = NULL THEN
      st.tool = mark_tool
     ELSE
-     IF use_draw_tool OR (tool_buttonpressed AND st.moved) THEN
+     IF use_current_tool OR (tool_buttonpressed AND st.moved) THEN
       apply_changelist st, st.cloned, st.pos - st.clone_offset
      END IF
      IF keyval(scCtrl) > 0 AND keyval(scM) > 1 THEN
@@ -1616,11 +1617,11 @@ DO
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
     IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
-     DIM pass_overtile as integer = readblock(st.map.pass, tilex, tiley)
+     DIM walls as integer = readblock(st.map.pass, tilex, tiley)
      DIM pixelx as integer = tilex * 20 - st.mapx
      DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
      IF st.show_overhead_bit THEN
-      IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+      IF (walls AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
      END IF
     END IF
    NEXT xidx
@@ -1635,7 +1636,7 @@ DO
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
     IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
-     DIM pass_overtile as integer = readblock(st.map.pass, tilex, tiley)
+     DIM wallbits as integer = readblock(st.map.pass, tilex, tiley)
      DIM pixelx as integer = tilex * 20 - st.mapx
      DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
 
@@ -1645,31 +1646,31 @@ DO
       temppal.col(1) = col
 
       ' Draw a circle in the center, to indicate the bit is set even if there are no walls
-      IF (pass_overtile AND passAllWalls) = 0 THEN
+      IF (wallbits AND passAllWalls) = 0 THEN
        frame_draw st.arrow_icons(4), @temppal, pixelx, pixely, , , dpage
       END IF
 
       FOR direc as integer = 0 TO 3
-       IF (pass_overtile AND (1 SHL direc)) THEN frame_draw st.arrow_icons(direc), @temppal, pixelx, pixely, , , dpage
+       IF (wallbits AND (1 SHL direc)) THEN frame_draw st.arrow_icons(direc), @temppal, pixelx, pixely, , , dpage
       NEXT
      ELSEIF st.wallthickness > 0 THEN
-      IF (pass_overtile AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, st.wallthickness, col, dpage
-      IF (pass_overtile AND passEastWall)  THEN rectangle pixelx + 19, pixely     , -st.wallthickness, 20, col, dpage
-      IF (pass_overtile AND passSouthWall) THEN rectangle pixelx     , pixely + 19, 20, -st.wallthickness, col, dpage
-      IF (pass_overtile AND passWestWall)  THEN rectangle pixelx     , pixely     , st.wallthickness, 20, col, dpage
+      IF (wallbits AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, st.wallthickness, col, dpage
+      IF (wallbits AND passEastWall)  THEN rectangle pixelx + 19, pixely     , -st.wallthickness, 20, col, dpage
+      IF (wallbits AND passSouthWall) THEN rectangle pixelx     , pixely + 19, 20, -st.wallthickness, col, dpage
+      IF (wallbits AND passWestWall)  THEN rectangle pixelx     , pixely     , st.wallthickness, 20, col, dpage
      ELSEIF st.wallthickness = 0 THEN
-      IF (pass_overtile AND passNorthWall) THEN drawants vpages(dpage), pixelx       , pixely       , 20, 1
-      IF (pass_overtile AND passEastWall)  THEN drawants vpages(dpage), pixelx + 20-1, pixely       , 1, 20
-      IF (pass_overtile AND passSouthWall) THEN drawants vpages(dpage), pixelx       , pixely + 20-1, 20, 1
-      IF (pass_overtile AND passWestWall)  THEN drawants vpages(dpage), pixelx       , pixely       , 1, 20
+      IF (wallbits AND passNorthWall) THEN drawants vpages(dpage), pixelx       , pixely       , 20, 1
+      IF (wallbits AND passEastWall)  THEN drawants vpages(dpage), pixelx + 20-1, pixely       , 1, 20
+      IF (wallbits AND passSouthWall) THEN drawants vpages(dpage), pixelx       , pixely + 20-1, 20, 1
+      IF (wallbits AND passWestWall)  THEN drawants vpages(dpage), pixelx       , pixely       , 1, 20
      END IF
 
      textcolor uilook(uiSelectedItem + tog), 0
      ' Y positions
-     IF (pass_overtile AND passVehA) THEN printstr "A", pixelx + 2, pixely + 1, dpage
-     IF (pass_overtile AND passVehB) THEN printstr "B", pixelx + 11, pixely + 1, dpage
-     IF (pass_overtile AND passHarm) THEN printstr "H", pixelx + 2, pixely + 11, dpage
-     IF (pass_overtile AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
+     IF (wallbits AND passVehA) THEN printstr "A", pixelx + 2, pixely + 1, dpage
+     IF (wallbits AND passVehB) THEN printstr "B", pixelx + 11, pixely + 1, dpage
+     IF (wallbits AND passHarm) THEN printstr "H", pixelx + 2, pixely + 11, dpage
+     IF (wallbits AND passOverhead) THEN printstr "O", pixelx + 11, pixely + 11, dpage
     END IF
    NEXT xidx
   NEXT yidx
