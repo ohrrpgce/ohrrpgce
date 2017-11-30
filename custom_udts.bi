@@ -22,6 +22,7 @@ ENUM ToolIDs
   SPRITEEDITOR_LAST_TOOL = scroll_tool
 
   paint_tool
+  draw_wall_tool 'pass_mode draw draw tool has special mouse handling
   'The following tools don't do anything, but just determine what cursor to use
   select_tool   'Show a normal cursor (door and foe mapping)
   npc_tool      'NPC placement mode - the cursor is an NPC

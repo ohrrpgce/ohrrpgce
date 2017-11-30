@@ -14,7 +14,7 @@ Use SHIFT+arrow keys to move around the map faster.
 
 Use ALT+arrow keys to move the view of the map.
 
-While you are in passability mode, you will see thick flashing lines that indicate where walls are located.
+While you are in passability mode, you will see thick flashing lines that indicate where walls are located. (You can customise how these look in the Settings.)
 
 At the top right corner the current drawing tool is shown. The tools are:
 
@@ -23,8 +23,15 @@ D - Draw tool:
   walls that are described below (see
   "Drawing Keys"), or press and hold
   down SPACE while moving the cursor
-  or DRAG the mouse to draw walls in
-  a line.
+  to draw blocks of walls in a line.
+  You can also use the mouse: either
+  LEFT CLICK to add or remove one
+  wall, or DRAG the mouse to draw
+  individual walls in a line.
+  You can hold CTRL while clicking or
+  dragging to draw blocks of walls
+  (all four sides) rather than just
+  one wall at a time.
 
 B - Box tool:
   Press SPACE/CLICK once to place one
@@ -78,7 +85,7 @@ C - Clone tool:
 
 Drawing Keys:
 
-Press SPACE/CLICK to make the tile under the cursor fully impassable in all four directions. Press SPACE/CLICK again to remove the walls and make the tile passable.
+Press SPACE or CLICK while holding CTRL to make the tile under the cursor fully impassable in all four directions. Press SPACE/CLICK again to remove the walls and make the tile passable.
 
 CTRL+Up makes the selected tile impassable on the top.
 
@@ -87,6 +94,8 @@ CTRL+Down makes the selected tile impassable on the bottom.
 CTRL+Left makes the selected tile impassable on the left side.
 
 CTRL+Right makes the selected tile impassable on the right side.
+
+CLICK or DRAG the mouse near the edge of a tile to make the tile impassable on that side.
 
 Press W to turn all the walls on the current tile into one-way walls. This means that the hero and NPCS can walk through the walls when they leave the tile. If there are no walls on the tile then the one-way bit does nothing, but is still indicated with a small circle.
 One-way walls are marked with a special zone, ID 10000, which you can also see and edit in the zone editor.
@@ -110,7 +119,7 @@ CTRL+S immediately saves, useful when live-previewing a game.
 
 + and - change the way that the walls are drawn on the map.
 
-CTRL+W paints the tiles visible in the window/screen using the last Drawing Key used.
+CTRL+W paints the tiles visible in the window/screen using the last wall type you placed.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
 

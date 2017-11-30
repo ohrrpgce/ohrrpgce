@@ -33,6 +33,9 @@ DECLARE SUB mapedit_window_size_updates(st as MapEditState)
 
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
+DECLARE SUB mapedit_draw_walls_click(st as MapEditState, byval pos as XYPair)
+DECLARE SUB mapedit_draw_walls_drag(st as MapEditState, p1 as XYPair, p2 as XYPair, byref writeval as integer)
+
 DECLARE SUB fill_map_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as integer, reader as FnReader)
 
@@ -366,7 +369,7 @@ st.editmode = 0
 st.seteditmode = -1
 DIM mode_tools_map(zone_mode, 10) as integer = { _
    {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
-   {draw_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _                    'pass_mode
+   {draw_wall_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _               'pass_mode
    {-1}, _                                                                            'door_mode
    {-1}, _                                                                            'npc_mode
    {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
@@ -450,6 +453,11 @@ NEXT
 
 'Note that most of this array is empty
 WITH st.toolinfo(draw_tool)
+ .name = "Draw"
+ .icon = "D"  'CHR(3)
+ .shortcut = scD
+END WITH
+WITH st.toolinfo(draw_wall_tool)
  .name = "Draw"
  .icon = "D"  'CHR(3)
  .shortcut = scD
@@ -684,7 +692,9 @@ DIM tog as integer
 DIM slowtog as integer
 DIM chequer_scroll as integer
 DIM byref mouse as MouseInfo = readmouse
+
 DIM mouse_pan as bool
+DIM mouse_draws_walls as bool  'Only used by draw_wall_tool: whether mouse input will draw individual walls
 DIM npc_cursor_dir as DirNum = -1
 
 setkeys
@@ -739,7 +749,8 @@ DO
   IF st.mouse_attention = focusMap THEN
    'Also, ignore normal mouse controls while panning or skewing the map
    '(Including if st.mouse_skewing not set yet: started by holding down Ctrl)
-   IF (st.mouse_skewing OR actually_panning OR keyval(scCtrl)) = NO THEN
+   IF (st.mouse_skewing OR actually_panning OR _
+       ((mouse.buttons AND mouseRight) AND keyval(scCtrl) > 0)) = NO THEN
     'In-bounds
 
     'Move cursor to mouse position?
@@ -1029,6 +1040,8 @@ DO
    'st.tool_value determined on the fly is Ctrl+W, as well as holding
    'space down and drawing a line. That just remembers whatever the
    'last tool_value was, which is OK.
+   'Drawing lines with the mouse does the same, except that tool_value
+   'is set in mapedit_draw_walls_drag at the start of the line
    IF st.reset_tool THEN st.tool_value = passAllWalls  '=15, default
 
    ' +/- to change the thickness walls are drawn at
@@ -1040,7 +1053,14 @@ DO
    END IF
 
    DIM cur_wallbits as integer = readblock(st.map.pass, st.x, st.y)
-   IF tool_newkeypress THEN
+
+   mouse_draws_walls = (st.mouse_attention = focusMap) ANDALSO (st.tool = draw_wall_tool)
+   IF keyval(scCtrl) > 0 THEN mouse_draws_walls = NO  'Override key
+
+   IF mouse_draws_walls ANDALSO (mouse.clicks AND mouseLeft) THEN
+    'Teel mapedit_draw_walls_drag it needs to set st.tool_value at the start of a drag
+    st.tool_value = -1
+   ELSEIF tool_newkeypress THEN
     'Set/remove all 4 walls at once
     st.wallmap_mask = 255  'Remove all other bits
     IF (cur_wallbits AND 15) = 0 THEN st.tool_value = 15
@@ -1393,6 +1413,9 @@ DO
   END IF
 
   IF keyval(scW) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+W  Paint the window/screen
+   DIM toolval as integer = st.tool_value
+   IF st.editmode = pass_mode AND toolval = -1 THEN toolval = 15  '-1 isn't a valid value
+
    DIM mapview as RectType
    mapview.topleft = st.camera / 20
    mapview.size = st.viewport.size / 20
@@ -1401,7 +1424,7 @@ DO
 
    FOR tx as integer = 0 TO mapview.wide - 1
     FOR ty as integer = 0 TO mapview.high - 1
-     st.brush(st, mapview.x + tx, mapview.y + ty, st.tool_value)
+     st.brush(st, mapview.x + tx, mapview.y + ty, toolval)
     NEXT ty
    NEXT tx
   END IF
@@ -1411,6 +1434,22 @@ DO
     'IF keyval(scSpace) > 0 AND (st.new_stroke OR st.moved) THEN
     IF use_current_tool OR (tool_buttonpressed AND st.moved) THEN
      '(No need to reapply brush until the cursor moves)
+     'TODO: when drawing with a mouse, the cursor might have moved by
+     'more than one tile; draw a line.
+     st.brush(st, st.x, st.y, st.tool_value)
+    END IF
+
+   CASE draw_wall_tool
+    IF mouse_draws_walls ANDALSO (mouse.release AND mouseLeft) ANDALSO st.tool_value = -1 THEN
+     'Checking tool_value ensures we haven't drawn any walls by dragging
+     mapedit_draw_walls_click st, screen_to_map(st, mouse.pos)
+    ELSEIF mouse_draws_walls ANDALSO (mouse.buttons AND mouseLeft) THEN
+     IF mouse.dragging AND mouseLeft THEN
+      mapedit_draw_walls_drag st, screen_to_map(st, mouse.lastpos), screen_to_map(st, mouse.pos), st.tool_value
+     END IF
+     'We also need to filter out clicks rather than fall through to below
+    ELSEIF use_current_tool OR (tool_buttonpressed AND st.moved) THEN
+     'Keyboard controls, or holding Ctrl to draw by tile rather than by directional wall
      st.brush(st, st.x, st.y, st.tool_value)
     END IF
 
@@ -4804,6 +4843,101 @@ SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y as inte
   NEXT
  NEXT
  UnloadTileMap st.temptilemap
+END SUB
+
+
+'==========================================================================================
+'                                     draw_wall_tool
+'==========================================================================================
+
+
+'Take each tile and draw four 10px long lines out from the center, like so:
+'  ___
+' | | |
+' |---|
+' |_|_|
+'
+'When the mouse is dragged across one of these four lines, we add a wall.
+'This function handles intersections with the vertical pieces when axis = 0,
+'and the horizontal pieces when axis = 1.
+'
+'writeval: whether to add walls, rather than delete
+SUB mapedit_draw_walls_drag_axis(st as MapEditState, p1 as XYPair, p2 as XYPair, byref writeval as integer, axis as integer)
+ DIM as XYPair a = p1, b = p2
+ 'This function is written for axis=0, with inputs and outpts flipped for axis=1
+ '? "p1", p1, "p2", p2, "axis", axis, "write", writeval
+ IF axis = 1 THEN
+  SWAP a.x, a.y
+  SWAP b.x, b.y
+ END IF
+
+ IF a.x > b.x THEN
+  SWAP a, b
+ ELSEIF a.x = b.x THEN
+  EXIT SUB  'Avoid divide-by-zero
+ END IF
+
+ DIM gradient as double = (b.y - a.y) / (b.x - a.x)
+
+ 'Find the first value of x at a half-tile
+ DIM x as integer
+ x = a.x - a.x MOD 20 + 20 \ 2
+ IF x < a.x THEN x += 20
+
+ WHILE x <= b.x
+  'Find the intersection point
+  DIM y as double
+  y = a.y + (x - a.x) * gradient
+  '?"at x = " & x & " y = " & y
+  DIM as integer tilex = x \ 20, tiley = y \ 20
+  IF axis = 1 THEN SWAP tilex, tiley
+
+  DIM wallbit as integer
+  IF y MOD 20 < 20 \ 2 THEN
+   wallbit = IIF(axis = 0, passNorthWall, passWestWall)
+  ELSE
+   wallbit = IIF(axis = 0, passSouthWall, passEastWall)
+  END IF
+  '?"bit " & wallbit
+
+  DIM walls as integer = readblock(st.map.pass, tilex, tiley)
+  IF writeval = -1 THEN
+   'This is the first wall segment, decide whether we are erasing or adding walls
+   writeval = (walls AND wallbit) XOR wallbit
+  END IF
+  IF writeval THEN walls OR= wallbit ELSE walls AND= NOT wallbit
+  wallbrush st, tilex, tiley, walls
+
+  x += 20
+ WEND
+END SUB
+
+'Implements draw_wall_tool when dragging the mouse
+SUB mapedit_draw_walls_drag(st as MapEditState, p1 as XYPair, p2 as XYPair, byref writeval as integer)
+ mapedit_draw_walls_drag_axis st, p1, p2, writeval, 0
+ mapedit_draw_walls_drag_axis st, p1, p2, writeval, 1
+END SUB
+
+'Implements draw_wall_tool when clicking the mouse
+SUB mapedit_draw_walls_click(st as MapEditState, byval pos as XYPair)
+ DIM tile as XYPair = pos \ 20
+ pos.x = pos.x MOD 20
+ pos.y = pos.y MOD 20
+
+ 'Figure out in which quadrant pos is
+ DIM up_left as bool = (20 - pos.x) > pos.y
+ DIM up_right as bool = pos.x > pos.y
+ DIM wallbit as integer
+ IF up_right THEN
+  IF up_left THEN wallbit = passUpWall ELSE wallbit = passRightWall
+ ELSE
+  IF up_left THEN wallbit = passLeftWall ELSE wallbit = passDownWall
+ END IF
+
+ DIM walls as integer = readblock(st.map.pass, tile.x, tile.y)
+ walls XOR= wallbit
+ wallbrush st, tile.x, tile.y, walls
+ st.tool_value = wallbit  'Save this for Ctrl+W
 END SUB
 
 
