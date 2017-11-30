@@ -758,11 +758,13 @@ DO
     IF (st.cursor_follows_mouse ANDALSO mouse.moved_dist > 1) ORELSE _
        normal_right_release OR (mouse.buttons AND mouseLeft) THEN
      st.pos = mouse_over_tile
+     st.mouse_active = YES
     END IF
 
     'Left mouse button can activate tools
     IF mouse.buttons AND mouseLeft THEN
      tool_buttonpressed = YES
+     st.mouse_active = YES
     END IF
     IF mouse.clicks AND mouseLeft THEN
      tool_newkeypress = YES
@@ -1347,6 +1349,7 @@ DO
  END IF
 
  'Keyboard camera+cursor controls
+ IF keyval(scLeft) OR keyval(scRight) OR keyval(scUp) OR keyval(scDown) THEN st.mouse_active = NO
  DIM rate as XYPair = (1, 1)
  IF keyval(scShift) > 0 THEN rate = st.shift_speed
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
@@ -2033,6 +2036,25 @@ END SUB
 SUB mapedit_draw_cursor(st as MapEditState)
  DIM as RectType tool_rect = map_to_screen(st, mapedit_tool_rect(st))
  SELECT CASE st.tool
+  CASE draw_wall_tool
+   IF st.mouse_active AND st.per_layer_skew = 0 THEN
+    'Draw a different cursor which is similar to the grid lines, which allows the
+    'walls to stil easily be seen underneath regardless of st.wallthickness
+
+    DIM col as integer = st.grid_color
+    IF st.grid_color = 0 THEN
+     col = (get_tickcount() \ 4) MOD 16
+    END IF
+
+    DIM dash_len as integer = (get_tickcount() \ 3) MOD 6
+    DIM as XYPair p1 = tool_rect.topleft, p2 = tool_rect.topleft + tool_rect.size - 1
+    drawline p1.x, p1.y, p2.x, p1.y, col, dpage, 7, dash_len
+    drawline p1.x, p2.y, p2.x, p2.y, col, dpage, 7, dash_len
+    drawline p1.x, p1.y, p1.x, p2.y, col, dpage, 7, dash_len
+    drawline p2.x, p1.y, p2.x, p2.y, col, dpage, 7, dash_len
+    EXIT SUB
+   END IF
+
   CASE box_tool, mark_tool
    IF st.tool_hold THEN
     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different

@@ -306,6 +306,7 @@ TYPE MapEditState
   drag_camera_start as XYPair 'st.camera at start of pan
 
   mouse_attention as MapMouseAttention 'What currently recieves mouse input
+  mouse_active as bool       'The mouse was last used to move the cursor, rather than the keyboard
   defpass as bool            'Default passability ON/OFF
   cur_foe as integer         'Formation set selected for placement
   cur_npc as integer         'NPC ID selected for placement
