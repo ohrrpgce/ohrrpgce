@@ -744,7 +744,7 @@ DO
 
     'Move cursor to mouse position?
     'Ignore small movements, in case you bump the mouse while moving with the keyboard
-    IF (st.cursor_follows_mouse ANDALSO mouse.moved_dist > 3) ORELSE _
+    IF (st.cursor_follows_mouse ANDALSO mouse.moved_dist > 1) ORELSE _
        normal_right_release OR (mouse.buttons AND mouseLeft) THEN
      st.pos = mouse_over_tile
     END IF
@@ -931,8 +931,12 @@ DO
     IF keyval(scComma) > 1 THEN set_usetile st, st.usetile(st.layer) - 1
     IF keyval(scPeriod) > 1 THEN set_usetile st, st.usetile(st.layer) + 1
    END IF
-   IF mouse.buttons = 0 THEN  'Otherwise the wheel changes layer
+
+   'Mouse wheel
+   IF mouse.buttons = 0 ANDALSO keyval(scCtrl) = 0 THEN
     set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
+   ELSE
+    set_layer st, st.layer + mouse.wheel_clicks
    END IF
 
    st.tool_value = st.usetile(st.layer)
@@ -979,10 +983,6 @@ DO
      END IF
     NEXT
    '#ENDIF
-
-   IF mouse.buttons THEN
-    set_layer st, st.layer + mouse.wheel_clicks
-   END IF
 
    'Alt+number to toggle layer 1-10 enabled, Alt+Shift+number to toggle layer 11-15
    FOR i as integer = 1 TO small(maplayerMax, 20)
