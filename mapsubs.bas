@@ -369,7 +369,7 @@ st.editmode = 0
 st.seteditmode = -1
 DIM mode_tools_map(zone_mode, 10) as integer = { _
    {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
-   {draw_wall_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _               'pass_mode
+   {draw_wall_tool, draw_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _    'pass_mode
    {-1}, _                                                                            'door_mode
    {-1}, _                                                                            'npc_mode
    {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
@@ -458,9 +458,9 @@ WITH st.toolinfo(draw_tool)
  .shortcut = scD
 END WITH
 WITH st.toolinfo(draw_wall_tool)
- .name = "Draw"
- .icon = "D"  'CHR(3)
- .shortcut = scD
+ .name = "Line"
+ .icon = "L"  'CHR(3)
+ .shortcut = scL
 END WITH
 WITH st.toolinfo(box_tool)
  .name = "Box"

@@ -18,7 +18,7 @@ While you are in passability mode, you will see thick flashing lines that indica
 
 At the top right corner the current drawing tool is shown. The tools are:
 
-D - Draw tool:
+L - Line tool:
   Press one of the keys to modify
   walls that are described below (see
   "Drawing Keys"), or press and hold
@@ -29,9 +29,19 @@ D - Draw tool:
   wall, or DRAG the mouse to draw
   individual walls in a line.
   You can hold CTRL while clicking or
-  dragging to draw blocks of walls
-  (all four sides) rather than just
-  one wall at a time.
+  dragging to act like the Draw tool:
+  draw or remove blocks of walls
+  (all four sides).
+
+D - Draw tool:
+  When using keyboard controls, the
+  Draw and Line tools are identical.
+  When using the mouse, clicking or
+  dragging draws or removes blocks of
+  walls (all four sides) rather than
+  just one wall at a time.
+  So the draw box is the easiest way
+  to remove walls.
 
 B - Box tool:
   Press SPACE/CLICK once to place one
