@@ -5345,17 +5345,17 @@ END SUB
 
 'Translate a pixel position on the map to a pixel position on the screen
 FUNCTION map_to_screen(st as MapEditState, map_pos as XYPair) as XYPair
- RETURN XY(map_pos.x - st.mapx, map_pos.y - st.mapy + 20)
+ RETURN map_pos - st.camera + st.viewport.topleft
 END FUNCTION
 
 FUNCTION map_to_screen(st as MapEditState, map_rect as RectType) as RectType
- RETURN TYPE(map_rect.x - st.mapx, map_rect.y - st.mapy + 20, map_rect.wide, map_rect.high)
+ RETURN map_rect - st.camera + st.viewport.topleft
 END FUNCTION
 
 'Translate a pixel position on the screen to a pixel position on the map;
 'returns -1,-1 if off the map edge
 FUNCTION screen_to_map(st as MapEditState, pos as XYPair) as XYPair
- DIM ret as XYPair = (pos.x + st.mapx, pos.y + st.mapy - 20)
+ DIM ret as XYPair = pos - st.viewport.topleft + st.camera
  IF ret.x < 0 OR ret.y < 0 OR ret.x >= st.map.wide * tilew OR ret.y >= st.map.high * tileh THEN
   RETURN XY(-1, -1)
  END IF
@@ -5368,7 +5368,7 @@ FUNCTION mapedit_mouse_over_what(st as MapEditState) as MapMouseAttention
 
  IF st.toolsbar_available ANDALSO rect_collide_point(toolbar_rect(st), mouse.pos) THEN
   RETURN focusToolbar
- ELSEIF mouse.y >= 20 THEN
+ ELSEIF rect_collide_point(st.viewport, mouse.pos) THEN
   IF screen_to_map(st, mouse.pos).x < 0 THEN
    RETURN focusViewport
   ELSE
@@ -5383,10 +5383,8 @@ END FUNCTION
 FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
  'Visible portion of the map
  DIM mapview as RectType
- mapview.x = st.mapx
- mapview.y = st.mapy
- mapview.wide = vpages(dpage)->w
- mapview.high = vpages(dpage)->h - 20  '20 pixels for menubar
+ mapview.topleft = st.camera
+ mapview.size = st.viewport.size
  RETURN rect_collide_point(mapview, XY(x * 20 + 10, y * 20 + 10))
 END FUNCTION
 
