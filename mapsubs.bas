@@ -521,8 +521,8 @@ st.clone_merge = YES
 
 st.cur_door = find_first_free_door(st.map.door())
 
-DIM mapeditmenu(15) as string
-DIM mapeditmenu_display(15) as string
+DIM mapeditmenu(16) as string
+DIM mapeditmenu_display(16) as string
 
 mapeditmenu(0) = "Return to Map Menu"
 mapeditmenu(1) = "Edit General Map Data..."
@@ -536,10 +536,11 @@ mapeditmenu(8) = "Edit NPCs..."
 mapeditmenu(9) = "Place NPCs..."
 mapeditmenu(10) = "Edit Foemap..."
 mapeditmenu(11) = "Edit Zones..."
-mapeditmenu(12) = "Erase Map Data"
-mapeditmenu(13) = "Import/Export Tilemap..."
-mapeditmenu(14) = "Re-load Default Passability"
-mapeditmenu(15) = "Map name:"
+mapeditmenu(12) = "Editor Settings..."
+mapeditmenu(13) = "Erase Map Data"
+mapeditmenu(14) = "Import/Export Tilemap..."
+mapeditmenu(15) = "Re-load Default Passability"
+mapeditmenu(16) = "Map name:"
 
 DIM selectst as SelectTypeState
 st.menustate.size = 24
@@ -557,7 +558,7 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu st.menustate
- IF st.menustate.pt = 15 AND selectst.query = "" THEN
+ IF st.menustate.pt = 16 AND selectst.query = "" THEN
   strgrabber st.map.name, 39
   st.menustate.need_update = YES
  ELSEIF select_by_typing(selectst) THEN
@@ -587,15 +588,17 @@ DO
    CASE 9 TO 11  'Place NPCs, Foemap, Zonemap
     st.seteditmode = st.menustate.pt - 6
     mapeditor_mapping st, mode_tools_map()
-   CASE 12
+   CASE 12  'Settings
+    mapedit_settings_menu st
+   CASE 13
     mapedit_delete st
     IF st.map.id > gen(genMaxMap) THEN
      'This was the last map, and it was deleted instead of blanked
      EXIT DO
     END IF
-   CASE 13
-    mapedit_import_export st
    CASE 14
+    mapedit_import_export st
+   CASE 15
     '--reload default passability
     IF yesno("Set default passability for whole map, overwriting your wallmap? Don't worry, you can undo this by hitting Ctrl+Z in any editing mode", NO, NO) THEN
      FOR tx as integer = 0 TO st.map.wide - 1
@@ -611,7 +614,7 @@ DO
  END IF
 
  IF st.menustate.need_update THEN
-  mapeditmenu(15) = "Map name:" + st.map.name
+  mapeditmenu(16) = "Map name:" + st.map.name
   st.menustate.need_update = NO
  END IF
 
