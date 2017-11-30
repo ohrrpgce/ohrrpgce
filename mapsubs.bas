@@ -3783,7 +3783,7 @@ END SUB
 SUB update_tilepicker(st as MapEditState)
  'Based on correct_menu_state.
  DIM byref top as integer = st.menubarstart(st.layer)
- DIM byref pt as integer = st.usetile(st.layer)
+ DIM pt as integer = st.usetile(st.layer)
  'Menu width, as number of visible tiles (right 60 pixels is blacked out)
  DIM size as integer = (vpages(dpage)->w - 60) \ tilew - 1
 
@@ -3791,11 +3791,25 @@ SUB update_tilepicker(st as MapEditState)
  '(this indirectly allows scrolling by clicking at the edges)
  top = large(small(top, pt - 2), pt - size + 2)
  top = large(small(top, (st.menubar.wide - 1) - size), 0)
+
+ IF st.layers_share_usetile THEN
+  'All layers with the same tileset get changed
+  FOR layer as integer = 0 TO UBOUND(st.map.tiles)
+   IF st.tilesets(layer)->num = st.tilesets(st.layer)->num THEN
+    st.menubarstart(layer) = top
+   END IF
+  NEXT
+ END IF
 END SUB
 
 'Set the selected tile in the tileset. Not an error to try to set to something out-of-range.
 SUB set_usetile(st as MapEditState, tile as integer)
  IF tile < 0 ORELSE tile >= st.menubar.wide THEN EXIT SUB
+ 'Even if it appears we're not doing anything, if st.layers_share_usetile then
+ 'we have to make sure all layers are consistent
+ DIM noop as bool = (st.usetile(st.layer) = tile)
+
+ st.usetile(st.layer) = tile
  IF st.layers_share_usetile THEN
   'All layers with the same tileset get changed
   FOR layer as integer = 0 TO UBOUND(st.map.tiles)
@@ -3804,12 +3818,10 @@ SUB set_usetile(st as MapEditState, tile as integer)
    END IF
   NEXT
  END IF
- IF st.usetile(st.layer) = tile THEN EXIT SUB
- st.usetile(st.layer) = tile
 
  update_tilepicker st
 
- IF st.tool = clone_tool AND st.multitile_draw_brush THEN
+ IF noop = NO AND st.tool = clone_tool AND st.multitile_draw_brush THEN
   'Clone tool behaves like Draw: upon changing the drawing tile (including when changing layer), reset
   st.tool = draw_tool
   v_free st.cloned
