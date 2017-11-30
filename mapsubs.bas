@@ -1393,9 +1393,15 @@ DO
   END IF
 
   IF keyval(scW) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+W  Paint the window/screen
-   FOR tx as integer = 0 TO 15
-    FOR ty as integer = 0 TO 8
-     st.brush(st, st.mapx \ 20 + tx, st.mapy \ 20 + ty, st.tool_value)
+   DIM mapview as RectType
+   mapview.topleft = st.camera / 20
+   mapview.size = st.viewport.size / 20
+   mapview.wide = small(mapview.wide, st.map.wide - mapview.x)
+   mapview.high = small(mapview.high, st.map.high - mapview.y)
+
+   FOR tx as integer = 0 TO mapview.wide - 1
+    FOR ty as integer = 0 TO mapview.high - 1
+     st.brush(st, mapview.x + tx, mapview.y + ty, st.tool_value)
     NEXT ty
    NEXT tx
   END IF
