@@ -19,9 +19,9 @@ ENUM ToolIDs
   clone_tool
   replace_tool
   scroll_tool
-  SPRITEEDITOR_NUM_TOOLS
+  SPRITEEDITOR_LAST_TOOL = scroll_tool
 
-  paint_tool = SPRITEEDITOR_NUM_TOOLS
+  paint_tool
   'The following tools don't do anything, but just determine what cursor to use
   select_tool   'Show a normal cursor (door and foe mapping)
   npc_tool      'NPC placement mode - the cursor is an NPC
@@ -144,7 +144,7 @@ TYPE SpriteEditState
 
   'Fixed members
   previewpos as XYPair
-  toolinfo(SPRITEEDITOR_NUM_TOOLS - 1) as ToolInfoType
+  toolinfo(SPRITEEDITOR_LAST_TOOL) as ToolInfoType
   area(25) as MouseArea
 END TYPE
 

@@ -1370,7 +1370,7 @@ SUB editmaptile (ts as TileEditState, mouse as MouseInfo, area() as MouseArea, b
 STATIC clone as TileCloneBuffer
 DIM spot as XYPair
 
-DIM toolinfo(SPRITEEDITOR_NUM_TOOLS - 1) as ToolInfoType
+DIM toolinfo(SPRITEEDITOR_LAST_TOOL) as ToolInfoType
 WITH toolinfo(0)
  .name = "Draw"
  .icon = CHR(3)
