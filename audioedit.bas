@@ -17,7 +17,7 @@
 
 DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
 DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
-DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4, comments() as string) as string
 
 DECLARE SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
@@ -54,6 +54,46 @@ FUNCTION find_oggenc () as string
  RETURN cached_app
 END FUNCTION
 
+'Read ID3 tags from an mp3 and return them as a list of strings in the form "key=value"
+SUB mp3_ID3_tags (in_file as string, comments() as string)
+ ERASE comments
+
+ DIM as string app, args
+ app = find_madplay()
+ 'Shouldn't happen
+ IF app = "" THEN
+  visible_debug "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
+  EXIT SUB
+ END IF
+
+ 'We throw away encoder comments (-v)
+ args = " -T -q " & escape_filename(in_file)
+
+ DIM errcode as integer
+ DIM as string stdout_s, stderr_s
+ errcode = run_and_get_output(escape_filename(app) & args, stdout_s, stderr_s)
+ IF errcode THEN
+  visible_debug "Couldn't get ID3 tags from MP3 file: " & stderr_s
+  EXIT SUB
+ END IF
+
+ 'madplay actually prints all the tag info to stderr...
+ DIM lines() as string
+ split stderr_s, lines()
+
+ 'Each line is of the form "           Year: 2009"
+ FOR idx as integer = 0 TO UBOUND(lines)
+  DIM tag as string = TRIM(lines(idx))
+  DIM where as integer
+  where = INSTR(tag, ": ")
+  IF where = 0 THEN
+   debug "mp3_ID3_tags: line not understood: " & tag
+   CONTINUE FOR
+  END IF
+  str_array_append comments(), LEFT(tag, where - 1) & "=" & MID(tag, where + 2)
+ NEXT
+END SUB
+
 'Returns error message, or "" on success
 FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
  DIM as string tempwav
@@ -61,7 +101,9 @@ FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval quality as int
  tempwav = tmpdir & "temp." & randint(100000) & ".wav"
  ret = mp3_to_wav(in_file, tempwav)
  IF LEN(ret) THEN RETURN ret
- ret = wav_to_ogg(tempwav, out_file, quality)
+ DIM comments() as string
+ mp3_ID3_tags in_file, comments()
+ ret = wav_to_ogg(tempwav, out_file, quality, comments())
  safekill tempwav
  RETURN ret
 END FUNCTION
@@ -85,13 +127,16 @@ FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
 END FUNCTION
 
 'Returns error message, or "" on success
-FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4) as string
+FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4, comments() as string) as string
  DIM as string app, args, ret
  IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
  app = find_oggenc()
  IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
 
  args = " -q " & quality & " -o " & escape_filename(out_file) & " " & escape_filename(in_file)
+ FOR idx as integer = 0 TO UBOUND(comments)
+  args &= " -c " & escape_filename(comments(idx))
+ NEXT
  ret = spawn_and_wait(app, args)
  IF LEN(ret) THEN
   safekill out_file
@@ -181,7 +226,9 @@ SUB import_convert_wav(byref wav as string, byref oggtemp as string)
  clearpage vpage
  basic_textbox "Please wait, converting to OGG...", uilook(uiText), vpage
  setvispage vpage, NO
- DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality)
+ 'WAV files don't contain any comments
+ DIM comments() as string
+ DIM ret as string = wav_to_ogg(wav, oggtemp, ogg_quality, comments())
  IF LEN(ret) THEN
   visible_debug ret
   wav = ""
