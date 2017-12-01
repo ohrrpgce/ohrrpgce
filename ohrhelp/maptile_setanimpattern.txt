@@ -34,7 +34,8 @@ If tag do rest: This lets you choose
     turned on and off.
 End of animation: This causes the
     animation to skip back to the
-    first command. It is useful if
+    first command and to reset to the
+    initial tile. It is useful if
     your animation is simple and does
     not require all 9 commands.
 
@@ -45,3 +46,5 @@ wait 4
 left 1
 wait 4
 end of animation
+
+If you use all 9 commands and do not end with an "end of animation" command, then your animation will NOT reset to the initial tile when it reaches the end, but will still loop back to the start! This is probably not what you want, although you can exploit it to create a very long animation loop!

@@ -54,7 +54,7 @@ DECLARE SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, 
 ' Tileset animation editor
 DECLARE SUB testanimpattern (tastuf() as integer, byref taset as integer)
 DECLARE SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
-DECLARE SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+DECLARE SUB setanimpattern_refreshmenu(state as MenuState, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
 DECLARE SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tilesetnum as integer)
 DECLARE SUB tile_animation(byval tilesetnum as integer)
@@ -907,12 +907,15 @@ FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox 
  NEXT i
 END FUNCTION
 
+'Edit a tile animation's pattern
 SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer)
  DIM menu(10) as string
  DIM menu2(1) as string
+ menu(0) = "Previous Menu"
+
+ 'These are the parameter limits for each tile animation op
  DIM llim(7) as integer
  DIM ulim(7) as integer
- menu(0) = "Previous Menu"
  FOR i as integer = 1 TO 2
   llim(i) = 0
   ulim(i) = 9
@@ -949,6 +952,8 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
     IF enter_space_click(state) THEN
      IF state.pt = 0 THEN
       EXIT DO
+     ELSEIF state.pt = 10 THEN
+      'The final "repeat" can't be changed
      ELSE
       context = 1
      END IF
@@ -960,11 +965,11 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
     END IF
     usemenu state2
     index = bound(state.pt - 1, 0, 8) + 20 * taset
-    IF state2.pt = 0 THEN
+    IF state2.pt = 0 THEN  'Select op
      IF intgrabber(tastuf(2 + index), 0, 6) THEN state.need_update = YES
     END IF
-    IF state2.pt = 1 THEN
-     IF tastuf(2 + index) = 6 THEN
+    IF state2.pt = 1 THEN  'Select param
+     IF tastuf(2 + index) = 6 THEN  'If tag do rest
       IF tag_grabber(tastuf(11 + index), state2) THEN state.need_update = YES
      ELSE
       IF intgrabber(tastuf(11 + index), llim(tastuf(2 + index)), ulim(tastuf(2 + index))) THEN state.need_update = YES
@@ -973,7 +978,7 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
     IF enter_space_click(state2) THEN context = 0
   END SELECT
   IF state.need_update THEN
-   setanimpattern_refreshmenu state.pt, menu(), menu2(), tastuf(), taset, llim(), ulim()
+   setanimpattern_refreshmenu state, menu(), menu2(), tastuf(), taset, llim(), ulim()
    state.need_update = NO
   END IF
   '--Draw screen
@@ -991,7 +996,7 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
  setanimpattern_forcebounds tastuf(), taset, llim(), ulim()
 END SUB
 
-SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
+SUB setanimpattern_refreshmenu(state as MenuState, menu() as string, menu2() as string, tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
  DIM animop(7) as string
  animop(0) = "end of animation"
  animop(1) = "up"
@@ -1014,33 +1019,50 @@ SUB setanimpattern_refreshmenu(byval pt as integer, menu() as string, menu2() as
   anim_a = bound(tastuf((2 + anim_i) + 20 * taset), 0, 7)
   anim_b = tastuf((11 + anim_i) + 20 * taset)
   menu(anim_i + 1) = animop(anim_a)
-  IF anim_a = 0 THEN EXIT FOR
-  IF anim_a > 0 AND anim_a < 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " " & anim_b
-  IF anim_a = 6 THEN menu(anim_i + 1) = menu(anim_i + 1) & " (" & load_tag_name(anim_b) & ")"
+  IF anim_a = 0 THEN
+   state.last = 1 + anim_i
+   EXIT FOR
+  END IF
+  IF anim_a > 0 AND anim_a < 6 THEN menu(anim_i + 1) &= " " & anim_b
+  IF anim_a = 6 THEN menu(anim_i + 1) &= " (" & load_tag_name(anim_b) & ")"
  NEXT anim_i
- IF anim_i = 8 THEN menu(10) = "end of animation"
+ 'If the tile animation doesn't end with an "end of animation" op, then it
+ 'actually loops without resetting, meaning it can loop through the whole tileset!
+ 'This is used in some games such as Timpoline and Super Walrus Chef.
+ IF anim_i > 8 THEN
+  menu(10) = "repeat"
+  state.last = 10
+ END IF
 
- menu2(0) = "Action=" + animop(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
- menu2(1) = "Value="
- DIM ta_temp as integer
- ta_temp = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
- SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
-  CASE 1 TO 4
-   menu2(1) &= ta_temp & " Tiles"
-  CASE 5
-   menu2(1) &= ta_temp & " Ticks"
-  CASE 6
-   menu2(1) &= tag_condition_caption(ta_temp, , "Never")
-  CASE ELSE
-   menu2(1) &= "N/A"
- END SELECT
+ IF state.pt = 10 THEN
+  '"repeat"
+  menu2(0) = "Action=repeat  [pattern is full]"
+  menu2(1) = "Value=N/A"
+ ELSE
+  DIM op as integer
+  op = tastuf(2 + bound(state.pt - 1, 0, 8) + 20 * taset)
+  DIM param as integer
+  param = tastuf(11 + bound(state.pt - 1, 0, 8) + 20 * taset)
+  menu2(0) = "Action=" + animop(bound(op, 0, 7))
+  menu2(1) = "Value="
+  SELECT CASE op
+   CASE 1 TO 4
+    menu2(1) &= param & " Tiles"
+   CASE 5
+    menu2(1) &= param & " Ticks"
+   CASE 6
+    menu2(1) &= tag_condition_caption(param, , "Never")
+   CASE ELSE
+    menu2(1) &= "N/A"
+  END SELECT
+ END IF
 END SUB
 
 SUB setanimpattern_forcebounds(tastuf() as integer, byval taset as integer, llim() as integer, ulim() as integer)
  DIM tmp as integer
  FOR i as integer = 0 TO 8
-  tmp = bound(i, 0, 8) + 20 * taset
-  tastuf(2 + tmp) = bound(tastuf(2 + tmp), 0, 7)
+  tmp = i + 20 * taset
+  tastuf(2 + tmp) = bound(tastuf(2 + tmp), 0, 7)  '7 is "unknown command"
   tastuf(11 + tmp) = bound(tastuf(11 + tmp), llim(tastuf(2 + tmp)), ulim(tastuf(2 + tmp)))
  NEXT i
 END SUB
