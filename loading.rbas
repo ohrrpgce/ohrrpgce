@@ -4128,7 +4128,7 @@ FUNCTION get_general_reld() as NodePtr
   SetRootNode(gen_reld_doc, root_node)
  END IF
 
- return root_node
+ RETURN root_node
 END FUNCTION
 
 CONST LAST_PREDEFINED_BUTTON_NAME_ID = 2

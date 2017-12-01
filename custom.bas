@@ -1376,12 +1376,25 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  printstr "Unlumping", 0, 120, vpage
  setvispage vpage, NO
  unlump newrpg, workingdir + SLASH
+
  '--create archinym information lump
  DIM fh as integer
  OPENFILE(workingdir + SLASH + "archinym.lmp", FOR_OUTPUT, fh)
  PRINT #fh, "ohrrpgce"
  PRINT #fh, version
  CLOSE #fh
+
+ '--Delete general.reld version info. It will then be set by upgrade()
+ DIM root_node as NodePtr
+ root_node = get_general_reld()
+ IF root_node = NULL THEN showerror "Couldn't load general.reld!" : RETURN NO
+ DIM vernode as NodePtr
+ vernode = GetChildByName(root_node, "editor_version")
+ IF vernode THEN FreeNode vernode
+ vernode = GetChildByName(root_node, "prev_editor_versions")
+ IF vernode THEN FreeNode vernode
+ close_general_reld
+
  printstr "Finalumping", 0, 130, vpage
  setvispage vpage, NO
  '--re-lump files as NEW rpg file
