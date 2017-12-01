@@ -7186,7 +7186,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 <a name="about-renamehero"></a>
 		<h4>rename hero(who)</h4>
 <p>
-			Pops up a name-editing box that allows you to change a hero's name. The argument is the hero's ID number, or name in the format hero:name
+			
+				Pops up a name-editing box that allows you to change a hero's name.
+				The argument is the hero's ID number, or name in the format hero:name.
+				The return value is true if the player renamed the hero, or false if they cancelled.
+
 			
 			
 			
@@ -7196,7 +7200,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 <a name="about-renameherobyslot"></a>
 		<h4>rename hero by slot(who)</h4>
 <p>
-			Pops up a name-editing box that allows you to change a hero's name. The argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>
+			
+				Pops up a name-editing box that allows you to change a hero's name.
+				The argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>.
+				The return value is true if the player the hero renamed, or false if they cancelled.
+			
 			
 			
 			
@@ -11117,7 +11125,7 @@ end
 				If the optional argument <span class="param">recurse</span> is true (which is the default),
 				then all its children and descendents are copied too.
 				Returns the slice handle for the copy, which has the same parent,
-				and becomes the next sibling to <span class="param">handle</span>.
+				and becomes the previous sibling to <span class="param">handle</span>.
 				<br>
 				You can copy a protected slice (such as an NPC); the result isn't protected.
 				Any slices with special lookup codes (those listed in <a href="#about-lookupslice" class="ref">lookup slice</a>)
