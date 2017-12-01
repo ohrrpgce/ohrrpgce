@@ -290,7 +290,8 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- wrapprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage
+ 'Allow newlines in metadata but don't wrap, to cut off long comments
+ edgeprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
  edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
@@ -582,7 +583,8 @@ DO
 
  clearpage dpage
  standardmenu menu(), state, 0, 0, dpage
- wrapprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage
+ 'Allow newlines in metadata but don't wrap, to cut off long comments
+ edgeprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
  edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
