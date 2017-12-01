@@ -3212,14 +3212,14 @@ SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
 
  DIM scancode as integer
  IF slave_channel <> NULL_CHANNEL THEN
-  scancode = notification(!"Game is already running! Running multiple test copies of a game is not yet supported.\n" _
+  scancode = notification(!"The game is already running! You can't run multiple test copies of a game, but any edits you make will take effect without restarting.\n" _
                            "Press F1 to see the help file for Test Game.")
  ELSE
   gen(genCurrentDebugMode) = 1
   xbsave game + ".gen", gen(), 1000
   IF spawn_game(gdb, valgrind) THEN
    scancode = notification( "You're running your game in live preview mode. " _
-                           !"Please press F1 now to read the help file for this if you haven't already.\n\n" _
+                           !"Press F1 now to read the help file for this if you haven't already.\n\n" _
                             "Press any key")
   END IF
  END IF

@@ -7,5 +7,6 @@
 #define BROWSE_BI
 
 DECLARE FUNCTION browse (special as integer, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
+DECLARE SUB set_browse_default (default as string)
 
 #ENDIF

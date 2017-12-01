@@ -383,6 +383,8 @@ cleanup_workingdir_on_error = NO
 
 'debuginfo "mem usage " & memory_usage_string()
 
+IF isdir(CURDIR & SLASH & "import") THEN set_browse_default(CURDIR & SLASH & "import")
+
 editing_a_game = YES
 main_editor_menu
 'Execution ends inside main_editor_menu

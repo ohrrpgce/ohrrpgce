@@ -64,6 +64,12 @@ DECLARE FUNCTION legal_audio_file (filepath as string, byval typemask as integer
 DECLARE FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
 DECLARE FUNCTION check_is_scripts_file(filepath as string) as bool
 
+DIM SHARED remember as string
+
+SUB set_browse_default(default as string)
+ remember = default
+END SUB
+
 ' Returns an absolute path, or "" if the user cancelled.
 ' special: file type, see below
 ' default: initially selected file or a directory. Gets set to the file selected,
@@ -73,7 +79,6 @@ DECLARE FUNCTION check_is_scripts_file(filepath as string) as bool
 ' fmask:   A mask like "*.bmp". May not be used, depending on special (see below)
 ' needf:   whether to fade screen in
 FUNCTION browse (special as integer, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
-STATIC remember as string
 DIM ret as string
 
 DIM selectst as SelectTypeState
