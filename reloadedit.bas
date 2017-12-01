@@ -77,19 +77,6 @@ SUB reload_editor()
  DO
   setwait 55
   setkeys YES
-
-  IF st.state.need_update THEN
-   DeleteMenuItems st.menu
-   st.indent = 0
-   reload_editor_refresh st, st.root
-   init_menu_state st.state, st.menu
-   IF st.seeknode THEN
-    reload_editor_focus_node st, st.seeknode
-    st.seeknode = 0
-   END IF
-   st.state.need_update = NO
-  END IF
-  
   IF keyval(scESC) > 1 THEN
    IF reload_editor_okay_to_unload(st) THEN EXIT DO 
   END IF
@@ -115,7 +102,18 @@ SUB reload_editor()
    END IF
   END IF
 
-  
+  IF st.state.need_update THEN
+   DeleteMenuItems st.menu
+   st.indent = 0
+   reload_editor_refresh st, st.root
+   init_menu_state st.state, st.menu
+   IF st.seeknode THEN
+    reload_editor_focus_node st, st.seeknode
+    st.seeknode = 0
+   END IF
+   st.state.need_update = NO
+  END IF
+
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    reload_editor_edit_node st, st.menu.items[st.state.pt]
    reload_editor_rearrange st, st.menu.items[st.state.pt]

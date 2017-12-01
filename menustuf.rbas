@@ -494,7 +494,7 @@ FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval s
   IF herocount(3) >= 4 ORELSE free_slots_in_party() <= 0 THEN
    IF sound_and_alert THEN
     menusound gen(genCantBuySFX)
-    buystuff_set_alert buyst, readglobalstring(100, "No Room In Party", 20)
+    buystuff_set_alert buyst, readglobalstring(100, "No room in party", 20)
    END IF
    RETURN NO
   END IF

@@ -1860,14 +1860,14 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Spell Points",               1, "MP", 10
  GTS_add_to_menu menu, "Attack Power",               2, "Atk", 10
  GTS_add_to_menu menu, "Accuracy",                   3, "Aim", 10
- GTS_add_to_menu menu, "Extra Hits",                 4, "Hits", 10
+ GTS_add_to_menu menu, "Extra Hits number",          4, "Hits", 10
  GTS_add_to_menu menu, "Defense/Blocking Power",     5, "Def", 10
- GTS_add_to_menu menu, "Dodge Rate",                 6, "Dodge", 10
- GTS_add_to_menu menu, "Spare stat (Counter)",       7, "Ctr", 10
+ GTS_add_to_menu menu, "Dodge",                      6, "Dodge", 10
+ GTS_add_to_menu menu, "Unused stat (aka Counter)",  7, "Ctr", 10
  GTS_add_to_menu menu, "Speed",                      8, "Speed", 10
  GTS_add_to_menu menu, "Spell Skill",                29, "Magic", 10
  GTS_add_to_menu menu, "Spell Defense",              30, "Will", 10
- GTS_add_to_menu menu, "Spell cost reduction %",     31, "MP~", 10
+ GTS_add_to_menu menu, "Spell Cost Reduction %",     31, "MP~", 10
 
  GTS_menu_header menu, "Elements:"
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -1895,8 +1895,8 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Volume Menu [obsolete]",     69, "Volume", 10  'Obsolete
  GTS_add_to_menu menu, "Music Volume",              318, "Music", 20
  GTS_add_to_menu menu, "Sound Volume",              320, "Sound", 20
- GTS_add_to_menu menu, "Margins",                   308, "Margins", 10
- GTS_add_to_menu menu, "Purchases",                 313, "Purchases", 10
+ GTS_add_to_menu menu, "TV Margins [consoles only]",308, "Margins", 10
+ GTS_add_to_menu menu, "In-App Purchases",          313, "Purchases", 10
  GTS_add_to_menu menu, "Switch to windowed",        314, "Windowed", 20
  GTS_add_to_menu menu, "Switch to fullscreen",      316, "Fullscreen", 20
 
@@ -1917,10 +1917,10 @@ SUB edit_global_text_strings()
  GTS_menu_header menu, "Status Second Screen:"
  GTS_add_to_menu menu, "Elemental Effects Title",    302, "Elemental Effects:", 30
  GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
- GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "Weak to $E", 25,   "elemental_resist"
- GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "Strong to $E", 25, "elemental_resist"
- GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 25, "elemental_resist"
- GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorb $E", 25,   "elemental_resist"
+ GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "Weak to $E", 30,   "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "Strong to $E", 30, "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 30, "elemental_resist"
+ GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorb $E", 30,   "elemental_resist"
 
  GTS_menu_header menu, "Equip Menu:"
  GTS_add_to_menu menu, "Equip Nothing (unequip)",    110, "Nothing", 10
@@ -1973,7 +1973,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Cannot buy prefix",          89, "Cannot Afford", 20
  GTS_add_to_menu menu, "Cannot hire prefix",         91, "Cannot Hire", 20
  GTS_add_to_menu menu, "Inventory full warning",     305, "No room in inventory", 30
- GTS_add_to_menu menu, "Party full warning",         100, "No Room In Party", 20
+ GTS_add_to_menu menu, "Party full warning",         100, "No room in party", 20
  GTS_add_to_menu menu, "Buy alert",                  93, "Purchased", 20
  GTS_add_to_menu menu, "Hire alert (suffix)",        95, "Joined!", 20
  GTS_add_to_menu menu, "The shop is empty",          309, "The shop is empty", 30
