@@ -33,6 +33,8 @@ Two numbers are displayed on each NPC you place. The top number is the NPC's ID,
 
 Moving the cursor over an NPC displays the movement and avoidance zones for the NPC, if any, in two different colours. (You can't see this with the mouse.)
 
+CTRL+H moves the hero's starting location to this location on this map. Remember that only one map in your game needs a hero starting location.
+
 CTRL+S immediately saves, useful when live-previewing a game.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
