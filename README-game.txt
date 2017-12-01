@@ -31,8 +31,8 @@ search the internet for the word OHRRPGCE with your favorite search engine
 BUG TESTING INFO
 
 We appreciate bug-reports. If you find a bug, you can report it at:
-http://HamsterRepublic.com/bugzilla/ or e-mail it to:
-ohrrpgce-bugs@HamsterRepublic.com
+http://rpg.hamsterrepublic.com/ohrrpgce/How_do_I_report_a_bug%3F
+or e-mail it to: ohrrpgce-bugs@HamsterRepublic.com
 
 ---
 Have fun playing!
