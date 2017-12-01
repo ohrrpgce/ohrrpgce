@@ -4,7 +4,7 @@
 # inconsistencies or strings which aren't used.
 
 # All unique readglobalstring calls
-USES=$(grep -o "readglobalstring([^()]*)" *.*bas | perl -pe 's~.*readglobalstring\(([^)]*)\)~\1~' | sort -n -u)
+USES=$(grep -oh "readglobalstring(\([^()]\|([^)]*)\)*)" *.*bas | perl -pe 's~readglobalstring\((.*)\)$~\1~' | sort -n | uniq)
 
 # Get list from Global Text Strings menu
 # This strips out the description of the global string, and trailing comments and whitespace

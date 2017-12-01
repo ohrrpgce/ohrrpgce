@@ -252,7 +252,7 @@ END SUB
 
 'thing is either "hero" or "item" node of a shop thing, in the new RELOAD respresentation of STF
 SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
- ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "Money", 10)
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "$", 10)
  
  DIM thing_kind as string = NodeName(thing)
  DIM thing_id as integer = GetInteger(thing)
@@ -366,7 +366,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   DIM price as integer = buy."price".default(0).integer
   DIM price_str as string = ""
   IF price THEN
-   price_str = price & " " & readglobalstring(32, "Money", 10)
+   price_str = price & " " & readglobalstring(32, "$", 10)
   END IF
   READNODE buy, ignoreall
    WITHNODE buy."trade" as trade
@@ -408,7 +408,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
 END SUB
 
 SUB buystuff_refresh_empty (buyst as ShopBuyState)
- ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "Money", 10)
+ ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & gold & " " & readglobalstring(32, "$", 10)
  
  buystuff_init_info_menu buyst
  
@@ -1122,8 +1122,8 @@ ELSE
 END IF
 
 IF newgame_opt THEN
- menu(0) = readglobalstring(52, "New Game", 10)
- menu(1) = readglobalstring(53, "Exit", 10)
+ menu(0) = readglobalstring(52, "NEW GAME", 10)
+ menu(1) = readglobalstring(53, "EXIT", 10)
 ELSE
  menu(0) = readglobalstring(59, "CANCEL", 10)
 END IF
@@ -1486,7 +1486,7 @@ DO
  NEXT i
  centerfuz 160, 180, 312, 20, 4, page
  edgeprint info, pCenteredLeft, 175, uilook(uiText), page
- edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), page
+ edgeprint gold & " " & readglobalstring(32, "$"), 310 - LEN(gold & " " & readglobalstring(32, "$")) * 8, 1, uilook(uiGold), page
  IF alert THEN
   alert = alert - 1
   centerbox 160, 178, LEN(alert_str) * 8 + 8, 14, 4, page
@@ -1516,7 +1516,7 @@ SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, perma
  info = ""
  IF inventory(ic).used = 0 THEN RETURN
  IF readbit(permask(), 0, ic) = 1 THEN info = cannotsell: RETURN
- IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "Money")
+ IF price(ic) > 0 THEN info = worth & " " & price(ic) & " " & readglobalstring(32, "$")
  FOR i as integer = 0 TO stuff_count
   IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
    IF b(i * recordsize + 28) > 0 THEN
@@ -1716,7 +1716,7 @@ SUB ExpandTextHeroSlot (code as string, result as string, byval arg0 as ANY ptr=
    CASE "LEVMPLABEL": result = readglobalstring(160, "Level MP", 20)
    CASE "ELEMENTS": result = get_elemental_info_text(hero_slot)
    CASE "MONEY": result = STR(gold)
-   CASE "MONEYLABEL": result = readglobalstring(32, "Money", 10)
+   CASE "MONEYLABEL": result = readglobalstring(32, "$", 10)
   END SELECT
   
   DIM her as HeroDef
@@ -3301,7 +3301,7 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
  sp.last = slot
  
  WITH sp.lists(sp.last)
-  .name = rpad(readglobalstring(46, "Exit", 10), " ", 10)
+  .name = rpad(readglobalstring(46, "EXIT", 10), " ", 10)
   .menu_index = -1
   .magic_type = -1
  END WITH

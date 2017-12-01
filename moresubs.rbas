@@ -750,7 +750,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
  FOR i as integer = 40 TO 4 STEP -1
   IF gam.hero(i).id = -1 THEN
    st.swindex(st.reserve.last) = i
-   st.swname(st.reserve.last) = readglobalstring(48, "-REMOVE-", 10)
+   st.swname(st.reserve.last) = readglobalstring(48, "REMOVE", 10)
    st.size.y = large(st.size.y, 7)
   END IF
  NEXT i
@@ -1736,8 +1736,8 @@ DO
  NEXT i
  centerfuz 160, 90, 200, 60, 1, page
  rectangle 130, 92, 60, 22, uilook(uiHighlight), page 'orig colour 20
- edgeprint inncost & " " & price & " " & readglobalstring(32, "Money"), 160 - LEN(inncost & price & " " & readglobalstring(32, "Money")) * 4, 70, uilook(uiText), page
- edgeprint youhave & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), page
+ edgeprint inncost & " " & price & " " & readglobalstring(32, "$"), 160 - LEN(inncost & price & " " & readglobalstring(32, "$")) * 4, 70, uilook(uiText), page
+ edgeprint youhave & " " & gold & " " & readglobalstring(32, "$"), 160 - LEN(youhave & gold & " " & readglobalstring(32, "$")) * 4, 80, uilook(uiText), page
  FOR i as integer = 0 TO 1
   DIM col as integer
   col = uilook(uiMenuItem)

@@ -2835,7 +2835,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
       slot = onwho(readglobalstring(104, "Whose Status?", 20), NO)
       IF slot >= 0 THEN status_screen slot
      CASE spEquip
-      slot = onwho(readglobalstring(108, "Equip Whom?", 20), NO)
+      slot = onwho(readglobalstring(108, "Equip Who?", 20), NO)
       IF slot >= 0 THEN equip_menu slot
      CASE spOrder
       hero_swap_menu 0

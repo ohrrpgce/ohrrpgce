@@ -1858,16 +1858,16 @@ SUB edit_global_text_strings()
  GTS_menu_header menu, "Stats:"
  GTS_add_to_menu menu, "Health Points",              0, "HP", 10
  GTS_add_to_menu menu, "Spell Points",               1, "MP", 10
- GTS_add_to_menu menu, "Attack Power",               2, "Attack", 10
- GTS_add_to_menu menu, "Accuracy",                   3, "Accuracy", 10
+ GTS_add_to_menu menu, "Attack Power",               2, "Atk", 10
+ GTS_add_to_menu menu, "Accuracy",                   3, "Aim", 10
  GTS_add_to_menu menu, "Extra Hits",                 4, "Hits", 10
- GTS_add_to_menu menu, "Blocking Power",             5, "Blocking", 10
+ GTS_add_to_menu menu, "Defense/Blocking Power",     5, "Def", 10
  GTS_add_to_menu menu, "Dodge Rate",                 6, "Dodge", 10
- GTS_add_to_menu menu, "Counter Rate",               7, "Counter", 10
+ GTS_add_to_menu menu, "Spare stat (Counter)",       7, "Ctr", 10
  GTS_add_to_menu menu, "Speed",                      8, "Speed", 10
- GTS_add_to_menu menu, "Spell Skill",                29, "SpellSkill", 10
- GTS_add_to_menu menu, "Spell Block",                30, "SpellBlock", 10
- GTS_add_to_menu menu, "Spell cost %",               31, "SpellCost%", 10
+ GTS_add_to_menu menu, "Spell Skill",                29, "Magic", 10
+ GTS_add_to_menu menu, "Spell Defense",              30, "Will", 10
+ GTS_add_to_menu menu, "Spell cost reduction %",     31, "MP~", 10
 
  GTS_menu_header menu, "Elements:"
  FOR i as integer = 0 TO gen(genNumElements) - 1
@@ -1876,9 +1876,10 @@ SUB edit_global_text_strings()
 
  GTS_menu_header menu, "Equip slots:"
  GTS_add_to_menu menu, "Weapon",                     38, "Weapon", 10
- FOR i as integer = 1 TO 4
-  GTS_add_to_menu menu, "Armor " & i,                24 + i, "Armor " & i, 10
- NEXT i
+ GTS_add_to_menu menu, "Armor 1",                    25, "Head", 10
+ GTS_add_to_menu menu, "Armor 2",                    26, "Body", 10
+ GTS_add_to_menu menu, "Armor 3",                    27, "Arms", 10
+ GTS_add_to_menu menu, "Armor 4",                    28, "Legs", 10
 
  GTS_menu_header menu, "Special Menu Item Default Captions:"
  GTS_add_to_menu menu, "Items",                      60, "Items", 10
@@ -1910,7 +1911,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Level",                      43, "Level", 10
  GTS_add_to_menu menu, "Experience",                 33, "Experience", 10
  GTS_add_to_menu menu, "(exp) for next (level)",     47, "for next", 10
- GTS_add_to_menu menu, "Money",                      32, "Money", 10
+ GTS_add_to_menu menu, "Money",                      32, "$", 10
  GTS_add_to_menu menu, "Level MP",                   160, "Level MP", 20
 
  GTS_menu_header menu, "Status Second Screen:"
@@ -1928,7 +1929,7 @@ SUB edit_global_text_strings()
 
  GTS_menu_header menu, "Spells Menu:"
  GTS_add_to_menu menu, "(hero) has no spells",       133, "has no spells", 20
- GTS_add_to_menu menu, "Exit Spell List Menu",       46, "Exit", 10
+ GTS_add_to_menu menu, "Exit Spell List Menu",       46, "EXIT", 10
  GTS_add_to_menu menu, "Cancel Spell Menu",          51, "(CANCEL)", 10
 
  GTS_menu_header menu, "Team/Order Menu:"
