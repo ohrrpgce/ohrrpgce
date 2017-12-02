@@ -147,7 +147,7 @@ DECLARE FUNCTION readenemyname (byval index as integer) as string
 DECLARE FUNCTION readitemname (byval index as integer) as string
 DECLARE FUNCTION readitemdescription (byval index as integer) as string
 DECLARE FUNCTION readshopname (byval shopnum as integer) as string
-DECLARE FUNCTION getsongname (byval num as integer, byval prefixnum as integer = 0) as string
+DECLARE FUNCTION getsongname (byval num as integer, byval prefixnum as bool = NO) as string
 DECLARE FUNCTION getsfxname (byval num as integer) as string
 DECLARE FUNCTION getheroname (byval hero_id as integer) as string
 DECLARE FUNCTION getmapname (byval m as integer) as string
@@ -161,8 +161,8 @@ DECLARE SUB playsongnum (byval songnum as integer)
 DECLARE FUNCTION open_url (url as string) as bool
 DECLARE FUNCTION spawn_and_wait (app as string, args as string) as string
 DECLARE FUNCTION find_support_dir () as string
-DECLARE FUNCTION find_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
-DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
+DECLARE FUNCTION find_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
+DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
 DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as integer
 DECLARE FUNCTION missing_helper_message (appname as string) as string
 

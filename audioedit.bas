@@ -19,6 +19,8 @@ DECLARE FUNCTION mp3_to_ogg (in_file as string, out_file as string, byval qualit
 DECLARE FUNCTION mp3_to_wav (in_file as string, out_file as string) as string
 DECLARE FUNCTION wav_to_ogg (in_file as string, out_file as string, byval quality as integer = 4, comments() as string) as string
 
+DECLARE SUB export_songlist()
+
 DECLARE SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
@@ -279,6 +281,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "import_songs"
  IF keyval(scF2) > 1 THEN Custom_volume_menu
  IF keyval(scF3) > 1 THEN music_backend_menu
+ IF keyval(scF4) > 1 THEN export_songlist
 
  usemenu state, selectable()
 
@@ -532,6 +535,21 @@ SUB importsong_save_song_data(songname as string, byval songnum as integer)
  DIM songbuf(dimbinsize(binSONGDATA)) as integer
  writebinstring songname, songbuf(), 0, 30
  storerecord songbuf(), workingdir & SLASH & "songdata.bin", curbinsize(binSONGDATA) \ 2, songnum
+END SUB
+
+SUB export_songlist()
+ DIM filename as string
+ filename = inputfilename("File to export song list to?", ".txt", "", "")
+ IF LEN(filename) = 0 THEN EXIT SUB
+ DIM fh as integer
+ IF OPENFILE(filename + ".txt", FOR_OUTPUT, fh) THEN
+  showerror "Couldn't open file"
+  EXIT SUB
+ END IF
+ FOR num as integer = 0 TO gen(genMaxSong)
+  PRINT #fh, getsongname(num, YES)
+ NEXT
+ CLOSE fh
 END SUB
 
 

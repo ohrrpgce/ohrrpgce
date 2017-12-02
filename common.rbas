@@ -1533,7 +1533,7 @@ FUNCTION readshopname (byval shopnum as integer) as string
  RETURN readbadgenericname(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
-FUNCTION getsongname (byval num as integer, byval prefixnum as integer = 0) as string
+FUNCTION getsongname (byval num as integer, byval prefixnum as bool = NO) as string
  DIM songd(dimbinsize(binSONGDATA)) as integer
  DIM s as string
  IF num = -1 THEN RETURN "-none-"
@@ -2821,7 +2821,7 @@ FUNCTION find_support_dir () as string
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
-FUNCTION find_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
+FUNCTION find_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
  'Returns an empty string if the app is not found, or the full path if it is found
 
  'try_install currently only works on Windows, and not for all possible apps
@@ -2845,7 +2845,7 @@ FUNCTION find_helper_app (appname as string, try_install as integer=NO, download
  #ENDIF
 END FUNCTION
 
-FUNCTION find_windows_helper_app (appname as string, try_install as integer=NO, download_url as string="") as string
+FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
  'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
  'Returns an empty string if the app is not found, or the full path if it is found
  'try_install: download it if not installed

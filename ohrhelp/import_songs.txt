@@ -56,3 +56,9 @@ Here is a list of the supported song formats:
 
 Extra metadata like file comments is shown for some audio file formats, especially OGG files.
 The `quality' of OGG files is the approximate equivalent quality setting used to encode them (if encoded by the OHRRPGCE's oggenc tool).
+
+Press F2 to change the volume level in the editor. This is not saved in the game, it only affects Custom (the editor).
+
+In some builds (versions) of the OHRRPGCE, you can press F3 to see a menu of playback options for module tracker music. Again, these changes aren't saved, they only affect playback in the editor.
+
+Press F4 to export a list of all song names to a .txt file.
