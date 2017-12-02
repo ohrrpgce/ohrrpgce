@@ -9,4 +9,4 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home and End) to navigate through
 
 Press F9 on any menu to access a menu of global editor settings and shortcuts.
 
-Try LOAD EXISTING GAME and load Vikings of Midgard, the example game included with the engine, to get an idea of what goes into an OHRRPGCE game. The graphics and music are graciously donated, free-to-use, by Fenrir-Lunaris and the composers!
+Try LOAD EXISTING GAME and load Vikings of Midgard, the example game included with the engine, to get an idea of what goes into an OHRRPGCE game. The graphics and music are graciously donated, free-to-use (but see the README), by Fenrir-Lunaris, Artimus Bena and the other composers!
