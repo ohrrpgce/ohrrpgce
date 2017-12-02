@@ -1342,7 +1342,6 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
 
  ' Special actions to take after some piece of data has been edited
  IF state.need_update THEN
-  IF sl->SliceType = slText THEN UpdateTextSlice sl
   slice_edit_updates sl, rule.dataptr
  END IF
 
