@@ -1154,6 +1154,9 @@ Function NewLineSlice(byval parent as Slice ptr, byref dat as LineSliceData) as 
 end function
 
 '--Text-------------------------------------------------------------------
+
+Declare Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
+
 Sub DisposeTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -1196,6 +1199,12 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using SliceColor
  col = SliceColor(col)
+
+ 'If the slice wraps, then its height changes any time that its width does
+ 'FIXME: we should update the size in ChildRefresh/ChildrenRefresh() instead,
+ 'but that's a more difficult fix; this is better than nothing
+ UpdateTextSliceHeight sl, lines()
+
  dat->insert_tog = dat->insert_tog xor 1
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
@@ -1223,10 +1232,8 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  next
 end sub
 
-'Update the size of text slice.
-'FIXME: this only happens when ChangeTextSlice is called, so the size can be out of date.
-'On the other hand we don't want to modify slices from within DrawTextSlice. However
-'sl->line_count *is* updated from within DrawTextSlice
+'Update the size of text slice. This only happens when you call ChangeTextSlice.
+'(Note: this must be called after WrapTextSlice() has set dat->line_count)
 Sub UpdateTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -1236,18 +1243,24 @@ Sub UpdateTextSlice(byval sl as Slice ptr)
  '--Note that automatic setting of wrapped text height doesn't matter if this slice is set ->Fill = YES the parent fill height will override
  dim lines() as string
  WrapTextSlice sl, lines()
+ UpdateTextSliceHeight sl, lines()
+
+ 'Update width
+ if dat->Wrap = NO then
+  sl->Width = textWidth(dat->s)
+ else
+  '--Wrapped text does not change the slice width. Do that manually (or by setting ->Fill = YES)
+ end if
+end sub
+
+Private Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim high as integer
  high = dat->line_count
  if dat->line_limit > -1 then  'If not unlimited
   high = small(high, dat->line_limit)
  end if
  sl->Height = high * 10
- 
- if dat->Wrap = NO then
-  sl->Width = textWidth(dat->s)
- else
-  '--Wrapped text does not change the slice width. Do that manually (or by setting ->Fill = YES)
- end if
 end sub
 
 Function GetTextSliceData(byval sl as Slice ptr) as TextSliceData ptr
