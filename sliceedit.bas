@@ -345,8 +345,12 @@ PRIVATE FUNCTION create_draw_root () as Slice ptr
  DIM ret as Slice ptr = NewRectangleSlice(NULL, rect)
  WITH *ret
   .Pos = remember_draw_root_pos
-  .Width = gen(genResolutionX)
-  .Height = gen(genResolutionY)
+  IF gen(genResolutionX) > 0 THEN  'We might not have loaded a game yet
+   .Width = gen(genResolutionX)
+   .Height = gen(genResolutionY)
+  ELSE
+   .Size = get_resolution()
+  END IF
   .AlignHoriz = alignRight
   .AlignVert = alignMiddle
   .AnchorHoriz = alignRight
