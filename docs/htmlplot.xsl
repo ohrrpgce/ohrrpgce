@@ -158,10 +158,11 @@
 			<body>
 				<h1>Plotscripting Dictionary</h1>
 				<xsl:if test="@version = 'wip'">
-					<h2>For the current OHRRPGCE work-in-progress version</h2>
+					<h2>For the current OHRRPGCE work-in-progress version (<xsl:value-of select="@datecode" />)</h2>
 				</xsl:if>
 				<xsl:if test="not(@version = 'wip')">
 					<h2>For OHRRPGCE version <xsl:value-of select="@version" /></h2>
+					(Generated on <xsl:value-of select="@datecode" />)
 				</xsl:if>
 
 				<p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.

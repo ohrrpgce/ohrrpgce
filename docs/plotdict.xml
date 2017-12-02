@@ -3,7 +3,7 @@
 
 <!DOCTYPE plotscript [
 	<!ELEMENT plotscript (section+)>
-	<!ATTLIST plotscript version CDATA "wip">
+	<!ATTLIST plotscript version CDATA "wip" datecode CDATA "???">
 	<!ATTLIST plotscript show-alias CDATA "yes">
 	<!ELEMENT section (description?,(command|reference|section)+)>
 	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED>
@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip">
+<plotscript version="etheldreme" datecode="2017-12-03">
 
 	<section title="Declarations">
 		<command id="plotscript">
