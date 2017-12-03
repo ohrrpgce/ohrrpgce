@@ -272,8 +272,7 @@ End Type
 Type StringCharPos
 	charnum as integer   'offset in string; equal to len(text) if off the end
 	exacthit as bool     'whether actually on this character, or just the nearest (eg. off end of line)
-	x as integer         'position is in screen coordinates
-	y as integer
+	pos as XYPair        'position is in screen coordinates
 	'w as integer        'Size of the selected character (do we really need this?)
 	h as integer
 	lineh as integer     'height of containing line fragment
@@ -293,6 +292,7 @@ DECLARE FUNCTION textwidth(text as string, fontnum as integer = fontPlain, witht
 DECLARE FUNCTION textsize(text as string, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
 DECLARE FUNCTION lineheight(fontnum as integer = fontEdged) as integer
 
+DECLARE SUB find_text_char_position(retsize as StringCharPos ptr, text as string, charnum as integer, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1)
 DECLARE SUB find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as integer, z as string, wide as integer = 999999, xpos as integer = 0, ypos as integer = 0, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
 
 DECLARE FUNCTION fgcol_text (text as string, colour as integer) as string
