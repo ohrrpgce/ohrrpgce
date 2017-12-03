@@ -2261,6 +2261,8 @@ SUB show_help(helpkey as string)
   'The necessity of this would be eliminated by using a root slice set to fill (filling the screen slice)
   UpdateRootSliceSize(help_root)
 
+  DIM scroll_to_y as integer = -1
+
   IF editing THEN
    DIM numlines as integer = help_draw_area->Height \ 10 + 1
    DIM textstring as string = dat->s
@@ -2321,18 +2323,15 @@ SUB show_help(helpkey as string)
    IF keyval(scF6) THEN slice_editor help_root
 
    'Update scroll position (help_text->Y)
-   DIM miny as integer = small(0, -(help_text->Height - help_draw_area->Height))
+   'Decreasing Y to scroll down is confusing...
+   DIM top as integer = -help_text->Y
+   DIM maxy as integer = large(0, (help_text->Height - help_draw_area->Height))
    IF editing THEN
     'Scroll to cursor_line
-    'Everything being negated is confusing...
-    DIM y as integer = -help_text->Y
     'TODO: use text_layout_dimensions to correctly calculate the Y position of a line.
     'However stredit does its own word wrapping assuming a 8x8 font, no markup, etc,
     'to calculate the text position, so will need rewriting in future :(
-    DIM scroll_to_y as integer = cursor_line * 10
-    y = small(y, scroll_to_y - 10)
-    y = large(y, scroll_to_y + 20 - help_draw_area->Height)
-    help_text->Y = -y
+    scroll_to_y = cursor_line * 10
 
     /' Move cursor to location of mouse click. Doesn't work; find_point_in_text is broken.
     IF readmouse.buttons AND mouseLeft THEN
@@ -2344,15 +2343,20 @@ SUB show_help(helpkey as string)
     '/
    ELSE
     '--not editing, just browsing
-    IF slowkey(scUp, 30) THEN help_text->Y += 8
-    IF slowkey(scDown, 30) THEN help_text->Y -= 8
-    IF keyval(scPageUp) > 1 THEN help_text->Y += help_draw_area->Height - 12
-    IF keyval(scPageDown) > 1 THEN help_text->Y -= help_draw_area->Height - 12
-    IF keyval(scHome) > 1 THEN help_text->Y = 0
-    IF keyval(scEnd) > 1 THEN help_text->Y = miny
-    help_text->Y -= readmouse.wheel_delta * 30 / 120
+    IF slowkey(scUp, 30)      THEN top -= 8
+    IF slowkey(scDown, 30)    THEN top += 8
+    IF keyval(scPageUp) > 1   THEN top -= help_draw_area->Height - 12
+    IF keyval(scPageDown) > 1 THEN top += help_draw_area->Height - 12
+    IF keyval(scHome) > 1     THEN top = 0
+    IF keyval(scEnd) > 1      THEN top = maxy
+    top += readmouse.wheel_delta \ 4
    END IF
-   help_text->Y = bound(help_text->Y, miny, 0)
+   IF scroll_to_y <> -1 THEN
+    top = small(top, scroll_to_y - 10)
+    top = large(top, scroll_to_y + 20 - help_draw_area->Height)
+   END IF
+   help_text->Y = -bound(top, 0, maxy)
+
   END IF
   deadkeys = large(deadkeys - 1, 0)
 
