@@ -461,6 +461,8 @@ if gengcc:
     # (This flag only in recent gcc)
     if gccversion >= 480:
         gcc_flags.append ('-Wno-maybe-uninitialized')
+    # Ignore warnings due to using an array lbound > 0
+    gcc_flags.append ('-Wno-array-bounds')
     if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
