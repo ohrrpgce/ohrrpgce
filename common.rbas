@@ -26,6 +26,7 @@
 #include "common.bi"
 #include "slices.bi"
 #include "reload.bi"
+#include "sliceedit.bi"
 
 #include "music.bi"
 #include "loading.bi"
@@ -2201,14 +2202,31 @@ SUB show_help(helpkey as string)
   .paddingTop = 8
   .paddingBottom = 8
   .paddingLeft = 8
-  .paddingRight = 8
+  '.paddingRight = 8
   .Fill = YES
+  .Clip = YES
   ChangeRectangleSlice help_box, 1
  END WITH
+ 'Fills the clipping area
+ DIM clip_box as Slice Ptr
+ clip_box = NewSliceOfType(slContainer, help_box)
+ WITH *clip_box
+  .paddingRight = 4
+  .Fill = YES
+ END WITH
+ DIM help_draw_area as Slice Ptr
+ help_draw_area = NewSliceOfType(slScroll, clip_box)
+ WITH *help_draw_area
+  .paddingRight = 4
+  .Clip = NO
+  .Fill = YES
+ END WITH
  DIM help_text as Slice Ptr
- help_text = NewSliceOfType(slText, help_box)
+ help_text = NewSliceOfType(slText, help_draw_area)
  WITH *help_text
   .Fill = YES
+  .FillMode = sliceFillHoriz
+  CAST(TextSliceData ptr, .SliceData)->use_render_text = YES
   ChangeTextSlice help_text, help_str, , , YES
  END WITH
  DIM animate as Slice Ptr
@@ -2222,14 +2240,12 @@ SUB show_help(helpkey as string)
 
  DIM dat as TextSliceData Ptr
  dat = help_text->SliceData
- dat->line_limit = 18
+ 'dat->line_limit = 18
  dat->insert = 0
 
- DIM editing as integer = NO
+ DIM editing as bool = NO
  DIM deadkeys as integer = 25
  DIM cursor_line as integer = 0
- DIM scrollbar_state as MenuState
- scrollbar_state.size = 17
 
  DIM searchstring as string
 
@@ -2245,12 +2261,10 @@ SUB show_help(helpkey as string)
   'The necessity of this would be eliminated by using a root slice set to fill (filling the screen slice)
   UpdateRootSliceSize(help_root)
 
-  dat->line_limit = (vpages(vpage)->h - 32) \ 10 + 1
-  scrollbar_state.size = dat->line_limit - 1
-
   IF editing THEN
+   DIM numlines as integer = help_draw_area->Height \ 10 + 1
    DIM textstring as string = dat->s
-   cursor_line = stredit(textstring, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
+   cursor_line = stredit(textstring, dat->insert, 32767, numlines, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
    ChangeTextSlice help_text, textstring
   END IF
@@ -2291,6 +2305,9 @@ SUB show_help(helpkey as string)
    IF keyval(scE) > 1 THEN
     IF diriswriteable(get_help_dir()) THEN
      editing = YES
+     'Displaying the cursor doesn't work properly with use_render_text :(
+     CAST(TextSliceData ptr, help_text->SliceData)->use_render_text = NO
+
      dat->show_insert = YES
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
     ELSE
@@ -2301,9 +2318,21 @@ SUB show_help(helpkey as string)
    IF keyval(scF1) and helpkey <> "share_helphelp" THEN
     show_help "share_helphelp"
    END IF
+   IF keyval(scF6) THEN slice_editor help_root
+
+   'Update scroll position (help_text->Y)
+   DIM miny as integer = small(0, -(help_text->Height - help_draw_area->Height))
    IF editing THEN
-    dat->first_line = small(dat->first_line, cursor_line - 1)
-    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
+    'Scroll to cursor_line
+    'Everything being negated is confusing...
+    DIM y as integer = -help_text->Y
+    'TODO: use text_layout_dimensions to correctly calculate the Y position of a line.
+    'However stredit does its own word wrapping assuming a 8x8 font, no markup, etc,
+    'to calculate the text position, so will need rewriting in future :(
+    DIM scroll_to_y as integer = cursor_line * 10
+    y = small(y, scroll_to_y - 10)
+    y = large(y, scroll_to_y + 20 - help_draw_area->Height)
+    help_text->Y = -y
 
     /' Move cursor to location of mouse click. Doesn't work; find_point_in_text is broken.
     IF readmouse.buttons AND mouseLeft THEN
@@ -2315,17 +2344,17 @@ SUB show_help(helpkey as string)
     '/
    ELSE
     '--not editing, just browsing
-    IF slowkey(scUp, 30) THEN dat->first_line -= 1
-    IF slowkey(scDown, 30) THEN dat->first_line += 1
-    IF keyval(scPageUp) > 1 THEN dat->first_line -= dat->line_limit - 1
-    IF keyval(scPageDown) > 1 THEN dat->first_line += dat->line_limit - 1
-    IF keyval(scHome) > 1 THEN dat->first_line = 0
-    IF keyval(scEnd) > 1 THEN dat->first_line = dat->line_count
-    dat->first_line += readmouse.wheel_clicks * 3
+    IF slowkey(scUp, 30) THEN help_text->Y += 8
+    IF slowkey(scDown, 30) THEN help_text->Y -= 8
+    IF keyval(scPageUp) > 1 THEN help_text->Y += help_draw_area->Height - 12
+    IF keyval(scPageDown) > 1 THEN help_text->Y -= help_draw_area->Height - 12
+    IF keyval(scHome) > 1 THEN help_text->Y = 0
+    IF keyval(scEnd) > 1 THEN help_text->Y = miny
+    help_text->Y -= readmouse.wheel_delta * 30 / 120
    END IF
-   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
+   help_text->Y = bound(help_text->Y, miny, 0)
   END IF
-  deadkeys = large(deadkeys -1, 0)
+  deadkeys = large(deadkeys - 1, 0)
 
   'Animate the arrival of the help screen
   animate->Y = large(animate->Y - vpages(vpage)->h \ 15, 0)
@@ -2333,12 +2362,6 @@ SUB show_help(helpkey as string)
   copypage holdscreen, vpage
 
   DrawSlice help_root, vpage
-  
-  WITH scrollbar_state
-   .top = dat->first_line
-   .last = dat->line_count - 1
-  END WITH
-  draw_fullscreen_scrollbar scrollbar_state, , vpage
 
   setvispage vpage
   dowait
