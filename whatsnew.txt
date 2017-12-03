@@ -117,6 +117,8 @@ Dec 1 2017 [Etheldreme]
     * Changing the zoom in Custom no longer changes window size [Ralph]
     * The height of awrapped text slice didn't update when its width
       changed (except in the slice editor) [Ralph]
+    * The scroll bar of a scroll slice inside a clipping slice was drawn
+      at the wrong position [Ralph]
 
   * Stuff Only Developers Will Notice
     * --nowait option when importing scripts from the commandline [Ralph]
