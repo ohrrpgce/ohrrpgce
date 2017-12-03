@@ -1343,6 +1343,19 @@ Sub UpdateTextSlice(byval sl as Slice ptr)
  end if
 end sub
 
+'Return the position, relative to the slice position, of character in the string
+'(Note: this assumes use_render_text; text wrapping may not be identical otherwise)
+Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
+ if sl = 0 orelse sl->SliceData = 0 then return XY(0, 0)
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+
+ dim wide as integer = TextSliceRenderTextWide(sl, dat, 0)
+ dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
+ dim charpos as StringCharPos
+ find_text_char_position(@charpos, dat->s, charnum, wide, fontnum)
+ return charpos.pos
+end function
+
 Private Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim high as integer

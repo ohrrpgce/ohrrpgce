@@ -565,6 +565,7 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=-1)
 DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
+DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
