@@ -1,5 +1,5 @@
 ------------------------------------------------------------------
- O.H.R.RPG.C.E Editor              (2017-12-01 etheldreme version)
+ O.H.R.RPG.C.E Editor              (2017-12-03 etheldreme version)
 ------------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

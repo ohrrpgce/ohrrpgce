@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Dec 1 2017 [Etheldreme]
+Dec 3 2017 [Etheldreme]
 
   Highlights:
     * Many new map-editor features, including mouse support.
