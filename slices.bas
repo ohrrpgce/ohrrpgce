@@ -2469,6 +2469,7 @@ Sub ChangeEllipseSlice(byval sl as Slice ptr,_
 end sub
 
 '--Scroll--------------------------------------------------------------
+
 Sub DisposeScrollSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -2477,65 +2478,28 @@ Sub DisposeScrollSlice(byval sl as Slice ptr)
  sl->SliceData = 0
 end sub
 
-Function CalcScrollMinX(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
- dim n as integer = sl->ScreenX
- dim ch as Slice ptr = sl->FirstChild
- do while ch <> 0
-  if ch->Visible then
-   n = small(n, ch->ScreenX)
-   if check_depth = 0 orelse cur_depth < check_depth then
-    n = small(n, CalcScrollMinX(ch, check_depth, cur_depth + 1))
-   end if
-  end if
-  ch = ch->NextSibling
- Loop
- return n
-End Function
+'This function works for any type of slice
+Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYPair, check_depth as integer, cur_depth as integer=0)
+ if cur_depth = 0 then
+  '0,0 might not be in the min-max range of the contents, so initialise
+  min = sl->ScreenPos
+  max = sl->ScreenPos + sl->Size
+ else
+  min.x = small(min.x, sl->ScreenX)
+  min.y = small(min.y, sl->ScreenY)
+  max.x = large(max.x, sl->ScreenX + sl->Width)
+  max.y = large(max.y, sl->ScreenY + sl->Height)
+ end if
+ if not (check_depth = 0 orelse cur_depth < check_depth) then exit sub
 
-Function CalcScrollMaxX(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
- dim n as integer = sl->ScreenX + sl->Width
  dim ch as Slice ptr = sl->FirstChild
- do while ch <> 0
+ do while ch
   if ch->Visible then
-   n = large(n, ch->ScreenX + ch->Width)
-   if check_depth = 0 orelse cur_depth < check_depth then
-    n = large(n, CalcScrollMaxX(ch, check_depth, cur_depth + 1))
-   end if
+   CalcSliceContentsSize ch, min, max, check_depth, cur_depth + 1
   end if
   ch = ch->NextSibling
  Loop
- return n
-End Function
-
-Function CalcScrollMinY(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
- dim n as integer = sl->ScreenY
- dim ch as Slice ptr = sl->FirstChild
- do while ch <> 0
-  if ch->Visible then
-   n = small(n, ch->ScreenY)
-   if check_depth = 0 orelse cur_depth < check_depth then
-    n = small(n, CalcScrollMinY(ch, check_depth, cur_depth + 1))
-   end if
-  end if
-  ch = ch->NextSibling
- Loop
- return n
-End Function
-
-Function CalcScrollMaxY(byval sl as Slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
- dim n as integer = sl->ScreenY + sl->Height
- dim ch as Slice ptr = sl->FirstChild
- do while ch <> 0
-  if ch->Visible then
-   n = large(n, ch->ScreenY + ch->Height)
-   if check_depth = 0 orelse cur_depth < check_depth then
-    n = large(n, CalcScrollMaxY(ch, check_depth, cur_depth + 1))
-   end if
-  end if
-  ch = ch->NextSibling
- Loop
- return n
-End Function
+End Sub
 
 Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  'NOTE: draws the scrollbars *after* all children have drawn, which is in
@@ -2551,12 +2515,8 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
 
  dim min as XYPair
  dim max as XYPair
+ CalcSliceContentsSize(sl, min, max, dat->check_depth)
 
- min.x = CalcScrollMinX(sl, dat->check_depth)
- min.y = CalcScrollMinY(sl, dat->check_depth)
- max.x = CalcScrollMaxX(sl, dat->check_depth)
- max.y = CalcScrollMaxY(sl, dat->check_depth)
- 
  dim pagepos as XYPair
  pagepos = sl->ScreenPos + GlobalCoordOffset
 
@@ -2567,7 +2527,7 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
   other = axis XOR 1
 
   dim off as integer = sl->ScreenPos.n(axis) - min.n(axis)
-  dim total as integer = large(sl->Size.n(axis), max.n(axis) - min.n(axis))
+  dim total as integer = max.n(axis) - min.n(axis)
 
   if total > sl->Size.n(axis) then
    dim sbar as RectType

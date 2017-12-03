@@ -497,10 +497,7 @@ DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
 
 DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
-DECLARE Function CalcScrollMinX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
-DECLARE Function CalcScrollMaxX(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
-DECLARE Function CalcScrollMinY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
-DECLARE Function CalcScrollMaxY(byval sl as slice ptr, byval check_depth as integer, byval cur_depth as integer=1) as integer
+DECLARE Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYPair, check_depth as integer, cur_depth as integer=0)
 
 End Extern
 
@@ -616,12 +613,14 @@ DECLARE Function NewScrollSlice(byval sl as slice ptr, byref dat as ScrollSliceD
 DECLARE Sub ChangeScrollSlice(byval sl as slice ptr,_
                       byval style as integer=-1,_
                       byval check_depth as integer=-1)
+DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
 
 DECLARE Function NewSelectSlice(byval sl as slice ptr, byref dat as SelectSliceData) as Slice ptr
 DECLARE Sub ChangeSelectSlice(byval sl as slice ptr,_
                       byval index as integer=-2,_
                       byval override as integer=-2) ' All arguments default to no change
 DECLARE Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
+DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
 
 DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
 DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
@@ -630,8 +629,6 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
                       byval padding as integer=-1)
-DECLARE Function GetSelectSliceData(byval sl as slice ptr) as SelectSliceData ptr
-DECLARE Function GetScrollSliceData(byval sl as slice ptr) as ScrollSliceData ptr
 DECLARE Function GetPanelSliceData(byval sl as slice ptr) as PanelSliceData ptr
 DECLARE Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Slice ptr, byval index as integer)
 
