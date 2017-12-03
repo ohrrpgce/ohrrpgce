@@ -2546,11 +2546,9 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  'First draw the children normally
  DefaultChildDraw sl, p
 
- 'Then proceed with the scrollbars 
+ 'Then proceed with the scrollbars
  dim dat as ScrollSliceData ptr = cptr(ScrollSliceData ptr, sl->SliceData)
 
- dim sbar as RectType
- dim slider as RectType
  dim min as XYPair
  dim max as XYPair
 
@@ -2559,14 +2557,9 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  max.x = CalcScrollMaxX(sl, dat->check_depth)
  max.y = CalcScrollMaxY(sl, dat->check_depth)
  
- dim screenpos as XYPair
- screenpos.X = sl->ScreenX + GlobalCoordOffset.X
- screenpos.Y = sl->ScreenY + GlobalCoordOffset.Y
- 
- dim slsize as XYPair
- slsize.W = sl->Width
- slsize.H = sl->Height
- 
+ dim pagepos as XYPair
+ pagepos = sl->ScreenPos + GlobalCoordOffset
+
  dim axis as integer
  dim other as integer
 
@@ -2574,20 +2567,24 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
   other = axis XOR 1
 
   dim off as integer = sl->ScreenPos.n(axis) - min.n(axis)
-  dim total as integer = large(slsize.n(axis), max.n(axis) - min.n(axis))
+  dim total as integer = large(sl->Size.n(axis), max.n(axis) - min.n(axis))
 
-  if total > slsize.n(axis) then
-   sbar.topleft.n(axis) = screenpos.n(axis)
-   sbar.topleft.n(other) = screenpos.n(other) + slsize.n(other)
-   sbar.size.n(axis) = slsize.n(axis)
-   sbar.size.n(other) = 4
+  if total > sl->Size.n(axis) then
+   dim sbar as RectType
+   dim slider as RectType
    with sbar
-    slider.topleft.n(axis) = .size.n(axis) / total * off
-    slider.topleft.n(other) = 0
-    slider.size.n(axis) = .size.n(axis) / total * (slsize.n(axis) + 1)
-    slider.size.n(other) = 4
+    .topleft.n(axis) = pagepos.n(axis)
+    .topleft.n(other) = pagepos.n(other) + sl->Size.n(other)
+    .size.n(axis) = sl->Size.n(axis)
+    .size.n(other) = 4
     rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
-    rectangle .x + slider.x, .y + slider.y, slider.wide, slider.high, boxlook(dat->style).edgecol, p
+   end with
+   with slider
+    .topleft = sbar.topleft
+    .topleft.n(axis) += sbar.size.n(axis) / total * off
+    .size.n(axis) = sbar.size.n(axis) / total * (sl->Size.n(axis) + 1)
+    .size.n(other) = 4
+    rectangle .x, .y, .wide, .high, boxlook(dat->style).edgecol, p
    end with
   end if
  next axis
