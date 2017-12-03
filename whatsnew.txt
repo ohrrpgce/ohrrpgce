@@ -61,6 +61,7 @@ Dec 1 2017 [Etheldreme]
       are new, including showing a grid [Ralph]
     * ID3 metadata info is preserved when imported MP3 files are converted
       to OGG [Ralph]
+    * You can now (incrementally) search F1 help pages, just type! [Ralph]
 
   * New Plotscripting Features
     * "get rect raw border" and "set rect raw border" [James]

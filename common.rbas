@@ -2176,10 +2176,58 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
  DeleteSlice @root
 END FUNCTION
 
+PRIVATE FUNCTION _highlight_text(original as string, arg as any ptr) as string
+ DIM col as integer = *CAST(integer ptr, arg)
+ RETURN bgtag(col, original)
+END FUNCTION
+
+'Returns text with highlighting applied to all matches of searchstring
+FUNCTION highlight_for_incremental_search(text as string, searchstring as string, charnum as integer, byref search_num_matches as integer) as string
+ IF LEN(searchstring) = 0 THEN RETURN text
+ DIM ret as string = text
+ DIM col as integer = findrgb(150, 150, 0)
+ DIM at_cursor as string = MID(ret, charnum, LEN(searchstring))
+ IF LCASE(at_cursor) = LCASE(searchstring) THEN
+  'Highlight the selected match, so if you press Ctrl+S you can see it advance
+  ret = MID(ret, 1, charnum - 1) + fgtag(uilook(uiSelectedItem), at_cursor) _
+        + MID(ret, charnum + LEN(at_cursor))
+ END IF
+ search_num_matches = replacestr(ret, searchstring, @_highlight_text, @col, , YES)
+ RETURN ret
+END FUNCTION
+
+'Advances charnum (the cursor position) to a match of searchstring, and sets scroll_to_y.
+'advance_dir is -1 or 1 to search backwards/forwards, or 0 to find next match
+'but not advancing if already at match
+SUB advance_incremental_search(text as string, searchstring as string, byref charnum as integer, advance_dir as integer, byref scroll_to_y as integer, sl as Slice ptr)
+ DIM match as integer
+ IF advance_dir = -1 THEN
+  'First look backwards
+  match = INSTRREV(LCASE(text), LCASE(searchstring), charnum + advance_dir)
+  IF match = 0 THEN 'Otherwise from end
+   match = INSTRREV(LCASE(text), LCASE(searchstring))
+  END IF
+ ELSE
+  'First look forwards
+  match = INSTR(charnum + advance_dir, LCASE(text), LCASE(searchstring))
+  IF match = 0 THEN 'Otherwise from start
+   match = INSTR(LCASE(text), LCASE(searchstring))
+  END IF
+ END IF
+ IF match = 0 THEN EXIT SUB
+ charnum = match
+
+ 'DIM charpos as XYPair = TextSliceCharPos(sl, charnum)
+ DIM charpos as StringCharPos
+ find_text_char_position(@charpos, text, charnum, sl->Width, fontPlain)
+ scroll_to_y = charpos.pos.y
+END SUB
+
 SUB show_help(helpkey as string)
- DIM help_str as string
- help_str = load_help_file(helpkey)
- 
+ DIM original_text as string
+ original_text = load_help_file(helpkey)
+ DIM help_str as string = original_text  'The edited version
+
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
  DIM help_root as Slice Ptr
  help_root = NewSliceOfType(slContainer)
@@ -2207,6 +2255,25 @@ SUB show_help(helpkey as string)
   .Clip = YES
   ChangeRectangleSlice help_box, 1
  END WITH
+ DIM footer_text2 as Slice Ptr
+ footer_text2 = NewSliceOfType(slText, help_outer_box)
+ WITH *footer_text2
+  .AlignVert = alignBottom
+  .AlignHoriz = alignRight
+  .AnchorHoriz = alignRight
+  .Y = -4
+  .X = -3
+ END WITH
+ ChangeTextSlice footer_text2, , uilook(uiMenuItem), NO, , boxlook(1).bgcol  'outline=NO
+ DIM footer_text as Slice Ptr
+ footer_text = NewSliceOfType(slText, help_outer_box)
+ WITH *footer_text
+  .AlignVert = alignBottom
+  .X = 3
+  .Y = -4
+ END WITH
+ ChangeTextSlice footer_text, , uilook(uiMenuItem), NO, , boxlook(1).bgcol  'outline=NO
+ CAST(TextSliceData ptr, footer_text->SliceData)->use_render_text = YES
  'Fills the clipping area
  DIM clip_box as Slice Ptr
  clip_box = NewSliceOfType(slContainer, help_box)
@@ -2227,7 +2294,7 @@ SUB show_help(helpkey as string)
   .Fill = YES
   .FillMode = sliceFillHoriz
   CAST(TextSliceData ptr, .SliceData)->use_render_text = YES
-  ChangeTextSlice help_text, help_str, , , YES
+  ChangeTextSlice help_text, help_str, , , YES  'wrap=YES
  END WITH
  DIM animate as Slice Ptr
  animate = help_root
@@ -2240,7 +2307,6 @@ SUB show_help(helpkey as string)
 
  DIM dat as TextSliceData Ptr
  dat = help_text->SliceData
- 'dat->line_limit = 18
  dat->insert = 0
 
  DIM editing as bool = NO
@@ -2248,6 +2314,10 @@ SUB show_help(helpkey as string)
  DIM cursor_line as integer = 0
 
  DIM searchstring as string
+ DIM default_footer as string = "Type to search"
+ DIM footerstring as string = default_footer
+ DIM footerstring2 as string
+ DIM search_num_matches as integer
 
  '--Now loop displaying help
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
@@ -2265,16 +2335,15 @@ SUB show_help(helpkey as string)
 
   IF editing THEN
    DIM numlines as integer = help_draw_area->Height \ 10 + 1
-   DIM textstring as string = dat->s
-   cursor_line = stredit(textstring, dat->insert, 32767, numlines, help_text->Width \ 8)
+   cursor_line = stredit(help_str, dat->insert, 32767, numlines, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
-   ChangeTextSlice help_text, textstring
+   ChangeTextSlice help_text, help_str
   END IF
 
   IF deadkeys = 0 THEN
-   IF keyval(scESC) > 1 THEN
+   IF keyval(scESC) > 1 AND (editing OR searchstring = "") THEN
     '--If there are any changes to the help screen, offer to save them
-    IF help_str = dat->s THEN
+    IF original_text = help_str THEN
      EXIT DO
     ELSE
      'Prevent attempt to quit the program, stop and wait for response first
@@ -2291,9 +2360,9 @@ SUB show_help(helpkey as string)
    END IF
 
    IF editing THEN
-    'Enabled while editing only, because when not, 1) scrolling to show the match
-    'and 2) highlighting the match aren't easy. Delayed until TextSlice cleanup.
-    IF keyval(scCTRL) > 0 AND keyval(scS) > 1 THEN
+    IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
+     'Because while editing we don't use_render_text so can't do text highlighting,
+     'so use this old search implementation
      IF prompt_for_string(searchstring, "Search") THEN
       DIM idx as integer = INSTR(dat->insert + 2, LCASE(dat->s), LCASE(searchstring))
       IF idx = 0 THEN  'wrap
@@ -2302,15 +2371,51 @@ SUB show_help(helpkey as string)
       IF idx THEN dat->insert = idx - 1
      END IF
     END IF
+   ELSE
+
+    'Fancy new incremental search
+    DIM advance_dir as integer = -2
+    DIM update as bool = NO
+    IF keyval(scESC) > 1 THEN searchstring = "" : advance_dir = 0
+    'Forward/backward search
+    DIM temp as integer = find_next_or_prev_keychord()
+    IF temp <> 0 THEN advance_dir = temp
+    IF keyval(scCtrl) = 0 AND (keyval(scLeftCommand) OR keyval(scRightCommand)) = 0 THEN
+     'On input, advance to next match if not already at it
+     IF strgrabber(searchstring, 60) THEN advance_dir = 0
+    END IF
+    IF advance_dir <> -2 THEN
+     'ChangeTextSlice help_text, help_str  'So that TextSliceCharPos() returns the correct result
+     advance_incremental_search(help_str, searchstring, dat->insert, advance_dir, scroll_to_y, help_text)
+     DIM highlighted as string
+     highlighted = highlight_for_incremental_search(help_str, searchstring, dat->insert, search_num_matches)
+     ChangeTextSlice help_text, highlighted
+
+     IF LEN(searchstring) THEN
+      footerstring = "Search: " & fgtag(uilook(uiText), bgtag(findrgb(150, 150, 0), searchstring))
+      footerstring2 = "Ctrl+S: next ("& search_num_matches & " matches)"
+     ELSE
+      footerstring = default_footer
+      footerstring2 = ""
+     END IF
+    END IF
    END IF
 
-   IF keyval(scE) > 1 THEN
+   IF keyval(scCtrl) > 0 AND keyval(scE) > 1 THEN
     IF diriswriteable(get_help_dir()) THEN
      editing = YES
      'Displaying the cursor doesn't work properly with use_render_text :(
      CAST(TextSliceData ptr, help_text->SliceData)->use_render_text = NO
+     ChangeTextSlice help_text, help_str
+     'Hide footer
+     help_outer_box->paddingBottom = 4
+     footer_text->Visible = NO
+     footer_text2->Visible = NO
 
+     'Kludge: insert is actually 0-based offset, but incremental search use 1-based offset
+     IF dat->insert THEN dat->insert -= 1
      dat->show_insert = YES
+
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
     ELSE
      ' It would be possible to just automatically makedir($documents_dir/ohrhelp), and warn the user that it happened
@@ -2320,7 +2425,6 @@ SUB show_help(helpkey as string)
    IF keyval(scF1) and helpkey <> "share_helphelp" THEN
     show_help "share_helphelp"
    END IF
-   IF keyval(scF6) THEN slice_editor help_root
 
    'Update scroll position (help_text->Y)
    'Decreasing Y to scroll down is confusing...
@@ -2352,8 +2456,8 @@ SUB show_help(helpkey as string)
     top += readmouse.wheel_delta \ 4
    END IF
    IF scroll_to_y <> -1 THEN
-    top = small(top, scroll_to_y - 10)
-    top = large(top, scroll_to_y + 20 - help_draw_area->Height)
+    top = small(top, scroll_to_y - 20)
+    top = large(top, scroll_to_y + 30 - help_draw_area->Height)
    END IF
    help_text->Y = -bound(top, 0, maxy)
 
@@ -2365,6 +2469,8 @@ SUB show_help(helpkey as string)
 
   copypage holdscreen, vpage
 
+  ChangeTextSlice footer_text, footerstring
+  ChangeTextSlice footer_text2, footerstring2
   DrawSlice help_root, vpage
 
   setvispage vpage
@@ -5186,6 +5292,20 @@ END FUNCTION
 
 FUNCTION paste_keychord () as bool
  RETURN (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)
+END FUNCTION
+
+'Returns -1 for jump to previous 'find' match, 1 for jump to next match, and 0 for neither
+FUNCTION find_next_or_prev_keychord () as integer
+ 'Emacs: C-s/C-r
+ IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN RETURN 1
+ IF keyval(scCtrl) > 0 AND keyval(scR) > 1 THEN RETURN -1
+ 'Windows and many other editors: F3/Shift-F3
+ IF keyval(scF3) > 1 THEN RETURN IIF(keyval(scShift), -1, 1)
+ 'Mac: Cmd-G/Shift-Cmd-G
+ IF (keyval(scLeftCommand) OR keyval(scRightCommand)) > 0 AND keyval(scG) > 1 THEN
+  RETURN IIF(keyval(scShift), -1, 1)
+ END IF
+ RETURN 0
 END FUNCTION
 
 SUB lockstep_tile_animation (tilesets() as TilesetData ptr, byval layer as integer)

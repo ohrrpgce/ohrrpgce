@@ -2,11 +2,14 @@ Help on Help
 
 Aha! Clever! You discovered the Help on Help screen! Obviously you already know that pressing F1 will show you the help screen. You probably also know that pressing ESC will exit the help screen.
 
-You may also know that you can use the up and down arrow keys and pageup and pagedown to scroll through long help screens.
+You may also know that you can use the up and down arrow keys and PageUp and PageDown or the mouse wheel to scroll through long help screens.
 
-But did you know that you can press E to edit the help screens? Think of it as a tiny wiki built into the program. If you make improvements to any of the help screens, you can zip up a copy of your ohrhelp folder and mail it to the developers, and they can integrate your improvements into the official help files. Cool huh?
+And I hope you noticed that you can type to search for some text (case-insensitively). Once you've started a search, you can press Ctrl-S or F3 or Cmd-G to jump to the next match, or Ctrl-R or Shift-F3 or Shift-Cmd-G to jump to the previous one.
+
+But did you know that you can press Ctrl-E to edit the help screens? Think of it as a tiny wiki built into the program. If you make improvements to any of the help screens, you can zip up a copy of your ohrhelp folder and mail it to the developers, and they can integrate your improvements into the official help files. Cool huh?
 
 While editing, controls are as follows:
 CTRL+Left/Right move by word, Home and End move by line, and CTRL+Home/End moves to the start/end.
 CTRL+Backspace or ALT+Backspace deletes the previous word, and CTRL+Delete or ALT+Delete deletes the next word.
 You can also press CTRL+S to search the text (case-insensitive).
+CTRL+C copies the whole contents of the buffer to the system clipboard, and CTRL+V overwrites the whole buffer with the contents of the system clipboard (just like very other text field in the OHRRPGCE), so be careful. There's no undo!
