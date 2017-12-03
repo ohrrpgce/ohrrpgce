@@ -703,22 +703,38 @@ FUNCTION escape_string(s as string, chars as string) as string
  RETURN result
 END FUNCTION
 
-'Replace occurrences of a substring. Modifies 'buffer'!
+'Replace occurrences of a substring with the result of replacefun. Modifies 'buffer'!
 'Returns the number of replacements done. Inserted text is not eligible for further replacements.
 'Optionally limit the number of times to do with replacement by passing maxtimes; no limit if < 0
-FUNCTION replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
+FUNCTION replacestr (byref buffer as string, replacewhat as string, replacefunc as FnReplacement, arg as any ptr, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
  DIM pt as integer
  DIM count as integer
  DIM start as integer = 1
 
  WHILE maxtimes < 0 OR count < maxtimes
-  pt = INSTR(start, buffer, replacewhat)
+  IF caseinsensitive THEN
+   pt = INSTR(start, LCASE(buffer), LCASE(replacewhat))  'inefficient
+  ELSE
+   pt = INSTR(start, buffer, replacewhat)
+  END IF
   IF pt = 0 THEN RETURN count
+  DIM withwhat as string = replacefunc(MID(buffer, pt, LEN(replacewhat)), arg)
   buffer = MID(buffer, 1, pt - 1) + withwhat + MID(buffer, pt + LEN(replacewhat))
   start = pt + LEN(withwhat)
   count += 1
  WEND
  RETURN count
+END FUNCTION
+
+PRIVATE FUNCTION _get_replacement(original as string, arg as any ptr) as string
+ RETURN *CAST(string ptr, arg)
+END FUNCTION
+
+'Replace occurrences of a substring with the result of replacefun. Modifies 'buffer'!
+'Returns the number of replacements done. Inserted text is not eligible for further replacements.
+'Optionally limit the number of times to do with replacement by passing maxtimes; no limit if < 0
+FUNCTION replacestr (byref buffer as string, replacewhat as string, withwhat as string, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
+ RETURN replacestr(buffer, replacewhat, @_get_replacement, @withwhat, maxtimes, caseinsensitive)
 END FUNCTION
 
 ' Change the type of newline in a string, which might contain mixed win/unix line endings

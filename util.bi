@@ -591,6 +591,8 @@ Enum clipDir
  clipRight
 End Enum
 
+type FnReplacement as function(original as string, arg as any ptr) as string
+
 declare function cstring (s as string) as zstring ptr
 declare function copy_zstring (str_ptr as zstring ptr) as zstring ptr
 declare function blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer) as string
@@ -607,7 +609,8 @@ declare function str2int (stri as string, default as integer=0) as integer
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string
 declare function escape_string(s as string, chars as string) as string
-declare function replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
+declare function replacestr overload (byref buffer as string, replacewhat as string, replacefunc as FnReplacement, arg as any ptr, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
+declare function replacestr overload (byref buffer as string, replacewhat as string, withwhat as string, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
 declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
