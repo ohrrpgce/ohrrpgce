@@ -2573,7 +2573,7 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  for axis = 0 to 1 '0=Horiz 1=Vert
   other = axis XOR 1
 
-  dim off as integer = screenpos.n(axis) - min.n(axis)
+  dim off as integer = sl->ScreenPos.n(axis) - min.n(axis)
   dim total as integer = large(slsize.n(axis), max.n(axis) - min.n(axis))
 
   if total > slsize.n(axis) then
