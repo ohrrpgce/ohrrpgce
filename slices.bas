@@ -1279,6 +1279,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  dat->insert_tog = dat->insert_tog xor 1
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
+ dat->first_line = large(0, dat->first_line)
  dim last_line as integer = ubound(lines)
  if dat->line_limit <> -1 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
 
