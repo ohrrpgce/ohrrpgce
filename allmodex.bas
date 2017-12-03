@@ -4440,6 +4440,7 @@ type PrintStrState
 	declare constructor()
 	declare constructor(rhs as PrintStrState)
 	declare destructor()
+	declare sub duplicate_from(rhs as PrintStrState)
 end type
 
 ' Need a default ctor just because there is a copy ctor
@@ -4452,6 +4453,15 @@ constructor PrintStrState(rhs as PrintStrState)
 		this.localpal->refcount += 1
 	end if
 end constructor
+
+'Unlike the copy ctor, this duplicates the palette instead of incrementing refcount.
+sub PrintStrState.duplicate_from(rhs as PrintStrState)
+	memcpy(@this, @rhs, sizeof(PrintStrState))
+	if localpal then
+		this.localpal = Palette16_duplicate(rhs.localpal)
+		this.localpal->refcount = 1
+	end if
+end sub
 
 destructor PrintStrState()
 	' Palette16_unload wouldn't actually delete localpal, because it thinks
@@ -4982,7 +4992,9 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 		'We have to process both layers, even if the current font has only one layer,
 		'in case the string switches to a font that has two!
-		dim prev_state as PrintStrState = state
+		'Make sure to use a separate Palette16.
+		dim prev_state as PrintStrState
+		prev_state.duplicate_from(state)
 		dim prev_parse as string
 		dim prev_visible as bool
 		dim draw_layer1 as bool = NO  'Don't draw on first loop
