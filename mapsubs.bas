@@ -369,7 +369,7 @@ st.editmode = 0
 st.seteditmode = -1
 DIM mode_tools_map(zone_mode, 10) as integer = { _
    {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
-   {draw_wall_tool, draw_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _    'pass_mode
+   {draw_wall_tool, stamp_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _   'pass_mode
    {-1}, _                                                                            'door_mode
    {-1}, _                                                                            'npc_mode
    {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
@@ -458,9 +458,14 @@ WITH st.toolinfo(draw_tool)
  .shortcut = scD
 END WITH
 WITH st.toolinfo(draw_wall_tool)
- .name = "Line"
- .icon = "L"  'CHR(3)
- .shortcut = scL
+ .name = "Draw"
+ .icon = "D"  'CHR(3)
+ .shortcut = scD
+END WITH
+WITH st.toolinfo(stamp_tool)
+ .name = "Stamp"
+ .icon = "S"
+ .shortcut = scS
 END WITH
 WITH st.toolinfo(box_tool)
  .name = "Box"
@@ -681,6 +686,7 @@ clearpage 2
 
 st.reset_tool = YES
 st.defpass = YES
+st.wallmap_mask = 255  'Initialise stamp_tool
 IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 st.autoshow_zones = YES
 st.showzonehints = YES
@@ -1062,12 +1068,36 @@ DO
    IF mouse_draws_walls ANDALSO (mouse.clicks AND mouseLeft) THEN
     'Teel mapedit_draw_walls_drag it needs to set st.tool_value at the start of a drag
     st.tool_value = -1
+   ELSEIF st.tool = stamp_tool ANDALSO tool_newkeypress ANDALSO st.wallmap_mask < 255 THEN
+    'If the previous operation drew a specific wallbit, then keep using that wallbit.
+    'The tile at the start of the stroke determines whether to add or remove.
+    IF cur_wallbits AND st.wallmap_mask THEN
+     st.tool_value = 0
+    ELSE
+     st.tool_value = st.wallmap_mask
+    END IF
    ELSEIF tool_newkeypress THEN
     'Set/remove all 4 walls at once
     st.wallmap_mask = 255  'Remove all other bits
     IF (cur_wallbits AND 15) = 0 THEN st.tool_value = 15
     IF (cur_wallbits AND 15) = 15 THEN st.tool_value = 0
     IF (cur_wallbits AND 15) > 0 AND (cur_wallbits AND 15) < 15 THEN st.tool_value = 0
+   END IF
+
+   'Handle mouse wheel to select wall bit while using stamp_tool
+   'Mask 255 is treated as imaginary wall bit 256. And bits wrap around
+   IF st.tool = stamp_tool THEN
+    DIM mask as uinteger = st.wallmap_mask
+    IF mask = 255 THEN mask = 256
+    IF mouse.wheel_clicks < 0 THEN
+     mask shr= -mouse.wheel_clicks
+    ELSE
+     mask shl= mouse.wheel_clicks
+    END IF
+    IF mask = 256 THEN mask = 255
+    IF mask > 256 THEN mask = 1
+    IF mask = 0 THEN mask = 255
+    st.wallmap_mask = mask
    END IF
 
    DIM wallbit as integer = 0
@@ -1433,7 +1463,8 @@ DO
   END IF
 
   SELECT CASE st.tool
-   CASE draw_tool
+   CASE draw_tool, stamp_tool
+    'stamp_tool is the same as draw tool, but st.tool_value is determined differently.
     'IF keyval(scSpace) > 0 AND (st.new_stroke OR st.moved) THEN
     IF use_current_tool OR (tool_buttonpressed AND st.moved) THEN
      '(No need to reapply brush until the cursor moves)
@@ -1926,6 +1957,22 @@ DO
 
  IF st.editmode = pass_mode THEN
   printstr ticklite("one`W`ay  `H`arm  vehicle Ctrl-`A B`"), 0, 0, dpage, YES
+  IF st.tool = stamp_tool THEN
+   DIM wallname as string
+   SELECT CASE st.wallmap_mask
+    CASE passLeftWall  : wallname = "Left"
+    CASE passRightWall : wallname = "Right"
+    CASE passUpWall    : wallname = "Up"
+    CASE passDownWall  : wallname = "Down"
+    CASE passHarm      : wallname = "Harm"
+    CASE passOverhead  : wallname = "Overhead"
+    CASE passVehA      : wallname = "Vehicle A"
+    CASE passVehB      : wallname = "Vehicle B"
+    CASE 255           : wallname = "All (erase)"
+   END SELECT
+   textcolor uilook(uiText), uilook(uiHighlight)
+   printstr "Placing Wall: " & wallname, 0, 16, dpage
+  END IF
 
   IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, st.x, st.y) THEN
    printstr hilite("W") + ": one-way walls", st.viewport_p2.x - 196, st.viewport_p2.y - 8, dpage, YES

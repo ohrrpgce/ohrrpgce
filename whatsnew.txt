@@ -52,9 +52,10 @@ Dec 1 2017 [Etheldreme]
       * Press T to tint each map layer a different color
       * Press T twice to grey out layers other than the selected one
       [Ralph]
-    * Mouse support in the map editor! Not complete, but has basics. You
-      can't click on any of the overlays or bits of text (eg the list of
-      zones) but you can click on toolbars and NPCs, doors, etc. [Ralph]
+    * Mouse support in the map editor! Not complete, but has the
+      basics. You can't click on any of the overlays or bits of text (eg
+      the list of zones) but you can click on toolbars and NPCs, doors,
+      etc. Includes a new Stamp tool in wallmap mode. [Ralph]
     * Option to export a full resolution image of a map, optionally with
       NPCs [Ralph]
     * Map editor settings menu, accessed with F8. Most of the settings

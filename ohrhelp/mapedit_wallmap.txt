@@ -18,30 +18,42 @@ While you are in passability mode, you will see thick flashing lines that indica
 
 At the top right corner the current drawing tool is shown. The tools are:
 
-L - Line tool:
+D - Draw tool:
   Press one of the keys to modify
   walls that are described below (see
-  "Drawing Keys"), or press and hold
-  down SPACE while moving the cursor
-  to draw blocks of walls in a line.
-  You can also use the mouse: either
-  LEFT CLICK to add or remove one
-  wall, or DRAG the mouse to draw
-  individual walls in a line.
-  You can hold CTRL while clicking or
-  dragging to act like the Draw tool:
-  draw or remove blocks of walls
-  (all four sides).
+  "Drawing Keys" below), or press and
+  hold down SPACE while moving the
+  cursor to draw blocks of walls in a
+  line.  You can also use the mouse:
+  either LEFT CLICK to add or remove
+  one wall, or DRAG the mouse to draw
+  individual walls in a line.  If you
+  hold down space or drag the mouse,
+  then the tile you start dragging on
+  determines whether you add or
+  remove walls.  You can hold CTRL
+  while clicking or dragging to add
+  or remove blocks of walls (all four
+  sides at once).
 
-D - Draw tool:
-  When using keyboard controls, the
-  Draw and Line tools are identical.
-  When using the mouse, clicking or
-  dragging draws or removes blocks of
-  walls (all four sides) rather than
-  just one wall at a time.
-  So the draw box is the easiest way
-  to remove walls.
+S - Stamp tool:
+  The stamp tool is like the draw
+  tool (it draws on one tile at a
+  time) but is for adding or removing
+  just one wall type. It can also add
+  or remove all walls to/from a tile.
+  First, select which wall bit you
+  want to draw, either by pressing
+  one of the drawing keys (see
+  "Drawing Keys" below), including
+  DELETE for all walls, or with the
+  MOUSE WHEEL.  Then press SPACE or
+  CLICK (and DRAG) on a tile to to
+  add that wall, or remove it if the
+  tile already had that wall.  You
+  can hold SPACE and move, or DRAG
+  the mouse to change a whole line of
+  tiles.
 
 B - Box tool:
   Press SPACE/CLICK once to place one
@@ -112,14 +124,17 @@ One-way walls are marked with a special zone, ID 10000, which you can also see a
 
 H marks the tile as a harm tile that can damage heroes when the player steps on it.
 
-CTRL+A marks the tile as special for Airships (or other vehicle or scripting purposes).
+CTRL+A marks the tile as special for Airships (or other vehicle or scripting purposes which use the vehicle A bit).
 
-CTRL+B marks the tile as special for Boats (or other vehicle or scripting purposes).
+CTRL+B marks the tile as special for Boats (or other vehicle or scripting purposes which use the vehicle B bit).
 
 O marks the tile as overhead. This is obsolete. You should create a tilemap layer and place it above heroes and NPCs (in the Layers and Tilesets menu) instead if you want make tiles overhead.
 
+DELETE removes all walls and other bits from a tile and sets the current wall for the Stamp tool to All.
 
 Other Controls:
+
+Hold CTRL while using the Draw tool with the mouse to add/remove all four walls at once (if you use keyboard controls, nothing changes).
 
 CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
 
