@@ -5064,7 +5064,7 @@ sub text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as i
 
 			'Update state
 			.y += line_height
-			draw_line_fragment(NULL, state, 0, parsed_line, NO)
+			draw_line_fragment(NULL, state, 0, parsed_line, NO)  'reallydraw=NO
 'debug "now " & .charnum & " at " & .x & "," & .y
 			if exitloop then exit while
 		wend
@@ -5104,6 +5104,26 @@ end function
 function lineheight(fontnum as integer = fontEdged) as integer
 	return get_font(fontnum, YES)->h
 end function
+
+'Calculate the position at which a certain character in a block of text will be drawn
+'FIXME: this returns the wrong position for a space/newline at the end of a line (it
+'returns the start of the next line).
+'To fix, render_text (or maybe layout_line_fragment?) needs to be changed.
+sub find_text_char_position(retsize as StringCharPos ptr, text as string, charnum as integer, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1)
+	if page = -1 then page = vpage
+	wide = relative_pos(wide, vpages(page)->w)
+	dim size as StringSize
+	text_layout_dimensions @size, text, charnum, , wide, get_font(fontnum), withtags, YES
+	'return XY(retsize.lastw, retsize.h - retsize.lasth)
+	with *retsize
+		.charnum = charnum
+		.exacthit = YES   'Maybe return NO if it's at the end of the line?
+		.pos.x = size.lastw
+		.pos.y = size.h - size.lasth
+		.h = size.finalfont->h
+		.lineh = size.lasth
+	end with
+end sub
 
 'xpos and ypos passed to use same cached state
 sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as integer, z as string, wide as integer = 999999, xpos as integer = 0, ypos as integer = 0, fontnum as integer, withtags as bool = YES, withnewlines as bool = YES)
@@ -5182,8 +5202,8 @@ sub find_point_in_text (retsize as StringCharPos ptr, seekx as integer, seeky as
 		wend
 
 		retsize->charnum = .charnum
-		retsize->x = .x
-		retsize->y = .y - .thefont->h
+		retsize->pos.x = .x
+		retsize->pos.y = .y - .thefont->h
 		retsize->h = .thefont->h
 		retsize->lineh = line_height
 	end with
