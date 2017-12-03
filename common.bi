@@ -234,6 +234,7 @@ DECLARE FUNCTION enter_or_space () as bool
 DECLARE FUNCTION toggle_item (state as MenuState) as bool
 DECLARE FUNCTION copy_keychord () as bool
 DECLARE FUNCTION paste_keychord () as bool
+DECLARE FUNCTION find_next_or_prev_keychord () as integer
 
 DECLARE FUNCTION xreadbit (bitarray() as integer, byval bitoffset as integer, byval intoffset as integer=0) as bool
 

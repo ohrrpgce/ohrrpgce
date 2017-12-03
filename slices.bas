@@ -1195,7 +1195,7 @@ Private Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData p
    return get_resolution().w
   end if
  else
-  return INT_MAX
+  return 999999999
  end if
 end function
 
@@ -1248,7 +1248,8 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
   '/
  end if
 
- wrapprint text, sl->ScreenX, sl->ScreenY, col, p, wide, YES, fontnum
+ textcolor col, SliceColor(dat->bgcol)
+ wrapprint text, sl->ScreenX, sl->ScreenY, , p, wide, YES, fontnum
 end sub
 
 Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
