@@ -440,7 +440,7 @@ END FUNCTION
 'Optionally, if you pass a string, wraps it with start/reset color tags.
 FUNCTION bgtag(col as integer, text as string = "") as string
  IF LEN(text) THEN
-  RETURN "${KB" & col & "}" & text & "$KB{-1}"
+  RETURN "${KB" & col & "}" & text & "${KB-1}"
  ELSE
   RETURN "${KB" & col & "}"
  END IF

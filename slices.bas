@@ -1156,6 +1156,7 @@ end function
 '--Text-------------------------------------------------------------------
 
 Declare Sub UpdateTextSliceHeight(byval sl as Slice ptr, lines() as string)
+Declare Sub NewUpdateTextSlice(byval sl as Slice ptr)
 
 Sub DisposeTextSlice(byval sl as Slice ptr)
  if sl = 0 then exit sub
@@ -1185,20 +1186,78 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
  dat->line_count = UBOUND(lines) + 1
 End sub
 
+'Get the 'wide' parameter to render_text, etc
+Private Function TextSliceRenderTextWide(sl as Slice ptr, dat as TextSliceData ptr, x as integer) as integer
+ if dat->Wrap then
+  if sl->Width > 7 then
+   return x + sl->Width
+  else
+   return get_resolution().w
+  end if
+ else
+  return INT_MAX
+ end if
+end function
+
+'New render_text-based drawing of Text slices. Only used when dat->use_render_text
+Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+
+ 'dat->line_limit is not yet supported (render_text ought to be extended for it)
+
+ 'If the slice wraps, then its height changes any time that its width does
+ 'FIXME: we should update the size in ChildRefresh/ChildrenRefresh() instead,
+ 'but that's a more difficult fix; this is better than nothing
+ 'TODO: since this is expensive, don't call this every time we draw, but just when
+ 'when the size might have changed.
+ NewUpdateTextSlice sl
+
+ dim text as string = dat->s
+ 'The wide argument to render_text/wrapprint/etc is really messed up...
+ dim wide as integer = TextSliceRenderTextWide(sl, dat, sl->ScreenX)
+ dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
+
+ dat->insert_tog = dat->insert_tog xor 1
+
+ if dat->show_insert then
+  'Draw the insert cursor by changing the bg color of the character at insert.
+  'FIXME: this doesn't work properly if the cursor is at the end of the line:
+  'the cursor isn't shown at all, because render_text doesn't draw the space.
+  'And if the cursor is at a newline just as the line would wrap, adding another
+  'space causes the line wrapping to change.  I guess this is the wrong approach.
+  dim insert_col as integer = uilook(uiHighlight) + dat->insert_tog
+  dim at_insert as string = mid(text, dat->insert + 1, 1)
+  if at_insert = "" then at_insert = " "  'Past end of string
+  if at_insert = !"\n" then
+   at_insert = bgtag(insert_col, " ") & at_insert
+  else
+   at_insert = bgtag(insert_col, at_insert)
+  end if
+  text = mid(text, 1, dat->insert) & at_insert & mid(text, dat->insert + 2)
+ end if
+
+ wrapprint text, sl->ScreenX, sl->ScreenY, col, p, wide, YES, fontnum
+end sub
+
 Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
- 
- dim lines() as string
- WrapTextSlice sl, lines()
- dim line_starts() as integer
- split_line_positions dat->s, lines(), line_starts()
 
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using SliceColor
  col = SliceColor(col)
+
+ if dat->use_render_text then
+  NewDrawTextSlice sl, p, col
+  exit sub
+ end if
+
+ dim lines() as string
+ WrapTextSlice sl, lines()
+ dim line_starts() as integer
+ split_line_positions dat->s, lines(), line_starts()
 
  'If the slice wraps, then its height changes any time that its width does
  'FIXME: we should update the size in ChildRefresh/ChildrenRefresh() instead,
@@ -1210,9 +1269,9 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if dat->outline then insert_size = 9
  dim last_line as integer = ubound(lines)
  if dat->line_limit <> -1 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
- dim ypos as integer
 
  for linenum as integer = dat->first_line to last_line
+  dim ypos as integer
   ypos = (linenum - dat->first_line) * 10
   if dat->show_insert then
    dim offset_in_line as integer  '0-based offset
@@ -1232,6 +1291,18 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  next
 end sub
 
+'New render_text-based updating of Text slice size. Only used when dat->use_render_text
+Sub NewUpdateTextSlice(byval sl as Slice ptr)
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+
+ 'dat->line_limit not supported yet
+ dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
+ dim wide as integer = TextSliceRenderTextWide(sl, dat, 0)
+ dim size as XYPair = textsize(dat->s, wide, fontnum, YES)
+ sl->Height = size.h
+ if dat->Wrap = NO then sl->Width = size.w
+end sub
+
 'Update the size of text slice. This only happens when you call ChangeTextSlice.
 '(Note: this must be called after WrapTextSlice() has set dat->line_count)
 Sub UpdateTextSlice(byval sl as Slice ptr)
@@ -1239,7 +1310,12 @@ Sub UpdateTextSlice(byval sl as Slice ptr)
  if sl->SliceData = 0 then exit sub
  
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
- 
+
+ if dat->use_render_text then
+  NewUpdateTextSlice sl
+  exit sub
+ end if
+
  '--Note that automatic setting of wrapped text height doesn't matter if this slice is set ->Fill = YES the parent fill height will override
  dim lines() as string
  WrapTextSlice sl, lines()
