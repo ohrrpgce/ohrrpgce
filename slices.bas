@@ -1234,6 +1234,18 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
    at_insert = bgtag(insert_col, at_insert)
   end if
   text = mid(text, 1, dat->insert) & at_insert & mid(text, dat->insert + 2)
+
+  /'
+  'Second attempt: figure out where the insert cursor is and then draw it ourselves.
+  'This doesn't work either, because find_text_char_position is buggy :(
+  'But it is a good approach.
+  dim insert_size as integer = 8
+  if dat->outline then insert_size = 9
+  dim charpos as StringCharPos
+  find_text_char_position(@charpos, text, dat->insert + 1, wide, fontnum)
+  dim insert_pos as XYPair = sl->ScreenPos + charpos.pos
+  rectangle insert_pos.x, insert_pos.y, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
+  '/
  end if
 
  wrapprint text, sl->ScreenX, sl->ScreenY, col, p, wide, YES, fontnum
