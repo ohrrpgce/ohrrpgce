@@ -1,6 +1,21 @@
 WHAT IS NEW?
 
-Dec 1 2017 [Etheldreme]
+March 1st-ish-maybe 2018 [Fufluns]
+
+  Highlights:
+    * ~~Fill this in later~~
+
+  * New Features
+
+  * New Plotscripting Features
+
+  * Changes
+
+  * Bugfixes
+
+  * Stuff Only Developers Will Notice
+
+Dec 3 2017 [Etheldreme]
 
   Highlights:
     * Many new map-editor features, including mouse support.
