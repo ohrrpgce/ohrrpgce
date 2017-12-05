@@ -2777,20 +2777,6 @@ SUB cropafter (byval index as integer, byref limit as integer, byval flushafter 
  safekill tmpdir & "_cropped.tmp"
 END SUB
 
-FUNCTION numbertail (s as string) as string
- DIM n as integer
-
- IF s = "" THEN RETURN "BLANK"
-
- FOR i as integer = 1 TO LEN(s)
-  IF is_int(MID(s, i)) THEN
-   n = str2int(MID(s, i)) + 1
-   RETURN LEFT(s, i - 1) & n
-  END IF
- NEXT
- RETURN s + "2"  
-END FUNCTION
-
 'Get a list of the first letters (lowercase) of every word in each menu() string, except
 'those words listed in excludewords. excludewords should be a space-separated
 'list (case matters).

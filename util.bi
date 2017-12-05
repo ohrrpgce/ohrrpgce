@@ -447,6 +447,9 @@ DECLARE SUB xypair_move (v as XYPair, byval direction as integer, byval amount a
 DECLARE FUNCTION xypair_manhattan_distance(v1 as XYPair, v2 as XYPair) as integer
 DECLARE FUNCTION xypair_distance_squared(v1 as XYPair, v2 as XYPair) as integer
 
+DECLARE FUNCTION dirX(dirn as DirNum, dist as integer = 1) as integer
+DECLARE FUNCTION dirY(dirn as DirNum, dist as integer = 1) as integer
+
 UNION XYZTriple
   TYPE
    x as integer

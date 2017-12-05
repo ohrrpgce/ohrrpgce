@@ -276,7 +276,15 @@ startTest(RectTypeOperators)
 endTest
 #ENDIF
 
+FUNCTION dirX(dirn as DirNum, dist as integer = 1) as integer
+ IF dirn = dirLeft THEN RETURN -dist
+ IF dirn = dirRight THEN RETURN -dist
+END FUNCTION
 
+FUNCTION dirY(dirn as DirNum, dist as integer = 1) as integer
+ IF dirn = dirUp THEN RETURN -dist
+ IF dirn = dirDown THEN RETURN -dist
+END FUNCTION
 
 '------------- Math operations -------------
 
