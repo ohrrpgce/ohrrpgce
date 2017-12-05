@@ -1924,6 +1924,11 @@ SUB arbitrary_sprite_editor ()
   END SELECT
   IF enter_space_click(st) THEN
    IF st.pt = 4 THEN
+    'We need to set this for the sprite importer
+    WITH sprite_sizes(sprTypeOther)
+     .size = size
+     .frames = framecount
+    END WITH
     spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), sprTypeOther
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
