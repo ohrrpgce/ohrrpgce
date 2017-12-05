@@ -1094,10 +1094,10 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
 
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
-  IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16)
-  IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16)
-  IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1)
-  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1)
+  IF keyval(scUp) > 1 THEN loopvar csr, 0, 47, -16
+  IF keyval(scDown) > 1 THEN loopvar csr, 0, 47, 16
+  IF keyval(scLeft) > 1 THEN loopvar csr, 0, 47, -1
+  IF keyval(scRight) > 1 THEN loopvar csr, 0, 47, 1
 
   clearpage dpage
   '--draw available animating tiles--
@@ -1370,7 +1370,7 @@ SUB refreshtileedit (state as TileEditState)
 END SUB
 
 SUB writeundoblock (state as TileEditState)
- state.undo = loopvar(state.undo, 0, 5, 1)
+ loopvar state.undo, 0, 5
  copymapblock state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
  textcolor uilook(uiMenuItem), 0
  printstr ">", 270, 16 + (state.undo * 21), 2
@@ -1587,7 +1587,7 @@ DO
  IF keyval(scAlt) > 0 AND keyval(scDown) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
  IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR YES
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
-  ts.undo = loopvar(ts.undo, 0, 5, -1)
+  loopvar ts.undo, 0, 5, -1
   readundoblock ts
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
@@ -2197,8 +2197,8 @@ DO
   maxset = gen(genNumBackdrops) - 1
  END IF
  intgrabber ts.cutfrom, 0, maxset, scLeftCaret, scRightCaret
- IF ts.zone = 11 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
- IF ts.zone = 12 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
+ IF ts.zone = 11 AND mouse.clicks > 0 THEN loopvar ts.cutfrom, 0, maxset, -1
+ IF ts.zone = 12 AND mouse.clicks > 0 THEN loopvar ts.cutfrom, 0, maxset, 1
  IF oldcut <> ts.cutfrom THEN
   IF ts.cuttileset THEN
    loadmxs game + ".til", ts.cutfrom, vpages(2)

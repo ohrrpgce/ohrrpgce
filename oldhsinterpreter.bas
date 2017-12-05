@@ -1311,7 +1311,7 @@ IF mode > 1 AND drawloop = 0 THEN
   clearpage page
   setvispage page
  END IF
- IF w = scV THEN viewmode = loopvar(viewmode, 0, 4, 1): GOTO redraw
+ IF w = scV THEN loopvar(viewmode, 0, 4): GOTO redraw
  IF w = scPageUp THEN
   selectedscript += 1
   localsscroll = 0

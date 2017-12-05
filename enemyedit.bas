@@ -1244,7 +1244,7 @@ SUB hero_formation_editor ()
   IF eform.background_frames > 1 AND eform.background_ticks > 0 THEN
    bgwait = (bgwait + 1) MOD eform.background_ticks   'FIXME: off-by-one bug here
    IF bgwait = 0 THEN
-    bgctr = loopvar(bgctr, 0, eform.background_frames - 1, 1)
+    loopvar bgctr, 0, eform.background_frames - 1
     DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
     ChangeSpriteSlice sl, , (eform.background + bgctr) MOD gen(genNumBackdrops)
    END IF
@@ -1435,7 +1435,7 @@ SUB individual_formation_editor ()
   IF form.background_frames > 1 AND form.background_ticks > 0 THEN
    bgwait = (bgwait + 1) MOD form.background_ticks
    IF bgwait = 0 THEN
-    bgctr = loopvar(bgctr, 0, form.background_frames - 1, 1)
+    loopvar bgctr, 0, form.background_frames - 1
     DIM sl as Slice ptr = LookupSlice(SL_FORMEDITOR_BACKDROP, rootslice)
     ChangeSpriteSlice sl, , (form.background + bgctr) MOD gen(genNumBackdrops)
    END IF

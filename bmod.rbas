@@ -161,7 +161,7 @@ FUNCTION battle (byval form as integer) as bool
 
    /' Currently unused...
    IF keyval(scF12) > 1 THEN
-    bat.test_view_mode = loopvar(bat.test_view_mode, 0, 2, 1)
+    loopvar bat.test_view_mode, 0, 2
     SELECT CASE bat.test_view_mode
      CASE 0: bat.test_future = NO : debuginfo "bat.test_view_mode Classic"
      CASE 1: debuginfo "bat.test_view_mode Flicker"
@@ -799,9 +799,9 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'random target
  IF bat.targ.roulette THEN
   FOR i = 0 TO randint(2)
-   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+   loopvar bat.targ.pointer, 0, 11
    WHILE bat.targ.mask(bat.targ.pointer) = 0
-    bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+    loopvar bat.targ.pointer, 0, 11
    WEND
   NEXT i
  END IF
@@ -810,7 +810,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.targ.force_first THEN
   bat.targ.pointer = 0
   WHILE bat.targ.mask(bat.targ.pointer) = 0
-   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+   loopvar bat.targ.pointer, 0, 11
   WEND
  END IF
 
@@ -2579,7 +2579,7 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
    FOR i = 0 TO randint(spellcount)
     safety = 0
     DO
-     rptr = loopvar(rptr, 0, 23, 1)
+     loopvar rptr, 0, 23
      safety += 1
     LOOP UNTIL bat.spell.slot(rptr).atk_id > -1 OR safety > 999 '--loop until we have found a spell (or give up after 999 tries)
    NEXT i
@@ -3898,9 +3898,9 @@ END FUNCTION
 
 SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
  IF formdata.background_frames > 1 THEN
-  bat.bg_tick = loopvar(bat.bg_tick, 0, formdata.background_ticks, 1)
+  loopvar bat.bg_tick, 0, formdata.background_ticks
   IF bat.bg_tick = 0 THEN
-   bat.curbg = loopvar(bat.curbg, formdata.background, formdata.background + formdata.background_frames - 1, 1)
+   loopvar bat.curbg, formdata.background, formdata.background + formdata.background_frames - 1
    frame_unload @bat.backdrop
    bat.backdrop = frame_load(sprTypeBackdrop, bat.curbg MOD gen(genNumBackdrops))
   END IF
@@ -3986,7 +3986,7 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
 END SUB
 
 SUB battle_check_for_hero_turns(byref bat as BattleState, bslot() as BattleSprite)
- bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
+ loopvar bat.next_hero, 0, 3
  IF bat.hero_turn > -1 THEN
   '--somebody is already taking their turn
   EXIT SUB
@@ -4025,13 +4025,13 @@ FUNCTION battle_check_a_hero_turn(byref bat as BattleState, bslot() as BattleSpr
 END FUNCTION
 
 SUB battle_check_for_enemy_turns(byref bat as BattleState, bslot() as BattleSprite)
- bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
+ loopvar bat.next_enemy, 4, 11
  IF bat.enemy_turn = -1 THEN
   '--if no enemy is currently taking their turn, check to find an enemy who is ready
   DIM slot as integer = bat.next_enemy
   FOR i as integer = 4 TO 11
    IF battle_check_an_enemy_turn(bat, bslot(), slot) THEN EXIT FOR
-   slot = loopvar(slot, 4, 11, 1)
+   loopvar slot, 4, 11
   NEXT i
  END IF
 END SUB

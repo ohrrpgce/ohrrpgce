@@ -2250,8 +2250,8 @@ FUNCTION attack_chain_browser (byval start_attack as integer) as integer
     END IF
    END IF
 
-   IF keyval(scLeft) > 1 THEN state.column = loopvar(state.column, 0, 2, -1) : state.refresh = YES
-   IF keyval(scRight) > 1 THEN state.column = loopvar(state.column, 0, 2, 1) : state.refresh = YES
+   IF keyval(scLeft) > 1 THEN loopvar(state.column, 0, 2, -1) : state.refresh = YES
+   IF keyval(scRight) > 1 THEN loopvar(state.column, 0, 2, 1) : state.refresh = YES
    SELECT CASE state.column
     CASE 0: IF usemenu(state.before) THEN state.refresh = YES
     CASE 1: 
@@ -2520,10 +2520,10 @@ SUB fontedit (font() as integer)
     END IF
    CASE 1 ' Editing a character
     IF keyval(scEsc) > 1 OR keyval(scAnyEnter) > 1 THEN mode = 0
-    IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)
-    IF keyval(scDown) > 1 THEN y = loopvar(y, 0, 7, 1)
-    IF keyval(scLeft) > 1 THEN x = loopvar(x, 0, 7, -1)
-    IF keyval(scRight) > 1 THEN x = loopvar(x, 0, 7, 1)
+    IF keyval(scUp) > 1 THEN loopvar y, 0, 7, -1
+    IF keyval(scDown) > 1 THEN loopvar y, 0, 7, 1
+    IF keyval(scLeft) > 1 THEN loopvar x, 0, 7, -1
+    IF keyval(scRight) > 1 THEN loopvar x, 0, 7, 1
     IF keyval(scSpace) > 1 THEN
      setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
      setfont font()
@@ -4123,11 +4123,11 @@ SUB edit_button_name_strings()
   
   IF t = buttonnameBROWSE THEN
    IF keyval(scLeft) > 1 THEN
-    keynum = loopvar(keynum, 0, UBOUND(plat_key), -1)
+    loopvar keynum, 0, UBOUND(plat_key), -1
     st.need_update = YES
    END IF
    IF keyval(scRight) > 1 THEN
-    keynum = loopvar(keynum, 0, UBOUND(plat_key), 1)
+    loopvar keynum, 0, UBOUND(plat_key), 1
     st.need_update = YES
    END IF
   ELSEIF t = buttonnameDATA THEN

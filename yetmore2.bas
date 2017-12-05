@@ -425,7 +425,7 @@ SUB verify_quit
   tog = tog XOR 1
   playtimer
   control
-  wtog = loopvar(wtog, 0, 3, 1)
+  loopvar wtog, 0, 3
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
    IF ptr2 < 0 THEN gam.quit = YES: fadeout 0, 0, 0

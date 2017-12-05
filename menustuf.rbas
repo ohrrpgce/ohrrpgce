@@ -108,7 +108,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   setwait speedcontrol
   setkeys
   buyst.tog = buyst.tog XOR 1
-  IF buyst.tog THEN buyst.walk = loopvar(buyst.walk, 0, 15, 1)
+  IF buyst.tog THEN loopvar buyst.walk, 0, 15
   
   IF st.need_update THEN
    buystuff_refresh_menu buyst, menu, st
@@ -870,7 +870,7 @@ FUNCTION getOOBtarg (byval search_direction as integer, byref target as integer,
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety as integer = 0
  DO
-  target = loopvar(target, 0, 3, search_direction)
+  loopvar target, 0, 3, search_direction
   IF chkOOBtarg(target, atk) THEN RETURN YES
   safety += 1
   IF safety >= 4 THEN EXIT DO
@@ -3106,7 +3106,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   setwait speedcontrol
   setkeys
   tog = tog XOR 1
-  wtogl = loopvar(wtogl, 0, 3, 1)
+  loopvar wtogl, 0, 3
 
   playtimer
   control
@@ -3315,14 +3315,14 @@ SUB spells_menu_control(sp as SpellsMenuState)
   IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
   IF carray(ccLeft) > 1 THEN
    DO
-    sp.hero = loopvar(sp.hero, 0, 3, -1)
+    loopvar sp.hero, 0, 3, -1
    LOOP UNTIL gam.hero(sp.hero).id >= 0
    menusound gen(genCursorSFX)
    spells_menu_refresh_hero sp
   END IF
   IF carray(ccRight) > 1 THEN
    DO
-    sp.hero = loopvar(sp.hero, 0, 3, 1)
+    loopvar sp.hero, 0, 3
    LOOP UNTIL gam.hero(sp.hero).id >= 0
    menusound gen(genCursorSFX)
    spells_menu_refresh_hero sp
@@ -3439,7 +3439,7 @@ SUB old_spells_menu (byval who as integer)
   setwait speedcontrol
   setkeys
   sp.tog = sp.tog XOR 1
-  wtogl = loopvar(wtogl, 0, 3, 1)
+  loopvar wtogl, 0, 3
   playtimer
   control
   spells_menu_control sp

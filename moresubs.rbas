@@ -593,7 +593,7 @@ DO
     st.reserve.pt = st.reserve.last
     st.reserve.need_update = YES
    ELSE
-    st.reserve.pt = loopvar(st.reserve.pt, -1, st.reserve.last, -1)
+    loopvar st.reserve.pt, -1, st.reserve.last, -1
     st.reserve.need_update = YES
    END IF
   END IF
@@ -603,7 +603,7 @@ DO
     st.reserve.pt = 0
     st.reserve.need_update = YES
    ELSE
-    st.reserve.pt = loopvar(st.reserve.pt, -1, st.reserve.last, 1)
+    loopvar st.reserve.pt, -1, st.reserve.last, 1
     st.reserve.need_update = YES
    END IF
   END IF
@@ -618,12 +618,12 @@ DO
  
  IF carray(ccLeft) > 1 AND st.reserve.pt < 0 THEN
   MenuSound gen(genCursorSFX)
-  st.party.pt = loopvar(st.party.pt, 0, 3, -1)
+  loopvar st.party.pt, 0, 3, -1
   st.party.need_update = YES
  END IF
  IF carray(ccRight) > 1 AND st.reserve.pt < 0 THEN
   MenuSound gen(genCursorSFX)
-  st.party.pt = loopvar(st.party.pt, 0, 3, 1)
+  loopvar st.party.pt, 0, 3, 1
   st.party.need_update = YES
  END IF
  IF carray(ccUse) > 1 THEN
@@ -1054,18 +1054,18 @@ DO
  tog = tog XOR 1
  playtimer
  control
- wtg = loopvar(wtg, 0, 3, 1)
+ loopvar wtg, 0, 3
  IF carray(ccMenu) > 1 THEN
   onwho = -1
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
  IF carray(ccLeft) > 1 THEN
-  DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL gam.hero(w).id >= 0
+  DO: loopvar(w, 0, 3, -1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccRight) > 1 THEN
-  DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL gam.hero(w).id >= 0
+  DO: loopvar(w, 0, 3, 1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccUse) > 1 THEN onwho = w: EXIT DO

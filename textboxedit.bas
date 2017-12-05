@@ -1327,8 +1327,8 @@ SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu
   IF keyval(scEsc) > 1 THEN EXIT SUB
   IF keyval(scF1) > 1 THEN show_help "textbox_connections"
   '--Horizontal column navigation
-  IF keyval(scLeft) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, -1)
-  IF keyval(scRight) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, 1)
+  IF keyval(scLeft) > 1 THEN loopvar column, col_limit_left, col_limit_right, -1
+  IF keyval(scRight) > 1 THEN loopvar column, col_limit_left, col_limit_right, 1
   '--Vertical navigation within selected column
   SELECT CASE column
    CASE 0 'Previous

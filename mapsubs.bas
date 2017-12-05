@@ -888,7 +888,7 @@ DO
  END IF
 
  IF keyval(scT) > 1 THEN  'Tint
-  st.layer_display_mode = loopvar(st.layer_display_mode, 0, layerDisplayNUM - 1)
+  loopvar st.layer_display_mode, 0, layerDisplayNUM - 1
   mapedit_update_layer_palettes st
  END IF
 
@@ -1214,7 +1214,7 @@ DO
    END IF
 
    IF npc_cursor_dir = -1 THEN
-    st.npc_cursor_frame = loopvar(st.npc_cursor_frame, 0, 7, 1)
+    loopvar st.npc_cursor_frame, 0, 7
    ELSE
     st.npc_cursor_frame = npc_cursor_dir * 2
    END IF

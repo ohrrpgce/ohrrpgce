@@ -327,13 +327,13 @@ FUNCTION large (byval n1 as double, byval n2 as double) as double
  IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
-FUNCTION loopvar (byval value as integer, byval min as integer, byval max as integer, byval inc as integer = 1) as integer
- RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
-END FUNCTION
+SUB loopvar (byref value as integer, min as integer, max as integer, inc as integer = 1)
+ value = POSMOD((value + inc) - min, (max - min) + 1) + min
+END SUB
 
-FUNCTION loopvar (byval value as longint, byval min as longint, byval max as longint, byval inc as longint = 1) as longint
- RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
-END FUNCTION
+SUB loopvar (byref value as longint, min as longint, max as longint, inc as longint = 1)
+ value = POSMOD((value + inc) - min, (max - min) + 1) + min
+END SUB
 
 FUNCTION small (byval n1 as integer, byval n2 as integer) as integer
  small = n1
@@ -688,9 +688,9 @@ FUNCTION str2bool(q as string, default as integer = NO) as bool
 END FUNCTION
 
 FUNCTION rotascii (s as string, o as integer) as string
- dim as string temp = ""
+ DIM as string temp = ""
  FOR i as integer = 1 TO LEN(s)
-  temp = temp + CHR(loopvar(ASC(MID(s, i, 1)), 0, 255, o))
+  temp &= CHR(POSMOD(ASC(MID(s, i, 1)) + o, 256))
  NEXT i
  RETURN temp
 END FUNCTION

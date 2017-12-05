@@ -240,7 +240,9 @@ END FUNCTION
 FUNCTION read_PW1_password () as string
  DIM rpas as string
  FOR i as integer = 1 TO gen(genPW1Length)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN
+   rpas &= CHR(POSMOD(gen(4 + i) - gen(genPW1Offset), 256))
+  END IF
  NEXT i
  RETURN rpas
 END FUNCTION

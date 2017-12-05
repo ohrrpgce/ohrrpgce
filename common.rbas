@@ -1556,10 +1556,10 @@ END FUNCTION
 'number keys, page up/down, copy/paste, minus, etc.
 FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as integer=scLeft, more as integer=scRight) as bool
  IF keyval(more) > 1 THEN
-  n = loopvar(n, min, max, 1)
+  loopvar n, min, max, 1
   RETURN YES
  ELSEIF keyval(less) > 1 THEN
-  n = loopvar(n, min, max, -1)
+  loopvar n, min, max, -1
   RETURN YES
  END IF
  RETURN NO
@@ -1595,7 +1595,7 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
 
  IF updown THEN
   n = bound(n, min, max)
-  n = loopvar(n, min, max, updown)
+  loopvar n, min, max, updown
   typed = YES
  ELSE
   DIM sign as integer = SGN(n)
@@ -1721,10 +1721,10 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
 
  IF more <> 0 ANDALSO keyval(more) > 1 THEN
   'easy case
-  n = loopvar(n, valmin, valmax, 1)
+  loopvar n, valmin, valmax, 1
  ELSEIF less <> 0 ANDALSO keyval(less) > 1 THEN
   'easy case
-  n = loopvar(n, valmin, valmax, -1)
+  loopvar n, valmin, valmax, -1
 
 /'--Why on earth do we want to support negation anyway?
  ELSEIF nmin < 0 AND pmax > 0 AND _
@@ -3238,30 +3238,30 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
        .pt = 0
       CASE 1  'Left
        .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
       CASE 2  'Right
        .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
       CASE 3  'Down
        .cycle = .cycle + tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
       CASE 4  'Up
        .cycle = .cycle - tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
       CASE 5  'Wait
        .skip = tastuf(11 + 20 * i + .pt)
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
 #IFDEF IS_GAME
       CASE 6  'If tag then stop
        IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
-        .pt = loopvar(.pt, 0, 8, 1)
+        loopvar .pt, 0, 8
        ELSE
         .pt = 0
         .cycle = 0
        END IF
 #ENDIF
       CASE ELSE  'Invalid
-       .pt = loopvar(.pt, 0, 8, 1)
+       loopvar .pt, 0, 8
      END SELECT
      notstuck = large(notstuck - 1, 0)
     LOOP WHILE notstuck AND .skip = 0
@@ -3463,7 +3463,9 @@ END SUB
 FUNCTION read_PW1_password () as string
  DIM rpas as string
  FOR i as integer = 1 TO gen(genPW1Length)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN
+   rpas &= CHR(POSMOD(gen(4 + i) - gen(genPW1Offset), 256))
+  END IF
  NEXT i
  RETURN rpas
 END FUNCTION
@@ -6182,10 +6184,10 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
   DIM mouse_over_grid as bool = in_bound(mousecursor.x, 0, 15) AND in_bound(mousecursor.y, 0, 15)
   DIM mouse_hover_col as integer = int_from_xy(mousecursor, 16, 16)
 
-  IF keyval(scUp) > 1 THEN    mouse_active = NO : cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(scDown) > 1 THEN  mouse_active = NO : cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(scLeft) > 1 THEN  mouse_active = NO : cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(scRight) > 1 THEN mouse_active = NO : cursor.x = loopvar(cursor.x, 0, 15, 1)
+  IF keyval(scUp) > 1 THEN    mouse_active = NO : loopvar(cursor.y, 0, 15, -1)
+  IF keyval(scDown) > 1 THEN  mouse_active = NO : loopvar(cursor.y, 0, 15, 1)
+  IF keyval(scLeft) > 1 THEN  mouse_active = NO : loopvar(cursor.x, 0, 15, -1)
+  IF keyval(scRight) > 1 THEN mouse_active = NO : loopvar(cursor.x, 0, 15, 1)
 
   ret = int_from_xy(cursor, 16, 16)
 
@@ -6730,19 +6732,19 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
    END IF
   ELSE
    IF keyval_arrowset_up(arr) THEN
-    p.y = loopvar(p.y, 0, 6, -1)
+    loopvar p.y, 0, 6, -1
     need_update = YES
    END IF
    IF keyval_arrowset_down(arr) THEN
-    p.y = loopvar(p.y, 0, 6, 1)
+    loopvar p.y, 0, 6, 1
     need_update = YES
    END IF
    IF keyval_arrowset_left(arr) THEN
-    p.x = loopvar(p.x, -1, 12, -1)
+    loopvar p.x, -1, 12, -1
     need_update = YES
    END IF
    IF keyval_arrowset_right(arr) THEN
-    p.x = loopvar(p.x, -1, 12, 1)
+    loopvar p.x, -1, 12, 1
     need_update = YES
    END IF
   END IF
@@ -6862,7 +6864,7 @@ FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as
   setwait 55
   setkeys YES
   
-  oscil = loopvar(oscil, 0, 29, 1)
+  loopvar oscil, 0, 29
   
   FOR i as integer = 0 TO 7
    bub_size = ABS((oscil + i) MOD 30 - 15) + 5

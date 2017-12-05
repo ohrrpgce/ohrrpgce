@@ -248,7 +248,7 @@ DO
  ELSE
   IF select_by_typing(selectst) THEN
    DIM index as integer = br.mstate.pt
-   IF LEN(selectst.query) = 1 THEN index = loopvar(index, 0, br.mstate.last)
+   IF LEN(selectst.query) = 1 THEN loopvar index, 0, br.mstate.last
    FOR ctr as integer = 0 TO br.mstate.last
     'IF (tree(index).kind = bkParentDir OR tree(index).kind = bkSubDir OR tree(index).kind = bkSelectable) THEN
      'Search both display name (preferentially) and filename
@@ -263,7 +263,7 @@ DO
       EXIT FOR
      END IF
     'END IF
-    index = loopvar(index, 0, br.mstate.last)
+    loopvar index, 0, br.mstate.last
    NEXT
   END IF
  END IF

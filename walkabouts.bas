@@ -1211,7 +1211,7 @@ END FUNCTION
 FUNCTION walkrotate(byval d as DirNum, byval rota as integer, byval amount as integer=1) as DirNum
  'rota: 1 is a clockwise right turn.
  '    -1 is a counterclockwise left turn.
- RETURN loopvar(d, 0, 3, amount * rota)
+ RETURN POSMOD(d + amount * rota, 4)
 END FUNCTION
 
 SUB cancel_npc_walk(npci as NPCInst)

@@ -207,10 +207,10 @@ Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integ
  'FIXME: rip this all out and replace it when the new animation system is ready
  dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  if spr then
-  spr->Extra(1) = loopvar(spr->Extra(1), 0, delay)
+  loopvar spr->Extra(1), 0, delay
   if spr->Extra(1) = 0 then
    dim dat as SpriteSliceData Ptr = spr->SliceData
-   dat->frame = loopvar(dat->frame, min, max)
+   loopvar dat->frame, min, max
   end if
  end if
 End Sub

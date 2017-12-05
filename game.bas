@@ -1391,14 +1391,14 @@ SUB update_heroes(force_step_check as bool=NO)
   END IF
   IF herow(0).xgo ORELSE herow(0).ygo ORELSE readbit(gen(), genBits2, 26) THEN
    FOR whoi as integer = 0 TO sizeActiveParty - 1
-    herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
+    loopvar herow(whoi).wtog, 0, 3
    NEXT whoi
   END IF
  ELSE
   'Suspended caterpillar
   FOR whoi as integer = 0 TO sizeActiveParty - 1
    IF herow(whoi).xgo ORELSE herow(whoi).ygo ORELSE readbit(gen(), genBits2, 26) THEN
-    herow(whoi).wtog = loopvar(herow(whoi).wtog, 0, 3, 1)
+    loopvar herow(whoi).wtog, 0, 3
    END IF
   NEXT whoi
  END IF
@@ -1721,7 +1721,7 @@ SUB npcmove_meandering_chase(npci as NPCInst, byval avoid_instead as bool = NO)
   END IF
   IF herox(0) = npci.x THEN d = randint(4)
  END IF
- IF avoid_instead THEN d = loopvar(d, 0, 3, 2) 'invert the direction
+ IF avoid_instead THEN loopvar d, 0, 3, 2 'invert the direction
  npci.dir = d
  npcmove_walk_ahead(npci)
 END SUB
@@ -1731,7 +1731,7 @@ SUB npcmove_meandering_avoid(npci as NPCInst)
 END SUB
 
 SUB npcmove_walk_in_place(npci as NPCInst)
- npci.frame = loopvar(npci.frame, 0, 3, 1)
+ loopvar npci.frame, 0, 3
 END SUB
 
 SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
@@ -2024,7 +2024,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
  '--Return true if we finished a step (didgo)
  DIM didgo as bool = NO
- npci.frame = loopvar(npci.frame, 0, 3, 1)
+ loopvar npci.frame, 0, 3
  DIM hit_something as bool = NO
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
   'This check only happens when the NPC is about to start moving to a new tile
@@ -2285,9 +2285,9 @@ SUB npchitwall(npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutC
    'Don't do any of this if normal movement has been temporarily overridden by pathfinding
    EXIT SUB
   END IF
-  IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
-  IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
-  IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
+  IF npcdata.movetype = 2 THEN loopvar npci.dir, 0, 3, 2  'Pace
+  IF npcdata.movetype = 3 THEN loopvar npci.dir, 0, 3, 1  'Right Turns
+  IF npcdata.movetype = 4 THEN loopvar npci.dir, 0, 3, -1 'Left Turns
   IF npcdata.movetype = 5 THEN npci.dir = randint(4)                'Random Turns
   IF npcdata.movetype = 13 OR npcdata.movetype = 14 THEN  'Follow walls stop for others
    IF collision_type = collideNPC OR collision_type = collideHero THEN
@@ -3008,7 +3008,7 @@ FUNCTION random_formation (byval set as integer) as integer
  'FIXME: When this was written, I confused the meaning of range; should improve this
  FOR i = 0 TO randint(range(19, 27))
   DO
-   foenext = loopvar(foenext, 0, UBOUND(formset.formations), 1)
+   loopvar foenext, 0, UBOUND(formset.formations)
   LOOP WHILE formset.formations(foenext) = -1
  NEXT
  RETURN formset.formations(foenext)
@@ -4089,7 +4089,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  IF cause <> 2 AND npcs(id).facetype <> 2 THEN  'not "Do not face player"
   txt.old_dir = npc(npcnum).dir
   npc(npcnum).dir = herodir(0)
-  npc(npcnum).dir = loopvar(npc(npcnum).dir, 0, 3, 2)
+  loopvar npc(npcnum).dir, 0, 3, 2
  END IF
  IF npcs(id).usetag > 0 THEN
   '--One-time-use tag
@@ -4232,7 +4232,7 @@ FUNCTION loop_active_party_slot(byval slot as integer, byval direction as intege
   RETURN slot
  END IF
  DO
-  slot = loopvar(slot, 0, last_active_party_slot(), direction)
+  loopvar slot, 0, last_active_party_slot(), direction
   IF gam.hero(slot).id >= 0 THEN RETURN slot
  LOOP
 END FUNCTION
@@ -4444,7 +4444,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def(      , scF10) THEN
-  scrwatch = loopvar(scrwatch, 0, 2, 1)
+  loopvar scrwatch, 0, 2
   gam.debug_showtags = 0
  END IF
  IF dbg.def(      ,      , "Script debugger (F10)") THEN

@@ -202,10 +202,10 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byva
   DIM oldtop as integer = .top
 
   IF .first < .last THEN
-   IF keyval(deckey) > 1 THEN .pt = loopvar(.pt, .first, .last, -1)
-   IF keyval(inckey) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)
-   IF keyval(scPageup) > 1 THEN .pt = .pt - .size
-   IF keyval(scPagedown) > 1 THEN .pt = .pt + .size
+   IF keyval(deckey) > 1 THEN loopvar .pt, .first, .last, -1
+   IF keyval(inckey) > 1 THEN loopvar .pt, .first, .last, 1
+   IF keyval(scPageup) > 1 THEN .pt -= .size
+   IF keyval(scPagedown) > 1 THEN .pt += .size
    IF keyval(scHome) > 1 THEN .pt = .first
    IF keyval(scEnd) > 1 THEN .pt = .last
   END IF
@@ -266,13 +266,13 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
    .pt = large(.pt - .size, .first)
-   WHILE v_at(menudata, .pt)->unselectable AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   WHILE v_at(menudata, .pt)->unselectable AND .pt > .first : loopvar(.pt, .first, .last, -1) : WEND
    IF v_at(menudata, .pt)->unselectable THEN d = 1
    moved_d = -1
   END IF
   IF keyval(scPagedown) > 1 THEN
    .pt = small(.pt + .size, .last)
-   WHILE v_at(menudata, .pt)->unselectable AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   WHILE v_at(menudata, .pt)->unselectable AND .pt < .last : loopvar(.pt, .first, .last, 1) : WEND
    IF v_at(menudata, .pt)->unselectable THEN d = -1
    moved_d = 1
   END IF
@@ -283,7 +283,7 @@ FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, by
    moved_d = d
    DO
     .top = bound(.top, .pt - .size, .pt)
-    .pt = loopvar(.pt, .first, .last, d)
+    loopvar .pt, .first, .last, d
    LOOP WHILE v_at(menudata, .pt)->unselectable
   END IF
 
@@ -331,13 +331,13 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   IF keyval(inckey) > 1 THEN d = 1
   IF keyval(scPageup) > 1 THEN
    .pt = large(.pt - .size, .first)
-   WHILE selectable(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   WHILE selectable(.pt) = 0 AND .pt > .first : loopvar(.pt, .first, .last, -1) : WEND
    IF selectable(.pt) = 0 THEN d = 1
    moved_d = -1
   END IF
   IF keyval(scPagedown) > 1 THEN
    .pt = small(.pt + .size, .last)
-   WHILE selectable(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   WHILE selectable(.pt) = 0 AND .pt < .last : loopvar(.pt, .first, .last, 1) : WEND
    IF selectable(.pt) = 0 THEN d = -1
    moved_d = 1
   END IF
@@ -348,7 +348,7 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
    moved_d = d
    DO
     .top = bound(.top, .pt - .size, .pt)
-    .pt = loopvar(.pt, .first, .last, d)
+    loopvar .pt, .first, .last, d
    LOOP WHILE selectable(.pt) = 0
   END IF
 
@@ -387,8 +387,8 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
   END IF
   DIM oldtop as integer = .top
   DIM lasttop as integer = large(.first, .last - .size)
-  IF keyval(deckey) > 1 THEN .top = loopvar(.top, .first, lasttop, -1)
-  IF keyval(inckey) > 1 THEN .top = loopvar(.top, .first, lasttop, 1)
+  IF keyval(deckey) > 1 THEN loopvar .top, .first, lasttop, -1
+  IF keyval(inckey) > 1 THEN loopvar .top, .first, lasttop, 1
   IF keyval(scPageup) > 1 THEN .top = large(.first, .top - .size)
   IF keyval(scPagedown) > 1 THEN .top = small(lasttop, .top + .size)
   IF keyval(scHome) > 1 THEN .top = .first
@@ -762,7 +762,7 @@ END CONSTRUCTOR
 'Internal generic implementation for select_* functions
 SUB select_menuitem(searcher as MenuSearcher, selectst as SelectTypeState, state as MenuState)
  DIM index as integer = state.pt
- IF LEN(selectst.query) = 1 THEN index = loopvar(index, state.first, state.last)
+ IF LEN(selectst.query) = 1 THEN loopvar index, state.first, state.last
  FOR ctr as integer = state.first TO state.last
   selectst.query_at = searcher.findfunc(searcher, searcher.text(index), selectst.query)
   IF selectst.query_at THEN
@@ -770,13 +770,13 @@ SUB select_menuitem(searcher as MenuSearcher, selectst as SelectTypeState, state
    'doesn't act nicely. Ideal solution would be to add and use selectst.highlight_pt, but
    'that's too much work to bother, so just allow selecting unselectable items for now.
    'WHILE NOT searcher.selectable(index)
-   ' index = loopvar(index, state.first, state.last)
+   ' loopvar index, state.first, state.last
    'WEND
    state.pt = index
    selectst.remember_pt = state.pt
    EXIT FOR
   END IF
-  index = loopvar(index, state.first, state.last)
+  loopvar index, state.first, state.last
  NEXT
 END SUB
 

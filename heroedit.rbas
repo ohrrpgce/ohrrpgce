@@ -1378,7 +1378,7 @@ END SUB
 
 SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  STATIC tog as integer
- tog = loopvar(tog, 0, 3)
+ loopvar tog, 0, 3
  
  DIM frame as integer
  IF st.previewframe <> -1 THEN
@@ -1407,7 +1407,7 @@ SUB animate_hero_preview(byref st as HeroEditState)
   .preview_steps += 1
   IF .preview_steps >= 15 THEN
    .preview_steps = 0
-   .preview_walk_direction = loopvar(.preview_walk_direction, 0, 3, 1)
+   loopvar .preview_walk_direction, 0, 3
   END IF
   IF .preview_walk_direction = 0 THEN .preview_walk_pos.y -= 4
   IF .preview_walk_direction = 1 THEN .preview_walk_pos.x += 4
