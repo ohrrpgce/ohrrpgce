@@ -53,9 +53,9 @@ DECLARE FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteTyp
 DECLARE FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix as string="-", suffix as string= "", zero as string="never") as string
 DECLARE FUNCTION speed_estimate(speed as integer, suffix as string=" seconds", zero as string="infinity") as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
+
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)
 DECLARE FUNCTION askwhatmetadata (metadata() as integer, metadatalabels() as string) as integer
-DECLARE FUNCTION str2bool(q as string, default as integer = NO, invert as integer = NO) as integer
 DECLARE SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
 DECLARE SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as integer, byval frame as integer, byval wide as integer, byval high as integer, caption as string, helpkey as string)
 DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer

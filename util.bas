@@ -675,6 +675,18 @@ FUNCTION str2int (stri as string, default as integer=0) as integer
  RETURN n
 END FUNCTION
 
+'Lenient, accepts any number or the strings yes, no, true, false, on, off.
+'Otherwise returns default.
+FUNCTION str2bool(q as string, default as integer = NO) as bool
+ DIM v as string = TRIM(LCASE(q))
+ IF LEN(v) = 0 THEN RETURN default
+ IF v = "yes" ORELSE v = "true" ORELSE v = "on" THEN RETURN YES
+ IF v = "no" ORELSE v = "false" ORELSE v = "off" THEN RETURN NO
+ DIM ret as integer = str2int(v, -1975368965)
+ IF ret = -1975368965 THEN RETURN default
+ RETURN ret <> 0
+END FUNCTION
+
 FUNCTION rotascii (s as string, o as integer) as string
  dim as string temp = ""
  FOR i as integer = 1 TO LEN(s)

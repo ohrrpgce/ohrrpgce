@@ -606,6 +606,7 @@ declare function instr_nth overload (s as string, substring as string, byval nth
 declare function length_matching (s1 as string, s2 as string) as integer
 declare function is_int(s as string) as integer
 declare function str2int (stri as string, default as integer=0) as integer
+declare function str2bool(q as string, default as integer = NO) as bool
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string
 declare function escape_string(s as string, chars as string) as string

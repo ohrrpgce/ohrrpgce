@@ -1530,9 +1530,12 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
      boxlines = 0
     ELSE
      IF INSTR(s, ":") THEN '--metadata, probably
-      dim t as string, v as string
+      DIM t as string, valline as string, v as string
       t = LCASE(LEFT(s, instr(s, ":") - 1))
-      v = TRIM(MID(s, instr(s, ":") + 1))
+      valline = LTRIM(MID(s, instr(s, ":") + 1))
+      'v is valline with any comment appearing after the value removed
+      v = valline
+      IF INSTR(v, " ") THEN v = MID(v, 1, INSTR(v, " ") - 1)
       SELECT CASE t
        CASE "size"
         IF LCASE(v) = "auto" THEN
@@ -1612,9 +1615,9 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
        CASE "choice enabled"
         box.choice_enabled = str2bool(v)
        CASE "choice 1"
-        box.choice(0) = TRIM(v)
+        box.choice(0) = TRIM(valline)
        CASE "choice 2"
-        box.choice(1) = TRIM(v)
+        box.choice(1) = TRIM(valline)
        CASE "choice 1 tag"
         box.choice_tag(0) = VALINT(v)
        CASE "choice 2 tag"
@@ -1638,10 +1641,10 @@ FUNCTION import_textboxes (filename as string, byref warn as string) as bool
        CASE "line sound"
         box.line_sound = VALINT(v)
        CASE "show box"
-        box.no_box = str2bool(v,,YES)
+        box.no_box = str2bool(v) XOR YES
        CASE "translucent"
-        box.opaque = str2bool(v,,YES)
-        
+        box.opaque = str2bool(v) XOR YES
+
        CASE ELSE
         import_textboxes_warn warn, "line " & line_number & ": expected divider line but found """ & s & """."
         CLOSE #fh

@@ -1611,16 +1611,6 @@ FUNCTION askwhatmetadata (metadata() as bool, metadatalabels() as string) as boo
  LOOP
 END FUNCTION
 
-FUNCTION str2bool(q as string, default as integer = NO, invert as bool = NO) as integer
- IF LCASE(LEFT(TRIM(q), 3)) = "yes" THEN
-  IF invert THEN RETURN NO ELSE RETURN YES
- END IF
- IF LCASE(LEFT(TRIM(q), 2)) = "no" THEN
-  IF invert THEN RETURN YES ELSE RETURN NO
- END IF
- RETURN default
-END FUNCTION
-
 SUB xy_position_on_slice (sl as Slice Ptr, byref x as integer, byref y as integer, caption as string, helpkey as string)
  DIM col as integer
  DIM tog as integer

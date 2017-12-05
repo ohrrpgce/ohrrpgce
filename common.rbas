@@ -7059,11 +7059,7 @@ FUNCTION read_config_int (key as string, default as integer=0) as integer
 END FUNCTION
 
 FUNCTION read_config_bool (key as string, default as bool=NO) as bool
- DIM v as string = LCASE(read_config_str(key))
- IF LEN(v) = 0 THEN RETURN default
- IF v = "no" ORELSE v = "false" ORELSE v = "off" THEN RETURN NO
- 'Any other value, other than 0, counts as true
- RETURN str2int(v, -1) <> 0
+ RETURN str2bool(read_config_str(key), default)
 END FUNCTION
 
 'Write to global_config_file (in general) or the game-specific config_file
