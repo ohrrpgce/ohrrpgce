@@ -4013,10 +4013,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   END IF
  NEXT i
  IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
-  IF keyval(scPlus) > 1 THEN
+  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
    spriteedit_edit ss, frame_rotated_270(ss.sprite)  'clockwise
   END IF
-  IF keyval(scMinus) > 1 THEN
+  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
    spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
   END IF
  END IF
@@ -4039,10 +4039,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   END IF
   ' clone buffer rotation
   IF ss_save.clone_brush THEN
-   IF keyval(scPlus) > 1 THEN
+   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
     frame_assign @ss_save.clone_brush, frame_rotated_270(ss_save.clone_brush)  'clockwise
    END IF
-   IF keyval(scMinus) > 1 THEN
+   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
     frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
    END IF
   END IF
