@@ -791,7 +791,7 @@ DO
     recbuf(EnDatPic) = enemyb.browse(recbuf(EnDatPic))
     state.need_update = YES
    CASE EnMenuPal
-    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + sprTypeSmallEnemy, recbuf(EnDatPic), YES)
+    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), CAST(SpriteType, recbuf(EnDatPicSize) + sprTypeSmallEnemy), recbuf(EnDatPic), YES)
     state.need_update = YES
    CASE EnMenuDeathSFX
     IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1

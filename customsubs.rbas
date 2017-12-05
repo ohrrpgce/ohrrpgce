@@ -1349,13 +1349,27 @@ SUB onetimetog(byref tagnum as integer)
  gen(genOneTimeNPC) = i
 END SUB
 
-FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval picnum as integer, byval show_default as bool=NO) as integer
+PRIVATE SUB pal16browse_draw_spriteset(sprite as Frame ptr, pal as Palette16 ptr, x as integer, y as integer, page as integer)
+ y -= sprite->h \ 2 - 10
+ FOR framenum as integer = 0 TO sprite->arraylen - 1
+  frame_draw sprite + framenum, pal, x, y, , , page
+  x += (sprite + framenum)->w
+ NEXT
+END SUB
 
+FUNCTION pal16browse (curpal as integer, picset as SpriteType, picnum as integer, show_default as bool=NO) as integer
+ DIM sprite as Frame ptr
+ sprite = frame_load(picset, picnum)
+ DIM ret as integer = pal16browse(curpal, sprite, show_default)
+ frame_unload @sprite
+ RETURN ret
+END FUNCTION
+
+FUNCTION pal16browse (curpal as integer, sprite as Frame ptr, show_default as bool=NO) as integer
  DIM buf(7) as integer
- REDIM sprite(100) as Frame ptr
  REDIM pal16(100) as Palette16 ptr
 
- DIM as integer i, o, j, k
+ DIM as integer i, o, j
  DIM c as integer
 
  DIM state as MenuState
@@ -1423,18 +1437,15 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
   IF state.need_update THEN
    state.need_update = NO
    FOR i = 0 TO state.size
-    frame_unload @sprite(i)
     palette16_unload @pal16(i)
-    sprite(i) = frame_load(picset, picnum)
-    ' Pass default_blank = NO, to avoid debug spam if picnum is off the end.
-    ' (This isn't strictly necessary)
-    IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i, picset, picnum, NO)
+    IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i)
    NEXT i
   END IF
 
   '--Draw screen
   clearpage dpage
   FOR i = 0 TO state.size
+   DIM sloty as integer = i * 20
    DIM cur_slot as integer = state.top + i
    IF cur_slot > state.last THEN CONTINUE FOR
    textcolor uilook(uiMenuItem), 0
@@ -1442,42 +1453,35 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
    IF cur_slot = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
    SELECT CASE cur_slot
     CASE state.first 'Might be -1 or -2 depending on whether default is displayed
-     printstr "Cancel", 4, 5 + i * 20, dpage
+     printstr "Cancel", 4, 5 + sloty, dpage
     CASE -1
-     printstr "Default", 4, 5 + i * 20, dpage
+     printstr "Default", 4, 5 + sloty, dpage
     CASE IS >= 0
      o = LEN(" " & (cur_slot)) * 8
      DIM border_col as integer
      IF cur_slot = state.hover THEN border_col = uilook(uiMouseHoverItem)
      IF cur_slot = state.pt THEN border_col = uilook(uiMenuitem)
-     edgebox o - 1, 1 + i * 20, 114, 18, uilook(uiBackground), border_col, dpage
+     edgebox o - 1, 1 + sloty, 114, 18, uilook(uiBackground), border_col, dpage
      FOR j = 0 TO 15
       IF pal16(i) THEN
        c = pal16(i)->col(j)
-       rectangle o + j * 7, 2 + i * 20, 5, 16, c, dpage
+       rectangle o + j * 7, 2 + sloty, 5, 16, c, dpage
       END IF
      NEXT j
      IF cur_slot <> state.pt THEN
       IF pal16(i) THEN
-       WITH sprite_sizes(picset)
-        FOR k = 0 TO .frames - 1
-         frame_draw sprite(i) + k, pal16(i), o + 140 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
-        NEXT k
-       END WITH
+       pal16browse_draw_spriteset sprite, pal16(i), o + 150, sloty, dpage
       END IF
      END IF
-     printstr "" & cur_slot, 4, 5 + i * 20, dpage
+     printstr "" & cur_slot, 4, 5 + sloty, dpage
    END SELECT
   NEXT i
   IF state.pt >= 0 THEN '--write current pic on top
    i = state.pt - state.top
+   DIM sloty as integer = i * 20
    o = LEN(" " & state.pt) * 8
    IF pal16(i) THEN
-    WITH sprite_sizes(picset)
-     FOR k = 0 TO .frames - 1
-      frame_draw sprite(i) + k, pal16(i), o + 130 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
-     NEXT k
-    END WITH
+    pal16browse_draw_spriteset sprite, pal16(i), o + 125, sloty, dpage
    END IF
   END IF
  
@@ -1488,7 +1492,6 @@ FUNCTION pal16browse (byval curpal as integer, byval picset as SpriteType, byval
  setcursorvisibility(prev_mouse_vis)
 
  FOR i = 0 TO 100
-  frame_unload @sprite(i)
   palette16_unload @pal16(i)
  NEXT
  RETURN curpal

@@ -163,12 +163,12 @@ FUNCTION pal_num_intgrabber (ss as SpriteEditState, lesskey as integer=scLeft, m
 END FUNCTION
 
 'Pick ss.pal_num with the palette browser, saving/loading before/after
-SUB spriteedit_pal16_browser (ss as SpriteEditState)
+SUB spriteedit_pal16_browser (ss as SpriteEditState, sprite as Frame ptr)
  '--write changes so far
  ss.save_callback(ss.sprite, ss.save_callback_context)
  '--save current palette
  palette16_save ss.palette, ss.pal_num
- ss.pal_num = pal16browse(ss.pal_num, ss.fileset, ss.spriteset_num)
+ ss.pal_num = pal16browse(ss.pal_num, sprite)
  setkeys
  palette16_unload @ss.palette
  ss.palette = palette16_load(ss.pal_num)
@@ -3403,7 +3403,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
   END IF
   IF pal_num_intgrabber(ss, 0, 0) THEN palstate.need_update = YES
   IF keyval(scP) > 1 OR clicked_zone = 19 THEN 'Clicked on "Pal ###
-   spriteedit_pal16_browser ss
+   spriteedit_pal16_browser ss, impsprite
   END IF
   IF usemenu(palstate) THEN palstate.need_update = YES
   IF enter_space_click(palstate) THEN ret = retval(palstate.pt) : EXIT DO
@@ -3740,7 +3740,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  END IF
  IF keyval(scP) > 1 OR (ss.zonenum = 19 AND ss.mouse.release > 0) THEN
   ' Call palette browser
-  spriteedit_pal16_browser ss
+  spriteedit_pal16_browser ss, ss.sprite
  END IF
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), ss.pal_num)
