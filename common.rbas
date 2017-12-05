@@ -482,6 +482,7 @@ FUNCTION notification (msg as string) as integer
  copypage vpage, holdpage
  basic_textbox msg, uilook(uiText), holdpage
  setvispage holdpage
+ clearkeys
  DIM scancode as integer = waitforanykey()
  freepage holdpage
  restore_previous_palette
