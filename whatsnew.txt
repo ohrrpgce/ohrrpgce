@@ -6,6 +6,8 @@ March 1st-ish-maybe 2018 [Fufluns]
     * ~~Fill this in later~~
 
   * New Features
+    * Added a "wall display style" setting to the passmap editor; walls now
+      pulse rather than flash, and there's a new "outlined" style [Ralph]
 
   * New Plotscripting Features
 

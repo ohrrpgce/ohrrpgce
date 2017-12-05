@@ -41,6 +41,7 @@ DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y
 
 DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, i as integer) as XYPair
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
+DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as integer
 DECLARE FUNCTION mapedit_on_screen(st as MapEditState, byval x as integer, byval y as integer) as integer
@@ -182,6 +183,13 @@ DECLARE SUB resize_correct_height(st as MapEditState, byref rs as MapResizeState
 
 DEFINE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
 DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
+
+TYPE WallStyle
+  as zstring ptr name
+  as integer minthickness, maxthickness
+END TYPE
+
+DIM SHARED wall_styles(2) as WallStyle = {(@"ants", 1, 1), (@"outlined", 0, 3), (@"pulse", 1, 4)}
 
 
 '==========================================================================================
@@ -416,7 +424,7 @@ rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
 IF LEN(datafile) THEN
  DIM arrowset as Frame ptr = frame_import_bmp_raw(datafile)
- FOR idx as integer = 0 TO 4
+ FOR idx as integer = 0 TO UBOUND(st.arrow_icons)
   st.arrow_icons(idx) = frame_resized(arrowset, 20, 20, idx * -20, 0)
  NEXT
  frame_unload @arrowset
@@ -663,7 +671,7 @@ frame_unload @st.zonetileset(1)
 frame_unload @st.zonetileset(2)
 frame_unload @st.overlaytileset
 frame_unload @st.zoneminimap
-FOR idx as integer = 0 TO 4
+FOR idx as integer = 0 TO UBOUND(st.arrow_icons)
  frame_unload @st.arrow_icons(idx)
 NEXT
 mapedit_free_layer_palettes st
@@ -1052,12 +1060,20 @@ DO
    'is set in mapedit_draw_walls_drag at the start of the line
    IF st.reset_tool THEN st.tool_value = passAllWalls  '=15, default
 
-   ' +/- to change the thickness walls are drawn at
+   ' +/- to change the style and thickness of walls
    IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
-    st.wallthickness = small(st.wallthickness + 1, 5)
+    st.wallthickness += 1
+    IF st.wallthickness > wall_styles(st.wall_style).maxthickness THEN
+     loopvar st.wall_style, 0, wallStyleLAST
+     st.wallthickness = wall_styles(st.wall_style).minthickness
+    END IF
    END IF
    IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
-    st.wallthickness = large(st.wallthickness - 1, 0)
+    st.wallthickness -= 1
+    IF st.wallthickness < wall_styles(st.wall_style).minthickness THEN
+     loopvar st.wall_style, 0, wallStyleLAST, -1
+     st.wallthickness = wall_styles(st.wall_style).maxthickness
+    END IF
    END IF
 
    DIM cur_wallbits as integer = readblock(st.map.pass, st.x, st.y)
@@ -1709,35 +1725,73 @@ DO
 
  '--show passmap
  IF st.editmode = pass_mode THEN
-  DIM col as integer = uilook(uiMenuItem + tog)
+  'Pick the color to draw walls
+  DIM col as integer
+  DIM outlinecol as integer = findrgb(0,0,0)
+  IF st.wall_style = wallStylePulse THEN
+   'Flashing walls: oscillate between 64 and 128 grey
+   CONST ramplen = 8  'Number of ticks from one grey to the other
+   DIM cyclor as integer = get_tickcount() MOD (2 * ramplen - 2)
+   IF cyclor >= ramplen THEN cyclor = 2 * ramplen - 1 - cyclor
+   DIM grey as integer = 64 + 64 * cyclor / ramplen
+   col = findrgb(grey, grey, grey)
+  ELSE
+   col = uilook(uiMenuItem)
+  END IF
+
+  'Palette used for st.arrow_icons
+  DIM temppal as Palette16
+  temppal.col(1) = col
+  temppal.col(2) = outlinecol
+
   FOR yidx as integer = 0 TO st.viewport.high \ 20 + 1
    FOR xidx as integer = 0 TO st.viewport.wide \ 20 + 1
     DIM tilex as integer = (st.mapx \ 20) + xidx
     DIM tiley as integer = (st.mapy \ 20) + yidx
     IF tilex < st.map.wide ANDALSO tiley < st.map.high THEN
      DIM wallbits as integer = readblock(st.map.pass, tilex, tiley)
+     DIM tilepos as XYPair = map_to_screen(st, XY(tilex, tiley) * 20)
      DIM pixelx as integer = tilex * 20 - st.mapx
      DIM pixely as integer = tiley * 20 - st.mapy + 20  '20 for the top toolbar
 
      IF CheckZoneAtTile(st.map.zmap, zoneOneWayExit, tilex, tiley) THEN
       ' Draw arrows leaving this tile
-      DIM temppal as Palette16
-      temppal.col(1) = col
+      DIM frameoffset as integer = IIF(st.wall_style = wallStylePulse, 0, 8)
 
       ' Draw a circle in the center, to indicate the bit is set even if there are no walls
       IF (wallbits AND passAllWalls) = 0 THEN
-       frame_draw st.arrow_icons(4), @temppal, pixelx, pixely, , , dpage
+       frame_draw st.arrow_icons(frameoffset + 4), @temppal, pixelx, pixely, , , dpage
       END IF
 
-      FOR direc as integer = 0 TO 3
-       IF (wallbits AND (1 SHL direc)) THEN frame_draw st.arrow_icons(direc), @temppal, pixelx, pixely, , , dpage
+      FOR direc as DirNum = 0 TO 3
+       IF wallbits AND (1 SHL direc) THEN
+        frame_draw st.arrow_icons(frameoffset + direc), @temppal, pixelx, pixely, , , dpage
+       END IF
       NEXT
-     ELSEIF st.wallthickness > 0 THEN
-      IF (wallbits AND passNorthWall) THEN rectangle pixelx     , pixely     , 20, st.wallthickness, col, dpage
-      IF (wallbits AND passEastWall)  THEN rectangle pixelx + 19, pixely     , -st.wallthickness, 20, col, dpage
-      IF (wallbits AND passSouthWall) THEN rectangle pixelx     , pixely + 19, 20, -st.wallthickness, col, dpage
-      IF (wallbits AND passWestWall)  THEN rectangle pixelx     , pixely     , st.wallthickness, 20, col, dpage
-     ELSEIF st.wallthickness = 0 THEN
+
+     ELSEIF st.wall_style <> wallStyleAnts THEN
+      DIM pulseoffset as integer = 0
+      'Draw inner outline
+      IF st.wall_style = wallStyleOutlined THEN
+       pulseoffset = 1
+       FOR d as DirNum = 0 TO 3
+        IF wallbits AND (1 SHL d) THEN drawwall d, tilepos, st.wallthickness + 1, 1, outlinecol
+       NEXT
+      END IF
+
+      'Draw pulsing part
+      FOR d as DirNum = 0 TO 3
+       IF wallbits AND (1 SHL d) THEN drawwall d, tilepos, pulseoffset, st.wallthickness, col
+      NEXT
+
+      IF st.wall_style = wallStyleOutlined THEN
+       'Draw outer outline
+       FOR d as DirNum = 0 TO 3
+        IF wallbits AND (1 SHL d) THEN drawwall d, tilepos, 0, 1, outlinecol
+       NEXT
+      END IF
+
+     ELSE  'IF st.wall_style = wallStyleAnts THEN
       IF (wallbits AND passNorthWall) THEN drawants vpages(dpage), pixelx       , pixely       , 20, 1
       IF (wallbits AND passEastWall)  THEN drawants vpages(dpage), pixelx + 20-1, pixely       , 1, 20
       IF (wallbits AND passSouthWall) THEN drawants vpages(dpage), pixelx       , pixely + 20-1, 20, 1
@@ -2330,6 +2384,18 @@ SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as intege
  setoutside -2 'Don't draw over map edge
  drawmap st.map.tiles(layernum), pos.x, pos.y, st.tilesets(layernum), dpage, _
          trans, overheadmode, @st.map.pass, 20, , pal
+END SUB
+
+'Draw a wall segment for pass_mode. Called 3 times to draw an outlined segment.
+'pos is the tile topleft corner.
+'offset is distance from the edge of the tile at which to draw
+SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
+ DIM size as XYPair
+ IF walldir = dirLeft  THEN size.h = tileh : size.w =  thickness : pos.x += offset
+ IF walldir = dirRight THEN size.h = tileh : size.w = -thickness : pos.x += tilew - 1 - offset
+ IF walldir = dirUp    THEN size.w = tilew : size.h =  thickness : pos.y += offset
+ IF walldir = dirDown  THEN size.w = tilew : size.h = -thickness : pos.y += tileh - 1 - offset
+ rectangle pos.x, pos.y, size.w, size.h, col, dpage
 END SUB
 
 
@@ -6099,26 +6165,27 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
 END TYPE
 
 SUB MapSettingsMenu.update ()
- REDIM menu(11)
+ REDIM menu(12)
  state.last = UBOUND(menu)
 
  menu(0) = "[Close]"
  menu(1) = "Cursor SHIFT-move speed X: " & st->shift_speed.x
  menu(2) = "Cursor SHIFT-move speed Y: " & st->shift_speed.y
  menu(3) = "Show 'O' for Overhead tiles: " & yesorno(st->show_overhead_bit)
- menu(4) = "Wall display thickness (Ctrl +/-): " & _
-     IIF(st->wallthickness, STR(st->wallthickness), "ants")
- menu(5) = "Tile animations: " & yesorno(st->animations_enabled)
- menu(6) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
- menu(7) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
- menu(8) = "Mouse pan speed: " & pan_mult_str
- menu(9) = "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
- menu(10) = "Show grid: " & yesorno(st->show_grid)
- menu(11) = "Grid color: "
+ menu(4) = "Wall display style: " & *wall_styles(st->wall_style).name
+ menu(5) = "Wall thickness (+/- adjusts): " & _
+     IIF(st->wall_style = wallStyleAnts, "N/A", STR(st->wallthickness))
+ menu(6) = "Tile animations: " & yesorno(st->animations_enabled)
+ menu(7) = "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
+ menu(8) = "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
+ menu(9) = "Mouse pan speed: " & pan_mult_str
+ menu(10) = "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
+ menu(11) = "Show grid: " & yesorno(st->show_grid)
+ menu(12) = "Grid color: "
  IF st->show_grid THEN
-  menu(11) &= IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
+  menu(12) &= IIF(st->grid_color = 0, "Flash", STR(st->grid_color))
  ELSE
-  menu(11) &= "N/A"
+  menu(12) &= "N/A"
  END IF
 END SUB
 
@@ -6141,20 +6208,24 @@ FUNCTION MapSettingsMenu.each_tick () as bool
   CASE 3
    changed = boolgrabber(st->show_overhead_bit, state)
   CASE 4
-   changed = intgrabber(st->wallthickness, 0, 5)
+   changed = intgrabber(st->wall_style, 0, wallStyleLAST)
   CASE 5
-   changed = boolgrabber(st->animations_enabled, state)
+   WITH wall_styles(st->wall_style)
+    changed = intgrabber(st->wallthickness, .minthickness, .maxthickness)
+   END WITH
   CASE 6
-   changed = boolgrabber(st->layers_share_usetile, state)
+   changed = boolgrabber(st->animations_enabled, state)
   CASE 7
-   changed = boolgrabber(st->cursor_follows_mouse, state)
+   changed = boolgrabber(st->layers_share_usetile, state)
   CASE 8
-   changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
+   changed = boolgrabber(st->cursor_follows_mouse, state)
   CASE 9
-   changed = boolgrabber(st->shadows_when_skewing, state)
+   changed = percent_grabber(st->mouse_pan_mult, pan_mult_str, 0., 5., 1)
   CASE 10
-   changed = boolgrabber(st->show_grid, state)
+   changed = boolgrabber(st->shadows_when_skewing, state)
   CASE 11
+   changed = boolgrabber(st->show_grid, state)
+  CASE 12
    changed = intgrabber(st->grid_color, 0, 255)
    IF enter_space_click(state) THEN
     st->grid_color = color_browser_256(st->grid_color)
@@ -6179,6 +6250,7 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.shift_speed_y", st.shift_speed.y
  write_config "mapedit.cursor_follows_mouse", yesorno(st.cursor_follows_mouse)
  write_config "mapedit.show_overhead", yesorno(st.show_overhead_bit)
+ write_config "mapedit.wall_style", st.wall_style
  write_config "mapedit.wall_thickness", st.wallthickness
  write_config "mapedit.per-tileset_current_tile", st.layers_share_usetile
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
@@ -6192,7 +6264,11 @@ SUB mapedit_load_settings (st as MapEditState)
  st.shift_speed.x = read_config_int("mapedit.shift_speed_x", 8)
  st.shift_speed.y = read_config_int("mapedit.shift_speed_y", 5)
  st.show_overhead_bit = read_config_bool("mapedit.show_overhead", YES)
+ st.wall_style = bound(read_config_int("mapedit.wall_style", wallStyleOutlined), 0, wallStyleLAST)
  st.wallthickness = read_config_int("mapedit.wall_thickness", 2)
+ WITH wall_styles(st.wall_style)
+  st.wallthickness = bound(st.wallthickness, .minthickness, .maxthickness)
+ END WITH
  st.animations_enabled = read_config_bool("mapedit.tile_animations", YES)
  st.layers_share_usetile = read_config_bool("mapedit.per-tileset_current_tile", YES)
  st.cursor_follows_mouse = read_config_bool("mapedit.cursor_follows_mouse", YES)

@@ -237,11 +237,18 @@ ENUM LayerDisplayMode
 END ENUM
 
 ENUM MapMouseAttention
- focusNowhere
- focusMap
- focusViewport  'Main part of the screen, but off the map edge
- focusToolbar   'The tool buttons
- focusTopbar
+  focusNowhere
+  focusMap
+  focusViewport  'Main part of the screen, but off the map edge
+  focusToolbar   'The tool buttons
+  focusTopbar
+END ENUM
+
+ENUM WallStylesEnum
+  wallStyleAnts = 0
+  wallStyleOutlined = 1
+  wallStylePulse = 2
+  wallStyleLAST = 2
 END ENUM
 
 'MapIDs used for undo steps
@@ -335,7 +342,7 @@ TYPE MapEditState
   hero_gfx as GraphicPair
   overlaytileset as Frame ptr
   zonetileset(2) as Frame ptr
-  arrow_icons(4) as Frame ptr
+  arrow_icons(12) as Frame ptr
   lockedzonelist(any) as integer
  
   tiny as bool               'whether or not to show the tiny screen relative to map area
@@ -347,7 +354,8 @@ TYPE MapEditState
   'Editor customisation options
   shift_speed as XYPair      'Cursor move speen when holding Shift
   cursor_follows_mouse as bool 'st.pos follows the mouse
-  wallthickness as integer   'How many pixels think to draw the walls in pass_mode
+  wall_style as WallStylesEnum  'How walls appear
+  wallthickness as integer   'How many pixels thick to draw the walls in pass_mode
   show_overhead_bit as bool  'Show 'O' while in tilemap mode
   animations_enabled as bool 'Tile animations
   layers_share_usetile as bool 'Current tile is per-tileset

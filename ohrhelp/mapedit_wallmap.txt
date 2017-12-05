@@ -142,7 +142,7 @@ CTRL+Y redoes an undone change.
 
 CTRL+S immediately saves, useful when live-previewing a game.
 
-+ and - change the way that the walls are drawn on the map.
++ and - change the way that the walls are drawn on the map. You can also adjust this in the Settings menu.
 
 CTRL+W paints the tiles visible in the window/screen using the last wall type you placed.
 
