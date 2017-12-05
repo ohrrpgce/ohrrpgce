@@ -14,7 +14,10 @@ Walkabout Palette: "default" is the palette you used to draw the sprite, but if 
 
 Base Level: This is the level that the hero will start at when they join the party. You can type in a number, or press left to choose "party average" which sets the base level according to the level of the other heroes in the party. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
-Experience Curve: Amount by which the experience curve increases for this hero. Lower values let the hero level up faster, higher values make it harder to keep leveling up. (1 means twice more exp is needed to reach the next level)
+Experience Curve: The rate at which the experience required to level increases for this hero. Lower values let the hero level up faster, higher values make it harder to keep leveling up. The formula used is
+  nextLevelXP = prevLevelXP * (1 + CURVE) + 5
+where CURVE is this setting. The requirement for level 1 is always 30 XP. For level 2, with the default value of 0.2, the requirement is 30 * (1 + 0.2) + 5 = 41 XP (in addition to the 30 XP you already gained).
+So CURVE=1 means the XP required doubles each level!
 
 Default Weapon: This is an item which will be used by the hero as a weapon if no other weapon is equipped. Press the right and left arrow keys to browse through available items. Default should usually be something like "Fist" "Punch" or "Nothing".  However, you cannot type in a name here; you must create the default as an item in the Item Editor. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
