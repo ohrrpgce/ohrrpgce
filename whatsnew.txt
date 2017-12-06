@@ -10,6 +10,7 @@ March 1st-ish-maybe 2018 [Fufluns]
       pulse rather than flash, and there's a new "outlined" style [Ralph]
 
   * New Plotscripting Features
+    * "save screenshot" [Ralph]
 
   * Changes
 

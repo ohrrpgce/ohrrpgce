@@ -682,6 +682,7 @@ define function, begin
 657,herorankfromslice,1,0     # Return the hero rank for a hero slice, or else 0
 658,slicetype,1,0             # Returns a slicetype:* constant
 659,_asserteq,4,0,0,0,0       # Used in the macro expansion of assert(x==y)
+660,savescreenshot,0          # Save a screenshot
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

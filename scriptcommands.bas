@@ -4554,6 +4554,10 @@ SUB script_functions(byval cmdid as integer)
     scriptret = 1
    END IF
   END IF
+ CASE 660 '--save screenshot
+  DIM fname as string = screenshot()
+  show_overlay_message "Saved screenshot " & trimpath(fname), 1.5
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

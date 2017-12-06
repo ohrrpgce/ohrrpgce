@@ -8988,6 +8988,19 @@ run game(0)</example>
 			<shortname>microseconds</shortname>
 			<description>An alternative to <ref>milliseconds</ref> which measures millionths of a second. This command only exists for accurate benchmarking.</description>
 		</command>
+		<command id="savescreenshot">
+			<canon>save screenshot</canon>
+			<shortname>save screenshot</shortname>
+			<description>
+				Saves a screenshot, as if the player pressed F12.
+				A popup will appear telling the filename of the screenshot.
+				<warn>
+					The screenshot might be taken either of the previous frame or the next one.
+					To be safe, if you're displaying something and then taking a screenshot of
+					it, put a <tt>wait(1)</tt> in between.
+				</warn>
+			</description>
+		</command>
 
 		<section title="Debugging">
 		<command id="trace">
