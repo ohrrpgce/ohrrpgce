@@ -938,7 +938,7 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
  IF filename <> "" THEN
   IF edit_separately THEN
    ' We are no longer editing whatever we were before
-   IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT SUB  'User can cancel
+   IF slice_editor_save_when_leaving(ses, edslice) = NO THEN EXIT SUB  'User can cancel
    ses.collection_file = filename
    ses.use_index = NO
    ses.editing_existing = NO
