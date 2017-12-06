@@ -4888,7 +4888,7 @@ SUB show_minimap(st as MapEditState)
  'edgeprint "Press Any Key", pRight, pBottom, uilook(uiText), vpage
  'Because people very often take screenshots of the minimap
  show_overlay_message "Press Any Key", 1.
- setvispage vpage, , YES
+ setvispage vpage
  waitforanykey
 END SUB
 

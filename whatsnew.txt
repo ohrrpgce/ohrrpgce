@@ -17,6 +17,12 @@ March 1st-ish-maybe 2018 [Fufluns]
 
   * Stuff Only Developers Will Notice
 
+
+Dec ?? 2017 [Etheldreme+1]
+
+  * Bugfixes
+    * Fix a major memory leak while recording .gifs [Ralph]
+
 Dec 3 2017 [Etheldreme]
 
   Highlights:

@@ -105,7 +105,7 @@ DECLARE SUB toggle_fps_display ()
 DECLARE FUNCTION supports_fullscreen_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
 
-DECLARE SUB setvispage (page as integer, skippable as bool = YES, perserve_page as bool = NO)
+DECLARE SUB setvispage (page as integer, skippable as bool = YES)
 DECLARE FUNCTION getvispage () as integer
 DECLARE SUB setwindowtitle (title as string)
 DECLARE SUB setpal (pal() as RGBcolor)

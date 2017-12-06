@@ -920,8 +920,7 @@ end function
 'Display a videopage. May modify the page!
 'Also resizes all videopages to match the window size
 'skippable: if true, allowed to frameskip this frame at high framerates
-'preserve_page: if true, don't modify page
-sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool = NO)
+sub setvispage (page as integer, skippable as bool = YES)
 	' Remember last page
 	last_setvispage = page
 
@@ -952,19 +951,17 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 		end if
 	end if
 
-	' The page to which to draw overlays, and display
-	dim drawpage as integer = page
-	'We avoid duplicating the page to allow really high fps, but that leads to
-	'accidentally including overlays in gifs a lot, due to "copypage vpage, holdscreen"
-	if preserve_page or recordgif.active then
-		drawpage = duplicatepage(page)
-	end if
+	' The page to which to draw overlays, and display.
+	' We could skip this duplication if there are no overlays to draw. But even at 60fps
+	' it's not significant: in my test, at 1920x1080 and 2x zoom, this duplicatepage
+	' is only 0.5% of runtime.
+	dim drawpage as integer
+	drawpage = duplicatepage(page)
 
 	'Draw those overlays that are always recorded in .gifs/screenshots
 	draw_allmodex_recordable_overlays drawpage
 
 	if screenshot_record_overlays = YES then
-		'Modifies page. This is bad if displaying a page other than vpage/dpage!
 		draw_allmodex_overlays drawpage
 	end if
 
@@ -995,9 +992,7 @@ sub setvispage (page as integer, skippable as bool = YES, preserve_page as bool 
 
 	mutexunlock keybdmutex
 
-	if preserve_page then
-		freepage drawpage
-	end if
+	freepage drawpage
 
 	if time_draw_calls_from_finish then
 		' Have to give the backend and driver a millisecond or two to display the frame or we'll miss it
@@ -1736,7 +1731,7 @@ function waitforanykey () as integer
 		end if
 		if dowait then
 			' Redraw the screen occasionally in case something like an overlay is drawn
-			setvispage getvispage, , YES  'Preserve contents
+			setvispage getvispage
 		end if
 	loop
 end function
