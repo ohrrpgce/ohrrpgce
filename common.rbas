@@ -1818,7 +1818,7 @@ END SUB
 SUB handle_text_copy_paste (byref text as string, byref clip as string)
  IF copy_keychord() THEN
   clip = text
-  io_set_clipboard_text(text)  'Don't need ohr_to_utf8
+  io_set_clipboard_text(latin1_to_utf8(text))
  END IF
  IF paste_keychord() THEN
   DIM osclip as zstring ptr  'ustring

@@ -2156,7 +2156,9 @@ FUNCTION utf8_to_latin1(utf8string as ustring) as string
   DIM length as integer = utf8_length(strptr(utf8string))
   IF length < 0 THEN
     debug "utf8_length(" & utf8string & ") failed"
-    RETURN "[CORRUPTED]"
+    'Maybe this garbage string is actually already latin-1? E.g. if some application
+    'put a string in the clipboard without encoding it in UTF8
+    RETURN utf8string ' "[CORRUPTED]"
   END IF
 
   DIM widestr as wstring ptr
@@ -2169,6 +2171,17 @@ FUNCTION utf8_to_latin1(utf8string as ustring) as string
   ret = LEFT(ret, length)
   DEALLOCATE widestr
   RETURN ret
+END FUNCTION
+
+' Just leaves all the icon characters alone
+FUNCTION latin1_to_utf8(s as string) as ustring
+  DIM buf as ustring = SPACE(LEN(s) * 2)  'At most a 2x blowup
+
+  DIM outchar as ubyte ptr = @buf[0]
+  FOR idx as integer = 0 TO LEN(s) - 1
+    outchar += utf8_encode_char(outchar, s[idx])
+  NEXT
+  RETURN LEFT(buf, outchar - @buf[0])
 END FUNCTION
 
 ' This translates a filename, e.g. returned from browse() or findfiles() to
