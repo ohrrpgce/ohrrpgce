@@ -29,16 +29,6 @@ declare function base64_decode (byval in as byte ptr, byval inlen as size_t, _
 declare function base64_decode_alloc (byval in as byte ptr, byval inlen as size_t, _
                                       byval out as byte ptr ptr, byval outlen as size_t ptr) as bool
 
-
-'In unicode.c
-declare function utf8_length(byval in as ubyte ptr) as long
-
-declare function utf8_decode(byval in as ubyte ptr, byval length as long ptr = NULL) as wstring ptr
-
-declare function wstring_to_latin1(byval input as wstring ptr, byval output as ubyte ptr, byval outsize as long) as long
-
-declare function partially_normalise_unicode(byval input as wstring ptr, byval output as wstring ptr, byval outsize as long) as long
-
 end extern
 
 #endif

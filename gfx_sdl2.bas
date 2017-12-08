@@ -15,7 +15,7 @@
 #include "gfx.bi"
 #include "surface.bi"
 #include "common.bi"
-#include "cutil.bi"
+#include "unicode.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
 

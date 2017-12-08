@@ -14,6 +14,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "config.bi"
 #include "util.bi"
 #include "cutil.bi"
+#include "unicode.bi"
 #include "lib/sha1.bi"
 #include "os.bi"
 #include "common_base.bi"
