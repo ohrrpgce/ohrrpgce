@@ -72,11 +72,6 @@ WITH *ScreenSlice
  .Height = get_resolution().h
 END WITH
 
-'frame_new_view changes the position of the origin. This is the transform needed to translate
-'a slice's ScreenX/Y position to X/Y position on the current view slice. It starts at 0,0 when
-'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
-Dim Shared GlobalCoordOffset as XYPair
-
 DEFINE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
 DEFINE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
 
@@ -123,26 +118,17 @@ End sub
 Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSliceRecurse which does null check it.
- dim clippos as XYPair = any
+ dim rememclip as ClipState = any
  with *s
   if .ChildrenRefresh then .ChildrenRefresh(s)
 
   if .Clip then
-   dim clipview as Frame ptr
-   clippos.X = .ScreenX + .paddingLeft + GlobalCoordOffset.X
-   clippos.Y = .ScreenY + .paddingTop + GlobalCoordOffset.Y
-   clipview = frame_new_view(vpages(page), _
-                             clippos.X, _
-                             clippos.Y, _
-                             .Width - .paddingLeft - .paddingRight, _
-                             .Height - .paddingTop - .paddingBottom)
-   page = registerpage(clipview)
-   frame_unload @clipview
-
-   'frame_new_view doesn't move the origin past the edges of the screen
-   '(we don't need to check for going off the bottom or right edges because that's always a zero-size view)
-   GlobalCoordOffset.X -= large(clippos.X, 0)
-   GlobalCoordOffset.Y -= large(clippos.Y, 0)
+   rememclip = cliprect
+   shrinkclip .ScreenX + .paddingLeft, _
+              .ScreenY + .paddingTop, _
+              .ScreenX + .Width - .paddingRight - 1, _
+              .ScreenY + .Height - .paddingBottom - 1, _
+              vpages(page)
   end if
 
   'draw the slice's children
@@ -154,12 +140,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
    childindex += 1
   Loop
 
-  if .Clip then
-   freepage page
-   GlobalCoordOffset.X += large(clippos.X, 0)
-   GlobalCoordOffset.Y += large(clippos.Y, 0)
-  end if
-
+  if .Clip then cliprect = rememclip
  end with
 End sub
 
@@ -2112,10 +2093,6 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
   dim w as integer = .Width \ large(1, dat->cols)
   dim h as integer = .Height \ large(1, dat->rows)
 
-  dim clippos as XYPair
-  dim clipview as Frame ptr
-  dim childpage as integer
-
   'draw the slice's children
   dim ch as Slice ptr = .FirstChild
   dim childindex as integer = 0
@@ -2123,27 +2100,19 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
    for xslot as integer = 0 to dat->cols - 1
     if ch = 0 then exit for, for
 
-    clippos.X = .ScreenX + xslot * w + .paddingLeft + GlobalCoordOffset.X
-    clippos.Y = .ScreenY + yslot * h + .paddingTop + GlobalCoordOffset.Y
+    dim clippos as XYPair
+    clippos.x = .ScreenX + xslot * w
+    clippos.y = .ScreenY + yslot * h
+    dim rememclip as ClipState = cliprect
+    shrinkclip clippos.x + .paddingLeft, _
+               clippos.y + .paddingTop, _
+               clippos.x + w - .paddingRight - 1, _
+               clippos.y + h - .paddingBottom - 1, _
+               vpages(page)
 
-    clipview = frame_new_view(vpages(page), _
-                              clippos.X, _
-                              clippos.Y, _
-                              w - .paddingLeft - .paddingRight, _
-                              h - .paddingTop - .paddingBottom)
-    childpage = registerpage(clipview)
-    frame_unload @clipview
+    DrawSliceRecurse(ch, page, childindex)
 
-    'frame_new_view doesn't move the origin past the edges of the screen
-    '(we don't need to check for going off the bottom or right edges because that's always a zero-size view)
-    GlobalCoordOffset.X -= large(clippos.X, 0)
-    GlobalCoordOffset.Y -= large(clippos.Y, 0)
-
-    DrawSliceRecurse(ch, childpage, childindex)
-
-    freepage childpage
-    GlobalCoordOffset.X += large(clippos.X, 0)
-    GlobalCoordOffset.Y += large(clippos.Y, 0)
+    cliprect = rememclip
 
     ch = ch->NextSibling
     childindex += 1
@@ -2620,9 +2589,6 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  dim max as XYPair
  CalcSliceContentsSize(sl, min, max, dat->check_depth)
 
- dim pagepos as XYPair
- pagepos = sl->ScreenPos + GlobalCoordOffset
-
  dim axis as integer
  dim other as integer
 
@@ -2636,8 +2602,8 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
    dim sbar as RectType
    dim slider as RectType
    with sbar
-    .topleft.n(axis) = pagepos.n(axis)
-    .topleft.n(other) = pagepos.n(other) + sl->Size.n(other)
+    .topleft.n(axis) = sl->ScreenPos.n(axis)
+    .topleft.n(other) = sl->ScreenPos.n(other) + sl->Size.n(other)
     .size.n(axis) = sl->Size.n(axis)
     .size.n(other) = 4
     rectangle .x, .y, .wide, .high, boxlook(dat->style).bgcol, p
@@ -2949,9 +2915,7 @@ Sub CalcPanelArea (byref ppos as XYPair, byref psize as XYPair, byval par as Sli
  if dat->vertical then axis = 1
  dim other as integer = axis XOR 1
 
- dim innersize as XYPair
- innersize.x = par->Width
- innersize.y = par->Height
+ dim innersize as XYPair = par->Size
  dim prsize as integer
  dim prepad as XYPair
  dim postpad as XYPair
@@ -3031,9 +2995,9 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
  with *s
   'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
 
-  dim clippos as XYPair
-  dim clipsize as XYPair
-  dim savepage as integer = page
+  dim clippos as XYPair = any
+  dim clipsize as XYPair = any
+  dim rememclip as ClipState = any
 
   'draw the slice's children
   dim index as integer = 0
@@ -3042,24 +3006,17 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
    
    if .Clip then
     CalcPanelArea clippos, clipsize, s, index
-    clippos.x += .ScreenX + GlobalCoordOffset.X
-    clippos.y += .ScreenY + GlobalCoordOffset.Y
-    dim clipview as Frame ptr
-    clipview = frame_new_view(vpages(page), clippos.X, clippos.Y, clipsize.W, clipsize.H)
-    page = registerpage(clipview)
-    frame_unload @clipview
-    GlobalCoordOffset.X -= large(clippos.X, 0)
-    GlobalCoordOffset.Y -= large(clippos.Y, 0)
+    clippos += .ScreenPos
+
+    rememclip = cliprect
+    shrinkclip clippos.x, clippos.y, _
+               clippos.x + clipsize.w - 1, clippos.y + clipsize.h - 1, _
+               vpages(page)
    end if
 
    DrawSliceRecurse(ch, page, index)
-   
-   if .Clip then
-    freepage page
-    GlobalCoordOffset.X += large(clippos.X, 0)
-    GlobalCoordOffset.Y += large(clippos.Y, 0)
-    page = savepage
-   end if
+
+   if .Clip then cliprect = rememclip
 
    index += 1
    if index > 1 then exit do ' Only ever draw the first 2 children!
@@ -3388,11 +3345,7 @@ Private Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childi
 
   if s->Draw then
    NumDrawnSlices += 1
-   'translate screenX/Y by the position difference between page (due to it
-   'potentially being a view on the screen) and the screen.
-   s->ScreenPos += GlobalCoordOffset
    s->Draw(s, page)
-   s->ScreenPos -= GlobalCoordOffset
   end if
   AutoSortChildren(s)
   s->ChildDraw(s, page)
@@ -3418,10 +3371,6 @@ Sub DrawSliceAt(byval s as Slice ptr, byval x as integer, byval y as integer, by
   v_new context_stack
 
   'calc the slice's X,Y
-
-  'Is this actually necessary? I guess it should always be 0,0 when not inside a DrawSlice call...
-  'GlobalCoordOffset.X = 0
-  'GlobalCoordOffset.Y = 0
 
   DIM dummyparent as Slice Ptr
   dummyparent = NewSliceOfType(slContainer)
