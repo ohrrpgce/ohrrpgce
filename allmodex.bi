@@ -173,19 +173,18 @@ DECLARE SUB fuzzyrect OVERLOAD (fr as Frame Ptr, x as RelPos, y as RelPos, w as 
 DECLARE SUB draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byref chequer_scroll as integer = 0, x as RelPos = 0, y as RelPos = 0, wide as RelPos = rWidth, high as RelPos = rHeight)
 
 Type ClipState
-	whichframe as Frame ptr
-	clipl as integer
-	clipr as integer
-	clipt as integer
-	clipb as integer
+	'Which Frame the clips are set for
+	frame as Frame ptr
+	'Drawable area on clippedframe; right & bottom edges are INCLUSIVE!
+	l as integer
+	t as integer
+	r as integer
+	b as integer
 End Type
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 DECLARE SUB shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr)
-DECLARE SUB saveclip(byref buf as ClipState)
-DECLARE SUB loadclip(byref buf as ClipState)
-
 
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal as Palette16 ptr, x as integer, y as integer, page as integer, scale as integer=1, trans as bool = YES)
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal() as integer, po as integer, x as integer, y as integer, page as integer, scale as integer = 1, trans as bool = YES)
@@ -649,6 +648,7 @@ declare sub email_files(address as string, subject as string, message as string,
 '==========================================================================================
 '                                         Globals
 
+extern cliprect as ClipState
 extern keybdmutex as any ptr
 extern modex_initialised as bool
 extern vpages() as Frame ptr

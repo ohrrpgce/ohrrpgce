@@ -535,8 +535,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   draw_fullscreen_scrollbar state, 0, page
  END IF
 
- DIM rememclip as ClipState
- saveclip rememclip
+ DIM rememclip as ClipState = cliprect
  shrinkclip x, , x + wide - 1, , vpages(page)
 
  FOR i as integer = state.top TO state.top + state.size
@@ -584,7 +583,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
   END IF
  NEXT i
 
- loadclip rememclip
+ cliprect = rememclip
 END SUB
 
 

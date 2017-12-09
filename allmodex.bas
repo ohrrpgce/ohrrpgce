@@ -103,7 +103,7 @@ declare function hexptr(p as any ptr) as string
 declare sub Palette16_delete(f as Palette16 ptr ptr)
 
 
-#define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
+#define POINT_CLIPPED(x, y) ((x) < cliprect.l orelse (x) > cliprect.r orelse (y) < cliprect.t orelse (y) > cliprect.b)
 
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
@@ -165,8 +165,8 @@ DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unlo
 'For each vpage() element, this records whether it shouldn't be resized when the window size changes (normally is)
 '(Not fully implemented, as it seems it would only benefit textbox_appearance_editor)
 'dim shared fixedsize_vpages() as bool
-dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
-dim shared as integer clipl, clipt, clipr, clipb 'drawable area on clippedframe; right, bottom margins are excluded
+
+dim cliprect as ClipState
 
 'The current internal size of the window (takes effect at next setvispage).
 'Should only be modified via set_resolution and unlock_resolution
@@ -368,7 +368,7 @@ private sub modex_init()
 	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
 
-	clippedframe = NULL
+	cliprect.frame = NULL
 
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
@@ -3203,7 +3203,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim todraw as integer
 	dim tileframe as frame
 
-	if clippedframe <> dest then
+	if cliprect.frame <> dest then
 		setclip , , , , dest
 	end if
 
@@ -3387,7 +3387,7 @@ end function
 
 sub drawspritex (pic() as integer, picoff as integer, pal as Palette16 ptr, x as integer, y as integer, page as integer, scale as integer = 1, trans as bool = YES)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
-	if clippedframe <> vpages(page) then
+	if cliprect.frame <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
 
@@ -3423,7 +3423,7 @@ sub wardsprite (pic() as integer, picoff as integer, pal() as integer, po as int
 	dim pix as integer
 	dim row as integer
 
-	if clippedframe <> vpages(page) then
+	if cliprect.frame <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
 
@@ -3491,7 +3491,7 @@ sub stosprite (pic() as integer, picoff as integer, x as integer, y as integer, 
 	dim h as integer
 	dim w as integer
 
-	if clippedframe <> vpages(page) then
+	if cliprect.frame <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
 	CHECK_FRAME_8BIT(vpages(page))
@@ -3533,7 +3533,7 @@ sub loadsprite (pic() as integer, picoff as integer, x as integer, y as integer,
 	dim sbytes as integer
 	dim temp as integer
 
-	if clippedframe <> vpages(page) then
+	if cliprect.frame <> vpages(page) then
 		setclip , , , , vpages(page)
 	end if
 	CHECK_FRAME_8BIT(vpages(page))
@@ -3734,7 +3734,7 @@ sub putpixel (spr as Frame ptr, x as integer, y as integer, c as integer)
 end sub
 
 sub putpixel (x as integer, y as integer, c as integer, p as integer)
-	if clippedframe <> vpages(p) then
+	if cliprect.frame <> vpages(p) then
 		setclip , , , , vpages(p)
 	end if
 	CHECK_FRAME_8BIT(vpages(p))
@@ -3757,7 +3757,7 @@ function readpixel (spr as Frame ptr, x as integer, y as integer) as integer
 end function
 
 function readpixel (x as integer, y as integer, p as integer) as integer
-	if clippedframe <> vpages(p) then
+	if cliprect.frame <> vpages(p) then
 		setclip , , , , vpages(p)
 	end if
 	CHECK_FRAME_8BIT(vpages(p), 0)
@@ -3862,7 +3862,7 @@ sub rectangle (x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer,
 end sub
 
 sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelPos, c as integer)
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 
@@ -3876,10 +3876,10 @@ sub rectangle (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos, h as RelP
 	if h < 0 then y = y + h + 1: h = -h
 
 	'clip
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w -= (clipl - x) : x = clipl
-	if y < clipt then h -= (clipt - y) : y = clipt
+	if x + w > cliprect.r then w = (cliprect.r - x) + 1
+	if y + h > cliprect.b then h = (cliprect.b - y) + 1
+	if x < cliprect.l then w -= (cliprect.l - x) : x = cliprect.l
+	if y < cliprect.t then h -= (cliprect.t - y) : y = cliprect.t
 
 	if w <= 0 or h <= 0 then exit sub
 
@@ -3914,7 +3914,7 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	                    21, 28, 11, 16, 20, 22, 18, 17, 19, 32, 17, 16, _
 	                    15, 14, 50}
 
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 	CHECK_FRAME_8BIT(fr)
@@ -3938,17 +3938,17 @@ sub fuzzyrect (fr as Frame Ptr, x as RelPos, y as RelPos, w as RelPos = rWidth, 
 	if h < 0 then y = y + h + 1: h = -h
 
 	'clip
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then
-		startr += (clipl - x) * fuzzfactor
-		w -= (clipl - x)
-		x = clipl
+	if x + w > cliprect.r then w = (cliprect.r - x) + 1
+	if y + h > cliprect.b then h = (cliprect.b - y) + 1
+	if x < cliprect.l then
+		startr += (cliprect.l - x) * fuzzfactor
+		w -= (cliprect.l - x)
+		x = cliprect.l
 	end if
-	if y < clipt then
-		startr += (clipt - y) * grain
-		h -= (clipt - y)
-		y = clipt
+	if y < cliprect.t then
+		startr += (cliprect.t - y) * grain
+		h -= (cliprect.t - y)
+		y = cliprect.t
 	end if
 
 	if w <= 0 or h <= 0 then exit sub
@@ -3995,11 +3995,10 @@ sub draw_background (dest as Frame ptr, bgcolor as bgType = bgChequerScroll, byr
 		fuzzyrect bg_chequer, 0, 0, bg_chequer->w, bg_chequer->h, uilook(uiDisabledItem)
 		dim offset as integer = 0
 		if bgcolor = -1 then offset = chequer_scroll \ rate
-		dim oldclip as ClipState
-		saveclip oldclip
+		dim oldclip as ClipState = cliprect
 		shrinkclip x, y, x + wide - 1, y + high - 1, dest
 		frame_draw bg_chequer, NULL, x - offset, y - offset, zoom, NO, dest
-		loadclip oldclip
+		cliprect = oldclip
 		frame_unload @bg_chequer
 	end if
 end sub
@@ -4016,7 +4015,7 @@ end sub
 sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2 as integer, c as integer, dash_cycle as integer = 0, dash_len as integer = 0)
 	'Uses Bresenham's algorithm
 
-	if clippedframe <> dest then
+	if cliprect.frame <> dest then
 		setclip , , , , dest
 	end if
 	CHECK_FRAME_8BIT(dest)
@@ -4076,14 +4075,14 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 	/'
 	'Perform clipping (not correct/finished)
 	dim itstart as integer
-	if y1 < clipt then
-		if y2 < clipt then exit sub  'Ensures delta_add & delta_sub > 0
+	if y1 < cliprect.t then
+		if y2 < cliprect.t then exit sub  'Ensures delta_add & delta_sub > 0
 		if deltaX > deltaY then
-			delta += (clipt - y1) * delta_add
+			delta += (cliprect.t - y1) * delta_add
 			itstart = delta \ delta_add
 			delta = delta mod delta_sub
 		else
-			itstart = clipt - y1
+			itstart = cliprect.t - y1
 			delta += itstart * delta_add
 			x1 += stepX * (delta mod delta_sub)
 			delta = delta mod delta_sub
@@ -4093,7 +4092,7 @@ sub drawline (dest as Frame ptr, x1 as integer, y1 as integer, x2 as integer, y2
 				delta -= delta_sub
 			end if
 		end if
-		y1 = clipt
+		y1 = cliprect.t
 	end if
 	'/
 
@@ -4134,7 +4133,7 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 	dim i as integer
 	dim tnode as XYPair_node ptr = null
 
-	if clippedframe <> dest then
+	if cliprect.frame <> dest then
 		setclip , , , , dest
 	end if
 	CHECK_FRAME_8BIT(dest)
@@ -4160,18 +4159,18 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 			w = queue->x
 			e = queue->x
 			'find western limit
-			while w > clipl and FRAMEPIXEL(w-1, queue->y, dest) = tcol
+			while w > cliprect.l and FRAMEPIXEL(w-1, queue->y, dest) = tcol
 				w -= 1
 				FRAMEPIXEL(w, queue->y, dest) = c
 			wend
 			'find eastern limit
-			while e < clipr and FRAMEPIXEL(e+1, queue->y, dest) = tcol
+			while e < cliprect.r and FRAMEPIXEL(e+1, queue->y, dest) = tcol
 				e += 1
 				FRAMEPIXEL(e, queue->y, dest) = c
 			wend
 			'add bordering XYPair_nodes
 			for i = w to e
-				if queue->y > clipt then
+				if queue->y > cliprect.t then
 					'north
 					if FRAMEPIXEL(i, queue->y-1, dest) = tcol then
 						tail->nextnode = callocate(sizeof(XYPair_node))
@@ -4181,7 +4180,7 @@ sub paintat (dest as Frame ptr, x as integer, y as integer, c as integer)
 						tail->nextnode = null
 					end if
 				end if
-				if queue->y < clipb then
+				if queue->y < cliprect.b then
 					'south
 					if FRAMEPIXEL(i, queue->y+1, dest) = tcol then
 						tail->nextnode = callocate(sizeof(XYPair_node))
@@ -4208,7 +4207,7 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 	CHECK_FRAME_8BIT(fr)
@@ -4250,7 +4249,7 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 		'Note yi is cartesian coordinates, with the centre of the ellipsis at the origin, NOT screen coordinates!
 		'xs, ys are in screen coordinates
 		ys = int(y) - yi
-		if ys < clipt - 1 or ys > clipb + 1 then continue for
+		if ys < cliprect.t - 1 or ys > cliprect.b + 1 then continue for
 
 		'Fix y (scanline) and solve for x using quadratic formula (coefficients:)
 		dim as double qf_a, qf_b, qf_c
@@ -4305,14 +4304,14 @@ end sub
 
 'Replaces one colour with another, OR if swapcols is true, swaps the two colours.
 sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 	CHECK_FRAME_8BIT(fr)
 
-	for yi as integer = clipt to clipb
+	for yi as integer = cliprect.t to cliprect.b
 		dim sptr as ubyte ptr = fr->image + (yi * fr->pitch)
-		for xi as integer = clipl to clipr
+		for xi as integer = cliprect.l to cliprect.r
 			if sptr[xi] = c_old then
 				sptr[xi] = c_new
 			elseif swapcols and (sptr[xi] = c_new) then
@@ -4328,13 +4327,13 @@ end sub
 
 'Changes a Frame in-place, applying a remapping
 sub remap_to_palette (fr as Frame ptr, pal as Palette16 ptr)
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 	CHECK_FRAME_8BIT(fr)
 
-	for y as integer = clipt to clipb
-		for x as integer = clipl to clipr
+	for y as integer = cliprect.t to cliprect.b
+		for x as integer = cliprect.l to cliprect.r
 			FRAMEPIXEL(x, y, fr) = pal->col(FRAMEPIXEL(x, y, fr))
 		next
 	next
@@ -4348,14 +4347,14 @@ end sub
 
 ' Count the number of occurrences of a color in a Frame (just the clipped region)
 function countcolor (fr as Frame ptr, col as integer) as integer
-	if clippedframe <> fr then
+	if cliprect.frame <> fr then
 		setclip , , , , fr
 	end if
 	CHECK_FRAME_8BIT(fr, 0)
 
 	dim ret as integer = 0
-	for yi as integer = clipt to clipb
-		for xi as integer = clipl to clipr
+	for yi as integer = cliprect.t to cliprect.b
+		for xi as integer = cliprect.l to cliprect.r
 			if FRAMEPIXEL(xi, yi, fr) = col then ret += 1
 		next
 	next
@@ -4859,7 +4858,7 @@ sub draw_line_fragment(dest as Frame ptr, byref state as PrintStrState, layer as
 				end if
 
 				'Print one character past the end of the line
-				if reallydraw and .x <= clipr then
+				if reallydraw and .x <= cliprect.r then
 					if .thefont->layers(layer) <> NULL then
 						with .thefont->layers(layer)->chdata(parsed_line[ch])
 							charframe.image = state.thefont->layers(layer)->spr->image + .offset
@@ -4939,7 +4938,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 
 	if dest = null then debug "printstr: NULL dest" : exit sub
 
-	if clippedframe <> dest then
+	if cliprect.frame <> dest then
 		setclip , , , , dest
 	end if
 
@@ -5001,7 +5000,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 'debug "parsed: " + parsed_line
 			'Print at least one extra line above and below the visible region, in case the
 			'characters are big (we only approximate this policy, with the current font height)
-			visibleline = (.y + line_height > clipt - .thefont->h AND .y < clipb + .thefont->h)
+			visibleline = (.y + line_height > cliprect.t - .thefont->h AND .y < cliprect.b + .thefont->h)
 'if tog then visibleline = NO
 'debug "vis: " & visibleline
 
@@ -5025,7 +5024,7 @@ sub render_text (dest as Frame ptr, byref state as PrintStrState, text as string
 				draw_line_fragment(dest, prev_state, 1, prev_parse, prev_visible)
 'debug "prev.charnum=" & prev_state.charnum
 				if prev_state.charnum >= endchar then /'debug "text end" :'/ exit do
-				if prev_state.y > clipb + prev_state.thefont->h then exit do
+				if prev_state.y > cliprect.b + prev_state.thefont->h then exit do
 			end if
 			draw_layer1 = YES
 			prev_parse = parsed_line
@@ -6916,49 +6915,33 @@ end sub
 'the allowed range of clipping values.
 
 'Set the bounds used by various (not quite all?) video page drawing functions.
-'setclip must be called to reset the clip bounds whenever the clippedframe changes, to ensure
+'setclip must be called to reset the clip bounds whenever the cliprect.frame changes, to ensure
 'that they are valid (the video page dimensions might differ).
 sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
-	if fr <> 0 then clippedframe = fr
-	with *clippedframe
-		clipl = bound(l, 0, .w) '.w valid, prevents any drawing
-		clipt = bound(t, 0, .h)
-		clipr = bound(r, 0, .w - 1)
-		clipb = bound(b, 0, .h - 1)
+	if fr <> 0 then cliprect.frame = fr
+	with *cliprect.frame
+		cliprect.l = bound(l, 0, .w) '.w valid, prevents any drawing
+		cliprect.t = bound(t, 0, .h)
+		cliprect.r = bound(r, 0, .w - 1)
+		cliprect.b = bound(b, 0, .h - 1)
 	end with
 end sub
 
 'Shrinks clipping area, never grows it
 sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr)
-	if clippedframe <> fr then
-		clippedframe = fr
-		clipl = 0
-		clipt = 0
-		clipr = 999999
-		clipb = 999999
+	if cliprect.frame <> fr then
+		cliprect.frame = fr
+		cliprect.l = 0
+		cliprect.t = 0
+		cliprect.r = 999999
+		cliprect.b = 999999
 	end if
-	with *clippedframe
-		clipl = bound(large(clipl, l), 0, .w) '.w valid, prevents any drawing
-		clipt = bound(large(clipt, t), 0, .h)
-		clipr = bound(small(clipr, r), 0, .w - 1)
-		clipb = bound(small(clipb, b), 0, .h - 1)
+	with *cliprect.frame
+		cliprect.l = bound(large(cliprect.l, l), 0, .w) '.w valid, prevents any drawing
+		cliprect.t = bound(large(cliprect.t, t), 0, .h)
+		cliprect.r = bound(small(cliprect.r, r), 0, .w - 1)
+		cliprect.b = bound(small(cliprect.b, b), 0, .h - 1)
 	end with
-end sub
-
-sub saveclip(byref buf as ClipState)
-	buf.whichframe = clippedframe
-	buf.clipr = clipr
-	buf.clipl = clipl
-	buf.clipt = clipt
-	buf.clipb = clipb
-end sub
-
-sub loadclip(byref buf as ClipState)
-	clippedframe = buf.whichframe
-	clipr = buf.clipr
-	clipl = buf.clipl
-	clipt = buf.clipt
-	clipb = buf.clipb
 end sub
 
 'Blit a Frame with setclip clipping.
@@ -6976,22 +6959,22 @@ private sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as int
 	starty = y
 	endy = y + src->h - 1
 
-	if startx < clipl then
-		srcoffset = (clipl - startx)
-		startx = clipl
+	if startx < cliprect.l then
+		srcoffset = (cliprect.l - startx)
+		startx = cliprect.l
 	end if
 
-	if starty < clipt then
-		srcoffset += (clipt - starty) * src->pitch
-		starty = clipt
+	if starty < cliprect.t then
+		srcoffset += (cliprect.t - starty) * src->pitch
+		starty = cliprect.t
 	end if
 
-	if endx > clipr then
-		endx = clipr
+	if endx > cliprect.r then
+		endx = cliprect.r
 	end if
 
-	if endy > clipb then
-		endy = clipb
+	if endy > cliprect.b then
+		endy = cliprect.b
 	end if
 
 	if starty > endy or startx > endx then exit sub
@@ -7008,11 +6991,11 @@ private sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x
 
 	dim as integer sxfrom, sxto, syfrom, syto
 
-	sxfrom = large(clipl, x)
-	sxto = small(clipr, x + (src->w * scale) - 1)
+	sxfrom = large(cliprect.l, x)
+	sxto = small(cliprect.r, x + (src->w * scale) - 1)
 
-	syfrom = large(clipt, y)
-	syto = small(clipb, y + (src->h * scale) - 1)
+	syfrom = large(cliprect.t, y)
+	syto = small(cliprect.b, y + (src->h * scale) - 1)
 
 	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, write_mask, scale)
 end sub
@@ -7024,17 +7007,17 @@ private sub draw_clipped_surf(src as Surface ptr, master_pal as RGBPalette ptr, 
 	' the edge of src/dest, because gfx_surfaceCopy properly clips them.
 	dim srcRect as SurfaceRect = (0, 0, src->width - 1, src->height - 1)
 
-	if x < clipl then
-		srcRect.left = clipl - x
-		x = clipl
+	if x < cliprect.l then
+		srcRect.left = cliprect.l - x
+		x = cliprect.l
 	end if
 
-	if y < clipt then
-		srcRect.top = clipt - y
-		y = clipt
+	if y < cliprect.t then
+		srcRect.top = cliprect.t - y
+		y = cliprect.t
 	end if
 
-	dim destRect as SurfaceRect = (x, y, clipr, clipb)
+	dim destRect as SurfaceRect = (x, y, cliprect.r, cliprect.b)
 
 	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, trans, @destRect, dest) then
 		debug "gfx_surfaceCopy error"
@@ -7731,7 +7714,7 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 	*ppfr = 0
 	if fr = 0 then exit sub
 
-	if clippedframe = fr then clippedframe = 0
+	if cliprect.frame = fr then cliprect.frame = 0
 	with *fr
 		if .refcount = NOREFC then
 			exit sub
@@ -7976,7 +7959,7 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 		showerror "trying to draw from/to null frame"
 		exit sub
 	end if
-	if dest <> clippedframe then
+	if dest <> cliprect.frame then
 		setclip , , , , dest
 	end if
 
