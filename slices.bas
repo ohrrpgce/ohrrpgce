@@ -3042,22 +3042,22 @@ Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
    
    if .Clip then
     CalcPanelArea clippos, clipsize, s, index
-    clippos.x += .ScreenX
-    clippos.y += .ScreenY
+    clippos.x += .ScreenX + GlobalCoordOffset.X
+    clippos.y += .ScreenY + GlobalCoordOffset.Y
     dim clipview as Frame ptr
     clipview = frame_new_view(vpages(page), clippos.X, clippos.Y, clipsize.W, clipsize.H)
     page = registerpage(clipview)
     frame_unload @clipview
-    GlobalCoordOffset.X -= clippos.x
-    GlobalCoordOffset.Y -= clippos.y
+    GlobalCoordOffset.X -= large(clippos.X, 0)
+    GlobalCoordOffset.Y -= large(clippos.Y, 0)
    end if
 
    DrawSliceRecurse(ch, page, index)
    
    if .Clip then
     freepage page
-    GlobalCoordOffset.X += clippos.x
-    GlobalCoordOffset.Y += clippos.y
+    GlobalCoordOffset.X += large(clippos.X, 0)
+    GlobalCoordOffset.Y += large(clippos.Y, 0)
     page = savepage
    end if
 

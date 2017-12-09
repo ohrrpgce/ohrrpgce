@@ -24,6 +24,8 @@ Dec ?? 2017 [Etheldreme+1]
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
     * Couldn't copy-paste text containing characters above ASCII 127 [Ralph]
+    * Panel slices set to clip had broken child clipping and positioning
+      when inside another clipping slice or over the screen edge [Ralph]
 
 Dec 3 2017 [Etheldreme]
 
