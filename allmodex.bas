@@ -6928,13 +6928,13 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as inte
 end sub
 
 'Shrinks clipping area, never grows it
-sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr)
-	if cliprect.frame <> fr then
+sub shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
+	if fr andalso cliprect.frame <> fr then
 		cliprect.frame = fr
 		cliprect.l = 0
 		cliprect.t = 0
-		cliprect.r = 999999
-		cliprect.b = 999999
+		cliprect.r = fr->w - 1
+		cliprect.b = fr->h - 1
 	end if
 	with *cliprect.frame
 		cliprect.l = bound(large(cliprect.l, l), 0, .w) '.w valid, prevents any drawing

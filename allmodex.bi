@@ -184,7 +184,7 @@ End Type
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
-DECLARE SUB shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr)
+DECLARE SUB shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal as Palette16 ptr, x as integer, y as integer, page as integer, scale as integer=1, trans as bool = YES)
 DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal() as integer, po as integer, x as integer, y as integer, page as integer, scale as integer = 1, trans as bool = YES)
