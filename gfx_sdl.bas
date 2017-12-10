@@ -757,9 +757,9 @@ SUB gfx_sdl_set_zoom(value as integer, change_windowsize as bool)
         END IF
       END WITH
     ELSE
-      'Keep window size the same
-      resize_request.w = screensurface->w \ zoom
-      resize_request.h = screensurface->h \ zoom
+      'Keep window size the same, unless that would result in a tiny resolution
+      resize_request.w = large(320, screensurface->w \ zoom)
+      resize_request.h = large(200, screensurface->h \ zoom)
       resize_requested = YES
     END IF
   END IF
