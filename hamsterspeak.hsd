@@ -4,9 +4,11 @@
 # NOTE: you have to pass the -b option to hspeak to use this,
 # otherwise it will automatically import plotscr.hsd.
 
+# Use same capitalisation as HSpeak does, pad to length 3
 plotscr version, begin
-  "3P ",  # Version number used for feature checking
-          # and displaying future-version warnings in Game/Custom;
+  "3Tf",  # Version number used by hspeak to test whether this file
+          # supports necessary features, and also causes the
+          # display of future-version warnings in Game/Custom;
           # only very rarely necessary to increment (don't when
           # new commands are added; that's detected separately),
           # otherwise leave alone to allow forwards compatibility.
