@@ -15,6 +15,9 @@ March 1st-ish-maybe 2018 [Fufluns]
   * Changes
 
   * Bugfixes
+    * Fixed exporting a blank BMP file instead of a tileset or backdrop
+      when you browse to pick a different export location other than
+      the default. [James]
 
   * Stuff Only Developers Will Notice
 

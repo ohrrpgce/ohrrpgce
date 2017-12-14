@@ -272,6 +272,8 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    IF mstate.pt = 5 THEN
     DIM outfile as string
     outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", trimextension(trimpath(sourcerpg)) & " " & cap & pt)
+    '--Re-load the page to vpages(2) just in case it got clobbered by inputfilename() calling the file browser
+    loadmxs game + f, pt, vpages(2)
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
    END IF
    IF mstate.pt = 6 THEN
