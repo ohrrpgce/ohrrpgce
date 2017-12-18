@@ -2153,7 +2153,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   curcode = v_at(menu, st.pt)->dat
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
-  IF enter_space_click(st) THEN
+  IF keyval(scSpace) = 0 ANDALSO enter_space_click(st) THEN
    IF curcode <> -1 THEN result = curcode  'Not 'Previous Menu'
    EXIT DO
   END IF
