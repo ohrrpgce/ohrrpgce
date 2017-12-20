@@ -13,6 +13,7 @@ declare function get_sys_err_string() as zstring ptr
 
 declare function stringhash(byval strp as zstring ptr, byval leng as integer) as unsigned integer
 
+declare function strprintf (byval fmtstr as zstring ptr, ...) as string
 
 'In base64.c
 declare function isbase64 (byval ch as byte) as bool

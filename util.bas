@@ -573,6 +573,22 @@ END FUNCTION
 
 '---------------- String operations --------------
 
+
+'strprintf is actually defined in miscc.c, but test it here
+#IFDEF __FB_MAIN__
+startTest(strprintf)
+ IF strprintf("") <> "" THEN fail
+ IF strprintf(" ") <> " " THEN fail
+ IF strprintf(" %d ", 23) <> " 23 " THEN fail
+ IF strprintf(" %s ", @"42") <> " 42 " THEN fail
+ IF strprintf(" %d %d%d", 1, 2, -3) <> " 1 2-3" THEN fail
+ IF strprintf("%04dd %.2f %s %%", -1, 2.4, @",") <> "-001d 2.40 , %" THEN fail
+ IF strprintf("%-4d", -23) <> "-23 " THEN fail
+ IF strprintf("%-04d", -23) <> "-23 " THEN fail
+ IF strprintf("%0-4d", -23) <> "-23 " THEN fail
+endTest
+#ENDIF
+
 'FB will usually produce a NULL ptr when converting an empty string to a zstring ptr,
 'which is not acceptable in C
 FUNCTION cstring (s as string) as zstring ptr

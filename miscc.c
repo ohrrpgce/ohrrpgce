@@ -99,6 +99,24 @@ void delete_fbstring(FBSTRING *str) {
 	}
 }
 
+// This is like sprintf, but return result as a FB string.
+// Remember: %s is a zstring ptr! Use strptr to pass a FB string.
+FBSTRING *strprintf (const char *fmtstr, ...) {
+	FBSTRING *ret;
+	va_list vl;
+	va_start(vl, fmtstr);
+	int len = vsnprintf(NULL, 0, fmtstr, vl);
+	va_end(vl);
+
+	va_start(vl, fmtstr);
+	ret = fb_hStrAllocTemp(NULL, len);
+	vsnprintf(ret->data, len + 1, fmtstr, vl);
+	va_end(vl);
+	//fb_hStrSetLength(dst, len);
+	return ret;
+}
+
+
 ///////////////////////////////// Hashing /////////////////////////////////////
 
 
