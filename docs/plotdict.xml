@@ -4026,12 +4026,48 @@ showstring($1="\"A quote\"")</example>
 			</seealso>
 		</command>
 		<command id="appendnumber">
-			<canon>append number (ID, number)</canon>
+			<canon>append number (ID, number, min length, pad with zeros)</canon>
 			<shortname>append number</shortname>
-			<description>Appends the textual representation of <p>number</p> to the string with ID #<p>ID</p>. For example, append number(1,65) will append "65", not "A".</description>
+			<description>
+				Appends the decimal representation of <p>number</p> to the string with ID #<p>ID</p>.
+				The optional <p>min length</p> argument can be used to add padding to the left or right.
+				It's the minimum length of the string to append - if the number of digits
+				(including the leading negative sign, if any)
+				is less than this, then spaces or zeroes are added as padding:
+				<ul>
+					<li>
+						If the optional argument <p>pad with zeros</p> (which defaults to false)
+						is false, then spaces are added to the left (left of the negative
+						sign, if any)
+					</li>
+					<li>
+						If <p>pad with zeros</p> is true, then zeroes are added to the left
+						(to the right of the negative sign, if any)
+					</li>
+					<li>
+						If <p>min length</p> is negative, then the padding is added to the
+						right instead.
+						E.g. -4 means a minimum length of 4, padded to the right.
+						<p>pad with zeros</p> is ignored.
+					</li>
+				</ul>
+			</description>
+			<example>append number(1, 65)           # Appends "65" to string 1.
+append number(1, 1234, 3)      # Appends "1234" to string 1: no padding added
+
+append number(1, 65, 4)        # Appends "  65" to string 1.
+append number(1, 65, 4, true)  # Appends "0065" to string 1.
+
+append number(1, -65, 4)       # Appends " -65" to string 1.
+append number(1, -65, 4, true) # Appends "-065" to string 1.
+
+append number(1, 65, -4)       # Appends "65  " to string 1.
+append number(1, 65, -4, true) # Appends "65  " to string 1: the 4th argument is ignored
+append number(1, -65, -4)      # Appends "-65 " to string 1.</example>
 			<seealso>
 				<ref>appendascii</ref>
 				<ref>stringsprintf</ref>
+				<ref>numberfromstring</ref>
 			</seealso>
 		</command>
 		<command id="stringsprintf">
@@ -4046,6 +4082,10 @@ showstring($1="\"A quote\"")</example>
 <p>%c</p>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<lb/>
 <p>%%</p>: substituted with a single %. In this case an argument is NOT used up.<lb/>
 More sophisticated formatting codes like %-04d that are possible in other programming languages are not supported yet.
+<note>
+	Modifiers like field width and precision which are available in other programming languages,
+	e.g. "%4d" or "%.2f", aren't available. But <ref>appendnumber</ref> has extra options for these.
+</note>
 </description>
 			<example># This displays some text like "HP: 30  MP: 12  $: 104" at the bottom of the screen
 $1 = "HP: %d  MP: %d  $: %d"

@@ -1831,10 +1831,20 @@ SUB script_functions(byval cmdid as integer)
     scriptret = LEN(plotstr(retvals(0)).s)
    END IF
   END IF
- CASE 213'--append number
+ CASE 213'--append number (id, value, minlength, zeropad)
   IF valid_plotstr(retvals(0)) THEN
-   plotstr(retvals(0)).s = plotstr(retvals(0)).s & retvals(1)
-   scriptret = LEN(plotstr(retvals(0)).s)
+   DIM byref thestring as string = plotstr(retvals(0)).s
+   DIM minlength as integer = get_optional_arg(2, 0)  'Can be negative
+   IF ABS(minlength) > 1 THEN
+    DIM zeropad as bool = get_optional_arg(3, NO)
+    DIM fmt as string = "%"
+    IF zeropad THEN fmt &= "0"  ' This has no effect if minlength is negative
+    fmt &= minlength & "d"
+    thestring &= strprintf(fmt, retvals(1))
+   ELSE
+    thestring &= retvals(1)
+   END IF
+   scriptret = LEN(thestring)
   END IF
  CASE 214'--copy string
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN

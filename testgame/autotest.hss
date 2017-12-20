@@ -4873,7 +4873,6 @@ end
 #allow save anywhere (setting)
 #value,and,value
 #append ascii (ID, char)
-#append number (ID, number)
 #ascii from string (ID, position)
 #autosave
 #break

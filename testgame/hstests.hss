@@ -300,6 +300,34 @@ script, string tests, begin
 
   # Tests UTF-16 encoding, but uses strings
   assert(that script in the other file == 91)
+
+  # appendnumber
+
+  subscript, check, begin
+    string sprintf(10, $99="'%s' == '%s'", 2, 3)
+    return(string compare(2, 3))
+    clearstring(2)
+  end
+
+  $2="existing "
+  append number(2, 42)           , $3="existing 42", assert(check())
+  append number(2, 0)            , $3="0",    assert(check())
+  append number(2, 65)           , $3="65",   assert(check())
+  append number(2, 2147483647)   , $3="2147483647",  assert(check())
+  append number(2, -2147483648)  , $3="-2147483648", assert(check())
+  append number(2, -1, 2)        , $3="-1",   assert(check())
+  append number(2, 1234, 3)      , $3="1234", assert(check())
+
+  append number(2, 65, 4)        , $3="  65", assert(check())
+  append number(2, 65, 4, true)  , $3="0065", assert(check())
+
+  append number(2, -65, 4)       , $3=" -65", assert(check())
+  append number(2, -65, 4, true) , $3="-065", assert(check())
+
+  append number(2, 65, -4)       , $3="65  ", assert(check())
+  append number(2, 65, -4, true) , $3="65  ", assert(check())
+  append number(2, -65, -4)      , $3="-65 ", assert(check())
+  append number(2, -65, -4)      , $3="-65 ", assert(check())
 end
 
 ########################################################################
