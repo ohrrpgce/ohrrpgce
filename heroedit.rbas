@@ -1684,7 +1684,7 @@ SUB hero_editor_counterattacks_update_menu(hero as HeroDef, menu as MenuDef)
  DIM atk_id as integer
  DIM atk_cap as string
  append_menu_item menu, "Previous menu...", EditCounter.Quit
- FOR i as integer = 0 TO maxElements - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   atk_id = hero.elem_counter_attack(i) - 1
   atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
   append_menu_item menu, "Counter element " & elementnames(i) & ": " & atk_cap, EditCounter.Elemental, i
