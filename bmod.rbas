@@ -1387,6 +1387,13 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .self_bequesting = NO
     populate_battle_menu_menudef i, .batmenu, st(i)
     .menust.active = YES
+    FOR o as integer = 0 TO maxElements - 1
+     .elem_counter_attack(o) = st(i).elem_counter_attack(o)
+    NEXT o
+    .non_elem_counter_attack = st(i).non_elem_counter_attack
+    FOR o as integer = 0 TO statLast
+     .stat_counter_attack(o) = st(i).stat_counter_attack(o)
+    NEXT o
    END WITH
    
    '--copy hero's outside-battle stats to their inside-battle stats
