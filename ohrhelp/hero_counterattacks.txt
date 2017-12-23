@@ -1,0 +1,3 @@
+Your hero can have a number of intrinsic counter-attacks to specific elementals, to non-elemental attacks, and to stat damage.
+
+Here you can select attacks for each elemental. There can only be one counterattack of each type.
