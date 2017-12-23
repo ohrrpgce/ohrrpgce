@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2017-12-03">
+<plotscript version="wip" datecode="2017-12-23">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -2208,7 +2208,7 @@ gain hero stat(who, stat:mp, 0)</example>
 				The second argument is the slot to equip. Use the slot:weapon, slot:armor,
 				etc. constants from your .hsi file.
 				The third argument is the item to equip.
-				You can use the item's number or the item:name constants from your .hsi file.
+				You can use the item's number or the item:name constants from your .hsi file. The item quipped will be taken from your inventory, but if you <p>force equip</p> an item that you do not already have then a free copy of it will be created.
 				<note>
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
 					See the Note at <ref>unequip</ref> for more information.

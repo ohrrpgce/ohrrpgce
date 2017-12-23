@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2017-12-03)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2017-12-23)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -596,7 +596,7 @@
 		<a href="#about-appendascii">append ascii (ID, char)</a><br>
 		
 	
-		<a href="#about-appendnumber">append number (ID, number)</a><br>
+		<a href="#about-appendnumber">append number (ID, number, min length, pad with zeros)</a><br>
 		
 	
 		<a href="#about-asciifromstring">ascii from string (ID, position)</a><br>
@@ -2229,6 +2229,9 @@
 		
 	
 		<a href="#about-savemenu">save menu (reallysave)</a><br>
+		
+	
+		<a href="#about-savescreenshot">save screenshot</a><br>
 		
 	
 		<a href="#about-saveslotused">save slot used (slot)</a><br>
@@ -6676,7 +6679,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				The second argument is the slot to equip. Use the slot:weapon, slot:armor,
 				etc. constants from your .hsi file.
 				The third argument is the item to equip.
-				You can use the item's number or the item:name constants from your .hsi file.
+				You can use the item's number or the item:name constants from your .hsi file. The item quipped will be taken from your inventory, but if you <span class="param">force equip</span> an item that you do not already have then a free copy of it will be created.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
@@ -9558,15 +9561,51 @@ showstring($1="\"A quote\"")</pre>
 </div>
 		<div class="command">
 <a name="about-appendnumber"></a>
-		<h4>append number (ID, number)</h4>
+		<h4>append number (ID, number, min length, pad with zeros)</h4>
 <p>
-			Appends the textual representation of <span class="param">number</span> to the string with ID #<span class="param">ID</span>. For example, append number(1,65) will append "65", not "A".
+			
+				Appends the decimal representation of <span class="param">number</span> to the string with ID #<span class="param">ID</span>.
+				The optional <span class="param">min length</span> argument can be used to add padding to the left or right.
+				It's the minimum length of the string to append - if the number of digits
+				(including the leading negative sign, if any)
+				is less than this, then spaces or zeroes are added as padding:
+				<ul>
+					<li>
+						If the optional argument <span class="param">pad with zeros</span> (which defaults to false)
+						is false, then spaces are added to the left (left of the negative
+						sign, if any)
+					</li>
+					<li>
+						If <span class="param">pad with zeros</span> is true, then zeroes are added to the left
+						(to the right of the negative sign, if any)
+					</li>
+					<li>
+						If <span class="param">min length</span> is negative, then the padding is added to the
+						right instead.
+						E.g. -4 means a minimum length of 4, padded to the right.
+						<span class="param">pad with zeros</span> is ignored.
+					</li>
+				</ul>
 			
 			
+			<pre>append number(1, 65)           # Appends "65" to string 1.
+append number(1, 1234, 3)      # Appends "1234" to string 1: no padding added
+
+append number(1, 65, 4)        # Appends "  65" to string 1.
+append number(1, 65, 4, true)  # Appends "0065" to string 1.
+
+append number(1, -65, 4)       # Appends " -65" to string 1.
+append number(1, -65, 4, true) # Appends "-065" to string 1.
+
+append number(1, 65, -4)       # Appends "65  " to string 1.
+append number(1, 65, -4, true) # Appends "65  " to string 1: the 4th argument is ignored
+append number(1, -65, -4)      # Appends "-65 " to string 1.</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-appendascii" class="ref">append ascii</a>, </li>
-<li><a href="#about-stringsprintf" class="ref">string sprintf</a></li>
+<li>
+<a href="#about-stringsprintf" class="ref">string sprintf</a>, </li>
+<li><a href="#about-numberfromstring" class="ref">number from string</a></li>
 </ul>
 </div>
 		</p>
@@ -9584,6 +9623,11 @@ showstring($1="\"A quote\"")</pre>
 <span class="param">%c</span>: substituted with a single character. The argument should be an ASCII code (that is, a number between 0 and 255).<br>
 <span class="param">%%</span>: substituted with a single %. In this case an argument is NOT used up.<br>
 More sophisticated formatting codes like %-04d that are possible in other programming languages are not supported yet.
+<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+	Modifiers like field width and precision which are available in other programming languages,
+	e.g. "%4d" or "%.2f", aren't available. But <a href="#about-appendnumber" class="ref">append number</a> has extra options for these.
+</div>
 
 			
 			<pre># This displays some text like "HP: 30  MP: 12  $: 104" at the bottom of the screen
@@ -17507,6 +17551,25 @@ run game(0)</pre>
 			
 		</p>
 </div>
+		<div class="command">
+<a name="about-savescreenshot"></a>
+		<h4>save screenshot</h4>
+<p>
+			
+				Saves a screenshot, as if the player pressed F12.
+				A popup will appear telling the filename of the screenshot.
+				<div style="background-color:#CCB;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">
+					The screenshot might be taken either of the previous frame or the next one.
+					To be safe, if you're displaying something and then taking a screenshot of
+					it, put a <span class="code">wait(1)</span> in between.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -18408,7 +18471,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 825 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 826 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
