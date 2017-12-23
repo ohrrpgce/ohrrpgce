@@ -1858,6 +1858,33 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr)
     END WITHNODE
    END READNODE
   END READNODE
+  READNODE parent."counterattacks" as counterattacks
+   READNODE counterattacks."nonelemental" as nonelemental
+    hero.non_elem_counter_attack = nonelemental."attack".integer + 1
+   END READNODE
+   READNODE counterattacks."elemental" as elemental
+    WITHNODE elemental."element" as element
+     DIM i as integer = GetInteger(element)
+     SELECT CASE i
+      CASE 0 TO maxElements - 1
+       hero.elem_counter_attack(i) = element."attack".integer + 1
+      CASE ELSE
+       debug "unknown elemental " & i & " for hero " & hero.name & " counter attacks"
+     END SELECT
+    END WITHNODE
+   END READNODE
+   READNODE counterattacks."statdamage" as statdamage
+    WITHNODE statdamage."stat" as stat
+     DIM i as integer = GetInteger(stat)
+     SELECT CASE i
+      CASE 0 TO maxElements - 1
+       hero.stat_counter_attack(i) = stat."attack".integer + 1
+      CASE ELSE
+       debug "unknown stat " & i & " for hero " & hero.name & " counter attacks"
+     END SELECT
+    END WITHNODE
+   END READNODE
+  END READNODE
   '-- Ignore the following because they are kept as Nodes
   parent."battle_menus".ignore
   parent."stat_options".ignore
