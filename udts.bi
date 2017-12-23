@@ -747,6 +747,9 @@ Type HeroDef
 	LevMax as stats
 	spell_lists(3,23) as SpellList
 	elementals(maxElements - 1) as single
+	elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
+	non_elem_counter_attack as integer 'id+1, 0=none
+	stat_counter_attack(11) as integer 'id+1, 0=none
 	bits(2) as integer
 	list_name(3) as string
 	list_type(3) as integer
