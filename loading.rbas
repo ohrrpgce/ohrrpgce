@@ -2015,6 +2015,30 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
   SetChildNode(parent, "stat_options")
  END IF
  
+ '--Create the node containing counterattack data
+ DIM counterattacks as NodePtr = SetChildNode(parent, "counterattacks")
+ 'Non-elemental counterattack goes in its own container node
+ IF hero.non_elem_counter_attack > 0 THEN
+  DIM ca_nonelemental as NodePtr = SetChildNode(counterattacks, "nonelemental")
+  SetChildNode ca_nonelemental, "attack", hero.non_elem_counter_attack - 1
+ END IF
+ 'Store the elemental counterattacks
+ DIM ca_elemental as NodePtr = SetChildNode(counterattacks, "elemental")
+ FOR i as integer = 0 to gen(genNumElements) - 1
+  IF hero.elem_counter_attack(i) > 0 THEN
+   ch = AppendChildNode(ca_elemental, "element", i)
+   SetChildNode ch, "attack", hero.elem_counter_attack(i) - 1
+  END IF
+ NEXT i
+ 'Store the stat-damage counterattacks
+ DIM ca_statdamage as NodePtr = SetChildNode(counterattacks, "statdamage")
+ FOR i as integer = 0 to 11
+  IF hero.stat_counter_attack(i) > 0 THEN
+   ch = AppendChildNode(ca_statdamage, "stat", i)
+   SetChildNode ch, "attack", hero.stat_counter_attack(i) - 1
+  END IF
+ NEXT i
+ 
 END SUB
 
 SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
