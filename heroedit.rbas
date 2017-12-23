@@ -37,6 +37,9 @@ DECLARE SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as
 DECLARE SUB hero_editor_elementals(byref her as HeroDef)
 DECLARE SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 DECLARE SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
+DECLARE SUB hero_editor_counterattacks (hero as HeroDef)
+DECLARE SUB hero_editor_counterattacks_update_menu(hero as HeroDef, menu as MenuDef)
+
 DECLARE SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
 DECLARE SUB browse_battle_menu_kinds (byval menu_node as NodePtr)
 DECLARE SUB change_battle_menu_kind (byval menu_node as NodePtr, new_kind as string, init_integer as bool=NO)
@@ -63,7 +66,7 @@ SUB hero_editor
   .previewframe = -1
  END WITH
 
- DIM menu(10) as string
+ DIM menu(11) as string
  menu(0) = "Return to Main Menu"
  menu(1) = CHR(27) & "Hero " & hero_id & CHR(26)
  menu(2) = "Name:"
@@ -75,6 +78,7 @@ SUB hero_editor
  menu(8) = "Elemental Resistances..."
  menu(9) = "Hero Tags..."
  menu(10) = "Equipment..."
+ menu(11) =  "Counterattacks..."
 
  DIM mstate as MenuState
  WITH mstate
@@ -114,6 +118,7 @@ SUB hero_editor
     CASE 8: hero_editor_elementals her
     CASE 9: hero_editor_tags hero_id, her
     CASE 10: hero_editor_equipment_list hero_id, her
+    CASE 11: hero_editor_counterattacks her
    END SELECT
    ' For the benefit of live-previewing
    saveherodata her, hero_id
@@ -1607,3 +1612,95 @@ END SUB
 SUB hero_editor_elementals(byref her as HeroDef)
  common_elementals_editor her.elementals(), "hero_elementals"
 END SUB
+
+ENUM EditCounter
+ Quit = 0
+ Elemental = 100
+ NonElemental = 101
+ StatDamage = 102
+END ENUM
+
+SUB hero_editor_counterattacks (hero as HeroDef)
+
+ DIM menu as MenuDef
+ hero_editor_counterattacks_update_menu hero, menu
+ 
+ DIM st as MenuState
+ init_menu_state st, menu
+ st.autosize = YES
+ st.autosize_ignore_lines = 1
+ st.pt = 1
+ st.need_update = YES
+ st.active = YES
+
+ DIM holdscreen as integer
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scF1) > 1 THEN show_help "hero_counterattacks"
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  
+  usemenu st
+
+  DIM n as integer = menu.items[st.pt]->sub_t
+  SELECT CASE menu.items[st.pt]->t
+   CASE EditCounter.Quit:
+    IF enter_space_click(st) THEN
+     EXIT DO
+    END IF
+   CASE EditCounter.Elemental:
+    IF attackgrabber(hero.elem_counter_attack(n), st, 1, 0) THEN st.need_update = YES
+   CASE EditCounter.NonElemental:
+    IF attackgrabber(hero.non_elem_counter_attack, st, 1, 0) THEN st.need_update = YES
+   CASE EditCounter.StatDamage:
+    IF attackgrabber(hero.stat_counter_attack(n), st, 1, 0) THEN st.need_update = YES
+  END SELECT
+  
+  IF st.need_update THEN
+   st.need_update = NO
+   hero_editor_counterattacks_update_menu hero, menu
+  END IF
+
+  copypage holdscreen, vpage
+  draw_menu menu, st, vpage
+  setvispage vpage
+  
+  dowait
+ LOOP
+
+ freepage holdscreen
+ setkeys
+END SUB
+
+SUB hero_editor_counterattacks_update_menu(hero as HeroDef, menu as MenuDef)
+ DIM elementnames() as string
+ getelementnames elementnames()
+
+ ClearMenuData menu
+ DIM atk_id as integer
+ DIM atk_cap as string
+ append_menu_item menu, "Previous menu...", EditCounter.Quit
+ FOR i as integer = 0 TO maxElements - 1
+  atk_id = hero.elem_counter_attack(i) - 1
+  atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
+  append_menu_item menu, "Counter element " & elementnames(i) & ": " & atk_cap, EditCounter.Elemental, i
+ NEXT i
+ atk_id = hero.non_elem_counter_attack - 1
+ atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
+ append_menu_item menu, "Counter non-elemental attacks: " & atk_cap, EditCounter.NonElemental
+ FOR i as integer = 0 TO 11
+  atk_id = hero.stat_counter_attack(i) - 1
+  atk_cap = IIF(atk_id >= 0, atk_id & " " & readattackname(atk_id), "NONE") 
+  append_menu_item menu, "Counter damage to " & statnames(i) & ": " & atk_cap, EditCounter.StatDamage, i
+ NEXT i
+ 
+ menu.textalign = alignLeft
+ menu.anchorHoriz = alignLeft
+ menu.alignHoriz = alignLeft
+ menu.min_chars = 80
+END SUB
+
