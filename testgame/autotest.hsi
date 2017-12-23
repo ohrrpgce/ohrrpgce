@@ -133,6 +133,8 @@ define constant, begin
 7,atk:AtkTagUse
 8,atk:AtTagNoReq
 9,atk:Suicide
+10,atk:Ice Attack
+11,atk:Self3End
 2,menu:Menu from menu
 0,enemy:Mushboom
 1,enemy:Run Forcer
@@ -143,6 +145,7 @@ define constant, begin
 6,enemy:AtkTagTestNoReq
 7,enemy:Data read test
 8,enemy:Ogreboom
+9,enemy:IceAttacker
 1,sli:Some lookup
 2,sli:my root slice
 end

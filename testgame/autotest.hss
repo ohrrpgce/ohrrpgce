@@ -2928,6 +2928,7 @@ script, battle tests, begin
   assert(check tag(6)), w
 
   test battle formation modification
+  test hero counterattacks
 end
 
 # Formation set should be 1-2
@@ -3097,6 +3098,16 @@ script, test battle formation modification, begin
   # restore original money
   set money(orig gold)
   show no value
+end
+
+script, test hero counterattacks, begin
+  assert(hero by slot(0) == hero:Freki)
+  assert(get hero stat(0, stat:HP, current stat) == 10), w
+  fight formation(10), w
+  # Freki's HP should be 4 points lower, -1 for the ice attack, and -3 for her self-counterattack
+  assert(get hero stat(0, stat:HP, current stat) == 6), w
+  # Heal up
+  set hero stat(0, stat:HP, 10, current stat), w
 end
 
 ########################################################################
