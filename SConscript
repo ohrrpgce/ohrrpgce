@@ -402,6 +402,7 @@ if mac:
 if target:
     FBFLAGS += ['-target', target]
 
+NO_PIE = '-no-pie'
 if android:
     # Android 5.0+ will only run PIE exes, for security reasons (ASLR).
     # However, only Android 4.1+ (APP_PLATFORM android-16) support  PIE exes!
@@ -410,6 +411,34 @@ if android:
     # and run it on older Android:
     #https://chromium.googlesource.com/chromium/src/+/32352ad08ee673a4d43e8593ce988b224f6482d3/tools/android/run_pie/run_pie.c
     CXXLINKFLAGS += ["-pie"]
+elif mac:
+    # (This is old logic, probably it should be merged into the branch below,
+    # but I don't want to worry about breaking mac builds right now)
+    # -no_pie (no position-independent execution) fixes a warning
+    CXXLINKFLAGS += ['-Wl,-no_pie']
+    NO_PIE = '-no_pie'
+elif not win32:
+    # Recent versions of some linux distros, such as debian and arch, config
+    # GCC to default to PIE on non-x86, but our linkgcc code isn't written
+    # to support PIE, causing ld 'relocation' errors. Simplest solution is
+    # to disable PIE.
+    if not clang and gccversion < 500:
+        # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
+        NO_PIE = None
+    elif clang or gccversion < 600:
+        # -no-pie was added in gcc 6.
+        # -no-pie was added to clang in July 2017, which I think is clang 5.0
+        # Recent clang accepts both, recent gcc only accepts -no-pie
+        NO_PIE = '-nopie'
+    if NO_PIE:
+        # -no-pie is a linker flag, I think the compiler flag is actually
+        # -fno-pie (or -fno-PIE?) but I assume the former implies the latter
+        CFLAGS += [NO_PIE]
+        GENGCC_CFLAGS += [NO_PIE]
+        # -no_pie is only needed when linking using gcc, not with linkgcc=0,
+        # since apparently it's gcc, not ld, which is defaulting to PIE
+        CXXLINKFLAGS += [NO_PIE]
+
 
 # We set gengcc=True if FB will default to it; we need to know whether it's used
 if arch != 'x86' and 'mingw32' not in target:
@@ -544,12 +573,9 @@ if linkgcc:
                 CXXLINKFLAGS += ['-lncurses']  # would be libncurses.so.6 since ~2015
 
     if mac:
-        # -no_pie (no position-independent execution) fixes a warning
-
         if fbcversion <= 220:
             # The old port of FB v0.22 to mac requires this extra file (it was a kludge)
             CXXLINKFLAGS += [os.path.join(libpath, 'operatornew.o')]
-        CXXLINKFLAGS += ['-Wl,-no_pie']
         if macSDKpath:
             CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
 
@@ -969,13 +995,12 @@ def compile_hspeak(target, source, env):
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
         euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
-    if not mac and ohrbuild.get_euphoria_version() >= 40100:
-        # On some systems, such as Arch Linux x86_64, gcc defaults to building PIE
+    if ohrbuild.get_euphoria_version() >= 40100 and NO_PIE:
+        # On some systems (not including mac) gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
-        # resulting in a "recompile with -fPIC" error. Not needed on Mac (and only
-        # very recent clang supports -no-pie, it's -nopie in older versions).
+        # resulting in a "recompile with -fPIC" error.
         # But the -extra-lflags option is new in Eu 4.1.
-        euc_extra_args += ' -extra-lflags -no-pie'
+        euc_extra_args += ' -extra-lflags ' + NO_PIE
 
     actions = [
         # maxsize: cause euc to split hspeak.exw to multiple .c files
