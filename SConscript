@@ -15,15 +15,19 @@ from ohrbuild import get_command_output
 import ohrbuild
 
 FBFLAGS = ['-mt'] #, '-showincludes']
-# Flags used when compiling C, C++, and -gen gcc generated C source
-CFLAGS = []
-# TRUE_CFLAGS apply only to normal .c[pp] sources, NOT to those generated via gengcc=1.
+# Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
+# C sources (except on Android...). Not used for linking.
+CFLAGS = ['-Wall']
+# Flags used when compiling C and C++, including -gen gcc generated C sources.
+# Not for euc, and not using on Android (because of inflexible build system).
+GENGCC_CFLAGS = []
+# TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
 # under MinGW. (See bug 951)
-TRUE_CFLAGS = '-g -Wall --std=gnu99'.split()
+TRUE_CFLAGS = ['--std=gnu99']
 # Flags used only for C++ (in addition to CFLAGS)
-CXXFLAGS = '--std=c++0x -g -Wall -Wno-non-virtual-dtor'.split()
+CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
 # CXXLINKFLAGS are used when linking with g++
 CXXLINKFLAGS = []
 # FBLINKFLAGS are passed to fbc when linking with fbc
@@ -164,7 +168,9 @@ if 'debug' in ARGUMENTS:
     debug = int (ARGUMENTS['debug'])
 optimisations = (debug < 3)    # compile with C/C++/FB optimisations?
 FB_exx = (debug in (2,3))     # compile with -exx?
-FB_g = (debug >= 1)       # compile with -g?
+if debug >= 1:
+    FBFLAGS.append ('-g')
+    CFLAGS.append ('-g')
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
@@ -192,8 +198,6 @@ if asan:
         FB_exx = False  # Superceded by AddressSanitizer
 if FB_exx:
     FBFLAGS.append ('-exx')
-if FB_g:
-    FBFLAGS.append ('-g')
 if optimisations:
     CFLAGS.append ('-O3')
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
@@ -278,6 +282,9 @@ if CXX:
 
 #gcc = env['ENV'].get('GCC', env['ENV'].get('CC', 'gcc'))
 #gcc = CC or WhereIs(target + "-gcc") or WhereIs("gcc")
+
+gccversion = get_command_output(GCC, "-dumpversion")
+gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
 
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
@@ -441,7 +448,7 @@ else:
 # If cross compiling, do a sanity test
 if not android_source:
     gcctarget = get_command_output(GCC, "-dumpmachine")
-    print "Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " fbcversion:", fbcversion
+    print "Using target:", target, " arch:", arch, " gcc:", GCC, " cc:", CC, " gcctarget:", gcctarget, " gccversion:", gccversion, " fbcversion:", fbcversion
     # If it contains two dashes it looks like a target triple
     if target_prefix and target_prefix != gcctarget + '-':
         print "Error: This GCC doesn't target " + target_prefix
@@ -452,26 +459,23 @@ if not android_source:
 
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
-    gccversion = get_command_output(GCC, "-dumpversion")
-    gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
-    #print "GCC version", gccversion
-    # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
-    gcc_flags = []
     # -exx especially results in a lot of labelled goto use, which confuses gcc 4.8+, which tries harder to throw this warning.
-    # (This flag only in recent gcc)
+    # (This flag only recognised by recent gcc)
     if gccversion >= 480:
-        gcc_flags.append ('-Wno-maybe-uninitialized')
+        GENGCC_CFLAGS.append ('-Wno-maybe-uninitialized')
     # Ignore warnings due to using an array lbound > 0
-    gcc_flags.append ('-Wno-array-bounds')
+    GENGCC_CFLAGS.append ('-Wno-array-bounds')
     if profile or debug >= 1:
         # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
         # Also keep frame pointers unless explicit debug=0
-        gcc_flags.append ('-fno-omit-frame-pointer')
+        GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')
     if asan:
         # Use AddressSanitizer in C files produced by fbc
-        gcc_flags.append ('-fsanitize=address')
-    if len(gcc_flags):
-        FBFLAGS += ["-Wc", ','.join (gcc_flags)]
+        GENGCC_CFLAGS.append ('-fsanitize=address')
+    if len(GENGCC_CFLAGS):
+        # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc; the last -Wc overrides others!
+        # NOTE: GENGCC_CFLAGS isn't used on android
+        FBFLAGS += ["-Wc", ','.join (GENGCC_CFLAGS)]
 
 
 ################ A bunch of stuff for linking
@@ -632,7 +636,8 @@ env['FBLINKFLAGS'] = FBLINKFLAGS
 env['FBLINKERFLAGS'] = FBLINKFLAGS
 
 # These no longer have any effect.
-del FBFLAGS, TRUE_CFLAGS, CFLAGS, CXXFLAGS, CXXLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
+del FBFLAGS, TRUE_CFLAGS, GENGCC_CFLAGS, CFLAGS, CXXFLAGS
+del CXXLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
 
 ################ Program-specific stuff starts here
 
