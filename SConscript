@@ -996,7 +996,7 @@ def compile_hspeak(target, source, env):
     # copy of Euphoria is installed system-wide
     if 'EUDIR' in env['ENV']:
         euc_extra_args += ' -eudir ' + env['ENV']['EUDIR']
-    if ohrbuild.get_euphoria_version() >= 40100 and NO_PIE:
+    if ohrbuild.get_euphoria_version() >= 40100 and NO_PIE and not mac:
         # On some systems (not including mac) gcc defaults to building PIE
         # executables, but the linux euphoria 4.1.0 builds aren't built for PIE/PIC,
         # resulting in a "recompile with -fPIC" error.
