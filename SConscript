@@ -425,8 +425,9 @@ elif not win32:
     if not clang and gccversion < 500:
         # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
         NO_PIE = None
-    elif clang or gccversion < 600:
+    elif clang or gccversion < 540:
         # -no-pie was added in gcc 6.
+        # But on Ubuntu 16.04 -no-pie exists in gcc 5.4
         # -no-pie was added to clang in July 2017, which I think is clang 5.0
         # Recent clang accepts both, recent gcc only accepts -no-pie
         NO_PIE = '-nopie'
