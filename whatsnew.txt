@@ -13,6 +13,8 @@ March 1st-ish-maybe 2018 [Fufluns]
   * New Plotscripting Features
     * "save screenshot" [Ralph]
     * "append number": added "min length" and "pad with zeroes" args [Ralph]
+    * "use door": added "fade screen" argument, so you can use a door without
+      fading [Ralph]
 
   * Changes
 

@@ -1225,9 +1225,24 @@ resume player</example>
 	<section title="Doors">
 		<reference ref="teleporttomap" />
 		<command id="usedoor">
-			<canon>use door (number)</canon>
+			<canon>use door (number, fade screen)</canon>
 			<shortname>use door</shortname>
-			<description>Instantly uses the numbered door, just as if you had stepped into it. <note>An automatic <ref>wait</ref>(1) occurs immediately after this command.</note></description>
+			<description>
+				Instantly uses door <p>number</p>, just as if you had stepped into it.
+				<p>fade screen</p> is an optional argument, defaulting to <tt>true</tt>.
+				If true, the screen will fade out before using the door (even if it leads
+				to the same map), and fade back in one tick later.
+				Otherwise, there are no automatic screen fades.
+				<note>
+					An automatic <ref>wait</ref>(1) occurs immediately after this command.
+				</note>
+				<note>
+					If you call <ref>fadescreenout</ref> immediately after <tt>use door</tt>,
+					then the screen won't fade back in afterwards.
+					(But you might have to do this in the map autorun script, if there is one,
+					since it will suspend the script that called <tt>use door</tt>!)
+				</note>
+			</description>
 		</command>
 		<command id="doorexists">
 			<canon>door exists (number, map)</canon>

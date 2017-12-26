@@ -597,6 +597,7 @@ SUB script_functions(byval cmdid as integer)
   IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
  CASE 15'--use door
   gam.want.door = retvals(0) + 1
+  gam.want.door_fadescreen = get_optional_arg(1, 1) <> 0
   script_start_waiting(0)
  CASE 16'--fight formation
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN

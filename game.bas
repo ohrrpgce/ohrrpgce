@@ -35,7 +35,7 @@
 
 'local subs and functions
 DECLARE SUB checkdoors ()
-DECLARE SUB usedoor (byval door_id as integer)
+DECLARE SUB usedoor (door_id as integer, fadescreen as bool = YES)
 DECLARE FUNCTION want_to_check_for_walls(byval who as integer) as bool
 DECLARE FUNCTION hero_should_ignore_walls(byval who as integer) as bool
 DECLARE SUB update_npcs ()
@@ -2378,7 +2378,7 @@ SUB interpret_scripts()
  END IF
  gam.want.box = 0
  IF gam.want.door > 0 THEN
-  usedoor gam.want.door - 1
+  usedoor gam.want.door - 1, gam.want.door_fadescreen
   gam.want.door = 0
  END IF
  IF gam.want.battle > 0 THEN
@@ -3250,7 +3250,7 @@ FUNCTION find_doorlink_id (byval door_id as integer, thisdoor as door, door_link
  RETURN -1
 END FUNCTION
 
-SUB usedoor (byval door_id as integer)
+SUB usedoor (door_id as integer, fadescreen as bool = YES)
  DIM dlink as doorlink
  IF find_doorlink(dlink, door_id) = NO THEN EXIT SUB
 
@@ -3260,8 +3260,10 @@ SUB usedoor (byval door_id as integer)
   deserdoors game + ".dox", gam.map.door(), gam.map.id
   (herox(0)) = gam.map.door(.dest).x * 20
   (heroy(0)) = (gam.map.door(.dest).y - 1) * 20
-  fadeout 0, 0, 0
-  queue_fade_in 1
+  IF fadescreen THEN
+   fadeout 0, 0, 0
+   queue_fade_in 1
+  END IF
   prepare_map
   gam.random_battle_countdown = range(100, 60)
  END WITH

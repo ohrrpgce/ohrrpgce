@@ -35,7 +35,7 @@ define function, begin
 11,showtextbox,1,1          # show a text box
 12,checktag,1,0             # returns the value of a tag
 13,settag,2,0,0             # set tag(#,true/false)
-15,usedoor,1,0              # use door(#)
+15,usedoor,2,0,1            # use door(#,fade screen in and out)
 16,fightformation,1,0       # fight formation(#)
 17,getitem,2,0,1            # get item(item,quantity)
 18,deleteitem,2,0,1         # delete item(item,quantity)

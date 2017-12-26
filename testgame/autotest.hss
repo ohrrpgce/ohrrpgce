@@ -3370,7 +3370,7 @@ script, door tests, begin
   assert(get door destination id(1) == -1)
   assert(get door destination map(1) == -1)
   assert(door exists(1))
-  assert(door exists(3) == false)
+  assert(door exists(10) == false)
 
   # using doors
   walk hero to x(0, 8)
@@ -3405,10 +3405,16 @@ script, door tests, begin
   wait for hero
   assert(hero x(0) == 11)  # triggered
   assert(hero y(0) == 4)
+  show string($99="screen should be faded out")
   use door(0)  # door underneath hero
+  _checkpoint
   assert(current map == map:test town)
-  walk hero to y(0, 6)
-  wait for hero
+  show string($99="screen should not be faded out")
+  use door(4, false)
+  _checkpoint
+  show no value
+  assert(hero x(0) == 2)
+  assert(hero y(0) == 6)
   walk hero to x(0, 6)
   wait for hero
 

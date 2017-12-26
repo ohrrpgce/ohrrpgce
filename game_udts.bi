@@ -107,6 +107,7 @@ END TYPE
 TYPE ScriptWantSignals
   box as integer      'Textbox, or 0 for none (can't ask to show box 0)
   door as integer     'Door number +1
+  door_fadescreen as bool 'When a door is triggered: whether to fade the screen
   battle as integer   'Formation number +1
   teleport as bool    'Map num has changed, call preparemap()
   usenpc as integer   'NPC instance +1
