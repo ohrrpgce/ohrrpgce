@@ -5076,6 +5076,14 @@ FUNCTION percent_grabber(byref float as double, byref repr as string, min as dou
  DIM oldfloat as double = float
  DIM oldrepr as string = repr
 
+ 'In case we forget to initialise repr (e.g. maybe we got called before a
+ ''need_update' block), we don't want to overwrite float with garbage.
+ 'So for safety if repr is bad, throw it away.
+ IF ABS(VAL(repr) - float * 100) > 0.5 * (0.1 ^ decimalplaces) THEN
+  repr = format_percent(float, decimalplaces)
+  'debug "percent_grabber: resetting " & oldrepr & " to " & repr
+ END IF
+
  'Remove negative (because we trim leading 0's later) and percentage signs
  repr = LEFT(repr, LEN(repr) - 1)
  DIM sign as integer = 1

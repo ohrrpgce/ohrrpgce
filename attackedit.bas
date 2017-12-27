@@ -17,6 +17,7 @@
 
 '--Local SUBs
 DECLARE FUNCTION atk_edit_add_new(recbuf() as integer, preview_box as Slice Ptr) as bool
+DECLARE SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as string, AtkCapFailConds as integer)
 DECLARE SUB atk_edit_merge_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
 DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
@@ -1212,7 +1213,7 @@ ELSE
 END IF
 
 'load data here
-loadattackdata recbuf(), recindex
+atk_edit_load_attack recbuf(), recindex, caption(), AtkCapFailConds
 state.need_update = YES
 
 'As a hack (I blame it on flexmenu itself which tries to be more "flexible" than possible),
@@ -1264,15 +1265,15 @@ DO
     IF atk_edit_add_new(recbuf(), preview_box) THEN
      'Added a new record (blank or copy)
      saveattackdata recbuf(), recindex
+     'Reload, to set fail cond captions correctly
     ELSE
      'cancelled add, reload the old last record
      recindex -= 1
-     loadattackdata recbuf(), recindex
     END IF
    ELSE
-    loadattackdata recbuf(), recindex
+    'Load attack
    END IF
-
+   atk_edit_load_attack recbuf(), recindex, caption(), AtkCapFailConds
    state.need_update = YES
   END IF
  END IF
@@ -1283,7 +1284,7 @@ DO
   ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxAttack) THEN
    saveattackdata recbuf(), recindex
    SWAP rememberindex, recindex
-   loadattackdata recbuf(), recindex
+   atk_edit_load_attack recbuf(), recindex, caption(), AtkCapFailConds
    state.need_update = YES
    show_name_ticks = 23
   END IF
@@ -1451,7 +1452,7 @@ DO
    CASE AtkChainBrowserAct
     saveattackdata recbuf(), recindex
     recindex = attack_chain_browser(recindex)
-    loadattackdata recbuf(), recindex
+    atk_edit_load_attack recbuf(), recindex, caption(), AtkCapFailConds
     state.need_update = YES
    CASE AtkElementalFails TO AtkElementalFails + maxElements - 1
     DIM cond as AttackElementCondition
@@ -1471,7 +1472,7 @@ DO
   END SELECT
  END IF
 
- IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
+ IF keyval(scAlt) = 0 OR isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(state, workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    state.need_update = YES
   END IF
@@ -1480,7 +1481,7 @@ DO
  IF flexmenu_handle_crossrefs(state, workmenu(state.pt), menutype(), menuoff(), recindex, recbuf(), YES) THEN
   'Reload this attack in case it was changed in recursive call to the editor (in fact, this record might be deleted!)
   recindex = small(recindex, gen(genMaxAttack))
-  loadattackdata recbuf(), recindex
+  atk_edit_load_attack recbuf(), recindex, caption(), AtkCapFailConds
   show_name_ticks = 23
   state.need_update = YES
  END IF
@@ -1492,8 +1493,6 @@ DO
   IF helpkey = "attack_damage" THEN
    attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
   END IF
-  '--regenerate captions for fail conditions
-  update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
   '--in case new attacks/enemies have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
@@ -1657,6 +1656,11 @@ SUB atk_edit_split_bitsets(recbuf() as integer, tempbuf() as integer)
   FOR i = 0 TO 7
     recbuf(AtkDatBitsets2 + i) = tempbuf(4 + i)
   NEXT i
+END SUB
+
+SUB atk_edit_load_attack(recbuf() as integer, attackid as integer, caption() as string, AtkCapFailConds as integer)
+ loadattackdata recbuf(), attackid
+ update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 END SUB
 
 'Regenerate captions for elemental failure conditions
