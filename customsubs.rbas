@@ -844,7 +844,7 @@ FUNCTION charpicker() as string
 END FUNCTION
 
 'Return initial representation string for percent_cond_grabber
-FUNCTION format_percent_cond(byref cond as AttackElementCondition, default as string, byval decimalplaces as integer = 4) as string
+FUNCTION format_percent_cond(cond as AttackElementCondition, default as string, byval decimalplaces as integer = 4) as string
  IF cond.type = compNone THEN
   RETURN default
  ELSE
@@ -852,51 +852,51 @@ FUNCTION format_percent_cond(byref cond as AttackElementCondition, default as st
  END IF
 END FUNCTION
 
-'This will probably only be used for editing AttackElementConditions, but it more general than that
-FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+'This will probably only be used for editing AttackElementConditions, but it's more general than that.
+'Returns whether cond was edited. If ret_if_repr_changed, also returns true if repr changed.
+FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, byref repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
  WITH cond
   DIM intxt as string = getinputtext
   DIM newtype as integer = .type
+  DIM oldrepr as string = repr
+  DIM ret as bool
 
   IF keyval(scDelete) > 1 THEN newtype = compNone
 
   'Listen for comparison operator input
-  FOR i as integer = 1 TO LEN(intxt)
-   DIM inchar as string = MID(intxt, i)
-   IF inchar = "<" THEN newtype = compLt
-   IF inchar = ">" THEN newtype = compGt
-  NEXT
+  IF INSTR(intxt, "<") THEN newtype = compLt
+  IF INSTR(intxt, ">") THEN newtype = compGt
 
   IF newtype <> .type THEN
    IF .type = compNone THEN .value = 0
    .type = newtype
    repr = format_percent_cond(cond, default, decimalplaces)
-   RETURN YES
+   ret = YES
   ELSEIF .type = compNone THEN
    DIM temp as string = "0%"
    .value = 0
    'typing 0 doesn't change the value or repr, workaround
-   IF percent_grabber(.value, temp, min, max, decimalplaces) OR INSTR(intxt, "0") > 0 THEN
-    repr = " < " + temp
+   IF percent_grabber(.value, temp, min, max, decimalplaces, NO) OR INSTR(intxt, "0") > 0 THEN
+    repr = " < " + temp  'Default
     .type = compLt
-    RETURN YES
+    ret = YES
    END IF
-   RETURN NO
   ELSE
    'Trim comparison operator
    repr = MID(repr, 4)
    IF keyval(scBackspace) > 1 ANDALSO repr = "0%" THEN
     repr = default
     .type = compNone
-    RETURN YES
+    ret = YES
    ELSE
-    DIM ret as integer = percent_grabber(.value, repr, min, max, decimalplaces)
-    'Add back operator
+    ret OR= percent_grabber(.value, repr, min, max, decimalplaces, NO)
+    'Add the operator back
     repr = " " + comp_strings(.type) + " " + repr
-    RETURN ret
    END IF
   END IF
 
+  IF ret_if_repr_changed THEN ret OR= (repr <> oldrepr)
+  RETURN ret
  END WITH
 END FUNCTION
 
