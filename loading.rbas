@@ -1708,7 +1708,7 @@ Sub save_hero_as_old_dt0(filename as string, hero as herodef, byval record as in
 		next
 		'always write 1.0 for all unused elements
 		dim default as single = 1.0
-		for i as integer = gen(genNumElements) to 63
+		for i as integer = gen(genNumElements) to 63 'maxElements - 1
 			put #f, , default
 		next
 
@@ -2968,14 +2968,12 @@ END SUB
 
 SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
  buf(index) = cond.type
- buf(index + 1) = CAST(short ptr, @cond.value)[0]
- buf(index + 2) = CAST(short ptr, @cond.value)[1]
+ SerSingle buf(), index + 1, cond.value
 END SUB
 
 SUB DeSerAttackElementCond (cond as AttackElementCondition, buf() as integer, byval index as integer)
  cond.type = buf(index)
- CAST(short ptr, @cond.value)[0] = buf(index + 1)
- CAST(short ptr, @cond.value)[1] = buf(index + 2)
+ cond.value = DeSerSingle(buf(), index + 1)
 END SUB
 
 SUB loadattackdata (byref atkdat as AttackData, byval index as integer)
@@ -3505,9 +3503,9 @@ SUB clearenemydata (enemy as EnemyDef)
 
  enemy.pal = -1 'default palette
  '--elemental resists
- FOR i as integer = 0 TO 63
+ FOR i as integer = 0 TO maxElements - 1
   enemy.elementals(i) = 1.0f
- NEXT    
+ NEXT
 END SUB
 
 SUB clearenemydata (buf() as integer)
@@ -3515,9 +3513,9 @@ SUB clearenemydata (buf() as integer)
 
  buf(54) = -1 'default palette
  '--elemental resists
- FOR i as integer = 0 TO 63
+ FOR i as integer = 0 TO 63 'maxElements - 1
   SerSingle buf(), 239 + i*2, 1.0f
- NEXT    
+ NEXT
 END SUB
 
 'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
@@ -3706,7 +3704,7 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
   buf(82) = .spawn.non_elemental_hit
   'Blank out unused spawns to be save: don't want to have to zero stuff out
   'if gen(genNumElements) increases
-  FOR i as integer = gen(genNumElements) TO 63
+  FOR i as integer = gen(genNumElements) TO maxElements - 1
    .spawn.elemental_hit(i) = 0
   NEXT
   FOR i as integer = 0 TO 7
@@ -4641,7 +4639,7 @@ SUB load_non_elemental_elements (elem() as bool)
  READNODE elementals
   WITHNODE elementals."element" as e
    DIM eid as integer = GetInteger(e)
-   IF eid >= 0 ANDALSO eid <= 63 THEN
+   IF eid >= 0 ANDALSO eid < maxElements THEN
     DIM non_elemental as NodePtr
     non_elemental = GetOrCreateChild(e, "non_elemental")
     IF GetInteger(non_elemental) THEN elem(eid) = YES

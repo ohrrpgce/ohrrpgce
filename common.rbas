@@ -3576,7 +3576,7 @@ SUB import_enemy_elementals_from_dt1 (copy_enemytypes_from as string)
  FOR enemynum as integer = 0 TO gen(genMaxEnemy)
   loadrecord old_dat(), copy_enemytypes_from, 160, enemynum
   loadenemydata enemy, enemynum
-  FOR j as integer = 0 TO 63
+  FOR j as integer = 0 TO UBOUND(enemy.elementals)
    DIM currentval as single = enemy.elementals(j)
    DIM oldval as single = loadoldenemyresist(old_dat(), j)
    IF currentval <> 1.0 AND (j < 16 OR currentval <> 0.) THEN
@@ -4247,7 +4247,7 @@ IF fix_stun OR fix_dam_mp OR fix_elem_fails OR fix_multipliers THEN
   END IF
 
   IF fix_elem_fails THEN
-   FOR j as integer = 0 TO 63
+   FOR j as integer = 0 TO 63 'maxElements - 1
     loadoldattackelementalfail cond, dat(), j
     SerAttackElementCond cond, dat(), 121 + j * 3
    NEXT
@@ -4502,7 +4502,7 @@ IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
  REDIM dat(dimbinsize(binITM)) as integer
  FOR i as integer = 0 TO gen(genMaxItem)
   loaditemdata dat(), i
-  FOR j as integer = 0 TO 63
+  FOR j as integer = 0 TO 63 'maxElements - 1
    SerSingle(dat(), 82 + j*2, LoadOldItemElemental(dat(), j))
   NEXT
   saveitemdata dat(), i
@@ -4517,7 +4517,7 @@ IF getfixbit(fixInitNonElementalSpawning) = 0 THEN
  DIM element_node as NodePtr
  DIM non_elemental_node as NodePtr
  DIM non_elemental_default as integer
- FOR i as integer = 0 to 63
+ FOR i as integer = 0 to maxElements - 1
   non_elemental_default = 0
   IF original_genVersion <= 14 ANDALSO (i >= 8 ANDALSO i <= 15) THEN
    'This is a type-killer elemental in a game that is being upgraded from RPG version 14 or older

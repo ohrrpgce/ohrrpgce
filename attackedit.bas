@@ -631,7 +631,7 @@ min(AtkLimTransmogEnemy) = 0
 
 'Special case!
 DIM AtkCapFailConds as integer = capindex
-FOR i = 0 TO 63
+FOR i = 0 TO maxElements - 1
  addcaption caption(), capindex, " [No Condition]"
  addcaption caption(), capindex, "" '--updated by update_attack_editor_for_fail_conds()
 NEXT
@@ -998,7 +998,7 @@ menutype(AtkElementFailAct) = 1
 menu(AtkElementalFailHeader) = "Fail when target's damage..."
 menutype(AtkElementalFailHeader) = 18  'skip
 
-FOR i = 0 TO small(63, gen(genNumElements) - 1)
+FOR i = 0 TO small(maxElements, gen(genNumElements)) - 1
  menu(AtkElementalFails + i) = " from " + rpad(elementnames(i), " ", 15)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
@@ -1453,7 +1453,7 @@ DO
     recindex = attack_chain_browser(recindex)
     loadattackdata recbuf(), recindex
     state.need_update = YES
-   CASE AtkElementalFails TO AtkElementalFails + 63
+   CASE AtkElementalFails TO AtkElementalFails + maxElements - 1
     DIM cond as AttackElementCondition
     DeSerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
     percent_cond_editor cond, -1000.0, 1000.0, 4, "Fail", " damage" + menu(workmenu(state.pt))  'Fail when ... damage from <elem>
@@ -1662,7 +1662,7 @@ END SUB
 'Regenerate captions for elemental failure conditions
 SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
  DIM cond as AttackElementCondition
- FOR i as integer = 0 TO 63
+ FOR i as integer = 0 TO 63 'maxElements - 1
   DeSerAttackElementCond cond, recbuf(), 121 + i * 3
   caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, " [No Condition]")
  NEXT

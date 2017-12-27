@@ -487,7 +487,7 @@ END SUB
 
 SUB item_editor_init_new(itembuf() as integer)
  flusharray itembuf(), dimbinsize(binITM), 0
- FOR i as integer = 0 TO maxElements - 1
+ FOR i as integer = 0 TO 63
   SerSingle itembuf(), 82 + i * 2, 1.0
  NEXT i
 END SUB

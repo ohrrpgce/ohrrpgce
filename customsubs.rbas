@@ -2091,7 +2091,7 @@ SUB edit_global_text_strings()
   writeglobalstring menu.index(i), menu.text(i), menu.maxlen(i)
  NEXT i
  'Write defaults for all elements that don't appear in the menu
- FOR i as integer = gen(genNumElements) TO 63
+ FOR i as integer = gen(genNumElements) TO 63 'maxElements - 1
   writeglobalstring 174 + i*2, "Element" & i+1, 14
  NEXT i
 
@@ -4657,7 +4657,7 @@ SUB mark_non_elemental_elementals ()
  READNODE elementals
   WITHNODE elementals."element" as e
    eid = GetInteger(e)
-   IF eid >= 0 ANDALSO eid <= 63 THEN
+   IF eid >= 0 ANDALSO eid < maxElements THEN
     non_elemental = GetOrCreateChild(e, "non_elemental")
     setbit bits(), 0, eid, GetInteger(non_elemental)
    END IF
@@ -4665,13 +4665,13 @@ SUB mark_non_elemental_elementals ()
  END READNODE
 
  editbitset bits(), 0, gen(genNumElements) - 1, names(), "non_elemental_elementals"
- 
- DIM saved(63) as bool
+
+ DIM saved(maxElements - 1) as bool
 
  READNODE elementals
   WITHNODE elementals."element" as e
    eid = GetInteger(e)
-   IF eid >= 0 ANDALSO eid <= 63 THEN
+   IF eid >= 0 ANDALSO eid < maxElements THEN
     non_elemental = GetOrCreateChild(e, "non_elemental")
     SetContent non_elemental, IIF(xreadbit(bits(), eid), 1, 0)
     saved(eid) = YES
@@ -4679,8 +4679,8 @@ SUB mark_non_elemental_elementals ()
   END WITHNODE
  END READNODE
 
- DIM e as NodePtr 
- FOR i as integer = 0 TO 63
+ DIM e as NodePtr
+ FOR i as integer = 0 TO maxElements - 1
   IF NOT saved(i) THEN
    e = AppendChildNode(elementals, "element", i)
    SetChildNode(e, "non_elemental", IIF(xreadbit(bits(), i), 1, 0))
