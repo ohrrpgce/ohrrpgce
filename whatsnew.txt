@@ -15,6 +15,7 @@ March 1st-ish-maybe 2018 [Fufluns]
     * "append number": added "min length" and "pad with zeroes" args [Ralph]
     * "use door": added "fade screen" argument, so you can use a door without
       fading [Ralph]
+    * "npc copy number" (opposite to "npc reference") [Ralph]
 
   * Changes
 

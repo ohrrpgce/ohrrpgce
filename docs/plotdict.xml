@@ -1328,6 +1328,8 @@ end</example>
 				<ref>npcatspot</ref>
 				<ref>npcatpixel</ref>
 				<ref>createnpc</ref>
+				<ref>getnpcid</ref>
+				<ref>npccopynumber</ref>
 				<ref>npccopycount</ref>
 				<ref>nextnpcreference</ref>
 			</seealso>

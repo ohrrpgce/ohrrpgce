@@ -717,6 +717,15 @@ script,setNPCspeed,hsd:who,hsd:newspeed=4,begin
  alterNPC(hsd:who,NPCstat:movespeed,hsd:newspeed)
 end
 
+script, npc copy number, hsd:npc, begin
+  variable(hsd:id, hsd:copy)
+  hsd:id := get NPC ID(hsd:npc)
+  if (hsd:id < 0) then (exit returning (-1))  # No such NPC
+  if (hsd:npc >= 0) then (exit returning (0))  # It's an NPC ID, not an NPC reference! ID refers to copy 0
+  while(npc reference(hsd:id, hsd:copy) <> hsd:npc) do (hsd:copy += 1)
+  return (hsd:copy)
+end
+
 script,swapbyname,hsd:hero1,hsd:hero2,begin
  hsd:hero1:=findhero(hsd:hero1)
  hsd:hero2:=findhero(hsd:hero2)

@@ -1740,9 +1740,10 @@ end
 ########################################################################
 
 script, npc tests, begin
+  npc reference tests
   npc movement tests(1)
   npc movement tests(NPC reference(1))
-  npc id tests(NPC reference(1))
+  npc id tests()
   npc tag and onetime tests
   use npc script tests
   alter npc tests
@@ -1791,7 +1792,45 @@ script, npc movement tests, n, begin
   $err arg string=""
 end
 
-script, npc id tests, n, begin
+script, npc reference tests, begin
+  variable(n)
+  assert(npc copy count(1) == 1)
+  assert(npc copy count(2) == 0)
+  assert(npc copy count(4) == 3)
+
+  n := npc reference(1)
+  assert(n < 0)
+  assert(get npc id(n) == 1)
+  assert(npc copy number(n) == 0)
+
+  n := NPC reference(4, 1)
+  assert(get npc id(n) == 4)
+  assert(npc copy number(n) == 1)
+  assert(npc x(n) == 2)
+  assert(npc y(n) == 13)
+
+  n := NPC reference(4, 3)
+  assert(n == 0)  # Doesn't exist
+
+  # Passing an ID should return the ID, copy 0
+  assert(get npc id(1) == 1)
+  assert(npc copy number(1) == 0)
+  assert(get npc id(2) == -1)  # Doesn't exist
+  assert(npc copy number(2) == -1)  # Doesn't exist
+  assert(get npc id(3) == 3)
+  assert(npc copy number(3) == 0)
+  # Invalid IDs or references
+  assert(get npc id(9000) == -1)
+  assert(get npc id(-9000) == -1)
+  assert(npc copy number(9000) == -1)
+  assert(npc copy number(-9000) == -1)
+  assert(npc copy count(9000) == 0)
+  assert(npc copy count(-9000) == 0)
+end
+
+script, npc id tests, begin
+  variable(n)
+  n := NPC reference(1)
   set npc direction(n, south), w
   assert(get npc id(n) == 1)
   change npc id(n, 2), w(4)
@@ -5036,14 +5075,12 @@ end
 #number <> number
 #NPC at pixel (x, y, number)
 #NPC at spot (x, y, number)
-#NPC copy count (ID)
 #NPC direction (who)
 #NPC extra (who, which)
 #NPC frame (who)
 #NPC is walking (who)
 #NPC pixel X (who)
 #NPC pixel Y (who)
-#NPC reference (ID, copy)
 #NPC X (who)
 #NPC Y (who)
 #number from string (ID, default)
