@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2017-12-23">
+<plotscript version="wip" datecode="2017-12-28">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -3001,6 +3001,7 @@ end</example>
 							<li>NPCmovetype:followwallsleft</li>
 							<li>NPCmovetype:followwallsrightstopsforothers</li>
 							<li>NPCmovetype:followwallsleftstopsforothers</li>
+							<li>NPCmovetype:chaseyoupathfinding</li>
 						</ul>
 					</li>
 					<li>Alter NPC (who,NPCstat:move speed,speed)</li>

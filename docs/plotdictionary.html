@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2017-12-23)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2017-12-28)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -3110,7 +3110,7 @@
 		
 		<a href="#about-keyconstants">up key</a><br>
 	
-		<a href="#about-usedoor">use door (number)</a><br>
+		<a href="#about-usedoor">use door (number, fade screen)</a><br>
 		
 	
 		<a href="#about-useitem">use item (item)</a><br>
@@ -4981,10 +4981,26 @@ resume player</pre>
 		</div>
 		<div class="command">
 <a name="about-usedoor"></a>
-		<h4>use door (number)</h4>
+		<h4>use door (number, fade screen)</h4>
 <p>
-			Instantly uses the numbered door, just as if you had stepped into it. <div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
+			
+				Instantly uses door <span class="param">number</span>, just as if you had stepped into it.
+				<span class="param">fade screen</span> is an optional argument, defaulting to <span class="code">true</span>.
+				If true, the screen will fade out before using the door (even if it leads
+				to the same map), and fade back in one tick later.
+				Otherwise, there are no automatic screen fades.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					If you call <a href="#about-fadescreenout" class="ref">fade screen out</a> immediately after <span class="code">use door</span>,
+					then the screen won't fade back in afterwards.
+					(But you might have to do this in the map autorun script, if there is one,
+					since it will suspend the script that called <span class="code">use door</span>!)
+				</div>
+			
 			
 			
 			
@@ -5117,6 +5133,10 @@ end</pre>
 <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, </li>
 <li>
 <a href="#about-createnpc" class="ref">create NPC</a>, </li>
+<li>
+<a href="#about-getnpcid" class="ref">get NPC ID</a>, </li>
+<li>
+<a href="#npccopynumber" class="undef">npccopynumber</a>, </li>
 <li>
 <a href="#about-npccopycount" class="ref">NPC copy count</a>, </li>
 <li><a href="#about-nextnpcreference" class="ref">next NPC reference</a></li>
@@ -5803,7 +5823,7 @@ resume box advance # go back to normal</pre>
 		</p>
 </div>
 		<div class="command">
-		<h4>use door (number)</h4>
+		<h4>use door (number, fade screen)</h4>
 		<p><a href="#about-usedoor">Defined in the Doors section.</a></p>
 		</div>
 		<div class="command">
@@ -8016,6 +8036,7 @@ end</pre>
 							<li>NPCmovetype:followwallsleft</li>
 							<li>NPCmovetype:followwallsrightstopsforothers</li>
 							<li>NPCmovetype:followwallsleftstopsforothers</li>
+							<li>NPCmovetype:chaseyoupathfinding</li>
 						</ul>
 					</li>
 					<li>Alter NPC (who,NPCstat:move speed,speed)</li>
