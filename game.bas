@@ -4670,7 +4670,7 @@ SUB battle_formation_testing_menu()
 
 END SUB
 
-'Used nit show_textbox_debug_info
+'Used in show_textbox_debug_info
 PRIVATE FUNCTION box_cond_info(tagcond as integer, what as string) as string
  IF tagcond = 0 OR tagcond = 1 THEN RETURN ""  'Never
  IF tagcond = -1 THEN RETURN "[" & what & "] " 'Always
@@ -4690,7 +4690,7 @@ SUB show_textbox_debug_info ()
 
  DIM after as string
  IF txt.box.after THEN
-  after &= describe_tag_condition(txt.box.after_tag, "ALWAYS", get_resolution().w - 96)
+  after &= describe_tag_condition(txt.box.after_tag, "NEVER", get_resolution().w - 96)
   IF txt.box.after < 0 THEN
    after &= ": run " & scriptname(-txt.box.after) & !"\n"
   ELSE

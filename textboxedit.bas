@@ -34,6 +34,7 @@ DECLARE SUB textbox_create_from_box (byval template_box_id as integer=0, byref b
 DECLARE SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_line_editor (byref box as TextBox, byref st as TextboxEditState)
+DECLARE SUB textbox_set_after_textbox (byref box as TextBox, after_textbox as integer)
 DECLARE SUB textbox_copy_style_from_box (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_connections(byref box as TextBox, byref st as TextboxEditState, menu() as string)
 DECLARE SUB textbox_connection_captions(byref node as TextboxConnectNode, id as integer, tag as integer, box as TextBox, topcation as string, use_tag as integer = YES)
@@ -143,11 +144,12 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
      textbox_link_to_new_box_and_load 0,     box, st, menu()
     ELSEIF keyval(scAlt) = 0 THEN  'Ignore alt+left/right keypresses
      ' Ctrl+Left/Right links to previous/next box. We actually let scrintgrabber
-     ' handle that, by starting at box.after. So continuing press Ctrl+Left/Right works.
+     ' handle that, by starting at box.after. So continuing to press Ctrl+Left/Right works.
      IF keyval(scCtrl) > 0 AND box.after = 0 THEN
       IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN box.after = st.id
      END IF
      IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
+      textbox_set_after_textbox box, box.after
       SaveTextBox box, st.id
       update_textbox_editor_main_menu box, menu()
      END IF
@@ -214,7 +216,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
     IF want_scriptbrowse THEN
      DIM temptrig as integer = ABS(box.after)
      scriptbrowse temptrig, plottrigger, "textbox plotscript"
-     box.after = -temptrig
+     textbox_set_after_textbox box, -temptrig
      update_textbox_editor_main_menu box, menu()
     END IF
    END IF
@@ -620,12 +622,17 @@ SUB textbox_edit_load (byref box as TextBox, byref st as TextboxEditState, menu(
  load_text_box_portrait box, st.portrait
 END SUB
 
-SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
+'Set the next textbox, and auto-adjust the 'After' condition tag if appropriate.
+SUB textbox_set_after_textbox (byref box as TextBox, after_textbox as integer)
+ box.after = after_textbox
  IF box.after = 0 THEN
   box.after_tag = 0
  ELSE
   IF box.after_tag = 0 THEN box.after_tag = -1 ' Set "After" text box conditional to "Always"
  END IF
+END SUB
+
+SUB update_textbox_editor_main_menu (byref box as TextBox, menu() as string)
  SELECT CASE box.after_tag
   CASE 0
    menu(6) = "After: None Selected..."
@@ -1066,8 +1073,7 @@ SUB textbox_create_from_box_and_load (byval template_box_id as integer=0, byref 
 END SUB
 
 SUB textbox_link_to_new_box_and_load (byval template_box_id as integer=0, byref box as TextBox, byref st as TextboxEditState, menu() as string)
- box.after = gen(genMaxTextBox) + 1
- box.after_tag = -1  'Always
+ textbox_set_after_textbox box, gen(genMaxTextBox) + 1
  SaveTextBox box, st.id
  textbox_create_from_box_and_load template_box_id, box, st, menu()
 END SUB

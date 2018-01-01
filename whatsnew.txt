@@ -27,13 +27,18 @@ March 1st-ish-maybe 2018 [Fufluns]
   * Stuff Only Developers Will Notice
 
 
-Dec ?? 2017 [Etheldreme+1]
+Jan ? 2018 [Etheldreme+1]
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
     * Couldn't copy-paste text containing characters above ASCII 127 [Ralph]
     * Panel slices set to clip had broken child clipping and positioning
       when inside another clipping slice or over the screen edge [Ralph]
+    * In the textbox editor, pressing Ctrl+Left/Right to link to another box
+      appeared to work but actually the "After" tag condition didn't
+      get set to "Always", although it claimed it was. It didn't actually
+      get set to "Always" until you entered a submenu. The in-game F1
+      textbox debug screen also showed "ALWAYS" instead of "NEVER"! [Ralph]
 
 Dec 3 2017 [Etheldreme]
 
