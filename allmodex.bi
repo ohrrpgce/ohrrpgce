@@ -306,7 +306,7 @@ DECLARE SUB font_unload (fontpp as Font ptr ptr)
 DECLARE FUNCTION font_create_edged (basefont as Font ptr) as Font ptr
 DECLARE FUNCTION font_create_shadowed (basefont as Font ptr, xdrop as integer = 1, ydrop as integer = 1) as Font ptr
 DECLARE FUNCTION font_loadbmps (directory as string, fallback as Font ptr = null) as Font ptr
-DECLARE FUNCTION font_loadbmp_16x16 (filename as string) as Font ptr
+DECLARE FUNCTION font_load_16x16 (filename as string) as Font ptr
 
 '==========================================================================================
 '                                    BMPs/GIFs/screenshots
@@ -317,7 +317,7 @@ TYPE QuantizeOptions
 	transparency as RGBcolor 'Color to map to 0 (should have .a=0) (Default -1, meaning none)
 END TYPE
 
-ENUM ImageTypeEnum
+ENUM ImageFileTypes
 	imUnknown   'File extension not recognised
 	imBMP
 	imGIF
@@ -327,7 +327,7 @@ ENUM ImageTypeEnum
 END ENUM
 
 TYPE ImageFileInfo
-	imagetype as ImageTypeEnum
+	imagetype as ImageFileTypes
 	imagetype_name as string
 	supported as bool   'Can be loaded
 	valid as bool       'Appears to valid, regardless of being supported
@@ -337,7 +337,12 @@ TYPE ImageFileInfo
 	bitdepth as integer
 END TYPE
 
-DECLARE FUNCTION read_image_info(filename as string) as ImageFileInfo
+DECLARE FUNCTION image_read_info (filename as string) as ImageFileInfo
+DECLARE FUNCTION image_load_palette (filename as string, pal() as RGBcolor) as integer
+DECLARE SUB image_map_palette (filename as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
+DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
+DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
+DECLARE FUNCTION image_import_as_surface (bmp as string, always_32bit as bool) as Surface ptr
 
 DECLARE FUNCTION screenshot(basename as string = "") as string
 DECLARE SUB bmp_screenshot(basename as string)
@@ -348,15 +353,12 @@ DECLARE SUB frame_export_bmp8 (f as string, fr as Frame Ptr, maspal() as RGBcolo
 DECLARE SUB surface_export_bmp24 (f as string, surf as Surface Ptr)
 DECLARE SUB frame_export_bmp (fname as string, fr as Frame ptr, maspal() as RGBcolor, pal as Palette16 ptr = NULL)
 
-DECLARE FUNCTION surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
-DECLARE FUNCTION frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 
 'Read BMP info or palette
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
-DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
 DECLARE FUNCTION bmpinfo OVERLOAD (f as string, byref dat as BitmapV3InfoHeader, byref errmsg as string = "") as integer
 DECLARE SUB bmpinfo OVERLOAD (filename as string, byref iminfo as ImageFileInfo)
 

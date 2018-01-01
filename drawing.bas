@@ -592,11 +592,11 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
     palmapping(idx) = idx
    NEXT
    ' Disallow anything from being mapped to colour 0 to prevent accidental transparency
-   convertbmppal srcbmp, pmask(), palmapping(), 1  'firstindex = 1
+   image_map_palette srcbmp, pmask(), palmapping(), 1  'firstindex = 1
    remapping_pal = palette16_new_from_indices(palmapping())
   END IF
 
-  img = frame_import_bmp_raw(srcbmp)
+  img = image_import_as_frame_raw(srcbmp)
   IF remap_background THEN
    'Note img doesn't contain any 0 pixels, so the user will never get asked what to do with them.
    IF importbmp_change_background_color(img, remapping_pal) THEN
@@ -617,7 +617,7 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
-  img = frame_import_bmp24_or_32(srcbmp, pmask(), TYPE(1, -1))
+  img = image_import_as_frame_quantized(srcbmp, pmask(), TYPE(1, -1))
   importbmp_change_background_color img
  END IF
 
@@ -3015,9 +3015,9 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
  IF bmpd.biBitCount <= 4 THEN
   'If 4 bit or below, we preserve the colour indices from the BMP
 
-  impsprite = frame_import_bmp_raw(srcbmp)
+  impsprite = image_import_as_frame_raw(srcbmp)
 
-  convertbmppal(srcbmp, master(), bmppal())
+  image_map_palette(srcbmp, master(), bmppal())
   FOR i as integer = 0 TO 15
    pal16->col(i) = bmppal(i)
   NEXT 
@@ -3031,13 +3031,13 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
   IF bmpd.biBitCount > 8 THEN
    'notification srcbmp & " is a " & bmpd.biBitCount & "-bit BMP file. Colors will be mapped to the nearest entry in the master palette." _
    '             " It's recommended that you save your graphics as 4-bit BMPs so that you can control which colours are used."
-   impsprite = frame_import_bmp24_or_32(srcbmp, master())
+   impsprite = image_import_as_frame_quantized(srcbmp, master())
    FOR i as integer = 0 TO 255
     bmppal(i) = i
    NEXT
   ELSE  'biBitCount = 8
-   impsprite = frame_import_bmp_raw(srcbmp)
-   convertbmppal(srcbmp, master(), bmppal())
+   impsprite = image_import_as_frame_raw(srcbmp)
+   image_map_palette(srcbmp, master(), bmppal())
   END IF
 
   IF impsprite <> NULL THEN

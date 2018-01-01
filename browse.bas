@@ -385,7 +385,7 @@ SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
  IF br.bitdepth32 THEN
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
   'DIM as double t = TIMER
-  DIM as Surface ptr temp = surface_import_bmp(filepath, YES)  'always_32bit=YES
+  DIM as Surface ptr temp = image_import_as_surface(filepath, YES)  'always_32bit=YES
   IF temp = NULL THEN EXIT SUB
   '? "import32 in " & (TIMER - t)
   't = TIMER
@@ -477,10 +477,10 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
  END WITH
 END SUB
 
-'Returns true if the BMP looks good; set .about
+'Returns true if the image looks good; set .about
 FUNCTION browse_check_image(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref iminfo as ImageFileInfo) as bool
  WITH tree(br.mstate.last)
-  iminfo = read_image_info(br.nowdir + .filename)
+  iminfo = image_read_info(br.nowdir + .filename)
   IF iminfo.supported THEN
    .about = iminfo.info
    RETURN YES

@@ -423,7 +423,7 @@ rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
 DIM datafile as string = finddatafile("arrows2.bmp")  'Actually a walkabout set
 IF LEN(datafile) THEN
- DIM arrowset as Frame ptr = frame_import_bmp_raw(datafile)
+ DIM arrowset as Frame ptr = image_import_as_frame_raw(datafile)
  FOR idx as integer = 0 TO UBOUND(st.arrow_icons)
   st.arrow_icons(idx) = frame_resized(arrowset, 20, 20, idx * -20, 0)
  NEXT
@@ -4129,7 +4129,7 @@ END SUB
 
 'Overwrite a map layer, reading a tile per pixel of a .bmp
 SUB bmp_to_layer(st as MapEditState, imgfile as string, layer as integer)
- DIM fr as Frame ptr = frame_import_bmp_raw(imgfile)
+ DIM fr as Frame ptr = image_import_as_frame_raw(imgfile)
  IF fr = NULL THEN
   notification "Couldn't import map layer: loading .bmp failed"
   EXIT SUB

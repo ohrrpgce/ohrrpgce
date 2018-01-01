@@ -5570,7 +5570,7 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 			f = finddatafile(directory & SLASH & i & ".bmp", NO)
 			if isfile(f) then
 				'FIXME: awful stuff
-				tempfr = frame_import_bmp_raw(f)  ', master())
+				tempfr = image_import_as_frame_raw(f)  ', master())
 
 				.offset = size
 				.offx = 0
@@ -5612,27 +5612,27 @@ function font_loadbmps (directory as string, fallback as Font ptr = null) as Fon
 	return newfont
 end function
 
-'Load a font from a BMP which contains all 256 characters in a 16x16 grid (all characters the same size)
-function font_loadbmp_16x16 (filename as string) as Font ptr
-	dim bmp as Frame ptr
-	bmp = frame_import_bmp_raw(filename)
+'Load a font from an image which contains all 256 characters in a 16x16 grid (all characters the same size)
+function font_load_16x16 (filename as string) as Font ptr
+	dim image as Frame ptr
+	image = image_import_as_frame_raw(filename)
 
-	if bmp = NULL then
-		debug "font_loadbmp_16x16: couldn't load " & filename
+	if image = NULL then
+		debug "font_load_16x16: couldn't load " & filename
 		return null
 	end if
 
-	if bmp->w MOD 16 ORELSE bmp->h MOD 16 then
-		debug "font_loadbmp_16x16: " & filename & ": bad dimensions " & bmp->w & "*" & bmp->h
-		frame_unload @bmp
+	if image->w MOD 16 ORELSE image->h MOD 16 then
+		debug "font_load_16x16: " & filename & ": bad dimensions " & image->size
+		frame_unload @image
 		return null
 	end if
 
 	dim newfont as Font ptr = callocate(sizeof(Font))
 
 	dim as integer charw, charh
-	charw = bmp->w \ 16
-	charh = bmp->h \ 16
+	charw = image->w \ 16
+	charh = image->h \ 16
 	newfont->h = charh
 	newfont->offset.x = 0
 	newfont->offset.y = 0
@@ -5655,7 +5655,7 @@ function font_loadbmp_16x16 (filename as string) as Font ptr
 			newfont->w(i) = .w
 			size += .w * .h
 			dim tempview as Frame ptr
-			tempview = frame_new_view(bmp, charw * (i MOD 16), charh * (i \ 16), charw, charh)
+			tempview = frame_new_view(image, charw * (i mod 16), charh * (i \ 16), charw, charh)
 			'setclip , charh * i, , charh * (i + 1) - 1, newfont->layers(1)->spr
 			frame_draw tempview, , 0, charh * i, 1, NO, newfont->layers(1)->spr
 			frame_unload @tempview
@@ -5664,12 +5664,12 @@ function font_loadbmp_16x16 (filename as string) as Font ptr
 
 	'Find number of used colours
 	newfont->cols = 0
-	dim as ubyte ptr image = bmp->image
-	for i as integer = 0 to bmp->pitch * bmp->h - 1
-		if image[i] > newfont->cols then newfont->cols = image[i]
+	dim as ubyte ptr imptr = image->image
+	for i as integer = 0 to image->pitch * image->h - 1
+		if imptr[i] > newfont->cols then newfont->cols = imptr[i]
 	next
 
-	frame_unload @bmp
+	frame_unload @image
 	return newfont
 end function
 
@@ -6025,7 +6025,7 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 
 	if info.biBitCount < 24 then
 		dim paletted as Frame ptr
-		paletted = frame_import_bmp_raw(bmp)
+		paletted = image_import_as_frame_raw(bmp)  'Opens the file a second time
 		if paletted then
 			if always_32bit then
 				dim bmppal(255) as RGBcolor
@@ -6049,15 +6049,6 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 
 	close #bf
 	return ret
-end function
-
-'Loads and palettises the 24-bit or 32-bit bitmap BMP, mapped to palette pal().
-'If there is an alpha channel, fully transparent pixels are mapped to index 0.
-function frame_import_bmp24_or_32(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
-	dim surf as Surface ptr
-	surf = surface_import_bmp(bmp, YES)
-	if surf = NULL then return NULL
-	return quantize_surface(surf, pal(), options)
 end function
 
 'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
@@ -6084,7 +6075,7 @@ function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, ke
 		' Drop the palette, remapping to the master palette
 		' (Can't use frame_draw, since we have an array instead of a Palette16)
 		dim palindices(255) as integer
-		convertbmppal(bmpfile, masterpal(), palindices(), 1)
+		image_map_palette(bmpfile, masterpal(), palindices(), 1)
 		if keep_col0 then
 			palindices(0) = 0
 		end if
@@ -6098,7 +6089,7 @@ function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, ke
 		return ret
 	else
 		dim options as QuantizeOptions = (1, transparency)
-		return frame_import_bmp24_or_32(bmpfile, masterpal(), options)
+		return image_import_as_frame_quantized(bmpfile, masterpal(), options)
 	end if
 end function
 
@@ -6508,22 +6499,6 @@ function loadbmppal (f as string, pal() as RGBcolor) as integer
 	return info.biBitCount
 end function
 
-sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
-'Find the nearest match palette mapping from a 1/4/8 bit bmp f to
-'the master palette mpal(), and store it in pal(), an array of mpal() indices.
-'pal() may contain initial values, used as hints which are used if an exact match.
-'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
-	dim bitdepth as integer
-	dim cols(255) as RGBcolor
-
-	bitdepth = loadbmppal(f, cols())
-	if bitdepth = 0 then exit sub
-
-	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
-		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, firstindex, pal(i))
-	next
-end sub
-
 'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
 function bmpinfo (f as string, byref info as BITMAPV3INFOHEADER, byref errmsg as string = "") as integer
 	dim header as BITMAPFILEHEADER
@@ -6554,20 +6529,90 @@ end sub
 
 dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG"}
 
-function read_image_info (filename as string) as ImageFileInfo
+function image_file_type (filename as string) as ImageFileTypes
+	select case lcase(justextension(filename))
+		case "bmp" : return imBMP
+		'case "png" : return imPNG
+		'case "gif" : return imGIF
+		'case "jpg", "jpeg" : return imJPG
+	end select
+	return imUnknown
+end function
+
+function image_read_info (filename as string) as ImageFileInfo
 	dim ret as ImageFileInfo
 
-	dim ext as string = lcase(justextension(filename))
-	if ext = "bmp" then
+	ret.imagetype = image_file_type(filename)
+	if ret.imagetype = imBMP then
 		bmpinfo filename, ret
-	else
-		ret.imagetype = imUnknown
 	end if
 
 	ret.imagetype_name = *image_type_strings(ret.imagetype)
 	return ret
 end function
 
+'Loads the palette of a <= 8-bit image file into pal().
+'Returns the number of bits, or 0 if the file can't be read or isn't paletted.
+function image_load_palette (filename as string, pal() as RGBcolor) as integer
+	select case image_file_type(filename)
+		case imBMP
+			return loadbmppal(filename, pal())
+		case else
+			debug "load_image_palette: Unrecognised: " & filename
+			return 0
+	end select
+end function
+
+'Find the nearest match palette mapping from a paletted image to
+'the master palette mpal(), and store it in pal(), an array of mpal() indices.
+'pal() may contain initial values, used as hints which are used if an exact match.
+'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
+sub image_map_palette (filename as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
+	dim bitdepth as integer
+	dim cols(255) as RGBcolor
+
+	bitdepth = image_load_palette(filename, cols())
+	if bitdepth = 0 then exit sub
+
+	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
+		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, firstindex, pal(i))
+	next
+end sub
+
+'Loads any supported image file as a Surface, returning NULL on error.
+'always_32bit: load paletted images as 32 bit Surfaces instead of 8-bit ones
+'(in the latter case, you have to load the palette yourself).
+'The alpha channel if any is ignored
+function image_import_as_surface(filename as string, always_32bit as bool) as Surface ptr
+	select case image_file_type(filename)
+		case imBMP
+			return surface_import_bmp(filename, always_32bit)
+		case else
+			debug "image_import_as_surface: Unrecognised: " & filename
+			return 0
+	end select
+end function
+
+'Loads and palettises a non-paletted image, mapped to palette pal().
+'It doesn't make sense to call this on paletted images, as it's unnecessarily very slow.
+'If there is an alpha channel, fully transparent pixels are mapped to index 0.
+function image_import_as_frame_quantized(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
+	dim surf as Surface ptr
+	surf = surface_import_bmp(bmp, YES)
+	if surf = NULL then return NULL
+	return quantize_surface(surf, pal(), options)
+end function
+
+
+'Load a <= 8-bit image, ignoring the palette. An error to call for non-paletted images.
+function image_import_as_frame_raw (filename as string) as Frame ptr
+	select case image_file_type(filename)
+		case imBMP
+			return frame_import_bmp_raw(filename)
+		case else
+			return NULL
+	end select
+end function
 
 '==========================================================================================
 '                                   Image quantization
@@ -6639,7 +6684,7 @@ end function
 'the Surface's alpha is ignored and transparency.a must be 0 or it won't be matched.
 function quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 	if surf->format <> SF_32bit then
-		showerror "quantize_surface only works on 32 bit Surfaces (bad frame_import_bmp24_or_32 call?)"
+		showerror "quantize_surface only works on 32 bit Surfaces (bad image_import_as_frame_quantized call?)"
 		gfx_surfaceDestroy(@surf)
 		return NULL
 	end if

@@ -2197,7 +2197,7 @@ SUB font_test_menu
    filen = browse(10, "", "*.bmp")
    IF LEN(filen) THEN
     font_unload @fonts(st.pt)
-    fonts(st.pt) = font_loadbmp_16x16(filen)
+    fonts(st.pt) = font_load_16x16(filen)
    END IF
   END IF
   IF keyval(sc3) > 1 THEN
