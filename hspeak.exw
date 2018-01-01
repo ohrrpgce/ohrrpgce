@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tg 2017-12-31 Fix crash due to missing KIND_LONGNAMES[KIND_KEYWORD]
 --3Tf 2017-11-08 Specialise assert(x==y) to use _asserteq
 --3Te 2017-10-29 Look for plotscr.hsd/scancode.hsi first in global dirs
 --3Td 2017-10-07 Add parent ID to scripts.bin, for --reuse-ids
@@ -169,7 +170,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tf"
+constant COMPILER_SUB_VERSION="Tg"
 constant COPYRIGHT_DATE="2017"
 
 --Known single-character commandline options
@@ -288,6 +289,7 @@ constant KIND_LONGNAMES={"number"
                         ,"untranslated operator"
                         ,"order-of-operations-enforcing parenthesis"
                         ,"hard-coded function/macro"
+                        ,"keyword"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
