@@ -5888,17 +5888,19 @@ end function
 'or -1 if invalid, or -2 if unsupported.
 'Only 1, 4, 8, 24, and 32 bit BMPs are accepted
 'Afterwards, the file is positioned at the start of the palette, if there is one
-function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER) as integer
+function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADER, byref info as BITMAPV3INFOHEADER, byref errmsg as string = "") as integer
 	dim bf as integer
 	if openfile(bmp, for_binary + access_read, bf) then
 		debug "open_bmp_and_read_header: couldn't open " & bmp
+		errmsg = "Couldn't open file"
 		return -1
 	end if
 
 	get #bf, , header
 	if header.bfType <> 19778 then
 		close #bf
-		debuginfo bmp & " is not a valid BMP file"
+		errmsg = "Is not a BMP file"
+		debuginfo bmp & ": " & errmsg
 		return -1
 	end if
 
@@ -5917,7 +5919,8 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		info.biHeight = info_old.bcHeight
 	elseif biSize < 40 then
 		close #bf
-		debuginfo "Unsupported DIB header size " & biSize & " in " & bmp
+		errmsg = "Unsupported DIB header size " & biSize
+		debuginfo bmp & ": " & errmsg
 		return -2
 	else
 		'A BITMAPINFOHEADER or one of its extensions
@@ -5947,7 +5950,8 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		case 1, 4, 8, 24, 32
 		case else
 			close #bf
-			debuginfo "Unsupported bitdepth " & info.biBitCount & " in " & bmp
+			errmsg = "Unsupported bitdepth " & info.biBitCount
+			debuginfo bmp & ": " & errmsg
 			if info.biBitCount = 2 or info.biBitcount = 16 then
 				return -2
 			else
@@ -5958,7 +5962,8 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 
 	if (info.biCompression = BI_RLE4 and info.biBitCount <> 4) or (info.biCompression = BI_RLE8 and info.biBitCount <> 8) then
 		close #bf
-		debuginfo "Invalid compression scheme " & info.biCompression & " in " & info.biBitCount & "bpp BMP " & bmp
+		errmsg = "Invalid compression scheme " & info.biCompression & " in " & info.biBitCount & "bpp BMP"
+		debuginfo bmp & ": " & errmsg
 		return -1
 	end if
 
@@ -5971,24 +5976,26 @@ function open_bmp_and_read_header(bmp as string, byref header as BITMAPFILEHEADE
 		   decode_bmp_bitmask(info.biBlueMask) = -1 or _
 		   (info.biAlphaMask <> 0 and decode_bmp_bitmask(info.biAlphaMask) = -1) then
 			close #bf
-			debuginfo "Unsupported BMP RGBA bitmasks " & _
+			errmsg = "Unsupported BMP RGBA bitmasks " & _
 			     HEX(info.biRedMask) & " " & _
 			     HEX(info.biGreenMask) & " " & _
 			     HEX(info.biBlueMask) & " " & _
-			     HEX(info.biAlphaMask) & _
-			     " in 32-bit " & bmp
+			     HEX(info.biAlphaMask)
+			debuginfo bmp & ": " & errmsg
 			return -2
 		end if
 	elseif info.biCompression <> BI_RGB and info.biCompression <> BI_RLE4 and info.biCompression <> BI_RLE8 then
 		close #bf
-		debuginfo "Unsupported BMP compression scheme " & info.biCompression & " in " & info.biBitCount & "-bit BMP " & bmp
+		errmsg = "Unsupported compression scheme " & info.biCompression & " in " & info.biBitCount & "-bit BMP"
+		debuginfo bmp & ": " & errmsg
 		return -2
 	end if
 
 	if info.biHeight < 0 then
 		'A negative height indicates that the image is not stored upside-down. Unimplemented
 		close #bf
-		debuginfo "Unsupported non-flipped image in " & bmp
+		errmsg = "Unsupported non-flipped image"
+		debuginfo bmp & ": " & errmsg
 		return -2
 	end if
 
@@ -6518,16 +6525,53 @@ sub convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex
 end sub
 
 'Returns 0 if invalid, otherwise fills 'info' and returns 1 if valid but unsupported, 2 if supported
-function bmpinfo (f as string, byref info as BITMAPV3INFOHEADER) as integer
+function bmpinfo (f as string, byref info as BITMAPV3INFOHEADER, byref errmsg as string = "") as integer
 	dim header as BITMAPFILEHEADER
 	dim bf as integer
 
-	bf = open_bmp_and_read_header(f, header, info)
+	bf = open_bmp_and_read_header(f, header, info, errmsg)
 	if bf = -1 then return 0
 	if bf = -2 then return 1
 	close #bf
 	return 2
 end function
+
+sub bmpinfo (filename as string, byref iminfo as ImageFileInfo)
+	iminfo.imagetype = imBMP
+	dim bmpd as BitmapV3InfoHeader
+	dim support as integer = bmpinfo(filename, bmpd, iminfo.error)
+	if support <> 0 or bmpd.biWidth > 0 then
+		iminfo.info = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+	end if
+	iminfo.supported = (support = 2)
+	iminfo.valid = (support >= 1)
+end sub
+
+
+'==========================================================================================
+'                               Generic image file interface
+'==========================================================================================
+
+dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG"}
+
+function read_image_info (filename as string) as ImageFileInfo
+	dim ret as ImageFileInfo
+
+	dim ext as string = lcase(justextension(filename))
+	if ext = "bmp" then
+		bmpinfo filename, ret
+	else
+		ret.imagetype = imUnknown
+	end if
+
+	ret.imagetype_name = *image_type_strings(ret.imagetype)
+	return ret
+end function
+
+
+'==========================================================================================
+'                                   Image quantization
+'==========================================================================================
 
 'Returns a non-negative integer which is 0 if both colors in a color table are the same
 function color_distance(pal() as RGBcolor, index1 as integer, index2 as integer) as integer

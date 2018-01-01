@@ -317,6 +317,28 @@ TYPE QuantizeOptions
 	transparency as RGBcolor 'Color to map to 0 (should have .a=0) (Default -1, meaning none)
 END TYPE
 
+ENUM ImageTypeEnum
+	imUnknown   'File extension not recognised
+	imBMP
+	imGIF
+	imPNG
+	imJPEG
+	'Update image_type_strings when changing this
+END ENUM
+
+TYPE ImageFileInfo
+	imagetype as ImageTypeEnum
+	imagetype_name as string
+	supported as bool   'Can be loaded
+	valid as bool       'Appears to valid, regardless of being supported
+	info as string      'Description, whether supported or not
+	error as string     'If not supported, error message describing problem
+	size as XYPair
+	bitdepth as integer
+END TYPE
+
+DECLARE FUNCTION read_image_info(filename as string) as ImageFileInfo
+
 DECLARE FUNCTION screenshot(basename as string = "") as string
 DECLARE SUB bmp_screenshot(basename as string)
 DECLARE SUB toggle_recording_gif()
@@ -335,7 +357,8 @@ DECLARE FUNCTION frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBc
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
-DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapV3InfoHeader) as integer
+DECLARE FUNCTION bmpinfo OVERLOAD (f as string, byref dat as BitmapV3InfoHeader, byref errmsg as string = "") as integer
+DECLARE SUB bmpinfo OVERLOAD (filename as string, byref iminfo as ImageFileInfo)
 
 'Color matching
 DECLARE FUNCTION color_distance(pal() as RGBcolor, index1 as integer, index2 as integer) as integer
