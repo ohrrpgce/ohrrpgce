@@ -107,10 +107,11 @@ extern "C"
 	extern int (*gfx_paletteDestroy)( RGBPalette** ppPaletteIn );
 	extern int (*gfx_paletteUpdate)( RGBPalette* pPaletteIn );
 
-	// Convenience wrappers not specific to any Surface implementation
+	// Convenience and utility functions not specific to any Surface implementation
 	void surface_assign( Surface** ptr_to_replace, Surface* new_value );
 	Surface* surface_scale( Surface *surf, int destWidth, int destHeight );
 	Surface* surface_duplicate( Surface* surf );
+	Surface* surface_from_rgb( char *input, int w, int h );
 
 #ifdef __cplusplus
 };

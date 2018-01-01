@@ -48,6 +48,7 @@ Type BrowseMenuState
 	bitdepth32 as bool      'Using 32-bit video pages
 	image_preview as Frame ptr   'Preview of currently selected image, or NULL
 	preview_panel_size as XYPair 'Size of the preview area
+	preview_footer as string  'Info message
 End Type
 
 'Subs and functions only used locally
@@ -69,6 +70,8 @@ DIM SHARED remember as string
 SUB set_browse_default(default as string)
  remember = default
 END SUB
+
+#DEFINE browseAnyImage 13
 
 ' Returns an absolute path, or "" if the user cancelled.
 ' special: file type, see below
@@ -101,6 +104,7 @@ br.snd = -1
 'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
 'special=11  Browse for a folder
 'special=12  tilemaps (fmask is ignored)
+'special=13  any image (but excluding animated gifs)
 
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
@@ -328,6 +332,7 @@ DO
  IF br.image_preview THEN
   drawbox 320, 0, br.image_preview->w + 2, br.image_preview->h + 2, uilook(uiText), , dpage
   frame_draw br.image_preview, , 321, 1, , NO, dpage
+  edgeprint br.preview_footer, pRight, pBottom, uilook(uiDisabledItem), dpage
  END IF
 
  SWAP vpage, dpage
@@ -382,25 +387,23 @@ END SUB
 SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
  frame_unload @br.image_preview
  IF NOT br.preview_panel_size > 0 THEN EXIT SUB 'There's no space to display it
+ DIM as double starttime = TIMER
  IF br.bitdepth32 THEN
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
-  'DIM as double t = TIMER
   DIM as Surface ptr temp = image_import_as_surface(filepath, YES)  'always_32bit=YES
   IF temp = NULL THEN EXIT SUB
-  '? "import32 in " & (TIMER - t)
-  't = TIMER
   DIM ratio as double = 1.0
   WITH br.preview_panel_size
    IF temp->width > 0 THEN ratio = small(1.0, small(.w / temp->width, .h / temp->height))
   END WITH
   surface_assign @temp, surface_scale(temp, temp->width * ratio, temp->height * ratio)
-  '? "shrink in " & (TIMER - t)
   br.image_preview = frame_with_surface(temp)
   gfx_surfaceDestroy(@temp)
  ELSE
   ' Scaling not implemented
   br.image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
  END IF
+ br.preview_footer = "Loaded in " & CINT(1000 * (TIMER - starttime)) & "ms"
 END SUB
 
 ' Set br.alert according to the selected browser entry, and preview audio
@@ -435,7 +438,7 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
       br.alert = .decoded_filename + " is not a valid BAM file"
      END IF
     END IF
-   CASE 2, 3, 4, 10 'Any kind of image or master palette
+   CASE 2, 3, 4, 10, browseAnyImage 'Any kind of image or master palette
     IF .kind = bkSelectable THEN
      browse_preview_image br, filepath
     END IF
@@ -545,6 +548,12 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    '---1/4/8 bit BMP files (fonts)
    IF br.special = 10 THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bitdepth > 8 THEN
+     .kind = bkUnselectable
+    END IF
+   END IF
+   '---Any non-animated image
+   IF br.special = browseAnyImage THEN
+    IF browse_check_image(br, tree(), iminfo) = NO THEN
      .kind = bkUnselectable
     END IF
    END IF
@@ -844,6 +853,10 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      .about = decode_filename(br.nowdir)
     END WITH
    END IF
+  ELSEIF br.special = browseAnyImage THEN
+   browse_add_files "*.bmp", filetype, br, tree()
+   browse_add_files "*.jpeg", filetype, br, tree()
+   browse_add_files "*.jpg", filetype, br, tree()
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF

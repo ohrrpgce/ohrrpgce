@@ -168,6 +168,25 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalet
 	return -1;
 }
 
+// input is a buffer of RGB triples. Convert to BGRA.
+Surface *surface_from_rgb( char *restrict input, int w, int h ) {
+	Surface *ret;
+	if (gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, &ret))
+		return NULL;
+
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			RGBcolor &col = ret->pixel32(x, y);
+			col.r = input[0];
+			col.g = input[1];
+			col.b = input[2];
+			col.a = 255;
+			input += 3;
+		}
+	}
+	return ret;
+}
+
 Surface* surface_duplicate( Surface* surf ) {
 	Surface *ret;
 	if (gfx_surfaceCreate( surf->width, surf->height, surf->format, surf->usage, &ret ))

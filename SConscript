@@ -901,7 +901,8 @@ game_modules = ['game',
 common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
                    'surface.cpp',
-                   'lib/gif.cpp']
+                   'lib/gif.cpp',
+                   'lib/ujpeg.c']
 
 
 

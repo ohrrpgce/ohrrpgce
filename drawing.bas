@@ -356,7 +356,7 @@ SUB backdrop_browser ()
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(2, default, "*.bmp", "browse_import_backdrop")
+    srcbmp = browse(13, default, , "browse_import_backdrop")
     IF srcbmp <> "" THEN
      DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
      IF imported THEN frame_assign @backdrop, imported
@@ -365,7 +365,7 @@ SUB backdrop_browser ()
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(2, default, "*.bmp", "browse_import_backdrop")
+    srcbmp = browse(13, default, , "browse_import_backdrop")
     IF srcbmp <> "" THEN
      DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
      IF imported THEN

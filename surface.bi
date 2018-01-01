@@ -123,10 +123,11 @@ extern "C"
 	extern gfx_renderTriangleTexture as function ( byval pTriangle as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	extern gfx_renderTriangleTextureColor as function ( byval pTriangle as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval bUseColorKey0 as integer, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
-	'' Convenience wrappers not specific to any Surface implementation
+	'' Convenience and utility functions not specific to any Surface implementation
 	declare sub surface_assign (ptr_to_replace as Surface ptr ptr, new_value as Surface ptr)  'In allmodex.bas
 	declare function surface_scale ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 	declare function surface_duplicate ( surf as Surface ptr ) as Surface ptr
+	declare function surface_from_rgb( pixels as ubyte ptr, w as integer, h as integer ) as Surface ptr
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer

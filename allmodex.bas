@@ -10,6 +10,7 @@
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "surface.bi"
+#include "lib/ujpeg.bi"
 #include "music.bi"
 #include "reload.bi"
 #include "util.bi"
@@ -6515,13 +6516,96 @@ sub bmpinfo (filename as string, byref iminfo as ImageFileInfo)
 	iminfo.imagetype = imBMP
 	dim bmpd as BitmapV3InfoHeader
 	dim support as integer = bmpinfo(filename, bmpd, iminfo.error)
-	if support <> 0 or bmpd.biWidth > 0 then
-		iminfo.info = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
-	end if
 	iminfo.supported = (support = 2)
 	iminfo.valid = (support >= 1)
+	iminfo.size.w = bmpd.biWidth
+	iminfo.size.h = bmpd.biHeight
+	iminfo.bitdepth = bmpd.biBitCount
 end sub
 
+'==========================================================================================
+'                                         JPEG
+'==========================================================================================
+
+
+sub jpeginfo (filename as string, byref iminfo as ImageFileInfo)
+	iminfo.imagetype = imJPEG
+
+	dim jpeg as ujImage
+	jpeg = ujCreate()
+	ujDisableDecoding(jpeg)
+	jpeg = ujDecodeFile(jpeg, strptr(filename))
+	dim errcode as integer = ujGetError()
+
+	if ujIsValid(jpeg) = 0 then
+		if errcode = UJ_NO_JPEG then
+			iminfo.error = "Not a JPEG file"
+		elseif errcode = UJ_PROGRESSIVE then
+			iminfo.error = "Progressive JPEG"
+			iminfo.valid = YES
+		elseif errcode = UJ_IO_ERROR then
+			iminfo.error = "Could not read file"
+		else
+			if errcode = UJ_UNSUPPORTED or errcode >= UJ_UNKNOWN_SEGM then
+				'Other unsupported features or extensions
+				iminfo.valid = YES
+			else
+				'Anything is probably also a corrupt file
+				iminfo.error = "Error code " & hex(errcode)
+			end if
+		end if
+
+	else
+		iminfo.valid = YES
+		iminfo.supported = YES
+		iminfo.size.w = ujGetWidth(jpeg)
+		iminfo.size.h = ujGetHeight(jpeg)
+
+		if ujIsColor(jpeg) then
+			iminfo.bitdepth = 24
+		else
+			iminfo.bitdepth = 8
+			iminfo.error = "Grayscale JPEG"
+			iminfo.supported = NO
+		end if
+	end if
+
+	ujFree(jpeg)
+end sub
+
+function surface_import_jpeg(filename as string, always_32bit as bool) as Surface ptr
+	dim jpeg as ujImage
+	jpeg = ujDecodeFile(NULL, strptr(filename))
+	if ujIsValid(jpeg) = 0 then
+		debug "uJPEG error " & ujGetError()
+		ujFree(jpeg)
+		return NULL
+	end if
+
+	if ujIsColor(jpeg) = 0 then
+		'Grayscale. TODO
+		debug "unsupported greyscale jpeg"
+		ujFree(jpeg)
+		return NULL
+	end if
+
+	dim ret as Surface ptr
+
+	dim size as XYPair = (ujGetWidth(jpeg), ujGetHeight(jpeg))
+
+	dim buf as byte ptr
+	buf = ujGetImage(jpeg, NULL)
+	if buf = NULL then
+		debug "uJPEG error " & ujGetError()
+	else
+		'Need to convert RGB to our BGRA
+		ret = surface_from_rgb(buf, size.w, size.h)
+	end if
+
+	ujFree(jpeg)
+
+	return ret
+end function
 
 '==========================================================================================
 '                               Generic image file interface
@@ -6534,7 +6618,7 @@ function image_file_type (filename as string) as ImageFileTypes
 		case "bmp" : return imBMP
 		'case "png" : return imPNG
 		'case "gif" : return imGIF
-		'case "jpg", "jpeg" : return imJPG
+		case "jpg", "jpeg" : return imJPEG
 	end select
 	return imUnknown
 end function
@@ -6545,9 +6629,18 @@ function image_read_info (filename as string) as ImageFileInfo
 	ret.imagetype = image_file_type(filename)
 	if ret.imagetype = imBMP then
 		bmpinfo filename, ret
+	elseif ret.imagetype = imJPEG then
+		jpeginfo filename, ret
+	else
+		ret.error = "File extension not recognised"   'Shouldn't happen
 	end if
 
 	ret.imagetype_name = *image_type_strings(ret.imagetype)
+
+	if ret.supported orelse ret.size.w > 0 then
+		ret.info = ret.imagetype_name & " " & ret.size.w & "*" & ret.size.h & " pixels, " & ret.bitdepth & "-bit color"
+	end if
+
 	return ret
 end function
 
@@ -6587,6 +6680,8 @@ function image_import_as_surface(filename as string, always_32bit as bool) as Su
 	select case image_file_type(filename)
 		case imBMP
 			return surface_import_bmp(filename, always_32bit)
+		case imJPEG
+			return surface_import_jpeg(filename, always_32bit)
 		case else
 			debug "image_import_as_surface: Unrecognised: " & filename
 			return 0
