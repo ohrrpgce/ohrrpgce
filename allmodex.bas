@@ -10,6 +10,7 @@
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "surface.bi"
+#include "lib/lodepng.bi"
 #include "lib/ujpeg.bi"
 #include "music.bi"
 #include "reload.bi"
@@ -6461,6 +6462,7 @@ end sub
 
 'Loads the palette of a 1-bit, 4-bit or 8-bit bmp into pal().
 'Returns the number of bits, or 0 if the file can't be read.
+'Ignores alpha channel
 function loadbmppal (f as string, pal() as RGBcolor) as integer
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPV3INFOHEADER
@@ -6521,7 +6523,119 @@ sub bmpinfo (filename as string, byref iminfo as ImageFileInfo)
 	iminfo.size.w = bmpd.biWidth
 	iminfo.size.h = bmpd.biHeight
 	iminfo.bpp = bmpd.biBitCount
+	iminfo.paletted = (iminfo.bpp <= 8)
+	'It's also possible for the palette to define an alpha for each color
+	iminfo.alpha = (iminfo.bpp = 32)
 end sub
+
+
+'==========================================================================================
+'                                          PNG
+'==========================================================================================
+
+private function lodepngerr(errornum as integer, funcname as zstring ptr) as integer
+	if errornum then
+		debuginfo *funcname & ": error " & errornum & " " & *lodepng_error_text(errornum)
+	end if
+	return errornum
+end function
+
+#define CHKERR(funccall)  lodepngerr(funccall, @__FUNCTION__)
+
+sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
+	iminfo.imagetype = imPNG
+
+	'lodepng_inspect only inspects the PNG header, which is always 33 bytes. Load into memory
+	dim header(32) as byte
+	' if CHKERR(lodepng_buffer_file(@header(0), 33, strptr(filename))) then
+	' 	exit sub
+	' end if
+	dim fh as integer
+	if openfile(filename, for_binary + access_read, fh) then
+		debug "Couldn't open " & filename
+		exit sub
+	end if
+	get #fh, , header()
+	close fh
+
+	dim state as LodePNGState
+	if CHKERR(lodepng_inspect(@iminfo.size.w, @iminfo.size.h, @state, @header(0), 33)) then
+		exit sub
+	end if
+	iminfo.valid = YES
+	iminfo.supported = YES
+
+	'Look at color mode info.
+	'lodepng_inspect doesn't read other chunks, including PLTE, so
+	'can't tell us how large the palette is. It can tell us the color key though
+	dim cinfo as LodePNGColorMode ptr = @state.info_png.color
+	iminfo.bpp = lodepng_get_bpp(cinfo)
+	if lodepng_is_palette_type(cinfo) then
+		iminfo.paletted = YES
+	end if
+	if lodepng_is_alpha_type(cinfo) then
+		iminfo.alpha = YES
+	end if
+
+	lodepng_state_cleanup(@state)
+end sub
+
+'Import a paletted PNG as a Frame, ignoring the palette. Returns NULL if not paletted
+function frame_import_png_raw(filename as string) as Frame ptr
+	dim buf as byte ptr
+	dim size as XYPair
+	if CHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_PALETTE, 8)) then
+		return NULL
+	end if
+
+	dim ret as Frame ptr
+	ret = frame_new(size.w, size.h)
+	memcpy(ret->image, buf, size.w * size.h)
+	deallocate buf
+	return ret
+end function
+
+'Loads any supported .png file as a Surface, returning NULL on error.
+'always_32bit: load paletted PNGs as 32 bit Surfaces instead of 8-bit ones
+'(in the latter case, you have to load the palette yourself).
+'The alpha channel if any is ignored
+function surface_import_png(filename as string, always_32bit as bool) as Surface ptr
+
+	'Calling pnginfo, which means we open the file twice, is a lot less work than this...
+	/'
+	dim bufsize as size_t
+	'Read the file into memory
+	if CHKERR(lodepng_load_file(@buf, @bufsize, strptr(filename)) then return NULL
+	'etc, see lodepng_decode_memory() for other steps
+	'/
+
+	dim iminfo as ImageFileInfo
+	pnginfo filename, iminfo
+	if iminfo.supported = NO then return NULL
+
+	dim ret as Surface ptr
+
+	if iminfo.paletted = NO orelse always_32bit then
+		dim buf as byte ptr
+		dim size as XYPair
+		if CHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_RGB, 8)) then
+			return NULL
+		end if
+
+		'Convert RGB to BGRA
+		ret = surface_from_pixels(buf, size.w, size.h, PIXFMT_RGB)
+		deallocate buf
+	else
+		dim fr as Frame ptr = frame_import_png_raw(filename)
+		gfx_surfaceCreateFrameView(fr, @ret)  'Increments refcount
+		frame_unload @fr
+	end if
+
+	return ret
+end function
+
+#undef CHKERR
+
 
 '==========================================================================================
 '                                         JPEG
@@ -6652,17 +6766,19 @@ function surface_import_jpeg(filename as string) as Surface ptr
 	return ret
 end function
 
+
 '==========================================================================================
 '                               Generic image file interface
 '==========================================================================================
+
 
 dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG"}
 
 function image_file_type (filename as string) as ImageFileTypes
 	select case lcase(justextension(filename))
 		case "bmp" : return imBMP
-		'case "png" : return imPNG
-		'case "gif" : return imGIF
+		case "png" : return imPNG
+		case "gif" : return imGIF
 		case "jpg", "jpeg" : return imJPEG
 	end select
 	return imUnknown
@@ -6674,6 +6790,8 @@ function image_read_info (filename as string) as ImageFileInfo
 	ret.imagetype = image_file_type(filename)
 	if ret.imagetype = imBMP then
 		bmpinfo filename, ret
+	elseif ret.imagetype = imPNG then
+		pnginfo filename, ret
 	elseif ret.imagetype = imJPEG then
 		jpeginfo filename, ret
 	else
@@ -6697,7 +6815,9 @@ function image_read_info (filename as string) as ImageFileInfo
 			ret.error = "Too large!"
 		end if
 	end if
-	if len(ret.info) then info &= " " & ret.info
+	if ret.alpha then info &= ", alpha"
+	if ret.paletted then info &= ", paletted"
+	if len(ret.info) then info &= ", " & ret.info
 	ret.info = info
 
 	return ret
@@ -6739,6 +6859,8 @@ function image_import_as_surface(filename as string, always_32bit as bool) as Su
 	select case image_file_type(filename)
 		case imBMP
 			return surface_import_bmp(filename, always_32bit)
+		case imPNG
+			return surface_import_png(filename, always_32bit)
 		case imJPEG
 			return surface_import_jpeg(filename)
 		case else
@@ -6757,16 +6879,18 @@ function image_import_as_frame_quantized(bmp as string, pal() as RGBcolor, optio
 	return quantize_surface(surf, pal(), options)
 end function
 
-
-'Load a <= 8-bit image, ignoring the palette. An error to call for non-paletted images.
+'Load a paletted image as a Frame, ignoring the palette. An error to call for non-paletted images.
 function image_import_as_frame_raw (filename as string) as Frame ptr
 	select case image_file_type(filename)
 		case imBMP
 			return frame_import_bmp_raw(filename)
+		case imPNG
+			return frame_import_png_raw(filename)
 		case else
 			return NULL
 	end select
 end function
+
 
 '==========================================================================================
 '                                   Image quantization

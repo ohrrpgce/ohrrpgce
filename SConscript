@@ -902,6 +902,7 @@ common_modules += ['rasterizer.cpp',
                    'matrixMath.cpp',
                    'surface.cpp',
                    'lib/gif.cpp',
+                   'lib/lodepng.c',
                    'lib/ujpeg.c']
 
 

@@ -856,6 +856,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.bmp", filetype, br, tree()
    browse_add_files "*.jpeg", filetype, br, tree()
    browse_add_files "*.jpg", filetype, br, tree()
+   browse_add_files "*.png", filetype, br, tree()
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF

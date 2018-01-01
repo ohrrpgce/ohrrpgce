@@ -331,6 +331,9 @@ TYPE ImageFileInfo
 	imagetype_name as string
 	supported as bool   'Can be loaded
 	valid as bool       'Appears to valid, regardless of being supported
+	paletted as bool    'Has a palette. Check this, not bpp!
+	alpha as bool       'Has alpha channel or color key
+	                    '(Warning: is false for PNGs with palette w/ transparent colors)
 	info as string      'Description, whether supported or not
 	error as string     'If not supported, error message describing problem
 	size as XYPair
