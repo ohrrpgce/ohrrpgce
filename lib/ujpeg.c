@@ -288,7 +288,7 @@ UJ_INLINE void ujDecodeSOF(ujContext *uj) {
     ujDecodeLength(uj);
     ujCheckError();
     if (uj->length < 9) ujThrow(UJ_SYNTAX_ERROR);
-    if (uj->pos[0] != 8) ujThrow(UJ_UNSUPPORTED);
+    if (uj->pos[0] != 8) ujThrow(UJ_UNSUPPORTED);  // bits per sample
     uj->height = ujDecode16(uj->pos+1);
     uj->width = ujDecode16(uj->pos+3);
     if (!uj->width || !uj->height) ujThrow(UJ_SYNTAX_ERROR);
@@ -809,7 +809,10 @@ ujImage ujDecode(ujImage img, const void* jpeg, const int size) {
         ujSkip(uj, 2);
         switch (uj->pos[-1]) {
             case 0xC0: ujDecodeSOF(uj);  break;  // Baseline DCT
-            case 0xC2: ujError = UJ_PROGRESSIVE; goto out;  // Progressive DCT
+            case 0xC2:                           // Progressive DCT
+                ujDecodeSOF(uj);   // Read size, etc, just for info
+                ujError = UJ_PROGRESSIVE;
+                goto out;
             case 0xC4: ujDecodeDHT(uj);  break;  // Define Huffman Table
             case 0xDB: ujDecodeDQT(uj);  break;  // Define Quantization Table
             case 0xDD: ujDecodeDRI(uj);  break;  // Define Restart Interval
@@ -875,25 +878,25 @@ int ujIsValid(ujImage img) {
 int ujGetWidth(ujImage img) {
     ujContext *uj = (ujContext*) img;
     ujError = !uj ? UJ_NO_CONTEXT : (uj->valid ? UJ_OK : UJ_NOT_DECODED);
-    return ujError ? 0 : uj->width;
+    return !uj ? 0 : uj->width;
 }
 
 int ujGetHeight(ujImage img) {
     ujContext *uj = (ujContext*) img;
     ujError = !uj ? UJ_NO_CONTEXT : (uj->valid ? UJ_OK : UJ_NOT_DECODED);
-    return ujError ? 0 : uj->height;
+    return !uj ? 0 : uj->height;
 }
 
 int ujIsColor(ujImage img) {
     ujContext *uj = (ujContext*) img;
     ujError = !uj ? UJ_NO_CONTEXT : (uj->valid ? UJ_OK : UJ_NOT_DECODED);
-    return ujError ? 0 : (uj->ncomp != 1);
+    return !uj ? 0 : (uj->ncomp != 1);
 }
 
 int ujGetImageSize(ujImage img) {
     ujContext *uj = (ujContext*) img;
     ujError = !uj ? UJ_NO_CONTEXT : (uj->valid ? UJ_OK : UJ_NOT_DECODED);
-    return ujError ? 0 : (uj->width * uj->height * uj->ncomp);
+    return !uj ? 0 : (uj->width * uj->height * uj->ncomp);
 }
 
 ujPlane* ujGetPlane(ujImage img, int num) {

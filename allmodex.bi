@@ -334,7 +334,7 @@ TYPE ImageFileInfo
 	info as string      'Description, whether supported or not
 	error as string     'If not supported, error message describing problem
 	size as XYPair
-	bitdepth as integer
+	bpp as integer      'Bits per pixel
 END TYPE
 
 DECLARE FUNCTION image_read_info (filename as string) as ImageFileInfo

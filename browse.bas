@@ -301,13 +301,6 @@ DO
   title = br.nowdir
  END IF
  edgeprint shorten_to_left(decode_filename(title), 304), 8, 6, uilook(uiText), dpage
- edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
- edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
- IF br.special = 7 THEN
-  rectangle 0, pBottom, 320, 10, uilook(uiDisabledItem), dpage
-  edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
-  textcolor uilook(uiText), 0
- END IF
  textcolor uilook(uiText), 0
  printstr ">", 0, 20 + (br.mstate.pt - br.mstate.top) * 9, dpage
  'This mess here because this menu doesn't use a standard MenuState
@@ -329,10 +322,20 @@ DO
   printstr caption, 10, 20 + (i - br.mstate.top) * 9, dpage, YES
  NEXT i
 
+ 'Image preview
  IF br.image_preview THEN
   drawbox 320, 0, br.image_preview->w + 2, br.image_preview->h + 2, uilook(uiText), , dpage
   frame_draw br.image_preview, , 321, 1, , NO, dpage
-  edgeprint br.preview_footer, pRight, pBottom, uilook(uiDisabledItem), dpage
+  edgeprint br.preview_footer, pRight, br.image_preview->h + 3, uilook(uiDisabledItem), dpage
+ END IF
+
+ 'The info line at the bottom, and the engine version when browsing for an RPG
+ edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
+ edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
+ IF br.special = 7 THEN
+  rectangle 0, pBottom, 320, 10, uilook(uiDisabledItem), dpage
+  edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
+  textcolor uilook(uiText), 0
  END IF
 
  SWAP vpage, dpage
@@ -387,12 +390,12 @@ END SUB
 SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
  frame_unload @br.image_preview
  IF NOT br.preview_panel_size > 0 THEN EXIT SUB 'There's no space to display it
- DIM as double starttime = TIMER
+ DIM ratio as double = 1.0
+ DIM starttime as double = TIMER
  IF br.bitdepth32 THEN
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
   DIM as Surface ptr temp = image_import_as_surface(filepath, YES)  'always_32bit=YES
   IF temp = NULL THEN EXIT SUB
-  DIM ratio as double = 1.0
   WITH br.preview_panel_size
    IF temp->width > 0 THEN ratio = small(1.0, small(.w / temp->width, .h / temp->height))
   END WITH
@@ -403,7 +406,7 @@ SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
   ' Scaling not implemented
   br.image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
  END IF
- br.preview_footer = "Loaded in " & CINT(1000 * (TIMER - starttime)) & "ms"
+ br.preview_footer = CINT(100 * ratio) & "% scale"  '; load:" & CINT(1000 * (TIMER - starttime)) & "ms"
 END SUB
 
 ' Set br.alert according to the selected browser entry, and preview audio
@@ -484,18 +487,14 @@ END SUB
 FUNCTION browse_check_image(byref br as BrowseMenuState, tree() as BrowseMenuEntry, byref iminfo as ImageFileInfo) as bool
  WITH tree(br.mstate.last)
   iminfo = image_read_info(br.nowdir + .filename)
-  IF iminfo.supported THEN
-   .about = iminfo.info
-   RETURN YES
-  ELSEIF iminfo.valid THEN
-   .about = "Unsupported " & iminfo.imagetype_name
-  ELSE
-   .about = "Invalid " & iminfo.imagetype_name
-  END IF
+  .about = iminfo.info
   IF LEN(iminfo.error) THEN .about &= " (" & iminfo.error & ")"
+  IF iminfo.supported THEN
+   RETURN YES
+  END IF
   .kind = bkUnselectable
+  RETURN NO
  END WITH
- RETURN NO
 END FUNCTION
 
 SUB append_tree_record(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
@@ -547,7 +546,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    END IF
    '---1/4/8 bit BMP files (fonts)
    IF br.special = 10 THEN
-    IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bitdepth > 8 THEN
+    IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bpp > 8 THEN
      .kind = bkUnselectable
     END IF
    END IF
@@ -578,10 +577,10 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      IF browse_check_image(br, tree(), iminfo) = NO THEN
       .kind = bkUnselectable
      ELSE
-      IF iminfo.bitdepth <= 8 THEN
+      IF iminfo.bpp <= 8 THEN
        'Don't care about the dimensions
-       .about = iminfo.bitdepth & "-bit color " & iminfo.imagetype_name
-      ELSEIF iminfo.bitdepth >= 24 AND (iminfo.size.w = 16 AND iminfo.size.h = 16) THEN
+       .about = iminfo.bpp & "-bit color " & iminfo.imagetype_name
+      ELSEIF iminfo.bpp >= 24 AND (iminfo.size.w = 16 AND iminfo.size.h = 16) THEN
        'ok
       ELSE
        .kind = bkUnselectable

@@ -6520,7 +6520,7 @@ sub bmpinfo (filename as string, byref iminfo as ImageFileInfo)
 	iminfo.valid = (support >= 1)
 	iminfo.size.w = bmpd.biWidth
 	iminfo.size.h = bmpd.biHeight
-	iminfo.bitdepth = bmpd.biBitCount
+	iminfo.bpp = bmpd.biBitCount
 end sub
 
 '==========================================================================================
@@ -6528,43 +6528,67 @@ end sub
 '==========================================================================================
 
 
+'Caches result of find_helper_app("jpegtran")
+function get_jpegtran() as string
+	static checked as bool
+	static ret as string
+
+	if checked = NO then
+		checked = YES
+		'First check without attempting to download, so that we can show
+		'a helpful message before the download prompt
+		ret = find_helper_app("jpegtran")
+		if len(ret) = 0 then
+			visible_debug "Can only read progressive JPEGs when the jpegtran program is installed (part of libjpeg-progs)"
+			ret = find_helper_app("jpegtran", YES, "http://jpegclub.org/jpegtran.zip")
+		end if
+	end if
+	return ret
+end function
+
 sub jpeginfo (filename as string, byref iminfo as ImageFileInfo)
 	iminfo.imagetype = imJPEG
 
 	dim jpeg as ujImage
 	jpeg = ujCreate()
 	ujDisableDecoding(jpeg)
-	jpeg = ujDecodeFile(jpeg, strptr(filename))
+	ujDecodeFile(jpeg, strptr(filename))
 	dim errcode as integer = ujGetError()
 
-	if ujIsValid(jpeg) = 0 then
+	dim bad as bool = (ujIsValid(jpeg) = 0)
+	if errcode = UJ_PROGRESSIVE then
+		if len(get_jpegtran()) then bad = NO
+	end if
+
+	if bad then  'invalid or not supported
 		if errcode = UJ_NO_JPEG then
 			iminfo.error = "Not a JPEG file"
-		elseif errcode = UJ_PROGRESSIVE then
-			iminfo.error = "Progressive JPEG"
-			iminfo.valid = YES
 		elseif errcode = UJ_IO_ERROR then
-			iminfo.error = "Could not read file"
+			iminfo.error = "Could not read file, IO error"
+		elseif errcode = UJ_PROGRESSIVE then
+			iminfo.valid = YES
+			iminfo.error = "Progressive, jpegtran not installed"
 		else
 			if errcode = UJ_UNSUPPORTED or errcode >= UJ_UNKNOWN_SEGM then
 				'Other unsupported features or extensions
 				iminfo.valid = YES
-			else
-				'Anything is probably also a corrupt file
-				iminfo.error = "Error code " & hex(errcode)
 			end if
+			iminfo.error = "Error code " & hex(errcode)
 		end if
 
 	else
+		if errcode = UJ_PROGRESSIVE then
+			iminfo.info = "Progressive"
+		end if
 		iminfo.valid = YES
 		iminfo.supported = YES
 		iminfo.size.w = ujGetWidth(jpeg)
 		iminfo.size.h = ujGetHeight(jpeg)
 
 		if ujIsColor(jpeg) then
-			iminfo.bitdepth = 24
+			iminfo.bpp = 24
 		else
-			iminfo.bitdepth = 8
+			iminfo.bpp = 8
 			iminfo.error = "Grayscale JPEG"
 			iminfo.supported = NO
 		end if
@@ -6573,18 +6597,51 @@ sub jpeginfo (filename as string, byref iminfo as ImageFileInfo)
 	ujFree(jpeg)
 end sub
 
-function surface_import_jpeg(filename as string, always_32bit as bool) as Surface ptr
+'Attempt to losslessly turn a progressive or arithmetically coded JPEG to a
+'baseline JPEG which can be read using uJPEG, using the jpegtran tool, which is
+'part of the libjpeg-progs suite of tools.
+'jpegtran will strip out metadata blocks, except for comments, unless "-copy all" is given.
+'Returns a temp filename or "".
+function jpeg_convert_to_baseline(filename as string) as string
+	debuginfo "jpeg_convert_to_baseline"
+	dim jpegtran as string = get_jpegtran()
+	if len(jpegtran) = 0 then return ""
+
+	dim outfile as string = tmpdir & "jpegtran_" & trimpath(filename)
+	safe_shell jpegtran & " -outfile " & escape_filename(outfile) & " " & escape_filename(filename)
+	if not isfile(outfile) then
+		debug "jpegtran failed"
+		return ""
+	end if
+
+	return outfile
+end function
+
+'Loads any supported JPEG file as a Surface, returning NULL on error.
+function surface_import_jpeg(filename as string) as Surface ptr
 	dim jpeg as ujImage
-	jpeg = ujDecodeFile(NULL, strptr(filename))
-	if ujIsValid(jpeg) = 0 then
-		debug "uJPEG error " & ujGetError()
+	jpeg = ujCreate()
+	ujDecodeFile(jpeg, strptr(filename))
+
+	if ujGetError() = UJ_PROGRESSIVE then
+		'uJPEG doesn't support progressive JPEGs, but they can be
+		'losslessly translated to baseline JPEGs
+		filename = jpeg_convert_to_baseline(filename)
+		if len(filename) = 0 then return NULL
+		ujDecodeFile(jpeg, strptr(filename))
+		killfile filename
+	end if
+
+	dim errcode as integer = ujGetError()
+	if errcode <> UJ_OK orelse ujIsValid(jpeg) = 0 then
+		debug "ujDecodeFile error " & errcode & " in " & filename
 		ujFree(jpeg)
 		return NULL
 	end if
 
 	if ujIsColor(jpeg) = 0 then
 		'Grayscale. TODO
-		debug "unsupported greyscale jpeg"
+		debug "Unsupported greyscale JPEG " & filename
 		ujFree(jpeg)
 		return NULL
 	end if
@@ -6596,7 +6653,7 @@ function surface_import_jpeg(filename as string, always_32bit as bool) as Surfac
 	dim buf as byte ptr
 	buf = ujGetImage(jpeg, NULL)
 	if buf = NULL then
-		debug "uJPEG error " & ujGetError()
+		debug "ujGetImage error " & ujGetError() & " importing " & filename
 	else
 		'Need to convert RGB to our BGRA
 		ret = surface_from_rgb(buf, size.w, size.h)
@@ -6637,9 +6694,23 @@ function image_read_info (filename as string) as ImageFileInfo
 
 	ret.imagetype_name = *image_type_strings(ret.imagetype)
 
-	if ret.supported orelse ret.size.w > 0 then
-		ret.info = ret.imagetype_name & " " & ret.size.w & "*" & ret.size.h & " pixels, " & ret.bitdepth & "-bit color"
+	dim info as string
+	if ret.valid = NO then
+		info = "Invalid "
+	elseif ret.supported = NO then
+		info = "Unsupported "
 	end if
+	info &= ret.imagetype_name
+
+	if ret.supported orelse ret.size.w > 0 then
+		info &= ", " & ret.size.w & "*" & ret.size.h & " pixels, " & ret.bpp & "-bit color"
+		if ret.size.w > 4096 or ret.size.h > 4096 then
+			ret.supported = NO
+			ret.error = "Too large!"
+		end if
+	end if
+	if len(ret.info) then info &= " " & ret.info
+	ret.info = info
 
 	return ret
 end function
@@ -6681,7 +6752,7 @@ function image_import_as_surface(filename as string, always_32bit as bool) as Su
 		case imBMP
 			return surface_import_bmp(filename, always_32bit)
 		case imJPEG
-			return surface_import_jpeg(filename, always_32bit)
+			return surface_import_jpeg(filename)
 		case else
 			debug "image_import_as_surface: Unrecognised: " & filename
 			return 0
