@@ -2067,6 +2067,17 @@ FUNCTION fixfilename (filename as string) as string
   RETURN result
 END FUNCTION
 
+'The hostname part of a URL, eg HamsterRepublic.com
+FUNCTION url_hostname (url as string) as string
+  DIM ret as string = url
+  DIM idx as integer
+  idx = INSTR(ret, "://")
+  IF idx THEN ret = MID(ret, idx + 3)
+  idx = INSTR(ret, "/")
+  IF idx THEN ret = LEFT(ret, idx - 1)
+  RETURN ret
+END FUNCTION
+
 'This is a replacement for SHELL, meaning it runs invokes a command interpreter like
 'cmd.exe instead of just running a program, and the standard search paths are searched,
 'don't need to get a full path.

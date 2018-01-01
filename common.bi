@@ -163,7 +163,7 @@ DECLARE FUNCTION spawn_and_wait (app as string, args as string) as string
 DECLARE FUNCTION find_support_dir () as string
 DECLARE FUNCTION find_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
 DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
-DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as integer
+DECLARE FUNCTION download_file (url as string, dest as string, forcefilename as string="") as bool
 DECLARE FUNCTION missing_helper_message (appname as string) as string
 
 DECLARE FUNCTION stredit (s as string, byref insert as integer, byval maxl as integer, byval numlines as integer = 1, byval line_length as integer = 1) as integer

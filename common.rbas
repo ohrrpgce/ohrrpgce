@@ -3027,16 +3027,16 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
  #ENDIF
 
  IF try_install THEN
+  DIM extension as string
+  IF appname = "unzip" THEN extension = "exe" ELSE extension = "zip"
+  IF LEN(download_url) = 0 THEN
+   download_url = "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extension
+  END IF
   DIM choice as integer
-  choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from HamsterRepublic.com?", , , , , "download_win_support_util")
+  choice = twochoice(appname & ".exe was not found. Would you like to automatically download it from " _
+                     & url_hostname(download_url) & "?", , , , , "download_win_support_util")
   IF choice = 0 THEN
-   DIM extension as string = "zip"
-   IF appname = "unzip" THEN extension = "exe"
-   IF LEN(download_url) THEN
-    download_file download_url, support
-   ELSE
-    download_file "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extension, support
-   END IF
+   download_file download_url, support
    IF NOT isfile(support & SLASH & appname & "." & extension) THEN
     visible_debug "Unable to download " & appname & "." & extension
     RETURN ""
@@ -3063,7 +3063,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
  RETURN ""
 END FUNCTION
 
-FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as integer
+FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as bool
  'Returns True on success, false on failure.
  '
  'wget is the first choice because its -N option can prevent unneeded redundant
