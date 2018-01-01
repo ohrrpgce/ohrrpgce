@@ -7027,14 +7027,42 @@ sub GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal 
 	end if
 end sub
 
+' Export a 32 bit Surface as a single-frame .gif (alpha ignored)
+sub surface_export_gif (surf as Surface Ptr, fname as string, dither as bool = NO)
+	if surf->format <> SF_32bit then
+		showerror "surface_export_gif got 8bit Surface"
+		exit sub
+	end if
+	if surf->pitch <> surf->width then
+		showerror "surface_export_gif: pitch doesn't match width"
+		exit sub
+	end if
+
+	dim writer as GifWriter
+	if GifBegin(@writer, fopen(fname, "wb"), surf->width, surf->height, 0, NO, NULL) = NO then
+		debug "GifWriter(" & fname & ") failed"
+	elseif GifWriteFrame(@writer, surf->pColorData, surf->width, surf->height, 0, 8, iif(dither, 1, 0)) = NO then
+		debug "GifWriteFrame8 failed"
+	elseif GifEnd(@writer) = NO then
+		debug "GifEnd failed"
+	end if
+end sub
+
 ' Output a single-frame .gif. Ignores mask.
 sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pal as Palette16 ptr = NULL, transparent as bool = NO)
-	CHECK_FRAME_8BIT(fr)  'TODO: implement 32bit export
+	if fr->surf then
+		surface_export_gif fr->surf, fname
+		exit sub
+	end if
+	if fr->pitch <> fr->w then
+		showerror "frame_export_gif: pitch doesn't match width"
+		exit sub
+	end if
 
 	dim writer as GifWriter
 	dim gifpal as GifPalette
 	GifPalette_from_pal gifpal, maspal(), pal
-	if GifBegin(@writer, fopen(fname, "wb"), fr->w, fr->h, 0, transparent, @gifpal) = NO then
+	if GifBegin(@writer, fopen(fname, "wb"), fr->w, fr->h, 0, iif(transparent, 1, 0), @gifpal) = NO then
 		debug "GifWriter(" & fname & ") failed"
 	elseif GifWriteFrame8(@writer, fr->image, fr->w, fr->h, 0, NULL) = NO then
 		debug "GifWriteFrame8 failed"
@@ -7042,6 +7070,11 @@ sub frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pa
 		debug "GifEnd failed"
 	end if
 end sub
+
+
+'==========================================================================================
+'                                           GIFRecorder
+'==========================================================================================
 
 
 property GIFRecorder.active() as bool
@@ -7151,9 +7184,8 @@ sub GIFRecorder.record_frame(fr as Frame ptr, pal() as RGBcolor)
 	dim sf as Surface ptr = fr->surf
 	if sf andalso sf->format = SF_32bit then
 		bits = 32
-		dim image as ubyte ptr = cast(ubyte ptr, sf->pColorData)
 		if sf->width <> sf->pitch then _gif_pitch_fail "32-bit Surface"
-		ret = GifWriteFrame(@this.writer, image, sf->width, sf->height, delay, 8, NO)
+		ret = GifWriteFrame(@this.writer, sf->pColorData, sf->width, sf->height, delay, 8, NO)
 	else
 		' 8-bit Surface-backed Frames and regular Frames.
 		bits = 8

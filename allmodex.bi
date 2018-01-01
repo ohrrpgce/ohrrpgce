@@ -375,6 +375,7 @@ DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, 
 
 'Export .gifs
 DECLARE SUB GifPalette_from_pal (byref gpal as GifPalette, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+DECLARE SUB surface_export_gif (surf as Surface Ptr, fname as string, dither as bool = NO)
 DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBcolor, pal as Palette16 ptr = NULL, transparent as bool = NO)
 
 
