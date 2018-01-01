@@ -6584,14 +6584,7 @@ sub jpeginfo (filename as string, byref iminfo as ImageFileInfo)
 		iminfo.supported = YES
 		iminfo.size.w = ujGetWidth(jpeg)
 		iminfo.size.h = ujGetHeight(jpeg)
-
-		if ujIsColor(jpeg) then
-			iminfo.bpp = 24
-		else
-			iminfo.bpp = 8
-			iminfo.error = "Grayscale JPEG"
-			iminfo.supported = NO
-		end if
+		iminfo.bpp = iif(ujIsColor(jpeg), 24, 8)
 	end if
 
 	ujFree(jpeg)
@@ -6639,16 +6632,11 @@ function surface_import_jpeg(filename as string) as Surface ptr
 		return NULL
 	end if
 
-	if ujIsColor(jpeg) = 0 then
-		'Grayscale. TODO
-		debug "Unsupported greyscale JPEG " & filename
-		ujFree(jpeg)
-		return NULL
-	end if
+	dim pixformat as PixelFormat
+	pixformat = iif(ujIsColor(jpeg), PIXFMT_RGB, PIXFMT_GREY)
+	dim size as XYPair = (ujGetWidth(jpeg), ujGetHeight(jpeg))
 
 	dim ret as Surface ptr
-
-	dim size as XYPair = (ujGetWidth(jpeg), ujGetHeight(jpeg))
 
 	dim buf as byte ptr
 	buf = ujGetImage(jpeg, NULL)
@@ -6656,7 +6644,7 @@ function surface_import_jpeg(filename as string) as Surface ptr
 		debug "ujGetImage error " & ujGetError() & " importing " & filename
 	else
 		'Need to convert RGB to our BGRA
-		ret = surface_from_rgb(buf, size.w, size.h)
+		ret = surface_from_pixels(buf, size.w, size.h, pixformat)
 	end if
 
 	ujFree(jpeg)

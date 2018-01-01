@@ -168,8 +168,8 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalet
 	return -1;
 }
 
-// input is a buffer of RGB triples. Convert to BGRA.
-Surface *surface_from_rgb( char *restrict input, int w, int h ) {
+// input is a buffer of pixels, formatted according to format. Convert to BGRA.
+Surface *surface_from_pixels( char *restrict input, int w, int h, PixelFormat format ) {
 	Surface *ret;
 	if (gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, &ret))
 		return NULL;
@@ -177,11 +177,16 @@ Surface *surface_from_rgb( char *restrict input, int w, int h ) {
 	for (int y = 0; y < h; y++) {
 		for (int x = 0; x < w; x++) {
 			RGBcolor &col = ret->pixel32(x, y);
-			col.r = input[0];
-			col.g = input[1];
-			col.b = input[2];
 			col.a = 255;
-			input += 3;
+			if (format == PIXFMT_GREY) {
+				col.r = col.g = col.b = input[0];
+				input += 1;
+			} else {
+				col.r = input[0];
+				col.g = input[1];
+				col.b = input[2];
+				input += 3;
+			}
 		}
 	}
 	return ret;
