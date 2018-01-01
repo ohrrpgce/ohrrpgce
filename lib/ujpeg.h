@@ -61,11 +61,13 @@ typedef enum _uj_result {
     UJ_INVALID_ARG  = 3,  // invalid argument
     UJ_IO_ERROR     = 4,  // file I/O error
     UJ_OUT_OF_MEM   = 5,  // out of memory
-    UJ_NO_JPEG      = 6,  // not a JPEG file
-    UJ_UNSUPPORTED  = 7,  // unsupported format
-    UJ_SYNTAX_ERROR = 8,  // syntax error
-    UJ_INTERNAL_ERR = 9,  // internal error
-    __UJ_FINISHED         // used internally, will never be reported
+    UJ_NO_JPEG      = 6,  // not a JPEG file - doesn't have the right magic (eg zero length)
+    UJ_PROGRESSIVE  = 7,  // progressive JPEG; unsupported
+    UJ_UNSUPPORTED  = 8,  // other unsupported format
+    UJ_SYNTAX_ERROR = 9,  // syntax error
+    UJ_INTERNAL_ERR = 10, // internal error
+    __UJ_FINISHED,        // used internally, will never be reported
+    UJ_UNKNOWN_SEGM = 0xFF00,  // (and larger.) unsupported: unknown segment (equal to the jpeg marker)
 } ujResult;
 
 // plane (color component) structure

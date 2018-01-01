@@ -808,18 +808,19 @@ ujImage ujDecode(ujImage img, const void* jpeg, const int size) {
             { ujError = UJ_SYNTAX_ERROR; goto out; }
         ujSkip(uj, 2);
         switch (uj->pos[-1]) {
-            case 0xC0: ujDecodeSOF(uj);  break;
-            case 0xC4: ujDecodeDHT(uj);  break;
-            case 0xDB: ujDecodeDQT(uj);  break;
-            case 0xDD: ujDecodeDRI(uj);  break;
-            case 0xDA: ujDecodeScan(uj); break;
-            case 0xFE: ujSkipMarker(uj); break;
-            case 0xE1: ujDecodeExif(uj); break;
+            case 0xC0: ujDecodeSOF(uj);  break;  // Baseline DCT
+            case 0xC2: ujError = UJ_PROGRESSIVE; goto out;  // Progressive DCT
+            case 0xC4: ujDecodeDHT(uj);  break;  // Define Huffman Table
+            case 0xDB: ujDecodeDQT(uj);  break;  // Define Quantization Table
+            case 0xDD: ujDecodeDRI(uj);  break;  // Define Restart Interval
+            case 0xDA: ujDecodeScan(uj); break;  // Start of Scan
+            case 0xFE: ujSkipMarker(uj); break;  // Comment
+            case 0xE1: ujDecodeExif(uj); break;  // EXIF Metadata, TIFF IFD format, JPEG Thumbnail
             default:
-                if ((uj->pos[-1] & 0xF0) == 0xE0)
+                if ((uj->pos[-1] & 0xF0) == 0xE0)  // Application Segments (custom metadata)
                     ujSkipMarker(uj);
                 else
-                    { ujError = UJ_UNSUPPORTED; goto out; }
+                    { ujError = (ujResult)(UJ_UNKNOWN_SEGM + uj->pos[-1]); goto out; }
         }
     }
     if (ujError == __UJ_FINISHED) ujError = UJ_OK;
