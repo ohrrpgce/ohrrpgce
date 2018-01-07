@@ -210,6 +210,8 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_EDITOR_THINGBROWSER_NEW_HOLDER: RETURN "editor_thingbrowser_new_holder"
   CASE SL_EDITOR_THINGBROWSER_NOSCROLL_AREA: RETURN "editor_thingbrowser_noscroll_area"
   CASE SL_EDITOR_THINGBROWSER_FIND_HOLDER: RETURN "editor_thingbrowser_find_holder"
+  CASE SL_EDITOR_PROMPT_FOR_STRING_TEXT: RETURN "editor_prompt_for_string_text"
+  CASE SL_EDITOR_PROMPT_FOR_STRING_CAPTION: RETURN "editor_prompt_for_string_caption"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"

@@ -2109,58 +2109,24 @@ SUB pop_warning(s as string, byval autoquit as integer = NO)
 END SUB
 
 FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as integer=NO) as integer
- '--Construct the prompt UI. FIXME: redo this when the Slice Editor can save/load)
+
+ 'Load the slice collection
  DIM root as Slice Ptr
  root = NewSliceOfType(slContainer)
- root->Fill = YES
- DIM outer_box as Slice Ptr
- outer_box = NewSliceOfType(slRectangle, root)
- WITH *outer_box
-  .AnchorHoriz = 1
-  .AnchorVert = 1
-  .AlignHoriz = 1
-  .AlignVert = 1
-  .paddingTop = 16
-  .paddingBottom = 16
-  .paddingLeft = 16
-  .paddingRight = 16
-  .Width = 300
-  .Height = 64
- END WITH
- ChangeRectangleSlice outer_box, 1
+ SliceLoadFromFile root, finddatafile("prompt_for_string.slice")
  DIM caption_area as Slice Ptr
- caption_area = NewSliceOfType(slText, outer_box)
- ChangeTextSlice caption_area, caption, uilook(uiText)
- DIM inner_box as Slice Ptr
- inner_box = NewSliceOfType(slContainer, outer_box)
- WITH *inner_box
-  .paddingTop = 16
-  .Fill = YES
- END WITH
- DIM text_border_box As Slice Ptr
- text_border_box = NewSliceOfType(slRectangle, inner_box)
- WITH *text_border_box
-  .paddingTop = 2
-  .paddingBottom = 2
-  .paddingLeft = 2
-  .paddingRight = 2
-  .Fill = YES
- END WITH
- ChangeRectangleSlice text_border_box, , uilook(uiOutline), uilook(uiText)
+ caption_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_CAPTION, root)
+ ChangeTextSlice caption_area, caption
  DIM text_area as Slice Ptr
- text_area = NewSliceOfType(slText, text_border_box)
- WITH *text_area
-  .Fill = YES
- END WITH
- ChangeTextSlice text_area, s, uilook(uiMenuItem), , , uilook(uiOutline) 
+ text_area = LookupSlice(SL_EDITOR_PROMPT_FOR_STRING_TEXT, root)
+ DIM dat as TextSliceData Ptr
+ dat = text_area->SliceData
+ dat->s = s
 
  '--Preserve whatever screen was already showing as a background
  DIM holdscreen as integer
  holdscreen = allocatepage
  copypage vpage, holdscreen
-
- DIM dat as TextSliceData Ptr
- dat = text_area->SliceData
 
  IF limit = NO THEN limit = 40
 
@@ -2170,6 +2136,7 @@ FUNCTION prompt_for_string (byref s as string, caption as string, byval limit as
   setwait 40
   setkeys YES
   
+  IF keyval(scF6) > 1 THEN slice_editor(root)
   IF keyval(scESC) > 1 THEN
    prompt_for_string = NO
    EXIT DO
