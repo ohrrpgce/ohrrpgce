@@ -1,4 +1,4 @@
-'OHRRPGCE GAME & CUSTOM - Classes for browsing various kinds of things ant getting an ID number
+'OHRRPGCE GAME & CUSTOM - Classes for browsing various kinds of things and getting an ID number
 '(C) Copyright 2017 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -42,6 +42,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
  dim new_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
+ dim find_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FIND_HOLDER, root)
  if not can_edit then new_holder->Visible = NO
 
  dim grid as Slice Ptr
@@ -65,12 +66,17 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  do
   setwait 55
   setkeys YES
+
+  dim do_edit as bool = false
+  dim do_find as bool = false
+
   if keyval(scEsc) > 1 then
    'cancel out of the browser
    result = start_id
    exit do
   end if
   if keyval(scF6) > 1 then slice_editor(root)
+  if keyval(scCtrl) > 0 andalso keyval(scF) > 1 then do_find = YES
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
   'Clear selection indicators
@@ -106,7 +112,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    ps.cur = hover
   end if
 
-  dim do_edit as bool = false
   dim edit_record as integer
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
@@ -123,6 +128,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     'Cancel out of the browser
     result = start_id
     exit do
+   elseif IsAncestor(ps.cur, find_holder) then
+    'Open the Find/Filter window
+    do_find = YES
    elseif can_edit andalso isAncestor(ps.cur, new_holder) then
     'Add a new thing
     if highest_id() + 1 > highest_possible_id() then
@@ -146,6 +154,15 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    end if
    hover = 0
    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+  elseif do_find then
+   do_find = NO
+   if prompt_for_string(filter_text, "Find/Filter " & thing_kind_name()) then
+    save_plank_selection ps
+    build_thing_list()
+    restore_plank_selection ps
+    hover = 0
+    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+   end if
   end if
 
   'Set selection indicators
@@ -231,16 +248,42 @@ Sub ThingBrowser.build_thing_list()
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
-  SetSliceParent(plank, grid)
-  plank->Lookup = SL_PLANK_HOLDER
-  plank->Extra(0) = id
-  plank_size.x = large(plank_size.x, plank->Width)
-  plank_size.y = large(plank_size.y, plank->Height)
-  grid->Height = plank_size.y
+  if check_plank_filter(plank) then
+   SetSliceParent(plank, grid)
+   plank->Lookup = SL_PLANK_HOLDER
+   plank->Extra(0) = id
+   plank_size.x = large(plank_size.x, plank->Width)
+   plank_size.y = large(plank_size.y, plank->Height)
+   grid->Height = plank_size.y
+  else
+   'Don't use this one because it was filtered out
+   DeleteSlice @(plank)
+  end if
  next id
  ChangeGridSlice grid, , grid->Width \ plank_size.x
  DrawSlice root, vpage 'refresh screen positions
 End Sub
+
+Function ThingBrowser.check_plank_filter(byval sl as Slice Ptr) as bool
+ 'Returns YES if this plank is okay to display according to the text filter check.
+ 'Returns NO if the plank should be hidden
+ 
+ 'If there is no filter active, succeed immediately
+ if len(filter_text) = 0 then return YES
+ if sl->SliceType = slText then
+  dim dat as TextSliceData Ptr = sl->SliceData
+  'If this slice is text, and the text includes the filter string, the plank succeeds the filter!
+  if instr(lcase(dat->s), lcase(filter_text)) then return YES
+ end if
+ dim ch as Slice Ptr = sl->FirstChild
+ 'Check all children recursively too until we find one that succeeds
+ do while ch
+  if check_plank_filter(ch) then return YES
+  ch = ch->NextSibling
+ loop
+ 'No text was found that matches the filter text
+ return NO
+End Function
 
 Function ThingBrowser.lowest_id() as integer
  if or_none then return -1

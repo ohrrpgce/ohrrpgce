@@ -14,6 +14,7 @@ Type ThingBrowser extends Object
  declare function browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0) as integer
 
  declare sub build_thing_list()
+ declare function check_plank_filter(byval sl as Slice Ptr) as bool
  declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
 
  root as Slice ptr
@@ -23,6 +24,7 @@ Type ThingBrowser extends Object
  index as integer
  or_none as bool
  can_edit as bool 'gets turned on when editor_func is supplied to .browse()
+ filter_text as string
 
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string
