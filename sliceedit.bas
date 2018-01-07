@@ -268,6 +268,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
      append_specialcode ses, SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, kindlimitANYTHING
      append_specialcode ses, SL_EDITOR_THINGBROWSER_BACK_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_EDITOR_THINGBROWSER_NEW_HOLDER, kindlimitANYTHING
+     append_specialcode ses, SL_EDITOR_THINGBROWSER_FIND_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_EDITOR_THINGBROWSER_MODE_INDICATOR, kindlimitTEXT
    END SELECT
   CASE SL_COLLECT_STATUSSCREEN:
@@ -2052,6 +2053,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "editor_thingbrowser_mode_indicator", , , -203
   append_simplemenu_item menu, "editor_thingbrowser_new_holder", , , -204
   append_simplemenu_item menu, "editor_thingbrowser_noscroll_area", , , -205
+  append_simplemenu_item menu, "editor_thingbrowser_find_holder", , , -206
   append_simplemenu_item menu, "root", , , -100000
   append_simplemenu_item menu, "textbox_text", , , -100001
   append_simplemenu_item menu, "textbox_portrait", , , -100002
