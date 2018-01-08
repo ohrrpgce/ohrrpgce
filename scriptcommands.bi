@@ -33,6 +33,7 @@ DECLARE FUNCTION valid_plotslice(byval handle as integer, byval errlev as script
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotrect(byval handle as integer) as bool
 DECLARE FUNCTION valid_plottextslice(byval handle as integer) as bool
+DECLARE FUNCTION valid_plotellipse(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotgridslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotselectslice(byval handle as integer) as bool
 DECLARE FUNCTION valid_plotscrollslice(byval handle as integer) as bool
