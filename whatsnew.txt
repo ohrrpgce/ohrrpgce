@@ -25,6 +25,8 @@ March 1st-ish-maybe 2018 [Fufluns]
     * Fixed exporting a blank BMP file instead of a tileset or backdrop
       when you browse to pick a different export location other than
       the default. [James]
+    * Fix a crash that happened when you used ellipse-related scripting
+      commands on a non-ellipse slice [sotrain515, James]
 
   * Stuff Only Developers Will Notice
 
