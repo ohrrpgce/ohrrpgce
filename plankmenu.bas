@@ -479,7 +479,6 @@ FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval id as integer, byv
 END FUNCTION
 
 Function plank_select_by_string(byref ps as PlankState, query as string) as bool
-debug "plank_select_by_string: " & query
  IF ps.cur = 0 THEN
   'No cursor yet, guess a default one
   ps.cur = top_left_plank(ps)
@@ -497,10 +496,8 @@ debug "plank_select_by_string: " & query
   IF planks(i) = ps.cur THEN start_i = i
  NEXT i
  IF start_i = -1 THEN
-  debug "plank_select_by_string: unable to find current selection"
   start_i = 0
  END IF
-debug "plank_select_by_string: current selection at plank " & start_i
  
  'Loop through the rest of the planks searching for the string in any text child
  DIM found_it as bool = NO
@@ -508,7 +505,6 @@ debug "plank_select_by_string: current selection at plank " & start_i
   IF FindTextSliceStringRecursively(planks(i), query) THEN
    ps.cur = planks(i)
    found_it = YES
-   debug "found match at " & i
    EXIT FOR
   END IF
  NEXT i
@@ -517,7 +513,6 @@ debug "plank_select_by_string: current selection at plank " & start_i
    IF FindTextSliceStringRecursively(planks(i), query) THEN
     ps.cur = planks(i)
     found_it = YES
-    debug "looped and found match at " & i
     EXIT FOR
    END IF
   NEXT i
