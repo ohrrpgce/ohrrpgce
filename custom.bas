@@ -460,7 +460,7 @@ SUB main_editor_menu()
    IF state.pt = 5 THEN formation_editor
    IF state.pt = 6 THEN
     IF keyval(scShift) > 0 THEN
-     new_item_editor
+     old_item_editor
     ELSE
      item_editor
     END IF

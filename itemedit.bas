@@ -23,12 +23,12 @@ DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
 DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
 
-SUB new_item_editor ()
+SUB item_editor ()
  DIM itemb as ItemBrowser
  itemb.browse(-1, , @individual_item_editor)
 END SUB
 
-SUB item_editor ()
+SUB old_item_editor ()
  DIM menu() as string
  DIM menu_display() as string
  DIM shaded() as bool
