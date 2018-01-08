@@ -1,7 +1,7 @@
 This is the item selection menu.
 
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to select an item from the list, or type part of an item name or an item ID number to jump to it.
+Use the arrow keys (or PgUp, PgDn, Home, and End) to select an item from the list, or type part of an item name or an item ID number to jump to it.
 
 Press ENTER or SPACE to start editing an item.
 
-At the bottom of the list, you can press ENTER or SPACE on "Add a new item" and a new item will be added to the list.
+Pick "+New" and a new item will be added to the list.

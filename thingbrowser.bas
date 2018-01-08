@@ -23,8 +23,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim result as integer = start_id
  this.or_none = or_none
  
- helpkey = init_helpkey()
-
  dim holdscreen as integer = allocatepage
  copypage vpage, holdscreen
 
@@ -32,6 +30,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  SliceLoadFromFile root, finddatafile("thingbrowser.slice")
  
  can_edit = (editor_func <> 0)
+ helpkey = init_helpkey() 'Do this after we know if editing is available
 
  enter_browser
 
@@ -326,6 +325,7 @@ Function ItemBrowser.thing_kind_name() as string
 End Function
 
 Function ItemBrowser.init_helpkey() as string
+ if can_edit then return "item_editor_pickitem"
  return "item_browser"
 End Function
 
