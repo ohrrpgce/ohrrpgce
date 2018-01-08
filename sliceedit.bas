@@ -270,6 +270,8 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
      append_specialcode ses, SL_EDITOR_THINGBROWSER_NEW_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_EDITOR_THINGBROWSER_FIND_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_EDITOR_THINGBROWSER_MODE_INDICATOR, kindlimitTEXT
+     append_specialcode ses, SL_EDITOR_THINGBROWSER_TYPE_QUERY, kindlimitTEXT
+     append_specialcode ses, SL_EDITOR_THINGBROWSER_FILTER_TEXT, kindlimitTEXT
     CASE "prompt_for_string.slice"
      append_specialcode ses, SL_EDITOR_PROMPT_FOR_STRING_TEXT, kindlimitTEXT
      append_specialcode ses, SL_EDITOR_PROMPT_FOR_STRING_CAPTION, kindlimitTEXT
@@ -2057,6 +2059,8 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "editor_thingbrowser_new_holder", , , -204
   append_simplemenu_item menu, "editor_thingbrowser_noscroll_area", , , -205
   append_simplemenu_item menu, "editor_thingbrowser_find_holder", , , -206
+  append_simplemenu_item menu, "editor_thingbrowser_type_query", , , -207
+  append_simplemenu_item menu, "editor_thingbrowser_filter_text", , , -208
   append_simplemenu_item menu, "editor_prompt_for_string_text", , , -300
   append_simplemenu_item menu, "editor_prompt_for_string_caption", , , -301
   append_simplemenu_item menu, "root", , , -100000
