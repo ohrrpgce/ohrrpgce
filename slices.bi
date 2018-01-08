@@ -503,6 +503,8 @@ DECLARE Sub ScrollToChild(byval sl as slice ptr, byval ch as slice ptr)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
 DECLARE Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref max as XYPair, check_depth as integer, cur_depth as integer=0)
 
+DECLARE Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Slice Ptr
+
 End Extern
 
 'Declare any overloaded functions here. Overloaded functions can't be accessed from C/C++

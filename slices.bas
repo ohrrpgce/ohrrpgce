@@ -3692,6 +3692,32 @@ Function SliceChildByIndex(byval sl as Slice ptr, byval index as integer) as Sli
  return 0
 End Function
 
+Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Slice Ptr
+ 'Search this slice, and all its children recursively.
+ 'Check to see if query is a substring inside any TextString values.
+ 'Returns the first TextSlice where a match is found, or 0 if no march is found.
+ 'Compares strings case-insensitively
+ 
+ 'If there is no query, exit immediately
+ if query = "" then return 0
+ 
+ if sl->SliceType = slText then
+  dim dat as TextSliceData Ptr = sl->SliceData
+  'If this slice is text, and the text includes the filter string, Success!
+  if instr(lcase(dat->s), lcase(query)) then return sl
+ end if
+ 'Check all children recursively too until we find one that succeeds
+ dim ch as Slice Ptr = sl->FirstChild
+ dim result as Slice Ptr
+ do while ch
+  result = FindTextSliceStringRecursively(ch, query)
+  if result <> 0 then return result
+  ch = ch->NextSibling
+ loop
+ 'No text was found that matches the query text
+ return 0
+End Function
+
 '==Slice cloning===============================================================
 
 Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr

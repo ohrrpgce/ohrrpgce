@@ -269,18 +269,9 @@ Function ThingBrowser.check_plank_filter(byval sl as Slice Ptr) as bool
  'Returns NO if the plank should be hidden
  
  'If there is no filter active, succeed immediately
- if len(filter_text) = 0 then return YES
- if sl->SliceType = slText then
-  dim dat as TextSliceData Ptr = sl->SliceData
-  'If this slice is text, and the text includes the filter string, the plank succeeds the filter!
-  if instr(lcase(dat->s), lcase(filter_text)) then return YES
- end if
- dim ch as Slice Ptr = sl->FirstChild
- 'Check all children recursively too until we find one that succeeds
- do while ch
-  if check_plank_filter(ch) then return YES
-  ch = ch->NextSibling
- loop
+ if filter_text = "" then return YES
+ 
+ if FindTextSliceStringRecursively(sl, filter_text) <> 0 then return YES
  'No text was found that matches the filter text
  return NO
 End Function
