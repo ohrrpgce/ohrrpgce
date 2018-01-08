@@ -43,7 +43,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
  dim new_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
  if not can_edit then new_holder->Visible = NO
- dim find_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FIND_HOLDER, root)
+ dim filter_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_HOLDER, root)
  dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
  dim filter_text_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_TEXT, root)
 
@@ -72,7 +72,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   setkeys YES
 
   dim do_edit as bool = false
-  dim do_find as bool = false
+  dim do_filter as bool = false
 
   if keyval(scEsc) > 1 then
    'cancel out of the browser
@@ -80,7 +80,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    exit do
   end if
   if keyval(scF6) > 1 then slice_editor(root)
-  if keyval(scCtrl) > 0 andalso keyval(scF) > 1 then do_find = YES
+  if keyval(scCtrl) > 0 andalso keyval(scF) > 1 then do_filter = YES
   if len(helpkey) andalso keyval(scF1) > 1 then show_help helpkey
 
   'Clear selection indicators
@@ -135,9 +135,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     'Cancel out of the browser
     result = start_id
     exit do
-   elseif IsAncestor(ps.cur, find_holder) then
-    'Open the Find/Filter window
-    do_find = YES
+   elseif IsAncestor(ps.cur, filter_holder) then
+    'Open the Filter window
+    do_filter = YES
    elseif can_edit andalso isAncestor(ps.cur, new_holder) then
     'Add a new thing
     if highest_id() + 1 > highest_possible_id() then
@@ -161,14 +161,15 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    end if
    hover = 0
    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
-  elseif do_find then
-   do_find = NO
+  elseif do_filter then
+   do_filter = NO
    if prompt_for_string(filter_text, "Find/Filter " & thing_kind_name()) then
     save_plank_selection ps
     build_thing_list()
     restore_plank_selection ps
     hover = 0
     orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+    cursor_moved = YES
    end if
   end if
 
