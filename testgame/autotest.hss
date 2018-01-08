@@ -3772,7 +3772,21 @@ script, slice tests, begin
   $2=""
   $3=""
   free slice(sl)
-
+  
+  # Ellipse slice
+  sl := create ellipse(10, 10, 15, 0), w
+  assert(slice is ellipse(sl))
+  assert(get ellipse border col(sl) == 15)
+  set ellipse border col(sl, 14), w
+  assert(get ellipse border col(sl) == 14)
+  assert(get ellipse fill col(sl) == 0)
+  set ellipse fill col(sl, 1), w
+  assert(get ellipse fill col(sl) == 1)
+  set slice x(sl, 20), w
+  set slice y(sl, 20), w
+  set slice width(sl, 30), w
+  set slice height(sl, 30), w
+  free slice(sl)
 
   # Test cloneslice
   variable(sl2, ch, ch2)
