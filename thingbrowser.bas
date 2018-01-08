@@ -42,8 +42,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
  dim new_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NEW_HOLDER, root)
- dim find_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FIND_HOLDER, root)
  if not can_edit then new_holder->Visible = NO
+ dim find_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FIND_HOLDER, root)
+ dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
+ dim filter_text_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_TEXT, root)
 
  dim grid as Slice Ptr
  grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
@@ -62,6 +64,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
  dim hover as Slice Ptr = 0
  dim cursor_moved as bool = YES
+
+ dim selectst as SelectTypeState
  
  do
   setwait 55
@@ -101,6 +105,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    end if
   end if
   plank_menu_mouse_wheel(ps)
+  if select_by_typing(selectst) then
+   if plank_select_by_string(ps, selectst.query) then cursor_moved = YES
+  end if
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
    cursor_moved = ps.cur <> hover
@@ -188,6 +195,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    update_plank_scrolling ps
   end if
   cursor_moved = NO
+  
+  ChangeTextSlice filter_text_sl, IIF(filter_text <> "", "Showing Only: *" & filter_text & "*", "")
+  ChangeTextSlice type_query_sl, selectst.query
 
   copypage holdscreen, vpage
   DrawSlice root, vpage
