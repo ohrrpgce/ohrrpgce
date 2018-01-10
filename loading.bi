@@ -224,4 +224,6 @@ DECLARE SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePt
 
 DECLARE SUB load_non_elemental_elements (elem() as bool)
 
+DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
+
 #ENDIF

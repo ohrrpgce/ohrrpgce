@@ -69,7 +69,6 @@ DECLARE FUNCTION attack_chain_browser (byval start_attack as integer) as integer
 DECLARE SUB fontedit (font() as integer)
 DECLARE SUB fontedit_export_font(font() as integer)
 DECLARE SUB fontedit_import_font(font() as integer)
-DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE FUNCTION experience_chart (byval expcurve as double=0.2) as double
 DECLARE SUB stat_growth_chart ()

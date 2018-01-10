@@ -2731,46 +2731,6 @@ SUB fontedit_import_font(font() as integer)
  END IF
 END SUB
 
-SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as bool=YES)
- 'flushafter YES = flush records (set to zero)
- 'flushafter NO = trim file
- DIM i as integer
-
- IF prompt THEN
-  DIM menu(1) as string
-  menu(0) = "No, do not delete anything"
-  menu(1) = "Yes, DELETE!"
-  IF multichoice("Do you want to delete ALL records AFTER this one?", menu()) < 1 _
-     ORELSE yesno("Are you SURE?", NO, NO) = NO THEN
-   setkeys
-   EXIT SUB
-  ELSE
-   setkeys
-  END IF
- END IF
-
- DIM buf(bytes \ 2 - 1) as integer
- FOR i = 0 TO index
-  loadrecord buf(), lump, bytes \ 2, i
-  storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
- NEXT i
- IF flushafter THEN
-  'FIXME: this flushafter hack only exists for the .DT0 lump,
-  ' out of fear that some code with read hero data past the end of the file.
-  ' after cleanup of all hero code has confurmed this fear is unfounded, we can
-  ' eliminate this hack entirely
-  'Also, if we're not doing flushing, all of this can be replaced with a truncation
-  flusharray buf()
-  FOR i = index + 1 TO limit
-   storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
-  NEXT i
- END IF
- limit = index
-
- copyfile tmpdir & "_cropped.tmp", lump
- safekill tmpdir & "_cropped.tmp"
-END SUB
-
 'Get a list of the first letters (lowercase) of every word in each menu() string, except
 'those words listed in excludewords. excludewords should be a space-separated
 'list (case matters).
