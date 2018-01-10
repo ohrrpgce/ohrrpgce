@@ -14,6 +14,7 @@
 #include "sliceedit.bi"
 #include "scriptcommands.bi"
 #include "plankmenu.bi"
+#include "loading.bi"
 
 #include "thingbrowser.bi"
 
@@ -94,7 +95,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     cursor_moved = YES
    end if
    if not cursor_moved andalso cropafter_keycombo() then
-    handle_cropafter()
+    handle_cropafter(ps.cur->Extra(0))
     save_plank_selection ps
     build_thing_list()
     restore_plank_selection ps
@@ -328,7 +329,7 @@ Function ThingBrowser.thing_text_for_id(byval id as integer) as string
  return str(id)
 End Function
 
-Sub ThingBrowser.handle_cropafter()
+Sub ThingBrowser.handle_cropafter(byval id as integer)
  visible_debug("No support for deleting " & thing_kind_name() & " after the selected one.")
 End Sub
 
@@ -358,6 +359,11 @@ Function ItemBrowser.thing_text_for_id(byval id as integer) as string
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readitemname(id), " ", 8)
 End Function
+
+Sub ItemBrowser.handle_cropafter(byval id as integer)
+ cropafter id, gen(genMaxItem), 0, game & ".itm", getbinsize(binITM)
+ load_special_tag_caches
+End Sub
 
 '-----------------------------------------------------------------------
 
@@ -415,6 +421,10 @@ Function ConstantListBrowser.thing_text_for_id(byval id as integer) as string
  end if
  return rpad(text, " ", longest)
 End Function
+
+Sub ConstantListBrowser.handle_cropafter(byval id as integer)
+ 'Silently do nothing
+End Sub
 
 '-----------------------------------------------------------------------
 

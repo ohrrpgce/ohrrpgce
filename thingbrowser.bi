@@ -54,7 +54,7 @@ Type ThingBrowser extends Object
  declare virtual function thing_text_for_id(byval id as integer) as string
 
  'Cropafter is for removing records after the current one
- declare virtual sub handle_cropafter()
+ declare virtual sub handle_cropafter(byval id as integer)
 
 End Type
 
@@ -67,6 +67,7 @@ Type ItemBrowser extends ThingBrowser
  declare virtual function highest_id() as integer
  declare virtual function highest_possible_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
+ declare virtual sub handle_cropafter(byval id as integer)
 End Type
 
 Type ShopBrowser extends ThingBrowser
@@ -86,6 +87,7 @@ Type ConstantListBrowser extends ThingBrowser
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
  declare virtual function thing_text_for_id(byval id as integer) as string
+ declare virtual sub handle_cropafter(byval id as integer)
  list(any) as string
  longest as integer
 End Type
