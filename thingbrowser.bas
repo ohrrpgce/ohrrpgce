@@ -70,8 +70,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   setwait 55
   setkeys YES
 
-  dim do_edit as bool = false
-  dim do_filter as bool = false
+  dim do_edit as bool = NO
+  dim do_filter as bool = NO
 
   if keyval(scEsc) > 1 then
    'cancel out of the browser
@@ -88,8 +88,18 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   if orig_cur then set_plank_state ps, orig_cur, plankNORMAL
   
   if IsAncestor(ps.cur, grid) then
+   'Things that only happen when the selection is in the grid
    if plank_menu_arrows(ps, grid) then
     'Give priority to the grid
+    cursor_moved = YES
+   end if
+   if not cursor_moved andalso cropafter_keycombo() then
+    handle_cropafter()
+    save_plank_selection ps
+    build_thing_list()
+    restore_plank_selection ps
+    hover = 0
+    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
     cursor_moved = YES
    end if
   elseif IsAncestor(ps.cur, noscroll_area) then
@@ -317,6 +327,10 @@ End Function
 Function ThingBrowser.thing_text_for_id(byval id as integer) as string
  return str(id)
 End Function
+
+Sub ThingBrowser.handle_cropafter()
+ visible_debug("No support for deleting " & thing_kind_name() & " after the selected one.")
+End Sub
 
 '-----------------------------------------------------------------------
 

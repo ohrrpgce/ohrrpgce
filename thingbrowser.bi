@@ -53,6 +53,9 @@ Type ThingBrowser extends Object
  'If the plank is purely text based, just override this rather than .create_thing_plank()
  declare virtual function thing_text_for_id(byval id as integer) as string
 
+ 'Cropafter is for removing records after the current one
+ declare virtual sub handle_cropafter()
+
 End Type
 
 '-----------------------------------------------------------------------
