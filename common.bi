@@ -232,6 +232,7 @@ DECLARE FUNCTION click_dismiss () as bool
 DECLARE FUNCTION enter_space_click (state as MenuState) as bool
 DECLARE FUNCTION enter_or_space () as bool
 DECLARE FUNCTION toggle_item (state as MenuState) as bool
+DECLARE FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
 DECLARE FUNCTION copy_keychord () as bool
 DECLARE FUNCTION paste_keychord () as bool
 DECLARE FUNCTION find_next_or_prev_keychord () as integer

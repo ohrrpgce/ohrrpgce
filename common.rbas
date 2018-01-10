@@ -5256,6 +5256,12 @@ FUNCTION toggle_item (state as MenuState) as bool
  RETURN keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state)
 END FUNCTION
 
+' Pressed Shift+Backspace, or Delete on the "<- Record # ->" line
+FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
+ IF index_selected AND keyval(scDelete) > 1 THEN RETURN YES
+ RETURN keyval(scShift) > 0 AND keyval(scBackspace) > 1
+END FUNCTION
+
 'Automatically sets state.need_update
 FUNCTION bitgrabber (byref bitsets as integer, whichbit as integer, byref state as MenuState) as bool
  IF toggle_item(state) THEN

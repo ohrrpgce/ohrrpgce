@@ -2731,12 +2731,6 @@ SUB fontedit_import_font(font() as integer)
  END IF
 END SUB
 
-' Pressed Shift+Backspace, or Delete on the "<- Record # ->" line
-FUNCTION cropafter_keycombo(index_selected as bool = NO) as bool
- IF index_selected AND keyval(scDelete) > 1 THEN RETURN YES
- RETURN keyval(scShift) > 0 AND keyval(scBackspace) > 1
-END FUNCTION
-
 SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as bool=YES)
  'flushafter YES = flush records (set to zero)
  'flushafter NO = trim file
