@@ -1094,6 +1094,10 @@ Function GetLineSliceData(byval sl as Slice ptr) as LineSliceData ptr
  return sl->SliceData
 End Function
 
+Sub LineSliceData.SetColor(color as integer)
+ this.col = color
+End Sub
+
 Sub CloneLineSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneLineSlice null ptr": exit sub
  dim dat as LineSliceData Ptr

@@ -318,6 +318,8 @@ End Type
 Type LineSliceData
  col as integer
  'flipped as bool
+
+ Declare Sub SetColor(color as integer)
 End Type
 
 Type TextSliceData

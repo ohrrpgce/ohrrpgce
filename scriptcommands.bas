@@ -4568,7 +4568,32 @@ SUB script_functions(byval cmdid as integer)
  CASE 660 '--save screenshot
   DIM fname as string = screenshot()
   show_overlay_message "Saved screenshot " & trimpath(fname), 1.5
-
+ CASE 661 '--slice is line
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = (plotslices(retvals(0))->SliceType = slLine)
+  END IF
+ CASE 662 '--create line
+  IF valid_color(retvals(2)) THEN
+   DIM sl as Slice ptr
+   sl = NewSliceOfType(slLine, SliceTable.scriptsprite)
+   scriptret = create_plotslice_handle(sl)
+   sl->Width = retvals(0)
+   sl->Height = retvals(1)
+   DIM dat as LineSliceData ptr = sl->SliceData
+   dat->SetColor(retvals(2))
+  END IF
+ CASE 663 '--get line color
+  IF valid_plotlineslice(retvals(0)) THEN
+   DIM dat as LineSliceData ptr = plotslices(retvals(0))->SliceData
+   scriptret = dat->col
+  END IF
+ CASE 664 '--set line color
+  IF valid_plotlineslice(retvals(0)) THEN
+   IF valid_color(retvals(1)) THEN
+    DIM dat as LineSliceData ptr = plotslices(retvals(0))->SliceData
+    dat->SetColor(retvals(1))
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -4774,6 +4799,17 @@ FUNCTION valid_plotellipse(byval handle as integer) as bool
    RETURN YES
   ELSE
    scripterr current_command_name() & ": slice handle " & handle & " is not an ellipse", serrBadOp
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_plotlineslice(byval handle as integer) as bool
+ IF valid_plotslice(handle) THEN
+  IF plotslices(handle)->SliceType = slLine THEN
+   RETURN YES
+  ELSE
+   scripterr current_command_name() & ": slice handle " & handle & " is not a line", serrBadOp
   END IF
  END IF
  RETURN NO
@@ -5184,6 +5220,11 @@ FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as int
  END IF
  RETURN NO
 END FUNCTION
+
+FUNCTION valid_color(index as integer) as bool
+ RETURN bound_arg(index, -1 * uiColorLast - 1, 255, "color index (0-255) or UI color constant", , serrBadOp)
+END FUNCTION
+
 
 '==========================================================================================
 '                             Utility functions for default arguments 

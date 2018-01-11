@@ -18,6 +18,7 @@ March 1st-ish-maybe 2018 [Fufluns]
     * "use door": added "fade screen" argument, so you can use a door without
       fading [Ralph]
     * "npc copy number" (opposite to "npc reference") [Ralph]
+    * "create line", "slice is line", "get line color", "set line color" [Ralph]
 
   * Changes
 

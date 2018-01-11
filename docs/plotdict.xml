@@ -6519,6 +6519,11 @@ end
 			<shortname>slice is rect</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a rect, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
 		</command>
+		<command id="sliceisline">
+			<canon>slice is line (handle)</canon>
+			<shortname>slice is line</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a line, or false for any other type. It's an error to provide an invalid <p>handle</p>.</description>
+		</command>
 		<command id="sliceisellipse">
 			<canon>slice is ellipse (handle)</canon>
 			<shortname>slice is ellipse</shortname>
@@ -7262,6 +7267,55 @@ The third argument is the total number of ticks that the animation should run. Y
 		</command>
 		</section>		<!--Rect Slices-->
 
+		<section title="Line Slices">
+		<description>
+			Line slices are slighty different; their size doesn't exactly define the size of the rectangular part of the
+			screen which they stretch across,
+			but is instead used as the offset between their ends.
+			Both ends are drawn inclusively.
+			For example a width 10 height 0 Line slice positioned at x=50,y=20 will draw a line from 50,20 to 60,20,
+			as a rectangle that's actually 11 pixels long and 1 pixel high.
+			The line thickness is always 1 pixel.
+			A width=0 height=0 line slice is a single pixel.
+			<lb/>
+			So you can give line slices a negative width or height too, to draw a line at any angle.
+			The "top-left" alignment point of a line slice is its start point, and the "bottom-right" is its end point.
+		</description>
+		<command id="createline">
+			<canon>create line (width, height, color)</canon>
+			<shortname>create line</shortname>
+			<description>
+				Create a new line slice and return a handle to it.
+				You can provide an optional <p>width</p> and <p>height</p> and an optional <p>color</p> (all default to 0).
+				Like all slice types, an line slice can be used as a container for other slices with <ref>setparent</ref>.
+			</description>
+		</command>
+		<reference ref="sliceisline" />
+		<command id="getlinecolor">
+			<canon>get line color (handle)</canon>
+			<shortname>get line color</shortname>
+			<description>
+				Given an line slice <p>handle</p>, return its color.
+				This will be a number from 0 to 255 representing a color from the master palette,
+				or less than 0 for a UI color.
+			</description>
+			<seealso>
+				<ref>setlinecolor</ref>
+			</seealso>
+		</command>
+		<command id="setlinecolor">
+			<canon>set line color (handle, color)</canon>
+			<shortname>set line color</shortname>
+			<description>
+				Given an line slice <p>handle</p>, change its color.
+				The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.
+			</description>
+			<seealso>
+				<ref>getlinecolor</ref>
+			</seealso>
+		</command>
+		</section>		<!--Line Slices-->
+
 		<section title="Ellipse Slices">
 		<command id="createellipse">
 			<canon>create ellipse (width, height, border color, fill color)</canon>
@@ -7275,7 +7329,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its border. This will be a number from 1 to 255 representing a color from the master palette, or 0 meaning transparent.</description>
 			<seealso>
 				<ref>setellipsebordercol</ref>
-				<ref>getellipsebordercol</ref>
 				<ref>setellipsefillcol</ref>
 				<ref>getellipsefillcol</ref>
 			</seealso>
@@ -7285,7 +7338,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			<shortname>set ellipse border col</shortname>
 			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its border. The <p>color</p> should be a number from 1 to 255 representing a color from the master palette. <p>color</p> 0 means 'transparent', which is not very useful.</description>
 			<seealso>
-				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>
 				<ref>setellipsefillcol</ref>
 				<ref>getellipsefillcol</ref>
@@ -7299,7 +7351,6 @@ The third argument is the total number of ticks that the animation should run. Y
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>
 				<ref>setellipsefillcol</ref>
-				<ref>getellipsefillcol</ref>
 			</seealso>
 		</command>
 		<command id="setellipsefillcol">
@@ -7309,7 +7360,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			<seealso>
 				<ref>setellipsebordercol</ref>
 				<ref>getellipsebordercol</ref>
-				<ref>setellipsefillcol</ref>
 				<ref>getellipsefillcol</ref>
 			</seealso>
 		</command>
