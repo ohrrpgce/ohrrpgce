@@ -16,6 +16,13 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2018-01-12:
+Line slices are back. Note that you will often want to give them negative
+width/height, but you shouldn't give any other slice types negative sizes,
+because there are various glitches which result (which we plan to fix).
+
+** 2017-12-03 Etheldreme Released ***
+
 2017-11-23:
 Line slices have been removed again, to allow more time to finalise them after
 the release. If you're already using them, don't!

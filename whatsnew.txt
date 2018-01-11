@@ -11,6 +11,7 @@ March 1st-ish-maybe 2018 [Fufluns]
     * Heroes can have intrinsic counter-attacks just like Enemies [James]
     * You can press Ctrl+F or click the "Find" button to filter/search the
       thingbrowser screen by name. [James]
+    * Line slices [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
