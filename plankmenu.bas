@@ -40,9 +40,14 @@ FUNCTION load_plank_from_file(filename as string) as Slice Ptr
  IF col = 0 THEN visible_debug "load_plank_from_file: unable to load slices from """ & filename & """": RETURN 0
  DIM sl as Slice Ptr
  sl = LookupSlice(SL_PLANK_HOLDER, col)
- IF sl = 0 THEN visible_debug "load_plank_from_file: could not find plank holder": RETURN 0
+ IF sl = 0 THEN
+  visible_debug "load_plank_from_file: could not find plank holder"
+  DeleteSlice @(col)
+  RETURN 0
+ END IF
  DIM plank as Slice Ptr
  plank = CloneSliceTree(sl, YES, YES)
+ DeleteSlice @(col)
  RETURN plank
 END FUNCTION
 
