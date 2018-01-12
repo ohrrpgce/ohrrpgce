@@ -311,6 +311,8 @@ Function ThingBrowser.highest_possible_id() as integer
 End Function
 
 Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
+ 'Override this for complex planks.
+ 'For simple plain-text planks, just override thing_text_for_id instead
  dim plank as Slice Ptr
  plank = NewSliceOfType(slContainer, , SL_PLANK_HOLDER) ' SL_PLANK_HOLDER will be re-applied by the caller
  dim box as Slice Ptr
@@ -326,6 +328,8 @@ Function ThingBrowser.create_thing_plank(byval id as integer) as Slice Ptr
 End Function
 
 Function ThingBrowser.thing_text_for_id(byval id as integer) as string
+ 'Override this for plain text planks.
+ 'For more complex planks, override create_thing_plank instead
  return str(id)
 End Function
 
@@ -390,6 +394,50 @@ Function ShopBrowser.thing_text_for_id(byval id as integer) as string
  end if
  return lpad(str(id), " ", digits) & " " & rpad(readshopname(id), " ", 16)
 End Function
+
+'-----------------------------------------------------------------------
+
+Function AttackBrowser.thing_kind_name() as string
+ return "Attacks"
+End Function
+
+Function AttackBrowser.init_helpkey() as string
+ if can_edit then return "attack_editor_browser"
+ return "attack_browser"
+End Function
+
+Function AttackBrowser.highest_id() as integer
+ return gen(genMaxAttack)
+End Function
+
+Function AttackBrowser.highest_possible_id() as integer
+ return maxMaxAttacks
+End Function
+
+Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim attack as AttackData
+ loadattackdata attack, id
+ dim plank as Slice Ptr
+ plank = load_plank_from_file(finddatafile("attack_browser_plank.slice"))
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ ChangeSpriteSlice spr, sprTypeAttack, attack.picture, attack.pal, 0
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, id & !"\n" & attack.name
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ return plank
+End Function
+
+Sub AttackBrowser.handle_cropafter(byval id as integer)
+ cropafter id, gen(genMaxAttack), 0, game & ".dt6", 80
+ '--this is a hack to detect if it is safe to erase the extended data
+ '--in the second file
+ IF id = gen(genMaxAttack) THEN
+  '--delete the end of attack.bin without the need to prompt
+  cropafter id, gen(genMaxAttack), 0, workingdir & SLASH & "attack.bin", getbinsize(binATTACK), NO
+ END IF
+End Sub
 
 '-----------------------------------------------------------------------
 
