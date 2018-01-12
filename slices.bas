@@ -741,15 +741,21 @@ Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr) as Slice ptr
+Function LookupSlice(byval lookup_code as integer, byval start_sl as Slice ptr, byval onlytype as SliceTypes=slInvalid) as Slice ptr
   IF start_sl = 0 THEN debug "LookupSlice null root slice": RETURN 0
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
-  IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
+  IF start_sl->Lookup = lookup_code THEN
+   IF onlytype = slInvalid ORELSE onlytype = start_sl->SliceType THEN
+    'If onlytype is invalid (default) then we don't care which type the slice is.
+    'If onlytype is set, only match lookup codes on slices of the desired type.
+    RETURN start_sl '--found it!
+   END IF
+  END IF
   DIM child as Slice Ptr
   child = start_sl->FirstChild
   DIM result as Slice Ptr
   WHILE child
-   result = LookupSlice(lookup_code, child)
+   result = LookupSlice(lookup_code, child, onlytype)
    IF result THEN RETURN result '--found in recursion, pass the result back
    child = child->NextSibling
   WEND
