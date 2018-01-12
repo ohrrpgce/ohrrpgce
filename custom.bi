@@ -38,7 +38,9 @@ DECLARE SUB old_item_editor ()
 DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
+DECLARE SUB attack_editor_picker ()
 DECLARE SUB menu_editor ()
+
 DECLARE SUB maptile ()
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
 DECLARE SUB reimport_previous_scripts ()

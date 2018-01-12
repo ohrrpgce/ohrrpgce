@@ -456,7 +456,7 @@ SUB main_editor_menu()
    IF state.pt = 1 THEN map_picker
    IF state.pt = 2 THEN hero_editor
    IF state.pt = 3 THEN enemy_editor
-   IF state.pt = 4 THEN attack_editor
+   IF state.pt = 4 THEN attack_editor_picker
    IF state.pt = 5 THEN formation_editor
    IF state.pt = 6 THEN
     IF keyval(scShift) > 0 THEN

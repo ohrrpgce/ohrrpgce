@@ -201,6 +201,10 @@ CONST AtkDatDramaticPause = 320
 
 'anything past this requires expanding the data
 
+SUB attack_editor_picker ()
+ DIM attackb as AttackBrowser
+ attackb.browse(-1, , @attack_editor)
+END SUB
 
 'recindex: which attack to show. If -1, same as last time. If >= max, ask to add a new attack,
 '(and exit and return -1 if cancelled).
@@ -1259,7 +1263,7 @@ DO
 
  IF workmenu(state.pt) = AtkChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   DIM lastindex as integer = recindex
-  IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
+  IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), maxMaxAttacks, "attack") THEN
    saveattackdata recbuf(), lastindex
    IF recindex > gen(genMaxAttack) THEN
     IF atk_edit_add_new(recbuf(), preview_box) THEN
