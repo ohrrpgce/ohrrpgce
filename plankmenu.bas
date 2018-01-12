@@ -32,6 +32,20 @@ DECLARE FUNCTION plank_menu_end(byref ps as PlankState) as bool
 
 '-----------------------------------------------------------------------
 
+FUNCTION load_plank_from_file(filename as string) as Slice Ptr
+ IF NOT isfile(filename) THEN visible_debug "load_plank_from_file: unable to open file """ & filename & """": RETURN 0
+ DIM col as Slice Ptr
+ col = NewSliceOfType(slSpecial)
+ SliceLoadFromFile col, filename
+ IF col = 0 THEN visible_debug "load_plank_from_file: unable to load slices from """ & filename & """": RETURN 0
+ DIM sl as Slice Ptr
+ sl = LookupSlice(SL_PLANK_HOLDER, col)
+ IF sl = 0 THEN visible_debug "load_plank_from_file: could not find plank holder": RETURN 0
+ DIM plank as Slice Ptr
+ plank = CloneSliceTree(sl, YES, YES)
+ RETURN plank
+END FUNCTION
+
 'axis:  0 for left/right, 1 for up/down
 'd:     1 for right or down, -1 for left or up
 FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool

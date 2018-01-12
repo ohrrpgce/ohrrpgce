@@ -32,6 +32,9 @@ TYPE PlankState
  '_saved_scroll as XYPair
 END TYPE
 
+'Load a collection and return the first plank found inside
+DECLARE FUNCTION load_plank_from_file(filename as string) as Slice Ptr
+
 'Call plank_menu_clear before refreshing the menu
 DECLARE SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)
 
