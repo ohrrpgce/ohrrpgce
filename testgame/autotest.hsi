@@ -12,6 +12,7 @@ define constant, begin
 10,tag:Victory
 11,tag:Freki level 0
 12,tag:Freki level teens
+13,tag:boat tag
 1,song:tinglazedandnoncommutative
 0,hero:UNUSED
 1,hero:Helga
@@ -124,6 +125,7 @@ define constant, begin
 3,map:InsteadAfter battle map
 4,map:Door test map
 5,map:Pathland
+6,map:Vehicle Test Map
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run

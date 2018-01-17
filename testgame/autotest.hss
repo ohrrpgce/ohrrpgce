@@ -134,6 +134,7 @@ script, run tests 1, begin
   battle tests
   timer tests
   pathfinding tests
+  vehicle tests
   run game tests
   resetgame tests   # Resets the game
   crash
@@ -3386,6 +3387,98 @@ script, dist from pos, ref, x, y, begin
   dx := abs(npc x(ref) -- x)
   dy := abs(npc y(ref) -- y)
   exit returning(dx + dy)
+end
+
+########################################################################
+
+script, vehicle tests, begin
+  $0="Vehicle tests"
+  
+  variable(oldx, oldy, oldmap)
+  oldx := herox(me)
+  oldy := heroy(me)
+  oldmap := current map
+  
+  teleport to map(map:Vehicle Test Map, 4, 4)
+  w
+  
+  # First test mount with usenpc. Does not need to be adjacent, but does check mount passability rules
+  assert(check tag(tag:boat tag) == false)
+  assert(hero x(me) == 4)
+  assert(hero y(me) == 4)
+  w
+  # This should fail to mount because we are not on a "B" tile
+  use npc(1)
+  w(20)
+  assert(check tag(tag:boat tag) == false)
+  assert(hero x(me) == 4)
+  assert(hero y(me) == 4)
+  walk hero(me, left, 2)
+  wait for hero(me), w
+  assert(hero x(me) == 2)
+  assert(hero y(me) == 4)
+  # This should work because although we are not adjacent, we are standing on a B tile
+  use npc(1)
+  w(20)
+  assert(check tag(tag:boat tag) == true)
+  assert(hero x(me) == 2)
+  assert(hero y(me) == 2)
+  # Now move the hero, and the vehicle npc should move also
+  walk hero(me, left, 2)
+  wait for hero(me), w
+  walk hero(me, up, 2)
+  wait for hero(me), w
+  assert(hero x(me) == 0)
+  assert(hero y(me) == 0)
+  assert(npc x(1) == 0)
+  assert(npc y(1) == 0)
+  # Moving the NPC while it is being used as a vehicle should not move it
+  # (although the sprite will be shifted slightly as it tries to move)
+  walk npc(1, right, 5)
+  wait for npc(1), w
+  assert(npc x(1) == 0)
+  assert(npc y(1) == 0)
+  # Move back to the shore
+  walk hero(me, right, 3)
+  wait for hero(me), w
+  walk hero(me, down, 2)
+  wait for hero(me), w
+  show string(string sprintf(1, $2="x=%d y=%d", hero x(me), hero y(me)))
+  assert(hero x(me) == 3)
+  assert(hero y(me) == 1)
+  set hero direction(me, right), w
+  # Dismount into the ocean. should not step forward
+  dismount vehicle
+  w(20)
+  assert(hero x(me) == 3)
+  assert(hero y(me) == 1)
+  assert(check tag(tag:boat tag) == false)
+  # Mounting from here should fail
+  use npc(1), w(20)
+  assert(hero x(me) == 3)
+  assert(hero y(me) == 1)
+  assert(check tag(tag:boat tag) == false)
+  # Force mounting, which ignores checking the tile we are standing on
+  force mount vehicle(1), w(20)
+  assert(hero x(me) == 3)
+  assert(hero y(me) == 1)
+  assert(check tag(tag:boat tag) == true)
+  walk hero(me, right, 1)
+  wait for hero(me), w
+  assert(hero x(me) == 4)
+  assert(hero y(me) == 1)
+  assert(npc x(1) == 4)
+  assert(npc y(1) == 1)
+  # Dismount, does not step ahead (which sucks, and was a mistake, but is rather too old to fix cleanly)
+  dismount vehicle, w(20)
+  assert(check tag(tag:boat tag) == false)
+  assert(hero x(me) == 4)
+  assert(hero y(me) == 1)
+  assert(npc x(1) == 4)
+  assert(npc y(1) == 1)
+
+  w
+  teleport to map(oldmap, oldx, oldy)
 end
 
 ########################################################################

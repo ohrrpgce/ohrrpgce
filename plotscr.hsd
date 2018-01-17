@@ -687,6 +687,7 @@ define function, begin
 662,createline,3,0,0,0        # Create line slice (w, h, color)
 663,getlinecolor,1,0          # Line slice color
 664,setlinecolor,2,0,0        # Set line slice color
+665,forcemountvehicle,1,0     # Mount a vehicle without checking mounting permissions first
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

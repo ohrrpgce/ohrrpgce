@@ -4594,6 +4594,11 @@ SUB script_functions(byval cmdid as integer)
     dat->SetColor(retvals(1))
    END IF
   END IF
+ CASE 665 '--force mount vehicle
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   forcemountvehicle npcref
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

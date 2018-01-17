@@ -1079,6 +1079,32 @@ SUB vehicle_graceful_dismount ()
  END IF
 END SUB
 
+SUB forcemountvehicle (byval npci as integer)
+ DIM npcid as integer = npc(npci).id
+ IF npc(npci).id < 0 THEN
+  'Hidden/tagdisabled NPC
+  EXIT SUB
+ END IF
+ npcid = npcid - 1 'Adjust for actual ID
+ DIM vehid as integer = npcs(npcid).vehicle - 1
+ IF vehid < 0 THEN
+  'This NPC is not a vehicle
+  EXIT SUB
+ END IF
+ forcedismount()
+ reset_vehicle vstate
+ vstate.id = vehid
+ LoadVehicle game & ".veh", vstate.dat, vstate.id
+ '--this is where we would check vehpass mount permissions, except we don't here.
+ vstate.active = YES
+ vstate.npc = npci
+ vstate.old_speed = herow(0).speed
+ change_hero_speed(0, 10)
+ vstate.mounting = YES '--trigger mounting sequence
+ settag vstate.dat.riding_tag, YES
+ create_walkabout_shadow npc(vstate.npc).sl
+END SUB
+
 SUB forcedismount ()
  IF vstate.active THEN
   '--clear vehicle on loading new map--
