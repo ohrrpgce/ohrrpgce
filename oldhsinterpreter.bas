@@ -546,7 +546,7 @@ FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
  FOR slot as integer = scriptslot - 1 TO scriptslot - depth STEP -1
   'Script stack doesn't go that far down
   IF slot < 0 THEN RETURN 0
-  'Suspended script
+  'Suspended script; i.e. a different script fibre
   IF scrat(slot).state < 0 THEN RETURN 0
  NEXT
 

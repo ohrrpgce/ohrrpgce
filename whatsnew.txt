@@ -45,6 +45,8 @@ Jan ? 2018 [Etheldreme+1]
       get set to "Always", although it claimed it was. It didn't actually
       get set to "Always" until you entered a submenu. The in-game F1
       textbox debug screen also showed "ALWAYS" instead of "NEVER"! [Ralph]
+    * Fixed "delete_ScriptData" error when quitting after having stopped
+      a script in the script debugger [Ralph]
 
 Dec 3 2017 [Etheldreme]
 

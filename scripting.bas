@@ -339,28 +339,33 @@ END SUB
 '==========================================================================================
 
 
+'Kills the currently running script fibre
 SUB killscriptthread
- IF insideinterpreter = NO THEN fatalerror "Inappropriate killscriptthread"
+ IF insideinterpreter = NO ORELSE nowscript < 0 THEN
+  showerror "Inappropriate killscriptthread"
+  EXIT SUB
+ END IF
 
- 'Hack: in case this function is called from within the interpreter we set the new state of the
- 'old script so that the main loop sees it using a stale WITH pointer.
+ debuginfo "Killing script fibre; last script = " & scriptname(scrat(nowscript).id)
+
+ 'Hack: we set the state of the old script so that the main loop sees it reads with a stale WITH pointer.
  'Come to think of it, there's no good reason for the interpreter state to be stored in scrat instead
  'of being global.
  scrat(nowscript).state = stdone
 
- WHILE nowscript >= 0
+ 'Remove every script in this fibre, except for the bottommost one
+ '(The script below it on the stack will be suspended, state < 0)
+ WHILE nowscript > 0 ANDALSO scrat(nowscript - 1).state >= 0
   WITH scrat(nowscript)
-   IF .state < 0 THEN EXIT WHILE
    IF .scr <> NULL THEN deref_script(.scr)
   END WITH
   nowscript -= 1
  WEND
  gam.script_log.last_logged = -1
 
- 'Go back a script, let functiondone handle the script exit
- nowscript += 1
+ 'Let functiondone handle the fibre exit
  setstackposition(scrst, scrat(nowscript).stackbase)
-
+ scrat(nowscript).state = stdone
 END SUB
 
 SUB killallscripts
@@ -798,7 +803,7 @@ END SUB
 SUB delete_ScriptData (byval scriptd as ScriptData ptr)
  WITH *scriptd
   IF .refcount THEN
-   fatalerror "delete_ScriptData: nonzero refcount"
+   showerror "delete_ScriptData: nonzero refcount=" & .refcount & " for " & scriptname(ABS(.id))
    EXIT SUB
   END IF
 
