@@ -66,6 +66,7 @@ DECLARE SUB update_vehicle_state ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
 DECLARE FUNCTION vehscramble(byval target as XYPair) as bool
+DECLARE SUB try_mount_vehicle(vehid as integer, npci as integer, force_mount as bool = NO)
 DECLARE SUB forcemountvehicle (byval npcnum as integer)
 
 #endif

@@ -1092,10 +1092,18 @@ SUB forcemountvehicle (byval npci as integer)
   EXIT SUB
  END IF
  forcedismount()
+ try_mount_vehicle vehid, npci, YES
+END SUB
+
+'If it's possible to mount this vehicle/NPC, or forced, start the mount animation
+SUB try_mount_vehicle(vehid as integer, npci as integer, force_mount as bool = NO)
  reset_vehicle vstate
  vstate.id = vehid
  LoadVehicle game & ".veh", vstate.dat, vstate.id
- '--this is where we would check vehpass mount permissions, except we don't here.
+ IF force_mount = NO THEN
+  '--check mounting permissions first
+  IF vehpass(vstate.dat.mount_from, readblock(pass, herotx(0), heroty(0)), -1) = NO THEN EXIT SUB
+ END IF
  vstate.active = YES
  vstate.npc = npci
  vstate.old_speed = herow(0).speed

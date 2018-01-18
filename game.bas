@@ -4106,19 +4106,7 @@ SUB usenpc(byval cause as integer, byval npcnum as integer)
  END IF
  DIM vehuse as integer = npcs(id).vehicle
  IF vehuse THEN '---activate a vehicle---
-  reset_vehicle vstate
-  vstate.id = vehuse - 1
-  LoadVehicle game & ".veh", vstate.dat, vstate.id
-  '--check mounting permissions first
-  IF vehpass(vstate.dat.mount_from, readblock(pass, herotx(0), heroty(0)), -1) THEN
-   vstate.active = YES
-   vstate.npc = npcnum
-   vstate.old_speed = herow(0).speed
-   change_hero_speed(0, 10)
-   vstate.mounting = YES '--trigger mounting sequence
-   settag vstate.dat.riding_tag, YES
-   create_walkabout_shadow npc(vstate.npc).sl
-  END IF
+  try_mount_vehicle vehuse - 1, npcnum
  END IF
  IF npcs(id).textbox > 0 THEN
   txt.sayer = npcnum
