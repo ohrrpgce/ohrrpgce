@@ -4599,6 +4599,20 @@ SUB script_functions(byval cmdid as integer)
   IF npcref >= 0 THEN
    forcemountvehicle npcref
   END IF
+ CASE 666 '--current vehicle id
+  IF vstate.active THEN
+   scriptret = vstate.id
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 667 '--current vehicle npc
+  IF vstate.active THEN
+   'Return an NPC reference
+   scriptret = (vstate.npc + 1) * -1
+  ELSE
+   'Not riding
+   scriptret = 0
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

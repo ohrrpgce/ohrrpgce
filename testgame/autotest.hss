@@ -3402,6 +3402,9 @@ script, vehicle tests, begin
   teleport to map(map:Vehicle Test Map, 4, 4)
   w
   
+  assert(current vehicle id == -1)
+  assert(current vehicle npc == false)
+  
   # First test mount with usenpc. Does not need to be adjacent, but does check mount passability rules
   assert(check tag(tag:boat tag) == false)
   assert(hero x(me) == 4)
@@ -3409,6 +3412,7 @@ script, vehicle tests, begin
   w
   # This should fail to mount because we are not on a "B" tile
   use npc(1)
+  assert(current vehicle npc == false)
   w(20)
   assert(check tag(tag:boat tag) == false)
   assert(hero x(me) == 4)
@@ -3419,6 +3423,8 @@ script, vehicle tests, begin
   assert(hero y(me) == 4)
   # This should work because although we are not adjacent, we are standing on a B tile
   use npc(1)
+  assert(current vehicle npc == NPC reference(1))
+  assert(current vehicle id == 0)
   w(20)
   assert(check tag(tag:boat tag) == true)
   assert(hero x(me) == 2)
@@ -3448,18 +3454,24 @@ script, vehicle tests, begin
   assert(hero y(me) == 1)
   set hero direction(me, right), w
   # Dismount into the ocean. should not step forward
+  assert(current vehicle npc)
   dismount vehicle
+  assert(not(current vehicle npc))
   w(20)
   assert(hero x(me) == 3)
   assert(hero y(me) == 1)
   assert(check tag(tag:boat tag) == false)
   # Mounting from here should fail
-  use npc(1), w(20)
+  use npc(1)
+  assert(not(current vehicle npc))
+  w(20)
   assert(hero x(me) == 3)
   assert(hero y(me) == 1)
   assert(check tag(tag:boat tag) == false)
   # Force mounting, which ignores checking the tile we are standing on
-  force mount vehicle(1), w(20)
+  force mount vehicle(1)
+  assert(current vehicle npc)
+  w(20)
   assert(hero x(me) == 3)
   assert(hero y(me) == 1)
   assert(check tag(tag:boat tag) == true)
@@ -3471,6 +3483,7 @@ script, vehicle tests, begin
   assert(npc y(1) == 1)
   # Dismount, does not step ahead (which sucks, and was a mistake, but is rather too old to fix cleanly)
   dismount vehicle, w(20)
+  assert(not(current vehicle npc))
   assert(check tag(tag:boat tag) == false)
   assert(hero x(me) == 4)
   assert(hero y(me) == 1)
