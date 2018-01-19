@@ -82,14 +82,8 @@ dim shared music_song_rw as SDL_RWops ptr = NULL
 dim shared orig_vol as integer = -1
 dim shared nonmidi_playing as bool = NO
 
-'The music module needs to manage a list of temporary files to
-'delete when closed, mainly for custom, so they don't get lumped
-type delitem
-	fname as zstring ptr
-	nextitem as delitem ptr
-end type
-
-dim shared delhead as delitem ptr = null
+'The music module needs to manage a list of temporary files to delete when closed
+dim shared tempfiles() as string
 dim shared callback_set_up as bool = NO
 
 sub quit_sdl_audio()
@@ -224,23 +218,10 @@ sub music_close()
 		music_status = musicOff
 		callback_set_up = NO	' For SFX
 
-		if delhead <> null then
-			'delete temp files
-			dim ditem as delitem ptr
-			dim dlast as delitem ptr
-
-			ditem = delhead
-			while ditem <> null
-				if isfile(*(ditem->fname)) then
-					kill *(ditem->fname)
-				end if
-				deallocate ditem->fname 'deallocate string
-				dlast = ditem
-				ditem = ditem->nextitem
-				deallocate dlast 'deallocate delitem
-			wend
-			delhead = null
-		end if
+		for i as integer = 0 to ubound(tempfiles)
+			safekill tempfiles(i)
+		next
+		erase tempfiles
 	end if
 end sub
 
@@ -253,32 +234,16 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 		dim songname as string = filename
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			dim as integer flen
-			flen = filelen(songname)
 			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
-			flen = flen and &h0fff
-			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(flen)) & ".bmd"
+			'(Note that all instances of Custom currently share tmpdir;
+			'should fix that)
+			dim as integer fhash = filelen(songname) and &h0fff
+			midname = tmpdir & trimpath(songname) & "-" & lcase(hex(fhash)) & ".bmd"
 			'check if already converted
-			if isfile(midname) = 0 then
+			if isfile(midname) = NO then
 				bam2mid(songname, midname)
-				'add to list of temp files
-				dim ditem as delitem ptr
-				if delhead = null then
-					delhead = allocate(sizeof(delitem))
-					ditem = delhead
-				else
-					ditem = delhead
-					while ditem->nextitem <> null
-						ditem = ditem->nextitem
-					wend
-					ditem->nextitem = allocate(sizeof(delitem))
-					ditem = ditem->nextitem
-				end if
-				ditem->nextitem = null
-				'allocate space for zstring
-				ditem->fname = allocate(len(midname) + 1)
-				*(ditem->fname) = midname 'set zstring
+				str_array_append tempfiles(), midname
 			end if
 			songname = midname
 			fmt = FORMAT_MIDI
