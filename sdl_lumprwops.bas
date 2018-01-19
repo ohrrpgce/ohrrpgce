@@ -18,6 +18,9 @@
 #include "vector.bi"
 #include "common_base.bi"  'debug
 
+'==============================================================================
+
+/'
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 
 function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as int32, byval whence as int32) as int32
@@ -50,6 +53,9 @@ function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 	end with
 	return rw
 end function
+'/
+
+'==============================================================================
 
 type FnRWopsClose as function cdecl(byval as SDL_RWops ptr) as integer
 

@@ -23,8 +23,13 @@
 	#undef font
 #endif
 
-#include "SDL\SDL.bi"
-#include "SDL\SDL_mixer.bi"
+#ifdef SDL_MIXER2
+	#include "SDL2\SDL.bi"
+	#include "SDL2\SDL_mixer.bi"
+#else
+	#include "SDL\SDL.bi"
+	#include "SDL\SDL_mixer.bi"
+#endif
 
 ' External functions
 
@@ -96,14 +101,19 @@ sub quit_sdl_audio()
 end sub
 
 function music_get_info() as string
+	#ifdef SDL_MIXER2
+		#define sdlX "sdl2"
+	#else
+		#define sdlX "sdl"
+	#endif
 	dim ver as const SDL_version ptr
-	dim ret as string = "music_sdl"
+	dim ret as string = "music_" & sdlX
 
 	dim libhandle as any ptr
-	libhandle = dylibload("SDL_mixer")
+	libhandle = dylibload(ucase(sdlX) + "_mixer")
 	' For some reason the SDL 1.2 Android port produces libsdl_mixer.so instead
 	if libhandle = NULL then
-		libhandle = dylibload("sdl_mixer")
+		libhandle = dylibload(sdlX + "_mixer")
 	end if
 	if libhandle then
 		_Mix_GetNumMusicDecoders = dylibsymbol(libhandle, "Mix_GetNumMusicDecoders")
@@ -114,8 +124,14 @@ function music_get_info() as string
 		_ModPlug_SetSettings = dylibsymbol(libhandle, "ModPlug_SetSettings")
 	end if
 
-	if gfxbackend <> "sdl" then
-		ver = SDL_Linked_Version()
+	if gfxbackend <> "sdl" andalso gfxbackend <> "sdl2" then
+		#ifdef SDL_MIXER2
+			dim ver2 as SDL_version
+			SDL_GetVersion(@ver2)
+			ver = @ver2
+		#else
+			ver = SDL_Linked_Version()
+		#endif
 		ret += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
 	end if
 
@@ -251,18 +267,26 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 
 		music_stop
 
-		'Workaround: internally, Mix_LoadMUS creates a RWops to read the music file.
-		'However, because SDL_mixer is such a bug ridden mess, at least the MAD and libMikMod
-		'backend wrappers do not bother to actually close the RWops!
-		'So we do the RWops wrapping ourselves, and close it after stopping the music
+		'Versions of SDL_mixer 1.2 before 1.2.12 (the final release) failed to
+		'close the file when playing MOD or WAV music files using Mix_LoadMUS!
+		'(Bugs 1021, 1168).
+		'So we use Mix_LoadMUS_RW instead.
+		'In SDL_mixer 1.2, Mix_LoadMUS_RW does not close the RWops, so we close it
+		'after stopping the music using the complicated safe_RWops() wrapper logic.
+		'SDL_mixer 2.0.0 fixes this problem, adding an argument to Mix_LoadMUS_RW
+		'telling whether to close the RWops.
+		#ifdef SDL_MIXER2
+			music_song = Mix_LoadMUS(songname)
+		#else
+			music_song_rw = SDL_RWFromFile(songname, @"rb")
+			if music_song_rw = NULL then
+				debug "Could not load song " + songname + " (SDL_RWFromFile failed)"
+				exit sub
+			end if
+			music_song_rw = safe_RWops(music_song_rw)
+			music_song = Mix_LoadMUS_RW(music_song_rw)
+		#endif
 
-		music_song_rw = SDL_RWFromFile(songname, @"rb")
-		if music_song_rw = NULL then
-			debug "Could not load song " + songname + " (SDL_RWFromFile failed)"
-			exit sub
-		end if
-		music_song_rw = safe_RWops(music_song_rw)
-		music_song = Mix_LoadMUS_RW(music_song_rw)
 		if music_song = 0 then
 			debug "Could not load song " + songname + " : " & *Mix_GetError
 			exit sub
@@ -313,11 +337,13 @@ sub music_stop()
 		music_paused = NO
 		nonmidi_playing = NO
 	end if
-	if music_song_rw <> 0 then
-		'Is safe even if has already been closed and freed
-		safe_RWops_close(music_song_rw)
-		music_song_rw = NULL
-	end if
+	#ifndef SDL_MIXER2
+		if music_song_rw <> 0 then
+			'Is safe even if has already been closed and freed
+			safe_RWops_close(music_song_rw)
+			music_song_rw = NULL
+		end if
+	#endif
 end sub
 
 

@@ -267,7 +267,7 @@ svninfo.txt should have been included with the source code if you downloaded a
         else:
             exit("Unrecognised gfx backend " + gfx)
     for m in used_music:
-        if m in ('native','sdl','native2','allegro','silence'):
+        if m in ('native','sdl','sdl2','native2','allegro','silence'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
         else:

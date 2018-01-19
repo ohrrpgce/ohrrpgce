@@ -80,7 +80,10 @@ end function
 
 private function _load_libvorbisfile(libfile as string) as bool
 	libvorbisfile = dylibload(libfile)
-	if libvorbisfile = NULL then return NO
+	if libvorbisfile = NULL then
+		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
+		return NO
+	end if
 
 	MUSTLOAD(libvorbisfile, ov_clear)
 	MUSTLOAD(libvorbisfile, ov_fopen)
@@ -88,15 +91,18 @@ private function _load_libvorbisfile(libfile as string) as bool
 	MUSTLOAD(libvorbisfile, ov_bitrate)
 	MUSTLOAD(libvorbisfile, ov_time_total)
 	MUSTLOAD(libvorbisfile, ov_comment)
+
+	debuginfo "Successfully loaded libvorbisfile symbols from " & libfile
 	return YES
 end function
 
 ' Dynamically load functions from libvorbisfile.
 ' This isn't really necessary! However it avoids errors if:
 ' -you use an old copy of SDL_mixer.dll that's laying around
+'  (which hasn't been compiled to export these symbols)
 ' -on Mac you're trying to run ohrrpgce-custom directly without bundling
 '  (compiling instructions on the wiki tell you to install a standard SDL_mixer.framework in /Library/Frameworks)
-' -libvorbisfile isn's installed on Unix
+' -libvorbisfile isn't installed, on a Unix machine
 private function load_vorbisfile() as bool
 	if libvorbisfile then return YES
 	' Unix
@@ -104,6 +110,7 @@ private function load_vorbisfile() as bool
 	' libvorbisfile is statically linked into our windows and mac SDL_mixer builds.
 	' We can load them even if we're using a different music backend
 	if _load_libvorbisfile("SDL_mixer") then return YES
+	if _load_libvorbisfile("SDL2_mixer") then return YES
 	RETURN NO
 end function
 

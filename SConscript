@@ -221,12 +221,14 @@ gfx = [g.lower () for g in gfx]
 music = ARGUMENTS.get ('music', os.environ.get ('OHRMUSIC','sdl'))
 music = [music.lower ()]
 
-if 'sdl' in music and 'sdl2' in gfx:
-    print "Can't link both music_sdl and gfx_sdl2"
+# You can link both gfx_sdl and gfx_sdl2, but one of SDL 1.2, SDL 2 will
+# be partially shadowed by the other and will crash. Need to use dynamic linking. WIP.
+if 'sdl' in music+gfx and 'sdl2' in music+gfx:
+    print "Can't both sdl and sdl2 music or graphics backends at same time"
     Exit(1)
 
 
-################ Create base environment
+################ create base environment
 
 
 env = Environment (CFLAGS = [],
@@ -715,12 +717,18 @@ music_map = {'native':
              'sdl':
                  {'shared_modules': 'music_sdl.bas sdl_lumprwops.bas',
                   'common_libraries': 'SDL SDL_mixer'},
+             'sdl2':
+                 {'shared_modules': 'music_sdl.bas',
+                  'common_libraries': 'SDL2 SDL2_mixer',
+                  'fb_defines': '-d SDL_MIXER2'},
              'allegro':
                  {'shared_modules': 'music_allegro.bas',
                   'common_libraries': 'alleg'},
              'silence':
                  {'shared_modules': 'music_silence.bas'}
             }
+
+fb_defines = []
 
 for k in gfx:
     for k2, v2 in gfx_map[k].items ():
@@ -730,6 +738,8 @@ for k in music:
     for k2, v2 in music_map[k].items ():
         globals()[k2] += v2.split (' ')
 
+commonenv['FBFLAGS'] += fb_defines
+del fb_defines
 
 ################ OS-specific modules and libraries
 
