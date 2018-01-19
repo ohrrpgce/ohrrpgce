@@ -676,7 +676,7 @@ FUNCTION gfx_sdl2_set_resizable(byval enable as bool, min_width as integer, min_
   'Note: Can't change resizability of a fullscreen window
   'Argh, SDL_SetWindowResizable was only added in SDL 2.0.5 (Oct 2016)
   #IFDEF SDL_SetWindowResizable
-    CheckOK(SDL_SetWindowResizable(mainwindow, resizable), RETURN NO)
+    SDL_SetWindowResizable(mainwindow, resizable)
   #ELSE
     recreate_window()
   #ENDIF

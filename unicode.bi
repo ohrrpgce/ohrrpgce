@@ -6,7 +6,7 @@
 extern "C"
 
 declare function utf8_length(byval s as const ubyte ptr) as long
-declare function utf8_decode(byval input as const ubyte ptr, byval length as long ptr) as wstring ptr
+declare function utf8_decode(byval input as const ubyte ptr, byval length as long ptr = NULL) as wstring ptr
 declare function utf8_offset(byval s as const zstring ptr, byval charnum as long) as long
 declare function utf8_charnum(byval s as const zstring ptr, byval offset as long) as long
 declare function utf8_charlen(byval ch as ulong) as long
