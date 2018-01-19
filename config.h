@@ -41,7 +41,7 @@ extern "C" {
  #define DLLEXPORT __declspec(dllexport)
 
 #else
- /* standard C++ compiler/Mingw */
+ /* standard C++ compiler/MinGW/MinGW-w64 */
 
  #define DLLEXPORT
 
@@ -51,13 +51,18 @@ extern "C" {
  #endif
 
  /* Replacements for Microsoft extensions (no guarantees about correctness) */
-
- #define memcpy_s(dest, destsize, src, count)  memcpy(dest, src, count)
- #define strcpy_s(dest, destsize, src)  strcpy(dest, src)
- #define wcstombs_s(pReturnValue, mbstr, sizeInBytes, wcstr, count) \
-   ((*(pReturnValue) = wcstombs(mbstr, wcstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
- #define mbstowcs_s(pReturnValue, wcstr, sizeInWords, mbstr, count) \
-   ((*(pReturnValue) = mbstowcs(wcstr, mbstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+ /* Recent versions of MinGW-w64 declare these, so check for that */
+ #ifdef __MINGW32__  // Defined by MinGW and MinGW-w64
+  #include <_mingw.h>
+ #endif
+ #ifndef MINGW_HAS_SECURE_API
+  #define memcpy_s(dest, destsize, src, count)  memcpy(dest, src, count)
+  #define strcpy_s(dest, destsize, src)  strcpy(dest, src)
+  #define wcstombs_s(pReturnValue, mbstr, sizeInBytes, wcstr, count) \
+    ((*(pReturnValue) = wcstombs(mbstr, wcstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+  #define mbstowcs_s(pReturnValue, wcstr, sizeInWords, mbstr, count) \
+    ((*(pReturnValue) = mbstowcs(wcstr, mbstr, count), (*(int *)(pReturnValue) == -1) ? EINVAL : 0))
+ #endif
 
 #endif
 
