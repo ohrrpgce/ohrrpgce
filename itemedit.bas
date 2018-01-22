@@ -28,6 +28,12 @@ SUB item_editor ()
  itemb.browse(-1, , @individual_item_editor)
 END SUB
 
+' an FnEditor
+FUNCTION item_picker (recindex as integer = -1) as integer
+ DIM itemb as ItemBrowser
+ RETURN itemb.browse(recindex, , @individual_item_editor, NO)
+END FUNCTION
+
 SUB old_item_editor ()
  DIM menu() as string
  DIM menu_display() as string
