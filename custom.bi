@@ -22,6 +22,7 @@ DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
 DECLARE FUNCTION text_box_editor (whichbox as integer = -1) as integer
 DECLARE FUNCTION item_picker (recindex as integer = -1) as integer
+DECLARE FUNCTION item_picker_or_none (recindex as integer = -1) as integer
 
 DECLARE SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE SUB vehicles ()

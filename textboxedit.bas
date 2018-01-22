@@ -427,10 +427,9 @@ SUB textbox_conditionals(byref box as TextBox)
     CASE condITEM
      xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
      IF enter_space_click(state) THEN
-      DIM itemb as ItemBrowser
       DIM orig_num as integer = num
       DIM add_or_del as integer = SGN(num)
-      num = itemb.browse(abs(num) - 1, YES) + 1
+      num = item_picker(abs(num))
       IF num > 0 THEN
        DIM add_or_del_choices(1) as string = {"Add " & readitemname(num - 1), "Remove " & readitemname(num - 1)} 
        SELECT CASE multichoice("Add or remove item?", add_or_del_choices(), IIF(add_or_del = -1, 1, 0), -1)

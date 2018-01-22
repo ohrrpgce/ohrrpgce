@@ -1138,8 +1138,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
    CASE 3 TO 4 'type and ID
     IF stuf.st.pt = 4 ANDALSO stufbuf(17) = 0 THEN
      IF enter_space_click(stuf.st) THEN
-      DIM itemb as ItemBrowser
-      stufbuf(18) = itemb.browse(stufbuf(18))
+      stufbuf(18) = item_picker(stufbuf(18))
       stuf.st.need_update = YES
      END IF
     END IF
@@ -1154,15 +1153,13 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     DIM itemb as ItemBrowser
-     stufbuf(25) = itemb.browse(stufbuf(25) - 1, YES) + 1
+     stufbuf(25) = item_picker_or_none(stufbuf(25))
      stuf.st.need_update = YES
     END IF
    CASE 13, 15, 17 '--must trade in item 2+ types
     IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     DIM itemb as ItemBrowser
-     stufbuf(18 + stuf.st.pt) = itemb.browse(stufbuf(18 + stuf.st.pt) - 1, YES) + 1
+     stufbuf(18 + stuf.st.pt) = item_picker_or_none(stufbuf(18 + stuf.st.pt))
      stuf.st.need_update = YES
     END IF
    CASE 12, 14, 16, 18 '--trade in item amounts
@@ -1175,8 +1172,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
    CASE 21 '--trade in for
     IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     DIM itemb as ItemBrowser
-     stufbuf(7 + stuf.st.pt) = itemb.browse(stufbuf(7 + stuf.st.pt) - 1, YES) + 1
+     stufbuf(7 + stuf.st.pt) = item_picker_or_none(stufbuf(7 + stuf.st.pt))
      stuf.st.need_update = YES
     END IF
    CASE 22 '--trade in for amount

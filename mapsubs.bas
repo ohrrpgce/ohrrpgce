@@ -5880,8 +5880,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
     IF enter_space_click(ed.state) THEN
-     DIM itemb as ItemBrowser
-     npcdata.item = itemb.browse(npcdata.item - 1, YES) + 1
+     npcdata.item = item_picker_or_none(npcdata.item)
      ed.itemname = load_item_name(npcdata.item, 0, 0)
     END IF
    CASE 7
