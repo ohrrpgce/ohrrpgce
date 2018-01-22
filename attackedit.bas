@@ -1327,9 +1327,11 @@ DO
   SELECT CASE menutype(nowindex)
    CASE 8 ' Item
     recbuf(menuoff(nowindex)) = item_picker(recbuf(menuoff(nowindex)))
+    max(AtkLimItem) = gen(genMaxItem) + 1
     state.need_update = YES
    CASE 10 ' Item with offset
     recbuf(menuoff(nowindex)) = item_picker_or_none(recbuf(menuoff(nowindex)))
+    max(AtkLimItem) = gen(genMaxItem) + 1
     state.need_update = YES
   END SELECT
   SELECT CASE nowindex
@@ -1495,9 +1497,10 @@ DO
   IF helpkey = "attack_damage" THEN
    attack_editor_build_damage_menu recbuf(), menu(), menutype(), caption(), menucapoff(), workmenu(), state, dmgbit(), maskeddmgbit(), damagepreview
   END IF
-  '--in case new attacks/enemies have been added
+  '--in case new attacks/enemies/items have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
+  max(AtkLimItem) = gen(genMaxItem) + 1
   '--in case chain mode has changed
   update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2)
   update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2)
