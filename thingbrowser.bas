@@ -20,7 +20,7 @@
 
 '-----------------------------------------------------------------------
 
-Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0) as integer
+Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=NO, editor_func as FnThingBrowserEditor=0, byval edit_by_default as integer=YES) as integer
  dim result as integer = start_id
  this.or_none = or_none
  
@@ -132,7 +132,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   dim edit_record as integer
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, grid) then
-    if can_edit = NO then
+    if can_edit = NO orelse edit_by_default = NO then
      'Selected a thing
      result = ps.cur->Extra(0)
      exit do
@@ -156,6 +156,14 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
      edit_record = highest_id() + 1
      do_edit = YES
     end if
+   end if
+  end if
+
+  if can_edit andalso (keyval(scCtrl) > 0 andalso keyval(scE) > 1) then
+   if IsAncestor(ps.cur, grid) then
+    'Editing a thing
+    edit_record = ps.cur->Extra(0)
+    do_edit = YES
    end if
   end if
 
