@@ -482,7 +482,14 @@ end
 
 script, hero party management tests, begin
   $0="hero party management tests"
+  # Preconditions
   assert(room in active party == 3)
+  variable(h0x, h0y, h0speed, h0d)
+  h0x := hero x(0)
+  h0y := hero y(0)
+  h0speed := get hero speed(0)
+  h0d := hero direction(0)
+
   add hero(hero:Helga)
   add hero(hero:Olaf)
   add hero(hero:Frumpy)
@@ -491,7 +498,7 @@ script, hero party management tests, begin
   assert(hero by rank(1) == hero:Helga)
   assert(hero by rank(2) == hero:Olaf)
   assert(hero by rank(3) == hero:Frumpy)
-  # with a full party, hero by rank and hero by slot should returnt he same values
+  # with a full party, hero by rank and hero by slot should return the same values
   assert(hero by rank(0) == hero by slot(0))
   assert(hero by rank(1) == hero by slot(1))
   assert(hero by rank(2) == hero by slot(2))
@@ -507,6 +514,14 @@ script, hero party management tests, begin
   assert(hero by slot(1) == 1)
   assert(hero by slot(2) == 2)
   assert(hero by slot(3) == 3)
+  # Test some commands which should work by rank, not party slot
+  # (TODO: incomplete)
+  assert(hero x(0) == h0x)
+  assert(hero y(0) == h0y)
+  assert(hero z(0) == 0)
+  assert(get hero speed(0) == h0speed)
+  assert(hero direction(0) == h0d)
+
   # add a different leader
   add hero(hero:Styrge)
   assert(hero by slot(0) == hero:Styrge)

@@ -47,6 +47,8 @@ Jan ? 2018 [Etheldreme+1]
       textbox debug screen also showed "ALWAYS" instead of "NEVER"! [Ralph]
     * Fixed "delete_ScriptData" error when quitting after having stopped
       a script in the script debugger [Ralph]
+    * "hero z" could incorrectly throw "invalid party slot" errors, but
+      its argument is actually party caterpillar rank [Ralph]
 
 Dec 3 2017 [Etheldreme]
 

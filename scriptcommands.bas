@@ -3459,7 +3459,7 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 544 '--hero Z
-  IF really_valid_hero_party(retvals(0), 3) THEN
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
    scriptret = heroz(retvals(0))
   END IF
  CASE 547 '--item maximum stack size (item id)
