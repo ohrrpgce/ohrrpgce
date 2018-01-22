@@ -1058,29 +1058,6 @@ END SUB
 SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
  DIM stuf as ShopStuffState
 
- stuf.max(3) = 1
- stuf.min(5) = -1
- stuf.max(5) = 9999
- FOR i as integer = 6 TO 9
-  stuf.min(i) = -max_tag()
-  stuf.max(i) = max_tag()
- NEXT i
- stuf.min(10) = -32767
- stuf.max(10) = 32767
- FOR i as integer = 11 TO 17 STEP 2
-  stuf.max(i) = gen(genMaxItem)
-  stuf.min(i) = -1
-  stuf.max(i + 1) = 999
-  stuf.min(i + 1) = 1
- NEXT
-
- stuf.min(20) = -32767
- stuf.max(20) = 32767
- stuf.max(21) = gen(genMaxItem)
- stuf.min(21) = -1
- stuf.max(22) = 999
- stuf.min(22) = 1
-
  stuf.thing = 0
  stuf.thingname = ""
  
@@ -1139,6 +1116,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
     IF stuf.st.pt = 4 ANDALSO stufbuf(17) = 0 THEN
      IF enter_space_click(stuf.st) THEN
       stufbuf(18) = item_picker(stufbuf(18))
+      update_shop_stuff_type stuf, stufbuf(), YES
       stuf.st.need_update = YES
      END IF
     END IF
@@ -1154,12 +1132,14 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
      stufbuf(25) = item_picker_or_none(stufbuf(25))
+     update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
    CASE 13, 15, 17 '--must trade in item 2+ types
     IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
      stufbuf(18 + stuf.st.pt) = item_picker_or_none(stufbuf(18 + stuf.st.pt))
+     update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
    CASE 12, 14, 16, 18 '--trade in item amounts
@@ -1173,6 +1153,7 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
     IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
      stufbuf(7 + stuf.st.pt) = item_picker_or_none(stufbuf(7 + stuf.st.pt))
+     update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
    CASE 22 '--trade in for amount
@@ -1210,6 +1191,7 @@ END SUB
 
 SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
  '--Re-load default names and default prices
+ '--also reloads all limits
  SELECT CASE stufbuf(17)
   CASE 0' This is an item
    DIM item_tmp(dimbinsize(binITM)) as integer
@@ -1243,6 +1225,30 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
    'Type 2 was script which was never supported but was allowed for data entry in some ancient versions
    stuf.thingname = "Unsupported"
  END SELECT
+
+ stuf.max(3) = 1
+ stuf.min(5) = -1
+ stuf.max(5) = 9999
+ FOR i as integer = 6 TO 9
+  stuf.min(i) = -max_tag()
+  stuf.max(i) = max_tag()
+ NEXT i
+ stuf.min(10) = -32767
+ stuf.max(10) = 32767
+ FOR i as integer = 11 TO 17 STEP 2
+  stuf.max(i) = gen(genMaxItem)
+  stuf.min(i) = -1
+  stuf.max(i + 1) = 999
+  stuf.min(i + 1) = 1
+ NEXT
+
+ stuf.min(20) = -32767
+ stuf.max(20) = 32767
+ stuf.max(21) = gen(genMaxItem)
+ stuf.min(21) = -1
+ stuf.max(22) = 999
+ stuf.min(22) = 1
+
 END SUB
 
 SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
