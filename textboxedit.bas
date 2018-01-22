@@ -429,7 +429,7 @@ SUB textbox_conditionals(byref box as TextBox)
      IF enter_space_click(state) THEN
       DIM orig_num as integer = num
       DIM add_or_del as integer = SGN(num)
-      num = item_picker(abs(num))
+      num = item_picker_or_none(abs(num))
       IF num > 0 THEN
        DIM add_or_del_choices(1) as string = {"Add " & readitemname(num - 1), "Remove " & readitemname(num - 1)} 
        SELECT CASE multichoice("Add or remove item?", add_or_del_choices(), IIF(add_or_del = -1, 1, 0), -1)
