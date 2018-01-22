@@ -732,9 +732,11 @@ DO
   SELECT CASE menutype(nowindex)
    CASE 8 ' Item
     recbuf(menuoff(nowindex)) = item_picker(recbuf(menuoff(nowindex)))
+    max(EnLimItem) = gen(genMaxItem)
     state.need_update = YES
    CASE 10 ' Item with offset
     recbuf(menuoff(nowindex)) = item_picker_or_none(recbuf(menuoff(nowindex)))
+    max(EnLimItem) = gen(genMaxItem)
     state.need_update = YES
   END SELECT
   SELECT CASE nowindex
