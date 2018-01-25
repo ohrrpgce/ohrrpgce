@@ -1,5 +1,7 @@
-This is like the setting for justified text in a text editor: add extra padding between children so that the rows stretch across the layout slice.
+This is like the setting for justified text in a text editor: it adds extra padding between children so that the rows stretch across the layout slice.
 
 If there's only a single slice on a row, then it isn't affected.
 
-If justified is YES, then the with-in row padding becomes the minimum padding. It only determines how many children get squashed into each row, because the actual padding is however much is needed to make the row stretch.
+If Justified is YES, then the with-in row padding becomes the minimum padding. It only determines how many children get squashed into each row, because the actual padding is however much is needed to make the row stretch.
+
+This setting isn't applied to the final row/column of the layout slice; Justify Last Row controls that one.

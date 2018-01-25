@@ -397,10 +397,13 @@ Type LayoutSliceData
  skip_hidden as bool          'Don't leave gaps for hidden children
  min_row_breadth as integer   'Min height/width in pixels of rows, in the secondary_dir
  justified as bool            'Like justified text: add extra padding to rows to be flush against both edges
+ last_row_justified as bool   '(Only when justified) If NO, last row justification spacing is no more than row above.
  cell_alignment as AlignType  'Which edge of its 'cell' in a row that children 'sit' on (eg text sits on a line)
  row_alignment as AlignType   'Which edge of the parent each row is aligned to
                               'Note: if justified is true, then row_alignment only affects rows with just 1 child
 
+ 'Temporary members, not saved
+ _previous_row_spacing as double 'Used internally by last_row_justified
 
  Declare Function SkipForward(ch as Slice ptr) as Slice ptr
  Declare Sub SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as integer, dir0 as integer, byref offsets as integer vector, byref breadth as integer)

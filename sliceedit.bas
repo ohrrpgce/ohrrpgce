@@ -1665,6 +1665,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule_none rules(), "layout_secondary_dir", slgrLAYOUT2NDDIR
     str_array_append menu(), " Justified: " & yesorno(dat->justified)
     sliceed_rule_tog rules(), "layout_justified", @dat->justified
+    IF dat->justified THEN
+     str_array_append menu(), " Justify last row: " & yesorno(dat->last_row_justified)
+     sliceed_rule_tog rules(), "layout_last_row_justified", @dat->last_row_justified
+    END IF
     str_array_append menu(), " Row alignment: " & dir_align_caption(dat->primary_dir, dat->row_alignment)
     sliceed_rule_enum rules(), "layout_row_alignment", @dat->row_alignment, 0, 2
     str_array_append menu(), " Within-row alignment: " & dir_align_caption(dat->secondary_dir, dat->cell_alignment)

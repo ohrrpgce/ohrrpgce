@@ -2243,6 +2243,7 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
 
   ch = SkipForward(ch->NextSibling)
  wend
+ dim is_last_row as bool = (ch = NULL)
 
  dim row_length as integer = offset - this.primary_padding
  dim extra_space as integer = available_size - row_length  'at the end of the row
@@ -2253,6 +2254,11 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
   '(This implies extra_space >= 0.)
   'Add extra spacing to cause the children to be spaced out across the row.
   dim spacing as double = extra_space / (v_len(offsets) - 1)
+  if is_last_row and last_row_justified = NO then
+   'Try to use the same amount of spacing as the row above
+   spacing = small(spacing, _previous_row_spacing)
+  end if
+  _previous_row_spacing = spacing
   for idx as integer = 1 to v_len(offsets) - 1
    offsets[idx] += dir0 * int(idx * spacing)
   next
@@ -2322,6 +2328,8 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
   case dirLeft:  offset.X = par->Width - par->PaddingRight
  end select
 
+ dat->_previous_row_spacing = 0
+
  dim as Slice ptr ch = dat->SkipForward(par->FirstChild)
  while ch
   dat->SpaceRow(par, ch, axis0, dir0, offsets, breadth)
@@ -2388,7 +2396,9 @@ Sub SaveLayoutSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "skip_hidden", dat->skip_hidden
  SaveProp node, "min_breadth", dat->min_row_breadth
  SaveProp node, "justified", dat->justified
- if dat->justified = NO then
+ if dat->justified then
+  SaveProp node, "last_row_justified", dat->last_row_justified
+ else
   SaveProp node, "row_align", dat->row_alignment
  end if
  SaveProp node, "cell_align", dat->cell_alignment
@@ -2404,9 +2414,11 @@ Sub LoadLayoutSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->secondary_padding = LoadProp(node, "padding1")
  dat->skip_hidden = LoadPropBool(node, "skip_hidden")
  dat->justified = LoadPropBool(node, "justified")
+ dat->last_row_justified = LoadProp(node, "last_row_justified")
  dat->min_row_breadth = LoadProp(node, "min_breadth")
  dat->cell_alignment = LoadProp(node, "cell_align")
  dat->row_alignment = LoadProp(node, "row_align")
+
  dat->Validate()
 End Sub
 
