@@ -78,6 +78,7 @@ CONST kindlimitSELECT = 2
 CONST kindlimitSPRITE = 3
 CONST kindlimitPLANKSELECTABLE = 4
 CONST kindlimitTEXT = 5
+CONST kindlimitPOSITIONING = 6  'Either Grid or Layout
 
 '------------------------------------------------------------------------------
 
@@ -262,7 +263,7 @@ SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval gr
     CASE "choose_rpg.slice"
      append_specialcode ses, SL_EDITOR_SPLASH_MENU, kindlimitANYTHING
     CASE "thingbrowser.slice"
-     append_specialcode ses, SL_EDITOR_THINGBROWSER_GRID, kindlimitGRID
+     append_specialcode ses, SL_EDITOR_THINGBROWSER_THINGLIST, kindlimitPOSITIONING
      append_specialcode ses, SL_PLANK_HOLDER, kindlimitANYTHING
      append_specialcode ses, SL_PLANK_MENU_SELECTABLE, kindlimitPLANKSELECTABLE
      append_specialcode ses, SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, kindlimitANYTHING
@@ -1966,6 +1967,8 @@ FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekin
    RETURN YES
   CASE kindlimitGRID:
    IF slicekind = slGrid THEN RETURN YES
+  CASE kindlimitPOSITIONING:
+   IF slicekind = slGrid ORELSE slicekind = slLayout THEN RETURN YES
   CASE kindlimitSELECT:
    IF slicekind = slSelect THEN RETURN YES
   CASE kindlimitSPRITE:
@@ -2054,7 +2057,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
   append_simplemenu_item menu, "editor_splash_menu", , , -100
-  append_simplemenu_item menu, "editor_thingbrowser_grid", , , -200
+  append_simplemenu_item menu, "editor_thingbrowser_thinglist", , , -200
   append_simplemenu_item menu, "editor_thingbrowser_plank_sprite", , , -201
   append_simplemenu_item menu, "editor_thingbrowser_back_holder", , , -202
   append_simplemenu_item menu, "editor_thingbrowser_mode_indicator", , , -203

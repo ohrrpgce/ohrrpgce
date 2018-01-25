@@ -47,16 +47,16 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
  dim filter_text_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_TEXT, root)
 
- dim grid as Slice Ptr
- grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root) 
- RefreshSliceScreenPos grid
+ dim thinglist as Slice Ptr
+ thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
+ RefreshSliceScreenPos thinglist
  build_thing_list()
- 
+
  dim ps as PlankState
  ps.m = root
  ps.cur = top_left_plank(ps)
  dim orig_cur as slice ptr = 0
- if focus_plank_by_extra_id(ps, start_id, grid) then
+ if focus_plank_by_extra_id(ps, start_id, thinglist) then
   orig_cur = ps.cur
  end if
  DrawSlice root, vpage
@@ -96,10 +96,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   if hover then set_plank_state ps, hover, plankNORMAL
   if orig_cur then set_plank_state ps, orig_cur, plankNORMAL
   
-  if IsAncestor(ps.cur, grid) then
-   'Things that only happen when the selection is in the grid
-   if plank_menu_arrows(ps, grid) then
-    'Give priority to the grid
+  if IsAncestor(ps.cur, thinglist) then
+   'Things that only happen when the selection is in the thinglist
+   if plank_menu_arrows(ps, thinglist) then
+    'Give priority to the thinglist
     cursor_moved = YES
    end if
    if not cursor_moved andalso cropafter_keycombo() then
@@ -108,7 +108,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     build_thing_list()
     restore_plank_selection ps
     hover = 0
-    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+    orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
     cursor_moved = YES
    end if
   elseif IsAncestor(ps.cur, noscroll_area) then
@@ -139,7 +139,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
   dim edit_record as integer
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
-   if IsAncestor(ps.cur, grid) then
+   if IsAncestor(ps.cur, thinglist) then
     if can_edit = NO orelse edit_by_default = NO then
      'Selected a thing
      result = ps.cur->Extra(0)
@@ -162,7 +162,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   end if
 
   if can_edit andalso (keyval(scCtrl) > 0 andalso keyval(scE) > 1) then
-   if IsAncestor(ps.cur, grid) then
+   if IsAncestor(ps.cur, thinglist) then
     'Editing a thing
     edit_record = ps.cur->Extra(0)
     do_edit = YES
@@ -190,10 +190,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    build_thing_list()
    restore_plank_selection ps
    if ed_ret >= 0 then
-    focus_plank_by_extra_id(ps, ed_ret, grid)
+    focus_plank_by_extra_id(ps, ed_ret, thinglist)
    end if
    hover = 0
-   orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+   orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
   elseif do_filter then
    do_filter = NO
    if prompt_for_string(filter_text, "Find/Filter " & thing_kind_name()) then
@@ -201,7 +201,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     build_thing_list()
     restore_plank_selection ps
     hover = 0
-    orig_cur = find_plank_by_extra_id(ps, start_id, grid)
+    orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
     cursor_moved = YES
    end if
   end if
@@ -223,7 +223,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   'Then run the each-tick sub for the selected plank
   if ps.cur then each_tick_selected_plank ps.cur
 
-  ChangeGridSlice grid, , grid->Width \ plank_size.x
+  if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
   if cursor_moved then
    'Yep, a move happened. We would update selection detail display here if that was a thing
    update_plank_scrolling ps
@@ -286,25 +286,26 @@ Function ThingBrowser.init_helpkey() as string
 End Function
 
 Sub ThingBrowser.build_thing_list()
- plank_menu_clear root, SL_EDITOR_THINGBROWSER_GRID
- dim grid as slice ptr
- grid = LookupSlice(SL_EDITOR_THINGBROWSER_GRID, root)
+ plank_menu_clear root, SL_EDITOR_THINGBROWSER_THINGLIST
+ dim thinglist as slice ptr
+ thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
+ plank_size = XY(1,1)  'Avoid divide-by-zero
  dim plank as slice ptr
  for id as integer = lowest_id() to highest_id()
   plank = create_thing_plank(id)
   if check_plank_filter(plank) then
-   SetSliceParent(plank, grid)
+   SetSliceParent(plank, thinglist)
    plank->Lookup = SL_PLANK_HOLDER
    plank->Extra(0) = id
    plank_size.x = large(plank_size.x, plank->Width)
    plank_size.y = large(plank_size.y, plank->Height)
-   grid->Height = plank_size.y
   else
    'Don't use this one because it was filtered out
    DeleteSlice @(plank)
   end if
  next id
- ChangeGridSlice grid, , grid->Width \ plank_size.x
+ thinglist->Height = plank_size.y  'Only needed if a Grid: Height of one row
+ if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
  DrawSlice root, vpage 'refresh screen positions
 End Sub
 
