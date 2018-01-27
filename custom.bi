@@ -41,6 +41,7 @@ DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
 DECLARE SUB attack_editor_main ()
+DECLARE FUNCTION attack_picker (recindex as integer = -1) as integer
 DECLARE SUB menu_editor ()
 
 DECLARE SUB maptile ()
