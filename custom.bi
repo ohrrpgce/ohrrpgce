@@ -40,7 +40,7 @@ DECLARE SUB old_item_editor ()
 DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
-DECLARE SUB attack_editor_picker ()
+DECLARE SUB attack_editor_main ()
 DECLARE SUB menu_editor ()
 
 DECLARE SUB maptile ()

@@ -201,7 +201,7 @@ CONST AtkDatDramaticPause = 320
 
 'anything past this requires expanding the data
 
-SUB attack_editor_picker ()
+SUB attack_editor_main ()
  DIM attackb as AttackBrowser
  attackb.browse(-1, , @attack_editor)
 END SUB
