@@ -286,6 +286,7 @@ Function ThingBrowser.init_helpkey() as string
 End Function
 
 Sub ThingBrowser.build_thing_list()
+ dim start_time as double = TIMER
  plank_menu_clear root, SL_EDITOR_THINGBROWSER_THINGLIST
  dim thinglist as slice ptr
  thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
@@ -307,6 +308,7 @@ Sub ThingBrowser.build_thing_list()
  thinglist->Height = plank_size.y  'Only needed if a Grid: Height of one row
  if thinglist->SliceType = slGrid then ChangeGridSlice thinglist, , thinglist->Width \ plank_size.x
  DrawSlice root, vpage 'refresh screen positions
+ debuginfo thing_kind_name() & ": build_thing_list() took " & int((TIMER - start_time) * 1000) & "ms"
 End Sub
 
 Function ThingBrowser.check_plank_filter(byval sl as Slice Ptr) as bool
