@@ -987,7 +987,7 @@ END FUNCTION
 'Edit an attack ID (possibly offset) numerically or by entering the attack editor.
 'See thinggrabber.
 FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
- RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_editor)
+ RETURN thinggrabber(datum, state, offset, min, gen(genMaxAttack), intgrab, @attack_picker)
 END FUNCTION
 
 'Edit an enemy ID (possibly offset) numerically or by entering the enemy editor.

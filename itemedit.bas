@@ -280,7 +280,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
      DIM wantnew as bool = NOT enter_space_click(state)
      DIM addwhat as integer = twochoice("Link to what?", "A textbox", "An attack")
      IF addwhat = 0 THEN itembuf(51) = -large(0, text_box_editor(IIF(wantnew, 999999, 1)))
-     IF addwhat = 1 THEN itembuf(51) = 1 + attack_editor(IIF(wantnew, 999999, 0))
+     IF addwhat = 1 THEN itembuf(51) = 1 + attack_picker(IIF(wantnew, 999999, 0))
      state.need_update = YES
     END IF
    CASE 11 TO 14
