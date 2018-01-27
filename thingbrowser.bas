@@ -443,8 +443,13 @@ End Function
 Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim attack as AttackData
  loadattackdata attack, id
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("attack_browser_plank.slice"))
+ end if
  dim plank as Slice Ptr
- plank = load_plank_from_file(finddatafile("attack_browser_plank.slice"))
+ plank = CloneSliceTree(plank_template)
+ 
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeAttack, attack.picture, attack.pal, 0

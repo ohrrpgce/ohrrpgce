@@ -85,6 +85,7 @@ Type AttackBrowser extends ThingBrowser
  declare virtual function highest_possible_id() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  declare virtual sub handle_cropafter(byval id as integer)
+ plank_template as Slice Ptr
 End Type
 
 '-----------------------------------------------------------------------
