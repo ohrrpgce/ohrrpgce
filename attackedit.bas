@@ -211,6 +211,11 @@ FUNCTION attack_picker (recindex as integer = -1) as integer
  RETURN attackb.browse(recindex, , @attack_editor, NO)
 END FUNCTION
 
+FUNCTION attack_picker_or_none (recindex as integer = -1) as integer
+ DIM attackb as AttackBrowser
+ RETURN attackb.browse(recindex - 1, YES , @attack_editor, NO) + 1
+END FUNCTION
+
 'recindex: which attack to show. If -1, same as last time. If >= max, ask to add a new attack,
 '(and exit and return -1 if cancelled).
 'Otherwise, returns the attack number we were last editing.

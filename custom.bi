@@ -20,6 +20,8 @@ TYPE FnEditor as FUNCTION(record as integer = -1) as integer
 ' FnEditor editors
 DECLARE FUNCTION enemy_editor (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
+DECLARE FUNCTION attack_picker (recindex as integer = -1) as integer
+DECLARE FUNCTION attack_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION text_box_editor (whichbox as integer = -1) as integer
 DECLARE FUNCTION item_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION item_picker_or_none (recindex as integer = -1) as integer
@@ -41,7 +43,6 @@ DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE SUB hero_editor ()
 DECLARE SUB attack_editor_main ()
-DECLARE FUNCTION attack_picker (recindex as integer = -1) as integer
 DECLARE SUB menu_editor ()
 
 DECLARE SUB maptile ()
