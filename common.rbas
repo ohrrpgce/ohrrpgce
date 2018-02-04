@@ -4127,9 +4127,17 @@ FOR i as integer = 0 TO gen(genMaxMasterPal)
  END IF
 NEXT
 
+'Create defpal#.bin if it doesn't already exist
+FOR sprtype as SpriteType = 0 TO sprTypeLastPT
+ DIM maxset as integer = gen(sprite_sizes(sprtype).genmax)
+ DIM defpals(maxset) as integer
+ '(This calls guessdefaultpals if the lump is missing, so this needs to happen
+ 'after updaterecordlength for NPC (and other?) data)
+ loaddefaultpals sprtype, defpals(), maxset
+ savedefaultpals sprtype, defpals(), maxset
+NEXT
+
 IF full_upgrade THEN
- 'This depends on guessdefaultpals, so needs to happen after updaterecordlength
- 'for NPC (and other?) data
  try_upgrade_pt sprTypeHero
  try_upgrade_pt sprTypeEnemy   'Initialises gen(genMaxEnemyPic)
  try_upgrade_pt sprTypeWalkabout
