@@ -217,6 +217,7 @@ TYPE SelectTypeState
 END TYPE
 
 CONST maxNPCDataField = 18  'Highest valid argument to Get/SetNPCD and read/alterNPC commands
+'Because Get/SetNPCD are used to load/save .N lumps, this will change when binN changes
 
 ENUM PathfindingObstructionMode
   obmodeDefault = 0

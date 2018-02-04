@@ -2246,8 +2246,9 @@ END SUB
 
 SUB new_graphics_tests
  DIM ofile as string = tmpdir + SLASH + "backdrops.rgfx"
- 'Gives notification about time taken
- convert_mxs_to_rgfx(game + ".mxs", ofile)
+ convert_mxs_to_rgfx(game + ".mxs", ofile, sprTypeBackdrop)
+
+ notification " .mxs size " & filelen(game + ".mxs") & "B, .rgfx size " & filelen(ofile) & "B"
 
  'Lets see how long the document takes to load
  DIM doc as DocPtr

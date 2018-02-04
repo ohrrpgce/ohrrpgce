@@ -3580,6 +3580,25 @@ SUB upgrade_1997 ()
  'global text strings diff
 END SUB
 
+SUB try_upgrade_pt(sprtype as SpriteType)
+ IF NOT real_isfile(workingdir + SLASH + rgfx_lumpnames(sprtype)) THEN
+  upgrade_message "Converting sprites to " & rgfx_lumpnames(sprtype)
+
+  'convert_pt_to_rgfx handles the sprTypeEnemy funny business
+  convert_pt_to_rgfx sprtype
+ END IF
+ 'Delete the old .pt file too. Far too much bloat to keep.
+ /' TODO: I'm keeping this disabled for a short while.
+ IF sprtype = sprTypeEnemy THEN
+  safekill game + ".pt1"
+  safekill game + ".pt2"
+  safekill game + ".pt3"
+ ELSE
+  safekill game + ".pt" + sprtype
+ END IF
+'/
+END SUB
+
 SUB upgrade (show_messages as bool)
 DIM fh as integer
 DIM master_temp(255) as RGBcolor
@@ -3624,11 +3643,9 @@ DIM has_sfx as bool = isfile(workingdir & SLASH & "sfxdata.bin")
 'WARNING: we haven't done fixWipeGEN yet, so don't initialise anything in gen(199) and up!
 
 IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
-FOR i as integer = 0 TO 8
+FOR i as integer = 0 TO sprTypeLastLoadable
  fix_sprite_record_count i
 NEXT i
-fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
-fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
 IF isfile(workingdir & SLASH & "heroes.reld") THEN
  'TODO: genMaxHero fix-up for heroes.reld is unimplemented
 ELSE
@@ -4110,6 +4127,27 @@ FOR i as integer = 0 TO gen(genMaxMasterPal)
  END IF
 NEXT
 
+IF full_upgrade THEN
+ 'This depends on guessdefaultpals, so needs to happen after updaterecordlength
+ 'for NPC (and other?) data
+ try_upgrade_pt sprTypeHero
+ try_upgrade_pt sprTypeEnemy   'Initialises gen(genMaxEnemyPic)
+ try_upgrade_pt sprTypeWalkabout
+ try_upgrade_pt sprTypeWeapon
+ try_upgrade_pt sprTypeAttack
+ try_upgrade_pt sprTypePortrait
+ try_upgrade_pt sprTypeBoxBorder
+ 'Backdrops are almost ready, but need to check everywhere backdrops are used.
+ /'
+ IF NOT isfile(workingdir + SLASH + "backdrops.rgfx") THEN
+  upgrade_message "Converting backdrops to backdrops.rgfx"
+  convert_mxs_to_rgfx game + ".mxs", workingdir + SLASH + "backdrops.rgfx", sprTypeBackdrop
+  safekill game + ".mxs"
+ END IF
+ '/
+ sprite_empty_cache
+END IF
+
 'Workaround bug #2013: Backdrops were drawn immediately above (instead of) spritelayer until
 'r5437, which swapped the order. genVersion was increased to 18 in r5477
 IF original_genVersion <= 17 THEN
@@ -4560,9 +4598,10 @@ END SUB
 '==========================================================================================
 
 
+'(For fixed-length record lumps only)
 'Initialise, if needed, a lump that is missing or has length <= headersize by padding the file with zeros so that
 'it has a header if any and one record.
-SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, byval header_bytes as integer=0)
+SUB fix_recordless_lump(lumpname as string, record_byte_size as integer, byval header_bytes as integer=0)
  DIM fh as integer
  IF OPENFILE(lumpname, FOR_BINARY + ACCESS_READ_WRITE, fh) THEN
   debugc errError, "Error while opening " & lumpname
@@ -4576,10 +4615,26 @@ SUB fix_recordless_lump(lumpname as string, byref record_byte_size as integer, b
  CLOSE #fh
 END SUB
 
+'Correct a variable holding the number of records (last_rec_index + 1 + count_offset)
+'to the real amount ('records') if necessary, showing an upgrade message.
+SUB adjust_record_count(byref last_rec_index as integer, records as integer, lumpname as string, info as string, count_offset as integer=0)
+ DIM rec_count as integer = last_rec_index + 1 + count_offset
+ IF records <= 0 THEN
+  debuginfo "fix*_record_count: " & trimpath(lumpname) & " (" & info & ") has no records/doesn't exist"
+  'Setting the record count to 0 is likely to cause a crash, set it to 1 instead
+  '(generally this will cause the relevant editor to fix the file (quite by accident))
+  records = 1
+ END IF
+ IF records <> rec_count THEN
+  upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (diff " & records - rec_count & ")"
+  last_rec_index = records - 1 - count_offset
+ END IF
+END SUB
+
 'Correct a variable holding number of fixed-length-records (last_rec_index + 1 + count_offset)
 'to the real amount in a file, and check that the file doesn't have any partial records.
 'NOTE: This doesn't fix a lump which is missing or zero length; use fix_recordless_lump for that.
-SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
+SUB fix_record_count(byref last_rec_index as integer, record_byte_size as integer, lumpname as string, info as string, byval skip_header_bytes as integer=0, byval count_offset as integer=0)
  DIM rec_count as integer = last_rec_index + 1 + count_offset
  IF NOT isfile(lumpname) THEN
   debuginfo "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist."
@@ -4588,11 +4643,8 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   EXIT SUB
  END IF
  DIM total_bytes as integer = filelen(lumpname) - skip_header_bytes
- IF total_bytes <= 0 THEN
-  debuginfo "fix_record_count: " & lumpname & " has no records! (Adjusting record count from " & rec_count & " -> 1)"
-  'Setting the record count to 0 is likely to cause a crash, set it to 1 instead
-  '(generally this will cause the relevant editor to fix the file (quite by accident))
-  last_rec_index = 0 - count_offset
+ IF total_bytes <= 0 THEN  'No records!
+  adjust_record_count last_rec_index, 0, lumpname, info, count_offset
   EXIT SUB
  END IF
  IF total_bytes MOD record_byte_size <> 0 THEN
@@ -4616,13 +4668,17 @@ SUB fix_record_count(byref last_rec_index as integer, byref record_byte_size as 
   debug "Expanded " & info & " lump to " & total_bytes & " bytes"
  END IF
  DIM records as integer = total_bytes \ record_byte_size
- IF records <> rec_count THEN
-  upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (diff " & records - rec_count & ")"
-  last_rec_index = records - 1 - count_offset
- END IF
+ adjust_record_count last_rec_index, records, lumpname, info, count_offset
 END SUB
 
-SUB fix_sprite_record_count(byval pt_num as integer)
+PRIVATE SUB adjust_spriteset_record_count(sprtype as SpriteType, records as integer)
+ WITH sprite_sizes(sprtype)
+  adjust_record_count gen(.genmax), records, rgfx_lumpnames(sprtype), .name & " sprites", .genmax_offset
+ END WITH
+END SUB
+
+'Check a gen() entry for number of spritesets is correct, for spritesets in .pt# format
+PRIVATE SUB fix_pt_record_count(pt_num as SpriteType)
  WITH sprite_sizes(pt_num)
   DIM bytes as integer = .size.x * .size.y * .frames \ 2 '--we divide by 2 because there are 2 pixels per byte
   DIM lump as string = game & ".pt" & pt_num
@@ -4630,6 +4686,47 @@ SUB fix_sprite_record_count(byval pt_num as integer)
   fix_recordless_lump lump, bytes
   fix_record_count gen(.genmax), bytes, lump, .name & " sprites"
  END WITH
+END SUB
+
+'Check a gen() entry for number of spritesets is correct, for spritesets in .rgfx format
+PRIVATE SUB fix_rgfx_record_count(rgfxdoc as DocPtr, sprtype as SpriteType)
+  adjust_spriteset_record_count sprtype, rgfx_num_spritesets(rgfxdoc, sprtype)
+END SUB
+
+'Check a gen() entry for number of spritesets is correct
+SUB fix_sprite_record_count(sprtype as SpriteType)
+ 'If there's an .rgfx lump, prefer that
+ IF isfile(workingdir + SLASH + rgfx_lumpnames(sprtype)) THEN
+  'For efficiency, handle all enemy types at once when called with sprTypeEnemy
+  IF sprtype >= sprTypeSmallEnemy AND sprtype <= sprTypeLargeEnemy THEN EXIT SUB
+
+  DIM rgfxdoc as DocPtr = rgfx_open(sprtype)
+  'If rgfxdoc is NULL continue anyway: number of records is 0
+
+  fix_rgfx_record_count rgfxdoc, sprtype
+  IF sprtype = sprTypeEnemy THEN
+   fix_rgfx_record_count rgfxdoc, sprTypeSmallEnemy
+   fix_rgfx_record_count rgfxdoc, sprTypeMediumEnemy
+   fix_rgfx_record_count rgfxdoc, sprTypeLargeEnemy
+  END IF
+
+  FreeDocument rgfxdoc
+
+ ELSE
+  'Check old .pt# or mxs lump, if there was one
+  IF sprtype <= sprTypeLastPT THEN
+   fix_pt_record_count sprtype
+  ELSEIF sprtype = sprTypeBackdrop THEN
+   fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
+  ELSEIF sprtype = sprTypeTileset THEN
+   fix_record_count gen(genMaxTile),      320 * 200, game & ".til", "Tilesets"
+  ELSE
+   'This sprite type never used anything but .rgfx, and there's no .rgfx file
+   '(This is going to show a message about enemies.rgfx when upgrading old games, because
+   'we haven't created it yet)
+   adjust_spriteset_record_count sprtype, 0
+  END IF
+ END IF
 END SUB
 
 SUB future_rpg_warning ()
@@ -5571,7 +5668,15 @@ SUB setup_sprite_sizes ()
   .genmax = genNumBackdrops
   .genmax_offset = -1
  END WITH
- WITH sprite_sizes(sprTypeTileset)  '10
+ WITH sprite_sizes(sprTypeEnemy)  '10
+  .name = "Enemy"
+  .size.x = 0
+  .size.y = 0
+  .frames = 1
+  .directions = 1
+  .genmax = genMaxEnemyPic
+ END WITH
+ WITH sprite_sizes(sprTypeTileset)  '11
   .name = "Tileset"
   .size.x = 20
   .size.y = 160 * 20
@@ -5579,8 +5684,8 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxTile
  END WITH
- 
- WITH sprite_sizes(sprTypeOther)   '11, only for temporary use in the test arbitrary-size spriteset editor
+
+ WITH sprite_sizes(sprTypeOther)   '16, only for temporary use in the test arbitrary-size spriteset editor
   .name = "Experimental"
   .frames = 1
   .directions = 1
@@ -5592,9 +5697,11 @@ SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteTyp
  unload_sprite_and_pal img
  IF spritetype = sprTypeBackdrop THEN
   img.sprite = frame_load(spritetype, index)
- ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastPT THEN
+ ELSEIF spritetype >= 0 AND spritetype <= sprTypeLastLoadable THEN
   img.sprite = frame_load(spritetype, index)
-  img.pal    = palette16_load(palnum, spritetype, index)
+  IF spritetype <> sprTypeTileset THEN
+   img.pal    = palette16_load(palnum, spritetype, index)
+  END IF
  ELSE
   debug "load_sprite_and_pal: bad spritetype " & spritetype & " (index " & index & " pal " & palnum & ")"
  END IF

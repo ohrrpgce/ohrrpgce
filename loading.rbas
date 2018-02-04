@@ -3290,7 +3290,26 @@ END SUB
 
 '==========================================================================================
 '                                  New Graphics Format
-'
+'==========================================================================================
+
+
+SUB initialise_backcompat_pt_frameids(fr as Frame ptr, sprtype as SpriteType)
+' For heroes
+  STATIC default_pt0_frameids(7) as integer = {0, 1, 100, 101, 200, 300, 400, 500}
+  ' For walkabouts
+  STATIC default_pt4_frameids(7) as integer = {0, 1, 100, 101, 200, 201, 300, 301}
+
+  IF sprtype = sprTypeHero THEN
+    FOR i as integer = 0 TO 7
+      fr[i].frameid = default_pt0_frameids(i)
+    NEXT
+  ELSEIF sprtype = sprTypeWalkabout THEN
+    FOR i as integer = 0 TO 7
+      fr[i].frameid = default_pt4_frameids(i)
+    NEXT
+  END IF
+END SUB
+
 '==================================== Animations ==========================================
 
 
@@ -3379,7 +3398,7 @@ END SUB
 ' Load from the "animations" node
 SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
   DIM anims as Node ptr = sprset_node."animations".ptr
-  ' We always save it for everything but backdrops and box borders
+  ' May be missing, eg for box borders
   IF anims = NULL THEN EXIT SUB
   ERASE sprset->animations   'In case called from sprite cache to reload inplace
   READNODE anims
@@ -3396,6 +3415,7 @@ END SUB
 ' Maps from SpriteType to lump name
 REDIM rgfx_lumpnames(sprTypeLast) as string
 rgfx_lumpnames(sprTypeHero)        = "heroes.rgfx"
+rgfx_lumpnames(sprTypeEnemy)       = "enemies.rgfx"
 rgfx_lumpnames(sprTypeSmallEnemy)  = "enemies.rgfx"
 rgfx_lumpnames(sprTypeMediumEnemy) = "enemies.rgfx"
 rgfx_lumpnames(sprTypeLargeEnemy)  = "enemies.rgfx"
@@ -3405,38 +3425,85 @@ rgfx_lumpnames(sprTypeWeapon)      = "weapons.rgfx"
 rgfx_lumpnames(sprTypePortrait)    = "portraits.rgfx"
 rgfx_lumpnames(sprTypeBoxBorder)   = "boxborders.rgfx"
 rgfx_lumpnames(sprTypeBackdrop)    = "backdrops.rgfx"
+rgfx_lumpnames(sprTypeTileset)     = "tilesets.rgfx"  'Not created or used yet!
 
 
-SUB convert_mxs_to_rgfx(filename as string, outfile as string)
- DIM starttime as double = timer
+'Create a blank rgfx document
+FUNCTION rgfx_create_doc() as DocPtr
+  DIM doc as DocPtr
+  doc = CreateDocument()
 
- DIM num_images as integer = filelen(filename) \ 64000
- DIM doc as DocPtr
- doc = CreateDocument()
+  DIM as NodePtr root_node, spritesets, sprset
+  root_node = CreateNode(doc, "rgfx")
+  SetRootNode(doc, root_node)
+  AppendChildNode(root_node, "version", CURRENT_RGFX_VERSION)
+  spritesets = AppendChildNode(root_node, "spritesets")
 
- DIM as NodePtr root_node, spritesets, sprset
- root_node = CreateNode(doc, "graphics")
- SetRootNode(doc, root_node)
- AppendChildNode(root_node, "version", CURRENT_RGFX_VERSION)
- spritesets = AppendChildNode(root_node, "spritesets")
+  RETURN doc
+END FUNCTION
 
- FOR imnum as integer = 0 TO num_images - 1
-  sprset = AppendChildNode(spritesets, "spriteset", imnum)
+SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteType)
+  DIM as double readstart = TIMER, writestart
+  DIM num_images as integer = filelen(infile) \ 64000
+  DIM doc as DocPtr
+  doc = rgfx_create_doc()
 
-  DIM fr as Frame ptr
-  fr = frame_load_mxs(filename, imnum)
-  frameset_to_node(fr, sprset)
-  frame_unload @fr
- NEXT
+  FOR imnum as integer = 0 TO num_images - 1
+    DIM fr as Frame ptr
+    fr = frame_load_mxs(infile, imnum)
+    rgfx_save_spriteset(doc, fr, sprtype, imnum)
+    frame_unload @fr
+  NEXT
 
- DIM loading_time as double = timer - starttime
- starttime = timer
+  writestart = TIMER
+  SerializeBin outfile, doc
+  FreeDocument doc
 
- SerializeBin outfile, doc
+  debuginfo "Read and converted " & infile & " in " & CINT((writestart - readstart) * 1000) _
+            & "ms, wrote in " & CINT((TIMER - writestart) * 1000) & "ms"
+END SUB
 
- notification "Loaded " & trimpath(filename) & " and converted to RELOAD in " & CINT(loading_time * 1000) & "ms;" _
-     " wrote document to file in " & CINT((timer - starttime) * 1000) & "ms;" _
-     " .mxs size " & filelen(filename) & "B, .rgfx size " & filelen(outfile) & "B"
+'Convert a .pt# lump to .rgfx. In case of sprTypeEnemy, combines the three .pt# files
+SUB convert_pt_to_rgfx(dest_type as SpriteType)
+  DIM as double readstart = TIMER, writestart
+  DIM doc as DocPtr
+  doc = rgfx_create_doc()
+
+  DIM as SpriteType first_pt = dest_type, last_pt = dest_type
+  IF dest_type = sprTypeEnemy THEN
+    first_pt = sprTypeSmallEnemy
+    last_pt = sprTypeLargeEnemy
+    'So that the first appended spriteset is number 0
+    gen(genMaxEnemyPic) = -1
+  END IF
+
+  FOR sprtype as SpriteType = first_pt to last_pt
+    IF isfile(graphics_file(rgfx_lumpnames(sprtype))) THEN
+      showerror "Bug: can't convert PT" & sprtype & ": already done"
+      EXIT SUB
+    END IF
+
+    DIM lastset as integer = gen(sprite_sizes(sprtype).genmax)
+    DIM defpals(lastset) as integer
+    loaddefaultpals sprtype, defpals(), lastset
+
+    FOR setnum as integer = 0 TO lastset
+      DIM fr as Frame ptr
+      'We can use frame_load here because we haven't saved the .rgfx file yet and it shouldn't exist
+      fr = frame_load(sprtype, setnum)
+
+      'For sprType{Small,Medium,Large}Enemy rgfx_save_spriteset converts to enemies.rgfx
+      rgfx_save_spriteset(doc, fr, sprtype, setnum, defpals(setnum))
+      frame_unload @fr
+    NEXT
+  NEXT sprtype
+
+  writestart = TIMER
+  SerializeBin graphics_file(rgfx_lumpnames(dest_type)), doc
+  FreeDocument doc
+
+  debuginfo "Read and converted .pt" & first_pt & "-.pt" & last_pt & " in " & CINT((writestart - readstart) * 1000) _
+            & "ms, wrote in " & CINT((TIMER - writestart) * 1000) & "ms"
 END SUB
 
 'Opens a rgfx document and checks it's in order
@@ -3452,38 +3519,42 @@ FUNCTION rgfx_open(filename as string, expect_exists as bool = NO) as DocPtr
     reporterr "Couldn't open graphics file " & filename, serrError
     RETURN NULL
   END IF
+
+  'Check the file looks OK
+  DIM errmsg as string
   DIM root_node as NodePtr = DocumentRoot(doc)
-  IF NodeName(root_node) <> "graphics" THEN
-    reporterr "rgfx_open: Unexpected root '" & NodeName(root_node) & "'", serrError
-    FreeDocument doc
-    RETURN NULL
+  IF NodeName(root_node) <> "rgfx" THEN
+    errmsg = "Unexpected root '" & NodeName(root_node) & "' (Not an rgfx file!)"
+  ELSE   'Can't use nodespec on an ELSEIF line :(
+    IF root_node."version".default(999) > CURRENT_RGFX_VERSION THEN
+      errmsg = "Unsupported version " & root_node."version".string & " (Upgrade to a newer OHRRPGCE version)"
+    ELSE
+      IF root_node."spritesets".exists = NO THEN
+        errmsg = "'spritesets' missing"
+      ELSE
+        RETURN doc
+      END IF
+    END IF
   END IF
-  IF root_node."version".default(999) > CURRENT_RGFX_VERSION THEN
-    debugc errPromptError, "Unsupported graphics file " & trimpath(filename) & ", version " & root_node."version"
-    FreeDocument doc
-    RETURN NULL
-  END IF
-  RETURN doc
+  reporterr "Unsupported graphics file " & trimpath(filename) & " - " & errmsg, serrError
+  FreeDocument doc
+  RETURN NULL
 END FUNCTION
 
 FUNCTION rgfx_open(sprtype as SpriteType, expect_exists as bool = NO) as DocPtr
   RETURN rgfx_open(graphics_file(rgfx_lumpnames(sprtype)), expect_exists)
 END FUNCTION
 
-#DEFINE TRANSLATION_KEY(sprtype, setnum)  (setnum + sprtype * 1000000)
+CONST TRANSLATION_MULT = 1000000
+#DEFINE TRANSLATION_KEY(sprtype, setnum)  (setnum + (sprtype) * TRANSLATION_MULT)
 
 'Backcompat: all enemy sprites are in one file, this translates from old spriteset num to new one
+'Returns -1 if none
 FUNCTION read_sprite_idx_backcompat_translation(rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer) as integer
   DIM ids as Node ptr = GetChildByName(DocumentRoot(rgfxdoc), "backcompat_ids")
-  IF ids = NULL THEN
-    debugc errPromptError, "Unsupported graphics file: backcompat_ids missing"
-    RETURN -1
-  END IF
+  IF ids = NULL THEN RETURN -1
   'Not an error if it's missing
-  DIM ret as integer
-  ret = ReadKeyValueNode(ids, "key", TRANSLATION_KEY(sprtype, oldidx), -1, "idx")
-  IF ret = -1 THEN debug "Couldn't find sprite idx for " & TRANSLATION_KEY(sprtype, oldidx)
-  RETURN ret
+  RETURN  ReadKeyValueNode(ids, "key", TRANSLATION_KEY(sprtype, oldidx), -1, "idx")
 END FUNCTION
 
 'Backcompat: add a translation from old enemy spriteset num to new one
@@ -3501,6 +3572,33 @@ FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr) as SpriteSet ptr
   RETURN ret
 END FUNCTION
 
+'Number of spriteset nodes (or relevant spriteset nodes, in case of enemy backcompat)
+'Needed only for SUB upgrade
+FUNCTION rgfx_num_spritesets(rgfxdoc as DocPtr, sprtype as SpriteType) as integer
+  DIM as NodePtr root_node, spritesets, mappings
+  IF rgfxdoc = NULL THEN RETURN 0
+  root_node = DocumentRoot(rgfxdoc)
+
+  IF sprtype >= sprTypeSmallEnemy AND sprtype <= sprTypeLargeEnemy THEN
+    'Look at the backcompat ID mapping to find only spritesets of this type
+    mappings = root_node."backcompat_ids".ptr
+    IF mappings = NULL THEN debug "backcompat_ids missing" : RETURN 0  'Maybe we ditched these?
+
+    DIM lastrec as integer = -1
+    DIM ch as NodePtr = FirstChild(mappings, "key")
+    WHILE ch
+      DIM key as integer = GetInteger(ch)
+      IF key \ TRANSLATION_MULT = sprtype THEN
+        lastrec = large(lastrec, key MOD TRANSLATION_MULT)
+      END IF
+      ch = NextSibling(ch, "key")
+    WEND
+    RETURN lastrec + 1
+  ELSE
+    RETURN NumChildren(root_node."spritesets".ptr)
+  END IF
+END FUNCTION
+
 'Find a "spriteset" node in an .rgfx file, returns NULL if not present
 FUNCTION rgfx_find_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer) as Node ptr
   DIM as NodePtr root_node, sprset
@@ -3514,8 +3612,6 @@ FUNCTION rgfx_find_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
   END IF
 
   sprset = ChildByIndex(root_node."spritesets".ptr, setnum)
-  'Not really an error, yet
-  IF sprset = NULL THEN debuginfo "spriteset node " & setnum & " missing"
   RETURN sprset
 END FUNCTION
 
@@ -3527,7 +3623,11 @@ END FUNCTION
 FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr
   DIM as Node ptr ss_node, frameset_node
   ss_node = rgfx_find_spriteset(rgfxdoc, sprtype, setnum)
-  IF ss_node = NULL THEN RETURN NULL
+  IF ss_node = NULL THEN
+    'Not really an error, yet
+    debuginfo "rgfx spriteset " & sprtype & "/" & setnum & " missing"
+    RETURN NULL
+  END IF
 
   ' Frames (only part that isn't optional)
   frameset_node = GetChildByName(ss_node, "frameset")
@@ -3559,8 +3659,8 @@ END FUNCTION
 
 'Uncached load of a SpriteSet/Frame from a standard .rgfx lump
 '(It is however still refcounted)
-FUNCTION rgfx_load_spriteset(sprtype as SpriteType, setnum as integer) as Frame ptr
-  DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
+FUNCTION rgfx_load_spriteset(sprtype as SpriteType, setnum as integer, expect_exists as bool = YES) as Frame ptr
+  DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, expect_exists)
   IF rgfxdoc = NULL THEN RETURN NULL
   DIM ret as Frame ptr
   ret = rgfx_load_spriteset(rgfxdoc, sprtype, setnum, YES)

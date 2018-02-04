@@ -320,8 +320,7 @@ SUB backdrop_browser ()
 
  DIM backdrops_file as string = workingdir + SLASH "backdrops.rgfx"
  IF NOT isfile(backdrops_file) THEN
-  'Gives notification about time taken
-  convert_mxs_to_rgfx(game + ".mxs", backdrops_file)
+  convert_mxs_to_rgfx(game + ".mxs", backdrops_file, sprTypeBackdrop)
  END IF
 
  DIM BYREF count as integer = gen(genNumBackdrops)

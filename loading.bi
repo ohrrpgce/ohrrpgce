@@ -137,12 +137,16 @@ DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
 DECLARE SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
 DECLARE SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
 
-DECLARE SUB convert_mxs_to_rgfx(filename as string, outfile as string)
+DECLARE SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteType)
+DECLARE SUB convert_pt_to_rgfx(dest_type as SpriteType)
+DECLARE SUB initialise_backcompat_pt_frameids (fr as Frame ptr, sprtype as SpriteType)
+
 DECLARE FUNCTION rgfx_open OVERLOAD (filename as string, expect_exists as bool = NO) as DocPtr
 DECLARE FUNCTION rgfx_open OVERLOAD (sprtype as SpriteType, expect_exists as bool = NO) as DocPtr
 DECLARE FUNCTION rgfx_find_spriteset (rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer) as Node ptr
+DECLARE FUNCTION rgfx_num_spritesets (rgfxdoc as DocPtr, sprtype as SpriteType) as integer
 DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (rgfxdoc as Reload.DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr
-DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (sprtype as SpriteType, setnum as integer) as Frame ptr
+DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (sprtype as SpriteType, setnum as integer, expect_exists as bool = YES) as Frame ptr
 DECLARE SUB rgfx_save_spriteset OVERLOAD (rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
 DECLARE SUB rgfx_save_spriteset OVERLOAD (fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
 DECLARE SUB rgfx_save_global_animations (rgfxdoc as DocPtr, def_anim as SpriteSet ptr)

@@ -194,7 +194,7 @@ CONST genDefEachStepScript = 216        ' Default each-step script, if not overr
 CONST genDefAfterBattleScript = 217     ' Default after-battle script, if not overridden by map
 CONST genDefInsteadOfBattleScript = 218 ' Default instead-of-battle script, if not overridden by map
 CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overridden by map
-CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx (Not used/initialised yet)
+CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.
@@ -343,13 +343,15 @@ Enum SpriteType
 	sprTypeAttack = 6
 	sprTypeBoxBorder = 7
 	sprTypePortrait = 8
-	sprTypeLastPT = 8
+	sprTypeLastPT = 8        'Last type that was stored in an old .pt# lump
 	sprTypeBackdrop = 9      'Can't change this! Saved in .slice files
-	sprTypeLastPickable = 9  'Last sprite type selectable in slice editor
-	sprTypeTileset = 10      'Free to change this later (never saved)
-	sprTypeLastLoadable = 10 'Last type that frame_load knows about
-	sprTypeOther = 11        'Used only by the arbitrary-size spriteset editor (free to change, never saved)
-	sprTypeLast = 11
+        sprTypeEnemy = 10        'New .rgfx combined enemies.rgfx file
+	sprTypeLastPickable = 10  'Last sprite type selectable in slice editor
+	sprTypeTileset = 11      'Free to change this later (never saved)
+	sprTypeLastLoadable = 11 'Last type that frame_load knows about
+	' Add new types before Tileset
+	sprTypeOther = 16        'Used only by the arbitrary-size spriteset editor (free to change, never saved)
+	sprTypeLast = 16
 End Enum
 
 'Names for hero battle sprite frames

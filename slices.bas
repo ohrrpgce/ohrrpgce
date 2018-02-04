@@ -1726,7 +1726,7 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  dat->spritetype = LoadProp(node, "sprtype")
- if dat->spritetype < sprTypeFirst or dat->spritetype > sprTypeLast then
+ if dat->spritetype < sprTypeFirst or dat->spritetype > sprTypeLastPickable then
   reporterr "LoadSpriteSlice: Unknown type " & dat->spritetype, serrError
  end if
  dat->record     = LoadProp(node, "rec")
@@ -1792,7 +1792,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    .spritetype = spritetype
    .paletted = (spritetype <> sprTypeBackdrop)
    .loaded = NO
-   sl->Size = sprite_sizes(.spritetype).size
+   sl->Size = sprite_sizes(.spritetype).size  'FIXME
   end if
   if record >= 0 then
    .record = record

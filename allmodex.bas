@@ -8024,16 +8024,19 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 		ret = mxs_frame_to_tileset(mxs)
 		frame_unload @mxs
 	else
-		'ret = rgfx_load_spriteset(sprtype, record)
+		ret = rgfx_load_spriteset(sprtype, record, NO)
 
-		with sprite_sizes(sprtype)
-			'debug "loading " & sprtype & "  " & record
-			'cachemiss += 1
-			ret = frame_load_4bit(graphics_file("pt" & sprtype), record, .frames, .size.w, .size.h)
-		end with
-		if ret then
-			sprset = new SpriteSet(ret)
-			sprset->global_animations = load_global_animations(sprtype)
+		if ret = null then
+			with sprite_sizes(sprtype)
+				'debug "loading " & sprtype & "  " & record
+				'cachemiss += 1
+				ret = frame_load_4bit(graphics_file("pt" & sprtype), record, .frames, .size.w, .size.h)
+			end with
+			initialise_backcompat_pt_frameids ret, sprtype
+			if ret then
+				sprset = new SpriteSet(ret)
+				sprset->global_animations = load_global_animations(sprtype)
+			end if
 		end if
 	end if
 
