@@ -45,6 +45,7 @@ Type Frame
 	                   'than nonzero bytes in image. Most Frames don't have a mask.
 	refcount as int32  'see frame_unload in particular for documentation
 	arraylen as int32  'how many frames were contiguously allocated in this frame array
+	frameid as int32   'Used by frames in a frameset (always in increasing order): alternative to frame number
 	base as Frame ptr    'if a view, the Frame which actually owns this memory
 	cacheentry as SpriteCacheEntryFwd ptr
 	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
@@ -498,6 +499,7 @@ declare function frame_load_4bit(filen as string, record as integer, numframes a
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
 declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
+declare function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as bool = NO) as integer
 extern "C"
 declare function frame_reference (p as Frame ptr) as Frame ptr
 declare sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
@@ -565,14 +567,15 @@ declare sub palette16_mix_n_match(pal as Palette16 ptr, byval col as RGBcolor, c
 Enum AnimOpType
 	animOpWait      = 0 '(ms)
 	animOpWaitMS    = 1 '(ms)
-	animOpFrame     = 2 '(framenum)
+	animOpFrame     = 2 '(frameid)
 	animOpRepeat    = 3  '()     Start the animation over
 	animOpSetOffset = 4 '(x,y)
-	animOpRelOffset	= 5'(x,y)
+	animOpRelOffset = 5 '(x,y)
 	animOpLAST      = 5
 End Enum
 
-extern anim_op_names() as string  ' Short names used for display and debug
+extern anim_op_names() as string      ' Short names used for display and debug
+extern anim_op_node_names() as string ' Short names used for RELOAD serialisation
 extern anim_op_fullnames() as string  ' Descriptive captions used in editor
 
 Type AnimationOp

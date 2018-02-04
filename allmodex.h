@@ -34,6 +34,7 @@ typedef struct Frame {
 	                      //than nonzero bytes in image. Most Frames don't have a mask.
 	int refcount;  //see sprite_unload in particular for documentation
 	int arraylen;  //how many frames were contiguously allocated in this frame array
+	int frameid;   //Used by frames in a frameset (always in increasing order): alternative to frame number
 	struct _Frame *base;   //the Frame which actually owns this memory
 	struct SpriteCacheEntry *cacheentry;
 	int cached:1;  //(not set for views onto cached sprites) integer, NOT bool!

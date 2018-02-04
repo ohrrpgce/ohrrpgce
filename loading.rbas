@@ -3318,6 +3318,70 @@ SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
   END IF
 END SUB
 
+' Appends an "anim" node to parent
+SUB save_animation_node(parent as Node ptr, anim as Animation)
+  DIM anode as Node ptr = AppendChildNode(parent, "anim")
+
+  AppendChildNode(anode, "name", anim.name)
+  IF LEN(anim.variant) THEN AppendChildNode(anode, "variant", anim.variant)
+
+  DIM ops as Node ptr = AppendChildNode(anode, "ops")
+  FOR idx as integer = 0 TO UBOUND(anim.ops)
+    WITH anim.ops(idx)
+      DIM op as Node ptr = AppendChildNode(ops, anim_op_node_names(.type))
+      IF .arg1 THEN AppendChildNode(op, "arg1", .arg1)
+      IF .arg2 THEN AppendChildNode(op, "arg2", .arg2)
+    END WITH
+  NEXT idx
+END SUB
+
+' Append a new animation, from a "anim" node
+SUB load_animation_node(animnode as Node ptr, sprset as SpriteSet ptr)
+  IF animnode."name".exists = NO THEN reporterr "Bad animation data: name missing", serrError : EXIT SUB
+  IF animnode."ops".exists = NO THEN reporterr "Unsupported animation data: 'ops' missing", serrError : EXIT SUB
+
+  DIM anim as Animation ptr
+  anim = sprset->new_animation(animnode."name".string, animnode."variant".string.default(""))
+
+  DIM op as Node ptr = FirstChild(animnode."ops".ptr)
+  WHILE op
+    DIM optype as AnimOpType = -1
+    DIM opname as string = NodeName(op)
+    FOR idx as integer = 0 TO UBOUND(anim_op_node_names)
+      IF opname = anim_op_node_names(idx) THEN
+        optype = idx
+        EXIT FOR
+      END IF
+    NEXT
+    IF optype = -1 THEN
+      reporterr "Unsupport animation data: unknown anim op " & NodeName(op), serrError
+      EXIT SUB
+    END IF
+
+    anim->append(optype, op."arg1", op."arg2")
+    op = NextSibling(op)
+  WEND
+END SUB
+
+' Add an "animations" node
+SUB save_animations(sprset_node as Node ptr, sprset as SpriteSet ptr)
+  DIM anims as Node ptr
+  anims = AppendChildNode(sprset_node, "animations")
+
+  FOR idx as integer = 0 TO UBOUND(sprset->animations)
+    save_animation_node anims, sprset->animations(idx)
+  NEXT idx
+END SUB
+
+' Get and load the "animations"
+SUB load_animations(sprset_node as Node ptr, sprset as SpriteSet ptr)
+  DIM anims as Node ptr = sprset_node."animations".ptr
+  ' We always save it for everything but backdrops and box borders
+  IF anims = NULL THEN EXIT SUB
+  READNODE anims
+    load_animation_node anims."anim".ptr, sprset
+  END READNODE
+END SUB
 
 '==========================================================================================
 '                                   New Graphics Formats

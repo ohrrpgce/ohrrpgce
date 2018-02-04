@@ -7759,13 +7759,14 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 		return 0
 	end if
 
-	dim as integer i, j
-	for i = 0 to frames - 1
+	for i as integer = 0 to frames - 1
 		with ret[i]
 			'the caller to frame_new is considered to have a ref to the head; and the head to have a ref to each other elem
 			'so set each refcount to 1
 			.refcount = 1
 			.arraylen = frames
+			'By default, use contiguous frameids
+			.frameid = i
 			if i > 0 then .arrayelem = 1
 			.w = w
 			.h = h
@@ -9300,7 +9301,7 @@ end sub
 ' wait before it's considered to be stuck in an infinite loop.
 CONST ANIMATION_LOOPLIMIT = 10
 
-
+' Short names used for listing an animation
 redim anim_op_names(animOpLAST) as string
 anim_op_names(animOpWait) =      "wait"
 anim_op_names(animOpWaitMS) =    "wait"
@@ -9309,6 +9310,16 @@ anim_op_names(animOpRepeat) =    "repeat"
 anim_op_names(animOpSetOffset) = "set offset"
 anim_op_names(animOpRelOffset) = "add offset"
 
+ ' Short names used for RELOAD serialisation
+redim anim_op_node_names(animOpLAST) as string
+anim_op_node_names(animOpWait) =      "wait"
+anim_op_node_names(animOpWaitMS) =    "waitms"
+anim_op_node_names(animOpFrame) =     "frame"
+anim_op_node_names(animOpRepeat) =    "repeat"
+anim_op_node_names(animOpSetOffset) = "setoffset"
+anim_op_node_names(animOpRelOffset) = "addoffset"
+
+' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
 anim_op_fullnames(animOpWait) =      "Wait (num frames)"
 anim_op_fullnames(animOpWaitMS) =    "Wait (seconds)"
@@ -9330,6 +9341,20 @@ function frames_to_ms(frames as integer) as integer
 	return frames * ms_per_frame
 end function
 
+'Find a frame in a frameset, returning frame index.
+'If fail = NO, then return the nearest match if the frame doesn't exist. Otherwise return -1.
+'The nearest match is the previous frameid that exists
+'frameset must be the first Frame in the frameset
+function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as bool = NO) as integer
+	dim nearest as integer = 0
+	for idx as integer = 0 to frameset->arraylen - 1
+		dim thisid as integer = frameset[idx].frameid
+		if thisid = frameid then return idx
+		if thisid < frameid then nearest = idx
+	next
+	if fail then return -1
+	return nearest
+end function
 
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
@@ -9516,12 +9541,14 @@ function SpriteState.animate_step() as bool
 					return YES
 				end if
 			case animOpFrame
+				/'
 				if .arg1 >= ss->num_frames then
 					debug "Animation '" & anim->name & "': illegal frame number " & .arg1
 					anim = NULL
 					return NO
 				end if
-				frame_num = .arg1
+				'/
+				frame_num = frameid_to_frame(ss->frames, .arg1)
 			case animOpRepeat
 				' If a loop count was specified when playing the animation,
 				' then only loop that many times, otherwise repeat forever
