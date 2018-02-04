@@ -526,14 +526,6 @@ SUB gfx_editor_menu()
  state.size = 24
  state.last = UBOUND(menu)
 
- DIM walkabout_frame_captions(7) as string = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
- DIM hero_frame_captions(7) as string = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
- DIM enemy_frame_captions(0) as string = {"Enemy (facing right)"}
- DIM weapon_frame_captions(1) as string = {"Frame 1","Frame 2"}
- DIM attack_frame_captions(2) as string = {"First Frame","Middle Frame","Last Frame"}
- DIM box_border_captions(15) as string = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
- DIM portrait_captions(0) as string = {"Character Portrait"}
-
  setkeys YES
  DO
   setwait 55
@@ -557,19 +549,20 @@ SUB gfx_editor_menu()
    IF state.pt = 1 THEN maptile
    IF state.pt = 2 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
+    'Tilesets still use the old mxs backdrop browser
     importbmp ".til", "tileset", gen(genMaxTile), sprTypeTileset
     gen(genMaxTile) = gen(genMaxTile) - 1
    END IF
-   IF state.pt = 3 THEN spriteset_editor 20, 20, gen(genMaxNPCPic),    8, walkabout_frame_captions(), 4
-   IF state.pt = 4 THEN spriteset_editor 32, 40, gen(genMaxHeroPic),   8, hero_frame_captions(), 0
-   IF state.pt = 5 THEN spriteset_editor 34, 34, gen(genMaxEnemy1Pic), 1, enemy_frame_captions(), 1
-   IF state.pt = 6 THEN spriteset_editor 50, 50, gen(genMaxEnemy2Pic), 1, enemy_frame_captions(), 2
-   IF state.pt = 7 THEN spriteset_editor 80, 80, gen(genMaxEnemy3Pic), 1, enemy_frame_captions(), 3
-   IF state.pt = 8 THEN spriteset_editor 50, 50, gen(genMaxAttackPic), 3, attack_frame_captions(), 6
-   IF state.pt = 9 THEN spriteset_editor 24, 24, gen(genMaxWeaponPic), 2, weapon_frame_captions(), 5
-   IF state.pt = 10 THEN spriteset_editor 16, 16, gen(genMaxBoxBorder), 16, box_border_captions(), 7
-   IF state.pt = 11 THEN spriteset_editor 50, 50, gen(genMaxPortrait), 1, portrait_captions(), 8
-   IF state.pt = 12 THEN importbmp ".mxs", "screen", gen(genNumBackdrops), sprTypeBackdrop
+   IF state.pt = 3 THEN spriteset_editor sprTypeWalkabout
+   IF state.pt = 4 THEN spriteset_editor sprTypeHero
+   IF state.pt = 5 THEN spriteset_editor sprTypeSmallEnemy
+   IF state.pt = 6 THEN spriteset_editor sprTypeMediumEnemy
+   IF state.pt = 7 THEN spriteset_editor sprTypeLargeEnemy
+   IF state.pt = 8 THEN spriteset_editor sprTypeAttack
+   IF state.pt = 9 THEN spriteset_editor sprTypeWeapon
+   IF state.pt = 10 THEN spriteset_editor sprTypeBoxBorder
+   IF state.pt = 11 THEN spriteset_editor sprTypePortrait
+   IF state.pt = 12 THEN backdrop_browser
    IF state.pt = 13 THEN ui_color_editor(activepalette)
    IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
    IF state.pt = 15 THEN fontedit current_font()
@@ -1815,7 +1808,7 @@ SUB secret_menu ()
    IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    IF st.pt = 17 THEN
     DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
-    new_spriteset_editor multichoice("Edit what?", options())
+    spriteset_editor multichoice("Edit what?", options())
    END IF
    IF st.pt = 18 THEN backdrop_browser
    IF st.pt = 19 THEN new_graphics_tests
@@ -1934,7 +1927,7 @@ SUB arbitrary_sprite_editor ()
      .size = size
      .frames = framecount
     END WITH
-    spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), sprTypeOther
+    old_spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), sprTypeOther
     IF isfile(game & ".pt-1") THEN
      debug "Leaving behind """ & game & ".pt-1"""
     END IF

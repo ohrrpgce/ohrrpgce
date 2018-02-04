@@ -6,6 +6,8 @@ March 1st-ish-maybe 2018 [Fufluns]
     * ~~Fill this in later~~
 
   * New Features
+    * New spriteset editor [Ralph]
+    * Backdrops can now be any size [Ralph]
     * Added a "wall display style" setting to the passmap editor; walls now
       pulse rather than flash, and there's a new "outlined" style [Ralph]
     * Heroes can have intrinsic counter-attacks just like Enemies [James]
@@ -31,7 +33,8 @@ March 1st-ish-maybe 2018 [Fufluns]
       commands on a non-ellipse slice [sotrain515, James]
 
   * Stuff Only Developers Will Notice
-
+    * The .pt# 4-bit graphics lumps have been replaced with a new RELOAD-based
+      rgfx file format [Ralph]
 
 Jan ? 2018 [Etheldreme+1]
 

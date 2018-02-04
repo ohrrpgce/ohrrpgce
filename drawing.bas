@@ -305,7 +305,6 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
 END SUB
 
 ' This is the new browser/editor for backdrops.
-' TODO: imported backdrops are not saved.
 SUB backdrop_browser ()
  STATIC default as string
  DIM pmask(255) as RGBcolor
@@ -323,16 +322,12 @@ SUB backdrop_browser ()
  DIM menuopts as MenuOptions
  menuopts.edged = YES
 
- DIM backdrops_file as string = workingdir + SLASH "backdrops.rgfx"
- IF NOT isfile(backdrops_file) THEN
-  convert_mxs_to_rgfx(game + ".mxs", backdrops_file, sprTypeBackdrop)
- END IF
-
  DIM BYREF count as integer = gen(genNumBackdrops)
  IF count = 0 THEN count = 1
 
  loadpalette pmask(), activepalette
 
+ DIM backdrops_file as string = graphics_file(rgfx_lumpnames(sprTypeBackdrop))
  DIM rgfx_doc as DocPtr = rgfx_open(backdrops_file)
  DIM backdrop as Frame ptr
  backdrop = rgfx_load_spriteset(rgfx_doc, sprTypeBackdrop, backdrop_id)
@@ -363,7 +358,11 @@ SUB backdrop_browser ()
     srcbmp = browse(13, default, , "browse_import_backdrop")
     IF srcbmp <> "" THEN
      DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
-     IF imported THEN frame_assign @backdrop, imported
+     IF imported THEN
+      frame_assign @backdrop, imported
+      rgfx_save_spriteset rgfx_doc, backdrop, sprTypeBackdrop, backdrop_id
+      SerializeBin backdrops_file, rgfx_doc
+     END IF
      mstate.need_update = YES
     END IF
    END IF
@@ -375,7 +374,9 @@ SUB backdrop_browser ()
      IF imported THEN
       frame_assign @backdrop, imported
       backdrop_id = count
-      'count = backdrop_id + 1   ' FIXME: Commented because saving unimplemented
+      count = backdrop_id + 1
+      rgfx_save_spriteset rgfx_doc, backdrop, sprTypeBackdrop, backdrop_id
+      SerializeBin backdrops_file, rgfx_doc
       mstate.need_update = YES
      END IF
     END IF
@@ -391,7 +392,8 @@ SUB backdrop_browser ()
    END IF
    IF mstate.pt = 7 THEN
     importbmp_change_background_color backdrop
-    'TODO: write backdrop
+    rgfx_save_spriteset rgfx_doc, backdrop, sprTypeBackdrop, backdrop_id
+    SerializeBin backdrops_file, rgfx_doc
    END IF
   END IF  '--end enter_space_click()
   IF mstate.pt = 6 THEN mstate.need_update OR= intgrabber(bgcolor, bgFIRST, 255)
@@ -421,9 +423,9 @@ SUB backdrop_browser ()
   dowait
  LOOP
  frame_unload @backdrop
+ 'Already saved the doc
  FreeDocument rgfx_doc
- safekill backdrops_file  ' Not live yet
- 'sprite_update_cache sprTypeBackdrop
+ sprite_update_cache sprTypeBackdrop
 END SUB
 
 ' Display an image and select which colours in a copy
@@ -2317,7 +2319,7 @@ END SUB
 'perset is frames per spriteset.
 'info() is an array of names for each frame
 'fileset is the .PT# number.
-SUB spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
+SUB old_spriteset_editor (byval xw as integer, byval yw as integer, byref sets as integer, byval perset as integer, info() as string, fileset as SpriteType, fullset as bool=NO, byval cursor_start as integer=0, byval cursor_top as integer=0)
 
 DIM ss as SpriteSetBrowseState
 WITH ss
@@ -2410,7 +2412,7 @@ DO
   IF ss.fullset = NO AND ss.perset > 1 THEN
    spriteedit_save_all_you_see state.top, ss
    savedefaultpals ss.fileset, poffset(), sets
-   spriteset_editor ss.wide * ss.perset, ss.high, sets, 1, info(), ss.fileset, YES, state.pt, state.top
+   old_spriteset_editor ss.wide * ss.perset, ss.high, sets, 1, info(), ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
    spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
@@ -2529,7 +2531,7 @@ savedefaultpals ss.fileset, poffset(), sets
 'Robust against sprite leaks
 IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
 
-END SUB '----END of spriteset_editor()
+END SUB '----END of old_spriteset_editor()
 
 '==============================================================================
 
@@ -4223,7 +4225,7 @@ TYPE SpriteSetEditor
   DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
 END TYPE
 
-SUB new_spriteset_editor(sprtype as SpriteType)
+SUB spriteset_editor(sprtype as SpriteType)
   DIM editor as SpriteSetBrowser
   editor.sprtype = sprtype
   editor.genmax = sprite_sizes(sprtype).genmax
@@ -4278,7 +4280,7 @@ SUB SpriteSetBrowser.build_menu()
   root = NewSliceOfType(slContainer)
   SliceLoadFromFile root, finddatafile("spriteset_browser.slice")
 
-  ? "build_menu() in " & (TIMER - starttime)
+  '? "build_menu() in " & (TIMER - starttime)
 
   rebuild_menu()
 END SUB
@@ -4375,11 +4377,15 @@ SUB SpriteSetBrowser.rebuild_menu()
   DrawSlice root, vpage
 
   ps.m = root
-  restore_plank_selection ps
+  IF ps.selection_saved THEN
+   restore_plank_selection ps
+  ELSE
+   ps.cur = top_left_plank(ps)
+  END IF
   update_plank_scrolling ps
   update()
 
-  ? "rebuild_menu() in " & (TIMER - starttime)
+  '? "rebuild_menu() in " & (TIMER - starttime)
 END SUB
 
 'Called when the cursor moves, updates info displays
@@ -4469,7 +4475,7 @@ SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal 
 
  this.defpalettes(this.editing_setnum) = defpal
  rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
- ? "saved in " & (TIMER - tt)
+ '? "saved in " & (TIMER - tt)
 END SUB
 
 SUB SpriteSetBrowser.edit_frame(setnum as integer, framenum as integer)

@@ -16,6 +16,14 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2018-02-04:
+We've switched to a new graphics file format, and new spriteset and backdrop
+browsers, so once again there's a risk of serious bugs! Plus the new
+spriteset browser doesn't yet support every feature of the old one.
+Stick to older nightlies if you want stability!
+Also, temporarily the old graphics data will not be deleted, so you might
+notice your .rpg become significantly LARGER if you have heaps of backdrops.
+
 2018-01-12:
 Line slices are back. Note that you will often want to give them negative
 width/height, but you shouldn't give any other slice types negative sizes,

@@ -758,7 +758,7 @@ end function
 
 'Have a look at a list of lumps and PRINT any that appear to be missing.
 'This is just a diagnostic tool, called from recover_lumped_file.
-'TODO: Doesn't handle archinym, slicetree_#_#.reld, songs, or maps 100+
+'TODO: Doesn't handle archinym, slicetree_#_#.reld, songs, rgfx, or maps 100+
 sub check_expected_lumps(lumps as string vector)
 	dim archinym as string = "ohrrpgce"  ' TODO: fix this
 	dim lastmap as integer = 0

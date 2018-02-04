@@ -1481,13 +1481,24 @@ SUB reload_MAP_lump()
  END WITH
 END SUB
 
-'Check whether a lump is a .PT#, .MXS or .TIL lump. Reload them.
-FUNCTION try_reload_gfx_lump(extn as string) as integer
+'Check whether a lump is an .RGFX, .PT#, .MXS or .TIL lump. Reload them.
+FUNCTION try_reload_gfx_lump(lumpname as string, extn as string) as integer
  IF extn = "til" THEN
   sprite_update_cache sprTypeTileset
   RETURN YES
  ELSEIF extn = "mxs" THEN
   sprite_update_cache sprTypeBackdrop
+  RETURN YES
+ ELSEIF lumpname = "enemies.rgfx" THEN
+  'Multiple sprtypes in the same file
+  sprite_update_cache sprTypeSmallEnemy
+  sprite_update_cache sprTypeMediumEnemy
+  sprite_update_cache sprTypeLargeEnemy
+  sprite_update_cache sprTypeEnemy
+ ELSEIF extn = "rgfx" THEN
+  DIM sprtype as integer = str_array_find(rgfx_lumpnames(), lumpname)
+  IF sprtype = -1 THEN RETURN NO
+  sprite_update_cache sprtype
   RETURN YES
  ELSEIF LEFT(extn, 2) = "pt" THEN
   DIM ptno as integer = str2int(MID(extn, 3), -1)
@@ -1692,7 +1703,7 @@ SUB try_reload_lumps_anywhere ()
    'Cause cache in getmenuname to be dropped
    game_unique_id = STR(randint(INT_MAX))
 
-  ELSEIF try_reload_gfx_lump(extn) THEN                                   '.PT#, .TIL, .MXS
+  ELSEIF try_reload_gfx_lump(modified_lumps[i], extn) THEN                '.RGFX, .PT#, .TIL, .MXS
    handled = YES
 
   ELSEIF extn = "fnt" THEN                                                '.FNT

@@ -8015,9 +8015,7 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	dim sprset as SpriteSet ptr
 	dim starttime as double = timer
 
-	if sprtype = sprTypeBackdrop then
-		ret = frame_load_mxs(graphics_file("mxs"), record)
-	elseif sprtype = sprTypeTileset then
+	if sprtype = sprTypeTileset then
 		dim mxs as Frame ptr
 		mxs = frame_load_mxs(graphics_file("til"), record)
 		if mxs = NULL then return NULL
@@ -8026,7 +8024,14 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	else
 		ret = rgfx_load_spriteset(sprtype, record, NO)
 
-		if ret = null then
+		if ret then
+			'OK
+		elseif sprtype = sprTypeBackdrop then
+			ret = frame_load_mxs(graphics_file("mxs"), record)
+			if ret then
+				sprset = new SpriteSet(ret)  'Attaches to ret
+			end if
+		else
 			with sprite_sizes(sprtype)
 				'debug "loading " & sprtype & "  " & record
 				'cachemiss += 1
@@ -8034,7 +8039,7 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 			end with
 			initialise_backcompat_pt_frameids ret, sprtype
 			if ret then
-				sprset = new SpriteSet(ret)
+				sprset = new SpriteSet(ret)  'Attaches to ret
 				sprset->global_animations = load_global_animations(sprtype)
 			end if
 		end if

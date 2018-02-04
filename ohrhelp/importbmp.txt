@@ -1,8 +1,8 @@
-This screen lets you import 320x200 BMP files, serving either as fullscreen backdrops or as tilesets.
+This screen lets you import or export tilesets as 320x200 BMP files.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the Left and Right arrow keys to switch between screens.
+Use the Left and Right arrow keys to switch between tilesets.
 
 Pick "Replace current" to import a new BMP to replace the one you are currently looking at.
 
@@ -16,8 +16,8 @@ Sometimes certain colors match poorly. You can use "Disable palette colors for i
 
 You can also export a BMP file.
 
-"View with background" specifies how color 0 is drawn, and affects this menu only (it does nothing in-game!) Whether the backdrop or tileset is drawn transparently is NOT a property of the backdrop/tileset, it depends on how it used. For example textboxes have an option to say whether the backdrop should be transparent, and tilesets used for map layer 1 and higher are always transparent.
+"View with background" specifies how color 0 is drawn, and affects this menu only (it does nothing in-game!) Whether the tileset is drawn transparently is NOT a property of the tileset, it depends on how it used. Tilesets used for map layer 1 and higher are always transparent.
 
-Use "Remap transparent color" to modify the backdrop/tileset, selecting a color to convert to color 0, so that it can be treated as transparent. NOTE: This operation usually isn't reversible, so make sure you have a backup copy!
+Use "Remap transparent color" to modify the tileset, selecting a color to convert to color 0, so that it can be treated as transparent. NOTE: This operation usually isn't reversible, so make sure you have a backup copy!
 
 "Full screen view" allows you to preview the image with no menu floating over it. Press the up or down arrow keys to get out of full screen mode.
