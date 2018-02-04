@@ -432,7 +432,7 @@ END SUB
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
 
- REDIM PRESERVE editable_slice_types(8)
+ REDIM PRESERVE editable_slice_types(9)
  IF ses.privileged THEN int_array_append editable_slice_types(), slLayout
 
  '--user-defined slice lookup codes
