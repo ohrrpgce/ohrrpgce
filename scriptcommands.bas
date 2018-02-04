@@ -4515,7 +4515,7 @@ SUB script_functions(byval cmdid as integer)
    sl = plotslices(retvals(0))
    IF sl->Parent THEN ret = CloneSliceTree(sl, retvals(1) <> 0, NO)
    IF ret = 0 THEN  'Returned in the following case:
-    scripterr "cloneslice: Can't copy a Map slice"
+    scripterr "cloneslice: Can't copy a Map layer slice or the Root slice"
    ELSE
     'sl has a parent
     InsertSliceBefore sl, ret

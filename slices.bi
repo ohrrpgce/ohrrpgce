@@ -12,6 +12,7 @@
 
 CONST ENABLE_SLICE_DEBUG = NO
 
+' Builtin slice lookup codes
 'These constants also need to be updated in slices.bas and plotscr.hsd
 'and plotdict.xml. You may choose to just update them here and then run
 ' misc/sl_lookup.py
@@ -19,6 +20,8 @@ CONST ENABLE_SLICE_DEBUG = NO
 'for one of these, you should not change it, because it could get used
 'as a constant in someone's script, and changing it would break any
 'non-recompiled script that used it.
+'Lookup codes starting with SL_EDITOR are for editor slice collections in
+'Custom, and aren't included in plotscr.hsd.
 
 '<SLICE LOOKUP CODES>
 CONST SL_EDITOR_SPLASH_MENU   = -100
@@ -33,6 +36,15 @@ CONST SL_EDITOR_THINGBROWSER_TYPE_QUERY     = -207
 CONST SL_EDITOR_THINGBROWSER_FILTER_TEXT    = -208
 CONST SL_EDITOR_PROMPT_FOR_STRING_TEXT      = -300
 CONST SL_EDITOR_PROMPT_FOR_STRING_CAPTION   = -301
+CONST SL_EDITOR_SSED_LIST              = -400
+CONST SL_EDITOR_SSED_SET_TEMPL         = -401
+CONST SL_EDITOR_SSED_FRAME_HOLDER      = -402
+CONST SL_EDITOR_SSED_FRAME_TEMPL       = -403
+CONST SL_EDITOR_SSED_FRAME_SPRITE      = -404
+CONST SL_EDITOR_SSED_INFO_TEXT         = -405
+CONST SL_EDITOR_SSED_PALETTE_GRID      = -406
+CONST SL_EDITOR_SSED_PALETTE_TEXT      = -407
+CONST SL_EDITOR_SSED_SET_INFO          = -408
 CONST SL_ROOT                 = -100000
 CONST SL_TEXTBOX_TEXT         = -100001
 CONST SL_TEXTBOX_PORTRAIT     = -100002
@@ -100,6 +112,8 @@ CONST SL_VIRTUAL_KEYBOARD_ENTER      = -102026
 CONST SL_PATHFIND_DEST_DISPLAY       = -102100
 '</SLICE LOOKUP CODES>
 
+#define edsl(lookupcode_suffix, parent)  LookupSlice(_CONCAT(EDSL_PREFIX, lookupcode_suffix), parent)
+#define EDSL_PREFIX SL_EDITOR_
 
 Type SliceTypes as integer
 Enum 'SliceTypes

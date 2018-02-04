@@ -214,6 +214,15 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_EDITOR_THINGBROWSER_FILTER_TEXT: RETURN "editor_thingbrowser_filter_text"
   CASE SL_EDITOR_PROMPT_FOR_STRING_TEXT: RETURN "editor_prompt_for_string_text"
   CASE SL_EDITOR_PROMPT_FOR_STRING_CAPTION: RETURN "editor_prompt_for_string_caption"
+  CASE SL_EDITOR_SSED_LIST: RETURN "editor_ssed_list"
+  CASE SL_EDITOR_SSED_SET_TEMPL: RETURN "editor_ssed_set_templ"
+  CASE SL_EDITOR_SSED_FRAME_HOLDER: RETURN "editor_ssed_frame_holder"
+  CASE SL_EDITOR_SSED_FRAME_TEMPL: RETURN "editor_ssed_frame_templ"
+  CASE SL_EDITOR_SSED_FRAME_SPRITE: RETURN "editor_ssed_frame_sprite"
+  CASE SL_EDITOR_SSED_INFO_TEXT: RETURN "editor_ssed_info_text"
+  CASE SL_EDITOR_SSED_PALETTE_GRID: RETURN "editor_ssed_palette_grid"
+  CASE SL_EDITOR_SSED_PALETTE_TEXT: RETURN "editor_ssed_palette_text"
+  CASE SL_EDITOR_SSED_SET_INFO: RETURN "editor_ssed_set_info"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
@@ -3189,7 +3198,7 @@ End Function
 
 'How wide/high does a parent slice have to be to cover a child slice with this position,
 'size and alignment?
-'Position of the X or Y of the top-left corner of the slice relative to is align point,
+'position is the X or Y of the top-left corner of the slice relative to its align point,
 'size is the width or height, align is AlignHoriz or AlignVert.
 Private Function SliceExtent(position as integer, size as integer, align as AlignType) as integer
  if align = alignLeft then
@@ -3748,7 +3757,7 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  'clone a duplicate of a slice and, if recurse=YES, all its children.
  'copy_special: copy Special slices and lookup codes. .Protect bit not copied.
  'The resulting clone is parentless
- if sl->SliceType = slMap then return NULL
+ if sl = NULL orelse sl->SliceType = slMap then return NULL
  dim clone as Slice Ptr
  '--Create another slice of the same type
  dim newtype as SliceTypes = sl->SliceType

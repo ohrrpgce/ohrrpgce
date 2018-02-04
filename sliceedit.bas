@@ -2068,6 +2068,15 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "editor_thingbrowser_filter_text", , , -208
   append_simplemenu_item menu, "editor_prompt_for_string_text", , , -300
   append_simplemenu_item menu, "editor_prompt_for_string_caption", , , -301
+  append_simplemenu_item menu, "editor_ssed_list", , , -400
+  append_simplemenu_item menu, "editor_ssed_set_templ", , , -401
+  append_simplemenu_item menu, "editor_ssed_frame_holder", , , -402
+  append_simplemenu_item menu, "editor_ssed_frame_templ", , , -403
+  append_simplemenu_item menu, "editor_ssed_frame_sprite", , , -404
+  append_simplemenu_item menu, "editor_ssed_info_text", , , -405
+  append_simplemenu_item menu, "editor_ssed_palette_grid", , , -406
+  append_simplemenu_item menu, "editor_ssed_palette_text", , , -407
+  append_simplemenu_item menu, "editor_ssed_set_info", , , -408
   append_simplemenu_item menu, "root", , , -100000
   append_simplemenu_item menu, "textbox_text", , , -100001
   append_simplemenu_item menu, "textbox_portrait", , , -100002

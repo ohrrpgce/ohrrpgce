@@ -308,6 +308,7 @@ SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as Plan
    END SELECT
   CASE slRectangle:
    sl->Visible = YES
+   'Change the bgcol
    SELECT CASE state
     CASE plankNORMAL:          sl->Visible = NO
     CASE plankSEL:             ChangeRectangleSlice sl, , uiHighlight * -1 - 1
@@ -347,6 +348,8 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  RETURN result
 END FUNCTION
 
+'Add a new plank child, copied from 'collection' to the 'LookupSlice(lookup, sl)' slice
+'Other args: passed to expand_slice_text_insert_codes
 FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byval collection as Slice Ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as Slice Ptr
  IF sl = 0 THEN debug "plank_menu_append: null slice ptr": RETURN 0
  DIM m as Slice ptr = LookupSlice(lookup, sl)
@@ -370,6 +373,19 @@ FUNCTION plank_menu_append (byval sl as slice ptr, byval lookup as integer, byva
  expand_slice_text_insert_codes cl, callback, arg0, arg1, arg2
  
  RETURN cl
+END FUNCTION
+
+'For use when you're using a template slice instead of a separate slice collection.
+'(Template slices aren't implemented yet, but for now just use normal slices as templates.)
+FUNCTION plank_menu_clone_template (byval templatesl as Slice ptr) as Slice ptr
+ IF templatesl = 0 THEN debug "plank_menu_clone_template: null template" : RETURN 0
+ DIM sl as Slice ptr
+ sl = CloneSliceTree(templatesl)
+ IF sl = 0 THEN debug "plank_menu_clone_template: unclonable" : RETURN 0
+ InsertSliceBefore templatesl, sl
+ sl->Visible = YES
+ sl->Lookup = SL_PLANK_HOLDER
+ RETURN sl
 END FUNCTION
 
 SUB plank_menu_clear (byval sl as Slice Ptr, byval lookup as integer)

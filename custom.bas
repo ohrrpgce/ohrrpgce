@@ -1813,7 +1813,10 @@ SUB secret_menu ()
    IF st.pt = 14 THEN slice_editor SL_COLLECT_SPELLLISTPLANK
    IF st.pt = 15 THEN slice_editor SL_COLLECT_SPELLPLANK
    IF st.pt = 16 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
-   IF st.pt = 17 THEN new_spriteset_editor
+   IF st.pt = 17 THEN
+    DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
+    new_spriteset_editor multichoice("Edit what?", options())
+   END IF
    IF st.pt = 18 THEN backdrop_browser
    IF st.pt = 19 THEN new_graphics_tests
    IF st.pt = 20 THEN backend_keyrepeat_bugtest

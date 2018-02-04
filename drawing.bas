@@ -15,6 +15,8 @@
 #include "const.bi"
 #include "custom.bi"
 #include "string.bi"
+#include "sliceedit.bi"
+#include "plankmenu.bi"
 
 CONST COLORNUM_SHOW_TICKS = 30
 
@@ -67,8 +69,11 @@ DECLARE SUB spriteedit_save_all_you_see(byval top as integer, ss as SpriteSetBro
 DECLARE SUB spriteedit_load_all_you_see(byval top as integer, ss as SpriteSetBrowseState, workpal() as integer, poffset() as integer)
 DECLARE SUB spriteedit_get_loaded_sprite(ss as SpriteSetBrowseState, placer() as integer, top as integer, setnum as integer, framenum as integer)
 DECLARE SUB spriteedit_set_loaded_sprite(ss as SpriteSetBrowseState, placer() as integer, top as integer, setnum as integer, framenum as integer)
+DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
 DECLARE FUNCTION spriteedit_export_name (ss as SpriteSetBrowseState, state as MenuState) as string
 DECLARE SUB spritebrowse_save_callback(spr as Frame ptr, context as any ptr)
+
+DECLARE SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as Palette16 ptr)
 
 ' Sprite editor
 DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
@@ -2304,6 +2309,9 @@ SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
  END IF
 END SUB
 
+'==========================================================================================
+'                                   Old spriteset editor
+
 'xw, yw is the size of a single frame.
 'sets is the global holding maximum spriteset index, e.g. gen(genMaxNPCPic)
 'perset is frames per spriteset.
@@ -2330,8 +2338,6 @@ END WITH
 '--Editor state
 DIM edstate as SpriteEditState
 WITH edstate
- .wide = xw
- .high = yw
  .fileset = fileset
  .fullset = fullset
  .save_callback = @spritebrowse_save_callback
@@ -2524,6 +2530,8 @@ savedefaultpals ss.fileset, poffset(), sets
 IF ss.fileset > -1 THEN sprite_update_cache ss.fileset
 
 END SUB '----END of spriteset_editor()
+
+'==============================================================================
 
 ' The sprite buffer remains in a rotated state after a rotation operation,
 ' call this to clip it to the correct size.
@@ -2962,16 +2970,19 @@ SUB spriteedit_save_spriteset(setnum as integer, top as integer, ss as SpriteSet
  END IF
 END SUB
 
-FUNCTION spriteedit_export_name (ss as SpriteSetBrowseState, state as MenuState) as string
+FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
  DIM s as string
- s = trimpath(trimextension(sourcerpg)) & " " & exclude(LCASE(sprite_sizes(ss.fileset).name), " ")
- IF ss.fullset THEN
-  s &= " set " & state.pt
+ s = trimpath(trimextension(sourcerpg)) & " " & exclude(LCASE(sprite_sizes(sprtype).name), " ")
+ IF fullset THEN
+  s &= " set " & setnum
  ELSE
-  s &= " " & state.pt
-  IF ss.perset > 1 THEN s &= " frame " & ss.framenum
+  s &= " " & setnum & " frame " & framenum
  END IF
  RETURN s
+END FUNCTION
+
+FUNCTION spriteedit_export_name (ss as SpriteSetBrowseState, state as MenuState) as string
+ RETURN default_export_name(ss.fileset, state.pt, ss.framenum, ss.fullset)
 END FUNCTION
 
 'Wrapper, only for the spriteset browser
@@ -3547,11 +3558,13 @@ END SUB
 
 ' Part of ss should be filled in with the necessary arguments.
 ' sprite contains the sprite to be edited, and the result is passed back by calling ss.save_callback()
-' before exiting, or whenever want to immediately save.
+' before exiting, or whenever want to immediately save. The original 'sprite' is not modified in-place.
 ' Also, this expects the caller to save the default palette (ss.pal_num). However, it saves the palette (ss.palette) itself.
 SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 
  WITH ss
+  .wide = sprite->w
+  .high = sprite->h
   .palette = palette16_load(.pal_num)
   .sprite = frame_duplicate(sprite)
   .delay = 10
@@ -4152,27 +4165,338 @@ END SUB
 
 
 '==========================================================================================
+'                                   New Spriteset Browser
+'==========================================================================================
+
+
+'==========================================================================================
 '                                   New Spriteset Editor
 '==========================================================================================
 
-DECLARE SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as Palette16 ptr)
 
-TYPE SpriteSetEditor
- ss as SpriteSet ptr
- anim_preview as SpriteState ptr
- pal as Palette16 ptr
- tog as integer
+TYPE SpriteSetBrowser
+  sprtype as SpriteType
+  genmax as integer               'Index in gen()
+  defpalettes(any) as integer
+  palettes(any) as Palette16 ptr
+  'The following are only set inside and immediately after calling edit_frame()
+  editing_spriteset as Frame ptr  'Only set inside edit_frame(), used for save_callback
+  editing_setnum as integer
+  editing_framenum as integer
+  editing_frameid as integer
 
- DECLARE SUB display()
- DECLARE SUB run()
- DECLARE SUB export_menu()
- DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
+  root as Slice ptr
+  hover as Slice ptr              'Slice hovering over
+  ps as PlankState
+
+  DECLARE SUB build_menu()
+  DECLARE SUB update()
+  DECLARE SUB run()
+  DECLARE SUB edit_spriteset(setnum as integer)
+  DECLARE SUB edit_frame(setnum as integer, framenum as integer)
 END TYPE
 
-SUB new_spriteset_editor()
- DIM editor as SpriteSetEditor
- editor.run()
+TYPE SpriteSetEditor
+  ss as SpriteSet ptr
+  anim_preview as SpriteState ptr
+  pal as Palette16 ptr
+  tog as integer
+
+  DECLARE SUB display()
+  DECLARE SUB run()
+  DECLARE SUB export_menu()
+  DECLARE SUB export_gif(fname as string, anim as string, transparent as bool = NO)
+END TYPE
+
+SUB new_spriteset_editor(sprtype as SpriteType)
+  DIM editor as SpriteSetBrowser
+  editor.sprtype = sprtype
+  editor.genmax = sprite_sizes(sprtype).genmax
+  editor.run()
 END SUB
+
+SUB SpriteSetBrowser_set_plank_state_callback(sl as Slice Ptr, state as PlankItemState)
+ SELECT CASE sl->SliceType
+  CASE slText:
+    set_plank_state_default_callback sl, state
+  CASE slRectangle:
+   'Change the bgcol
+   SELECT CASE state
+    CASE plankNORMAL:          ChangeRectangleSlice sl, , , ,                             borderNone, transHollow
+    CASE plankSEL:             ChangeRectangleSlice sl, , , uiSelectedItem2 * -1 - 1,     borderLine, transOpaque
+    CASE plankDISABLE:         ChangeRectangleSlice sl, , , ,                             borderNone, transHollow
+    CASE plankSELDISABLE:      ChangeRectangleSlice sl, , , uiSelectedDisabled2 * -1 - 1, borderLine, transOpaque
+    CASE plankMOUSEHOVER:      ChangeRectangleSlice sl, , , uiMouseHoverItem * -1 - 1,    borderLine, transHollow
+   END SELECT
+ END SELECT
+END SUB
+
+SUB SpriteSetBrowser.build_menu()
+  DIM starttime as double = TIMER
+
+  save_plank_selection ps
+
+  ' Load palettes
+  REDIM defpalettes(gen(genmax))
+  loaddefaultpals sprtype, defpalettes(), gen(genmax)
+
+  ' Build slice collection
+  DeleteSlice @root
+  hover = NULL
+  ps.cur = NULL
+  root = NewSliceOfType(slContainer)
+  SliceLoadFromFile root, finddatafile("spriteset_browser.slice")
+
+  DIM ss_templ as Slice ptr = edsl(ssed_set_templ, root)
+
+  'Load all spritesets (maybe in future add some kind of delay-load bit to SpriteSlice
+  'for off-screen slices to speed this up?)
+
+  FOR setnum as integer = 0 TO gen(genmax)
+    DIM as Slice ptr ss_sl, fr_templ, fr_sl
+
+    ' Load as a Frame, to get info
+    DIM sprset as Frame ptr
+    sprset = frame_load(sprtype, setnum)
+    IF sprset = NULL THEN showerror "build(): frame_load failed" : EXIT SUB
+
+    'ss_sl = plank_menu_clone_template(ss_templ)
+    'ss_sl is not a plank
+    ss_sl = CloneSliceTree(ss_templ)
+    InsertSliceBefore ss_templ, ss_sl
+    ss_sl->Visible = YES
+
+    'The plank_holder is the plank to edit the spriteset
+    '(Other plank_holders created by plank_menu_clone_template)
+    DIM ss_ed_plank as Slice ptr = LookupSlice(SL_PLANK_HOLDER, ss_sl)
+    IF ss_ed_plank = NULL THEN EXIT SUB
+    ss_ed_plank->Extra(0) = setnum
+    ss_ed_plank->Extra(1) = -1
+    ss_ed_plank->Extra(2) = -1
+
+    'Can't have both SSED_SET_INFO and PLANK_SELECTABLE lookup codes set, sigh
+    'ChangeTextSlice edsl(ssed_set_info, ss_sl)->FirstChild, "Set " & setnum '& !"\nPal " & defpalettes(setnum)
+    ChangeTextSlice edsl(ssed_set_info, ss_sl)->LastChild, !"Set\n" & setnum
+
+    'Would just use a layout slice set either to Fill or Cover Children, they aren't implemented for Layout slices yet
+    'So this is a grid
+    DIM fr_holder as Slice ptr = edsl(ssed_frame_holder, ss_sl)
+    IF fr_holder = 0 THEN EXIT SUB
+    fr_holder->Width = (sprset->w + 1) * sprset->arraylen
+    fr_holder->Height = sprset->h + 2
+    ChangeGridSlice fr_holder, 1, sprset->arraylen
+
+    ' Add the frames
+    fr_templ = edsl(ssed_frame_templ, ss_sl)
+    FOR framenum as integer = 0 TO sprset->arraylen - 1
+      DIM frameid as integer = sprset[framenum].frameid
+      fr_sl = plank_menu_clone_template(fr_templ)
+      fr_sl->Extra(0) = setnum
+      fr_sl->Extra(1) = framenum
+      fr_sl->Extra(2) = frameid
+      DIM spr_sl as Slice ptr = edsl(ssed_frame_sprite, fr_sl)
+      ChangeSpriteSlice spr_sl, sprtype, setnum, , framenum
+      spr_sl->Visible = YES
+
+      'Remember previous cursor position, or nearest match
+      'IF setnum = editing_setnum AND frameid <= editing_frameid THEN ps.cur = fr_sl
+      'Initial selection
+      'IF setnum = 0 AND framenum = 0 AND ps.selection_saved = NO THEN ps.cur = fr_sl
+    NEXT
+
+    frame_unload @sprset
+  NEXT setnum
+
+  'Just refreshing doesn't properly position everything
+  'RefreshSliceTreeScreenPos root
+  'Also, not sure why, but have to call DrawSlice twice before top_left_plank()
+  'returns the right result. Probably due to CoverChildren
+  DrawSlice root, vpage
+  DrawSlice root, vpage
+
+  ps.m = root
+  update_plank_scrolling ps
+  ps.cur = top_left_plank(ps)
+  update()
+
+  ? "build_menu() in " & (TIMER - starttime)
+END SUB
+
+FUNCTION frame_name(setnum as integer, frameid as integer) as string
+  RETURN ""
+END FUNCTION
+
+'Called when the cursor moves, updates info displays
+SUB SpriteSetBrowser.update()
+  DIM info_text as Slice ptr = edsl(ssed_info_text, root)
+  IF info_text = NULL ORELSE ps.cur = NULL THEN EXIT SUB
+
+  DIM setnum as integer = ps.cur->Extra(0)
+  DIM frameid as integer = ps.cur->Extra(2)
+  IF frameid < 0 THEN
+    'Whole spriteset selected rather than a frame
+    ChangeTextSlice info_text, "Spriteset " & setnum '& "  ENTER/CLICK to edit"
+  ELSE
+    ChangeTextSlice info_text, "Spriteset " & setnum & "  Frame ID " & frameid & "  " & frame_name(setnum, frameid)
+  END IF
+
+  ChangeTextSlice edsl(ssed_palette_text, root), "Def pal " & defpalettes(setnum)
+
+  'Show the palette
+  DIM pal_sl as Slice ptr = edsl(ssed_palette_grid, root)
+  IF pal_sl = NULL THEN EXIT SUB
+
+  DIM pal as Palette16 ptr = palette16_load(defpalettes(setnum))
+  IF pal = NULL THEN EXIT SUB
+
+  DeleteSliceChildren pal_sl
+  ChangeGridSlice pal_sl, 1, pal->numcolors
+  FOR cidx as integer = 0 TO pal->numcolors - 1
+    DIM col_sl as Slice ptr
+    col_sl = NewSliceOfType(slRectangle, pal_sl)
+    col_sl->Fill = YES
+    ChangeRectangleSlice col_sl, , pal->col(cidx), , borderNone
+  NEXT cidx
+
+  palette16_unload @pal
+
+  'TODO: This is here to update the positioning of the palette box,
+  'and can be removed when CoverChildren is fixed to compute the size
+  'of a slice before it's positioned
+  RefreshSliceTreeScreenPos root
+END SUB
+
+SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
+  'Not implemented
+END SUB
+
+SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr)
+ DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
+ DIM tt as double = TIMER
+ 'Copy back into editing_spriteset
+ frame_draw spr, NULL, 0, 0, , NO, @this.editing_spriteset[this.editing_framenum]
+
+ rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
+ ? "saved in " & (TIMER - tt)
+END SUB
+
+SUB SpriteSetBrowser.edit_frame(setnum as integer, framenum as integer)
+  editing_spriteset = frame_load(sprtype, setnum)
+  editing_setnum = setnum
+  editing_framenum = framenum
+  editing_frameid = editing_spriteset[editing_framenum].frameid
+
+  DIM edstate as SpriteEditState
+  WITH edstate
+    .fileset = sprtype
+    .fullset = NO
+    ' sprite_editor uses the callback to save the edited sprite.
+    ' It also saves changes to palettes, but not the default palette selection (ss.pal_num)
+    .save_callback = @SpriteSetBrowser_save_callback
+    .save_callback_context = @this
+    .pal_num = defpalettes(setnum)
+    .spriteset_num = setnum
+    .framename = "Frame " & editing_spriteset[framenum].frameid  'info(ss.framenum)
+    .default_export_filename = default_export_name(sprtype, setnum, framenum, NO)
+  END WITH
+  sprite_editor edstate, @editing_spriteset[framenum]
+
+  frame_unload @editing_spriteset
+  defpalettes(setnum) = edstate.pal_num
+  'Save default palettes immediately for live previewing
+  '(TODO: should really be handled in the save_callback instead)
+  savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+
+  'All palettes might have been modified, but they would have been modified
+  'in-place.  The Frame would also have been modified in-place, and is shared
+  'with the Sprite slices.
+  'However, we still need to rebuild the menu if the default palette changed,
+  'because that doesn't affect existing Sprite slices loaded with pal=-1
+  '(unless we force them to be reloaded with ChangeSpriteSlice
+  build_menu()
+END SUB
+
+SUB SpriteSetBrowser.run()
+  ps.state_callback = @SpriteSetBrowser_set_plank_state_callback
+
+  build_menu
+
+  DIM selectst as SelectTypeState
+
+  DIM cursor_moved as bool = YES
+  DIM selected_frame as integer = 0
+
+  setkeys
+  DO
+    setwait 55
+    setkeys
+    'tog XOR= 1
+
+    IF keyval(scEsc) > 1 THEN EXIT DO
+    IF keyval(scF6) > 1 THEN
+      IF keyval(scCtrl) > 0 THEN
+        slice_editor SL_COLLECT_EDITOR, finddatafile("spriteset_browser.slice"), YES
+        build_menu
+        CONTINUE DO
+      ELSE
+        slice_editor root, SL_COLLECT_EDITOR, , YES
+      END IF
+    END IF
+
+    'Clear selection indicators
+    IF ps.cur THEN set_plank_state ps, ps.cur, plankNORMAL
+    IF hover THEN set_plank_state ps, hover, plankNORMAL
+
+    IF plank_menu_arrows(ps) THEN
+      'Only if no movement happened in one of the areas do we consider global movement
+      cursor_moved = YES
+    END IF
+    plank_menu_mouse_wheel(ps)
+    IF select_by_typing(selectst) THEN
+      IF plank_select_by_string (ps, selectst.query) THEN cursor_moved = YES
+    END IF
+    hover = find_plank_at_screen_pos(ps, readmouse.pos)
+    IF hover ANDALSO (readmouse.clicks AND mouseLeft) THEN
+      cursor_moved = ps.cur <> hover
+      ps.cur = hover
+    END IF
+    IF readmouse.release AND mouseRight THEN
+      'Holding down right click can change cursor selection
+      cursor_moved = ps.cur <> hover
+      ps.cur = hover
+    END IF
+
+    IF enter_or_space() ORELSE ((readmouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
+      DIM as integer setnum = ps.cur->Extra(0), framenum = ps.cur->Extra(1)
+      IF framenum < 0 THEN
+        edit_spriteset(setnum)
+      ELSE
+        edit_frame(setnum, framenum)
+      END IF
+    END IF
+
+    'Set selection indicators
+    IF hover THEN set_plank_state ps, hover, plankMOUSEHOVER
+    IF ps.cur THEN
+      set_plank_state ps, ps.cur, plankSEL
+    END IF
+
+    IF cursor_moved THEN
+      update_plank_scrolling ps
+      update()
+    END IF
+    cursor_moved = NO
+
+    clearpage vpage
+    DrawSlice root, vpage
+    setvispage vpage
+    dowait
+  LOOP
+
+  DeleteSlice @root
+END SUB
+
+'-------------------------------------------------------------------------------
 
 SUB SpriteSetEditor.run()
  ss = spriteset_load(sprTypeHero, 1)
@@ -4280,7 +4604,7 @@ END SUB
 '                                     Animation Editor
 '==========================================================================================
 ' Highly unfinished.
-' This is separate from the spriteset editor because it's also used by the backdrop editor
+' This is separate from the spriteset editor because it will also used by the backdrop editor
 
 TYPE AnimationEditState
   animptr as Animation ptr
