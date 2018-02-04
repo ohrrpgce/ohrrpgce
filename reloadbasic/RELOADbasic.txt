@@ -171,3 +171,4 @@ effect for the rest of the function. Can't be placed inside ReadNode, WithNode.
 * Global name indexing instead of RB_SIGNATURE hack
 * More care with nameindex tables (failures on NULL nodes)
 * Improve the tests
+* Using nodespecs on an ELSEIF line is not supported

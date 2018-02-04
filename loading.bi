@@ -134,11 +134,22 @@ DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer)
 DECLARE SUB getpal16 (array() as integer, byval array_record as integer, byval file_record as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
 
-DECLARE SUB init_4bit_spriteset_defaults(ss as SpriteSet ptr, ptno as SpriteType)
+DECLARE SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
+DECLARE SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
 
 DECLARE SUB convert_mxs_to_rgfx(filename as string, outfile as string)
-DECLARE FUNCTION rgfx_open(filename as string) as DocPtr
-DECLARE FUNCTION rgfx_get_frameset(rgfx_doc as DocPtr, setnum as integer) as Frame ptr
+DECLARE FUNCTION rgfx_open OVERLOAD (filename as string, expect_exists as bool = NO) as DocPtr
+DECLARE FUNCTION rgfx_open OVERLOAD (sprtype as SpriteType, expect_exists as bool = NO) as DocPtr
+DECLARE FUNCTION rgfx_find_spriteset (rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer) as Node ptr
+DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (rgfxdoc as Reload.DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr
+DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (sprtype as SpriteType, setnum as integer) as Frame ptr
+DECLARE SUB rgfx_save_spriteset OVERLOAD (rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
+DECLARE SUB rgfx_save_spriteset OVERLOAD (fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
+DECLARE SUB rgfx_save_global_animations (rgfxdoc as DocPtr, def_anim as SpriteSet ptr)
+DECLARE FUNCTION read_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer) as integer
+DECLARE SUB add_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer, newidx as integer)
+DECLARE FUNCTION rgfx_load_global_animations (rgfxdoc as Doc ptr) as SpriteSet ptr
+DECLARE FUNCTION default_global_animations (sprtype as SpriteType) as SpriteSet ptr
 
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)
@@ -225,5 +236,8 @@ DECLARE SUB load_shop_stuff(byval shop_id as integer, byval stuff_list as NodePt
 DECLARE SUB load_non_elemental_elements (elem() as bool)
 
 DECLARE SUB cropafter (byval index as integer, byref limit as integer, byval flushafter as bool, lump as string, byval bytes as integer, byval prompt as integer=YES)
+
+
+EXTERN rgfx_lumpnames() as string
 
 #ENDIF

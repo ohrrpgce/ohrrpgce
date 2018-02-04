@@ -34,6 +34,9 @@ CONST CURRENT_RPG_VERSION = 20
 ' 19 - beelzebufo replaced .DT0 with heroes.reld
 ' 20 - callipygous release. Added general.reld (including new version system) and maxScriptCmdID checking.
 
+CONST CURRENT_RGFX_VERSION = 1
+' Version number embedded in each .rgfx file.
+
 CONST CURRENT_RSAV_VERSION = 3
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
@@ -191,6 +194,7 @@ CONST genDefEachStepScript = 216        ' Default each-step script, if not overr
 CONST genDefAfterBattleScript = 217     ' Default after-battle script, if not overridden by map
 CONST genDefInsteadOfBattleScript = 218 ' Default instead-of-battle script, if not overridden by map
 CONST genDefMapAutorunScript = 219      ' Default autorun script, if not overridden by map
+CONST genMaxEnemyPic = 220       ' Max enemy spriteset id in enemies.rgfx (Not used/initialised yet)
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

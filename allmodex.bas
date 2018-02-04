@@ -55,6 +55,7 @@ end type
 declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 declare sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
+declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
 
 declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
@@ -348,6 +349,9 @@ type SpriteCacheEntry
 end type
 
 CONST SPRITE_CACHE_MULT = 1000000
+#define SPRITE_CACHE_KEY(sprtype, record) (sprtype * SPRITE_CACHE_MULT + record)
+' Record number used for the dummy SpriteSet holding global animations
+const SPRITE_CACHE_GLOBAL_ANIMS = 999999
 
 dim shared sprcache as HashTable
 dim shared sprcacheB as DoubleList(SpriteCacheEntry)
@@ -7581,23 +7585,36 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 		if pt->p->refcount <> 1 then
 			dim sprtype as integer = pt->hashed.hash \ SPRITE_CACHE_MULT
 			dim record as integer = pt->hashed.hash mod SPRITE_CACHE_MULT
-			dim newframe as Frame ptr
-			newframe = frame_load_uncached(sprtype, record)
 
-			if newframe <> NULL then
-				if newframe->arraylen <> pt->p->arraylen then
-					fatalerror "sprite_update_cache: wrong number of frames!"
-				else
+			if record = SPRITE_CACHE_GLOBAL_ANIMS then
+				'Unlike normal SpriteSets, the one holding the default animations must
+				'be updated inplace because others point to it.
+				reload_global_animations(pt->p->sprset, sprtype)
+			else
+
+				dim newframe as Frame ptr
+				newframe = frame_load_uncached(sprtype, record)
+
+				if newframe <> NULL then
+					dim numframes as integer = newframe->arraylen
+					if newframe->arraylen <> pt->p->arraylen then
+						'Unfortunately, this error will occur if you change the number
+						'of frames in the spriteset editor. Only thing we can do about it is
+						'try to unload all affected Frames before updating the cache.
+						showerror "sprite_update_cache: number of frames changed for sprite " & pt->hashed.hash
+						numframes = small(numframes, pt->p->arraylen)
+					end if
+
 					'Transplant the data from the new Frame into the old Frame, so that no
 					'pointers need to be updated. pt (the SpriteCacheEntry) doesn't need to
 					'to be modified at all
 
 					dim refcount as integer = pt->p->refcount
 					dim wantmask as bool = (pt->p->mask <> NULL)
-					'Remove the host's previous organs
+					'Remove the host's previous organs (deletes SpriteSet)
 					frame_delete_members pt->p
 					'Insert the new organs
-					memcpy(pt->p, newframe, sizeof(Frame) * newframe->arraylen)
+					memcpy(pt->p, newframe, sizeof(Frame) * numframes)
 					'Having removed everything from the donor, dispose of it
 					Deallocate(newframe)
 					'Fix the bits we just clobbered
@@ -7605,6 +7622,8 @@ private sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 					pt->p->refcount = refcount
 					pt->p->cacheentry = pt
 					if pt->p->sprset then
+						'We DON'T do the same trick with SpriteSets.
+						'You mustn't hold onto SpriteSet ptrs when gfx are reloaded, they will become invalid!
 						'Update cross-link
 						pt->p->sprset->frames = pt->p
 					end if
@@ -7690,10 +7709,10 @@ private sub sprite_from_B_cache(entry as SpriteCacheEntry ptr)
 end sub
 
 ' search cache, update as required if found
-private function sprite_fetch_from_cache(key as integer) as Frame ptr
+private function sprite_fetch_from_cache(sprtype as SpriteType, record as integer) as Frame ptr
 	dim entry as SpriteCacheEntry ptr
 
-	entry = hash_find(sprcache, key)
+	entry = hash_find(sprcache, SPRITE_CACHE_KEY(sprtype, record))
 
 	if entry then
 		'cachehit += 1
@@ -7706,14 +7725,14 @@ private function sprite_fetch_from_cache(key as integer) as Frame ptr
 	return NULL
 end function
 
-' adds a newly loaded frame to the cache with a given key
-private sub sprite_add_cache(key as integer, p as Frame ptr)
+' adds a newly loaded frame to the cache with a given type/record
+private sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame ptr)
 	if p = 0 then exit sub
 
 	dim entry as SpriteCacheEntry ptr
 	entry = callocate(sizeof(SpriteCacheEntry))
 
-	entry->hashed.hash = key
+	entry->hashed.hash = SPRITE_CACHE_KEY(sprtype, record)
 	entry->p = p
 	entry->cost = (p->w * p->h * p->arraylen) \ SPRCACHE_BASE_SZ + 1
 	'leave entry->cacheB unlinked
@@ -7736,7 +7755,7 @@ end sub
 '==========================================================================================
 
 
-'Create a blank Frame or array of Frames
+'Create a blank Frame or array of Frames. No SpriteSet created!
 'By default not initialised; pass clr=YES to initialise to 0
 'with_surface32: if true, create a 32-it Surface-backed Frame.
 'no_alloc: ignore this; internal use only.
@@ -7956,24 +7975,33 @@ end sub
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 ' For tilesets, the tileset will already be reordered as needed.
 function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
-	dim key as integer = sprtype * SPRITE_CACHE_MULT + record
-	dim ret as Frame ptr = sprite_fetch_from_cache(key)
+	dim ret as Frame ptr = sprite_fetch_from_cache(sprtype, record)
 	if ret then return ret
 	ret = frame_load_uncached(sprtype, record)
-	if ret then sprite_add_cache(key, ret)
+	if ret then sprite_add_cache(sprtype, record, ret)
 	return ret
 end function
 
-private function graphics_file(extn as string) as string
+'If an extension, must exclude the '.'
+function graphics_file(lumpname_or_extn as string) as string
+	dim as bool fullname = instr(lumpname_or_extn, ".") > 0
 	if len(game) = 0 then
 		' Haven't loaded a game, fallback to the engine's default graphics
 		dim gfxdir as string = finddatadir("defaultgfx")
 		if len(gfxdir) = 0 then
 			return ""
 		end if
-		return gfxdir & SLASH "ohrrpgce" & extn
+		if fullname then
+			return gfxdir & SLASH & lumpname_or_extn
+		else
+			return gfxdir & SLASH "ohrrpgce." & lumpname_or_extn
+		end if
 	end if
-	return game & extn
+	if fullname then
+		return workingdir & SLASH & lumpname_or_extn
+	else
+		return game & "." & lumpname_or_extn
+	end if
 end function
 
 ' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump. See frame_load.
@@ -7984,27 +8012,29 @@ private function frame_load_uncached(sprtype as SpriteType, record as integer) a
 	end if
 
 	dim ret as Frame ptr
+	dim sprset as SpriteSet ptr
 	dim starttime as double = timer
 
 	if sprtype = sprTypeBackdrop then
-		ret = frame_load_mxs(graphics_file(".mxs"), record)
+		ret = frame_load_mxs(graphics_file("mxs"), record)
 	elseif sprtype = sprTypeTileset then
 		dim mxs as Frame ptr
-		mxs = frame_load_mxs(graphics_file(".til"), record)
+		mxs = frame_load_mxs(graphics_file("til"), record)
 		if mxs = NULL then return NULL
 		ret = mxs_frame_to_tileset(mxs)
 		frame_unload @mxs
 	else
+		'ret = rgfx_load_spriteset(sprtype, record)
+
 		with sprite_sizes(sprtype)
 			'debug "loading " & sprtype & "  " & record
 			'cachemiss += 1
-			ret = frame_load_4bit(graphics_file(".pt" & sprtype), record, .frames, .size.w, .size.h)
+			ret = frame_load_4bit(graphics_file("pt" & sprtype), record, .frames, .size.w, .size.h)
 		end with
-	end if
-
-	if ret then
-		ret->sprset = new SpriteSet(ret)
-		init_4bit_spriteset_defaults(ret->sprset, sprtype)
+		if ret then
+			sprset = new SpriteSet(ret)
+			sprset->global_animations = load_global_animations(sprtype)
+		end if
 	end if
 
 	debug_if_slow(starttime, 0.1, sprtype & "," & record)
@@ -8207,6 +8237,9 @@ private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as in
 	end if
 end sub
 
+
+'==========================================================================================
+
 'Public:
 ' Releases a reference to a sprite and nulls the pointer.
 ' If it is refcounted, decrements the refcount, otherwise it is freed immediately.
@@ -8224,11 +8257,15 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 
 	if cliprect.frame = fr then cliprect.frame = 0
 	with *fr
-		if .refcount = NOREFC then
-			exit sub
-		end if
 		if .refcount = FREEDREFC then
 			debug frame_describe(fr) & " already freed!"
+			exit sub
+		end if
+		'Theoretically possible to have an un-refcounted Frame/SpriteSet which uses refcounted default animations
+		if .sprset andalso .sprset->global_animations then
+			spriteset_unload @.sprset->global_animations
+		end if
+		if .refcount = NOREFC then
 			exit sub
 		end if
 		.refcount -= 1
@@ -9163,7 +9200,7 @@ end function
 'added to the game, it won't auto-update.)
 'autotype, spr: spriteset type and id, for default palette lookup.
 function Palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
-	dim as Palette16 ptr ret = Palette16_load(graphics_file(".pal"), num, autotype, spr)
+	dim as Palette16 ptr ret = Palette16_load(graphics_file("pal"), num, autotype, spr)
 	if ret = 0 then
 		if num >= 0 AND default_blank then
 			' Only bother to warn if a specific palette failed to load.
@@ -9429,10 +9466,70 @@ constructor SpriteSet(frameset as Frame ptr)
 	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"
 	'redim animations(0 to -1)
 	frames = frameset
-	num_frames = frameset->arraylen
+	frameset->sprset = @this
 end constructor
 
+function SpriteSet.num_frames() as integer
+	return frames->arraylen
+end function
+
+'Create a SpriteSet for a Frame if it doesn't have one
+function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
+	if fr->sprset then return fr->sprset
+	return new SpriteSet(fr)
+end function
+
+'A dummy SpriteSet
+function empty_spriteset() as SpriteSet ptr
+	dim fr as Frame ptr = frame_new(1, 1, 1)
+	return new SpriteSet(fr)
+end function
+
+private function load_global_animations_uncached(sprtype as SpriteType) as SpriteSet ptr
+	dim rgfxdoc as Doc ptr
+	rgfxdoc = rgfx_open(sprtype, NO)
+	if rgfxdoc = NULL then
+		return default_global_animations(sprtype)
+	end if
+	dim ret as SpriteSet ptr
+	ret = rgfx_load_global_animations(rgfxdoc)
+	FreeDocument rgfxdoc
+	return ret
+end function
+
+'Returns a dummy SpriteSet which contains the global (default) animations for a sprtype,
+'loaded from the cache, or from rgfx or the defaults if missing.
+'Use spriteset_unload to free the result.
+'If rgfxdoc is already open you can optionally pass it to avoid reloading.
+function load_global_animations(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL) as SpriteSet ptr
+	dim cached as Frame ptr
+	cached = sprite_fetch_from_cache(sprtype, SPRITE_CACHE_GLOBAL_ANIMS)
+	if cached then return cached->sprset
+
+	dim ret as SpriteSet ptr
+	if rgfxdoc then
+		ret = rgfx_load_global_animations(rgfxdoc)
+	else
+		ret = load_global_animations_uncached(sprtype)
+	end if
+	if ret then
+		sprite_add_cache(sprtype, SPRITE_CACHE_GLOBAL_ANIMS, ret->frames)
+	end if
+	return ret
+end function
+
+'Called when updating the sprite cache. Updates a SpriteSet in-place.
+'Variant on rgfx_load_global_animations.
+private sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
+	dim rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
+	if rgfxdoc = NULL then debug "reload_global_animations failed" : exit sub
+	'This overwrites the existing animations
+	load_animations_node(DocumentRoot(rgfxdoc), def_anim)
+	FreeDocument rgfxdoc
+end sub
+
 ' Load a spriteset from file, or return a reference if already cached.
+' WARNING: Holding onto a SpriteSet ptr in Game while live previewing would currently crash if it's reloaded!
 ' This increments the refcount, use spriteset_unload to decrement it, NOT 'DELETE'.
 function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
 	' frame_load will load a Frame array with a corresponding SpriteSet

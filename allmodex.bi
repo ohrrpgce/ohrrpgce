@@ -47,8 +47,8 @@ Type Frame
 	arraylen as int32  'how many frames were contiguously allocated in this frame array
 	frameid as int32   'Used by frames in a frameset (always in increasing order): alternative to frame number
 	base as Frame ptr    'if a view, the Frame which actually owns this memory
-	cacheentry as SpriteCacheEntryFwd ptr
-	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool!
+	cacheentry as SpriteCacheEntryFwd ptr  'First Frame in array only
+	cached:1 as int32  '(not set for views onto cached sprites) integer, NOT bool! First Frame in array only.
 	arrayelem:1 as int32  'not the first frame in a Frame array
 	isview:1 as int32  'View of another Frame. NOT true for surface views!
 	noresize:1 as int32  '(Video pages only.) Don't resize this page to the window size
@@ -58,6 +58,7 @@ Type Frame
 
 	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
                                     'will need to be freed at the same time
+				    'First Frame in array only.
 End Type
 
 ' You can declare vectors of type "Frame ptr vector".
@@ -490,6 +491,8 @@ DECLARE FUNCTION get_global_sfx_volume () as single
 '==========================================================================================
 '                                          Frame
 
+declare function graphics_file(filename_or_extn as string) as string
+
 declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 declare function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integer, h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, picoff as integer = 0) as Frame ptr
@@ -602,12 +605,14 @@ declare function frames_to_ms(frames as integer) as integer
 
 Type SpriteSet
 	animations(any) as Animation
-	num_frames as integer  'redundant to frames->arraylen
-	frames as Frame ptr
+	frames as Frame ptr    'Does NOT count as a reference
 	'uses refcount from frames
+	global_animations as SpriteSet ptr  'The default animations for sprites of this type. May be NULL
+	                                    '(This counts as a reference)
+	'This is private!
+	declare constructor(frameset as Frame ptr)
 
-	declare Constructor(frameset as Frame ptr)
-
+	declare function num_frames() as integer
 	declare sub reference()
 	declare function describe() as string
 	declare function find_animation(variantname as string) as Animation ptr
@@ -616,6 +621,9 @@ End Type
 
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
 declare sub spriteset_unload(ss as SpriteSet ptr ptr)
+declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
+declare function empty_spriteset() as SpriteSet ptr
+declare function load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as SpriteSet ptr
 
 ' The animation state of a SpriteSet instance
 Type SpriteState
