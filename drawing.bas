@@ -331,7 +331,7 @@ SUB backdrop_browser ()
 
  DIM rgfx_doc as DocPtr = rgfx_open(backdrops_file)
  DIM backdrop as Frame ptr
- frame_assign @backdrop, rgfx_get_frame(rgfx_doc, backdrop_id, 0)
+ frame_assign @backdrop, rgfx_get_frameset(rgfx_doc, backdrop_id)
 
  setkeys
  DO
@@ -348,7 +348,7 @@ SUB backdrop_browser ()
   usemenu mstate
   IF mstate.pt <> 6 ANDALSO intgrabber(backdrop_id, 0, count - 1) THEN
    ' Change selected backdrop
-   frame_assign @backdrop, rgfx_get_frame(rgfx_doc, backdrop_id, 0)
+   frame_assign @backdrop, rgfx_get_frameset(rgfx_doc, backdrop_id)
    IF backdrop = NULL THEN debugc errPromptBug, "rgfx failed to load" : EXIT DO
    mstate.need_update = YES
   END IF

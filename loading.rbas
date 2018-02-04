@@ -3398,19 +3398,17 @@ SUB convert_mxs_to_rgfx(filename as string, outfile as string)
  DIM doc as DocPtr
  doc = CreateDocument()
 
- DIM as NodePtr root_node, spritesets, sprset, frames, frame_node
+ DIM as NodePtr root_node, spritesets, sprset
  root_node = CreateNode(doc, "graphics")
  SetRootNode(doc, root_node)
  spritesets = AppendChildNode(root_node, "spritesets")
 
  FOR imnum as integer = 0 TO num_images - 1
   sprset = AppendChildNode(spritesets, "spriteset", imnum)
-  frames = AppendChildNode(sprset, "frames")
 
   DIM fr as Frame ptr
   fr = frame_load_mxs(filename, imnum)
-  frame_node = frame_to_node(fr, frames)
-  SetContent(frame_node, 0)  'frame 0
+  frameset_to_node(fr, sprset)
   frame_unload @fr
  NEXT
 
@@ -3443,26 +3441,21 @@ FUNCTION rgfx_open(filename as string) as DocPtr
  RETURN doc
 END FUNCTION
 
-'Given spriteset number and frame number load a single Frame
-FUNCTION rgfx_get_frame(rgfx_doc as DocPtr, setnum as integer, framenum as integer) as Frame ptr
- DIM as NodePtr root_node, spriteset_node, frame_node
- DIM ret as Frame ptr
- IF rgfx_doc = NULL THEN RETURN NULL
- root_node = DocumentRoot(rgfx_doc)
+'Load a spriteset (Frame array) from an .rgfx file
+FUNCTION rgfx_get_frameset(rgfx_doc as DocPtr, setnum as integer) as Frame ptr
+  DIM as NodePtr root_node, sprset
+  IF rgfx_doc = NULL THEN RETURN NULL
+  root_node = DocumentRoot(rgfx_doc)
 
- spriteset_node = ChildByIndex(root_node."spritesets".ptr, setnum)
- IF spriteset_node = NULL THEN
-  debuginfo "spriteset node " & setnum & " missing"
- ELSE
-  frame_node = ChildByIndex(spriteset_node."frames".ptr, framenum)
-  IF spriteset_node = NULL THEN
-   debuginfo "frame node " & framenum & " missing"
+  sprset = ChildByIndex(root_node."spritesets".ptr, setnum)
+  IF sprset = NULL THEN
+    'Not really an error, yet
+    debuginfo "spriteset node " & setnum & " missing"
+  ELSEIF sprset."frameset".exists = NO THEN
+    reporterr "Can't load sprite " & setnum & ": missing frameset data", serrError
   ELSE
-   ret = frame_from_node(frame_node)
+    RETURN frameset_from_node(sprset."frameset".ptr)
   END IF
- END IF
-
- RETURN ret
 END FUNCTION
 
 

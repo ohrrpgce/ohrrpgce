@@ -38,7 +38,7 @@ Type Frame
 		size as XYPair
 	End Union
 
-	offset as XYPair   'Draw offset from the position passed to frame_draw. Used by frame_dissolve
+	offset as XYPair   'Draw offset from the position passed to frame_draw. Not used yet.
 	pitch as int32     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr 'Pointer to top-left corner. NULL if and onlf it Surface-backed.
 	mask as ubyte ptr  'Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather
@@ -490,15 +490,15 @@ DECLARE FUNCTION get_global_sfx_volume () as single
 '==========================================================================================
 '                                          Frame
 
-declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO) as Frame ptr
+declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 declare function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integer, h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, picoff as integer = 0) as Frame ptr
 declare sub frame_to_buffer(spr as Frame ptr, pic() as integer)
 declare function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 declare function frame_load_4bit(filen as string, record as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
-declare function frame_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
-declare function frame_from_node(node as Reload.NodePtr) as Frame ptr
+declare function frameset_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
+declare function frameset_from_node(node as Reload.NodePtr) as Frame ptr
 declare function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as bool = NO) as integer
 extern "C"
 declare function frame_reference (p as Frame ptr) as Frame ptr

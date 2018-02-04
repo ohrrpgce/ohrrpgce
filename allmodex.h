@@ -27,7 +27,7 @@ struct SpriteSet;
 typedef struct Frame {
 	int w;
 	int h;
-	XYPair offset; //Draw offset from the position passed to frame_draw. Used by frame_dissolve
+	XYPair offset; //Draw offset from the position passed to frame_draw. Not used yet.
 	int pitch;     //pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	unsigned char *image; //Pointer to top-left corner. NULL if and only if Surface-backed.
 	unsigned char *mask;  //Same shape as image. If not NULL, nonzero bytes in mask are opaque, rather

@@ -2262,7 +2262,7 @@ SUB new_graphics_tests
  FOR i as integer = 0 TO gen(genNumBackdrops) - 1
   starttime = timer
   IF doc = NULL THEN doc = rgfx_open(ofile)
-  fr = rgfx_get_frame(doc, i, 0)
+  fr = rgfx_get_frameset(doc, i)
   rgfx_time += timer - starttime
   frame_draw fr, , 0, 0, 1, NO, vpage
   setvispage vpage

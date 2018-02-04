@@ -54,6 +54,7 @@ end type
 
 declare function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame ptr
 declare sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
+declare sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 
 declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, scale as integer = 1, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, write_mask as bool = NO)
@@ -7738,7 +7739,8 @@ end sub
 'Create a blank Frame or array of Frames
 'By default not initialised; pass clr=YES to initialise to 0
 'with_surface32: if true, create a 32-it Surface-backed Frame.
-function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO) as Frame ptr
+'no_alloc: ignore this; internal use only.
+function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 	if w < 1 or h < 1 or frames < 1 then
 		debugc errPromptBug, "frame_new: bad size " & w & "*" & h & "*" & frames
 		return 0
@@ -7772,7 +7774,8 @@ function frame_new(w as integer, h as integer, frames as integer = 1, clr as boo
 			.h = h
 			.pitch = w
 			.mask = NULL
-			if with_surface32 then
+			if no_alloc then
+			elseif with_surface32 then
 				if gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, @.surf) then
 					frame_freemem(ret)
 					return NULL
@@ -7850,12 +7853,16 @@ end function
 
 ' Returns a Frame which is backed by a Surface.
 ' Unload/Destroy both the Frame and the Surface: increments refcount for the Surface!
+' Note: normally it makes no sense to call this on a Surface that is itself
+' a view of a Frame
 function frame_with_surface(surf as Surface ptr) as Frame ptr
-	dim ret as Frame ptr = callocate(sizeof(Frame))
+	dim ret as Frame ptr = frame_new(1, 1, 1, , , , YES)  'no_alloc = YES. Dummy size
+	init_frame_with_surface ret, surf
+	return ret
+end function
 
-	'Note: normally it makes no sense to call this on a Surface that is itself
-	'a view of a Frame
-
+'ret is a Frame without image/mask allocated
+private sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
 	surf = gfx_surfaceReference(surf)
 	with *ret
 		.surf = surf
@@ -7863,11 +7870,8 @@ function frame_with_surface(surf as Surface ptr) as Frame ptr
 		.h = surf->height
 		.pitch = surf->pitch
 		'image and mask are Null
-		.refcount = 1
-		.arraylen = 1
 	end with
-	return ret
-end function
+end sub
 
 ' Creates an (independent) 32 bit Surface which is a copy of an unpaletted Frame.
 ' This is not the same as gfx_surfaceCreateFrameView, which creates a Surface which
@@ -7942,6 +7946,9 @@ private sub frame_freemem(f as Frame ptr)
 	frame_delete_members f
 	deallocate(f)
 end sub
+
+
+'================================ Loading & Saving Frames =================================
 
 'Public:
 ' Loads a 4-bit or 8-bit sprite/backdrop/tileset from the appropriate game lump, *with caching*.
@@ -8055,17 +8062,26 @@ function frame_load_4bit(filen as string, rec as integer, numframes as integer, 
 	return ret
 end function
 
-'Appends a new "frame" child node
+declare sub write_frame_node(fr as Frame ptr, fs_node as Node ptr, bits as integer)
+declare sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
+
+'Appends a new "frameset" child node storing an array of Frames and returns it.
 'TODO: Doesn't save metadata about palette or master palette
 'TODO: Doesn't save mask, but we don't have any need to serialise masks at the moment
-function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
-	dim as NodePtr frame_node, image_node
-	frame_node = AppendChildNode(parent, "frame")
-	AppendChildNode(frame_node, "w", fr->w)
-	AppendChildNode(frame_node, "h", fr->h)
+function frameset_to_node(fr as Frame ptr, parent as Node ptr) as Node ptr
+	if fr->arrayelem then
+		debugc errPromptBug, "frameset_to_node: not first Frame in array"
+		return NULL
+	end if
+
+	dim as Node ptr fs_node
+	fs_node = AppendChildNode(parent, "frameset")
+	AppendChildNode(fs_node, "w", fr->w)
+	AppendChildNode(fs_node, "h", fr->h)
+	AppendChildNode(fs_node, "format", 0)
 
 	if fr->mask then
-		debug "WARNING: frame_to_node can't save masks"
+		debug "WARNING: frameset_to_node can't save masks"
 	end if
 
 	'"bits" gives the format of the "image" node; whether this Frame
@@ -8076,8 +8092,20 @@ function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
 			bits = 32
 		end if
 	end if
+	AppendChildNode(fs_node, "bits", bits)
 
-	AppendChildNode(frame_node, "bits", bits)
+	for idx as integer = 0 to fr->arraylen - 1
+		write_frame_node(@fr[idx], fs_node, bits)
+	next
+
+	return fs_node
+end function
+
+'Write a single Frame in an array as a "frame" node
+private sub write_frame_node(fr as Frame ptr, fs_node as Node ptr, bits as integer)
+	dim as Node ptr frame_node, image_node
+	frame_node = AppendChildNode(fs_node, "frame")
+	AppendChildNode(frame_node, "id", fr->frameid)
 
 	image_node = AppendChildNode(frame_node, "image")
 	'Allocate uninitialised memory
@@ -8096,48 +8124,88 @@ function frame_to_node(fr as Frame ptr, parent as NodePtr) as NodePtr
 			memcpy(imdata + y * fr->w, fr->image + y * fr->pitch, fr->w)
 		next
 	end if
+end sub
 
-	return frame_node
-end function
+'Loads an array of Frames from a "frameset" node
+function frameset_from_node(fs_node as Node ptr) as Frame ptr
+	dim as integer dataformat = GetChildNodeInt(fs_node, "format")
+	dim as integer bitdepth = GetChildNodeInt(fs_node, "bits", 8)
+	dim as integer w = GetChildNodeInt(fs_node, "w")
+	dim as integer h = GetChildNodeInt(fs_node, "h")
 
-'Loads a Frame from a "frame" node (node name not enforced)
-function frame_from_node(node as NodePtr) as Frame ptr
-	dim as integer bitdepth = GetChildNodeInt(node, "bits", 8)
-	dim as integer w = GetChildNodeInt(node, "w")
-	dim as integer h = GetChildNodeInt(node, "h")
-	if bitdepth <> 8 and bitdepth <> 32 then
-		debugc errPromptError, "frame_from_node: Unsupported graphics bitdepth " & bitdepth
+	dim as integer frames = 0
+	dim as Node ptr ch = FirstChild(fs_node, "frame")
+	while ch
+		frames += 1
+		ch = NextSibling(ch, "frame")
+	wend
+
+	if dataformat <> 0 then
+		debugc errPromptError, "frameset_from_node: unsupported data format " & dataformat
 		return NULL
 	end if
-
-	dim image_node as NodePtr = GetChildByName(node, "image")
-	dim imdata as ubyte ptr = GetZString(image_node)
-	dim imlen as integer = GetZStringSize(image_node)
-	if imdata = NULL OR imlen <> w * h * bitdepth \ 8 then
-		debugc errPromptError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & w & "*" & h & ", bitdepth=" & bitdepth & ")"
+	if frames = 0 then
+		debugc errPromptError, "frameset_from_node: no frames!"
+		return NULL
+	end if
+	if w <= 0 orelse h <= 0 orelse w > 2048 orelse h > 2048 then
+		debugc errPromptError, "frameset_from_node: bad size " & .w & "*" & .h
 		return NULL
 	end if
 
 	dim fr as Frame ptr
-
 	if bitdepth = 8 then
-		fr = frame_new(w, h)
-		if fr = NULL then
-			'If the width or height was bad then an error already shown
-			return NULL
-		end if
-		memcpy(fr->image, imdata, w * h)
+		fr = frame_new(w, h, frames)
 	elseif bitdepth = 32 then
-		dim surf as Surface ptr
-		if gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, @surf) then
-			return NULL
-		end if
-		memcpy(surf->pColorData, imdata, w * h * 4)
-		fr = frame_with_surface(surf)
-		gfx_surfaceDestroy(@surf)
+		fr = frame_new(w, h, frames, , , , YES)  'no_alloc = YES
+	else
+		debugc errPromptError, "frameset_from_node: Unsupported graphics bitdepth " & bitdepth
+		return NULL
 	end if
+	if fr = NULL then return NULL  'Should already have shown an error
+
+	dim index as integer = 0
+	dim lastid as integer = -1
+	dim fr_node as Node ptr = FirstChild(fs_node, "frame")
+	while fr_node
+		read_frame_node(@fr[index], fr_node, bitdepth, lastid)
+		fr_node = NextSibling(fr_node, "frame")
+		index += 1
+	wend
+
 	return fr
 end function
+
+'Loads a single "frame" node in a frameset
+'lastid: frameid for previous Frame
+private sub read_frame_node(fr as Frame ptr, fr_node as Node ptr, bitdepth as integer, byref lastid as integer)
+	fr->frameid = GetChildNodeInt(fr_node, "id", fr->frameid)
+	if fr->frameid <= lastid then
+		debugc errPromptError, "frame_from_node: frameids not in order; " & fr->frameid & " follows " & lastid
+		exit sub
+	end if
+	lastid = fr->frameid
+
+	dim image_node as NodePtr = GetChildByName(fr_node, "image")
+	dim imdata as ubyte ptr = GetZString(image_node)
+	dim imlen as integer = GetZStringSize(image_node)
+	if imdata = NULL OR imlen <> fr->w * fr->h * bitdepth \ 8 then
+		debugc errPromptError, "frame_from_node: Couldn't load image; data missing or bad length (" & imlen & " for " & fr->w & "*" & fr->h & ", bitdepth=" & bitdepth & ")"
+		exit sub
+	end if
+
+	if bitdepth = 8 then
+		memcpy(fr->image, imdata, fr->w * fr->h)
+	elseif bitdepth = 32 then
+		dim surf as Surface ptr
+		if gfx_surfaceCreate(fr->w, fr->h, SF_32bit, SU_Staging, @surf) then
+			exit sub
+		end if
+		memcpy(surf->pColorData, imdata, fr->w * fr->h * 4)
+		init_frame_with_surface(fr, surf)
+		gfx_surfaceDestroy(@surf)
+	end if
+end sub
 
 'Public:
 ' Releases a reference to a sprite and nulls the pointer.
