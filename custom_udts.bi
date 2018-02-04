@@ -66,9 +66,9 @@ TYPE SpriteEditStatic
   palindex as integer
 END TYPE
 
-TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr)
+TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr, defpal as integer)
 
-'spriteset_editor state
+'old_spriteset_editor state
 TYPE SpriteSetBrowseState
   spritefile as string
   fileset as SpriteType '.PT# number

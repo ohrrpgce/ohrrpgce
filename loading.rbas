@@ -3310,6 +3310,47 @@ SUB initialise_backcompat_pt_frameids(fr as Frame ptr, sprtype as SpriteType)
   END IF
 END SUB
 
+DIM SHARED box_border_captions(15) as zstring ptr = { _
+  @"Top Left Corner", @"Top Edge Left", @"Top Edge", @"Top Edge Right", _
+  @"Top Right Corner", @"Left Edge Top", @"Right Edge Top", @"Left Edge", _
+  @"Right Edge", @"Left Edge Bottom", @"Right Edge Bottom", @"Bottom Left Corner", _
+  @"Bottom Edge Left", @"Bottom Edge", @"Bottom Edge Right", @"Bottom Right Corner" _
+}
+
+'Initialises info() with the default names of the different frame groups
+SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
+  SELECT CASE sprtype
+    CASE sprTypeHero
+      REDIM info(5)
+      info(0).set(0,   "Stand/Walk", 2)
+      info(1).set(100, "Attack", 2)
+      info(2).set(200, "Cast/Use", 1)
+      info(3).set(300, "Hurt", 1)
+      info(4).set(400, "Weak", 1)
+      info(5).set(500, "Dead", 1)
+    CASE sprTypeWalkabout
+      REDIM info(3)
+      info(0).set(0,   "Up", 2)
+      info(1).set(100, "Right", 2)
+      info(2).set(200, "Down", 2)
+      info(3).set(300, "Left", 2)
+    CASE sprTypeWeapon
+      REDIM info(0)
+      info(0).set(0,   "", 2)
+    CASE sprTypeAttack
+      REDIM info(0)
+      info(0).set(0,   "", 3)
+    CASE sprTypeBoxBorder
+      REDIM info(15)
+      FOR i as integer = 0 TO 15
+        info(i).set(i, *box_border_captions(i), 1)
+      NEXT
+    CASE ELSE
+      REDIM info(0)
+      info(0).set(0,   "", 1)
+  END SELECT
+END SUB
+
 '==================================== Animations ==========================================
 
 
@@ -3714,6 +3755,7 @@ SUB rgfx_save_spriteset(fr as Frame ptr, sprtype as SpriteType, setnum as intege
   DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
   IF rgfxdoc = NULL THEN EXIT SUB
   rgfx_save_spriteset(rgfxdoc, fr, sprtype, setnum)
+  SerializeBin graphics_file(rgfx_lumpnames(sprtype)), rgfxdoc
   FreeDocument rgfxdoc
 END SUB
 

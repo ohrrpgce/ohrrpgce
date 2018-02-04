@@ -154,6 +154,7 @@ DECLARE FUNCTION read_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprt
 DECLARE SUB add_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer, newidx as integer)
 DECLARE FUNCTION rgfx_load_global_animations (rgfxdoc as Doc ptr) as SpriteSet ptr
 DECLARE FUNCTION default_global_animations (sprtype as SpriteType) as SpriteSet ptr
+DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
 
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)

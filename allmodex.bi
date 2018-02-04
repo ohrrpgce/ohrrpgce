@@ -72,6 +72,15 @@ Type GraphicPair
 	pal as Palette16 ptr
 End Type
 
+'Information for a specific group of frames (frames xx, 1xx, 2xx, etc), typically shared between
+'all spritesets of a certain type
+Type FrameGroupInfo
+	frameid as integer
+	name as string
+	default_num as integer  'Number of frames to create in new spritesets, 0 for none
+
+	DECLARE SUB set(frameid as integer, name as string, default_num as integer)
+End Type
 
 '==========================================================================================
 '                              Video pages and video mode

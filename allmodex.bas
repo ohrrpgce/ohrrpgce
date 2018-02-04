@@ -9464,6 +9464,12 @@ function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as boo
 	return nearest
 end function
 
+sub FrameGroupInfo.set(frameid as integer, name as string, default_num as integer)
+	this.frameid = frameid
+	this.name = name
+	this.default_num = default_num
+end sub
+
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
 	if frameset->arrayelem then fatalerror "SpriteSet needs first Frame in array"

@@ -223,6 +223,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_EDITOR_SSED_PALETTE_GRID: RETURN "editor_ssed_palette_grid"
   CASE SL_EDITOR_SSED_PALETTE_TEXT: RETURN "editor_ssed_palette_text"
   CASE SL_EDITOR_SSED_SET_INFO: RETURN "editor_ssed_set_info"
+  CASE SL_EDITOR_SSED_SET: RETURN "editor_ssed_set"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
