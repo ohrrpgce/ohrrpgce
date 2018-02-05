@@ -74,9 +74,9 @@ DECLARE FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as
 
 DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
 
-DECLARE SUB loaddefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
-DECLARE SUB savedefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
-DECLARE SUB guessdefaultpals (byval fileset as SpriteType, poffset() as integer, byval sets as integer)
+DECLARE SUB loaddefaultpals (byval fileset as SpriteType, poffset() as integer)
+DECLARE SUB savedefaultpals (byval fileset as SpriteType, poffset() as integer, maxset as integer)
+DECLARE SUB guessdefaultpals (byval fileset as SpriteType, poffset() as integer)
 DECLARE FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as integer
 DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as SpriteType, byval spr as integer) as integer
 

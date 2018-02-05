@@ -3527,7 +3527,7 @@ SUB convert_pt_to_rgfx(dest_type as SpriteType)
 
     DIM lastset as integer = gen(sprite_sizes(sprtype).genmax)
     DIM defpals(lastset) as integer
-    loaddefaultpals sprtype, defpals(), lastset
+    loaddefaultpals sprtype, defpals()
 
     FOR setnum as integer = 0 TO lastset
       DIM fr as Frame ptr

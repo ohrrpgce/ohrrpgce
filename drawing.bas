@@ -2367,7 +2367,7 @@ FOR i = 0 TO 15
  'nulpal is used for getsprite and can go away once we convert to use Frame
  poke8bit ss.nulpal(), i, i
 NEXT i
-loaddefaultpals ss.fileset, poffset(), sets
+loaddefaultpals ss.fileset, poffset()
 spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
 
 setkeys
@@ -2414,7 +2414,7 @@ DO
    savedefaultpals ss.fileset, poffset(), sets
    old_spriteset_editor ss.wide * ss.perset, ss.high, sets, 1, info(), ss.fileset, YES, state.pt, state.top
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
-   loaddefaultpals ss.fileset, poffset(), sets
+   loaddefaultpals ss.fileset, poffset()
    spriteedit_load_all_you_see state.top, ss, workpal(), poffset()
   END IF
  END IF
@@ -4274,7 +4274,7 @@ SUB SpriteSetBrowser.build_menu()
 
   ' Load palettes
   REDIM defpalettes(gen(genmax))
-  loaddefaultpals sprtype, defpalettes(), gen(genmax)
+  loaddefaultpals sprtype, defpalettes()
 
   ' Build slice collection
   root = NewSliceOfType(slContainer)
