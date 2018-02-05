@@ -111,6 +111,8 @@ SUB init_save_system()
 
 END SUB
 
+'Note: resetgame (only if a game was previously started) + initgamedefaults MUST be called before loadgame
+'to initialise anything missing from the save file
 SUB loadgame (byval slot as integer)
  IF slot >= 0 ANDALSO slot <= 31 THEN
   lastsaveslot = slot + 1
@@ -677,7 +679,7 @@ SUB gamestate_party_from_reload(byval node as Reload.NodePtr)
          j = GetInteger(n)
          SELECT CASE j
           CASE 0 TO 4
-           eqstuf(i, j) = n."item".default(-1) + 1
+           gam.hero(i).equip(j).id = n."item".default(-1)
           CASE ELSE
            rsav_warn "invalid equip slot " & j
          END SELECT
@@ -1146,8 +1148,8 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
   
    ch = SetChildNode(slot, "equipment")
    FOR j as integer = 0 TO 4
-    IF eqstuf(i, j) > 0 THEN
-     SetKeyValueNode(ch, "equip", j, eqstuf(i, j) - 1, "item")
+    IF gam.hero(i).equip(j).id >= 0 THEN
+     SetKeyValueNode(ch, "equip", j, gam.hero(i).equip(j).id, "item")
     END IF
    NEXT j
  
@@ -1598,7 +1600,7 @@ END IF
 show_load_index z, "eqstuff"
 FOR i = 0 TO 40
  FOR o = 0 TO 4
-  eqstuf(i, o) = buffer(z): z = z + 1
+  gam.hero(i).equip(o).id = buffer(z) - 1: z = z + 1
  NEXT o
 NEXT i
 

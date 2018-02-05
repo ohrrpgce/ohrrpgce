@@ -177,6 +177,8 @@ END SUB
 SUB initgamedefaults
 'Exists to initialise game state which needs to start at a value
 'other than the default initialisation (zero/empty string/etc)
+'(Generally you can and should use constructors (or default UDT member values)
+'to initialise data to something other than zero)
 
 lastsaveslot = 0
 

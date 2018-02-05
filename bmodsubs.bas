@@ -821,14 +821,16 @@ END SUB
 SUB hero_total_equipment_bonuses(byval hero_slot as integer, bonuses() as integer)
  flusharray bonuses()
  DIM itembuf(dimbinsize(binITM)) as integer
- FOR slot as integer = 0 TO 4
-  IF eqstuf(hero_slot, slot) > 0 THEN    
-   loaditemdata itembuf(), eqstuf(hero_slot, slot) - 1
-   FOR statnum as integer = 0 TO statLast
-    bonuses(statnum) += itembuf(54 + statnum)
-   NEXT statnum
-  END IF
- NEXT slot
+ WITH gam.hero(hero_slot)
+  FOR slot as integer = 0 TO UBOUND(.equip)
+   IF .equip(slot).id >= 0 THEN
+    loaditemdata itembuf(), .equip(slot).id
+    FOR statnum as integer = 0 TO statLast
+     bonuses(statnum) += itembuf(54 + statnum)
+    NEXT statnum
+   END IF
+  NEXT slot
+ END WITH
 END SUB
 
 'Recompute max stats from base

@@ -37,11 +37,16 @@ TYPE HeroStats
   max as Stats
 END TYPE
 
+TYPE EquipSlot
+  id as integer = -1    'Item ID, or -1 if nothing equipped
+END TYPE
+
 TYPE HeroState
  id as integer = -1 ' set to -1 for empty slots
  name as string
  locked as bool
  stat as HeroStats
+ equip(4) as EquipSlot  'Equipment
  lev as integer
  lev_gain as integer
  exp_cur as integer
@@ -51,7 +56,7 @@ TYPE HeroState
  battle_pic as integer
  battle_pal as integer
  exp_mult as double
- def_wep as integer  'default weapon
+ def_wep as integer  'default weapon; item ID + 1, 0 is meaningless?
  pic as integer
  pal as integer
  portrait_pic as integer

@@ -647,16 +647,16 @@ SUB script_functions(byval cmdid as integer)
     '--identify new default weapon
     DIM as integer newdfw = retvals(1) + 1
     '--remember old default weapon
-    DIM as integer olddfw = gam.hero(retvals(0)).def_wep
-    '--remeber currently equipped weapon
-    DIM as integer cureqw = eqstuf(retvals(0), 0)
+    DIM as integer olddfw = gam.hero(retvals(0)).def_wep   'offset by +1
+    '--remember currently equipped weapon
+    DIM as integer cureqw = gam.hero(retvals(0)).equip(0).id
     '--change default
     gam.hero(retvals(0)).def_wep = newdfw
     '--blank weapon
-    unequip retvals(0), 0, olddfw, 0
-    IF cureqw <> olddfw THEN
+    unequip retvals(0), 0, olddfw, NO
+    IF cureqw + 1 <> olddfw THEN
      '--if previously using a weapon, re-equip old weapon
-     doequip cureqw, retvals(0), 0, newdfw
+     doequip cureqw + 1, retvals(0), 0, newdfw
     ELSE
      '--otherwize equip new default weapon
      doequip newdfw, retvals(0), 0, newdfw
@@ -1486,7 +1486,7 @@ SUB script_functions(byval cmdid as integer)
   scriptret = findhero(retvals(0) + 1, 0, 40, 1)
  CASE 91'--check equipment
   IF valid_hero_party(retvals(0)) THEN
-   scriptret = eqstuf(retvals(0), bound(retvals(1) - 1, 0, 4)) - 1
+   scriptret = gam.hero(retvals(0)).equip(bound(retvals(1) - 1, 0, 4)).id
   ELSE
    scriptret = 0
   END IF

@@ -1501,7 +1501,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
    DIM mitem as integer = -1
    k = m."kind".ptr
    IF k."weapon".exists THEN
-    wep_id = eqstuf(hero_id, 0) - 1
+    wep_id = gam.hero(hero_id).equip(0).id
     loaditemdata itembuf(), wep_id
     atk_id = itembuf(48) - 1
     IF atk_id < 0 THEN atk_id = 0
@@ -1952,6 +1952,7 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  REDIM itemelementals() as single
  DIM allelementals(5, gen(genNumElements) - 1) as single
  DIM oneelement(5) as single
+ DIM byref hero as HeroState = gam.hero(who)
 
  DIM _NaN as single = 0.0f
  _NaN = 0.0f/_NaN
@@ -1960,13 +1961,13 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 
  '--get native hero resistances
  FOR i as integer = 0 TO gen(genNumElements) - 1
-  allelementals(0, i) = gam.hero(who).elementals(i)
+  allelementals(0, i) = hero.elementals(i)
  NEXT i
 
  '--data from all equipped items fill rest of matrix
  FOR j as integer = 0 TO 4
-  IF eqstuf(who, j) > 0 THEN
-   LoadItemElementals eqstuf(who, j) - 1, itemelementals()
+  IF hero.equip(j).id >= 0 THEN
+   LoadItemElementals hero.equip(j).id, itemelementals()
 
    FOR i as integer = 0 TO gen(genNumElements) - 1
     allelementals(j + 1, i) = itemelementals(i)

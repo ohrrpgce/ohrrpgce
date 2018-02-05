@@ -21,7 +21,7 @@ DECLARE SUB old_spells_menu (byval who as integer)
 DECLARE SUB status_screen (byval slot as integer)
 DECLARE SUB spell_screen (byval slot as integer)
 DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
-DECLARE SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as integer)
+DECLARE SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as bool)
 DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
 DECLARE FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byval attacker as integer, byval spread as integer) as integer

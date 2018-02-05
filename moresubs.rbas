@@ -48,14 +48,16 @@ IF forcelevel >= 0 THEN her.def_level = forcelevel
 '--do average level enforcement
 IF her.def_level < 0 THEN her.def_level = averagelev
 
-'--formally add hero
-gam.hero(slot).id = who - 1
+WITH gam.hero(slot)
+ '--formally add hero
+ .id = who - 1
 
-'---MUST SET DEFAULT EQUIP---
-FOR i as integer = 0 TO 4
- eqstuf(slot, i) = 0
-NEXT i
-eqstuf(slot, 0) = her.def_weapon + 1
+ '---MUST SET DEFAULT EQUIP---
+ FOR i as integer = 0 TO UBOUND(.equip)
+  .equip(i).id = -1
+ NEXT i
+ .equip(0).id = her.def_weapon
+END WITH
 
 '--fill in stats
 WITH gam.hero(slot).stat
@@ -78,7 +80,11 @@ gam.hero(slot).wep_pal = wbuf(53)
 FOR i as integer = 0 TO 3
  FOR o as integer = 0 TO 23
   spell(slot, i, o) = 0
-  IF her.spell_lists(i,o).attack > 0 AND her.spell_lists(i,o).learned - 1 <= her.def_level AND her.spell_lists(i,o).learned > 0 THEN spell(slot, i, o) = her.spell_lists(i,o).attack
+  WITH her.spell_lists(i, o)
+   IF .attack > 0 AND .learned - 1 <= her.def_level AND .learned > 0 THEN
+    spell(slot, i, o) = .attack
+   END IF
+  END WITH
  NEXT o
 NEXT i
 
@@ -273,17 +279,17 @@ END FUNCTION
 FUNCTION count_equipped_item(byval item_id as integer) as integer
  DIM count as integer = 0
  FOR slot as integer = 0 to 3
-  IF gam.hero(slot).id >= 0 THEN
-   FOR eqslot as integer = 0 TO UBOUND(eqstuf, 2)
-    IF eqstuf(slot, eqslot) - 1 = item_id THEN
-     count += 1
-    END IF
+  WITH gam.hero(slot)
+   IF .id < 0 THEN CONTINUE FOR
+   FOR eqslot as integer = 0 TO UBOUND(.equip)
+    IF .equip(eqslot).id = item_id THEN count += 1
    NEXT eqslot
-  END IF
+  END WITH
  NEXT slot
  RETURN count
 END FUNCTION
 
+'Add to inventory. item_id is not offset.
 SUB getitem (byval item_id as integer, byval num as integer=1)
 
  DIM numitems as integer = num
@@ -393,11 +399,6 @@ NEXT i
 FOR i as integer = 0 TO 5
  SWAP learnmask(s * 6 + i), learnmask(d * 6 + i)
 NEXT
-
-'---Equipment
-FOR i as integer = 0 TO 4
- SWAP eqstuf(s, i), eqstuf(d, i)
-NEXT i
 
 '--set tags, reload hero pictures and palettes, etc
 party_change_updates
@@ -526,7 +527,7 @@ SUB evalitemtags
 
  FOR j as integer = 0 TO 40 'search hero list
   FOR k as integer = 0 TO 4 'search equipment slots
-   id = eqstuf(j, k) - 1
+   id = gam.hero(j).equip(k).id
    IF id >= 0 THEN ' there is an item equipped in this slot
     settag itemtags(id).have_tag, YES
     settag itemtags(id).is_equipped_tag, YES
@@ -1224,7 +1225,7 @@ SUB resetgame ()
 'as this is ONLY called AFTER playing a game, on gameover/resetgame/loadgame/quit.
 'initgamedefaults is probably a better place for that.
 'In order words, be suspicious of anything in here that resets
-'to a value other than zero/empty string/etc.
+'to a value other than zero/empty string/whatever the UDT's default value is.
 
 gam.map.id = 0
 (herox(0)) = 0
@@ -1247,6 +1248,7 @@ CleanNPCL npc()
 flusharray tag()
 flusharray onetime()
 FOR i as integer = 0 TO 40
+ 'TODO: use HeroState.Constructor instead
  gam.hero(i).id = -1
  gam.hero(i).locked = NO
  FOR j as integer = 0 TO statLast
@@ -1272,32 +1274,22 @@ FOR i as integer = 0 TO 40
   gam.hero(i).hand_pos(j).x = 0
   gam.hero(i).hand_pos(j).y = 0
  NEXT j
-NEXT i
-FOR i as integer = 0 TO 40
  FOR o as integer = 0 TO 3
   FOR j as integer = 0 TO 23
    spell(i, o, j) = 0
   NEXT j
  NEXT o
-NEXT i
-FOR i as integer = 0 TO 40
  FOR o as integer = 0 TO 7
   lmp(i, o) = 0
  NEXT o
-NEXT i
-FOR i as integer = 0 TO 40
  gam.hero(i).exp_cur = 0
  gam.hero(i).exp_next = 0
-NEXT i
-FOR i as integer = 0 TO 40
  gam.hero(i).name = ""
-NEXT i
-CleanInventory(inventory())
-FOR i as integer = 0 TO 40
- FOR o as integer = 0 TO 4
-  eqstuf(i, o) = 0
+ FOR o as integer = 0 TO UBOUND(gam.hero(i).equip)
+  gam.hero(i).equip(o).id = -1
  NEXT o
 NEXT i
+CleanInventory(inventory())
 
 FOR i as integer = 0 TO 99
  FOR o as integer = 0 TO 49

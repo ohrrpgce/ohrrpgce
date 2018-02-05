@@ -743,7 +743,7 @@ Type HeroDef
 	portrait_pal as integer
 	def_level as integer
 	exp_mult as double
-	def_weapon as integer
+	def_weapon as integer    'Not offset by 1, unlike HeroState.def_wep!
 	Lev0 as stats
 	LevMax as stats
 	spell_lists(3,23) as SpellList

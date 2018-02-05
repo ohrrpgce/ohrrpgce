@@ -96,7 +96,6 @@ REDIM statnames() as string
 'Party stuff
 REDIM spell(40, 3, 23) as integer
 REDIM lmp(40, 7) as integer
-REDIM eqstuf(40, 4) as integer
 REDIM inventory(inventoryMax) as InventSlot
 DIM gold as integer
 
