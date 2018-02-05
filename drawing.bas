@@ -4396,10 +4396,14 @@ SUB SpriteSetBrowser.update()
   IF info_text = NULL ORELSE ps.cur = NULL THEN EXIT SUB
   DIM as TextSliceData ptr info_text_dat = info_text->SliceData
 
+  DIM pal_root as Slice ptr = edsl(ssed_palette_root, root)
+  IF pal_root = NULL THEN EXIT SUB
+
   DIM info_str as string
   IF cur_setnum = -1 THEN  'Add new
     info_str = "ENTER to add a new spriteset"
     info_text_dat->show_insert = NO
+    pal_root->Visible = NO
   ELSE
     info_str = "Spriteset " & cur_setnum
 
@@ -4420,6 +4424,7 @@ SUB SpriteSetBrowser.update()
     ChangeTextSlice edsl(ssed_palette_text, root), "Def pal " & defpalettes(cur_setnum)
 
     'Show the palette
+    pal_root->Visible = YES
     DIM pal_sl as Slice ptr = edsl(ssed_palette_grid, root)
     IF pal_sl = NULL THEN EXIT SUB
 
