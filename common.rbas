@@ -1609,8 +1609,8 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  ELSEIF scrollwheel = wheelAlways THEN
   updown = readmouse().wheel_clicks
  END IF
- IF more <> 0 ANDALSO keyval(more) > 1 THEN updown += 1
- IF less <> 0 ANDALSO keyval(less) > 1 THEN updown -= 1
+ IF more <> scNone ANDALSO keyval(more) > 1 THEN updown += 1
+ IF less <> scNone ANDALSO keyval(less) > 1 THEN updown -= 1
 
  IF updown THEN
   n = bound(n, min, max)
@@ -1738,10 +1738,10 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
  END IF
  oldvisval = visval
 
- IF more <> 0 ANDALSO keyval(more) > 1 THEN
+ IF more <> scNone ANDALSO keyval(more) > 1 THEN
   'easy case
   loopvar n, valmin, valmax, 1
- ELSEIF less <> 0 ANDALSO keyval(less) > 1 THEN
+ ELSEIF less <> scNone ANDALSO keyval(less) > 1 THEN
   'easy case
   loopvar n, valmin, valmax, -1
 
