@@ -215,7 +215,6 @@ TYPE EquipMenuState
   who                 as integer
   slot                as integer
   eq_cursor           as MenuState
-  default_weapon      as integer 'item ID + 1
   default_weapon_name as string
   unequip_caption     as string
   eq(4)               as EquippableList

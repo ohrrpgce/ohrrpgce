@@ -836,9 +836,12 @@ SUB update_hero_max_and_cur_stats (byval who as integer)
  END WITH
 END SUB
 
+'Equip an item. Automatically unequips anything previously equipped.
 'toequip: item ID + 1 (0 is invalid).
-SUB doequip (byval toequip as integer, byval who as integer, byval where as integer, byval defwep as integer)
- IF gam.hero(who).equip(where).id >= 0 THEN debugc errPromptBug, "doequip called without unequipping first"
+SUB doequip (toequip as integer, who as integer, where as integer)
+ IF gam.hero(who).equip(where).id >= 0 THEN
+  unequip who, where, NO  'Removes the default weapon too
+ END IF
 
  '--set equipment
  gam.hero(who).equip(where).id = toequip - 1
@@ -854,7 +857,7 @@ SUB doequip (byval toequip as integer, byval who as integer, byval where as inte
  END IF
 
  '--equipping the default weapon does not delete it from inventory
- IF toequip = defwep AND where = 0 THEN
+ IF toequip = gam.hero(who).def_wep AND where = 0 THEN
  ELSE
   '--delete the item from inventory
   delitem toequip - 1
@@ -2518,26 +2521,28 @@ RETURN result
 END FUNCTION
 
 'defwep is item ID + 1
-'resetdw: if unequipping weapon, reequip the default weapon
-SUB unequip (byval who as integer, byval where as integer, byval defwep as integer, byval resetdw as bool)
- '--exit if nothing is equiped
- IF gam.hero(who).equip(where).id < 0 THEN EXIT SUB
+'resetdefwep: if unequipping weapon, reequip the default weapon
+SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
+ WITH gam.hero(who)
+  '--exit if nothing is equiped
+  IF .equip(where).id < 0 THEN EXIT SUB
 
- '--return item to inventory (if not the default weapon)
- IF where = 0 AND gam.hero(who).equip(where).id = defwep - 1 THEN
- ELSE
-  getitem gam.hero(who).equip(where).id
- END IF
+  '--return item to inventory (if not the default weapon)
+  IF where = 0 AND .equip(where).id = .def_wep - 1 THEN
+  ELSE
+   getitem .equip(where).id
+  END IF
 
- '--blank out equipment
- gam.hero(who).equip(where).id = -1
+  '--blank out equipment
+  .equip(where).id = -1
 
- update_hero_max_and_cur_stats who
+  update_hero_max_and_cur_stats who
 
- IF where = 0 AND resetdw THEN
-  '--restore default weapon
-  doequip defwep, who, where, defwep
- END IF
+  IF where = 0 AND resetdefwep THEN
+   '--restore default weapon
+   doequip .def_wep, who, where
+  END IF
+ END WITH
 
  evalitemtags
  evalherotags  'You could kill someone, right?
@@ -2631,7 +2636,6 @@ WITH st
  .mode = 0
  .who = who
  .eq_cursor.size = 17
- .default_weapon = 0
  .default_weapon_name = ""
  .unequip_caption = rpad(readglobalstring(110, "Nothing", 10), " ", 11)
 END WITH
@@ -2701,7 +2705,7 @@ DO
     MenuSound gen(genCancelSFX)
     '--unequip all
     FOR i as integer = 0 TO 4
-     unequip st.who, i, st.default_weapon, 1
+     unequip st.who, i
     NEXT i
     equip_menu_setup st, menu()
     'UPDATE ITEM POSSESSION BITSETS
@@ -2724,7 +2728,7 @@ DO
   IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
     '--unequip
-    unequip st.who, st.slot, st.default_weapon, 1
+    unequip st.who, st.slot
     equip_menu_back_to_menu st, menu()
     MenuSound gen(genCancelSFX)
    ELSE
@@ -2832,7 +2836,7 @@ FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
   '--last option: unequip
   IF st.slot = 0 THEN
    '--special handling for weapon
-   RETURN st.default_weapon - 1
+   RETURN gam.hero(st.who).def_wep - 1
   ELSE
    RETURN -1
   END IF
@@ -2877,8 +2881,7 @@ END FUNCTION
 SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
  DIM byref herost as HeroState = gam.hero(st.who)
  loadherodata st.hero, herost.id
- st.default_weapon = herost.def_wep
- st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
+ st.default_weapon_name = rpad(readitemname(herost.def_wep - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
   st.default_weapon_name = st.unequip_caption
  END IF
@@ -2921,8 +2924,7 @@ SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 END SUB
 
 SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
- unequip st.who, st.slot, st.default_weapon, 0
- doequip item, st.who, st.slot, st.default_weapon
+ doequip item, st.who, st.slot
  equip_menu_back_to_menu st, menu()
 END SUB
 

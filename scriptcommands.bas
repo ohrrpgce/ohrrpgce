@@ -609,14 +609,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 23'--unequip
   IF valid_hero_party(retvals(0)) THEN
    i = retvals(0)
-   unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
+   unequip i, bound(retvals(1) - 1, 0, 4)
   END IF
  CASE 24'--force equip
   IF valid_hero_party(retvals(0)) THEN
    i = retvals(0)
    IF valid_item(retvals(2)) THEN
-    unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 0
-    doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep
+    doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4)
    END IF
   END IF
  CASE 32'--show backdrop
@@ -652,14 +651,12 @@ SUB script_functions(byval cmdid as integer)
     DIM as integer cureqw = gam.hero(retvals(0)).equip(0).id
     '--change default
     gam.hero(retvals(0)).def_wep = newdfw
-    '--blank weapon
-    unequip retvals(0), 0, olddfw, NO
     IF cureqw + 1 <> olddfw THEN
      '--if previously using a weapon, re-equip old weapon
-     doequip cureqw + 1, retvals(0), 0, newdfw
+     doequip cureqw + 1, retvals(0), 0
     ELSE
      '--otherwize equip new default weapon
-     doequip newdfw, retvals(0), 0, newdfw
+     doequip newdfw, retvals(0), 0
     END IF
    END IF
   END IF
