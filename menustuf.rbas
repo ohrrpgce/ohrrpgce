@@ -837,30 +837,32 @@ SUB update_hero_max_and_cur_stats (byval who as integer)
 END SUB
 
 'Equip an item. Automatically unequips anything previously equipped.
-'toequip: item ID + 1 (0 is invalid).
+'toequip: item ID (-1 is invalid)
+'who: hero slot
+'where: equip slot
 SUB doequip (toequip as integer, who as integer, where as integer)
  IF gam.hero(who).equip(where).id >= 0 THEN
   unequip who, where, NO  'Removes the default weapon too
  END IF
 
  '--set equipment
- gam.hero(who).equip(where).id = toequip - 1
+ gam.hero(who).equip(where).id = toequip
 
  update_hero_max_and_cur_stats who
 
  '--special handling for weapons
  IF where = 0 THEN
   DIM itembuf(dimbinsize(binITM)) as integer
-  loaditemdata itembuf(), toequip - 1
+  loaditemdata itembuf(), toequip
   gam.hero(who).wep_pic = itembuf(52) 'remember weapon pic
   gam.hero(who).wep_pal = itembuf(53) 'remember weapon pal
  END IF
 
  '--equipping the default weapon does not delete it from inventory
- IF toequip = gam.hero(who).def_wep AND where = 0 THEN
+ IF toequip = gam.hero(who).def_wep - 1 AND where = 0 THEN
  ELSE
   '--delete the item from inventory
-  delitem toequip - 1
+  delitem toequip
  END IF
 
  evalitemtags
@@ -2520,7 +2522,8 @@ RETURN result
 
 END FUNCTION
 
-'defwep is item ID + 1
+'who: hero slot
+'where: equip slot
 'resetdefwep: if unequipping weapon, reequip the default weapon
 SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
  WITH gam.hero(who)
@@ -2540,7 +2543,7 @@ SUB unequip (who as integer, where as integer, resetdefwep as bool = YES)
 
   IF where = 0 AND resetdefwep THEN
    '--restore default weapon
-   doequip .def_wep, who, where
+   doequip .def_wep - 1, who, where
   END IF
  END WITH
 
@@ -2734,7 +2737,7 @@ DO
    ELSE
     '--normal equip
     item_id = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
-    equip_menu_do_equip item_id + 1, st, menu()
+    equip_menu_do_equip item_id, st, menu()
     MenuSound gen(genAcceptSFX)
    END IF
   END IF
