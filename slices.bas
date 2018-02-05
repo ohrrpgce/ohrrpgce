@@ -903,6 +903,17 @@ Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
  s->Clip = b
 End Sub
 
+'FillMode is so painful to deal with that we need these
+'TODO: find a proper solution
+Function Slice.FillHoriz() as bool
+ return Fill andalso FillMode <> sliceFillVert
+End Function
+
+Function Slice.FillVert() as bool
+ return Fill andalso FillMode <> sliceFillHoriz
+End Function
+
+
 '==Special slice types=========================================================
 
 '--Rectangle--------------------------------------------------------------

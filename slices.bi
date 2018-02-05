@@ -254,6 +254,8 @@ Type Slice
   ' the size of non-resizeable slices can be changed, which is a bug.
   Fill as bool
   FillMode as FillModes
+  Declare Function FillHoriz() as bool
+  Declare Function FillVert() as bool
 
   CoverChildren as CoverModes
 
@@ -340,7 +342,7 @@ End Type
 Type TextSliceData
  col as integer
  bgcol as integer
- outline as integer
+ outline as bool
  s as string
  s_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as bool     'Whether to wrap the text according to slice width. Otherwise slice width is determined by s.
@@ -349,8 +351,8 @@ Type TextSliceData
  'All of the following are UNSAVED and not cloned and are not exposed to users in the editor or in scripts
  use_render_text as bool 'Use alternative render_text-based implementation. Enables text markup.
  insert as integer 'char offset of insertion pointer. Zero-based!
- show_insert as integer ' set to YES to display insertion point
- insert_tog as integer 'flash state of insertion pointer
+ show_insert as bool    ' set to YES to display insertion point
+ insert_tog as integer 'flash state of insertion pointer (0 or 1)
  first_line as integer 'Top-most line to show. Used for scrolling
  line_limit as integer = -1 'Number of lines to display. -1 is no limit
  line_count as integer 'automatically populated when the slice changes

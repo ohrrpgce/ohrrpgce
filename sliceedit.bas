@@ -987,18 +987,18 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
 END FUNCTION
 
 'Copy a slice to the internal clipboard
-SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
+SUB slice_editor_copy(byref ses as SliceEditState, byval tocopy as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
  DIM sl as Slice Ptr
- IF slice THEN
+ IF tocopy THEN
   ses.clipboard = NewSliceOfType(slContainer)
-  IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(slice, ses.specialcodes()) THEN
+  IF ses.privileged = NO ANDALSO slice_editor_forbidden_search(tocopy, ses.specialcodes()) THEN
    'If we're copying some special slices, so sanitise with copy_special=NO,
    'which blanks out all special lookup codes and wipes .Protected
-   sl = CloneSliceTree(slice, , NO)  'copy_special=NO
+   sl = CloneSliceTree(tocopy, , NO)  'copy_special=NO
   ELSE
    ' Preserve lookup codes, including negative ones which are allowed in this editor
-   sl = CloneSliceTree(slice)
+   sl = CloneSliceTree(tocopy)
   END IF
   SetSliceParent sl, ses.clipboard
  ELSE
@@ -1006,19 +1006,19 @@ SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byv
  END IF
 END SUB
 
-'Insert pasted slices before 'slice'
-SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
+'Insert pasted slices before 'putbefore'
+SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr, byval edslice as Slice Ptr)
  IF ses.clipboard THEN
   DIM child as Slice Ptr
   child = ses.clipboard->LastChild
   WHILE child
    DIM copied as Slice Ptr = CloneSliceTree(child)
-   IF slice <> 0 AND slice <> edslice THEN
-    InsertSliceBefore slice, copied
+   IF putbefore <> 0 AND putbefore <> edslice THEN
+    InsertSliceBefore putbefore, copied
    ELSE
     SetSliceParent copied, edslice
    END IF
-   slice = copied
+   putbefore = copied
    child = child->PrevSibling
   WEND
  END IF
