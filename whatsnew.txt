@@ -54,6 +54,8 @@ Jan ? 2018 [Etheldreme+1]
       its argument is actually party caterpillar rank [Ralph]
     * The width of a Text slice didn't update after changing the text in the
       slice editor [Ralph]
+    * Bad results if "scroll to child" was called twice in a row, or after the
+      slice tree was modified, without a "wait" in-between [Ralph]
 
 Dec 3 2017 [Etheldreme]
 

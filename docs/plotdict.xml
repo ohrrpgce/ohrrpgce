@@ -7601,10 +7601,23 @@ The third argument is the total number of ticks that the animation should run. Y
 			</seealso>
 		</command>
 		<command id="scrolltochild">
-			<canon>scroll to child (parent, child)</canon>
+			<canon>scroll to child (parent, sl)</canon>
 			<shortname>scroll to child</shortname>
-			<description>Causes all the children of the parent slice to be scrolled until the screen position of the child slice fits inside the parent.
-			<note>This is mainly intended for scroll slices, such as those created with the <ref>createscroll</ref> command, but it can be used on any type of slice. (Children that are set to fill their parents, or children that are automatically positioned by a grid parent may be unaffected.)</note></description>
+			<description>
+				Causes all the children of the <p>parent</p> slice to be scrolled until the screen position of <p>sl</p>,
+				a child or descendent of <p>parent</p>, fits inside the parent.
+				<note>
+					This is mainly intended for scroll slices, such as those created with the <ref>createscroll</ref> command,
+					but it can be used on any type of slice.
+					(Children that are set to fill their parents, or children that are automatically
+					positioned by a grid parent will be unaffected, and an error or warning may be shown.)
+				</note>
+				<note>
+					This command is misnamed, as it works for all descendent slices, not just children!
+					It only changes the positions of the children of <p>parent</p>,
+					but that causes the screen position of <p>sl</p> to also change.
+				</note>
+			</description>
 		</command>
 		</section>		<!--Scroll Slices-->
 

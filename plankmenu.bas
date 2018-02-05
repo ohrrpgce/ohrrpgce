@@ -161,7 +161,7 @@ FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
  DIM as XYPair min, max
  CalcSliceContentsSize scroll, min, max, 0
  DIM dist as integer = 30 'this is a reasonable number of pixels, I guess?
- DIM scroll_move as integer = dist * -1 * readmouse.wheel_clicks
+ DIM scroll_move as integer = dist * -1 * readmouse.wheel_delta / 120
  DO WHILE min.y + scroll_move > topy : scroll_move -= 1 : LOOP
  DO WHILE max.y + scroll_move < boty : scroll_move += 1 : LOOP
  ScrollAllChildren scroll, 0, scroll_move

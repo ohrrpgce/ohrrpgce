@@ -2744,14 +2744,15 @@ end sub
 
 Sub ScrollAllChildren(byval sl as Slice ptr, byval xmove as integer, byval ymove as integer)
  'Shift all children's X/Y by an offset.
- 'Doesn't work on Grid slices
+ 'Doesn't work on Grid slices, which ignore X/Y, but should work on Layout.
  'This is intended for ScrollSlice, but can actually work on any type.
  if sl = 0 then debug "ScrollAllChildren: null scroll slice ptr": exit sub
  if sl->SliceType = slGrid then reporterr "ScrollAllChildren: can't scroll a Grid slice": exit sub
  dim ch as Slice ptr = sl->FirstChild
  do while ch
-  ch->X += xmove
-  ch->Y += ymove
+  'Filling slices ignore X/Y, so don't cause X/Y to go crazy
+  if ch->FillHoriz = NO then ch->X += xmove
+  if ch->FillVert = NO then ch->Y += ymove
   ch = ch->NextSibling
  loop
 end sub
@@ -2763,9 +2764,13 @@ Sub ScrollToChild(byval sl as Slice ptr, byval ch as Slice ptr)
  if sl = 0 then debug "ScrollToChild: null scroll slice ptr": exit sub
  if ch = 0 then debug "ScrollToChild: null child slice ptr": exit sub
  if not IsAncestor(ch, sl) then reporterr "ScrollToChild: can't scroll to a slice that's not a descendant": exit sub
+ 'If the child of sl which ch is a descendent of is set to Fill, then
+ 'this function won't work. Too much trouble to check for though.
+
+ RefreshSliceScreenPos ch
 
  dim xmove as integer = 0
- dim ymove as integer = 0 
+ dim ymove as integer = 0
  dim diff as integer
  diff = (sl->ScreenY + sl->Height) - (ch->ScreenY + ch->Height)
  if diff < 0 then ymove = diff
