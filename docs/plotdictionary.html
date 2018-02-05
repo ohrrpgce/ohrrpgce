@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2017-12-28)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-02-05)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -430,6 +430,10 @@
 </li>
 		<li>
 <a href="#Rect%20Slices">Rect Slices</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#Line%20Slices">Line Slices</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -753,6 +757,9 @@
 		
 	
 		<a href="#about-creategrid">create grid (width, height, rows, columns)</a><br>
+		
+	
+		<a href="#about-createline">create line (width, height, color)</a><br>
 		
 	
 		<a href="#about-createmenu">create menu</a><br>
@@ -1197,6 +1204,9 @@
 		
 	
 		<a href="#about-getlevelmp">get level MP (who, mp level slot, type)</a><br>
+		
+	
+		<a href="#about-getlinecolor">get line color (handle)</a><br>
 		
 	
 		<a href="#about-getloadscript">get load script</a><br>
@@ -2243,7 +2253,7 @@
 		<a href="#about-scripterror">script error (string id)</a><br>
 		
 	
-		<a href="#about-scrolltochild">scroll to child (parent, child)</a><br>
+		<a href="#about-scrolltochild">scroll to child (parent, sl)</a><br>
 		
 	
 		<a href="#about-searchstring">search string (ID1, ID2, start)</a><br>
@@ -2424,6 +2434,9 @@
 		
 	
 		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
+		
+	
+		<a href="#about-setlinecolor">set line color (handle, color)</a><br>
 		
 	
 		<a href="#about-setloadscript">set load script (id)</a><br>
@@ -2787,6 +2800,9 @@
 		
 	
 		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
+		
+	
+		<a href="#about-sliceisline">slice is line (handle)</a><br>
 		
 	
 		<a href="#about-sliceismaplayer">slice is map layer (handle)</a><br>
@@ -10943,6 +10959,10 @@ set menu on close script(m, @my menu exit handler)
 		<ul></ul>
 </li>
 		<li>
+<a href="#Line%20Slices">Line Slices</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Ellipse%20Slices">Ellipse Slices</a><br>
 		<ul></ul>
 </li>
@@ -13496,6 +13516,10 @@ end
 		<ul></ul>
 </li>
 		<li>
+<a href="#Line%20Slices">Line Slices</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Ellipse%20Slices">Ellipse Slices</a><br>
 		<ul></ul>
 </li>
@@ -13599,6 +13623,16 @@ end
 		<h4>slice is rect (handle)</h4>
 <p>
 			Returns true if the given slice <span class="param">handle</span> is a rect, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-sliceisline"></a>
+		<h4>slice is line (handle)</h4>
+<p>
+			Returns true if the given slice <span class="param">handle</span> is a line, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
 			
 			
 			
@@ -14816,6 +14850,77 @@ The third argument is the total number of ticks that the animation should run. Y
 		<hr>
 		</div>
 		<div class="subsection">
+<a name="Line%20Slices"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			<a href="#Slice%20Types">Slice Types</a> →
+			</span>Line Slices</h3>
+		<ul></ul>
+<p>
+			Line slices are slighty different; their size doesn't exactly define the size of the rectangular part of the
+			screen which they stretch across,
+			but is instead used as the offset between their ends.
+			Both ends are drawn inclusively.
+			For example a width 10 height 0 Line slice positioned at x=50,y=20 will draw a line from 50,20 to 60,20,
+			as a rectangle that's actually 11 pixels long and 1 pixel high.
+			The line thickness is always 1 pixel.
+			A width=0 height=0 line slice is a single pixel.
+			<br>
+			So you can give line slices a negative width or height too, to draw a line at any angle.
+			The "top-left" alignment point of a line slice is its start point, and the "bottom-right" is its end point.
+		</p>
+		
+		
+		<div class="command">
+<a name="about-createline"></a>
+		<h4>create line (width, height, color)</h4>
+<p>
+			
+				Create a new line slice and return a handle to it.
+				You can provide an optional <span class="param">width</span> and <span class="param">height</span> and an optional <span class="param">color</span> (all default to 0).
+				Like all slice types, an line slice can be used as a container for other slices with <a href="#about-setparent" class="ref">set parent</a>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+		<h4>slice is line (handle)</h4>
+		<p><a href="#about-sliceisline">Defined in the Checking Slice Type section.</a></p>
+		</div>
+		<div class="command">
+<a name="about-getlinecolor"></a>
+		<h4>get line color (handle)</h4>
+<p>
+			
+				Given an line slice <span class="param">handle</span>, return its color.
+				This will be a number from 0 to 255 representing a color from the master palette,
+				or less than 0 for a UI color.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setlinecolor" class="ref">set line color</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setlinecolor"></a>
+		<h4>set line color (handle, color)</h4>
+<p>
+			
+				Given an line slice <span class="param">handle</span>, change its color.
+				The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getlinecolor" class="ref">get line color</a></li></ul>
+</div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
 <a name="Ellipse%20Slices"></a>
 		<h3>
 <span class="backlink"><a href="#Slices">Slices</a> →
@@ -14850,8 +14955,6 @@ The third argument is the total number of ticks that the animation should run. Y
 <li>
 <a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
 <li>
-<a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
-<li>
 <a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
 <li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
 </ul>
@@ -14866,8 +14969,6 @@ The third argument is the total number of ticks that the animation should run. Y
 			
 			
 			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
 <li>
 <a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
 <li>
@@ -14889,9 +14990,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
 <li>
 <a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
-<li>
-<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
-<li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
+<li><a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a></li>
 </ul>
 </div>
 		</p>
@@ -14908,8 +15007,6 @@ The third argument is the total number of ticks that the animation should run. Y
 <a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
 <li>
 <a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
-<li>
-<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
 <li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
 </ul>
 </div>
@@ -15314,11 +15411,25 @@ The third argument is the total number of ticks that the animation should run. Y
 </div>
 		<div class="command">
 <a name="about-scrolltochild"></a>
-		<h4>scroll to child (parent, child)</h4>
+		<h4>scroll to child (parent, sl)</h4>
 <p>
-			Causes all the children of the parent slice to be scrolled until the screen position of the child slice fits inside the parent.
-			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">This is mainly intended for scroll slices, such as those created with the <a href="#about-createscroll" class="ref">create scroll</a> command, but it can be used on any type of slice. (Children that are set to fill their parents, or children that are automatically positioned by a grid parent may be unaffected.)</div>
+			
+				Causes all the children of the <span class="param">parent</span> slice to be scrolled until the screen position of <span class="param">sl</span>,
+				a child or descendent of <span class="param">parent</span>, fits inside the parent.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This is mainly intended for scroll slices, such as those created with the <a href="#about-createscroll" class="ref">create scroll</a> command,
+					but it can be used on any type of slice.
+					(Children that are set to fill their parents, or children that are automatically
+					positioned by a grid parent will be unaffected, and an error or warning may be shown.)
+				</div>
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					This command is misnamed, as it works for all descendent slices, not just children!
+					It only changes the positions of the children of <span class="param">parent</span>,
+					but that causes the screen position of <span class="param">sl</span> to also change.
+				</div>
+			
 			
 			
 			
@@ -18492,7 +18603,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 826 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 830 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
