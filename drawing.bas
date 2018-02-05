@@ -4192,12 +4192,14 @@ TYPE SpriteSetBrowser
 
   root as Slice ptr
   hover as Slice ptr              'Slice hovering over
+  highlight_ss_id as bool         'Highlight the spriteset number, while typing
   ps as PlankState
 
   DECLARE SUB build_menu()
   DECLARE SUB rebuild_menu()
   DECLARE SUB delete_menu_items()
   DECLARE SUB update()
+  DECLARE SUB set_focus(setnum as integer, framenum as integer)
   DECLARE SUB run()
   DECLARE SUB edit_spriteset(setnum as integer)
   DECLARE SUB add_spriteset()
@@ -4369,11 +4371,11 @@ SUB SpriteSetBrowser.rebuild_menu()
     frame_unload @sprset
   NEXT setnum
 
-  'Just refreshing doesn't properly position everything
+  'Just refreshing doesn't properly position everything,
+  'have to call DrawSlice. Probably due to CoverChildren.
+  '(update_plank_scrolling also refreshes the tree, without which
+  'the positions will be wrong!)
   'RefreshSliceTreeScreenPos root
-  'Also, not sure why, but have to call DrawSlice twice before top_left_plank()
-  'returns the right result. Probably due to CoverChildren
-  DrawSlice root, vpage
   DrawSlice root, vpage
 
   ps.m = root
@@ -4392,16 +4394,27 @@ END SUB
 SUB SpriteSetBrowser.update()
   DIM info_text as Slice ptr = edsl(ssed_info_text, root)
   IF info_text = NULL ORELSE ps.cur = NULL THEN EXIT SUB
+  DIM as TextSliceData ptr info_text_dat = info_text->SliceData
 
   DIM info_str as string
   IF cur_setnum = -1 THEN  'Add new
     info_str = "ENTER to add a new spriteset"
+    info_text_dat->show_insert = NO
   ELSE
+    info_str = "Spriteset " & cur_setnum
+
+    'Highlight spriteset num when typing
+    info_text_dat->show_insert = highlight_ss_id
+    IF highlight_ss_id THEN
+      info_text_dat->insert = LEN(info_str)
+      IF cur_setnum = 0 THEN info_text_dat->insert -= 1  'Highight the 0 to show you will overwrite it
+    END IF
+
     IF cur_frameid < 0 THEN
       'Whole spriteset selected rather than a frame
-      info_str =  "Spriteset " & cur_setnum '& "  ENTER to edit"
+      'info_str &= "  ENTER to edit"
     ELSE
-      info_str = "Spriteset " & cur_setnum & "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
+      info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
     END IF
 
     ChangeTextSlice edsl(ssed_palette_text, root), "Def pal " & defpalettes(cur_setnum)
@@ -4431,6 +4444,28 @@ SUB SpriteSetBrowser.update()
   'and can be removed when CoverChildren is fixed to compute the size
   'of a slice before it's positioned
   RefreshSliceTreeScreenPos root
+END SUB
+
+'Move the cursor to a frame or a spriteset
+SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
+  'Needed because focus_plank_by_extra_id returns false if didn't move
+  IF cur_setnum = setnum AND cur_framenum = framenum THEN EXIT SUB
+
+  'First, find the spriteset
+  DIM as Slice ptr ss, list_sl = edsl(ssed_list, root)
+  IF list_sl = NULL THEN EXIT SUB
+  ss = list_sl->FirstChild
+  DO
+    IF ss = NULL THEN EXIT SUB
+    IF ss->Extra(0) = setnum THEN EXIT DO
+    ss = ss->NextSibling
+  LOOP
+
+  'Whether framenum is -1 or a framenum, this will work
+  IF focus_plank_by_extra_id(ps, 1, framenum, ss) = NO THEN
+    'That frame doesn't exist? Focus the spriteset then
+    focus_plank_by_extra_id(ps, 1, -1, ss)
+  END IF
 END SUB
 
 'Append and save a new spriteset, using the FrameGroupInfo as a template
@@ -4668,17 +4703,20 @@ SUB SpriteSetBrowser.run()
     IF hover THEN set_plank_state ps, hover, plankNORMAL
 
     IF plank_menu_arrows(ps) THEN
-      'Only if no movement happened in one of the areas do we consider global movement
       cursor_moved = YES
     END IF
     plank_menu_mouse_wheel(ps)
-    hover = find_plank_at_screen_pos(ps, readmouse.pos)
-    IF hover ANDALSO (readmouse.clicks AND mouseLeft) THEN
-      cursor_moved = ps.cur <> hover
-      ps.cur = hover
+    DIM setnum as integer = cur_setnum
+    IF intgrabber(setnum, 0, gen(genmax), scNone, scNone, YES, NO) THEN
+      set_focus(setnum, cur_framenum)
+      cursor_moved = YES
+      highlight_ss_id = YES
+    ELSEIF anykeypressed() THEN
+      highlight_ss_id = NO
     END IF
-    IF readmouse.release AND mouseRight THEN
-      'Holding down right click can change cursor selection
+    hover = find_plank_at_screen_pos(ps, readmouse.pos)
+    IF (hover ANDALSO (readmouse.clicks AND mouseLeft)) _
+       ORELSE (readmouse.release AND mouseRight) THEN
       cursor_moved = ps.cur <> hover
       ps.cur = hover
     END IF
