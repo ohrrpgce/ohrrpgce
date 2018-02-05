@@ -56,7 +56,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  ps.m = root
  ps.cur = top_left_plank(ps)
  dim orig_cur as slice ptr = 0
- if focus_plank_by_extra_id(ps, start_id, thinglist) then
+ if focus_plank_by_extra_id(ps, , start_id, thinglist) then
   orig_cur = ps.cur
  end if
  DrawSlice root, vpage
@@ -108,7 +108,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     build_thing_list()
     restore_plank_selection ps
     hover = 0
-    orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
+    orig_cur = find_plank_by_extra_id(ps, , start_id, thinglist)
     cursor_moved = YES
    end if
   elseif IsAncestor(ps.cur, noscroll_area) then
@@ -190,10 +190,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    build_thing_list()
    restore_plank_selection ps
    if ed_ret >= 0 then
-    focus_plank_by_extra_id(ps, ed_ret, thinglist)
+    focus_plank_by_extra_id(ps, , ed_ret, thinglist)
    end if
    hover = 0
-   orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
+   orig_cur = find_plank_by_extra_id(ps, , start_id, thinglist)
   elseif do_filter then
    do_filter = NO
    if prompt_for_string(filter_text, "Find/Filter " & thing_kind_name()) then
@@ -201,7 +201,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     build_thing_list()
     restore_plank_selection ps
     hover = 0
-    orig_cur = find_plank_by_extra_id(ps, start_id, thinglist)
+    orig_cur = find_plank_by_extra_id(ps, , start_id, thinglist)
     cursor_moved = YES
    end if
   end if

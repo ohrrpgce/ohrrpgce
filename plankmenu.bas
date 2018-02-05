@@ -484,11 +484,11 @@ SUB restore_plank_selection (byref ps as PlankState)
  ps.selection_saved = NO
 END SUB
 
-FUNCTION focus_plank_by_extra_id(byref ps as PlankState, byval id as integer, byval start_parent as Slice Ptr = 0) as bool
+FUNCTION focus_plank_by_extra_id(byref ps as PlankState, byval extra_idx as integer = 0, byval id as integer, byval start_parent as Slice Ptr = 0) as bool
  DIM old_cur as Slice Ptr = ps.cur
 
  DIM new_cur as Slice Ptr
- new_cur = find_plank_by_extra_id(ps, id, start_parent)
+ new_cur = find_plank_by_extra_id(ps, extra_idx, id, start_parent)
  IF new_cur THEN
   ps.cur = new_cur
   update_plank_scrolling ps
@@ -497,7 +497,7 @@ FUNCTION focus_plank_by_extra_id(byref ps as PlankState, byval id as integer, by
  RETURN ps.cur <> old_cur
 END FUNCTION
 
-FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval id as integer, byval start_parent as Slice Ptr = 0) as Slice Ptr
+FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval extra_idx as integer = 0, byval id as integer, byval start_parent as Slice Ptr = 0) as Slice Ptr
  'If more than one plank has the same Extra(0) id number, just return the first one.
 
  REDIM planks(any) as Slice Ptr
@@ -507,7 +507,7 @@ FUNCTION find_plank_by_extra_id(byref ps as PlankState, byval id as integer, byv
  DIM sl as Slice Ptr
  FOR i as integer = 0 TO UBOUND(planks)
   sl = planks(i)
-  IF sl->Extra(0) = id THEN RETURN sl
+  IF sl->Extra(extra_idx) = id THEN RETURN sl
  NEXT i
 
  RETURN 0
