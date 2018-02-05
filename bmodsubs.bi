@@ -21,7 +21,7 @@ declare function countai (byval ai as integer, byval them as integer, bslot() as
 declare function enemycount (bslot() as battlesprite) as integer
 declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=0) as integer
 declare sub anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
-declare function getweaponpos(byval w as integer, byval f as integer, byval isy as integer) as integer'or x?
+declare function get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
 declare sub anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 declare function inflict OVERLOAD (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
 declare function inflict OVERLOAD (byref h as integer, byref targstat as integer, byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer

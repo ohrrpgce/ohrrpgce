@@ -153,18 +153,23 @@ FUNCTION enemycount (bslot() as BattleSprite) as integer
  RETURN result
 END FUNCTION
 
-Function GetWeaponPos(byval w as integer, byval f as integer, byval isY as integer) as integer'or x?
+'handlenum should be 0 or 1
+FUNCTION get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
  'FIXME: Ack! Lets just make handle position a member of bslot()
  'FIXME: Ack! Already did the above... using this sub!
  DIM fh as integer
- IF w >= 0 THEN
+ IF itemid >= 0 THEN
   OPENFILE(game + ".itm", FOR_BINARY, fh)
-  DIM recoff as integer = w * getbinsize(binITM) + 1
-  'debug "weapon " & w & " offset: " & (recoff + 156 + f * 4 + isY * 2)
-  GetWeaponPos = ReadShort(fh, recoff + 156 + f * 4 + iif(isY,1,0) * 2)
-  CLOSE #FH
+  DIM recoff as integer = itemid * getbinsize(binITM) + 1
+  DIM ret as XYPair
+  'Second handle point is before the first one!
+  DIM handleoffset as integer = recoff + 160 - handlenum * 4
+  ret.x = ReadShort(fh, handleoffset)
+  ret.y = ReadShort(fh, handleoffset + 2)
+  CLOSE #fh
+  RETURN ret
  END IF
-End Function
+END FUNCTION
 
 FUNCTION inflict (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
  'This overload is for when you want the luxury of not caring which stat was damaged, or by how much.

@@ -2919,10 +2919,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    ELSE
     wpic = gam.hero(bat.acting).wep_pic
     wpal = gam.hero(bat.acting).wep_pal
-    .hand(0).x = GetWeaponPos(eqstuf(bat.acting,0)-1,1,0)
-    .hand(0).y = GetWeaponPos(eqstuf(bat.acting,0)-1,1,1)
-    .hand(1).x = GetWeaponPos(eqstuf(bat.acting,0)-1,0,0)
-    .hand(1).y = GetWeaponPos(eqstuf(bat.acting,0)-1,0,1)
+    DIM weapon as integer = gam.hero(bat.acting).equip(0).id
+    .hand(0) = get_weapon_handle_point(weapon, 0)
+    .hand(1) = get_weapon_handle_point(weapon, 1)
    END IF
    .sprites = frame_load(sprTypeWeapon, wpic)
    .pal = palette16_load(wpal, sprTypeWeapon, wpic)
