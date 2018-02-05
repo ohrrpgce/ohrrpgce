@@ -530,7 +530,7 @@ declare function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bo
 declare function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 declare function frame_scaled32(src as Frame ptr, wide as integer, high as integer, masterpal() as RGBcolor, pal as Palette16 ptr = NULL) as Frame ptr
 declare sub frame_clear(spr as Frame ptr, colour as integer = 0)
-declare sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
+declare sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer = -1)
 declare sub sprite_update_cache(sprtype as SpriteType)
 declare sub tileset_empty_cache()
 declare function frame_is_valid(p as Frame ptr) as bool

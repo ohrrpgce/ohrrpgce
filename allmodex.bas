@@ -7546,6 +7546,7 @@ private function sprite_cacheB_shrink(amount as integer) as bool
 	wend
 end function
 
+'freeleaks = YES will causes a crash if those pointers are accessed
 sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string, freeleaks as bool = NO)
 	dim iterstate as integer = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
@@ -7645,15 +7646,19 @@ sub sprite_update_cache(sprtype as SpriteType)
 end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
-'By default, remove everything. With an argument: remove specific type
-sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid)
+'By default, remove everything. With an argument: remove specific sprite type,
+'or with two: remove a specific spriteset
+sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer = -1)
 	if sprtype = sprTypeInvalid then
 		sprite_empty_cache_range(INT_MIN, INT_MAX, "leaked sprite ")
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 		end if
-	else
+	elseif setnum <= 0 then
 		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1, "leaked sprite ")
+	else
+		dim which as integer = SPRITE_CACHE_MULT * sprtype + setnum
+		sprite_empty_cache_range(which, which, "leaked sprite ")
 	end if
 end sub
 

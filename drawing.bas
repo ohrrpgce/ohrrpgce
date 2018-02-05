@@ -4567,7 +4567,7 @@ SUB SpriteSetBrowser.delete_frame(setnum as integer, delete_framenum as integer)
   frame_unload @new_ss
 
   delete_menu_items()   'Required in order to empty cache
-  sprite_empty_cache sprtype
+  sprite_empty_cache sprtype, setnum
 
   rebuild_menu()
 END SUB
