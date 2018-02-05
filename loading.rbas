@@ -2356,7 +2356,8 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiMouseHoverItem)    = &h8C8C8C
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
-  colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b)
+  DIM firstindex as integer = IIF(i = uiShadow, 1, 0)   'Shadow color can't be 0
+  colarray(i) = nearcolor(masterpal(), c.r, c.g, c.b, firstindex)
  NEXT i
 
  DIM boxdefaults(uiBoxLast * 2 + 1) as integer = _
