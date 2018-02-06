@@ -25,6 +25,7 @@
 #include "os.bi"
 #include "distribmenu.bi"
 #include "thingbrowser.bi"
+#include "plankmenu.bi"
 #include "custom.bi"
 
 
@@ -61,6 +62,7 @@ DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
+DECLARE SUB plankmenu_cursor_move_tests
 
 DECLARE SUB shop_editor ()
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
@@ -1778,7 +1780,8 @@ SUB secret_menu ()
      "Backend Keyrepeat Bugtest", _
      "Test Game under GDB", _
      "Test Game under Valgrind", _
-     "Mouse Options" _
+     "Mouse Options", _
+     "plankmenu cursor move tests" _
  }
  DIM st as MenuState
  st.autosize = YES
@@ -1816,6 +1819,7 @@ SUB secret_menu ()
    IF st.pt = 21 THEN spawn_game_menu YES
    IF st.pt = 22 THEN spawn_game_menu NO, YES
    IF st.pt = 23 THEN edit_mouse_options ()
+   IF st.pt = 24 THEN plankmenu_cursor_move_tests
   END IF
   usemenu st
   clearpage vpage
@@ -2274,4 +2278,67 @@ SUB new_graphics_tests
  NEXT
  notification gen(genNumBackdrops) & " backdrops loaded from .rgfx in " & CINT(rgfx_time * 1000) & "ms; " _
      "loaded from mxs in " & CINT((timer - starttime) * 1000) & "ms"
+END SUB
+
+SUB plankmenu_tests_generate_grid(root as Slice ptr, scatter as integer, percent as integer)
+ DeleteSliceChildren root
+ FOR y as integer = 0 TO 4
+  FOR x as integer = 0 TO 6
+   IF randint(100) > percent THEN CONTINUE FOR
+   DIM sl as Slice ptr = NewSliceOfType(slRectangle, root)
+   sl->X = x * 40 + randint(scatter)
+   sl->Y = y * 40 + randint(scatter)
+   sl->Width = large(20 - scatter, 3) + randint(scatter * 2)
+   sl->Height = large(20 - scatter, 3) + randint(scatter * 2)
+   'default set_plank_state makes the SELECTABLE rectanges invisible, so put it on top of another one!
+   ChangeRectangleSlice sl, , uiDisabledItem * -1 - 1
+   sl->Lookup = SL_PLANK_HOLDER
+   DIM highlight as Slice ptr = NewSliceOfType(slRectangle, sl)
+   ChangeRectangleSlice highlight, , , , borderNone
+   highlight->Fill = YES
+   highlight->Visible = NO
+   highlight->Lookup = SL_PLANK_MENU_SELECTABLE
+  NEXT
+ NEXT
+END SUB
+
+SUB plankmenu_cursor_move_tests
+ DIM as integer scatter = 10, percent = 80
+
+ DIM root as Slice ptr = NewSliceOfType(slContainer)
+ root->Fill = YES
+ DIM ps as PlankState
+ ps.m = root
+ DIM update as bool = YES
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF6) > 1 THEN slice_editor root
+  IF keyval(scPlus) > 1 THEN scatter += 1 : update = YES
+  IF keyval(scMinus) > 1 THEN scatter -= 1 : update = YES
+  IF keyval(scLeftCaret) > 1 THEN percent -= 1 : update = YES
+  IF keyval(scRightCaret) > 1 THEN percent += 1 : update = YES
+  IF update THEN
+   plankmenu_tests_generate_grid root, scatter, percent
+   ps.cur = 0
+   update = NO
+  END IF
+
+  set_plank_state ps, ps.cur, plankNORMAL
+  plank_menu_arrows(ps)
+  set_plank_state ps, ps.cur, plankSEL
+
+  clearpage vpage
+  DrawSlice root, vpage
+  wrapprint "Scatter: " & scatter & " (+/-)  Percent present: " & percent & " (</>)", pLeft, pBottom, uilook(uiText), vpage
+  setvispage vpage
+  dowait
+
+  IF ps.cur = 0 THEN ps.cur = top_left_plank(ps)  'Do after first draw
+ LOOP
+ DeleteSlice @root
 END SUB
