@@ -2725,7 +2725,7 @@ private function draw_allmodex_recordable_overlays (page as integer) as bool
 		dirty = YES
 	end if
 
-	if gif_show_keys andalso recordvid->active then
+	if gif_show_keys andalso recordvid andalso recordvid->active then
 		' Build up two strings describing keypresses, so that modifiers like LShift
 		' are sorted to the front.
 		' FIXME: due to frameskip some keypresses might not be recorded. Should show for more than 1 tick.
