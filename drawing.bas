@@ -4375,8 +4375,10 @@ SUB SpriteSetBrowser.rebuild_menu()
   'have to call DrawSlice. Probably due to CoverChildren.
   '(update_plank_scrolling also refreshes the tree, without which
   'the positions will be wrong!)
-  'RefreshSliceTreeScreenPos root
   DrawSlice root, vpage
+  'FIXME: Have to then also refresh a second time, otherwise restore_plank_selection
+  'has the wrong screen positions and doesn't work...
+  RefreshSliceTreeScreenPos root
 
   ps.m = root
   IF ps.selection_saved THEN
