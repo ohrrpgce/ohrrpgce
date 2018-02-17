@@ -3638,6 +3638,9 @@ IF auto_upgrader_version.recorded THEN
 END IF
 debuginfo "archinym creation info: " & read_archinym_version()
 
+'Any graphics in the cache would cause lost graphics during rgfx upgrade!
+sprite_empty_cache
+
 DIM has_sfx as bool = isfile(workingdir & SLASH & "sfxdata.bin")
 
 '----------------------------------------

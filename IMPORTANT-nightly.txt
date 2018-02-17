@@ -17,6 +17,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2018-02-17:
+If you upgraded a game with a nightly from the last 13 days box border
+spriteset 0 got overwritten with the default!
+The new spriteset browser is still missing full-spriteset import/export.
+
 2018-02-04:
 We've switched to a new graphics file format, and new spriteset and backdrop
 browsers, so once again there's a risk of serious bugs! Plus the new
