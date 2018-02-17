@@ -12,7 +12,7 @@ Applications folder.
 
 The "import" folder contains sample importable music,
 sounds, fonts and palettes. You can copy it to somewhere
-in your home folder.
+in your home folder, or where-ever you wish.
 
 The "Vikings of Midgard" folder contains the sample game.
 Copy it anywhere in your home folder.
@@ -23,19 +23,23 @@ HELP
 While editing your game with OHRRPGCE-Custom, you can press F1
 or Cmd-Shift-? at any time to get help about the current screen.
 
+(Note: by default, function keys like F1, F2, etc. activate certain
+OS features such as Workspaces and adjusting volume.  You will need
+to hold the Fn key to use the function keys in the OHRRPGCE.)
+
 Visit http://rpg.hamsterrepublic.com/ohrrpgce/Main_Page
 for more help.
 
 ---
 
-Please see WHATSNEW.TXT for revision information.
+Please see whatsnew.txt for the list of changes in each release.
 
 ---
 DISTRIBUTION
 
 The OHRRPGCE is free software under the terms of the GPL
 Please read LICENSE.txt for more information. Visit
-http://HamsterRepublic.com/ohrrpgce/source.php to download
+http://rpg.hamsterrepublic.com/ohrrpgce/Source to download
 the source code.
 
 Any .RPG files you create are yours to distribute as you please.
@@ -44,7 +48,7 @@ You may freely distribute the OHRRPGCE-Game player, with your
 so that people will know where to get the source code.
 
 If you have questions, read the FAQ at
-http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
+http://rpg.hamsterrepublic.com/ohrrpgce/F.A.Q.
 
 ---
 

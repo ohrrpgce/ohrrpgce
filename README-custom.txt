@@ -12,14 +12,14 @@ get help about the current screen.
 
 ---
 
-Please see WHATSNEW.TXT for revision information.
+Please see whatsnew.txt for the list of changes in each release.
 
 ---
 DISTRIBUTION
 
 The OHRRPGCE is free software under the terms of the GPL
 Please read LICENSE.txt for more information. Visit
-http://HamsterRepublic.com/ohrrpgce/source.php to download
+http://rpg.hamsterrepublic.com/ohrrpgce/Source to download
 the source code.
 
 Any .RPG files you create are yours to distribute as you please.
@@ -29,7 +29,7 @@ know where to get the source code. No other files are needed for
 people to play your RPG files.
 
 If you have questions, read the FAQ at
-http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
+http://rpg.hamsterrepublic.com/ohrrpgce/F.A.Q.
 
 ---
 

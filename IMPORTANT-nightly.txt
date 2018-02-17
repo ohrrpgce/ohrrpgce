@@ -10,10 +10,11 @@ The developers will occasionally update it with information about new bugs,
 things that have changed in a non-compatible way, things you need to do or
 not do after upgrading, and unfinished features.
 
-For more information ask on the mailing list:
-http://hamsterrepublic.com/ohrrpgce/index.php/Mailing_list.html
+For more information ask on the mailing list or the forums:
+https://rpg.hamsterrepublic.com/ohrrpgce/Mailing_list
+https://rpg.hamsterrepublic.com/ohrrpgce/Forums
 and check the buglist:
-http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
+http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
 2018-02-04:
