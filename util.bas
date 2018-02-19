@@ -15,6 +15,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "util.bi"
 #include "cutil.bi"
 #include "unicode.bi"
+#include "fb/fb.bi"
 #include "lib/sha1.bi"
 #include "os.bi"
 #include "common_base.bi"
@@ -44,6 +45,10 @@ DIM tmpdir as string
 
 DIM exename as string
 
+
+'---------------- Initialization -----------------
+
+
 DIM SHARED filetype_names(fileTypeError) as string
 filetype_names(fileTypeNonexistent) = "nonexistent"
 filetype_names(fileTypeFile)        = "a file"
@@ -51,6 +56,35 @@ filetype_names(fileTypeDirectory)   = "a directory"
 filetype_names(fileTypeOther)       = "a special file"
 filetype_names(fileTypeError)       = "unreadable"
 
+
+'Set up an error handler for the errors FB throws when compiled with -exx. The
+'default handler prints a message which is lost on Windows.
+SUB setup_exx_handler()
+  'There seems to be a gengcc bug at play: passing the address of a label to a
+  'function doesn't work (gcc docs say it's undefined behaviour) and the address
+  'of this function gets passed instead. So we see this function reentering if
+  'an error occurs, rather than starting at QB_error_handler!
+  STATIC as bool already_setup
+  IF already_setup THEN GOTO QB_error_handler
+  already_setup = YES
+
+  'What's this wacky QB stuff doing in a FB codebase!
+  ON ERROR GOTO QB_error_handler
+  EXIT SUB
+
+ QB_error_handler:
+  STATIC as integer reentered
+  IF reentered <> 0 THEN SYSTEM 99 'fatal_error_shutdown
+  reentered += 1
+
+  'Warning: any code using anonymous temporary string variables here seems to crash,
+  'unless compiling with -gen gcc, because the function prologue hasn't occurred!
+  DIM as integer err_num = ERR, err_line = ERL
+  DIM as zstring ptr func_name = ERFN, mod_name = ERMN
+  DIM as string message
+  message = *format_FB_error_message(err_num, err_line, mod_name, func_name)
+  fatalerror message
+END SUB
 
 'Gets called at the top of the main module for each executable just by including util.bi.
 'This is the place to put initialisation code common to everything.
@@ -61,6 +95,8 @@ SUB lowlevel_init()
 
   init_crt   'setlocale
 
+  setup_exx_handler
+
   exename = trimextension(trimpath(COMMAND(0)))
 
   'Requires exename
@@ -68,7 +104,6 @@ SUB lowlevel_init()
 
   disable_extended_precision
 END SUB
-
 
 '------------- Basic datatypes -------------
 
