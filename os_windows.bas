@@ -23,7 +23,9 @@ include_windows_bi()
 #include "const.bi"
 '#include "win32/exchndl.bi"  'Our win32 directory
 
-'dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
+#if 1
+	dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
+#endif
 
 '''''' Extra winapi defines
 
@@ -184,9 +186,9 @@ sub load_ExcHndl()
 	' If statically linked
 	ExcHndlInit()
 #endif
-	dim reportfile as string = exename + "-crash-report.txt"
-	debuginfo "exchndl will log to " & exename + "-crash-report.txt"
-	ExcHndlSetLogFileNameA(strptr(filename))
+	dim reportfile as string = trimextension(exepath) + "-crash-report.txt"
+	debuginfo "exchndl will log to " & reportfile
+	ExcHndlSetLogFileNameA(strptr(reportfile))
 end sub
 
 '==========================================================================================
