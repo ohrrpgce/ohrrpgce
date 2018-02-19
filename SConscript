@@ -18,7 +18,7 @@ FBFLAGS = ['-mt'] #, '-showincludes']
 # Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
 # C sources (except on Android...). Not used for linking.
 CFLAGS = ['-Wall']
-# Flags used when compiling C and C++, including -gen gcc generated C sources.
+# Flags used when compiling -gen gcc generated C sources.
 # Not for euc, and not using on Android (because of inflexible build system).
 GENGCC_CFLAGS = []
 # TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
@@ -27,9 +27,12 @@ GENGCC_CFLAGS = []
 # under MinGW. (See bug 951)
 TRUE_CFLAGS = ['--std=gnu99']
 # Flags used only for C++ (in addition to CFLAGS)
+# Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
 # CXXLINKFLAGS are used when linking with g++
-CXXLINKFLAGS = []
+# --gc-sections decreases filesize, but unfortunately doesn't remove symbols for dropped sections,
+# not even with -flto or --strip-discarded!
+CXXLINKFLAGS = ['-Wl,--gc-sections']
 # FBLINKFLAGS are passed to fbc when linking with fbc
 FBLINKFLAGS = []
 # FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
