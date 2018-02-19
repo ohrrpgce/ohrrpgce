@@ -863,6 +863,7 @@ base_modules +=   ['util.bas',
                    'unicode.c',
                    'array.c',
                    'miscc.c',
+                   'fb/error.c',
                    'lib/sha1.c',
                    'filelayer.cpp',
                    'vector.bas']
