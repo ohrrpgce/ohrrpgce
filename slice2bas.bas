@@ -1,5 +1,13 @@
 #include "reload.bi"
 
+'Can't include slices.bi here
+Enum FillModes
+ sliceFillFull = 0
+ sliceFillHoriz = 1
+ sliceFillVert = 2
+End Enum
+
+
 Using Reload
 
 CONST verbose = NO
