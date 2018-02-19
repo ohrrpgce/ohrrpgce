@@ -21,6 +21,9 @@ include_windows_bi()
 #include "common_base.bi"
 #include "util.bi"
 #include "const.bi"
+'#include "win32/exchndl.bi"  'Our win32 directory
+
+'dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
 
 '''''' Extra winapi defines
 
@@ -154,6 +157,37 @@ function memory_usage_string() as string
 	       & " nonpaged=" & memctrs.QuotaNonPagedPoolUsage
 end function
 
+' Load the DrMingw exception handler, if available
+sub load_ExcHndl()
+#if 1
+	' To dynamically link to exchndl.dll
+
+	dim dll as string
+	dll = exepath & "/exchndl.dll"
+	if real_isfile(dll) = NO then
+		debuginfo "exchndl.dll not found"
+		exit sub
+	end if
+	debuginfo "Loading " & dll
+	dim handle as any ptr
+	handle = dylibload(dll)
+	if handle = NULL then
+		debuginfo "Failed! lasterr: " & error_string
+		exit sub
+	end if
+	ExcHndlSetLogFileNameA = dylibsymbol(handle, "ExcHndlSetLogFileNameA")
+	if ExcHndlSetLogFileNameA = NULL then
+		debuginfo "ExcHndlSetLogFileNameA missing"
+		exit sub
+	end if
+#else
+	' If statically linked
+	ExcHndlInit()
+#endif
+	dim reportfile as string = exename + "-crash-report.txt"
+	debuginfo "exchndl will log to " & exename + "-crash-report.txt"
+	ExcHndlSetLogFileNameA(strptr(filename))
+end sub
 
 '==========================================================================================
 '                                       Filesystem

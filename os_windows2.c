@@ -12,6 +12,7 @@
 
 // In os_windows.bas
 FBSTRING *get_windows_error (int errcode);
+void load_ExcHndl();
 
 
 void init_runtime() {
@@ -22,6 +23,8 @@ void init_runtime() {
 	}
 
 	disable_extended_precision();
+
+	load_ExcHndl();
 }
 
 // (This could have been written in os_windows.bas and there's no special reason it isn't)

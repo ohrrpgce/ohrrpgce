@@ -507,10 +507,9 @@ if gengcc:
         GENGCC_CFLAGS.append ('-Wno-maybe-uninitialized')
     # Ignore warnings due to using an array lbound > 0
     GENGCC_CFLAGS.append ('-Wno-array-bounds')
-    if profile or debug >= 1:
-        # -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
-        # Also keep frame pointers unless explicit debug=0
-        GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')
+    # Make sure we can print stack traces
+    # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
+    GENGCC_CFLAGS.append ('-fno-omit-frame-pointer')
     if asan:
         # Use AddressSanitizer in C files produced by fbc
         GENGCC_CFLAGS.append ('-fsanitize=address')
