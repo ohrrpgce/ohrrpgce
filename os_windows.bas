@@ -27,6 +27,9 @@ include_windows_bi()
 	dim shared ExcHndlSetLogFileNameA as function(as zstring ptr) as boolean
 #endif
 
+dim shared crash_reportfile as string
+dim shared want_exception_messagebox as bool = YES
+
 '''''' Extra winapi defines
 
 ' Missing from FB 0.23 headers
@@ -159,13 +162,52 @@ function memory_usage_string() as string
 	       & " nonpaged=" & memctrs.QuotaNonPagedPoolUsage
 end function
 
-' Load the DrMingw exception handler, if available
+
+'==========================================================================================
+'                                   Exception Handling
+'==========================================================================================
+
+extern "windows"
+function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
+	if want_exception_messagebox then
+		'Avoid calling FB string routines
+		dim msgbuf as string * 301
+		if len(crash_reportfile) then
+			snprintf(strptr(msgbuf), 300, _
+				 !"The engine has crashed! Sorry :(\n\n" _
+				 !"A crash report has been written to\n%s\n\n" _
+				 !"Please email it and g_debug.txt or c_debug.txt\n" _
+				 !"to ohrrpgce-crash@HamsterRepublic.com\n" _
+				 "with a description of what you were doing.", _
+				 strptr(crash_reportfile))
+		else
+			snprintf(strptr(msgbuf), 300, _
+				 !"The engine has crashed! Sorry :(\n\n" _
+				 !"Can't generate a stacktrace, as exchndl.dll isn't present.\n\n" _
+				 !"Please email g_debug.txt or c_debug.txt to\n" _
+				 !"ohrrpgce-crash@HamsterRepublic.com\n" _
+				 "with a description of what you were doing.")
+		end if
+		MessageBoxA(NULL, strptr(msgbuf), "OHRRPGCE Error", MB_OK or MB_ICONERROR)
+	end if
+
+	'Stop, don't show the default "program has stopped responding" message.
+	return 1  '== EXCEPTION_EXECUTE_HANDLER
+end function
+end extern
+
+' Load the DrMingw embeddable exception handler, if available
 sub setup_exception_handler()
+	'Install our own exception handler to show a useful message on a crash.
+	'exchndl will call any preexisting exception handler after its own runs.
+	'(Note: this won't work if libexchndl.a is statically linked)
+        SetUnhandledExceptionFilter(@exceptFilterMessageBox)
+
 #if 1
 	' To dynamically link to exchndl.dll
 
 	dim dll as string
-	dll = exepath & "/exchndl.dll"
+	dll = exepath & "\exchndl.dll"
 	if real_isfile(dll) = NO then
 		early_debuginfo "exchndl.dll not found"
 		exit sub
@@ -186,9 +228,9 @@ sub setup_exception_handler()
 	' If statically linked
 	ExcHndlInit()
 #endif
-	dim reportfile as string = trimextension(exename) + "-crash-report.txt"
-	early_debuginfo "exchndl will log to " & reportfile
-	ExcHndlSetLogFileNameA(strptr(reportfile))
+	crash_reportfile = trimextension(exename) + "-crash-report.txt"
+	early_debuginfo "exchndl will log to " & crash_reportfile
+	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
 end sub
 
 '==========================================================================================
