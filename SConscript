@@ -176,7 +176,7 @@ if debug >= 1:
     CFLAGS.append ('-g')
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
-GCC_strip = (debug == 0)  # (linkgcc only) strip debug info?
+GCC_strip = (debug == 0)  # (linkgcc only) strip debug info and unwanted symbols?
 
 portable = int (ARGUMENTS.get ('portable', 0))
 profile = int (ARGUMENTS.get ('profile', 0))
@@ -559,6 +559,8 @@ if linkgcc:
         CXXLINKFLAGS += ['-v']
     if GCC_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
+        # Result is about 600KB larger than a full strip, and after running
+        # strip_unwanted_syms below, down to 280KB.
         CXXLINKFLAGS += ['-Wl,-S']
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
@@ -599,13 +601,22 @@ if linkgcc:
             return obj
         return target, map(to_o, enumerate(source))
 
+    if GCC_strip:
+        # This strips !330KB from each of Game and Custom, leaving ~280KB of symbols
+        def strip_unwanted_syms(source, target, env):
+            # source are the source objects for the executable and target is the exe
+            ohrbuild.strip_nonfunction_symbols(target[0].path, target_prefix, builddir, env)
+        strip_unwanted_syms = Action(strip_unwanted_syms, None)  # Action wrapper to print nothing
+    else:
+        strip_unwanted_syms = None
+
     if mac:
         # -( -) not supported
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
     else:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
 
-    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary], suffix = exe_suffix,
+    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, strip_unwanted_syms], suffix = exe_suffix,
                           src_suffix = '.bas', emitter = compile_main_module)
 
     env['BUILDERS']['BASEXE'] = basexe_gcc
@@ -1221,7 +1232,8 @@ Options:
   gengcc=1            Compile using GCC emitter (faster binaries, longer compile
                       times, and some extra warnings). This is the default
                       everywhere except x86 Windows/Linux/BSD.
-  debug=0|1|2|3       Debug level:
+                      Always used for release builds.
+  debug=0|1|2|3|4     Debug level:
                                   -exx |  debug info  | optimisation
                                  ------+--------------+--------------
                        debug=0:    no  | symbols only |    yes   <--Releases

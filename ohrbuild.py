@@ -35,8 +35,8 @@ def get_command_output(cmd, args, shell = True, ignore_stderr = False):
         errtext = ""
     else:
         proc = subprocess.Popen(cmdargs, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    proc.wait()  # To get returncode
     outtext = proc.stdout.read()
+    proc.wait()  # To get returncode
     if not ignore_stderr:
         errtext = proc.stderr.read()
         # Annoyingly fbc prints (at least some) error messages to stdout instead of stderr
@@ -362,6 +362,32 @@ def android_source_actions (sourcelist, rootdir, destdir):
         'touch %s/android/AndroidAppSettings.cfg' % (rootdir),
     ]
     return source_nodes, actions
+
+########################################################################
+# Manipulating binaries
+
+keep_symbols = ['__fb_ctx']
+
+def strip_nonfunction_symbols(binary, target_prefix, builddir, env):
+    """Modifies a binary in-place, stripping symbols for global variables
+    and undefined symbols (e.g. left behind by --gc-sections)"""
+    nm = WhereIs(target_prefix + "nm")
+    syms = get_command_output(nm, [binary], False)
+    symfilename = os.path.relpath(builddir + binary + '.unwanted_symbols')
+    with open(symfilename, 'w') as symfile:
+        for sym in syms.split('\n'):
+            if len(sym) > 11:
+                symtype = sym[9]
+                # Remove the following symbols:
+                # U: undefined symbols
+                # b/B, d/D, r/R: local/global variables (uninitialised, initalised, readonly)
+                #    These are no use to the crash handler, only to gdb.
+                # i: DLL junk (Windows only), not needed in a linked binary
+                if symtype in 'UbBdDrRi':
+                    if sym[11:] not in keep_symbols:
+                        symfile.write('%s\n' % sym[11:])
+    objcopy = WhereIs(target_prefix + "objcopy")
+    env.Execute(objcopy + ' --strip-symbols ' + symfilename + ' ' + binary)
 
 ########################################################################
 # Portability checks
