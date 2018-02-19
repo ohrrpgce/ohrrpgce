@@ -55,6 +55,10 @@ filetype_names(fileTypeError)       = "unreadable"
 'Gets called at the top of the main module for each executable just by including util.bi.
 'This is the place to put initialisation code common to everything.
 SUB lowlevel_init()
+  #IF defined(IS_GAME) OR defined(IS_CUSTOM)
+    external_log "main() started..."
+  #ENDIF
+
   init_crt   'setlocale
 
   exename = trimextension(trimpath(COMMAND(0)))

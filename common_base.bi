@@ -11,6 +11,7 @@
 #include "const.bi"
 
 declare sub debug (s as string)
+declare sub early_debuginfo (s as string)
 declare sub debuginfo (s as string)
 declare sub fatalerror (s as string)
 declare sub showerror (msg as string, isfatal as bool = NO, isbug as bool = NO)

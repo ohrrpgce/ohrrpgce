@@ -252,7 +252,7 @@ app_dir = EXEPATH  'FreeBasic builtin
 'set_OPEN_hook @hook_all_files, YES, NULL  'For debugging
 
 'Once log_dir is set, can create debug log.
-external_log "main() started; starting debug log..."
+external_log "starting debug log..."
 start_new_debug "Starting OHRRPGCE Game"
 debuginfo DATE & " " & TIME
 debuginfo long_version & build_info

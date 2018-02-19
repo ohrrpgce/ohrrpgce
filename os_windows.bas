@@ -167,19 +167,19 @@ sub setup_exception_handler()
 	dim dll as string
 	dll = exepath & "/exchndl.dll"
 	if real_isfile(dll) = NO then
-		debuginfo "exchndl.dll not found"
+		early_debuginfo "exchndl.dll not found"
 		exit sub
 	end if
-	debuginfo "Loading " & dll
+	early_debuginfo "Loading " & dll
 	dim handle as any ptr
 	handle = dylibload(dll)
 	if handle = NULL then
-		debuginfo "Failed! lasterr: " & error_string
+		debug "exchndl.dll load failed! lasterr: " & error_string
 		exit sub
 	end if
 	ExcHndlSetLogFileNameA = dylibsymbol(handle, "ExcHndlSetLogFileNameA")
 	if ExcHndlSetLogFileNameA = NULL then
-		debuginfo "ExcHndlSetLogFileNameA missing"
+		debug "ExcHndlSetLogFileNameA missing"
 		exit sub
 	end if
 #else
@@ -187,7 +187,7 @@ sub setup_exception_handler()
 	ExcHndlInit()
 #endif
 	dim reportfile as string = trimextension(exename) + "-crash-report.txt"
-	debuginfo "exchndl will log to " & reportfile
+	early_debuginfo "exchndl will log to " & reportfile
 	ExcHndlSetLogFileNameA(strptr(reportfile))
 end sub
 

@@ -130,7 +130,7 @@ DIM SHARED full_upgrade as bool = NO
 #ENDIF
 
 ' Debug log stuff
-DIM SHARED debug_to_console as bool = NO
+DIM debug_to_console as bool = NO
 'don't delete the debug file at end of play
 DIM SHARED importantdebug as bool = NO
 'Stores debug messages printed during initialisation, or in-game between playing different games.
@@ -355,6 +355,15 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
  END SELECT
 END SUB
 
+'This is a kludge (the whole debug logging system is a mess)...  debuginfo
+'replacement before start_new_debug has been called, to avoid junk ending up in
+'?_debug_archive.txt when start_new_debug is called.
+SUB early_debuginfo (s as string)
+ external_log s
+ IF debug_to_console THEN PRINT s
+ log_buffer &= s & LINE_END
+END SUB
+
 SUB debuginfo (s as string)
  'Use for throwaway messages like upgrading
  '(Also this is internally the implementation of debug())
@@ -376,7 +385,7 @@ SUB debuginfo (s as string)
 END SUB
 
 PRIVATE SUB append_to_logfile(s as string)
- STATIC sizeerror as integer = 0
+ STATIC sizeerror as bool = NO
  DIM filename as string
  #IFDEF IS_GAME
    filename = log_dir & "g_debug.txt"
@@ -390,12 +399,12 @@ PRIVATE SUB append_to_logfile(s as string)
   EXIT SUB
  END IF
  IF LOF(fh) > 2 * 1024 * 1024 THEN
-  IF sizeerror = 0 THEN PRINT #fh, "too much debug() output, not printing any more messages"
-  sizeerror = -1
+  IF sizeerror = NO THEN PRINT #fh, "too much debug() output, not printing any more messages"
+  sizeerror = YES
   CLOSE #fh
   EXIT SUB
  END IF
- sizeerror = 0
+ sizeerror = NO
  PRINT #fh, normalize_newlines(s, LINE_END)
  CLOSE #fh
 END SUB

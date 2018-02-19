@@ -21,6 +21,11 @@ SUB debuginfo (s as string)
   print s
 END SUB
 
+SUB early_debuginfo (s as string)
+  'Don't want to print startup stuff like setup_exception_handler
+  'print s
+END SUB
+
 SUB debugc cdecl alias "debugc" (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
   IF errorlevel >= errFatal THEN fatalerror *s
   IF errorlevel = errBug OR errorlevel = errPromptBug OR errorlevel = errFatalBug THEN print "(BUG) ",
