@@ -79,6 +79,11 @@ void setup_exception_handler() {
 	// Unimplemented (but glibc makes this easy!)
 }
 
+void save_backtrace(boolint show_message) {
+	// Unimplemented (but glibc makes this easy!)
+}
+
+
 //==========================================================================================
 //                                       Filesystem
 //==========================================================================================

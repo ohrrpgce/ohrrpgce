@@ -22,7 +22,9 @@ declare sub external_log (msg as string)
 declare function memory_usage() as integer
 declare function memory_usage_string() as string
 
-declare sub setup_exception_handler()
+declare sub setup_exception_handler ()
+declare sub save_backtrace (show_message as bool = YES)
+declare sub interrupt_self ()
 
 'Actually in filelayer.cpp
 declare function copyfile(source as string, destination as string) as boolint
@@ -116,8 +118,6 @@ declare sub cleanup_process (byval process as ProcessHandle ptr)
 
 declare function get_process_id () as integer
 declare function get_process_path (pid as integer) as string
-
-declare sub interrupt_self ()
 
 'Only implemented for X11 and Windows, sets to 0 otherwise or on error
 'NOTE: call get_screen_size instead of this.

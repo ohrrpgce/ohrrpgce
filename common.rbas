@@ -348,7 +348,6 @@ SUB debugc CDECL (byval errorlevel as errorLevelEnum, byval s as zstring ptr)
   CASE errFatalBug
    showerror *s, YES, YES
   CASE errDie
-   'TODO: Maybe print a stacktrace
    PRINT "DIE: " & *s
    debug "DIE: " & *s
    fatal_error_shutdown
@@ -1138,6 +1137,8 @@ FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
 END FUNCTION
 
 SUB fatal_error_shutdown
+ save_backtrace
+
  #IFDEF IS_CUSTOM
   IF cleanup_workingdir_on_error ANDALSO LEN(workingdir) ANDALSO isdir(workingdir) THEN
    touchfile workingdir & SLASH & "__danger.tmp"

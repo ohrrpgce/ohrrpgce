@@ -28,6 +28,7 @@ include_windows_bi()
 #endif
 
 dim shared crash_reportfile as string
+dim shared continue_after_exception as bool = NO
 dim shared want_exception_messagebox as bool = YES
 
 '''''' Extra winapi defines
@@ -191,8 +192,12 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 		MessageBoxA(NULL, strptr(msgbuf), "OHRRPGCE Error", MB_OK or MB_ICONERROR)
 	end if
 
-	'Stop, don't show the default "program has stopped responding" message.
-	return 1  '== EXCEPTION_EXECUTE_HANDLER
+	if continue_after_exception then
+		return &hffffffff  '== EXCEPTION_CONTINUE_EXECUTION, which is not declared
+	else
+		'Stop, don't show the default "program has stopped responding" message.
+		return 1  '== EXCEPTION_EXECUTE_HANDLER
+	end if
 end function
 end extern
 
@@ -232,6 +237,27 @@ sub setup_exception_handler()
 	early_debuginfo "exchndl will log to " & crash_reportfile
 	ExcHndlSetLogFileNameA(strptr(crash_reportfile))
 end sub
+
+'Called from within fatalerror. Will popup an "Engine crashed" messagebox if show_message true.
+sub save_backtrace(show_message as bool = YES)
+	if len(crash_reportfile) = 0 then exit sub  'Don't have exchndl
+	debug "Saving backtrace"
+	want_exception_messagebox = show_message
+	continue_after_exception = YES
+	'To continue past DebugBreak (interrupt_self) you need to advance the instruction
+	'pointer in the exception handler. RaiseException doesn't have that complication.
+	'interrupt_self
+	RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL)
+	want_exception_messagebox = YES
+	continue_after_exception = NO
+	debug "Done!"
+end sub
+
+' A breakpoint
+sub interrupt_self ()
+	DebugBreak
+end sub
+
 
 '==========================================================================================
 '                                       Filesystem
@@ -862,11 +888,6 @@ end sub
 function get_process_id () as integer
 	return GetCurrentProcessId()
 end function
-
-' A breakpoint
-sub interrupt_self ()
-	DebugBreak
-end sub
 
 'Returns full path to a process given its PID in device form, e.g.
 '\Device\HarddiskVolume1\OHRRPGCE\custom.exe
