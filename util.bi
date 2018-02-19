@@ -709,6 +709,7 @@ DECLARE SUB str2array (s as string, arr() as integer, byval o as integer)
 EXTERN tmpdir as string
 'Ideally would not be in this module
 EXTERN orig_dir as string
+EXTERN exename as string
 
 
 #ENDIF

@@ -108,7 +108,6 @@ DIM option_nowait as bool  'Currently only used when importing scripts from the 
 DIM editing_a_game as bool
 DIM game as string
 DIM sourcerpg as string
-DIM exename as string
 DIM documents_dir as string
 DIM workingdir as string
 DIM app_dir as string
@@ -199,8 +198,6 @@ config_prefix = "edit."
 prefer_gfx_backend "sdl"
 DIM backend as string = read_config_str("gfx.backend")
 IF LEN(backend) THEN prefer_gfx_backend backend
-
-exename = trimextension(trimpath(COMMAND(0)))
 
 REDIM cmdline_args() as string
 ' This can modify log_dir and restart the debug log

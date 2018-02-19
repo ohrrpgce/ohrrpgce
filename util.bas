@@ -42,6 +42,9 @@ DIM orig_dir as string
 
 DIM tmpdir as string
 
+DIM exename as string
+exename = trimextension(trimpath(COMMAND(0)))
+
 DIM SHARED filetype_names(fileTypeError) as string
 filetype_names(fileTypeNonexistent) = "nonexistent"
 filetype_names(fileTypeFile)        = "a file"

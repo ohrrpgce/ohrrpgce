@@ -151,7 +151,6 @@ DIM lastformation as integer
 DIM lastsaveslot as integer
 
 DIM usepreunlump as bool
-DIM exename as string
 DIM game as string
 DIM sourcerpg as string
 DIM savefile as string
@@ -398,8 +397,6 @@ gam.autorungame = NO
 gam.started_by_run_game = NO
 usepreunlump = NO
 DIM rpg_browse_default as string = ""  'local variable
-
-exename = trimextension(trimpath(COMMAND(0)))
 
 IF running_as_slave THEN
 

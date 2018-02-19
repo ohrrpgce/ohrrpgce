@@ -336,7 +336,7 @@ DECLARE SUB write_config OVERLOAD (key as string, value as integer)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
-EXTERN as string game, exename
+EXTERN game as string
 EXTERN game_unique_id as string
 EXTERN context_string as string
 EXTERN running_as_slave as bool
