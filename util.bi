@@ -21,6 +21,15 @@
 '#endif
 
 
+declare sub lowlevel_init()
+
+'Ensure that all executables call lowlevel_init at the top of main().  Want this
+'in main() so COMMAND is initialised and the module constructor ordering doesn't
+'matter.
+#IFDEF __FB_MAIN__
+  lowlevel_init
+#ENDIF
+
 '----------------------------------------------------------------------
 '                           Macro utilities
 

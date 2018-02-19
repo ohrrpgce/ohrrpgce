@@ -48,6 +48,8 @@ uint32_t stringhash(const unsigned char *strp, int length);
 
 void disable_extended_precision();
 
+void init_crt();
+
 #ifdef __cplusplus
 }
 #endif

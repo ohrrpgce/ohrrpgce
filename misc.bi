@@ -1,5 +1,5 @@
 'OHRRPGCE Common - Odd header/module left over from the QuickBasic to FreeBASIC move
-'FIXME: move this crud elsewhere
+'FIXME: move this crud elsewhere. Does NOT correspond to misc.h and miscc.c!
 
 #IFNDEF MISC_BI
 #DEFINE MISC_BI

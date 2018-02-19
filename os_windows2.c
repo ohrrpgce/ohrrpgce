@@ -6,26 +6,12 @@
 
 #include "windows.h"
 
-#include <locale.h>
 #include "os.h"
 #include "misc.h"
 
 // In os_windows.bas
 FBSTRING *get_windows_error (int errcode);
-void load_ExcHndl();
 
-
-void init_runtime() {
-	// Needed for mbstowcs
-	if (!setlocale(LC_ALL, "")) {
-		// This will actually end up in ?_debug_archive.txt; see init_runtime in os_unix.c
-		debug(errError, "setlocale failed");
-	}
-
-	disable_extended_precision();
-
-	load_ExcHndl();
-}
 
 // (This could have been written in os_windows.bas and there's no special reason it isn't)
 void os_get_screen_size(int *wide, int *high) {

@@ -2,6 +2,7 @@
 #include "config.bi"
 #include "string.bi"
 #include "const.bi"
+#include "util.bi"  'Ensures all tests call lowlevel_init
 
 extern "C"
 	type FnDebugHook as sub (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)

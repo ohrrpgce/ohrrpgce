@@ -160,7 +160,7 @@ function memory_usage_string() as string
 end function
 
 ' Load the DrMingw exception handler, if available
-sub load_ExcHndl()
+sub setup_exception_handler()
 #if 1
 	' To dynamically link to exchndl.dll
 
@@ -186,7 +186,7 @@ sub load_ExcHndl()
 	' If statically linked
 	ExcHndlInit()
 #endif
-	dim reportfile as string = trimextension(exepath) + "-crash-report.txt"
+	dim reportfile as string = trimextension(exename) + "-crash-report.txt"
 	debuginfo "exchndl will log to " & reportfile
 	ExcHndlSetLogFileNameA(strptr(reportfile))
 end sub

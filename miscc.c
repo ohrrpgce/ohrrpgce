@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <string.h>
+#include <locale.h>
 #include "misc.h"
 
 
@@ -215,3 +216,23 @@ void disable_extended_precision() {}
 void disable_extended_precision() {}
 
 #endif
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+// This sets the locale (LC_ALL) according to the environment, while the FB
+// runtime only sets the LC_CTYPE locale (needed for mbstowcs).
+// (I'm not aware of any reason we need to load other locale settings, but it might not hurt.)
+// (FB's headers have setlocale, but I don't like to trust them)
+void init_crt() {
+	// setlocale always fails on Android
+#ifndef __ANDROID__
+	// Needed for mbstowcs
+	if (!setlocale(LC_ALL, "")) {
+		// This will actually end up in ?_debug_archive.txt, also
+		// this runs before log_dir, tmpdir etc are set. Should call
+		// init_runtime in a better way.
+		debug(errError, "setlocale failed");
+	}
+#endif
+}

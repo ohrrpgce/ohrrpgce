@@ -30,7 +30,6 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <errno.h>
-#include <locale.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -40,22 +39,6 @@
 #include "os.h"
 #include "array.h"
 
-
-
-void init_runtime() {
-	// setlocale always fails on Android
-#ifndef __ANDROID__
-	// Needed for mbstowcs
-	if (!setlocale(LC_ALL, "")) {
-		// This will actually end up in ?_debug_archive.txt, also
-		// this runs before log_dir, tmpdir etc are set. Should call
-		// init_runtime in a better way.
-		debug(errError, "setlocale failed");
-	}
-#endif
-
-	disable_extended_precision();
-}
 
 void external_log(FBSTRING *str) {
 #ifdef __ANDROID__
@@ -90,6 +73,10 @@ FBSTRING *memory_usage_string() {
 #else
 	return empty_fbstring();
 #endif
+}
+
+void setup_exception_handler() {
+	// Unimplemented (but glibc makes this easy!)
 }
 
 //==========================================================================================

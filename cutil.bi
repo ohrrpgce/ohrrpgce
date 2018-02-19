@@ -1,4 +1,5 @@
 'Header for misc functions implemented in C files
+'FIXME: why don't we just split this in two?
 
 #ifndef CUTIL_BI
 #define CUTIL_BI
@@ -14,6 +15,11 @@ declare function get_sys_err_string() as zstring ptr
 declare function stringhash(byval strp as zstring ptr, byval leng as integer) as unsigned integer
 
 declare function strprintf (byval fmtstr as zstring ptr, ...) as string
+
+declare sub init_crt ()
+
+declare sub disable_extended_precision ()
+
 
 'In base64.c
 declare function isbase64 (byval ch as byte) as bool

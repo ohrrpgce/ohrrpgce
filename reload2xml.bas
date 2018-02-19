@@ -1,3 +1,4 @@
+#include "util.bi"
 #include "reload.bi"
 
 dim as string filename, outfile

@@ -11,6 +11,7 @@
 ''        scons bam2mid
 ''
 
+#include "util.bi"
 #include "banks.bi"
 #include "crt/stddef.bi"
 #include "lumpfile.bi"

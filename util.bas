@@ -43,7 +43,6 @@ DIM orig_dir as string
 DIM tmpdir as string
 
 DIM exename as string
-exename = trimextension(trimpath(COMMAND(0)))
 
 DIM SHARED filetype_names(fileTypeError) as string
 filetype_names(fileTypeNonexistent) = "nonexistent"
@@ -52,12 +51,19 @@ filetype_names(fileTypeDirectory)   = "a directory"
 filetype_names(fileTypeOther)       = "a special file"
 filetype_names(fileTypeError)       = "unreadable"
 
-' This sets the locale (LC_ALL) according to the environment, while the FB
-' runtime only sets the LC_CTYPE locale (needed for mbstowcs).
-' Placing it here seems like the simplest way to ensure it's run in all utilities.
-' (I'm not aware of any reason we need to load other locale settings, but it might not hurt.)
-init_runtime
 
+'Gets called at the top of the main module for each executable just by including util.bi.
+'This is the place to put initialisation code common to everything.
+SUB lowlevel_init()
+  init_crt   'setlocale
+
+  exename = trimextension(trimpath(COMMAND(0)))
+
+  'Requires exename
+  setup_exception_handler
+
+  disable_extended_precision
+END SUB
 
 
 '------------- Basic datatypes -------------
