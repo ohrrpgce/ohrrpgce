@@ -54,7 +54,7 @@ DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, sprite as Frame ptr, s
 DECLARE FUNCTION pal16browse OVERLOAD (curpal as integer, picset as SpriteType, picnum as integer, show_default as bool=NO) as integer
 
 DECLARE FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix as string="-", suffix as string= "", zero as string="never") as string
-DECLARE FUNCTION speed_estimate(speed as integer, suffix as string=" seconds", zero as string="infinity") as string
+DECLARE FUNCTION speed_estimate(speed as integer) as string
 DECLARE FUNCTION seconds_estimate(ticks as integer) as string
 
 DECLARE SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)

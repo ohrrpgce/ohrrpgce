@@ -1523,30 +1523,16 @@ FUNCTION step_estimate(freq as integer, low as integer, high as integer, infix a
  RETURN low_est & infix & high_est & suffix & ", avg~" & format(average, "0.0")
 END FUNCTION
 
-FUNCTION speed_estimate(speed as integer, suffix as string=" seconds", zero as string="infinity") as string
- IF speed = 0 THEN RETURN zero
- DIM ticks as integer = INT(1000 / speed)
- DIM result as string
- result = STR(INT(ticks * 10 \ 18) / 10)
- 'Special case for dumb floating point math freak-outs
- WHILE INSTR(result, ".") AND RIGHT(result, 2) = "99"
-  result = LEFT(result, LEN(result) - 1)
- WEND
- RETURN result & suffix
+FUNCTION speed_estimate(speed as integer) as string
+ IF speed = 0 THEN RETURN "never gets a turn"
+ DIM ticks as integer = CEIL(1000 / speed)
+ DIM result as string = strprintf("%.3g", ticks / ideal_ticks_per_second())
+ RETURN "1 turn every " & result & " sec"
 END FUNCTION
 
 FUNCTION seconds_estimate(ticks as integer) as string
- IF ticks = 0 THEN RETURN "0.0"
- DIM sec as double
- sec = ticks * (1 / ideal_ticks_per_second())
- DIM s as string = STR(sec)
- DIM dot as integer = INSTR(s, ".")
- DIM prefix as string = LEFT(s, dot - 1)
- DIM suffix as string = MID(s, dot + 1, 2)
- WHILE LEN(suffix) > 1 ANDALSO RIGHT(suffix, 1) = "0"
-  suffix = LEFT(suffix, LEN(suffix) - 1)
- WEND
- RETURN prefix & "." & suffix
+ IF ticks = 0 THEN RETURN "0"
+ RETURN strprintf("%.2f", ticks / ideal_ticks_per_second())
 END FUNCTION
 
 SUB load_text_box_portrait (byref box as TextBox, byref gfx as GraphicPair)

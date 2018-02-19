@@ -2395,7 +2395,7 @@ FOR i = 0 TO size
       datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
     END IF
   CASE 15 '--speed (shows battle turn time estimate)
-    datatext = dat & " (1 turn each " & speed_estimate(dat) & ")"
+    datatext = dat & " (" & speed_estimate(dat) & ")"
   CASE 16 '--stat
     SELECT CASE dat
      CASE 0 TO 11
@@ -2415,7 +2415,7 @@ FOR i = 0 TO size
    datatext = dat & "%"
    'AtkDatChainRate = 13
    IF dat > 0 ANDALSO datablock(13) > 0 THEN
-    datatext = datatext &  " (effectively " & INT((100 - datablock(13)) / 100.0 * dat) & "%)"
+    datatext = datatext & strprintf(" (effectively %.2g%%)", (1. - datablock(13) / 100) * dat) 
    END IF
   CASE 21 '--set tag, not including specials
    datatext = tag_set_caption(dat, "")

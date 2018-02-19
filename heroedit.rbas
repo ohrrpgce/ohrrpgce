@@ -442,9 +442,9 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   IF statnum = statSpeed THEN
    textcolor uilook(uiDescription), 0
-   printstr "Lev0: 1 turn every " & speed_estimate(her.Lev0.spd), 0, pBottom - 9, dpage
+   printstr "Lev0: " & speed_estimate(her.Lev0.spd), 0, pBottom - 9, dpage
    IF twomenus THEN
-    printstr "Lev" & gen(genMaxLevel) & ": 1 turn every " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, pBottom, dpage
+    printstr "Lev" & gen(genMaxLevel) & ": " & speed_estimate(atlevel(gen(genMaxLevel), her.Lev0.spd, her.LevMax.spd)), 0, pBottom, dpage
    END IF
   END IF
   SWAP vpage, dpage
