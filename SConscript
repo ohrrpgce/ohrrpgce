@@ -177,6 +177,12 @@ if debug >= 1:
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
 GCC_strip = (debug == 0)  # (linkgcc only) strip debug info and unwanted symbols?
+if ARGUMENTS.get('lto'):
+    # Only use LTO on gengcc .C files. GCC throws errors if you try to use LTO
+    # across C/FB, after saying declarations don't match.
+    #CFLAGS.append('-flto')
+    GENGCC_CFLAGS.append('-flto')
+    CXXLINKFLAGS.append('-flto')
 
 portable = int (ARGUMENTS.get ('portable', 0))
 profile = int (ARGUMENTS.get ('profile', 0))
@@ -203,6 +209,7 @@ if FB_exx:
     FBFLAGS.append ('-exx')
 if optimisations:
     CFLAGS.append ('-O3')
+    CXXLINKFLAGS.append ('-O2')  # For LTO
     # FB optimisation flag currently does pretty much nothing unless using -gen gcc
     FBFLAGS += ["-O", "2"]
 else:
@@ -1243,6 +1250,9 @@ Options:
                        debug=4:    no  |     yes      |    no
                       -exx builds have array, pointer and file error checking
                       (they abort immediately on errors!), and are slow.
+  lto=1               Do link-time optimisation, for a faster, smaller build
+                      (about 2-300KB for Game/Custom) but longer compile time.
+                      Use with gengcc=1.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
                       disables -exx and uses GCC emitter.
