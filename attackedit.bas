@@ -250,7 +250,7 @@ NEXT i
 
 atkbit(50) = "Erase rewards (Enemy target only)"
 atkbit(52) = "Store Target"
-atkbit(53) = "Delete Stored Target"
+atkbit(53) = "Delete Stored Targets"
 atkbit(54) = "Automatically choose target"
 atkbit(55) = "Show attack name"
 atkbit(56) = "Do not display Damage"
@@ -376,10 +376,10 @@ addcaption caption(), capindex, "Self"
 addcaption caption(), capindex, "All"
 addcaption caption(), capindex, "Ally (Including Dead)"
 addcaption caption(), capindex, "Ally Not Self"
-addcaption caption(), capindex, "Revenge (last to hit attacker)"
+addcaption caption(), capindex, "Revenge (last to hurt attacker)"
 addcaption caption(), capindex, "Revenge (whole battle)"
-addcaption caption(), capindex, "Previous target"
-addcaption caption(), capindex, "Recorded target"
+addcaption caption(), capindex, "Previous target(s)"
+addcaption caption(), capindex, "Recorded (stored) targets"
 addcaption caption(), capindex, "Dead Allies (hero only)"
 addcaption caption(), capindex, "Thankvenge (last to cure attacker)"
 addcaption caption(), capindex, "Thankvenge (whole battle)"
@@ -429,11 +429,11 @@ addcaption caption(), capindex, "100"
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i) & " (attacker)"
 NEXT
-addcaption caption(), capindex, "previous attack"
-addcaption caption(), capindex, "last damage to attacker"
-addcaption caption(), capindex, "last damage to target"
-addcaption caption(), capindex, "last cure to attacker"
-addcaption caption(), capindex, "last cure to target"
+addcaption caption(), capindex, "Last damage by attacker"
+addcaption caption(), capindex, "Last damage to attacker"
+addcaption caption(), capindex, "Last damage to target"
+addcaption caption(), capindex, "Last cure to attacker"
+addcaption caption(), capindex, "Last cure to target"
 FOR i = 0 TO 11
  addcaption caption(), capindex, statnames(i) & " (target)"
 NEXT
@@ -2487,7 +2487,7 @@ FUNCTION browse_base_attack_stat(byval base_num as integer) as integer
  menu(0).last->extra(0) = 59
  append_menu_item(menu(0), "Random 0-999")
  menu(0).last->extra(0) = 4
- append_menu_item(menu(0), "Previous attack")
+ append_menu_item(menu(0), "Last damage by attacker")
  menu(0).last->extra(0) = 18
  append_menu_item(menu(0), "Last damage to attacker")
  menu(0).last->extra(0) = 19

@@ -196,7 +196,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   attacker.stored_targs(targetslot) = YES
   attacker.stored_targs_can_be_dead = attack_can_hit_dead(attackerslot, attack)
  END IF
- IF attack.delete_stored_targ THEN
+ IF attack.delete_stored_targs THEN
   FOR i as integer = 0 TO UBOUND(attacker.stored_targs)
    attacker.stored_targs(i) = NO
   NEXT i
@@ -1307,7 +1307,7 @@ FUNCTION attack_can_hit_dead(byval attacker as integer, attack as AttackData, by
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)
    IF is_hero(attacker) THEN RETURN YES
-  CASE 9 'stored target
+  CASE 9 'stored targets
    IF is_hero(attacker) THEN
     IF stored_targs_can_be_dead THEN RETURN YES
    END IF

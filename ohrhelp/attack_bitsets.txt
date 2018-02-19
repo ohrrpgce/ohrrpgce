@@ -20,10 +20,10 @@ Prevents the attack from being targeted to heroes in certain slots.
 When an enemy is hit with an attack that has this bitset turned on, its money, experience and items are deleted. Killing the enemy will not give any rewards at the end of battle.
 
 * Store Target
-When an attack with this bitset is used, the attacker will memorize the target for later use with attacks that use the "Stored Target" target class.
+When an attack with this bitset is used, the attacker will memorize the target(s) for later use with attacks that use the "Stored Targets" target class. The targets are ADDED to the list of previously stored targets, rather than replacing them! If you want to SET the stored target, use this together with Delete Stored Targets, below.
 
-* Delete Stored Target
-When an attack with this bitset is used, the attacker will forget any previously stored target, and will no longer be able to use attacks that use "Stored Target" target class.
+* Delete Stored Targets
+When an attack with this bitset is used, the attacker will forget any previously stored targets, and will no longer be able to use attacks that use "Stored Target" target class.
 
 * Automatically choose target
 Causes the attacker to automatically choose a target according to the attack's preferred target settings. This bitset is only useful for attacks used by heroes, since enemies always automatically choose targets regardless of this bitset.

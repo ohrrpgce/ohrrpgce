@@ -96,11 +96,37 @@ self-explanatory in use, so here are
 explanations as to some of the
 special values.
 
--Previous attack:
- The same base attack as the last
- attack performed. Can be considered
+(NOTE for Last damage/cure options:
+If an attack misses, fails, does no
+damage, or shows damage without
+inflicting, it doesn't affect the
+value of 'Last damage' options: they
+refer to the last attack which
+actually decreased a stat
+(regardless of which stat or status
+register pseudo-stat it was!) 'Last
+cure' options likewise are only
+affected by attacks which increased
+a stat.
+If no damaging or curing attack has
+happened yet, these values are zero.
+Also, the effects of "Reset poison/
+stun/etc register" and "Reset target
+stat to max before hit" bits are
+both ignored for the purpose of
+determining whether the attack
+hurt/cured - the latter is a bug!
+So make sure you use "Set STAT to
+100% of max" Damage Math instead of
+the "Reset target stat to max before
+hit" bit if using these options.)
+
+-Last damage by attacker:
+ The damage done by the attacker's
+ last attack. Can be considered
  Mime-like at least in what the
  strength of the attack is.
+ (See the NOTE above)
 
 -Last damage to attacker:
  The strength of the attack here
@@ -113,6 +139,7 @@ special values.
  strong attacks. Good in combination
  with Pure Damage to ensure damage
  back is similar to what just hit.
+ (See the NOTE above)
 
 -Last damage to target:
  The strength of the attack is based
@@ -122,18 +149,19 @@ special values.
  The damage done to the target could
  be done by anyone. Also good in
  combination with Pure Damage.
+ (See the NOTE above)
 
 -Last cure to attacker/target:
  Same as above, but for cure spells
  or spells that increase stats.
+ (See the NOTE above)
 
 -Lost HP:
-
  Damage will be based on how much HP
  in TOTAL has been lost.  Obviously
  meant for come back attacks or
- attacks that reward prolonging
- being healed.
+ skills that reward delaying before
+ healing.
 
 -Random 0-999:
  Exactly as it says.  Great for
@@ -188,6 +216,8 @@ effects.
 There are some special target stats
 that can be changed that are
 actually status effects.
+
+-Normal Stats
 
 -Poison Register:
  The more damage inflicted to this,

@@ -65,32 +65,45 @@ Target Class: This controls who the attack can be used on.
   to target itself. Only team-mates
   can be targetted.
 
-* Revenge (last to hit attacker) -
+* Revenge (last to hurt attacker) -
   This means the attack can only
   target the last hero or enemy that
-  has dealt damage to the attacker.
+  has dealt damage (to any stat) to
+  the attacker.
+  (Attacks which do no damage, or
+  "Show damage without inflicting"
+  don't count! Also, "Reset poison/
+  stun/etc register" and "Reset
+  target stat to max before hit" bits
+  are both ignored for the purpose
+  of determining whether the attack
+  hurt/cured - the latter is a bug!)
 
 * Revenge (whole battle) - This means
   the attack can target any hero or
   enemy who has dealt damage to the
   attacker over the course of the
   entire battle.
+  (See "Revenge (last to...)" for
+  caveats.)
 
-* Previous target - This means the
+* Previous target(s) - This means the
   attack can only target the same
-  target as whatever attack was most
-  recently used by the attacker.
+  targets as whatever attack was most
+  recently used by the attacker
+  (only one target, unless it was a
+  spread attack).
 
-* Recorded target - This means that
-  the attack will only be able to
-  target any targets that the
-  attacker has previously hit with an
-  attack that has the "Store Target"
-  bitset turned on. If no "Store
-  Target" attack has been used by the
-  attacker, then the attacker will
-  not be able to use this attack at
-  all.
+* Recorded (stored) targets -
+  This means that the attack will
+  only be able to target any targets
+  that the attacker has previously
+  hit with an attack that has the
+  "Store Target" bitset turned
+  on. If no "Store Target" attack
+  has been used by the attacker,
+  then the attacker will not be able
+  to use this attack at all.
 
 * Dead Allies (hero only) - This
   attack can only target dead heroes.
@@ -101,19 +114,24 @@ Target Class: This controls who the attack can be used on.
 * Thankvenge (last to cure attacker)
   This means the attack will only be
   able to target the last hero or
-  enemy who cured the attacker. If
+  enemy who cured the attacker
+  (increased any of their stats). If
   the attacker has not been cured in
   the current battle, the attack will
   be unusable.
+  (See "Revenge (last to...)" for
+  caveats.)
 
 * Thankvenge (whole battle) - This
   means the attack will be able to
   target any hero or enemy who has
-  dealt negative damage (cure) to the
-  attacker over the course of the
-  entire battle. If the attacker has
-  never been cured, the attack will
-  be unusable.
+  cured the attacker (increased any
+  of their stats) over the course of
+  the entire battle. If the attacker
+  has never been cured, the attack
+  will be unusable.
+  (See "Revenge (last to...)" for
+  caveats.)
 
 Target Setting: This controls how the attack can be targetted if more than one valid target is available in the chosen target class.
 

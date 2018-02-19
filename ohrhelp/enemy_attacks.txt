@@ -14,6 +14,10 @@ There are 5 slots for "Desperation" attacks. The enemy will randomly choose from
 
 There are 5 slots for "Alone" attacks. The enemy will randomly choose from these attacks if it is the last enemy alive in the battle formation. If there are no alone attacks, the enemy will use normal or desperation attacks instead.
 
+On-death Bequest:
+If this is set on an enemy it will happen when the enemy dies, after they've reached 0 HP but before they fade out.
+It's possible for the enemy to heal itself with this attack, which will cause its death to be cancelled!
+
 You can specify counterattacks that will be triggered when this enemy is hit by attacks of certain elemental types. An attack can only trigger one counterattack, so if multiple elementals apply, only the first one will be counterattacked.
 
 You can specify counterattacks that will be triggered when this enemy is hit by attacks that damage certain stats. Stat counterattacks only happen when no elemental counterattacks have happened.

@@ -24,6 +24,7 @@ March 1st-ish-maybe 2018 [Fufluns]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
 
   * Changes
+    * "Previous attack" base ATK stat renamed to "Last damage by attacker"
 
   * Bugfixes
     * Fixed exporting a blank BMP file instead of a tileset or backdrop

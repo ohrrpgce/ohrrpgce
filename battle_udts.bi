@@ -87,7 +87,7 @@ TYPE BattleSprite
   death_sfx as integer '0 = default, -1 = none, >0 = sfx ID + 1
   revengeharm as integer 'The last damage dealt TO this hero or enemy
   thankvengecure as integer 'The cure damage undealt TO this hero or enemy (as a positive number!)
-  repeatharm as integer 'The last damage dealy BY this hero or enemy
+  repeatharm as integer 'The last damage dealt BY this hero or enemy
   cursorpos as XYPair
   harm as HarmText
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
@@ -104,8 +104,8 @@ TYPE BattleSprite
   ready  as integer  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack as integer  ' ID number +1 of the attack that this hero or enemy is going to do next
   '--Targetting
-  revenge             as integer 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
-  thankvenge          as integer 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
+  revenge             as integer 'slot of last hero or enemy who damaged this hero or enemy, or -1 for none
+  thankvenge          as integer 'slot of last hero or enemy who cured this hero or enemy, or -1 for none
   revengemask(11)     as integer 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
   thankvengemask(11)  as integer 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
   last_targs(11)      as integer 'YES for each target previously hit by this hero/enemy, otherwise NO
