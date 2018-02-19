@@ -171,16 +171,22 @@ FUNCTION get_weapon_handle_point(itemid as integer, handlenum as integer) as XYP
  END IF
 END FUNCTION
 
-FUNCTION inflict (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
- 'This overload is for when you want the luxury of not caring which stat was damaged, or by how much.
- DIM h as integer = 0
- DIM targstat as integer = 0
- RETURN inflict(h, targstat, attackerslot, targetslot, attacker, target, attack, tcount, hit_dead)
-END FUNCTION
+'Do an attack (in-battle only).
+'Handled here:
+'- hit or miss
+'- stat reset bits
+'- damage calculation and inflict
+'- harm text
+'- records stored, last, revenge & thankvenge targets & damage
+'Not handled here:
+'- costs
+'- counterattacks and spawning
+'- other non-damaging effects like tags, force-run, erase rewards
+'- death checks
+'- stat caps (bug 980)
+FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as bool
 
-FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
- 
- attacker.attack_succeeded = 0
+ attacker.attack_succeeded = NO
  
  'remember this target
  attacker.last_targs(targetslot) = YES
@@ -188,7 +194,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
  'stored targs
  IF attack.store_targ THEN
   attacker.stored_targs(targetslot) = YES
-  attacker.stored_targs_can_be_dead = hit_dead
+  attacker.stored_targs_can_be_dead = attack_can_hit_dead(attackerslot, attack)
  END IF
  IF attack.delete_stored_targ THEN
   FOR i as integer = 0 TO UBOUND(attacker.stored_targs)
@@ -574,7 +580,7 @@ FUNCTION inflict (byref h as integer, byref targstat as integer, byval attackers
  IF attack.reset_mute = YES   THEN target.stat.cur.mute   = target.stat.max.mute
  
  '--success!
- attacker.attack_succeeded = 1
+ attacker.attack_succeeded = YES
  RETURN YES
 
 END FUNCTION

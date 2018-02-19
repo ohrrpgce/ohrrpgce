@@ -949,7 +949,7 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
   'Currently (bug 980) stat caps aren't enforced in-battle, which makes this easier.
   'Once it's fixed, I think we'll want an argument (or attack bitset!) to disable capping.
   'Also, we assume that inflict only modifies current values of stats.
-  inflict(0, 1, attacker_obj, target_obj, attack, target_count)
+  inflict( , , 0, 1, attacker_obj, target_obj, attack, target_count)
 
   '--copy back stats that need copying back
   DIM last_plain_stat as integer = statMP

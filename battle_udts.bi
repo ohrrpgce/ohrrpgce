@@ -72,7 +72,7 @@ TYPE BattleSprite
   dissolve as integer
   dissolve_appear as integer
   flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
-  attack_succeeded as integer
+  attack_succeeded as bool
   sprites as Frame ptr 'the graphic set
   sprite_num as integer 'how many frames
   frame as integer 'the current frame (if a hero, one of the frame* constants)

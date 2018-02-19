@@ -23,8 +23,7 @@ declare function targenemycount (bslot() as BattleSprite, byval for_alone_ai as 
 declare sub anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 declare function get_weapon_handle_point(itemid as integer, handlenum as integer) as XYPair
 declare sub anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
-declare function inflict OVERLOAD (byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
-declare function inflict OVERLOAD (byref h as integer, byref targstat as integer, byval attackerslot as integer, byval targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, byval tcount as integer, byval hit_dead as integer=NO) as integer
+declare function inflict (byref h as integer = 0, byref targstat as integer = 0, byval attackerslot as integer, targetslot as integer, byref attacker as BattleSprite, byref target as BattleSprite, attack as AttackData, tcount as integer) as bool
 declare function liveherocount overload (bslot() as BattleSprite) as integer
 declare function liveherocount () as integer
 declare sub loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
