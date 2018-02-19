@@ -14,6 +14,8 @@ March 1st-ish-maybe 2018 [Fufluns]
     * You can press Ctrl+F or click the "Find" button to filter/search the
       thingbrowser screen by name. [James]
     * Line slices [Ralph]
+    * New attack target class: "Counter (last to hit attacker)", which you
+      should normally use for counterattacks instead of Revenge [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

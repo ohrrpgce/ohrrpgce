@@ -108,6 +108,7 @@ TYPE BattleSprite
   thankvenge          as integer 'slot of last hero or enemy who cured this hero or enemy, or -1 for none
   revengemask(11)     as integer 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
   thankvengemask(11)  as integer 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
+  counter_target      as integer 'slot of the last attacker to target this hero/enemy with any attack, -1 for none
   last_targs(11)      as integer 'YES for each target previously hit by this hero/enemy, otherwise NO
   stored_targs(11)    as integer 'YES for each stored target for ths hero/enemy, otherwise NO
   stored_targs_can_be_dead as integer

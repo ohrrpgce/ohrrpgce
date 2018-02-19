@@ -368,7 +368,7 @@ addcaption caption(), capindex, "Oscillate"
 addcaption caption(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
-max(AtkLimTargClass) = 12
+max(AtkLimTargClass) = 13
 menucapoff(AtkTargClass) = capindex
 addcaption caption(), capindex, "Enemy"
 addcaption caption(), capindex, "Ally"
@@ -383,6 +383,7 @@ addcaption caption(), capindex, "Recorded (stored) targets"
 addcaption caption(), capindex, "Dead Allies (hero only)"
 addcaption caption(), capindex, "Thankvenge (last to cure attacker)"
 addcaption caption(), capindex, "Thankvenge (whole battle)"
+addcaption caption(), capindex, "Counter (last to hit attacker)"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4

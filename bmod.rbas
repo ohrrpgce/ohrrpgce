@@ -297,6 +297,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
   bslot(i).consume_item = -1
   bslot(i).revenge = -1
   bslot(i).thankvenge = -1
+  bslot(i).counter_target = -1
   bslot(i).harm.col = uilook(uiText)
   '--init affliction registers
   '--it should be clear by the fact that BattleStats is a separate type that

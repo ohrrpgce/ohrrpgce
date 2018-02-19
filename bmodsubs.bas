@@ -567,7 +567,10 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   END IF
  
  END IF 'skips to here if no damage
- 
+
+ 'remember "Counter" target-class data
+ target.counter_target = attackerslot
+
  IF attack.show_name = YES THEN
   IF LEN(target.harm.text) > 0 THEN target.harm.text += " "
   target.harm.text += attack.name
@@ -1090,6 +1093,12 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
     tmask(i) = 1
    END IF
   NEXT i
+
+ CASE 13 'counter
+  DIM counter as integer = bslot(who).counter_target
+  IF counter >= 0 THEN
+   tmask(counter) = bslot(counter).vis
+  END IF
 
  END SELECT
 
@@ -1622,6 +1631,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    '--targetting state
    .revenge = -1
    .thankvenge = -1
+   .counter_target = -1
    FOR i = 0 TO 11
     .revengemask(i) = NO
     .last_targs(i) = NO
