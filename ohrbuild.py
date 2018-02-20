@@ -366,7 +366,8 @@ def android_source_actions (sourcelist, rootdir, destdir):
 ########################################################################
 # Manipulating binaries
 
-keep_symbols = ['__fb_ctx']
+# ___fb_ctx is decorated version on Windows
+keep_symbols = ['__fb_ctx', '___fb_ctx']
 
 def strip_nonfunction_symbols(binary, target_prefix, builddir, env):
     """Modifies a binary in-place, stripping symbols for global variables
