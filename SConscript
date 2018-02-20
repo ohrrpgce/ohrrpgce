@@ -30,9 +30,7 @@ TRUE_CFLAGS = ['--std=gnu99']
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
 # CXXLINKFLAGS are used when linking with g++
-# --gc-sections decreases filesize, but unfortunately doesn't remove symbols for dropped sections,
-# not even with -flto or --strip-discarded!
-CXXLINKFLAGS = ['-Wl,--gc-sections']
+CXXLINKFLAGS = []
 # FBLINKFLAGS are passed to fbc when linking with fbc
 FBLINKFLAGS = []
 # FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
@@ -518,6 +516,14 @@ if gengcc:
         # NOTE: GENGCC_CFLAGS isn't used on android
         FBFLAGS += ["-Wc", ','.join (GENGCC_CFLAGS)]
 
+if mac:
+    # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
+    CXXLINKFLAGS += ['-Wl,-dead_strip']
+else:
+    # --gc-sections decreases filesize, but unfortunately doesn't remove symbols for dropped sections,
+    # not even with -flto or --strip-discarded!
+    CXXLINKFLAGS += ['-Wl,--gc-sections']
+
 
 ################ A bunch of stuff for linking
 
@@ -607,7 +613,8 @@ if linkgcc:
             return obj
         return target, map(to_o, enumerate(source))
 
-    if GCC_strip:
+    # Untested on mac. And I would guess not needed, due to -dead_strip
+    if GCC_strip and not mac:
         # This strips !330KB from each of Game and Custom, leaving ~280KB of symbols
         def strip_unwanted_syms(source, target, env):
             # source are the source objects for the executable and target is the exe
