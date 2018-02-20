@@ -523,6 +523,7 @@ SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as str
 END SUB
 
 SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
+ IF LEN(songfile) = 0 THEN EXIT SUB
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF slave_channel <> NULL_CHANNEL THEN
