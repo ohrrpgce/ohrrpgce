@@ -11,7 +11,6 @@
 #include "config.bi"
 #include "common_base.bi"
 #include "lumpfile.bi"
-#include "lumpfilewrapper.bi"
 
 
 'Local functions

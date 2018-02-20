@@ -197,16 +197,16 @@ inline bool isvalid(int slot) {
 
 LumpFile::LumpFile(Lump *lump) {
     wrapper = FileWrapper_open(lump);
-    length = FileWrapper_seek(*wrapper, 0, SEEK_END);
-    //FileWrapper_seek(*wrapper, 0, SEEK_SET);
+    length = FileWrapper_seek(wrapper, 0, SEEK_END);
+    //FileWrapper_seek(wrapper, 0, SEEK_SET);
 }
 
 LumpFile::~LumpFile() {
-    FileWrapper_close(*wrapper);
+    FileWrapper_close(wrapper);
 }
 
 int LumpFile::read(void *buffer, int size) {
-    return FileWrapper_read(*wrapper, buffer, 1, size);
+    return FileWrapper_read(wrapper, buffer, 1, size);
 }
 
 bool LumpFile::seek(int position, SeekMode mode) {
@@ -214,20 +214,20 @@ bool LumpFile::seek(int position, SeekMode mode) {
         case CURRENT:
         {
             int initpos = tell();
-            return FileWrapper_seek(*wrapper, position, SEEK_CUR) - initpos == position;
+            return FileWrapper_seek(wrapper, position, SEEK_CUR) - initpos == position;
         }
         case BEGIN:
         {
-            return FileWrapper_seek(*wrapper, position, SEEK_SET) == position;
+            return FileWrapper_seek(wrapper, position, SEEK_SET) == position;
         }
         case END:
         {
-            return FileWrapper_seek(*wrapper, position, SEEK_END) - length == position;
+            return FileWrapper_seek(wrapper, position, SEEK_END) - length == position;
         }
     }
     return false;
 }
 
 int LumpFile::tell() {
-    return FileWrapper_seek(*wrapper, SEEK_CUR, 0);
+    return FileWrapper_seek(wrapper, SEEK_CUR, 0);
 }

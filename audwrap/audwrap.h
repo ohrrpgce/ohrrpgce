@@ -25,18 +25,7 @@ elegant, so no appologies are necessary.
 #endif
 
 #include "audiere.h"
-
-extern "C" {
-
-struct Lump;
-struct FileWrapper;
-
-FileWrapper *FileWrapper_open(Lump *lump);
-void FileWrapper_close(FileWrapper&);
-int FileWrapper_seek(FileWrapper&, int offset, int whence);
-int FileWrapper_read(FileWrapper&, void *buffer, int size, int maxnum);
-
-}
+#include "../lumpfile.h"
 
 class LumpFile : public audiere::RefImplementation<audiere::File> {
 public:

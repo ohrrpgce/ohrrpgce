@@ -14,13 +14,13 @@
 #include "SDL/SDL.bi"
 
 #include "lumpfile.bi"
-#include "lumpfilewrapper.bi"
 #include "vector.bi"
 #include "common_base.bi"  'debug
 
 '==============================================================================
 
-/'
+/' Not used yet
+
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 
 function lumprwops_seek cdecl (byval context as SDL_RWops ptr, byval offset as int32, byval whence as int32) as int32
