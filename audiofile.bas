@@ -12,9 +12,13 @@
 '#endif
 #include "lib/mad.bi"
 
-dim shared libvorbisfile as any ptr
+dim shared libvorbisfile as any ptr  'Equal to BADPTR if can't be loaded
+dim shared libmad as any ptr  'Equal to BADPTR if can't be loaded
+
+const BADPTR as any ptr = cast(any ptr, -1)
 
 extern "C"
+
 #undef ov_clear
 #undef ov_fopen
 #undef ov_info
@@ -27,6 +31,20 @@ dim shared ov_info as function(byval vf as OggVorbis_File ptr, byval link as lon
 dim shared ov_bitrate as function(byval vf as OggVorbis_File ptr, byval link as long) as clong
 dim shared ov_time_total as function(byval vf as OggVorbis_File ptr, byval link as long) as double
 dim shared ov_comment as function(byval vf as OggVorbis_File ptr, byval link as long) as vorbis_comment ptr
+
+#undef mad_stream_init
+#undef mad_stream_finish
+#undef mad_stream_buffer
+#undef mad_stream_errorstr
+#undef mad_header_init
+#undef mad_header_decode
+dim shared mad_stream_init as sub(byval as mad_stream ptr)
+dim shared mad_stream_finish as sub(byval as mad_stream ptr)
+dim shared mad_stream_buffer as sub(byval as mad_stream ptr, byval as const ubyte ptr, byval as culong)
+dim shared mad_stream_errorstr as function(byval as const mad_stream ptr) as const zstring ptr
+dim shared mad_header_init as sub(byval as mad_header ptr)
+dim shared mad_header_decode as function(byval as mad_header ptr, byval as mad_stream ptr) as long
+
 end extern
 
 
@@ -105,14 +123,50 @@ end function
 '  (compiling instructions on the wiki tell you to install a standard SDL_mixer.framework in /Library/Frameworks)
 ' -libvorbisfile isn't installed, on a Unix machine
 private function load_vorbisfile() as bool
+	if libvorbisfile = BADPTR then return NO
 	if libvorbisfile then return YES
 	' Unix
 	if _load_libvorbisfile("vorbisfile") then return YES
-	' libvorbisfile is statically linked into our windows and mac SDL_mixer builds.
+	' libvorbisfile is statically linked into our Windows and Mac SDL_mixer builds
+	' and Windows SDL2_mixer.
 	' We can load them even if we're using a different music backend
 	if _load_libvorbisfile("SDL_mixer") then return YES
 	if _load_libvorbisfile("SDL2_mixer") then return YES
-	RETURN NO
+	libvorbisfile = BADPTR
+	return NO
+end function
+
+private function _load_libmad(libfile as string) as bool
+	libmad = dylibload(libfile)
+	if libmad = NULL then
+		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
+		return NO
+	end if
+
+	MUSTLOAD(libmad, mad_stream_init)
+	MUSTLOAD(libmad, mad_stream_finish)
+	MUSTLOAD(libmad, mad_stream_buffer)
+	MUSTLOAD(libmad, mad_stream_errorstr)
+	MUSTLOAD(libmad, mad_header_init)
+	MUSTLOAD(libmad, mad_header_decode)
+
+	debuginfo "Successfully loaded libmad symbols from " & libfile
+	return YES
+end function
+
+' Dynamically load functions from libmad
+private function load_libmad() as bool
+	if libmad = BADPTR then return NO
+	if libmad then return YES
+	' Unix
+	if _load_libmad("mad") then return YES
+	' libmad is statically linked into our Windows SDL_mixer and SDL2_mixer builds.
+	' Very unlikely to be linked on Linux.
+	' We can load them even if we're using a different music backend
+	if _load_libmad("SDL_mixer") then return YES
+	if _load_libmad("SDL2_mixer") then return YES
+	libmad = BADPTR
+	return NO
 end function
 
 ' First index is number of channels, second is quality
@@ -138,7 +192,7 @@ end function
 ' Return one or more lines of text describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
 function read_ogg_metadata(songfile as string) as string
 	if load_vorbisfile() = NO then
-		return "Can't read OGG metadata: missing library"
+		return !"Can't read OGG metadata: missing library\n"
 	end if
 	'We don't unload libvorbisfile afterwards. No need.
 
@@ -222,8 +276,14 @@ function read_ogg_metadata(songfile as string) as string
 ' #endif
 end function
 
-' Returns metadata, and optionally modifies filetype to the actual file type (eg MP2 file)
+' Returns metadata, and optionally modifies filetype to the actual file type (eg MP2 file).
+' Doesn't read embedded ID3 tags
+' This depends on libmad. It will be present on Windows, and probably on Linux, but not Macs.
 function read_mp3_metadata(songfile as string, byref filetype as string = "") as string
+	if load_libmad() = NO then
+		return !"Can't read MP3 metadata: need libmad\n"
+	end if
+
 	' MP3 files doesn't have a header, it's a stream format, a sequence of frames
 	' each with its own header, mixed in with arbitrary other data, like ID3 tags.
 	' To compute stuff like the duration you need to scan the whole file!
