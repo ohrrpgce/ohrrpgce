@@ -183,6 +183,14 @@ uint32_t stringhash(const unsigned char *strp, int length) {
 
 #include <float.h>
 
+// Unfortunately at least some MinGW versions (4.8.1) ship with a copy of
+// gcc with a float.h which shadows the MinGW float.h header
+#ifndef _PC_53
+#define	_PC_53		0x00010000
+#define	_MCW_PC		0x00030000
+_CRTIMP unsigned int __cdecl __MINGW_NOTHROW _controlfp (unsigned int unNew, unsigned int unMask);
+#endif
+
 void disable_extended_precision() {
 	_controlfp(_PC_53, _MCW_PC);
 }
