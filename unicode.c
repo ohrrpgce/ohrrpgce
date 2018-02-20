@@ -76,6 +76,8 @@ static uint32_t decode_utf8_char(uint32_t* state, uint32_t* codep, uint32_t byte
 
 // In codepoints. Returns negative value if invalid (actually position of bad character)
 int utf8_length(const unsigned char* s) {
+	if (!s)
+		return 0;
 	uint32_t codepoint = 0;
 	uint32_t state = UTF8_ACCEPT;
 	int count = 0;
@@ -106,12 +108,14 @@ wchar_t *utf8_decode(const unsigned char *input, int *length) {
 	wchar_t *ret, *outchar;
 	outchar = ret = (wchar_t*)malloc((len + 1) * sizeof(wchar_t));
 
-	while (*input) {
-		if (decode_utf8_char(&state, &codepoint, *input++) == UTF8_ACCEPT) {
-			if (codepoint > WCHAR_MAX)
-				codepoint = L'?';
+	if (input) {
+		while (*input) {
+			if (decode_utf8_char(&state, &codepoint, *input++) == UTF8_ACCEPT) {
+				if (codepoint > WCHAR_MAX)
+					codepoint = L'?';
 
-			*outchar++ = codepoint;
+				*outchar++ = codepoint;
+			}
 		}
 	}
 	*outchar = L'\0';
