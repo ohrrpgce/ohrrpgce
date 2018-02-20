@@ -11,6 +11,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 #include "file.bi"   'FB header
 #include "datetime.bi" 'FB header
+#include "string.bi"  'FB header
 #include "config.bi"
 #include "util.bi"
 #include "cutil.bi"
@@ -1119,6 +1120,20 @@ FUNCTION days_since_datestr (datestr as string) as integer
  DIM m as integer = str2int(MID(datestr, 6, 2))
  DIM d as integer = str2int(MID(datestr, 9, 2))
  RETURN NOW - DateSerial(y, m, d)
+END FUNCTION
+
+'Format a duration as a string with 0.1s precision, like '2m23.1s' or '0.4s'
+FUNCTION format_duration(length as double) as string
+ DIM msg as string
+ IF length >= 60 THEN
+  msg = (INT(length) \ 60) & "m"
+  'Avoid printing 1m60.0s for length 119.99
+  length = small(fmod(length, 60), 59.9)
+  msg &= FORMAT(length, "00.0") & "s"
+ ELSE
+  msg = FORMAT(length, "0.0") & "s"
+ END IF
+ RETURN msg
 END FUNCTION
 
 SUB flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
@@ -3132,6 +3147,17 @@ FUNCTION count_directory_size(directory as string) as integer
  NEXT
  
  RETURN bytes
+END FUNCTION
+
+'Return contents of a file as a string
+FUNCTION read_file (filename as string) as string
+ DIM buflen as integer = FILELEN(filename)
+ DIM buf as string = STRING(buflen, 0)
+ DIM fh as integer
+ OPENFILE(filename, for_binary + access_read, fh)
+ GET #fh, , buf
+ CLOSE #fh
+ RETURN buf
 END FUNCTION
 
 FUNCTION string_from_first_line_of_file (filename as string) as string

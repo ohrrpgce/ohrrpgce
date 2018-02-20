@@ -24,6 +24,7 @@ END ENUM
 
 DECLARE FUNCTION isawav(fi as string) as bool
 DECLARE FUNCTION read_ogg_metadata(songfile as string) as string
+DECLARE FUNCTION read_mp3_metadata(songfile as string, byref filetype as string = "") as string
 DECLARE FUNCTION valid_audio_file (filepath as string) as bool
 DECLARE FUNCTION getmusictype (file as string) as MusicFormatEnum
 

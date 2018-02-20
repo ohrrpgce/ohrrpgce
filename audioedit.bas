@@ -479,16 +479,21 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
    state.last = 5
   END IF
 
+  '-- add author, length, etc, info here
+  DIM extended_metadata as string
+  IF file_ext = ".mp3" THEN
+   extended_metadata = read_mp3_metadata(songfile, songtype)
+  END IF
+  IF file_ext = ".ogg" THEN
+   extended_metadata = read_ogg_metadata(songfile)
+  END IF
+
   metadata  = "Type:     " & songtype & !"\n"
   metadata &= "Filesize: " & filesize(songfile) & !"\n"
   IF bamfile <> songfile AND bamfile <> "" THEN
    metadata &= "BAM fallback exists. Filesize: " & filesize(bamfile) & !"\n"
   END IF
-
-  '-- add author, length, etc, info here
-  IF file_ext = ".ogg" THEN
-   metadata &= read_ogg_metadata(songfile)
-  END IF
+  metadata &= extended_metadata
 
   IF (getmusictype(songfile) AND music_supported_formats()) = 0 THEN
    metadata &= !"This engine build can't play this file\n"
@@ -754,13 +759,18 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
   menu(2) = "Name: " & sfxname
   state.last = 6  ' Show Export/Delete/Play Sound
 
+  '-- add author, length, etc, info here
+  DIM extended_metadata as string
+  IF file_ext = ".mp3" THEN
+   extended_metadata = read_mp3_metadata(sfxfile, sfxtype)
+  END IF
+  IF file_ext = ".ogg" THEN
+   extended_metadata = read_ogg_metadata(sfxfile)
+  END IF
+
   metadata  = "Type:     " & sfxtype & !"\n"
   metadata &= "Filesize: " & filesize(sfxfile) & !"\n"
-
-  '-- add author, length, etc, info here
-  IF file_ext = ".ogg" THEN
-   metadata &= read_ogg_metadata(sfxfile)
-  END IF
+  metadata &= extended_metadata
 
   IF (getmusictype(sfxfile) AND sound_supported_formats()) = 0 THEN
    metadata &= !"This engine build can't play this file\n"

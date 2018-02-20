@@ -352,11 +352,14 @@ declare function isfile(filename as string) as bool
 declare function real_isfile(filename as string) as bool
 declare function isdir (filename as string) as bool
 declare function count_directory_size(directory as string) as integer
+
+declare function read_file (filename as string) as string
 declare function string_from_first_line_of_file (filename as string) as string
 declare function string_from_file (filename as string) as string
 declare sub string_to_file (string_to_write as string, filename as string)
 declare function lines_from_file (strarray() as string, filename as string, expect_exists as bool = YES) as bool
 declare function lines_to_file(strarray() as string, filename as string, lineending as string = !"\n") as bool
+
 declare function get_tmpdir () as string
 
 'Slight hackery to get more versatile read function
@@ -676,6 +679,8 @@ declare function ini_key_match(text as string, key as string, byref value as str
 
 
 declare function days_since_datestr(datestr as string) as integer
+declare function format_duration(seconds as double) as string
+
 declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare sub qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)

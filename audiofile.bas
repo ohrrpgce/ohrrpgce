@@ -10,6 +10,7 @@
 '#ifdef HAVE_VORBISFILE
 #include "vorbis/vorbisfile.bi"
 '#endif
+#include "lib/mad.bi"
 
 dim shared libvorbisfile as any ptr
 
@@ -164,16 +165,7 @@ function read_ogg_metadata(songfile as string) as string
 	dim length as double
 	length = ov_time_total(@oggfile, -1)
 	if length <> OV_EINVAL then
-		dim msg as string = "Length:   "
-		if length >= 60 then
-			msg &= (int(length) \ 60) & "m"
-			'Avoid printing 1m60.0s for length 119.99
-			length = small(fmod(length, 60), 59.9)
-			msg &= format(length, "00.0") & "s"
-		else
-			msg &= format(length, "0.0") & "s"
-		end if
-		ret &= msg & !"\n"
+		ret &= "Length:   " & format_duration(length) & !"\n"
 	else
 		debug "ov_time_total failed on " & songfile
 	end if
@@ -228,6 +220,62 @@ function read_ogg_metadata(songfile as string) as string
 ' #else
 ' 	return "(OGG metadata not enabled in this build)"
 ' #endif
+end function
+
+' Returns metadata, and optionally modifies filetype to the actual file type (eg MP2 file)
+function read_mp3_metadata(songfile as string, byref filetype as string = "") as string
+	' MP3 files doesn't have a header, it's a stream format, a sequence of frames
+	' each with its own header, mixed in with arbitrary other data, like ID3 tags.
+	' To compute stuff like the duration you need to scan the whole file!
+	' libmad is quite a low level library, so doesn't have a function to do that!
+
+	dim duration as double      'In seconds
+	dim bits as longint         'bits per second integrated over time
+	dim samplerate as integer   'Hz; maximum samplerate of any frame
+	dim channels as integer = 1 '1 or 2.
+	dim layer as integer        '1, 2, or 3: MP1, MP2, MP3
+
+	' It's a pain to feed libmad just the parts of the file it needs to read,
+	' and because MP3 frames are less than 4KB, it won't really save any time anyway.
+	dim buf as string = read_file(songfile)
+
+	dim numerrs as integer
+	dim stream as mad_stream
+	dim header as mad_header
+	mad_header_init(@header)
+	mad_stream_init(@stream)
+	mad_stream_buffer(@stream, @buf[0], len(buf))
+	do
+		if mad_header_decode(@header, @stream) <> 0 then
+			'if MAD_RECOVERABLE(stream.error) then
+			if stream.error = MAD_ERROR_BUFLEN then
+				'No more data in the buffer
+				exit do
+			elseif stream.error <> MAD_ERROR_LOSTSYNC then
+				'LOSTSYNC happens if other data like ID3 tags are embedded in the file
+				if numerrs = 0 then
+					debuginfo "error parsing " & songfile & " @ " _
+						  & (stream.this_frame - stream.buffer) & ": " & *mad_stream_errorstr(@stream)
+				end if
+				numerrs += 1
+			end if
+		else
+			dim frame_len as double = header.duration.seconds + header.duration.fraction / MAD_TIMER_RESOLUTION
+			duration += frame_len
+			samplerate = large(samplerate, header.samplerate)
+			bits += frame_len * header.bitrate
+			if header.mode <> MAD_MODE_SINGLE_CHANNEL then channels = 2
+			layer = large(layer, header.layer)
+		end if
+	loop
+	mad_stream_finish(@stream)
+
+	filetype = "MPEG Layer " & string(layer, "I") & " (MP" & layer & !")"
+
+	' Bit and sample rate, channels
+	return "Length:   " & format_duration(duration) & !"\n" & _
+	       channels & " channel(s)  " & format(samplerate / 1000, "0.0") & !"kHz  \n" _
+	       "Bitrate:  " & cint(bits / duration / 1000) & !"kbps\n"
 end function
 
 ' Check that an audio file really is the format it appears to be
