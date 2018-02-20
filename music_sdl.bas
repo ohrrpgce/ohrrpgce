@@ -79,6 +79,7 @@ enum MusicStatusEnum
   musicOn = 1
 end enum
 
+dim shared supported_formats as integer
 dim shared music_status as MusicStatusEnum = musicOff
 dim shared music_vol as integer      '0 to 128
 dim shared music_paused as bool      'Always false: we never pause! (see r5406)
@@ -147,8 +148,31 @@ function music_get_info() as string
 			ret += ", Music decoders:"
 			for i as integer = 0 to _Mix_GetNumMusicDecoders() - 1
 				if i > 0 then ret += ","
-				ret += *_Mix_GetMusicDecoder(i)
+				dim form as string = *_Mix_GetMusicDecoder(i)
+				ret += form
+
+				'SDL2_mixer lists the file formats in the list of decoders,
+				'SDL_mixer 1.2 may only list the decoders, such as MIKMOD.
+				'Mix_GetChunkDecoder only lists file formats, not decoders.
+				if form = "MPG123" or form = "MAD" then
+					'Is linked to libmad or libmpg123, rather than smpeg,
+					'which is totally broken for non-44.1kHz MP3s.
+					supported_formats or= FORMAT_MP3
+				elseif form = "OGG" then
+					supported_formats or= FORMAT_OGG
+				elseif form = "FLAC" then
+					supported_formats or= FORMAT_FLAC
+				elseif form = "WAVE" then
+					supported_formats or= FORMAT_WAV
+				elseif form = "MOD" or form = "MIKMOD" or form = "MODPLUG" then
+					supported_formats or= FORMAT_MODULES
+				elseif form = "MIDI" or form = "TIMIDITY" or form = "FLUIDSYNTH" or form = "NATIVEMIDI" then
+					supported_formats or= FORMAT_MIDI or FORMAT_BAM
+				end if
 			next
+		else
+			'A very out of date copy of SDL_mixer. Assume linked to SMPEG
+			supported_formats = FORMAT_BAM or FORMAT_MIDI or FORMAT_MODULES or FORMAT_OGG or FORMAT_WAV
 		end if
 
 		if _Mix_GetNumChunkDecoders andalso _Mix_GetChunkDecoder then
@@ -165,6 +189,14 @@ function music_get_info() as string
 	if libhandle then dylibfree(libhandle)
 
 	return ret
+end function
+
+function music_supported_formats() as integer
+	return supported_formats and VALID_MUSIC_FORMAT
+end function
+
+function sound_supported_formats() as integer
+	return supported_formats and VALID_SFX_FORMAT
 end function
 
 sub music_init()

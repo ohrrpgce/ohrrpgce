@@ -16,6 +16,7 @@ March 1st-ish-maybe 2018 [Fufluns]
     * Line slices [Ralph]
     * New attack target class: "Counter (last to hit attacker)", which you
       should normally use for counterattacks instead of Revenge [Ralph]
+    * Previewing MP3 files in the file browser reenabled (Windows only) [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

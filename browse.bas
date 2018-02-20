@@ -450,10 +450,12 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    CASE 5 'music
     music_stop
     br.alert = .about
-    IF legal_audio_file(filepath, PREVIEWABLE_MUSIC_FORMAT) THEN
-     loadsong filepath
-    ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
-     br.alert = "Cannot preview MP3, try importing"
+    IF .kind <> bkUnselectable THEN
+     IF legal_audio_file(filepath, music_supported_formats()) THEN
+      loadsong filepath
+     ELSE
+      br.alert = "Cannot preview this file type"
+     END IF
     END IF
    CASE 6 'sfx
     br.alert = .about
@@ -464,11 +466,11 @@ SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     END IF
     IF .kind <> bkUnselectable THEN
      'not disabled because of size
-     IF legal_audio_file(filepath, PREVIEWABLE_FX_FORMAT) THEN
+     IF legal_audio_file(filepath, sound_supported_formats()) THEN
       br.snd = sound_load(filepath)
       IF br.snd > -1 THEN sound_play(br.snd, 0, get_global_sfx_volume)
-     ELSEIF getmusictype(filepath) = FORMAT_MP3 THEN
-      br.alert = "Cannot preview MP3, try importing"
+     ELSE
+      br.alert = "Cannot preview this file type"
      END IF
     END IF
    CASE 9 'scripts
@@ -524,12 +526,12 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
     END IF
    END IF
    IF br.special = 6 THEN
-    IF legal_audio_file(filepath, VALID_FX_FORMAT) = NO THEN
+    IF legal_audio_file(filepath, VALID_SFX_FORMAT) = NO THEN
      .kind = bkUnselectable
-     .about = "Not a valid sound effect file"
-    ELSEIF FILELEN(filepath) > 500 * 1024 AND LCASE(justextension(filepath)) <> "wav" THEN
+     .about = "Not a valid sound file"
+    ELSEIF FILELEN(filepath) > 1024 * 1024 AND LCASE(justextension(filepath)) <> "wav" THEN
      .kind = bkUnselectable
-     .about = "File is too large (limit 500kB)"
+     .about = "File is too large (limit 1MB)"
     END IF
    END IF
    '---Any BMP

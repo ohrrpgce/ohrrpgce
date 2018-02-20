@@ -16,6 +16,10 @@ declare sub music_close()
 '(eg. just return dll version)
 declare function music_get_info() as string
 
+'Returns combination of MusicFormatEnum bits. Music file formats which we can attempt to play.
+'(Also used to exclude a format if we could play it, but shouldn't because it's broken)
+declare function music_supported_formats() as integer
+
 'The fmt arg is not very useful, and mostly ignored.
 declare sub music_play overload(filename as string, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
 declare sub music_play overload(byval lump as Lump ptr, byval fmt as MusicFormatEnum = FORMAT_UNSPECIFIED)
@@ -42,6 +46,10 @@ END TYPE
 declare sub sound_init()
 declare sub sound_close()
 declare sub sound_reset()
+
+'Returns combination of MusicFormatEnum bits. SFX file formats which we can attempt to play.
+'(Also used to exclude a format if we could play it, but shouldn't because it's broken)
+declare function sound_supported_formats() as integer
 
 ' loopcount is N to play N+1 times, -1 to loop forever.
 declare sub sound_play(slot as integer, loopcount as integer, volume as single = 1.0)

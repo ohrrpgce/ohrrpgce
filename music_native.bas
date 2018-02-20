@@ -225,6 +225,19 @@ function music_get_info() as string
 	return ""
 end function
 
+'NOTE: actually, audiere doesn't play anything on Windows at the moment, only MIDI works!
+function music_supported_formats() as integer
+	#ifdef __FB_WIN32__
+		return FORMAT_BAM or FORMAT_MIDI or FORMAT_MODULES or FORMAT_OGG or FORMAT_MP3 or FORMAT_FLAC
+	#else
+		return FORMAT_MODULES or FORMAT_OGG or FORMAT_MP3 or FORMAT_FLAC
+	#endif
+end function
+
+function sound_supported_formats() as integer
+	return FORMAT_WAV or FORMAT_OGG or FORMAT_MP3 or FORMAT_FLAC
+end function
+
 function music_settings_menu() as bool
 	return NO
 end function

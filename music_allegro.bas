@@ -97,6 +97,14 @@ function music_get_info() as string
 	return allegro_id
 end function
 
+function music_supported_formats() as integer
+	return FORMAT_BAM or FORMAT_MIDI
+end function
+
+function sound_supported_formats() as integer
+	return FORMAT_WAV
+end function
+
 function music_settings_menu () as bool
 	return NO
 end function

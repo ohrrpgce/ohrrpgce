@@ -447,7 +447,7 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
  ELSEIF isfile(temp & ".mp3") THEN ' Obsolete. only present in some Ubersetzung WIP games
   file_ext = ".mp3"
   songfile = temp & file_ext
-  songtype = "MPEG Layer III (MP3) OBSOLETE"
+  songtype = "MPEG Layer III (MP3)"
  ELSEIF isfile(temp & ".mid") THEN
   file_ext = ".mid"
   songfile = temp & file_ext
@@ -488,6 +488,10 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
   '-- add author, length, etc, info here
   IF file_ext = ".ogg" THEN
    metadata &= read_ogg_metadata(songfile)
+  END IF
+
+  IF (getmusictype(songfile) AND music_supported_formats()) = 0 THEN
+   metadata &= !"This engine build can't play this file\n"
   END IF
  END IF
 
@@ -724,11 +728,11 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
  ELSEIF isfile(temp & ".wav") THEN ' Obsolete, only present in Pre-Ubersetzung games
   file_ext = ".wav"
   sfxfile = temp & file_ext
-  sfxtype = "Waveform (WAV) OBSOLETE"
+  sfxtype = "Waveform (WAV)"
  ELSEIF isfile(temp & ".mp3") THEN ' Obsolete, only present in some Ubersetzung WIP games
   file_ext = ".mp3"
   sfxfile = temp & file_ext
-  sfxtype = "MPEG Layer III (MP3) OBSOLETE"
+  sfxtype = "MPEG Layer III (MP3)"
  END IF
 
  '--add more formats here
@@ -756,6 +760,10 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
   '-- add author, length, etc, info here
   IF file_ext = ".ogg" THEN
    metadata &= read_ogg_metadata(sfxfile)
+  END IF
+
+  IF (getmusictype(sfxfile) AND sound_supported_formats()) = 0 THEN
+   metadata &= !"This engine build can't play this file\n"
   END IF
  END IF
 
