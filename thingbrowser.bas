@@ -37,7 +37,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
  dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
  ChangeTextSlice mode_indicator, "Browsing " & thing_kind_name()
- if can_edit <> 0 then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
+ if can_edit andalso edit_by_default then ChangeTextSlice mode_indicator, "Editing " & thing_kind_name()
 
  dim noscroll_area as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_NOSCROLL_AREA, root)
  dim back_holder as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_BACK_HOLDER, root)
@@ -132,12 +132,32 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    ps.cur = hover
   end if
   if readmouse.buttons AND mouseRight then
-   'Holding down right click can change cursor selection
+   'Holding down right click changes cursor selection
    cursor_moved = ps.cur <> hover
    ps.cur = hover
   end if
 
   dim edit_record as integer
+
+  if readmouse.release AND mouseRight then
+   'When edit mode is available, but not default, then
+   ' right-clicking pops up a context menu
+   if ps.cur andalso can_edit andalso not edit_by_default then
+    dim selected_id as integer = ps.cur->Extra(0)
+    dim options(1) as string
+    dim thing_and_id as string = thing_kind_name_singular() & " " & selected_id
+    options(0) = "Pick " & thing_and_id
+    options(1) = "Edit " & thing_and_id
+    select case multichoice("Context menu", options())
+     case 0: 
+      result = selected_id
+      exit do
+     case 1:
+      edit_record = selected_id
+      do_edit = YES
+    end select
+   end if
+  end if
   if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
    if IsAncestor(ps.cur, thinglist) then
     if can_edit = NO orelse edit_by_default = NO then
@@ -279,6 +299,11 @@ End Sub
 Function ThingBrowser.thing_kind_name() as string
  'Should be plural
  return "Things"
+End Function
+
+Function ThingBrowser.thing_kind_name_singular() as string
+ 'Strip the "s" off the end of the plural... override this function when that is wrong
+ return rtrim(thing_kind_name(), ANY "s")
 End Function
 
 Function ThingBrowser.init_helpkey() as string

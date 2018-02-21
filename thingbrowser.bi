@@ -27,6 +27,7 @@ Type ThingBrowser extends Object
  filter_text as string
 
  declare virtual function thing_kind_name() as string
+ declare virtual function thing_kind_name_singular() as string
  declare virtual function init_helpkey() as string
  declare virtual function lowest_id() as integer
  declare virtual function highest_id() as integer
