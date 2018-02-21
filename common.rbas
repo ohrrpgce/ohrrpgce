@@ -2715,6 +2715,10 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
    result = escval
    state.active = NO
   END IF
+  IF readmouse.release AND mouseRight THEN
+   result = escval
+   state.active = NO
+  END IF
 
   IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
    show_help helpkey
@@ -2724,6 +2728,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
    result = state.pt
    state.active = NO
   END IF
+  
 
   IF state.active = NO THEN EXIT DO
   
