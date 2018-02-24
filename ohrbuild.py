@@ -348,6 +348,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
     # to automatically copy all sources to destdir, but that requires teaching it
     # that -gen gcc generates .c files.
     # (This links lib/gif.cpp as gif.cpp, so copy lib/gif.h to gif.h)
+    # (also do the same with ./fb/*.h to ./*.h for the same reason)
     actions = [
         'rm -fr %s/*' % destdir,
         'mkdir -p %s/fb' % destdir,
@@ -356,6 +357,7 @@ def android_source_actions (sourcelist, rootdir, destdir):
         'cp %s/*.h %s/' % (rootdir, destdir),
         'cp %s/*.hpp %s/' % (rootdir, destdir),
         'cp %s/fb/*.h %s/fb/' % (rootdir, destdir),
+        'cp %s/fb/*.h %s/' % (rootdir, destdir),
         'cp %s/lib/*.h %s/' % (rootdir, destdir),
         'cp %s/android/sdlmain.c %s' % (rootdir, destdir),
         # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
