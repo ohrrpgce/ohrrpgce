@@ -13,6 +13,8 @@
 #include "reload.bi"
 #include "os.bi"
 
+Type FilePreviewerPtr as FilePreviewer ptr
+
 Enum BrowseEntryKind
 	bkDrive = 0       'Windows only
 	bkParentDir = 1
@@ -39,17 +41,46 @@ Type BrowseMenuState
 	meter as integer
 	drivesshown as integer  'number of drive entries (plus 1 for "refresh" option, if uncommented)
 	alert as string
-	mashead as string
-	paledithead as string
 	showHidden as bool
 	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
 	fmask as string
-	snd as integer          'Slot of currently playing sound, or -1
+        previewer as FilePreviewerPtr
+	preview_panel_size as XYPair 'Size of the preview area
+End Type
+
+Type FilePreviewer Extends Object
+	Declare Destructor()
+	Declare Virtual Sub load_preview(filepath as string, br as BrowseMenuState)
+	Declare Virtual Sub unload_preview()
+	Declare Virtual Sub draw_preview()
+	Declare Virtual Sub update_layout(br as BrowseMenuState)
+End Type
+
+Type ImagePreviewer Extends FilePreviewer
+	Declare Virtual Sub load_preview(filepath as string, br as BrowseMenuState)
+	Declare Virtual Sub draw_preview()
+	Declare Virtual Sub unload_preview()
+	Declare Virtual Sub update_layout(br as BrowseMenuState)
+        Declare Sub toggle_remapping()
+
 	image_preview as Frame ptr   'Preview of currently selected image, or NULL
 	image_preview_remap as bool  'Show preview remapped to master() rather than original color
-	preview_panel_size as XYPair 'Size of the preview area
-	preview_footer as string  'Info message
+	preview_footer as string     'Info message
 End Type
+
+Type SfxPreviewer Extends FilePreviewer
+	Declare Virtual Sub load_preview(filepath as string, br as BrowseMenuState)
+	Declare Virtual Sub unload_preview()
+
+	snd as integer = -1          'Slot of currently playing sound, or -1
+End Type
+
+Type MusicPreviewer Extends FilePreviewer
+	Declare Virtual Sub load_preview(filepath as string, br as BrowseMenuState)
+	Declare Virtual Sub unload_preview()
+End Type
+
+
 
 'Subs and functions only used locally
 DECLARE SUB append_tree_record(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
@@ -57,9 +88,7 @@ DECLARE SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState
 DECLARE SUB draw_browse_meter(br as BrowseMenuState)
 DECLARE SUB browse_calc_menusize(byref br as BrowseMenuState)
 DECLARE SUB browse_update_layout(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
-DECLARE SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
 DECLARE SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
-DECLARE SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE FUNCTION legal_audio_file (filepath as string, byval typemask as integer) as bool
 DECLARE FUNCTION browse_get_reload_info(filepath as string, info as string) as bool
@@ -88,7 +117,6 @@ DIM selectst as SelectTypeState
 DIM br as BrowseMenuState
 br.special = special
 br.fmask = fmask
-br.snd = -1
 
 ' Note: I don't think all specials that ignore fmask are documented; many assume it is correctly given
 'special=0   no preview
@@ -98,16 +126,23 @@ br.snd = -1
 'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24/32 bit *.bmp) (fmask is ignored)
 'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
 'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
-'special=7   RPG files
-'special=8   RELOAD files
+'special=7   RPG files and .rpgdir
+'special=8   any kind of RELOAD file
 'special=9   script files (.hs, .hss)
 'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
 'special=11  Browse for a folder
 'special=12  tilemaps (fmask is ignored)
-'special=13  any image (but excluding animated gifs)
+'special=13  (browseAnyImage) any supported image (bmp, png, jpeg, jpg)  
 
-br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
-br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
+
+SELECT CASE br.special
+ CASE 1, 5  'BAM, music
+  br.previewer = NEW MusicPreviewer
+ CASE 6  'sfx
+  br.previewer = NEW SfxPreviewer
+ CASE 2, 3, 4, 10, browseAnyImage 'Any kind of image or master palette
+  br.previewer = NEW ImagePreviewer
+END SELECT
 
 'tree().kind contains the type of each object in the menu
 REDIM tree(255) as BrowseMenuEntry
@@ -231,14 +266,9 @@ DO
    br.showHidden XOR= YES
    build_listing tree(), br
   END IF
-  'Ctrl + P to switch between paletted/unpaletted previewing and 8/32 bit-depth
-  IF keyval(scP) > 1 THEN
-   br.image_preview_remap XOR= YES
-   IF br.image_preview_remap = NO THEN
-    show_overlay_message "32-bit preview (original color)"
-   ELSE
-    show_overlay_message "8-bit preview (converted to master palette)"
-   END IF
+  'Ctrl + P to switch between paletted/unpaletted previewing
+  IF (*br.previewer IS ImagePreviewer) ANDALSO keyval(scP) > 1 THEN
+   CAST(ImagePreviewer ptr, br.previewer)->toggle_remapping()
    br.mstate.need_update = YES
   END IF
  ELSE
@@ -314,12 +344,8 @@ DO
   printstr caption, 10, 20 + (i - br.mstate.top) * 9, dpage, YES
  NEXT i
 
- 'Image preview
- IF br.image_preview THEN
-  drawbox 320, 0, br.image_preview->w + 2, br.image_preview->h + 2, uilook(uiText), , dpage
-  frame_draw br.image_preview, , 321, 1, , NO, dpage
-  edgeprint br.preview_footer, pRight, br.image_preview->h + 3, uilook(uiDisabledItem), dpage
- END IF
+ 'Preview info or image
+ IF br.previewer THEN br.previewer->draw_preview()
 
  'The info line at the bottom, and the engine version when browsing for an RPG
  edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
@@ -342,6 +368,8 @@ LOOP
 
 setcursorvisibility(prev_mouse_vis)
 setfont current_font()
+switch_to_8bit_vpages
+
 IF LEN(ret) THEN
  default = ret
 ELSE
@@ -349,14 +377,7 @@ ELSE
 END IF
 remember = default
 
-music_stop
-IF br.snd >= 0 THEN
- sound_stop(br.snd)
- sound_unload(br.snd)
- br.snd = -1
-END IF
-frame_unload @br.image_preview
-switch_to_8bit_vpages
+DELETE br.previewer
 
 clearkey(scESC)
 RETURN ret
@@ -374,18 +395,74 @@ END SUB
 SUB browse_update_layout(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
  IF UpdateScreenSlice() THEN
   browse_calc_menusize br
-  'Redraw not needed when remapping, because the preview doesn't scale to window size
-  IF br.image_preview ANDALSO br.image_preview_remap = NO THEN br.mstate.need_update = YES
+  IF br.previewer THEN br.previewer->update_layout(br)
  END IF
 END SUB
 
-'Load preview of an image into br.image_preview
-SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
- frame_unload @br.image_preview
+
+
+'==============================================================================
+
+DESTRUCTOR FilePreviewer()
+ unload_preview
+END DESTRUCTOR
+
+SUB FilePreviewer.load_preview(filepath as string, br as BrowseMenuState)
+END SUB
+
+SUB FilePreviewer.unload_preview()
+END SUB
+
+SUB FilePreviewer.draw_preview()
+END SUB
+
+SUB FilePreviewer.update_layout(br as BrowseMenuState)
+END SUB
+
+'----------------------------------------
+
+SUB MusicPreviewer.load_preview(filepath as string, br as BrowseMenuState)
+ unload_preview
+ IF legal_audio_file(filepath, music_supported_formats()) THEN
+  loadsong filepath
+ ELSE
+  br.alert = "Cannot preview this file type"
+ END IF
+END SUB
+
+SUB MusicPreviewer.unload_preview()
+ music_stop
+END SUB
+
+'----------------------------------------
+
+SUB SfxPreviewer.load_preview(filepath as string, br as BrowseMenuState)
+ unload_preview
+ 'not disabled because of size
+ IF legal_audio_file(filepath, sound_supported_formats()) THEN
+  snd = sound_load(filepath)
+  IF snd > -1 THEN sound_play(snd, 0, get_global_sfx_volume)
+ ELSE
+  br.alert = "Cannot preview this file type"
+ END IF
+END SUB
+
+SUB SfxPreviewer.unload_preview()
+ IF snd >= 0 THEN
+  sound_stop(snd)
+  sound_unload(snd)
+ END IF
+ snd = -1
+END SUB
+
+'----------------------------------------
+
+SUB ImagePreviewer.load_preview(filepath as string, br as BrowseMenuState)
+ unload_preview
  IF NOT br.preview_panel_size > 0 THEN EXIT SUB 'There's no space to display it
  DIM ratio as double = 1.0
  DIM starttime as double = TIMER
- IF br.image_preview_remap = NO THEN
+ IF image_preview_remap = NO THEN
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
   DIM as Surface ptr temp = image_import_as_surface(filepath, YES)  'always_32bit=YES
   IF temp = NULL THEN EXIT SUB
@@ -393,18 +470,47 @@ SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
    IF temp->width > 0 THEN ratio = small(1.0, small(.w / temp->width, .h / temp->height))
   END WITH
   surface_assign @temp, surface_scale(temp, temp->width * ratio, temp->height * ratio)
-  br.image_preview = frame_with_surface(temp)
+  image_preview = frame_with_surface(temp)
   gfx_surfaceDestroy(@temp)
  ELSE
   ' Scaling not implemented
-  br.image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
+  image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
  END IF
- br.preview_footer = CINT(100 * ratio) & "% scale"  '; load:" & CINT(1000 * (TIMER - starttime)) & "ms"
+ preview_footer = CINT(100 * ratio) & "% scale"  '; load:" & CINT(1000 * (TIMER - starttime)) & "ms"
 END SUB
 
-' Set br.alert according to the selected browser entry, and preview audio
+SUB ImagePreviewer.draw_preview()
+ IF image_preview THEN
+  drawbox 320, 0, image_preview->w + 2, image_preview->h + 2, uilook(uiText), , dpage
+  frame_draw image_preview, , 321, 1, , NO, dpage
+  edgeprint preview_footer, pRight, image_preview->h + 3, uilook(uiDisabledItem), dpage
+ END IF
+END SUB
+
+SUB ImagePreviewer.unload_preview()
+ frame_unload @image_preview
+END SUB
+
+SUB ImagePreviewer.update_layout(br as BrowseMenuState)
+ 'Redraw not needed when remapping, because the preview doesn't scale to window size
+ IF image_preview ANDALSO image_preview_remap = NO THEN br.mstate.need_update = YES
+END SUB
+
+SUB ImagePreviewer.toggle_remapping()
+ image_preview_remap XOR= YES
+ IF image_preview_remap = NO THEN
+  show_overlay_message "32-bit preview (original color)"
+ ELSE
+  show_overlay_message "8-bit preview (converted to master palette)"
+ END IF
+END SUB
+
+'==============================================================================
+
+
+' Set br.alert according to the selected browser entry, and load any preview
 SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
- frame_unload @br.image_preview
+ IF br.previewer THEN br.previewer->unload_preview()
 
  SELECT CASE tree(br.mstate.pt).kind
   CASE bkDrive
@@ -416,66 +522,14 @@ SUB browse_hover(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   CASE bkRoot
    br.alert = "Root directory"
   CASE bkSelectable, bkUnselectable
-   browse_hover_file tree(), br
+   WITH tree(br.mstate.pt)
+    DIM as string filepath = br.nowdir & .filename
+    br.alert = .about
+    IF .kind = bkSelectable ANDALSO br.previewer THEN
+     br.previewer->load_preview(filepath, br)
+    END IF
+   END WITH
  END SELECT
-END SUB
-
-' Set br.alert according to the selected file, and preview audio
-SUB browse_hover_file(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
- WITH tree(br.mstate.pt)
-  DIM as string filepath = br.nowdir & .filename
-  SELECT CASE br.special
-   CASE 1 'music bam only (is this still used?)
-    music_stop
-    IF .kind = bkSelectable OR .kind = bkUnselectable THEN
-     IF legal_audio_file(filepath, FORMAT_BAM) THEN
-      loadsong filepath
-     ELSE
-      br.alert = .decoded_filename + " is not a valid BAM file"
-     END IF
-    END IF
-   CASE 2, 3, 4, 10, browseAnyImage 'Any kind of image or master palette
-    IF .kind = bkSelectable THEN
-     browse_preview_image br, filepath
-    END IF
-    ' Display the info string that was generated by browse_check_image
-    br.alert = .about
-   CASE 5 'music
-    music_stop
-    br.alert = .about
-    IF .kind <> bkUnselectable THEN
-     IF legal_audio_file(filepath, music_supported_formats()) THEN
-      loadsong filepath
-     ELSE
-      br.alert = "Cannot preview this file type"
-     END IF
-    END IF
-   CASE 6 'sfx
-    br.alert = .about
-    IF br.snd > -1 THEN
-     sound_stop(br.snd)
-     sound_unload(br.snd)
-     br.snd = -1
-    END IF
-    IF .kind <> bkUnselectable THEN
-     'not disabled because of size
-     IF legal_audio_file(filepath, sound_supported_formats()) THEN
-      br.snd = sound_load(filepath)
-      IF br.snd > -1 THEN sound_play(br.snd, 0, get_global_sfx_volume)
-     ELSE
-      br.alert = "Cannot preview this file type"
-     END IF
-    END IF
-   CASE 9 'scripts
-    IF LCASE(justextension(.filename)) = "hs" THEN
-     br.alert = "Compiled HamsterSpeak scripts"
-    ELSE
-     br.alert = "HamsterSpeak scripts"
-    END IF
-   CASE ELSE
-    br.alert = .about
-  END SELECT
- END WITH
 END SUB
 
 'Returns true if the image looks good; set .about
@@ -499,7 +553,6 @@ END SUB
 
 SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as BrowseMenuState, tree() as BrowseMenuEntry)
  DIM iminfo as ImageFileInfo
- DIM tempbuf(79) as integer
  DIM filepath as string
 
  DIM filelist() as string
@@ -560,9 +613,9 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      GET #masfh, 1, a
      CLOSE #masfh
      SELECT CASE a
-      CASE br.mashead
+      CASE CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
        .about = "MAS format"
-      CASE br.paledithead
+      CASE CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
        .about = "MAS format (PalEdit)"
       CASE ELSE
        .about = "Not a valid MAS file"
@@ -598,7 +651,13 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    END IF
    '--script files
    IF br.special = 9 THEN
-    IF wildcard = "*.txt" THEN
+    DIM ext as string = LCASE(justextension(filepath))
+    IF ext = "hs" THEN
+     .about = "Compiled HamsterSpeak scripts"
+    ELSE
+     .about = "HamsterSpeak scripts"
+    END IF
+    IF ext = "txt" THEN
      ' Only add .txt files that seem to be HS scripts
      IF NOT check_is_scripts_file(filepath) THEN
       br.mstate.last -= 1
@@ -832,6 +891,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.slice", filetype, br, tree()
    browse_add_files "*.rsav", filetype, br, tree()
    browse_add_files "*.editor", filetype, br, tree()
+   browse_add_files "*.rgfx", filetype, br, tree()
   ELSEIF br.special = 9 THEN
    browse_add_files "*.hs", filetype, br, tree()
    browse_add_files "*.hsp", filetype, br, tree()
@@ -852,6 +912,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.jpeg", filetype, br, tree()
    browse_add_files "*.jpg", filetype, br, tree()
    browse_add_files "*.png", filetype, br, tree()
+   'GIF import not supported
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF
