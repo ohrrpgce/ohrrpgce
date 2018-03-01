@@ -45,8 +45,8 @@ Type BrowseMenuState
 	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
 	fmask as string
 	snd as integer          'Slot of currently playing sound, or -1
-	bitdepth32 as bool      'Using 32-bit video pages
 	image_preview as Frame ptr   'Preview of currently selected image, or NULL
+	image_preview_remap as bool  'Show preview remapped to master() rather than original color
 	preview_panel_size as XYPair 'Size of the preview area
 	preview_footer as string  'Info message
 End Type
@@ -131,13 +131,7 @@ IF needf THEN
  setpal temppal()
 END IF
 
-#IFDEF IS_CUSTOM
- 'TODO: remove this and always run at 32 bit if there's no problem with it (Android?)
- br.bitdepth32 = YES
- switch_to_32bit_vpages
-#ELSE
- br.bitdepth32 = NO
-#ENDIF
+switch_to_32bit_vpages
 
 'Load a variant of the default font, misc/browser font.ohf, which has both Latin-1
 'characters and the old (c), etc, characters from the original fonts
@@ -239,13 +233,11 @@ DO
   END IF
   'Ctrl + P to switch between paletted/unpaletted previewing and 8/32 bit-depth
   IF keyval(scP) > 1 THEN
-   br.bitdepth32 XOR= YES
-   IF br.bitdepth32 THEN
+   br.image_preview_remap XOR= YES
+   IF br.image_preview_remap = NO THEN
     show_overlay_message "32-bit preview (original color)"
-    switch_to_32bit_vpages
    ELSE
     show_overlay_message "8-bit preview (converted to master palette)"
-    switch_to_8bit_vpages
    END IF
    br.mstate.need_update = YES
   END IF
@@ -364,7 +356,7 @@ IF br.snd >= 0 THEN
  br.snd = -1
 END IF
 frame_unload @br.image_preview
-IF br.bitdepth32 THEN switch_to_8bit_vpages
+switch_to_8bit_vpages
 
 clearkey(scESC)
 RETURN ret
@@ -382,7 +374,8 @@ END SUB
 SUB browse_update_layout(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
  IF UpdateScreenSlice() THEN
   browse_calc_menusize br
-  IF br.image_preview ANDALSO br.bitdepth32 THEN br.mstate.need_update = YES
+  'Redraw not needed when remapping, because the preview doesn't scale to window size
+  IF br.image_preview ANDALSO br.image_preview_remap = NO THEN br.mstate.need_update = YES
  END IF
 END SUB
 
@@ -392,7 +385,7 @@ SUB browse_preview_image(byref br as BrowseMenuState, filepath as string)
  IF NOT br.preview_panel_size > 0 THEN EXIT SUB 'There's no space to display it
  DIM ratio as double = 1.0
  DIM starttime as double = TIMER
- IF br.bitdepth32 THEN
+ IF br.image_preview_remap = NO THEN
   ' Load the image as a 32 bit Surface (necessary for scale_surface), then scale it
   DIM as Surface ptr temp = image_import_as_surface(filepath, YES)  'always_32bit=YES
   IF temp = NULL THEN EXIT SUB
