@@ -252,7 +252,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
      DIM box_text_file as string
-     box_text_file = browse(0, browse_default, "*.txt", "browse_import_textbox")
+     box_text_file = browse(browseAny, browse_default, "*.txt", "browse_import_textbox")
      clearpage vpage
      DIM backup_say as string = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump

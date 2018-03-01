@@ -580,7 +580,7 @@ END SUB
 FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 STATIC default as string
 DIM bmpd as BitmapV3InfoHeader
-IF f = "" THEN f = browse(4, default, "", "browse_import_master_palette")
+IF f = "" THEN f = browse(browseMasterPal, default, "", "browse_import_master_palette")
 IF f <> "" THEN
  IF LCASE(justextension(f)) = "mas" THEN
   xbload f, buffer(), "MAS load error"

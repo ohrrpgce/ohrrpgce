@@ -2600,7 +2600,7 @@ private sub macro_menu ()
 		choice = multichoice(msg, menu(), choice, 0, "share_macro_menu")
 		if choice = 1 then
 			dim macfile as string
-			macfile = browse(0, "", "*.ohrkeys")
+			macfile = browse(browseAny, "", "*.ohrkeys")
 			if len(macfile) then
 				if not copyfile(macfile, macrofile) THEN
 					visible_debug "ERROR: couldn't make a copy of " & macfile

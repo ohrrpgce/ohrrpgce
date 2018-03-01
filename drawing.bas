@@ -195,8 +195,8 @@ PRIVATE SUB toggle_pmask (pmask() as RGBcolor, master() as RGBcolor, index as in
  setpal pmask()
 END SUB
 
-' This is the OLD "Import/Export {Screens,Full Maptile Sets}" menu.
-' backdrop_browser() is the new (unfinished) one
+' This is the OLD "Import/Export {Screens,Full Maptile Sets}" menu, now used only for tilesets.
+' backdrop_browser() is the new one
 SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
  STATIC defaultdir as string  'Import & export
  STATIC bgcolor as bgType = 0 'Default to not transparent (color 0)
@@ -253,7 +253,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(3, defaultdir, "*.bmp", "browse_import_" & cap)
+    srcbmp = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
     IF srcbmp <> "" THEN
      importbmp_import(game & f, pt, srcbmp, pmask())
     END IF
@@ -261,7 +261,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(3, defaultdir, "*.bmp", "browse_import_" & cap)
+    srcbmp = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
     IF srcbmp <> "" THEN
      IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
       pt = count
@@ -355,7 +355,7 @@ SUB backdrop_browser ()
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(13, default, , "browse_import_backdrop")
+    srcbmp = browse(browseImage, default, , "browse_import_backdrop")
     IF srcbmp <> "" THEN
      DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
      IF imported THEN
@@ -368,7 +368,7 @@ SUB backdrop_browser ()
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(13, default, , "browse_import_backdrop")
+    srcbmp = browse(browseImage, default, , "browse_import_backdrop")
     IF srcbmp <> "" THEN
      DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
      IF imported THEN
@@ -3477,7 +3477,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  STATIC default as string
 
  'Any BMP, any size
- srcbmp = browse(2, default, "*.bmp", "browse_import_sprite")
+ srcbmp = browse(browseSprite, default, "*.bmp", "browse_import_sprite")
  IF srcbmp = "" THEN EXIT SUB
 
  DIM as Frame ptr impsprite, impsprite2

@@ -36,11 +36,12 @@ End type
 Type BrowseMenuState
 	nowdir as string
 	mstate as MenuState
-	special as integer
+	filetype as BrowseFileType
 	ranalready as bool
 	meter as integer
 	drivesshown as integer  'number of drive entries (plus 1 for "refresh" option, if uncommented)
 	alert as string
+	engine_version_shown as bool  'Show the engine version at the bottom of the screen
 	showHidden as bool
 	getdrivenames as bool   'Poll drive names on Windows? (can be slow)
 	fmask as string
@@ -81,7 +82,6 @@ Type MusicPreviewer Extends FilePreviewer
 End Type
 
 
-
 'Subs and functions only used locally
 DECLARE SUB append_tree_record(byref br as BrowseMenuState, tree() as BrowseMenuEntry)
 DECLARE SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
@@ -100,55 +100,36 @@ SUB set_browse_default(default as string)
  remember = default
 END SUB
 
-#DEFINE browseAnyImage 13
-
 ' Returns an absolute path, or "" if the user cancelled.
-' special: file type, see below
 ' default: initially selected file or a directory. Gets set to the file selected,
 '          or if canceled, the last directory we were in.
 '          If this is "", then the initial directory is the directory from the
 '          last time browse() was called, anywhere.
 ' fmask:   A mask like "*.bmp". May not be used, depending on special (see below)
 ' needf:   whether to fade screen in
-FUNCTION browse (special as integer, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
+FUNCTION browse (filetype as BrowseFileType = browseAny, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 DIM ret as string
 
 DIM selectst as SelectTypeState
 DIM br as BrowseMenuState
-br.special = special
+br.filetype = filetype
 br.fmask = fmask
+br.engine_version_shown = (filetype = browseRPG)
+br.showHidden = NO
 
-' Note: I don't think all specials that ignore fmask are documented; many assume it is correctly given
-'special=0   no preview
-'special=1   just BAM
-'special=2   any BMP (sprite import)
-'special=3   320x200 background
-'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24/32 bit *.bmp) (fmask is ignored)
-'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
-'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
-'special=7   RPG files and .rpgdir
-'special=8   any kind of RELOAD file
-'special=9   script files (.hs, .hss)
-'special=10  2, 16 or 256 colour BMP, any size (used by font_test_menu only)
-'special=11  Browse for a folder
-'special=12  tilemaps (fmask is ignored)
-'special=13  (browseAnyImage) any supported image (bmp, png, jpeg, jpg)  
-
-
-SELECT CASE br.special
- CASE 1, 5  'BAM, music
+SELECT CASE br.filetype
+ CASE browseMusic
   br.previewer = NEW MusicPreviewer
- CASE 6  'sfx
+ CASE browseSfx
   br.previewer = NEW SfxPreviewer
- CASE 2, 3, 4, 10, browseAnyImage 'Any kind of image or master palette
+ CASE browseImage, browsePalettedImage, browseSprite, browseTileset, browseMasterPal
+  'Any kind of image or master palette
   br.previewer = NEW ImagePreviewer
 END SELECT
 
 'tree().kind contains the type of each object in the menu
 REDIM tree(255) as BrowseMenuEntry
 DIM catfg(6) as integer, catbg(6) as integer
-
-br.showHidden = NO
 
 'FIXME: do we need another uilook() constant for these "blue" directories
 ' instead of boxlook(0).edgecol ?
@@ -232,7 +213,6 @@ DO
  ELSEIF enter_space_click(br.mstate) THEN
   br.alert = ""
   br.mstate.need_update = YES
-  IF br.special = 1 OR br.special = 5 THEN music_stop
   SELECT CASE tree(br.mstate.pt).kind
    CASE bkDrive
     'this could take a while...
@@ -316,7 +296,7 @@ DO
  clearpage dpage
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  DIM title as string
- IF br.special = 7 AND tree(br.mstate.pt).kind = bkSelectable THEN
+ IF br.filetype = browseRPG AND tree(br.mstate.pt).kind = bkSelectable THEN
   'Selected item is an RPG
   title = br.nowdir + tree(br.mstate.pt).filename
  ELSE
@@ -347,10 +327,10 @@ DO
  'Preview info or image
  IF br.previewer THEN br.previewer->draw_preview()
 
- 'The info line at the bottom, and the engine version when browsing for an RPG
+ 'The info line at the bottom, and maybe the engine version
  edgeboxstyle 4, 31 + br.mstate.size * 9, 312, 14, 0, dpage, NO, YES
  edgeprint br.alert, 8, 34 + br.mstate.size * 9, uilook(uiText), dpage
- IF br.special = 7 THEN
+ IF br.engine_version_shown THEN
   rectangle 0, pBottom, 320, 10, uilook(uiDisabledItem), dpage
   edgeprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom + 1, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
@@ -386,7 +366,7 @@ END FUNCTION
 
 SUB browse_calc_menusize(byref br as BrowseMenuState)
  br.mstate.rect.size = XY(320, get_resolution().h)
- DIM margin as integer = 37 + IIF(br.special = 7, 10, 0)
+ DIM margin as integer = 37 + IIF(br.engine_version_shown, 10, 0)
  br.mstate.size = (get_resolution().h - margin) \ 9 - 1
  br.preview_panel_size = get_resolution() - XY(322, 2)
 END SUB
@@ -565,13 +545,13 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    .filename = filelist(i)
    filepath = br.nowdir & .filename
    '---music files
-   IF br.special = 1 OR br.special = 5 THEN
+   IF br.filetype = browseMusic THEN
     IF legal_audio_file(filepath, VALID_MUSIC_FORMAT) = NO THEN
      .kind = bkUnselectable
      .about = "Not a valid music file"
     END IF
    END IF
-   IF br.special = 6 THEN
+   IF br.filetype = browseSfx THEN
     IF legal_audio_file(filepath, VALID_SFX_FORMAT) = NO THEN
      .kind = bkUnselectable
      .about = "Not a valid sound file"
@@ -581,31 +561,31 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
     END IF
    END IF
    '---Any BMP
-   IF br.special = 2 THEN
+   IF br.filetype = browseSprite THEN
     IF browse_check_image(br, tree(), iminfo) = NO THEN
      .kind = bkUnselectable
     END IF
    END IF
    '---320x200 BMP files (any supported bitdepth)
-   IF br.special = 3 THEN
+   IF br.filetype = browseTileset THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.size.w <> 320 OR iminfo.size.h <> 200 THEN
      .kind = bkUnselectable
     END IF
    END IF
    '---1/4/8 bit BMP files (fonts)
-   IF br.special = 10 THEN
+   IF br.filetype = browsePalettedImage THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bpp > 8 THEN
      .kind = bkUnselectable
     END IF
    END IF
-   '---Any non-animated image
-   IF br.special = browseAnyImage THEN
+   '---Any image
+   IF br.filetype = browseImage THEN
     IF browse_check_image(br, tree(), iminfo) = NO THEN
      .kind = bkUnselectable
     END IF
    END IF
    '--master palettes
-   IF br.special = 4 THEN
+   IF br.filetype = browseMasterPal THEN
     IF LCASE(justextension(filepath)) = "mas" THEN
      DIM masfh as integer
      OPENFILE(filepath, FOR_BINARY, masfh)
@@ -636,21 +616,21 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      END IF
     END IF
    END IF
-   '--RPG files
-   IF br.special = 7 THEN
+   '--RPG files/RPGDIR dirs
+   IF br.filetype = browseRPG THEN
     copylump filepath, "browse.txt", tmpdir, YES
     .caption = load_gamename(tmpdir & "browse.txt")
     .about = load_aboutline(tmpdir & "browse.txt")
     safekill tmpdir & "browse.txt"
    END IF
    '--RELOAD files
-   IF br.special = 8 THEN
+   IF br.filetype = browseRELOAD THEN
     IF browse_get_reload_info(filepath, .about) = NO THEN
      .kind = bkUnselectable 'grey out bad ones
     END IF
    END IF
    '--script files
-   IF br.special = 9 THEN
+   IF br.filetype = browseScripts THEN
     DIM ext as string = LCASE(justextension(filepath))
     IF ext = "hs" THEN
      .about = "Compiled HamsterSpeak scripts"
@@ -665,8 +645,8 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      END IF
     END IF
    END IF
-   '--tilemaps
-   IF br.special = 12 THEN
+   '--.tilemaps
+   IF br.filetype = browseTilemap THEN
     DIM info as TilemapInfo
     IF GetTilemapInfo(filepath, info) = NO THEN
      .kind = bkUnselectable
@@ -848,10 +828,10 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
     IF .filename = "." OR .filename = ".." OR RIGHT(LCASE(.filename), 4) = ".tmp" THEN br.mstate.last -= 1
    END WITH
    DIM extension as string = justextension(filelist(i))
-   IF br.special = 7 THEN ' Special handling in RPG mode
+   IF br.filetype = browseRPG THEN ' Special handling in RPG mode
     IF LCASE(extension) = "rpgdir" THEN br.mstate.last -= 1
    END IF
-   IF br.special <> 8 THEN
+   IF br.filetype <> browseRELOAD THEN
     '--hide any .saves folders when browsing (except in RELOAD special mode)
     IF LCASE(extension) = "saves" THEN br.mstate.last -= 1
    END IF
@@ -863,10 +843,10 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
 
   '---FIND ALL FILES IN FILEMASK---
   DIM filetype as FileTypeEnum = fileTypeFile
-  IF br.special = 4 THEN
+  IF br.filetype = browseMasterPal THEN
    browse_add_files "*.mas", filetype, br, tree()
    browse_add_files "*.bmp", filetype, br, tree()
-  ELSEIF br.special = 5 THEN' background music
+  ELSEIF br.filetype = browseMusic THEN
    '--disregard fmask. one call per extension
    browse_add_files "*.bam", filetype, br, tree()
    browse_add_files "*.mid", filetype, br, tree()
@@ -876,28 +856,27 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    browse_add_files "*.s3m", filetype, br, tree()
    browse_add_files "*.ogg", filetype, br, tree()
    browse_add_files "*.mp3", filetype, br, tree()
-  ELSEIF br.special = 6 THEN ' sound effects
+  ELSEIF br.filetype = browseSfx THEN
    '--disregard fmask. one call per extension
    browse_add_files "*.wav", filetype, br, tree()
    browse_add_files "*.ogg", filetype, br, tree()
    browse_add_files "*.mp3", filetype, br, tree()
-  ELSEIF br.special = 7 THEN
-   'Call once for RPG files once for rpgdirs
-   browse_add_files br.fmask, filetype, br, tree()
+  ELSEIF br.filetype = browseRPG THEN
+   browse_add_files "*.rpg", filetype, br, tree()
    browse_add_files "*.rpgdir", fileTypeDirectory, br, tree()
-  ELSEIF br.special = 8 THEN
+  ELSEIF br.filetype = browseRELOAD THEN
    browse_add_files "*.reld", filetype, br, tree()
    browse_add_files "*.reload", filetype, br, tree()
    browse_add_files "*.slice", filetype, br, tree()
    browse_add_files "*.rsav", filetype, br, tree()
    browse_add_files "*.editor", filetype, br, tree()
    browse_add_files "*.rgfx", filetype, br, tree()
-  ELSEIF br.special = 9 THEN
+  ELSEIF br.filetype = browseScripts THEN
    browse_add_files "*.hs", filetype, br, tree()
    browse_add_files "*.hsp", filetype, br, tree()
    browse_add_files "*.hss", filetype, br, tree()
    browse_add_files "*.txt", filetype, br, tree()
-  ELSEIF br.special = 11 THEN
+  ELSEIF br.filetype = browseDir THEN
    IF diriswriteable(br.nowdir) THEN
     append_tree_record br, tree()
     WITH tree(br.mstate.last)
@@ -907,7 +886,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      .about = decode_filename(br.nowdir)
     END WITH
    END IF
-  ELSEIF br.special = browseAnyImage THEN
+  ELSEIF br.filetype = browseImage THEN
    browse_add_files "*.bmp", filetype, br, tree()
    browse_add_files "*.jpeg", filetype, br, tree()
    browse_add_files "*.jpg", filetype, br, tree()

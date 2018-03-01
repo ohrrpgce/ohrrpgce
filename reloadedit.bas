@@ -389,7 +389,7 @@ END SUB
 
 FUNCTION reload_editor_browse(byref st as ReloadEditorState) as integer
  DIM filename as string
- filename = browse(8, "", "", "browse_import_reload")
+ filename = browse(browseRELOAD, "", "", "browse_import_reload")
  IF filename = "" THEN RETURN NO
  RETURN reload_editor_load(filename, st)
 END FUNCTION

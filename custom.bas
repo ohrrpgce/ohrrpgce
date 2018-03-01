@@ -621,7 +621,7 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
        EXIT DO
      END IF
     CASE 1
-     sourcerpg = browse(7, rpg_browse_default, "*.rpg", "custom_browse_rpg")
+     sourcerpg = browse(browseRPG, rpg_browse_default, , "custom_browse_rpg")
      game = trimextension(trimpath(sourcerpg))
      IF game <> "" THEN EXIT DO
     CASE 2
@@ -2193,7 +2193,7 @@ SUB font_test_menu
   END IF
   IF keyval(sc2) > 1 THEN
    DIM filen as string
-   filen = browse(10, "", "*.bmp")
+   filen = browse(browsePalettedImage, "", "*.bmp")
    IF LEN(filen) THEN
     font_unload @fonts(st.pt)
     fonts(st.pt) = font_load_16x16(filen)

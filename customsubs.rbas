@@ -2706,7 +2706,7 @@ SUB fontedit_import_font(font() as integer)
 
  STATIC default as string
  DIM newfont as string
- newfont = browse(0, default, "*.ohf", "browse_font")
+ newfont = browse(browseAny, default, "*.ohf", "browse_font")
  
  IF newfont <> "" THEN
   writeablecopyfile newfont, game & ".fnt"
@@ -4187,7 +4187,7 @@ SUB edit_purchase_options ()
      IF edit_purchase_enumbrowse("Store for In-App Purchases", node, ouya_stores(), "edit_purchase_options") THEN st.need_update = YES
     CASE editpurchKEYDER:
      DIM key_der_file as string
-     key_der_file = browse(0, "", "key.der", "edit_purchase_browse_ouya_key_der")
+     key_der_file = browse(browseAny, "", "key.der", "edit_purchase_browse_ouya_key_der")
      IF key_der_file <> "" THEN
       IF isfile(key_der_file) THEN
        SetContent(node, string_from_file(key_der_file))

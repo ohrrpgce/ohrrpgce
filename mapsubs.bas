@@ -4053,7 +4053,7 @@ END SUB
 'appending: true if appending, false if replacing all existing
 SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
  DIM infile as string
- infile = browse(12, "", "*.tilemap", "browse_tilemaps")
+ infile = browse(browseTilemap, "", "*.tilemap", "browse_tilemaps")
  IF LEN(infile) = 0 THEN EXIT SUB
 
  REDIM newlayers(0) as TileMap
@@ -4155,7 +4155,7 @@ SUB mapedit_import_bmp_tilemap(st as MapEditState)
              "remap them to the correct tiles with the 'Replace' tool."
  DIM imgfile as string
  'Want any bmp with bitdepth at most 8
- imgfile = browse(10, "", "*.bmp", "browse_bmp_tilemap")
+ imgfile = browse(browsePalettedImage, "", "*.bmp", "browse_bmp_tilemap")
  DIM bmpd as BitmapV3InfoHeader
  IF LEN(imgfile) = 0 OR bmpinfo(imgfile, bmpd) <> 2 THEN EXIT SUB
 

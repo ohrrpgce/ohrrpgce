@@ -496,7 +496,7 @@ SUB reimport_previous_scripts ()
  DIM fname as string
  'isfile currently broken, returns true for directories
  IF script_import_defaultdir = "" ORELSE isfile(script_import_defaultdir) = NO ORELSE isdir(script_import_defaultdir) THEN
-  fname = browse(9, script_import_defaultdir, "", "browse_hs")
+  fname = browse(browseScripts, script_import_defaultdir, "", "browse_hs")
  ELSE
   fname = script_import_defaultdir
  END IF
@@ -546,7 +546,7 @@ SUB scriptman ()
      EXIT DO
     CASE 1
      DIM fname as string
-     fname = browse(9, script_import_defaultdir, "", "browse_hs")
+     fname = browse(browseScripts, script_import_defaultdir, "", "browse_hs")
      IF fname <> "" THEN
       'clearkey scEnter
       'clearkey scSpace

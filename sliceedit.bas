@@ -939,7 +939,7 @@ END SUB
 ' If edit_separately, then we save the current collection and switch to editing the new one,
 ' otherwise it's imported overwriting the current one.
 SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
- DIM filename as string = browse(0, trimfilename(ses.collection_file), "*.slice", "browse_import_slices")
+ DIM filename as string = browse(browseAny, trimfilename(ses.collection_file), "*.slice", "browse_import_slices")
  IF filename <> "" THEN
   IF edit_separately THEN
    ' We are no longer editing whatever we were before
@@ -1298,7 +1298,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    ' Browse for an asset. Only paths inside data/ are allowed.
    DIM as string filename = finddatafile(*dat->assetfile, NO)
    IF LEN(filename) = 0 THEN filename = get_data_dir()
-   filename = browse(2, filename, "*.bmp", "browse_import_sprite")
+   filename = browse(browseSprite, filename, "*.bmp", "browse_import_sprite")
    IF LEN(filename) THEN
     filename = filename_relative_to_datadir(filename)
     IF LEN(filename) THEN  'The file was valid

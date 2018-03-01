@@ -491,7 +491,7 @@ IF gam.autorungame = NO THEN
  ' (Can't use gam.autorungame to make that decision due to "run game")
  gam.return_to_browser = YES
  show_virtual_gamepad()
- sourcerpg = browse(7, rpg_browse_default, "*.rpg", "game_browse_rpg", YES)  'fades in
+ sourcerpg = browse(browseRPG, rpg_browse_default, , "game_browse_rpg", YES)  'fades in
  hide_virtual_gamepad()
  IF sourcerpg = "" THEN exit_gracefully NO
  IF isdir(sourcerpg) THEN
