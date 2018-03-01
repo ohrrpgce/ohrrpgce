@@ -696,9 +696,8 @@ declare function ends_with(s as string, suffix as string) as integer
 declare function readkey () as string
 
 #macro debug_if_slow(starttime, seconds, extrainfo)
-  IF TIMER > starttime + seconds THEN
+  IF TIMER > starttime + seconds THEN _
     debuginfo __FUNCTION__ "(" & extrainfo & ") took " & CINT((TIMER - starttime) * 1000) & "ms"
-  END IF
 #endmacro
 
 '----------------------------------------------------------------------

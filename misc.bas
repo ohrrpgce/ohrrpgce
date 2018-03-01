@@ -80,11 +80,12 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-distrib [zip|win|mac|tarball|debian|all] When opening a game, export a copy for" & LINE_END
 		help = help & "                    distribution in the requested format. Not all formats are " & LINE_END
 		help = help & "                    available on all platforms. See c_debug.txt for error messages" & LINE_END
-		help = help & "-nowait             When importing scripts quit immediately on success (otherwise ignored)" & LINE_END
+		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
 #ENDIF
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
+		help = help & "-logslow            Log to c/g_debug.txt when certain backend calls took a long time" & LINE_END
 		help = help & "-maxfps fps         The maximum frames-per-second before starting to skip frames (default " & max_display_fps & ")" & LINE_END
 		help = help & "-giffps fps         Set the maximum frames-per-second for a recorded .gif (default 30)" & LINE_END
 		help = help & "-recordoverlays     Include overlays like FPS counter and macro playback info in screenshots/.gifs" & LINE_END

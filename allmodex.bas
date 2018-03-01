@@ -210,6 +210,8 @@ dim shared last_setvispage as integer = -1  'Records the last setvispage. -1 if 
                                             'would cause a lot of functions like multichoice to glitch.
                                             'Don't use this directly; call getvispage instead!
 
+dim shared log_slow as bool = NO            'Enable spammy debug_if_slow logging
+
 #IFDEF __FB_DARWIN__
 	' On OSX vsync will cause screen draws to block, so we shouldn't try to draw more than the refresh rate.
 	' (Still doesn't work perfectly)
@@ -575,6 +577,9 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		return 1
 	elseif opt = "showmouse" then
 		gif_show_mouse = YES
+		return 1
+	elseif opt = "logslow" then
+		log_slow = YES
 		return 1
 	end if
 end function
@@ -1019,7 +1024,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 
 	' This gets triggered a lot under Win XP because the program freezes while moving
 	' the window (in all backends, although in gfx_fb it freezes readmouse instead)
-	debug_if_slow(starttime2, 0.05, "gfx_present")
+	if log_slow then debug_if_slow(starttime2, 0.017, "gfx_present")
 	starttime -= timer  'Restart timer
 
 	mutexunlock keybdmutex
@@ -1036,7 +1041,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 	'After presenting the page this is a good time to check for window size changes and
 	'resize the videopages as needed before the next frame is rendered.
 	screen_size_update
-	debug_if_slow(starttime, 0.05, "")
+	if log_slow then debug_if_slow(starttime, 0.017, "")
 end sub
 
 'setvispage internal function for presenting a regular Frame page on the screen
@@ -1296,7 +1301,7 @@ function dowait () as bool
 	' difference due to the avoid while loop. See
 	' https://randomascii.wordpress.com/2013/04/02/sleep-variation-investigated/
 	' If there's a long delay here it's because the system is busy; not interesting.
-	debug_if_slow(large(starttime, waittime), 0.2, "")
+	if log_slow then debug_if_slow(large(starttime, waittime), 0.1, "")
 	if setwait_called then
 		setwait_called = NO
 	else
@@ -1993,7 +1998,7 @@ sub setkeys (enable_inputtext as bool = NO)
 	end if
 
 	'Taking a screenshot with gfx_directx is very slow, so avoid timing that
-	debug_if_slow(starttime, 0.01, replay.active)
+	if log_slow then debug_if_slow(starttime, 0.005, replay.active)
 
 	'Handle special keys, possibly clear or add keypresses. Might recursively call setkeys.
 	allmodex_controls()
@@ -2234,7 +2239,7 @@ sub update_mouse_state ()
 		end if
 	end if
 
-	debug_if_slow(starttime, 0.005, mouse_state.clicks)
+	if log_slow then debug_if_slow(starttime, 0.005, mouse_state.clicks)
 end sub
 
 ' Get the state of the mouse at the last setkeys call (or after putmouse, mouserect).
@@ -2366,7 +2371,7 @@ private sub pollingthread(unused as any ptr)
 		dim starttime as double = timer
 
 		io_updatekeys(@keybdstate(0))
-		debug_if_slow(starttime, 0.005, "io_updatekeys")
+		if log_slow then debug_if_slow(starttime, 0.005, "io_updatekeys")
 		starttime = timer
 
 		'set key state for every key
@@ -2389,7 +2394,7 @@ private sub pollingthread(unused as any ptr)
 
 		mutexunlock keybdmutex
 
-		debug_if_slow(starttime, 0.01, "io_getmouse")
+		if log_slow then debug_if_slow(starttime, 0.005, "io_getmouse")
 
 		'25ms was found to be sufficient
 		sleep 25
