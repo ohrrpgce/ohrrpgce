@@ -2193,7 +2193,7 @@ SUB font_test_menu
   END IF
   IF keyval(sc2) > 1 THEN
    DIM filen as string
-   filen = browse(browsePalettedImage, "", "*.bmp")
+   filen = browse(browsePalettedImage, "")
    IF LEN(filen) THEN
     font_unload @fonts(st.pt)
     fonts(st.pt) = font_load_16x16(filen)

@@ -1298,7 +1298,7 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    ' Browse for an asset. Only paths inside data/ are allowed.
    DIM as string filename = finddatafile(*dat->assetfile, NO)
    IF LEN(filename) = 0 THEN filename = get_data_dir()
-   filename = browse(browseSprite, filename, "*.bmp", "browse_import_sprite")
+   filename = browse(browseSprite, filename, , "browse_import_sprite")
    IF LEN(filename) THEN
     filename = filename_relative_to_datadir(filename)
     IF LEN(filename) THEN  'The file was valid

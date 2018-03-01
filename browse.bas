@@ -105,7 +105,7 @@ END SUB
 '          or if canceled, the last directory we were in.
 '          If this is "", then the initial directory is the directory from the
 '          last time browse() was called, anywhere.
-' fmask:   A mask like "*.bmp". May not be used, depending on special (see below)
+' fmask:   A mask like "*.bmp". May not be used, depending on filetype (see BrowseFileType)
 ' needf:   whether to fade screen in
 FUNCTION browse (filetype as BrowseFileType = browseAny, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 DIM ret as string
@@ -123,7 +123,7 @@ SELECT CASE br.filetype
  CASE browseSfx
   br.previewer = NEW SfxPreviewer
  CASE browseImage, browsePalettedImage, browseSprite, browseTileset, browseMasterPal
-  'Any kind of image or master palette
+  'Any kind of image
   br.previewer = NEW ImagePreviewer
 END SELECT
 
@@ -572,10 +572,11 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      .kind = bkUnselectable
     END IF
    END IF
-   '---1/4/8 bit BMP files (fonts)
+   '---1/4/8 bit images (used for fonts and tilemaps)
    IF br.filetype = browsePalettedImage THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bpp > 8 THEN
      .kind = bkUnselectable
+     .about = "Not paletted: " & .about
     END IF
    END IF
    '---Any image
@@ -886,6 +887,10 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      .about = decode_filename(br.nowdir)
     END WITH
    END IF
+  ELSEIF br.filetype = browsePalettedImage THEN
+   browse_add_files "*.bmp", filetype, br, tree()
+   browse_add_files "*.png", filetype, br, tree()
+   'GIF import not supported
   ELSEIF br.filetype = browseImage THEN
    browse_add_files "*.bmp", filetype, br, tree()
    browse_add_files "*.jpeg", filetype, br, tree()

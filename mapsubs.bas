@@ -4127,11 +4127,11 @@ SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
  UnloadTilemaps newlayers()
 END SUB
 
-'Overwrite a map layer, reading a tile per pixel of a .bmp
-SUB bmp_to_layer(st as MapEditState, imgfile as string, layer as integer)
+'Overwrite a map layer, reading a tile per pixel of a paletted image
+SUB image_to_layer(st as MapEditState, imgfile as string, layer as integer)
  DIM fr as Frame ptr = image_import_as_frame_raw(imgfile)
  IF fr = NULL THEN
-  notification "Couldn't import map layer: loading .bmp failed"
+  notification "Couldn't import map layer: loading " & trimpath(imgfile) & " failed"
   EXIT SUB
  END IF
  IF fr->h <> st.map.high OR fr->w <> st.map.wide THEN
@@ -4146,18 +4146,18 @@ SUB bmp_to_layer(st as MapEditState, imgfile as string, layer as integer)
  frame_unload @fr
 END SUB
 
-'Import a map layer from a paletted .bmp, one tile per pixel
-SUB mapedit_import_bmp_tilemap(st as MapEditState)
- pop_warning "Please select an 8-bit paletted .bmp file to import. Each pixel of the image will be mapped to a tile. " _
+'Import a map layer from a paletted image, one tile per pixel
+SUB mapedit_import_tilemap_image(st as MapEditState)
+ pop_warning "Please select an 8-bit paletted .bmp or .png file to import. Each pixel of the image will be mapped to a tile. " _
              !"The n-th colour in the palette becomes tile index n. The actual colours in the palette are ignored.\n" _
              !"This is useful mainly for defining the rough outline of your map.\n" _
              "You may find it easiest to draw the image without considering tile indices, then " _
              "remap them to the correct tiles with the 'Replace' tool."
  DIM imgfile as string
- 'Want any bmp with bitdepth at most 8
- imgfile = browse(browsePalettedImage, "", "*.bmp", "browse_bmp_tilemap")
- DIM bmpd as BitmapV3InfoHeader
- IF LEN(imgfile) = 0 OR bmpinfo(imgfile, bmpd) <> 2 THEN EXIT SUB
+ 'Want any image with bitdepth at most 8
+ imgfile = browse(browsePalettedImage, "", , "browse_tilemap_image")
+ DIM info as ImageFileInfo = image_read_info(imgfile)
+ IF info.supported = NO OR info.bpp > 8 THEN EXIT SUB
 
  DIM blank_option as string = "New blank layer"
  IF UBOUND(st.map.tiles) >= maplayerMax THEN blank_option = ""   'remove option
@@ -4169,7 +4169,7 @@ SUB mapedit_import_bmp_tilemap(st as MapEditState)
   layer = UBOUND(st.map.tiles)
  END IF
 
- bmp_to_layer st, imgfile, layer
+ image_to_layer st, imgfile, layer
  notification "Imported layer " & layer
 END SUB
 
@@ -4214,7 +4214,7 @@ SUB layer_to_bmp(st as MapEditState, imgfile as string, layer as integer)
  frame_unload @fr
 END SUB
 
-SUB mapedit_export_bmp_tilemap(st as MapEditState)
+SUB mapedit_export_tilemap_image(st as MapEditState)
  DIM menu_caption as string
  menu_caption = "Please select a layer to export to an 8-bit paletted .bmp file. " _
                 "Each pixel of the image will represent one tile: " _
@@ -4295,8 +4295,8 @@ SUB mapedit_import_export(st as MapEditState)
  menu(1) = "Export tilemap"
  menu(2) = "Import tilemap, overwriting existing"
  menu(3) = "Import tilemap, as new layers"
- menu(4) = "Export map layer as pixel-a-tile BMP"
- menu(5) = "Import pixel-a-tile BMP as map layer"
+ menu(4) = "Export map layer as pixel-a-tile image"
+ menu(5) = "Import pixel-a-tile image as map layer"
  menu(6) = "Export full map image"
 
  DIM state as menustate
@@ -4327,10 +4327,10 @@ SUB mapedit_import_export(st as MapEditState)
     mapedit_import_tilemaps st, YES
    END IF
    IF state.pt = 4 THEN
-    mapedit_export_bmp_tilemap st
+    mapedit_export_tilemap_image st
    END IF
    IF state.pt = 5 THEN
-    mapedit_import_bmp_tilemap st
+    mapedit_import_tilemap_image st
    END IF
    IF state.pt = 6 THEN
     mapedit_export_map_image st

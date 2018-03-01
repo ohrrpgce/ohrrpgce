@@ -17,7 +17,7 @@ ENUM BrowseFileType
  browseRPG,           'RPG files and .rpgdir (fmask ignored)
  browseRELOAD,        'any kind of RELOAD file (fmask ignored)
  browseScripts,       'script files (.hs, .hss, .txt)
- browsePalettedImage, 'Paletted (<= 8 bit) image, any size
+ browsePalettedImage, 'Paletted (<= 8 bit) image, any size (fmask ignored)
  browseDir,           'Browse for a folder
  browseTilemap,       'tilemaps: .tilemap file (fmask is ignored)
  browseImage,         'any supported image (bmp, png, jpeg, jpg)

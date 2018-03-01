@@ -1,4 +1,4 @@
-This menu provides several options for importing and exporting your tilemaps (map layers) to .tilemap files and to .bmps. .tilemap files don't include any information about tilesets, layer names, overhead tiles, or anything else.
+This menu provides several options for importing and exporting your tilemaps (map layers) from/to .tilemap files and .bmp images. .tilemap files don't include any information about tilesets, layer names, overhead tiles, or anything else.
 
 Be careful when overwriting existing layers! This can't be undone, so backup your game first if unsure.
 
