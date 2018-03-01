@@ -667,6 +667,8 @@ if android_source:
         # It would be better to change that.
         NDK_CFLAGS = CFLAGS[:]
         NDK_CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
+        NDK_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable '
+                       '-Wno-unused-variable -Wno-unused-function'.split())
         if arch in ('x86', 'x86_64'):
             NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
         fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
