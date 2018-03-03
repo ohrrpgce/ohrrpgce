@@ -574,7 +574,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    END IF
    '---1/4/8 bit images (used for fonts and tilemaps)
    IF br.filetype = browsePalettedImage THEN
-    IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.bpp > 8 THEN
+    IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.paletted = NO THEN
      .kind = bkUnselectable
      .about = "Not paletted: " & .about
     END IF
@@ -606,11 +606,11 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      IF browse_check_image(br, tree(), iminfo) = NO THEN
       .kind = bkUnselectable
      ELSE
-      IF iminfo.bpp <= 8 THEN
-       'Don't care about the dimensions
+      IF iminfo.size.w = 16 AND iminfo.size.h = 16 THEN
+       'A pixel per color (don't care about the bitdepth)
+      ELSEIF iminfo.bpp <= 8 THEN
+       'The palette is used. Don't care about the dimensions
        .about = iminfo.bpp & "-bit color " & iminfo.imagetype_name
-      ELSEIF iminfo.bpp >= 24 AND (iminfo.size.w = 16 AND iminfo.size.h = 16) THEN
-       'ok
       ELSE
        .kind = bkUnselectable
       END IF
@@ -847,6 +847,7 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
   IF br.filetype = browseMasterPal THEN
    browse_add_files "*.mas", filetype, br, tree()
    browse_add_files "*.bmp", filetype, br, tree()
+   browse_add_files "*.png", filetype, br, tree()
   ELSEIF br.filetype = browseMusic THEN
    '--disregard fmask. one call per extension
    browse_add_files "*.bam", filetype, br, tree()

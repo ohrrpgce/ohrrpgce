@@ -7,12 +7,19 @@ The active editing palette is the master palette being used for the current edit
 You can replace the selected palette, or add a new one by pressing Right at the last palette.
 
 Master palettes can be imported from:
--a 256-color .BMP file of any size
- (or even a 16-color .BMPs), in which  case the palette of the image is
- used and the pixels ignored
--a 16x16 24/32-bit color .BMP where
+-a paletted .BMP or .PNG image of
+ any size (normally 256-color, but
+ even a 16-color .BMPs can be used),
+ in which case the palette of the
+ image is used and the pixels
+ ignored. (So you can use a
+ screenshot of a game to import its
+ master palette!)
+-a 16x16 .BMP or .PNG image where
  each pixel is a color (the alpha
- channel is ignored)
+ channel is ignored), 256 in
+ total. It doesn't matter what
+ bitdepth the image is.
 -or the old uneditable .MAS format.
 
 The Export option on this menu saves a palette as a 16x16 24-bit .BMP.

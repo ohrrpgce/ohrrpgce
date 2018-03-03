@@ -26,7 +26,6 @@ DECLARE SUB statcapsmenu ()
 DECLARE SUB battleoptionsmenu ()
 DECLARE SUB equipmergemenu ()
 DECLARE SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as integer)
-DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB inputpasw ()
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
@@ -577,20 +576,22 @@ SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as inte
  END IF
 END SUB
 
-FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
-STATIC default as string
-DIM bmpd as BitmapV3InfoHeader
-IF f = "" THEN f = browse(browseMasterPal, default, "", "browse_import_master_palette")
-IF f <> "" THEN
- IF LCASE(justextension(f)) = "mas" THEN
-  xbload f, buffer(), "MAS load error"
+'Returns true on success
+FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
+ STATIC default as string
+ IF filename = "" THEN
+  filename = browse(browseMasterPal, default, "", "browse_import_master_palette")
+  IF filename = "" THEN RETURN NO
+ END IF
+ IF LCASE(justextension(filename)) = "mas" THEN
+  xbload filename, buffer(), "MAS load error"
   convertpalette buffer(), master()
  ELSE
-  bmpinfo(f, bmpd)
-  IF bmpd.biBitCount >= 24 THEN
-   bitmap2pal f, master()
+  DIM info as ImageFileInfo = image_read_info(filename)
+  IF info.size = XY(16, 16) THEN
+   palette_from_16x16_image filename, master()
   ELSE
-   loadbmppal f, master()
+   image_load_palette filename, master()
   END IF
  END IF
  'get a default set of ui colours - nearest match to the current
@@ -599,9 +600,7 @@ IF f <> "" THEN
  IF palnum > gen(genMaxMasterPal) THEN gen(genMaxMasterPal) = palnum
  savepalette master(), palnum
  SaveUIColors uilook(), boxlook(), palnum
- RETURN -1
-END IF
-RETURN 0
+ RETURN YES
 END FUNCTION
 
 SUB nearestui (byval mimicpal as integer, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)

@@ -358,6 +358,8 @@ DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 DECLARE FUNCTION image_import_as_surface (bmp as string, always_32bit as bool) as Surface ptr
 
+DECLARE SUB palette_from_16x16_image (filename as string, pal() as RGBcolor)
+
 DECLARE FUNCTION screenshot(basename as string = "") as string
 DECLARE SUB bmp_screenshot(basename as string)
 DECLARE SUB toggle_recording_gif()
@@ -371,7 +373,6 @@ DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE FUNCTION frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 
 'Read BMP info or palette
-DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE FUNCTION bmpinfo OVERLOAD (f as string, byref dat as BitmapV3InfoHeader, byref errmsg as string = "") as integer
 DECLARE SUB bmpinfo OVERLOAD (filename as string, byref iminfo as ImageFileInfo)

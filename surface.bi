@@ -10,7 +10,7 @@ Union RGBcolor
 	as uint32 col
 	type
 		' Opaque is a=255. Not pre-multiplied. However, only the rasterizer
-		' and BMP import uses the alpha channel, all other code ignores it.
+		' and BMP and PNG import uses the alpha channel, all other code ignores it.
 		as ubyte b, g, r, a
 	end type
 End Union

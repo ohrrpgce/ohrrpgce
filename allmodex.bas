@@ -4347,6 +4347,12 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 	next
 end sub
 
+
+'==========================================================================================
+'                                  Palette manipulation
+'==========================================================================================
+
+
 'Replaces one colour with another, OR if swapcols is true, swaps the two colours.
 sub replacecolor (fr as Frame ptr, c_old as integer, c_new as integer, swapcols as bool = NO)
 	if cliprect.frame <> fr then
@@ -4405,6 +4411,28 @@ function countcolor (fr as Frame ptr, col as integer) as integer
 	next
 	return ret
 end function
+
+'Loads into pal() a 256-color palette from a 16x16 image (normally 24/32-bit)
+'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
+sub palette_from_16x16_image (filename as string, pal() as RGBcolor)
+	dim surf as Surface ptr
+	surf = image_import_as_surface(filename, YES)
+	if surf = 0 then exit sub
+
+	if surf->width <> 16 or surf->height <> 16 then
+		showerror "Can't load palette from " & filename & ": not 16x16"
+	else
+		dim idx as integer
+		for y as integer = 0 to 15
+			for x as integer = 0 to 15
+				pal(idx) = surf->pColorData[x + y * surf->pitch]
+				idx += 1
+			next
+		next
+	end if
+
+	gfx_surfaceDestroy(@surf)
+end sub
 
 
 '==========================================================================================
@@ -6102,44 +6130,6 @@ function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, ke
 		return image_import_as_frame_quantized(bmpfile, masterpal(), options)
 	end if
 end function
-
-sub bitmap2pal (bmp as string, pal() as RGBcolor)
-'loads the 24/32-bit 16x16 palette bitmap bmp into palette pal()
-'so, pixel (0,0) holds colour 0, (0,1) has colour 16, and (15,15) has colour 255
-	dim header as BITMAPFILEHEADER
-	dim info as BITMAPV3INFOHEADER
-	dim col as RGBTRIPLE
-	dim bf as integer
-	dim dummy as ubyte
-	dim as integer w, h
-
-	bf = open_bmp_and_read_header(bmp, header, info)
-	if bf <= -1 then exit sub
-
-	if info.biBitCount < 24 OR info.biWidth <> 16 OR info.biHeight <> 16 then
-		close #bf
-		debug "bitmap2pal should not have been called!"
-		exit sub
-	end if
-
-	'navigate to the beginning of the bitmap data
-	seek #bf, header.bfOffBits + 1
-
-	for h = 15 to 0 step -1
-		for w = 0 to 15
-			'read the data
-			get #bf, , col
-			pal(h * 16 + w).r = col.rgbtRed
-			pal(h * 16 + w).g = col.rgbtGreen
-			pal(h * 16 + w).b = col.rgbtBlue
-		next
-		if info.biBitCount = 32 then
-			get #bf, , dummy
-		end if
-	next
-
-	close #bf
-end sub
 
 function frame_import_bmp_raw(bmp as string) as Frame ptr
 'load a 1-, 4- or 8-bit .BMP, ignoring the palette

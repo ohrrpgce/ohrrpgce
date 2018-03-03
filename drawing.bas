@@ -23,7 +23,6 @@ CONST COLORNUM_SHOW_TICKS = 30
 'External subs and functions
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as integer)
-DECLARE FUNCTION importmasterpal (f as string, byval palnum as integer) as integer
 
 'Local SUBs and FUNCTIONS
 
