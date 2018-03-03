@@ -5720,8 +5720,6 @@ end sub
 '==========================================================================================
 '                                       BMP routines
 '==========================================================================================
-'other formats are probably quite simple
-'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 
 
 sub surface_export_bmp (f as string, surf as Surface Ptr, maspal() as RGBcolor)
@@ -6037,7 +6035,7 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 
 	if info.biBitCount < 24 then
 		dim paletted as Frame ptr
-		paletted = image_import_as_frame_raw(bmp)  'Opens the file a second time
+		paletted = frame_import_bmp_raw(bmp)  'Opens the file a second time
 		if paletted then
 			if always_32bit then
 				dim bmppal(255) as RGBcolor
@@ -6581,34 +6579,67 @@ sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
 	dim cinfo as LodePNGColorMode ptr = @state.info_png.color
 	iminfo.bpp = lodepng_get_bpp(cinfo)
 	if lodepng_is_palette_type(cinfo) then
+		'Excludes non-paletted 8-bit greyscale images
 		iminfo.paletted = YES
 	end if
-	if lodepng_is_alpha_type(cinfo) then
+	if lodepng_can_have_alpha(cinfo) then 'lodepng_is_alpha_type(cinfo) then
+		'Image type with wholy or partially transparent pixels
+		'(Either RGBA or grey+alpha or has a colorkey, or has a palette with alpha)
 		iminfo.alpha = YES
 	end if
 
 	lodepng_state_cleanup(@state)
 end sub
 
-'Import a paletted PNG as a Frame, ignoring the palette. Returns NULL if not paletted
-function frame_import_png_raw(filename as string) as Frame ptr
-	dim buf as byte ptr
+'Import a paletted PNG as a Frame, and load the palette into pal().
+'Returns NULL if not paletted.
+function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Frame ptr
+	dim ret as Frame ptr
+	dim pixelbuf as byte ptr
 	dim size as XYPair
-	if CHKERR(lodepng_decode_file(@buf, @size.w, @size.h, strptr(filename), LCT_PALETTE, 8)) then
+
+	dim filebuf as byte ptr
+	dim filebufsize as size_t
+	if CHKERR(lodepng_load_file(@filebuf, @filebufsize, strptr(filename))) then
+		deallocate filebuf
 		return NULL
 	end if
 
-	dim ret as Frame ptr
-	ret = frame_new(size.w, size.h)
-	memcpy(ret->image, buf, size.w * size.h)
-	deallocate buf
+	dim state as LodePNGState
+	lodepng_state_init(@state)
+	' The type of image we want to read
+	state.info_raw.colortype = LCT_PALETTE
+	state.info_raw.bitdepth = 8
+
+	if CHKERR(lodepng_decode(@pixelbuf, @size.w, @size.h, @state, filebuf, filebufsize)) = 0 then
+		ret = frame_new(size.w, size.h)
+		if ret then
+			memcpy(ret->image, pixelbuf, size.w * size.h)
+		end if
+
+		with state.info_png.color
+			'redim pal(.palettesize - 1)
+			for cidx as integer = 0 to .palettesize - 1
+				'Oddly although PNG supports 1..16 bit color depth, palettes are always 8-bit
+				pal(cidx).r = .palette[cidx * 4 + 0]
+				pal(cidx).g = .palette[cidx * 4 + 1]
+				pal(cidx).b = .palette[cidx * 4 + 2]
+				pal(cidx).a = .palette[cidx * 4 + 3]  '255=opaque
+			next
+		end with
+	end if
+
+	deallocate filebuf
+	deallocate pixelbuf
+	lodepng_state_cleanup(@state)
+
 	return ret
 end function
 
 'Loads any supported .png file as a Surface, returning NULL on error.
 'always_32bit: load paletted PNGs as 32 bit Surfaces instead of 8-bit ones
 '(in the latter case, you have to load the palette yourself).
-'The alpha channel if any is ignored
+'The alpha channel if any is ignored, as is the palette if always_32bit=NO.
 function surface_import_png(filename as string, always_32bit as bool) as Surface ptr
 
 	'Calling pnginfo, which means we open the file twice, is a lot less work than this...
@@ -6636,7 +6667,9 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 		ret = surface_from_pixels(buf, size.w, size.h, PIXFMT_RGB)
 		deallocate buf
 	else
-		dim fr as Frame ptr = frame_import_png_raw(filename)
+		'The palette is ignored
+		dim pal(255) as RGBColor
+		dim fr as Frame ptr = frame_import_paletted_png(filename, pal())
 		gfx_surfaceCreateFrameView(fr, @ret)  'Increments refcount
 		frame_unload @fr
 	end if
@@ -6839,6 +6872,16 @@ function image_load_palette (filename as string, pal() as RGBcolor) as integer
 	select case image_file_type(filename)
 		case imBMP
 			return loadbmppal(filename, pal())
+		case imPNG
+			'LodePNG doesn't have a way to read just the palette without the image
+			dim fr as Frame ptr
+			fr = frame_import_paletted_png(filename, pal())
+			if fr = 0 then
+				return 0
+			else
+				frame_unload @fr
+				return 8  'Don't care
+			end if
 		case else
 			debug "load_image_palette: Unrecognised: " & filename
 			return 0
@@ -6895,7 +6938,8 @@ function image_import_as_frame_raw (filename as string) as Frame ptr
 		case imBMP
 			return frame_import_bmp_raw(filename)
 		case imPNG
-			return frame_import_png_raw(filename)
+			dim pal(255) as RGBColor
+			return frame_import_paletted_png(filename, pal())
 		case else
 			return NULL
 	end select
