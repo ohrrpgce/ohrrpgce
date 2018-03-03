@@ -24,11 +24,12 @@ TYPE TriggerSet
  usedbits as unsigned integer ptr
 END TYPE
 
-DIM SHARED script_import_defaultdir as string
+DIM SHARED script_import_default as string   'File, directory, or "" if not initialised
 
 '--Local subs and functions
 DECLARE FUNCTION compilescripts (fname as string, hsifile as string, quickimport as bool = NO) as string
 DECLARE FUNCTION importscripts (hsfile as string, srcfile as string, quickimport as bool = NO) as bool
+DECLARE SUB browse_andor_import_scripts (fname as string = "", quickimport as bool = NO)
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames (outdir as string = "") as string
 DECLARE SUB export_scripts()
@@ -492,20 +493,19 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
  RETURN YES
 END FUNCTION
 
-SUB reimport_previous_scripts ()
- DIM fname as string
- 'isfile currently broken, returns true for directories
- IF script_import_defaultdir = "" ORELSE isfile(script_import_defaultdir) = NO ORELSE isdir(script_import_defaultdir) THEN
-  fname = browse(browseScripts, script_import_defaultdir, "", "browse_hs")
- ELSE
-  fname = script_import_defaultdir
+SUB browse_andor_import_scripts (fname as string = "", quickimport as bool = NO)
+ IF fname = "" ORELSE real_isfile(fname) = NO THEN
+  fname = browse(browseScripts, script_import_default, "", "browse_hs")
  END IF
  IF fname <> "" THEN
-  compile_andor_import_scripts fname, YES
+  compile_andor_import_scripts fname, quickimport
  END IF
  setkeys  'Clear keys
 END SUB
 
+SUB reimport_previous_scripts ()
+ browse_andor_import_scripts script_import_default, YES
+END SUB
 
 '==========================================================================================
 
@@ -545,13 +545,7 @@ SUB scriptman ()
     CASE 0
      EXIT DO
     CASE 1
-     DIM fname as string
-     fname = browse(browseScripts, script_import_defaultdir, "", "browse_hs")
-     IF fname <> "" THEN
-      'clearkey scEnter
-      'clearkey scSpace
-      compile_andor_import_scripts fname
-     END IF
+     browse_andor_import_scripts()
     CASE 2
      exportnames()
      waitforanykey
