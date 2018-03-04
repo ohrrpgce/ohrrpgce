@@ -572,7 +572,9 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
    END IF
    '---paletted image (1/4/8 bit in the case of BMP), used for fonts and tilemaps
    IF br.filetype = browsePalettedImage THEN
-    IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.paletted = NO THEN
+    IF browse_check_image(br, tree(), iminfo) = NO THEN
+     .kind = bkUnselectable
+    ELSEIF iminfo.paletted = NO THEN
      .kind = bkUnselectable
      .about = "Not paletted: " & .about
     END IF

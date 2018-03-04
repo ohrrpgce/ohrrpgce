@@ -6515,7 +6515,10 @@ sub pnginfo (filename as string, byref iminfo as ImageFileInfo)
 	close fh
 
 	dim state as LodePNGState
-	if CHKERR(lodepng_inspect(@iminfo.size.w, @iminfo.size.h, @state, @header(0), 33)) then
+	dim errornum as integer
+	errornum = lodepng_inspect(@iminfo.size.w, @iminfo.size.h, @state, @header(0), 33)
+	if CHKERR(errornum) then
+		iminfo.error = *lodepng_error_text(errornum)
 		exit sub
 	end if
 	iminfo.valid = YES
@@ -6558,6 +6561,9 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 	' The type of image we want to read
 	state.info_raw.colortype = LCT_PALETTE
 	state.info_raw.bitdepth = 8
+	' Workaround bug https://github.com/lvandeve/lodepng/issues/68
+	' where LodePNG unnecessarily remaps colors
+	state.decoder.color_convert = 0
 
 	if CHKERR(lodepng_decode(@pixelbuf, @size.w, @size.h, @state, filebuf, filebufsize)) = 0 then
 		ret = frame_new(size.w, size.h)
