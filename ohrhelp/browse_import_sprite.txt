@@ -1,6 +1,6 @@
-Here you can browse for a BMP file to import as a sprite, for example, a sprite that you drew in an external graphics editor.
+Here you can browse for an image file to import as a sprite, for example, a sprite that you drew in an external graphics editor.
 
-Sprites should be saved in BMP format and use at most 16 colors. 1-, 4-, 8-, 24- and 32-bit BMP files can be imported as long as they use few enough colors. The order of the color indices is preserved when importing 4-bit BMPs, so that is the best format to use.
+Sprites should be saved in BMP or PNG format and use at most 16 colors. It doesn't matter what the bit-depth is; even non-paletted (e.g. 32-bit) images can be imported as long as they use few enough colors. The order of the color indices is preserved when importing a paletted image with at most 16 colors, so that's the best format to use.
 
 The correct pixel size for each sprite type is as follows:
 
@@ -14,7 +14,7 @@ The correct pixel size for each sprite type is as follows:
 16x16  Box borders
 50x50  Portraits
 
-Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can import an entire sprite set from a single file. Here are the sizes for sprite sets:
+Also, you can import an entire sprite set from a single file. Here are the sizes for sprite sets:
 
 256x40  Hero battle picture sets
 160x20  Walkabout sets
@@ -22,7 +22,7 @@ Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can impo
 48x24   Weapon sets
 256x16  Box border sets
 
-Note that you are allowed to import files that don't exactly match the correct sprite size. If the BMP is too big, the right and bottom edges will be cropped. If the BMP is too small, the right and bottom edges will be padded with empty space.
+Note that you are allowed to import files that don't exactly match the correct sprite size. If the image is too big, the right and bottom edges will be cropped. If the BMP is too small, the right and bottom edges will be padded with empty space.
 
 If the window is more than 320 pixels wide, then previews will be shown to the right.
 Press CTRL+P to preview what the image will look like after importing it (converted to the master palette), instead of its original colors.

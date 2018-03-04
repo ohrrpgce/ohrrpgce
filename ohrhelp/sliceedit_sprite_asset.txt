@@ -1,2 +1,2 @@
-Press ENTER to browse for a BMP file to load, or type in a filename. The file must be in data/ next to the executable.
+Press ENTER to browse for an image file to load, or type in a filename. The file must be in data/ next to the executable.
 It will be loaded with its palette mapped to the master palette.

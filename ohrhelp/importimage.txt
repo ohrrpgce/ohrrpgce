@@ -1,20 +1,20 @@
-This screen lets you import or export tilesets as 320x200 BMP files.
+This screen lets you import or export tilesets as 320x200 image files.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
 Use the Left and Right arrow keys to switch between tilesets.
 
-Pick "Replace current" to import a new BMP to replace the one you are currently looking at.
+Pick "Replace current tileset" to import an image, replacing the tileset you are currently looking at.
 
-Pick "Append a new" to import a new BMP and add it to the end of the list.
+Pick "Append a new tileset" to import an image as a new tileset.
 
-When you import a 24-bit or 32-bit BMP file, each pixel gets 'remapped' to the nearest color in the current 256 color master palette. The alpha channel of 32-bit BMPs will be dropped (but totally transparent pixels get mapped to color 0).
+When you import a non-paletted (e.g. 24-bit or 32-bit) image, each pixel gets 'remapped' to the nearest color in the current 256-color master palette. The alpha channel, if any, will be dropped (but totally transparent pixels get mapped to color 0).
 
-When you import an 1-, 4-, or 8-bit BMP file with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette.
+When you import a paletted image with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette.
 
 Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 
-You can also export a BMP file.
+You can also export a tileset, as a 320x200 BMP file.
 
 "View with background" specifies how color 0 is drawn, and affects this menu only (it does nothing in-game!) Whether the tileset is drawn transparently is NOT a property of the tileset, it depends on how it used. Tilesets used for map layer 1 and higher are always transparent.
 

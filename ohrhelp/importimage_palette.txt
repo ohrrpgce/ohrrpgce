@@ -1,4 +1,4 @@
-When you import an 1-, 4-, or 8-bit BMP file with a palette different from the master palette, then you need to decide how to handle the palette.
+When you import a paletted image (e.g. a 1-, 4-, or 8-bit BMP file) with a palette different from the master palette, then you need to decide how to handle the palette.
 
 Press ESC to cancel.
 

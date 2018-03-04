@@ -9,9 +9,9 @@ You can replace the selected palette, or add a new one by pressing Right at the 
 Master palettes can be imported from:
 -a paletted .BMP or .PNG image of
  any size (normally 256-color, but
- even a 16-color .BMPs can be used),
+ even a 16-color .BMP can be used),
  in which case the palette of the
- image is used and the pixels
+ image is used and the pixels are
  ignored. (So you can use a
  screenshot of a game to import its
  master palette!)

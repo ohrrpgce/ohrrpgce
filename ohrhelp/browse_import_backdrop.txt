@@ -1,8 +1,6 @@
-Here you can browse for a BMP file to import as a background (aka backdrop).
+Here you can browse for an image file to import as a background (aka backdrop).
 
-Your import files should be saved in BMP format with any bit depth (1-bit, 4-bit or 8-bit (1, 16, or 256 colors) or 24-bit (millions of colors)).
-
-Backgrounds can be any size. When used as a titlescreen or battle background it will be centered on the screen. Textbox backdrops and the "show backdrop" script command place the background at the top-left corner of the screen.
+You can import BMP, PNG and JPEG (aka JPG) images of any size and any bit-depth.
 
 You can type in the beginning of a folder or file name to move the cursor to it. You can also press a letter repeatedly to cycle through files and folders starting with that letter.
 

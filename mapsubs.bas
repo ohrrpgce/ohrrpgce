@@ -4148,8 +4148,10 @@ END SUB
 
 'Import a map layer from a paletted image, one tile per pixel
 SUB mapedit_import_tilemap_image(st as MapEditState)
- pop_warning "Please select an 8-bit paletted .bmp or .png file to import. Each pixel of the image will be mapped to a tile. " _
-             !"The n-th colour in the palette becomes tile index n. The actual colours in the palette are ignored.\n" _
+ pop_warning "Please select an 8-bit paletted .bmp or .png file to import. " _
+             "Each pixel of the image will be mapped to a tile. " _
+             "Color 0, 1, 2... in the palette becomes tile 0, 1, 2, etc. " _
+             !"The actual colors in the palette are ignored.\n" _
              !"This is useful mainly for defining the rough outline of your map.\n" _
              "You may find it easiest to draw the image without considering tile indices, then " _
              "remap them to the correct tiles with the 'Replace' tool."
