@@ -6106,14 +6106,16 @@ function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, ke
 
 	if info.biBitCount <= 8 then
 		dim ret as Frame ptr
+		dim imgpal(255) as RGBColor
 
 		ret = frame_import_bmp_raw(bmpfile)
 		if ret = NULL then return NULL
+		if loadbmppal(bmpfile, imgpal()) = 0 then return NULL
 
 		' Drop the palette, remapping to the master palette
 		' (Can't use frame_draw, since we have an array instead of a Palette16)
 		dim palindices(255) as integer
-		image_map_palette(bmpfile, masterpal(), palindices(), 1)
+		find_palette_mapping(imgpal(), masterpal(), palindices(), 1)
 		if keep_col0 then
 			palindices(0) = 0
 		end if
@@ -6878,22 +6880,6 @@ function image_load_palette (filename as string, pal() as RGBcolor) as integer
 	end select
 end function
 
-'Find the nearest match palette mapping from a paletted image to
-'the master palette mpal(), and store it in pal(), an array of mpal() indices.
-'pal() may contain initial values, used as hints which are used if an exact match.
-'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
-sub image_map_palette (filename as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
-	dim bitdepth as integer
-	dim cols(255) as RGBcolor
-
-	bitdepth = image_load_palette(filename, cols())
-	if bitdepth = 0 then exit sub
-
-	for i as integer = 0 to small(UBOUND(pal), (1 SHL bitdepth) - 1)
-		pal(i) = nearcolor(mpal(), cols(i).r, cols(i).g, cols(i).b, firstindex, pal(i))
-	next
-end sub
-
 'Loads any supported image file as a Surface, returning NULL on error.
 'always_32bit: load paletted images as 32 bit Surfaces instead of 8-bit ones
 '(in the latter case, you have to load the palette yourself).
@@ -7009,6 +6995,18 @@ function nearcolor(pal() as RGBcolor, index as integer, firstindex as integer = 
 		return nearcolor(pal(), .r, .g, .b, firstindex)
 	end with
 end function
+
+'Find the nearest match palette mapping from inputpal() into
+'the master palette masterpal(), and store it in mapping(), an array of masterpal() indices.
+'mapping() may contain initial values, used as hints which are used if an exact match.
+'Pass firstindex = 1 to prevent anything from getting mapped to colour 0.
+sub find_palette_mapping(inputpal() as RGBcolor, masterpal() as RGBcolor, mapping() as integer, firstindex as integer = 0)
+	for i as integer = 0 to small(ubound(mapping), ubound(inputpal))
+		with inputpal(i)
+			mapping(i) = nearcolor(masterpal(), .r, .g, .b, firstindex, mapping(i))
+		end with
+	next
+end sub
 
 'Convert a 32 bit Surface to a paletted Frame.
 'Frees surf.

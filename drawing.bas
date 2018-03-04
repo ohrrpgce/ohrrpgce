@@ -564,14 +564,14 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
   DIM remap_background as bool = NO
   DIM remap_0_to_0 as bool
 
-  DIM temppal(255) as RGBcolor
-  img = image_import_as_frame_paletted(filename, temppal())
+  DIM imgpal(255) as RGBcolor
+  img = image_import_as_frame_paletted(filename, imgpal())
   IF img = NULL THEN
    showerror "Couldn't load the image! (See c_debug.txt for error messages)"
    RETURN NULL
   END IF
 
-  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
+  IF memcmp(@imgpal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
    'the palette is inequal to the master palette
    clearpage vpage
    DIM menu(2) as string
@@ -610,7 +610,7 @@ FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame p
     palmapping(idx) = idx
    NEXT
    ' Disallow anything from being mapped to colour 0 to prevent accidental transparency
-   image_map_palette filename, pmask(), palmapping(), 1  'firstindex = 1
+   find_palette_mapping imgpal(), pmask(), palmapping(), 1  'firstindex = 1
    remapping_pal = palette16_new_from_indices(palmapping())
   END IF
 
@@ -3039,9 +3039,10 @@ SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string
  IF bmpd.biBitCount <= 4 THEN
   'If 4 bit or below, we preserve the colour indices from the BMP
 
-  impsprite = image_import_as_frame_raw(srcfile)
+  DIM imgpal(255) as RGBcolor
+  impsprite = image_import_as_frame_paletted(srcfile, imgpal())
 
-  image_map_palette(srcfile, master(), palmapping())
+  find_palette_mapping(imgpal(), master(), palmapping())
   FOR i as integer = 0 TO 15
    pal16->col(i) = palmapping(i)
   NEXT 
@@ -3060,8 +3061,9 @@ SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string
     palmapping(i) = i
    NEXT
   ELSE  'biBitCount = 8
-   impsprite = image_import_as_frame_raw(srcfile)
-   image_map_palette(srcfile, master(), palmapping())
+   DIM imgpal(255) as RGBcolor
+   impsprite = image_import_as_frame_paletted(srcfile, imgpal())
+   find_palette_mapping(imgpal(), master(), palmapping())
   END IF
 
   IF impsprite <> NULL THEN

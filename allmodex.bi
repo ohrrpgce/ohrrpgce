@@ -353,7 +353,6 @@ END TYPE
 
 DECLARE FUNCTION image_read_info (filename as string) as ImageFileInfo
 DECLARE FUNCTION image_load_palette (filename as string, pal() as RGBcolor) as integer
-DECLARE SUB image_map_palette (filename as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
 DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_paletted (filename as string, pal() as RGBColor) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
@@ -382,6 +381,7 @@ DECLARE SUB bmpinfo OVERLOAD (filename as string, byref iminfo as ImageFileInfo)
 DECLARE FUNCTION color_distance(pal() as RGBcolor, index1 as integer, index2 as integer) as integer
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyte, firstindex as integer = 0, indexhint as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, index as integer, firstindex as integer = 0) as ubyte
+DECLARE SUB find_palette_mapping (inputpal() as RGBcolor, masterpal() as RGBcolor, mapping() as integer, firstindex as integer = 0)
 DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr
 'firstindex is optional
 #DEFINE findrgb(r, g, b, firstindex...)  nearcolor(master(), r, g, b, firstindex)

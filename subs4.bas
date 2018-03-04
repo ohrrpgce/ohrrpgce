@@ -394,7 +394,7 @@ END SUB
 SUB export_master_palette ()
  DIM filename as string
 
- filename = inputfilename("Name of 24 bit BMP file to export to?", ".bmp", "", "input_file_export_masterpal")
+ filename = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_masterpal")
  IF filename = "" THEN EXIT SUB
  filename &= ".bmp"
 
