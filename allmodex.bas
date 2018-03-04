@@ -6089,50 +6089,6 @@ function surface_import_bmp(bmp as string, always_32bit as bool) as Surface ptr
 	return ret
 end function
 
-'Loads any bmp file as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
-'remapped to the given master palette; NULL on error.
-'24 and 32 bit BMPs will have RGB pixels equal to the 'transparency' color (transparency.a should be 0)
-'mapped to masterpal() index 0 (by default nothing); 'keep_col0' is ignored.
-'Also, in 32 bit BMPs with an alpha channel, fully transparent pixels are mapped to index 0.
-'8-or-fewer-bit BMPs get palette index 0 mapped to color 0 if 'keep_col0' is true,
-'otherwise they have no color 0 pixels; 'transparency' is ignored.
-function frame_import_bmp_as_8bit(bmpfile as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
-	dim info as BITMAPV3INFOHEADER
-
-	if bmpinfo(bmpfile, info) <> 2 then
-		' Unreadable, invalid, or unsupported
-		return NULL
-	end if
-
-	if info.biBitCount <= 8 then
-		dim ret as Frame ptr
-		dim imgpal(255) as RGBColor
-
-		ret = frame_import_bmp_raw(bmpfile)
-		if ret = NULL then return NULL
-		if loadbmppal(bmpfile, imgpal()) = 0 then return NULL
-
-		' Drop the palette, remapping to the master palette
-		' (Can't use frame_draw, since we have an array instead of a Palette16)
-		dim palindices(255) as integer
-		find_palette_mapping(imgpal(), masterpal(), palindices(), 1)
-		if keep_col0 then
-			palindices(0) = 0
-		end if
-		for y as integer = 0 to ret->h - 1
-			dim pixptr as ubyte ptr = @FRAMEPIXEL(0, y, ret)
-			for x as integer = 0 to ret->w - 1
-				pixptr[x] = palindices(pixptr[x])
-			next
-		next
-
-		return ret
-	else
-		dim options as QuantizeOptions = (1, transparency)
-		return image_import_as_frame_quantized(bmpfile, masterpal(), options)
-	end if
-end function
-
 function frame_import_bmp_raw(bmp as string) as Frame ptr
 'load a 1-, 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
@@ -6901,9 +6857,9 @@ end function
 'Loads and palettises a non-paletted image, mapped to palette pal().
 'It doesn't make sense to call this on paletted images, as it's unnecessarily very slow.
 'If there is an alpha channel, fully transparent pixels are mapped to index 0.
-function image_import_as_frame_quantized(bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
+function image_import_as_frame_quantized(filename as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 	dim surf as Surface ptr
-	surf = surface_import_bmp(bmp, YES)
+	surf = image_import_as_surface(filename, YES)
 	if surf = NULL then return NULL
 	return quantize_surface(surf, pal(), options)
 end function
@@ -6931,6 +6887,40 @@ end function
 function image_import_as_frame_raw (filename as string) as Frame ptr
 	dim pal(255) as RGBColor
 	return image_import_as_frame_paletted(filename, pal())
+end function
+
+'Loads any image as an (optionally transparent) 8-bit Frame (ie. with no Palette16),
+'remapped to the given master palette. Returns NULL on error.
+'Nonpaletted images will have RGB pixels equal to the 'transparency' color (transparency.a should be 0)
+'mapped to masterpal() index 0 (by default nothing); 'keep_col0' is ignored.
+'Also, in images with an alpha channel, fully transparent pixels are mapped to index 0.
+'Paletted images get palette index 0 mapped to color 0 if 'keep_col0' is true,
+'otherwise they have no color 0 pixels; 'transparency' is ignored.
+function image_import_as_frame_8bit(filename as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
+	dim info as ImageFileInfo
+	info = image_read_info(filename)
+	if info.supported = NO then return NULL ' Unreadable, invalid, or unsupported
+
+	if info.paletted then
+		dim ret as Frame ptr
+		dim imgpal(255) as RGBColor
+		ret = image_import_as_frame_paletted(filename, imgpal())
+		if ret = NULL then return NULL
+
+		' Drop the palette, remapping to the master palette
+		' (Can't use frame_draw, since we have an array instead of a Palette16)
+		dim palindices(255) as integer
+		find_palette_mapping(imgpal(), masterpal(), palindices(), 1)
+		if keep_col0 then
+			palindices(0) = 0
+		end if
+		remap_to_palette ret, palindices()
+
+		return ret
+	else
+		dim options as QuantizeOptions = (1, transparency)
+		return image_import_as_frame_quantized(filename, masterpal(), options)
+	end if
 end function
 
 

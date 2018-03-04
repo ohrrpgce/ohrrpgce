@@ -454,7 +454,7 @@ SUB ImagePreviewer.load_preview(filepath as string, br as BrowseMenuState)
   gfx_surfaceDestroy(@temp)
  ELSE
   ' Scaling not implemented
-  image_preview = frame_import_bmp_as_8bit(filepath, master(), NO)
+  image_preview = image_import_as_frame_8bit(filepath, master(), NO)
  END IF
  preview_footer = CINT(100 * ratio) & "% scale"  '; load:" & CINT(1000 * (TIMER - starttime)) & "ms"
 END SUB

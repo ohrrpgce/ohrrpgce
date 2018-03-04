@@ -4157,7 +4157,7 @@ SUB mapedit_import_tilemap_image(st as MapEditState)
  'Want any image with bitdepth at most 8
  imgfile = browse(browsePalettedImage, "", , "browse_tilemap_image")
  DIM info as ImageFileInfo = image_read_info(imgfile)
- IF info.supported = NO OR info.bpp > 8 THEN EXIT SUB
+ IF info.supported = NO OR info.paletted = NO THEN EXIT SUB
 
  DIM blank_option as string = "New blank layer"
  IF UBOUND(st.map.tiles) >= maplayerMax THEN blank_option = ""   'remove option

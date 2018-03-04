@@ -1613,7 +1613,7 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
 
   dim filename as string = finddatafile(*.assetfile, NO)  'Handle missing file below
   if len(filename) then
-   .img.sprite = frame_import_bmp_as_8bit(filename, master())
+   .img.sprite = image_import_as_frame_8bit(filename, master())
   end if
   if .img.sprite then
    sl->Width = .img.sprite->w

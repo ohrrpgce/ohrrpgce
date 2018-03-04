@@ -588,7 +588,6 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  state.last = 2
  state.size = 20
 
- 'DIM logo as Frame ptr = frame_import_bmp_as_8bit(finddatafile("logo50%.bmp"), master())
  DIM root as Slice ptr
  root = NewSliceOfType(slContainer)
  SliceLoadFromFile root, finddatafile("choose_rpg.slice")
@@ -631,7 +630,6 @@ SUB choose_rpg_to_open (rpg_browse_default as string)
  
   clearpage dpage
   DrawSlice root, dpage
-  'frame_draw logo, , pCentered, 20, , , dpage
   standardmenu chooserpg_menu(), state, menusl->ScreenX, menusl->ScreenY, dpage, opts
   wrapprint version & " " & gfxbackend & "/" & musicbackend, 8, pBottom - 14, uilook(uiMenuItem), dpage
   edgeprint "Press F1 for help on any menu!", 8, pBottom - 4, uilook(uiText), dpage
