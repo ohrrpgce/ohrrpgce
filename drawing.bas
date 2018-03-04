@@ -544,15 +544,20 @@ FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 pt
  RETURN YES
 END FUNCTION
 
-' Read a BMP file, check the bitdepth and palette and perform any necessary
+' Read an image file, check the bitdepth and palette and perform any necessary
 ' remapping, possibly create a new master palette (and change activepalette),
 ' and return the resulting (unsaved) Frame, or NULL if cancelled.
-FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
- DIM bmpd as BitmapV3InfoHeader
+FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame ptr
  DIM img as Frame ptr
 
- bmpinfo(srcbmp, bmpd)
- IF bmpd.biBitCount <= 8 THEN
+ DIM info as ImageFileInfo = image_read_info(filename)
+ IF info.supported = NO THEN
+  'browse() shouldn't let this happen
+  showerror "Couldn't import that image; corrupt or unsupported"
+  RETURN NULL
+ END IF
+
+ IF info.paletted THEN
   DIM palmapping(255) as integer
   DIM remapping_pal as Palette16 ptr
   DIM remap_nearest_match as bool = NO
@@ -560,7 +565,12 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   DIM remap_0_to_0 as bool
 
   DIM temppal(255) as RGBcolor
-  loadbmppal srcbmp, temppal()
+  img = image_import_as_frame_paletted(filename, temppal())
+  IF img = NULL THEN
+   showerror "Couldn't load the image! (See c_debug.txt for error messages)"
+   RETURN NULL
+  END IF
+
   IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
    'the palette is inequal to the master palette
    clearpage vpage
@@ -569,12 +579,15 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
    menu(1) = "Import with new Master Palette"
    menu(2) = "Do not remap colours"
    DIM paloption as integer
-   paloption = multichoice("This BMP's palette is not identical to your master palette." _
+   paloption = multichoice("This image's palette is not identical to your master palette." _
                            !"\nHint: you should probably remap to the master palette (see F1 help).", _
                            menu(), , , "importbmp_palette")
-   IF paloption = -1 THEN RETURN NULL
+   IF paloption = -1 THEN
+    frame_unload @img
+    RETURN NULL
+   END IF
    IF paloption = 1 THEN
-    importmasterpal srcbmp, gen(genMaxMasterPal) + 1
+    importmasterpal filename, gen(genMaxMasterPal) + 1
     activepalette = gen(genMaxMasterPal)
     setpal master()
     LoadUIColors uilook(), boxlook(), activepalette
@@ -597,11 +610,10 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
     palmapping(idx) = idx
    NEXT
    ' Disallow anything from being mapped to colour 0 to prevent accidental transparency
-   image_map_palette srcbmp, pmask(), palmapping(), 1  'firstindex = 1
+   image_map_palette filename, pmask(), palmapping(), 1  'firstindex = 1
    remapping_pal = palette16_new_from_indices(palmapping())
   END IF
 
-  img = image_import_as_frame_raw(srcbmp)
   IF remap_background THEN
    'Note img doesn't contain any 0 pixels, so the user will never get asked what to do with them.
    IF importbmp_change_background_color(img, remapping_pal) THEN
@@ -622,7 +634,7 @@ FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame pt
   'be remapped to colour 0 (unfortunately colour 0 is the only pure black in the default palette),
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
-  img = image_import_as_frame_quantized(srcbmp, pmask(), TYPE(1, -1))
+  img = image_import_as_frame_quantized(filename, pmask(), TYPE(1, -1))
   importbmp_change_background_color img
  END IF
 

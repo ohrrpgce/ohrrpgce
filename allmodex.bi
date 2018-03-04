@@ -355,6 +355,7 @@ DECLARE FUNCTION image_read_info (filename as string) as ImageFileInfo
 DECLARE FUNCTION image_load_palette (filename as string, pal() as RGBcolor) as integer
 DECLARE SUB image_map_palette (filename as string, mpal() as RGBcolor, pal() as integer, firstindex as integer = 0)
 DECLARE FUNCTION image_import_as_frame_raw (filename as string) as Frame ptr
+DECLARE FUNCTION image_import_as_frame_paletted (filename as string, pal() as RGBColor) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 DECLARE FUNCTION image_import_as_surface (bmp as string, always_32bit as bool) as Surface ptr
 

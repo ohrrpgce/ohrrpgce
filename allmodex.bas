@@ -6922,17 +6922,29 @@ function image_import_as_frame_quantized(bmp as string, pal() as RGBcolor, optio
 	return quantize_surface(surf, pal(), options)
 end function
 
-'Load a paletted image as a Frame, ignoring the palette. An error to call for non-paletted images.
-function image_import_as_frame_raw (filename as string) as Frame ptr
+'Load a paletted image as a Frame, and load the palette into pal(), a length-256 array.
+'An error to call for non-paletted images.
+function image_import_as_frame_paletted (filename as string, pal() as RGBColor) as Frame ptr
 	select case image_file_type(filename)
 		case imBMP
-			return frame_import_bmp_raw(filename)
+			dim ret as Frame ptr
+			ret = frame_import_bmp_raw(filename)
+			if ret then
+				loadbmppal(filename, pal())
+			end if
+			return ret
 		case imPNG
-			dim pal(255) as RGBColor
 			return frame_import_paletted_png(filename, pal())
 		case else
+			showerror "image_import_as_frame_paletted: invalid image type " & filename
 			return NULL
 	end select
+end function
+
+'Load a paletted image as a Frame, ignoring the palette. An error to call for non-paletted images.
+function image_import_as_frame_raw (filename as string) as Frame ptr
+	dim pal(255) as RGBColor
+	return image_import_as_frame_paletted(filename, pal())
 end function
 
 
