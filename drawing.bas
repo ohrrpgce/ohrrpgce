@@ -31,9 +31,9 @@ DECLARE SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, 
 DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 
-DECLARE FUNCTION importbmp_processbmp(srcbmp as string, pmask() as RGBcolor) as Frame ptr
-DECLARE FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
-DECLARE FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
+DECLARE FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame ptr
+DECLARE FUNCTION importimage_importmxs(mxslump as string, imagenum as integer, srcfile as string, pmask() as RGBcolor) as bool
+DECLARE FUNCTION importimage_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
 DECLARE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
 
 ' Tileset editor
@@ -196,7 +196,7 @@ END SUB
 
 ' This is the OLD "Import/Export {Screens,Full Maptile Sets}" menu, now used only for tilesets.
 ' backdrop_browser() is the new one
-SUB importbmp (f as string, cap as string, byref count as integer, sprtype as SpriteType)
+SUB importmxs (f as string, cap as string, byref count as integer, sprtype as SpriteType)
  STATIC defaultdir as string  'Import & export
  STATIC bgcolor as bgType = 0 'Default to not transparent (color 0)
  DIM chequer_scroll as integer = 0
@@ -216,11 +216,11 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
  menu(6) = "View with background: " & bgcolor_caption(bgcolor)
  menu(7) = "Remap transparent color"
  menu(8) = "Full screen view"
- DIM srcbmp as string
+ DIM srcfile as string
  DIM pt as integer = 0 'backdrop number
 
  ' FIXME: We still use vpages(2) to store the tileset, and also if it is resized
- ' the pointer passed to importbmp_change_background_color would become invalid!
+ ' the pointer passed to importimage_change_background_color would become invalid!
  lock_page_size 2, 320, 200
 
  IF count = 0 THEN count = 1
@@ -237,7 +237,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    count = crop_this + 1
   END IF
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "importbmp"
+  IF keyval(scF1) > 1 THEN show_help "importimage"
   usemenu mstate
   IF mstate.pt = 6 THEN
    intgrabber(bgcolor, bgFIRST, 255)
@@ -252,17 +252,17 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
-    IF srcbmp <> "" THEN
-     importbmp_import(game & f, pt, srcbmp, pmask())
+    srcfile = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
+    IF srcfile <> "" THEN
+     importimage_importmxs(game & f, pt, srcfile, pmask())
     END IF
     loadmxs game + f, pt, vpages(2)
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
-    IF srcbmp <> "" THEN
-     IF importbmp_import(game & f, count, srcbmp, pmask()) THEN
+    srcfile = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
+    IF srcfile <> "" THEN
+     IF importimage_importmxs(game & f, count, srcfile, pmask()) THEN
       pt = count
       count = pt + 1
      END IF
@@ -285,7 +285,7 @@ SUB importbmp (f as string, cap as string, byref count as integer, sprtype as Sp
     menu(6) = "View with background: " & bgcolor_caption(bgcolor)
    END IF
    IF mstate.pt = 7 THEN
-    importbmp_change_background_color vpages(2)
+    importimage_change_background_color vpages(2)
     storemxs game + f, pt, vpages(2)
    END IF
   END IF  '--end enter_space_click()
@@ -307,7 +307,7 @@ END SUB
 SUB backdrop_browser ()
  STATIC default as string
  DIM pmask(255) as RGBcolor
- DIM srcbmp as string
+ DIM srcfile as string
  DIM backdrop_id as integer = 0
 
  DIM bgcolor as bgType = 0 'bgChequer
@@ -354,9 +354,9 @@ SUB backdrop_browser ()
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcbmp = browse(browseImage, default, , "browse_import_backdrop")
-    IF srcbmp <> "" THEN
-     DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+    srcfile = browse(browseImage, default, , "browse_import_backdrop")
+    IF srcfile <> "" THEN
+     DIM imported as Frame ptr = importimage_process(srcfile, pmask())
      IF imported THEN
       frame_assign @backdrop, imported
       rgfx_save_spriteset rgfx_doc, backdrop, sprTypeBackdrop, backdrop_id
@@ -367,9 +367,9 @@ SUB backdrop_browser ()
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcbmp = browse(browseImage, default, , "browse_import_backdrop")
-    IF srcbmp <> "" THEN
-     DIM imported as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+    srcfile = browse(browseImage, default, , "browse_import_backdrop")
+    IF srcfile <> "" THEN
+     DIM imported as Frame ptr = importimage_process(srcfile, pmask())
      IF imported THEN
       frame_assign @backdrop, imported
       backdrop_id = count
@@ -390,7 +390,7 @@ SUB backdrop_browser ()
     IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", backdrop, master()
    END IF
    IF mstate.pt = 7 THEN
-    importbmp_change_background_color backdrop
+    importimage_change_background_color backdrop
     rgfx_save_spriteset rgfx_doc, backdrop, sprTypeBackdrop, backdrop_id
     SerializeBin backdrops_file, rgfx_doc
    END IF
@@ -471,7 +471,7 @@ PRIVATE SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame pt
   END WITH
 
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
+  IF keyval(scF1) > 1 THEN show_help "importimage_disable"
   IF prev_menu_selected THEN
    IF enter_or_space() THEN EXIT DO
    IF keyval(scDown) > 1 THEN
@@ -514,11 +514,11 @@ END SUB
 
 'Give the user the chance to remap a color to 0.
 'Returns true if they picked a color (even 0), rather than skipping/cancelling
-FUNCTION importbmp_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
+FUNCTION importimage_change_background_color(img as Frame ptr, pal as Palette16 ptr = NULL) as bool
  DIM pickpos as XYPair
  DIM ret as bool
  DIM message as string = !"Pick the background (transparent) color\nor press ESC to leave color 0 as it is"
- ret = pick_image_pixel(img, pal, pickpos, , , , message, "importbmp_pickbackground")
+ ret = pick_image_pixel(img, pal, pickpos, , , , message, "importimage_pickbackground")
  IF ret = NO THEN RETURN NO
 
  DIM bgcol as integer = readpixel(img, pickpos.x, pickpos.y)
@@ -547,7 +547,7 @@ END FUNCTION
 ' Read an image file, check the bitdepth and palette and perform any necessary
 ' remapping, possibly create a new master palette (and change activepalette),
 ' and return the resulting (unsaved) Frame, or NULL if cancelled.
-FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame ptr
+FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame ptr
  DIM img as Frame ptr
 
  DIM info as ImageFileInfo = image_read_info(filename)
@@ -581,7 +581,7 @@ FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame 
    DIM paloption as integer
    paloption = multichoice("This image's palette is not identical to your master palette." _
                            !"\nHint: you should probably remap to the master palette (see F1 help).", _
-                           menu(), , , "importbmp_palette")
+                           menu(), , , "importimage_palette")
    IF paloption = -1 THEN
     frame_unload @img
     RETURN NULL
@@ -616,7 +616,7 @@ FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame 
 
   IF remap_background THEN
    'Note img doesn't contain any 0 pixels, so the user will never get asked what to do with them.
-   IF importbmp_change_background_color(img, remapping_pal) THEN
+   IF importimage_change_background_color(img, remapping_pal) THEN
     'The background color has now been converted to 0, so preserve it rather than using nearest match
     remap_0_to_0 = YES
    END IF
@@ -635,7 +635,7 @@ FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame 
   'then let the user pick.
   '(If it's a BMP with an alpha channel, transparent pixels are also automatically mapped to 0)
   img = image_import_as_frame_quantized(filename, pmask(), TYPE(1, -1))
-  importbmp_change_background_color img
+  importimage_change_background_color img
  END IF
 
  ' Throw away pmask() (why?)
@@ -643,9 +643,9 @@ FUNCTION importbmp_processbmp(filename as string, pmask() as RGBcolor) as Frame 
  RETURN img
 END FUNCTION
 
-'Import a BMP file as a MXS backdrop/tileset. Returns true if imported, false if cancelled
-FUNCTION importbmp_import(mxslump as string, imagenum as integer, srcbmp as string, pmask() as RGBcolor) as bool
- DIM img as Frame ptr = importbmp_processbmp(srcbmp, pmask())
+'Import an image as a MXS backdrop/tileset. Returns true if imported, false if cancelled
+FUNCTION importimage_importmxs(mxslump as string, imagenum as integer, srcfile as string, pmask() as RGBcolor) as bool
+ DIM img as Frame ptr = importimage_process(srcfile, pmask())
  IF img = NULL THEN RETURN NO
  storemxs mxslump, imagenum, img
  frame_unload @img
@@ -3021,47 +3021,47 @@ SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palett
  END IF
 END SUB
 
-'Load a BMP of any bitdepth into a Frame which has just 16 colours: those in pal16
-SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
+'Load an image of any bitdepth into a Frame which has just 16 colours: those in pal16
+SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
  pal16 = palette16_new()
 
  DIM bmpd as BitmapV3InfoHeader
- bmpinfo(srcbmp, bmpd)
+ bmpinfo(srcfile, bmpd)
  'debuginfo "import16_load: bitdepth " & bmpd.biBitCount
 
  'Map from impsprite colors to master pal indices
- DIM bmppal(255) as integer
- 'Put color index hints in bmppal(), which are used if they are an exact match.
+ DIM palmapping(255) as integer
+ 'Put color index hints in palmapping(), which are used if they are an exact match.
  FOR i as integer = 0 TO 15
-  bmppal(i) = ss.palette->col(i)
+  palmapping(i) = ss.palette->col(i)
  NEXT
 
  IF bmpd.biBitCount <= 4 THEN
   'If 4 bit or below, we preserve the colour indices from the BMP
 
-  impsprite = image_import_as_frame_raw(srcbmp)
+  impsprite = image_import_as_frame_raw(srcfile)
 
-  image_map_palette(srcbmp, master(), bmppal())
+  image_map_palette(srcfile, master(), palmapping())
   FOR i as integer = 0 TO 15
-   pal16->col(i) = bmppal(i)
+   pal16->col(i) = palmapping(i)
   NEXT 
 
  ELSE
   'For higher bitdepths, try to shift used colour indices into 0-15
 
   'map from impsprite colors to master pal indices
-  DIM bmppal(255) as integer
+  DIM palmapping(255) as integer
 
   IF bmpd.biBitCount > 8 THEN
-   'notification srcbmp & " is a " & bmpd.biBitCount & "-bit BMP file. Colors will be mapped to the nearest entry in the master palette." _
+   'notification srcfile & " is a " & bmpd.biBitCount & "-bit BMP file. Colors will be mapped to the nearest entry in the master palette." _
    '             " It's recommended that you save your graphics as 4-bit BMPs so that you can control which colours are used."
-   impsprite = image_import_as_frame_quantized(srcbmp, master())
+   impsprite = image_import_as_frame_quantized(srcfile, master())
    FOR i as integer = 0 TO 255
-    bmppal(i) = i
+    palmapping(i) = i
    NEXT
   ELSE  'biBitCount = 8
-   impsprite = image_import_as_frame_raw(srcbmp)
-   image_map_palette(srcbmp, master(), bmppal())
+   impsprite = image_import_as_frame_raw(srcfile)
+   image_map_palette(srcfile, master(), palmapping())
   END IF
 
   IF impsprite <> NULL THEN
@@ -3076,7 +3076,7 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
 
    IF require_remap = NO THEN
     FOR i as integer = 0 TO 15
-     pal16->col(i) = bmppal(i)
+     pal16->col(i) = palmapping(i)
     NEXT i
    ELSE
 
@@ -3088,7 +3088,7 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
 
     FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
      FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
-      DIM col as integer = bmppal(readpixel(impsprite, x, y))
+      DIM col as integer = palmapping(readpixel(impsprite, x, y))
       DIM at as integer = v_find(vpal16, col)
       IF at = -1 THEN
        v_append vpal16, col
@@ -3099,7 +3099,7 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
       putpixel(impsprite, x, y, col)
      NEXT
     NEXT
-    debuginfo srcbmp & " contains " & v_len(vpal16) & " colors"
+    debuginfo srcfile & " contains " & v_len(vpal16) & " colors"
 
     IF v_len(vpal16) > 16 THEN
      notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
@@ -3120,7 +3120,7 @@ SUB spriteedit_import16_loadbmp(byref ss as SpriteEditState, srcbmp as string, b
  END IF
 
  IF impsprite = NULL THEN
-  notification "Could not load " & srcbmp
+  notification "Could not load " & srcfile
   palette16_unload @pal16
   EXIT SUB
  END IF
@@ -3484,16 +3484,16 @@ END FUNCTION
 
 'state.pt is the current palette number
 SUB spriteedit_import16(byref ss as SpriteEditState)
- DIM srcbmp as string
+ DIM srcfile as string
  STATIC default as string
 
  'Any BMP, any size
- srcbmp = browse(browseSprite, default, "*.bmp", "browse_import_sprite")
- IF srcbmp = "" THEN EXIT SUB
+ srcfile = browse(browseSprite, default, "*.bmp", "browse_import_sprite")
+ IF srcfile = "" THEN EXIT SUB
 
  DIM as Frame ptr impsprite, impsprite2
  DIM pal16 as Palette16 ptr
- spriteedit_import16_loadbmp ss, srcbmp, impsprite, pal16
+ spriteedit_import16_loadimage ss, srcfile, impsprite, pal16
  IF impsprite = NULL THEN EXIT SUB
  'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
 

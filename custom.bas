@@ -549,7 +549,7 @@ SUB gfx_editor_menu()
    IF state.pt = 2 THEN
     gen(genMaxTile) = gen(genMaxTile) + 1
     'Tilesets still use the old mxs backdrop browser
-    importbmp ".til", "tileset", gen(genMaxTile), sprTypeTileset
+    importmxs ".til", "tileset", gen(genMaxTile), sprTypeTileset
     gen(genMaxTile) = gen(genMaxTile) - 1
    END IF
    IF state.pt = 3 THEN spriteset_editor sprTypeWalkabout

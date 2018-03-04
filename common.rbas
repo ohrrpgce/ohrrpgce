@@ -5931,7 +5931,7 @@ FUNCTION inputfilename (query as string, ext as string, byref directory as strin
  DIM filename as string = default
  DIM tog as integer
  DIM foldermode as bool = NO
- 'Can get passed a filename maybe because it's shared with browse() (as it is in importbmp)
+ 'Can get passed a filename maybe because it's shared with browse() (as it is in importmxs)
  IF real_isfile(directory) THEN directory = trimfilename(directory)
  IF directory = "" THEN directory = CURDIR
  setkeys YES
