@@ -3023,109 +3023,91 @@ END SUB
 
 'Load an image of any bitdepth into a Frame which has just 16 colours: those in pal16
 SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
- pal16 = palette16_new()
 
- DIM bmpd as BitmapV3InfoHeader
- bmpinfo(srcfile, bmpd)
- 'debuginfo "import16_load: bitdepth " & bmpd.biBitCount
+ DIM info as ImageFileInfo = image_read_info(srcfile)
 
  'Map from impsprite colors to master pal indices
  DIM palmapping(255) as integer
- 'Put color index hints in palmapping(), which are used if they are an exact match.
- FOR i as integer = 0 TO 15
-  palmapping(i) = ss.palette->col(i)
- NEXT
 
- IF bmpd.biBitCount <= 4 THEN
-  'If 4 bit or below, we preserve the colour indices from the BMP
-
+ 'Load the image and palmapping()
+ IF info.paletted = NO THEN
+  impsprite = image_import_as_frame_quantized(srcfile, master())
+  FOR i as integer = 0 TO 255
+   palmapping(i) = i
+  NEXT
+ ELSE
   DIM imgpal(255) as RGBcolor
   impsprite = image_import_as_frame_paletted(srcfile, imgpal())
 
+  'Put color index hints in palmapping(), which are used if they are an exact match.
+  FOR i as integer = 0 TO ss.palette->numcolors - 1
+   palmapping(i) = ss.palette->col(i)
+  NEXT
+
   find_palette_mapping(imgpal(), master(), palmapping())
-  FOR i as integer = 0 TO 15
-   pal16->col(i) = palmapping(i)
-  NEXT 
-
- ELSE
-  'For higher bitdepths, try to shift used colour indices into 0-15
-
-  'map from impsprite colors to master pal indices
-  DIM palmapping(255) as integer
-
-  IF bmpd.biBitCount > 8 THEN
-   'notification srcfile & " is a " & bmpd.biBitCount & "-bit BMP file. Colors will be mapped to the nearest entry in the master palette." _
-   '             " It's recommended that you save your graphics as 4-bit BMPs so that you can control which colours are used."
-   impsprite = image_import_as_frame_quantized(srcfile, master())
-   FOR i as integer = 0 TO 255
-    palmapping(i) = i
-   NEXT
-  ELSE  'biBitCount = 8
-   DIM imgpal(255) as RGBcolor
-   impsprite = image_import_as_frame_paletted(srcfile, imgpal())
-   find_palette_mapping(imgpal(), master(), palmapping())
-  END IF
-
-  IF impsprite <> NULL THEN
-   'First special case (intended for 8 bit bmps): don't do any remapping if the indices are already 0-15
-
-   DIM require_remap as bool = NO
-   FOR x as integer = 0 TO impsprite->w - 1
-    FOR y as integer = 0 TO impsprite->h - 1
-     IF readpixel(impsprite, x, y) >= 16 THEN require_remap = YES
-    NEXT
-   NEXT
-
-   IF require_remap = NO THEN
-    FOR i as integer = 0 TO 15
-     pal16->col(i) = palmapping(i)
-    NEXT i
-   ELSE
-
-    'Find the set of colours used in impsprite, and remap impsprite
-    'to those colour indices
-    DIM vpal16 as integer vector
-    v_new vpal16
-    'v_append vpal16, 0
-
-    FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
-     FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
-      DIM col as integer = palmapping(readpixel(impsprite, x, y))
-      DIM at as integer = v_find(vpal16, col)
-      IF at = -1 THEN
-       v_append vpal16, col
-       col = v_len(vpal16) - 1
-      ELSE
-       col = at
-      END IF
-      putpixel(impsprite, x, y, col)
-     NEXT
-    NEXT
-    debuginfo srcfile & " contains " & v_len(vpal16) & " colors"
-
-    IF v_len(vpal16) > 16 THEN
-     notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
-                  " Reduce the number of colors and try importing again."
-     palette16_unload @pal16
-     frame_unload @impsprite
-     v_free vpal16
-     EXIT SUB
-    ELSE
-     FOR i as integer = 0 TO v_len(vpal16) - 1
-      pal16->col(i) = vpal16[i]
-     NEXT i
-    END IF
-
-    v_free vpal16
-   END IF
-  END IF
  END IF
 
  IF impsprite = NULL THEN
-  notification "Could not load " & srcfile
-  palette16_unload @pal16
+  notification "Could not load " & srcfile & !"\nCheck c_debug.txt for detailed error messages"
   EXIT SUB
  END IF
+
+ pal16 = palette16_new()
+
+ 'Special case (mainly intended for paletted images, but this could also happen
+ 'if there are only a few colours in the master palette):
+ 'don't do any remapping if the indices are already 0-15
+
+ DIM require_remap as bool = NO
+ FOR x as integer = 0 TO impsprite->w - 1
+  FOR y as integer = 0 TO impsprite->h - 1
+   IF readpixel(impsprite, x, y) >= 16 THEN require_remap = YES
+  NEXT
+ NEXT
+
+ IF require_remap = NO THEN
+  FOR i as integer = 0 TO 15
+   pal16->col(i) = palmapping(i)
+  NEXT i
+  'We're done
+  EXIT SUB
+ END IF
+
+ 'Find the set of colours used in impsprite, and remap impsprite
+ 'to those colour indices
+ DIM vpal16 as integer vector
+ v_new vpal16
+ 'v_append vpal16, 0
+
+ FOR x as integer = 0 TO impsprite->w - 1   'small(impsprite->w, ss.wide) - 1
+  FOR y as integer = 0 TO impsprite->h - 1  'small(impsprite->h, ss.high) - 1
+   DIM col as integer = palmapping(readpixel(impsprite, x, y))
+   DIM at as integer = v_find(vpal16, col)
+   IF at = -1 THEN
+    v_append vpal16, col
+    col = v_len(vpal16) - 1
+   ELSE
+    col = at
+   END IF
+   putpixel(impsprite, x, y, col)
+  NEXT
+ NEXT
+ debuginfo srcfile & " contains " & v_len(vpal16) & " colors"
+
+ IF v_len(vpal16) > 16 THEN
+  notification "This image contains " & v_len(vpal16) & " colors (after finding nearest-matches to the master palette). At most 16 are allowed." _
+               " Reduce the number of colors and try importing again."
+  palette16_unload @pal16
+  frame_unload @impsprite
+  v_free vpal16
+  EXIT SUB
+ ELSE
+  FOR i as integer = 0 TO v_len(vpal16) - 1
+   pal16->col(i) = vpal16[i]
+  NEXT i
+ END IF
+
+ v_free vpal16
 END SUB
 
 'Returns a new Frame, after deleting the input one. Returns NULL if cancelled
@@ -3489,8 +3471,8 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  DIM srcfile as string
  STATIC default as string
 
- 'Any BMP, any size
- srcfile = browse(browseSprite, default, "*.bmp", "browse_import_sprite")
+ 'Any image, any size
+ srcfile = browse(browseSprite, default, , "browse_import_sprite")
  IF srcfile = "" THEN EXIT SUB
 
  DIM as Frame ptr impsprite, impsprite2
