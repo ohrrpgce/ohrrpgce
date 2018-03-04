@@ -252,7 +252,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt = 2 THEN
     'Replace current
-    srcfile = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
+    srcfile = browse(browseTileset, defaultdir, , "browse_import_" & cap)
     IF srcfile <> "" THEN
      importimage_importmxs(game & f, pt, srcfile, pmask())
     END IF
@@ -260,7 +260,7 @@ SUB importmxs (f as string, cap as string, byref count as integer, sprtype as Sp
    END IF
    IF mstate.pt = 3 AND count < 32767 THEN
     'Append new
-    srcfile = browse(browseTileset, defaultdir, "*.bmp", "browse_import_" & cap)
+    srcfile = browse(browseTileset, defaultdir, , "browse_import_" & cap)
     IF srcfile <> "" THEN
      IF importimage_importmxs(game & f, count, srcfile, pmask()) THEN
       pt = count
@@ -3472,7 +3472,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  STATIC default as string
 
  'Any image, any size
- srcfile = browse(browseSprite, default, , "browse_import_sprite")
+ srcfile = browse(browseImage, default, , "browse_import_sprite")
  IF srcfile = "" THEN EXIT SUB
 
  DIM as Frame ptr impsprite, impsprite2

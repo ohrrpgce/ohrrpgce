@@ -101,13 +101,17 @@ SUB set_browse_default(default as string)
 END SUB
 
 ' Returns an absolute path, or "" if the user cancelled.
+' filetype: Specifies which files are valid (including default allowed file extensions)
+'          and how to preview them.
 ' default: initially selected file or a directory. Gets set to the file selected,
 '          or if canceled, the last directory we were in.
 '          If this is "", then the initial directory is the directory from the
 '          last time browse() was called, anywhere.
-' fmask:   A mask like "*.bmp". May not be used, depending on filetype (see BrowseFileType)
+' fmask:   A mask like "*.bmp" or "key.der" overriding the defaults for filetype; use only
+'          if the defaults aren't right (e.g. only "*.slice" rather than all RELOAD files).
+'          Mandatory for filetype=browseAny.
 ' needf:   whether to fade screen in
-FUNCTION browse (filetype as BrowseFileType = browseAny, byref default as string, fmask as string = "", helpkey as string = "", needf as bool = NO) as string
+FUNCTION browse (filetype as BrowseFileType = browseAny, byref default as string = "", fmask as string = "", helpkey as string = "", needf as bool = NO) as string
 DIM ret as string
 
 DIM selectst as SelectTypeState
@@ -122,7 +126,7 @@ SELECT CASE br.filetype
   br.previewer = NEW MusicPreviewer
  CASE browseSfx
   br.previewer = NEW SfxPreviewer
- CASE browseImage, browsePalettedImage, browseSprite, browseTileset, browseMasterPal
+ CASE browseImage, browsePalettedImage, browseTileset, browseMasterPal
   'Any kind of image
   br.previewer = NEW ImagePreviewer
 END SELECT
@@ -560,19 +564,13 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
      .about = "File is too large (limit 1MB)"
     END IF
    END IF
-   '---Any BMP
-   IF br.filetype = browseSprite THEN
-    IF browse_check_image(br, tree(), iminfo) = NO THEN
-     .kind = bkUnselectable
-    END IF
-   END IF
-   '---320x200 BMP files (any supported bitdepth)
+   '---320x200 images
    IF br.filetype = browseTileset THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.size.w <> 320 OR iminfo.size.h <> 200 THEN
      .kind = bkUnselectable
     END IF
    END IF
-   '---1/4/8 bit images (used for fonts and tilemaps)
+   '---paletted image (1/4/8 bit in the case of BMP), used for fonts and tilemaps
    IF br.filetype = browsePalettedImage THEN
     IF browse_check_image(br, tree(), iminfo) = NO OR iminfo.paletted = NO THEN
      .kind = bkUnselectable
@@ -602,7 +600,7 @@ SUB browse_add_files(wildcard as string, byval filetype as integer, byref br as 
        .about = "Not a valid MAS file"
        .kind = bkUnselectable
      END SELECT
-    ELSE  'BMP as a master palette
+    ELSE  'An image file
      IF browse_check_image(br, tree(), iminfo) = NO THEN
       .kind = bkUnselectable
      ELSE
@@ -842,64 +840,72 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
    draw_browse_meter br
   NEXT
 
-  '---FIND ALL FILES IN FILEMASK---
-  DIM filetype as FileTypeEnum = fileTypeFile
-  IF br.filetype = browseMasterPal THEN
-   browse_add_files "*.mas", filetype, br, tree()
-   browse_add_files "*.bmp", filetype, br, tree()
-   browse_add_files "*.png", filetype, br, tree()
-  ELSEIF br.filetype = browseMusic THEN
-   '--disregard fmask. one call per extension
-   browse_add_files "*.bam", filetype, br, tree()
-   browse_add_files "*.mid", filetype, br, tree()
-   browse_add_files "*.xm", filetype, br, tree()
-   browse_add_files "*.it", filetype, br, tree()
-   browse_add_files "*.mod", filetype, br, tree()
-   browse_add_files "*.s3m", filetype, br, tree()
-   browse_add_files "*.ogg", filetype, br, tree()
-   browse_add_files "*.mp3", filetype, br, tree()
-  ELSEIF br.filetype = browseSfx THEN
-   '--disregard fmask. one call per extension
-   browse_add_files "*.wav", filetype, br, tree()
-   browse_add_files "*.ogg", filetype, br, tree()
-   browse_add_files "*.mp3", filetype, br, tree()
-  ELSEIF br.filetype = browseRPG THEN
-   browse_add_files "*.rpg", filetype, br, tree()
-   browse_add_files "*.rpgdir", fileTypeDirectory, br, tree()
-  ELSEIF br.filetype = browseRELOAD THEN
-   browse_add_files "*.reld", filetype, br, tree()
-   browse_add_files "*.reload", filetype, br, tree()
-   browse_add_files "*.slice", filetype, br, tree()
-   browse_add_files "*.rsav", filetype, br, tree()
-   browse_add_files "*.editor", filetype, br, tree()
-   browse_add_files "*.rgfx", filetype, br, tree()
-  ELSEIF br.filetype = browseScripts THEN
-   browse_add_files "*.hs", filetype, br, tree()
-   browse_add_files "*.hsp", filetype, br, tree()
-   browse_add_files "*.hss", filetype, br, tree()
-   browse_add_files "*.txt", filetype, br, tree()
-  ELSEIF br.filetype = browseDir THEN
-   IF diriswriteable(br.nowdir) THEN
-    append_tree_record br, tree()
-    WITH tree(br.mstate.last)
-     .kind = bkSelectable
-     .filename = ""
-     .caption = "Select this folder"
-     .about = decode_filename(br.nowdir)
-    END WITH
-   END IF
-  ELSEIF br.filetype = browsePalettedImage THEN
-   browse_add_files "*.bmp", filetype, br, tree()
-   browse_add_files "*.png", filetype, br, tree()
-   'GIF import not supported
-  ELSEIF br.filetype = browseImage THEN
-   browse_add_files "*.bmp", filetype, br, tree()
-   browse_add_files "*.jpeg", filetype, br, tree()
-   browse_add_files "*.jpg", filetype, br, tree()
-   browse_add_files "*.png", filetype, br, tree()
-   'GIF import not supported
+  '--Add all files matching the filename mask or type
+  IF LEN(br.fmask) THEN
+   browse_add_files br.fmask, fileTypeFile, br, tree()
   ELSE
-   browse_add_files br.fmask, filetype, br, tree()
+
+   'If no fmask is given, use default file extensions
+   SELECT CASE br.filetype
+    CASE browseMusic
+     '--disregard fmask. one call per extension
+     browse_add_files "*.bam",     fileTypeFile, br, tree()
+     browse_add_files "*.mid",     fileTypeFile, br, tree()
+     browse_add_files "*.xm",      fileTypeFile, br, tree()
+     browse_add_files "*.it",      fileTypeFile, br, tree()
+     browse_add_files "*.mod",     fileTypeFile, br, tree()
+     browse_add_files "*.s3m",     fileTypeFile, br, tree()
+     browse_add_files "*.ogg",     fileTypeFile, br, tree()
+     browse_add_files "*.mp3",     fileTypeFile, br, tree()
+    CASE browseSfx
+     '--disregard fmask. one call per extension
+     browse_add_files "*.wav",     fileTypeFile, br, tree()
+     browse_add_files "*.ogg",     fileTypeFile, br, tree()
+     browse_add_files "*.mp3",     fileTypeFile, br, tree()
+    CASE browseRPG
+     browse_add_files "*.rpg",     fileTypeFile, br, tree()
+     browse_add_files "*.rpgdir",  fileTypeDirectory, br, tree()
+    CASE browseRELOAD
+     browse_add_files "*.reld",    fileTypeFile, br, tree()
+     browse_add_files "*.reload",  fileTypeFile, br, tree()
+     browse_add_files "*.slice",   fileTypeFile, br, tree()
+     browse_add_files "*.rsav",    fileTypeFile, br, tree()
+     browse_add_files "*.editor",  fileTypeFile, br, tree()
+     browse_add_files "*.rgfx",    fileTypeFile, br, tree()
+    CASE browseTilemap
+     browse_add_files "*.tilemap", fileTypeFile, br, tree()
+    CASE browseScripts
+     browse_add_files "*.hs",      fileTypeFile, br, tree()
+     browse_add_files "*.hsp",     fileTypeFile, br, tree()
+     browse_add_files "*.hss",     fileTypeFile, br, tree()
+     browse_add_files "*.txt",     fileTypeFile, br, tree()
+    CASE browseDir
+     IF diriswriteable(br.nowdir) THEN
+      append_tree_record br, tree()
+      WITH tree(br.mstate.last)
+       .kind = bkSelectable
+       .filename = ""
+       .caption = "Select this folder"
+       .about = decode_filename(br.nowdir)
+      END WITH
+     END IF
+    CASE browsePalettedImage
+     browse_add_files "*.bmp",     fileTypeFile, br, tree()
+     browse_add_files "*.png",     fileTypeFile, br, tree()
+    CASE browseMasterPal
+     browse_add_files "*.mas",     fileTypeFile, br, tree()
+     browse_add_files "*.bmp",     fileTypeFile, br, tree()
+     browse_add_files "*.png",     fileTypeFile, br, tree()
+    CASE browseImage, browseTileset
+     browse_add_files "*.bmp",     fileTypeFile, br, tree()
+     browse_add_files "*.jpeg",    fileTypeFile, br, tree()
+     browse_add_files "*.jpg",     fileTypeFile, br, tree()
+     browse_add_files "*.png",     fileTypeFile, br, tree()
+    CASE browseAny
+     showerror "BUG: browse(): browseAny with missing fmask"
+    CASE ELSE
+     showerror "BUG: browse(): unknown file type " & br.filetype
+   END SELECT
   END IF
  END IF
 

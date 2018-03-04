@@ -4053,7 +4053,7 @@ END SUB
 'appending: true if appending, false if replacing all existing
 SUB mapedit_import_tilemaps(st as MapEditState, appending as bool)
  DIM infile as string
- infile = browse(browseTilemap, "", "*.tilemap", "browse_tilemaps")
+ infile = browse(browseTilemap, , , "browse_tilemaps")
  IF LEN(infile) = 0 THEN EXIT SUB
 
  REDIM newlayers(0) as TileMap
