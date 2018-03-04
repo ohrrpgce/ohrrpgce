@@ -11,6 +11,7 @@
 #include "customsubs.bi"
 #include "cglobals.bi"
 #include "custom.bi"
+#include "thingbrowser.bi"
 
 #include "const.bi"
 #include "scrconst.bi"
@@ -26,7 +27,6 @@ DECLARE SUB statcapsmenu ()
 DECLARE SUB battleoptionsmenu ()
 DECLARE SUB equipmergemenu ()
 DECLARE SUB update_masterpalette_menu(menu() as string, shaded() as bool, palnum as integer)
-DECLARE SUB titlescreenbrowse ()
 DECLARE SUB inputpasw ()
 DECLARE SUB nearestui (byval mimicpal as integer, newpal() as RGBcolor, newui() as integer, newbox() as BoxStyle)
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxStyle, newmaster() as RGBcolor, newui() as integer, newbox() as BoxStyle)
@@ -643,41 +643,6 @@ SUB remappalette (oldmaster() as RGBcolor, oldui() as integer, oldbox() as BoxSt
  NEXT
 END SUB
 
-'FIXME:recursively enter backdrop editor instead?
-SUB titlescreenbrowse
-loadmxs game & ".mxs", gen(genTitle), vpages(2)
-setkeys
-DIM gcsr as integer = 0
-DIM tog as integer
-DIM col as integer
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "title_screen_browse"
- IF keyval(scUp) > 1 AND gcsr = 1 THEN gcsr = 0
- IF keyval(scDown) > 1 AND gcsr = 0 THEN gcsr = 1
- IF gcsr = 1 THEN
-  IF intgrabber(gen(genTitle), 0, gen(genNumBackdrops) - 1) THEN 
-   loadmxs game + ".mxs", gen(genTitle), vpages(2)
-  END IF
- END IF
- IF enter_or_space() THEN
-  IF gcsr = 0 THEN EXIT DO
- END IF
-
- copypage 2, dpage
- IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
- edgeprint "Go Back", 1, 1, col, dpage
- IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
- edgeprint CHR(27) & "Backdrop " & gen(genTitle) & CHR(26), 1, 11, col, dpage
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-END SUB
-
 SUB inputpasw()
 DIM tog as integer = 0
 DIM oldpassword as integer = (checkpassword("") = 0)
@@ -1259,7 +1224,11 @@ SUB general_data_editor ()
   usemenu state, enabled()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 3 THEN titlescreenbrowse
+   IF state.pt = 3 THEN
+    DIM backdropb as BackdropSpriteBrowser
+    gen(genTitle) = backdropb.browse(gen(genTitle))
+   END IF
+
    IF state.pt = 4 THEN startingdatamenu
    IF state.pt = 5 THEN edit_savegame_options
    IF state.pt = 6 THEN edit_general_bitsets

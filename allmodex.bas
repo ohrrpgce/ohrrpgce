@@ -384,7 +384,7 @@ private sub modex_init()
 		vpages(i) = frame_new(320, 200, , YES)
 	next
 	'other vpages slots are for temporary pages
-	'They are currently still used in the tileset editor, importmxs, titlescreenbrowse,
+	'They are currently still used in the tileset editor, importmxs,
 	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
 

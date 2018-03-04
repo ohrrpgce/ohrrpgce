@@ -37,8 +37,8 @@ March 1st-ish-maybe 2018 [Fufluns]
       commands on a non-ellipse slice [sotrain515, James]
 
   * Stuff Only Developers Will Notice
-    * The .pt# 4-bit graphics lumps have been replaced with a new RELOAD-based
-      rgfx file format [Ralph]
+    * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
+      with a new RELOAD-based rgfx file format [Ralph]
 
 Jan ? 2018 [Etheldreme+1]
 
