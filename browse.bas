@@ -151,6 +151,13 @@ IF needf THEN
  setpal temppal()
 END IF
 
+'--Preserve pages 2 and 3 because the tilemap editor still uses them
+'  and they are going to be clobbered by bitdepth changing.
+DIM holdpage2 as Frame Ptr = frame_new(320, 200)
+frame_draw vpages(2), , 0, 0, , NO, holdpage2
+DIM holdpage3 as Frame Ptr = frame_new(320, 200)
+frame_draw vpages(3), , 0, 0, , NO, holdpage3
+
 switch_to_32bit_vpages
 
 'Load a variant of the default font, misc/browser font.ohf, which has both Latin-1
@@ -362,6 +369,13 @@ END IF
 remember = default
 
 DELETE br.previewer
+
+'Restore held copies of page 2 and 3 (because the tileset editor still needs them)
+' and they were clobbered by bit depth changing
+frame_draw holdpage2, , 0, 0, , NO, vpages(2)
+frame_unload @holdpage2
+frame_draw holdpage3, , 0, 0, , NO, vpages(3)
+frame_unload @holdpage3
 
 clearkey(scESC)
 RETURN ret
