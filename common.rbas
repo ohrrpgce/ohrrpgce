@@ -2735,16 +2735,18 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   usemenu state
 
   copypage holdscreen, vpage
-  centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
-  FOR i as integer = 0 TO UBOUND(captlines)
-   DIM linex as RelPos
-   IF centerlines THEN
-    linex = pCentered
-   ELSE
-    linex = rCenter - wide \ 2
-   END IF
-   edgeprint captlines(i), linex, rCenter + boxy + i * 10, uilook(uiMenuItem), vpage
-  NEXT
+  IF capt <> "" THEN
+   centerbox rCenter, rCenter + boxy + boxheight \ 2, 16 + wide, 6 + boxheight, 2, vpage
+   FOR i as integer = 0 TO UBOUND(captlines)
+    DIM linex as RelPos
+    IF centerlines THEN
+     linex = pCentered
+    ELSE
+     linex = rCenter - wide \ 2
+    END IF
+    edgeprint captlines(i), linex, rCenter + boxy + i * 10, uilook(uiMenuItem), vpage
+   NEXT
+  END IF
   draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage
