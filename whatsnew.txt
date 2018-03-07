@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March 1st-ish-maybe 2018 [Fufluns]
+March 1st-ish-maybe-or-not 2018 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -32,19 +32,6 @@ March 1st-ish-maybe 2018 [Fufluns]
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"
 
   * Bugfixes
-    * Fixed exporting a blank BMP file instead of a tileset or backdrop
-      when you browse to pick a different export location other than
-      the default. [James]
-    * Fix a crash that happened when you used ellipse-related scripting
-      commands on a non-ellipse slice [sotrain515, James]
-
-  * Stuff Only Developers Will Notice
-    * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
-      with a new RELOAD-based rgfx file format [Ralph]
-
-Jan ? 2018 [Etheldreme+1]
-
-  * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]
     * Couldn't copy-paste text containing characters above ASCII 127 [Ralph]
     * Panel slices set to clip had broken child clipping and positioning
@@ -62,6 +49,15 @@ Jan ? 2018 [Etheldreme+1]
       slice editor [Ralph]
     * Bad results if "scroll to child" was called twice in a row, or after the
       slice tree was modified, without a "wait" in-between [Ralph]
+    * Fixed exporting a blank BMP file instead of a tileset or backdrop
+      when you browse to pick a different export location other than
+      the default. [James]
+    * Fix a crash that happened when you used ellipse-related scripting
+      commands on a non-ellipse slice [sotrain515, James]
+
+  * Stuff Only Developers Will Notice
+    * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
+      with a new RELOAD-based rgfx file format [Ralph]
 
 Dec 3 2017 [Etheldreme]
 
