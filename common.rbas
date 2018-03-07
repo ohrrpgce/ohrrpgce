@@ -2719,6 +2719,12 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
    result = escval
    state.active = NO
   END IF
+  IF readmouse.release AND mouseLeft THEN
+   IF NOT rect_collide_point(menu.rect, readmouse.pos) THEN
+    result = escval
+    state.active = NO
+   END IF
+  END IF
 
   IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
    show_help helpkey
