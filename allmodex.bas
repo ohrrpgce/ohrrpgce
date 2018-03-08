@@ -6618,7 +6618,7 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 		end if
 
 		'Convert RGB to BGRA
-		ret = surface_from_pixels(buf, size.w, size.h, PIXFMT_RGB)
+		ret = surface32_from_pixels(buf, size.w, size.h, PIXFMT_RGB)
 		deallocate buf
 	else
 		'The palette is ignored
@@ -6628,6 +6628,87 @@ function surface_import_png(filename as string, always_32bit as bool) as Surface
 		frame_unload @fr
 	end if
 
+	return ret
+end function
+
+'Write a Surface to a .png file.
+'8-bit Surfaces:  preserves palette indices. pal is optional.
+'32-bit Surfaces: masterpal() and pal and the alpha channel are ignored.
+'                 The output .png will be paletted if the input has <= 256 colors.
+function surface_export_png(surf as Surface ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, fast as bool = NO) as bool
+	dim filebuf as byte ptr
+	dim filebufsize as size_t
+	dim pixelbuf as byte ptr
+
+	dim state as LodePNGState
+	lodepng_state_init(@state)
+	state.info_raw.bitdepth = 8
+	state.info_png.color.bitdepth = 8
+
+	'Default is 2048. 8192 and above are much slower, because they're size-optimised
+	state.encoder.zlibsettings.windowsize = iif(fast, 512, 4096)
+
+	if surf->format = SF_8bit then
+		state.info_raw.colortype = LCT_PALETTE
+		state.info_png.color.colortype = LCT_PALETTE
+
+		' When writing a paletted image, to preserve palette indices for
+		' re-import, disallow LodePNG from shuffling the palette to get
+		' a lower bitdepth (eg writing as monochrome images as 2-bit)
+		state.encoder.auto_convert = 0
+
+		lodepng_palette_clear(@state.info_png.color)
+		dim ncols as integer = iif(pal, pal->numcolors, 256)
+		for cidx as integer = 0 to ncols - 1
+			with masterpal(iif(pal, pal->col(cidx), cidx))
+				lodepng_palette_add(@state.info_png.color, .r, .g, .b, 255)
+			end with
+		next
+		lodepng_color_mode_copy(@state.info_raw, @state.info_png.color)
+
+		if ncols <= 16 then
+			state.info_png.color.bitdepth = 4  'Only for better compression
+		end if
+
+		pixelbuf = surf->pPaletteData
+	else
+		state.info_raw.colortype = LCT_RGB  'LCT_RGBA
+		'state.info_png.color.colortype unspecified, will be auto-selected
+
+		'BGRA to RGB
+		pixelbuf = surface32_to_pixels(surf, PIXFMT_RGB)
+	end if
+
+	'Encode and write to file
+	lodepng_encode(@filebuf, @filebufsize, pixelbuf, surf->width, surf->height, @state)
+
+	if state.error = 0 then
+		state.error = lodepng_save_file(filebuf, filebufsize, strptr(filename))
+	end if
+	CHKERR(state.error)
+	dim ret as bool = (state.error = 0)
+
+	'? (surf->width * surf->height) & " pix in " & CINT(1e6 * time) & !"us  \twinsize = " & state.encoder.zlibsettings.windowsize & "  fsize " & filebufsize
+
+	'Cleanup
+	lodepng_state_cleanup(@state)
+	deallocate filebuf
+	if surf->format = SF_32bit then
+		deallocate pixelbuf
+	end if
+
+	return ret
+end function
+
+'Write a Frame to a paletted .png file, preserving palette indices. pal is optional.
+function frame_export_png(fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, fast as bool = NO) as bool
+	dim surf as Surface ptr
+	if gfx_surfaceCreateFrameView(fr, @surf) then return NO
+
+	dim ret as bool
+	ret = surface_export_png(surf, filename, masterpal(), pal, fast)
+
+	gfx_surfaceDestroy(@surf)
 	return ret
 end function
 
@@ -6755,7 +6836,7 @@ function surface_import_jpeg(filename as string) as Surface ptr
 		debug "ujGetImage error " & ujGetError() & " importing " & filename
 	else
 		'Need to convert RGB to our BGRA
-		ret = surface_from_pixels(buf, size.w, size.h, pixformat)
+		ret = surface32_from_pixels(buf, size.w, size.h, pixformat)
 	end if
 
 	ujFree(jpeg)

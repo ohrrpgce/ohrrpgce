@@ -134,7 +134,8 @@ extern "C"
 	declare sub surface_assign (ptr_to_replace as Surface ptr ptr, new_value as Surface ptr)  'In allmodex.bas
 	declare function surface_scale ( surf as Surface ptr, destWidth as integer, destHeight as integer ) as Surface ptr
 	declare function surface_duplicate ( surf as Surface ptr ) as Surface ptr
-	declare function surface_from_pixels ( pixels as ubyte ptr, w as integer, h as integer, format as PixelFormat ) as Surface ptr
+	declare function surface32_from_pixels ( pixels as ubyte ptr, w as integer, h as integer, format as PixelFormat ) as Surface ptr
+	declare function surface32_to_pixels( surf as Surface ptr, format as PixelFormat ) as ubyte ptr
 
 	'' The following software-rasterised implementation of the above interface is in surface.cpp.
 	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer

@@ -168,8 +168,8 @@ int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalet
 	return -1;
 }
 
-// input is a buffer of pixels, formatted according to format. Convert to BGRA.
-Surface *surface_from_pixels( char *restrict input, int w, int h, PixelFormat format ) {
+// input is a buffer of pixels, formatted according to format. Convert to a SF_32bit surface (BGRA).
+Surface *surface32_from_pixels( char *restrict input, int w, int h, PixelFormat format ) {
 	Surface *ret;
 	if (gfx_surfaceCreate(w, h, SF_32bit, SU_Staging, &ret))
 		return NULL;
@@ -186,6 +186,36 @@ Surface *surface_from_pixels( char *restrict input, int w, int h, PixelFormat fo
 				col.g = input[1];
 				col.b = input[2];
 				input += 3;
+			}
+		}
+	}
+	return ret;
+}
+
+// Convert a SF_32bit Surface to a pixel buffer formatted according to format. free() the result.
+char *surface32_to_pixels( Surface *surf, PixelFormat format ) {
+	if (!surf || surf->format != SF_32bit)
+		return NULL;
+
+	int bytes_per_px;
+	if (format == PIXFMT_GREY)
+		bytes_per_px = 1;
+	else
+		bytes_per_px = 3;
+
+	char *ret = (char*)malloc(surf->width * surf->height * bytes_per_px);
+	if (!ret) return ret;
+
+	char *out = ret;
+	for (int y = 0; y < surf->height; y++) {
+		for (int x = 0; x < surf->width; x++) {
+			RGBcolor &col = surf->pixel32(x, y);
+			if (format == PIXFMT_GREY) {
+				*out++ = col.r;
+			} else {
+				*out++ = col.r;
+				*out++ = col.g;
+				*out++ = col.b;
 			}
 		}
 	}
