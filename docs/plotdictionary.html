@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-02-05)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-03-07)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1015,6 +1015,9 @@
 		
 	
 		<a href="#about-forceequip">force equip (hero,slot,item)</a><br>
+		
+	
+		<a href="#about-forcemountvehicle">force mount vehicle</a><br>
 		
 	
 		<a href="#about-forgetspell">forget spell (hero,attack)</a><br>
@@ -5856,6 +5859,16 @@ resume box advance # go back to normal</pre>
 		<h4>teleport to map (map, x, y)</h4>
 		<p><a href="#about-teleporttomap">Defined in the Moving Heroes section.</a></p>
 		</div>
+		<div class="command">
+<a name="about-forcemountvehicle"></a>
+		<h4>force mount vehicle</h4>
+<p>
+			Makes you mount the vehicle specified by NPC ID or NPC reference. Unlike <a href="#about-usenpc" class="ref">use NPC</a>, <span class="param">force mount vehicle</span> does not bother checking the tile you are currently standing on. If the NPC is not a vehicle, nothing will happen.
+			
+			
+			
+		</p>
+</div>
 		<div class="command">
 <a name="about-dismountvehicle"></a>
 		<h4>dismount vehicle</h4>
@@ -18603,7 +18616,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 830 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 831 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
