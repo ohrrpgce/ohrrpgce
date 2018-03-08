@@ -1740,7 +1740,7 @@ wait for text box # wait until the player continues</example>
 		<reference ref="teleporttomap"/>
 		<command id="forcemountvehicle">
 			<canon>force mount vehicle</canon>
-			<shortname>force dismount vehicle(npc)</shortname>
+			<shortname>force mount vehicle(npc)</shortname>
 			<description>Makes you mount the vehicle specified by NPC ID or NPC reference. Unlike <ref>usenpc</ref>, <p>force mount vehicle</p> does not bother checking the tile you are currently standing on. If the NPC is not a vehicle, nothing will happen.</description>
 		</command>
 		<command id="currentvehicleid">
