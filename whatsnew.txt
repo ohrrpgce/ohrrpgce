@@ -27,6 +27,7 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
       fading [Ralph]
     * "npc copy number" (opposite to "npc reference") [Ralph]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
+    * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"
