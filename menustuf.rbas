@@ -832,11 +832,6 @@ SUB update_hero_max_and_cur_stats (byval who as integer)
    ELSE
     .cur.sta(statnum) = small(.cur.sta(statnum), .max.sta(statnum))
    END IF
-   IF readbit(gen(), genBits2, 27) THEN
-    'Cap minimum stats at zero
-    .max.sta(statnum) = large(.max.sta(statnum), 0)
-    .cur.sta(statnum) = large(.cur.sta(statnum), 0)
-   END IF
   NEXT statnum
  END WITH
 END SUB

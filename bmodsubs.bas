@@ -857,6 +857,11 @@ SUB recompute_hero_max_stats(byval hero_slot as integer)
    .max.sta(statnum) = .base.sta(statnum) + bonuses(statnum)
    DIM cap as integer = gen(genStatCap + statnum)
    IF cap > 0 THEN .max.sta(statnum) = small(.max.sta(statnum), cap)
+   IF readbit(gen(), genBits2, 27) THEN
+    'Cap minimum stats at zero
+    .max.sta(statnum) = large(.max.sta(statnum), 0)
+    .cur.sta(statnum) = large(.cur.sta(statnum), 0)
+   END IF
   NEXT
  END WITH
 END SUB
