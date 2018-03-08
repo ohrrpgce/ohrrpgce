@@ -19,6 +19,8 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
     * New attack target class: "Counter (last to hit attacker)", which you
       should normally use for counterattacks instead of Revenge [Ralph]
     * Previewing MP3 files in the file browser reenabled (Windows only) [Ralph]
+    * New bitset "Cap minimum stats to zero" can prevent equipment with
+      negative stat bonuses from making a hero's stats negative [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
