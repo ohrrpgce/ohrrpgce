@@ -123,12 +123,13 @@ DIM SHARED zoom as integer = 2
 DIM SHARED zoom_has_been_changed as bool = NO
 DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it
 DIM SHARED smooth as integer = 0
-DIM SHARED screensurface as SDL_Surface ptr = NULL
+DIM SHARED screensurface as SDL_Surface ptr = NULL  'The output surface (the window)
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED wminfo as SDL_SysWMinfo   'Must call load_wminfo() to load this global
 DIM SHARED windowedmode as bool = YES
-DIM SHARED screen_width as integer = 0
+DIM SHARED screen_width as integer = 0  'Size of the desktop/monitor (virtual size)
 DIM SHARED screen_height as integer = 0
+DIM SHARED lastwindowsize as XYPair  'Size of screensurface
 DIM SHARED resizable as bool = NO
 DIM SHARED resize_requested as bool = NO
 DIM SHARED resize_request as XYPair
@@ -471,6 +472,9 @@ FUNCTION gfx_sdl_set_screen_mode(bitdepth as integer = 0, quiet as bool = NO) as
 
 #ENDIF  ' Not __FB_ANDROID__
 
+  'Workaround for apparent SDL bug (see gfx_sdl_present_internal)
+  lastwindowsize = XY(screensurface->w, screensurface->h)
+
   IF quiet = NO THEN
     WITH *screensurface->format
      debuginfo "gfx_sdl: created screensurface size=" & screensurface->w & "*" & screensurface->h _
@@ -514,12 +518,16 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
   'debuginfo "gfx_sdl_present_internal(w=" & w & ", h=" & h & ", bitdepth=" & bitdepth & ")"
 
   'variable resolution handling
-  IF framesize.w <> w OR framesize.h <> h THEN
+  '(We also test the size of screensurface, because sometimes SDL resizes the
+  'window without telling us with an event! This happens on X11 when dragging
+  'the window, if we try to change window size mid-drag)
+  IF framesize.w <> w OR framesize.h <> h OR XY(screensurface->w, screensurface->h) <> lastwindowsize THEN
     'debuginfo "gfx_sdl_present_internal: framesize changing from " & framesize.w & "*" & framesize.h & " to " & w & "*" & h
     framesize.w = w
     framesize.h = h
     'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
-    'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now
+    'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now.
+    'Silence debug output here, or we get a raft of resize messages when resizing the window w/ the mouse
     gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth), YES)
     IF screenbuffer THEN
       SDL_FreeSurface(screenbuffer)
