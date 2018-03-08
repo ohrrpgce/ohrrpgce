@@ -16,6 +16,14 @@ function music_get_info() as string
 	return ""
 end function
 
+function music_supported_formats() as integer
+	return 0
+end function
+
+function sound_supported_formats() as integer
+	return 0
+end function
+
 function music_settings_menu() as bool
 	return NO
 end function
