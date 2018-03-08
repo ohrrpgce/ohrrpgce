@@ -1743,6 +1743,16 @@ wait for text box # wait until the player continues</example>
 			<shortname>force dismount vehicle(npc)</shortname>
 			<description>Makes you mount the vehicle specified by NPC ID or NPC reference. Unlike <ref>usenpc</ref>, <p>force mount vehicle</p> does not bother checking the tile you are currently standing on. If the NPC is not a vehicle, nothing will happen.</description>
 		</command>
+		<command id="currentvehicleid">
+			<canon>current vehicle id</canon>
+			<shortname>current vehicle id</shortname>
+			<description>Returns the vehicle ID number of the vehicle your hero is currently riding. If you are not riding a vehicle, it will return -1</description>
+		</command>
+		<command id="currentvehiclenpc">
+			<canon>current vehicle npc</canon>
+			<shortname>current vehicle npc</shortname>
+			<description>Returns an NPC reference to the vehicle your hero is currently riding. If you are not riding a vehicle, it will return 0 or false</description>
+		</command>
 		<command id="dismountvehicle">
 			<canon>dismount vehicle</canon>
 			<shortname>dismount vehicle</shortname>

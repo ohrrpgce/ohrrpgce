@@ -801,6 +801,12 @@
 		<a href="#about-currenttextbox">current text box</a><br>
 		
 	
+		<a href="#about-currentvehicleid">current vehicle id</a><br>
+		
+	
+		<a href="#about-currentvehiclenpc">current vehicle npc</a><br>
+		
+	
 		<a href="#about-daysofplay">days of play</a><br>
 		
 	
@@ -5864,6 +5870,26 @@ resume box advance # go back to normal</pre>
 		<h4>force mount vehicle</h4>
 <p>
 			Makes you mount the vehicle specified by NPC ID or NPC reference. Unlike <a href="#about-usenpc" class="ref">use NPC</a>, <span class="param">force mount vehicle</span> does not bother checking the tile you are currently standing on. If the NPC is not a vehicle, nothing will happen.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-currentvehicleid"></a>
+		<h4>current vehicle id</h4>
+<p>
+			Returns the vehicle ID number of the vehicle your hero is currently riding. If you are not riding a vehicle, it will return -1
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-currentvehiclenpc"></a>
+		<h4>current vehicle npc</h4>
+<p>
+			Returns an NPC reference to the vehicle your hero is currently riding. If you are not riding a vehicle, it will return 0 or false
 			
 			
 			
@@ -18616,7 +18642,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 831 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 833 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
