@@ -124,7 +124,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   end if
   plank_menu_mouse_wheel(ps)
   if select_by_typing(selectst) then
-   if plank_select_by_string(ps, selectst.query) then cursor_moved = YES
+   if selectst.query <> " " then
+    if plank_select_by_string(ps, selectst.query) then cursor_moved = YES
+   end if
   end if
   hover = find_plank_at_screen_pos(ps, readmouse.pos)
   if hover andalso (readmouse.clicks AND mouseLeft) then
