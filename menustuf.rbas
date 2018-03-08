@@ -2777,6 +2777,10 @@ DO
    END IF
    'Calculate new max stat
    resultant_stat = gam.hero(st.who).stat.base.sta(i) + st.stat_total_bonus(i)
+   IF readbit(gen(), genBits2, 27) THEN
+    'Cap minimum stat to zero
+    resultant_stat = large(resultant_stat, 0)
+   END IF
    DIM cap as integer = gen(genStatCap + i)
    IF cap > 0 AND resultant_stat > cap THEN
     resultant_stat = cap
