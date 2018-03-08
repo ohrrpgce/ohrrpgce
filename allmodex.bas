@@ -5753,15 +5753,10 @@ end sub
 sub surface_export_bmp (f as string, surf as Surface Ptr, maspal() as RGBcolor)
 	if surf->format = SF_32bit then
 		surface_export_bmp24(f, surf)
+	elseif surf->base_frame then
+		frame_export_bmp8(f, surf->base_frame, maspal())
 	else
-		'A wrapper
-		dim fr as Frame
-		fr.w = surf->width
-		fr.h = surf->height
-		fr.pitch = surf->pitch
-		fr.image = surf->pPaletteData
-		fr.mask = surf->pPaletteData
-		frame_export_bmp8(f, @fr, maspal())
+		showerror "surface_export_bmp: SF_8bit not supported"
 	end if
 end sub
 
@@ -5872,8 +5867,7 @@ sub frame_export_bmp (fname as string, fr as Frame ptr, maspal() as RGBcolor, pa
 	if pal then
 		frame_export_bmp4 fname, fr, maspal(), pal
 	elseif fr->surf then
-		' todo: 8-bit surfaces
-		surface_export_bmp24 fname, fr->surf
+		surface_export_bmp fname, fr->surf, maspal()
 	else
 		frame_export_bmp8 fname, fr, maspal()
 	end if
@@ -6580,6 +6574,9 @@ function frame_import_paletted_png(filename as string, pal() as RGBcolor) as Fra
 				pal(cidx).b = .palette[cidx * 4 + 2]
 				pal(cidx).a = .palette[cidx * 4 + 3]  '255=opaque
 			next
+			for cidx as integer = .palettesize - 1 to ubound(pal)
+				pal(cidx).col = 0
+			next
 		end with
 	end if
 
@@ -7010,6 +7007,36 @@ function image_import_as_frame_8bit(filename as string, masterpal() as RGBcolor,
 	end if
 end function
 
+'Output file format is determined from the filename.
+sub frame_export_image (fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+	select case image_file_type(filename)
+		case imBMP
+			frame_export_bmp filename, fr, masterpal(), pal
+		case imPNG
+			frame_export_png fr, filename, masterpal(), pal
+		case imGIF
+			frame_export_gif fr, filename, masterpal(), pal, NO  'transparent = NO
+		case else
+			debug "Can't write image: unknown or unsupported file extension: " & filename
+	end select
+end sub
+
+'Export a 32-bit Surface. Output file format is determined from the filename.
+sub surface_export_image (surf as Surface ptr, filename as string)
+	select case image_file_type(filename)
+		case imBMP
+			'Supports only 8bit Surfaces with backing Frame
+			surface_export_bmp filename, surf, intpal()
+		case imPNG
+			'Supports 8bit Surfaces
+			surface_export_png surf, filename, intpal() ' masterpal(), pal
+		case imGIF
+			'Doesn't support 8bit
+			surface_export_gif surf, filename
+		case else
+			debug "Can't write image: unknown or unsupported file extension: " & filename
+	end select
+end sub
 
 '==========================================================================================
 '                                   Image quantization

@@ -358,6 +358,8 @@ DECLARE FUNCTION image_import_as_frame_paletted (filename as string, pal() as RG
 DECLARE FUNCTION image_import_as_frame_quantized (bmp as string, pal() as RGBcolor, options as QuantizeOptions = TYPE(0, -1)) as Frame ptr
 DECLARE FUNCTION image_import_as_frame_8bit (filename as string, masterpal() as RGBcolor, keep_col0 as bool = YES, byval transparency as RGBcolor = TYPE(-1)) as Frame ptr
 DECLARE FUNCTION image_import_as_surface (bmp as string, always_32bit as bool) as Surface ptr
+DECLARE SUB frame_export_image (fr as Frame ptr, filename as string, masterpal() as RGBcolor, pal as Palette16 ptr = NULL)
+DECLARE SUB surface_export_image (surf as Surface ptr, filename as string)
 
 DECLARE SUB palette_from_16x16_image (filename as string, pal() as RGBcolor)
 
