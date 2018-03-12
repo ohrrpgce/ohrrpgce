@@ -34,6 +34,7 @@ DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, rootslice as Sli
 DECLARE SUB draw_formation_slices OVERLOAD (eform as Formation, hform as HeroFormation, rootslice as Slice ptr, selected_slot as integer, page as integer, byval heromode as bool=NO)
 DECLARE SUB load_formation_slices(ename() as string, form as Formation, rootslice as Slice ptr ptr)
 DECLARE SUB hero_formation_editor ()
+DECLARE SUB formation_init_added_enemy(byref slot as FormationSlot)
 
 DECLARE SUB formation_set_editor_load_preview(state as MenuState, byref form_id as integer, formset as FormationSet, form as Formation, ename() as string, byref rootslice as Slice Ptr)
 
@@ -1364,7 +1365,29 @@ SUB individual_formation_editor ()
      IF form.music >= 0 THEN playsongnum form.music
     END IF
     IF slot <> -1 THEN 'an enemy
-     IF form.slots(slot).id >= 0 THEN positioning_mode = YES
+     DIM browse_for_enemy as bool = NO
+     DIM in_slot as integer = form.slots(slot).id
+     IF in_slot >= 0 THEN
+      'This slot has an enemy already
+      DIM choices(1) as string = {"Reposition enemy", "Change Which Enemy"}
+      SELECT CASE multichoice("Slot " & slot, choices())
+       CASE 0: positioning_mode = YES
+       CASE 1: browse_for_enemy = YES
+      END SELECT
+     ELSE
+      'Empty slot
+      browse_for_enemy = YES
+     END IF
+     IF browse_for_enemy THEN
+      DIM oldenemy as integer = in_slot
+      form.slots(slot).id = enemy_picker_or_none(in_slot + 1) - 1
+      IF oldenemy <> form.slots(slot).id THEN
+       load_formation_slices ename(), form, @rootslice
+       IF oldenemy = -1 THEN
+        formation_init_added_enemy form.slots(slot)
+       END IF
+      END IF
+     END IF
     END IF
    END IF
    IF state.pt = 2 THEN
@@ -1433,13 +1456,7 @@ SUB individual_formation_editor ()
       '.pos.x += w(slot) \ 2
       '.pos.y += h(slot)
       load_formation_slices ename(), form, @rootslice
-      'default to middle of field
-      IF oldenemy = -1 AND .pos.x = 0 AND .pos.y = 0 THEN
-       .pos.x = 70
-       .pos.y = 95
-      END IF
-      '.pos.x -= w(slot) \ 2
-      '.pos.y -= h(slot)
+      formation_init_added_enemy form.slots(slot)
      END IF
     END WITH
    END IF
@@ -1498,6 +1515,14 @@ SUB individual_formation_editor ()
  SaveFormation form, form_id
  music_stop
  DeleteSlice @rootslice
+END SUB
+
+SUB formation_init_added_enemy(byref slot as FormationSlot)
+ 'default to middle of field
+ IF slot.pos.x = 0 AND slot.pos.y = 0 THEN
+  slot.pos.x = 70
+  slot.pos.y = 95
+ END IF
 END SUB
 
 'Deletes previous rootslice if any, then creates a bunch of sprite slices for enemies
