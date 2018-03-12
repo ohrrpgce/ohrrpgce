@@ -47,6 +47,20 @@ DECLARE SUB hero_editor_stat_visibility (hero as HeroDef)
 DECLARE FUNCTION tag_range_check_string(byval check as TagRangeCheck) as string
 DECLARE SUB edit_tag_range_check (byref check as TagRangeCheck)
 
+SUB hero_editor_main ()
+ DIM b as HeroBrowser
+ b.browse(-1, , @hero_editor)
+END SUB
+
+FUNCTION hero_picker (recindex as integer = -1) as integer
+ DIM b as HeroBrowser
+ RETURN b.browse(recindex, , @hero_editor, NO)
+END FUNCTION
+
+FUNCTION hero_picker_or_none (recindex as integer = -1) as integer
+ DIM b as HeroBrowser
+ RETURN b.browse(recindex - 1, YES , @hero_editor, NO) + 1
+END FUNCTION
 
 SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as integer)
  loadherodata her, hero_id
@@ -54,8 +68,8 @@ SUB hero_editor_load_hero (st as HeroEditState, her as HeroDef, byval hero_id as
  update_hero_preview_pics st, her
 END SUB
 
-SUB hero_editor
- DIM hero_id as integer = 0
+FUNCTION hero_editor (hero_id as integer) as integer
+ 'return value is the hero_id for thingbrowser
  DIM her as HeroDef
  DIM st as HeroEditState
  WITH st
@@ -65,6 +79,19 @@ SUB hero_editor
   .preview_walk_pos.y = 0
   .previewframe = -1
  END WITH
+
+ 'Add new hero if requested with hero_id = -1
+ IF hero_id > maxMaxHero THEN
+  visible_debug "Can't edit hero id > " & maxMaxHero
+  RETURN -1
+ END IF
+ IF hero_id > gen(genMaxHero) THEN
+  IF hero_editor_add_new(st, her, hero_id) THEN
+   saveherodata her, hero_id
+  ELSE
+   RETURN -1
+  END IF
+ END IF
 
  DIM menu(11) as string
  menu(0) = "Return to Main Menu"
@@ -103,6 +130,7 @@ SUB hero_editor
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "hero_editor"
   IF cropafter_keycombo(mstate.pt = 1) THEN
+   'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
    cropafter hero_id, gen(genMaxHero), -1, game + ".dt0", getbinsize(binDT0)
    load_special_tag_caches
   END IF
@@ -165,7 +193,8 @@ SUB hero_editor
  LOOP
  saveherodata her, hero_id
  clear_hero_preview_pics st
-END SUB
+ RETURN hero_id
+END FUNCTION
 
 'TODO: convert to generic_add_new
 FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recindex as integer) as bool

@@ -453,7 +453,7 @@ SUB main_editor_menu()
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN gfx_editor_menu
    IF state.pt = 1 THEN map_picker
-   IF state.pt = 2 THEN hero_editor
+   IF state.pt = 2 THEN hero_editor_main
    IF state.pt = 3 THEN enemy_editor_main
    IF state.pt = 4 THEN attack_editor_main
    IF state.pt = 5 THEN formation_editor

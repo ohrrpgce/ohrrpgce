@@ -553,6 +553,57 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Function HeroBrowser.thing_kind_name() as string
+ return "Heroes"
+End Function
+
+Function HeroBrowser.thing_kind_name_singular() as string
+ return "Hero"
+End Function
+
+Function HeroBrowser.init_helpkey() as string
+ return "hero_editor_browser"
+End Function
+
+Function HeroBrowser.highest_id() as integer
+ return gen(genMaxHero)
+End Function
+
+Function HeroBrowser.highest_possible_id() as integer
+ return maxMaxHero
+End Function
+
+Function HeroBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim hero as HeroDef
+ loadherodata hero, id
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("hero_browser_plank.slice"))
+ end if
+ dim plank as Slice Ptr
+ plank = CloneSliceTree(plank_template)
+ 
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ ChangeSpriteSlice spr, sprTypeHero, hero.sprite, hero.sprite_pal, 0
+ if id = -1 then
+  spr->Visible = NO
+ end if
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, id & !"\n" & hero.name
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ return plank
+End Function
+
+Sub HeroBrowser.handle_cropafter(byval id as integer)
+ 'FIXME: this only clears the old .dt0 file, not the new heroes.reld file
+ cropafter id, gen(genMaxHero), 0, game & ".dt0", getbinsize(binDT0)
+ load_special_tag_caches
+End Sub
+
+'-----------------------------------------------------------------------
+
 Function ConstantListBrowser.thing_kind_name() as string
  return "Values"
 End Function

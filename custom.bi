@@ -24,6 +24,8 @@ DECLARE FUNCTION enemy_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_editor (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION attack_picker_or_none (recindex as integer = -1) as integer
+DECLARE FUNCTION hero_picker (recindex as integer = -1) as integer
+DECLARE FUNCTION hero_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION text_box_editor (whichbox as integer = -1) as integer
 DECLARE FUNCTION item_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION item_picker_or_none (recindex as integer = -1) as integer
@@ -43,7 +45,8 @@ DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()
 DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
-DECLARE SUB hero_editor ()
+DECLARE SUB hero_editor_main ()
+DECLARE FUNCTION hero_editor (hero_id as integer) as integer
 DECLARE SUB attack_editor_main ()
 DECLARE SUB enemy_editor_main ()
 DECLARE SUB menu_editor ()
