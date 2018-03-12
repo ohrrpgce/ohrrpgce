@@ -1306,7 +1306,7 @@ SUB individual_formation_editor ()
  state.size = 20
  DIM menuopts as MenuOptions
  menuopts.edged = YES
-
+ 
  CONST first_enemy_item = 9
  'slot -1 indicates no enemy selected
  DIM slot as integer = state.pt - first_enemy_item
@@ -1319,6 +1319,7 @@ SUB individual_formation_editor ()
   IF positioning_mode = YES THEN
    '--enemy positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
+   IF readmouse.release AND mouseRight THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
    DIM as integer movespeed = 1
    IF keyval(scShift) THEN movespeed = 8
@@ -1332,6 +1333,9 @@ SUB individual_formation_editor ()
     IF keyval(scDown) > 0 THEN .pos.y += movespeed
     IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
     IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    IF readmouse.dragging AND mouseLeft THEN
+     .pos += (readmouse.pos - readmouse.lastpos)
+    END IF
     ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
     ' .pos.x = bound(.pos.x, -size.w\2, gen(genResolutionX) - size.w\2)
     ' .pos.y = bound(.pos.y, -size.h\2, gen(genResolutionY) - size.h\2)
@@ -1474,7 +1478,11 @@ SUB individual_formation_editor ()
   END IF
   draw_formation_slices form, rootslice, slot, dpage
 
-  IF positioning_mode = NO THEN
+  IF positioning_mode THEN
+   edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), dpage
+   edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), dpage
+   edgeprint "x=" & form.slots(slot).pos.x & " y=" & form.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), dpage
+  ELSE
    menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Formation " & form_id & CHR(26)
    menu(2) = "Backdrop: " & form.background
