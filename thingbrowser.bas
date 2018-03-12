@@ -499,6 +499,60 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Function EnemyBrowser.thing_kind_name() as string
+ return "Enemies"
+End Function
+
+Function EnemyBrowser.thing_kind_name_singular() as string
+ return "Enemy"
+End Function
+
+Function EnemyBrowser.init_helpkey() as string
+ if can_edit then return "enemy_editor_browser"
+ return "enemy_browser"
+End Function
+
+Function EnemyBrowser.highest_id() as integer
+ return gen(genMaxEnemy)
+End Function
+
+Function EnemyBrowser.highest_possible_id() as integer
+ return maxMaxAttacks
+End Function
+
+Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim enemy as EnemyDef
+ loadenemydata enemy, id
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("enemy_browser_plank.slice"))
+ end if
+ dim plank as Slice Ptr
+ plank = CloneSliceTree(plank_template)
+ 
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ dim spr_kind as SpriteType
+ select case enemy.size
+  case 0: spr_kind = sprTypeSmallEnemy
+  case 1: spr_kind = sprTypeMediumEnemy
+  case 2: spr_kind = sprTypeLargeEnemy
+  'FIXME: switch this to sprTypeEnemy when EnemyDef supports it
+ end select
+ ChangeSpriteSlice spr, spr_kind, enemy.pic, enemy.pal, 0
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, id & !"\n" & enemy.name
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ return plank
+End Function
+
+Sub EnemyBrowser.handle_cropafter(byval id as integer)
+ cropafter id, gen(genMaxEnemy), 0, game & ".dt1", getbinsize(binDT1)
+End Sub
+
+'-----------------------------------------------------------------------
+
 Function ConstantListBrowser.thing_kind_name() as string
  return "Values"
 End Function

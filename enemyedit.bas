@@ -52,6 +52,21 @@ SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string,
  NEXT
 END SUB
 
+SUB enemy_editor_main ()
+ DIM b as EnemyBrowser
+ b.browse(-1, , @enemy_editor)
+END SUB
+
+FUNCTION enemy_picker (recindex as integer = -1) as integer
+ DIM b as EnemyBrowser
+ RETURN b.browse(recindex, , @enemy_editor, NO)
+END FUNCTION
+
+FUNCTION enemy_picker_or_none (recindex as integer = -1) as integer
+ DIM b as EnemyBrowser
+ RETURN b.browse(recindex - 1, YES , @enemy_editor, NO) + 1
+END FUNCTION
+
 'recindex: which enemy to show. If -1, same as last time. If >= max, ask to add a new attack,
 '(and exit and return -1 if cancelled).
 'Otherwise, returns the enemy number we were last editing.
