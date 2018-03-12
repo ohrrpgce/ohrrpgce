@@ -455,8 +455,7 @@ Function AttackBrowser.thing_kind_name() as string
 End Function
 
 Function AttackBrowser.init_helpkey() as string
- if can_edit then return "attack_editor_browser"
- return "attack_browser"
+ return "attack_editor_browser"
 End Function
 
 Function AttackBrowser.highest_id() as integer
@@ -508,8 +507,7 @@ Function EnemyBrowser.thing_kind_name_singular() as string
 End Function
 
 Function EnemyBrowser.init_helpkey() as string
- if can_edit then return "enemy_editor_browser"
- return "enemy_browser"
+ return "enemy_editor_browser"
 End Function
 
 Function EnemyBrowser.highest_id() as integer

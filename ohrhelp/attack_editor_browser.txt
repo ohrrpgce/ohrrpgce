@@ -1,0 +1,11 @@
+Browse to pick an attack.
+
+You can type the name of an attack or type the attack's ID number to make the cursor jump to it.
+
+Click the "+New" button to add a new attack.
+
+Right-click for a pop-up menu that lets you choose if you want to "Pick" this attack, or if you want to edit it.
+
+Press CTRL+F or click "Filter" if you want to filter the list to only show attacks that match a certain string of text.
+
+You can press SHIFT+BACKSPACE if you want to delete all attacks after the currently selected one. Use with caution!
