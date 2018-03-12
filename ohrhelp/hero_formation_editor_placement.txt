@@ -1,3 +1,5 @@
 Use the arrow keys to position the hero rectangle, and press ENTER or SPACE to confirm their position.
 
 Use SHIFT+arrow keys to move the rectangle more quickly.
+
+You can also move the hero by dragging with your mouse.
