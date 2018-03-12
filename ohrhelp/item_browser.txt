@@ -1,5 +1,0 @@
-This is the Item Browser. You can pick an item from this list.
-
-The item ID number that you pick will be send back to whatever item data slot you opened the Item Browser from.
-
-Press ESC if you don't want to pick an item.

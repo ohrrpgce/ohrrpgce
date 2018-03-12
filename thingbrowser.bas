@@ -397,8 +397,7 @@ Function ItemBrowser.thing_kind_name() as string
 End Function
 
 Function ItemBrowser.init_helpkey() as string
- if can_edit then return "item_editor_pickitem"
- return "item_browser"
+ return "item_editor_browser"
 End Function
 
 Function ItemBrowser.highest_id() as integer
