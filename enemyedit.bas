@@ -1179,7 +1179,7 @@ SUB hero_formation_editor ()
  menuopts.edged = YES
 
  CONST first_hero_item = 3
- 'slot -1 indicates no enemy selected
+ 'slot -1 indicates no hero selected
  DIM slot as integer = state.pt - first_hero_item
  IF slot < 0 THEN slot = -1
  
@@ -1193,6 +1193,7 @@ SUB hero_formation_editor ()
   IF positioning_mode = YES THEN
    '--hero positioning mode
    IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: positioning_mode = NO
+   IF readmouse.release AND mouseRight THEN setkeys: positioning_mode = NO
    IF keyval(scF1) > 1 THEN show_help "hero_formation_editor_placement"
    DIM as integer thiswidth = 0, thisheight = 0, movespeed = 1
    IF keyval(scShift) THEN movespeed = 8
@@ -1206,6 +1207,9 @@ SUB hero_formation_editor ()
     IF keyval(scDown) > 0 THEN .pos.y += movespeed
     IF keyval(scLeft) > 0 THEN .pos.x -= movespeed
     IF keyval(scRight) > 0 THEN .pos.x += movespeed
+    IF readmouse.dragging AND mouseLeft THEN
+     .pos += (readmouse.pos - readmouse.lastpos)
+    END IF
     'Hero positions are the bottom center of the sprite
     .pos.x = bound(.pos.x, -500, gen(genResolutionX) + 500)
     .pos.y = bound(.pos.y, -500, gen(genResolutionY) + 500)
@@ -1267,7 +1271,11 @@ SUB hero_formation_editor ()
   END IF
   draw_formation_slices eform, hform, rootslice, slot, dpage, YES
 
-  IF positioning_mode = NO THEN
+  IF positioning_mode THEN
+   edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), dpage
+   edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), dpage
+   edgeprint "x=" & hform.slots(slot).pos.x & " y=" & hform.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), dpage
+  ELSE
    menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Hero Formation " & hero_form_id & CHR(26)
    menu(2) = "Preview Enemy Formation: " & test_form_id
