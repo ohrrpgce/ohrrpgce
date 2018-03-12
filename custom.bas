@@ -457,13 +457,7 @@ SUB main_editor_menu()
    IF state.pt = 3 THEN enemy_editor_main
    IF state.pt = 4 THEN attack_editor_main
    IF state.pt = 5 THEN formation_editor
-   IF state.pt = 6 THEN
-    IF keyval(scShift) > 0 THEN
-     old_item_editor
-    ELSE
-     item_editor
-    END IF
-   END IF
+   IF state.pt = 6 THEN item_editor
    IF state.pt = 7 THEN shop_editor
    IF state.pt = 8 THEN text_box_editor
    IF state.pt = 9 THEN tags_menu
