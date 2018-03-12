@@ -540,6 +540,9 @@ Function EnemyBrowser.create_thing_plank(byval id as integer) as Slice ptr
   'FIXME: switch this to sprTypeEnemy when EnemyDef supports it
  end select
  ChangeSpriteSlice spr, spr_kind, enemy.pic, enemy.pal, 0
+ if id = -1 then
+  spr->Visible = NO
+ end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & enemy.name
