@@ -65,7 +65,8 @@ DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 
 DECLARE FUNCTION shop_editor (shop_id as integer) as integer
-DECLARE SUB shop_stuff_edit (byval shop_id as integer)
+DECLARE FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) as integer
+DECLARE FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer 'uses shop_stuff_context_id
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
@@ -125,6 +126,7 @@ DIM cleanup_workingdir_on_exit as bool = YES
 'If not, we should cleanup working.tmp instead of preserving it
 DIM cleanup_workingdir_on_error as bool = YES
 
+DIM shop_stuff_context_id as integer
 
 '======================== Setup directories & debug log =======================
 ' This is almost identical to startup code in Game; please don't unnecessarily diverge.
@@ -944,7 +946,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
    IF shopst.st.pt = 0 THEN EXIT DO
    IF shopst.st.pt = 3 AND shopst.havestuf THEN
     shop_save shopst, shopbuf()
-    shop_stuff_edit shopst.id
+    shop_stuff_edit(0, shopst.id)
     shop_load shopst, shopbuf()
    END IF
    IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
@@ -1067,14 +1069,19 @@ SUB shop_add_new (shopst as ShopEditState)
   LOOP
 END SUB
 
-SUB shop_stuff_edit (byval shop_id as integer)
+FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer
+ RETURN shop_stuff_edit(stuff_id, shop_stuff_context_id)
+END FUNCTION
+
+FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) as integer
+ 'stuff_id is the thing to start on, or > max to add a new one
+ 'Return value is the last thing selected, or -1 if adding a new one was cancelled
  DIM shopbuf(20) as integer
  loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
  dim thing_last_id as integer = shopbuf(16)
 
  DIM stuf as ShopStuffState
-
- stuf.thing = 0
+ stuf.thing = stuff_id
  stuf.thingname = ""
  
  stuf.st.pt = 0
@@ -1211,7 +1218,10 @@ SUB shop_stuff_edit (byval shop_id as integer)
  loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
  shopbuf(16) = thing_last_id
  storerecord shopbuf(), game & ".sho", 40 \ 2, shop_id
-END SUB
+ 
+ RETURN stuf.thing
+ 
+END FUNCTION
 
 SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
  '--Re-load default names and default prices
