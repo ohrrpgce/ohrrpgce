@@ -72,6 +72,8 @@ DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffStat
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
 DECLARE SUB shop_init_stf(byval shop_id as integer, stuf as ShopStuffState, stufbuf() as integer)
+DECLARE FUNCTION read_shop_stuff_count(byval shop_id as integer) as integer
+DECLARE SUB write_shop_stuff_count(byval shop_id as integer, byval thing_last_id as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
 DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
@@ -1081,12 +1083,23 @@ FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer
  RETURN shop_stuff_edit(stuff_id, shop_stuff_context_id)
 END FUNCTION
 
+FUNCTION read_shop_stuff_count(byval shop_id as integer) as integer
+ DIM shopbuf(20) as integer
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ RETURN shopbuf(16)
+END FUNCTION
+
+SUB write_shop_stuff_count(byval shop_id as integer, byval thing_last_id as integer)
+ DIM shopbuf(20) as integer
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ shopbuf(16) = thing_last_id
+ storerecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+END SUB
+
 FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) as integer
  'stuff_id is the thing to start on, or > max to add a new one
  'Return value is the last thing selected, or -1 if adding a new one was cancelled
- DIM shopbuf(20) as integer
- loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
- dim thing_last_id as integer = shopbuf(16)
+ DIM thing_last_id as integer = read_shop_stuff_count(shop_id)
 
  DIM stuf as ShopStuffState
  stuf.thing = stuff_id
@@ -1119,6 +1132,12 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
   IF keyval(scF1) > 1 THEN show_help "shop_stuff"
   IF stuf.st.pt = 0 ANDALSO enter_space_click(stuf.st) THEN EXIT DO
 
+  DIM used as bool = enter_space_click(stuf.st)
+  IF used THEN
+   'save as a precation because we might be about to browse
+   shop_save_stf shop_id, stuf, stufbuf()
+   write_shop_stuff_count shop_id, thing_last_id
+  END IF
   SELECT CASE stuf.st.pt
    CASE 1 'browse shop stuff
     DIM newthing as integer = stuf.thing
@@ -1149,8 +1168,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
     IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
    CASE 3 TO 4 'type and ID
     IF stuf.st.pt = 4 THEN
-     IF enter_space_click(stuf.st) THEN
-      shop_save_stf shop_id, stuf, stufbuf()
+     IF used THEN
       DIM id_num as integer
       IF stufbuf(17) = 0 THEN '--an item
        id_num = item_picker(stufbuf(18))
@@ -1159,6 +1177,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
       END IF
       shop_load_stf shop_id, stuf, stufbuf()
       stufbuf(18) = id_num
+      thing_last_id = read_shop_stuff_count(shop_id)
       update_shop_stuff_type stuf, stufbuf(), YES
       stuf.st.need_update = YES
      END IF
@@ -1173,21 +1192,21 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
     IF tag_set_grabber(stufbuf(17 + stuf.st.pt - 3), stuf.st) THEN stuf.st.need_update = YES
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
-    IF enter_space_click(stuf.st) THEN
-     shop_save_stf shop_id, stuf, stufbuf()
+    IF used THEN
      DIM item_id as integer = item_picker_or_none(stufbuf(25))
      shop_load_stf shop_id, stuf, stufbuf()
      stufbuf(25) = item_id
+     thing_last_id = read_shop_stuff_count(shop_id)
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
    CASE 13, 15, 17 '--must trade in item 2+ types
     IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
-    IF enter_space_click(stuf.st) THEN
-     shop_save_stf shop_id, stuf, stufbuf()
+    IF used THEN
      DIM item_id as integer = item_picker_or_none(stufbuf(18 + stuf.st.pt))
      shop_load_stf shop_id, stuf, stufbuf()
      stufbuf(18 + stuf.st.pt) = item_id
+     thing_last_id = read_shop_stuff_count(shop_id)
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
@@ -1200,11 +1219,11 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
     IF (stufbuf(26) < 0 OR stufbuf(26) > 3) AND stufbuf(17) <> 1 THEN stufbuf(26) = 0
    CASE 21 '--trade in for
     IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
-    IF enter_space_click(stuf.st) THEN
-     shop_save_stf shop_id, stuf, stufbuf()
+    IF used THEN
      dim item_id as integer = item_picker_or_none(stufbuf(7 + stuf.st.pt))
      shop_load_stf shop_id, stuf, stufbuf()
      stufbuf(7 + stuf.st.pt) = item_id
+     thing_last_id = read_shop_stuff_count(shop_id)
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
@@ -1240,9 +1259,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
  shop_save_stf shop_id, stuf, stufbuf()
 
  'Re-save the shop last thing id in case it changed
- loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
- shopbuf(16) = thing_last_id
- storerecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ write_shop_stuff_count shop_id, thing_last_id
  
  RETURN stuf.thing
  
