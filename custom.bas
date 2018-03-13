@@ -65,7 +65,7 @@ DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 
 DECLARE FUNCTION shop_editor (shop_id as integer) as integer
-DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
+DECLARE SUB shop_stuff_edit (byval shop_id as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
@@ -943,7 +943,9 @@ FUNCTION shop_editor (shop_id as integer) as integer
   IF enter_space_click(shopst.st) THEN
    IF shopst.st.pt = 0 THEN EXIT DO
    IF shopst.st.pt = 3 AND shopst.havestuf THEN
-    shop_stuff_edit shopst.id, shopbuf(16)
+    shop_save shopst, shopbuf()
+    shop_stuff_edit shopst.id
+    shop_load shopst, shopbuf()
    END IF
    IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
    IF shopst.st.pt = 6 THEN
@@ -1065,7 +1067,11 @@ SUB shop_add_new (shopst as ShopEditState)
   LOOP
 END SUB
 
-SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
+SUB shop_stuff_edit (byval shop_id as integer)
+ DIM shopbuf(20) as integer
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ dim thing_last_id as integer = shopbuf(16)
+
  DIM stuf as ShopStuffState
 
  stuf.thing = 0
@@ -1201,6 +1207,10 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
 
  shop_save_stf shop_id, stuf, stufbuf()
 
+ 'Re-save the shop last thing id in case it changed
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ shopbuf(16) = thing_last_id
+ storerecord shopbuf(), game & ".sho", 40 \ 2, shop_id
 END SUB
 
 SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
