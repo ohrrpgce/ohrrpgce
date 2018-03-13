@@ -65,11 +65,13 @@ DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 
 DECLARE FUNCTION shop_editor (shop_id as integer) as integer
+DECLARE SUB shop_stuff_editor_main (byval shop_id as integer)
 DECLARE FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) as integer
 DECLARE FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer 'uses shop_stuff_context_id
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_swap_stf (shop_id as integer, thing_id1 as integer, thing_id2 as integer)
+DECLARE SUB shop_init_stf(byval shop_id as integer, stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB update_shop_stuff_menu (byref stuf as ShopStuffState, stufbuf() as integer, byval thing_last_id as integer)
 DECLARE SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
 DECLARE SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
@@ -946,7 +948,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
    IF shopst.st.pt = 0 THEN EXIT DO
    IF shopst.st.pt = 3 AND shopst.havestuf THEN
     shop_save shopst, shopbuf()
-    shop_stuff_edit(0, shopst.id)
+    shop_stuff_editor_main shopst.id
     shop_load shopst, shopbuf()
    END IF
    IF shopst.st.pt = 4 THEN editbitset shopbuf(), 17, 7, sbit(): shopst.st.need_update = YES
@@ -1069,6 +1071,12 @@ SUB shop_add_new (shopst as ShopEditState)
   LOOP
 END SUB
 
+SUB shop_stuff_editor_main (byval shop_id as integer)
+ DIM b as ShopStuffBrowser = ShopStuffBrowser(shop_id)
+ shop_stuff_context_id = shop_id
+ b.browse(-1, , @shop_stuff_edit_wrapper)
+END SUB
+
 FUNCTION shop_stuff_edit_wrapper (byval stuff_id as integer) as integer
  RETURN shop_stuff_edit(stuff_id, shop_stuff_context_id)
 END FUNCTION
@@ -1089,6 +1097,14 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
  stuf.st.size = 24
  
  DIM stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+
+ 'If requested ID is greater than the last, add a new one
+ IF stuf.thing > thing_last_id THEN
+  IF stuf.thing > 49 THEN RETURN -1 'no more allowed
+  thing_last_id = stuf.thing
+  shop_init_stf shop_id, stuf, stufbuf()
+ END IF
+
  shop_load_stf shop_id, stuf, stufbuf()
  
  update_shop_stuff_type stuf, stufbuf()
@@ -1122,11 +1138,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
       stuf.thing = newthing
       IF stuf.thing > thing_last_id THEN
        thing_last_id = stuf.thing
-       flusharray stufbuf(), dimbinsize(binSTF), 0
-       stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
-       stufbuf(37) = 1 + stuf.thing  'Set stockidx to next unused stock slot
-       update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
-       shop_save_stf shop_id, stuf, stufbuf()
+       shop_init_stf shop_id, stuf, stufbuf()
       END IF
       shop_load_stf shop_id, stuf, stufbuf()
       update_shop_stuff_type stuf, stufbuf()
@@ -1222,6 +1234,14 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
  RETURN stuf.thing
  
 END FUNCTION
+
+SUB shop_init_stf(byval shop_id as integer, stuf as ShopStuffState, stufbuf() as integer)
+ flusharray stufbuf(), dimbinsize(binSTF), 0
+ stufbuf(19) = -1 ' When adding new stuff, default in-stock to infinite
+ stufbuf(37) = 1 + stuf.thing  'Set stockidx to next unused stock slot
+ update_shop_stuff_type stuf, stufbuf(), YES  ' load the name and price
+ shop_save_stf shop_id, stuf, stufbuf()
+END SUB
 
 SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, byval reset_name_and_price as integer=NO)
  '--Re-load default names and default prices

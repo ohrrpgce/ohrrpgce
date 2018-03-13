@@ -79,6 +79,16 @@ Type ShopBrowser extends ThingBrowser
  declare virtual function thing_text_for_id(byval id as integer) as string
 End Type
 
+Type ShopStuffBrowser extends ThingBrowser
+ declare constructor (byval shop_id as integer)
+ declare virtual function thing_kind_name() as string
+ declare virtual function init_helpkey() as string
+ declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
+ declare virtual function thing_text_for_id(byval id as integer) as string
+ shop_id as integer
+End Type
+
 Type AttackBrowser extends ThingBrowser
  declare virtual function thing_kind_name() as string
  declare virtual function init_helpkey() as string

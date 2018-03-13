@@ -449,6 +449,42 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Constructor ShopStuffBrowser(byval shop_id as integer)
+ this.shop_id = shop_id
+End Constructor
+
+Function ShopStuffBrowser.thing_kind_name() as string
+ return "Shop Stuff"
+End Function
+
+Function ShopStuffBrowser.init_helpkey() as string
+ return "shop_stuff_browser"
+End Function
+
+Function ShopStuffBrowser.highest_id() as integer
+ dim shopbuf(20) as integer
+ loadrecord shopbuf(), game & ".sho", 40 \ 2, shop_id
+ return shopbuf(16)
+End Function
+
+Function ShopStuffBrowser.highest_possible_id() as integer
+ return 49
+End Function
+
+Function ShopStuffBrowser.thing_text_for_id(byval id as integer) as string
+ dim digits as integer = len(str(highest_id()))
+ if id = -1 then
+  return lpad("", " ", digits) & " " & rpad("NOTHING", " ", 16) & "      "
+ end if
+ dim stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
+ loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + id
+ dim kind as string = iif(stufbuf(17) = 1, "(HERO)", "(ITEM)")
+ dim thing_name as string = readbadbinstring(stufbuf(), 0, 16, 0)
+ return lpad(str(id), " ", digits) & " " & rpad(thing_name, " ", 16) & kind
+End Function
+
+'-----------------------------------------------------------------------
+
 Function AttackBrowser.thing_kind_name() as string
  return "Attacks"
 End Function
