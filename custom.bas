@@ -869,6 +869,16 @@ SUB shop_editor_main()
  b.browse(-1, , @shop_editor)
 END SUB
 
+FUNCTION shop_picker (recindex as integer = -1) as integer
+ DIM b as ShopBrowser
+ RETURN b.browse(recindex, , @shop_editor, NO)
+END FUNCTION
+
+FUNCTION shop_picker_or_none (recindex as integer = -1) as integer
+ DIM b as ShopBrowser
+ RETURN b.browse(recindex - 1, YES , @shop_editor, NO) + 1
+END FUNCTION
+
 FUNCTION shop_editor (shop_id as integer) as integer
  'shop_id is the default shop to start on. or > max to add a new one.
  'return value is the last id selected or -1 if cancelled adding a new

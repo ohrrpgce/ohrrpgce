@@ -409,8 +409,7 @@ SUB textbox_conditionals(byref box as TextBox)
     CASE condSHOP
      xintgrabber num, 0, gen(genMaxShop), -1, -32000
      IF enter_space_click(state) THEN
-      DIM shopb as ShopBrowser
-      num = shopb.browse(num - 1, YES) + 1
+      num = shop_picker_or_none(num)
      END IF
     CASE condHERO
      intgrabber num, -99, 99
