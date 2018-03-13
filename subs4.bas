@@ -1074,8 +1074,17 @@ SUB startingdatamenu
   ELSEIF state.pt > 0 THEN
    IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
   END IF
+  IF state.pt = 4 THEN
+   IF enter_space_click(state) THEN
+    gen(genStartHero) = hero_picker(gen(genStartHero))
+    state.need_update = YES
+   END IF
+  END IF
   IF state.need_update THEN
    state.need_update = NO
+   max(3) = gen(genMaxMap)
+   max(4) = gen(genMaxHero)
+   max(6) = gen(genMaxTextbox)
    IF lastmap <> gen(genStartMap) THEN
     DIM fh as integer
     OPENFILE(maplumpname(gen(genStartMap), "t"), FOR_BINARY, fh)
