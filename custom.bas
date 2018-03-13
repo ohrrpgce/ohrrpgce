@@ -1104,9 +1104,13 @@ SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
    CASE 2 'name
     IF strgrabber(stuf.thingname, 16) THEN stuf.st.need_update = YES
    CASE 3 TO 4 'type and ID
-    IF stuf.st.pt = 4 ANDALSO stufbuf(17) = 0 THEN
+    IF stuf.st.pt = 4 THEN
      IF enter_space_click(stuf.st) THEN
-      stufbuf(18) = item_picker(stufbuf(18))
+      IF stufbuf(17) = 0 THEN '--an item
+       stufbuf(18) = item_picker(stufbuf(18))
+      ELSEIF stufbuf(17) = 1 THEN '--a hero
+       stufbuf(18) = hero_picker(stufbuf(18))
+      END IF
       update_shop_stuff_type stuf, stufbuf(), YES
       stuf.st.need_update = YES
      END IF
