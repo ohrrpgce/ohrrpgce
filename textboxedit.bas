@@ -42,6 +42,7 @@ DECLARE SUB textbox_connection_draw_node(byref node as TextboxConnectNode, x as 
 DECLARE SUB textbox_choice_editor (byref box as TextBox, byref st as TextboxEditState)
 DECLARE SUB textbox_conditionals(byref box as TextBox)
 DECLARE SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
+DECLARE FUNCTION textbox_conditional_hero_picker(byval num as integer, state as MenuState) as integer
 DECLARE SUB import_textboxes_warn (byref warn as string, s as string)
 DECLARE FUNCTION export_textboxes (filename as string, metadata() as bool) as bool
 DECLARE FUNCTION import_textboxes (filename as string, byref warn as string) as bool
@@ -413,6 +414,9 @@ SUB textbox_conditionals(byref box as TextBox)
      END IF
     CASE condHERO
      intgrabber num, -99, 99
+     IF enter_space_click(state) THEN
+      num = textbox_conditional_hero_picker(num, state)
+     END IF
     CASE condGAMEDELETE
      intgrabber num, -1, 32
     CASE condGAMESAVE
@@ -481,6 +485,33 @@ SUB textbox_conditionals(byref box as TextBox)
   dowait
  LOOP
 END SUB
+
+FUNCTION textbox_conditional_hero_picker(byval num as integer, state as MenuState) as integer
+ DIM cur_hero as integer = ABS(num)
+ DIM picked_hero as integer = hero_picker_or_none(cur_hero)
+ IF picked_hero = -1 THEN
+  RETURN num 'Cancelled
+ END IF
+ IF picked_hero = 0 THEN
+  RETURN 0 'None
+ END IF
+ ' picked a hero, must clarify action
+ DIM choices(1) as string
+ SELECT CASE state.pt
+  CASE 14: choices(0) = "Add" : choices(1) = "Remove"
+  CASE 15: choices(0) = "Swap In" : choices(1) = "Swap Out"
+  CASE 16: choices(0) = "Unlock" : choices(1) = "Lock"
+ END SELECT
+ DIM heroname as string = getheroname(picked_hero - 1)
+ choices(0) &= " " & heroname
+ choices(1) &= " " & heroname
+ SELECT CASE multichoice("Which action?", choices())
+  CASE 0: RETURN picked_hero
+  CASE 1: RETURN picked_hero * -1
+ END SELECT
+ 'No changes
+ RETURN num
+END FUNCTION
 
 SUB textbox_update_conditional_menu(byref box as TextBox, menu() as string)
  menu(-1) = "Go Back"
