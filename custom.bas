@@ -870,7 +870,7 @@ SUB shop_editor_main()
 END SUB
 
 FUNCTION shop_editor (shop_id as integer) as integer
- 'shop_id is the default shop to start on.
+ 'shop_id is the default shop to start on. -1 to add a new one.
  'return value is the last id selected
  DIM shopbuf(20) as integer
 
@@ -887,6 +887,11 @@ FUNCTION shop_editor (shop_id as integer) as integer
  DIM shopst as ShopEditState
  shopst.id = shop_id
  shopst.havestuf = NO
+
+ IF shopst.id > gen(genMaxShop) THEN
+  shop_add_new shopst
+ END IF
+
 
  shop_load shopst, shopbuf()
  shopst.st.last = 6
