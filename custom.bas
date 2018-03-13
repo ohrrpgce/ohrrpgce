@@ -870,8 +870,8 @@ SUB shop_editor_main()
 END SUB
 
 FUNCTION shop_editor (shop_id as integer) as integer
- 'shop_id is the default shop to start on. -1 to add a new one.
- 'return value is the last id selected
+ 'shop_id is the default shop to start on. or > max to add a new one.
+ 'return value is the last id selected or -1 if cancelled adding a new
  DIM shopbuf(20) as integer
 
  DIM sbit(-1 TO 7) as string
@@ -890,6 +890,10 @@ FUNCTION shop_editor (shop_id as integer) as integer
 
  IF shopst.id > gen(genMaxShop) THEN
   shop_add_new shopst
+  IF shopst.id < shop_id THEN
+   'Cancelled adding a new one
+   RETURN -1
+  END IF
  END IF
 
 
