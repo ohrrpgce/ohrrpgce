@@ -993,7 +993,7 @@ SUB shop_save (byref shopst as ShopEditState, shopbuf() as integer)
 END SUB
 
 SUB shop_menu_update(byref shopst as ShopEditState, shopbuf() as integer)
- shopst.menu(0) = "Return to Main Menu"
+ shopst.menu(0) = "Return to Previous Menu"
  shopst.menu(1) = CHR(27) & "Shop " & shopst.id & " of " & gen(genMaxShop) & CHR(26)
  shopst.menu(2) = "Name: " & shopst.name
  shopst.menu(3) = "Edit Available Stuff..."
