@@ -64,7 +64,7 @@ DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 
-DECLARE SUB shop_editor ()
+DECLARE FUNCTION shop_editor (shop_id as integer) as integer
 DECLARE SUB shop_stuff_edit (byval shop_id as integer, byref thing_last_id as integer)
 DECLARE SUB shop_save_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
 DECLARE SUB shop_load_stf (byval shop_id as integer, byref stuf as ShopStuffState, stufbuf() as integer)
@@ -458,7 +458,7 @@ SUB main_editor_menu()
    IF state.pt = 4 THEN attack_editor_main
    IF state.pt = 5 THEN formation_editor
    IF state.pt = 6 THEN item_editor
-   IF state.pt = 7 THEN shop_editor
+   IF state.pt = 7 THEN shop_editor_main
    IF state.pt = 8 THEN text_box_editor
    IF state.pt = 9 THEN tags_menu
    IF state.pt = 10 THEN menu_editor
@@ -864,8 +864,14 @@ END SUB
 '                                          Shops
 '==========================================================================================
 
+SUB shop_editor_main()
+ DIM b as ShopBrowser
+ b.browse(-1, , @shop_editor)
+END SUB
 
-SUB shop_editor ()
+FUNCTION shop_editor (shop_id as integer) as integer
+ 'shop_id is the default shop to start on.
+ 'return value is the last id selected
  DIM shopbuf(20) as integer
 
  DIM sbit(-1 TO 7) as string
@@ -879,6 +885,7 @@ SUB shop_editor ()
  sbit(7) = "Team"
 
  DIM shopst as ShopEditState
+ shopst.id = shop_id
  shopst.havestuf = NO
 
  shop_load shopst, shopbuf()
@@ -943,8 +950,8 @@ SUB shop_editor ()
   dowait
  LOOP
  shop_save shopst, shopbuf()
-
-END SUB
+ RETURN shopst.id
+END FUNCTION
 
 SUB shop_load (byref shopst as ShopEditState, shopbuf() as integer)
  loadrecord shopbuf(), game & ".sho", 40 \ 2, shopst.id
