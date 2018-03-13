@@ -1150,11 +1150,15 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
    CASE 3 TO 4 'type and ID
     IF stuf.st.pt = 4 THEN
      IF enter_space_click(stuf.st) THEN
+      shop_save_stf shop_id, stuf, stufbuf()
+      DIM id_num as integer
       IF stufbuf(17) = 0 THEN '--an item
-       stufbuf(18) = item_picker(stufbuf(18))
+       id_num = item_picker(stufbuf(18))
       ELSEIF stufbuf(17) = 1 THEN '--a hero
-       stufbuf(18) = hero_picker(stufbuf(18))
+       id_num = hero_picker(stufbuf(18))
       END IF
+      shop_load_stf shop_id, stuf, stufbuf()
+      stufbuf(18) = id_num
       update_shop_stuff_type stuf, stufbuf(), YES
       stuf.st.need_update = YES
      END IF
@@ -1170,14 +1174,20 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
    CASE 11 '--must trade in item 1 type
     IF zintgrabber(stufbuf(25), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     stufbuf(25) = item_picker_or_none(stufbuf(25))
+     shop_save_stf shop_id, stuf, stufbuf()
+     DIM item_id as integer = item_picker_or_none(stufbuf(25))
+     shop_load_stf shop_id, stuf, stufbuf()
+     stufbuf(25) = item_id
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
    CASE 13, 15, 17 '--must trade in item 2+ types
     IF zintgrabber(stufbuf(18 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     stufbuf(18 + stuf.st.pt) = item_picker_or_none(stufbuf(18 + stuf.st.pt))
+     shop_save_stf shop_id, stuf, stufbuf()
+     DIM item_id as integer = item_picker_or_none(stufbuf(18 + stuf.st.pt))
+     shop_load_stf shop_id, stuf, stufbuf()
+     stufbuf(18 + stuf.st.pt) = item_id
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
@@ -1191,7 +1201,10 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
    CASE 21 '--trade in for
     IF zintgrabber(stufbuf(7 + stuf.st.pt), stuf.min(stuf.st.pt), stuf.max(stuf.st.pt)) THEN stuf.st.need_update = YES
     IF enter_space_click(stuf.st) THEN
-     stufbuf(7 + stuf.st.pt) = item_picker_or_none(stufbuf(7 + stuf.st.pt))
+     shop_save_stf shop_id, stuf, stufbuf()
+     dim item_id as integer = item_picker_or_none(stufbuf(7 + stuf.st.pt))
+     shop_load_stf shop_id, stuf, stufbuf()
+     stufbuf(7 + stuf.st.pt) = item_id
      update_shop_stuff_type stuf, stufbuf(), YES
      stuf.st.need_update = YES
     END IF
