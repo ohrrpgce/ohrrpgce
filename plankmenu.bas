@@ -70,9 +70,9 @@ FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, 
  DIM old as XYPair
  old = ps.cur->ScreenPos + ps.cur->Size \ 2
 
- DIM best as integer = INT_MAX
+ DIM best as ulongint = &HFFFFFFFFFFFFFFFF
  DIM p as XYPair
- DIM dist as integer
+ DIM dist as ulongint
  
  DIM sl as Slice Ptr
  FOR i as integer = 0 TO UBOUND(planks)
