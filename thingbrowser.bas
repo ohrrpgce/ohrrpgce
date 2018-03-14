@@ -514,6 +514,9 @@ Function AttackBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim spr as Slice Ptr
  spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
  ChangeSpriteSlice spr, sprTypeAttack, attack.picture, attack.pal, 0
+ if id = -1 then
+  spr->Visible = NO
+ end if
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
  ChangeTextSlice txt, id & !"\n" & attack.name
