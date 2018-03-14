@@ -660,12 +660,47 @@ Function TextboxBrowser.highest_possible_id() as integer
  return maxMaxTextbox
 End Function
 
-Function TextboxBrowser.thing_text_for_id(byval id as integer) as string
- dim digits as integer = len(str(highest_id()))
- if id = -1 then
-  return lpad("", " ", digits) & " " & rpad("NO TEXT BOX", " ", 40)
+Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim box as TextBox
+ LoadTextBox box, id
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("textbox_browser_plank.slice"))
  end if
- return lpad(str(id), " ", digits) & " " & rpad(textbox_preview_line(id), " ", 40)
+ dim plank as Slice Ptr
+ plank = CloneSliceTree(plank_template)
+ 
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, str(id)
+ if id = -1 then ChangeTextSlice txt, "NONE"
+
+ 'Replicate a very minimal subset of what init_text_box_slices() does
+ 'We only do box style, height, and text color
+ dim rect as Slice Ptr
+ rect = LookupSlice(SL_TEXTBOX_BOX, plank)
+ if box.no_box then
+  'Invisible box
+  ChangeRectangleSlice rect, , , , borderNone, transHollow
+ else
+  ChangeRectangleSlice rect, box.boxstyle, , , , iif(box.opaque, transOpaque, transFuzzy)
+ end if
+ rect->height = get_text_box_height(box)
+ dim col as integer
+ col = uilook(uiText)
+ if box.textcolor > 0 then col = box.textcolor
+ dim body as Slice Ptr
+ body = LookupSlice(SL_TEXTBOX_TEXT, plank)
+
+ 'Most of the text will not be visible, but we still do want to use it for search and filter
+ dim s as string = ""
+ for i as integer = 0 TO 7 
+  s &= box.text(i) & chr(10)
+ next i
+
+ ChangeTextSlice body, s, col, YES, NO
+
+ return plank
 End Function
 
 Sub TextboxBrowser.handle_cropafter(byval id as integer)
