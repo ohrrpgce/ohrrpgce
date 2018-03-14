@@ -199,9 +199,10 @@ FUNCTION individual_item_editor(item_id as integer) as integer
      'Yikes... never cram multiple data types in the same option!!
      '(OK, this is overkill, since James will hopefully come along and replace this soon!)
      DIM wantnew as bool = NOT enter_space_click(state)
-     DIM addwhat as integer = twochoice("Link to what?", "A textbox", "An attack")
-     IF addwhat = 0 THEN itembuf(51) = -large(0, text_box_editor(IIF(wantnew, 999999, 1)))
-     IF addwhat = 1 THEN itembuf(51) = 1 + attack_picker(IIF(wantnew, 999999, 0))
+     SELECT CASE twochoice("Link to what?", "A textbox", "An attack")
+      CASE 0: itembuf(51) = textbox_picker(IIF(wantnew, 999999, 1)) * -1
+      CASE 1: itembuf(51) = attack_picker_or_none(IIF(wantnew, 999999, 0))
+     END SELECT
      state.need_update = YES
     END IF
    CASE 11 TO 14

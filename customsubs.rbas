@@ -1030,7 +1030,23 @@ END FUNCTION
 'See thinggrabber.
 FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
  'TODO: textbox 0 is never selectable, but ID 0 is None. So this acts a bit weird.
- RETURN thinggrabber(datum, state, offset, min, gen(genMaxTextbox), intgrab, @text_box_editor)
+ DIM editor_arg as integer 'What to pass to editor_func
+
+ IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
+  editor_arg = gen(genMaxTextbox) + 1
+ ELSEIF enter_space_click(state) THEN
+  editor_arg = datum
+ ELSE
+  'text_box_editor won't actually get called, because the keys to enter the editor are trapped above
+  RETURN thinggrabber(datum, state, offset, min, gen(genMaxTextbox), intgrab, @text_box_editor)
+ END IF
+ 
+ IF offset = 1 THEN
+  datum = textbox_picker_or_none(editor_arg)
+ ELSE
+  datum = textbox_picker(editor_arg)
+ END IF
+ RETURN YES
 END FUNCTION
 
 ' Shared by ui_color_editor and ui_boxstyle_editor
