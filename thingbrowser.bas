@@ -689,8 +689,7 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
   'Invisible box
   ChangeRectangleSlice rect, , , , borderNone, transHollow
  else
-  ChangeRectangleSlice rect, box.boxstyle, , , , iif(box.opaque, transOpaque, transFuzzy)
-  ChangeRectangleSlice rect, , , , borderNone
+  ChangeRectangleSlice rect, , boxlook(box.boxstyle).bgcol, , borderNone, iif(box.opaque, transOpaque, transFuzzy)
  end if
 
  'Adjust to current screen width
