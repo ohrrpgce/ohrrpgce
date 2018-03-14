@@ -65,6 +65,21 @@ CONST condBOX        = 10
 CONST condMENU       = 11
 CONST condSETTAG     = 12
 
+SUB textbox_editor_main ()
+ DIM b as TextboxBrowser
+ b.browse(-1, , @text_box_editor)
+END SUB
+
+FUNCTION textbox_picker (recindex as integer = -1) as integer
+ DIM b as TextboxBrowser
+ RETURN b.browse(recindex, , @text_box_editor, NO)
+END FUNCTION
+
+FUNCTION textbox_picker_or_none (recindex as integer = -1) as integer
+ DIM b as TextboxBrowser
+ RETURN b.browse(recindex - 1, YES , @text_box_editor, NO) + 1
+END FUNCTION
+
 'whichbox is the box to edit, -1 for default, or past last textbox to add a new
 'one. Returns -1 if cancelled add-new, or else last box edited.
 '(See also FnEditor)
@@ -94,7 +109,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  END IF
 
  DIM menu(10) as string
- menu(0) = "Return to Main Menu"
+ menu(0) = "Return to Previous Menu"
  menu(1) = "Text Box"
  menu(2) = "Edit Text"
  menu(3) = "Edit Conditionals"
@@ -164,7 +179,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
       textbox_edit_load box, st, menu()
      END IF
     END IF
-    IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
+    IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < maxMaxTextbox THEN
      IF yesno("Create a textbox like this one?") THEN
       textbox_create_from_box_and_load st.id, box, st, menu()
      END IF
@@ -174,7 +189,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   'Navigate textboxes
   'Alt+left/right is only needed when the quickchainer ('After') is selected
   IF (state.pt <> 6 ANDALSO state.pt <> 7) ORELSE keyval(scAlt) > 0 THEN  'not quickchainer
-   IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
+   IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), maxMaxTextbox, "text box") THEN
     IF st.id > gen(genMaxTextBox) THEN
      gen(genMaxTextBox) = st.id
      textbox_create_from_box 0, box, st

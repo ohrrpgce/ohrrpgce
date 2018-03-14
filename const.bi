@@ -288,6 +288,8 @@ CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 511 'This is the max value possible for gen(genMaxHero)
 CONST maxMaxAttacks = 32767 ' Max possible value for gen(genMaxAttack)
+CONST maxMaxTextbox = 32767 ' Max possible value for gen(genMaxTextbox)
+
 CONST sizeActiveParty = 4 'The size of the active/battle party
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)

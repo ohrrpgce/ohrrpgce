@@ -27,6 +27,8 @@ DECLARE FUNCTION attack_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION hero_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION hero_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION text_box_editor (whichbox as integer = -1) as integer
+DECLARE FUNCTION textbox_picker (recindex as integer = -1) as integer
+DECLARE FUNCTION textbox_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION item_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION item_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION shop_picker (recindex as integer = -1) as integer
@@ -52,6 +54,7 @@ DECLARE FUNCTION hero_editor (hero_id as integer) as integer
 DECLARE SUB attack_editor_main ()
 DECLARE SUB enemy_editor_main ()
 DECLARE SUB shop_editor_main()
+DECLARE SUB textbox_editor_main()
 DECLARE SUB menu_editor ()
 
 DECLARE SUB maptile ()

@@ -640,6 +640,40 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Function TextboxBrowser.thing_kind_name() as string
+ return "Textboxes"
+End Function
+
+Function TextboxBrowser.thing_kind_name_singular() as string
+ return "Textbox"
+End Function
+
+Function TextboxBrowser.init_helpkey() as string
+ return "textbox_browser"
+End Function
+
+Function TextboxBrowser.highest_id() as integer
+ return gen(genMaxTextBox)
+End Function
+
+Function TextboxBrowser.highest_possible_id() as integer
+ return maxMaxTextbox
+End Function
+
+Function TextboxBrowser.thing_text_for_id(byval id as integer) as string
+ dim digits as integer = len(str(highest_id()))
+ if id = -1 then
+  return lpad("", " ", digits) & " " & rpad("NO TEXT BOX", " ", 40)
+ end if
+ return lpad(str(id), " ", digits) & " " & rpad(textbox_preview_line(id), " ", 40)
+End Function
+
+Sub TextboxBrowser.handle_cropafter(byval id as integer)
+ cropafter id, gen(genMaxTextBox), 0, game & ".say", getbinsize(binSAY)
+End Sub
+
+'-----------------------------------------------------------------------
+
 Function ConstantListBrowser.thing_kind_name() as string
  return "Values"
 End Function
