@@ -45,8 +45,6 @@ DECLARE FUNCTION needaddset (byref pt as integer, byref check as integer, what a
 DECLARE FUNCTION intgrabber_with_addset (byref pt as integer, byval min as integer, byval max as integer, byval maxmax as integer=32767, what as string, byval less as integer=scLeft, byval more as integer=scRight) as integer
 DECLARE FUNCTION load_vehicle_name(vehID as integer) as string
 DECLARE FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) as string
-DECLARE FUNCTION textbox_preview_line OVERLOAD (boxnum as integer, maxwidth as integer = 700) as string
-DECLARE FUNCTION textbox_preview_line OVERLOAD (box as TextBox, maxwidth as integer = 700) as string
 DECLARE SUB onetimetog(byref tagnum as integer)
 DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 

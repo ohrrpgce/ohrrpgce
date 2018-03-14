@@ -1333,25 +1333,6 @@ FUNCTION load_item_name (it as integer, hidden as integer, offbyone as integer) 
  RETURN result
 END FUNCTION
 
-' maxwidth is in pixels
-FUNCTION textbox_preview_line(boxnum as integer, maxwidth as integer = 700) as string
- IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
- DIM box as TextBox
- LoadTextBox box, boxnum
- RETURN textbox_preview_line(box, maxwidth)
-END FUNCTION
-
-FUNCTION textbox_preview_line(box as TextBox, maxwidth as integer = 700) as string
- DIM ret as string
- FOR i as integer = 0 TO UBOUND(box.text)
-  IF LEN(ret) THEN ret &= " "
-  ret &= TRIM(box.text(i))
-  IF textwidth(ret) >= maxwidth THEN EXIT FOR
- NEXT i
- ret = RTRIM(ret)  ' Remove spaces due to trailing blank lines
- RETURN shorten_to_right(ret, maxwidth)
-END FUNCTION
-
 ' Toggle tagnum between 0 and an unused onetime tag ID (2 to max_onetime)
 ' This only checks NPC definitions that have already been written
 ' to disk, so that should be done so before calling

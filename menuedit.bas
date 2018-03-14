@@ -6,6 +6,7 @@
 #include "allmodex.bi"
 #include "common.bi"
 #include "customsubs.bi"
+#include "loading.bi"
 #include "cglobals.bi"
 #include "scrconst.bi"
 #include "sliceedit.bi"

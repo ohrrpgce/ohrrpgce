@@ -110,6 +110,8 @@ declare Sub LoadTextBox (byref box as TextBox, byval record as integer)
 declare Sub SaveTextBox (byref box as TextBox, byval record as integer)
 declare Sub ClearTextBox (byref box as TextBox)
 declare Function textbox_lines_to_string(byref box as TextBox) as string
+DECLARE FUNCTION textbox_preview_line OVERLOAD (boxnum as integer, maxwidth as integer = 700) as string
+DECLARE FUNCTION textbox_preview_line OVERLOAD (box as TextBox, maxwidth as integer = 700) as string
 
 DECLARE SUB initattackdata OVERLOAD (recbuf() as integer)
 DECLARE SUB initattackdata OVERLOAD (byref atk as AttackData)

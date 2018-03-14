@@ -2872,6 +2872,24 @@ FUNCTION textbox_lines_to_string(byref box as TextBox) as string
  RETURN ret
 END FUNCTION
 
+' maxwidth is in pixels
+FUNCTION textbox_preview_line(boxnum as integer, maxwidth as integer = 700) as string
+ IF boxnum <= 0 OR boxnum > gen(genMaxTextBox) THEN RETURN ""
+ DIM box as TextBox
+ LoadTextBox box, boxnum
+ RETURN textbox_preview_line(box, maxwidth)
+END FUNCTION
+
+FUNCTION textbox_preview_line(box as TextBox, maxwidth as integer = 700) as string
+ DIM ret as string
+ FOR i as integer = 0 TO UBOUND(box.text)
+  IF LEN(ret) THEN ret &= " "
+  ret &= TRIM(box.text(i))
+  IF textwidth(ret) >= maxwidth THEN EXIT FOR
+ NEXT i
+ ret = RTRIM(ret)  ' Remove spaces due to trailing blank lines
+ RETURN shorten_to_right(ret, maxwidth)
+END FUNCTION
 
 '==========================================================================================
 '                                         Attacks
