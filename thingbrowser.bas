@@ -664,6 +664,12 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim box as TextBox
  LoadTextBox box, id
 
+ 'Most of the text will not be visible, but we still do want to use it for search and filter
+ dim s as string = ""
+ for i as integer = 0 TO 7 
+  s &= box.text(i) & " " 'concat with spaces instead of newlines
+ next i
+
  if plank_template = 0 then
   plank_template = load_plank_from_file(finddatafile("textbox_browser_plank.slice"))
  end if
@@ -672,11 +678,11 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  
  dim txt as Slice Ptr
  txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
- ChangeTextSlice txt, str(id)
+ ChangeTextSlice txt, str(id & " " & s)
  if id = -1 then ChangeTextSlice txt, "NONE"
+ if id = 0 then ChangeTextSlice txt, str(id &  " [template] " & s)
 
- 'Replicate a very minimal subset of what init_text_box_slices() does
- 'We only do box style, height, and text color
+ 'show the text box color
  dim rect as Slice Ptr
  rect = LookupSlice(SL_TEXTBOX_BOX, plank)
  if box.no_box then
@@ -684,21 +690,11 @@ Function TextboxBrowser.create_thing_plank(byval id as integer) as Slice ptr
   ChangeRectangleSlice rect, , , , borderNone, transHollow
  else
   ChangeRectangleSlice rect, box.boxstyle, , , , iif(box.opaque, transOpaque, transFuzzy)
+  ChangeRectangleSlice rect, , , , borderNone
  end if
- rect->height = get_text_box_height(box)
- dim col as integer
- col = uilook(uiText)
- if box.textcolor > 0 then col = box.textcolor
- dim body as Slice Ptr
- body = LookupSlice(SL_TEXTBOX_TEXT, plank)
 
- 'Most of the text will not be visible, but we still do want to use it for search and filter
- dim s as string = ""
- for i as integer = 0 TO 7 
-  s &= box.text(i) & chr(10)
- next i
-
- ChangeTextSlice body, s, col, YES, NO
+ 'Adjust to current screen width
+ plank->Width = vpages(vpage)->w - 16
 
  return plank
 End Function
