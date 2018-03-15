@@ -33,35 +33,42 @@ def command_output_and_exitcode(cmd, args):
 
 def read_input_file(inputfile):
     """Read each line of a file and figure out how it is tagged.
-    Returns a list of (lineno, tag, line) tuples, where lineno."""
+    Returns a list of (tag, extra, line) tuples, where extra is any
+    extra comment after the tag, eg. for
+      noop(),                # ERROR  (known failure)
+    tag == 'ERROR', extra == '  (known failure)'
+    Lines starting with '##' get the tag COMMENT.
+    """
     lines = []
     with open(inputfile, "r") as infile:
         for line in infile:
             # Ignore commented tests
             match = re.match("^[ \t]*#(#)?", line)
+            extra = None
             if match:
                 if match.group(1):
                     tag = 'COMMENT'
                 else:
                     tag = None
             else:
-                match = re.search("# *(ERROR|OK|WARN) *$", line)
+                match = re.search("# *(ERROR|OK|WARN)(.*)$", line)
                 if match:
                     tag = intern(match.group(1))
+                    extra = match.group(2)
                 else:
                     tag = None
-            lines.append((tag, line.rstrip()))
+            lines.append((tag, extra, line.rstrip()))
     return lines
 
-def run_with_line(lines, lineno):
-    """Recreate the input file with all tagged lines removed except 'lineno'.
-    lineno counts from zero!"""
+def run_with_line(lines, keep_lineidx):
+    """Recreate the input file with all tagged lines removed except 'keep_lineidx'
+    (0-based index)."""
     selected_lines = []
-    for idx,(tag,line) in enumerate(lines):
+    for idx,(tag,extra,line) in enumerate(lines):
         if tag != "COMMENT":
-            if not tag or idx == lineno:
+            if not tag or idx == keep_lineidx:
                 selected_lines.append(line)
-            if idx == lineno:
+            if idx == keep_lineidx:
                 expected_lineno = len(selected_lines)
 
     tempfile = os.path.join("build", "testhspeak.hss")
@@ -75,16 +82,17 @@ def run_with_line(lines, lineno):
     #os.unlink(tempfile)
     return ret, expected_lineno
 
-def test_line(lines, lineno):
-    """Run a single test. Prints the result. Returns true if passed."""
-    (stdout, exitcode), expected_lineno = run_with_line(lines, lineno)
-    tag = lines[lineno][0]
+def test_line(lines, lineidx):
+    """Run a single test. Prints the result. Returns True if passed."""
+    lineno = lineidx + 1   # 1-based index
+    (stdout, exitcode), expected_lineno = run_with_line(lines, lineidx)
+    tag, extra, line = lines[lineidx]
     expected = {None: 0, 'OK': 0, 'ERROR': 1, 'WARN': 2}[tag]
     def describe_code(exitcode):
         return {0: 'OK', 1: 'ERROR', 2: 'WARN'}.get(int(exitcode), 'exitcode %s' % exitcode)
 
     def print_line():
-        print("Testing line %d: %s" % (lineno, lines[lineno][1]))
+        print("Testing line %d: %s" % (lineno, line))
 
     if not options.hide_passes:
         print_line()
@@ -111,7 +119,7 @@ def test_line(lines, lineno):
         print("Test on line %d FAILED: expected %s got %s" %
               (lineno, describe_code(expected), describe_code(exitcode)))
         return False
-    elif expected > 0 and ('n line %d ' % expected_lineno) not in stdout:
+    elif expected > 0 and ('n line %d ' % (expected_lineno)) not in stdout:
         # Some errors say 'on line X', others say 'in line X'
         print_stdout()
         print("Test on line %d FAILED: didn't print an error/warning for line %d" % (lineno, expected_lineno))
@@ -122,16 +130,21 @@ def test_line(lines, lineno):
 
 def run_all_tests(inputfile):
     """Read a file an test each line which is tagged. Returns true if all passed."""
-    successes, ran = 0, 0
+    successes, ran, known_failures = 0, 0, 0
     lines = read_input_file(inputfile)
-    for lineno, (tag, line) in enumerate(lines):
+    for lineidx, (tag, extra, line) in enumerate(lines):
         #print tag, line
         if tag and tag != 'COMMENT':
-            if options.testline == None or int(options.testline) == lineno + 1:  # Lines count from 1
+            if options.testline == None or int(options.testline) == lineidx + 1:
                 ran += 1
-                successes += test_line(lines, lineno)
-    print
-    print("Ran %d tests, %d failed" % (ran, ran - successes))
+                success = test_line(lines, lineidx)
+                successes += success
+                if extra and 'known' in extra.lower():
+                    if success:
+                        print("NOTE: line %d marked known-failure, but passed:\n%s" % (lineidx + 1, line))
+                    else:
+                        known_failures += 1
+    print("Ran %d tests, %d failed (%d are known failures)" % (ran, ran - successes, known_failures))
     return ran == successes
 
 if __name__ == '__main__':
