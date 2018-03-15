@@ -1041,31 +1041,24 @@ procedure init()
           ,{"definescript"  ,RESERVE_TOPLEVEL}
           ,{"plotscrversion",RESERVE_TOPLEVEL}
           ,{"include"       ,RESERVE_TOPLEVEL}  --should never appear, in theory
-          ,{"do"            ,RESERVE_FLOW}
-          ,{"begin"         ,RESERVE_BEGIN}
-          ,{"end"           ,RESERVE_END}
-          ,{"return"        ,RESERVE_FLOW}
-          ,{"if"            ,RESERVE_FLOW}
-          ,{"then"          ,RESERVE_FLOW}
-          ,{"else"          ,RESERVE_FLOW}
-          ,{"elseif"        ,RESERVE_FLOW}  --not in flow_list... shouldn't that be a problem?
-          ,{"for"           ,RESERVE_FLOW}
           ,{"cfor"          ,RESERVE_UNIMPLEMENTED}
           ,{"foreach"       ,RESERVE_UNIMPLEMENTED}
-          ,{"while"         ,RESERVE_FLOW}
-          ,{"break"         ,RESERVE_FLOW}
-          ,{"continue"      ,RESERVE_FLOW}
-          ,{"exitscript"    ,RESERVE_FLOW}
-          ,{"exitreturning" ,RESERVE_FLOW}
-          ,{"switch"        ,RESERVE_FLOW}
-          ,{"case"          ,RESERVE_FLOW}
-          ,{"subscript"     ,RESERVE_KEYWORD} --keywords have special case handling
-          ,{"variable"      ,RESERVE_KEYWORD}
           ,{"="             ,RESERVE_UNIMPLEMENTED}
+          ,{"elseif"        ,RESERVE_FLOW}  --not in flow_list... shouldn't that be a problem?
+          --keywords have special case handling 
+          ,{"subscript"     ,RESERVE_KEYWORD} --subscript is also in flow_list!
+          ,{"variable"      ,RESERVE_KEYWORD}
           ,{"tracevalue"    ,RESERVE_MACRO}
           ,{"assert"        ,RESERVE_MACRO}
           -- Stray "$"'s are picked up by the lexer (not totally ideal maybe)
         })
+
+  for i=1 to length(flow_list) do
+    if map:has(reserved, flow_list[i][PAIR_NAME])=false then
+      map:put(reserved, flow_list[i][PAIR_NAME], RESERVE_FLOW)
+    end if
+  end for
+
   for i=1 to length(math_list) do
     map:put(reserved, math_list[i][PAIR_NAME], RESERVE_BUILTIN)
   end for
@@ -1945,20 +1938,19 @@ end procedure
 
 --Warning: you normally want to use check_undefined_string instead of this
 procedure check_for_reserved(string s, srcpos pos, string expect)
+  string extra
   if map:has(reserved,s) then
+    extra=""
     if compare("top-level declaration",expect)=0 then
-      src_error(
-        sprintf_utf(
-          "Expected %s, but found %s "&COLYEL&"%s"&COLRED&". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
-          ,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}
-        )
-        ,pos
-      )
-    elsif compare("user script name",expect)=0 then
-      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}),pos)
-    else
-      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}),pos)
+      extra=". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
     end if
+    src_error(
+      sprintf_utf(
+        "Expected %s, but found %s "&COLYEL&"%s"&COLRED&"%s"
+        ,{expect, RESERVE_NAMES[map:get(reserved,s,0)], s, extra}
+      )
+      ,pos
+    )
   end if
 end procedure
 
