@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Th 2018-03-13 Optimize compiler, by switching to hashmaps
 --3Tg 2017-12-31 Fix crash due to missing KIND_LONGNAMES[KIND_KEYWORD]
 --3Tf 2017-11-08 Specialise assert(x==y) to use _asserteq
 --3Te 2017-10-29 Look for plotscr.hsd/scancode.hsi first in global dirs
@@ -171,7 +172,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tg"
+constant COMPILER_SUB_VERSION="Th"
 constant COPYRIGHT_DATE="2017"
 
 --Known single-character commandline options
@@ -224,6 +225,7 @@ constant CMD_TEXT=1
 constant CMD_POS=2
 constant RESERVE_TOPLEVEL=1      --Tokens that are only allowed at the toplevel, but not including script triggers
 constant RESERVE_UNIMPLEMENTED=2
+--Everything before this is not allowed inside a script
 constant RESERVE_FLOW=3          --Flow control keywords
 constant RESERVE_FUNCTION=4      --Name of a defined function
 constant RESERVE_SCRIPT=5        --etc
@@ -326,7 +328,7 @@ integer max_srcpos        max_srcpos=0
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
 sequence reuse_ids        reuse_ids={}            --type {PAIR_NUM, REUSE_PARENT_AND_NAME={parent_id, PAIR_NAME}}
-sequence constant_list    constant_list=alpha_tree_create()
+map constant_list         constant_list=map:new()
 sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
 sequence operator_list    operator_list={}        --type {PAIR_NUM, PAIR_NAME, OPER_TRUENAME, OPER_POS}
 sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS}
@@ -352,7 +354,7 @@ constant SCRIPT_BINARY=14
 
 sequence all_scripts      all_scripts={}       --list of Scripts == {SCRIPT_*} (variable length)
 
-sequence reserved         reserved=alpha_tree_create()
+map reserved              reserved=map:new()
 atom start_time           start_time=time()
 atom run_time             run_time=0
 sequence timing_data      timing_data={}
@@ -1030,10 +1032,7 @@ procedure init()
   end if
 
   --Init global data tables
-  --why the alpha-tree? because the reserved-word list can get HUGE.
-  --we want to be able to look up words in it quickly. A btree or some such
-  --thing would have been even better, but thats alot of trouble :)
-  reserved=alpha_tree_mass_insert(reserved,{
+  reserved=map:new_from_kvpairs({
            {"defineconstant",RESERVE_TOPLEVEL}
           ,{"definetrigger" ,RESERVE_TOPLEVEL}
           ,{"defineoperator",RESERVE_TOPLEVEL}
@@ -1066,16 +1065,16 @@ procedure init()
           ,{"tracevalue"    ,RESERVE_MACRO}
           ,{"assert"        ,RESERVE_MACRO}
           -- Stray "$"'s are picked up by the lexer (not totally ideal maybe)
-        })--end mass_insert
+        })
   for i=1 to length(math_list) do
-    reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
+    map:put(reserved, math_list[i][PAIR_NAME], RESERVE_BUILTIN)
   end for
   -- Adding the separators (operators) here prevents them from being used before
   -- defineoperator is handled (either a block before include,plotscr.hsd, or in
   -- e.g. defineconstant)
   for i=1 to length(separator_list) do
-    if alpha_tree_data(reserved,separator_list[i],false)=false then
-      reserved=alpha_tree_insert(reserved,separator_list[i],RESERVE_OPERATOR)
+    if map:get(reserved,separator_list[i],false)=false then
+      map:put(reserved,separator_list[i],RESERVE_OPERATOR)
     end if
   end for
   --Append subscript trigger id (this is needed for scripts.bin)
@@ -1946,19 +1945,19 @@ end procedure
 
 --Warning: you normally want to use check_undefined_string instead of this
 procedure check_for_reserved(string s, srcpos pos, string expect)
-  if alpha_tree_seek(reserved,s) then
+  if map:has(reserved,s) then
     if compare("top-level declaration",expect)=0 then
       src_error(
         sprintf_utf(
           "Expected %s, but found %s "&COLYEL&"%s"&COLRED&". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
-          ,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}
+          ,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}
         )
         ,pos
       )
     elsif compare("user script name",expect)=0 then
-      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
+      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}),pos)
     else
-      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
+      src_error(sprintf_utf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[map:get(reserved,s,0)],s}),pos)
     end if
   end if
 end procedure
@@ -1979,9 +1978,9 @@ procedure check_undefined_constant(Token s, atom value)
    sequence src_position
    string err_string
    string whats_happening
-   if alpha_tree_seek(constant_list,s[CMD_TEXT]) then
+   if map:has(constant_list,s[CMD_TEXT]) then
      --constant is already defined
-     const_data=alpha_tree_data(constant_list,s[CMD_TEXT],0)
+     const_data=map:get(constant_list,s[CMD_TEXT])
      src_position=decode_srcpos(const_data[CONST_POS])
      if const_data[CONST_VALUE]=value then
        whats_happening="will be ignored because"
@@ -2045,7 +2044,7 @@ end function
 function enforce_constants(string s)
   --enforces both constants
   object v
-  v=alpha_tree_data(constant_list,s,{})
+  v=map:get(constant_list,s,{})
   if length(v) then
     v=v[CONST_VALUE]
     if int32(v) then
@@ -2120,8 +2119,8 @@ procedure parse_constant_block(TokenList block)
     num=try_string_to_number({enforce_constants(block[i][CMD_TEXT]),block[i][CMD_POS]})
     check_undefined_constant(block[i+1],num)
     name=block[i+1][CMD_TEXT]
-    constant_list=alpha_tree_insert(constant_list,name,{num,block[i+1][CMD_POS]})
-    reserved=alpha_tree_insert(reserved,name,RESERVE_CONSTANT)
+    map:put(constant_list,name,{num,block[i+1][CMD_POS]})
+    map:put(reserved,name,RESERVE_CONSTANT)
   end for
 end procedure
 
@@ -2138,7 +2137,7 @@ procedure parse_trigger_block(TokenList block)
     check_undefined_string(block[i+1],"script trigger name")
     name=block[i+1][CMD_TEXT]
     trigger_list=append(trigger_list,{num,name})
-    reserved=alpha_tree_insert(reserved,name,RESERVE_TOPLEVEL)
+    map:put(reserved,name,RESERVE_TOPLEVEL)
   end for
 end procedure
 
@@ -2179,7 +2178,7 @@ procedure create_global(atom id, string name, srcpos pos)
       global_list[PAIR_NUM]=append(global_list[PAIR_NUM],id)
       global_list[PAIR_NAME]=append(global_list[PAIR_NAME],name)
       global_list[GLB_POS]=append(global_list[GLB_POS],pos)
-      reserved=alpha_tree_insert(reserved,name,RESERVE_GLOBAL)
+      map:put(reserved,name,RESERVE_GLOBAL)
     else
       src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to %d",{id,MAXGLOBAL}),pos)
     end if
@@ -2218,13 +2217,13 @@ procedure parse_operator_block(TokenList block)
     truename=block[i+2][CMD_TEXT]
     pos=block[i+2][CMD_POS]
     operator_list=append(operator_list,{num,name,truename,pos})
-    keyword=alpha_tree_data(reserved,name,false)
+    keyword=map:get(reserved,name,false)
     if keyword then
       if keyword!=RESERVE_OPERATOR and keyword!=RESERVE_BUILTIN then
         src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" may not be used as an operator",{RESERVE_NAMES[keyword],name}),pos)
       end if
     else
-      reserved=alpha_tree_insert(reserved,name,RESERVE_OPERATOR)
+      map:put(reserved,name,RESERVE_OPERATOR)
     end if
   end for
 end procedure
@@ -2278,7 +2277,7 @@ function create_function(sequence list, integer id, string name, object arglist,
     end if
   end if
   list=append(list,{id,name,arglist,pos})
-  reserved=alpha_tree_insert(reserved,name,func_type)
+  map:put(reserved,name,func_type)
   return(list)
 end function
 
@@ -2464,10 +2463,10 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
       parse_script(this,full_name,idx)
       body&={{"begin",this[CMD_POS]},{"end",this[CMD_POS]}}
     else
-      temp=alpha_tree_data(reserved,this[CMD_TEXT],RESERVE_FLOW)
+      temp=map:get(reserved,this[CMD_TEXT],RESERVE_FLOW)
       if temp<=RESERVE_UNIMPLEMENTED then
         err_string=sprintf_utf(
-          "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
+          "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[map:get(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
         )
         if temp=RESERVE_TOPLEVEL then
           err_string&=sprintf_utf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
@@ -2919,7 +2918,7 @@ function what_kind_and_id(Token command, VarList local_vars)
   integer keyword
   string s
   s=command[CMD_TEXT]
-  keyword=alpha_tree_data(reserved,s,0)
+  keyword=map:get(reserved,s,0)
   if string_is_int32(s) then
     kind=KIND_NUMBER
     id=string_to_object(s,{})
@@ -2988,7 +2987,7 @@ function what_kind(Token command, VarList local_vars, integer look_for_operators
   integer keyword
   string s
   s=command[CMD_TEXT]
-  keyword=alpha_tree_data(reserved,s,0)
+  keyword=map:get(reserved,s,0)
   if string_is_int32(s) then
     kind=KIND_NUMBER
   elsif length(s)=0 then
@@ -3055,7 +3054,7 @@ end function
 ---------------------------------------------------------------------------
 
 procedure check_is_expression(Node node, string parent)
-  if alpha_tree_data(reserved,node[TREE_TRUNK][CMD_TEXT],0)=RESERVE_FLOW then
+  if map:get(reserved,node[TREE_TRUNK][CMD_TEXT],0)=RESERVE_FLOW then
     src_error(
       sprintf_utf(COLYEL&"%s"&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&"%s"&COLRED&")"
                   ,{node[TREE_TRUNK][CMD_TEXT],parent})
@@ -3615,7 +3614,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
     args=tree[ptr][TREE_BRANCHES]
 
-    keyword=alpha_tree_data(reserved,s,0)
+    keyword=map:get(reserved,s,0)
     if keyword=RESERVE_FLOW then
       if equal(s,"then") or equal(s,"else") or equal(s,"do") then
         --these are checked for correct parents below.
