@@ -31,6 +31,7 @@ script, interpreter tests, begin
   lexer tests
   string tests
   math tests
+  parser tests
   flow tests
   subscript tests
 end
@@ -167,6 +168,17 @@ script, flow tests, begin
   elseif tests
   switch tests
   orphaned blocks
+end
+
+########################################################################
+
+# These are in addition to the tests in parser_tests.hss, which are only compiled, not executed.
+script, parser tests, begin
+  variable (x)
+  (((x := true)))
+  (assert(x))
+  ($1="42")
+  assert(string compare(1, $2="42"))
 end
 
 ########################################################################

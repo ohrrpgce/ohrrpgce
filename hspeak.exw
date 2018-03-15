@@ -3607,7 +3607,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
     args=tree[ptr][TREE_BRANCHES]
 
     keyword=map:get(reserved,s,0)
-    if keyword=RESERVE_FLOW then
+    if keyword=RESERVE_FLOW or keyword=RESERVE_KEYWORD then
       if equal(s,"then") or equal(s,"else") or equal(s,"do") then
         --these are checked for correct parents below.
       elsif block_command(parent)=false then
@@ -3615,174 +3615,179 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
       end if
     end if
 
-    if compare("if",s)=0 then
-      if length(args)>1 then
-        src_error(sprintf_utf(
-                      COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
-                      ,{length(args)}
-                    ),args[2][TREE_TRUNK][CMD_POS])
-      elsif length(args)=0 then
-        src_error(sprintf_utf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
-      end if
-      check_is_expression(args[1],s)
-      if ptr<length(tree) then
-        --there is room
-        nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
-        if compare("then",nextcmd)=0 then
-          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
-          tree=delete_element(tree,ptr+1)
-          if ptr<length(tree) then
-            --there is room for else
-            nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
-            if equal("else",nextcmd) or equal("elseif",nextcmd) then
-              tree=build_else_node(tree,ptr)
+    if keyword=RESERVE_FLOW then
+      if compare("if",s)=0 then
+        if length(args)>1 then
+          src_error(sprintf_utf(
+                        COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
+                        ,{length(args)}
+                      ),args[2][TREE_TRUNK][CMD_POS])
+        elsif length(args)=0 then
+          src_error(sprintf_utf(COLYEL&"if"&COLRED&" statement has no condition. It should have one.",{}),pos)
+        end if
+        check_is_expression(args[1],s)
+        if ptr<length(tree) then
+          --there is room
+          nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
+          if compare("then",nextcmd)=0 then
+            tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
+            tree=delete_element(tree,ptr+1)
+            if ptr<length(tree) then
+              --there is room for else
+              nextcmd=tree[ptr+1][TREE_TRUNK][CMD_TEXT]
+              if equal("else",nextcmd) or equal("elseif",nextcmd) then
+                tree=build_else_node(tree,ptr)
+              else
+                --no else found, but thats okay.
+                --add dummy else
+                tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
+              end if
             else
-              --no else found, but thats okay.
               --add dummy else
               tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
             end if
+          elsif equal("else",nextcmd) or equal("elseif",nextcmd) then
+            --add dummy then before else
+            tree[ptr][TREE_BRANCHES]&={ {{"then",pos},{}} }
+            tree=build_else_node(tree,ptr)
           else
-            --add dummy else
-            tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
+            --found neither then nor else
+            src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{nextcmd}),tree[ptr+1][TREE_TRUNK][CMD_POS])
           end if
-        elsif equal("else",nextcmd) or equal("elseif",nextcmd) then
-          --add dummy then before else
-          tree[ptr][TREE_BRANCHES]&={ {{"then",pos},{}} }
-          tree=build_else_node(tree,ptr)
         else
-          --found neither then nor else
-          src_error(sprintf_utf("expected "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED&" but found "&COLYEL&"%s"&COLRED,{nextcmd}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          --no room for then or else
+          src_error(COLYEL&"if"&COLRED&" should be followed by "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)
         end if
-      else
-        --no room for then or else
-        src_error(COLYEL&"if"&COLRED&" should be followed by "&COLYEL&"then"&COLRED&" or "&COLYEL&"else"&COLRED,pos)
-      end if
 
-    elsif compare("then",s)=0 then
-      if compare("if",parent)!=0 or ptr!=2 then
-        src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
-      end if
-
-    elsif compare("else",s)=0 then
-      if compare("if",parent)!=0 or ptr!=3 then
-        src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
-      end if
-
-    elsif compare("elseif",s)=0 then
-      --Should be absorbed by now
-      src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" block",pos)
-
-    elsif compare("do",s)=0 then
-      if equal(parent,"")=false and block_command(parent)=false then
-        --These check their arguments are expressions, so a do which is a child of one of these is correct
-        if equal(parent,"for")=false and equal(parent,"while")=false and equal(parent,"switch")=false then
-          src_error(COLYEL&s&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&parent&COLRED&")",pos)
+      elsif compare("then",s)=0 then
+        if compare("if",parent)!=0 or ptr!=2 then
+          src_error(COLYEL&"then"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
         end if
-      end if
 
-    elsif compare("while",s)=0 then
-      if length(args)>1 then
-        src_error(sprintf_utf(
-                  COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
-                  ,{length(args)}
-                  ),args[2][TREE_TRUNK][CMD_POS])
-      elsif length(args)=0 then
-        src_error(sprintf_utf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
-      end if
-      check_is_expression(args[1],s)
-      if ptr<length(tree) then
-        --there is room
-        if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-          --found do
-          tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
-          tree=delete_element(tree,ptr+1)
-        else
-          src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+      elsif compare("else",s)=0 then
+        if compare("if",parent)!=0 or ptr!=3 then
+          src_error(COLYEL&"else"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" or "&COLYEL&"else if"&COLRED&" block",pos)
         end if
-      else
-        src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
-      end if
 
-    elsif compare("for",s)=0 then
-      --Handle regular arguments
-      if length(args)<3 then
-        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three or four arguments",{}),pos)
-      elsif length(args)>4 then
-        src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(args)}),args[5][TREE_TRUNK][CMD_POS])
-      elsif length(args)=3 then
-        --append default step value
-        args&={ {{"1",pos},{}} }
-      end if
-      ctr=args[1][TREE_TRUNK]
-      argkind=what_kind(ctr,vars,true)
-      if argkind=KIND_LOCAL then
-        used_locals=append(used_locals,ctr[CMD_TEXT])
-      elsif argkind=KIND_GLOBAL then
-        --warn, then translate into a numeric reference to a variable
-        src_warn(sprintf_utf(
-          "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
-         ,{ctr[CMD_TEXT]}
-        ),ctr[CMD_POS])
-      end if
-      args[1][TREE_TRUNK]=convert_variable_to_id(ctr,vars,"for")
-      check_is_expression(args[2],s)
-      check_is_expression(args[3],s)
-      check_is_expression(args[4],s)
+      elsif compare("elseif",s)=0 then
+        --Should be absorbed by now
+        src_error(COLYEL&"else if"&COLRED&" should follow an "&COLYEL&"if"&COLRED&" or "&COLYEL&"then"&COLRED&" block",pos)
 
-      --Handle "do"
-      if ptr<length(tree) then
-        --there is room
-        if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
-          --found do
-          args&={tree[ptr+1]}
-          tree=delete_element(tree,ptr+1)
-        else
-          src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+      elsif compare("do",s)=0 then
+        if equal(parent,"")=false and block_command(parent)=false then
+          --These check their arguments are expressions, so a do which is a child of one of these is correct
+          if equal(parent,"for")=false and equal(parent,"while")=false and equal(parent,"switch")=false then
+            src_error(COLYEL&s&COLRED&" may not be used as part of an expression (found as an argument to "&COLYEL&parent&COLRED&")",pos)
+          end if
         end if
-      else
-        src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
-      end if
-      tree[ptr][TREE_BRANCHES]=args
 
-    elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
-      if length(args)>1 then
-        src_error(sprintf_utf(
-                      COLYEL&s&COLRED&" statement has %d arguments. It should have only one."
-                      ,{length(args)}
+      elsif compare("while",s)=0 then
+        if length(args)>1 then
+          src_error(sprintf_utf(
+                    COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" to combine multiple conditions"
+                    ,{length(args)}
                     ),args[2][TREE_TRUNK][CMD_POS])
-      elsif length(args)=0 then
-        src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
+        elsif length(args)=0 then
+          src_error(sprintf_utf(COLYEL&"while"&COLRED&" statement has no condition. It should have one.",{}),pos)
+        end if
+        check_is_expression(args[1],s)
+        if ptr<length(tree) then
+          --there is room
+          if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
+            --found do
+            tree[ptr][TREE_BRANCHES]&={tree[ptr+1]}
+            tree=delete_element(tree,ptr+1)
+          else
+            src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          end if
+        else
+          src_error(sprintf_utf(COLYEL&"while"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
+        end if
+
+      elsif compare("for",s)=0 then
+        --Handle regular arguments
+        if length(args)<3 then
+          src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement needs three or four arguments",{}),pos)
+        elsif length(args)>4 then
+          src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(args)}),args[5][TREE_TRUNK][CMD_POS])
+        elsif length(args)=3 then
+          --append default step value
+          args&={ {{"1",pos},{}} }
+        end if
+        ctr=args[1][TREE_TRUNK]
+        argkind=what_kind(ctr,vars,true)
+        if argkind=KIND_LOCAL then
+          used_locals=append(used_locals,ctr[CMD_TEXT])
+        elsif argkind=KIND_GLOBAL then
+          --warn, then translate into a numeric reference to a variable
+          src_warn(sprintf_utf(
+            "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
+           ,{ctr[CMD_TEXT]}
+          ),ctr[CMD_POS])
+        end if
+        args[1][TREE_TRUNK]=convert_variable_to_id(ctr,vars,"for")
+        check_is_expression(args[2],s)
+        check_is_expression(args[3],s)
+        check_is_expression(args[4],s)
+
+        --Handle "do"
+        if ptr<length(tree) then
+          --there is room
+          if compare("do",tree[ptr+1][TREE_TRUNK][CMD_TEXT])=0 then
+            --found do
+            args&={tree[ptr+1]}
+            tree=delete_element(tree,ptr+1)
+          else
+            src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED&", not by "&COLYEL&"%s"&COLRED&".",{tree[ptr+1][TREE_TRUNK][CMD_TEXT]}),tree[ptr+1][TREE_TRUNK][CMD_POS])
+          end if
+        else
+          src_error(sprintf_utf(COLYEL&"for"&COLRED&" should be followed by "&COLYEL&"do"&COLRED,{}),pos)
+        end if
+        tree[ptr][TREE_BRANCHES]=args
+
+      elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
+        if length(args)>1 then
+          src_error(sprintf_utf(
+                        COLYEL&s&COLRED&" statement has %d arguments. It should have only one."
+                        ,{length(args)}
+                      ),args[2][TREE_TRUNK][CMD_POS])
+        elsif length(args)=0 then
+          src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
+        end if
+
+      elsif compare("break",s)=0 or compare("continue",s)=0 then
+        if length(args)>1 then
+          src_error(sprintf_utf(
+                        COLYEL&s&COLRED&" statement has %d arguments. It should have no more than one."
+                        ,{length(args)}
+                      ),args[2][TREE_TRUNK][CMD_POS])
+        elsif length(args)=0 then
+          --append default value
+          tree[ptr][TREE_BRANCHES]={{{"1",pos},{}}}
+        end if
+
+      elsif compare("exitscript",s)=0 then
+        if length(args)>0 then
+          src_error(sprintf_utf(
+                        COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
+                        ,{length(args)}
+                      ),args[1][TREE_TRUNK][CMD_POS])
+        end if
+
+      elsif compare("switch",s)=0 then
+        tree=build_switch_node(tree,vars,ptr)
+
+      elsif compare("case",s)=0 then
+        src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
       end if
 
-    elsif compare("break",s)=0 or compare("continue",s)=0 then
-      if length(args)>1 then
-        src_error(sprintf_utf(
-                      COLYEL&s&COLRED&" statement has %d arguments. It should have no more than one."
-                      ,{length(args)}
-                    ),args[2][TREE_TRUNK][CMD_POS])
-      elsif length(args)=0 then
-        --append default value
-        tree[ptr][TREE_BRANCHES]={{{"1",pos},{}}}
+    elsif keyword=RESERVE_KEYWORD then
+
+      if compare("subscript",s)=0 or compare("variable",s)=0 then
+        --Does nothing; remove. (Kept until now to check they isn't placed in a silly place)
+        tree=delete_element(tree,ptr)
+        continue
       end if
-
-    elsif compare("exitscript",s)=0 then
-      if length(args)>0 then
-        src_error(sprintf_utf(
-                      COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
-                      ,{length(args)}
-                    ),args[1][TREE_TRUNK][CMD_POS])
-      end if
-
-    elsif compare("switch",s)=0 then
-      tree=build_switch_node(tree,vars,ptr)
-
-    elsif compare("case",s)=0 then
-      src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
-
-    elsif compare("subscript",s)=0 or compare("variable",s)=0 then
-      --Does nothing; remove. (Kept until now to check they isn't placed in a silly place)
-      tree=delete_element(tree,ptr)
-      continue
 
     end if
 

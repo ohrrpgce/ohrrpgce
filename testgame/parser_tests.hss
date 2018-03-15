@@ -152,7 +152,7 @@ script, flow tests, dummy, begin
   if(dummy) if(dummy) then() # ERROR
   if(dummy) else()           # OK
   if(dummy) else() then()    # ERROR
-  dummy := variable(foo)     # ERROR   (known failure)
+  dummy := variable(foo)     # ERROR
   (if(dummy) else())         # ERROR   (known failure)
   if(if(1)then(1))then()     # ERROR
   dummy := if(1)then(1)      # ERROR
@@ -222,7 +222,7 @@ script, namespace tests, arg, begin
   subscript, sub, (subscript, namespace tests ()) # ERROR
   subscript, sub, v (subscript, sub2, v ())       # OK
   subscript, sub, W (subscript, sub2, w ())       # OK
-  v := subscript, sub ()                          # ERROR  (known failure)
+  v := subscript, sub ()                          # ERROR
   ## Operators
   subscript, add ()                               # ERROR
   subscript, sub, add ()                          # ERROR
