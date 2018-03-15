@@ -1179,7 +1179,7 @@ SUB displayall()
  END IF
  IF gam.debug_npc_info > 0 THEN npc_debug_display(gam.debug_npc_info = 2)
  IF gam.debug_textbox_info THEN show_textbox_debug_info
- IF gam.debug_showtags THEN tagdisplay
+ IF gam.debug_showtags THEN tagdisplay dpage
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
 

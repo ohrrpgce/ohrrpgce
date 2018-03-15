@@ -1033,7 +1033,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    END IF
   END IF
  END IF'--end if bat.vic.state = vicNONE
- IF gam.debug_showtags THEN tagdisplay
+ IF gam.debug_showtags THEN tagdisplay page
 END SUB
 
 SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)

@@ -39,7 +39,7 @@ DECLARE SUB reset_map_state (map as MapModeState)
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as integer
-DECLARE SUB tagdisplay
+DECLARE SUB tagdisplay (page as integer)
 DECLARE SUB writejoysettings
 DECLARE FUNCTION herocount (byval last as integer = sizeActiveParty - 1) as integer
 DECLARE FUNCTION caterpillar_size () as integer

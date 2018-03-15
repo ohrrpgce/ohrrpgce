@@ -1745,7 +1745,7 @@ freepage page
 party_change_updates
 END FUNCTION
 
-SUB tagdisplay
+SUB tagdisplay (page as integer)
 STATIC st as MenuState
 DIM lineh as integer = lineheight()
 st.last = gen(genMaxTagName)
@@ -1779,10 +1779,14 @@ IF keyval(scTab) > 1 THEN
  settag st.pt, NOT istag(st.pt, 0)
 END IF
 
-'Draw the menu
-wrapprint !"To scroll:\n+/-/pgup/down\nTAB to toggle\nF4 expand/quit", pRight, 0, uilook(uiMenuItem), dpage
+''Draw the menu
+'Help message, and a fuzzy box behind it
+DIM helpmsg as string = !"To scroll:\n+/-/pgup/down\nTAB to toggle\nF4 expand/quit"
+DIM helpbox as XYPair = textsize(helpmsg, , fontEdged)
+fuzzyrect pRight, pTop, helpbox.w, helpbox.h, uilook(uiOutline), page
+wrapprint helpmsg, pRight, 0, uilook(uiMenuItem), page
 'This fuzzy box is exactly wide enough for the max tag name length
-fuzzyrect 0, 0, 200, (st.size + 1) * lineh, uilook(uiOutline), dpage
+fuzzyrect 0, 0, 200, (st.size + 1) * lineh, uilook(uiOutline), page
 FOR i as integer = st.top TO st.top + st.size
  DIM temp as string = i & "  "
  SELECT CASE i
@@ -1795,8 +1799,8 @@ FOR i as integer = st.top TO st.top + st.size
  DIM col as integer
  IF istag(i, 0) THEN col = uiSelectedItem ELSE col = uiMenuItem
  DIM y as integer = (i - st.top) * lineh
- edgeprint temp, 8, y, uilook(col), dpage
- IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), dpage
+ edgeprint temp, 8, y, uilook(col), page
+ IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), page
 NEXT i
 
 END SUB
