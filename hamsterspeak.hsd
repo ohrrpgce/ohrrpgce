@@ -30,7 +30,7 @@ define function, begin
 210,showstring,1,0            #print a string (stringID)
 211,clearstring,1,0           #deletes the data from string(stringID)
 212,appendascii,2,0,0         #adds ascii to string(stringID,ascii)
-213,appendnumber,2,0,0        #adds number to string(stringID,number)
+213,appendnumber,4,0,0,0,0    #adds number to string(stringID,number,minlength,zeropad)
 214,copystring,2,0,0          #copies string from one to another(sourceID,destinationID)
 215,concatenatestrings,2,0,0  #adds two strings(destinationID,sourceID)
 216,stringlength,1,0          #returns the length of string(stringID)

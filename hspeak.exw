@@ -428,7 +428,6 @@ sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f
 
 sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
 string current_script     current_script=""   --name of current script
-sequence current_scopes   current_scopes={""} --list of possible prefixes to add to (sub)script names, eg "master<-"
 integer cur_script_num    cur_script_num=0    --index into all_scripts of current script
 integer colors_enabled    colors_enabled=true
 integer simple_colorcodes simple_colorcodes=false
@@ -1579,7 +1578,6 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
   string ident  --identifier text being built up
   sequence temp
   string masked
-  integer oldi
   integer found
   integer textstart  --the column at which this identifier starts, otherwise 0
   string remem_ident
@@ -1708,7 +1706,6 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           --color_print("backtracking on '%s'\n", {masked})
           backtracked=true
           ident=remem_ident & masked[1]
-          oldi=i+1
           i=textstart
           if length(remem_ident) then
             tokens=tokens[1..$-1]
@@ -2369,7 +2366,6 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
   Token this
   string err_string
   string previous_script
-  Token subname
   sequence src_position
   string msg
   integer depth
@@ -2462,7 +2458,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
     elsif compare("subscript",this[CMD_TEXT])=0 then
       --Recurse, so body of subscript doesn't appear in this script.
       --The subscript node stays, for syntax checking, but is removed in normalize_flow_control
-      subname=parse_script(this,full_name,idx)
+      parse_script(this,full_name,idx)
       body&={{"begin",this[CMD_POS]},{"end",this[CMD_POS]}}
     else
       temp=alpha_tree_data(reserved,this[CMD_TEXT],RESERVE_FLOW)
@@ -3290,7 +3286,7 @@ function expand_macros(NodeList tree)
   NodeList newtree
   NodeList newargs
   string new_string
-  Token string_node, assertstr_node
+  Node string_node, assertstr_node
   sequence src_position
   sequence temp
   srcpos pos
