@@ -296,6 +296,8 @@ if CXX:
 gccversion = get_command_output(GCC, "-dumpversion")
 gccversion = int(gccversion.replace('.', ''))  # Convert e.g. 4.9.2 to 492
 
+EUC = WhereIs("euc")  # Euphoria compiler
+
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
@@ -1053,7 +1055,7 @@ def compile_hspeak(target, source, env):
     Action(actions)(target, source, env)
 
 # HSpeak is built by translating to C, generating a Makefile, and running make.
-HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e', WhereIs("euc")] + Glob('euphoria/*.e'),
+HSPEAK = env.Command (rootdir + 'hspeak', source = ['hspeak.exw', 'hsspiffy.e', EUC] + Glob('euphoria/*.e'),
                       action = Action(compile_hspeak, "Compiling hspeak"))
 
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
@@ -1174,8 +1176,10 @@ def Phony(name, source, action, message = None):
 def RPGWithScripts(rpg, main_script):
     """Construct an (Action) node for an .rpg, which updates it by re-importing
     an .hss if it (or any included script file) has been modified."""
-    # Do not include hspeak as dependency because Euphoria may not be installed
-    sources = [main_script, "plotscr.hsd"]  #, HSPEAK]
+    sources = [main_script, "plotscr.hsd"]
+    if EUC:
+        # Only include hspeak as dependency if Euphoria is installed, otherwise can't run tests
+        sources += [HSPEAK]
     action = env.Action(CUSTOM.abspath + ' --nowait ' + rpg + ' ' + main_script)
     # Prepending # means relative to rootdir, otherwise this a rule to build a file in build/
     node = env.Command('#' + rpg, source = sources, action = action)
