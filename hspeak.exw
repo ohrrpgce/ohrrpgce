@@ -153,9 +153,10 @@ without type_check    --for a small speed boost
 --with profile_time     --time profiling
 
 include hsspiffy.e --various routines, sequence manipulation - James Paige
-include graphics.e --standard library, needed for color output
 include machine.e  --needed for int_to_bytes
 include std/math.e --needed for mod
+include std/graphics.e --needed for color output
+include std/map.e
 include euphoria/unicode.e
 include euphoria/ucstypes.e
 include euphoria/io_with_unicode.e
@@ -183,6 +184,7 @@ constant VALID_OPTIONS="abcdfjknstwuyz"
 constant MIN_PLOTSCR_VERSION="3Tf"
 
 --these constants are color-flags. May add more colors, up to #F8FF
+--These values are also passed directly to Hamster Whisper.
 --(these codes are at the end of the first private use area)
 constant COL_FIRST=#F8E0
 constant COLYEL=#F8E0
@@ -191,7 +193,8 @@ constant COLPNK=#F8E2
 constant COLWHI=#F8E3
 constant COLBWHI=#F8E4
 constant COL_LAST=#F8FF
---Euphoria's color constants vary depending on the platform, so we avoid them
+--Map from the above to the color constants in std/graphics.e
+--(which incidentally vary from the constants in graphics.e)
 constant HS_TO_EU_COLORS={YELLOW, RED, BRIGHT_RED, WHITE, BRIGHT_WHITE}
 
 --These are character classes used in lexer_table
