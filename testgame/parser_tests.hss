@@ -8,11 +8,16 @@ define function, begin
   1,noop4,4,0,0,0,0
 end
 
+script, div, a, b ()
+
+defineoperator(100, eqstr, stringcompare)
+defineoperator(100, div, div)
+
 globalvariable(1,globalvar)
 defineconstant(1,constant)
 
 ## Check for errors given extra commas, and for operators in illegal positions
-script, comma tests, begin
+script, comma and operator tests, begin
   variable(xx)
   +,                     # ERROR
   + ,                    # ERROR
@@ -30,7 +35,12 @@ script, comma tests, begin
   1,--2                  # ERROR
   2--1                   # WARN
   ## FIXME: This is major lexer bug
-  2-1                    # ERROR
+  2-1                    # ERROR  (known failure)
+  1, div, 2              # OK
+  1, eqstr, 2            # OK
+  1, eqstr, 2 + 3        # OK
+  (1) eqstr (2 + 3)      # OK
+  (1) div (2 + 3)        # OK
   noop4(1,mod,2)         # OK
   #if,(xx) then()         # WARN
   if(xx), then()         # OK
@@ -39,18 +49,21 @@ script, comma tests, begin
   noop4(-2)              # OK
   noop4((2) -- (1))      # OK
   ## These error checks aren't implemented; they're hard to catch
-  noop(),                # ERROR
-  noop,()                # ERROR
-  noop4(noop,())         # ERROR
+  noop(),                # ERROR  (known failure)
+  noop,()                # ERROR  (known failure)
+  noop4(noop,())         # ERROR  (known failure)
   ## This fails because parsed as noop(0), but noop takes no args
   ## Let's say this should be a warning, because the behaviour would have changed
-  noop4(noop,(0))        # WARN
+  noop4(noop,(0))        # WARN   (known failure)
   noop4( --2)            # ERROR
   noop4(,--2)            # ERROR
   noop4( ,  , 0)         # ERROR
   noop4( , 0)            # ERROR
-  ## This probably doesn't particularly need to be disallowed
+  ## These probably don't particularly need to be disallowed
   noop4(0 ,)             # OK
+  variable(,yy)          # ERROR  (explict check for this)
+  variable(yy,)          # OK  (??)
+  variable()             # OK  (??)
   ## $ is treated as a unary operator
   $,0=""                 # ERROR
   $0,=""                 # ERROR
@@ -67,7 +80,7 @@ script, foo, end         # ERROR
 
 script, string tests, begin
   $0="", 232             # WARN
-  $0="" 232              # ERROR
+  $0="" 232              # ERROR   (known failure)
   "asdasd"               # ERROR
 end
 
@@ -82,9 +95,9 @@ script, number tests, x, begin
   x := 0x14a                 # OK
   x := - 0x 14a              # OK
   x := -	0x	14a  # OK
-  x := 0x                    # ERROR
-  x := 0o                    # ERROR
-  x := 0b                    # ERROR
+  x := 0x                    # ERROR   (known failure)
+  x := 0o                    # ERROR   (known failure)
+  x := 0b                    # ERROR   (known failure)
   ## Space after the 0 not supported... but we don't care one way or the other
   ##x := 0 x1
   ## Numbers which aren't 32 bit
@@ -111,7 +124,7 @@ end
 script, math warnings, x, begin
   x := random ()             # ERROR
   x := random (1)            # ERROR
-  x := random (1, 0)         # WARNING
+  x := random (1, 0)         # WARNING  (known failure)
   x := random (1, 1)         # OK
   ## The following test optimisations
   x := 1 / 0                 # ERROR
@@ -125,35 +138,82 @@ script, math warnings, x, begin
 end
 
 script, flow tests, dummy, begin
+  (dummy)                # WARN
+  ()                     # ERROR
+
   if(dummy) then() else()
   else()                 # ERROR
   then()                 # ERROR
-  break                  # ERROR
-  continue               # ERROR
+  break                  # ERROR  (known failure)
+  continue               # ERROR  (known failure)
+
   if () then()           # ERROR
   if(dummy,dummy) then() # ERROR
   if(dummy) if(dummy) then() # ERROR
   if(dummy) else()           # OK
   if(dummy) else() then()    # ERROR
+  dummy := variable(foo)     # ERROR   (known failure)
+  (if(dummy) else())         # ERROR   (known failure)
+  if(if(1)then(1))then()     # ERROR
+  dummy := if(1)then(1)      # ERROR
+  if(assert(1))then()        # ERROR
+  if($1="")then()            # OK
+  if() then                  # ERROR
+  if(then())                 # ERROR
+  if(dummy) variable(x) then()  # ERROR
+  if(dummy) then(variable(x))   # OK
 end
+
+############################### Namespace tests ###############################
+## Testing whether various types of names are properly disallowed
+
+globalvariable(one,global)       # ERROR
+globalvariable(two,globalvar2)   # OK
+globalvariable(2,globalvar)      # ERROR
+globalvariable(1,globalvar2)     # ERROR
+globalvariable(2,one)            # ERROR
+globalvariable(8,G2,9,G3)        # OK
+globalvariable(8,G2,9,G2)        # ERROR
+globalvariable(8)                # ERROR
+globalvariable(8,G2,9)           # ERROR
+globalvariable(9,begin)          # ERROR
+globalvariable(9,+)              # ERROR
+globalvariable(9,add)            # ERROR
+globalvariable(9,mod)            # ERROR
+globalvariable(9,eqstr)          # ERROR
+globalvariable(9,div)            # ERROR
+globalvariable(-1,ok)            # ERROR
+globalvariable(9,script)         # ERROR
+
+defineconstant(1,begin)          # ERROR
 
 script, namespace tests, arg, begin
   variable(noop)         # ERROR
   variable(script)       # ERROR
+  variable(variable)     # ERROR
+  variable(globalvariable) # ERROR
   variable(globalvar)    # ERROR
   variable(constant)     # ERROR
   variable(flow tests)   # ERROR
   variable(arg)          # ERROR
   variable(1)            # ERROR
   variable(a.)           # ERROR
+  variable(add)          # ERROR
+  variable(mod)          # ERROR
+  variable(eqstr)        # ERROR
+  variable(div)        # ERROR
+  variable(:=)           # ERROR
+  variable(x:=y)         # ERROR
+  variable($)            # ERROR
+  variable($+)           # ERROR
   variable(v)
-  ## subscript args and variables can shadow outer locals, but not globals
+  ## subscript args and variables can shadow outer locals, but not globals or other names
   subscript, sub ()                               # OK
   subscript, sub, globalvar ()                    # ERROR
   subscript, sub, constant ()                     # ERROR
   subscript, sub, NO OP ()                        # ERROR
   subscript, sub, namespace tests ()              # ERROR
-  subscript, sub, sub ()                          # ERROR
+  subscript, sub, sub ()                          # ERROR  (known failure)
   subscript, sub, arg ()                          # OK
   subscript, sub, v ()                            # OK
   subscript, namespace tests, arg ()              # ERROR
@@ -162,4 +222,14 @@ script, namespace tests, arg, begin
   subscript, sub, (subscript, namespace tests ()) # ERROR
   subscript, sub, v (subscript, sub2, v ())       # OK
   subscript, sub, W (subscript, sub2, w ())       # OK
+  v := subscript, sub ()                          # ERROR  (known failure)
+  ## Operators
+  subscript, add ()                               # ERROR
+  subscript, sub, add ()                          # ERROR
+  subscript, mod ()                               # ERROR
+  subscript, sub, mod ()                          # ERROR
+  subscript, eqstr ()                             # ERROR
+  subscript, sub, eqstr ()                        # ERROR
+  subscript, div ()                               # ERROR
+  subscript, sub, div ()                          # ERROR
 end
