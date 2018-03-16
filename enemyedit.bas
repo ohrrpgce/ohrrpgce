@@ -68,6 +68,8 @@ FUNCTION enemy_picker_or_none (recindex as integer = -1) as integer
  RETURN b.browse(recindex - 1, YES , @enemy_editor, NO) + 1
 END FUNCTION
 
+CONST EnLimDeathSFX = 26
+
 'recindex: which enemy to show. If -1, same as last time. If >= max, ask to add a new attack,
 '(and exit and return -1 if cancelled).
 'Otherwise, returns the enemy number we were last editing.
@@ -215,7 +217,6 @@ CONST EnLimDissolveTime = 25
 min(EnLimDissolveTime) = 0
 max(EnLimDissolveTime) = 99
 
-CONST EnLimDeathSFX = 26
 min(EnLimDeathSFX) = -1
 max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
@@ -810,7 +811,9 @@ DO
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), CAST(SpriteType, recbuf(EnDatPicSize) + sprTypeSmallEnemy), recbuf(EnDatPic), YES)
     state.need_update = YES
    CASE EnMenuDeathSFX
-    IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1
+    DIM old_sfx as integer = recbuf(EnDatDeathSFX)
+    recbuf(EnDatDeathSFX) = sfx_picker_or_none(old_sfx)
+    state.need_update = (recbuf(EnDatDeathSFX) <> old_sfx)
     IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets", remember_bit
@@ -948,6 +951,7 @@ SUB enemy_edit_update_menu(byval recindex as integer, state as MenuState, recbuf
  '--in case new enemies/attacks have been added
  max(EnLimSpawn) = gen(genMaxEnemy) + 1
  max(EnLimAtk) = gen(genMaxAttack) + 1
+ max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
  '--in case the PicSize has changed
  max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
