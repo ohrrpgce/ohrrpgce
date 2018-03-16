@@ -1512,6 +1512,7 @@ DO
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
   max(AtkLimItem) = gen(genMaxItem) + 1
+  max(AtkLimSfx) = gen(genMaxSFX) + 1
   '--in case chain mode has changed
   update_attack_editor_for_chain recbuf(AtkDatChainMode),        menu(AtkChainVal1),        max(AtkLimChainVal1),        min(AtkLimChainVal1),        menutype(AtkChainVal1),        menu(AtkChainVal2),        max(AtkLimChainVal2),        min(AtkLimChainVal2),        menutype(AtkChainVal2)
   update_attack_editor_for_chain recbuf(AtkDatElseChainMode),    menu(AtkElseChainVal1),    max(AtkLimElseChainVal1),    min(AtkLimElseChainVal1),    menutype(AtkElseChainVal1),    menu(AtkElseChainVal2),    max(AtkLimElseChainVal2),    min(AtkLimElseChainVal2),    menutype(AtkElseChainVal2)
@@ -2236,11 +2237,12 @@ SELECT CASE menutype(nowindex)
 END SELECT
 
 '--preview sound effects
-IF menutype(nowindex) = 11 AND changed THEN resetsfx
-IF menutype(nowindex) = 11 AND enter_or_space() THEN
- DIM sfx as integer = datablock(menuoff(nowindex))
- IF sfx > 0 AND sfx <= gen(genMaxSFX) + 1 THEN
-  playsfx sfx - 1
+IF menutype(nowindex) = 11 AND enter_space_click(state) THEN
+ DIM old_sfx as integer = datablock(menuoff(nowindex))
+ DIM sfx as integer = sfx_picker_or_none(old_sfx)
+ IF sfx <> old_sfx THEN
+  datablock(menuoff(nowindex)) = sfx
+  changed = YES
  END IF
 END IF
 
