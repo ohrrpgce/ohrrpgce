@@ -112,7 +112,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     cursor_moved = YES
    end if
   elseif IsAncestor(ps.cur, noscroll_area) then
-   if plank_menu_arrows(ps, noscroll_area) then
+   dim start_from as Slice Ptr = noscroll_area
+   if keyval(scPageUp) > 1 orelse keyval(scPageDown) > 1 then start_from = thinglist
+   if plank_menu_arrows(ps, start_from) then
     cursor_moved = YES
    end if
   end if
