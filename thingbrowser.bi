@@ -162,6 +162,19 @@ Type SfxBrowser extends ThingBrowser
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
+Type SongBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
+ declare virtual function init_helpkey() as string
+ declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
+ declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+ plank_template as Slice Ptr
+ declare virtual sub set_up_sub_buttons()
+ declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+End Type
+
 '-----------------------------------------------------------------------
 'Constant list browsers
 

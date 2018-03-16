@@ -470,7 +470,7 @@ SUB main_editor_menu()
    IF state.pt = 10 THEN menu_editor
    IF state.pt = 11 THEN slice_editor
    IF state.pt = 12 THEN vehicles
-   IF state.pt = 13 THEN importsong
+   IF state.pt = 13 THEN song_editor_main
    IF state.pt = 14 THEN sfx_editor_main
    IF state.pt = 15 THEN edit_global_text_strings
    IF state.pt = 16 THEN general_data_editor

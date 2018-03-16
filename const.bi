@@ -290,6 +290,7 @@ CONST maxMaxHero = 511 'This is the max value possible for gen(genMaxHero)
 CONST maxMaxAttacks = 32767 ' Max possible value for gen(genMaxAttack)
 CONST maxMaxTextbox = 32767 ' Max possible value for gen(genMaxTextbox)
 CONST maxMaxSFX = 32767 ' Max possible value for gen(genMaxSFX)
+CONST maxMaxSong = 32767 ' Max possible value for gen(genMaxSong)
 
 CONST sizeActiveParty = 4 'The size of the active/battle party
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())

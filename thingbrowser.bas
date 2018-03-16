@@ -774,6 +774,75 @@ End Function
 
 '-----------------------------------------------------------------------
 
+Function SongBrowser.thing_kind_name() as string
+ return "Songs"
+End Function
+
+Function SongBrowser.init_helpkey() as string
+ return "song_editor_browser"
+End Function
+
+Function SongBrowser.highest_id() as integer
+ return gen(genMaxSong)
+End Function
+
+Function SongBrowser.highest_possible_id() as integer
+ return maxMaxSong
+End Function
+
+Sub SongBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ if id >= 0 then
+  playsongnum id
+ else
+  music_stop
+ end if
+End Sub
+
+Sub SongBrowser.set_up_sub_buttons()
+ redim sub_buttons(0) as integer
+ sub_buttons(0) = SL_EDITOR_THINGBROWSER_PLANK_SPRITE
+End Sub
+
+Function SongBrowser.on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
+ select case button_lookup
+  case SL_EDITOR_THINGBROWSER_PLANK_SPRITE:
+   if id >= 0 then
+    playsongnum id
+   end if
+   return NO
+ end select
+ return YES
+End Function
+
+Sub SongBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+#ifdef IS_CUSTOM
+ if keyval(scF2) > 1 then Custom_volume_menu
+#endif
+End Sub
+
+Function SongBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim songname as string = getsongname(id)
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("song_browser_plank.slice"))
+ end if
+ dim plank as Slice Ptr
+ plank = CloneSliceTree(plank_template)
+ 
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ if id = -1 then
+  spr->Visible = NO
+ end if
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, id & !"\n" & songname
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ return plank
+End Function
+
+'-----------------------------------------------------------------------
+
 Function TextboxBrowser.thing_kind_name() as string
  return "Textboxes"
 End Function

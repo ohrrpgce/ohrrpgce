@@ -251,8 +251,34 @@ END SUB
 '                                  Music Import/Editor
 '==========================================================================================
 
+SUB song_editor_main ()
+ DIM b as SongBrowser
+ b.browse(-1, , @importsong)
+ music_stop
+END SUB
 
-SUB importsong ()
+FUNCTION song_picker (recindex as integer = -1) as integer
+ DIM b as SongBrowser
+ RETURN b.browse(recindex, , @importsong, NO)
+END FUNCTION
+
+FUNCTION song_picker_or_none (recindex as integer = -1) as integer
+ DIM b as SongBrowser
+ RETURN b.browse(recindex - 1, YES , @importsong, NO) + 1
+END FUNCTION
+
+FUNCTION importsong (byval songnum as integer) as integer
+'songnum is the song to start with, or > max to add a new one.
+'Return value is the last selected song, or -1 if cancelling an add-new
+
+IF songnum > gen(genMaxSong) THEN
+ 'Requested a new one
+ IF NOT needaddset(songnum, gen(genMaxSong), "song") THEN
+  'Cancelled
+  RETURN -1
+ END IF
+END IF
+
 REDIM menu(6) as string
 REDIM selectable(6) as bool
 menu(0) = "Previous Menu"
@@ -266,7 +292,6 @@ state.autosize = YES
 state.autosize_ignore_lines = 1
 state.pt = 1
 
-DIM songnum as integer = 0
 DIM songname as string = ""
 DIM songfile as string = ""
 DIM bamfile as string = ""  '"" if none, differs from songfile if it's a BAM fallback
@@ -351,9 +376,8 @@ DO
 LOOP
 importsong_save_song_data songname, songnum
 music_stop
-EXIT SUB
-
-END SUB
+RETURN songnum
+END FUNCTION
 
 SUB importsong_import_song_file (songname as string, songfile as string, bamfile as string, byval songnum as integer)
  STATIC default as string
@@ -583,10 +607,9 @@ FUNCTION sfx_picker_or_none (recindex as integer = -1) as integer
  RETURN b.browse(recindex - 1, YES , @importsfx, NO) + 1
 END FUNCTION
 
-
 FUNCTION importsfx (byval sfxnum as integer) as integer
-'sfxnum is the song to start with, or > max to add a new one.
-'Return value is the last selected song, or -1 if cancelling an add-new
+'sfxnum is the sfx to start with, or > max to add a new one.
+'Return value is the last selected sfx, or -1 if cancelling an add-new
 
 IF sfxnum > gen(genMaxSFX) THEN
  'Requested a new one

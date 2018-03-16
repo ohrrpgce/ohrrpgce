@@ -1,0 +1,11 @@
+Browse to pick a Song.
+
+You can type the name of a Song or type the Song's ID number to make the cursor jump to it.
+
+Click the "+New" button to add a new Song.
+
+Right-click for a pop-up menu that lets you choose if you want to "Pick" this Song, or if you want to edit it.
+
+Press CTRL+F or click "Filter" if you want to filter the list to only show Songs that match a certain string of text.
+
+Press F2 if you want to adjust the volume.
