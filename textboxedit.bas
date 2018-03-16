@@ -891,11 +891,11 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
      IF box.portrait_type <> 0 THEN  'If portrait type is NONE, then the portrait+box aren't visible
       textbox_position_portrait box, st, backdrop
      END IF
-    CASE 15: IF box.sound_effect > 0 THEN playsfx box.sound_effect - 1
+    CASE 15:
+     box.sound_effect = sfx_picker_or_none(box.sound_effect)
     CASE 17:
-     IF box.line_sound > 0 THEN
-      playsfx box.line_sound - 1
-     ELSEIF box.line_sound = 0 AND gen(genTextboxLine) > 0 THEN
+     box.line_sound = sfx_picker_or_none(box.line_sound)
+     IF box.line_sound = 0 ANDALSO gen(genTextboxLine) > 0 THEN
       playsfx gen(genTextboxLine) - 1
      END IF
    END SELECT
