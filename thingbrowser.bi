@@ -133,6 +133,18 @@ Type TextboxBrowser extends ThingBrowser
 End Type
 
 '-----------------------------------------------------------------------
+'Import resource browsers
+
+Type SfxBrowser extends ThingBrowser
+ declare virtual function thing_kind_name() as string
+ declare virtual function init_helpkey() as string
+ declare virtual function highest_id() as integer
+ declare virtual function highest_possible_id() as integer
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+ plank_template as Slice Ptr
+End Type
+
+'-----------------------------------------------------------------------
 'Constant list browsers
 
 Type ConstantListBrowser extends ThingBrowser

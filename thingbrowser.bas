@@ -643,6 +643,45 @@ End Sub
 
 '-----------------------------------------------------------------------
 
+Function SfxBrowser.thing_kind_name() as string
+ return "Sound Effects"
+End Function
+
+Function SfxBrowser.init_helpkey() as string
+ return "sfx_editor_browser"
+End Function
+
+Function SfxBrowser.highest_id() as integer
+ return gen(genMaxSFX)
+End Function
+
+Function SfxBrowser.highest_possible_id() as integer
+ return maxMaxSFX
+End Function
+
+Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
+ dim sfxname as string = getsfxname(id)
+
+ if plank_template = 0 then
+  plank_template = load_plank_from_file(finddatafile("sfx_browser_plank.slice"))
+ end if
+ dim plank as Slice Ptr
+ plank = CloneSliceTree(plank_template)
+ 
+ dim spr as Slice Ptr
+ spr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ if id = -1 then
+  spr->Visible = NO
+ end if
+ dim txt as Slice Ptr
+ txt = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+ ChangeTextSlice txt, id & !"\n" & sfxname
+ if id = -1 then ChangeTextSlice txt, "NONE"
+ return plank
+End Function
+
+'-----------------------------------------------------------------------
+
 Function TextboxBrowser.thing_kind_name() as string
  return "Textboxes"
 End Function

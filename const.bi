@@ -116,7 +116,7 @@ CONST genStunChar = 62          'Stun status indicator char
 CONST genDamageCap = 63         'Damage cap
 CONST genMuteChar = 64          'Mute status indicator char
 CONST genStatCap = 65           'Stat caps (genStatCap + stat) (65-76)
-CONST genMaxSFX = 77            'last song number
+CONST genMaxSFX = 77            'last sound effect number
 CONST genMasterPal = 78         'master palette number
 CONST genMaxMasterPal = 79      'max master palette number
 CONST genMaxMenu = 80           'max menu def in MENUS.BIN
@@ -289,6 +289,7 @@ CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 511 'This is the max value possible for gen(genMaxHero)
 CONST maxMaxAttacks = 32767 ' Max possible value for gen(genMaxAttack)
 CONST maxMaxTextbox = 32767 ' Max possible value for gen(genMaxTextbox)
+CONST maxMaxSFX = 32767 ' Max possible value for gen(genMaxSFX)
 
 CONST sizeActiveParty = 4 'The size of the active/battle party
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())

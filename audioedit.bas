@@ -622,7 +622,7 @@ DO
    sfxnum -= 1
    importsfx_get_sfx_info sfxname, sfxfile, sfxnum, file_ext, menu(), metadata, selectable(), state
   END IF
-  IF keyval(scRight) > 1 AND sfxnum < 32767 THEN
+  IF keyval(scRight) > 1 AND sfxnum < maxMaxSFX THEN
    importsfx_save_sfx_data sfxname, sfxnum
    freesfx sfxnum
    sfxnum += 1
