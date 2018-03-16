@@ -16,6 +16,10 @@
 #include "plankmenu.bi"
 #include "loading.bi"
 
+#ifdef IS_CUSTOM
+#include "custom.bi"
+#endif
+
 #include "thingbrowser.bi"
 
 '-----------------------------------------------------------------------
@@ -305,6 +309,7 @@ End Sub
 
 Sub ThingBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  'Nothing needs to happen here, if you don't want extra selection cursor animation
+ 'or special key handling
  '(the SL_PLANK_MENU_SELECTABLE animation of TextSlice and RectangleSlice color happens automatically even without this sub)
 End Sub
 
@@ -739,6 +744,12 @@ Function SfxBrowser.on_sub_button_click(byval button_lookup as integer,byval id 
  end select
  return YES
 End Function
+
+Sub SfxBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+#ifdef IS_CUSTOM
+ if keyval(scF2) > 1 then Custom_volume_menu
+#endif
+End Sub
 
 Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim sfxname as string = getsfxname(id)

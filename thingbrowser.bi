@@ -159,6 +159,7 @@ Type SfxBrowser extends ThingBrowser
  plank_template as Slice Ptr
  declare virtual sub set_up_sub_buttons()
  declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 '-----------------------------------------------------------------------
