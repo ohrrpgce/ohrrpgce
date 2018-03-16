@@ -33,6 +33,8 @@ DECLARE FUNCTION item_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION item_picker_or_none (recindex as integer = -1) as integer
 DECLARE FUNCTION shop_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION shop_picker_or_none (recindex as integer = -1) as integer
+DECLARE FUNCTION sfx_picker (recindex as integer = -1) as integer
+DECLARE FUNCTION sfx_picker_or_none (recindex as integer = -1) as integer
 
 DECLARE SUB importmxs (f as string, cap as string, byref count as integer, sprtype as SpriteType)
 DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as bool
@@ -43,7 +45,8 @@ DECLARE SUB old_spriteset_editor (xw as integer, yw as integer, byref sets as in
 DECLARE SUB spriteset_editor(sprtype as SpriteType)
 DECLARE SUB backdrop_browser ()
 DECLARE SUB importsong ()
-DECLARE SUB importsfx ()
+DECLARE SUB sfx_editor_main()
+DECLARE FUNCTION importsfx (byval sfxnum as integer) as integer
 DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB general_data_editor ()
 DECLARE SUB item_editor ()

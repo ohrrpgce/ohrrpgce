@@ -11,6 +11,7 @@
 #include "const.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "thingbrowser.bi"
 
 
 '''' Local functions
@@ -567,8 +568,33 @@ END SUB
 '                                Sound Effects Import/Editor
 '==========================================================================================
 
+SUB sfx_editor_main ()
+ DIM b as SfxBrowser
+ b.browse(-1, , @importsfx)
+END SUB
 
-SUB importsfx ()
+FUNCTION sfx_picker (recindex as integer = -1) as integer
+ DIM b as SfxBrowser
+ RETURN b.browse(recindex, , @importsfx, NO)
+END FUNCTION
+
+FUNCTION sfx_picker_or_none (recindex as integer = -1) as integer
+ DIM b as SfxBrowser
+ RETURN b.browse(recindex - 1, YES , @importsfx, NO) + 1
+END FUNCTION
+
+
+FUNCTION importsfx (byval sfxnum as integer) as integer
+'sfxnum is the song to start with, or > max to add a new one.
+'Return value is the last selected song, or -1 if cancelling an add-new
+
+IF sfxnum > gen(genMaxSFX) THEN
+ 'Requested a new one
+ IF NOT needaddset(sfxnum, gen(genMaxSFX), "sfx") THEN
+  'Cancelled
+  RETURN -1
+ END IF
+END IF
 
 REDIM menu(6) as string
 REDIM selectable(6) as bool  'No actual purpose
@@ -585,7 +611,6 @@ state.autosize = YES
 state.autosize_ignore_lines = 1
 state.last = UBOUND(menu)
 
-DIM sfxnum as integer = 0
 DIM sfxname as string = ""
 DIM sfxfile as string = ""
 DIM newsfx as integer
@@ -668,7 +693,8 @@ DO
 LOOP
 importsfx_save_sfx_data sfxname, sfxnum
 freesfx sfxnum
-END SUB
+RETURN sfxnum
+END FUNCTION
 
 SUB importsfx_importsfxfile(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string)
  STATIC default as string
