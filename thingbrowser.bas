@@ -33,6 +33,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  can_edit = (editor_func <> 0)
  helpkey = init_helpkey() 'Do this after we know if editing is available
 
+ set_up_sub_buttons
  enter_browser
 
  dim mode_indicator as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_MODE_INDICATOR, root)
@@ -47,7 +48,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  dim type_query_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_TYPE_QUERY, root)
  dim filter_text_sl as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_FILTER_TEXT, root)
 
- dim thinglist as Slice Ptr
  thinglist = LookupSlice(SL_EDITOR_THINGBROWSER_THINGLIST, root)
  RefreshSliceScreenPos thinglist
  build_thing_list()
@@ -177,7 +177,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     end select
    end if
   end if
-  if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur) then
+  if enter_or_space() orelse ((readmouse.release AND mouseLeft) andalso hover=ps.cur andalso confirm_plank_click(hover)) then
    if IsAncestor(ps.cur, thinglist) then
     if can_edit = NO orelse edit_by_default = NO then
      'Selected a thing
@@ -307,6 +307,41 @@ Sub ThingBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  'Nothing needs to happen here, if you don't want extra selection cursor animation
  '(the SL_PLANK_MENU_SELECTABLE animation of TextSlice and RectangleSlice color happens automatically even without this sub)
 End Sub
+
+Function ThingBrowser.confirm_plank_click (byval plank as Slice Ptr) as bool
+ 'This function is called if a click has happened with readmouse.pos colliding with the plank
+ 'return YES to select/pick the plank, or return NO if the plank should just be focused, not activated
+ dim id as integer = plank->Extra(0)
+ if not IsAncestor(plank, thinglist) then id = -1
+ dim btn as Slice Ptr
+ for i as integer = 0 to ubound(sub_buttons)
+  dim code as integer = sub_buttons(i)
+  if code <> 0 then
+   btn = LookupSlice(code, plank)
+   if btn andalso SliceCollidePoint(btn, readmouse.pos) then
+    return on_sub_button_click(code, id, plank)
+   end if
+  end if
+ next i
+ return YES
+End Function
+
+Sub ThingBrowser.set_up_sub_buttons()
+ 'Sub classes can resize this array and fill it with slice lookup codes to make them behave as buttons
+ 'see also on_sub_button_click()
+ redim sub_buttons(0) as integer
+ sub_buttons(0) = 0
+ 
+ 'For example, if you wanted special handling when clicking on the sprite, you would do:
+ 'sub_buttons(0) = SL_EDITOR_THINGBROWSER_PLANK_SPRITE
+End Sub
+
+Function ThingBrowser.on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
+ 'This is a handler for the special sub-buttons set up in set_up_sub_buttons()
+ 'It should return YES if this click should activate the plank as normal, or
+ 'return NO if the plank should just be focused without activating
+ return NO
+End Function
 
 Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
  'A crude and simple animation helper for sprites in planks.
@@ -688,6 +723,22 @@ Sub SfxBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
   playsfx id, 0
  end if
 End Sub
+
+Sub SfxBrowser.set_up_sub_buttons()
+ redim sub_buttons(0) as integer
+ sub_buttons(0) = SL_EDITOR_THINGBROWSER_PLANK_SPRITE
+End Sub
+
+Function SfxBrowser.on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
+ select case button_lookup
+  case SL_EDITOR_THINGBROWSER_PLANK_SPRITE:
+   if id >= 0 then
+    playsfx id, 0
+   end if
+   return NO
+ end select
+ return YES
+End Function
 
 Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim sfxname as string = getsfxname(id)

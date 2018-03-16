@@ -18,6 +18,7 @@ Type ThingBrowser extends Object
  declare sub loop_sprite_helper(byval plank as Slice Ptr, byval min as integer, byval max as integer, byval delay as integer=1)
 
  root as Slice ptr
+ thinglist as Slice Ptr
  plank_size as XYPair 'This is calculated dynamically from the largest plank returned by create_thing_plank()
 
  helpkey as string
@@ -53,6 +54,16 @@ Type ThingBrowser extends Object
  'This is called once each tick for the currently selected cursor plank
  '(this is called second, after each_tick_each_plank())
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+
+ 'When a left click happens on a plank, this function must return YES for the plank to be selected 
+ declare virtual function confirm_plank_click (byval plank as Slice Ptr) as bool
+ 
+ 'Initialize list of slice lookup codes that should be treated as sub-buttons
+ declare virtual sub set_up_sub_buttons()
+ sub_buttons(ANY) as integer
+ 
+ 'Handler for clicking on a sub-button
+ declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
 
  'If the plank is purely text based, just override this rather than .create_thing_plank()
  declare virtual function thing_text_for_id(byval id as integer) as string
@@ -146,6 +157,8 @@ Type SfxBrowser extends ThingBrowser
  declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  plank_template as Slice Ptr
+ declare virtual sub set_up_sub_buttons()
+ declare virtual function on_sub_button_click(byval button_lookup as integer,byval id as integer, byval plank as Slice Ptr) as bool
 End Type
 
 '-----------------------------------------------------------------------
