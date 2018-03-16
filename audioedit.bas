@@ -890,7 +890,11 @@ SUB generalmusicsfxmenu ()
       CASE 0
         EXIT DO
       CASE 1 TO lastmusicitem
-        IF gen(index(state.pt)) > 0 THEN playsongnum gen(index(state.pt)) - 1
+        gen(index(state.pt)) = song_picker_or_none(gen(index(state.pt)))
+        state.need_update = YES
+        IF gen(index(state.pt)) > 0 THEN
+         playsongnum gen(index(state.pt)) - 1
+        END IF
       CASE lastmusicitem + 1 TO state.last
         gen(index(state.pt)) = sfx_picker_or_none(gen(index(state.pt)))
         state.need_update = YES
