@@ -19,10 +19,6 @@
 
 
 'Local subs and functions
-DECLARE FUNCTION plank_menu_move_cursor (byref ps as PlankState, byval axis as integer, byval d as integer, byval start_parent as Slice Ptr=0) as bool
-DECLARE SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, byval start_parent as Slice Ptr=0)
-DECLARE FUNCTION plank_menu_home(byref ps as PlankState) as bool
-DECLARE FUNCTION plank_menu_end(byref ps as PlankState) as bool
 
 '-----------------------------------------------------------------------
 

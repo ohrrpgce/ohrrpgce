@@ -98,7 +98,22 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   
   if IsAncestor(ps.cur, thinglist) then
    'Things that only happen when the selection is in the thinglist
-   if plank_menu_arrows(ps, thinglist) then
+   if keyval(scHome) > 1 then
+    'special handling of the home button
+    if ps.cur->PrevSibling = 0 then
+     'already on the first
+     plank_menu_home(ps)
+     cursor_moved = YES
+    else
+     'select the first
+     dim first_thing as Slice Ptr
+     first_thing = find_plank_by_extra_id(ps, , lowest_id(), thinglist)
+     if first_thing then
+      ps.cur = first_thing
+      cursor_moved = YES
+     end if
+    end if
+   elseif plank_menu_arrows(ps, thinglist) then
     'Give priority to the thinglist
     cursor_moved = YES
    end if
