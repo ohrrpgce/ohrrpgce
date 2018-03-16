@@ -249,6 +249,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   if cursor_moved then
    'Yep, a move happened. We would update selection detail display here if that was a thing
    update_plank_scrolling ps
+   dim id as integer = ps.cur->Extra(0)
+   if not IsAncestor(ps.cur, thinglist) then id = -1
+   on_cursor_moved id, ps.cur
   end if
   cursor_moved = NO
   
@@ -273,6 +276,10 @@ End Sub
 
 Sub ThingBrowser.leave_browser()
  'Special cleanup
+End Sub
+
+Sub ThingBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ 'React to selecting a new plank with the keyboard or mouse
 End Sub
 
 Sub ThingBrowser.each_tick_each_plank(byval plank as Slice Ptr)
@@ -658,6 +665,12 @@ End Function
 Function SfxBrowser.highest_possible_id() as integer
  return maxMaxSFX
 End Function
+
+Sub SfxBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+ if id >= 0 then
+  playsfx id, 0
+ end if
+End Sub
 
 Function SfxBrowser.create_thing_plank(byval id as integer) as Slice ptr
  dim sfxname as string = getsfxname(id)

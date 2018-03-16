@@ -44,6 +44,9 @@ Type ThingBrowser extends Object
  ' The thing id number will automatically be written into the plank's ->Extra(0) slot
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
 
+ 'This is called once each time the cursor selection moves, such as by keyboard or right-click
+ declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
+
  'This is called once each tick for each plank, and can be used for animation, and similar
  declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
  
@@ -140,6 +143,7 @@ Type SfxBrowser extends ThingBrowser
  declare virtual function init_helpkey() as string
  declare virtual function highest_id() as integer
  declare virtual function highest_possible_id() as integer
+ declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
  plank_template as Slice Ptr
 End Type
