@@ -870,7 +870,9 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
       IF box.backdrop > 0 THEN
        backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
       END IF
-    CASE 6: IF box.music > -1 THEN playsongnum box.music - 1
+    CASE 6:
+     box.music = song_picker_or_none(box.music)
+     IF box.music > -1 THEN playsongnum box.music - 1
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
@@ -962,6 +964,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
     SaveTextBox box, remptr
     textbox_edit_load box, st, parent_menu()
     frame_unload @backdrop
+    music_stop
     IF box.backdrop > 0 THEN
      backdrop = frame_load(sprTypeBackdrop, box.backdrop - 1)
     END IF
