@@ -1308,6 +1308,8 @@ SUB individual_formation_editor ()
 
  LoadFormation form, form_id
  load_formation_slices ename(), form, @rootslice
+ IF form.music >= 0 THEN playsongnum form.music
+ DIM last_music as integer = form.music
 
  DIM menu(16) as string
  DIM state as MenuState
@@ -1378,7 +1380,8 @@ SUB individual_formation_editor ()
      load_formation_slices ename(), form, @rootslice
     END IF
     IF state.pt = 5 THEN
-     IF form.music >= 0 THEN playsongnum form.music
+     form.music = song_picker_or_none(form.music + 1) - 1
+     state.need_update = YES
     END IF
     IF slot <> -1 THEN 'an enemy
      DIM browse_for_enemy as bool = NO
@@ -1432,7 +1435,7 @@ SUB individual_formation_editor ()
    END IF
    IF state.pt = 5 THEN
     IF intgrabber(form.music, -2, gen(genMaxSong)) THEN
-     music_stop
+     state.need_update = YES
     END IF
    END IF
    IF state.pt = 6 THEN
@@ -1456,6 +1459,7 @@ SUB individual_formation_editor ()
      END IF
      LoadFormation form, form_id
      load_formation_slices ename(), form, @rootslice
+     state.need_update = YES
      bgwait = 0
      bgctr = 0
     END IF
@@ -1476,6 +1480,18 @@ SUB individual_formation_editor ()
      END IF
     END WITH
    END IF
+  END IF
+  
+  IF state.need_update THEN
+   IF form.music >= 0 THEN
+    IF form.music <> last_music THEN
+     playsongnum form.music
+    END IF
+   ELSE
+    music_stop
+   END IF
+   last_music = form.music
+   state.need_update = NO
   END IF
 
   ' Draw screen
