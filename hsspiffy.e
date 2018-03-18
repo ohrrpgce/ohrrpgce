@@ -379,8 +379,9 @@ global function trim_tail(sequence s,integer tail)
 end function
 
 global type int32(object o)
-  --32-bit signed int (Euphoria deals in 31-bit ints)
-  if integer(o) or (atom(o) and floor(o)=o and o>=-2147483648 and o<=2147483647) then
+  --32-bit signed int (32-bit Euphoria deals in 31-bit ints, 64-bit Euphoria is something
+  --larger, so Euphoria's 'integer' type is unhelpful here)
+  if atom(o) and floor(o)=o and o>=-2147483648 and o<=2147483647 then
     return(true)
   end if
   return(false)
