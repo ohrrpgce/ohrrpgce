@@ -1019,6 +1019,9 @@ procedure init()
   wrap_print("HamsterSpeak semicompiler v%s%s\n",{COMPILER_VERSION,COMPILER_SUB_VERSION})
   wrap_print("Semicompiling "&COLBWHI&"%s"&COLWHI&" to "&COLBWHI&"%s"&COLWHI&"\n",{source_file,dest_file})
   if file_exists(dest_file) then
+    if find(extension_only(dest_file),{"hss","txt"}) then
+      simple_error("Refusing to write output to "&dest_file&" because only input files should have hss/txt extension!")
+    end if
     if find('y',optlist) then
       --found the -y command line arg, overwrite automatically
       key='y'
