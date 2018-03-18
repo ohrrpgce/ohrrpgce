@@ -437,8 +437,8 @@ integer cur_script_num    cur_script_num=0    --index into all_scripts of curren
 integer colors_enabled    colors_enabled=true
 integer simple_colorcodes simple_colorcodes=false
 integer error_file        error_file=false
-sequence used_globals     used_globals={}     --list of strings
-sequence used_locals      used_locals={}      --list of strings
+map used_globals          used_globals=map:new()  --set of ids (keys are ids, values are true)
+map used_locals           used_locals=map:new()   --set of ids (keys are ids, values are true)
 sequence string_table     string_table={}     --binary data
 string plotscr_version    plotscr_version=""
 integer max_used_function max_used_function=0 --maximum id of a function used in a script
@@ -3708,7 +3708,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
         temp=what_kind_and_id(ctr,vars,false)
         kind=temp[1]
         if kind=KIND_LOCAL then
-          used_locals=append(used_locals,ctr[CMD_TEXT])
+          map:put(used_locals,temp[2],true)
         elsif kind=KIND_GLOBAL then
           --warn, then translate into a numeric reference to a variable
           src_warn(sprintf_utf(
@@ -4263,15 +4263,13 @@ function sanity_check(NodeList tree, VarList vars, string parent)
     kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars,false)
     kind=kind_and_id[1]
     id=kind_and_id[2]
-    if (compare("if",parent)=0) and i=1 then
+    if i=1 and equal("if",parent) then
       if kind=KIND_NUMBER then
         if id then
           src_warn(sprintf_utf("Condition is always true ("&COLYEL&"%d"&COLRED&")",{id}),pos)
         else
           src_warn("Condition is always false",pos)
         end if
-      elsif kind=KIND_FLOW then
-        src_warn(sprintf_utf("Should not use flow control command "&COLYEL&"%s"&COLRED&" as condition for if",{s}),pos)
       end if
     elsif block_command(parent) then
       if kind=KIND_NUMBER then
@@ -4290,13 +4288,9 @@ function sanity_check(NodeList tree, VarList vars, string parent)
       end if
     end if
     if kind=KIND_GLOBAL then
-      if not find(s,used_globals) then
-        used_globals=append(used_globals,s)
-      end if
+      map:put(used_globals,id,true)
     elsif kind=KIND_LOCAL then
-      if not find(s,used_locals) then
-        used_locals=append(used_locals,s)
-      end if
+      map:put(used_locals,id,true)
     end if
     if length(tree[i][TREE_BRANCHES]) then
       --if there are sub-arguments, recurse
@@ -4520,27 +4514,23 @@ end function
 
 --FIXME: if a local is used only in a subscript it is reported as unused
 procedure warn_unused_locals(VarList vars)
-  if find('u',optlist) then
-    for i=1 to length(vars) do
-      if vars[i][VAR_FRAME]=0 and not find(vars[i][CMD_TEXT],used_locals) then
-        src_warn(sprintf_utf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
-      end if
-    end for
-  end if
+  for i=1 to length(vars) do
+    if vars[i][VAR_FRAME]=0 and not map:has(used_locals,vars[i][VAR_ID]) then
+      src_warn(sprintf_utf("local variable "&COLYEL&"%s"&COLRED&" is never used",{vars[i][CMD_TEXT]}),vars[i][CMD_POS])
+    end if
+  end for
 end procedure
 
 ---------------------------------------------------------------------------
 
 procedure warn_unused_globals()
-  integer at
-  if find('u',optlist) then
-    for i=1 to length(global_list[PAIR_NUM]) do
-      at=find(global_list[PAIR_NAME][i],used_globals)
-      if not at then
-        src_warn(sprintf_utf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],global_list[PAIR_NUM][i]}),global_list[GLB_POS][i])
-      end if
-    end for
-  end if
+  integer id
+  for i=1 to length(global_list[PAIR_NUM]) do
+    id=global_list[PAIR_NUM][i]
+    if not map:has(used_globals,id) then
+      src_warn(sprintf_utf("global variable "&COLYEL&"%s"&COLRED&" ID "&COLYEL&"%d"&COLRED&" is never used",{global_list[PAIR_NAME][i],id}),global_list[GLB_POS][i])
+    end if
+  end for
 end procedure
 
 ---------------------------------------------------------------------------
@@ -4589,7 +4579,7 @@ procedure compile_a_script(integer script_idx)
   end if
   exit_timing_zone()
 
-  used_locals={}
+  used_locals=map:new()
   reenter_timing_zone("build_ast")
   script_tree=build_ast(script[SCRIPT_BODY_TOKS],local_vars)
   exit_timing_zone()
@@ -4615,7 +4605,9 @@ procedure compile_a_script(integer script_idx)
     reenter_timing_zone("sanity_check")
     script_tree=sanity_check(script_tree,local_vars,"")
     exit_timing_zone()
-    warn_unused_locals(local_vars)
+    if find('u',optlist) then
+      warn_unused_locals(local_vars)
+    end if
   end if
 
   script&={
@@ -4776,7 +4768,7 @@ procedure compile_each_script()
     color_print(".",{})
   end for
   color_print("\n",{})
-  if not fast_mode then
+  if not fast_mode and find('u',optlist) then
     warn_unused_globals()
   end if
   for i=1 to length(count) do
