@@ -1966,12 +1966,20 @@ end procedure
 procedure check_for_reserved(string s, srcpos pos, string expect)
   string extra
   Symbol sym
+  sequence src_position
   if map:has(global_scope,s) then
     extra=""
-    if compare("top-level declaration",expect)=0 then
-      extra=". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
-    end if
     sym=map:get(global_scope,s)
+    if sym[SYM_POS] then
+      src_position=decode_srcpos(sym[SYM_POS])
+      extra&=sprintf_utf(
+          " (which was declared on line %d in "&COLPNK&"%s"&COLRED&")"
+          ,{src_position[POS_LINE],src_position[POS_FILENAME]}
+        )
+    end if
+    if equal("top-level declaration",expect) then
+      extra&=". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
+    end if
     src_error(
       sprintf_utf(
         "Expected %s, but found %s "&COLYEL&"%s"&COLRED&"%s"
@@ -3199,6 +3207,7 @@ end function
 function add_local_variable(VarList vars, Token var)
   integer id
   sequence src_position
+  --First check it's not already defined at global scope
   check_undefined_string(var,"local variable name")
   --Search for an existing local with the same name. Ignore non-locals, because they are shadowed
   for idx=1 to length(vars) do
