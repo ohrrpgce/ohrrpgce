@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tj 2018-03-18 Fix some number and - lexing bugs
 --3Ti 2018-03-17 More compiler global_scope optimisations
 --3Th 2018-03-15 Optimize compiler, rewriting global_scope lookup
 --3Tg 2017-12-31 Fix crash due to missing KIND_LONGNAMES[KIND_KEYWORD]
@@ -173,7 +174,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ti"
+constant COMPILER_SUB_VERSION="Tj"
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -1441,6 +1442,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   integer sign,base
   string text
   integer starti
+  integer digits
 
   starti=i
   --Process negative prefix, because it isn't treated as a unary operator
@@ -1458,7 +1460,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   end while
   --Check for base prefix 0x 0o or 0b. No separating space allowed!
   base=10
-  if i+2<=stop and s[i]='0' then
+  if i+1<=stop and s[i]='0' then
     if s[i+1]='x' or s[i+1]='X' then
       base=16
       i+=2
@@ -1471,6 +1473,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
     end if
   end if
   val=0
+  digits=0
   while i<=stop do
     if s[i]<256 then
       state=lexer_table[s[i]+1]
@@ -1486,9 +1489,11 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       end if
       text&=s[i]
       val=val*base+digit
+      digits+=1
     elsif base=16 and state=LEX_HEXDIGIT then  --a-fA-F
       text&=s[i]
       val=val*16+(toLower(s[i])-'a'+10)
+      digits+=1
     elsif state=LEX_SPACE then  --yes, allowed in numbers too
     elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_OPERATOR or state=LEX_COMMENT or state=LEX_BINARY or state=LEX_NEWLINE then
       --backtrack one character
@@ -1499,6 +1504,9 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       if s[i]='.' then
         src_error("Floating point values are not yet implemented",pos+i)
       end if
+      if equal(text,"-") then
+        exit  --Jumps down to the 'if digits=0' error case
+      end if
       src_error(
         sprintf_utf("Found unexpected character "&COLYEL&"%s"&COLRED&" while reading a number, "&COLYEL&"%s"&COLRED&". Names such as variables can't start with a digit. Or maybe you forgot a comma or operator?"
                 ,{s[i],text})
@@ -1507,6 +1515,14 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
     end if
     i+=1
   end while
+  if digits=0 then
+    --Encountered just '-' or '0x' or '-0x' (etc)
+    if equal(text,"-") then
+      src_error(COLYEL&"-"&COLRED&" can only be used to take the negation of a number, not other values/expressions (sorry!). Write "&COLYEL&"-1 * ..."&COLRED&" instead.",pos+starti)
+    else
+      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" looks like the start of a number, but there are no digits!",{s[starti..i-1]}),pos+starti)
+    end if
+  end if
   if base!=10 then
     --Special behaviour for non-decimals: silently overflow large 32 bit unsigned values to negatives
     if val>=#80000000 and val<#100000000 then
@@ -1716,15 +1732,24 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           ident=remem_ident & masked[1]
           i=textstart
           if length(remem_ident) then
+            --This character appeared inside a normal token, resume reading that token
             tokens=tokens[1..$-1]
             textstart=remem_textstart
             nonnumeral=true
           elsif equal(ident,"-") then
             --nonnumeral remains false: we've seen exactly "-"
+            --'-' appears at the start of a token: this is only allowed to be a number.
+            --We haven't appended anything to tokens that needs removing.
+            ident=""
+            textstart=0
+            temp=lexer_read_number(s,i,stop,pos)
+            tokens=append(tokens,{temp[2],pos+i})
+            i=temp[1]
+            state=LEX_DIGIT  --Sensible last_state to avoid 'extra comma' error
           else
             --a keyword character followed by garbage
             src_error(
-              sprintf_utf("Expected a two-character operator (like "&COLYEL&":="&COLRED&") but the second character (e.g. "&COLYEL&"="&COLRED&") is missing",{}),
+              "Expected a two-character operator (like "&COLYEL&":="&COLRED&") but the second character (e.g. "&COLYEL&"="&COLRED&") is missing",
               pos+i)
           end if
         else
@@ -1735,7 +1760,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
             --Allowed if it's a unary operator. There's only one, since - is not an operator.
             if s[i]!='$' then
               src_error(
-                sprintf_utf("Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",{}),
+                "Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",
                 pos+last_state_i)
             end if
           end if
@@ -1747,7 +1772,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
         if equal(remem_ident,"include") then
           --include is a special case, as normal lexing rules don't apply for rest of line
           if length(ident) then
-            simple_error("compiler bug!\n")
+            simple_error("compiler bug! [before lexer_read_include_line]\n")
           end if
           return lexer_read_include_line(tokens,s,i,stop,pos)
         end if

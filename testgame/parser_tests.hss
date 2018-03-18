@@ -87,7 +87,6 @@ end
 script, number tests, x, begin
   x := 000 0000              # OK
   x := - 14                  # OK
-  x := -                     # ERROR
   ## tab characters
   x := -	1	4    # OK
   x := 14a                   # ERROR
@@ -95,11 +94,17 @@ script, number tests, x, begin
   x := 0x14a                 # OK
   x := - 0x 14a              # OK
   x := -	0x	14a  # OK
-  x := 0x                    # ERROR   (known failure)
-  x := 0o                    # ERROR   (known failure)
-  x := 0b                    # ERROR   (known failure)
+  x := 0x                    # ERROR
+  x := 0o                    # ERROR
+  x := 0b                    # ERROR
   ## Space after the 0 not supported... but we don't care one way or the other
   ##x := 0 x1
+  ## - is not a valid token, and identifiers can't start with -
+  x := -                     # ERROR
+  variable(-)                # ERROR
+  variable(-y)               # ERROR
+  x := -x                    # ERROR
+  x := -(1+2)                # ERROR
   ## Numbers which aren't 32 bit
   x := 0x100000000           # ERROR
   x := 0o1                   # OK
