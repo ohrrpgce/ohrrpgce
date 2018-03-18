@@ -1606,13 +1606,11 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
   integer textstart  --the column at which this identifier starts, otherwise 0
   string remem_ident
   integer remem_textstart
-  integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
   integer backtracked
   integer last_state   --A LEX_* constant; the last state that was not LEX_SPACE
   integer last_state_i --Value at i where last_state was set
 
   ident=""
-  nonnumeral=false
   last_state=LEX_NEWLINE
   last_state_i=0
   textstart=0
@@ -1624,34 +1622,27 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
     else
       state=LEX_CHAR
     end if
-    --color_print("lexing i=%d %d=%s state %d nonnum=%d ident=%s\n",{i,s[i],{s[i]},state,nonnumeral,ident})
+    --color_print("lexing i=%d %d=%s state %d ident=%s\n",{i,s[i],{s[i]},state,ident})
     if state=LEX_CHAR or state=LEX_HEXDIGIT then
       ident=ident & toLower(s[i])
       if textstart=0 then
         textstart=i
       end if
-      nonnumeral=true
     elsif state=LEX_SPACE then
     elsif state=LEX_DIGIT then
-      if nonnumeral then
+      if length(ident) then
         ident=ident & s[i]
       else
-        if length(ident) then  --either ident is "-" or it is ""
-          i=textstart
-          ident=""
-          textstart=0
-        end if
+        --Start of a number not starting with - (those are parsed below)
         temp=lexer_read_number(s,i,stop,pos)
         tokens=append(tokens,{temp[2],pos+i})
         i=temp[1]
-        --nonnumeral remains false
       end if
     elsif state=LEX_WARN then
       ident=ident & toLower(s[i])
       if textstart=0 then
         textstart=i
       end if
-      nonnumeral=true
       src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is reserved and not allowed in names (identifiers)!", {s[i]}), pos+i)
     else
       --We've reached the end of a token... unless it's only the first character
@@ -1663,7 +1654,6 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
         tokens=append(tokens,{ident,pos+textstart})
       end if
       ident=""
-      nonnumeral=false
       textstart=0
       if state=LEX_BEGIN then
         tokens=append(tokens,{"begin",pos+i})
@@ -1735,9 +1725,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
             --This character appeared inside a normal token, resume reading that token
             tokens=tokens[1..$-1]
             textstart=remem_textstart
-            nonnumeral=true
           elsif equal(ident,"-") then
-            --nonnumeral remains false: we've seen exactly "-"
             --'-' appears at the start of a token: this is only allowed to be a number.
             --We haven't appended anything to tokens that needs removing.
             ident=""
