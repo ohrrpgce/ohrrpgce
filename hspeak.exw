@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ti 2018-03-17 More compiler global_scope optimisations
 --3Th 2018-03-15 Optimize compiler, rewriting global_scope lookup
 --3Tg 2017-12-31 Fix crash due to missing KIND_LONGNAMES[KIND_KEYWORD]
 --3Tf 2017-11-08 Specialise assert(x==y) to use _asserteq
@@ -172,8 +173,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Th"
-constant COPYRIGHT_DATE="2017"
+constant COMPILER_SUB_VERSION="Ti"
+constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -223,6 +224,10 @@ constant POS_COLUMN=3
 constant POS_TEXT=4
 constant CMD_TEXT=1
 constant CMD_POS=2
+--For global_scope
+constant SYM_KIND=1     --KIND_*
+constant SYM_ID=2       --ID or 0
+constant SYM_POS=3      --srcpos or 0
 constant PAIR_NUM=1
 constant PAIR_NAME=2
 constant PAIR_START=1
@@ -267,6 +272,7 @@ constant KIND_SEPARATOR=15  --Auto-delimiting tokens like +, if they haven't bee
 constant KIND_LAST_VALID_IN_SCRIPT=15
 constant KIND_TOPLEVEL=16   --Toplevel keyword such as defineconstant, or script trigger, eg. plotscript
 constant KIND_UNIMPLEMENTED=17
+constant KIND_LAST=17
 
 constant KIND_LONGNAMES={"number"
                         ,"flow control statement"
@@ -286,6 +292,9 @@ constant KIND_LONGNAMES={"number"
                         ,"declaration"
                         ,"unimplemented keyword"
                         }
+
+constant nil_sym={0,0,0}
+
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
 constant TIMING_DEPTH=1
@@ -325,7 +334,7 @@ sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, F
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
 sequence string_list      string_list={}          --list of strings
 sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS} (PAIR_NAME is the full name)
-map global_scope          global_scope=map:new()  --Maps all names in global scope EXCEPT operators to KIND_* type.
+map global_scope          global_scope=map:new()  --Maps all names in global scope EXCEPT operators to {SYM_KIND, SYM_ID, SYM_POS} tuples
 
 constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
 constant SCRIPT_NAME=2            --String, not fully-scoped
@@ -463,6 +472,15 @@ type string(object str)
   --   end if
   -- end for
   return true
+end type
+
+type Kind(integer kind)
+  return kind>=0 and kind<=KIND_LAST
+end type
+
+--SYM_KIND,SYM_ID,SYM_POS tuple
+type Symbol(object sym)
+  return length(sym)=3 and Kind(sym[SYM_KIND]) and srcpos(sym[SYM_POS])
 end type
 
 --A CMD_TEXT,CMD_POS pair
@@ -933,6 +951,7 @@ procedure init()
   integer index
   integer key
   integer fh
+  sequence sym
 
   --Process arguments
   args=command_line()
@@ -1023,40 +1042,42 @@ procedure init()
 
   --Init global data tables
   global_scope=map:new_from_kvpairs({
-           {"defineconstant",KIND_TOPLEVEL}
-          ,{"definetrigger" ,KIND_TOPLEVEL}
-          ,{"defineoperator",KIND_TOPLEVEL}
-          ,{"globalvariable",KIND_TOPLEVEL}
-          ,{"definefunction",KIND_TOPLEVEL}
-          ,{"definescript"  ,KIND_TOPLEVEL}
-          ,{"plotscrversion",KIND_TOPLEVEL}
-          ,{"include"       ,KIND_TOPLEVEL}  --should never appear, in theory
-          ,{"cfor"          ,KIND_UNIMPLEMENTED}
-          ,{"foreach"       ,KIND_UNIMPLEMENTED}
-          ,{"="             ,KIND_UNIMPLEMENTED}
-          ,{"elseif"        ,KIND_FLOW}  --not in flow_list... shouldn't that be a problem?
+           {"defineconstant",{KIND_TOPLEVEL,0,0}}
+          ,{"definetrigger" ,{KIND_TOPLEVEL,0,0}}
+          ,{"defineoperator",{KIND_TOPLEVEL,0,0}}
+          ,{"globalvariable",{KIND_TOPLEVEL,0,0}}
+          ,{"definefunction",{KIND_TOPLEVEL,0,0}}
+          ,{"definescript"  ,{KIND_TOPLEVEL,0,0}}
+          ,{"plotscrversion",{KIND_TOPLEVEL,0,0}}
+          ,{"include"       ,{KIND_TOPLEVEL,0,0}}  --should never appear, in theory
+          ,{"cfor"          ,{KIND_UNIMPLEMENTED,0,0}}
+          ,{"foreach"       ,{KIND_UNIMPLEMENTED,0,0}}
+          ,{"="             ,{KIND_UNIMPLEMENTED,0,0}}
+          ,{"elseif"        ,{KIND_FLOW,-1,0}}  --not in flow_list... shouldn't that be a problem?
           --keywords have special case handling
-          ,{"subscript"     ,KIND_KEYWORD} --subscript is also in flow_list!
-          ,{"variable"      ,KIND_KEYWORD}
-          ,{"tracevalue"    ,KIND_MACRO}
-          ,{"assert"        ,KIND_MACRO}
+          ,{"subscript"     ,{KIND_KEYWORD,0,0}} --subscript is also in flow_list!
+          ,{"variable"      ,{KIND_KEYWORD,0,0}}
+          ,{"tracevalue"    ,{KIND_MACRO,0,0}}
+          ,{"assert"        ,{KIND_MACRO,0,0}}
           -- Stray "$"'s are picked up by the lexer (not totally ideal maybe)
         })
 
   for i=1 to length(flow_list) do
-    if map:has(global_scope, flow_list[i][PAIR_NAME])=false then  --omit subscript
-      map:put(global_scope, flow_list[i][PAIR_NAME], KIND_FLOW)
+    sym=flow_list[i]
+    if map:has(global_scope, sym[PAIR_NAME])=false then  --omit subscript
+      map:put(global_scope, sym[PAIR_NAME], {KIND_FLOW,sym[PAIR_NUM],0})
     end if
   end for
   for i=1 to length(math_list) do
-    map:put(global_scope, math_list[i][PAIR_NAME], KIND_MATH)
+    sym=math_list[i]
+    map:put(global_scope, sym[PAIR_NAME], {KIND_MATH,sym[PAIR_NUM],0})
   end for
   -- Adding the separators (operators) here prevents them from being used before
   -- defineoperator is handled (either a block before include,plotscr.hsd, or in
   -- e.g. defineconstant)
   for i=1 to length(separator_list) do
-    if map:get(global_scope,separator_list[i],false)=false then  --omit =
-      map:put(global_scope,separator_list[i],KIND_SEPARATOR)
+    if map:has(global_scope,separator_list[i])=false then  --omit =
+      map:put(global_scope,separator_list[i],{KIND_SEPARATOR,i,0})
     end if
   end for
   --Append subscript trigger id (this is needed for scripts.bin)
@@ -1928,15 +1949,17 @@ end procedure
 --Warning: you normally want to use check_undefined_string instead of this
 procedure check_for_reserved(string s, srcpos pos, string expect)
   string extra
+  Symbol sym
   if map:has(global_scope,s) then
     extra=""
     if compare("top-level declaration",expect)=0 then
       extra=". Perhaps there is an extra "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED&" earlier in the file"
     end if
+    sym=map:get(global_scope,s)
     src_error(
       sprintf_utf(
         "Expected %s, but found %s "&COLYEL&"%s"&COLRED&"%s"
-        ,{expect, KIND_LONGNAMES[map:get(global_scope,s,0)], s, extra}
+        ,{expect, KIND_LONGNAMES[sym[SYM_KIND]], s, extra}
       )
       ,pos
     )
@@ -2093,6 +2116,7 @@ end function
 procedure parse_constant_block(TokenList block)
   atom num
   string name
+  srcpos pos
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("Expected name to follow but defineconstant block ended",block[i][CMD_POS])
@@ -2100,8 +2124,9 @@ procedure parse_constant_block(TokenList block)
     num=try_string_to_number({enforce_constants(block[i][CMD_TEXT]),block[i][CMD_POS]})
     check_undefined_constant(block[i+1],num)
     name=block[i+1][CMD_TEXT]
-    map:put(constant_list,name,{num,block[i+1][CMD_POS]})
-    map:put(global_scope,name,KIND_CONSTANT)
+    pos=block[i+1][CMD_POS]
+    map:put(constant_list,name,{num,pos})
+    map:put(global_scope,name,{KIND_CONSTANT,num,pos})
   end for
 end procedure
 
@@ -2110,6 +2135,7 @@ end procedure
 procedure parse_trigger_block(TokenList block)
   integer num
   string name
+  srcpos pos
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("Expected name but script trigger definition block ended",block[i][CMD_POS])
@@ -2117,8 +2143,9 @@ procedure parse_trigger_block(TokenList block)
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
     check_undefined_string(block[i+1],"script trigger name")
     name=block[i+1][CMD_TEXT]
+    pos=block[i+1][CMD_POS]
     trigger_list=append(trigger_list,{num,name})
-    map:put(global_scope,name,KIND_TOPLEVEL)
+    map:put(global_scope,name,{KIND_TOPLEVEL,0,pos})
   end for
 end procedure
 
@@ -2159,7 +2186,7 @@ procedure create_global(atom id, string name, srcpos pos)
       global_list[PAIR_NUM]=append(global_list[PAIR_NUM],id)
       global_list[PAIR_NAME]=append(global_list[PAIR_NAME],name)
       global_list[GLB_POS]=append(global_list[GLB_POS],pos)
-      map:put(global_scope,name,KIND_GLOBAL)
+      map:put(global_scope,name,{KIND_GLOBAL,id,pos})
     else
       src_error(sprintf_utf("global variable ID "&COLYEL&"%d"&COLRED&" is not permitted. Valid IDs are 0 to %d",{id,MAXGLOBAL}),pos)
     end if
@@ -2184,7 +2211,8 @@ end procedure
 
 procedure parse_operator_block(TokenList block)
   atom num
-  integer keyword
+  Symbol sym
+  Kind kind
   string name,truename
   srcpos pos
   for i=1 to length(block) by 3 do
@@ -2198,10 +2226,11 @@ procedure parse_operator_block(TokenList block)
     truename=block[i+2][CMD_TEXT]
     pos=block[i+2][CMD_POS]
     operator_list=append(operator_list,{num,name,truename,pos})
-    keyword=map:get(global_scope,name,false)
-    if keyword then
-      if keyword!=KIND_SEPARATOR and keyword!=KIND_MATH then
-        src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" may not be used as an operator",{KIND_LONGNAMES[keyword],name}),pos)
+    sym=map:get(global_scope,name,nil_sym)
+    kind=sym[SYM_KIND]
+    if kind then
+      if kind!=KIND_SEPARATOR and kind!=KIND_MATH then
+        src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" may not be used as an operator",{KIND_LONGNAMES[kind],name}),pos)
       else
         --Existing names do not get added to global_scope, because we need to be able to use
         --global_scope to map names like 'mod' to the math function rather than the operator.
@@ -2209,7 +2238,7 @@ procedure parse_operator_block(TokenList block)
       end if
     else
       --Add to global_scope to prevent it from being reused for anything else.
-      map:put(global_scope,name,KIND_OPERATOR)
+      map:put(global_scope,name,{KIND_OPERATOR,length(operator_list),pos})
     end if
   end for
 end procedure
@@ -2263,7 +2292,7 @@ function create_function(sequence list, integer id, string name, object arglist,
     end if
   end if
   list=append(list,{id,name,arglist,pos})
-  map:put(global_scope,name,func_type)
+  map:put(global_scope,name,{func_type,id,pos})
   return(list)
 end function
 
@@ -2358,6 +2387,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
   string msg
   integer depth
   integer nest_depth
+  Symbol sym
   integer temp
   integer idx
   name=get_cmd()
@@ -2449,7 +2479,8 @@ function parse_script(Token trigger, string parent_name, integer parent_idx)
       parse_script(this,full_name,idx)
       body&={{"begin",this[CMD_POS]},{"end",this[CMD_POS]}}
     else
-      temp=map:get(global_scope,this[CMD_TEXT],0)
+      sym=map:get(global_scope,this[CMD_TEXT],nil_sym)
+      temp=sym[SYM_KIND]
       if temp>KIND_LAST_VALID_IN_SCRIPT then
         err_string=sprintf_utf(
           "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",
@@ -2745,6 +2776,7 @@ procedure dump_debug_report()
   VarList locals
   --only do this if the -d debug option was on the command line
   if find('d',optlist) then
+    enter_timing_zone("Writing hs_debug.txt")
     if length(path_only(dest_file))>1 then
       debug_file=normalize_filename(path_only(dest_file)&"hs_debug.txt")
     else
@@ -2838,6 +2870,7 @@ procedure dump_debug_report()
     else
       wrap_print("Error opening debug report file "&COLBWHI&"%s"&COLRED&"\n",{debug_file})
     end if
+    exit_timing_zone()
   end if
 end procedure
 
@@ -2898,117 +2931,62 @@ end function
 ---------------------------------------------------------------------------
 
 --identify the kind and id of a text command. Does not support untranslated operators or floaty parethesis
-function what_kind_and_id(Token command, VarList local_vars)
+function what_kind_and_id(Token command, VarList local_vars, integer look_for_operators)
   integer kind
   integer at
   atom id
-  integer keyword
+  Symbol sym
   string s
   s=command[CMD_TEXT]
-  keyword=map:get(global_scope,s,0)
-  if string_is_int32(s) then
-    kind=KIND_NUMBER
-    id=string_to_object(s,{})
-  elsif length(s)=0 then
+  if length(s)=0 then
     kind=KIND_PARENS
     id=0
-  elsif s[1] = '@' then
-    kind=KIND_REFERENCE
-    id=0 -- ID always resolves to 0 for references here, since it is too early to know all
-         -- script IDs (really?). The real work is done in binary_compile_recurse
-  elsif find_in_column(s,local_vars,CMD_TEXT) then
-    at=find_in_column(s,local_vars,CMD_TEXT)
-    if local_vars[at][VAR_FRAME]=0 then
-      kind=KIND_LOCAL
-    else
-      kind=KIND_NONLOCAL
-    end if
-    id=local_vars[at][VAR_ID] + 256*local_vars[at][VAR_FRAME]
-  elsif keyword=KIND_GLOBAL then
-    kind=KIND_GLOBAL
-    id=global_list[PAIR_NUM][find(s,global_list[PAIR_NAME])]
-  elsif keyword=KIND_FLOW then
-    kind=KIND_FLOW
-    id=flow_list[find_in_column(s,flow_list,PAIR_NAME)][PAIR_NUM]
-  elsif keyword=KIND_FUNCTION then
-    kind=KIND_FUNCTION
-    id=function_list[find_in_column(s,function_list,PAIR_NAME)][PAIR_NUM]
-  elsif keyword=KIND_SCRIPT then
-    kind=KIND_SCRIPT
-    id=script_list[find_in_column(s,script_list,PAIR_NAME)][PAIR_NUM]
-  elsif keyword=KIND_MATH then
-    kind=KIND_MATH
-    id=math_list[find_in_column(s,math_list,PAIR_NAME)][PAIR_NUM]
-  elsif keyword=KIND_MACRO then
-    kind=KIND_MACRO
+  elsif (s[1] >= '0' and s[1] <= '9') or s[1] = '-' then
+    kind=KIND_NUMBER
+    id=string_to_object(s,{})
+  elsif look_for_operators and find_in_column(s,operator_list,PAIR_NAME) then
+    kind=KIND_OPERATOR --this MUST go before KIND_MATH, because some operators and math functions have the same name
     id=0
-  elsif keyword=KIND_KEYWORD then
-    kind=KIND_KEYWORD
-    id=0
-  elsif s[1] = '"' then
-    src_error(
-      sprintf_utf(
-        "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
-        {shorten_string(s,15)}),
-      command[CMD_POS]
-    )
   else
-    --It may be a subscript, in which case the scoped name needs to be looked up
-    at=lookup_scoped_script_name(s)
-    if at then
-      kind=KIND_SCRIPT
-      id=all_scripts[at][SCRIPT_ID]
+    sym=map:get(global_scope,s,nil_sym)
+    if sym[SYM_KIND] then
+      kind=sym[SYM_KIND]
+      id=sym[SYM_ID]
+    elsif s[1] = '@' then
+      kind=KIND_REFERENCE
+      id=0 -- ID always resolves to 0 for references here, since it is too early to know all
+           -- script IDs (really? Surely false). The real work is done in binary_compile_recurse
+    elsif s[1] = '"' then
+      src_error(
+        sprintf_utf(
+          "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
+          {shorten_string(s,15)}),
+        command[CMD_POS]
+      )
     else
-      src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
+      --Local variables can't shadow any names in global scope, they only shadow
+      --nonlocal variables. So cen check this last
+      at=find_in_column(s,local_vars,CMD_TEXT)
+      if at then
+        if local_vars[at][VAR_FRAME]=0 then
+          kind=KIND_LOCAL
+        else
+          kind=KIND_NONLOCAL
+        end if
+        id=local_vars[at][VAR_ID] + 256*local_vars[at][VAR_FRAME]
+      else
+        --It may be a subscript, in which case the scoped name needs to be looked up
+        at=lookup_scoped_script_name(s)
+        if at then
+          kind=KIND_SCRIPT
+          id=all_scripts[at][SCRIPT_ID]
+        else
+          src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
+        end if
+      end if
     end if
   end if
   return({kind,id})
-end function
-
----------------------------------------------------------------------------
-
---identify the kind of a text command
-function what_kind(Token command, VarList local_vars, integer look_for_operators)
-  integer at
-  integer kind
-  integer keyword
-  string s
-  s=command[CMD_TEXT]
-  keyword=map:get(global_scope,s,0)
-  if string_is_int32(s) then
-    kind=KIND_NUMBER
-  elsif length(s)=0 then
-    kind=KIND_PARENS
-  elsif s[1] = '@' then
-    kind=KIND_REFERENCE
-  elsif find_in_column(s,local_vars,CMD_TEXT) then
-    at=find_in_column(s,local_vars,CMD_TEXT)
-    if local_vars[at][VAR_FRAME]=0 then
-      kind=KIND_LOCAL
-    else
-      kind=KIND_NONLOCAL
-    end if
-  elsif look_for_operators and find_in_column(s,operator_list,PAIR_NAME) then
-    kind=KIND_OPERATOR --this MUST go before KIND_MATH, because some operators and math functions have the same name
-  elsif keyword then
-    kind=keyword
-  elsif s[1] = '"' then
-    src_error(
-      sprintf_utf(
-        "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
-        {shorten_string(s,15)}),
-      command[CMD_POS]
-    )
-  else
-    --It may be a subscript, in which case the scoped name needs to be looked up
-    at=lookup_scoped_script_name(s)
-    if at then
-      kind=KIND_SCRIPT
-    else
-      src_error(sprintf_utf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
-    end if
-  end if
-  return(kind)
 end function
 
 ---------------------------------------------------------------------------
@@ -3029,8 +3007,11 @@ end function
 ---------------------------------------------------------------------------
 
 procedure check_is_expression(Node node, string parent)
-  integer kind
-  kind=map:get(global_scope,node[TREE_TRUNK][CMD_TEXT],0)
+  Symbol sym
+  Kind kind
+  --Local variables are always expressions
+  sym=map:get(global_scope,node[TREE_TRUNK][CMD_TEXT],nil_sym)
+  kind=sym[SYM_KIND]
   --This function is always called after convert_macros, so we don't need to
   --worry about whether a particular macro is an expression
   if kind=KIND_FLOW or kind=KIND_KEYWORD then
@@ -3094,6 +3075,7 @@ function get_script_node(integer ptr, TokenList data, VarList vars)
   Token command
   sequence ptr_and_block
   TokenList block
+  sequence temp
   integer kind
   integer followed_by_begin
   block={}
@@ -3107,7 +3089,8 @@ function get_script_node(integer ptr, TokenList data, VarList vars)
     command[CMD_TEXT]=""
   end if
 
-  kind=what_kind(command,vars,true)  --check for KIND_OPERATOR too
+  temp=what_kind_and_id(command,vars,true)  --check for KIND_OPERATOR too
+  kind=temp[1]
   followed_by_begin=false
   if ptr<=length(data) then
     --there is room for args
@@ -3499,7 +3482,7 @@ function build_switch_node(NodeList tree, VarList vars, integer ptr)
           elsepos=argpos
           --don't emit anything: next do is the 'else' one
         else
-          temp=what_kind_and_id(casecmd,vars)
+          temp=what_kind_and_id(casecmd,vars,false)
           kind=temp[1]
           id=temp[2]
           if kind=KIND_FLOW or (kind=KIND_MATH and is_simple_math_op(id)=false) then
@@ -3557,7 +3540,7 @@ function convert_variable_to_id(Token var, VarList locals, string parent)
   atom id
   integer argkind
   integer var_at
-  kind_and_id=what_kind_and_id(var,locals)
+  kind_and_id=what_kind_and_id(var,locals,false)
   argkind=kind_and_id[1]
   id=kind_and_id[2]
   if argkind=KIND_LOCAL or argkind=KIND_NONLOCAL then
@@ -3585,9 +3568,10 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
   NodeList args
   Token ctr
   srcpos pos
-  integer argkind
+  Symbol sym
+  Kind kind
+  sequence temp
   integer var_at
-  integer keyword
   ptr=1
 
   while ptr<=length(tree) do
@@ -3595,8 +3579,9 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
     pos=tree[ptr][TREE_TRUNK][CMD_POS]
     args=tree[ptr][TREE_BRANCHES]
 
-    keyword=map:get(global_scope,s,0)
-    if keyword=KIND_FLOW or keyword=KIND_KEYWORD then
+    sym=map:get(global_scope,s,nil_sym)
+    kind=sym[SYM_KIND]
+    if kind=KIND_FLOW or kind=KIND_KEYWORD then
       if equal(s,"then") or equal(s,"else") or equal(s,"do") then
         --these are checked for correct parents below.
       elsif block_command(parent)=false then
@@ -3604,7 +3589,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
       end if
     end if
 
-    if keyword=KIND_FLOW then
+    if kind=KIND_FLOW then
       if compare("if",s)=0 then
         if length(args)>1 then
           src_error(sprintf_utf(
@@ -3704,10 +3689,11 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
           args&={ {{"1",pos},{}} }
         end if
         ctr=args[1][TREE_TRUNK]
-        argkind=what_kind(ctr,vars,false)
-        if argkind=KIND_LOCAL then
+        temp=what_kind_and_id(ctr,vars,false)
+        kind=temp[1]
+        if kind=KIND_LOCAL then
           used_locals=append(used_locals,ctr[CMD_TEXT])
-        elsif argkind=KIND_GLOBAL then
+        elsif kind=KIND_GLOBAL then
           --warn, then translate into a numeric reference to a variable
           src_warn(sprintf_utf(
             "Using global variable "&COLYEL&"%s"&COLRED&" as the counter in a "&COLYEL&"for"&COLRED&" loop"
@@ -3770,7 +3756,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
         src_error(COLYEL&"case"&COLRED&" is not allowed outside of "&COLYEL&"switch"&COLRED,pos)
       end if
 
-    elsif keyword=KIND_KEYWORD then
+    elsif kind=KIND_KEYWORD then
 
       if compare("subscript",s)=0 or compare("variable",s)=0 then
         --Does nothing; remove. (Kept until now to check they isn't placed in a silly place)
@@ -3955,7 +3941,7 @@ function normalize_arguments(NodeList tree, VarList vars)
   --Unlike the flow normalization and operator translation we do not insert/delete elements from
   --the current level, so we can use a "for" safely, and dont need a "while"
   for i=1 to length(tree) do
-    kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars)
+    kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars,false)
     kind=kind_and_id[1]
     id=kind_and_id[2]
     if kind=KIND_SCRIPT then
@@ -4048,7 +4034,7 @@ function binary_compile_recurse(Node tree, VarList vars)
   can_reference=true
   initial_data_len=length(compiled_data)
 
-  kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars)
+  kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars,false)
   kind=kind_and_id[1]
   id=kind_and_id[2]
   s=tree[TREE_TRUNK][CMD_TEXT]
@@ -4258,7 +4244,7 @@ function sanity_check(NodeList tree, VarList vars, string parent)
   for i=1 to length(tree) do
     s=tree[i][TREE_TRUNK][CMD_TEXT]
     pos=tree[i][TREE_TRUNK][CMD_POS]
-    kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars)
+    kind_and_id=what_kind_and_id(tree[i][TREE_TRUNK],vars,false)
     kind=kind_and_id[1]
     id=kind_and_id[2]
     if (compare("if",parent)=0) and i=1 then
@@ -4324,7 +4310,7 @@ function optimized_arg(Node tree, VarList vars)
   integer kind
   atom id
   object arg1,arg2
-  kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars)
+  kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars,false)
   kind=kind_and_id[1]
   id=kind_and_id[2]
   if kind=KIND_NUMBER then
