@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tk 2018-03-18 Optimise binary_compile; puts nodes in opposite order
 --3Tj 2018-03-18 Fix some number and - lexing bugs
 --3Ti 2018-03-17 More compiler global_scope optimisations
 --3Th 2018-03-15 Optimize compiler, rewriting global_scope lookup
@@ -174,7 +175,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tj"
+constant COMPILER_SUB_VERSION="Tk"
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -432,6 +433,7 @@ string hex_chars          hex_chars="0123456789abcedfABCDEF"
 sequence hex_char_values  hex_char_values={0,1,2,3,4,5,6,7,8,9,#a,#b,#c,#e,#d,#f,#A,#B,#C,#D,#E,#F}
 
 sequence compiled_data    compiled_data={}    --used inside binary_compile only; compiled data for the current script
+map node_lookup                               --used inside binary_compile only; map from serialised nodes to offsets
 string current_script     current_script=""   --name of current script
 integer cur_script_num    cur_script_num=0    --index into all_scripts of current script
 integer colors_enabled    colors_enabled=true
@@ -4053,18 +4055,18 @@ function binary_compile_recurse(Node tree, VarList vars)
   string str_temp
   integer recurse_result
   integer can_reference  --whether can return a pointer to an earlier node
-  integer initial_data_len
+  integer nodeoffset
   srcpos cmdpos
   result={}
   can_reference=true
-  initial_data_len=length(compiled_data)
+  nodeoffset=length(compiled_data)
 
   kind_and_id=what_kind_and_id(tree[TREE_TRUNK],vars,false)
   kind=kind_and_id[1]
   id=kind_and_id[2]
   s=tree[TREE_TRUNK][CMD_TEXT]
   cmdpos=tree[TREE_TRUNK][CMD_POS]
-  if kind=KIND_NUMBER then
+  if kind=KIND_NUMBER or kind=KIND_GLOBAL or kind=KIND_LOCAL or kind=KIND_NONLOCAL then
     result&=kind
     result&=id
   elsif kind=KIND_REFERENCE then
@@ -4097,12 +4099,7 @@ function binary_compile_recurse(Node tree, VarList vars)
         end if
       end if
     end if
-  elsif kind=KIND_GLOBAL then
-    result&=kind
-    result&=id
-  elsif kind=KIND_LOCAL or kind=KIND_NONLOCAL then
-    result&=kind
-    result&=id
+
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     --Use id from what_kind_and_id
     if kind=KIND_FUNCTION then
@@ -4113,48 +4110,52 @@ function binary_compile_recurse(Node tree, VarList vars)
     result&=kind
     result&=id
     result&=length(tree[TREE_BRANCHES])
-    for i=1 to length(tree[TREE_BRANCHES]) do
-      --add placeholders for each argoffset
-      result&=1234.876 --this nonsense value will never be matched when looking for duplicate data
-    end for
-    --Temporarily add result, so that recursive calls can add nodes to compiled_data if they need to
-    compiled_data&=result
+    --Add placeholders for each argoffset
+    result&=repeat(0,length(tree[TREE_BRANCHES]))
+    if nodeoffset=0 then
+      --Special case: Most nodes are added after their children, but the root
+      --node needs to have offset 0, so append it already
+      compiled_data&=result
+    end if
 
     for i=1 to length(tree[TREE_BRANCHES]) do
       --actually evaluate each argument and set the real offsets
       recurse_result=binary_compile_recurse(tree[TREE_BRANCHES][i],vars)
-      if recurse_result >= initial_data_len then
+      if recurse_result >= nodeoffset then
         can_reference=false
       end if
       result[3+i]=recurse_result
     end for
-    --Now either remove or replace the temporary stuff
-    if can_reference then
-      compiled_data=compiled_data[1..initial_data_len]
-    else
-      compiled_data[initial_data_len+1 .. initial_data_len+length(result)]=result
-      return(initial_data_len)
+
+    if nodeoffset=0 then
+      --Root node: replace the dummy argument offsets
+      compiled_data[1..length(result)]=result
+      return(nodeoffset)
     end if
+
+    nodeoffset=length(compiled_data)
+
   else
     src_error(sprintf_utf("Compiler Bug! Illegal kind "&COLYEL&"%d"&COLRED&" for "&COLYEL&"%s"&COLRED,{kind,s}),cmdpos)
   end if
 
-  if not fast_mode and can_reference then
-    at=match(result,compiled_data)
-    if at>0 then
-      if initial_data_len!=length(compiled_data) then
-        simple_error("compiler bug! Unexpected compiled_data length")
+  --If we've have multiple copies of the exact same node (subtree), deduplicate them.
+  --Don't bother with nodes with >4 children: unlikely to repeat.
+  --The integer(result[2]) test here is to work around a bug in Euphoria (at least in 4.0.3 32-bit):
+  --map:hash throws an error if given an int which doesn't fix in a 31-bit integer
+  if not fast_mode and length(result)<=7 and integer(result[2]) then
+    if can_reference then  --If false, this node must be unique, so map:get won't find anything.
+      at=map:get(node_lookup,result,-1)
+      if at>-1 then
+        return at
       end if
-      --found existing data exactly like this command, so just return a reference to it
-      if at=1 then
-        simple_error("compiler bug! node matches root node")
-      end if
-      return(at-1)
     end if
+    map:put(node_lookup,result,nodeoffset)
   end if
+
   --append data directly
   compiled_data&=result
-  return(initial_data_len)
+  return(nodeoffset)
 end function
 
 ---------------------------------------------------------------------------
@@ -4178,6 +4179,7 @@ function binary_compile(Script script)
 
   string_table={}
   compiled_data={}
+  node_lookup=map:new()
 
   --binary data is in a mix of 16-bit and 32-bit signed words.
   --the header is (mostly) 16-bit and the data (script format version 1+) is 32-bit.
