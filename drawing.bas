@@ -4498,6 +4498,7 @@ SUB SpriteSetBrowser.add_spriteset()
   rgfx_save_spriteset newfr, sprtype, gen(genmax), 0
 
   rebuild_menu()
+  set_focus(gen(genmax), 0)
 END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
