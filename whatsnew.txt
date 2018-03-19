@@ -14,7 +14,7 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
       pulse rather than flash, and there's a new "outlined" style [Ralph]
     * Heroes can have intrinsic counter-attacks just like Enemies [James]
     * Add the ability to browse for Attacks, Enemies, Heroes, Textboxes,
-      Shops, and stuff in shops.
+      Shops, stuff in shops, Sound Effects, Songs.
     * You can press Ctrl+F or click the "Filter" button to filter/search the
       thingbrowser screen by name. [James]
     * Line slices [Ralph]
