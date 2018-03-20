@@ -60,6 +60,7 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
     * Fix a crash that happened when you used ellipse-related scripting
       commands on a non-ellipse slice [sotrain515, James]
     * F4 to access the tag debugger in battles no longer worked [Ralph]
+    * "rename hero" didn't return false if the player cancelled [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

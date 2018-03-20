@@ -745,7 +745,7 @@ script,renamehero,hsd:who=0,begin
   variable(hsd:slot)
   hsd:slot:=findhero(hsd:who)
   if(hsd:slot>=0)
-    then(renameherobyslot(hsd:slot),return(true))
+    then(return(renameherobyslot(hsd:slot)))
     else(return(false))
 end
 
