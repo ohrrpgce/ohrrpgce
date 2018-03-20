@@ -2348,6 +2348,9 @@ function parse_define_block(TokenList block, sequence list, integer func_type)
         args=try_string_to_number(block[i])
         arglist={}
         if args<0 then
+          if func_type=KIND_SCRIPT then
+            src_error("Number of arguments for a script can't be negative (variable number of arguments aren't supported)",block[i][CMD_POS])
+          end if
           list=create_function(list,num,name,VAR_ARGS,func_type,name_pos)
         else
           for j=1 to args do
@@ -4721,18 +4724,18 @@ procedure check_script_declarations()
       --(doesn't really matter, all_scripts would have ended up with that srcpos anyway)
       script_list[at][FUNC_POS]=script_pos
 
-      if length(all_scripts[i][SCRIPT_ARG_TOKS]) != length(script_list[at][FUNC_ARGS]) then
+      if length(args_and_defaults[1]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf_utf(
-            "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
-            ,{current_script,length(all_scripts[i][SCRIPT_ARG_TOKS]),length(script_list[at][FUNC_ARGS])}
+            "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its definescript declaration"
+            ,{current_script,length(args_and_defaults[1]),length(script_list[at][FUNC_ARGS])}
           )
           ,script_pos
         )
       end if
       for j=1 to length(script_list[at][FUNC_ARGS]) do
         if not equal(args_and_defaults[2][j],NO_DEFAULT) and not equal(args_and_defaults[2][j],script_list[at][FUNC_ARGS][j]) then
-          src_warn(
+          src_error(
             sprintf_utf(
               "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
               ,{all_scripts[i][SCRIPT_ARG_TOKS][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
