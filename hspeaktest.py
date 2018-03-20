@@ -4,8 +4,13 @@
 This is a tool for automated testing of HSpeak, specifically checking
 that HSpeak throws errors or warnings only when expected.
 
-Each line which is to be tested should have a comment containing only 'OK',
-'WARN' or 'ERROR'.
+Each line which is to be tested should have a comment starting with 'OK',
+'WARN' or 'ERROR'. The rest of the comment is also searched for the following
+keywords:
+-'known':  a known failure; mark failing tests with this so that it's easy to
+           spot newly introduced bugs. (There are a lot of known hspeak bugs!)
+-'elsewhere':  (ERROR/WARN): this line causes an error/warning message for a
+           line other than this one.
 HSpeak is invoked repeatedly, with only one tagged line present at a time.
 Lines beginning with ## are not passed to hspeak.
 
@@ -119,7 +124,7 @@ def test_line(lines, lineidx):
         print("Test on line %d FAILED: expected %s got %s" %
               (lineno, describe_code(expected), describe_code(exitcode)))
         return False
-    elif expected > 0 and ('n line %d ' % (expected_lineno)) not in stdout:
+    elif expected > 0 and 'elsewhere' not in extra and ('n line %d ' % (expected_lineno)) not in stdout:
         # Some errors say 'on line X', others say 'in line X'
         print_stdout()
         print("Test on line %d FAILED: didn't print an error/warning for line %d" % (lineno, expected_lineno))

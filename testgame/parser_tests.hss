@@ -228,6 +228,12 @@ script, namespace tests, arg, begin
   subscript, sub, v (subscript, sub2, v ())       # OK
   subscript, sub, W (subscript, sub2, w ())       # OK
   v := subscript, sub ()                          # ERROR
+  ## Should shadowing scripts in an outer scope be allowed? (Currently not.) Seems useful.
+  ## Scripts with both of the following names have been declared, but hspeak
+  ## hasn't parsed anotherscript yet, so fails to report an error.
+  ## (Probably same thing with subscripts which are in scope.)
+  subscript, div ()                               # ERROR (?)
+  subscript, a script ()                          # ERROR (?) (known failure)
   ## Operators
   subscript, add ()                               # ERROR
   subscript, sub, add ()                          # ERROR
@@ -238,3 +244,18 @@ script, namespace tests, arg, begin
   subscript, div ()                               # ERROR
   subscript, sub, div ()                          # ERROR
 end
+
+definescript(1, missing script, 0)                # ERROR
+## Don't care whether definescript after the script itself is allowed (currently is)
+#definescript(1, flow tests, 1, 0)                # OK
+## Even plotscripts can use definescript to fix an ID
+definescript(1, a plotscript, 0)                  # OK
+## OK to give defaults for more arguments in definescript than in the definition
+definescript(1, a script, 3, 0, 56, 42)           # OK
+definescript(1, a script, 3, 0, 56, 0)            # ERROR (elsewhere)
+definescript(autonumber, a script, 3, 0, 0, 42)   # OK
+## Only functions can have variable numbers of args
+definescript(1, a script, -1)                     # ERROR
+
+plotscript, a plotscript ()
+script, a script, x, y, z = 42 ()
