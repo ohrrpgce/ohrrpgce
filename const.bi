@@ -172,7 +172,7 @@ CONST genItemStackSize = 193    'Default item stack size
 CONST genResolutionX = 194      'Screen resolution (unzoomed). 0 for default
 CONST genResolutionY = 195      ' "
 CONST genEscMenuScript = 196     'id of plotscript called instead of the default menu
-CONST genSaveSlotCount = 197    'The number of available save slots, 1 to 32. If 0, the default of 4 will be used
+CONST genSaveSlotCount = 197    'The number of available save slots, 1 to maxSaveSlotCount. If 0, the default of 4 will be used
 CONST genMillisecPerFrame = 198 'Milliseconds per frame; upgrade() ensures not 0.
 CONST genStealSuccessSFX = 199  'Sound effect numbers for steal attacks in addition to normal sfx (+1)
 CONST genStealFailSFX = 200     ' "
@@ -292,6 +292,7 @@ CONST maxMaxTextbox = 32767 ' Max possible value for gen(genMaxTextbox)
 CONST maxMaxSFX = 32767 ' Max possible value for gen(genMaxSFX)
 CONST maxMaxSong = 32767 ' Max possible value for gen(genMaxSong)
 CONST maxMaxShop = 32767 ' Max possible value for gen(genMaxShop)
+CONST maxSaveSlotCount = 1000 ' highest allowed value for gen(genSaveSlotCount)
 
 CONST sizeActiveParty = 4 'The size of the active/battle party
 CONST sizeParty = 41 'The maximum size of the entire party (length of gam.hero())

@@ -42,7 +42,7 @@ DECLARE SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_slices_to_reload(byval parent as Reload.NodePtr)
 
-DECLARE SUB new_loadgame(byval slot as integer)
+DECLARE SUB new_loadgame(byval slot as integer, prefix as string="")
 DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
@@ -64,7 +64,7 @@ DECLARE SUB rsav_warn (s as string)
 
 DECLARE SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
-DECLARE FUNCTION new_save_slot_used (byval slot as integer) as integer
+DECLARE FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as integer
 DECLARE FUNCTION new_count_used_save_slots() as integer
 DECLARE SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
@@ -82,6 +82,7 @@ DIM SHARED old_savefile as string
 DIM savedir as string  'Global
 
 DIM SHARED current_save_slot as integer '--used in rsav_warn
+DIM SHARED current_save_prefix as string '--used in rsav_warn
 
 '-----------------------------------------------------------------------
 
@@ -113,8 +114,9 @@ END SUB
 
 'Note: resetgame (only if a game was previously started) + initgamedefaults MUST be called before loadgame
 'to initialise anything missing from the save file
-SUB loadgame (byval slot as integer)
- IF slot >= 0 ANDALSO slot <= 31 THEN
+SUB loadgame (byval slot as integer, prefix as string="")
+ IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount THEN
+  'only update lastsaveslot for normal prefixless slots
   lastsaveslot = slot + 1
  END IF
  '--Works under the assumption that resetgame has already been called.
@@ -125,11 +127,16 @@ SUB loadgame (byval slot as integer)
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
    'debuginfo "loading awesome new loadgame from " & filename
-   new_loadgame slot
+   new_loadgame slot, prefix
    EXIT SUB
   END IF
  END IF
- old_loadgame slot
+ 'Fall back to old save format
+ IF prefix <> "" THEN
+  debug "Slot " & prefix & slot & " does not exist in the old .sav format"
+ ELSE
+  old_loadgame slot
+ END IF
 END SUB
 
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
@@ -157,14 +164,17 @@ SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
  END IF
 END SUB
 
-FUNCTION save_slot_used (byval slot as integer) as integer
- IF new_save_slot_used(slot) THEN
+FUNCTION save_slot_used (byval slot as integer, prefix as string = "") as integer
+ IF new_save_slot_used(slot, prefix) THEN
   RETURN YES
  END IF
+ 'rsav save slot does not exist, fall back to checking the .sav
+ IF prefix <> "" THEN RETURN NO
  RETURN old_save_slot_used(slot)
 END FUNCTION
 
 FUNCTION count_used_save_slots() as integer
+ 'Only counts regular prefixless save slots
  DIM count as integer = new_count_used_save_slots()
  IF count > 0 THEN
   RETURN count
@@ -174,13 +184,21 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB savegame (byval slot as integer)
- IF slot >= 0 ANDALSO slot <= 31 THEN
+SUB savegame (byval slot as integer, prefix as string="")
+
+ IF prefix <> trimpath(prefix) THEN
+  visible_debug "savegame: Not allowed to include path in save prefix!"
+  EXIT SUB
+ END IF
+
+ IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount - 1 THEN
+  'Only remember lastsaveslot for valid normal slots
   lastsaveslot = slot + 1
  END IF
 
- debuginfo "Saving in slot " & slot
+ debuginfo "Saving in slot " & prefix & slot
  current_save_slot = slot
+ current_save_prefix = prefix
  
  DIM doc as DocPtr
  doc = CreateDocument()
@@ -191,22 +209,31 @@ SUB savegame (byval slot as integer)
  gamestate_to_reload node
  
  DIM filename as string
- filename = savedir & SLASH & slot & ".rsav"
+ filename = savedir & SLASH & prefix & slot & ".rsav"
  SerializeBin filename, doc
  
  FreeDocument doc
  current_save_slot = -1
+ current_save_prefix = ""
 END SUB
 
-SUB new_loadgame(byval slot as integer)
+SUB new_loadgame(byval slot as integer, prefix as string="")
+
+ IF prefix <> trimpath(prefix) THEN
+  visible_debug "loadgame: save slot prefix is not allowed to include path"
+  EXIT SUB
+ END IF
+
  current_save_slot = slot
+ current_save_prefix = prefix
  
  DIM filename as string
- filename = savedir & SLASH & slot & ".rsav"
+ filename = savedir & SLASH & prefix & slot & ".rsav"
 
  IF NOT isfile(filename) THEN
   debug "Save file missing: " & filename
   current_save_slot = -1
+  current_save_prefix = ""
   EXIT SUB
  END IF
 
@@ -220,10 +247,11 @@ SUB new_loadgame(byval slot as integer)
  
  FreeDocument doc
  current_save_slot = -1
+ current_save_prefix = ""
 END SUB
 
 SUB rsav_warn (s as string)
- debug "Save slot " & current_save_slot & ": " & s
+ debug "Save slot " & current_save_prefix & current_save_slot & ": " & s
 END SUB
 
 '-----------------------------------------------------------------------
@@ -1335,11 +1363,16 @@ SUB erase_save_slot (byval slot as integer)
  old_erase_save_slot slot
 END SUB
 
-FUNCTION new_save_slot_used (byval slot as integer) as integer
+FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as integer
  DIM result as integer = NO
 
+ IF prefix <> trimpath(prefix) THEN
+  visible_debug "save_slot_used: save slot prefix may not include path"
+  RETURN NO
+ END IF
+
  DIM filename as string
- filename = savedir & SLASH & slot & ".rsav"
+ filename = savedir & SLASH & prefix & slot & ".rsav"
  
  IF isfile(filename) THEN
   DIM doc as DocPtr
@@ -1358,7 +1391,7 @@ END FUNCTION
 FUNCTION new_count_used_save_slots() as integer
  DIM count as integer = 0
  
- FOR slot as integer = 0 TO 32
+ FOR slot as integer = 0 TO maxSaveSlotCount
   IF new_save_slot_used(slot) THEN count += 1
  NEXT slot
  
@@ -1935,8 +1968,8 @@ END FUNCTION
 'Helper functions for reading specific data from save slots without loading
 
 FUNCTION saveslot_quick_root_node(byval saveslot as integer) as NodePtr
- 'saveslot is the 0-based index of the save slot, 0-31
- IF saveslot < 0 ORELSE saveslot > 31 THEN
+ 'saveslot is the 0-based index of the save slot, 0-maxSaveSlotCount-1
+ IF saveslot < 0 ORELSE saveslot > maxSaveSlotCount-1 THEN
   debuginfo "saveslot_quick_load_node: called on invalid save slot " & saveslot
   RETURN 0
  END IF

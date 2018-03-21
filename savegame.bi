@@ -13,14 +13,14 @@ END TYPE
 
 DECLARE SUB init_save_system()
 
-DECLARE SUB savegame (byval slot as integer)
+DECLARE SUB savegame (byval slot as integer, prefix as string="")
 DECLARE SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as integer)
-DECLARE SUB loadgame (byval slot as integer)
+DECLARE SUB loadgame (byval slot as integer, prefix as string="")
 DECLARE SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
 DECLARE SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
-DECLARE FUNCTION save_slot_used (byval slot as integer) as integer
+DECLARE FUNCTION save_slot_used (byval slot as integer, prefix as string="") as integer
 DECLARE SUB erase_save_slot (byval slot as integer)
 DECLARE FUNCTION count_used_save_slots() as integer
 
