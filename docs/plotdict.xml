@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-07">
+<plotscript version="wip" datecode="2018-03-21">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1910,7 +1910,7 @@ wait for text box # wait until the player continues</example>
 		<command id="savemenu">
 			<canon>save menu (reallysave)</canon>
 			<shortname>save menu</shortname>
-			<description>Takes you directly to the save menu. Will return the number from 1 to 32 of the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving.</description>
+			<description>Takes you directly to the save menu. Will return the number from 1 to 1000 of the slot the player saved in, or <ref>false</ref> if the player did not save. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually saving.</description>
 			<seealso>
 				<ref>autosave</ref>
 				<ref>saveinslot</ref>
@@ -1930,7 +1930,7 @@ wait for text box # wait until the player continues</example>
 				You can optionally pass the value <ref>false</ref> as the <p>reallyload</p> argument,
 				to make the menu display without actually loading or quiting.
 				If you do this, you'll need to interpret the return value to find out which option the player selected:
-				positive values (1 to 32) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
+				positive values (1 to 1000) are save slot numbers, 0 means New Game and -1 is Quit or cancelled (pressed ESC).
 			</description>
 			<seealso>
 				<ref>loadfromslot</ref>
@@ -4301,7 +4301,7 @@ get hero name (1, find hero (leader))
 		<command id="expandstring">
 			<canon>expand string(ID, saveslot)</canon>
 			<shortname>expand string</shortname>
-			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-32 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
+			<description>Expands codes in <p>ID</p> such as ${H1}. This does the same thing that textboxes do automatically. The <p>saveslot</p> argument is optional. If you leave it out, the string's codes will be expanded based on the currently running game state. If you specify a save slot number from 1-1000 then the string will be expanded based on hero names, variables, and strings in that save slot.</description>
 		</command>
 	</section>
 
@@ -8865,14 +8865,14 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 		<command id="saveinslot">
 			<canon>save in slot (slot)</canon>
 			<shortname>save in slot</shortname>
-			<description>Saves in the specified save slot (1 to 32, regardless of how many are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
+			<description>Saves in the specified save slot (1 to 1000, regardless of how many are visible on the save and load menus). If a saved game already exists in the slot, it will be overwritten. If you want to make sure that no save game will be overwritten, use <ref>saveslotused</ref>. To display the save game menu instead, use <ref>savemenu</ref>.</description>
 		</command>
 		<command id="loadfromslot">
 			<canon>load from slot (slot, args...)</canon>
 			<shortname>load from slot</shortname>
 			<description>
 				Loads a saved game from a save <p>slot</p> as if it had been loaded from the load game menu.
-				<p>slot</p> is a slot number from 1 to 32, (regardless of how many are displayed on the Load and Save menus).
+				<p>slot</p> is a slot number from 1 to 1000, (regardless of how many are displayed on the Load and Save menus).
 				This command will end the current game (and fade out and in again) if it successfully loads.
 				If the load fails because the slot has never been saved in, the script will continue.
 				Anything that you want to happen after loading a saved game needs to be put in the 'load game' script instead (specified in Special Plotscripts).
@@ -8924,7 +8924,7 @@ end</example>
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
 			<description>
-				Deletes a saved game in the specified save slot (1 to 32,
+				Deletes a saved game in the specified save slot (1 to 1000,
 				regardless of how many are displayed on the Load and Save menus).
 				The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>.
 				However, <ref>importglobals</ref> can still be used to read globals out of the slot.
@@ -8972,7 +8972,7 @@ end</example>
 				and<lb/><p>import globals (slot, id)</p>
 				<lb/>
 				Loads a range of globals from a saved game, overwriting the current globals in that range.
-				<p>slot</p> is the save slot number, from 1 to 32.
+				<p>slot</p> is the save slot number, from 1 to 1000.
 				Note that only slots 1-4 appear by default on the save/load menus.
 				<p>first</p> and <p>last</p> are the id numbers of the globals at
 				the beginning and end of the range.
@@ -9019,11 +9019,11 @@ end</example>
 			<shortname>export globals</shortname>
 			<description>
 				Writes a range of globals to a save game slot, overwriting the saved game's globals.
-				<p>slot</p> is the save slot number, from 1 to 32,
+				<p>slot</p> is the save slot number, from 1 to 1000,
 				regardless of how many save slots enabled in the save/load menus.
 				<p>first</p> and <p>last</p> are the id numbers of the globals at the
 				beginning and end of the range.
-				<p>first</p> defaults to 0, and <p>last</p> defaults to 16383.
+				<p>first</p> defaults to 0, and <p>last</p> defaults to 50000.
 				Therefore, if you pass no range, all the globals will be written.
 				<note>
 					You can export globals to an empty slot!
