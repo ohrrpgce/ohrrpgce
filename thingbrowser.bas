@@ -211,6 +211,10 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     do_edit = YES
    end if
   end if
+  
+  if can_edit andalso (keyval(scCtrl) >0 andalso keyval(scN) > 1) then
+   do_add = YES
+  end if
 
   if do_add then
    do_add = NO
