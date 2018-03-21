@@ -1993,7 +1993,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 241'-- expand string(id, saveslot)
   retvals(1) = get_optional_arg(1, 0)
   IF valid_plotstr(retvals(0)) THEN
-   'Retvals(1) can be 0 for the default of using current game state, or a save slot 1-32
+   'Retvals(1) can be 0 for the default of using current game state, or a save slot 1-maxSaveSlotCount
    IF retvals(1) = 0 ORELSE valid_save_slot(retvals(1)) THEN
     embedtext plotstr(retvals(0)).s, , retvals(1) - 1
    END IF
