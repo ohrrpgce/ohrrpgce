@@ -1341,20 +1341,22 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
    centerbox 160, 44 + (st.pt - top) * 44, 312, 44, 1 + boxstyle, page
  END SELECT
  FOR i as integer = top TO small(top + 3, last_slot)
+  col = uilook(uiMenuItem)
+  IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
+  yoff = (i - top) * 44
   IF pv(i).valid THEN
-   yoff = (i - top) * 44
    FOR o as integer = 0 TO 3
     IF sprites(i, o).sprite THEN
      frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + yoff, 1, -1, page
     END IF
    NEXT o
-   col = uilook(uiMenuItem)
-   IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
    edgeprint pv(i).leader_name, 14, 25 + yoff, col, page
    edgeprint lev(i), 14, 34 + yoff, col, page
    edgeprint pv(i).playtime, 14, 43 + yoff, col, page
    edgeprint mapname(i), 14, 52 + yoff, col, page
   END IF
+  DIM slot_label as string = "" & (i + 1)
+  edgeprint slot_label, 312 - len(slot_label) * 8, 25 + yoff, col, page
  NEXT i
  col = uilook(IIF(st.pt = -1, uiSelectedItem + tog, uiMenuItem))
  edgeprint menu(0), ancCenter + 50, 6, col, page
