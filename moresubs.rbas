@@ -1291,7 +1291,7 @@ FOR i as integer = 0 TO 40
 NEXT i
 CleanInventory(inventory())
 
-FOR i as integer = 0 TO 99
+FOR i as integer = 0 TO gen(genMaxShop)
  FOR o as integer = 0 TO 49
   gam.stock(i, o) = 0 'default of 0 means "unloaded". The actual value will be populated when you first visit the shop
  NEXT o

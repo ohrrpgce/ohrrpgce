@@ -1619,7 +1619,10 @@ z = 0
 show_load_index z, "stock", 1
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  gam.stock(i, o) = buffer(z): z = z + 1
+  IF i <= gen(genMaxShop) THEN
+   gam.stock(i, o) = buffer(z)
+  END IF
+  z = z + 1
  NEXT o
 NEXT i
 show_load_index z, "hero lock bits", 1

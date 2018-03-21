@@ -928,12 +928,8 @@ FUNCTION shop_editor (shop_id as integer) as integer
   IF cropafter_keycombo(shopst.st.pt = 1) THEN cropafter shopst.id, gen(genMaxShop), 0, game + ".sho", 40
   usemenu shopst.st
   IF shopst.st.pt = 1 THEN
-   '--only allow adding shops up to 99
-   'FIXME: This is because of the limitation on remembering shop stock in the SAV format
-   '       when the SAV format has changed, this limit can easily be lifted.
-   'FIXME: SAV is gone, someone please increase this now :)
    new_shop_id = shopst.id
-   IF intgrabber_with_addset(new_shop_id, 0, gen(genMaxShop), 99, "Shop") THEN
+   IF intgrabber_with_addset(new_shop_id, 0, gen(genMaxShop), maxMaxShop, "Shop") THEN
     shop_save shopst, shopbuf()
     shopst.id = new_shop_id
     IF shopst.id > gen(genMaxShop) THEN

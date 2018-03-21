@@ -155,7 +155,8 @@ TYPE GameState
   music_change_delay as integer      'Number of ticks to wait before changing music; <= 0 if no change pending
   delayed_music as integer           'Song number to change to, -1 to stop music
   random_battle_countdown as integer
-  stock(99, 49) as integer           'Keeps track of available inventory at each shop (shop, stockidx)
+  stock(ANY, ANY) as integer           'Keeps track of available inventory at each shop (shop, stockidx)
+                                     'must REDIM gam.stock(gen(genMaxShop), 49) as integer after gen() is loaded
                                      'Each entry is either -1 (infinite stock), 0 (not loaded; will be loaded
                                      'when the shop is visited unless STF is too short)
                                      'or remainingstock+1 if > 0

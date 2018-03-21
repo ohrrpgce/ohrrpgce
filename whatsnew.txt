@@ -23,6 +23,7 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
     * Previewing MP3 files in the file browser reenabled (Windows only) [Ralph]
     * New bitset "Cap minimum stats to zero" can prevent equipment with
       negative stat bonuses from making a hero's stats negative [James]
+    * Maximum Shop ID has been raised from 99 to 32767 [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

@@ -500,7 +500,7 @@ Function ShopBrowser.highest_id() as integer
 End Function
 
 Function ShopBrowser.highest_possible_id() as integer
- return 99
+ return maxMaxShop
 End Function
 
 Function ShopBrowser.thing_text_for_id(byval id as integer) as string

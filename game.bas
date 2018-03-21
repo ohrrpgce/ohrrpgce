@@ -632,6 +632,8 @@ set_global_sfx_volume 0.01 * gen(genSFXVolume)
 
 REDIM gmap(dimbinsize(binMAP)) 'this must be sized here, after the binsize file exists!
 
+REDIM gam.stock(gen(genMaxShop), 49) as integer 'resize this after we have loaded gen()
+
 'Unload any default graphics (from data/defaultgfx) that might have been cached
 sprite_empty_cache
 palette16_empty_cache
