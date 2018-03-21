@@ -45,7 +45,7 @@ DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType, collision_type as W
 DECLARE FUNCTION find_useable_npc () as integer
 DECLARE SUB interpret_scripts ()
 DECLARE SUB update_heroes(force_step_check as bool=NO)
-DECLARE SUB doloadgame(byval load_slot as integer)
+DECLARE SUB doloadgame(byval load_slot as integer, prefix as string="")
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(timercontext as TimerContextEnum, tmr as PlotTimer) as bool
 
@@ -700,6 +700,7 @@ gam.want.battle = 0
 gam.want.teleport = NO
 gam.want.usenpc = 0
 gam.want.loadgame = 0
+gam.want.loadgame_prefix = ""
 gam.want.dont_quit_to_loadmenu = NO
 'gam.want.resetgame reset after title/loadmenu
 load_non_elemental_elements gam.non_elemental_elements()
@@ -725,6 +726,7 @@ gam.ingame = YES
 IF get_gen_bool("/mouse/show_cursor") THEN showmousecursor 'Without this, the default cursor visibility depends on window state
 
 DIM load_slot as integer = -1
+DIM load_slot_prefix as string = ""
 '.resetgame is YES when resetgame was called so we are skipping straight to launching the game
 IF gam.want.resetgame = NO THEN
  queue_fade_in
@@ -907,9 +909,11 @@ DO
  END IF' end gam.paused = NO
 
  IF gam.want.loadgame > 0 THEN
-  'DEBUG debug "loading game slot " & (gam.want.loadgame - 1)
+  'DEBUG debug "loading game slot " & gam.want.loadgame_prefix & (gam.want.loadgame - 1)
   load_slot = gam.want.loadgame - 1
+  load_slot_prefix = gam.want.loadgame_prefix
   gam.want.loadgame = 0
+  gam.want.loadgame_prefix = ""
   resetgame
   initgamedefaults
   IF readbit(gen(), genBits2, 24) = 0 THEN  '"Don't stop music when starting/loading game"
@@ -920,7 +924,7 @@ DO
   'resetsfx
   fadeout 0, 0, 0
   queue_fade_in 1, YES
-  doloadgame load_slot
+  doloadgame load_slot, load_slot_prefix
  END IF
 
  'Death handling
@@ -1067,14 +1071,14 @@ SUB cleanup_game_slices ()
  DestroyGameSlices
 END SUB
 
-SUB doloadgame(byval load_slot as integer)
- loadgame load_slot
+SUB doloadgame(byval load_slot as integer, prefix as string="")
+ loadgame load_slot, prefix
  interpolatecat()
  IF gen(genLoadGameScript) > 0 THEN
   DIM nargs as integer = UBOUND(gam.want.script_args) + 2
   trigger_script gen(genLoadGameScript), nargs, YES, "loadgame", "", mainFibreGroup
   '--pass save slot as argument
-  IF load_slot = 32 THEN
+  IF prefix = "quick" THEN
    trigger_script_arg 0, -1, "slot"  'quickload slot
   ELSE
    trigger_script_arg 0, load_slot, "slot"
@@ -4377,13 +4381,21 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   END IF
 
   IF dbg.def(      , scF2, "Quick-save (F2)") THEN
-   savegame 32
+   savegame 0, "quick"
    gam.showtext = "Quick-saved. Press F3 to quick-load"
    gam.showtext_ticks = 20
   END IF
 
   IF dbg.def(      , scF3, "Quick-load (F3)") THEN
-   IF yesno("Load quick-saved game?") THEN gam.want.loadgame = 33
+   IF save_slot_used(0, "quick") THEN
+    IF yesno("Load quick-saved game?") THEN
+     gam.want.loadgame = 1
+     gam.want.loadgame_prefix = "quick"
+    END IF
+   ELSE
+    gam.showtext = "Quick-save slot is empty"
+    gam.showtext_ticks = 20
+   END IF
   END IF
 
  ELSE
@@ -4532,8 +4544,8 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'IF dbg.def( , , "Test Slicified Spell Screen") THEN spell_screen onwho(readglobalstring(106, "Whose Spells?", 20), NO)
  #IFDEF __FB_ANDROID__
   IF dbg.def( , , "Email saved game") THEN
-   savegame 33
-   email_save_to_developer 33
+   savegame 0, "mail"
+   email_save_to_developer 0, "mail"
   END IF
  #ENDIF
 
@@ -4705,10 +4717,14 @@ END SUB
 'Send an email to the game author. Currently only works on Android.
 'save_slot: -1: Don't attach a save. 0+: Attach an existing save.
 'Also attaches g_debug.txt, g_debug_archive.txt if a save is attached.
-SUB email_save_to_developer(save_slot as integer = -1, subject as string = "", body as string = "")
+SUB email_save_to_developer(save_slot as integer = -1, prefix as string="", subject as string = "", body as string = "")
  DIM as string file1, file2, file3
  IF save_slot >= 0 THEN 
-  file1 = savedir & SLASH & save_slot & ".rsav"
+  IF prefix <> trimpath(prefix) THEN
+   visible_debug "email_save_to_developer: save slot prefix may not include path"
+   EXIT SUB
+  END IF
+  file1 = savedir & SLASH & prefix & save_slot & ".rsav"
   IF isfile(file1) = NO THEN file1 = ""
  END IF
  IF LEN(file1) THEN

@@ -167,7 +167,7 @@ FUNCTION standard_embed_codes(act as string, byval arg as integer) as string
 END FUNCTION
 
 FUNCTION saveslot_embed_codes(byval saveslot as integer, act as string, byval arg as integer) as string
- 'saveslot -- the save slot number that we should read values from. 0-31
+ 'saveslot -- the save slot number that we should read values from. 0-maxSaveSlotCount-1
  'act --- the code text. It is normally alpha only. For example, the "H" in ${H0}
  'arg --- the code argument. This is an integer. For example, the 0 in ${H0}
 
@@ -1990,7 +1990,7 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = trim(box.text(retvals(2)))
    embedtext plotstr(retvals(0)).s
   END IF
- CASE 241'-- expand string(id)
+ CASE 241'-- expand string(id, saveslot)
   retvals(1) = get_optional_arg(1, 0)
   IF valid_plotstr(retvals(0)) THEN
    'Retvals(1) can be 0 for the default of using current game state, or a save slot 1-32
@@ -4328,7 +4328,7 @@ SUB script_functions(byval cmdid as integer)
    IF retvals(2) <> -1 ANDALSO valid_plotstr(retvals(2)) THEN  'body string id
     body = plotstr(retvals(2)).s
    END IF
-   email_save_to_developer retvals(0) - 1, subject, body
+   email_save_to_developer retvals(0) - 1, "", subject, body
   END IF
  CASE 605 '--dump slice tree
   IF retvals(0) = 0 THEN
@@ -5218,7 +5218,7 @@ FUNCTION valid_map_layer(layer as integer, errorlevel as scriptErrEnum = serrBad
 END FUNCTION
 
 FUNCTION valid_save_slot(slot as integer) as bool
- RETURN bound_arg(slot, 1, 32, "save slot", , serrBadOp)
+ RETURN bound_arg(slot, 1, maxSaveSlotCount, "save slot", , serrBadOp)
 END FUNCTION
 
 FUNCTION get_door_by_map_script_arg(byref thisdoor as door, byval door_id as integer, byval map_id as integer) as bool

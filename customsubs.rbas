@@ -4566,7 +4566,7 @@ SUB edit_savegame_options
   IF state.pt = 0 THEN
    IF enter_space_click(state) THEN EXIT DO
   ELSEIF state.pt = 1 THEN  'save slot count
-   IF intgrabber(gen(genSaveSlotCount), 1, 32) THEN state.need_update = YES
+   IF intgrabber(gen(genSaveSlotCount), 1, maxSaveSlotCount) THEN state.need_update = YES
   END IF
 
   IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_space_click(state) THEN

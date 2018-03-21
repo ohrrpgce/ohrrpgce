@@ -1091,7 +1091,7 @@ PRIVATE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool 
 show_virtual_gamepad()
 
 DIM ret_slot as integer
-DIM max_slot as integer = 31
+DIM max_slot as integer = maxSaveSlotCount - 1
 DIM last_slot as integer
 last_slot = gen(genSaveSlotCount) - 1
 IF last_slot < 0 THEN last_slot = 3 'Use the default!
