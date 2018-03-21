@@ -17,6 +17,7 @@ include, "autotest-plotstr.hsi"
 # 4 test expanding strings from save slots
 # 5 empty, for testing failure of expanding strings from empty save slots
 # 31 save slot: persistent
+# 400 used for testing higher number save slots
 
 
 ########################################################################
@@ -63,6 +64,7 @@ define constant(11, assert expression string)
 
 # see notes at the top of this file for what save slots get used
 define constant(31, save slot: persistent)
+define constant(400, save slot: high)
 
 ########################################################################
 
@@ -777,7 +779,7 @@ script, hero names embed tests, begin
   assert(string compare($1="${P0}", expand string($2="${P0}", 5)))
   assert(string compare($1="${C0}", expand string($2="${C0}", 5)))
   assert(string compare($1="${H1},${H2},${H3}", expand string($2="${H1},${H2},${H3}", 5)))
-
+  
   # Although not hero related, lets throw some tests for ${V} and ${S} in here too.
   #saveglobal is global id 121
   saveglobal := 54321
@@ -815,6 +817,13 @@ script, hero names embed tests, begin
   # An empty save slot (5)
   show string(expand string($3="${S2}", 5)), w
   assert(string compare(3, $1="${S2}"))
+  
+  # Test a string in a high-numbered save slot
+  $3="Not Over 9000!!"
+  save in slot(save slot: high)
+  $3="Cleaned up"
+  show string(expand string($2="String=${S3}", save slot: high))
+  assert(string compare(2, $1="String=Not Over 9000!!"))
 
   # restore old party order
   swap by position(0, find hero(h0))  
