@@ -1100,6 +1100,23 @@ IF last_slot > max_slot THEN
  last_slot = max_slot
 END IF
 
+IF readbit(gen(), genBits2, 28) THEN
+ 'Hide empty slots at the bottom
+ FOR i as integer = last_slot TO 4 STEP -1
+  IF save_slot_used(i) THEN
+   'Found a used save slot
+   EXIT FOR
+  ELSE
+   'Save slot is empty
+   IF loading THEN
+    last_slot = i - 1
+   ELSE
+    last_slot = i
+   END IF
+  END IF
+ NEXT i
+END IF
+
 DIM mapname(max_slot) as string
 DIM lev(max_slot) as string
 DIM menu(1) as string

@@ -24,6 +24,9 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
     * New bitset "Cap minimum stats to zero" can prevent equipment with
       negative stat bonuses from making a hero's stats negative [James]
     * Maximum Shop ID has been raised from 99 to 32767 [James]
+    * Added a general bitset to hide empty save slots at the bottom of the
+      save/load menu. (Won't shows less than 4 slots unless you specifically
+      set a max lower than 4) [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

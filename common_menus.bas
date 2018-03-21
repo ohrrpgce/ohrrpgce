@@ -202,6 +202,7 @@ SUB edit_general_bitsets()
  bitname(41) = "Keep caterpillar length the same when speed changes"
  bitname(42) = "Heroes use Walk in Place animation while idle"
  bitname(43) = "Cap minimum stats at zero"
+ bitname(44) = "Hide empty save slots at the bottom of the save/load menus"
  edit_global_bitsets bitname(), "general_game_bitsets"
 END SUB
 
