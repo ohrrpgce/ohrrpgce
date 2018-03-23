@@ -2679,7 +2679,8 @@ SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palett
 END SUB
 
 'Load an image of any bitdepth into a Frame which has just 16 colours: those in pal16
-SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr)
+'defaultpal is SpriteEditState.palette
+SUB spriteedit_import16_loadimage(srcfile as string, byref impsprite as Frame ptr, byref pal16 as Palette16 ptr, defaultpal as Palette16 ptr = NULL)
 
  DIM info as ImageFileInfo = image_read_info(srcfile)
 
@@ -2696,10 +2697,12 @@ SUB spriteedit_import16_loadimage(byref ss as SpriteEditState, srcfile as string
   DIM imgpal(255) as RGBcolor
   impsprite = image_import_as_frame_paletted(srcfile, imgpal())
 
-  'Put color index hints in palmapping(), which are used if they are an exact match.
-  FOR i as integer = 0 TO ss.palette->numcolors - 1
-   palmapping(i) = ss.palette->col(i)
-  NEXT
+  IF defaultpal THEN
+   'Put color index hints in palmapping(), which are used if they are an exact match.
+   FOR i as integer = 0 TO defaultpal->numcolors - 1
+    palmapping(i) = defaultpal->col(i)
+   NEXT
+  END IF
 
   find_palette_mapping(imgpal(), master(), palmapping())
  END IF
@@ -3006,7 +3009,7 @@ END FUNCTION
 
 'Lets the use pick one of the colour/pixels in impsprite, returns the colour index
 'Returns -1 if cancelled.
-FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as integer
+FUNCTION spriteedit_import16_pick_bgcol(impsprite as Frame ptr, pal16 as Palette16 ptr) as integer
  DIM pickpos as XYPair
  DIM ret as bool
  ret = pick_image_pixel(impsprite, pal16, pickpos, -1, , , "Pick background (transparent) color", "sprite_import16_pickbackground")
@@ -3015,18 +3018,18 @@ FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite a
  RETURN readpixel(impsprite, pickpos.x, pickpos.y)
 END FUNCTION
 
-'Set can_remap to whether a mapping from pal16 to ss.palette exists,
+'Set can_remap to whether a mapping from new_pal to old_pal (eg. SpriteEditState.palette) exists,
 'and if so write it in palmapping().
-SUB spriteedit_import16_compare_palettes(byref ss as SpriteEditState, byval new_pal as Palette16 ptr, palmapping() as integer, byref can_remap as bool, byref is_identical as bool)
+SUB spriteedit_import16_compare_palettes(byval old_pal as Palette16 ptr, byval new_pal as Palette16 ptr, palmapping() as integer, byref can_remap as bool, byref is_identical as bool)
  can_remap = YES
  is_identical = YES
  FOR i as integer = 1 TO 15
-  'IF new_pal->col(i) <> ss.palette->col(i) THEN is_identical = NO
-  IF color_distance(master(), new_pal->col(i), ss.palette->col(i)) > 0 THEN is_identical = NO
+  'IF new_pal->col(i) <> old_pal->col(i) THEN is_identical = NO
+  IF color_distance(master(), new_pal->col(i), old_pal->col(i)) > 0 THEN is_identical = NO
   DIM found as bool = NO
   FOR j as integer = 1 TO 15
-   'IF new_pal->col(i) = ss.palette->col(j) THEN
-   IF color_distance(master(), new_pal->col(i), ss.palette->col(j)) = 0 THEN
+   'IF new_pal->col(i) = old_pal->col(j) THEN
+   IF color_distance(master(), new_pal->col(i), old_pal->col(j)) = 0 THEN
     palmapping(i) = j
     found = YES
     EXIT FOR
@@ -3082,7 +3085,7 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
 
   IF palstate.need_update THEN
    palstate.need_update = NO
-   spriteedit_import16_compare_palettes ss, pal16, palmapping(), can_remap, is_identical
+   spriteedit_import16_compare_palettes ss.palette, pal16, palmapping(), can_remap, is_identical
 
    pmenu(0) = "Overwrite Current Palette"
    retval(0) = 0
@@ -3139,13 +3142,13 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
 
  DIM as Frame ptr impsprite, impsprite2
  DIM pal16 as Palette16 ptr
- spriteedit_import16_loadimage ss, srcfile, impsprite, pal16
+ spriteedit_import16_loadimage srcfile, impsprite, pal16, ss.palette
  IF impsprite = NULL THEN EXIT SUB
  'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
 
  'Pick background color
  DIM bgcol as integer
- bgcol = spriteedit_import16_pick_bgcol(ss, impsprite, pal16)
+ bgcol = spriteedit_import16_pick_bgcol(impsprite, pal16)
  IF bgcol = -1 THEN  'cancelled
   frame_unload @impsprite
   palette16_unload @pal16
@@ -3165,8 +3168,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  SWAP pal16->col(0), pal16->col(bgcol)
 
  'Trim or expand the image to final dimensions (only for spritedit_import16_remap_menu)
- impsprite2 = frame_new(ss.wide, ss.high, , YES)
- frame_draw impsprite, NULL, 0, 0, , NO, impsprite2
+ impsprite2 = frame_resized(impsprite, ss.wide, ss.high)
  SWAP impsprite, impsprite2
  frame_unload @impsprite2
  'frame_export_bmp4 "debug1.bmp", impsprite, master(), pal16
@@ -3176,7 +3178,7 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  DIM can_remap as bool
  DIM is_identical as bool
  DIM palmapping(15) as integer
- spriteedit_import16_compare_palettes ss, pal16, palmapping(), can_remap, is_identical
+ spriteedit_import16_compare_palettes ss.palette, pal16, palmapping(), can_remap, is_identical
 
  'Prompt about remapping palette
  DIM remap as integer
