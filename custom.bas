@@ -58,7 +58,6 @@ DECLARE FUNCTION get_previous_session_info (workdir as string) as SessionInfo
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
-DECLARE SUB arbitrary_sprite_editor ()
 DECLARE SUB text_test_menu ()
 DECLARE SUB font_test_menu ()
 DECLARE SUB new_graphics_tests ()
@@ -1847,7 +1846,7 @@ SUB secret_menu ()
      "Editor Editor", _
      "Conditions and More Tests", _
      "Transformed Quads", _
-     "Sprite editor with arbitrary sizes", _
+     "plankmenu cursor move tests", _
      "Text tests", _
      "Font tests", _
      "Stat Growth Chart", _
@@ -1865,8 +1864,7 @@ SUB secret_menu ()
      "Backend Keyrepeat Bugtest", _
      "Test Game under GDB", _
      "Test Game under Valgrind", _
-     "Mouse Options", _
-     "plankmenu cursor move tests" _
+     "Mouse Options" _
  }
  DIM st as MenuState
  st.autosize = YES
@@ -1882,7 +1880,7 @@ SUB secret_menu ()
    IF st.pt = 2 THEN editor_editor
    IF st.pt = 3 THEN condition_test_menu
    IF st.pt = 4 THEN quad_transforms_menu
-   IF st.pt = 5 THEN arbitrary_sprite_editor
+   IF st.pt = 5 THEN plankmenu_cursor_move_tests
    IF st.pt = 6 THEN text_test_menu
    IF st.pt = 7 THEN font_test_menu
    IF st.pt = 8 THEN stat_growth_chart
@@ -1904,7 +1902,6 @@ SUB secret_menu ()
    IF st.pt = 21 THEN spawn_game_menu YES
    IF st.pt = 22 THEN spawn_game_menu NO, YES
    IF st.pt = 23 THEN edit_mouse_options ()
-   IF st.pt = 24 THEN plankmenu_cursor_move_tests
   END IF
   usemenu st
   clearpage vpage
@@ -1980,63 +1977,6 @@ SUB resolution_menu ()
   dowait
  LOOP
  xbsave game + ".gen", gen(), 1000
-END SUB
-
-SUB arbitrary_sprite_editor ()
- DIM tempsets as integer = 0
- DIM tempcaptions(15) as string
- FOR i as integer = 0 to UBOUND(tempcaptions)
-  tempcaptions(i) = "frame" & i
- NEXT i
- DIM size as XYPair
- size.x = 20
- size.y = 20
- DIM framecount as integer = 8
-
- DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Sets=", "Start Editing..."}
- DIM st as MenuState
- st.size = 24
- st.last = UBOUND(menu)
- st.need_update = YES
-
- DO
-  setwait 55
-  setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
-  SELECT CASE st.pt
-   CASE 0: IF intgrabber(size.x, 0, 160) THEN st.need_update = YES
-   CASE 1: IF intgrabber(size.y, 0, 160) THEN st.need_update = YES
-   CASE 2: IF intgrabber(framecount, 0, 16) THEN st.need_update = YES
-   CASE 3: IF intgrabber(tempsets, 0, 32000) THEN st.need_update = YES
-  END SELECT
-  IF enter_space_click(st) THEN
-   IF st.pt = 4 THEN
-    'We need to set this for the sprite importer
-    WITH sprite_sizes(sprTypeOther)
-     .size = size
-     .frames = framecount
-    END WITH
-    old_spriteset_editor size.x, size.y, tempsets, framecount, tempcaptions(), sprTypeOther
-    IF isfile(game & ".pt-1") THEN
-     debug "Leaving behind """ & game & ".pt-1"""
-    END IF
-   END IF
-  END IF
-  usemenu st
-  IF st.need_update THEN
-   menu(0) = "Width: " & size.x
-   menu(1) = "Height:" & size.y
-   menu(2) = "Framecount: " & framecount
-   menu(3) = "Sets: " & tempsets
-   st.need_update = NO
-  END IF
-  clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
-  setvispage vpage
-  dowait
- LOOP
- setkeys
-
 END SUB
 
 'This menu is for testing experimental Condition UI stuff

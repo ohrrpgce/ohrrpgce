@@ -133,7 +133,6 @@ DECLARE FUNCTION tile_anim_deanimate_tile (tileid as integer, tastuf() as intege
 DECLARE FUNCTION tile_anim_animate_tile (tileid as integer, pattern_num as integer, tastuf() as integer) as integer
 DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer) as bool
 
-DECLARE SUB getpal16 (array() as integer, byval array_record as integer, byval file_record as integer, byval autotype as integer=-1, byval sprite as integer=0)
 DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
 
 DECLARE SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)

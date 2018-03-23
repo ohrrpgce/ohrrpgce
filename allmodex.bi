@@ -197,17 +197,6 @@ End Type
 DECLARE SUB setclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 DECLARE SUB shrinkclip(l as integer = 0, t as integer = 0, r as integer = 999999, b as integer = 999999, fr as Frame ptr = 0)
 
-DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal as Palette16 ptr, x as integer, y as integer, page as integer, scale as integer=1, trans as bool = YES)
-DECLARE SUB drawspritex OVERLOAD (pic() as integer, picoff as integer, pal() as integer, po as integer, x as integer, y as integer, page as integer, scale as integer = 1, trans as bool = YES)
-DECLARE SUB drawsprite (pic() as integer, picoff as integer, pal() as integer, po as integer, x as integer, y as integer, page as integer, trans as bool = YES)
-DECLARE SUB wardsprite (pic() as integer, picoff as integer, pal() as integer, po as integer, x as integer, y as integer, page as integer, trans as bool = YES)
-DECLARE SUB getsprite (pic() as integer, picoff as integer, x as integer, y as integer, w as integer, h as integer, page as integer)
-DECLARE SUB stosprite (pic() as integer, picoff as integer, x as integer, y as integer, page as integer)
-DECLARE SUB loadsprite (pic() as integer, picoff as integer, x as integer, y as integer, w as integer, h as integer, page as integer)
-DECLARE SUB bigsprite  (pic() as integer, pal() as integer, p as integer, x as integer, y as integer, page as integer, trans as bool = YES)
-DECLARE SUB hugesprite (pic() as integer, pal() as integer, p as integer, x as integer, y as integer, page as integer, trans as bool = YES)
-
-
 DECLARE SUB putpixel OVERLOAD (spr as Frame ptr, x as integer, y as integer, c as integer)
 DECLARE SUB putpixel OVERLOAD (x as integer, y as integer, c as integer, p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (spr as Frame ptr, x as integer, y as integer) as integer
@@ -508,8 +497,6 @@ declare function graphics_file(filename_or_extn as string) as string
 
 declare function frame_new(w as integer, h as integer, frames as integer = 1, clr as bool = NO, wantmask as bool = NO, with_surface32 as bool = NO, no_alloc as bool = NO) as Frame ptr
 declare function frame_new_view(spr as Frame ptr, x as integer, y as integer, w as integer, h as integer) as Frame ptr
-declare function frame_new_from_buffer(pic() as integer, picoff as integer = 0) as Frame ptr
-declare sub frame_to_buffer(spr as Frame ptr, pic() as integer)
 declare function frame_load(sprtype as SpriteType, record as integer) as Frame ptr
 declare function frame_load_4bit(filen as string, record as integer, numframes as integer, wid as integer, hei as integer) as Frame ptr
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
@@ -566,7 +553,6 @@ end enum
 declare function palette16_new(numcolors as integer = 16) as Palette16 ptr
 declare function Palette16_new_identity(numcolors as integer = 16) as Palette16 ptr
 declare function palette16_new_from_indices(pal() as integer) as Palette16 ptr
-declare function palette16_new_from_buffer(pal() as integer, po as integer) as Palette16 ptr
 declare function palette16_load overload(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, default_blank as bool = YES) as Palette16 ptr
 declare function palette16_load overload(fil as string, num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0) as Palette16 ptr
 declare sub palette16_unload(p as Palette16 ptr ptr)

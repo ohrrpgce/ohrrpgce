@@ -1295,40 +1295,6 @@ FUNCTION shorten_to_right (text as string, byval wide as integer) as string
  RETURN LEFT(text, curspos.charnum) + "..."
 END FUNCTION
 
-SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
- IF index \ 2 > UBOUND(array16) THEN
-  debug "Dang rotten poke8bit(array(" & UBOUND(array16) & ")," & index & "," & val8 & ") out of range"
-  EXIT SUB
- END IF
- IF val8 <> (val8 AND &hFF) THEN
-   debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF)
-   val8 = val8 AND &hFF
- END IF
- DIM element as integer = array16(index \ 2)
- DIM lb as integer = element AND &hFF
- DIM hb as integer = (element AND &hFF00) SHR 8
- IF index AND 1 THEN
-  hb = val8
- ELSE
-  lb = val8
- END IF
- element = lb OR (hb SHL 8)
- array16(index \ 2) = element
-END SUB
-
-FUNCTION peek8bit (array16() as integer, byval index as integer) as integer
- IF index \ 2 > UBOUND(array16) THEN
-  debug "Dang rotten peek8bit(array(" & UBOUND(array16) & ")," & index & ") out of range"
-  RETURN 0
- END IF
- DIM element as integer = array16(index \ 2)
- IF index AND 1 THEN
-  RETURN (element AND &hFF00) SHR 8
- ELSE
-  RETURN element AND &hFF
- END IF
-END FUNCTION
-
 SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
  IF palnum < 0 THEN
   debug "loadpalette: invalid palnum " & palnum

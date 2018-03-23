@@ -68,25 +68,6 @@ END TYPE
 
 TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr, defpal as integer)
 
-'old_spriteset_editor state
-TYPE SpriteSetBrowseState
-  spritefile as string
-  fileset as SpriteType '.PT# number
-  max_spriteset as integer ptr  'Maximum spriteset number, equal to e.g. gen(genMaxHeroPic)
-  framenum as integer
-  wide as integer
-  high as integer
-  perset as integer    'Number of frames per spriteset
-  size as integer      'Size of a single frame in bytes, two pixels per byte
-  setsize as integer   'Size of spriteset in bytes, two pixels per byte
-  at_a_time as integer 'Number of sprite sets that fit on the browsing screen
-  fullset as bool      'Whether editing full spritesets rather than frames
-  visible_sprites as short ptr  'Stores all loaded visible sprites, as concatenated placer() arrays
-  nulpal(8) as integer '--nulpal is used for getsprite and can go away once we convert to use Frame
-  state_pt as integer  'Copied from state
-  state_top as integer 'Copied from state
-END TYPE
-
 'sprite_editor state
 TYPE SpriteEditState
   'Members which should be set by the caller to sprite_editor

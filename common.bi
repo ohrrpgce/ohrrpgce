@@ -95,9 +95,6 @@ DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 DECLARE FUNCTION shorten_to_left (text as string, byval wide as integer) as string
 DECLARE FUNCTION shorten_to_right (text as string, byval wide as integer) as string
 
-DECLARE SUB poke8bit (array16() as integer, byval index as integer, byval val8 as integer)
-DECLARE FUNCTION peek8bit (array16() as integer, byval index as integer) as integer
-
 DECLARE SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, byval palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
