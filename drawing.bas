@@ -2674,8 +2674,15 @@ SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palett
  DIM outfile as string
  outfile = inputfilename("Export to bitmap file", ".bmp", defaultdir, "input_file_export_sprite", default_name)
  IF outfile <> "" THEN
-  frame_export_bmp4 outfile & ".bmp", sprite, master(), pal
+  frame_export_image sprite, outfile & ".bmp", master(), pal
  END IF
+END SUB
+
+SUB spriteedit_export_spriteset(def_filename as string, ss as Frame ptr, pal as Palette16 ptr)
+ DIM spritesheet as Frame ptr
+ spritesheet = spriteset_to_basic_spritesheet(ss)
+ spriteedit_export def_filename, spritesheet, pal
+ frame_unload @spritesheet
 END SUB
 
 'Load an image of any bitdepth into a Frame which has just 16 colours: those in pal16
@@ -4218,12 +4225,18 @@ END SUB
 
 SUB SpriteSetBrowser.export_any()
   DIM as integer setnum = cur_setnum, framenum = cur_framenum
-  IF framenum < 0 THEN EXIT SUB  'Whole spriteset: unimplemented
   DIM pal as Palette16 ptr = palette16_load(defpalettes(setnum))
   IF pal = NULL THEN EXIT SUB
+
   editing_spriteset = frame_load(sprtype, setnum)
 
-  spriteedit_export default_export_name(sprtype, setnum, framenum, NO), @editing_spriteset[framenum], pal
+  DIM fullset as bool = (framenum < 0)  'Whole spriteset?
+  DIM def_filename as string = default_export_name(sprtype, setnum, framenum, fullset)
+  IF fullset THEN
+   spriteedit_export_spriteset def_filename, editing_spriteset, pal
+  ELSE
+   spriteedit_export def_filename, @editing_spriteset[framenum], pal
+  END IF
 
   frame_unload @editing_spriteset
   palette16_unload @pal

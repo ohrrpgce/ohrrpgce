@@ -3264,6 +3264,24 @@ END SUB
 
 
 '==========================================================================================
+'                              Spritesheet loading/saving
+'==========================================================================================
+
+'Concatenate all the frames of a Frame array end-to-end.
+'This is the original spriteset import/export format. Ignores frame ids!
+FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
+  DIM spritesheet as Frame ptr
+  spritesheet = frame_new(ss->w * ss->arraylen, ss->h, , YES)
+
+  FOR fridx as integer = 0 TO ss->arraylen - 1
+    frame_draw @ss[fridx], , fridx * ss->w, 0, 1, NO, spritesheet
+  NEXT
+
+  RETURN spritesheet
+END FUNCTION
+
+
+'==========================================================================================
 '                                  New Graphics Format
 '==========================================================================================
 
