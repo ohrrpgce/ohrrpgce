@@ -83,5 +83,6 @@ ohr.geany
 !testgame/**/*.rpg
 *.bmp
 *.gif
+*.png
 # Everything under data
 !data/**
