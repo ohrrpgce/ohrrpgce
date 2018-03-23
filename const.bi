@@ -357,8 +357,7 @@ Enum SpriteType
 	sprTypeTileset = 11      'Free to change this later (never saved)
 	sprTypeLastLoadable = 11 'Last type that frame_load knows about
 	' Add new types before Tileset
-	sprTypeOther = 16        'Used only by the arbitrary-size spriteset editor (free to change, never saved)
-	sprTypeLast = 16
+	sprTypeLast = 11
 End Enum
 
 'Names for hero battle sprite frames

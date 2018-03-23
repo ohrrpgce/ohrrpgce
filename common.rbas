@@ -5684,13 +5684,6 @@ SUB setup_sprite_sizes ()
   .directions = 1
   .genmax = genMaxTile
  END WITH
-
- WITH sprite_sizes(sprTypeOther)   '16, only for temporary use in the test arbitrary-size spriteset editor
-  .name = "Experimental"
-  .frames = 1
-  .directions = 1
-  .genmax = -1 'this should throw an error rather than corrupting gen(0)
- END WITH
 END SUB
 
 SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)

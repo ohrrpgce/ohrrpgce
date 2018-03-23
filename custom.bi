@@ -43,7 +43,6 @@ DECLARE FUNCTION importmasterpal (filename as string = "", palnum as integer) as
 DECLARE SUB vehicles ()
 DECLARE SUB scriptman ()
 DECLARE SUB map_picker ()
-DECLARE SUB old_spriteset_editor (xw as integer, yw as integer, byref sets as integer, perset as integer, info() as string, fileset as SpriteType, fullset as bool = NO, cursor_start as integer = 0, cursor_top as integer = 0)
 DECLARE SUB spriteset_editor(sprtype as SpriteType)
 DECLARE SUB backdrop_browser ()
 DECLARE SUB song_editor_main()
