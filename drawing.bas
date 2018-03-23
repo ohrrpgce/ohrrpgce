@@ -28,7 +28,7 @@ DECLARE SUB savepasdefaults (byref defaults as integer vector, tilesetnum as int
 
 DECLARE SUB airbrush (spr as Frame ptr, byval x as integer, byval y as integer, byval d as integer, byval m as integer, byval c as integer)
 
-DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
+DECLARE FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = -1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
 DECLARE FUNCTION mouseover (byval mousex as integer, byval mousey as integer, byref zox as integer, byref zoy as integer, byref zcsr as integer, area() as MouseArea) as integer
 
 DECLARE FUNCTION importimage_process(filename as string, pmask() as RGBcolor) as Frame ptr
@@ -2903,16 +2903,21 @@ END FUNCTION
 
 'Select a single pixel from a Frame, used for selecting the background colour.
 'pal16 may be NULL.
-'zoom is the zoom to draw at.
+'zoom is the zoom to draw at, -1 to automatically pick.
 'Can restrict the selected pixel to the top left corner of the image by passing maxx, maxy args
 'Returns NO if user cancelled, otherwise YES and the pixel coordinate is returned in pickpos
-FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = 1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
+FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byref pickpos as XYPair, zoom as integer = -1, maxx as integer = 9999, maxy as integer = 9999, message as string, helpkey as string) as bool
  DIM ret as bool
  DIM tog as integer
  DIM picksize as XYPair
  'pickpos will be set to mouse cursor position
  pickpos.x = 0
  pickpos.y = 0
+ IF zoom = -1 THEN
+  DIM resfrac as XYPair = get_resolution() \ image->size
+  zoom = bound(small(resfrac.w, resfrac.h), 1, 5)
+ END IF
+
  DIM imagepos as XYPair
  ' If it's smaller than the screen, offset the image so it's not sitting in the corner
  IF maxx * zoom + 4 < vpages(dpage)->w THEN
@@ -3004,7 +3009,7 @@ END FUNCTION
 FUNCTION spriteedit_import16_pick_bgcol(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as integer
  DIM pickpos as XYPair
  DIM ret as bool
- ret = pick_image_pixel(impsprite, pal16, pickpos, ss.zoom, , , "Pick background (transparent) color", "sprite_import16_pickbackground")
+ ret = pick_image_pixel(impsprite, pal16, pickpos, -1, , , "Pick background (transparent) color", "sprite_import16_pickbackground")
  IF ret = NO THEN RETURN -1
 
  RETURN readpixel(impsprite, pickpos.x, pickpos.y)
