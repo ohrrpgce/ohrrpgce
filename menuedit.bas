@@ -443,11 +443,13 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   END SELECT
   .caption &= get_menu_item_editing_annotation(mi)
  END WITH
- 
+
  append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always"), 4
  append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always"), 5
- append_menu_item detail, tag_set_caption(mi.settag, "Set tag"), 6
- append_menu_item detail, tag_toggle_caption(mi.togtag), 7
+ IF menu_item_is_activatable(mi) THEN
+  append_menu_item detail, tag_set_caption(mi.settag, "Set tag"), 6
+  append_menu_item detail, tag_toggle_caption(mi.togtag), 7
+ END IF
  append_menu_item detail, "Edit Bitsets...", 8
  FOR i = 0 TO 2
   append_menu_item detail, "Extra data " & i & ": " & mi.extra(i), 9 + i
@@ -479,9 +481,11 @@ END SUB
 SUB edit_menu_item_bits (mi as MenuDefItem)
  DIM bitname(2) as string
  DIM bits(0) as integer
- 
+
  bitname(0) = "Hide if disabled"
- bitname(1) = "Close menu if selected"
+ IF menu_item_is_activatable(mi) THEN
+  bitname(1) = "Close menu if selected"
+ END IF
  bitname(2) = "Don't run on-close script"
 
  MenuItemBitsToArray mi, bits()

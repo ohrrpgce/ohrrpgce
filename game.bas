@@ -2812,15 +2812,10 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
  DIM menu_text_box as integer = 0    'Textbox to open
  DIM updatetags as bool = NO         'Whether to do tag updates
  DIM slot as integer   'Party slot (temp)
- DIM activated as bool = YES
+ DIM activated as bool = menu_item_is_activatable(mi)
  WITH mi
   SELECT CASE .t
    CASE mtypeCaption
-    SELECT CASE .sub_t
-     CASE 0 'Selectable
-     CASE 1 'Unselectable
-      activated = NO
-    END SELECT
    CASE mtypeSpecial
     SELECT CASE .sub_t
      CASE spItems
@@ -2864,7 +2859,6 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
       create_volume_menu menus(topmenu)
       init_menu_state mstates(topmenu), menus(topmenu)
      CASE spMusicVolume, spSoundVolume
-      activated = NO
      CASE spPurchases
       purchases_menu()
      CASE spWindowed

@@ -74,9 +74,11 @@ DECLARE SUB position_menu_item (menu as MenuDef, cap as string, byval i as integ
 DECLARE SUB position_menu (menu as MenuDef, byval page as integer)
 DECLARE FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
 DECLARE FUNCTION count_menu_items (menu as MenuDef) as integer
+
 DECLARE FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
 DECLARE FUNCTION get_special_menu_caption(byval subtype as integer) as string
 DECLARE FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
+DECLARE FUNCTION menu_item_is_activatable(mi as MenuDefItem) as bool
 
 '' Scrollbars!
 DECLARE SUB draw_scrollbar OVERLOAD (state as MenuState, menu as MenuDef, page as integer, align as AlignType = alignRight)

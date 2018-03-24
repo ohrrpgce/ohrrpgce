@@ -1444,7 +1444,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  END IF
 
  state.tog = state.tog XOR 1
- DIM selected as integer
+ DIM selected as bool
 
  'First draw the highlight rectangle, if any, behind the items
  IF menu.highlight_selection THEN
@@ -1662,6 +1662,19 @@ FUNCTION get_menu_item_editing_annotation (mi as MenuDefItem) as string
    END SELECT
  END SELECT
  RETURN ""
+END FUNCTION
+
+'Whether, according to the in-game meaning of the type and subtype,
+'this menu item can be activated (possibly setting tags and closing the menu)
+FUNCTION menu_item_is_activatable(mi as MenuDefItem) as bool
+ IF mi.t = mtypeCaption ANDALSO mi.sub_t = 1 THEN  'Unselectable items
+  RETURN NO
+ ELSEIF mi.t = mtypeSpecial ANDALSO (mi.sub_t = spMusicVolume OR mi.sub_t = spSoundVolume) THEN
+  'Music and Sound Volume items are always unselectable
+  RETURN NO
+ ELSE
+  RETURN YES
+ END IF
 END FUNCTION
 
 
