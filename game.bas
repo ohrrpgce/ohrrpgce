@@ -2821,7 +2821,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spItems
       menu_text_box = item_screen()
       IF menu_text_box > 0 THEN
-       IF mi.close_if_selected = NO THEN
+       IF mi.close_when_activated = NO THEN
         remove_menu menuslot, (mi.skip_close_script = NO)
        END IF
       END IF
@@ -2883,7 +2883,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
                    & "' in menu " & menus(menuslot).record, mainFibreGroup
     IF menus(topmenu).allow_gameplay THEN
      '0 is passed instead of the menu item handle if it would be invalid
-     trigger_script_arg 0, IIF(mi.close_if_selected, 0, .handle), "item handle"
+     trigger_script_arg 0, IIF(mi.close_when_activated, 0, .handle), "item handle"
      trigger_script_arg 1, .extra(0), "extra0"
      trigger_script_arg 2, .extra(1), "extra1"
      trigger_script_arg 3, .extra(2), "extra2"
@@ -2900,7 +2900,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
  IF activated THEN
   IF ABS(mi.settag) > 1 THEN settag mi.settag : updatetags = YES
   IF mi.togtag > 1 THEN settag mi.togtag, NOT istag(mi.togtag, 0) : updatetags = YES
-  IF mi.close_if_selected THEN
+  IF mi.close_when_activated THEN
    remove_menu menuslot, (mi.skip_close_script = NO)
 
    'WARNING: below this point, mi is invalid

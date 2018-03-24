@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March 1st-ish-maybe-or-not 2018 [Fufluns]
+March 1st-ish-oops-guess-not 2018 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -41,7 +41,8 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
       menuspecial:map always, menuspecial:save always, menuspecial:margins,
       menuspecial:purchases, menuspecial:windowed, menuspecial:fullscreen,
       menuspecial:music volume, menuspecial:sound volume,
-      and menutype:caption alias for menutype:label [Ralph]
+      and menutype:caption alias for menutype:label,
+      and alias menuitembit:close menu when activated [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

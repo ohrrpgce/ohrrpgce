@@ -1903,8 +1903,10 @@ define constant, begin
 17,menuspecial:fullscreen
 18,menuspecial:musicvolume
 19,menuspecial:soundvolume
-0,menuitembit:Hide when disabled
-1,menuitembit:Close menu when selected
+0,menuitembit:hide when disabled  #Renamed
+0,menuitembit:hide if disabled
+1,menuitembit:close menu when selected  #Renamed
+1,menuitembit:close menu when activated
 2,menuitembit:skip close script
 0,menubit:translucent box
 1,menubit:never show scrollbar

@@ -1291,7 +1291,7 @@ SUB MenuItemBitsToArray (mi as MenuDefItem, bits() as integer)
  bits(0) = 0
  WITH mi
   setbit bits(), 0, 0, .hide_if_disabled
-  setbit bits(), 0, 1, .close_if_selected
+  setbit bits(), 0, 1, .close_when_activated
   setbit bits(), 0, 2, .skip_close_script
  END WITH
 END SUB
@@ -1299,7 +1299,7 @@ END SUB
 SUB MenuItemBitsFromArray (mi as MenuDefItem, bits() as integer)
  WITH mi
   .hide_if_disabled  = xreadbit(bits(), 0)
-  .close_if_selected = xreadbit(bits(), 1)
+  .close_when_activated = xreadbit(bits(), 1)
   .skip_close_script = xreadbit(bits(), 2)
  END WITH
 END SUB

@@ -14,7 +14,7 @@ Modifiy bitsets with Left, Right, SPACE and ENTER.
 
  *"No Box" - Don't draw a rectangle
 
- *"Disable cancel button" - Use this if the menu is an always-up display, or if you prefer to close it using the "close menu when selected" bitset on one of the items in the menu or the closemenu script command.
+ *"Disable cancel button" - Use this if the menu is an always-up display, or if you prefer to close it using the "close menu when activated" bitset on one of the items in the menu or the closemenu script command.
 
  *"No player control of menu" - This is useful for menus that are controlled by scripts.
 

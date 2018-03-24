@@ -429,7 +429,7 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
      DIM argsinfo as string = "Args: "
      IF menudata.allow_gameplay THEN
       '0 is passed instead of the menu item handle if it would be invalid
-      argsinfo &= IIF(mi.close_if_selected, "0, ", "handle, ")
+      argsinfo &= IIF(mi.close_when_activated, "0, ", "handle, ")
      ELSE
       'Sadly, for back-compatibility, leave out the handle instead of passing zero.
      END IF
@@ -484,7 +484,7 @@ SUB edit_menu_item_bits (mi as MenuDefItem)
 
  bitname(0) = "Hide if disabled"
  IF menu_item_is_activatable(mi) THEN
-  bitname(1) = "Close menu if selected"
+  bitname(1) = "Close menu when activated"
  END IF
  bitname(2) = "Don't run on-close script"
 

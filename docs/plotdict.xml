@@ -4559,8 +4559,8 @@ end</example>
 							<li>
 								<p>menucaption:unselectable</p> -
 								The menu item is always disabled, regardless of tags.
-								The Set Tag and Toggle Tag options and the
-								"Close menu if selected" bitset are ignored.
+								Hence, the Set Tag and Toggle Tag options and the
+								"Close menu when activated" bitset are ignored.
 							</li>
 						</ul>
 					</li>
@@ -4698,12 +4698,32 @@ end</example>
 		<command id="getmenuitembit">
 			<canon>get menu item bit(menu item handle, bit)</canon>
 			<shortname>get menu item bit</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p>, <p>menu item bit:Close menu when selected</p> and <p>menu item bit:skip close script</p>.</description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				and bit number <p>bit</p>,
+				return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF.
+				See <ref>setmenuitembit</ref> for the constants you can pass as the value of <p>bit</p>.
+			</description>
 		</command>
 		<command id="setmenuitembit">
 			<canon>set menu item bit(menu item handle, bit, value)</canon>
 			<shortname>set menu item bit</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menu item bit:Hide when disabled</p>, <p>menu item bit:Close menu when selected</p> and <p>menu item bit:skip close script</p>.</description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				and bit number <p>bit</p>, set the bitset is ON or OFF depending on <p>value</p>.
+				You can use the following constants for <p>bit</p>:
+				<ul>
+					<li>
+						<p>menu item bit:Hide when disabled</p>
+					</li>
+					<li>
+						<p>menu item bit:Close menu when activated</p> (the old name, <p>menu item bit:Close menu when selected</p>, can also be used)
+					</li>
+					<li>
+						<p>menu item bit:Skip close script</p> (ie "Don't run on-close script")
+					</li>
+				</ul>
+			</description>
 		</command>
 		<command id="getmenuitemextra">
 			<canon>get menu item extra(menu item handle, extra)</canon>

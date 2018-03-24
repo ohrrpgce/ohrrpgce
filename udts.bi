@@ -75,7 +75,7 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   togtag    as integer
   extra(2)  as integer
   hide_if_disabled  as bool
-  close_if_selected as bool
+  close_when_activated as bool
   skip_close_script as bool
   dataptr   as any ptr  'Use this with caution!
 END TYPE
