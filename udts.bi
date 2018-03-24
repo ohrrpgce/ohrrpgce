@@ -61,7 +61,7 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   bgcol as integer  ' Not used
   disabled_overrides_color as bool  ' Ignore .col when .disabled=YES. Not saved/exposed in editor
   unselectable as bool  ' Not used (yet)
-  disabled as bool  ' set at run-time based on .tag1 and .tag2
+  disabled as bool  ' for in-game user menus, set at run-time (in check_menu_tags) based on .tag1/.tag2 and type/subtype
 
   'Other members
   handle    as integer

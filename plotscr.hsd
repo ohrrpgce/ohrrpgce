@@ -1882,7 +1882,7 @@ define constant, begin
 3,menutype:textbox
 4,menutype:script
 0,menucaption:selectable
-1,menucaption:unselectable
+1,menucaption:disabled
 0,menuspecial:items
 1,menuspecial:spells
 2,menuspecial:status

@@ -2942,7 +2942,7 @@ SUB check_menu_tags ()
      DIM old as bool = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
-     IF .t = mtypeLabel AND .sub_t = 1 THEN .disabled = YES
+     IF .t = mtypeLabel AND .sub_t = lbDisabled THEN .disabled = YES
      IF .t = mtypeSpecial THEN
       ' Minimap and Save may be disabled on this map
       IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES

@@ -4,13 +4,14 @@ This is the menu item detail editor. This is where you define what a menu item a
 
 *Type & Subtype - There are 5 different types of menu item.
 
-  *Label - Label menu items just
-   display the caption. There are
-   two subtypes, selectable and
-   unselectable. Selectable captions
+  *Label - (previously called
+   Caption) menu items have no
+   special action when activated.
+   There are two subtypes, Selectable
+   and Disabled. Selectable labels
    are only used to set tags or
-   to close the menu. Unselectable
-   captions can used for decoration
+   to close the menu. Disabled
+   labels can be used for decoration
    or information, but don't really
    have much use! They always count
    as disabled, which means the
@@ -20,8 +21,6 @@ This is the menu item detail editor. This is where you define what a menu item a
    Note: there is no way to add
    a menu item which is unselectable
    with the arrow keys! Sorry!
-   "Unselectable" menu items are
-   misnamed!
 
   *Special Screen - This provides
    access to all the standard

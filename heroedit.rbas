@@ -1011,7 +1011,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    menu.last->dataptr = edit_node."enable_tag1".ptr
    append_menu_item menu, tag_condition_caption(edit_node."enable_tag2", "  and also tag", "Always"), edbatmenu_TAG
    menu.last->dataptr = edit_node."enable_tag2".ptr
-   append_menu_item menu, "When disabled: " & IIF(edit_node."hide_disabled", "Hidden", "Unselectable"), edbatmenu_NUM
+   append_menu_item menu, "When disabled: " & IIF(edit_node."hide_disabled", "Hidden", "Unusable"), edbatmenu_NUM
    menu.last->dataptr = edit_node."hide_disabled".ptr
    menu.last->extra(0) = 0
    menu.last->extra(1) = 1

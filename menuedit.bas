@@ -308,7 +308,7 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
   CASE 3: 'subtype
    SELECT CASE mi.t
     CASE mtypeLabel
-     max = 1
+     max = lbLAST
     CASE mtypeSpecial
      max = spLAST
     CASE mtypeMenu
@@ -414,8 +414,8 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   SELECT CASE mi.t
    CASE mtypeLabel
     SELECT CASE mi.sub_t
-     CASE 0: .caption = .caption & " Selectable"
-     CASE 1: .caption = .caption & " Not Selectable"
+     CASE lbSelectable:   .caption = .caption & " Selectable"
+     CASE lbDisabled:     .caption = .caption & " Disabled"
     END SELECT
    CASE mtypeSpecial
     .caption = .caption & " " & get_special_menu_caption(mi.sub_t)

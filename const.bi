@@ -476,6 +476,11 @@ Enum MenuItemType
   mtypeLAST =     4
 End Enum
 
+' Values for .sub_t subtype of mtypeLabel MenuDefItems
+CONST lbSelectable  = 0
+CONST lbDisabled    = 1
+CONST lbLAST        = 1
+
 ' These are for the .sub_t subtypes of mtypeSpecial MenuDefItems for
 ' user-created menus.
 CONST spItems       = 0

@@ -4558,7 +4558,7 @@ end</example>
 								<p>menucaption:selectable</p>
 							</li>
 							<li>
-								<p>menucaption:unselectable</p> -
+								<p>menucaption:disabled</p> -
 								The menu item is always disabled, regardless of tags.
 								Hence, the Set Tag and Toggle Tag options and the
 								"Close menu when activated" bitset are ignored.
