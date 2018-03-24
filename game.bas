@@ -2815,7 +2815,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
  DIM activated as bool = menu_item_is_activatable(mi)
  WITH mi
   SELECT CASE .t
-   CASE mtypeCaption
+   CASE mtypeLabel
    CASE mtypeSpecial
     SELECT CASE .sub_t
      CASE spItems
@@ -2942,7 +2942,7 @@ SUB check_menu_tags ()
      DIM old as bool = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
-     IF .t = mtypeCaption AND .sub_t = 1 THEN .disabled = YES
+     IF .t = mtypeLabel AND .sub_t = 1 THEN .disabled = YES
      IF .t = mtypeSpecial THEN
       ' Minimap and Save may be disabled on this map
       IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES

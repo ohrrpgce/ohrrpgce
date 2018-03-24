@@ -468,7 +468,7 @@ CONST ccRun = 6
 ' These constants are for the .t type of a MenuDefItem for user-created menus
 ' (MenuDefs used elsewhere including battles are free to assign other meanings)
 Enum MenuItemType
-  mtypeCaption =  0
+  mtypeLabel =    0
   mtypeSpecial =  1
   mtypeMenu =     2
   mtypeTextBox =  3

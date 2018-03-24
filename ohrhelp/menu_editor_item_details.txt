@@ -4,7 +4,7 @@ This is the menu item detail editor. This is where you define what a menu item a
 
 *Type & Subtype - There are 5 different types of menu item.
 
-  *Caption - Caption menu items just
+  *Label - Label menu items just
    display the caption. There are
    two subtypes, selectable and
    unselectable. Selectable captions

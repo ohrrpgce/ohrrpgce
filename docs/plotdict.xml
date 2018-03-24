@@ -4521,11 +4521,12 @@ end</example>
 				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
 				change the type of the menu item to <p>new type</p>.
 				Available constants are:
-				<tt>menutype:caption</tt> (aka <tt>menutype:label</tt>), <tt>menutype:special</tt>, <tt>menutype:menu</tt>,
+				<tt>menutype:label</tt> (aka <tt>menutype:caption</tt>), <tt>menutype:special</tt>, <tt>menutype:menu</tt>,
 				<tt>menutype:textbox</tt>, and <tt>menutype:script</tt>.
 				<lb/>
-				Except for <tt>menutype:label</tt>, you will also need to also call
+				You will also need to call
 				<ref>setmenuitemsubtype</ref> to fully specify the action attached to the menu item.
+				Setting just the item type does NOT change the subtype to a sensible value!
 			</description>
 		</command>
 		<command id="getmenuitemsubtype">
@@ -4551,7 +4552,7 @@ end</example>
 
 				<ul>
 					<li>
-						For <tt>menutype:caption</tt> use the constants:
+						For <tt>menutype:label</tt> use the constants:
 						<ul>
 							<li>
 								<p>menucaption:selectable</p>
