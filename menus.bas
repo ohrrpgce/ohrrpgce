@@ -1669,8 +1669,8 @@ END FUNCTION
 FUNCTION menu_item_is_activatable(mi as MenuDefItem) as bool
  IF mi.t = mtypeLabel ANDALSO mi.sub_t = lbDisabled THEN
   RETURN NO
- ELSEIF mi.t = mtypeSpecial ANDALSO (mi.sub_t = spMusicVolume OR mi.sub_t = spSoundVolume) THEN
-  'Music and Sound Volume items are always unselectable
+ ELSEIF mi.t = mtypeSpecial ANDALSO (mi.sub_t = spMusicVolume OR mi.sub_t = spSoundVolume OR mi.sub_t = spMargins) THEN
+  'These menu items have bars, and it doesn't make sense to activate them
   RETURN NO
  ELSE
   RETURN YES
