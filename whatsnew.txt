@@ -36,6 +36,12 @@ March 1st-ish-maybe-or-not 2018 [Fufluns]
     * "npc copy number" (opposite to "npc reference") [Ralph]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
     * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
+    * Missing constants for "get/set menu item subtype":
+      menucaption:selectable, menucaption:unselectable,
+      menuspecial:map always, menuspecial:save always, menuspecial:margins,
+      menuspecial:purchases, menuspecial:windowed, menuspecial:fullscreen,
+      menuspecial:music volume, menuspecial:sound volume,
+      and menutype:caption alias for menutype:label [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

@@ -4517,12 +4517,25 @@ end</example>
 		<command id="setmenuitemtype">
 			<canon>set menu item type(menu item handle, new type)</canon>
 			<shortname>set menu item type</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the type of the menu item to <p>new type</p>. Available constants are: <p>menutype:label</p>,<p>menutype:special</p>, <p>menutype:menu</p>, <p>menutype:textbox</p>, and <p>menutype:script</p></description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				change the type of the menu item to <p>new type</p>.
+				Available constants are:
+				<tt>menutype:caption</tt> (aka <tt>menutype:label</tt>), <tt>menutype:special</tt>, <tt>menutype:menu</tt>,
+				<tt>menutype:textbox</tt>, and <tt>menutype:script</tt>.
+				<lb/>
+				Except for <tt>menutype:label</tt>, you will also need to also call
+				<ref>setmenuitemsubtype</ref> to fully specify the action attached to the menu item.
+			</description>
 		</command>
 		<command id="getmenuitemsubtype">
 			<canon>get menu item subtype(menu item handle)</canon>
 			<shortname>get menu item subtype</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), return the subtype of the menu item. The meaning of the subtype varies depending on the type.</description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				return the subtype of the menu item. The meaning of the subtype varies depending on the type
+				(see <ref>setmenuitemsubtype</ref>).
+			</description>
 			<seealso>
 				<ref>setmenuitemsubtype</ref>
 			</seealso>
@@ -4530,7 +4543,127 @@ end</example>
 		<command id="setmenuitemsubtype">
 			<canon>set menu item subtype(menu item handle, new subtype)</canon>
 			<shortname>set menu item subtype</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), change the subtype of the menu item to <p>new subtype</p>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <p>menuspecial:items</p>, <p>menuspecial:spells</p>, <p>menuspecial:status</p>, <p>menuspecial:equip</p>, <p>menuspecial:order</p>, <p>menuspecial:team</p>, <p>menuspecial:orderteam</p>, <p>menuspecial:map</p>, <p>menuspecial:save</p>, <p>menuspecial:load</p>, <p>menuspecial:quit</p>,  and <p>menuspecial:volume</p>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname</description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				change the subtype of the menu item to <p>new subtype</p>.
+				The meaning of the subtype varies depending on the type of the menu item,
+				which is changed with <ref>setmenuitemtype</ref>:
+
+				<ul>
+					<li>
+						For <tt>menutype:caption</tt> use the constants:
+						<ul>
+							<li>
+								<p>menucaption:selectable</p>
+							</li>
+							<li>
+								<p>menucaption:unselectable</p> -
+								The menu item is always disabled, regardless of tags.
+								The Set Tag and Toggle Tag options and the
+								"Close menu if selected" bitset are ignored.
+							</li>
+						</ul>
+					</li>
+					<li>
+						For <tt>menutype:special</tt> use the constants:
+						<ul>
+							<li>
+								<p>menuspecial:items</p>
+							</li>
+							<li>
+								<p>menuspecial:spells</p>
+							</li>
+							<li>
+								<p>menuspecial:status</p>
+							</li>
+							<li>
+								<p>menuspecial:equip</p>
+							</li>
+							<li>
+								<p>menuspecial:order</p> - Reorder the active party
+							</li>
+							<li>
+								<p>menuspecial:team</p> - Reorder, or swap heroes in and out of the active party 
+							</li>
+							<li>
+								<p>menuspecial:order team</p> -
+								Either the Team menu if the "Hero Swapping Always
+								Available" general preference bitset is turned on,
+								otherwise the Order menu.
+							</li>
+							<li>
+								<p>menuspecial:map</p> - Minimap.
+								Appears only if allowed in the Map General Settings.
+							</li>
+							<li>
+								<p>menuspecial:save</p> -
+								Appears only if allowed in the Map General Settings.
+							</li>
+							<li>
+								<p>menuspecial:load</p>
+							</li>
+							<li>
+								<p>menuspecial:quit</p>
+							</li>
+							<li>
+								<p>menuspecial:volume</p> - Obsolete.
+								This lets you adjust the music volume, and pressing
+								Enter opens a new menu with Music and Sound Volume
+								options.
+							</li>
+							<li>
+								<p>menuspecial:map always</p> - Minimap.
+								Appears even if the minimap isn't allowed in Map General Settings.
+							</li>
+							<li>
+								<p>menuspecial:save always</p> -
+								Appears even if saving isn't allowed in Map General Settings.
+							</li>
+							<li>
+								<p>menuspecial:margins</p> -
+								An option to adjust margins at the edges of the screen,
+								when playing a game on a console like the Ouya which
+								displays on a TV.
+								(Only appears on consoles)
+							</li>
+							<li>
+								<p>menuspecial:purchases</p> -
+								Appears only if a store has been set in the
+								In-App Purchases menu.
+							</li>
+							<li>
+								<p>menuspecial:windowed</p> -
+								Appears only if currently playing fullscreen, and
+								switching to windowed is supported.
+							</li>
+							<li>
+								<p>menuspecial:fullscreen</p> -
+								Appears only if currently playing windowed, and
+								switching to fullscreen is supported.
+								<lb/>
+								You must add BOTH Fullscreen and Windowed menu items
+								next to each other to allow players to switch to-and-fro.
+							</li>
+							<li>
+								<p>menuspecial:music volume</p>
+							</li>
+							<li>
+								<p>menuspecial:sound volume</p>
+							</li>
+						</ul>
+					</li>
+					<li>
+						For <tt>menutype:textbox</tt> use the textbox's ID number.
+					</li>
+					<li>
+
+						For <tt>menutype:menu</tt> use the menu's ID number or a menu:name constant from your HSI file.
+					</li>
+					<li>
+						For <tt>menutype:script</tt> use script references in the form <tt>@scriptname</tt>.
+					</li>
+				</ul>
+			</description>
 		</command>
 		<command id="getmenuitemtag">
 			<canon>get menu item tag(menu item handle, whichtag)</canon>

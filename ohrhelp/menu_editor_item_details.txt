@@ -8,10 +8,20 @@ This is the menu item detail editor. This is where you define what a menu item a
    display the caption. There are
    two subtypes, selectable and
    unselectable. Selectable captions
-   are only used to change tags or
+   are only used to set tags or
    to close the menu. Unselectable
-   captions are used for decoration
-   or information.
+   captions can used for decoration
+   or information, but don't really
+   have much use!
+   They always count as disabled, and
+   the "Set tag", "Toggle tag"
+   options and "Close menu when
+   selected" bits are ignored.
+   Note: there is no way to add
+   a menu item which is unselectable
+   with the arrow keys! Sorry!
+   "Unselectable" menu items are
+   misnamed!
 
   *Special Screen - This provides
    access to all the standard
@@ -23,9 +33,15 @@ This is the menu item detail editor. This is where you define what a menu item a
     *Equip
     *Order
     *Team
-    *Order/Team (by general bitset)
-    *Map (if allowed)
-    *Save (if alowed)
+    *Order/Team (either the Team menu
+      if the "Hero Swapping Always
+      Available" general preference
+      bitset is turned on, otherwise
+      the Order menu)
+    *Map (if allowed in the Map
+      General Settings)
+    *Save (if allowed in the Map
+      General settings)
     *Load
     *Quit
     *Volume [Obsolete]
@@ -35,16 +51,35 @@ This is the menu item detail editor. This is where you define what a menu item a
       and Sound Volume options.
     *Music Volume
     *Sound Volume
-    *Map (even if not allowed)
-    *Save (even if not allowed)
-    *Margins (if supported by the
-             current gfx backend)
-    *Fullscreen (if playing windowed,
-                 and it is supported)
-    *Windowed (if playing fullscreen,
-               and it is supported)
+    *Map (even if not allowed in Map
+      General Settings)
+    *Save (even if not allowed in Map
+      General Settings)
+    *Margins
+      An option to adjust margins at
+      the edges of the screen, when
+      playing a game on a console
+      like the Ouya which displays on
+      a TV (Only appears on consoles)
+    *Purchases
+      (Appears only if a store has
+      been set in the In-App
+      Purchases menu.)
+    *Fullscreen
+      (Appears only if playing
+      windowed, and fullscreen is
+      supported)
+    *Windowed
+      (Appears only if playing
+      fullscreen, and it is
+      supported)
+      You must add BOTH Fullscreen
+      and Windowed menu items next to
+      each other to allow players to
+      switch to-and-fro.
 
-  *Go To Menu - This menu item will      jump to another menu when a player
+  *Go To Menu - This menu item will
+   jump to another menu when a player
    selects it. Use the subtype to
    select which menu.
 

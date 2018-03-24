@@ -1876,10 +1876,13 @@ define constant, begin
 0b10,timerflag:battle
 0b100,timerflag:menu
 0,menutype:label
+0,menutype:caption
 1,menutype:special
 2,menutype:menu
 3,menutype:textbox
 4,menutype:script
+0,menucaption:selectable
+1,menucaption:unselectable
 0,menuspecial:items
 1,menuspecial:spells
 2,menuspecial:status
@@ -1892,6 +1895,14 @@ define constant, begin
 9,menuspecial:load
 10,menuspecial:quit
 11,menuspecial:volume
+12,menuspecial:mapalways
+13,menuspecial:savealways
+14,menuspecial:margins
+15,menuspecial:purchases
+16,menuspecial:windowed
+17,menuspecial:fullscreen
+18,menuspecial:musicvolume
+19,menuspecial:soundvolume
 0,menuitembit:Hide when disabled
 1,menuitembit:Close menu when selected
 2,menuitembit:skip close script
