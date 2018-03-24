@@ -249,70 +249,16 @@ END FUNCTION
 'menu may in fact be a vector of any type inheriting from BasicMenuItem.
 'menu's typetable tells the size in bytes of each menu item
 FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
- WITH state
-  IF .autosize THEN
-   recalc_menu_size state
-  END IF
-  '.pt = -1 when the menu has no selectable items
-  IF .pt = -1 THEN RETURN NO
+ DIM selectable(v_len(menudata) - 1) as bool
 
-  DIM as integer oldptr, oldtop, d, moved_d
-  oldptr = .pt
-  oldtop = .top
-  d = 0
-  moved_d = 0
+ FOR idx as integer = 0 TO v_len(menudata) - 1
+  selectable(idx) = NOT v_at(menudata, idx)->unselectable
+ NEXT
 
-  IF keyval(deckey) > 1 THEN d = -1
-  IF keyval(inckey) > 1 THEN d = 1
-  IF keyval(scPageup) > 1 THEN
-   .pt = large(.pt - .size, .first)
-   WHILE v_at(menudata, .pt)->unselectable AND .pt > .first : loopvar(.pt, .first, .last, -1) : WEND
-   IF v_at(menudata, .pt)->unselectable THEN d = 1
-   moved_d = -1
-  END IF
-  IF keyval(scPagedown) > 1 THEN
-   .pt = small(.pt + .size, .last)
-   WHILE v_at(menudata, .pt)->unselectable AND .pt < .last : loopvar(.pt, .first, .last, 1) : WEND
-   IF v_at(menudata, .pt)->unselectable THEN d = -1
-   moved_d = 1
-  END IF
-  IF keyval(scHome) > 1 THEN .pt = .last : d = 1
-  IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
-
-  IF d THEN 
-   moved_d = d
-   DO
-    .top = bound(.top, .pt - .size, .pt)
-    loopvar .pt, .first, .last, d
-   LOOP WHILE v_at(menudata, .pt)->unselectable
-  END IF
-
-  IF moved_d THEN
-   'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
-   DIM lookahead as integer = .pt
-   DO
-    lookahead += moved_d
-   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO v_at(menudata, lookahead)->unselectable
-   lookahead = bound(lookahead, .first, .last)
-   .top = bound(.top, lookahead - .size, lookahead)
-  END IF
-  correct_menu_state state  'Update .top
-
-  IF mouse_update_hover(state) ANDALSO NOT v_at(menudata, .hover)->unselectable THEN
-   mouse_update_selection(state)
-  END IF
-  mouse_scroll_menu state
-
-  IF oldptr = .pt AND oldtop = .top THEN
-   RETURN NO
-  ELSE
-   negative_zero = NO 'Reset for intgrabber
-   RETURN YES
-  END IF
- END WITH
+ RETURN usemenu(state, selectable(), deckey, inckey)
 END FUNCTION
 
-'a version for menus with unselectable items, skip items for which selectable(i) = 0
+'a version for menus with unselectable items, skip items for which selectable(i) = NO
 FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   IF .autosize THEN
