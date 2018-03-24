@@ -4399,7 +4399,11 @@ end</example>
 		<command id="selectmenuitem">
 			<canon>select menu item(menu item handle)</canon>
 			<shortname>select menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), move the menu selection cursor to point to that menu item.</description>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>),
+				move the menu selection cursor to point to that menu item.
+				Works even for Label menu items which "Can't be selected".
+			</description>
 		</command>
 		<command id="selectedmenuitem">
 			<canon>selected menu item(menu handle)</canon>
@@ -4562,6 +4566,12 @@ end</example>
 								The menu item is always disabled, regardless of tags.
 								Hence, the Set Tag and Toggle Tag options and the
 								"Close menu when activated" bitset are ignored.
+							</li>
+							<li>
+								<p>menucaption:unselectable</p> - (aka <p>menucaption:cant be selected</p>)
+								Can't be selected with normal controls.
+								Can still be selected using <ref>selectmenuitem</ref>
+								(but can't be activated).
 							</li>
 						</ul>
 					</li>

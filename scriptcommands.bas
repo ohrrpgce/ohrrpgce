@@ -1238,7 +1238,7 @@ SUB script_functions(byval cmdid as integer)
   'Don't support changing newer gmap indices
   IF retvals(0) >= 0 AND retvals(0) <= 19 THEN
    gmap(retvals(0)) = retvals(1)
-   IF retvals(0) = 2 OR retvals(0) = 3 THEN check_menu_tags  'save and minimap menu options
+   IF retvals(0) = 2 OR retvals(0) = 3 THEN update_menu_items  'save and minimap menu options
    IF retvals(0) = 4 THEN gam.showtext_ticks = 0  'cancel map name display
    IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
    IF retvals(0) = 19 THEN refresh_map_slice() 'map layer visibility

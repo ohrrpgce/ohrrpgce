@@ -35,9 +35,9 @@ declare function normal_controls_disabled () as bool
 declare function menus_allow_gameplay () as bool
 declare function menus_allow_player () as bool
 declare sub player_menu_keys ()
-declare sub check_menu_tags ()
+declare sub update_menu_items ()
 declare sub tag_updates (npc_visibility as bool=YES)
-declare function game_usemenu (state as MenuState) as bool
+declare function game_usemenu (state as MenuState, menu as MenuDef) as bool
 declare function allowed_to_open_main_menu () as bool
 declare function random_formation (byval set as integer) as integer
 DECLARE FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as bool

@@ -414,8 +414,9 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   SELECT CASE mi.t
    CASE mtypeLabel
     SELECT CASE mi.sub_t
-     CASE lbSelectable:   .caption = .caption & " Selectable"
-     CASE lbDisabled:     .caption = .caption & " Disabled"
+     CASE lbSelectable:   .caption &= " Selectable"
+     CASE lbDisabled:     .caption &= " Disabled"
+     CASE lbUnselectable: .caption &= " Can't be selected"
     END SELECT
    CASE mtypeSpecial
     .caption = .caption & " " & get_special_menu_caption(mi.sub_t)

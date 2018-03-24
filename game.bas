@@ -809,7 +809,7 @@ DO
  IF gam.paused = NO THEN
 
  'debug "menu key handling:"
- check_menu_tags
+ update_menu_items
  player_menu_keys()
  'debug "after menu key handling:"
 
@@ -1172,7 +1172,7 @@ SUB displayall()
 
  'FIXME: Eventually we want to draw the rest of this stuff using slices, but for now draw it on top
  'Note: this updates .pt and .top etc for each menu, but doesn't update item visibility.
- 'That happens on check_menu_tags, next tick
+ 'That happens on update_menu_items, next tick
  update_menu_states
  FOR i as integer = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
@@ -2659,7 +2659,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  init_menu_state mstates(topmenu), menus(topmenu)
  IF topmenu > 0 THEN mstates(topmenu - 1).active = NO
  mstates(topmenu).active = YES
- check_menu_tags
+ update_menu_items
  IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
   'FIXME: maybe we shouldn't cancel here since it doesn't allow a script to pause movement
   'and display a menu. Instead, could cancel pathfinding when the player pressed ESC.
@@ -2771,7 +2771,7 @@ SUB player_menu_keys ()
   'Following controls are for non-empty menus only
   IF mstates(topmenu).last = -1 THEN EXIT SUB
 
-  IF game_usemenu(mstates(topmenu)) THEN
+  IF game_usemenu(mstates(topmenu), menus(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
@@ -2816,6 +2816,7 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
  WITH mi
   SELECT CASE .t
    CASE mtypeLabel
+    'N/A
    CASE mtypeSpecial
     SELECT CASE .sub_t
      CASE spItems
@@ -2929,20 +2930,27 @@ END FUNCTION
 'Call this any time a tag is changed!
 SUB tag_updates (npc_visibility as bool=YES)
  IF npc_visibility THEN visnpc
- check_menu_tags
+ update_menu_items
 END SUB
 
 ' Updates which menu items are enabled (for any reason, not just tags)
-SUB check_menu_tags ()
+' and selectable and re-sorts the menu
+SUB update_menu_items ()
  FOR menunum as integer = 0 TO topmenu
   WITH menus(menunum)
    DIM changed as bool = NO
    FOR idx as integer = 0 TO .numitems - 1
     WITH *.items[idx]
-     DIM old as bool = .disabled
+     DIM remem_disabled as bool = .disabled
+     DIM remem_unselectable as bool = .unselectable
      .disabled = NO
+     .unselectable = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
-     IF .t = mtypeLabel AND .sub_t = lbDisabled THEN .disabled = YES
+     IF .t = mtypeLabel THEN
+      IF .sub_t = lbDisabled THEN .disabled = YES
+      'lbUnselectable: don't disable, so that the text color is normal
+      IF .sub_t = lbUnselectable THEN .unselectable = YES
+     END IF
      IF .t = mtypeSpecial THEN
       ' Minimap and Save may be disabled on this map
       IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES
@@ -2962,7 +2970,7 @@ SUB check_menu_tags ()
        END IF
       END IF
      END IF
-     IF old <> .disabled THEN changed = YES
+     IF remem_disabled <> .disabled OR remem_unselectable <> .unselectable THEN changed = YES
     END WITH
    NEXT idx
    IF changed = YES THEN
@@ -2974,8 +2982,8 @@ SUB check_menu_tags ()
  update_menu_states
 END SUB
 
-FUNCTION game_usemenu (state as MenuState) as bool
- RETURN usemenu(state, csetup(ccUp), csetup(ccDown))
+FUNCTION game_usemenu (state as MenuState, menu as MenuDef) as bool
+ RETURN usemenu(state, menu, csetup(ccUp), csetup(ccDown))
 END FUNCTION
 
 FUNCTION allowed_to_open_main_menu () as bool

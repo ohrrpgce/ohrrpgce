@@ -27,6 +27,9 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
     * Added a general bitset to hide empty save slots at the bottom of the
       save/load menu. (Won't shows less than 4 slots unless you specifically
       set a max lower than 4) [James]
+    * "Can't be selected" subtype for "Label" menu items. (The "Caption"
+      item type is renamed "Label", and the old badly named "Unselectable"
+      subtype is renamed "Disabled") [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
@@ -37,7 +40,7 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
     * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
     * Missing constants for "get/set menu item subtype":
-      menucaption:selectable, menucaption:disabled,
+      menucaption:selectable, menucaption:disabled, menucaption:unselectable,
       menuspecial:map always, menuspecial:save always, menuspecial:margins,
       menuspecial:purchases, menuspecial:windowed, menuspecial:fullscreen,
       menuspecial:music volume, menuspecial:sound volume,

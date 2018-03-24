@@ -479,7 +479,8 @@ End Enum
 ' Values for .sub_t subtype of mtypeLabel MenuDefItems
 CONST lbSelectable  = 0
 CONST lbDisabled    = 1
-CONST lbLAST        = 1
+CONST lbUnselectable = 2
+CONST lbLAST        = 2
 
 ' These are for the .sub_t subtypes of mtypeSpecial MenuDefItems for
 ' user-created menus.

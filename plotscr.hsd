@@ -1883,6 +1883,8 @@ define constant, begin
 4,menutype:script
 0,menucaption:selectable
 1,menucaption:disabled
+2,menucaption:unselectable
+2,menucaption:cant be selected
 0,menuspecial:items
 1,menuspecial:spells
 2,menuspecial:status

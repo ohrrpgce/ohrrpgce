@@ -7,20 +7,29 @@ This is the menu item detail editor. This is where you define what a menu item a
   *Label - (previously called
    Caption) menu items have no
    special action when activated.
-   There are two subtypes, Selectable
-   and Disabled. Selectable labels
-   are only used to set tags or
-   to close the menu. Disabled
-   labels can be used for decoration
-   or information, but don't really
-   have much use! They always count
-   as disabled, which means the
-   "Set tag", "Toggle tag" options
-   and "Close menu when activated"
-   bits are ignored.
-   Note: there is no way to add
-   a menu item which is unselectable
-   with the arrow keys! Sorry!
+   There are three subtypes:
+    *Selectable:
+      Only used to set tags or
+      to close the menu.
+    *Disabled:
+      Can be used for decoration
+      or information (but the next
+      sub-type might be better for
+      that).
+      Always count as disabled, which
+      means the "Set tag", "Toggle
+      Tag" options and "Close menu
+      when activated" bits are
+      ignored.
+      (Warning: this used to be
+      called "Unselectable", don't
+      confuse that with the below...)
+    *Can't be selected:
+      Menu items which can't be
+      selected with keyboard or mouse
+      controls. They can still be
+      forcibly selected with the
+      "select menu item" command.
 
   *Special Screen - This provides
    access to all the standard

@@ -119,7 +119,7 @@ SUB purchases_menu ()
    EXIT DO
   END IF
 
-  IF game_usemenu(st) THEN
+  IF usemenu(st, csetup(ccUp), csetup(ccDown)) THEN
    menusound gen(genCursorSFX)
   END IF
 
