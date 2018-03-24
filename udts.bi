@@ -59,9 +59,9 @@ TYPE MenuDefItem  'EXTENDS BasicMenuItem
   text as string  ' This is the caption actually displayed
   col as integer  ' used to manually override the color of the menu item (has no effect when the menu item is selected and flashing)
   bgcol as integer  ' Not used
-  disabled_overrides_color as bool  ' Ignore .col when .disabled=YES. Not saved/exposed in editor
   unselectable as bool  ' Not used (yet)
   disabled as bool  ' for in-game user menus, set at run-time (in check_menu_tags) based on .tag1/.tag2 and type/subtype
+  disabled_overrides_color as bool  ' Ignore .col when .disabled=YES. Not saved/exposed in editor
 
   'Other members
   handle    as integer

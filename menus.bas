@@ -250,9 +250,19 @@ END FUNCTION
 'menu's typetable tells the size in bytes of each menu item
 FUNCTION usemenu (state as MenuState, byval menudata as BasicMenuItem vector, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  DIM selectable(v_len(menudata) - 1) as bool
-
  FOR idx as integer = 0 TO v_len(menudata) - 1
   selectable(idx) = NOT v_at(menudata, idx)->unselectable
+ NEXT
+
+ RETURN usemenu(state, selectable(), deckey, inckey)
+END FUNCTION
+
+'a version for menus with unselectable items, skip items which are .unselectable
+FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
+ IF state.last < state.first THEN RETURN NO
+ DIM selectable(state.last) as bool
+ FOR idx as integer = 0 TO state.last
+  selectable(idx) = NOT menu.items[idx]->unselectable
  NEXT
 
  RETURN usemenu(state, selectable(), deckey, inckey)
