@@ -3346,7 +3346,7 @@ script, pathfinding tests, begin
   assert(npc y(ref) == 16)
   
   # To an unreachable zone destination
-  pathfind npc to(ref, 15, 5, 1)
+  pathfind npc to(ref, 15, 5, 2)
   wait for npc(ref)
   assert(dist from pos(ref, 15, 5) == 2)
   
@@ -3402,6 +3402,21 @@ script, pathfinding tests, begin
   # And then when the path finishes, return false
   w
   assert(npc is walking(2) == false)
+  
+  # Test NPC giving up an unreachable path after stillticks
+  pathfind npc to(2, 14, 14, 12)
+  # the first two steps should go fine
+  w(4)
+  w(4)
+  assert(is at pos(2, 14, 15))
+  assert(npc is walking(2))
+  # wait 12 more ticks, should not have moved
+  w(12)
+  assert(is at pos(2, 14, 15))
+  assert(npc is walking(2))
+  # wait 1 more tick, and the npc should have given up walking
+  w(1)
+  assert(npc is walking(2)==false)
   
   # Now test some hero pathfinding
   camera follows hero
