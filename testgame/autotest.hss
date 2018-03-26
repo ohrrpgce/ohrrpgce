@@ -3722,6 +3722,42 @@ script, pathfinding tests, begin
   put hero(0, 4 * 20, 5 * 20)
   w
   
+  # test that "wait for all" respects pathfinding
+  suspend caterpillar
+  pathfind hero to(2, 4, 3)
+  pathfind hero to(3, 4, 2)
+  n0 := create npc(3, 5, 2)
+  n1 := create npc(3, 5, 4)
+  set npc speed(3, 10)
+  w
+  pathfind hero to(0, 2, 6)
+  pathfind hero to(1, 1, 6)
+  pathfind hero to(2, 2, 7)
+  pathfind hero to(3, 1, 7)
+  pathfind npc to(n0, 7, 8)
+  pathfind npc to(n1, 8, 8)
+  wait for all
+  assert(hero tile(0, 2, 6))
+  assert(hero tile(1, 1, 6))
+  assert(hero tile(2, 2, 7))
+  assert(hero tile(3, 1, 7))
+  assert(is at pos(n0, 7, 8))
+  assert(is at pos(n1, 8, 8))
+  # now a path the hero should finish first
+  pathfind hero to(0, 2, 5)
+  pathfind npc to(n1, 4, 4)
+  wait for all
+  assert(hero tile(0, 2, 5))
+  assert(is at pos(n1, 4, 4))
+  # now a path the npc should finish first
+  pathfind hero to(0, 8, 8)
+  pathfind npc to(n1, 5, 4)
+  wait for all
+  assert(hero tile(0, 8, 8))
+  assert(is at pos(n1, 5, 4))
+  
+  resume caterpillar
+
   # clean up
   stop checkpoint timer
   

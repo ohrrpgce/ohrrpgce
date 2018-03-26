@@ -4184,7 +4184,7 @@ wait for camera # wait until he's on screen</pre>
 <a name="about-waitforall"></a>
 		<h4>wait for all</h4>
 <p>
-			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
+			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking or pathfinding, waits for NPCs to stop pathfinding, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
 			
 			<pre># do a bunch of things all at once
 wait for all # wait until everything is done</pre>

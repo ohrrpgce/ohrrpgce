@@ -474,13 +474,17 @@ SUB process_wait_conditions()
     CASE 2'--wait for all
      DIM unpause as bool = YES
      FOR i as integer = 0 TO 3
-      IF herow(i).xgo <> 0 OR herow(i).ygo <> 0 THEN unpause = NO
+      IF herow(i).xgo <> 0 ORELSE herow(i).ygo <> 0 ORELSE hero_is_pathfinding(i) THEN unpause = NO
      NEXT i
      IF readbit(gen(), genSuspendBits, suspendnpcs) = 1 THEN
       FOR i as integer = 0 TO UBOUND(npc)
        IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN unpause = NO: EXIT FOR
       NEXT i
      END IF
+     FOR i as integer = 0 TO UBOUND(npc)
+      'check for script initiated NPC pathing even when npcs are not suspended
+      IF npc(i).id > 0 ANDALSO npc(i).pathover.override THEN unpause = NO: EXIT FOR
+     NEXT i
      IF gen(genCameraMode) = pancam ORELSE gen(genCameraMode) = focuscam THEN unpause = NO
      IF unpause THEN
       script_stop_waiting()
