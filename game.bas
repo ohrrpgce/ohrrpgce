@@ -4949,6 +4949,7 @@ SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
  IF user_only ANDALSO gam.hero_pathing(rank).by_user = NO THEN EXIT SUB
  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
  gam.hero_pathing(rank).by_user = NO
+ gam.hero_pathing(rank).on_map = -1
  clear_hero_pathfinding_display rank
 END SUB
 
@@ -4967,6 +4968,7 @@ SUB trigger_hero_pathfinding()
   gam.hero_pathing(0).dest_pos = clicktile
  END IF
  gam.hero_pathing(0).by_user = YES
+ gam.hero_pathing(0).on_map = gam.map.id
 END SUB
 
 SUB update_hero_pathfinding_menu_queue()
@@ -4994,6 +4996,11 @@ SUB update_hero_pathfinding(byval rank as integer)
   EXIT SUB
  END IF
  
+ IF gam.hero_pathing(rank).on_map <> gam.map.id THEN
+  debuginfo "Cancelled pathing for rank " & rank & " because of changing from map " & gam.hero_pathing(rank).on_map & " to map " & gam.map.id
+  cancel_hero_pathfinding(rank)
+ END IF
+
  IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
   clear_hero_pathfinding_display(rank)
   EXIT SUB
