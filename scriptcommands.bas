@@ -4619,7 +4619,14 @@ SUB script_functions(byval cmdid as integer)
   '  npc(npcref).stillticks = 0
   ' END IF
   END IF
-  
+ CASE 669 '--hero chases npc
+  DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   cancel_hero_pathfinding(retvals(0))
+   path_hero_to_npc(retvals(0), dest_npcref)
+  'FIXME: does not yet support NPC-style stop-when-npc-reached argument
+  'FIXME: does not yet support NPC-style stillticks argument
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

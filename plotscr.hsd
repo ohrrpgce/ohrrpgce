@@ -691,7 +691,7 @@ define function, begin
 666,currentvehicleid,0        # return vehicle id, or -1 if not riding
 667,currentvehiclenpc,0       # return npc reference to vehicle, or 0 if not riding
 668,pathfindheroto,4,0,0,0,0  # Make a hero pathfind to a specific position (hero, tile x, tile y, stop after stuckticks)
-#669,herochasesnpc,4,0,0,0,0   # Make a hero chase an NPC (hero, target npc, stop when reached, stop after stuckticks)
+669,herochasesnpc,4,0,0,0,0   # Make a hero chase an NPC (hero, target npc, stop when reached, stop after stuckticks)
 #670,cancelherowalk,1,0        # Cancel walkhero, pathfindheroto, or herochasesnpc command (hero)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
