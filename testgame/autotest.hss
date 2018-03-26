@@ -3391,9 +3391,20 @@ script, pathfinding tests, begin
   wait for npc(2)
   assert(dist from pos(2, 16, 18) == 1)
 
+  # Test that npc is walking supports pathfinding
+  pathfind npc to(2, 13, 16)
+  variable(i)
+  # The whole path (4 tiles at 4 ticks each) should return true
+  for(i, 1, 4 * 4) do(
+    w
+    assert(npc is walking(2))
+  )
+  # And then when the path finishes, return false
+  w
+  assert(npc is walking(2) == false)
+  
   # Now test some hero pathfinding
-  #camera follows hero
-  #_cancel runfast
+  camera follows hero
 
   subscript, hero tile, rank, x, y, begin
     exit returning(hero x(rank) == x && hero y(rank) == y)
@@ -3425,7 +3436,64 @@ script, pathfinding tests, begin
   assert(hero tile(1, 9, 7))
   assert(hero tile(2, 8, 8))
   assert(hero tile(3, 9, 8))
+ 
+  # Test hero-on-hero collision (or lack thereof)
+  pathfind hero to(0, 12, 7)
+  pathfind hero to(1, 11, 7)
+  wait for hero(0)
+  wait for hero(1)
+  # Hero 1 should walk right through hero 0
+  pathfind hero to(1, 13, 7)
+  wait(5)
+  assert(hero tile(1, hero x(0), hero y(0)))
+  wait(5)
+  # should still be walking for one more tick
+  assert(hero is walking(1))
+  wait(1)
+  # okay, should be done now
+  assert(hero is walking(1)==false)
   
+  # now lets test hero-on-npc collisions
+  # get hero 1 out of the way
+  walk hero(1, right, 1)
+  # create some NPC barriers
+  variable(n0, n1, n2, n3)
+  n0 := create npc(3, 12, 6, down)
+  n1 := create npc(3, 13, 7, left)
+  n2 := create npc(3, 12, 8, up)
+  n3 := create npc(3, 11, 7, right)
+  w(1)
+  # Hero pathing should fail
+  pathfind hero to(0, 12, 10)
+  wait(1)
+  assert(hero is walking(0) == false)
+  assert(hero tile(0, 12, 7))
+  # now move one NPC out of the way
+  set npc speed(3, 10)
+  pathfind npc to(n0, 14, 6)
+  wait(2)
+  # Now the hero can move
+  pathfind hero to(0, 12, 10)
+  wait(5)
+  assert(hero is walking(0))
+  assert(hero tile(0, 12, 6))
+  wait for hero(0)
+  
+  # move the npcs over to block hero 1
+  pathfind npc to(n2, 15, 7)
+  pathfind npc to(n3, 14, 8)
+
+  # npc 1 is blocked, but non-leader heroes
+  # are currently allowed to pass through npcs  
+  pathfind hero to(1, 16, 7)
+  wait(1)
+  assert(hero is walking(1) == true)
+  wait for hero(1)
+  assert(hero tile(1, 16, 7))
+
+  #_cancel runfast
+  
+  #more here...
   
   #wait for key
   #_runfast
