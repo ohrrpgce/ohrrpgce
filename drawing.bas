@@ -65,6 +65,8 @@ DECLARE SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as 
 
 ' Sprite editor
 DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
+DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
+DECLARE SUB sprite_editor_save_and_cleanup(byref ss as SpriteEditState)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
@@ -3225,21 +3227,19 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  palette16_unload @pal16
 END SUB
 
-' Part of ss should be filled in with the necessary arguments.
-' sprite contains the sprite to be edited, and the result is passed back by calling ss.save_callback()
-' before exiting, or whenever want to immediately save. The original 'sprite' is not modified in-place.
-' Also, this expects the caller to save the default palette (ss.pal_num). However, it saves the palette (ss.palette) itself.
-SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
-
+' Once the public members of ss have already been filled with arguments
+' to sprite_editor, this function initialises the private members.
+' Should be matched with call to sprite_editor_save_and_cleanup.
+SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
  WITH ss
   .wide = sprite->w
   .high = sprite->h
   .palette = palette16_load(.pal_num)
   .sprite = frame_duplicate(sprite)
   .delay = 10
-  .zoom = large(1, small(240 \ ss.wide, 170 \ ss.high))
-  .x = small(ss_save.cursor.x, ss.wide - 1)
-  .y = small(ss_save.cursor.y, ss.high - 1)
+  .zoom = large(1, small(240 \ .wide, 170 \ ss.high))
+  .x = small(ss_save.cursor.x, .wide - 1)
+  .y = small(ss_save.cursor.y, .high - 1)
   .lastpos.x = -1
   .lastpos.y = -1
   .fastmovestep = large(4, .wide \ 10)
@@ -3334,6 +3334,14 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   .cursor = 2
   .areanum = 22
  END WITH
+END SUB
+
+' Part of ss should be filled in with the necessary arguments.
+' sprite contains the sprite to be edited, and the result is passed back by calling ss.save_callback()
+' before exiting, or whenever want to immediately save. The original 'sprite' is not modified in-place.
+' Also, this expects the caller to save the default palette (ss.pal_num). However, it saves the palette (ss.palette) itself.
+SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
+ sprite_editor_initialise ss, sprite
 
  hidemousecursor
  setkeys
@@ -3371,6 +3379,12 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
   END IF
  LOOP
  showmousecursor
+
+ sprite_editor_save_and_cleanup ss
+END SUB
+
+'Saves sprite and palette and undoes sprite_editor_initialise()
+SUB sprite_editor_save_and_cleanup(byref ss as SpriteEditState)
  palette16_save ss.palette, ss.pal_num
  palette16_unload @ss.palette
  v_free ss.undo_history
