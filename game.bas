@@ -3192,6 +3192,8 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
    update_npc_zones npcref
   END IF
  NEXT
+
+ check_pathfinding_for_map_change()
  
  'DEBUG debug "end of preparemap"
 END SUB
@@ -5022,6 +5024,17 @@ SUB update_hero_pathfinding_menu_queue()
  END IF
 END SUB
 
+SUB check_pathfinding_for_map_change()
+ 'Explicitly cancel any hero pathfinding that belongs to another map
+ FOR rank as integer = 0 to 3
+  IF hero_is_pathfinding(rank) THEN
+   IF gam.hero_pathing(rank).on_map <> gam.map.id THEN
+    cancel_hero_pathfinding(rank)
+   END IF
+  END IF
+ NEXT rank
+END SUB
+
 SUB update_hero_pathfinding(byval rank as integer)
 
  IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
@@ -5048,7 +5061,8 @@ SUB update_hero_pathfinding(byval rank as integer)
  END IF
  
  IF gam.hero_pathing(rank).on_map <> gam.map.id THEN
-  debuginfo "Cancelled pathing for rank " & rank & " because of changing from map " & gam.hero_pathing(rank).on_map & " to map " & gam.map.id
+  'This should not normally happen if we call check_pathfinding_for_map_change() in all the correct places
+  debug "Cancelled pathing for rank " & rank & " because of changing from map " & gam.hero_pathing(rank).on_map & " to map " & gam.map.id
   cancel_hero_pathfinding(rank)
  END IF
  

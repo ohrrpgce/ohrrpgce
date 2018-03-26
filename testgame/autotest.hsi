@@ -126,6 +126,7 @@ define constant, begin
 4,map:Door test map
 5,map:Pathland
 6,map:Vehicle Test Map
+7,map:Pathland Door Annex
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run

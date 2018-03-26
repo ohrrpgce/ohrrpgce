@@ -156,6 +156,7 @@ DECLARE SUB update_hero_pathfinding_menu_queue()
 DECLARE SUB display_hero_pathfinding (byval rank as integer)
 DECLARE SUB clear_hero_pathfinding_display(byval rank as integer)
 DECLARE SUB update_hero_pathfinding_display(byval tile as XYpair, byval rank as integer=0)
+DECLARE SUB check_pathfinding_for_map_change()
 
 DECLARE SUB heromove_walk_ahead(byval rank as integer)
 

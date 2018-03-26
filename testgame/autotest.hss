@@ -3626,17 +3626,101 @@ script, pathfinding tests, begin
   wait for npc(n1)
   assert(hero tile(0, 11, 8))
   assert(hero is walking(0)==false)
+  # get rid of the barrier npcs
+  w
+  destroy npc(n0)
+  destroy npc(n1)
+  destroy npc(n2)
+  destroy npc(n3)
+  w
   
+  # Now test doors and teleporting when pathfinding
+  resume caterpillar
+  set hero speed(0, 4)
+  pathfind hero to(0, 15, 5)
+  wait for hero(0)
+  assert(hero tile(0, 15, 5))
+  
+  # path the hero into the door
+  pathfind hero to(0, 17, 5)
+  for(i, 1, 9) do(
+    w
+    assert(current map == 5)
+  )
+  # In one more tick, we should be through the door
+  w
+  assert(current map == 7)
 
-  #_cancel runfast
-  #show string(string sprintf(1, $2="x=%d y=%d", hero x(0), hero y(0)))
-  
-  #wait for key
-  #_runfast
-  
-  #TODO:
-  # test cancelling hero pathing when you change maps
-  # mismatch between stillticks and cooldown?
+  assert(hero is walking(0)==false)
+  assert(hero tile(0, 3, 4))
+
+  # walk through a door that leads to the current map
+  pathfind hero to(0, 8, 2)
+  wait for hero(0)
+  assert(hero tile(0, 8, 2))
+  # ready start to go through the door
+  pathfind hero to(0, 14, 2)
+  assert(hero pixel x(0) == 8 * 20)
+  assert(hero pixel y(0) == 2 * 20)
+  w(4)
+  # almost through the door
+  assert(hero pixel x(0) == 8 * 20 + 16)
+  assert(hero pixel y(0) == 2 * 20)
+  w(1)
+  # through the door, should keep walking since the dest is still on this map
+  assert(hero pixel x(0) == 9 * 20)
+  assert(hero pixel y(0) == 6 * 20)
+  wait for hero(0)
+  assert(hero tile(0, 14, 2))
+  assert(hero tile(1, 13, 2))
+  assert(hero tile(2, 13, 3))
+  assert(hero tile(3, 12, 3))
+
+  # now test teleporting while pathing
+  pathfind hero to(0, 14, 8)
+  #wait for one step 
+  w(5)
+  assert(hero tile(0, 14, 3))
+  teleport to map(5, 4, 4)
+  assert(hero is walking(0)==false)
+  assert(hero tile(0, 4, 4))
+  # Test again, but partway through a step
+  # go back to the other map
+  teleport to map(7, 14, 2)
+  w
+  pathfind hero to(0, 14, 8)
+  #wait for a fraction of a step
+  w(2)
+  assert(hero pixel y(0) == 2 * 20 + 8)
+  # now teleport mid-step
+  teleport to map(5, 4, 4)
+  wait for hero(0)
+  assert(hero pixel x(0) == 4 * 20)
+  # Uh oh! the hero is misaligned with the grid
+  # (which sucks, but is sort of expected, and is consistent with teleporting while doing a "walk hero")
+  assert(hero pixel y(0) == 4 * 20 + 3 * 4)
+  w
+  # fix alignment
+  put hero(0, 4 * 20, 5 * 20)
+  w
+  # Do it again with "walk hero" instead of "pathfind hero to"
+  # go back to the other map
+  teleport to map(7, 14, 2)
+  w
+  walk hero(0, south, 1)
+  #wait for a fraction of a step
+  w(2)
+  assert(hero pixel y(0) == 2 * 20 + 8)
+  # now teleport mid-step
+  teleport to map(5, 4, 4)
+  wait for hero(0)
+  assert(hero pixel x(0) == 4 * 20)
+  # Yep, hero is misaligned again, just like with "pathfind hero to"
+  assert(hero pixel y(0) == 4 * 20 + 3 * 4)
+  w
+  # fix alignment again
+  put hero(0, 4 * 20, 5 * 20)
+  w
   
   # clean up
   stop checkpoint timer
