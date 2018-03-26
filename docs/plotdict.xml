@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-21">
+<plotscript version="wip" datecode="2018-03-26">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -730,7 +730,7 @@ wait for scancode(key:P)</example>
 		<command id="waitfornpc">
 			<canon>wait for NPC (who)</canon>
 			<shortname>wait for NPC</shortname>
-			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).
+			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one). Be aware that this command has the potention to wait forever, if the NPC will continue moving forever.
 			<note>
 				If the NPC ceases to exist, or if you move to a different map, then <p>wait for npc</p> stops waiting (continues).
 			</note>
@@ -1082,6 +1082,37 @@ walk hero(me,up,3) # move him up 3 tiles
 resume player # OK, done</example>
 		</command>
 		<reference ref="waitforhero" />
+		<command id="pathfindheroto">
+			<canon>pathfind hero to (who, x, y, stuck ticks)</canon>
+			<shortname>pathfind hero to</shortname>
+			<description>Makes the specified hero walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the hero's rank in the caterpillar party, or <ref>me</ref> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <ref>suspendcaterpillar</ref> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelherowalk</ref> command. Be careful if you are using <ref>waitforhero</ref> to wait for <ref>pathfindheroto</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitforhero</ref> might wait forever if the hero has no way to get to its destination.</description>
+			<seealso>
+				<ref>herochasesnpc</ref>
+				<ref>cancelherowalk</ref>
+				<ref>waitforhero</ref>
+			</seealso>
+		</command>
+		<command id="herochasesnpc">
+			<canon>hero chases hero (who, npc, stop when reached, stuck ticks)</canon>
+			<shortname>hero chases NPC</shortname>
+			<description>Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <p>who</p> is the caterpillar rank of the hero who will be chasing, or <ref>me</ref> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <ref>suspendcaterpillar</ref> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <p>npc</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelherowalk</ref> command. Be careful if you are using <ref>waitforhero</ref> to wait for <ref>herochasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitforhero</ref> might wait forever if the hero has no way to get to its destination.</description>
+			<seealso>
+				<ref>pathfindheroto</ref>
+				<ref>cancelherowalk</ref>
+				<ref>waitforhero</ref>
+			</seealso>
+		</command>
+		<command id="cancelherowalk">
+			<canon>cancel hero walk (who)</canon>
+			<shortname>cancel hero walk</shortname>
+			<description>If the specified hero is walking with a command like <ref>walkhero</ref> or pathfinding with a command like <ref>pathfindheroto</ref>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles.</description>
+			<seealso>
+				<ref>pathfindheroto</ref>
+				<ref>herochasesnpc</ref>
+				<ref>walkhero</ref>
+				<ref>cancelherowalk</ref>
+			</seealso>
+		</command>
 		<command id="setherodirection">
 			<canon>set hero direction (who, direction)</canon>
 			<shortname>set hero direction</shortname>
@@ -1381,7 +1412,7 @@ while (npcref) do (
 		<command id="pathfindnpcto">
 			<canon>pathfind NPC to (who, x, y, stuck ticks)</canon>
 			<shortname>pathfind NPC to</shortname>
-			<description>Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the NPC. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command.</description>
+			<description>Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <p>who</p> is the NPC. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The second argument is the destination <p>x</p> tile coordinate. The third argument is the destination <p>y</p> tile coordinate. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>pathfindnpcto</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.</description>
 			<seealso>
 				<ref>npcchasesnpc</ref>
 				<ref>cancelnpcwalk</ref>
@@ -1391,7 +1422,7 @@ while (npcref) do (
 		<command id="npcchasesnpc">
 			<canon>NPC chases NPC (who, other who, stop when reached, stuck ticks)</canon>
 			<shortname>NPC chases NPC</shortname>
-			<description>Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <p>who</p> is the NPC who will be chasing. The second argument <p>other who</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command.</description>
+			<description>Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <p>who</p> is the NPC who will be chasing. The second argument <p>other who</p> is the NPC to chase. You can use an <ref>npcreference</ref> or the NPC&apos;s ID number. The third argument <p>stop when reached</p> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <p>stuck ticks</p> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <p>stop ticks</p> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <ref>cancelnpcwalk</ref> command. Be careful if you are using <ref>waitfornpc</ref> to wait for <ref>npcchasesnpc</ref> when no <p>stuck ticks</p> timeout is used, since <ref>waitfornpc</ref> might wait forever if the NPC has no way to get to its destination.</description>
 			<seealso>
 				<ref>pathfindnpcto</ref>
 				<ref>cancelnpcwalk</ref>

@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-03-21)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-03-26)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -655,6 +655,9 @@
 		
 	
 		<a href="#about-canceldissolve">cancel dissolve (handle)</a><br>
+		
+	
+		<a href="#about-cancelherowalk">cancel hero walk (who)</a><br>
 		
 	
 		
@@ -1494,6 +1497,9 @@
 		<a href="#about-herobyslot">hero by slot (where)</a><br>
 		
 	
+		<a href="#about-herochasesnpc">hero chases hero (who, npc, stop when reached, stuck ticks)</a><br>
+		
+	
 		<a href="#about-herodirection">hero direction (who)</a><br>
 		
 	
@@ -1975,6 +1981,9 @@
 		
 	
 		<a href="#about-partymoney">party money</a><br>
+		
+	
+		<a href="#about-pathfindheroto">pathfind hero to (who, x, y, stuck ticks)</a><br>
 		
 	
 		<a href="#about-pathfindnpcto">pathfind NPC to (who, x, y, stuck ticks)</a><br>
@@ -4148,7 +4157,7 @@ wait for scancode(key:P)</pre>
 <a name="about-waitfornpc"></a>
 		<h4>wait for NPC (who)</h4>
 <p>
-			Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).
+			Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one). Be aware that this command has the potention to wait forever, if the NPC will continue moving forever.
 			<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
 				If the NPC ceases to exist, or if you move to a different map, then <span class="param">wait for npc</span> stops waiting (continues).
@@ -4762,6 +4771,59 @@ resume player # OK, done</pre>
 		<p><a href="#about-waitforhero">Defined in the Wait Commands section.</a></p>
 		</div>
 		<div class="command">
+<a name="about-pathfindheroto"></a>
+		<h4>pathfind hero to (who, x, y, stuck ticks)</h4>
+<p>
+			Makes the specified hero walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the hero's rank in the caterpillar party, or <a href="#about-me" class="ref">me</a> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelherowalk" class="ref">cancel hero walk</a> command. Be careful if you are using <a href="#about-waitforhero" class="ref">wait for hero</a> to wait for <a href="#about-pathfindheroto" class="ref">pathfind hero to</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitforhero" class="ref">wait for hero</a> might wait forever if the hero has no way to get to its destination.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-herochasesnpc" class="ref">hero chases NPC</a>, </li>
+<li>
+<a href="#about-cancelherowalk" class="ref">cancel hero walk</a>, </li>
+<li><a href="#about-waitforhero" class="ref">wait for hero</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-herochasesnpc"></a>
+		<h4>hero chases hero (who, npc, stop when reached, stuck ticks)</h4>
+<p>
+			Makes the specified hero walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing hero will go around obstacles. If the destination NPC cannot be reached at all, the chasing hero will go to the closest reachable tile. The first argument <span class="param">who</span> is the caterpillar rank of the hero who will be chasing, or <a href="#about-me" class="ref">me</a> for the leader. When the caterpillar party is enabled, this command only works on the leader, and will do nothing for other heroes. Use <a href="#about-suspendcaterpillar" class="ref">suspend caterpillar</a> if you want to make the other heroes pathfind. Non-leader heroes do not treat NPCs as obstacles when they pathfind. The second argument <span class="param">npc</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing hero to stop after the first time it reaches the destination NPC. If ommitted or false, the hero will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, a hero who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the hero will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelherowalk" class="ref">cancel hero walk</a> command. Be careful if you are using <a href="#about-waitforhero" class="ref">wait for hero</a> to wait for <a href="#about-herochasesnpc" class="ref">hero chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitforhero" class="ref">wait for hero</a> might wait forever if the hero has no way to get to its destination.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-pathfindheroto" class="ref">pathfind hero to</a>, </li>
+<li>
+<a href="#about-cancelherowalk" class="ref">cancel hero walk</a>, </li>
+<li><a href="#about-waitforhero" class="ref">wait for hero</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-cancelherowalk"></a>
+		<h4>cancel hero walk (who)</h4>
+<p>
+			If the specified hero is walking with a command like <a href="#about-walkhero" class="ref">walk hero</a> or pathfinding with a command like <a href="#about-pathfindheroto" class="ref">pathfind hero to</a>, they will stop. They are allowed to finish their current step, so they will not end up misaligned with the tiles.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-pathfindheroto" class="ref">pathfind hero to</a>, </li>
+<li>
+<a href="#about-herochasesnpc" class="ref">hero chases NPC</a>, </li>
+<li>
+<a href="#about-walkhero" class="ref">walk hero</a>, </li>
+<li><a href="#about-cancelherowalk" class="ref">cancel hero walk</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-setherodirection"></a>
 		<h4>set hero direction (who, direction)</h4>
 <p>
@@ -5243,7 +5305,7 @@ while (npcref) do (
 <a name="about-pathfindnpcto"></a>
 		<h4>pathfind NPC to (who, x, y, stuck ticks)</h4>
 <p>
-			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command.
+			Makes the specified NPC walk along the shortest path to the destination position. They will go around obstacles. If the destination cannot be reached at all, they will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The second argument is the destination <span class="param">x</span> tile coordinate. The third argument is the destination <span class="param">y</span> tile coordinate. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -5260,7 +5322,7 @@ while (npcref) do (
 <a name="about-npcchasesnpc"></a>
 		<h4>NPC chases NPC (who, other who, stop when reached, stuck ticks)</h4>
 <p>
-			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, and NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command.
+			Makes the specified NPC walk along the shortest path to the destination NPC, even if the destination NPC is moving. The chasing NPC will go around obstacles. If the destination NPC cannot be reached at all, the chasing NPC will go to the closest reachable tile. The first argument <span class="param">who</span> is the NPC who will be chasing. The second argument <span class="param">other who</span> is the NPC to chase. You can use an <a href="#about-npcreference" class="ref">NPC reference</a> or the NPC's ID number. The third argument <span class="param">stop when reached</span> can be true if you want the chasing NPC to stop after the first time it reaches the destination NPC. If ommitted or false, the NPC will keep chasing even after it reaches a moving destination NPC. The fourth argument <span class="param">stuck ticks</span> is optional. If it is included, an NPC who gets stuck along the way for more than the specified number of ticks will give up and stop pathfinding to the target. If <span class="param">stop ticks</span> is omitted or zero, the npc will keep pathfinding even if it gets stuck, and will not stop until it reaches the destination, or is stopped with the <a href="#about-cancelnpcwalk" class="ref">cancel NPC walk</a> command. Be careful if you are using <a href="#about-waitfornpc" class="ref">wait for NPC</a> to wait for <a href="#about-npcchasesnpc" class="ref">NPC chases NPC</a> when no <span class="param">stuck ticks</span> timeout is used, since <a href="#about-waitfornpc" class="ref">wait for NPC</a> might wait forever if the NPC has no way to get to its destination.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10223,7 +10285,11 @@ end</pre>
 <a name="about-selectmenuitem"></a>
 		<h4>select menu item(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), move the menu selection cursor to point to that menu item.
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>),
+				move the menu selection cursor to point to that menu item.
+				Works even for Label menu items which "Can't be selected".
+			
 			
 			
 			
@@ -10421,7 +10487,17 @@ end</pre>
 <a name="about-setmenuitemtype"></a>
 		<h4>set menu item type(menu item handle, new type)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the type of the menu item to <span class="param">new type</span>. Available constants are: <span class="param">menutype:label</span>,<span class="param">menutype:special</span>, <span class="param">menutype:menu</span>, <span class="param">menutype:textbox</span>, and <span class="param">menutype:script</span>
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				change the type of the menu item to <span class="param">new type</span>.
+				Available constants are:
+				<span class="code">menutype:label</span> (aka <span class="code">menutype:caption</span>), <span class="code">menutype:special</span>, <span class="code">menutype:menu</span>,
+				<span class="code">menutype:textbox</span>, and <span class="code">menutype:script</span>.
+				<br>
+				You will also need to call
+				<a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a> to fully specify the action attached to the menu item.
+				Setting just the item type does NOT change the subtype to a sensible value!
+			
 			
 			
 			
@@ -10431,7 +10507,11 @@ end</pre>
 <a name="about-getmenuitemsubtype"></a>
 		<h4>get menu item subtype(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the subtype of the menu item. The meaning of the subtype varies depending on the type.
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				return the subtype of the menu item. The meaning of the subtype varies depending on the type
+				(see <a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a>).
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a></li></ul>
@@ -10442,7 +10522,133 @@ end</pre>
 <a name="about-setmenuitemsubtype"></a>
 		<h4>set menu item subtype(menu item handle, new subtype)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the subtype of the menu item to <span class="param">new subtype</span>. The meaning of the subtype varies depending on the type of the menu item. For menutype:special you can use constants like: <span class="param">menuspecial:items</span>, <span class="param">menuspecial:spells</span>, <span class="param">menuspecial:status</span>, <span class="param">menuspecial:equip</span>, <span class="param">menuspecial:order</span>, <span class="param">menuspecial:team</span>, <span class="param">menuspecial:orderteam</span>, <span class="param">menuspecial:map</span>, <span class="param">menuspecial:save</span>, <span class="param">menuspecial:load</span>, <span class="param">menuspecial:quit</span>,  and <span class="param">menuspecial:volume</span>. For menutype:textbox you can use the textbox's ID number. For menutype:menu you can use the menu's ID number or a menu:name constant from your HSI file. For menutype:script you can use script references in the form @scriptname
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				change the subtype of the menu item to <span class="param">new subtype</span>.
+				The meaning of the subtype varies depending on the type of the menu item,
+				which is changed with <a href="#about-setmenuitemtype" class="ref">set menu item type</a>:
+
+				<ul>
+					<li>
+						For <span class="code">menutype:label</span> use the constants:
+						<ul>
+							<li>
+								<span class="param">menucaption:selectable</span>
+							</li>
+							<li>
+								<span class="param">menucaption:disabled</span> -
+								The menu item is always disabled, regardless of tags.
+								Hence, the Set Tag and Toggle Tag options and the
+								"Close menu when activated" bitset are ignored.
+							</li>
+							<li>
+								<span class="param">menucaption:unselectable</span> - (aka <span class="param">menucaption:cant be selected</span>)
+								Can't be selected with normal controls.
+								Can still be selected using <a href="#about-selectmenuitem" class="ref">select menu item</a>
+								(but can't be activated).
+							</li>
+						</ul>
+					</li>
+					<li>
+						For <span class="code">menutype:special</span> use the constants:
+						<ul>
+							<li>
+								<span class="param">menuspecial:items</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:spells</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:status</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:equip</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:order</span> - Reorder the active party
+							</li>
+							<li>
+								<span class="param">menuspecial:team</span> - Reorder, or swap heroes in and out of the active party 
+							</li>
+							<li>
+								<span class="param">menuspecial:order team</span> -
+								Either the Team menu if the "Hero Swapping Always
+								Available" general preference bitset is turned on,
+								otherwise the Order menu.
+							</li>
+							<li>
+								<span class="param">menuspecial:map</span> - Minimap.
+								Appears only if allowed in the Map General Settings.
+							</li>
+							<li>
+								<span class="param">menuspecial:save</span> -
+								Appears only if allowed in the Map General Settings.
+							</li>
+							<li>
+								<span class="param">menuspecial:load</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:quit</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:volume</span> - Obsolete.
+								This lets you adjust the music volume, and pressing
+								Enter opens a new menu with Music and Sound Volume
+								options.
+							</li>
+							<li>
+								<span class="param">menuspecial:map always</span> - Minimap.
+								Appears even if the minimap isn't allowed in Map General Settings.
+							</li>
+							<li>
+								<span class="param">menuspecial:save always</span> -
+								Appears even if saving isn't allowed in Map General Settings.
+							</li>
+							<li>
+								<span class="param">menuspecial:margins</span> -
+								An option to adjust margins at the edges of the screen,
+								when playing a game on a console like the Ouya which
+								displays on a TV.
+								(Only appears on consoles)
+							</li>
+							<li>
+								<span class="param">menuspecial:purchases</span> -
+								Appears only if a store has been set in the
+								In-App Purchases menu.
+							</li>
+							<li>
+								<span class="param">menuspecial:windowed</span> -
+								Appears only if currently playing fullscreen, and
+								switching to windowed is supported.
+							</li>
+							<li>
+								<span class="param">menuspecial:fullscreen</span> -
+								Appears only if currently playing windowed, and
+								switching to fullscreen is supported.
+								<br>
+								You must add BOTH Fullscreen and Windowed menu items
+								next to each other to allow players to switch to-and-fro.
+							</li>
+							<li>
+								<span class="param">menuspecial:music volume</span>
+							</li>
+							<li>
+								<span class="param">menuspecial:sound volume</span>
+							</li>
+						</ul>
+					</li>
+					<li>
+						For <span class="code">menutype:textbox</span> use the textbox's ID number.
+					</li>
+					<li>
+
+						For <span class="code">menutype:menu</span> use the menu's ID number or a menu:name constant from your HSI file.
+					</li>
+					<li>
+						For <span class="code">menutype:script</span> use script references in the form <span class="code">@scriptname</span>.
+					</li>
+				</ul>
+			
 			
 			
 			
@@ -10512,7 +10718,12 @@ end</pre>
 <a name="about-getmenuitembit"></a>
 		<h4>get menu item bit(menu item handle, bit)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span>, <span class="param">menu item bit:Close menu when selected</span> and <span class="param">menu item bit:skip close script</span>.
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				and bit number <span class="param">bit</span>,
+				return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
+				See <a href="#about-setmenuitembit" class="ref">set menu item bit</a> for the constants you can pass as the value of <span class="param">bit</span>.
+			
 			
 			
 			
@@ -10522,7 +10733,22 @@ end</pre>
 <a name="about-setmenuitembit"></a>
 		<h4>set menu item bit(menu item handle, bit, value)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menu item bit:Hide when disabled</span>, <span class="param">menu item bit:Close menu when selected</span> and <span class="param">menu item bit:skip close script</span>.
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				and bit number <span class="param">bit</span>, set the bitset is ON or OFF depending on <span class="param">value</span>.
+				You can use the following constants for <span class="param">bit</span>:
+				<ul>
+					<li>
+						<span class="param">menu item bit:Hide when disabled</span>
+					</li>
+					<li>
+						<span class="param">menu item bit:Close menu when activated</span> (the old name, <span class="param">menu item bit:Close menu when selected</span>, can also be used)
+					</li>
+					<li>
+						<span class="param">menu item bit:Skip close script</span> (ie "Don't run on-close script")
+					</li>
+				</ul>
+			
 			
 			
 			
@@ -18642,7 +18868,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 833 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 836 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
