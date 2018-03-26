@@ -3560,13 +3560,54 @@ script, pathfinding tests, begin
   # the hero should have given up by now
   assert(hero is walking(0) == false)
   assert(hero tile(0, 14, 7))
+  
+  # Now more tests of hero chasing npc
+  hero chases npc(0, n1)
+  w(2)
+  # should not have moved yet, but trying to move
+  assert(hero tile(0, 14, 7))
+  assert(hero is walking(0))
+  pathfind npc to(n1, 12, 7)
+  wait for npc(n1)
+  #the hero is slower, so they should still be walking
+  assert(hero tile(0, 13, 7))
+  assert(hero is walking(0))
+  # the hero does not give up
+  w(10)
+  assert(hero tile(0, 13, 7))
+  assert(hero is walking(0))
+  # make the NPC move again
+  walk npc(n1, south, 1)
+  wait(5)
+  assert(hero tile(0, 12, 7))
+  assert(hero is walking(0))
+  # cancel chase
+  cancel hero walk(0)
+  assert(hero is walking(0)==false)
+  # move the npc again
+  pathfind npc to(n1, 10, 8)
+  wait for npc(n1)
+  assert(is at pos(n1, 10, 8))
+  # make the hero chase the npc, but stop when reached
+  hero chases npc(0, n1, true)
+  wait for hero(0)
+  assert(hero tile(0, 11, 8))
+  assert(hero is walking(0)==false)
+  # make the npc move again, hero will not follow
+  walk npc(n1, south, 1)
+  wait for npc(n1)
+  assert(hero tile(0, 11, 8))
+  assert(hero is walking(0)==false)
+  
 
   #_cancel runfast
-  
-  #...
+  #show string(string sprintf(1, $2="x=%d y=%d", hero x(0), hero y(0)))
   
   #wait for key
   #_runfast
+  
+  #TODO:
+  # test cancelling hero pathing when you change maps
   
   # clean up
   stop checkpoint timer
