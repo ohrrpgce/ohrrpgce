@@ -1546,7 +1546,7 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 116'--hero is walking
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   IF herow(retvals(0)).xgo = 0 AND herow(retvals(0)).ygo = 0 THEN
+   IF herow(retvals(0)).xgo = 0 ANDALSO herow(retvals(0)).ygo = 0 ANDALSO NOT hero_is_pathfinding(retvals(0)) THEN
     scriptret = 0
    ELSE
     scriptret = 1
@@ -3589,7 +3589,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 117, 177'--NPC is walking
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   IF npc(npcref).xgo = 0 AND npc(npcref).ygo = 0 THEN
+   IF npc(npcref).xgo = 0 ANDALSO npc(npcref).ygo = 0 ANDALSO npc(npcref).pathover.override = NO THEN
     scriptret = 0
    ELSE
     scriptret = 1
