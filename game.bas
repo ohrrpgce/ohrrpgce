@@ -1410,6 +1410,12 @@ SUB update_heroes(force_step_check as bool=NO)
   NEXT whoi
  END IF
 
+ 'save position before move. use this later when updating stillticks
+ DIM oldpos(0 TO sizeActiveParty - 1) as XYPair
+ FOR whoi as integer = 0 TO sizeActiveParty - 1
+  oldpos(whoi) = XY(herox(whoi), heroy(whoi))
+ NEXT whoi
+
  'Non-caterpillar (normal [xy]go-based) hero movement
  DIM didgo(0 TO sizeActiveParty - 1) as bool
  FOR whoi as integer = 0 TO sizeActiveParty - 1
@@ -1428,6 +1434,14 @@ SUB update_heroes(force_step_check as bool=NO)
    didgo(whoi) = YES
   END IF
   cropmovement heropos(whoi), herow(whoi).xygo
+ NEXT whoi
+
+ FOR whoi as integer = 0 TO caterpillar_size() - 1
+  IF oldpos(whoi).x = herox(whoi) ANDALSO oldpos(whoi).y = heroy(whoi) THEN
+   gam.stillticks(whoi) += 1
+  ELSE
+   gam.stillticks(whoi) = 0
+  END IF
  NEXT whoi
 
  'Update lists of current zones and run zone entry+exit triggers
@@ -5001,6 +5015,11 @@ SUB update_hero_pathfinding(byval rank as integer)
  IF gam.hero_pathing(rank).by_user ANDALSO player_is_suspended() THEN
   'Auto-cancel built-in user pathing when suspendplayer is active
    cancel_hero_pathfinding(rank, YES)
+  EXIT SUB
+ END IF
+
+ IF gam.hero_pathing(rank).stop_after_stillticks > 0 ANDALSO gam.stillticks(rank) > gam.hero_pathing(rank).stop_after_stillticks then
+  cancel_hero_pathfinding(rank)
   EXIT SUB
  END IF
 

@@ -146,8 +146,9 @@ TYPE HeroPathing
   dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
   dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
   on_map as integer ' the map ID where the pathing was started
-  by_user as bool'  set to YES for built-in pathfinding, NO for scripted
+  stop_after_stillticks as bool 'Cancel pathing if stuck for this many ticks
   'The following are normally only used for the leader's built-in pathfinding
+  by_user as bool'  set to YES for built-in pathfinding, NO for scripted
   queued_menu as bool ' Set to YES when a menu opening keypress has been queued
   dest_display_sl as Slice Ptr
 END TYPE
@@ -194,6 +195,7 @@ TYPE GameState
   pad as VirtualGamePadState
   non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
   hero_pathing(3) as HeroPathing
+  stillticks(3) as integer           'keeps track of how long a hero has been standing still
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up
