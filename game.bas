@@ -1243,6 +1243,7 @@ FUNCTION herodir(byval rank as integer) byref as DirNum
 END FUNCTION
 
 'These are actually the tile that the hero's top left corner is located in
+
 FUNCTION herotpos(byval rank as integer) as XYPair
  RETURN heropos(rank) \ 20
 END FUNCTION
@@ -1413,7 +1414,7 @@ SUB update_heroes(force_step_check as bool=NO)
  'save position before move. use this later when updating stillticks
  DIM oldpos(0 TO sizeActiveParty - 1) as XYPair
  FOR whoi as integer = 0 TO sizeActiveParty - 1
-  oldpos(whoi) = XY(herox(whoi), heroy(whoi))
+  oldpos(whoi) = heropos(whoi)
  NEXT whoi
 
  'Non-caterpillar (normal [xy]go-based) hero movement
@@ -1437,7 +1438,7 @@ SUB update_heroes(force_step_check as bool=NO)
  NEXT whoi
 
  FOR whoi as integer = 0 TO caterpillar_size() - 1
-  IF oldpos(whoi).x = herox(whoi) ANDALSO oldpos(whoi).y = heroy(whoi) THEN
+  IF oldpos(whoi) = heropos(whoi) THEN
    gam.stillticks(whoi) += 1
   ELSE
    gam.stillticks(whoi) = 0
@@ -1462,7 +1463,7 @@ SUB update_heroes(force_step_check as bool=NO)
   '--jumping over tiles without damage.
   IF readbit(gen(), genSuspendBits, suspendcaterpillar) = 0 THEN steppingslot = 0
 
-  IF didgo(steppingslot) = YES AND (herow(steppingslot).xgo MOD 20) = 0 AND (herow(steppingslot).ygo MOD 20) = 0 THEN
+  IF didgo(steppingslot) = YES AND herow(steppingslot).xygo MOD 20 = 0 THEN
    '--Stuff that should only happen when a hero finishs a step
 
    '--Run each-step zone triggers
@@ -1504,7 +1505,7 @@ SUB update_heroes(force_step_check as bool=NO)
  NEXT whoi
 
  'If the leader finished a step, check triggers
- IF (herow(0).xgo MOD 20 = 0) AND (herow(0).ygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
+ IF (herow(0).xygo MOD 20 = 0) AND (didgo(0) = YES OR force_step_check = YES) THEN
 
   'Trigger step-on NPCs
   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
@@ -2080,7 +2081,7 @@ FUNCTION perform_npc_move(byval npcnum as integer, npci as NPCInst, npcdata as N
     IF npci.xgo < 0 THEN npci.xgo += npcdata.speed: npci.x += npcdata.speed
     IF npci.ygo > 0 THEN npci.ygo -= npcdata.speed: npci.y -= npcdata.speed
     IF npci.ygo < 0 THEN npci.ygo += npcdata.speed: npci.y += npcdata.speed
-    IF (npci.xgo MOD 20) = 0 AND (npci.ygo MOD 20) = 0 THEN didgo = YES
+    IF npci.xygo MOD 20 = 0 THEN didgo = YES
    END IF
   ELSE
    '--no speed, kill wantgo
@@ -2275,7 +2276,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
   '---Check for hero-NPC collision
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
-   DIM tpos as XYPair = XY((herox(rank) - xgo) / 20, (heroy(rank) - ygo) / 20)
+   DIM tpos as XYPair = TYPE(heropos(rank) - XY(xgo, ygo)) / 20
    wrapxy tpos
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC

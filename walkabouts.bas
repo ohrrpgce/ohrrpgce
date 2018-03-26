@@ -1250,18 +1250,12 @@ END FUNCTION
 
 SUB cancel_npc_walk(npci as NPCInst)
  'Cancel NPC movement, but allow them to finish their current step
- DO WHILE npci.xgo >= 20 : npci.xgo -= 20 : LOOP
- DO WHILE npci.xgo <= -20 : npci.xgo += 20 : LOOP
- DO WHILE npci.ygo >= 20 : npci.ygo -= 20 : LOOP
- DO WHILE npci.ygo <= -20 : npci.ygo += 20 : LOOP
+ npci.xygo = npci.xygo MOD 20
 END SUB
 
 SUB cancel_hero_walk(byval rank as integer)
  'Cancel hero movement, but allow them to finish their current step
- DO WHILE herow(rank).xgo >= 20  : herow(rank).xgo -= 20 : LOOP
- DO WHILE herow(rank).xgo <= -20 : herow(rank).xgo += 20 : LOOP
- DO WHILE herow(rank).ygo >= 20  : herow(rank).ygo -= 20 : LOOP
- DO WHILE herow(rank).ygo <= -20 : herow(rank).ygo += 20 : LOOP
+ herow(rank).xygo = herow(rank).xygo MOD 20
 END SUB
 
 FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
@@ -1270,7 +1264,7 @@ FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN
-   IF npc(i).pos \ 20 = tilepos THEN 
+   IF npc(i).pos \ 20 = tilepos THEN
     IF found = copynum THEN
      RETURN i
     END IF
@@ -1287,7 +1281,7 @@ FUNCTION count_npcs_at_spot(tilepos as XYPair) as integer
  DIM found as integer = 0
  FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN
-   IF npc(i).pos \ 20 = tilepos THEN 
+   IF npc(i).pos \ 20 = tilepos THEN
     found = found + 1
    END IF
   END IF
