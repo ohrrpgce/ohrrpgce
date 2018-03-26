@@ -4950,7 +4950,7 @@ SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
  gam.hero_pathing(rank).by_user = NO
  gam.hero_pathing(rank).on_map = -1
- clear_hero_pathfinding_display rank
+ clear_hero_pathfinding_display(rank)
 END SUB
 
 SUB trigger_hero_pathfinding()
@@ -5050,9 +5050,7 @@ SUB update_hero_pathfinding(byval rank as integer)
   update_hero_pathfinding_display(t2, rank)
  else
   'Give up immediately when pathing fails
-  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
-  gam.hero_pathing(rank).by_user = NO
-  clear_hero_pathfinding_display(rank)
+  cancel_hero_pathfinding(rank)
  end if
 END SUB
 
