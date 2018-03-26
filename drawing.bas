@@ -4078,7 +4078,8 @@ END SUB
 'Called when the cursor moves, updates info displays
 SUB SpriteSetBrowser.update()
   DIM info_text as Slice ptr = edsl(ssed_info_text, root)
-  IF info_text = NULL ORELSE ps.cur = NULL THEN EXIT SUB
+  DIM info_text_right as Slice ptr = edsl(ssed_info_text_right, root)
+  IF info_text = NULL ORELSE info_text_right = NULL ORELSE ps.cur = NULL THEN EXIT SUB
   DIM as TextSliceData ptr info_text_dat = info_text->SliceData
 
   DIM pal_root as Slice ptr = edsl(ssed_palette_root, root)
@@ -4088,8 +4089,13 @@ SUB SpriteSetBrowser.update()
   IF cur_setnum = -1 THEN  'Add new
     info_str = "ENTER to add a new spriteset"
     info_text_dat->show_insert = NO
+    info_text_right->Visible = NO
     pal_root->Visible = NO
   ELSE
+    info_text_right->Visible = YES
+    CAST(TextSliceData ptr, info_text_right->SliceData)->use_render_text = YES
+    ChangeTextSlice info_text_right, ticklite("`I`mport/`E`xport", uilook(uiMenuItem))
+
     info_str = "Spriteset " & cur_setnum
 
     'Highlight spriteset num when typing
