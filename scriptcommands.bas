@@ -490,7 +490,7 @@ SUB process_wait_conditions()
       scripterr "waiting for nonexistant hero " & .waitarg, serrBug  'should be bound by waitforhero
       script_stop_waiting()
      ELSE
-      IF herow(.waitarg).xgo = 0 AND herow(.waitarg).ygo = 0 THEN
+      IF herow(.waitarg).xgo = 0 ANDALSO herow(.waitarg).ygo = 0 ANDALSO NOT hero_is_pathfinding(.waitarg) THEN
        script_stop_waiting()
       END IF
      END IF
@@ -4609,6 +4609,17 @@ SUB script_functions(byval cmdid as integer)
    'Not riding
    scriptret = 0
   END IF
+ CASE 668 '--pathfind hero to
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   cancel_hero_pathfinding(retvals(0))
+   path_hero_to_tile(retvals(0), XY(retvals(1), retvals(2)))
+  'FIXME: does not yet support NPC-style stillticks argument
+  ' npc(npcref).pathover.stop_after_stillticks = retvals(3)
+  ' IF npc(npcref).pathover.stop_after_stillticks THEN
+  '  npc(npcref).stillticks = 0
+  ' END IF
+  END IF
+  
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

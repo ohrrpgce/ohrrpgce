@@ -846,7 +846,7 @@ DO
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse().buttons AND mouseLeft THEN
     cancel_hero_pathfinding(0)
-    trigger_hero_pathfinding()
+    user_trigger_hero_pathfinding()
    END IF
   END IF
   IF herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
@@ -4953,7 +4953,21 @@ SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
  clear_hero_pathfinding_display(rank)
 END SUB
 
-SUB trigger_hero_pathfinding()
+SUB path_hero_to_tile(byval rank as integer, dest as XYPair)
+ gam.hero_pathing(rank).mode = HeroPathingMode.POS
+ gam.hero_pathing(rank).dest_pos = dest
+ gam.hero_pathing(rank).by_user = NO
+ gam.hero_pathing(rank).on_map = gam.map.id
+END SUB
+
+SUB path_hero_to_npc(byval rank as integer, byval npc as integer)
+ gam.hero_pathing(rank).mode = HeroPathingMode.NPC
+ gam.hero_pathing(rank).dest_npc = npc
+ gam.hero_pathing(rank).by_user = NO
+ gam.hero_pathing(rank).on_map = gam.map.id
+END SUB
+
+SUB user_trigger_hero_pathfinding()
  'Only used for leader
  DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos
  wrapxy clickpos, 20
