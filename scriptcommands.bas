@@ -4627,6 +4627,12 @@ SUB script_functions(byval cmdid as integer)
   'FIXME: does not yet support NPC-style stop-when-npc-reached argument
   'FIXME: does not yet support NPC-style stillticks argument
   END IF
+ CASE 670 '--cancel hero walk
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   cancel_hero_pathfinding(retvals(0))
+   cancel_hero_walk(retvals(0))
+  END IF
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

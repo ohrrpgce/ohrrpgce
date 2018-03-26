@@ -56,6 +56,7 @@ DECLARE FUNCTION walkrotate(byval d as DirNum, byval rota as integer, byval amou
 DECLARE FUNCTION xypair_direction_to (src_v as XYPair, dest_v as XYPair, default as DirNum = -1) as DirNum
 
 DECLARE SUB cancel_npc_walk(npci as NPCInst)
+DECLARE SUB cancel_hero_walk(byval rank as integer)
 
 'Vehicles
 DECLARE FUNCTION vehicle_is_animating() as bool

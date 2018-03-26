@@ -1249,10 +1249,19 @@ FUNCTION walkrotate(byval d as DirNum, byval rota as integer, byval amount as in
 END FUNCTION
 
 SUB cancel_npc_walk(npci as NPCInst)
+ 'Cancel NPC movement, but allow them to finish their current step
  DO WHILE npci.xgo >= 20 : npci.xgo -= 20 : LOOP
  DO WHILE npci.xgo <= -20 : npci.xgo += 20 : LOOP
  DO WHILE npci.ygo >= 20 : npci.ygo -= 20 : LOOP
  DO WHILE npci.ygo <= -20 : npci.ygo += 20 : LOOP
+END SUB
+
+SUB cancel_hero_walk(byval rank as integer)
+ 'Cancel hero movement, but allow them to finish their current step
+ DO WHILE herow(rank).xgo >= 20  : herow(rank).xgo -= 20 : LOOP
+ DO WHILE herow(rank).xgo <= -20 : herow(rank).xgo += 20 : LOOP
+ DO WHILE herow(rank).ygo >= 20  : herow(rank).ygo -= 20 : LOOP
+ DO WHILE herow(rank).ygo <= -20 : herow(rank).ygo += 20 : LOOP
 END SUB
 
 FUNCTION npc_at_spot(tilepos as XYPair, byval copynum as integer=0) as integer
