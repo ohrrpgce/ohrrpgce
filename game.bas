@@ -5003,6 +5003,8 @@ SUB user_trigger_hero_pathfinding()
   gam.hero_pathing(0).mode = HeroPathingMode.POS
   gam.hero_pathing(0).dest_pos = clicktile
  END IF
+ gam.hero_pathing(0).stop_after_stillticks = 10
+ gam.stillticks(0) = 0
  gam.hero_pathing(0).by_user = YES
  gam.hero_pathing(0).on_map = gam.map.id
 END SUB
