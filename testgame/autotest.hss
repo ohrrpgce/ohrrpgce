@@ -3466,8 +3466,12 @@ script, pathfinding tests, begin
   # Hero pathing should fail
   pathfind hero to(0, 12, 10)
   wait(1)
-  assert(hero is walking(0) == false)
+  # the hero is still trying to walk
+  assert(hero is walking(0))
+  # the hero has not moved
   assert(hero tile(0, 12, 7))
+  cancel hero walk(0)
+  assert(hero is walking(0) == false)
   # now move one NPC out of the way
   set npc speed(3, 10)
   pathfind npc to(n0, 14, 6)
@@ -3493,7 +3497,7 @@ script, pathfinding tests, begin
   
   # send an NPC running, and have the hero chase it
   pathfind npc to(n1, 5, 5)
-  hero chases npc(0, n1)
+  hero chases npc(0, n1, true)
   wait for npc(n1)
   # hero should still be catching up
   assert(hero is walking(0))
@@ -3502,7 +3506,9 @@ script, pathfinding tests, begin
   
   # now path the hero somewhere it can't reach, it should get close
   pathfind hero to(0, 8, 5)
-  wait for hero(0)
+  wait(5)
+  assert(hero is walking(0))
+  wait(5)
   assert(hero tile(0, 7, 4))
   w
 
@@ -3516,6 +3522,29 @@ script, pathfinding tests, begin
   wait for hero(0)
   assert(hero is walking(0) == false)
   assert(hero tile(0, 6, 5))
+  
+  # now to test stop-after-stillticks
+  # put hero hero back in the NPC cage
+  set hero speed(me, 10)
+  pathfind hero to(0, 14, 7)
+  wait(2)
+  # move the npc back to block
+  pathfind npc to(n1, 13, 7)
+  wait for hero(0)
+  wait for npc(n1)
+  
+  # The hero should try to walk for 10 ticks and give up
+  pathfind hero to(0, 13, 8, 10)
+  for(i, 1, 10) do(
+    show value(i)
+    w(1)
+    assert(hero is walking(0))
+    assert(hero tile(0, 14, 7))
+  )
+  w(1)
+  # the hero should have given up by now
+  assert(hero is walking(0) == false)
+  assert(hero tile(0, 14, 7))
 
   #_cancel runfast
   

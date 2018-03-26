@@ -4612,22 +4612,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 668 '--pathfind hero to
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cancel_hero_pathfinding(retvals(0))
-   path_hero_to_tile(retvals(0), XY(retvals(1), retvals(2)))
-   gam.hero_pathing(retvals(0)).stop_after_stillticks = retvals(3)
-   IF gam.hero_pathing(retvals(0)).stop_after_stillticks THEN
-    gam.stillticks(retvals(0)) = 0
-   END IF
+   path_hero_to_tile(retvals(0), XY(retvals(1), retvals(2)), retvals(3))
   END IF
  CASE 669 '--hero chases npc
   DIM dest_npcref as integer = get_valid_npc(retvals(1), serrBadOp)
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
    cancel_hero_pathfinding(retvals(0))
-   path_hero_to_npc(retvals(0), dest_npcref)
-  'FIXME: does not yet support NPC-style stop-when-npc-reached argument
-   gam.hero_pathing(retvals(0)).stop_after_stillticks = retvals(3)
-   IF gam.hero_pathing(retvals(0)).stop_after_stillticks THEN
-    gam.stillticks(retvals(0)) = 0
-   END IF
+   path_hero_to_npc(retvals(0), dest_npcref, retvals(2) <> 0, retvals(3))
   END IF
  CASE 670 '--cancel hero walk
   IF valid_hero_caterpillar_rank(retvals(0)) THEN

@@ -148,8 +148,8 @@ DECLARE FUNCTION player_is_suspended() as bool
 
 DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
 DECLARE SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
-DECLARE SUB path_hero_to_tile(byval rank as integer, dest as XYPair)
-DECLARE SUB path_hero_to_npc(byval rank as integer, byval npc as integer)
+DECLARE SUB path_hero_to_tile(byval rank as integer, dest as XYPair, byval stop_after_stillticks as integer=0)
+DECLARE SUB path_hero_to_npc(byval rank as integer, byval npc as integer, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
 DECLARE SUB user_trigger_hero_pathfinding()
 DECLARE SUB update_hero_pathfinding(byval rank as integer)
 DECLARE SUB update_hero_pathfinding_menu_queue()

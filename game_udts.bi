@@ -147,6 +147,7 @@ TYPE HeroPathing
   dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
   on_map as integer ' the map ID where the pathing was started
   stop_after_stillticks as bool 'Cancel pathing if stuck for this many ticks
+  stop_when_npc_reached as bool 'Cancel pathing as soon as the hero catches up the the NPC it is following
   'The following are normally only used for the leader's built-in pathfinding
   by_user as bool'  set to YES for built-in pathfinding, NO for scripted
   queued_menu as bool ' Set to YES when a menu opening keypress has been queued

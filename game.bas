@@ -4964,19 +4964,26 @@ SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
  gam.hero_pathing(rank).by_user = NO
  gam.hero_pathing(rank).on_map = -1
+ gam.hero_pathing(rank).stop_when_npc_reached = NO
+ gam.hero_pathing(rank).stop_after_stillticks = 0
  clear_hero_pathfinding_display(rank)
 END SUB
 
-SUB path_hero_to_tile(byval rank as integer, dest as XYPair)
+SUB path_hero_to_tile(byval rank as integer, dest as XYPair, byval stop_after_stillticks as integer=0)
  gam.hero_pathing(rank).mode = HeroPathingMode.POS
  gam.hero_pathing(rank).dest_pos = dest
+ gam.hero_pathing(rank).stop_after_stillticks = stop_after_stillticks
+ IF stop_after_stillticks <> 0 THEN gam.stillticks(rank) = 0
  gam.hero_pathing(rank).by_user = NO
  gam.hero_pathing(rank).on_map = gam.map.id
 END SUB
 
-SUB path_hero_to_npc(byval rank as integer, byval npc as integer)
+SUB path_hero_to_npc(byval rank as integer, byval npc as integer, byval stop_when_npc_reached as bool, byval stop_after_stillticks as integer=0)
  gam.hero_pathing(rank).mode = HeroPathingMode.NPC
  gam.hero_pathing(rank).dest_npc = npc
+ gam.hero_pathing(rank).stop_when_npc_reached = stop_when_npc_reached
+ gam.hero_pathing(rank).stop_after_stillticks = stop_after_stillticks
+ IF stop_after_stillticks <> 0 THEN gam.stillticks(rank) = 0
  gam.hero_pathing(rank).by_user = NO
  gam.hero_pathing(rank).on_map = gam.map.id
 END SUB
@@ -4989,6 +4996,7 @@ SUB user_trigger_hero_pathfinding()
  IF npc_index >= 0 THEN
   gam.hero_pathing(0).mode = HeroPathingMode.NPC
   gam.hero_pathing(0).dest_npc = npc_index
+  gam.hero_pathing(0).stop_when_npc_reached = YES
  ELSE
   clickpos.y -= gmap(11) 'adjust for foot-offset
   DIM clicktile as XYPair = clickpos \ 20
@@ -5024,7 +5032,7 @@ SUB update_hero_pathfinding(byval rank as integer)
   EXIT SUB
  END IF
 
- IF gam.hero_pathing(rank).stop_after_stillticks > 0 ANDALSO gam.stillticks(rank) > gam.hero_pathing(rank).stop_after_stillticks then
+ IF gam.hero_pathing(rank).stop_after_stillticks > 0 ANDALSO gam.stillticks(rank) >= gam.hero_pathing(rank).stop_after_stillticks then
   cancel_hero_pathfinding(rank)
   EXIT SUB
  END IF
@@ -5046,6 +5054,11 @@ SUB update_hero_pathfinding(byval rank as integer)
  SELECT CASE gam.hero_pathing(rank).mode
   CASE HeroPathingMode.POS:
    t2 = gam.hero_pathing(rank).dest_pos
+   IF t1 = t2 THEN
+    'Already at destination
+    cancel_hero_pathfinding(rank)
+    EXIT SUB
+   END IF
   CASE HeroPathingMode.NPC:
    WITH npc(gam.hero_pathing(rank).dest_npc)
     IF .id > 0 THEN
@@ -5065,6 +5078,11 @@ SUB update_hero_pathfinding(byval rank as integer)
      usenpc 0, find_useable_npc()
     END IF
    END IF
+   IF gam.hero_pathing(rank).stop_when_npc_reached ANDALSO xypair_wrapped_distance(t1, t2) <= 1 THEN
+    'Within 1 tile of destination
+    cancel_hero_pathfinding(rank)
+    EXIT SUB
+   END IF
  END SELECT
 
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
@@ -5083,8 +5101,8 @@ SUB update_hero_pathfinding(byval rank as integer)
   heromove_walk_ahead(rank)
   update_hero_pathfinding_display(t2, rank)
  else
-  'Give up immediately when pathing fails
-  cancel_hero_pathfinding(rank)
+  'Do not give up immediately when pathing fails.
+  'Will keep trying until stillticks or some other cancel condition
  end if
 END SUB
 
