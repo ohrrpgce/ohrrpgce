@@ -20,3 +20,4 @@ Select "Set #" and hit CTRL+C/V/T to copy/paste the whole spriteset.
 Copying and pasting works between different spriteset types.
 
 Press E to export the currently selected frame or spriteset to a BMP file.
+Press I to import a frame or spriteset from a BMP, PNG or JPEG file, overwriting the currently selected one. You can import from an image of any size. It will be cropped/expanded to the expected size.

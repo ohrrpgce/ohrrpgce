@@ -158,6 +158,7 @@ DECLARE FUNCTION default_global_animations (sprtype as SpriteType) as SpriteSet 
 DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
 
 DECLARE FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
+DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType) as Frame ptr
 
 DECLARE SUB loaditemdata (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata (array() as integer, byval index as integer)

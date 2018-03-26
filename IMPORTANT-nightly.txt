@@ -17,6 +17,12 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+2018-03-27:
+You can actually import/export full spritesets at a time again. There are
+still two major remaining problems with the new spriteset browser, which
+will be fixed next: it's slow in huge games, and arrow keys can be very
+wonky.
+
 2018-02-17:
 If you upgraded a game with a nightly from the last 13 days box border
 spriteset 0 got overwritten with the default!
