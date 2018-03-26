@@ -3490,14 +3490,39 @@ script, pathfinding tests, begin
   assert(hero is walking(1) == true)
   wait for hero(1)
   assert(hero tile(1, 16, 7))
+  
+  # send an NPC running, and have the hero chase it
+  pathfind npc to(n1, 5, 5)
+  hero chases npc(0, n1)
+  wait for npc(n1)
+  # hero should still be catching up
+  assert(hero is walking(0))
+  wait for hero(0)
+  assert(hero is walking(0) == false)
+  
+  # now path the hero somewhere it can't reach, it should get close
+  pathfind hero to(0, 8, 5)
+  wait for hero(0)
+  assert(hero tile(0, 7, 4))
+  w
+
+  # send the hero on a long path, but cancel after a step and a half
+  pathfind hero to(0, 8, 12)
+  w(7)
+  cancel hero walk(0)
+  # hero should still finish the current step
+  assert(hero is walking(0)), w
+  assert(hero is walking(0)), w
+  wait for hero(0)
+  assert(hero is walking(0) == false)
+  assert(hero tile(0, 6, 5))
 
   #_cancel runfast
   
-  #more here...
+  #...
   
   #wait for key
   #_runfast
-  
   
   # clean up
   stop checkpoint timer
