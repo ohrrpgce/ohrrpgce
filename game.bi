@@ -144,6 +144,7 @@ DECLARE SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as 
 DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
 
 DECLARE FUNCTION caterpillar_is_suspended() as bool 
+DECLARE FUNCTION player_is_suspended() as bool 
 
 DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
 DECLARE SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)

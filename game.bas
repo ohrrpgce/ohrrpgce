@@ -873,10 +873,14 @@ DO
      cancel_hero_pathfinding(0)
      usenpc 0, find_useable_npc()
     END IF
-    update_hero_pathfinding(0)
    END IF
   END IF
  END IF
+ FOR i as integer = 0 to 3
+  IF herow(i).xgo = 0 ANDALSO herow(i).ygo = 0 THEN
+   update_hero_pathfinding(i)
+  END IF
+ NEXT i
  IF txt.fully_shown = YES ANDALSO readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
   IF use_touch_textboxes() THEN
    IF readmouse().release AND mouseLeft THEN
@@ -4916,14 +4920,21 @@ FUNCTION top_menu_allows_controls() as bool
  RETURN NO
 END FUNCTION
 
-
 '==========================================================================================
-'                                 Hero Pathfinding/Mouse controls
+'                              Suspend convenience wrappers
 '==========================================================================================
 
 FUNCTION caterpillar_is_suspended() as bool
  RETURN readbit(gen(), genSuspendBits, suspendcaterpillar) <> 0
 END FUNCTION
+
+FUNCTION player_is_suspended() as bool
+ RETURN readbit(gen(), genSuspendBits, suspendplayer) <> 0
+END FUNCTION
+
+'==========================================================================================
+'                                 Hero Pathfinding/Mouse controls
+'==========================================================================================
 
 FUNCTION hero_is_pathfinding(byval rank as integer) as bool
  IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
@@ -4969,6 +4980,19 @@ SUB update_hero_pathfinding_menu_queue()
 END SUB
 
 SUB update_hero_pathfinding(byval rank as integer)
+
+ IF gam.hero_pathing(rank).by_user ANDALSO player_is_suspended() THEN
+  'Auto-cancel built-in user pathing when suspendplayer is active
+   cancel_hero_pathfinding(rank, YES)
+  EXIT SUB
+ END IF
+
+ IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
+  'quietly do nothing when trying to update non-leaders
+  'while caterpillar party is enabled
+  EXIT SUB
+ END IF
+ 
  IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
   clear_hero_pathfinding_display(rank)
   EXIT SUB
