@@ -1971,8 +1971,10 @@ SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
   npci.dir = xypair_direction_to(pf.path[0], pf.path[1], npci.dir)
   npcmove_walk_ahead(npci)
  else
-  'Don't try again for 10 ticks
-  npci.pathover.cooldown = 10
+  'Don't try again for 10 ticks (but only if there is no stillticks timeout)
+  if npci.pathover.stop_after_stillticks = 0 then
+   npci.pathover.cooldown = 10
+  end if
  end if
 END SUB
 

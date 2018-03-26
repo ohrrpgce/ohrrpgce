@@ -3418,6 +3418,35 @@ script, pathfinding tests, begin
   w(1)
   assert(npc is walking(2)==false)
   
+  # now add some barrier npcs
+  variable(n0, n1, n2, n3)
+  n0 := create npc(3, 15, 15, left)
+  n1 := create npc(3, 14, 16, up)
+  n2 := create npc(3, 13, 15, right)
+  set npc speed(3, 10)
+  
+  # make the npc walk, make one of the barrier npcs move at the last moment
+  pathfind npc to(2, 17, 15, 7) # try for 7 ticks
+  # should fail for 6 ticks
+  for(i, 1, 6) do(
+    w(1)
+    assert(npc is walking(2))
+    assert(is at pos(2, 14, 15))
+    assert(npc pixel x(2) == 14 * 20)
+  )
+  # abruptly remove a barrier npc
+  destroy npc(n0)
+  w(1)
+  # NPC 2 should start walking
+  assert(npc is walking(2)==true)
+  assert(npc pixel x(2) == 14 * 20 + 5)
+  wait for npc(2)
+  assert(is at pos(2, 17, 15))
+  # clean up the other barrier npcs
+  destroy npc(n1)
+  destroy npc(n2)
+  
+  
   # Now test some hero pathfinding
   camera follows hero
 
@@ -3472,7 +3501,6 @@ script, pathfinding tests, begin
   # get hero 1 out of the way
   walk hero(1, right, 1)
   # create some NPC barriers
-  variable(n0, n1, n2, n3)
   n0 := create npc(3, 12, 6, down)
   n1 := create npc(3, 13, 7, left)
   n2 := create npc(3, 12, 8, up)
@@ -3608,6 +3636,7 @@ script, pathfinding tests, begin
   
   #TODO:
   # test cancelling hero pathing when you change maps
+  # mismatch between stillticks and cooldown?
   
   # clean up
   stop checkpoint timer
