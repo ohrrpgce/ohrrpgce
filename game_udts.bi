@@ -145,7 +145,9 @@ TYPE HeroPathing
   mode as HeroPathingMode 'Set if pathfinding is happening
   dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
   dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
-  queued_menu as bool ' Set to YES when a menu opening keypress has been queued (only ever used for leader)
+  by_user as bool'  set to YES for built-in pathfinding, NO for scripted
+  'The following are normally only used for the leader's built-in pathfinding
+  queued_menu as bool ' Set to YES when a menu opening keypress has been queued
   dest_display_sl as Slice Ptr
 END TYPE
 

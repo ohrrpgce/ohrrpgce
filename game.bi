@@ -146,7 +146,7 @@ DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
 DECLARE FUNCTION caterpillar_is_suspended() as bool 
 
 DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
-DECLARE SUB cancel_hero_pathfinding(byval rank as integer)
+DECLARE SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
 DECLARE SUB trigger_hero_pathfinding()
 DECLARE SUB update_hero_pathfinding(byval rank as integer)
 DECLARE SUB update_hero_pathfinding_menu_queue()

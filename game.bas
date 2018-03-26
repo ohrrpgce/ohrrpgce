@@ -2661,9 +2661,8 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  mstates(topmenu).active = YES
  update_menu_items
  IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
-  'FIXME: maybe we shouldn't cancel here since it doesn't allow a script to pause movement
-  'and display a menu. Instead, could cancel pathfinding when the player pressed ESC.
-  cancel_hero_pathfinding(0)
+  'This only cancels built-in user pathing when a menu opens, not scripted pathing
+  cancel_hero_pathfinding(0, YES)
  END IF
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
@@ -3080,7 +3079,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle") THEN
   'Don't cancel
  ELSE
-  cancel_hero_pathfinding(0)
+  cancel_hero_pathfinding(0, YES)
  END IF
 
  IF afterbat = NO THEN
@@ -3369,7 +3368,7 @@ SUB loadsay (byval box_id as integer)
 
  '--Cancel hero pathfinding
  IF get_gen_bool("/mouse/move_hero/cancel_on_textbox") THEN
-  cancel_hero_pathfinding(0)
+  cancel_hero_pathfinding(0, YES)
  END IF
 
  context_string = ""
@@ -4928,14 +4927,16 @@ END FUNCTION
 
 FUNCTION hero_is_pathfinding(byval rank as integer) as bool
  IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
-  'caterpillar party is enabled, and a non-leader was requested
+  debuginfo "hero_is_pathfinding(" & rank & ") caterpillar party is enabled, and a non-leader was requested"
   RETURN NO
  END IF
  RETURN gam.hero_pathing(rank).mode <> HeroPathingMode.NONE
 END FUNCTION
 
-SUB cancel_hero_pathfinding(byval rank as integer)
+SUB cancel_hero_pathfinding(byval rank as integer, byval user_only as bool=NO)
+ IF user_only ANDALSO gam.hero_pathing(rank).by_user = NO THEN EXIT SUB
  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
+ gam.hero_pathing(rank).by_user = NO
  clear_hero_pathfinding_display rank
 END SUB
 
@@ -4953,6 +4954,7 @@ SUB trigger_hero_pathfinding()
   gam.hero_pathing(0).mode = HeroPathingMode.POS
   gam.hero_pathing(0).dest_pos = clicktile
  END IF
+ gam.hero_pathing(0).by_user = YES
 END SUB
 
 SUB update_hero_pathfinding_menu_queue()
@@ -4960,7 +4962,7 @@ SUB update_hero_pathfinding_menu_queue()
  IF user_triggered_main_menu() THEN
   IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
    gam.hero_pathing(0).queued_menu = YES
-   cancel_hero_pathfinding(0)
+   cancel_hero_pathfinding(0, YES)
    EXIT SUB
   END IF
  END IF
@@ -4989,17 +4991,25 @@ SUB update_hero_pathfinding(byval rank as integer)
      EXIT SUB
     END IF
    END WITH
-   IF xypair_manhattan_distance(t1, t2) = 1 THEN
-    'One tile away from dest NPC!
-    (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
-    usenpc 0, find_useable_npc()
+   IF rank = 0 ANDALSO gam.hero_pathing(rank).by_user THEN
+    'Only the leader activates NPCs, and only when doing built-in user pathing
+    IF xypair_manhattan_distance(t1, t2) = 1 THEN
+     'One tile away from dest NPC!
+     (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
+     usenpc 0, find_useable_npc()
+    END IF
    END IF
  END SELECT
 
  dim pf as AStarPathfinder = AStarPathfinder(t1, t2, 1000)
  pf.calculate(null, NO, YES)
  'pf.slow_debug()
- dim maxpath as integer = get_gen_int("/mouse/move_hero/max_path_length")
+ dim maxpath as integer
+ if gam.hero_pathing(rank).by_user then
+  maxpath = get_gen_int("/mouse/move_hero/max_path_length")
+ else
+  maxpath = 0
+ end if
  dim pathlen as integer = v_len(pf.path) - 1  'Excluding initial tile
  if pathlen >= 1 andalso (maxpath = 0 orelse pathlen <= maxpath) then
   'Don't move unless a path is found that is longer than one tile
@@ -5009,6 +5019,7 @@ SUB update_hero_pathfinding(byval rank as integer)
  else
   'Give up immediately when pathing fails
   gam.hero_pathing(rank).mode = HeroPathingMode.NONE
+  gam.hero_pathing(rank).by_user = NO
   clear_hero_pathfinding_display(rank)
  end if
 END SUB
@@ -5020,6 +5031,10 @@ SUB clear_hero_pathfinding_display(byval rank as integer)
 END SUB
 
 SUB update_hero_pathfinding_display(byval tile as XYpair, byval rank as integer)
+ IF rank > 0 ORELSE gam.hero_pathing(rank).by_user = NO THEN
+  'Only display the leader's movements, and only if doing built-in user pathing
+  EXIT SUB
+ END IF
  IF get_gen_bool("/mouse/move_hero/display_dest") THEN
   DIM sl as Slice Ptr
   IF gam.hero_pathing(rank).dest_display_sl <> 0 THEN
