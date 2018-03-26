@@ -5012,6 +5012,12 @@ END SUB
 
 SUB update_hero_pathfinding(byval rank as integer)
 
+ IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
+  'If this hero is not pathing right now, then exit early
+  clear_hero_pathfinding_display(rank)
+  EXIT SUB
+ END IF
+
  IF gam.hero_pathing(rank).by_user ANDALSO player_is_suspended() THEN
   'Auto-cancel built-in user pathing when suspendplayer is active
    cancel_hero_pathfinding(rank, YES)
@@ -5032,11 +5038,6 @@ SUB update_hero_pathfinding(byval rank as integer)
  IF gam.hero_pathing(rank).on_map <> gam.map.id THEN
   debuginfo "Cancelled pathing for rank " & rank & " because of changing from map " & gam.hero_pathing(rank).on_map & " to map " & gam.map.id
   cancel_hero_pathfinding(rank)
- END IF
-
- IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
-  clear_hero_pathfinding_display(rank)
-  EXIT SUB
  END IF
  
  DIM t1 as XYPair = herotpos(rank)
