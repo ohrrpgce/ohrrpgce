@@ -1242,6 +1242,7 @@ FUNCTION herodir(byval rank as integer) byref as DirNum
  RETURN cats(catindex(rank)).d
 END FUNCTION
 
+'These are actually the tile that the hero's top left corner is located in
 FUNCTION herotpos(byval rank as integer) as XYPair
  RETURN heropos(rank) \ 20
 END FUNCTION
