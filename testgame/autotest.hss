@@ -3390,9 +3390,48 @@ script, pathfinding tests, begin
   assert(is at pos(ref, 16, 18))
   wait for npc(2)
   assert(dist from pos(2, 16, 18) == 1)
+
+  # Now test some hero pathfinding
+  #camera follows hero
+  #_cancel runfast
+
+  subscript, hero tile, rank, x, y, begin
+    exit returning(hero x(rank) == x && hero y(rank) == y)
+  end
+  
+  #show string(string sprintf(1, $2="x=%d y=%d", hero x(me), hero y(me)))
+  assert(hero tile(me, 8, 7))
+  pathfind hero to(me, 13, 5)
+  wait(5)
+  assert(hero tile(me, 9, 7))
+  wait for hero(me)
+  # should reach dest
+  assert(hero tile(me, 13, 5))
+  # caterpillar should follow
+  assert(hero tile(1, 12, 5))
+  assert(hero tile(2, 12, 6))
+  assert(hero tile(3, 11, 6))
+  # now path each hero individually
+  suspend caterpillar
+  pathfind hero to(0, 8, 7)
+  pathfind hero to(1, 9, 7)
+  pathfind hero to(2, 8, 8)
+  pathfind hero to(3, 9, 8)
+  wait for hero(0)
+  wait for hero(1)
+  wait for hero(2)
+  wait for hero(3)
+  assert(hero tile(0, 8, 7))
+  assert(hero tile(1, 9, 7))
+  assert(hero tile(2, 8, 8))
+  assert(hero tile(3, 9, 8))
+  
+  
+  #wait for key
+  #_runfast
+  
   
   # clean up
-  camera follows hero
   stop checkpoint timer
   
   teleport to map(oldmap, oldx, oldy)
