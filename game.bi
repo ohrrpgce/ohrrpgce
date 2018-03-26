@@ -143,14 +143,16 @@ DECLARE SUB resetcaterpillar_for_one_hero (byval rank as integer, byval newx as 
 
 DECLARE SUB cancel_npc_movement_override (npci as NPCInst)
 
-DECLARE FUNCTION hero_is_pathfinding() as bool
-DECLARE SUB cancel_hero_pathfinding()
+DECLARE FUNCTION caterpillar_is_suspended() as bool 
+
+DECLARE FUNCTION hero_is_pathfinding(byval rank as integer) as bool
+DECLARE SUB cancel_hero_pathfinding(byval rank as integer)
 DECLARE SUB trigger_hero_pathfinding()
 DECLARE SUB update_hero_pathfinding(byval rank as integer)
 DECLARE SUB update_hero_pathfinding_menu_queue()
-DECLARE SUB display_hero_pathfinding ()
-DECLARE SUB clear_hero_pathfinding_display()
-DECLARE SUB update_hero_pathfinding_display(byval tile as XYpair)
+DECLARE SUB display_hero_pathfinding (byval rank as integer)
+DECLARE SUB clear_hero_pathfinding_display(byval rank as integer)
+DECLARE SUB update_hero_pathfinding_display(byval tile as XYpair, byval rank as integer=0)
 
 DECLARE SUB heromove_walk_ahead(byval rank as integer)
 

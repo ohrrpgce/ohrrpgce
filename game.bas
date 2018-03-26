@@ -829,8 +829,8 @@ DO
  IF normal_controls_disabled() = NO AND vstate.active = NO THEN
   'Menu key is enabled (provided you're stationary)
   update_hero_pathfinding_menu_queue()
-  IF (user_triggered_main_menu() ORELSE gam.hero_pathing.queued_menu) AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
-   gam.hero_pathing.queued_menu = NO
+  IF (user_triggered_main_menu() ORELSE gam.hero_pathing(0).queued_menu) AND herow(0).xgo = 0 AND herow(0).ygo = 0 THEN
+   gam.hero_pathing(0).queued_menu = NO
    IF gen(genEscMenuScript) > 0 THEN
     trigger_script gen(genEscMenuScript), 0, NO, "", "", mainFibreGroup
    ELSEIF allowed_to_open_main_menu() THEN
@@ -840,12 +840,12 @@ DO
   END IF
  ELSE
   'Edge case: don't allow a queued menu to be delayed indefinitely
-  gam.hero_pathing.queued_menu = NO
+  gam.hero_pathing(0).queued_menu = NO
  END IF
  IF normal_controls_disabled() = NO AND menus_allow_player() THEN
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse().buttons AND mouseLeft THEN
-    cancel_hero_pathfinding()
+    cancel_hero_pathfinding(0)
     trigger_hero_pathfinding()
    END IF
   END IF
@@ -866,11 +866,11 @@ DO
    END IF
    IF setdir <> -1 THEN
     (herodir(0)) = setdir
-    cancel_hero_pathfinding()
+    cancel_hero_pathfinding(0)
    ELSE
     'While on a vehicle, menu and use keys are handled in update_vehicle_state()
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
-     cancel_hero_pathfinding()
+     cancel_hero_pathfinding(0)
      usenpc 0, find_useable_npc()
     END IF
     update_hero_pathfinding(0)
@@ -2663,7 +2663,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
  IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
   'FIXME: maybe we shouldn't cancel here since it doesn't allow a script to pause movement
   'and display a menu. Instead, could cancel pathfinding when the player pressed ESC.
-  cancel_hero_pathfinding()
+  cancel_hero_pathfinding(0)
  END IF
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
@@ -3080,7 +3080,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  IF afterbat ANDALSO NOT get_gen_bool("/mouse/move_hero/cancel_on_battle") THEN
   'Don't cancel
  ELSE
-  cancel_hero_pathfinding()
+  cancel_hero_pathfinding(0)
  END IF
 
  IF afterbat = NO THEN
@@ -3369,7 +3369,7 @@ SUB loadsay (byval box_id as integer)
 
  '--Cancel hero pathfinding
  IF get_gen_bool("/mouse/move_hero/cancel_on_textbox") THEN
-  cancel_hero_pathfinding()
+  cancel_hero_pathfinding(0)
  END IF
 
  context_string = ""
@@ -4922,62 +4922,70 @@ END FUNCTION
 '                                 Hero Pathfinding/Mouse controls
 '==========================================================================================
 
-
-FUNCTION hero_is_pathfinding() as bool
- RETURN gam.hero_pathing.mode <> HeroPathingMode.NONE
+FUNCTION caterpillar_is_suspended() as bool
+ RETURN readbit(gen(), genSuspendBits, suspendcaterpillar) <> 0
 END FUNCTION
 
-SUB cancel_hero_pathfinding()
- gam.hero_pathing.mode = HeroPathingMode.NONE
- clear_hero_pathfinding_display
+FUNCTION hero_is_pathfinding(byval rank as integer) as bool
+ IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
+  'caterpillar party is enabled, and a non-leader was requested
+  RETURN NO
+ END IF
+ RETURN gam.hero_pathing(rank).mode <> HeroPathingMode.NONE
+END FUNCTION
+
+SUB cancel_hero_pathfinding(byval rank as integer)
+ gam.hero_pathing(rank).mode = HeroPathingMode.NONE
+ clear_hero_pathfinding_display rank
 END SUB
 
 SUB trigger_hero_pathfinding()
+ 'Only used for leader
  DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos
  wrapxy clickpos, 20
  DIM npc_index as integer = npc_at_pixel(clickpos)
  IF npc_index >= 0 THEN
-  gam.hero_pathing.mode = HeroPathingMode.NPC
-  gam.hero_pathing.dest_npc = npc_index
+  gam.hero_pathing(0).mode = HeroPathingMode.NPC
+  gam.hero_pathing(0).dest_npc = npc_index
  ELSE
   clickpos.y -= gmap(11) 'adjust for foot-offset
   DIM clicktile as XYPair = clickpos \ 20
-  gam.hero_pathing.mode = HeroPathingMode.POS
-  gam.hero_pathing.dest_pos = clicktile
+  gam.hero_pathing(0).mode = HeroPathingMode.POS
+  gam.hero_pathing(0).dest_pos = clicktile
  END IF
 END SUB
 
 SUB update_hero_pathfinding_menu_queue()
- IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN EXIT SUB
+ IF gam.hero_pathing(0).mode = HeroPathingMode.NONE THEN EXIT SUB
  IF user_triggered_main_menu() THEN
   IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
-   gam.hero_pathing.queued_menu = YES
-   cancel_hero_pathfinding()
+   gam.hero_pathing(0).queued_menu = YES
+   cancel_hero_pathfinding(0)
    EXIT SUB
   END IF
  END IF
 END SUB
 
 SUB update_hero_pathfinding(byval rank as integer)
- IF gam.hero_pathing.mode = HeroPathingMode.NONE THEN
-  clear_hero_pathfinding_display()
+ IF gam.hero_pathing(rank).mode = HeroPathingMode.NONE THEN
+  clear_hero_pathfinding_display(rank)
   EXIT SUB
  END IF
  
  DIM t1 as XYPair = herotpos(rank)
  DIM t2 as XYPair
  
- SELECT CASE gam.hero_pathing.mode
+ SELECT CASE gam.hero_pathing(rank).mode
   CASE HeroPathingMode.POS:
-   t2 = gam.hero_pathing.dest_pos
+   t2 = gam.hero_pathing(rank).dest_pos
   CASE HeroPathingMode.NPC:
-   WITH npc(gam.hero_pathing.dest_npc)
+   WITH npc(gam.hero_pathing(rank).dest_npc)
     IF .id > 0 THEN
      'Target NPC still exists
       t2 = .pos \ 20
     ELSE
      'Target NPC was destroyed or tag-disabled
-     cancel_hero_pathfinding()
+     cancel_hero_pathfinding(rank)
      EXIT SUB
     END IF
    END WITH
@@ -4997,38 +5005,38 @@ SUB update_hero_pathfinding(byval rank as integer)
   'Don't move unless a path is found that is longer than one tile
   (herodir(rank)) = xypair_direction_to(pf.path[0], pf.path[1], herodir(rank))
   heromove_walk_ahead(rank)
-  update_hero_pathfinding_display(t2)
+  update_hero_pathfinding_display(t2, rank)
  else
   'Give up immediately when pathing fails
-  gam.hero_pathing.mode = HeroPathingMode.NONE
-  clear_hero_pathfinding_display()
+  gam.hero_pathing(rank).mode = HeroPathingMode.NONE
+  clear_hero_pathfinding_display(rank)
  end if
 END SUB
 
-SUB clear_hero_pathfinding_display()
- IF gam.hero_pathing.dest_display_sl <> 0 THEN
-  DeleteSlice @(gam.hero_pathing.dest_display_sl)
+SUB clear_hero_pathfinding_display(byval rank as integer)
+ IF gam.hero_pathing(rank).dest_display_sl <> 0 THEN
+  DeleteSlice @(gam.hero_pathing(rank).dest_display_sl)
  END IF
 END SUB
 
-SUB update_hero_pathfinding_display(byval tile as XYpair)
+SUB update_hero_pathfinding_display(byval tile as XYpair, byval rank as integer)
  IF get_gen_bool("/mouse/move_hero/display_dest") THEN
   DIM sl as Slice Ptr
-  IF gam.hero_pathing.dest_display_sl <> 0 THEN
-   sl = gam.hero_pathing.dest_display_sl
+  IF gam.hero_pathing(rank).dest_display_sl <> 0 THEN
+   sl = gam.hero_pathing(rank).dest_display_sl
   ELSE
-   gam.hero_pathing.dest_display_sl = NewSliceOfType(slEllipse, SliceTable.MapOverlay, SL_PATHFIND_DEST_DISPLAY)
-   sl = gam.hero_pathing.dest_display_sl
+   gam.hero_pathing(rank).dest_display_sl = NewSliceOfType(slEllipse, SliceTable.MapOverlay, SL_PATHFIND_DEST_DISPLAY)
+   sl = gam.hero_pathing(rank).dest_display_sl
    sl->width = 25
    sl->height = 25
    sl->AnchorHoriz = 1
    sl->AnchorVert = 1
    ChangeEllipseSlice sl, uilook(uiHighlight)
   END IF
-  IF gam.hero_pathing.mode = HeroPathingMode.NPC THEN
-   IF npc(gam.hero_pathing.dest_npc).sl <> null THEN
-    sl->X = npc(gam.hero_pathing.dest_npc).x + 10
-    sl->Y = npc(gam.hero_pathing.dest_npc).y + 10 + gmap(11) 'foot offset
+  IF gam.hero_pathing(rank).mode = HeroPathingMode.NPC THEN
+   IF npc(gam.hero_pathing(rank).dest_npc).sl <> null THEN
+    sl->X = npc(gam.hero_pathing(rank).dest_npc).x + 10
+    sl->Y = npc(gam.hero_pathing(rank).dest_npc).y + 10 + gmap(11) 'foot offset
     EXIT SUB
    END IF
   END IF

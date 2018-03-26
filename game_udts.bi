@@ -145,7 +145,7 @@ TYPE HeroPathing
   mode as HeroPathingMode 'Set if pathfinding is happening
   dest_pos as XYPair 'Used when mode = HeroPathingMode.POS
   dest_npc as integer 'NPC reference used when mode = HeroPathingMode.NPC
-  queued_menu as bool ' Set to YES when a menu opening keypress has been queued
+  queued_menu as bool ' Set to YES when a menu opening keypress has been queued (only ever used for leader)
   dest_display_sl as Slice Ptr
 END TYPE
 
@@ -190,7 +190,7 @@ TYPE GameState
   quit as bool                       'Quit back to titlescreen
   pad as VirtualGamePadState
   non_elemental_elements(maxElements - 1) as bool 'Loaded by load_non_elemental_elements()
-  hero_pathing as HeroPathing
+  hero_pathing(3) as HeroPathing
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up
