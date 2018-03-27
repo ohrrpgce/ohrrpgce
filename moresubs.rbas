@@ -452,11 +452,33 @@ IF txt.box.choice_enabled THEN
  IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
   FOR i as integer = 0 TO 1
    col = uilook(uiMenuItem)
+   IF txt.choicestate.hover = i THEN col = uilook(uiMouseHoverItem)
    IF txt.choicestate.pt = i THEN col = uilook(uiSelectedItem + tog)
    ChangeTextSlice choice_sl(i), ,col
   NEXT i
  END IF
 END IF
+END SUB
+
+SUB choicebox_controls()
+ usemenusounds
+ 'Keyboard controls
+ usemenu txt.choicestate
+ 'Mouse controls
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM choice_sl(1) as Slice Ptr
+  choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0, SliceTable.Root)
+  choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1, SliceTable.Root)
+  txt.choicestate.hover = -1
+  FOR i as integer = 0 TO UBOUND(choice_sl)
+   IF SliceCollidePoint(choice_sl(i), readmouse.pos) THEN
+    txt.choicestate.hover = i
+   END IF
+  NEXT i
+  IF (readmouse.buttons AND mouseLeft) ANDALSO txt.choicestate.hover >= 0 THEN
+   txt.choicestate.pt = txt.choicestate.hover
+  END IF
+ END IF
 END SUB
 
 SUB evalherotags ()

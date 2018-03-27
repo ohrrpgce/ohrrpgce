@@ -898,8 +898,7 @@ DO
  END IF
  'You can still move the cursor of a textbox choice box when box advance is suspended
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
-  usemenusounds
-  usemenu txt.choicestate
+  choicebox_controls
  END IF
  'DEBUG debug "hero movement"
  update_heroes()

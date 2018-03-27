@@ -16,6 +16,7 @@ DECLARE FUNCTION room_for_item (byval itemid as integer, byval num as integer = 
 
 DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB update_textbox ()
+DECLARE SUB choicebox_controls()
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
