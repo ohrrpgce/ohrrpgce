@@ -1863,8 +1863,7 @@ SUB secret_menu ()
      "RGFX tests", _
      "Backend Keyrepeat Bugtest", _
      "Test Game under GDB", _
-     "Test Game under Valgrind", _
-     "Mouse Options" _
+     "Test Game under Valgrind" _
  }
  DIM st as MenuState
  st.autosize = YES
@@ -1901,7 +1900,6 @@ SUB secret_menu ()
    IF st.pt = 20 THEN backend_keyrepeat_bugtest
    IF st.pt = 21 THEN spawn_game_menu YES
    IF st.pt = 22 THEN spawn_game_menu NO, YES
-   IF st.pt = 23 THEN edit_mouse_options ()
   END IF
   usemenu st
   clearpage vpage

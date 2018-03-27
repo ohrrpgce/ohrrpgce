@@ -1156,7 +1156,7 @@ END SUB
 
 SUB general_data_editor ()
  STATIC shown_framerate_warning as bool = NO
- CONST maxMenu = 22
+ CONST maxMenu = 23
  DIM m(maxMenu) as string
  DIM menu_display(maxMenu) as string
  DIM min(maxMenu) as integer
@@ -1189,8 +1189,9 @@ SUB general_data_editor ()
  m(13) = "Password For Editing..."
  m(14) = "Window-size Options..."
  m(15) = "Platform-specific options..."
+ m(16) = "Mouse Options..."
 
- CONST options_start = 17
+ CONST options_start = 18
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(options_start - 1) = NO
@@ -1250,6 +1251,7 @@ SUB general_data_editor ()
    IF state.pt = 13 THEN inputpasw
    IF state.pt = 14 THEN resolution_menu
    IF state.pt = 15 THEN edit_platform_options
+   IF state.pt = 16 THEN edit_mouse_options ()
   END IF
   IF state.pt = 1 THEN
    IF enable_strgrabber ANDALSO strgrabber(longname, 38) THEN state.need_update = YES
