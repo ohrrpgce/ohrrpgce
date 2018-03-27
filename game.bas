@@ -5055,8 +5055,9 @@ SUB update_hero_pathfinding(byval rank as integer)
  END IF
 
  IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
-  'quietly do nothing when trying to update non-leaders
+  'quietly cancel pathfinding when trying to update non-leaders
   'while caterpillar party is enabled
+  cancel_hero_pathfinding(rank)
   EXIT SUB
  END IF
  
