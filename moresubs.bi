@@ -14,9 +14,11 @@ DECLARE SUB getitem (byval item_id as integer, byval num as integer=1)
 DECLARE SUB delitem (byval item_id as integer, byval amount as integer=1)
 DECLARE FUNCTION room_for_item (byval itemid as integer, byval num as integer = 1) as bool
 
-DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB update_textbox ()
 DECLARE SUB choicebox_controls()
+DECLARE FUNCTION user_textbox_advance() as bool
+
+DECLARE SUB doswap (byval s as integer, byval d as integer)
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()

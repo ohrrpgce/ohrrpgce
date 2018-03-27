@@ -481,6 +481,32 @@ SUB choicebox_controls()
  END IF
 END SUB
 
+FUNCTION user_textbox_advance() as bool
+ 'Return YES if the player wants to advance the textbox using built-in controls
+ IF use_touch_textboxes() THEN
+  'Mouse and touch controls
+  IF readmouse().release AND mouseLeft THEN
+   IF NOT txt.box.choice_enabled THEN
+    'No choicebox, so accept clicks anywhere on the whole screen
+    RETURN YES
+   END IF
+   'Only accept clicks on the choicebox itself
+   DIM box_sl as slice ptr = LookupSlice(SL_TEXTBOX_CHOICE_BOX, SliceTable.Root)
+   IF box_sl = 0 THEN 
+    'No choicebox was found at all (which might be a sign that a script messed with it?)
+    'Go ahead and advance the textbox to avoid getting stuck.
+    RETURN YES
+   END IF
+   IF box_sl ANDALSO SliceCollidePoint(box_sl, readmouse.pos) THEN RETURN YES
+  END IF
+ END IF
+
+ 'Keyboard textbox advance
+ IF carray(ccUse) > 1 THEN RETURN YES
+
+ RETURN NO
+END FUNCTION
+
 SUB evalherotags ()
  DIM as integer id
  DIM leaderid as integer = herobyrank(0)
