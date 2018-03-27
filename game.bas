@@ -5093,7 +5093,10 @@ SUB update_hero_pathfinding(byval rank as integer)
     END IF
    END WITH
    IF rank = 0 ANDALSO gam.hero_pathing(rank).by_user THEN
-    'Only the leader activates NPCs, and only when doing built-in user pathing
+    'When the leader is being pathed by the user using built-in mouse/touch controls
+    'the leader needs to be able to activate "use" NPCs in a way that slightly
+    'resembles "touch" NPCs.
+    'Only the leader activates NPCs in this way, and only when doing built-in user pathing.
     IF xypair_manhattan_distance(t1, t2) = 1 THEN
      'One tile away from dest NPC!
      (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
