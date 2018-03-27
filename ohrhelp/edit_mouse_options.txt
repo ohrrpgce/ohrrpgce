@@ -1,3 +1,5 @@
 These options allow you to enable built-in mouse support features.
 
-If you are doing your own mouse control with plotscripts, you may possibly want to disable some of these
+If you are doing your own mouse control with plotscripts, you may want to disable some of these
+
+Note that "Mouse Support on Menus" is still experimental, and does not yet work on most menus.

@@ -243,6 +243,7 @@ SUB edit_mouse_options ()
 
  DIM t as integer
  DIM do_toggle as bool = NO
+ REDIM enabled(0) as bool
 
  force_use_mouse += 1
  DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
@@ -275,14 +276,23 @@ SUB edit_mouse_options ()
    menu.last->t = 9
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
    menu.last->t = 10
-   append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
-   menu.last->t = 11
    append_menu_item menu, "Click to advance text boxes: " & yesorno(get_gen_bool("/mouse/click_textboxes"))
    menu.last->t = 20
+   append_menu_item menu, "Experimental/Unfinished Mouse Features"
+   menu.last->disabled = YES
+   menu.last->unselectable = YES
+   append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
+   menu.last->t = 11
    init_menu_state st, menu
+   REDIM enabled(menu.numitems - 1) as bool
+   FOR i as integer = 0 TO UBOUND(enabled)
+    WITH *menu.items[i]
+     enabled(i) = NOT .unselectable
+    END WITH
+   NEXT i
   END IF
 
-  usemenu st
+  usemenu st, enabled()
 
   t = menu.items[st.pt]->t
 
