@@ -703,6 +703,10 @@ wait for text box # wait until the player continues</example>
 			<description>Waits for the specified hero stop walking. Use the constant <ref>me</ref> to refer to the leader, or use numbers 0,1,2,3 to refer to a specific hero. If you leave out the argument, the first hero will be assumed.</description>
 			<example>move hero to y (me, 10) # move hero to (x, 10)
 wait for hero (me) # wait until he stops</example>
+			<seealso>
+				<ref>walkhero</ref>
+				<ref>pathfindheroto</ref>
+			</seealso>
 		</command>
 		<command id="waitforkey">
 			<canon>wait for key (key)</canon>
@@ -737,6 +741,10 @@ wait for scancode(key:P)</example>
 			</description>
 			<example>walk NPC (2,up,3) # make NPC 2 go up three spaces
 wait for NPC (2) # wait until the NPC'S done</example>
+			<seealso>
+				<ref>walknpc</ref>
+				<ref>pathfindnpcto</ref>
+			</seealso>
 		</command>
 		<command id="waitforcamera">
 			<canon>wait for camera</canon>
