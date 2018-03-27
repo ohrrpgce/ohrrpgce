@@ -1918,6 +1918,9 @@ SUB npcmove_follow_walls_stop_for_others(npci as NPCInst, npcdata as NPCType, by
  npcmove_walk_ahead(npci)
 END SUB
 
+'This sub handles NPC movement in two cases:
+'-the "Chase You (Pathfinding)" NPC movement type
+'- NPC movement during scripted NPC pathfinding (when npci.pathover.override is set)
 SUB npcmove_pathfinding_chase(npci as NPCInst, npcdata as NPCType)
  if npci.pathover.stop_after_stillticks > 0 andalso npci.stillticks >= npci.pathover.stop_after_stillticks then
   cancel_npc_movement_override (npci)
