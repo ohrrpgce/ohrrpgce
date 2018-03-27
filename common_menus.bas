@@ -262,16 +262,18 @@ SUB edit_mouse_options ()
    menu.last->t = 0
    append_menu_item menu, "Click on map to move the hero: " & yesorno(get_gen_bool("/mouse/move_hero"))
    menu.last->t = 1
-   append_menu_item menu, " Display destination: " & yesorno(get_gen_bool("/mouse/move_hero/display_dest"))
-   menu.last->t = 2
-   append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle"))
-   menu.last->t = 3
-   append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox"))
-   menu.last->t = 4
-   append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu"))
-   menu.last->t = 5
-   append_menu_item menu, " Max tiles to walk: " & zero_default(get_gen_int("/mouse/move_hero/max_path_length"), "0 (no limit)")
-   menu.last->t = 6
+   IF get_gen_bool("/mouse/move_hero") THEN
+    append_menu_item menu, " Display destination: " & yesorno(get_gen_bool("/mouse/move_hero/display_dest"))
+    menu.last->t = 2
+    append_menu_item menu, " Cancel move on battles: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_battle"))
+    menu.last->t = 3
+    append_menu_item menu, " Cancel move on textboxes: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_textbox"))
+    menu.last->t = 4
+    append_menu_item menu, " Cancel move on menus: " & yesorno(get_gen_bool("/mouse/move_hero/cancel_on_menu"))
+    menu.last->t = 5
+    append_menu_item menu, " Max tiles to walk: " & zero_default(get_gen_int("/mouse/move_hero/max_path_length"), "0 (no limit)")
+    menu.last->t = 6
+   END IF
    append_menu_item menu, "Show cursor even in full-screen: " & yesorno(get_gen_bool("/mouse/show_cursor"))
    menu.last->t = 9
    append_menu_item menu, "Open main menu on right-click: " & yesorno(get_gen_bool("/mouse/menu_right_click"))
