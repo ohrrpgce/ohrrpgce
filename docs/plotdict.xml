@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-26">
+<plotscript version="wip" datecode="2018-03-27">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -748,9 +748,19 @@ wait for camera # wait until he's on screen</example>
 		<command id="waitforall">
 			<canon>wait for all</canon>
 			<shortname>wait for all</shortname>
-			<description>Waits for any camera motion due to <ref>pancamera</ref>, <ref>focuscamera</ref>, etc to stop, waits for all heroes to stop walking or pathfinding, waits for NPCs to stop pathfinding, and if <ref>suspendnpcs</ref> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
+			<description>Waits for any camera motion due to <ref>pancamera</ref>, <ref>focuscamera</ref>, etc to stop, waits for all heroes to stop walking and pathfinding, waits for NPCs to stop walking or pathfinding. Be aware that <ref>waitforall</ref> only waits for scripted NPC walking and pathfinding. Automatic walking such as wandering, pacing, avoiding, or pathfinding that an NPC does when <ref>suspendnpcs</ref> has not been used is ignored. Warning! In all versions older than July 6 2010, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
 			<example># do a bunch of things all at once
-wait for all # wait until everything is done</example>
+suspend NPCs
+walk hero(me, south, 3)
+pathfind NPC to(4, 30, 35, 10)
+NPC chases NPC(5, 4, false, 10)
+pan camera(north, 20, 1)
+
+# wait until everything is done
+wait for all 
+
+camera follows hero(me)
+resume NPCs</example>
 		</command>
 		<reference ref="waitforslice"/>
 		<reference ref="waitfordissolve"/>

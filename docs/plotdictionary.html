@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-03-26)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-03-27)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -4184,10 +4184,20 @@ wait for camera # wait until he's on screen</pre>
 <a name="about-waitforall"></a>
 		<h4>wait for all</h4>
 <p>
-			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking or pathfinding, waits for NPCs to stop pathfinding, and if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active, waits for all NPCs to stop walking. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
+			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking and pathfinding, waits for NPCs to stop walking or pathfinding. Be aware that <a href="#about-waitforall" class="ref">wait for all</a> only waits for scripted NPC walking and pathfinding. Automatic walking such as wandering, pacing, avoiding, or pathfinding that an NPC does when <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> has not been used is ignored. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
 			
 			<pre># do a bunch of things all at once
-wait for all # wait until everything is done</pre>
+suspend NPCs
+walk hero(me, south, 3)
+pathfind NPC to(4, 30, 35, 10)
+NPC chases NPC(5, 4, false, 10)
+pan camera(north, 20, 1)
+
+# wait until everything is done
+wait for all 
+
+camera follows hero(me)
+resume NPCs</pre>
 			
 		</p>
 </div>
