@@ -283,6 +283,8 @@ SUB edit_mouse_options ()
    menu.last->unselectable = YES
    append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
    menu.last->t = 11
+   append_menu_item menu, "Mouse support in battles: " & yesorno(get_gen_bool("/mouse/mouse_battles"))
+   menu.last->t = 12
    init_menu_state st, menu
    REDIM enabled(menu.numitems - 1) as bool
    FOR i as integer = 0 TO UBOUND(enabled)
@@ -342,6 +344,9 @@ SUB edit_mouse_options ()
      st.need_update = YES
     CASE 11:
      toggle_gen_bool("/mouse/mouse_menus")
+     st.need_update = YES
+    CASE 12:
+     toggle_gen_bool("/mouse/mouse_battles")
      st.need_update = YES
     CASE 20:
      toggle_gen_bool("/mouse/click_textboxes")
