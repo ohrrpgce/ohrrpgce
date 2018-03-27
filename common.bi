@@ -225,6 +225,7 @@ DECLARE FUNCTION boolgrabber (byref thebool as bool, byref state as MenuState) a
 
 DECLARE FUNCTION menu_click (state as MenuState) as bool
 DECLARE FUNCTION menu_click_outside(m as MenuDef) as bool
+DECLARE FUNCTION menu_right_click_close(m as MenuDef) as bool
 DECLARE FUNCTION click_dismiss () as bool
 DECLARE FUNCTION enter_space_click (state as MenuState) as bool
 DECLARE FUNCTION enter_or_space () as bool

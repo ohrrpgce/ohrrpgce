@@ -2771,6 +2771,10 @@ FUNCTION player_menu_should_close() as bool
   'Clicked while the mouse was outside the menu
   RETURN YES
  END IF
+ IF menu_right_click_close(menus(topmenu)) THEN
+  'Right-clicked
+  RETURN YES
+ END IF
  RETURN NO
 END FUNCTION
 
@@ -5180,7 +5184,7 @@ END SUB
 FUNCTION user_triggered_main_menu() as bool
  IF carray(ccMenu) > 1 THEN RETURN YES
  IF get_gen_bool("/mouse/menu_right_click") THEN
-  IF readmouse().clicks AND mouseRight THEN RETURN YES
+  IF readmouse().release AND mouseRight THEN RETURN YES
  END IF
  RETURN NO
 END FUNCTION
