@@ -1,0 +1,3 @@
+This controls the justification of the final row of a layout slice. If YES, the final row is treated like all others, but if there are only a couple items on the final row, then they might be splaced waaaay apart.
+If NO, then extra spacing can still used on the final row, but no more than the row above, so it doesn't look odd.
+(If there's only one row, no spacing is used).
