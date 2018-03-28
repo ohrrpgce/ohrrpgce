@@ -2143,6 +2143,7 @@ SUB item_screen_refresh(byref st as ItemScreenState)
 
  IF st.refocus THEN save_plank_selection st.ps
  st.ps.cur = 0
+ st.ps.hover = 0
  
  plank_menu_clear st.ps.m, SL_ITEM_ITEMLIST
 
@@ -2308,6 +2309,38 @@ SUB item_screen_use_action (byref st as ItemScreenState)
  
 END SUB
 
+SUB item_screen_mouse_handler(byref st as ItemScreenState)
+ DIM oldhover as Slice Ptr = st.ps.hover
+ IF plank_menu_update_hover(st.ps) THEN
+  IF oldhover THEN update_item_plank oldhover, st
+  IF st.ps.hover THEN update_item_plank st.ps.hover, st
+ END IF
+ 
+ DIM oldcur as Slice Ptr = st.ps.cur
+ IF st.ps.hover THEN
+  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.buttons AND mouseRight) THEN
+   'Selecting the hovered plank
+   'and deselect the old selection
+   st.ps.cur = st.ps.hover
+   IF oldcur THEN update_item_plank oldcur, st
+   IF st.ps.cur THEN update_item_plank st.ps.cur, st
+  END IF
+ END IF
+ IF st.ps.cur <> oldcur THEN
+  'Cursor just changed
+  menusound gen(genCursorSFX)
+  update_plank_scrolling st.ps
+  expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
+ ELSE
+  'Cursor did not change, so a second click can activate it
+  IF st.ps.cur ANDALSO (readmouse.release AND mouseLeft) THEN
+   item_screen_use_action st
+  END IF
+ END IF
+ 
+ plank_menu_mouse_wheel st.ps
+END SUB
+
 FUNCTION item_screen () as integer
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
 
@@ -2341,16 +2374,19 @@ FUNCTION item_screen () as integer
    item_screen_use_action st
   END IF
 
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   item_screen_mouse_handler(st) 
+  END IF
+
   st.lastcur = st.ps.cur
   IF plank_menu_arrows(st.ps) THEN
    update_item_plank st.lastcur, st
    update_item_plank st.ps.cur, st
    menusound gen(genCursorSFX)
    update_plank_scrolling st.ps
-   DIM slot as integer = -1
-   IF st.ps.cur THEN slot = st.ps.cur->Extra(0)
    expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
   END IF
+  
   IF keyval(scF8) > 1 THEN
    slice_editor st.ps.m
    st.need_update = YES
