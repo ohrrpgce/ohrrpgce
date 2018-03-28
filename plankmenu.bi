@@ -27,6 +27,7 @@ TYPE FnEmbedCode as Sub(code as string, result as string, arg0 as any ptr, arg1 
 TYPE PlankState
  m as Slice Ptr                    'Container for the whole plank menu
  cur as Slice Ptr                  'Currently selected plank
+ hover as Slice Ptr                'The plank the mouse is hovering over (only updated if you call plank_menu_update_hover)
  is_plank_callback as FnIsPlank
  state_callback as FnPlankSetState
  selection_saved as bool           'Position has been saved by save_plank_selection()
@@ -56,6 +57,8 @@ DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent a
 DECLARE FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
 'Search for the matching string in all text children of each plank, and return YES if the cursor changed
 DECLARE FUNCTION plank_select_by_string(byref ps as PlankState, query as string) as bool
+'Update the mouse hover property of the PlankState
+DECLARE FUNCTION plank_menu_update_hover(byref ps as PlankState) as bool
 
 'This expands the insert codes in the slice collection,using an optional callback for special ones
 DECLARE SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0)

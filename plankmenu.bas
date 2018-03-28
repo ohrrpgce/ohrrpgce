@@ -177,6 +177,13 @@ FUNCTION plank_menu_end(byref ps as PlankState) as bool
  RETURN ps.cur <> old_cur
 END FUNCTION
 
+FUNCTION plank_menu_update_hover(byref ps as PlankState) as bool
+ 'Returns YES if the hover has changed
+ DIM oldhover as Slice Ptr = ps.hover
+ ps.hover = find_plank_at_screen_pos(ps, readmouse.pos)
+ RETURN ps.hover <> oldhover
+END FUNCTION
+
 FUNCTION find_plank_nearest_screen_pos(byref ps as PlankState, byval targpos as XYPair, byval start_parent as Slice Ptr=0) as Slice Ptr
  'Given a target screen pos, find the closest plank, even if it does not overlap the target pos
  REDIM planks(any) as Slice Ptr
