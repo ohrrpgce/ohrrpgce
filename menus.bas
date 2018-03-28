@@ -1372,9 +1372,7 @@ END SUB
 SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
  DIM elem as integer
- DIM col as integer
  DIM where as XYPair
- DIM metermax as integer
 
  'Update the caption of each menu item
  FOR i = 0 TO menu.numitems - 1
@@ -1417,9 +1415,9 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
 
  'Draw the items
  FOR i = 0 TO state.size
-  selected = NO
   elem = state.top + i
   IF elem >= 0 AND elem < menu.numitems THEN
+   DIM col as integer
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
    IF state.pt = elem AND state.active THEN col = uilook(uiSelectedItem + state.tog)
@@ -1431,14 +1429,13 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     ELSEIF state.hover = elem AND state.active AND NOT selected THEN
      col = uilook(uiMouseHoverItem)
     END IF
-    IF .col > 0 ANDALSO NOT selected THEN
-     IF .disabled = NO OR .disabled_overrides_color = NO THEN col = .col
-    END IF
+    IF .col > 0 ANDALSO NOT selected ANDALSO NOT .disabled THEN col = .col
     IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
      IF .t = mtypeSpecial THEN
       ' Check for menu items with bars behind
       DIM bar_width as integer = 0
+      DIM metermax as integer
       metermax = small(state.rect.wide, 80)  'large(48, textwidth(.text))
       IF .sub_t = spMusicVolume OR .sub_t = spVolumeMenu THEN
        bar_width = get_music_volume() * metermax
