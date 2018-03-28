@@ -457,7 +457,7 @@ SUB verify_quit
     ptr2 = small(ptr2 + 5, 50)
     direction = dirRight
    END IF
-   IF (readmouse.release AND mouseLeft) THEN
+   IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight) THEN
     'A click anywhere other than the "Yes" area
     EXIT DO  
    END IF
