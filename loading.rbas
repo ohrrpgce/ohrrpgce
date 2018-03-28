@@ -2465,6 +2465,23 @@ FUNCTION UiColorCaption(byval n as integer) as string
  RETURN n & "(!?)"
 END FUNCTION
 
+FUNCTION ColorIndex(byval n as integer) as integer
+ if n >= 0 andalso n <= 255 then return n
+ if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
+  dim uiC as integer = (n * -1) - 1
+  select case uiC
+   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, _
+        uiItemScreenSelected2, uiItemScreenSelectedDisabled2, _
+        uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, _
+        uiItemScreenSwapHighlight2:
+    'Some colors auto-animate
+    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
+  end select
+  return uilook(uiC)
+ end if
+ debugc errError, "Invalid slice color " & n
+END FUNCTION
+
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
 
  '--Prefer to load ui colors from general.reld

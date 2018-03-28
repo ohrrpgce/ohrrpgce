@@ -56,7 +56,7 @@ CONST uiMouseHoverItem = 37	'A menu item over which the mouse is hovering
 'And don't forget to update uiColorLast above.
 
 'If you add any new colors that need to auto-flash when used by slices,
-'add them to SliceColor in slices.bas
+'add them to ColorIndex.
 
 'Although not requiring manual updating, other places UI colours are looped over:
 '-automatic remapping in remappalette in subs4.bas

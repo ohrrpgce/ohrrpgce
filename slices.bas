@@ -11,7 +11,7 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "reloadext.bi"
-
+#include "loading.bi"
 #include "slices.bi"
 
 #ifdef IS_GAME
@@ -45,7 +45,6 @@ DECLARE Function SliceXAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) 
 DECLARE Function SliceYAlign(byval sl as Slice Ptr, byval alignTo as Slice Ptr) as integer
 DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as Slice ptr)
-DECLARE Function SliceColor(byval n as integer) as integer
 
 END EXTERN
 
@@ -950,9 +949,9 @@ Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
  end if
 
  if dat->use_raw_box_border then
-  edgebox_rawborder sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), vpages(p), dat->translucent, dat->raw_box_border, dat->fuzzfactor, NO
+  edgebox_rawborder sl->screenx, sl->screeny, sl->width, sl->height, ColorIndex(dat->bgcol), ColorIndex(dat->fgcol), vpages(p), dat->translucent, dat->raw_box_border, dat->fuzzfactor, NO
  else
-  edgebox           sl->screenx, sl->screeny, sl->width, sl->height, SliceColor(dat->bgcol), SliceColor(dat->fgcol), p,         dat->translucent, dat->border,         dat->fuzzfactor, NO
+  edgebox           sl->screenx, sl->screeny, sl->width, sl->height, ColorIndex(dat->bgcol), ColorIndex(dat->fgcol), p,         dat->translucent, dat->border,         dat->fuzzfactor, NO
  end if
 end sub
 
@@ -1110,7 +1109,7 @@ Sub DrawLineSlice(byval sl as Slice ptr, byval p as integer)
  dim dat as LineSliceData ptr = sl->SliceData
 
  dim point2 as XYPair = sl->ScreenPos + sl->Size
- dim col as integer = SliceColor(dat->col)
+ dim col as integer = ColorIndex(dat->col)
  'if dat->flipped then
  ' drawline sl->ScreenX, point2.y, point2.x, sl->ScreenY, col, p
  'else
@@ -1267,7 +1266,7 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
   '/
  end if
 
- textcolor col, SliceColor(dat->bgcol)
+ textcolor col, ColorIndex(dat->bgcol)
  wrapprint text, sl->ScreenX, sl->ScreenY, , p, wide, YES, fontnum
 end sub
 
@@ -1278,8 +1277,8 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
 
  dim col as integer = dat->col
- if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using SliceColor
- col = SliceColor(col)
+ if col = 0 then col = uilook(uiText) '--This is backcompat for before it was possible to choose uiText directly using ColorIndex
+ col = ColorIndex(col)
 
  if dat->use_render_text then
   NewDrawTextSlice sl, p, col
@@ -1318,7 +1317,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
   if dat->outline then
    edgeprint lines(linenum), sl->screenx, sl->screeny + ypos, col, p
   else
-   textcolor col, SliceColor(dat->bgcol)
+   textcolor col, ColorIndex(dat->bgcol)
    printstr lines(linenum), sl->screenx, sl->screeny + ypos, p
   end if
  next
@@ -2500,8 +2499,8 @@ Sub DrawEllipseSlice(byval sl as Slice ptr, byval p as integer)
    'EllipseSliceData.fillcol 0 means transparent, while ellipse() uses -1 to mean transparent
    'NOTE: Drawing bordercol or fillcol 0 will be transparent anyway, because when .frame
    'gets drawn to the videopage, colour 0 counts as transparent. So fillcol=-1 is just an optimisation.
-   if fillcol = 0 then fillcol = -1 else fillcol = SliceColor(fillcol)
-   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, SliceColor(dat->bordercol), fillcol, h / 2 - 0.5
+   if fillcol = 0 then fillcol = -1 else fillcol = ColorIndex(fillcol)
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, ColorIndex(dat->bordercol), fillcol, h / 2 - 0.5
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
@@ -3714,23 +3713,6 @@ Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
   if diff > 0 then sl2->Y -= abs(diff)
  end if
 end sub
-
-Function SliceColor(byval n as integer) as integer
- if n >= 0 andalso n <= 255 then return n
- if n <= -1 andalso n >= (uiColorLast*-1 - 1) then
-  dim uiC as integer = (n * -1) - 1
-  select case uiC
-   case uiSelectedItem2, uiSelectedDisabled2, uiSelectedSpecial2, _
-        uiItemScreenSelected2, uiItemScreenSelectedDisabled2, _
-        uiItemScreenSelectedSpecial2, uiItemScreenHighlight2, _
-        uiItemScreenSwapHighlight2:
-    'Some colors auto-animate
-    if get_tickcount() mod 2 = 0 then uiC = uiC - 1
-  end select
-  return uilook(uiC)
- end if
- debugc errError, "Invalid slice color " & n
-End function
 
 Function SliceChildByIndex(byval sl as Slice ptr, byval index as integer) as Slice Ptr
  if sl = 0 then debug "SliceChildByIndex null ptr": return 0
