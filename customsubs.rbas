@@ -27,7 +27,7 @@ DECLARE SUB platform_options_append_gamepad_button_menu_items (byval gamepad as 
 DECLARE SUB edit_button_name_strings()
 DECLARE FUNCTION edit_purchase_enumgrabber(byval node as NodePtr, enumstr() as string) as bool
 DECLARE FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
-DECLARE SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
+DECLARE SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr)
 DECLARE FUNCTION edit_font_picker_point(byval pixelpos as XYPair) as integer
 DECLARE FUNCTION edit_font_draw_point(byval pixelpos as XYPair) as XYPair
 
@@ -3370,8 +3370,6 @@ SUB edit_platform_options ()
  st.autosize_ignore_pixels = 14
  st.active = YES
  st.need_update = YES
- 
- REDIM enabled(0) as bool
 
  DIM gen_root as NodePtr = get_general_reld()
  DIM mobile as NodePtr
@@ -3584,15 +3582,9 @@ SUB edit_platform_options ()
    LOOP WHILE st.need_update
 
    init_menu_state st, menu
-   REDIM enabled(menu.numitems - 1) as bool
-   FOR i as integer = 0 TO UBOUND(enabled)
-    WITH *menu.items[i]
-     enabled(i) = NOT .unselectable
-    END WITH
-   NEXT i
   END IF '--done updating menu
 
-  usemenu st, enabled()
+  usemenu st, menu
 
   t = menu.items[st.pt]->t
   sub_t = menu.items[st.pt]->sub_t
@@ -4009,8 +4001,6 @@ SUB edit_button_name_strings()
  st.active = YES
  st.need_update = YES
  
- REDIM enabled(0) as bool
-
  DIM gen_root as NodePtr = get_general_reld()
 
  '-- the buttonnames node will be created with defaults in
@@ -4063,16 +4053,9 @@ SUB edit_button_name_strings()
    menu.last->t = buttonnameADD
 
    init_menu_state st, menu
-   
-   REDIM enabled(menu.numitems - 1) as bool
-   FOR i as integer = 0 TO UBOUND(enabled)
-    WITH *menu.items[i]
-     enabled(i) = NOT .unselectable
-    END WITH
-   NEXT i
   END IF '--done updating menu
 
-  usemenu st, enabled()
+  usemenu st, menu
 
   t = menu.items[st.pt]->t
   node = menu.items[st.pt]->dataptr
@@ -4159,10 +4142,10 @@ SUB edit_purchase_options ()
 
   IF st.need_update THEN
    st.need_update = NO
-   edit_purchase_options_rebuild_menu menu, st, purchase_root, enabled()
+   edit_purchase_options_rebuild_menu menu, st, purchase_root
   END IF '--done updating menu
 
-  usemenu st, enabled()
+  usemenu st, menu
 
   t = menu.items[st.pt]->t
   sub_t = menu.items[st.pt]->sub_t
@@ -4233,7 +4216,7 @@ SUB edit_purchase_options ()
 
 END SUB
 
-SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr, enabled() as bool)
+SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval purchase_root as NodePtr)
 
  DIM store_node as NodePtr = GetOrCreateChild(purchase_root, "stores_by_platform")
  DIM ouya_node as NodePtr = GetOrCreateChild(purchase_root, "ouya")
@@ -4304,13 +4287,6 @@ SUB edit_purchase_options_rebuild_menu(menu as MenuDef, st as MenuState, byval p
  menu.last->t = editpurchADD
 
  init_menu_state st, menu
-
- REDIM enabled(menu.numitems - 1) as bool
- FOR i as integer = 0 TO UBOUND(enabled)
-  WITH *menu.items[i]
-   enabled(i) = NOT .unselectable
-  END WITH
- NEXT i
 END SUB
 
 FUNCTION edit_purchase_enumbrowse(caption as string, byval node as NodePtr, enumstr() as string, helpkey as string) as bool
@@ -4343,8 +4319,6 @@ SUB edit_purchase_details (byval prod as NodePtr)
  st.active = YES
  st.need_update = YES
 
- REDIM enabled(0) as bool
- 
  DIM t as integer
  DIM sub_t as integer
  DIM node as NodePtr
@@ -4450,17 +4424,9 @@ SUB edit_purchase_details (byval prod as NodePtr)
    menu.last->dataptr = n
 
    init_menu_state st, menu
-
-   REDIM enabled(menu.numitems - 1) as bool
-   FOR i as integer = 0 TO UBOUND(enabled)
-    WITH *menu.items[i]
-     enabled(i) = NOT .unselectable
-    END WITH
-   NEXT i
-   
   END IF '--done updating menu
 
-  usemenu st, enabled()
+  usemenu st, menu
 
   t = menu.items[st.pt]->t
   sub_t = menu.items[st.pt]->sub_t
