@@ -4957,7 +4957,7 @@ END FUNCTION
 
 FUNCTION hero_is_pathfinding(byval rank as integer) as bool
  IF rank > 0 ANDALSO NOT caterpillar_is_suspended() THEN
-  debuginfo "hero_is_pathfinding(" & rank & ") caterpillar party is enabled, and a non-leader was requested"
+  'debuginfo "hero_is_pathfinding(" & rank & ") caterpillar party is enabled, and a non-leader was requested"
   RETURN NO
  END IF
  RETURN gam.hero_pathing(rank).mode <> HeroPathingMode.NONE
