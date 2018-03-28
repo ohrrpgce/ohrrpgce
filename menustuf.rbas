@@ -50,7 +50,7 @@ DECLARE SUB spells_menu_control(sp as SpellsMenuState)
 DECLARE SUB spells_menu_paint (byref sp as SpellsMenuState)
 DECLARE FUNCTION picksaveload (byval loading as bool, byval newgame_opt as bool = YES, byval beep_if_no_saves as bool = NO) as integer
 DECLARE SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval page as integer)
-DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
+DECLARE FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as bool
 DECLARE SUB picksave_update_mouse(st as MenuState, byval newgame_opt as bool, byref drag_start_top as integer)
 DECLARE SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
 DECLARE SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, permask() as integer, price() as integer, byval stuff_count as integer, byval recordsize as integer)
@@ -1137,7 +1137,7 @@ st.last = last_slot
 st.size = 3
 DIM drag_start_top as integer = -10
 
-DIM allow as integer
+DIM allow as bool
 
 IF loading THEN
  st.pt = 0
@@ -1229,15 +1229,15 @@ DO
    IF loading THEN ret_slot = -2 ELSE ret_slot = -1
    EXIT DO
   ELSE
-   allow = 1
+   allow = YES
    IF loading THEN
-    '--normal load of an existing save
-    IF pv(st.pt).valid = 0 THEN allow = 0
+    '--don't allow load of an empty save
+    IF pv(st.pt).valid = 0 THEN allow = NO
    ELSE
     '--normal save in a slot
     IF pv(st.pt).valid THEN allow = picksave_confirm(menu(), loading, newgame_opt, sprites(), pv(), mapname(), lev(), st, holdscreen, page)
    END IF
-   IF allow = 1 THEN
+   IF allow = YES THEN
     MenuSound gen(genAcceptSFX)
     ret_slot = st.pt
     EXIT DO
@@ -1267,8 +1267,9 @@ RETURN ret_slot
 
 END FUNCTION
 
-'Returns whether confirmed
-FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as integer
+'Returns YES if overwrite is allowed, NO if canceled
+FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame_opt as bool, sprites() as GraphicPair, pv() as SaveSlotPreview, mapname() as string, lev() as string, byref st as MenuState, byval holdscreen as integer, byval page as integer) as bool
+
  DIM confirmboxY as integer = 14 + (44 * (st.pt - st.top))
  DIM tog as integer
  DIM confirm(1) as string
@@ -1282,6 +1283,7 @@ FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame
  DIM state as MenuState
  state.last = 1
  state.size = 2
+ state.pt = 1 ' default to "No"
 
  MenuSound gen(genAcceptSFX)
  setkeys
@@ -1295,18 +1297,38 @@ FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame
    MenuSound gen(genCancelSFX)
    RETURN NO
   END IF
-  IF carray(ccUse) > 1 THEN RETURN state.pt
+  IF carray(ccUse) > 1 THEN RETURN state.pt = 0
 
   usemenu state
   usemenusounds
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   state.hover = -1
+   DIM overbutton as bool = NO
+   FOR i as integer = 0 to 1
+    'The button rect is slightly wider than the default "YES/NO" text
+    'but slightly smaller than the maximum possible length of the captions
+    '(the part of the text that might overflow outside the decorative box is not in the button rect)
+    'FIXME: this will all be better when it is sliceified ;)
+    DIM r as RectType = (208, confirmboxY - 9 + (i * 9), 40, 9)
+    IF rect_collide_point(r, readmouse.pos) THEN
+     state.hover = i
+     overbutton = YES
+    END IF
+   NEXT i
+   IF state.hover >= 0 ANDALSO (readmouse.buttons AND mouseLeft) THEN
+    state.pt = state.hover
+   END IF
+   IF overbutton ANDALSO (readmouse.release AND mouseLeft) THEN RETURN state.pt = 0
+  END IF
  
   copypage holdscreen, page
   picksave_draw menu(), loading, newgame_opt, sprites(), pv(), mapname(), lev(), st, page
   centerbox 160, confirmboxY, 40 + (LEN(replacedat) * 8) + menuwidth, 24, 3, page
   edgeprint replacedat, 200 - (LEN(replacedat) * 8), confirmboxY - 5, uilook(uiText), page
   FOR i as integer = 0 TO 1
-   DIM col as integer = uilook(uiSelectedItem + tog)
-   IF state.pt = i THEN col = uilook(uiMenuItem)
+   DIM col as integer = uilook(uiMenuItem)
+   IF state.hover = i THEN col = uilook(uiMouseHoverItem)
+   IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
    edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
   NEXT i
   setvispage vpage
