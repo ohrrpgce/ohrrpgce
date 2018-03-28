@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-03-27)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-03-28)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -4194,7 +4194,19 @@ wait for camera # wait until he's on screen</pre>
 <a name="about-waitforall"></a>
 		<h4>wait for all</h4>
 <p>
-			Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc to stop, waits for all heroes to stop walking and pathfinding, waits for NPCs to stop walking or pathfinding. Be aware that <a href="#about-waitforall" class="ref">wait for all</a> only waits for scripted NPC walking and pathfinding. Automatic walking such as wandering, pacing, avoiding, or pathfinding that an NPC does when <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> has not been used is ignored. Warning! In all versions older than July 6 2010, <span class="param">wait for all</span> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <span class="param">wait for all</span> does NOT wait for text boxes.
+			
+				Waits for any camera motion due to <a href="#about-pancamera" class="ref">pan camera</a>, <a href="#about-focuscamera" class="ref">focus camera</a>, etc. to stop,
+				waits for all heroes to stop walking and pathfinding, and waits for NPCs to stop <b>scripted</b> pathfinding
+				(e.g. <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>).
+				If <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> has been used then <a href="#about-waitforall" class="ref">wait for all</a> also waits for all NPCs to come to a halt.
+				Beware that without <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>, automatic NPC walking such as wandering, pacing, avoiding, or pathfinding,
+				as well as movement due to <a href="#about-walknpc" class="ref">walk NPC</a>/<a href="#about-walknpctox" class="ref">walk NPC to X</a>/<a href="#about-walknpctoy" class="ref">walk NPC to Y</a> are ignored!
+				That means that NPCs might still be partway between tiles.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					<span class="param">wait for all</span> does NOT wait for text boxes.
+				</div>
+			
 			
 			<pre># do a bunch of things all at once
 suspend NPCs

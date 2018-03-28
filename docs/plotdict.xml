@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-27">
+<plotscript version="wip" datecode="2018-03-28">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -756,7 +756,18 @@ wait for camera # wait until he's on screen</example>
 		<command id="waitforall">
 			<canon>wait for all</canon>
 			<shortname>wait for all</shortname>
-			<description>Waits for any camera motion due to <ref>pancamera</ref>, <ref>focuscamera</ref>, etc to stop, waits for all heroes to stop walking and pathfinding, waits for NPCs to stop walking or pathfinding. Be aware that <ref>waitforall</ref> only waits for scripted NPC walking and pathfinding. Automatic walking such as wandering, pacing, avoiding, or pathfinding that an NPC does when <ref>suspendnpcs</ref> has not been used is ignored. Warning! In all versions older than July 6 2010, <p>wait for all</p> did not correctly wait for NPC movement. It was effectively broken, since it did not actually wait for all movement. Also be aware that <p>wait for all</p> does NOT wait for text boxes.</description>
+			<description>
+				Waits for any camera motion due to <ref>pancamera</ref>, <ref>focuscamera</ref>, etc. to stop,
+				waits for all heroes to stop walking and pathfinding, and waits for NPCs to stop <b>scripted</b> pathfinding
+				(e.g. <ref>pathfindnpcto</ref>).
+				If <ref>suspendnpcs</ref> has been used then <ref>waitforall</ref> also waits for all NPCs to come to a halt.
+				Beware that without <ref>suspendnpcs</ref>, automatic NPC walking such as wandering, pacing, avoiding, or pathfinding,
+				as well as movement due to <ref>walknpc</ref>/<ref>walknpctox</ref>/<ref>walknpctoy</ref> are ignored!
+				That means that NPCs might still be partway between tiles.
+				<note>
+					<p>wait for all</p> does NOT wait for text boxes.
+				</note>
+			</description>
 			<example># do a bunch of things all at once
 suspend NPCs
 walk hero(me, south, 3)
