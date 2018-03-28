@@ -1008,10 +1008,10 @@ Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
   dat->fgcol = LoadProp(node, "fg")
   dat->bgcol = LoadProp(node, "bg")
   dat->border = LoadProp(node, "border", borderLine)
+  dat->raw_box_border = LoadProp(node, "raw_box_border", -1)
+  dat->use_raw_box_border = (dat->raw_box_border > -1)
+  if dat->raw_box_border = -1 then dat->raw_box_border = 0
  end if
- dat->raw_box_border = LoadProp(node, "raw_box_border", -1)
- dat->use_raw_box_border = (dat->raw_box_border > -1)
- if dat->raw_box_border = -1 then dat->raw_box_border = 0
 End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as Slice ptr
