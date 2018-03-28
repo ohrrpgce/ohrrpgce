@@ -10,6 +10,7 @@
 #include "allmodex.bi"
 #include "common.bi"
 #include "menus.bi"
+#include "loading.bi"
 
 #IFDEF IS_GAME
  #include "scriptcommands.bi"
@@ -355,6 +356,7 @@ FUNCTION scrollmenu (state as MenuState, byval deckey as integer = scUp, byval i
  END WITH
 END FUNCTION
 
+'shaded: both disabled and unselectable
 SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
  v_new basicmenu, state.last - state.first + 1
  FOR i as integer = 0 TO state.last - state.first
@@ -363,6 +365,7 @@ SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref ba
    .col = 0  'Default, usually uilook(uiMenuItem)
    IF shaded THEN
     .disabled = shaded[state.first + i]
+    .unselectable = .disabled
    END IF
   END WITH
  NEXT
@@ -441,7 +444,7 @@ SUB standardmenu (menu() as string, byref state as MenuState, x as RelPos, y as 
  v_free basicmenu
 END SUB
 
-'Version which allows items to be greyed out/disabled/shaded
+'Version which allows items to be "shaded" (they are both disabled/greyed out and unselectable (for purposes of mouse hover))
 SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
  IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
  DIM basicmenu as BasicMenuItem vector
@@ -505,23 +508,10 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
     IF state.pt = i AND state.active AND menuopts.highlight <> NO THEN
      rectangle x + 0, y, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
+
     DIM col as integer = .col
-    IF .disabled THEN
-     IF .col = 0 THEN col = uilook(uiDisabledItem)
-     IF state.pt = i AND state.active THEN
-      col = uilook(uiSelectedDisabled + state.tog)
-     'A menu item with the .disabled colour may or may not be selectable, so not clear what to do
-     ' ELSEIF state.hover = i AND state.active THEN
-     '  col = uilook(uiMouseHoverItem)
-     END IF
-    ELSE
-     IF .col = 0 THEN col = uilook(uiMenuItem)
-     IF state.pt = i AND state.active THEN
-      col = uilook(uiSelectedItem + state.tog)
-     ELSEIF state.hover = i AND state.active THEN
-      col = uilook(uiMouseHoverItem)
-     END IF
-    END IF
+    col = menu_item_color(state, i, .disabled, .unselectable, .col)
+
     DIM drawx as integer = x
     IF linewidth > wide AND state.active THEN
      IF state.pt = i OR menuopts.showright THEN
@@ -542,6 +532,37 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
  cliprect = rememclip
 END SUB
 
+'Determine the color to draw menu item index 'itemno' in menu 'state'.
+'c and c_disabled:
+' The normal and disabled colors for the menu item.
+' They can be 0, indicating to use the def_normal and def_disabled
+' defaults instead, or < 0 to use a UI color (decoded with ColorIndex).
+'disabled: whether this item is disabled
+'unselectable: whether this item is unselectable
+FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
+ DIM col as integer
+ IF .disabled THEN
+  IF state.pt = itemno AND state.active THEN
+   col = uilook(uiSelectedDisabled + state.tog)
+  ELSEIF state.hover = itemno AND state.active AND unselectable = NO THEN
+   col = uilook(uiMouseHoverItem)
+  ELSE
+   IF def_disabled = 0 THEN def_disabled = -uiDisabledItem - 1
+   col = IIF(c_disabled, c_disabled, def_disabled)
+  END IF
+ ELSE
+  IF state.pt = itemno AND state.active THEN
+   col = uilook(uiSelectedItem + state.tog)
+  ELSEIF state.hover = itemno AND state.active AND unselectable = NO THEN
+   col = uilook(uiMouseHoverItem)
+  ELSE
+   IF def_normal = 0 THEN def_normal = -uiMenuItem - 1
+   col = IIF(c, c, def_normal)
+  END IF
+ END IF
+ col = ColorIndex(col)
+ RETURN col
+END FUNCTION
 
 '==========================================================================================
 '                                   Selection by typing
@@ -1417,19 +1438,10 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  FOR i = 0 TO state.size
   elem = state.top + i
   IF elem >= 0 AND elem < menu.numitems THEN
-   DIM col as integer
-   col = menu.textcolor
-   IF col = 0 THEN col = uilook(uiMenuItem)
-   IF state.pt = elem AND state.active THEN col = uilook(uiSelectedItem + state.tog)
    WITH *menu.items[elem]
-    selected = (state.pt = elem ANDALSO state.active)
-    IF .disabled THEN
-     col = uilook(uiDisabledItem)
-     IF selected THEN col = uilook(uiSelectedDisabled + state.tog)
-    ELSEIF state.hover = elem AND state.active AND NOT selected THEN
-     col = uilook(uiMouseHoverItem)
-    END IF
-    IF .col > 0 ANDALSO NOT selected ANDALSO NOT .disabled THEN col = .col
+    DIM col as integer
+    col = menu_item_color(state, elem, .disabled, .unselectable, .col, 0, menu.textcolor)
+
     IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where
      IF .t = mtypeSpecial THEN

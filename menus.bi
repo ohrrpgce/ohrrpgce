@@ -7,6 +7,7 @@
 #define MENUS_BI
 
 #include "udts.bi"
+#include "uiconst.bi"
 
 '' Generic MenuState Stuff
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
@@ -26,6 +27,8 @@ DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded(
 DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB recalc_menu_size (byref state as MenuState)
 DECLARE SUB calc_menustate_size (state as MenuState, menuopts as MenuOptions, x as RelPos, y as RelPos, page as integer = -1, menu as BasicMenuItem vector = NULL)
+DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
+
 
 '' Mouse support
 DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer

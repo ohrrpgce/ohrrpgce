@@ -123,25 +123,14 @@ FUNCTION editbitset (array() as integer, byval wof as integer, byval last as int
   calc_menustate_size state, MenuOptions(), 0, 0  ' Recalcs .size, .rect, .spacing
   draw_fullscreen_scrollbar state, , dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
+   DIM biton as integer
    IF i >= 0 THEN
-    DIM biton as integer = readbit(array(), wof, bits(i))
-    IF state.pt = i THEN
-     col = uilook(IIF(biton, uiSelectedItem, uiSelectedDisabled) + state.tog)
-    ELSEIF state.hover = i THEN
-     col = uilook(uiMouseHoverItem)
-    ELSE
-     col = uilook(IIF(biton, uiMenuItem, uiDisabledItem))
-    END IF
+    biton = readbit(array(), wof, bits(i))
     ellipse vpages(dpage), 0 + 4, (i - state.top) * state.spacing + 3, 3, uilook(uiDisabledItem), IIF(biton, uilook(uiSelectedItem), -1)
    ELSE
-    col = uilook(uiMenuItem)
-    IF state.pt = i THEN
-     col = uilook(uiSelectedItem + state.tog)
-    ELSEIF state.hover = i THEN
-     col = uilook(uiMouseHoverItem)
-    END IF
+    biton = 1  'Previous menu: shade this option
    END IF
-   textcolor col, 0
+   textcolor menu_item_color(state, i, biton = 0), 0
    DIM drawstr as string = " " & menu(i)
    printstr drawstr, IIF(state.pt = i, showRight, 0), (i - state.top) * state.spacing, dpage
   NEXT i
