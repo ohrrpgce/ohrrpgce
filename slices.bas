@@ -1609,7 +1609,6 @@ Private Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
   .pal = -1  'No palette anyway
   .paletted = NO
   .frame = 0
-  .trans = YES
   .loaded = YES  'Even if an error occurs, we create a Frame
 
   dim filename as string = finddatafile(*.assetfile, NO)  'Handle missing file below
@@ -1758,7 +1757,7 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->frame      = LoadProp(node, "frame")
  dat->flipHoriz  = LoadProp(node, "fliph")
  dat->flipVert   = LoadProp(node, "flipv")
- dat->trans      = LoadProp(node, "trans", 1)
+ dat->trans      = LoadPropBool(node, "trans", YES)
  dat->scaled     = LoadPropBool(node, "scaled")
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
@@ -2437,7 +2436,7 @@ Sub LoadLayoutSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->secondary_padding = LoadProp(node, "padding1")
  dat->skip_hidden = LoadPropBool(node, "skip_hidden")
  dat->justified = LoadPropBool(node, "justified")
- dat->last_row_justified = LoadProp(node, "last_row_justified")
+ dat->last_row_justified = LoadPropBool(node, "last_row_justified")
  dat->min_row_breadth = LoadProp(node, "min_breadth")
  dat->cell_alignment = LoadProp(node, "cell_align")
  dat->row_alignment = LoadProp(node, "row_align")
