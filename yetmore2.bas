@@ -428,6 +428,8 @@ SUB verify_quit
   playtimer
   control
   loopvar wtog, 0, 3
+
+  'Keyboard controls
   IF carray(ccMenu) > 1 THEN EXIT DO
   IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
    IF ptr2 < 0 THEN gam.quit = YES: fadeout 0, 0, 0
@@ -438,6 +440,29 @@ SUB verify_quit
 
   DIM centerx as integer = vpages(vpage)->w \ 2
   DIM centery as integer = vpages(vpage)->h \ 2
+
+  IF get_gen_bool("/mouse/mouse_menus") ANDALSO (carray(ccLeft) = 0 ANDALSO carray(ccRight) = 0) THEN
+   'Only do the mouse controls when you are not using the arrow keys
+   'The hero walks faster in mouseover mode, because we are counting on a click
+   IF rect_collide_point(Type(centerx - 100, centery - 21, 100, 42), readmouse.pos) THEN
+    ptr2 = large(ptr2 - 5, -50)
+    direction = dirLeft
+    IF (readmouse.release AND mouseLeft) ANDALSO ptr2 <= 0 THEN
+     gam.quit = YES
+     fadeout 0, 0, 0
+     EXIT DO
+    END IF
+   END IF
+   IF rect_collide_point(Type(centerx, centery - 21, 100, 42), readmouse.pos) THEN
+    ptr2 = small(ptr2 + 5, 50)
+    direction = dirRight
+   END IF
+   IF (readmouse.release AND mouseLeft) THEN
+    'A click anywhere other than the "Yes" area
+    EXIT DO  
+   END IF
+  END IF
+
   centerbox centerx, centery - 5, 200, 42, 15, vpage
   set_walkabout_frame herow(0).sl, direction, wtog \ 2
   DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, herow(0).sl), centerx - 10 + ptr2, centery - 10, 20, 20, vpage, YES
