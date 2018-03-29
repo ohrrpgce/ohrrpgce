@@ -145,19 +145,45 @@ FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice 
  RETURN result
 END FUNCTION
 
-FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
+FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseRight, byval min_threshold as integer=10) as bool
+ IF (readmouse.clicks AND which_button) THEN
+  ps.drag_scroll_start = readmouse.pos
+ END IF
+ IF (readmouse.dragging AND which_button) THEN
+  IF readmouse.drag_dist > min_threshold THEN
+   ps.drag_scrolling = YES
+  END IF
+  IF ps.drag_scrolling THEN
+   DIM amount as integer = readmouse.pos.y - ps.drag_scroll_start.y
+   ps.drag_scroll_start = readmouse.pos
+   RETURN plank_menu_scroll(ps, amount)
+  END IF
+ ELSE
+  ps.drag_scrolling = NO
+ END IF
+
+ RETURN NO
+END FUNCTION
+
+FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval dist as integer=30) as bool
+ '30 is a reasonable default number of pixels, I guess?
+ DIM scroll_move as integer = dist * -1 * readmouse.wheel_delta / 120
+ RETURN plank_menu_scroll(ps, scroll_move)
+END FUNCTION
+
+FUNCTION plank_menu_scroll(byref ps as PlankState, byval scroll_move as integer, byval mouse_must_be_in_scroll as bool=YES) as bool
  DIM result as bool = NO
  DIM scroll as Slice Ptr
  scroll = find_plank_scroll(ps.m)
  IF scroll = 0 THEN RETURN NO
- IF NOT SliceCollidePoint(scroll, readmouse.pos) THEN RETURN NO
+ IF mouse_must_be_in_scroll THEN
+  IF NOT SliceCollidePoint(scroll, readmouse.pos) THEN RETURN NO
+ END IF
 
  DIM topy as integer = scroll->ScreenY
  DIM boty as integer = scroll->ScreenY + scroll->Height
  DIM as XYPair min, max
  CalcSliceContentsSize scroll, min, max, 0
- DIM dist as integer = 30 'this is a reasonable number of pixels, I guess?
- DIM scroll_move as integer = dist * -1 * readmouse.wheel_delta / 120
  DO WHILE min.y + scroll_move > topy : scroll_move -= 1 : LOOP
  DO WHILE max.y + scroll_move < boty : scroll_move += 1 : LOOP
  ScrollAllChildren scroll, 0, scroll_move

@@ -28,6 +28,8 @@ TYPE PlankState
  m as Slice Ptr                    'Container for the whole plank menu
  cur as Slice Ptr                  'Currently selected plank
  hover as Slice Ptr                'The plank the mouse is hovering over (only updated if you call plank_menu_update_hover)
+ drag_scrolling as bool
+ drag_scroll_start as XYPair       'The drag_scroll properties are updated by plank_menu_drag_scroll()
  is_plank_callback as FnIsPlank
  state_callback as FnPlankSetState
  selection_saved as bool           'Position has been saved by save_plank_selection()
@@ -53,9 +55,15 @@ DECLARE SUB set_plank_state (byref ps as PlankState, byval sl as Slice Ptr, byva
 
 'plank_menu_arrows handles arrow key movement, and updates PlankState.cur and returns true .cur has changed, so you can update the visuals
 DECLARE FUNCTION plank_menu_arrows (byref ps as PlankState, byval start_parent as Slice Ptr=0) as bool
+
+'Scrolls the scrollable area of the plank menu by a given amount
+DECLARE FUNCTION plank_menu_scroll(byref ps as PlankState, byval scroll_move as integer, byval mouse_must_be_in_scroll as bool=YES) as bool
 'Handles mouse wheel scrolling, updates PlankState.cur, and returns true if changed
-DECLARE FUNCTION plank_menu_mouse_wheel(byref ps as PlankState) as bool
+DECLARE FUNCTION plank_menu_mouse_wheel(byref ps as PlankState, byval dist as integer=30) as bool
+'Handles right-drag scrolling and/or two-finger-touch scrolling
+DECLARE FUNCTION plank_menu_drag_scroll(byref ps as PlankState, byval which_button as MouseButton=mouseRight, byval min_threshold as integer=10) as bool
 'Search for the matching string in all text children of each plank, and return YES if the cursor changed
+
 DECLARE FUNCTION plank_select_by_string(byref ps as PlankState, query as string) as bool
 'Update the mouse hover property of the PlankState
 DECLARE FUNCTION plank_menu_update_hover(byref ps as PlankState) as bool

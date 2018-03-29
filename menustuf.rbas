@@ -2325,7 +2325,7 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
   
  DIM oldcur as Slice Ptr = st.ps.cur
  IF st.ps.hover THEN
-  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.buttons AND mouseRight) THEN
+  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.clicks AND mouseRight) THEN
    'Selecting the hovered plank
    'and deselect the old selection
    st.ps.cur = st.ps.hover
@@ -2354,6 +2354,7 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
   END IF
  END IF
  
+ plank_menu_drag_scroll st.ps
  plank_menu_mouse_wheel st.ps
 END SUB
 
