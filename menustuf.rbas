@@ -2345,6 +2345,12 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
      item_screen_use_action st
     END IF
    END IF
+   IF st.ps.cur ANDALSO (st.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE st.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
+    'the exit button and the sort buttons don't need to be pre-focused, we can activate them now
+    IF (readmouse.release AND mouseLeft) THEN
+     item_screen_use_action st
+    END IF
+   END IF
   ELSEIF st.ps.hover = st.ps.cur THEN
    'Cursor did not change, so a second click can activate it
    IF (readmouse.release AND mouseLeft) THEN
