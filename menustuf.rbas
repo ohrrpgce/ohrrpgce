@@ -1217,7 +1217,7 @@ DO
   IF carray(ccRight) > 1 THEN st.pt = -2: MenuSound gen(genCursorSFX)
  END IF
 
- IF carray(ccUse) > 1 ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft)) THEN
+ IF carray(ccUse) > 1 ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft) ANDALSO (readmouse.buttons AND mouseRight) = 0 ) THEN
   IF newgame_opt AND st.pt = -1 THEN
    'Selected "New Game"
    MenuSound gen(genAcceptSFX)
@@ -1424,10 +1424,10 @@ SUB picksave_update_mouse(st as MenuState, byval newgame_opt as bool, byref drag
  r = Type(9, 3, 82, 16)
  IF rect_collide_point(r, readmouse.pos) THEN st.hover = -1
  'Check for click to focus
- IF (readmouse.buttons AND mouseLeft) ANDALSO st.hover > -10 THEN
+ IF (readmouse.buttons AND mouseLeft) ANDALSO st.hover > -10 ANDALSO (readmouse.buttons AND mouseRight) = 0 THEN
   st.pt = st.hover
  END IF
- IF (readmouse.buttons AND mouseRight) ANDALSO st.hover > -10 THEN
+ IF (readmouse.clicks AND mouseRight) ANDALSO st.hover > -10 THEN
   st.pt = st.hover
  END IF
 
@@ -1435,8 +1435,10 @@ SUB picksave_update_mouse(st as MenuState, byval newgame_opt as bool, byref drag
  IF st.pt >= 0 THEN
   'Check for right-drag scrolling
   IF (readmouse.dragging AND mouseRight) THEN
-   IF drag_start_top = -10 THEN drag_start_top = st.top
-   IF readmouse.drag_dist > 20 THEN
+   IF readmouse.drag_dist > 15 ANDALSO drag_start_top = -10 THEN
+    drag_start_top = st.top
+   END IF
+   IF drag_start_top > -10 THEN
     st.top = drag_start_top + (readmouse.clickstart.y - readmouse.pos.y) \ 44
    END IF
   ELSE
