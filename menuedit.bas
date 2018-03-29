@@ -14,6 +14,7 @@
 
 '--Local SUBs
 DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as MenuDef)
+DECLARE SUB update_edited_menu(menudata as MenuDef)
 DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
 DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet)
 DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
@@ -90,6 +91,7 @@ DO
  END IF
  IF mstate.need_update THEN
   mstate.need_update = NO
+  update_edited_menu menudata
   init_menu_state mstate, menudata
  END IF
  IF dstate.need_update THEN
@@ -377,6 +379,19 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  END IF
  IF menu.no_close THEN cap = "disabled by bitset"
  append_menu_item edmenu, "Cancel button: " & cap
+END SUB
+
+'Update the user-defined menu itself, for tags.
+'Note: MenuDefItem.disabled and .unselectable are not saved to disk, hence they can be safely modified.
+SUB update_edited_menu(menudata as MenuDef)
+ FOR idx as integer = 0 TO menudata.numitems - 1
+  WITH *menudata.items[idx]
+   .disabled = NO
+   IF .t = mtypeLabel AND .sub_t = lbDisabled THEN .disabled = YES
+   'Check only for tags conditions set to 'Never'
+   IF .tag1 = 1 OR .tag2 = 1 THEN .disabled = YES
+  END WITH
+ NEXT
 END SUB
 
 SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
