@@ -11,3 +11,5 @@ You can press CTRL+D to revert a color back to its default value.
 You can also find UI color options related to using multiple palettes in `General Game Data->Master Palettes'.
 
 If you accidentally make it impossible to read the screen, either by changing the background color or the text colors, you can fix it by pressing the down arrow, then CTRL+D then the down arrow again, and CTRL+D and repeat until the menu is visible again.
+
+"Mouse hover over menu item" is a bit special. It's the color used when you hover the mouse over items in menus which use the default 'Menu item' text color. But for menu items which are a different color, the hover color is a tinted version of the base color. Eg. if the 'Mouse hover' color is a redder version of the 'Menu item' color, then hover color will be a redder version of the menu item's normal color.

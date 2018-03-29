@@ -544,8 +544,6 @@ FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool
  IF .disabled THEN
   IF state.pt = itemno AND state.active THEN
    col = uilook(uiSelectedDisabled + state.tog)
-  ELSEIF state.hover = itemno AND state.active AND unselectable = NO THEN
-   col = uilook(uiMouseHoverItem)
   ELSE
    IF def_disabled = 0 THEN def_disabled = -uiDisabledItem - 1
    col = IIF(c_disabled, c_disabled, def_disabled)
@@ -553,14 +551,17 @@ FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool
  ELSE
   IF state.pt = itemno AND state.active THEN
    col = uilook(uiSelectedItem + state.tog)
-  ELSEIF state.hover = itemno AND state.active AND unselectable = NO THEN
-   col = uilook(uiMouseHoverItem)
   ELSE
    IF def_normal = 0 THEN def_normal = -uiMenuItem - 1
    col = IIF(c, c, def_normal)
   END IF
  END IF
  col = ColorIndex(col)
+
+ IF state.hover = itemno AND state.pt <> itemno AND state.active AND unselectable = NO THEN
+  col = mouse_hover_tinted_color(col)
+ END IF
+
  RETURN col
 END FUNCTION
 

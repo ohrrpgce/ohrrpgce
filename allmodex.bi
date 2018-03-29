@@ -370,7 +370,7 @@ DECLARE SUB bmpinfo OVERLOAD (filename as string, byref iminfo as ImageFileInfo)
 
 'Color matching
 DECLARE FUNCTION color_distance(pal() as RGBcolor, index1 as integer, index2 as integer) as integer
-DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyte, firstindex as integer = 0, indexhint as integer = -1) as ubyte
+DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, red as integer, green as integer, blue as integer, firstindex as integer = 0, indexhint as integer = -1, avoidcol as integer = -1) as ubyte
 DECLARE FUNCTION nearcolor OVERLOAD (pal() as RGBcolor, index as integer, firstindex as integer = 0) as ubyte
 DECLARE SUB find_palette_mapping (inputpal() as RGBcolor, masterpal() as RGBcolor, mapping() as integer, firstindex as integer = 0)
 DECLARE FUNCTION quantize_surface(byref surf as Surface ptr, pal() as RGBcolor, options as QuantizeOptions) as Frame ptr

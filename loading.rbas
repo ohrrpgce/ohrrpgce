@@ -2482,6 +2482,21 @@ FUNCTION ColorIndex(byval n as integer) as integer
  debugc errError, "Invalid slice color " & n
 END FUNCTION
 
+'Given the base color of a menu item, return which color should be used as the
+'mouse hover color. Computed by tinting the base color with uiMouseHoverItem.
+FUNCTION mouse_hover_tinted_color(text_col as integer = -1) as integer
+ IF text_col = -1 OR text_col = uilook(uiMenuItem) THEN
+  RETURN uilook(uiMouseHoverItem)  'No need to search for the color; we know it
+ END IF
+ DIM as RGBcolor col = master(text_col)
+ DIM as RGBcolor menuitem = master(uilook(uiMenuItem)), hover = master(uilook(uiMouseHoverItem))
+ DIM as integer r, g, b
+ r = col.r + hover.r - menuitem.r
+ g = col.g + hover.g - menuitem.g
+ b = col.b + hover.b - menuitem.b
+ RETURN nearcolor(master(), r, g, b, , , text_col)  'Find nearest color not equal to text_col
+END FUNCTION
+
 SUB LoadUIColors (colarray() as integer, boxarray() as BoxStyle, byval palnum as integer=-1)
 
  '--Prefer to load ui colors from general.reld

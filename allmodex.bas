@@ -6735,10 +6735,11 @@ function color_distance(pal() as RGBcolor, index1 as integer, index2 as integer)
 	end with
 end function
 
-function nearcolor(pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyte, firstindex as integer = 0, indexhint as integer = -1) as ubyte
-'Figure out nearest palette colour in range [firstindex..255] using Euclidean distance
+function nearcolor(pal() as RGBcolor, red as integer, green as integer, blue as integer, firstindex as integer = 0, indexhint as integer = -1, avoidcol as integer = -1) as ubyte
+'Figure out nearest palette colour in range [firstindex..255] using a very approximate perceptual distance
 'A perfect match against pal(indexhint) is tried first
-	dim as integer i, diff, best, save, rdif, bdif, gdif, rmean
+'Never returns avoidcol.
+	dim as integer i, diff, best, save, rdif, bdif, gdif, cappedred, rmean
 
 	if indexhint > -1 and indexhint <= UBOUND(pal) and indexhint >= firstindex then
 		with pal(indexhint)
@@ -6746,11 +6747,20 @@ function nearcolor(pal() as RGBcolor, red as ubyte, green as ubyte, blue as ubyt
 		end with
 	end if
 
+	if red < 0 then
+		cappedred = 0
+	elseif red > 255 then
+		cappedred = 255
+	else
+		cappedred = red
+	end if
+
 	best = 1000000
 	save = 0
 	for i = firstindex to 255
+		if i = avoidcol then continue for
 		with pal(i)
-			rmean = (red + .r) shr 1
+			rmean = (cappedred + .r) shr 1
 			rdif = red - .r
 			gdif = green - .g
 			bdif = blue - .b
