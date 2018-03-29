@@ -2316,6 +2316,13 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
   IF st.ps.hover THEN update_item_plank st.ps.hover, st
  END IF
  
+ DIM oldswap as Slice Ptr = st.swapcur
+ IF st.swapcur ANDALSO (readmouse.buttons AND mouseRight) THEN
+  'Cancel swap cursor selection if you right-click
+  st.swapcur = 0
+  IF oldswap THEN update_item_plank oldswap, st
+ END IF
+  
  DIM oldcur as Slice Ptr = st.ps.cur
  IF st.ps.hover THEN
   IF (readmouse.release AND mouseLeft) ORELSE (readmouse.buttons AND mouseRight) THEN
