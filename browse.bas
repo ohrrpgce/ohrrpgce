@@ -350,8 +350,10 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  IF needf THEN
-  fadein
-  setkeys
+  'FIXME: the browser now runs at 32-bitdepth, which doesn't support screen fading yet
+  'fadein
+  'setkeys
+  setpal master()
   needf = NO
  END IF
  dowait
