@@ -2326,15 +2326,24 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
    IF st.ps.cur THEN update_item_plank st.ps.cur, st
   END IF
  END IF
- IF st.ps.cur <> oldcur THEN
-  'Cursor just changed
-  menusound gen(genCursorSFX)
-  update_plank_scrolling st.ps
-  expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
- ELSE
-  'Cursor did not change, so a second click can activate it
-  IF st.ps.cur ANDALSO (readmouse.release AND mouseLeft) THEN
-   item_screen_use_action st
+ IF st.ps.cur THEN
+  IF st.ps.cur <> oldcur THEN
+   'Cursor just changed
+   menusound gen(genCursorSFX)
+   update_plank_scrolling st.ps
+   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
+   IF st.ps.cur ANDALSO st.swapcur ANDALSO st.ps.cur <> st.swapcur THEN
+    'Confirming a swap, so it is okay to to activate now
+    IF (readmouse.release AND mouseLeft) THEN
+     item_screen_use_action st
+    END IF
+   END IF
+  ELSEIF st.ps.hover = st.ps.cur THEN
+   'Cursor did not change, so a second click can activate it
+   IF (readmouse.release AND mouseLeft) THEN
+    menusound gen(genCursorSFX)
+    item_screen_use_action st
+   END IF
   END IF
  END IF
  
