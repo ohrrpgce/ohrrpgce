@@ -2830,6 +2830,7 @@ END SUB
 FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as bool
  DIM open_other_menu as integer = -1 'Menu ID to open
  DIM menu_text_box as integer = 0    'Textbox to open
+ DIM close_menu as bool = NO
  DIM updatetags as bool = NO         'Whether to do tag updates
  DIM slot as integer   'Party slot (temp)
  DIM activated as bool = menu_item_is_activatable(mi)
@@ -2842,9 +2843,9 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spItems
       menu_text_box = item_screen()
       IF menu_text_box > 0 THEN
-       IF mi.close_when_activated = NO THEN
-        remove_menu menuslot, (mi.skip_close_script = NO)
-       END IF
+       'Currently, menus and textboxes interfere with each other badly
+       '(but if there's more than one menu open, this won't help)
+       close_menu = YES
       END IF
      CASE spSpells
       slot = onwho(readglobalstring(106, "Whose Spells?", 20), NO)
@@ -2921,15 +2922,16 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
  IF activated THEN
   IF ABS(mi.settag) > 1 THEN settag mi.settag : updatetags = YES
   IF mi.togtag > 1 THEN settag mi.togtag, NOT istag(mi.togtag, 0) : updatetags = YES
-  IF mi.close_when_activated THEN
-   remove_menu menuslot, (mi.skip_close_script = NO)
+  IF mi.close_when_activated THEN close_menu = YES
+ END IF
+ IF close_menu THEN
+  remove_menu menuslot, (mi.skip_close_script = NO)
 
-   'WARNING: below this point, mi is invalid
+  'WARNING: below this point, mi is invalid
 
-   IF insideinterpreter = NO THEN '--Not inside a script
-    carray(ccUse) = 0
-    setkeys '--Discard the keypress that triggered the menu item that closed the menu
-   END IF
+  IF insideinterpreter = NO THEN '--Not inside a script
+   carray(ccUse) = 0
+   setkeys '--Discard the keypress that triggered the menu item that closed the menu
   END IF
  END IF
  IF open_other_menu >= 0 THEN
