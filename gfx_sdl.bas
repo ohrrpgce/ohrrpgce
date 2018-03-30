@@ -78,6 +78,7 @@ declare sub SDL_ANDROID_set_java_gamepad_keymap(byval A as integer, byval B as i
 declare sub SDL_ANDROID_set_ouya_gamepad_keymap(byval player as integer, byval udpad as integer, byval rdpad as integer, byval ldpad as integer, byval ddpad as integer, byval O as integer, byval A as integer, byval U as integer, byval Y as integer, byval L1 as integer, byval R1 as integer, byval L2 as integer, byval R2 as integer, byval LT as integer, byval RT as integer)
 declare function SDL_ANDROID_SetScreenKeyboardButtonKey(byval buttonId as integer, byval key as integer) as integer
 declare function SDL_ANDROID_SetScreenKeyboardButtonDisable(byval buttonId as integer, byval disable as bool) as integer
+declare function SDL_ANDROID_SetKeymapKeyMultitouchGesture(byval buttonId as integer, byval key as integer) as integer
 declare sub SDL_ANDROID_SetOUYADeveloperId (byval devId as zstring ptr)
 declare sub SDL_ANDROID_OUYAPurchaseRequest (byval identifier as zstring ptr, byval keyDer as zstring ptr, byval keyDerSize as integer)
 declare function SDL_ANDROID_OUYAPurchaseIsReady () as bool
@@ -874,7 +875,21 @@ FUNCTION gfx_sdl_ouya_receipts_result() as string
 END FUNCTION
 
 SUB io_sdl_init
-  'nothing needed at the moment...
+
+#IFDEF __FB_ANDROID__
+ 'Disable all four multitouch gestures, because they are kind of a mess
+ 'and it is virtually impossible to do two-finger drags (right mouse drags)
+ 'without accidentaly triggering them at random.
+ 
+ DIM key as integer = 311 ' This is equivalent to SDLK_LSUPER which we use
+                          ' because it should do absolutely nothing on
+                          ' an android device. (using 0 to disable does
+                          ' not work because it is interpreted as ESC)
+  
+ FOR gesture_id as integer = 0 to 3 
+  SDL_ANDROID_SetKeymapKeyMultitouchGesture(gesture_id, key)
+ NEXT gesture_id
+#ENDIF
 END SUB
 
 PRIVATE SUB keycombos_logic(evnt as SDL_Event)
