@@ -509,8 +509,8 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
      rectangle x + 0, y, IIF(linewidth, linewidth, 9999), 8, uilook(uiHighlight), page
     END IF
 
-    DIM col as integer = .col
-    col = menu_item_color(state, i, .disabled, .unselectable, .col)
+    DIM col as integer
+    col = menu_item_color(state, i, .disabled, .unselectable, .col, .disabled_col)
 
     DIM drawx as integer = x
     IF linewidth > wide AND state.active THEN
@@ -1063,6 +1063,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
   .esc_menu = ReadShort(f)
   ReadShort(f)  'garbage INT
   .itemspacing = ReadShort(f)
+  .disabled_textcolor = ReadShort(f)
   IF .items THEN
    DeleteMenuItems dat
   ELSE
@@ -1136,6 +1137,8 @@ SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as
   FOR i = 0 TO 2
    .extra(i) = ReadShort(f)
   NEXT i
+  .col = ReadShort(f)
+  .disabled_col = ReadShort(f)
  END WITH
  IF itemnum > UBOUND(items) THEN REDIM PRESERVE items(itemnum)
  items(itemnum) = mi
@@ -1166,6 +1169,7 @@ SUB SaveMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer)
   WriteShort(f, -1, .esc_menu)
   WriteShort(f, -1, 0)  'wasted garbage INT
   WriteShort(f, -1, .itemspacing)
+  WriteShort(f, -1, .disabled_textcolor)
  END WITH
  CLOSE #f
  SaveMenuItems menu_set, dat, record
@@ -1229,6 +1233,8 @@ SUB SaveMenuItem(byval f as integer, mi as MenuDefItem, byval record as integer,
   FOR i = 0 TO 2
    WriteShort(f, -1, .extra(i))
   NEXT i
+  WriteShort(f, -1, .col)
+  WriteShort(f, -1, .disabled_col)
  END WITH
 END SUB
 
@@ -1306,6 +1312,7 @@ FUNCTION read_menu_int (menu as MenuDef, byval intoffset_plus1 as integer) as in
    CASE 25: RETURN .esc_menu
    '26 is garbage
    CASE 27: RETURN .itemspacing
+   CASE 28: RETURN .disabled_textcolor
    CASE ELSE
     debug "read_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
@@ -1338,6 +1345,7 @@ SUB write_menu_int (menu as MenuDef, byval intoffset_plus1 as integer, byval n a
    CASE 25: .esc_menu = n
    '26 is garbage
    CASE 27: .itemspacing = n
+   CASE 28: .disabled_textcolor = n
    CASE ELSE
     debug "write_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
@@ -1360,6 +1368,8 @@ FUNCTION read_menu_item_int (mi as MenuDefItem, byval intoffset as integer) as i
     MenuItemBitsToArray mi, bits()
     RETURN bits(0)
    CASE 29 TO 31: RETURN .extra(intoffset - 29)
+   CASE 32: RETURN .col
+   CASE 33: RETURN .disabled_col
    CASE ELSE
     debug "read_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -1383,6 +1393,8 @@ SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, byval n 
     bits(0) = n
     MenuItemBitsFromArray mi, bits()
    CASE 29 TO 31: .extra(intoffset - 29) = n
+   CASE 32: .col = n
+   CASE 33: .disabled_col = n
    CASE ELSE
     debug "write_menu_item_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -1445,7 +1457,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
   IF elem >= 0 AND elem < menu.numitems THEN
    WITH *menu.items[elem]
     DIM col as integer
-    col = menu_item_color(state, elem, .disabled, .unselectable, .col, 0, menu.textcolor)
+    col = menu_item_color(state, elem, .disabled, .unselectable, .col, .disabled_col, menu.textcolor, menu.disabled_textcolor)
 
     IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
      position_menu_item menu, .text, i, where

@@ -46,6 +46,7 @@ TYPE BasicMenuItem
   'In MenuDefItems the following aren't saved.
   col as integer    'Text color. 0=use default, >0 is color index, <0 is a UI color
                     'Has no effect when the menu item is selected and flashing
+  disabled_col as integer  'Text color if disabled. Meaning of values same as 'col'.
   bgcol as integer  'Text bg color. Only supported by standardmenu, not draw_menu.
   'In MenuDefItems the following aren't saved. They are set at run-time (eg. in update_menu_items)
   unselectable as bool 'Menu cursor skips over this item
@@ -83,7 +84,8 @@ TYPE MenuDef
   handle    as integer
   name      as string
   boxstyle  as integer
-  textcolor as integer
+  textcolor as integer  'Default. 0=use uiMenuItem, >0 is color index, <0 is a UI color
+  disabled_textcolor as integer  'Default. 0=use uiDisabledItem, >0 is color index, <0 is a UI color
   maxrows   as integer
   edit_mode as bool   'Never hide disabled items, allow selection of unselectable items
   items     as MenuDefItem Ptr Ptr
