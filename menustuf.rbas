@@ -2399,7 +2399,7 @@ FUNCTION item_screen () as integer
    item_screen_use_action st
   END IF
 
-  IF get_gen_bool("/mouse/mouse_menus") THEN
+  IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT st.re_use THEN
    item_screen_mouse_handler(st) 
   END IF
 
@@ -3233,7 +3233,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  menu_attack_targ_picker = NO
 
  STATIC targ as integer
- STATIC spread as integer  'boolean
+ STATIC spread as bool
 
  '--Preserve background for display beneath the targ picker menu
  DIM page as integer
@@ -3274,6 +3274,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 
  IF allow_spread = NO THEN spread = NO
  IF must_spread THEN spread = YES
+ DIM do_effect as bool = NO
 
  setkeys
  DO
@@ -3284,6 +3285,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 
   playtimer
   control
+  do_effect = NO
+  
   '--handle keys
   IF carray(ccMenu) > 1 THEN
    menusound gen(genCancelSFX)
@@ -3303,11 +3306,76 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   IF allow_spread THEN
    IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
     MenuSound gen(genCursorSFX)
-    spread = spread XOR YES
+    spread = NOT spread
    END IF
   END IF
-  
+
   IF carray(ccUse) > 1 THEN
+   do_effect = YES
+  END IF
+  
+  '--handle mouse
+  DIM old_targ as integer = targ
+  DIM old_spread as integer = spread
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   DIM hover as integer = -1
+   FOR i as integer = 0 to 3
+    IF rect_collide_point(Type(84 + x_offset, 8 + 20 * i, 152, 20), readmouse.pos) THEN hover = i
+   NEXT i
+
+   IF hover = -1 ANDALSO ((readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight)) THEN
+    'Clicked outside the box, close the menu
+    menusound gen(genCancelSFX)
+    EXIT DO
+   END IF
+
+   IF spread THEN
+    'Spread targetting
+    IF (hover >= 0) ANDALSO (readmouse.release AND mouseLeft) THEN
+     'Trigger action
+     do_effect = YES
+    END IF
+    IF NOT must_spread ANDALSO (readmouse.release AND mouseRight) THEN
+     'Right-click on the box can cancel spread
+     spread = NO
+    END IF
+   ELSE
+    'Focused targetting
+    IF hover >= 0 THEN
+     IF allow_spread THEN
+      IF (readmouse.release AND mouseRight) THEN
+       'Toggle spread with a right-click in the box
+       spread = YES
+      END IF
+      IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist > 20 THEN
+       'Turn spread on with a left-drag in the box
+       spread = YES
+      END IF
+     END IF
+     IF NOT spread THEN
+      'Only proceed if we have not just switched to spread mode
+      IF hover <> targ ANDALSO (readmouse.release AND mouseLeft) THEN
+       'Change focus
+       IF chkOOBtarg(hover, attack_id) THEN
+        targ = hover
+        spread = NO
+       ELSE
+        'Play the cancel sound if you tried to select an invalid hero
+        menusound gen(genCancelSFX)
+       END IF
+      ELSEIF hover = targ ANDALSO (readmouse.release AND mouseLeft) THEN
+       'Trigger action
+       do_effect = YES
+      END IF
+     END IF
+    END IF
+   END IF
+  END IF
+  IF targ <> old_targ ORELSE spread <> old_spread THEN
+   MenuSound gen(genCursorSFX)
+  END IF
+  
+  IF do_effect THEN
    'DO ACTUAL EFFECT
    IF targ = -1 THEN
     menusound gen(genCancelSFX)
