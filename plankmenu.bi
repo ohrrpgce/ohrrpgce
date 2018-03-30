@@ -28,8 +28,6 @@ TYPE PlankState
  m as Slice Ptr                    'Container for the whole plank menu
  cur as Slice Ptr                  'Currently selected plank
  hover as Slice Ptr                'The plank the mouse is hovering over (only updated if you call plank_menu_update_hover)
- drag_scrolling as bool
- drag_scroll_start as XYPair       'The drag_scroll properties are updated by plank_menu_drag_scroll()
  is_plank_callback as FnIsPlank
  state_callback as FnPlankSetState
  selection_saved as bool           'Position has been saved by save_plank_selection()
