@@ -10,7 +10,9 @@ Edit Items: Press ENTER or SPACE to edit the menu items that appear in the menu.
 
 Box Style: The box style used for the background color and border. You can define these in the Box Styles editor in Edit Graphics menu.
 
-Text Color: Press ENTER or SPACE for a color browser.
+Text Color: The color of each non-disabled menu item, unless it specifies its own color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
+
+Disabled Color: The color of each disabled menu item, unless it specifies its own disabled color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
 
 Max rows to display: Reduce this number to make a long box scroll.
 

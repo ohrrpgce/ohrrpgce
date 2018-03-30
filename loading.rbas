@@ -2465,6 +2465,10 @@ FUNCTION UiColorCaption(byval n as integer) as string
  RETURN n & "(!?)"
 END FUNCTION
 
+FUNCTION LowColorCode () as integer
+ RETURN uiColorLast * -1 - 1
+END FUNCTION
+
 FUNCTION ColorIndex(byval n as integer) as integer
  if n >= 0 andalso n <= 255 then return n
  if n <= -1 andalso n >= (uiColorLast*-1 - 1) then

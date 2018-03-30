@@ -124,6 +124,11 @@ This is the menu item detail editor. This is where you define what a menu item a
    menu bitset and "Close menu if
    selected" menu item bitset!
 
+
+Color: The normal text color. Each menu has its own default color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
+
+Disabled Color: The text color when the menu item is disabled. Each menu has its own default disabled color. Press ENTER or SPACE for a color browser. You can also select a UI color (numbers below zero).
+
 *Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify one or more tags conditions they must all be true for the menu item to be enabled.  Depending on the "Hide if disabled" bitset, disabled items are greyed out or hidden. Press - to toggle between requiring a tag to be ON or OFF.
 
 *Set Tag - This tag will be turned ON or OFF when the menu item is used. Press ENTER or SPACE to browse tags. Press - to toggle between turning a tag ON and turning it OFF.

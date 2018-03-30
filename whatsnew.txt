@@ -30,6 +30,8 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
     * "Can't be selected" subtype for "Label" menu items. (The "Caption"
       item type is renamed "Label", and the old badly named "Unselectable"
       subtype is renamed "Disabled") [Ralph]
+    * In user-defined menus each menu item can now have its own color and
+      'disabled' color [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

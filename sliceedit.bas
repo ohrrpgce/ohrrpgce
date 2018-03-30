@@ -172,13 +172,11 @@ DECLARE FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelooku
 DECLARE FUNCTION slice_caption (sl as Slice Ptr, slicelookup() as string, rootsl as Slice Ptr, edslice as Slice Ptr) as string
 DECLARE SUB slice_editor_copy(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
 DECLARE SUB slice_editor_paste(byref ses as SliceEditState, byval slice as Slice Ptr, byval edslice as Slice Ptr)
-DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes) as bool
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
-DECLARE FUNCTION LowColorCode () as integer
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
@@ -2270,7 +2268,3 @@ SUB load_slice_collection (byval sl as Slice Ptr, byval collection_kind as integ
   END SELECT
  END IF
 END SUB
-
-FUNCTION LowColorCode () as integer
- RETURN uiColorLast * -1 - 1
-END FUNCTION

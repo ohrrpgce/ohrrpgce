@@ -41,6 +41,8 @@ DECLARE FUNCTION align_caption(align as AlignType, vertical as bool) as string
 DECLARE FUNCTION anchor_and_align_string(anchor as AlignType, align as AlignType, vertical as bool) as string
 DECLARE FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align as AlignType) as bool
 
+DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
+
 'Globals
 EXTERN HorizCaptions(2) as string
 EXTERN VertCaptions(2) as string

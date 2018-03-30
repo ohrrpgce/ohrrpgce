@@ -105,6 +105,7 @@ declare Sub DefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub OldDefaultUIColors (colarray() as integer, boxarray() as BoxStyle)
 declare Sub GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarray() as BoxStyle)
 declare Function UiColorCaption(byval n as integer) as string
+DECLARE FUNCTION LowColorCode () as integer
 declare Function ColorIndex(byval n as integer) as integer
 declare Function mouse_hover_tinted_color(text_col as integer = -1) as integer
 

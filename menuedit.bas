@@ -89,11 +89,6 @@ DO
   init_menu_state state, edmenu
   init_menu_state mstate, menudata
  END IF
- IF mstate.need_update THEN
-  mstate.need_update = NO
-  update_edited_menu menudata
-  init_menu_state mstate, menudata
- END IF
  IF dstate.need_update THEN
   dstate.need_update = NO
   update_detail_menu detail, menudata, *menudata.items[mstate.pt]
@@ -103,6 +98,13 @@ DO
     box_preview = textbox_preview_line(.sub_t)
    END IF
   END WITH
+  'If any menu item data changed, the menu itself also needs updating
+  mstate.need_update = YES
+ END IF
+ IF mstate.need_update THEN
+  mstate.need_update = NO
+  update_edited_menu menudata
+  init_menu_state mstate, menudata
  END IF
  
  clearpage dpage
@@ -165,43 +167,49 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
   CASE 4
    IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
   CASE 5
-   IF intgrabber(menudata.textcolor, 0, 255) THEN state.need_update = YES
+   IF intgrabber(menudata.textcolor, LowColorCode(), 255) THEN state.need_update = YES
    IF enter_space_click(state) THEN
     menudata.textcolor = color_browser_256(menudata.textcolor)
     state.need_update = YES
    END IF
   CASE 6
-   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
+   IF intgrabber(menudata.disabled_textcolor, LowColorCode(), 255) THEN state.need_update = YES
+   IF enter_space_click(state) THEN
+    menudata.disabled_textcolor = color_browser_256(menudata.disabled_textcolor)
+    state.need_update = YES
+   END IF
   CASE 7
+   IF intgrabber(menudata.maxrows, 0, 20) THEN state.need_update = YES
+  CASE 8
    IF enter_space_click(state) THEN
     edit_menu_bits menudata
     state.need_update = YES
    END IF
-  CASE 8
+  CASE 9
    IF enter_space_click(state) THEN
     reposition_menu menudata, mstate
    END IF
-  CASE 9
+  CASE 10
    IF enter_space_click(state) THEN
     reposition_anchor menudata, mstate
    END IF
-  CASE 10 ' text align
+  CASE 11 ' text align
    IF intgrabber(menudata.textalign, alignLeft, alignRight) THEN state.need_update = YES
-  CASE 11 ' Minimum width in chars
+  CASE 12 ' Minimum width in chars
    IF intgrabber(menudata.min_chars, 0, 38) THEN state.need_update = YES
-  CASE 12 ' Maximum width in chars
+  CASE 13 ' Maximum width in chars
    IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
-  CASE 13 ' border size
+  CASE 14 ' border size
    IF intgrabber(menudata.bordersize, -100, 100) THEN state.need_update = YES
-  CASE 14 ' item spacing
+  CASE 15 ' item spacing
    IF intgrabber(menudata.itemspacing, -10, 100) THEN state.need_update = YES
-  CASE 15: ' on-close script
+  CASE 16: ' on-close script
    IF enter_space_click(state) THEN
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
    IF scrintgrabber(menudata.on_close, 0, 0, scLeft, scRight, 1, plottrigger) THEN state.need_update = YES
-  CASE 16: ' esc menu
+  CASE 17: ' esc menu
    IF zintgrabber(menudata.esc_menu, -1, gen(genMaxMenu)) THEN state.need_update = YES
  END SELECT
 END SUB
@@ -344,6 +352,19 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
    END IF
   CASE 9 TO 11: 'extra data
    IF intgrabber(mi.extra(editaction - 9), -32768, 32767) THEN dstate.need_update = YES
+  CASE 12: 'color
+   IF intgrabber(mi.col, LowColorCode(), 255) THEN dstate.need_update = YES
+   IF enter_space_click(dstate) THEN
+    mi.col = color_browser_256(mi.col)
+    dstate.need_update = YES
+   END IF
+  CASE 13: 'disabled color
+   IF intgrabber(mi.disabled_col, LowColorCode(), 255) THEN dstate.need_update = YES
+   IF enter_space_click(dstate) THEN
+    mi.disabled_col = color_browser_256(mi.disabled_col)
+    dstate.need_update = YES
+   END IF
+
  END SELECT
 
 END SUB
@@ -359,14 +380,15 @@ SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, menu as 
  append_menu_item edmenu, cap
  
  append_menu_item edmenu, "Name: " & menu.name
- append_menu_item edmenu, "Edit Items..."
- append_menu_item edmenu, "Box Style: " & menu.boxstyle
- append_menu_item edmenu, "Text color: " & zero_default(menu.textcolor)
+ append_menu_item edmenu, "Edit items..."
+ append_menu_item edmenu, "Box style: " & menu.boxstyle
+ append_menu_item edmenu, "Text color: " & slice_color_caption(menu.textcolor, "Default UI color")
+ append_menu_item edmenu, "Disabled color: " & slice_color_caption(menu.disabled_textcolor, "Default UI color")
  append_menu_item edmenu, "Max rows to display: " & zero_default(menu.maxrows)
- append_menu_item edmenu, "Edit Bitsets..."
+ append_menu_item edmenu, "Edit bitsets..."
  append_menu_item edmenu, "Reposition menu..."
- append_menu_item edmenu, "Change Anchor Point..."
- append_menu_item edmenu, "Text Align: " & HorizCaptions(menu.textalign)
+ append_menu_item edmenu, "Change anchor point..."
+ append_menu_item edmenu, "Text align: " & HorizCaptions(menu.textalign)
  append_menu_item edmenu, "Minimum width: " & zero_default(menu.min_chars, "Automatic")
  append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
  append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
@@ -459,6 +481,9 @@ SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem
   END SELECT
   .caption &= get_menu_item_editing_annotation(mi)
  END WITH
+
+ append_menu_item detail, "Color: " & slice_color_caption(mi.col, "Default"), 12
+ append_menu_item detail, "Disabled color: " & slice_color_caption(mi.disabled_col, "Default"), 13
 
  append_menu_item detail, tag_condition_caption(mi.tag1, "Enable if tag", "Always"), 4
  append_menu_item detail, tag_condition_caption(mi.tag2, " and also tag", "Always"), 5
