@@ -67,8 +67,8 @@ DECLARE SUB MenuBitsToArray (menu as MenuDef, bits() as integer)
 DECLARE SUB MenuBitsFromArray (menu as MenuDef, bits() as integer)
 DECLARE SUB MenuItemBitsToArray (mi as MenuDefItem, bits() as integer)
 DECLARE SUB MenuItemBitsFromArray (mi as MenuDefItem, bits() as integer)
-DECLARE FUNCTION read_menu_int (menu as MenuDef, byval intoffset as integer) as integer
-DECLARE SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as integer)
+DECLARE FUNCTION read_menu_int (menu as MenuDef, byval intoffset_plus1 as integer) as integer
+DECLARE SUB write_menu_int (menu as MenuDef, byval intoffset_plus1 as integer, byval n as integer)
 DECLARE FUNCTION read_menu_item_int (mi as MenuDefItem, byval intoffset as integer) as integer
 DECLARE SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, byval n as integer)
 

@@ -4840,20 +4840,8 @@ end</example>
 			<description>
 				Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>),
 				and bit number <p>bit</p>, sets the bitset is ON or OFF depending on <p>value</p>.
-				For the <p>bit</p> bit number you should use one of the constants:
-				<ul>
-					<li>menubit:translucent box</li>
-					<li>menubit:never show scrollbar</li>
-					<li>menubit:allow gameplay</li>
-					<li>menubit:suspend player even if gameplay allowed</li>
-					<li>menubit:no box</li>
-					<li>menubit:no close</li>
-					<li>menubit:no controls</li>
-					<li>menubit:prevent main menu</li>
-					<li>menubit:advance text box when menu closes</li>
-					<li>menubit:highlight selection background</li>
-					<li>menubit:remember selection</li>
-				</ul>
+				For the <p>bit</p> bit number you should use one of the <p>menubit:...</p> constants.
+				See <ref>getmenubit</ref> for the available constants.
 			</description>
 		</command>
 		<command id="getmenuboxstyle">
@@ -5055,6 +5043,56 @@ set menu on close script(m, @my menu exit handler)
 			<seealso>
 				<ref>runscriptbyid</ref>
 				<ref>setmenuonclosescript</ref>
+			</seealso>
+		</command>
+		<command id="getmenucancelbuttonmenu">
+			<canon>get menu cancel button menu(menu handle)</canon>
+			<shortname>get menu cancel button menu</shortname>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>),
+				returns the action that happens when the player presses a cancel button.
+				-1 means the menu simply closes.
+				0 or greater is a menu ID to open in its place
+			</description>
+			<seealso>
+				<ref>setmenucancelbuttonmenu</ref>
+			</seealso>
+		</command>
+		<command id="setmenucancelbuttonmenu">
+			<canon>set menu cancel button menu(menu handle, menu)</canon>
+			<shortname>set menu cancel button menu</shortname>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>),
+				sets the action that happens when the player presses a cancel button.
+				<p>menu</p> can be either -1, in which the menu simply closes,
+				or a menu ID to open in its place (which is 0 or greater).
+			</description>
+			<seealso>
+				<ref>getmenucancelbuttonmenu</ref>
+			</seealso>
+		</command>
+		<command id="getmenuitemspacing">
+			<canon>get menu item spacing(menu handle)</canon>
+			<shortname>get menu item spacing</shortname>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>),
+				returns the amount of extra spacing in pixels between menu items.
+				0 is the default
+			</description>
+			<seealso>
+				<ref>setmenuitemspacing</ref>
+			</seealso>
+		</command>
+		<command id="setmenuitemspacing">
+			<canon>set menu item spacing(menu handle, spacing)</canon>
+			<shortname>set menu item spacing</shortname>
+			<description>
+				Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>),
+				sets the amount of extra spacing in pixels between menu items.
+				0 is the default.
+			</description>
+			<seealso>
+				<ref>getmenuitemspacing</ref>
 			</seealso>
 		</command>
 

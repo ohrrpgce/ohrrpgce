@@ -1390,6 +1390,22 @@ script, set menu on close script, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 24, hsd:n)
 end
 
+script, get menu cancel button menu, hsd:menuhandle, begin
+  exit returning(read menu int(hsd:menuhandle, 25) -- 1)
+end
+
+script, set menu cancel button menu, hsd:menuhandle, hsd:n=-1, begin
+  write menu int(hsd:menuhandle, 25, hsd:n + 1)
+end
+
+script, get menu item spacing, hsd:menuhandle, begin
+  exit returning(read menu int(hsd:menuhandle, 27) -- 1)
+end
+
+script, set menu item spacing, hsd:menuhandle, hsd:n=-1, begin
+  write menu int(hsd:menuhandle, 27, hsd:n + 1)
+end
+
 script, get menu bit, hsd:handle, hsd:bit, begin
   variable(hsd:n)
   hsd:n := read menu int(hsd:handle, 15)

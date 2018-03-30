@@ -1248,6 +1248,9 @@
 		<a href="#about-getmenuboxstyle">get menu boxstyle(menu handle)</a><br>
 		
 	
+		<a href="#about-getmenucancelbuttonmenu">get menu cancel button menu(menu handle)</a><br>
+		
+	
 		<a href="#about-getmenuid">get menu ID(menu handle)</a><br>
 		
 	
@@ -1261,6 +1264,9 @@
 		
 	
 		<a href="#about-getmenuitemsettag">get menu item settag(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuitemspacing">get menu item spacing(menu handle)</a><br>
 		
 	
 		<a href="#about-getmenuitemsubtype">get menu item subtype(menu item handle)</a><br>
@@ -2481,6 +2487,9 @@
 		<a href="#about-setmenuboxstyle">set menu boxstyle(menu handle, new box style)</a><br>
 		
 	
+		<a href="#about-setmenucancelbuttonmenu">set menu cancel button menu(menu handle, menu)</a><br>
+		
+	
 		<a href="#about-setmenuitembit">set menu item bit(menu item handle, bit, value)</a><br>
 		
 	
@@ -2491,6 +2500,9 @@
 		
 	
 		<a href="#about-setmenuitemsettag">set menu item settag(menu item handle, new settag)</a><br>
+		
+	
+		<a href="#about-setmenuitemspacing">set menu item spacing(menu handle, spacing)</a><br>
 		
 	
 		<a href="#about-setmenuitemsubtype">set menu item subtype(menu item handle, new subtype)</a><br>
@@ -10842,6 +10854,7 @@ end</pre>
 					<li>menubit:prevent main menu</li>
 					<li>menubit:advance text box when menu closes</li>
 					<li>menubit:highlight selection background</li>
+					<li>menubit:remember selection</li>
 				</ul>
 			
 			
@@ -10856,17 +10869,8 @@ end</pre>
 			
 				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
 				and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>.
-				For the <span class="param">bit</span> bit number you should use one of the constants:
-				<ul>
-					<li>menubit:translucent box</li>
-					<li>menubit:never show scrollbar</li>
-					<li>menubit:allow gameplay</li>
-					<li>menubit:suspend player even if gameplay allowed</li>
-					<li>menubit:no box</li>
-					<li>menubit:no close</li>
-					<li>menubit:no controls</li>
-					<li>menubit:prevent main menu</li>
-				</ul>
+				For the <span class="param">bit</span> bit number you should use one of the <span class="param">menubit:...</span> constants.
+				See <a href="#about-getmenubit" class="ref">get menu bit</a> for the available constants.
 			
 			
 			
@@ -11191,6 +11195,68 @@ set menu on close script(m, @my menu exit handler)
 <a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
 <li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
 </ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenucancelbuttonmenu"></a>
+		<h4>get menu cancel button menu(menu handle)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				returns the action that happens when the player presses a cancel button.
+				-1 means the menu simply closes.
+				0 or greater is a menu ID to open in its place
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenucancelbuttonmenu" class="ref">set menu cancel button menu</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenucancelbuttonmenu"></a>
+		<h4>set menu cancel button menu(menu handle, menu)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				sets the action that happens when the player presses a cancel button.
+				<span class="param">menu</span> can be either -1, in which the menu simply closes,
+				or a menu ID to open in its place (which is 0 or greater).
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenucancelbuttonmenu" class="ref">get menu cancel button menu</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuitemspacing"></a>
+		<h4>get menu item spacing(menu handle)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				returns the amount of extra spacing in pixels between menu items.
+				0 is the default
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-setmenuitemspacing" class="ref">set menu item spacing</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuitemspacing"></a>
+		<h4>set menu item spacing(menu handle, spacing)</h4>
+<p>
+			
+				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				sets the amount of extra spacing in pixels between menu items.
+				0 is the default.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getmenuitemspacing" class="ref">get menu item spacing</a></li></ul>
 </div>
 		</p>
 </div>
@@ -18955,7 +19021,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 838 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 842 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

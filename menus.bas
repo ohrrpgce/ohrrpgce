@@ -1282,12 +1282,12 @@ SUB MenuItemBitsFromArray (mi as MenuDefItem, bits() as integer)
  END WITH
 END SUB
 
-FUNCTION read_menu_int (menu as MenuDef, byval intoffset as integer) as integer
+FUNCTION read_menu_int (menu as MenuDef, byval intoffset_plus1 as integer) as integer
  '--This function allows read access to integers in a menu for the plotscripting interface
- '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
+ '--intoffset_plus1 is the integer offset as appears in the MENUS.BIN lump documentation plus one
  DIM bits(0) as integer
  WITH menu
-  SELECT CASE intoffset
+  SELECT CASE intoffset_plus1
    CASE 12: RETURN .boxstyle
    CASE 13: RETURN .textcolor
    CASE 14: RETURN .maxrows
@@ -1304,20 +1304,22 @@ FUNCTION read_menu_int (menu as MenuDef, byval intoffset as integer) as integer
    CASE 23: RETURN .bordersize
    CASE 24: RETURN .on_close
    CASE 25: RETURN .esc_menu
+   '26 is garbage
+   CASE 27: RETURN .itemspacing
    CASE ELSE
-    debug "read_menu_int: " & intoffset & " is an invalid integer offset"
+    debug "read_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
  END WITH
  RETURN 0
 END FUNCTION
 
-SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as integer)
+SUB write_menu_int (menu as MenuDef, byval intoffset_plus1 as integer, byval n as integer)
  '--This sub allows write access to integers in a menu for the plotscripting interface
  '--FIXME: there's no error checking, not even in the wrapper scripts in plotscr.hsd!
- '--intoffset is the integer offset, same as appears in the MENUS.BIN lump documentation
+ '--intoffset_plus1 is the integer offset as appears in the MENUS.BIN lump documentation plus one
  DIM bits(0) as integer
  WITH menu
-  SELECT CASE intoffset
+  SELECT CASE intoffset_plus1
    CASE 12: .boxstyle = n
    CASE 13: .textcolor = n
    CASE 14: .maxrows = n
@@ -1334,8 +1336,10 @@ SUB write_menu_int (menu as MenuDef, byval intoffset as integer, byval n as inte
    CASE 23: .bordersize = n
    CASE 24: .on_close = n
    CASE 25: .esc_menu = n
+   '26 is garbage
+   CASE 27: .itemspacing = n
    CASE ELSE
-    debug "write_menu_int: " & intoffset & " is an invalid integer offset"
+    debug "write_menu_int: " & intoffset_plus1 & " is an invalid integer offset"
   END SELECT
  END WITH
 END SUB
