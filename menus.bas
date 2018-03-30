@@ -289,8 +289,16 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as inte
   IF .autosize THEN
    recalc_menu_size state
   END IF
-  '.pt = -1 when the menu has no selectable items
-  IF .pt = -1 THEN RETURN NO
+
+  'Check there are selectable items
+  DIM has_selectable as bool = NO
+  FOR i as integer = .first TO .last
+   IF selectable(i) THEN has_selectable = YES : EXIT FOR
+  NEXT
+  IF has_selectable = NO THEN
+   .pt = .first - 1
+   RETURN scrollmenu(state, deckey, inckey)
+  END IF
 
   DIM as integer oldptr, oldtop, d, moved_d
   oldptr = .pt
