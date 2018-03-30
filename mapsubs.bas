@@ -102,15 +102,7 @@ ENUM LayerMenuItemType
   ltLayerEnabled
 END ENUM
 
-TYPE LayerMenuItem  'EXTENDS BasicMenuItem
-  'members copied from BasicMenuItem
-  text as string
-  col as integer
-  bgcol as integer
-  unselectable as integer
-  disabled as integer
-
-  'new members
+TYPE LayerMenuItem EXTENDS BasicMenuItem
   role as LayerMenuItemType
   layernum as integer    '-1 if not a layer
   gmapindex as integer   '-1 if enabled/visibility choice rather than tileset choice

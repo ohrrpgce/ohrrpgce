@@ -42,11 +42,15 @@ TYPE MenuSet
 END TYPE
 
 TYPE BasicMenuItem
-  text as string
-  col as integer
-  bgcol as integer
-  unselectable as bool
-  disabled as bool  'Appear greyed out. Any other meaning of this is up to the user
+  text as string    'This is the caption actually displayed (unlike MenuDefItem.caption)
+  'In MenuDefItems the following aren't saved.
+  col as integer    'Text color. 0=use default, >0 is color index, <0 is a UI color
+                    'Has no effect when the menu item is selected and flashing
+  bgcol as integer  'Text bg color. Only supported by standardmenu, not draw_menu.
+  'In MenuDefItems the following aren't saved. They are set at run-time (eg. in update_menu_items)
+  unselectable as bool 'Menu cursor skips over this item
+  disabled as bool  'Appear greyed out and disable activation
+                    '(For in-game user menus, set based on .tag1/.tag2 and type/subtype)
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(BasicMenuItem, BasicMenuItem)
@@ -54,15 +58,7 @@ DECLARE_VECTOR_OF_TYPE(BasicMenuItem, BasicMenuItem)
 MAKETYPE_DoubleList(MenuDefItem)
 MAKETYPE_DListItem(MenuDefItem)
 
-TYPE MenuDefItem  'EXTENDS BasicMenuItem
-  'members copied from BasicMenuItem
-  text as string  ' This is the caption actually displayed
-  col as integer  ' used to manually override the color of the menu item (has no effect when the menu item is selected and flashing)
-  bgcol as integer  ' Not used
-  unselectable as bool  ' Set at run-time (in update_menu_items)
-  disabled as bool  ' for in-game user menus, set at run-time (in update_menu_items) based on .tag1/.tag2 and type/subtype
-
-  'Other members
+TYPE MenuDefItem EXTENDS BasicMenuItem
   handle    as integer
   caption   as string  ' This is the caption as set in the menu editor/set menu item caption
   trueorder as DListItem(MenuDefItem) ' contains next, prev
@@ -168,15 +164,7 @@ TYPE MenuOptions
 END TYPE
 
 'For when a string array is too crude, but a MenuDef is overkill
-TYPE SimpleMenuItem  'EXTENDS BasicMenuItem
-  'members copied from BasicMenuItem
-  text as string
-  col as integer
-  bgcol as integer
-  unselectable as bool
-  disabled as bool  'Appear greyed out. Other meaning of this depend on use 
-
-  'other members
+TYPE SimpleMenuItem EXTENDS BasicMenuItem
   dat as integer  'For your own use
 END TYPE
 
