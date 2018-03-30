@@ -124,7 +124,7 @@ END TYPE
 
 TYPE MenuState
   active    as bool = YES
-  pt        as integer 'currently selected item (.first - 1 if menu is empty)
+  pt        as integer 'currently selected item (.first - 1 if none, eg. menu is empty)
   hover     as integer 'item mouse is hovering over, or .first - 1 if none. Set even if .active=NO
   top       as integer 'scroll position for long lists
   first     as integer 'first element (usually zero)
@@ -143,6 +143,8 @@ TYPE MenuState
   has_been_drawn as bool
   rect as RectType
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
+
+  DECLARE FUNCTION pt_valid() as bool
 END TYPE
 
 'A set of rendering options which can be passed to standardmenu.

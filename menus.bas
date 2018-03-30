@@ -36,6 +36,10 @@ DIM force_use_mouse as integer = 0
 '                                 Generic MenuState Stuff
 '==========================================================================================
 
+'Whether there is a selected item
+FUNCTION MenuState.pt_valid() as bool
+ RETURN pt >= first AND pt <= last
+END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
 '.pt is moved to a selectable menu item.
@@ -176,7 +180,7 @@ SUB correct_menu_state (state as MenuState)
   ' If the bottom of the menu is above the bottom of the screen, scroll up
   .top = large(small(.top, .last - .size), .first)
   ' Selected item must be visible (unless the menu is empty)
-  IF .pt >= .first THEN .top = bound(.top, .pt - .size, .pt)
+  IF .pt_valid() THEN .top = bound(.top, .pt - .size, .pt)
   mouse_update_hover state
  END WITH
 END SUB

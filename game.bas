@@ -2700,8 +2700,8 @@ SUB remove_menu (byval slot as integer, byval run_on_close as bool=YES)
   bring_menu_forward slot
  END IF
  WITH menus(topmenu)
-  ' Check has an ID and is nonempty (so .pt is valid)
-  IF in_bound(.record, 0, UBOUND(remembered_menu_pts)) ANDALSO mstates(topmenu).last >= 0 THEN
+  ' Check has an ID and selection
+  IF in_bound(.record, 0, UBOUND(remembered_menu_pts)) ANDALSO mstates(topmenu).pt_valid() THEN
    ' Calculate and remember the true slot number of the selected menu item
    remembered_menu_pts(.record) = dlist_find(.itemlist, .items[mstates(topmenu).pt])
   END IF
@@ -2794,6 +2794,7 @@ SUB player_menu_keys ()
   IF game_usemenu(mstates(topmenu), menus(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
+  IF mstates(topmenu).pt_valid() = NO THEN EXIT SUB
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
