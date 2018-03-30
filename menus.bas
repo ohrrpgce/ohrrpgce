@@ -48,21 +48,25 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
  calc_menustate_size state, menuopts, 0, 0  'Position not known, fill with dummy data for now
 
  WITH state
-  .first = 0
+  .first = LBOUND(menu)
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
   .hover = -1
-  .pt = bound(.pt, .first, .last)  '.first <= .last
-  IF menu(.pt).unselectable THEN
-   .pt = -1  'explicitly -1 when nothing selectable
-   FOR i as integer = 0 TO UBOUND(menu)
-    IF menu(i).unselectable = NO THEN .pt = i: EXIT FOR
-   NEXT
+  IF .first > .last THEN  'menu() empty
+   .pt = .first - 1
+  ELSE
+   .pt = bound(.pt, .first, .last)  '.first <= .last
+   IF menu(.pt).unselectable THEN
+    .pt = .first - 1  'nothing selectable
+    FOR i as integer = 0 TO UBOUND(menu)
+     IF menu(i).unselectable = NO THEN .pt = i: EXIT FOR
+    NEXT
+   END IF
+   'Menus with unselectable items have lookahead, which these +1,-1
+   'attempt to simulate. Not perfect, but prevents some flickering
+   '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
+   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   END IF
-  'Menus with unselectable items have lookahead, which these +1,-1
-  'attempt to simulate. Not perfect, but prevents some flickering
-  '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
-  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
@@ -81,17 +85,21 @@ SUB init_menu_state (byref state as MenuState, byval menu as BasicMenuItem vecto
   .last = v_len(menu) - 1
   IF .size <= 0 THEN .size = 20
   .hover = -1
-  .pt = bound(.pt, .first, .last)  '.first <= .last
-  IF v_at(menu, .pt)->unselectable THEN
-   .pt = -1  'explicitly -1 when nothing selectable
-   FOR i as integer = 0 TO v_len(menu) - 1
-    IF v_at(menu, i)->unselectable = NO THEN .pt = i: EXIT FOR
-   NEXT
+  IF v_len(menu) = 0 THEN
+   .pt = -1
+  ELSE
+   .pt = bound(.pt, .first, .last)  '.first <= .last
+   IF v_at(menu, .pt)->unselectable THEN
+    .pt = -1  'explicitly -1 when nothing selectable
+    FOR i as integer = 0 TO v_len(menu) - 1
+     IF v_at(menu, i)->unselectable = NO THEN .pt = i: EXIT FOR
+    NEXT
+   END IF
+   'Menus with unselectable items have lookahead, which these +1,-1
+   'attempt to simulate. Not perfect, but prevents some flickering
+   '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
+   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   END IF
-  'Menus with unselectable items have lookahead, which these +1,-1
-  'attempt to simulate. Not perfect, but prevents some flickering
-  '(TODO: modify correct_menu_state and all usemenu overloads to do this too)
-  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
