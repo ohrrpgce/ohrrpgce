@@ -1063,59 +1063,63 @@ script,set load script,hsd:ID=0,begin
   write general(57,hsd:ID)
 end
 
+# See https://rpg.hamsterrepublic.com/ohrrpgce/GEN for index and bitnum
+# (index should be 101 or 177)
+script,read preference bitset,hsd:index,hsd:bitnum,begin
+  hsd:index += hsd:bitnum/16
+  hsd:bitnum := hsd:bitnum,mod,16
+  return((read general(hsd:index),and,2^hsd:bitnum)<>0)
+end
+
+script,write preference bitset,hsd:index,hsd:bitnum,hsd:value=1,begin
+  hsd:index += hsd:bitnum/16
+  hsd:bitnum := hsd:bitnum,mod,16
+  if(hsd:value) then (hsd:value := 2^hsd:bitnum)
+  write general(hsd:index, (read general(hsd:index),and,(-1--2^hsd:bitnum))+hsd:value)
+end
+
 script,set battle wait mode,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=1)
-  write general(101,(read general(101),and,-2)+hsd:bit)
+  write preference bitset(101, 0, hsd:bit)
 end
 
 script,set caterpillar mode,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=2)
-  write general(101,(read general(101),and,-3)+hsd:bit)
+  write preference bitset(101, 1, hsd:bit)
 end
 
 script,set no HP level up restore,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=4)
-  write general(101,(read general(101),and,-5)+hsd:bit)
+  write preference bitset(101, 2, hsd:bit)
 end
 
 script,set no MP level up restore,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=8)
-  write general(101,(read general(101),and,-9)+hsd:bit)
+  write preference bitset(101, 3, hsd:bit)
 end
 
 script,set inn no revive mode,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=16)
-  write general(101,(read general(101),and,-17)+hsd:bit)
+  write preference bitset(101, 4, hsd:bit)
 end
 
 script,set full hero swap mode,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=32)
-  write general(101,(read general(101),and,-33)+hsd:bit)
+  write preference bitset(101, 5, hsd:bit)
 end
 
 script,hide battle ready meter,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=64)
-  write general(101,(read general(101),and,-65)+hsd:bit)
+  write preference bitset(101, 6, hsd:bit)
 end
 
 script,hide battle health meter,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=128)
-  write general(101,(read general(101),and,-129)+hsd:bit)
+  write preference bitset(101, 7, hsd:bit)
 end
 
 script,set debug keys disable,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=256)
-  write general(101,(read general(101),and,-257)+hsd:bit)
+  write preference bitset(101, 8, hsd:bit)
 end
 
 script,set dead heroes gain experience,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=8)
-  write general(177,(read general(177),and,-9)+hsd:bit)
+  write preference bitset(177, 3, hsd:bit)
 end
 
 script,set active battle pause for animations,hsd:bit=1,begin
-  if(hsd:bit) then(hsd:bit:=2^7)
-  write general(177,(read general(177),and,(-1--2^7))+hsd:bit)
+  write preference bitset(177, 7, hsd:bit)
 end
 
 script,set capped hero stat,hsd:who,hsd:stat,hsd:value,hsd:stat type=current stat,begin
@@ -1148,7 +1152,7 @@ script, set inventory size, hsd:newsize, begin
 end
 
 script, extended scancodes enabled, begin
-  return((readgeneral(177),and,256)<>0)
+  return(read preference bitset(177, 8))
 end
 
 script, get level cap, begin

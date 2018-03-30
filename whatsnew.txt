@@ -47,6 +47,7 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
       and menutype:caption alias for menutype:label,
       and alias menuitembit:close menu when activated [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
+    * "read preference bitset", "write preference bitset" [Ralph]
 
   * Changes
     * "Previous attack" base ATK stat renamed to "Last damage by attacker"

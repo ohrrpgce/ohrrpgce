@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-03-28)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-03-30)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -2082,6 +2082,9 @@
 		<a href="#about-readpassblock">read pass block (x,y)</a><br>
 		
 	
+		<a href="#about-readpreferencebitset">read preference bitset (index, bitnum)</a><br>
+		
+	
 		<a href="#about-readspell">read spell (hero,list,slot)</a><br>
 		
 	
@@ -3256,6 +3259,9 @@
 		
 	
 		<a href="#about-writepassblock">write pass block (x,y,value)</a><br>
+		
+	
+		<a href="#about-writepreferencebitset">write preference bitset (index, bitnum, value)</a><br>
 		
 	
 		<a href="#about-writespell">write spell (hero,list,slot,attack)</a><br>
@@ -17452,6 +17458,55 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 </div>
 		</p>
 </div>
+		<div class="command">
+<a name="about-readpreferencebitset"></a>
+		<h4>read preference bitset (index, bitnum)</h4>
+<p>
+			
+				Returns the value (true or false) of one of the bitsets in the Preference Bitsets,
+				Active-time Battle Bitsets or Backwards-compatibility Bitsets
+				menus (in the General Game Settings menu).
+				You can use this command if there isn't a dedicated command to read the bitset,
+				such as <a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a>.
+				Get the appropriate values of <span class="param">index</span> (which should be 101 or 177) and <span class="param">bitnum</span>
+				(which should be 0 to 31)
+				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				For example "Dead heroes gain share of experience" is <span class="code">read preference bitset(177, 3)</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-writepreferencebitset" class="ref">write preference bitset</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-writepreferencebitset"></a>
+		<h4>write preference bitset (index, bitnum, value)</h4>
+<p>
+			
+				Sets the <span class="param">value</span> (true or false) of one of the bitsets in the Preference Bitsets,
+				Active-time Battle Bitsets or Backwards-compatibility Bitsets
+				menus (in the General Game Settings menu).
+				You can use this command if there isn't a dedicated command to write the bitset,
+				such as <a href="#about-setbattlewaitmode" class="ref">set battle wait mode</a>.
+				Get the appropriate values of <span class="param">index</span> (which should be 101 or 177) and <span class="param">bitnum</span>
+				(which should be 0 to 31)
+				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				For example you can turn on "Heroes use Walk in Place animation while idle" with
+				<span class="code">write preference bitset(177, 26, true)</span>.
+				<div style="background-color:#DCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">
+					Use common sense. Some bitsets, such as "Don't limit max tags to 1000" might be disastrous
+					to change in the middle of a game!
+					Or they might have no effect.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-readpreferencebitset" class="ref">read preference bitset</a></li></ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -18900,7 +18955,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 836 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 838 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

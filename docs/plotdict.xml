@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-28">
+<plotscript version="wip" datecode="2018-03-30">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8976,6 +8976,48 @@ set timer (0, 300, 18, timer: game over, 0, (timerflag: battle, or, timerflag: m
 			</description>
 			<seealso>
 				<ref>getscreenwidth</ref>
+			</seealso>
+		</command>
+		<command id="readpreferencebitset">
+			<canon>read preference bitset (index, bitnum)</canon>
+			<shortname>read preference bitset</shortname>
+			<description>
+				Returns the value (true or false) of one of the bitsets in the Preference Bitsets,
+				Active-time Battle Bitsets or Backwards-compatibility Bitsets
+				menus (in the General Game Settings menu).
+				You can use this command if there isn't a dedicated command to read the bitset,
+				such as <ref>extendedscancodesenabled</ref>.
+				Get the appropriate values of <p>index</p> (which should be 101 or 177) and <p>bitnum</p>
+				(which should be 0 to 31)
+				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				For example "Dead heroes gain share of experience" is <tt>read preference bitset(177, 3)</tt>.
+			</description>
+			<seealso>
+				<ref>writepreferencebitset</ref>
+			</seealso>
+		</command>
+		<command id="writepreferencebitset">
+			<canon>write preference bitset (index, bitnum, value)</canon>
+			<shortname>write preference bitset</shortname>
+			<description>
+				Sets the <p>value</p> (true or false) of one of the bitsets in the Preference Bitsets,
+				Active-time Battle Bitsets or Backwards-compatibility Bitsets
+				menus (in the General Game Settings menu).
+				You can use this command if there isn't a dedicated command to write the bitset,
+				such as <ref>setbattlewaitmode</ref>.
+				Get the appropriate values of <p>index</p> (which should be 101 or 177) and <p>bitnum</p>
+				(which should be 0 to 31)
+				by searching <a href="https://rpg.hamsterrepublic.com/ohrrpgce/GEN">this wiki article</a>.
+				For example you can turn on "Heroes use Walk in Place animation while idle" with
+				<tt>write preference bitset(177, 26, true)</tt>.
+				<danger>
+					Use common sense. Some bitsets, such as "Don't limit max tags to 1000" might be disastrous
+					to change in the middle of a game!
+					Or they might have no effect.
+				</danger>
+			</description>
+			<seealso>
+				<ref>readpreferencebitset</ref>
 			</seealso>
 		</command>
 
