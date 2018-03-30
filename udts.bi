@@ -119,8 +119,8 @@ TYPE MenuDef
   itemspacing as integer 'pixels added to the default item spacing.
                           'negative shrinks, positive grows. This
                           'alters the vertical size of the whole menu!
-  on_close  as integer 'script trigger
-  esc_menu  as integer
+  on_close  as integer   'Script trigger
+  esc_menu  as integer   'Cancel button close action: 0=just close, >0 is menu ID + 1 to open in-place
   Declare Destructor () 'defined in menus.bas
 END TYPE
 
