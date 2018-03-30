@@ -170,7 +170,9 @@ END SUB
 ' if not immediately calling usemenu.
 SUB correct_menu_state (state as MenuState)
  WITH state
-  .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
+  'If there is no selection (.pt = .first - 1) because there are no selectable options, don't force one.
+  'But if the menu shrunk and now .pt > .last, do change .pt.
+  IF .pt >= .first THEN .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
   ' If the bottom of the menu is above the bottom of the screen, scroll up
   .top = large(small(.top, .last - .size), .first)
   ' Selected item must be visible (unless the menu is empty)
@@ -940,9 +942,14 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  correct_menu_state state
 END SUB
 
-' Make sure .pt is valid, move it to the next visible menu item if the current one is hidden.
+PRIVATE FUNCTION visible_and_selectable(item as MenuDefItem) as bool
+ RETURN item.unselectable = NO AND _
+        NOT (item.disabled AND item.hide_if_disabled)
+END FUNCTION
+
+' Make sure .pt is valid, move it to the next visible menu item if the current one is hidden/unselectable.
 ' This only works correctly if you haven't already called SortMenuItems!
-' Does no update .top (not a substitute for correct_menu_state).
+' Does not update .top (not a substitute for correct_menu_state).
 ' Note that this is a substitue for what usemenu does, but is specific to MenuDef's
 ' troublesome shuffling of hidden of menu items to the end.
 SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
@@ -954,8 +961,8 @@ SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
    selecteditem = NULL
   END IF
   SortMenuItems menu
-  ' First forwards look for the next visible item
-  WHILE selecteditem ANDALSO (selecteditem->disabled AND selecteditem->hide_if_disabled)
+  ' First forwards look for the next visible and selectable item
+  WHILE selecteditem ANDALSO visible_and_selectable(*selecteditem) = NO
    selecteditem = selecteditem->trueorder.next
   WEND
   IF selecteditem THEN
@@ -966,14 +973,14 @@ SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
     END IF
    NEXT i
   END IF
-  ' otherwise pick the last visible one
+  ' otherwise pick the last visible and selectable one
   FOR i as integer = .numitems - 1 TO 0 STEP -1
-   IF (.items[i]->disabled AND .items[i]->hide_if_disabled) = NO THEN
+   IF visible_and_selectable(*.items[i]) THEN
     state.pt = i
     EXIT SUB
    END IF
   NEXT
-  ' The menu is empty
+  ' The menu has no selectable items
   state.pt = -1
  END WITH
 END SUB
