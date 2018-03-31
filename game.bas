@@ -2963,38 +2963,7 @@ SUB update_menu_items ()
   WITH menus(menunum)
    DIM changed as bool = NO
    FOR idx as integer = 0 TO .numitems - 1
-    WITH *.items[idx]
-     DIM remem_disabled as bool = .disabled
-     DIM remem_unselectable as bool = .unselectable
-     .disabled = NO
-     .unselectable = NO
-     IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
-     IF .t = mtypeLabel THEN
-      IF .sub_t = lbDisabled THEN .disabled = YES
-      'lbUnselectable: don't disable, so that the text color is normal
-      IF .sub_t = lbUnselectable THEN .unselectable = YES
-     END IF
-     IF .t = mtypeSpecial THEN
-      ' Minimap and Save may be disabled on this map
-      IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES
-      IF .sub_t = spSaveMaybe AND gmap(3) = 0 THEN .disabled = YES
-      ' TV Safe Margin disabled on backends that don't support it
-      IF .sub_t = spMargins AND NOT supports_safe_zone_margin() THEN .disabled = YES
-      ' Purchases disabled on platforms that don't have a supported store
-      IF .sub_t = spPurchases AND NOT supports_in_app_purchases() THEN .disabled = YES
-      IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
-       .disabled = YES
-       IF supports_fullscreen_well() THEN
-        DIM fullscreen as bool
-        IF try_check_fullscreen(fullscreen) THEN
-         IF fullscreen ANDALSO .sub_t = spWindowed THEN .disabled = NO
-         IF fullscreen = NO ANDALSO .sub_t = spFullscreen THEN .disabled = NO
-        END IF
-       END IF
-      END IF
-     END IF
-     IF remem_disabled <> .disabled OR remem_unselectable <> .unselectable THEN changed = YES
-    END WITH
+    changed OR= update_menu_item(*.items[idx])
    NEXT idx
    IF changed = YES THEN
     ' Update .pt, .top, etc
@@ -3004,6 +2973,42 @@ SUB update_menu_items ()
  NEXT menunum
  update_menu_states
 END SUB
+
+' Return true if the item changed
+FUNCTION update_menu_item (mi as MenuDefItem) as bool
+ WITH mi
+  DIM remem_disabled as bool = .disabled
+  DIM remem_unselectable as bool = .unselectable
+  .disabled = NO
+  .unselectable = NO
+  IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
+  IF .t = mtypeLabel THEN
+   IF .sub_t = lbDisabled THEN .disabled = YES
+   'lbUnselectable: don't disable, so that the text color is normal
+   IF .sub_t = lbUnselectable THEN .unselectable = YES
+  END IF
+  IF .t = mtypeSpecial THEN
+   ' Minimap and Save may be disabled on this map
+   IF .sub_t = spMapMaybe AND gmap(2) = 0 THEN .disabled = YES
+   IF .sub_t = spSaveMaybe AND gmap(3) = 0 THEN .disabled = YES
+   ' TV Safe Margin disabled on backends that don't support it
+   IF .sub_t = spMargins AND NOT supports_safe_zone_margin() THEN .disabled = YES
+   ' Purchases disabled on platforms that don't have a supported store
+   IF .sub_t = spPurchases AND NOT supports_in_app_purchases() THEN .disabled = YES
+   IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
+    .disabled = YES
+    IF supports_fullscreen_well() THEN
+     DIM fullscreen as bool
+     IF try_check_fullscreen(fullscreen) THEN
+      IF fullscreen ANDALSO .sub_t = spWindowed THEN .disabled = NO
+      IF fullscreen = NO ANDALSO .sub_t = spFullscreen THEN .disabled = NO
+     END IF
+    END IF
+   END IF
+  END IF
+  RETURN remem_disabled <> .disabled OR remem_unselectable <> .unselectable
+ END WITH
+END FUNCTION
 
 FUNCTION game_usemenu (state as MenuState, menu as MenuDef) as bool
  RETURN usemenu(state, menu, csetup(ccUp), csetup(ccDown))
