@@ -1448,8 +1448,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
  state.active = YES
  init_menu_state state, menu
 
- ensure_normal_palette
- setkeys
+ push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
@@ -1460,7 +1459,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
 
   IF keyval(scF1) > 1 THEN show_help("game_scripterr")
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0 'ignore
      EXIT DO
@@ -1530,8 +1529,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp)
   dowait
  LOOP
  ClearMenuData menu
- setkeys
- restore_previous_palette
+ pop_gfxio_state
  recursivecall -= 1
 
  next_interpreter_check_time = TIMER + scriptCheckDelay
@@ -1572,9 +1570,8 @@ FUNCTION script_interrupt () as integer
 
  state.active = YES
  init_menu_state state, menu
- ensure_normal_palette()
 
- setkeys
+ push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
@@ -1585,7 +1582,7 @@ FUNCTION script_interrupt () as integer
 
   IF keyval(scF1) > 1 THEN show_help("game_script_interrupt")
 
-  IF enter_or_space() THEN
+  IF enter_space_click(state) THEN
    SELECT CASE state.pt
     CASE 0 'continue
      ret = NO
@@ -1636,9 +1633,8 @@ FUNCTION script_interrupt () as integer
   dowait
  LOOP
  ClearMenuData menu
- setkeys
 
- restore_previous_palette()
+ pop_gfxio_state
  clearpage vpage
  setvispage vpage
  next_interpreter_check_time = TIMER + scriptCheckDelay
