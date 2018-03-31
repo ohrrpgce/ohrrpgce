@@ -1925,11 +1925,7 @@ SUB live_preview_menu ()
 
  REDIM tooltips() as string
 
- ensure_normal_palette
- force_use_mouse += 1
- DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
- showmousecursor
- setkeys
+ push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
@@ -2010,9 +2006,6 @@ SUB live_preview_menu ()
   setvispage vpage
   dowait
  LOOP
- setkeys
- restore_previous_palette
- force_use_mouse -= 1
- setcursorvisibility(prev_mouse_vis)
+ pop_gfxio_state
  freepage holdscreen
 END SUB

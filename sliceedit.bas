@@ -463,15 +463,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--Ensure all the slices are updated before the loop starts
  RefreshSliceTreeScreenPos ses.draw_root
 
- DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
- showmousecursor
- force_use_mouse += 1
- #IFDEF IS_GAME
-  DIM resolution_was_unlocked as bool = resolution_unlocked()
-  unlock_resolution gen(genResolutionX), gen(genResolutionY)
- #ENDIF
- ensure_normal_palette
- setkeys
+ push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
@@ -768,17 +760,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr)
  '--free the clipboard if there is something in it
  IF ses.clipboard THEN DeleteSlice @ses.clipboard
 
- restore_previous_palette
- clearkeys
- setcursorvisibility(prev_mouse_vis)
- force_use_mouse -= 1
- #IFDEF IS_GAME
-  'Make sure not to lock resolution when leaving recursive slice_editor() call
-  IF resolution_was_unlocked = NO THEN
-   set_resolution(gen(genResolutionX), gen(genResolutionY))
-   lock_resolution
-  END IF
- #ENDIF
+ pop_gfxio_state
 END SUB
 
 FUNCTION SliceEditState.curslice() as Slice ptr

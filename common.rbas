@@ -141,6 +141,13 @@ DIM SHARED lastlogfile as string
 DIM SHARED debug_log_mutex as any ptr
 debug_log_mutex = mutexcreate
 
+TYPE SavedGfxIOState
+ prev_mouse_vis as CursorVisibility
+ resolution_was_unlocked as bool
+END TYPE
+
+REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unused
+
 '.stt lump read into memory
 DIM SHARED global_strings_buffer as string
 
@@ -205,6 +212,42 @@ SUB restore_previous_palette ()
   setpal black()
  END IF
 #ENDIF
+END SUB
+
+'Call this when opening an editor, menu, error message, etc, which should be shown
+'with working mouse, normal master palette, and resizable window.
+'Mostly used in-game, but also useful in Custom since some menus hide the mouse cursor.
+SUB push_and_reset_gfxio_state ()
+ REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) + 1)
+ WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
+  ensure_normal_palette
+  .prev_mouse_vis = getcursorvisibility()
+  showmousecursor
+  force_use_mouse += 1
+  setkeys
+  #IFDEF IS_GAME
+   .resolution_was_unlocked = resolution_unlocked()
+   unlock_resolution gen(genResolutionX), gen(genResolutionY)
+  #ENDIF
+ END WITH
+END SUB
+
+'Undoes push_and_reset_gfxio_state
+SUB pop_gfxio_state ()
+ IF UBOUND(gfxio_state_stack) < 0 THEN showerror "Unmatched pop_gfxio_state call!" : EXIT SUB
+ WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
+  restore_previous_palette
+  setcursorvisibility(.prev_mouse_vis)
+  force_use_mouse -= 1
+  setkeys
+  #IFDEF IS_GAME
+   IF .resolution_was_unlocked = NO THEN
+    set_resolution(gen(genResolutionX), gen(genResolutionY))
+    lock_resolution
+   END IF
+  #ENDIF
+ END WITH
+ REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) - 1)
 END SUB
 
 FUNCTION filesize (file as string) as string
@@ -2283,9 +2326,7 @@ SUB show_help(helpkey as string)
  DIM search_num_matches as integer
 
  '--Now loop displaying help
- DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
- showmousecursor
- ensure_normal_palette
+ push_and_reset_gfxio_state
  setkeys YES
  DO
   setwait 17
@@ -2453,8 +2494,7 @@ SUB show_help(helpkey as string)
   dowait
  LOOP
 
- setcursorvisibility(prev_mouse_vis)
- restore_previous_palette
+ pop_gfxio_state
  freepage holdscreen
  DeleteSlice @help_root
 END SUB
@@ -2662,17 +2702,12 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
  init_menu_state state, menu
  state.pt = defaultval
 
- DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
- showmousecursor
- force_use_mouse += 1
-
- ensure_normal_palette
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer
  holdscreen = allocatepage
  copypage vpage, holdscreen
 
- setkeys
+ push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
@@ -2727,10 +2762,7 @@ FUNCTION multichoice(capt as string, choices() as string, defaultval as integer=
   setvispage vpage
   dowait
  LOOP
- setkeys
- restore_previous_palette
- setcursorvisibility(prev_mouse_vis)
- force_use_mouse -= 1
+ pop_gfxio_state
  copypage holdscreen, vpage
  freepage holdscreen
  ClearMenuData menu
