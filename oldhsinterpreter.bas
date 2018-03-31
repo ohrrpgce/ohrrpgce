@@ -1005,7 +1005,7 @@ scriptwatcher mode, 0
 END SUB
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
-SUB scriptwatcher (byref mode as integer, byval drawloop as integer)
+SUB scriptwatcher (byref mode as integer, byval drawloop as bool)
 STATIC localsscroll as integer
 STATIC globalsscroll as integer
 STATIC stringsscroll as integer
@@ -1014,9 +1014,10 @@ STATIC selectedscript as integer
 STATIC bottom as integer
 STATIC viewmode as integer
 STATIC lastscript as integer
+'drawloop: if true, only draw the script debugger overlay (called from displayall); not interactive.
 'viewmode: 0 = script state, 1 = local variables, 2 = global variables, 3 = strings, 4 = timers
-'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= clean and sane
-'2 = interactive (display game and step on input), 3 = clean and sane
+'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= interactive:
+'2 = normal mode, 3 = display game and step tick-by-tick on input
 
 DIM plots as string
 DIM marginstr as string
@@ -1025,14 +1026,10 @@ REDIM stringlines(0 TO 0) as string
 DIM linelen as integer
 DIM page as integer
 
-DIM resetpal as integer = NO  'need setpal master()
-
-IF mode >= 2 THEN
- 'In case of a fade out
- REDIM default_palette(255) as RGBcolor
- loadpalette default_palette(), gam.current_master_palette
- setpal default_palette()
- resetpal = YES
+DIM saved_gfxio_state as bool
+IF mode >= 2 AND drawloop = NO THEN
+ push_and_reset_gfxio_state
+ saved_gfxio_state = YES
 END IF
 
 FOR i as integer = 0 TO UBOUND(plotstr)
@@ -1301,8 +1298,8 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
 
 END IF 'end drawing scripts list
 
-IF mode > 1 AND drawloop = 0 THEN
- setvispage page
+IF mode > 1 AND drawloop = NO THEN
+ setvispage page, NO
  DIM w as integer = waitforanykey
  IF w = scEsc OR w = scF10 THEN
   mode = 0
@@ -1394,9 +1391,9 @@ END IF
 
 'in sane mode, stray keypresses are not passed through
 '(the mode = 2 thrown in to prevent an infinite loop, no idea how or why)
-IF drawloop = 0 AND mode = 2 THEN GOTO redraw
+IF drawloop = NO AND mode = 2 THEN GOTO redraw
 
-IF resetpal THEN setpal master()
+IF saved_gfxio_state THEN pop_gfxio_state
 
 next_interpreter_check_time = TIMER + scriptCheckDelay
 interruption_grace_period = YES
