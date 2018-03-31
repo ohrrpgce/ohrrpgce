@@ -4462,7 +4462,7 @@ end</example>
 			<description>
 				Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>),
 				move the menu selection cursor to point to that menu item.
-				Works even for Label menu items which "Can't be selected".
+				Works even for unselectable menu items (see <ref>menuitemselectable</ref>).
 			</description>
 		</command>
 		<command id="selectedmenuitem">
@@ -4470,6 +4470,37 @@ end</example>
 			<shortname>selected menu item</shortname>
 			<description>Returns the handle for the selected menu item in the topmost menu, <ref>false</ref> if no menus are open, or, when given an optional <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>) returns the selected item in that menu.</description>
 		</command>
+
+		<command id="menuitemdisabled">
+			<canon>menu item disabled(menu item handle)</canon>
+			<shortname>menu item disabled</shortname>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				returns whether that menu item is disabled (true or false).
+				Menu items can be disabled for a range of reasons such as tag conditions.
+			</description>
+		</command>
+		<command id="menuitemvisible">
+			<canon>menu item visible(menu item handle)</canon>
+			<shortname>menu item visible</shortname>
+			<description>
+				Given a <p>menu item handle</p>,
+				returns whether that menu item is visible (true or false).
+				A menu item is hidden only if it's disabled and has the "Hide if disabled" bit set.
+			</description>
+		</command>
+		<command id="menuitemselectable">
+			<canon>menu item selectable(menu item handle)</canon>
+			<shortname>menu item selectable</shortname>
+			<description>
+				Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>),
+				returns true or false, telling whether that menu item is visible and can be selected by normal controls,
+				(rather than being skipped over).
+				<lb/>
+				Currently only hidden menu items and Labels which "Can't be selected" return false.
+			</description>
+		</command>
+
 		<command id="usemenuitem">
 			<canon>use menu item(menu item handle)</canon>
 			<shortname>use menu item</shortname>
@@ -4555,6 +4586,9 @@ end</example>
 				returns the handle for the menu item at that position, or <p>false</p> if none.
 				If multiple menus overlap at that location the top-most one is returned.
 				You can find the menu that the menu item belongs to with <ref>parentmenu</ref>.
+				<note>
+					The menu item might not actually be selectable. Check with <ref>menuitemselectable</ref>.
+				</note>
 			</description>
 			<seealso>
 				<ref>selectedmenuitem</ref>

@@ -50,6 +50,7 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
       and alias "menuitembit:close menu when activated",
       and missing constant "menubit:remember selection" [Ralph]
     * "get/set menu cancel button menu" and "get/set menu item spacing" [Ralph]
+    * "menu item disabled", "menu item visible", "menu item selectable" [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
     * "read preference bitset", "write preference bitset" [Ralph]
 

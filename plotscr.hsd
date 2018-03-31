@@ -693,6 +693,9 @@ define function, begin
 668,pathfindheroto,4,0,0,0,0  # Make a hero pathfind to a specific position (hero, tile x, tile y, stop after stuckticks)
 669,herochasesnpc,4,0,0,0,0   # Make a hero chase an NPC (hero, target npc, stop when reached, stop after stuckticks)
 670,cancelherowalk,1,0        # Cancel walkhero, pathfindheroto, or herochasesnpc command (hero)
+671,menuitemselectable,1,0    # Whether selectable and not hidden
+672,menuitemdisabled,1,0      # Whether disabled
+673,menuitemvisible,1,0       # Isn't hidden
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

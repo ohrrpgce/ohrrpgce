@@ -1158,6 +1158,25 @@ SUB script_functions(byval cmdid as integer)
     .Pos += pos - startpos
    END WITH
   END IF
+ CASE 671 '--menu item selectable
+  IF valid_menu_item_handle_ptr(retvals(0), mi) THEN
+   update_menu_item *mi
+   scriptret = IIF(mi->visible ANDALSO NOT mi->unselectable, 1, 0)
+  END IF
+ CASE 672 '--menu item disabled
+  IF valid_menu_item_handle_ptr(retvals(0), mi) THEN
+   update_menu_item *mi
+   scriptret = IIF(mi->disabled, 1, 0)
+  ELSE
+   scriptret = 1
+  END IF
+ CASE 673 '--menu item visible
+  IF valid_menu_item_handle_ptr(retvals(0), mi) THEN
+   update_menu_item *mi
+   scriptret = IIF(mi->visible, 1, 0)
+  ELSE
+   scriptret = 1
+  END IF
 
  CASE 135'--put hero
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
