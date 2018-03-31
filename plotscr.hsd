@@ -1908,10 +1908,10 @@ define constant, begin
 2,menutype:menu
 3,menutype:textbox
 4,menutype:script
-0,menucaption:selectable
-1,menucaption:disabled
-2,menucaption:unselectable
-2,menucaption:cant be selected
+0,menulabel:selectable
+1,menulabel:disabled
+2,menulabel:unselectable
+2,menulabel:cant be selected
 0,menuspecial:items
 1,menuspecial:spells
 2,menuspecial:status

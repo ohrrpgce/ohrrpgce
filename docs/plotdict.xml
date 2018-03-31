@@ -4653,16 +4653,16 @@ end</example>
 						For <tt>menutype:label</tt> use the constants:
 						<ul>
 							<li>
-								<p>menucaption:selectable</p>
+								<p>menulabel:selectable</p>
 							</li>
 							<li>
-								<p>menucaption:disabled</p> -
+								<p>menulabel:disabled</p> -
 								The menu item is always disabled, regardless of tags.
 								Hence, the Set Tag and Toggle Tag options and the
 								"Close menu when activated" bitset are ignored.
 							</li>
 							<li>
-								<p>menucaption:unselectable</p> - (aka <p>menucaption:cant be selected</p>)
+								<p>menulabel:unselectable</p> - (aka <p>menulabel:cant be selected</p>)
 								Can't be selected with normal controls.
 								Can still be selected using <ref>selectmenuitem</ref>
 								(but can't be activated).

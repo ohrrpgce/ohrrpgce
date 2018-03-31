@@ -42,7 +42,7 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
     * "create line", "slice is line", "get line color", "set line color" [Ralph]
     * "force mount vehicle", "current vehicle id", "current vehicle npc" [James]
     * Missing constants for "get/set menu item subtype":
-      menucaption:selectable, menucaption:disabled, menucaption:unselectable,
+      menulabel:selectable, menulabel:disabled, menulabel:unselectable,
       menuspecial:map always, menuspecial:save always, menuspecial:margins,
       menuspecial:purchases, menuspecial:windowed, menuspecial:fullscreen,
       menuspecial:music volume, menuspecial:sound volume,
