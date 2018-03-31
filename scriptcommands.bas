@@ -5114,12 +5114,12 @@ FUNCTION assign_menu_handles (byref menu as MenuDef) as integer
  RETURN new_handle
 END FUNCTION
 
-FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=YES) as integer
+FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as bool=YES) as integer
  IF menuslot >= 0 AND menuslot <= topmenu THEN
   WITH menus(menuslot)
    IF mislot >= 0 AND mislot < .numitems THEN
     WITH *.items[mislot]
-     IF visible_only AND .disabled AND .hide_if_disabled THEN RETURN 0
+     IF visible_only ANDALSO NOT .visible THEN RETURN 0
      RETURN .handle
     END WITH
    END IF
@@ -5128,13 +5128,13 @@ FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as int
  RETURN 0
 END FUNCTION
 
-FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=YES) as integer
+FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as bool=YES) as integer
  DIM i as integer
  DIM cap as STRING
  WITH menus(menuslot)
   FOR i = mislot TO .numitems - 1
    WITH *.items[i]
-    IF visible_only AND .disabled AND .hide_if_disabled THEN CONTINUE FOR
+    IF visible_only AND NOT .visible THEN CONTINUE FOR
     cap = get_menu_item_caption(*menus(menuslot).items[i], menus(menuslot))
     IF cap = s THEN
      RETURN i

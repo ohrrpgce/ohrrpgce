@@ -818,6 +818,10 @@ END SUB
 '==========================================================================================
 
 
+FUNCTION MenuDefItem.visible() as bool
+ RETURN disabled = NO OR hide_if_disabled = NO
+END FUNCTION
+
 'This initialises a menu if it has not been already
 SUB ClearMenuData(dat as MenuDef)
  DIM bits(0) as integer
@@ -893,7 +897,7 @@ SUB SortMenuItems(menu as MenuDef)
  i = 0
  mi = menu.first
  WHILE mi
-  IF (mi->disabled AND mi->hide_if_disabled) = 0 THEN
+  IF mi->visible THEN
    menu.items[i] = mi
    i += 1
   END IF
@@ -902,7 +906,7 @@ SUB SortMenuItems(menu as MenuDef)
  'append all invisible items
  mi = menu.first
  WHILE mi
-  IF mi->disabled AND mi->hide_if_disabled THEN
+  IF NOT mi->visible THEN
    menu.items[i] = mi
    i += 1
   END IF
@@ -957,22 +961,17 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
   IF .size = -1 THEN .size = 17
  END WITH
  ' Pick a suitable .pt
- sort_menu_and_select_visible_item menu, state
+ sort_menu_and_select_selectable_item menu, state
  ' Update .top
  correct_menu_state state
 END SUB
 
-PRIVATE FUNCTION visible_and_selectable(item as MenuDefItem) as bool
- RETURN item.unselectable = NO AND _
-        NOT (item.disabled AND item.hide_if_disabled)
-END FUNCTION
-
-' Make sure .pt is valid, move it to the next visible menu item if the current one is hidden/unselectable.
+' Make sure .pt is valid, move it to the next selectable menu item if the current one is hidden/unselectable.
 ' This only works correctly if you haven't already called SortMenuItems!
 ' Does not update .top (not a substitute for correct_menu_state).
 ' Note that this is a substitue for what usemenu does, but is specific to MenuDef's
 ' troublesome shuffling of hidden of menu items to the end.
-SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
+SUB sort_menu_and_select_selectable_item(menu as MenuDef, state as MenuState)
  WITH menu
   DIM selecteditem as MenuDefItem ptr
   IF state.pt >= 0 AND state.pt < .numitems THEN
@@ -982,7 +981,7 @@ SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
   END IF
   SortMenuItems menu
   ' First forwards look for the next visible and selectable item
-  WHILE selecteditem ANDALSO visible_and_selectable(*selecteditem) = NO
+  WHILE selecteditem ANDALSO (NOT selecteditem->visible OR selecteditem->unselectable)
    selecteditem = selecteditem->trueorder.next
   WEND
   IF selecteditem THEN
@@ -995,7 +994,7 @@ SUB sort_menu_and_select_visible_item(menu as MenuDef, state as MenuState)
   END IF
   ' otherwise pick the last visible and selectable one
   FOR i as integer = .numitems - 1 TO 0 STEP -1
-   IF visible_and_selectable(*.items[i]) THEN
+   IF .items[i]->visible AND NOT .items[i]->unselectable THEN
     state.pt = i
     EXIT SUB
    END IF
@@ -1022,7 +1021,7 @@ FUNCTION append_menu_item(byref menu as MenuDef, caption as string, byval t as i
  'rather than call SortMenuItems, shuffle hidden items down a slot and insert new item
  menu.items = REALLOCATE(menu.items, menu.numitems * SIZEOF(any ptr))
  FOR i = menu.numitems - 2 TO 0 STEP -1  'last item in array is garbage
-  IF menu.items[i]->disabled AND menu.items[i]->hide_if_disabled THEN
+  IF menu.items[i]->visible = NO THEN
    SWAP menu.items[i], menu.items[i + 1]
   ELSE
    EXIT FOR
@@ -1486,7 +1485,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     DIM col as integer
     col = menu_item_color(state, elem, .disabled, .unselectable, .col, .disabled_col, menu.textcolor, menu.disabled_textcolor)
 
-    IF NOT (.disabled ANDALSO .hide_if_disabled) THEN
+    IF .visible THEN
      position_menu_item menu, .text, i, where
      IF .t = mtypeSpecial THEN
       ' Check for menu items with bars behind
@@ -1539,7 +1538,7 @@ SUB position_menu (menu as MenuDef, byval page as integer)
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
    'hidden items used to matter for auto-width but not auto-height; now they don't for either
-   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
+   IF .visible = NO THEN CONTINUE FOR
    menu.rect.wide = large(menu.rect.wide, textwidth(.text) + bord * 2)
    menu.rect.high += 10
    IF i <> 0 THEN menu.rect.high += menu.itemspacing
@@ -1576,7 +1575,7 @@ FUNCTION count_menu_items (menu as MenuDef) as integer
  DIM count as integer = 0
  FOR i = 0 TO menu.numitems - 1
   WITH *menu.items[i]
-   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
+   IF .visible = NO THEN CONTINUE FOR
    count += 1
   END WITH
  NEXT i

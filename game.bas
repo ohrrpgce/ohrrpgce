@@ -2667,7 +2667,7 @@ FUNCTION add_menu (byval record as integer, byval allow_duplicate as bool=NO) as
   IF menus(topmenu).remember_selection THEN
    IF record <= UBOUND(remembered_menu_pts) THEN
     ' The menu hasn't been sorted yet, so the remembered .pt should be the
-    ' true slot of the menuitem to select. sort_menu_and_select_visible_item,
+    ' true slot of the menuitem to select. sort_menu_and_select_selectable_item,
     ' called from init_menu_state then finds the real .pt.
     mstates(topmenu).pt = remembered_menu_pts(record)
    END IF

@@ -55,8 +55,8 @@ DECLARE FUNCTION find_menu_item_handle (byval handle as integer, byref found_in_
 DECLARE FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer) as bool
 DECLARE FUNCTION assign_menu_item_handle (byref mi as menudefitem) as integer
 DECLARE FUNCTION assign_menu_handles (byref menu as menudef) as integer
-DECLARE FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as integer=yes) as integer
-DECLARE FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as integer=yes) as integer
+DECLARE FUNCTION menu_item_handle_by_slot(byval menuslot as integer, byval mislot as integer, byval visible_only as bool=YES) as integer
+DECLARE FUNCTION find_menu_item_slot_by_string(byval menuslot as integer, s as string, byval mislot as integer=0, byval visible_only as bool=YES) as integer
 
 DECLARE FUNCTION valid_item_slot(byval item_slot as integer) as bool
 DECLARE FUNCTION valid_item(byval itemid as integer) as bool

@@ -74,6 +74,9 @@ TYPE MenuDefItem EXTENDS BasicMenuItem
   close_when_activated as bool
   skip_close_script as bool
   dataptr   as any ptr  'Use this with caution!
+
+  'Not hidden. (Doesn't say whether currently on-screen!)
+  DECLARE FUNCTION visible() as bool
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
