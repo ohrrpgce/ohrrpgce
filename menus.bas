@@ -36,6 +36,10 @@ DIM force_use_mouse as integer = 0
 '                                 Generic MenuState Stuff
 '==========================================================================================
 
+FUNCTION MenuState.empty() as bool
+ RETURN last < first
+END FUNCTION
+
 'Whether there is a selected item
 FUNCTION MenuState.pt_valid() as bool
  RETURN pt >= first AND pt <= last
@@ -52,7 +56,7 @@ SUB init_menu_state (byref state as MenuState, menu() as SimpleMenuItem, menuopt
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
   .hover = -1
-  IF .first > .last THEN  'menu() empty
+  IF .empty() THEN
    .pt = .first - 1
   ELSE
    .pt = bound(.pt, .first, .last)  '.first <= .last
@@ -274,7 +278,7 @@ END FUNCTION
 
 'a version for menus with unselectable items, skip items which are .unselectable
 FUNCTION usemenu (state as MenuState, menu as MenuDef, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
- IF state.last < state.first THEN RETURN NO
+ IF state.empty() THEN RETURN NO
  DIM selectable(state.last) as bool
  FOR idx as integer = 0 TO state.last
   selectable(idx) = NOT menu.items[idx]->unselectable

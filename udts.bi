@@ -147,6 +147,7 @@ TYPE MenuState
   rect as RectType
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
 
+  DECLARE FUNCTION empty() as bool
   DECLARE FUNCTION pt_valid() as bool
 END TYPE
 
