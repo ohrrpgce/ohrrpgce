@@ -999,9 +999,17 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 296'--select menu item
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   mstates(menuslot).pt = mislot
-   mstates(menuslot).need_update = YES
+  IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot, mislot) THEN
+   update_menu_item *mi
+   'Note: you can select hidden items!
+   'After a tick, the selection should get moved to a valid item.
+   IF mi->unselectable THEN
+    'scripterr "Can't select unselectable menu item", serrInfo
+   ELSE
+    mstates(menuslot).pt = mislot
+    mstates(menuslot).need_update = YES
+    scriptret = 1
+   END IF
   END IF
  CASE 297'--parent menu
   IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
