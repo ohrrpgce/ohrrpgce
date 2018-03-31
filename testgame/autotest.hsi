@@ -139,6 +139,8 @@ define constant, begin
 10,atk:Ice Attack
 11,atk:Self3End
 2,menu:Menu from menu
+3,menu:1st item unselectble
+4,menu:Nothing selectable
 0,enemy:Mushboom
 1,enemy:Run Forcer
 2,enemy:Victory Forcer

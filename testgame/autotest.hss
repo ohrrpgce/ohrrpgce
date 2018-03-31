@@ -2518,16 +2518,49 @@ script, menu tests, begin
   catbus   := add menu item(m), $0="Catbus",   set menu item caption(catbus, 0), w
   duiker   := add menu item(m), $0="Duiker",   set menu item caption(duiker, 0), w
 
-  # Hide when disabled 
-  set menu item bit(catbus, 0, true), w
-  if(get menu item bit(catbus, 0) <> true) then($0="menu item bit readback failed", crash)
-  # Disable now
+  # Test disabled, hidden, and unselectable items
+  set menu item bit(catbus, menuitembit:hide when disabled, true), w
+  assert(get menu item bit(catbus, menuitembit:hide when disabled) == true)
+  # Disable and hide now
   set menu item type(catbus, menutype:label)
-  set menu item subtype(catbus, 1), w
+  set menu item subtype(catbus, menulabel:disabled)
+  # (menu item disabled/visible/selectable should reflect changes immediately without needing a wait)
+  assert(menu item disabled(catbus) == true)
+  assert(menu item visible(catbus) == false)
+  assert(menu item selectable(catbus) == false)
+  w
   # Don't hide
-  set menu item bit(catbus, 0, false), w
+  set menu item bit(catbus, menuitembit:hide when disabled, false)
+  assert(menu item disabled(catbus) == true)
+  assert(menu item visible(catbus) == true)
+  assert(menu item selectable(catbus) == true)
+  w
+  # Un-selectable
+  set menu item subtype(catbus, menulabel:unselectable)
+  assert(menu item disabled(catbus) == false)
+  assert(menu item visible(catbus) == true)
+  assert(menu item selectable(catbus) == false)
+  w
   # Re-enable
-  set menu item subtype(catbus, 0), w
+  set menu item subtype(catbus, menulabel:selectable)
+  assert(menu item disabled(catbus) == false)
+  assert(menu item visible(catbus) == true)
+  assert(menu item selectable(catbus) == true)
+  w
+
+  # Test unselectable menu items are unselectable
+  # (Note: you can select hidden items! Keeping for backcompat?)
+  select menu item(catbus), w
+  assert(selected menu item(m) == catbus)
+  set menu item subtype(catbus, menulabel:unselectable)
+  w  # Requires a wait to take effect
+  assert(selected menu item(m) == duiker)  # The next selectable item
+  assert(select menu item(antelope) == true)
+  assert(select menu item(catbus) == false)  # Unselectable, fails
+  assert(selected menu item(m) == antelope)
+  set menu item subtype(catbus, menulabel:selectable)
+  select menu item(catbus)
+  assert(selected menu item(m) == catbus)
 
   set menu item settag(catbus, 3)
   if(get menu item settag(catbus) <> 3) then($0="menu item settag readback failed", crash)
@@ -2717,6 +2750,22 @@ script, menu tests, begin
   # This time, closing the menu should close the textbox too
   close menu(m),w
   assert(current text box ==-1)
+
+  # Test edgecases for menus without selectable menu item.
+  # Open a menu where the first item is unselectable:
+  m := open menu(3)
+  assert(menu item slot(selected menu item(m)) == 1)
+  w
+  close menu(m)
+  # Empty menu
+  m := create menu()
+  assert(selected menu item == 0)
+  close menu(m)
+  # Open a menu with no selectable items
+  m := open menu(4)
+  assert(selected menu item == 0)
+  w
+  close menu(m)
 
   menu scroll tests
 end
