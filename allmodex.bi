@@ -222,7 +222,6 @@ DECLARE FUNCTION mxs_frame_to_tileset(spr as Frame ptr) as Frame ptr
 
 DECLARE SUB setwait (ms as double, flagms as double = 0)
 DECLARE FUNCTION dowait () as bool
-DECLARE SUB enable_speed_control(setting as bool = YES)
 DECLARE FUNCTION get_tickcount() as integer
 
 '==========================================================================================
@@ -696,6 +695,7 @@ extern key2text(3,53) as string*1
 extern fonts() as Font ptr
 extern global_tog as integer
 extern max_display_fps as integer
+extern use_speed_control as bool
 extern user_toggled_fullscreen as bool
 extern default_page_bitdepth as integer
 

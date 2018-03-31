@@ -144,6 +144,7 @@ debug_log_mutex = mutexcreate
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
  resolution_was_unlocked as bool
+ use_speed_control as bool
 END TYPE
 
 REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unused
@@ -229,6 +230,8 @@ SUB push_and_reset_gfxio_state ()
    .resolution_was_unlocked = resolution_unlocked()
    unlock_resolution gen(genResolutionX), gen(genResolutionY)
   #ENDIF
+  .use_speed_control = use_speed_control
+  use_speed_control = YES
  END WITH
 END SUB
 
@@ -246,6 +249,7 @@ SUB pop_gfxio_state ()
     lock_resolution
    END IF
   #ENDIF
+  use_speed_control = .use_speed_control
  END WITH
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) - 1)
 END SUB

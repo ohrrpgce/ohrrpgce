@@ -4513,9 +4513,9 @@ SUB script_functions(byval cmdid as integer)
    apply_game_window_settings()
   END IF
  CASE 647'--_cancel runfast
-  enable_speed_control YES
+  use_speed_control = YES
  CASE 648'--_runfast
-  enable_speed_control NO
+  use_speed_control = NO
  CASE 649'--multdiv
   'Return int(float(a)*b/c), clamped to a 32-bit int, and rounded
   '(Break ties towards +inf, since that's what JS does; FB/x86 breaks ties towards even)

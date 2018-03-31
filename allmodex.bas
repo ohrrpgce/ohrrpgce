@@ -195,7 +195,7 @@ dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
 dim shared tickcount as integer = 0
-dim shared use_speed_control as bool = YES
+dim use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim shared requested_framerate as double    'Set by last setwait
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
@@ -528,7 +528,7 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		return 1
 	elseif opt = "runfast" then
 		debuginfo "Running without speed control"
-		enable_speed_control NO
+		use_speed_control = NO
 		return 1
 	elseif opt = "maxfps" then
 		dim fps as integer = str2int(arg, -1)
@@ -1226,10 +1226,6 @@ end sub
 '                                     Waits/Framerate
 '==========================================================================================
 
-
-sub enable_speed_control(setting as bool = YES)
-	use_speed_control = setting
-end sub
 
 'Decides whether to time when to display the next frame (deciding whether to skip
 'a frame or not) based on when the last gfx_present returned instead of when it

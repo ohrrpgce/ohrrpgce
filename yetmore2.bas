@@ -1151,7 +1151,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  ELSEIF opt = "autotest" THEN
   debug "Autotesting mode enabled!"
   autotestmode = YES
-  enable_speed_control NO
+  use_speed_control = NO
   RETURN 1 'arg not used
  ELSEIF opt = "scriptlog" THEN
   gam.script_log.enabled = YES
