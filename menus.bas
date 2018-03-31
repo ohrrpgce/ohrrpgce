@@ -186,14 +186,23 @@ END SUB
 ' if not immediately calling usemenu.
 SUB correct_menu_state (state as MenuState)
  WITH state
-  'If there is no selection (.pt = .first - 1) because there are no selectable options, don't force one.
-  'But if the menu shrunk and now .pt > .last, do change .pt.
-  IF .pt >= .first THEN .pt = small(large(.pt, .first), .last)  '=last when last<first, ie. menu empty
+  IF .empty() THEN
+   .pt = .first - 1
+  ELSE
+   .pt = bound(.pt, .first, .last)
+  END IF
+ END WITH
+ correct_menu_state_top state
+ mouse_update_hover state
+END SUB
+
+' Just fixup state.top
+SUB correct_menu_state_top (state as MenuState)
+ WITH state
   ' If the bottom of the menu is above the bottom of the screen, scroll up
   .top = large(small(.top, .last - .size), .first)
   ' Selected item must be visible (unless the menu is empty)
   IF .pt_valid() THEN .top = bound(.top, .pt - .size, .pt)
-  mouse_update_hover state
  END WITH
 END SUB
 
@@ -967,7 +976,7 @@ SUB init_menu_state (byref state as MenuState, menu as MenuDef)
  ' Pick a suitable .pt
  sort_menu_and_select_selectable_item menu, state
  ' Update .top
- correct_menu_state state
+ correct_menu_state_top state
 END SUB
 
 ' Make sure .pt is valid, move it to the next selectable menu item if the current one is hidden/unselectable.
