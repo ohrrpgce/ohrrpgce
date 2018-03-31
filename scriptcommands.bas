@@ -582,9 +582,11 @@ END SUB
 
 ' This entry point is called from the script interpreter.
 SUB script_functions(byval cmdid as integer)
+ 'These variables are uninitialised for speed
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
  DIM npcref as integer = ANY
+ DIM mi as MenuDefItem ptr = ANY
  DIM i as integer = ANY
  scriptret = 0
 
@@ -887,16 +889,12 @@ SUB script_functions(byval cmdid as integer)
    mstates(menuslot).need_update = YES
   END IF
  CASE 277'--read menu item int
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   WITH menus(menuslot)
-    scriptret = read_menu_item_int(*.items[mislot], retvals(1))
-   END WITH
+  IF valid_menu_item_handle_ptr(retvals(0), mi) THEN
+   scriptret = read_menu_item_int(*mi, retvals(1))
   END IF
  CASE 278'--write menu item int
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   WITH menus(menuslot)
-    write_menu_item_int(*.items[mislot], retvals(1), retvals(2))
-   END WITH
+  IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot) THEN
+   write_menu_item_int(*mi, retvals(1), retvals(2))
    mstates(menuslot).need_update = YES
   END IF
  CASE 279'--create menu
@@ -926,15 +924,15 @@ SUB script_functions(byval cmdid as integer)
    mstates(menuslot).need_update = YES
   END IF
  CASE 285'--get menu item caption
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
+  IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot) THEN
    IF valid_plotstr(retvals(1)) THEN
-    plotstr(retvals(1)).s = get_menu_item_caption(*menus(menuslot).items[mislot], menus(menuslot))
+    plotstr(retvals(1)).s = get_menu_item_caption(*mi, menus(menuslot))
    END IF
   END IF
  CASE 286'--set menu item caption
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
+  IF valid_menu_item_handle_ptr(retvals(0), mi) THEN
    IF valid_plotstr(retvals(1)) THEN
-    menus(menuslot).items[mislot]->caption = plotstr(retvals(1)).s
+    mi->caption = plotstr(retvals(1)).s
    END IF
   END IF
  CASE 287'--get level mp
@@ -1084,8 +1082,8 @@ SUB script_functions(byval cmdid as integer)
   IF txt.showing = YES THEN scriptret = txt.id
   IF immediate_showtextbox = NO ANDALSO gam.want.box > 0 THEN scriptret = gam.want.box
  CASE 432 '--use menu item
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   activate_menu_item(*menus(menuslot).items[mislot], menuslot)
+  IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot) THEN
+   activate_menu_item(*mi, menuslot)
   END IF
  CASE 438 '--reset game
   gam.want.resetgame = YES
@@ -1113,16 +1111,16 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 517'--menu item by true slot
   IF valid_menu_handle(retvals(0), menuslot) THEN
-   DIM menuitem as MenuDefItem ptr = dlist_nth(menus(menuslot).itemlist, retvals(1))
-   IF menuitem THEN
-    scriptret = menuitem->handle
+   mi = dlist_nth(menus(menuslot).itemlist, retvals(1))
+   IF mi THEN
+    scriptret = mi->handle
    ELSE
     scriptret = 0
    END IF
   END IF
  CASE 518'--menu item true slot
-  IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   scriptret = dlist_find(menus(menuslot).itemlist, menus(menuslot).items[mislot])
+  IF valid_menu_item_handle_ptr(retvals(0), mi, menuslot) THEN
+   scriptret = dlist_find(menus(menuslot).itemlist, mi)
    IF scriptret < 0 THEN scripterr "menuitemtrueslot: dlist corruption", serrBug
   END IF
  CASE 619'--menu item at pixel
@@ -5087,7 +5085,7 @@ END FUNCTION
 
 ' If handle is valid, return true and set menuslot and mislot, otherwise show an error and return false
 ' and set to -1,-1.
-FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer) as bool
+FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer = 0) as bool
  found_in_mislot = find_menu_item_handle(handle, found_in_menuslot)
  IF found_in_mislot = -1 THEN
   scripterr current_command_name() + ": invalid menu item handle " & handle
@@ -5095,6 +5093,15 @@ FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as i
  ELSE
   RETURN YES
  END IF
+END FUNCTION
+
+' If handle is valid, return true and fill in the ptr to the MenuDefItem
+FUNCTION valid_menu_item_handle_ptr (handle as integer, byref mi as MenuDefItem ptr, byref found_in_menuslot as integer = 0, byref found_in_mislot as integer = 0) as bool
+ IF valid_menu_item_handle(handle, found_in_menuslot, found_in_mislot) THEN
+  mi = menus(found_in_menuslot).items[found_in_mislot]
+  RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 FUNCTION assign_menu_item_handle (byref mi as MenuDefItem) as integer
