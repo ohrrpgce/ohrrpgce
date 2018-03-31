@@ -16,6 +16,7 @@
 #include "allmodex.bi"
 #include "scriptcommands.bi"
 #include "scripting.bi"
+#include "game.bi"
 
 'local subs and functions
 DECLARE SUB scriptinterpreter_loop ()
@@ -1282,10 +1283,14 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
    ELSE
     waitcause = "!WAIT ERROR"
    END IF
+   IF menus_allow_gameplay() = NO THEN
+    waitcause = "Suspended by menu; " & waitcause
+   END IF
    edgeprint waitcause, 184, ol, col, page
   ELSEIF scrat(i).state = stnext AND scriptinsts(i).curkind = tyscript AND lastarg THEN
    edgeprint "Called #" & i + 1, 184, ol, col, page
   ELSEIF scrat(i).state = stnext AND scriptinsts(i).curkind = tyfunct AND scriptinsts(i).curvalue = 176 AND lastarg THEN
+   'run script by id
    edgeprint "Called #" & i + 1 & " by ID", 184, ol, col, page
   ELSE
    edgeprint STR(scrat(i).state), 184, ol, col, page

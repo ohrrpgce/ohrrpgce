@@ -813,12 +813,12 @@ DO
  player_menu_keys()
  'debug "after menu key handling:"
 
- IF menus_allow_gameplay() THEN
+ IF menus_allow_gameplay() THEN trigger_onkeypress_script
 
- '--Scripts
- trigger_onkeypress_script
- 'breakpoint : called after keypress script is run, but don't get called by wantimmediate
+ 'Enter complete script debugger (F10 pressed twice) before scripts are run
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
+
+ IF menus_allow_gameplay() THEN
  'DEBUG debug "enter script interpreter"
  interpret_scripts
  'DEBUG debug "increment script timers"
