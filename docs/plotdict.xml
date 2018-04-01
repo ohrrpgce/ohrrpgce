@@ -9645,7 +9645,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="getscriptname">
 			<canon>get script name (string id, script id)</canon>
 			<shortname>get script name</shortname>
-			<description>Fetches the name of a script given its ID number and places it in a string. It's an error to pass an invalid script ID.. You can get the ID number of a script by writing @scriptname.</description>
+			<description>Fetches the name of a script given its <ref>scriptid</ref> number and places it in a string. It's an error to pass an invalid script ID. You can get the ID number of a script by writing <tt>@scriptname</tt>.</description>
 		</command>
 		<command id="getcallingscriptid">
 			<canon>get calling script id (depth)</canon>
@@ -9860,6 +9860,24 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				Menu items in different menus are always different, so it's possible to lookup
 				which menu its in with <ref>parentmenu</ref>, and menu handles are never reused.
 			</description>
+		</command>
+
+		<command id="scriptid">
+			<canon>Script IDs</canon>
+			<shortname>script ID</shortname>
+			<description>
+				Script IDs are used to refer to scripts, for example for <ref>setdeathscript</ref>.
+				Get the ID of a script by writing <p>@name of the script</p>, which is a constant.
+				You can call a script using its ID instead of the normal way with <ref>runscriptbyid</ref>.
+				You used to have to manually assign IDs to scripts using <tt>define script</tt>,
+				but that's now obsolete and IDs are automatically assigned.
+				The ID number of a script will remain the same as long as it isn't renamed,
+				so they're safe to store in saved games.
+				The ID <p>0</p> means no script (e.g. no death script).
+			</description>
+			<seealso>
+				<ref>getscriptname</ref>
+			</seealso>
 		</command>
 
 		<command id="colorcode">
