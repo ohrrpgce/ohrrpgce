@@ -6235,6 +6235,7 @@ SUB mapedit_settings_menu (st as MapEditState)
  menu.floating = YES
  menu.menuopts.edged = YES
  menu.st = @st
+ menu.title = "Map editor settings"
  menu.helpkey = "mapedit_settings"
  menu.pan_mult_str = format_percent(st.mouse_pan_mult, 1)
  menu.run()

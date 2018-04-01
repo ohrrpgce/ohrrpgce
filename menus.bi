@@ -97,6 +97,7 @@ DECLARE SUB draw_fullscreen_scrollbar(state as MenuState, boxstyle as integer=0,
 TYPE ModularMenu EXTENDS Object
  menu(any) as string
  tooltip as string       'Shown at the bottom of the screen
+ title as string         'Shown at the top, like the multichoice() prompt
  state as MenuState
  menuopts as MenuOptions
  floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen

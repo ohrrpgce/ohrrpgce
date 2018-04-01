@@ -1787,6 +1787,18 @@ SUB ModularMenu.draw()
  draw_underlays()
 
  DIM where as XYPair = (4, 4)
+ IF LEN(title) THEN
+  IF floating THEN
+   DIM titlesize as XYPair = textsize(title, rWidth - 20, fontEdged)
+   where.y = rCenter - state.rect.high \ 2 - titlesize.h - 14
+   centerbox rCenter, where.y + titlesize.h \ 2, titlesize.w + 12, titlesize.h + 6, 1, vpage
+   wrapprint title, pCentered, where.y, uilook(uiText), vpage, rWidth - 20
+   'where.y += titlesize.h + 2
+  ELSE
+   wrapprint title, where.x, where.y, uilook(uiText), vpage
+   where.y += textsize(title, rWidth - where.x).h + 4
+  END IF
+ END IF
  IF floating THEN
   'FIXME: state.rect isn't calculated until standardmenu is called
   'TODO: In fact, this is a pretty ugly way to draw a floating menu. And state.rect
