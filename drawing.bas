@@ -3865,11 +3865,12 @@ TYPE SpriteSetBrowser
   palettes(any) as Palette16 ptr
   copy_buffer as Frame ptr vector
   copied_defpal as integer        'The default palette of the copied spriteset, or -1 for none
-  'The following are only set inside and immediately after calling edit_frame()
-  editing_spriteset as Frame ptr  'Only set inside edit_frame(), used for save_callback
+  'The following are only set inside and immediately after calling edit_frame() or import_any();
+  'they're used for SpriteSetBrowser_save_callback*
+  editing_spriteset as Frame ptr  'The whole spriteset (as a single spritesheet in fullset mode)
+  editing_frame as Frame ptr      'The specific frame being edited (whole spritesheet in fullset mode)
   editing_setnum as integer
   editing_framenum as integer
-  'editing_frameid as integer
 
   root as Slice ptr
   hover as Slice ptr              'Slice hovering over
@@ -4048,7 +4049,7 @@ SUB SpriteSetBrowser.rebuild_menu()
       spr_sl->Visible = YES
 
       'Remember previous cursor position, or nearest match
-      'IF setnum = editing_setnum AND frameid <= editing_frameid THEN ps.cur = fr_sl
+      'IF setnum = editing_setnum AND frameid <= editing_frame->frameid THEN ps.cur = fr_sl
     NEXT
 
     frame_unload @sprset
@@ -4204,7 +4205,7 @@ SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal 
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
  'DIM tt as double = TIMER
  'Copy back into editing_spriteset
- frame_draw spr, NULL, 0, 0, , NO, @this.editing_spriteset[this.editing_framenum]
+ frame_draw spr, NULL, 0, 0, , NO, this.editing_frame
 
  this.defpalettes(this.editing_setnum) = defpal
  rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)
@@ -4227,7 +4228,11 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
   'Members used by SpriteSetBrowser_save_callback
   editing_setnum = setnum
   editing_framenum = framenum
-  'editing_frameid = editing_spriteset[editing_framenum].frameid
+  IF fullset THEN
+   editing_frame = editing_spriteset
+  ELSE
+   editing_frame = @editing_spriteset[editing_framenum]
+  END IF
 
   WITH edstate
     .fileset = sprtype
@@ -4254,7 +4259,9 @@ SUB SpriteSetBrowser.edit_frame(setnum as integer, framenum as integer)
   DIM edstate as SpriteEditState
   setup_editstate edstate, setnum, framenum
 
-  sprite_editor edstate, @editing_spriteset[framenum]
+  sprite_editor edstate, editing_frame
+  'sprite_editor calls the save callback on quitting, which modifies editing_frame
+  'and writes to rgfx.
 
   frame_unload @editing_spriteset
   defpalettes(setnum) = edstate.pal_num
@@ -4298,14 +4305,18 @@ SUB SpriteSetBrowser.import_any()
 
   DIM sset as Frame ptr
   sset = frame_load(sprtype, setnum)
-  editing_spriteset = spriteset_to_basic_spritesheet(sset)
-  frame_unload @sset
+  IF fullset THEN
+   editing_spriteset = spriteset_to_basic_spritesheet(sset)
+   frame_unload @sset
+  ELSE
+   editing_spriteset = sset
+  END IF
 
   DIM edstate as SpriteEditState
   setup_editstate edstate, setnum, framenum, fullset
   'spriteedit_import16 is written to be called from within sprite_editor, so we
   'need to initialise private members of edstate
-  sprite_editor_initialise edstate, editing_spriteset
+  sprite_editor_initialise edstate, editing_frame
 
   'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets
   spriteedit_import16 edstate
