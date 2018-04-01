@@ -2308,6 +2308,9 @@
 		<a href="#about-scripterror">script error (string id)</a><br>
 		
 	
+		<a href="#about-scriptid">Script IDs</a><br>
+		
+	
 		<a href="#about-scrolltochild">scroll to child (parent, sl)</a><br>
 		
 	
@@ -4146,7 +4149,7 @@ wait for text box # wait until the player continues</pre>
 <a name="about-waitformenu"></a>
 		<h4>wait for menu (menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), causes the script to wait until that menu has been closed.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, causes the script to wait until that menu has been closed.
 			
 			
 			
@@ -8343,7 +8346,7 @@ end</pre>
 		<h4>set NPC ignores walls (who, value)</h4>
 <p>
 			
-				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
 				set whether that NPC can walk through walls, including off the edge of a map,
 				and violating its zone restrictions.
 				<span class="param">value</span> should be true or false.
@@ -8379,7 +8382,7 @@ end</pre>
 		<h4>get NPC ignores walls (who)</h4>
 <p>
 			
-				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
 				returns whether that NPC can walk through walls.
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
@@ -8403,7 +8406,7 @@ end</pre>
 		<h4>set NPC moves (who, value)</h4>
 <p>
 			
-				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
 				set whether that NPC moves according to its move-type, or whether it stands still
 				and waits for you to control it with <a href="#about-walknpc" class="ref">walk NPC</a>.
 				<br>
@@ -8433,7 +8436,7 @@ end</pre>
 <a name="about-getnpcmoves"></a>
 		<h4>get NPC moves (who)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <a href="#about-setnpcmoves" class="ref">set NPC moves</a> has been used.
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <a href="#about-setnpcmoves" class="ref">set NPC moves</a> has been used.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -8449,7 +8452,7 @@ end</pre>
 		<h4>set NPC obstructs (who, value)</h4>
 <p>
 			
-				Given an NPC reference or NPC ID (in which case the first NPC with that ID is used),
+				Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used),
 				set whether the NPC should be an obstruction to heroes and other NPCs.
 				If set to false, the NPC can move through heroes and other NPCs and vice-versa.
 				Heroes can always pass through Step-on NPCs.
@@ -8476,7 +8479,7 @@ end</pre>
 <a name="about-getnpcobstructs"></a>
 		<h4>get NPC obstructs (who)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> (and is always true otherwise).
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> (and is always true otherwise).
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li></ul>
@@ -8487,7 +8490,7 @@ end</pre>
 <a name="about-setnpcusable"></a>
 		<h4>set NPC usable (who, value)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <a href="#about-usenpc" class="ref">use NPC</a> will still work on the NPC. <span class="param">value</span> should be true or false.
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <a href="#about-usenpc" class="ref">use NPC</a> will still work on the NPC. <span class="param">value</span> should be true or false.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -8502,7 +8505,7 @@ end</pre>
 <a name="about-getnpcusable"></a>
 		<h4>get NPC usable (who)</h4>
 <p>
-			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activatable.
+			Given an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activatable.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setnpcusable" class="ref">set NPC usable</a></li></ul>
@@ -9289,7 +9292,7 @@ end
 <a name="about-inputstringwithvirtualkeyboard"></a>
 		<h4>input string with virtual keyboard (ID, maxlength, onlyplayer)</h4>
 <p>
-			Allows the player to input a string using a virtual keyboard The exact appearance and behavior of the virtual keyboard will vary on different platforms, for example, on Android a touch-screen keyboard will appear, but when playing on a console, the virtual keyboard will be controlled with the d-pad and buttons. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <span class="param">ID</span> is the string you want to use. All other arguments are optional: <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). The <span class="param">onlyplayer</span> is optional. It only matters when the game is played on a console with multiple gamepads configured. It can be a number from 0 to 3, being that only that specific player has control over the virtual keyboard. By default onlyplayer is -1, which means that any player can control it.
+			Allows the player to input a string using a virtual keyboard. The exact appearance and behavior of the virtual keyboard will vary on different platforms, for example, on Android a touch-screen keyboard will appear, but when playing on a console, the virtual keyboard will be controlled with the d-pad and buttons. You have no control over what portion of the screen is obscured by the virtual keyboard. The virtual keyboard will vanish when the command is finished. <span class="param">ID</span> is the string you want to use. All other arguments are optional: <span class="param">maxlen</span> is the length of input, if left blank the limit will be set to 40 (max visible onscreen length). The <span class="param">onlyplayer</span> is optional. It only matters when the game is played on a console with multiple gamepads configured. It can be a number from 0 to 3, being that only that specific player has control over the virtual keyboard. By default onlyplayer is -1, which means that any player can control it.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10261,7 +10264,7 @@ end</pre>
 <a name="about-bringmenuforward"></a>
 		<h4>bring menu forward(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one return by <a href="#about-bottommenu" class="ref">bottom menu</a>), move the menu to the top of all other open menus.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, move the menu to the top of all other open menus.
 			
 			
 			
@@ -10271,7 +10274,7 @@ end</pre>
 <a name="about-findmenuid"></a>
 		<h4>find menu ID(menu ID)</h4>
 <p>
-			Given a <span class="param">menu ID</span> number or a constant in the form of <span class="param">menu:name</span>, check to see if it is already open, and if so return a menu handle to it. Otherwise returns <a href="#about-booleanconstants" class="ref">false</a>.
+			Given a <span class="param">menu ID</span> number or a constant in the form of <span class="param">menu:name</span>, check to see if it is already open, and if so return a <a href="#about-menuhandle" class="ref">menu handle</a> to it. Otherwise returns <a href="#about-booleanconstants" class="ref">false</a>.
 			
 			
 			
@@ -10281,7 +10284,7 @@ end</pre>
 <a name="about-menuisopen"></a>
 		<h4>menu is open(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <span class="param">open menu</span>), checks to see whether it is still open, and returns <a href="#about-booleanconstants" class="ref">true</a> if it is, or <a href="#about-booleanconstants" class="ref">false</a> if it has been closed.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, checks to see whether it is still open, and returns <a href="#about-booleanconstants" class="ref">true</a> if it is, or <a href="#about-booleanconstants" class="ref">false</a> if it has been closed.
 			
 			
 			
@@ -10291,7 +10294,7 @@ end</pre>
 <a name="about-parentmenu"></a>
 		<h4>parent menu(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu handle for the menu that the menu item belongs to.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu handle for the menu that the menu item belongs to.
 			
 			
 			
@@ -10301,7 +10304,7 @@ end</pre>
 <a name="about-getmenuid"></a>
 		<h4>get menu ID(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-parentmenu" class="ref">parent menu</a>), return a the ID number of the menu, or -1 if the men was created with the <a href="#about-createmenu" class="ref">create menu</a> command.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the ID number of the menu, or -1 if the men was created with the <a href="#about-createmenu" class="ref">create menu</a> command.
 			
 			
 			
@@ -10327,7 +10330,7 @@ end</pre>
 <a name="about-addmenuitem"></a>
 		<h4>add menu item(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-createmenu" class="ref">create menu</a>), adds a new blank menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <a href="#about-setmenuitemcaption" class="ref">set menu item caption</a> or <a href="#about-setmenuitemtype" class="ref">set menu item type</a>.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, adds a new blank menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <a href="#about-setmenuitemcaption" class="ref">set menu item caption</a> or <a href="#about-setmenuitemtype" class="ref">set menu item type</a>.
 			
 			
 			
@@ -10337,7 +10340,7 @@ end</pre>
 <a name="about-deletemenuitem"></a>
 		<h4>delete menu item(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a> or <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), delete the menu item from the menu. (The change does not affect other copies/instances of the same menu if this menu was created in the menu editor.)
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, delete the menu item from the menu. (The change does not affect other copies/instances of the same menu if this menu was created in the menu editor.)
 			
 			
 			
@@ -10347,7 +10350,7 @@ end</pre>
 <a name="about-swapmenuitems"></a>
 		<h4>swap menu items(handle1, handle2)</h4>
 <p>
-			Given two menu item handles (for example, the ones returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a> and <a href="#about-nextmenuitem" class="ref">next menu item</a>) switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus.
+			Given two <a href="#about-menuitemhandle" class="ref">menu item handle</a>s switch the positions of the two menu items. Note that this works both to rearrange menu items within one menu, or to move menu items between different menus.
 			
 			
 			
@@ -10358,7 +10361,7 @@ end</pre>
 		<h4>select menu item(menu item handle)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				move the menu selection cursor to point to that menu item.
 				Unselectable menu items (see <a href="#about-menuitemselectable" class="ref">menu item selectable</a>) can't be selected;
 				if you try to select one this command silently fails and returns <span class="code">false</span>;
@@ -10376,7 +10379,7 @@ end</pre>
 			
 				Returns the handle for the selected menu item in the topmost menu
 				if the optional <span class="param">menu handle</span> is omitted, or,
-				with a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>)
+				with a <a href="#about-menuhandle" class="ref">menu handle</a>
 				returns the selected item in that menu.
 				Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open, or if the topmost or specified menu
 				has no selection (which happens if it's empty, or all menu items are unselectable or hidden).
@@ -10391,7 +10394,7 @@ end</pre>
 		<h4>menu item disabled(menu item handle)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				returns whether that menu item is disabled (true or false).
 				Menu items can be disabled for a range of reasons such as tag conditions.
 			
@@ -10405,7 +10408,7 @@ end</pre>
 		<h4>menu item visible(menu item handle)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span>,
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				returns whether that menu item is visible (true or false).
 				A menu item is hidden only if it's disabled and has the "Hide if disabled" bit set.
 			
@@ -10419,7 +10422,7 @@ end</pre>
 		<h4>menu item selectable(menu item handle)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				returns true or false, telling whether that menu item is visible and can be selected by normal controls,
 				(rather than being skipped over).
 				<br>
@@ -10434,7 +10437,7 @@ end</pre>
 <a name="about-usemenuitem"></a>
 		<h4>use menu item(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes, etc.) that have been configured for this menu item to be triggered.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, activate the menu item. This will cause whatever actions (text box, menu, script, tag changes, etc.) that have been configured for this menu item to be triggered.
 			
 			
 			
@@ -10444,7 +10447,7 @@ end</pre>
 <a name="about-firstmenuitem"></a>
 		<h4>first menu item(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the top of the menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the top of the menu.
 			
 			
 			
@@ -10454,7 +10457,7 @@ end</pre>
 <a name="about-nextmenuitem"></a>
 		<h4>next menu item(menu item handle, visible only)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu item handle for the menu item below the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no next menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
 			
 			<pre>variable(mi)
 mi := first menu item
@@ -10470,7 +10473,7 @@ end
 <a name="about-previousmenuitem"></a>
 		<h4>previous menu item(menu item handle, visible only)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return a menu item handle for the menu item above the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no previous menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a menu item handle for the menu item above the specified one, or <a href="#about-booleanconstants" class="ref">false</a> there is no previous menu item. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item. See <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if that's undesirable.
 			
 			<pre>variable(m)
 m := previous menu item(selected menu item)</pre>
@@ -10481,7 +10484,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-menuitembytrueslot"></a>
 		<h4>menu item by true slot(menu handle, slot)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. This command uses the ordering of menu items as they appear in the Menu Editor in Custom.  The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
@@ -10492,7 +10495,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-menuitemtrueslot"></a>
 		<h4>menu item true slot(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return the slot number of the menu item, as it appears in the Menu Editor. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return the slot number of the menu item, as it appears in the Menu Editor. The first slot in the menu is 0. The "true order" doesn't change as menu items are hidden or unhidden, unlike the slot returned by <a href="#about-menuitemslot" class="ref">menu item slot</a>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10507,7 +10510,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-menuitembyslot"></a>
 		<h4>menu item by slot(menu handle, slot, visible only)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor! This means menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if you want to use the order shown in the Menu Editor.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a menu item handle for the menu item at the position specified by <span class="param">slot</span>. The first slot in the menu is 0. You can optionally include invisible items by using the optional argument <span class="param">visible only</span>, which defaults to <a href="#about-booleanconstants" class="ref">true</a>. Note that invisible menu items are always at the end of the menu, after the last visible menu item -- menu items are NOT in the same order as they appear in the Menu Editor! This means menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitembytrueslot" class="ref">menu item by true slot</a> if you want to use the order shown in the Menu Editor.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10522,7 +10525,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-menuitemslot"></a>
 		<h4>menu item slot(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitemtrueslot" class="ref">menu item true slot</a> if you want to know the slot number as it appears in the Menu Editor.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return a the slot number of the menu item. The first slot in the menu is 0. Menu item slot numbers change as menu items are hidden or unhidden. Use <a href="#about-menuitemtrueslot" class="ref">menu item true slot</a> if you want to know the slot number as it appears in the Menu Editor.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -10537,7 +10540,7 @@ m := previous menu item(selected menu item)</pre>
 <a name="about-findmenuitemcaption"></a>
 		<h4>find menu item caption(menu handle, string ID, search after handle, visible only)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu (so it must belong to the same menu). The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. It defaults to <a href="#about-booleanconstants" class="ref">true</a>.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu (so it must belong to the same menu). The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. It defaults to <a href="#about-booleanconstants" class="ref">true</a>.
 			
 			<pre>variable(menu, mi)
 menu := open menu(menu:test menu)
@@ -10586,7 +10589,7 @@ end</pre>
 <a name="about-getmenuitemcaption"></a>
 		<h4>get menu item caption(menu item handle, string ID)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), take the caption and copy it into the string identified by <span class="param">string ID</span>.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, take the caption and copy it into the string identified by <span class="param">string ID</span>.
 			
 			
 			
@@ -10596,7 +10599,7 @@ end</pre>
 <a name="about-setmenuitemcaption"></a>
 		<h4>set menu item caption(menu item handle, string ID)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), replace the caption with the string identified by <span class="param">string ID</span>.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, replace the caption with the string identified by <span class="param">string ID</span>.
 			
 			
 			
@@ -10606,7 +10609,7 @@ end</pre>
 <a name="about-getmenuitemtype"></a>
 		<h4>get menu item type(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the type of the menu item.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return the type of the menu item.
 			
 			
 			
@@ -10617,7 +10620,7 @@ end</pre>
 		<h4>set menu item type(menu item handle, new type)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				change the type of the menu item to <span class="param">new type</span>.
 				Available constants are:
 				<span class="code">menutype:label</span> (aka <span class="code">menutype:caption</span>), <span class="code">menutype:special</span>, <span class="code">menutype:menu</span>,
@@ -10637,7 +10640,7 @@ end</pre>
 		<h4>get menu item subtype(menu item handle)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				return the subtype of the menu item. The meaning of the subtype varies depending on the type
 				(see <a href="#about-setmenuitemsubtype" class="ref">set menu item subtype</a>).
 			
@@ -10652,7 +10655,7 @@ end</pre>
 		<h4>set menu item subtype(menu item handle, new subtype)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				change the subtype of the menu item to <span class="param">new subtype</span>.
 				The meaning of the subtype varies depending on the type of the menu item,
 				which is changed with <a href="#about-setmenuitemtype" class="ref">set menu item type</a>:
@@ -10787,7 +10790,7 @@ end</pre>
 <a name="about-getmenuitemtag"></a>
 		<h4>get menu item tag(menu item handle, whichtag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, and a tag number <span class="param">whichtag</span> which can be 1 or 2, return the a tag required for the menu item to be available. The tag number will be positive if the tag needs to be ON, or negative if the tag needs to be OFF.
 			
 			
 			
@@ -10797,7 +10800,7 @@ end</pre>
 <a name="about-setmenuitemtag"></a>
 		<h4>set menu item tag(menu item handle, new tag, whichtag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and a tag number <span class="param">whichtag</span> which can be 1 or 2, set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, and a tag number <span class="param">whichtag</span> which can be 1 or 2, set the tag required for the menu item to <span class="param">new tag</span>. Use a positive number if the tag needs to be turned ON, and a negative number if the tag needs to be turned OFF.
 			
 			
 			
@@ -10807,7 +10810,7 @@ end</pre>
 <a name="about-getmenuitemsettag"></a>
 		<h4>get menu item settag(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return the number of the tag that will be set when the menu item is selected. The tag number will be positive if the tag will be set ON, or negative if the tag will be set OFF.
 			
 			
 			
@@ -10817,7 +10820,7 @@ end</pre>
 <a name="about-setmenuitemsettag"></a>
 		<h4>set menu item settag(menu item handle, new settag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, change the tag that will be set when the menu item is selected. Use a positive number if the tag should be turned ON, and a negative number if the tag should be turned OFF.
 			
 			
 			
@@ -10827,7 +10830,7 @@ end</pre>
 <a name="about-getmenuitemtogtag"></a>
 		<h4>get menu item togtag(menu item handle)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, return the number of the tag that will be toggled when the menu item is selected. (The tag number will always be a positive number).
 			
 			
 			
@@ -10837,7 +10840,7 @@ end</pre>
 <a name="about-setmenuitemtogtag"></a>
 		<h4>set menu item togtag(menu item handle, new settag)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), change the tag that will be toggled when the menu item is selected. (The tag number will always be positive).
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, change the tag that will be toggled when the menu item is selected. (The tag number will always be positive).
 			
 			
 			
@@ -10848,7 +10851,7 @@ end</pre>
 		<h4>get menu item bit(menu item handle, bit)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				and bit number <span class="param">bit</span>,
 				return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
 				See <a href="#about-setmenuitembit" class="ref">set menu item bit</a> for the constants you can pass as the value of <span class="param">bit</span>.
@@ -10863,7 +10866,7 @@ end</pre>
 		<h4>set menu item bit(menu item handle, bit, value)</h4>
 <p>
 			
-				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>,
 				and bit number <span class="param">bit</span>, set the bitset is ON or OFF depending on <span class="param">value</span>.
 				You can use the following constants for <span class="param">bit</span>:
 				<ul>
@@ -10887,7 +10890,7 @@ end</pre>
 <a name="about-getmenuitemextra"></a>
 		<h4>get menu item extra(menu item handle, extra)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, return the the number stored in the extra data space. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, and an <span class="param">extra</span> data number which can be 0, 1, or 2, return the the number stored in the extra data space. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
 			
 			
 			
@@ -10897,7 +10900,7 @@ end</pre>
 <a name="about-setmenuitemextra"></a>
 		<h4>set menu item extra(menu item handle, extra, num)</h4>
 <p>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, change the number stored in the extra data space to <span class="param">num</span>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
+			Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, and an <span class="param">extra</span> data number which can be 0, 1, or 2, change the number stored in the extra data space to <span class="param">num</span>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.
 			
 			
 			
@@ -10991,7 +10994,7 @@ end</pre>
 		<h4>get menu bit(menu handle, bit)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF.
 				For the <span class="param">bit</span> bit number you should use one of the constants:
 				<ul>
@@ -11018,7 +11021,7 @@ end</pre>
 		<h4>set menu bit(menu handle, bit, value)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>.
 				For the <span class="param">bit</span> bit number you should use one of the <span class="param">menubit:...</span> constants.
 				See <a href="#about-getmenubit" class="ref">get menu bit</a> for the available constants.
@@ -11032,7 +11035,7 @@ end</pre>
 <a name="about-getmenuboxstyle"></a>
 		<h4>get menu boxstyle(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the boxstyle of the menu. This will be a number from 0 to 15.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a the boxstyle of the menu. This will be a number from 0 to 15.
 			
 			
 			
@@ -11042,7 +11045,7 @@ end</pre>
 <a name="about-setmenuboxstyle"></a>
 		<h4>set menu boxstyle(menu handle, new box style)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the boxstyle of the menu. <span class="param">new box style</span> will be a number from 0 to 15.
 			
 			
 			
@@ -11052,7 +11055,7 @@ end</pre>
 <a name="about-getmenutextcolor"></a>
 		<h4>get menu textcolor(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the default text color of the menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of the menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
 			
 			
 			
@@ -11062,7 +11065,7 @@ end</pre>
 <a name="about-setmenutextcolor"></a>
 		<h4>set menu textcolor(menu handle, new textcolor)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
 			
 			
 			
@@ -11092,7 +11095,7 @@ end</pre>
 <a name="about-getmenumaxrows"></a>
 		<h4>get menu max rows(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a max rows to display of the menu, or 0 if the menu is auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
 			
 			
 			
@@ -11102,7 +11105,7 @@ end</pre>
 <a name="about-setmenumaxrows"></a>
 		<h4>set menu max rows(menu handle, new max rows)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the max rows to display of the menu to <span class="param">new max rows</span>. Use 0 if you want the menu to be auto-sizing. If the actual number of menu items is larger than the max rows, the menu will be scrollable.
 			
 			
 			
@@ -11112,7 +11115,7 @@ end</pre>
 <a name="about-getmenuoffsetx"></a>
 		<h4>get menu offset x(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x offset position of the menu's anchor point in pixels relative to the center of the screen.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the x offset position of the menu's anchor point in pixels relative to the center of the screen.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11129,7 +11132,7 @@ end</pre>
 <a name="about-getmenuoffsety"></a>
 		<h4>get menu offset y(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y offset position of the menu's anchor point in pixels relative to the center of the screen.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the y offset position of the menu's anchor point in pixels relative to the center of the screen.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11146,7 +11149,7 @@ end</pre>
 <a name="about-setmenuoffsetx"></a>
 		<h4>set menu offset x(menu handle, new x)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the x offset position of the menu's anchor point in pixels relative to the center of the screen.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the x offset position of the menu's anchor point in pixels relative to the center of the screen.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11163,7 +11166,7 @@ end</pre>
 <a name="about-setmenuoffsety"></a>
 		<h4>set menu offset y(menu handle, new y)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the y offset position of the menu's anchor point in pixels relative to the center of the screen.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the y offset position of the menu's anchor point in pixels relative to the center of the screen.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11180,7 +11183,7 @@ end</pre>
 <a name="about-getmenuanchorx"></a>
 		<h4>get menu anchor x(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the x anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11197,7 +11200,7 @@ end</pre>
 <a name="about-getmenuanchory"></a>
 		<h4>get menu anchor y(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the y anchor position of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11214,7 +11217,7 @@ end</pre>
 <a name="about-setmenuanchorx"></a>
 		<h4>set menu anchor x(menu handle, new anchor)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the horizontal x anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11231,7 +11234,7 @@ end</pre>
 <a name="about-setmenuanchory"></a>
 		<h4>set menu anchor y(menu handle, new anchor)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the vertical y anchor position of the menu. The <span class="param">new anchor</span> can be <span class="param">align:center</span>, <span class="param">align:top</span> or <span class="param">align:bottom</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11248,7 +11251,7 @@ end</pre>
 <a name="about-getmenutextalign"></a>
 		<h4>get menu text align(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the text alignment of the menu. The return value will be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenutextalign" class="ref">set menu text align</a></li></ul>
@@ -11259,7 +11262,7 @@ end</pre>
 <a name="about-setmenutextalign"></a>
 		<h4>set menu text align(menu handle, new align)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the text alignment of the menu. The <span class="param">new align</span> can be <span class="param">align:center</span>, <span class="param">align:left</span> or <span class="param">align:right</span>. (Not the <span class="code">edge:</span> constants used by slices!)
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getmenutextalign" class="ref">get menu text align</a></li></ul>
@@ -11270,7 +11273,7 @@ end</pre>
 <a name="about-getmenuminchars"></a>
 		<h4>get menu min chars(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the minimum width of the menu in chars, or 0 for menus that have their width autodetected.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenuminchars" class="ref">set menu min chars</a></li></ul>
@@ -11281,7 +11284,7 @@ end</pre>
 <a name="about-setmenuminchars"></a>
 		<h4>set menu min chars(menu handle, new min)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the minimum width of the menu in chars, or use 0 to make the menu width autodetected.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getmenuminchars" class="ref">get menu min chars</a></li></ul>
@@ -11292,7 +11295,7 @@ end</pre>
 <a name="about-getmenumaxchars"></a>
 		<h4>get menu max chars(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the maximum width of the menu in chars, or 0 for menus that do not have a maximum.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenumaxchars" class="ref">set menu max chars</a></li></ul>
@@ -11303,7 +11306,7 @@ end</pre>
 <a name="about-setmenumaxchars"></a>
 		<h4>set menu max chars(menu handle, new max)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the maximum width of the menu in chars, or use 0 for no maximum.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the maximum width of the menu in chars, or use 0 for no maximum.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getmenumaxchars" class="ref">get menu max chars</a></li></ul>
@@ -11314,7 +11317,7 @@ end</pre>
 <a name="about-getmenuborder"></a>
 		<h4>get menu border(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the border thickness of the menu in pixels. Positive numbers indicate a thicker border. Negative numbers indicate a thinner border.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setmenuborder" class="ref">set menu border</a></li></ul>
@@ -11325,7 +11328,7 @@ end</pre>
 <a name="about-setmenuborder"></a>
 		<h4>set menu border(menu handle, new border)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
@@ -11336,7 +11339,7 @@ end</pre>
 <a name="about-getmenuonclosescript"></a>
 		<h4>get menu on close script(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return a <a href="#about-scriptid" class="ref">script ID</a> for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
 			
 			<pre>variable(m, s)
 m := open menu(5)
@@ -11355,7 +11358,7 @@ run script by id(s)
 <a name="about-setmenuonclosescript"></a>
 		<h4>set menu on close script(menu handle, script id)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, assign the <a href="#about-scriptid" class="ref">script ID</a> that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.
 			
 			<pre>variable(m, s)
 m := open menu(5)
@@ -11374,7 +11377,7 @@ set menu on close script(m, @my menu exit handler)
 		<h4>get menu cancel button menu(menu handle)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				returns the action that happens when the player presses a cancel button.
 				-1 means the menu simply closes.
 				0 or greater is a menu ID to open in its place
@@ -11390,7 +11393,7 @@ set menu on close script(m, @my menu exit handler)
 		<h4>set menu cancel button menu(menu handle, menu)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				sets the action that happens when the player presses a cancel button.
 				<span class="param">menu</span> can be either -1, in which the menu simply closes,
 				or a menu ID to open in its place (which is 0 or greater).
@@ -11406,9 +11409,9 @@ set menu on close script(m, @my menu exit handler)
 		<h4>get menu item spacing(menu handle)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				returns the amount of extra spacing in pixels between menu items.
-				0 is the default
+				0 is the default.
 			
 			
 			
@@ -11421,7 +11424,7 @@ set menu on close script(m, @my menu exit handler)
 		<h4>set menu item spacing(menu handle, spacing)</h4>
 <p>
 			
-				Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>),
+				Given a <a href="#about-menuhandle" class="ref">menu handle</a>,
 				sets the amount of extra spacing in pixels between menu items.
 				0 is the default.
 			
@@ -11948,7 +11951,7 @@ end
 <a name="about-getslicelookup"></a>
 		<h4>get slice lookup (handle)</h4>
 <p>
-			Returns the lookup code of a slice, or <a href="#about-booleanconstants" class="ref">false</a> if it has none. You can compare the result with the <span class="param">sli:</span> slice lookup values in your hsi file, or with the <span class="param">sl:</span> special lookup values in plotscr.hsd
+			Returns the <a href="#about-lookupcode" class="ref">slice lookup code</a> of a slice, or <a href="#about-booleanconstants" class="ref">false</a> if it has none. You can compare the result with the <span class="param">sli:</span> slice lookup values in your hsi file, or with the <span class="param">sl:</span> special lookup values in plotscr.hsd
 			
 			
 			<div class="seealso">See also: <ul>
@@ -11963,7 +11966,7 @@ end
 <a name="about-setslicelookup"></a>
 		<h4>set slice lookup (handle, code)</h4>
 <p>
-			Changes the lookup code of a slice. The first argument is the slice handle, the second is the new lookup code. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special lookup values in plotscr.hsd, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
+			Changes the lookup code of a slice. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a>, the second is the new <a href="#slicelookupcode" class="undef">slicelookupcode</a>. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special lookup values in plotscr.hsd, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14217,7 +14220,7 @@ end
 <a name="about-sliceisscroll"></a>
 		<h4>slice is scroll (handle)</h4>
 <p>
-			Returns true if the given slice <span class="param">handle</span> is a scroll slcie, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
+			Returns true if the given slice <span class="param">handle</span> is a scroll slice, or false for any other type. It's an error to provide an invalid <span class="param">handle</span>.
 			
 			
 			
@@ -14396,7 +14399,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadherosprite"></a>
 		<h4>load hero sprite (num, palette)</h4>
 <p>
-			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!</div>
 			
 			
@@ -14428,7 +14431,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadwalkaboutsprite"></a>
 		<h4>load walkabout sprite (num, palette)</h4>
 <p>
-			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!</div>
 			
 			
@@ -14460,7 +14463,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadsmallenemysprite"></a>
 		<h4>load small enemy sprite (num, palette)</h4>
 <p>
-			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!</div>
 			
 			
@@ -14492,7 +14495,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadmediumenemysprite"></a>
 		<h4>load medium enemy sprite (num, palette)</h4>
 <p>
-			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!</div>
 			
 			
@@ -14524,7 +14527,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadlargeenemysprite"></a>
 		<h4>load large enemy sprite (num, palette)</h4>
 <p>
-			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!</div>
 			
 			
@@ -14556,7 +14559,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadattacksprite"></a>
 		<h4>load attack sprite (num, palette)</h4>
 <p>
-			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!</div>
 			
 			
@@ -14588,7 +14591,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadweaponsprite"></a>
 		<h4>load weapon sprite (num, palette)</h4>
 <p>
-			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!</div>
 			
 			
@@ -14620,7 +14623,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadbordersprite"></a>
 		<h4>load border sprite (num, palette)</h4>
 <p>
-			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!</div>
 			
 			
@@ -14652,7 +14655,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadportraitsprite"></a>
 		<h4>load portrait sprite (num, palette)</h4>
 <p>
-			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!</div>
 			
 			
@@ -14684,7 +14687,7 @@ set horiz align(sl, edge:right)
 <a name="about-loadbackdropsprite"></a>
 		<h4>load backdrop sprite (num)</h4>
 <p>
-			Loads backdrop #<span class="param">num</span> as a sprite, and returns a handle. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
+			Loads backdrop #<span class="param">num</span> as a sprite, and returns a <a href="#about-slicehandle" class="ref">slice handle</a>.. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#CCB;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>!</div>
 			
 			
@@ -15563,7 +15566,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-createtext"></a>
 		<h4>create text</h4>
 <p>
-			Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <a href="#about-setslicetext" class="ref">set slice text</a> command to copy a string into the text slice.
+			Creates a new blank text slice and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <a href="#about-setslicetext" class="ref">set slice text</a> command to copy a string into the text slice.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setslicetext" class="ref">set slice text</a></li></ul>
@@ -15722,7 +15725,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-creategrid"></a>
 		<h4>create grid (width, height, rows, columns)</h4>
 <p>
-			Creates a new grid slice, and returns an handle to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.
+			Creates a new grid slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.
 			
 			
 			
@@ -15838,7 +15841,7 @@ The third argument is the total number of ticks that the animation should run. Y
 <a name="about-createselect"></a>
 		<h4>create select (width, height)</h4>
 <p>
-			Creates a new select slice, and returns an handle to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.
+			Creates a new select slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it. Select slices are special containers that automatically Manage the visibility of their children. Only one child of a select slice can ever be visible at the same time. The two arguments are the width and height of the select slice.
 			
 			
 			
@@ -15887,7 +15890,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h4>create scroll (width, height)</h4>
 <p>
 			
-				Creates a new scroll slice, and returns an handle to it.
+				Creates a new scroll slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it.
 				Scroll slices are special containers that automatically draw a scrollbar on ther right and bottom edges
 				if their children do not fit inside them. The two arguments are the width and height of the scroll slice.
 			
@@ -15990,7 +15993,7 @@ The third argument is the total number of ticks that the animation should run. Y
 		<h4>create panel (width, height)</h4>
 <p>
 			
-				Creates a new panel slice, and returns an handle to it.
+				Creates a new panel slice, and returns a <a href="#about-slicehandle" class="ref">slice handle</a> to it.
 				Panel slices are special containers that automatically move and resize their first two children.
 				The first two children will fill the panel slice's area (while others aren't drawn).
 				For example, a panel slice might be used to make to child slices share a 60%/40% split of an area
@@ -18172,7 +18175,7 @@ end</pre>
 		<h4>run script by ID (id, argument1, argument2, argument3...)</h4>
 <p>
 			
-				The <span class="param">run script by id</span> command allows you to run a script using its ID.
+				The <span class="param">run script by id</span> command allows you to run a script using its <a href="#about-scriptid" class="ref">script ID</a>.
 				You can get the ID of a script by writing <span class="param">@</span> (the 'reference' operator)
 				in front of its name, see the example.
 				You can not run a built-in command like <a href="#about-wait" class="ref">wait</a>; they aren't scripts.
@@ -18428,7 +18431,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 <a name="about-getscriptname"></a>
 		<h4>get script name (string id, script id)</h4>
 <p>
-			Fetches the name of a script given its ID number and places it in a string. It's an error to pass an invalid script ID.. You can get the ID number of a script by writing @scriptname.
+			Fetches the name of a script given its <a href="#about-scriptid" class="ref">script ID</a> number and places it in a string. It's an error to pass an invalid script ID. You can get the ID number of a script by writing <span class="code">@scriptname</span>.
 			
 			
 			
@@ -18748,6 +18751,26 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</p>
 </div>
 		<div class="command">
+<a name="about-scriptid"></a>
+		<h4>Script IDs</h4>
+<p>
+			
+				Script IDs are used to refer to scripts, for example for <a href="#about-setdeathscript" class="ref">set death script</a>.
+				Get the ID of a script by writing <span class="param">@name of the script</span>, which is a constant.
+				You can call a script using its ID instead of the normal way with <a href="#about-runscriptbyid" class="ref">run script by ID</a>.
+				You used to have to manually assign IDs to scripts using <span class="code">define script</span>,
+				but that's now obsolete and IDs are automatically assigned.
+				The ID number of a script will remain the same as long as it isn't renamed,
+				so they're safe to store in saved games.
+				The ID <span class="param">0</span> means no script (e.g. no death script).
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 <a name="about-colorcode"></a>
 		<h4>Color codes</h4>
 <p>
@@ -18769,7 +18792,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<h4>Scancodes</h4>
 <p>
 			
-				A scancode is a number referring to a keyboard key or a button on the first joystick.
+				A scancode is a constant referring to a keyboard key or a button on the first joystick.
 				See <a href="#about-keyispressed" class="ref">key is pressed</a> for a list of scancodes, or read the <b>scancode.hsi</b>
 				file included with the engine.
 				Constants like <a href="#about-keyconstants" class="ref">use key</a> are NOT scancodes and can't be used in place of one.
@@ -19312,7 +19335,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 851 commands (of which 47 are aliases), 63 constants and 9 definitions of types and other terms in this file.</p>
+<p>Stats: There are 851 commands (of which 47 are aliases), 63 constants and 10 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
