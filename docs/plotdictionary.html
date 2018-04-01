@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-03-30)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-04-01)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -545,6 +545,10 @@
 		<ul></ul>
 </li>
 		<li>
+<a href="#Types%20and%20Handles">Types and Handles</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Predefined%20Constants">Predefined Constants</a><br>
 		<ul></ul>
 </li>
@@ -735,6 +739,9 @@
 		
 		<a href="#about-colorconstants">color:blue</a><br>
 	
+		<a href="#about-colorcode">Color codes</a><br>
+		
+	
 		<a href="#about-colorconstants">Color Constants</a><br>
 		
 	
@@ -895,9 +902,6 @@
 		<a href="#about-tileconstants">east wall</a><br>
 	
 		
-		<a href="#about-numericconstants">eight</a><br>
-	
-		
 		<a href="#about-if">else</a><br>
 	
 		<a href="#about-elseif">... else if(condition) then(commands) ...</a><br>
@@ -1014,9 +1018,6 @@
 		<a href="#about-firsttextchild">first text child(handle)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">five</a><br>
-	
 		<a href="#about-focuscamera">focus camera (x,y,speed)</a><br>
 		
 	
@@ -1046,9 +1047,6 @@
 	
 		<a href="#about-formationsloty">formation slot y (formation, slot)</a><br>
 		
-	
-		
-		<a href="#about-numericconstants">four</a><br>
 	
 		<a href="#about-freeslice">free slice (handle)</a><br>
 		
@@ -1614,7 +1612,7 @@
 		<a href="#about-joystickbutton">joystick button (button, joystick)</a><br>
 		
 	
-		<a href="#about-keyconstants">Key Constants</a><br>
+		<a href="#about-keyconstants">Key constants</a><br>
 		
 	
 		<a href="#about-keyispressed">key is pressed (scancode)</a><br>
@@ -1722,6 +1720,9 @@
 		<a href="#about-logicalxor">value ^^ value</a><br>
 		
 	
+		<a href="#about-lookupcode">Slice lookup codes</a><br>
+		
+	
 		<a href="#about-lookupslice">lookup slice (lookup code, start slice)</a><br>
 		
 	
@@ -1761,10 +1762,19 @@
 		<a href="#about-menuitembytrueslot">menu item by true slot(menu handle, slot)</a><br>
 		
 	
+		<a href="#about-menuitemdisabled">menu item disabled(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemselectable">menu item selectable(menu item handle)</a><br>
+		
+	
 		<a href="#about-menuitemslot">menu item slot(menu item handle)</a><br>
 		
 	
 		<a href="#about-menuitemtrueslot">menu item true slot(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemvisible">menu item visible(menu item handle)</a><br>
 		
 	
 		
@@ -1863,9 +1873,6 @@
 		<a href="#about-nexttextsibling">next text sibling(handle)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">nine</a><br>
-	
 		<a href="#about-none">none</a><br>
 		
 	
@@ -1902,6 +1909,9 @@
 		<a href="#about-npcframe">NPC frame (who)</a><br>
 		
 	
+		<a href="#about-npcid">NPC IDs</a><br>
+		
+	
 		<a href="#about-npcisdisabled">NPC is disabled (reference)</a><br>
 		
 	
@@ -1912,6 +1922,9 @@
 		
 	
 		<a href="#about-npcpixely">NPC pixel Y (who)</a><br>
+		
+	
+		<a href="#about-npcref">NPC references</a><br>
 		
 	
 		<a href="#about-npcreference">NPC reference (ID, copy)</a><br>
@@ -1949,9 +1962,6 @@
 	
 		
 		<a href="#about-booleanconstants">on</a><br>
-	
-		
-		<a href="#about-numericconstants">one</a><br>
 	
 		<a href="#about-openmenu">open menu (ID, allow duplicate)</a><br>
 		
@@ -2272,6 +2282,9 @@
 		
 	
 		<a href="#about-saveslotused">save slot used (slot)</a><br>
+		
+	
+		<a href="#about-scancode">Scancodes</a><br>
 		
 	
 		<a href="#about-script">script, name, argumentnames (statements)</a><br>
@@ -2757,9 +2770,6 @@
 		<a href="#about-setzoneextra">set zone extra (zone id, extra num, value)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">seven</a><br>
-	
 		<a href="#about-showbackdrop">show backdrop (number)</a><br>
 		
 	
@@ -2796,9 +2806,6 @@
 		<a href="#about-sign">sign (number)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">six</a><br>
-	
 		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants, visible only)</a><br>
 		
 	
@@ -2821,6 +2828,9 @@
 		
 	
 		<a href="#about-sliceedgey">slice edge y (handle, edge)</a><br>
+		
+	
+		<a href="#about-slicehandle">Slice handles</a><br>
 		
 	
 		<a href="#about-sliceheight">slice height (handle)</a><br>
@@ -3078,9 +3088,6 @@
 		<a href="#about-teleporttomap">teleport to map (map, x, y)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">ten</a><br>
-	
 		<a href="#about-textboxline">textbox line (string ID, textbox, line, expand, strip)</a><br>
 		
 	
@@ -3089,9 +3096,6 @@
 	
 		
 		<a href="#about-if">then</a><br>
-	
-		
-		<a href="#about-numericconstants">three</a><br>
 	
 		<a href="#about-tileconstants">Tile Constants</a><br>
 		
@@ -3134,9 +3138,6 @@
 	
 		<a href="#about-tweakpalette">tweak palette (red, green, blue, first, last)</a><br>
 		
-	
-		
-		<a href="#about-numericconstants">two</a><br>
 	
 		<a href="#about-unequip">unequip (hero,slot)</a><br>
 		
@@ -3294,9 +3295,6 @@
 		<a href="#about-ysortchildren">Y sort children (handle)</a><br>
 		
 	
-		
-		<a href="#about-numericconstants">zero</a><br>
-	
 		<a href="#about-zoneatspot">zone at spot (x, y, count)</a><br>
 		
 	
@@ -3412,7 +3410,7 @@ variable+=1 # add one to it</pre>
 <a name="about-defineconstant"></a>
 		<h4>define constant (number,name)</h4>
 <p>
-			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been declared for you in plotscr.hsd (there are hundreds more intended for specific commands):<br><a href="#about-numericconstants" class="ref">zero</a> <a href="#about-numericconstants" class="ref">one</a> <a href="#about-numericconstants" class="ref">two</a> <a href="#about-numericconstants" class="ref">three</a> <a href="#about-numericconstants" class="ref">four</a> <a href="#about-numericconstants" class="ref">five</a> <a href="#about-numericconstants" class="ref">six</a> <a href="#about-numericconstants" class="ref">seven</a> <a href="#about-numericconstants" class="ref">eight</a> <a href="#about-numericconstants" class="ref">nine</a> <a href="#about-numericconstants" class="ref">ten</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a>
+			Creates a global constant. The first argument is the number that the constant will represent, and the second argument is the name of the constant. Use constants to replace commonly used numbers with friendly names. The following are some general purpose constants have been declared for you in plotscr.hsd (there are hundreds more intended for specific commands):<br><a href="#zero" class="undef">zero</a> <a href="#one" class="undef">one</a> <a href="#two" class="undef">two</a> <a href="#three" class="undef">three</a> <a href="#four" class="undef">four</a> <a href="#five" class="undef">five</a> <a href="#six" class="undef">six</a> <a href="#seven" class="undef">seven</a> <a href="#eight" class="undef">eight</a> <a href="#nine" class="undef">nine</a> <a href="#ten" class="undef">ten</a> <a href="#about-booleanconstants" class="ref">false</a> <a href="#about-booleanconstants" class="ref">true</a> <a href="#about-booleanconstants" class="ref">off</a> <a href="#about-booleanconstants" class="ref">on</a> <a href="#about-directionconstants" class="ref">north</a> <a href="#about-directionconstants" class="ref">east</a> <a href="#about-directionconstants" class="ref">south</a> <a href="#about-directionconstants" class="ref">west</a> <a href="#about-directionconstants" class="ref">up</a> <a href="#about-directionconstants" class="ref">down</a> <a href="#about-directionconstants" class="ref">left</a> <a href="#about-directionconstants" class="ref">right</a> <a href="#about-me" class="ref">me</a> <a href="#about-none" class="ref">none</a>
 			
 			
 			
@@ -6420,7 +6418,7 @@ resume box advance # go back to normal</pre>
 <a name="about-roominactiveparty"></a>
 		<h4>room in active party</h4>
 <p>
-			A function that returns the number of available spaces in your active party. It will return <a href="#about-numericconstants" class="ref">zero</a> or <a href="#about-booleanconstants" class="ref">false</a> if there is no room.
+			A function that returns the number of available spaces in your active party. It will return <a href="#zero" class="undef">zero</a> or <a href="#about-booleanconstants" class="ref">false</a> if there is no room.
 			
 			
 			
@@ -6766,7 +6764,7 @@ end</pre>
 <a name="about-inventory"></a>
 		<h4>inventory (item)</h4>
 <p>
-			Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <a href="#about-numericconstants" class="ref">zero</a> or <a href="#about-booleanconstants" class="ref">false</a>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name
+			Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <a href="#zero" class="undef">zero</a> or <a href="#about-booleanconstants" class="ref">false</a>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name
 			
 			
 			
@@ -9022,9 +9020,9 @@ end
 		<h4>key is pressed (scancode)</h4>
 <p>
 			
-				Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified scancode is being pressed
+				Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard or joystick key with the specified <a href="#about-scancode" class="ref">scancode</a> is being pressed
 				(either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not.
-				The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>.
+				The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, <a href="#keyconstant" class="undef">keyconstant</a>s used with <a href="#about-waitforkey" class="ref">wait for key</a>.
 				<br>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
@@ -10338,7 +10336,9 @@ end</pre>
 			
 				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>),
 				move the menu selection cursor to point to that menu item.
-				Works even for Label menu items which "Can't be selected".
+				Unselectable menu items (see <a href="#about-menuitemselectable" class="ref">menu item selectable</a>) can't be selected;
+				if you try to select one this command silently fails and returns <span class="code">false</span>;
+				normally it returns <span class="code">true</span>.
 			
 			
 			
@@ -10349,7 +10349,58 @@ end</pre>
 <a name="about-selectedmenuitem"></a>
 		<h4>selected menu item(menu handle)</h4>
 <p>
-			Returns the handle for the selected menu item in the topmost menu, <a href="#about-booleanconstants" class="ref">false</a> if no menus are open, or, when given an optional <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>) returns the selected item in that menu.
+			
+				Returns the handle for the selected menu item in the topmost menu
+				if the optional <span class="param">menu handle</span> is omitted, or,
+				with a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>)
+				returns the selected item in that menu.
+				Returns <a href="#about-booleanconstants" class="ref">false</a> if no menus are open, or if the topmost or specified menu
+				has no selection (which happens if it's empty, or all menu items are unselectable or hidden).
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitemdisabled"></a>
+		<h4>menu item disabled(menu item handle)</h4>
+<p>
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				returns whether that menu item is disabled (true or false).
+				Menu items can be disabled for a range of reasons such as tag conditions.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitemvisible"></a>
+		<h4>menu item visible(menu item handle)</h4>
+<p>
+			
+				Given a <span class="param">menu item handle</span>,
+				returns whether that menu item is visible (true or false).
+				A menu item is hidden only if it's disabled and has the "Hide if disabled" bit set.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitemselectable"></a>
+		<h4>menu item selectable(menu item handle)</h4>
+<p>
+			
+				Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>),
+				returns true or false, telling whether that menu item is visible and can be selected by normal controls,
+				(rather than being skipped over).
+				<br>
+				Currently only hidden menu items and Labels which "Can't be selected" return false.
+			
 			
 			
 			
@@ -10484,6 +10535,10 @@ end</pre>
 				returns the handle for the menu item at that position, or <span class="param">false</span> if none.
 				If multiple menus overlap at that location the top-most one is returned.
 				You can find the menu that the menu item belongs to with <a href="#about-parentmenu" class="ref">parent menu</a>.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					The menu item might not actually be selectable. Check with <a href="#about-menuitemselectable" class="ref">menu item selectable</a>.
+				</div>
 			
 			
 			
@@ -10583,16 +10638,16 @@ end</pre>
 						For <span class="code">menutype:label</span> use the constants:
 						<ul>
 							<li>
-								<span class="param">menucaption:selectable</span>
+								<span class="param">menulabel:selectable</span>
 							</li>
 							<li>
-								<span class="param">menucaption:disabled</span> -
+								<span class="param">menulabel:disabled</span> -
 								The menu item is always disabled, regardless of tags.
 								Hence, the Set Tag and Toggle Tag options and the
 								"Close menu when activated" bitset are ignored.
 							</li>
 							<li>
-								<span class="param">menucaption:unselectable</span> - (aka <span class="param">menucaption:cant be selected</span>)
+								<span class="param">menulabel:unselectable</span> - (aka <span class="param">menulabel:cant be selected</span>)
 								Can't be selected with normal controls.
 								Can still be selected using <a href="#about-selectmenuitem" class="ref">select menu item</a>
 								(but can't be activated).
@@ -10901,7 +10956,7 @@ end</pre>
 <a name="about-getmenutextcolor"></a>
 		<h4>get menu textcolor(menu handle)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return a the text color of the menu. This will be a number from 0 to 255.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), return the default text color of the menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
 			
 			
 			
@@ -10911,7 +10966,7 @@ end</pre>
 <a name="about-setmenutextcolor"></a>
 		<h4>set menu textcolor(menu handle, new textcolor)</h4>
 <p>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the text color of the menu. <span class="param">new textcolor</span> will be a number from 0 to 255. 0 is the default color.
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
 			
 			
 			
@@ -11372,12 +11427,7 @@ set menu on close script(m, @my menu exit handler)
 			Although there are many commands here for manipulating slices, it's much easier to create slices
 			in the Slice Collection Editor and then use <a href="#about-loadslicecollection" class="ref">load slice collection</a>.
 			<br>
-			Slices are referred to with <span class="param">slice handles</span>. A slice handle is just a value that you can store in a <span class="param">variable</span>,
-			just like an NPC reference or a textbox ID number.
-			A handle is <span class="param">valid</span> if it currently refers to an existing slice.
-			<a href="#about-booleanconstants" class="ref">false</a> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
-			<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Slice lookup codes like "sl:map layer 0" or "sli:quit button" are NOT slice handles; they can only be used by the <a href="#about-lookupslice" class="ref">lookup slice</a> command.</div>
+			Slices are referred to with <a href="#about-slicehandle" class="ref">slice handle</a>s.
 		</p>
 		
 		
@@ -11661,9 +11711,9 @@ end
 <a name="about-lookupslice"></a>
 		<h4>lookup slice (lookup code, start slice)</h4>
 <p>
-			Search for an important slice using a lookup code, and return a handle to it, or 0 if it is not found. User defined slice lookup codes are defined in the slice collection editor. You will find them as constants in your .hsi file with sli: prefixes. There are also some special slice lookup codes with names that start with sl: prefixes. You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from, but if you do not, the whole slice tree will be searched.
+			Search for an important slice using a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if it is not found. You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from, but if you do not, the whole slice tree will be searched.
 				<div style="background-color:#BCC;" class="notice">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.</div>
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
 				<div style="background-color:#BCC;" class="notice">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.</div>
 			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
@@ -18439,11 +18489,181 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<hr>
 		</div>
 		<div class="section">
+<a name="Types%20and%20Handles"></a>
+		<h3>
+<span class="backlink"></span>Types and Handles</h3>
+		<ul></ul>
+<p>
+			This section documents many of the different types of values that are used by various script
+			commands, such as NPC references.
+			Note that in HamsterSpeak everything is a number, so there are no types
+			as in other programming languages; instead identifiers are used for everything.
+			Values of different ID numbers and handles overlap: there's no way to tell if
+			a number refers to an NPC or a slice or a map.
+			<ul>
+				<li>
+					An <span class="param">ID number</span> normally refers to something which is defined
+					in an editor, such as an NPC definition or map ID number,
+					or something which is fixed supply, like global and string ID numbers.
+					ID numbers always count upwards from 0 or sometimes 1.
+					Many IDs have constants automatically defined, for example if there's
+					a map named Overworld, there's a constant named <span class="param">map:Overworld</span> with its ID number.
+				</li>
+				<li>
+					A <span class="param">handle</span> or a <span class="param">reference</span> is an identifier for something that can
+					be created during play, like slice handles, menu handles and NPC references.
+					It can change from game to game, and it becomes invalid if the thing
+					it refers to is deleted.
+					After becoming invalid, the value can generally even be reassigned to a new thing of that type,
+					so be careful about handles you've stored in variables when deleting things!
+				</li>
+				<li>
+					A <span class="param">constant</span> (or "enum") is a fixed value, used for things that
+					don't change, like different available NPC movement types, or map numbers.
+					Many constants in HamsterSpeak start with a prefix like <span class="param">key:</span>.
+					There's nothing special about these prefixes or names, and <span class="param">:</span> is treated
+					like any letter which you can use freely.
+				</li>
+			</ul>
+		</p>
+		
+		
+		<div class="command">
+<a name="about-npcid"></a>
+		<h4>NPC IDs</h4>
+<p>
+			
+				An NPC ID refers to an NPC definition, as defined in the Edit NPCs menu.
+				NPC IDs count from 0 upwards.
+				A copy of an NPC is referred to using an <a href="#about-npcref" class="ref">NPC reference</a>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-npcref"></a>
+		<h4>NPC references</h4>
+<p>
+			
+				NPC references are handles for NPC instances on the map,
+				that is, a copy of an NPC definition.
+				NPC references are always negative values counting from -1
+				down, while NPC IDs count from 0 up.
+				An <a href="#about-npcid" class="ref">NPC ID</a> can always be used with any command that expects
+				an NPC reference, in which case it refers to the first
+				instance/copy of that NPC, not to the NPC definition itself.
+				So <span class="code">wait for NPC(5)</span> is equivalent to <span class="code">wait for NPC(npc reference(5, 0))</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-slicehandle"></a>
+		<h4>Slice handles</h4>
+<p>
+			
+				Slices are referred to with <span class="param">slice handles</span>. A slice handle is just a value that you can store in a <span class="param">variable</span>,
+				just like an <a href="#about-npcref" class="ref">NPC reference</a> or a textbox ID number.
+				A handle is <span class="param">valid</span> if it currently refers to an existing slice.
+				<a href="#about-booleanconstants" class="ref">false</a> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
+				<div style="background-color:#BCC;" class="notice">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Notice]" class="icon">
+					<a href="#about-lookupcode" class="ref">slice lookup code</a>s like "sl:map layer 0" or "sli:quit button" are NOT slice handles;
+					they can only be used by the <a href="#about-lookupslice" class="ref">lookup slice</a> command.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-lookupcode"></a>
+		<h4>Slice lookup codes</h4>
+<p>
+			
+				Slice lookup codes are used to search for a particular slice using <a href="#about-lookupslice" class="ref">lookup slice</a>.
+				There are two types.
+				User defined slice lookup codes are
+				defined (named) in the slice collection editor.
+				You will find them as constants in your .hsi file with sli: prefixes.
+				You can also use any non-negative value, even if you haven't named it in the editor.
+				There are also many special slice lookup codes with names that start with sl: prefixes.
+				See <a href="#about-lookupslice" class="ref">lookup slice</a> for the list. They are always negative.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-colorcode"></a>
+		<h4>Color codes</h4>
+<p>
+			
+				A number indicating a color in the master palette.
+				A value from 1-255 is specifies the master palette index directly.
+				The meaning of 0 depends on the particular script command:
+				it might mean either 'transparent' or 'the default color'
+				or 'color 0 in the palette'.
+				Negative valeus indicate colors defined in the User-Interface Colors editor.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-scancode"></a>
+		<h4>Scancodes</h4>
+<p>
+			
+				A scancode is a number referring to a keyboard key or a button on the first joystick.
+				See <a href="#about-keyispressed" class="ref">key is pressed</a> for a list of scancodes, or read the <b>scancode.hsi</b>
+				file included with the engine.
+				Constants like <a href="#about-keyconstants" class="ref">use key</a> are NOT scancodes and can't be used in place of one.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-keyconstants"></a>
+		<h4>Key constants</h4>
+<p>
+			
+				A constant specifying a key (or joystick button, but generally not a mouse button) by its function,
+				used ONLY with the <a href="#about-waitforkey" class="ref">wait for key</a> command.
+				These are NOT <a href="#about-scancode" class="ref">scancode</a>s and can not be used with commands
+				like <a href="#about-keyispressed" class="ref">key is pressed</a>.
+				<br>
+				Possible values:
+				<br>
+				<span class="param">any key</span>, <span class="param">up key</span>, <span class="param">down key</span>, <span class="param">left key</span>, <span class="param">right key</span>,
+				<span class="param">use key</span>, <span class="param">menu key</span>, <span class="param">cancel key</span>.
+				<br>
+				(<span class="param">menu key</span> and <span class="param">cancel key</span> are identical).
+			
+			
+			
+			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="section">
 <a name="Predefined%20Constants"></a>
 		<h3>
 <span class="backlink"></span>Predefined Constants</h3>
 		<ul></ul>
-<p></p>
+<p>
+			This section isn't complete; there are <b>zillions</b> of other builtin constants!
+		</p>
 		
 		
 		<div class="command">
@@ -18457,128 +18677,52 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</p>
 </div>
 		<div class="command">
-<a name="about-zero"></a>
-		
-				<h4>zero</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-one"></a>
-		
-				<h4>one</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-two"></a>
-		
-				<h4>two</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-three"></a>
-		
-				<h4>three</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-four"></a>
-		
-				<h4>four</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-five"></a>
-		
-				<h4>five</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-six"></a>
-		
-				<h4>six</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-seven"></a>
-		
-				<h4>seven</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-eight"></a>
-		
-				<h4>eight</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-nine"></a>
-		
-				<h4>nine</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-ten"></a>
-		
-				<h4>ten</h4>
-				See <a href="#about-numericconstants">Numeric Constants</a>
-			</div>
-		<div class="command">
-<a name="about-keyconstants"></a>
-		<h4>Key Constants</h4>
-<p>
-			PLOTSCR.HSD defines constants that correspond to each of the usable keys (or joystick buttons) that the player can press while playing. These are useful with the <a href="#about-waitforkey" class="ref">wait for key</a> command.<br>any key, up key, down key, left key, right key, use key, menu key, cancel key
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 <a name="about-anykey"></a>
 		
 				<h4>any key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-upkey"></a>
 		
 				<h4>up key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-downkey"></a>
 		
 				<h4>down key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-leftkey"></a>
 		
 				<h4>left key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-rightkey"></a>
 		
 				<h4>right key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-usekey"></a>
 		
 				<h4>use key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-menukey"></a>
 		
 				<h4>menu key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-cancelkey"></a>
 		
 				<h4>cancel key</h4>
-				See <a href="#about-keyconstants">Key Constants</a>
+				See <a href="#about-keyconstants">key constant</a>
 			</div>
 		<div class="command">
 <a name="about-booleanconstants"></a>
@@ -19021,7 +19165,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 842 commands and 75 constants in this file, of which 58 are only references to other entries.</p>
+<p>Stats: There are 845 commands (of which 47 are aliases), 63 constants and 7 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -6,7 +6,7 @@
 	<!ATTLIST plotscript version CDATA "wip" datecode CDATA "???">
 	<!ATTLIST plotscript show-alias CDATA "yes">
 	<!ELEMENT section (description?,(command|reference|section)+)>
-	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED>
+	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
 	<!ATTLIST reference ref IDREF #REQUIRED>
 	<!ELEMENT command ((canon,shortname,added?,deprecated?,description,example*,seealso?) |
@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-03-30">
+<plotscript version="wip" datecode="2018-04-01">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -3650,9 +3650,9 @@ end
 			<canon>key is pressed (scancode)</canon>
 			<shortname>key is pressed</shortname>
 			<description>
-				Returns <ref>true</ref> if the keyboard or joystick key with the specified scancode is being pressed
+				Returns <ref>true</ref> if the keyboard or joystick key with the specified <ref>scancode</ref> is being pressed
 				(either held down or pressed since last tick), or <ref>false</ref> if it is not.
-				The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>.
+				The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, <ref>keyconstant</ref>s used with <ref>waitforkey</ref>.
 				<lb/>
 				<note>
 					Since Zenzizenzic, keyboard support has been improved: some keys (such as key:down and key:numpad 2)
@@ -4900,12 +4900,12 @@ end</example>
 		<command id="getmenutextcolor">
 			<canon>get menu textcolor(menu handle)</canon>
 			<shortname>get menu textcolor</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return a the text color of the menu. This will be a number from 0 to 255.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), return the default text color of the menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.</description>
 		</command>
 		<command id="setmenutextcolor">
 			<canon>set menu textcolor(menu handle, new textcolor)</canon>
 			<shortname>set menu textcolor</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the text color of the menu. <p>new textcolor</p> will be a number from 0 to 255. 0 is the default color.</description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the default text color of its menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.</description>
 		</command>
 		<command id="getmenumaxrows">
 			<canon>get menu max rows(menu handle)</canon>
@@ -5149,11 +5149,7 @@ set menu on close script(m, @my menu exit handler)
 			Although there are many commands here for manipulating slices, it's much easier to create slices
 			in the Slice Collection Editor and then use <ref>loadslicecollection</ref>.
 			<lb/>
-			Slices are referred to with <p>slice handles</p>. A slice handle is just a value that you can store in a <p>variable</p>,
-			just like an NPC reference or a textbox ID number.
-			A handle is <p>valid</p> if it currently refers to an existing slice.
-			<ref>false</ref> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
-			<note>Slice lookup codes like "sl:map layer 0" or "sli:quit button" are NOT slice handles; they can only be used by the <ref>lookupslice</ref> command.</note>
+			Slices are referred to with <ref>slicehandle</ref>s.
 		</description>
 		<command id="setparent">
 			<canon>set parent (handle, parent handle)</canon>
@@ -5374,8 +5370,8 @@ end
 		<command id="lookupslice">
 			<canon>lookup slice (lookup code, start slice)</canon>
 			<shortname>lookup slice</shortname>
-			<description>Search for an important slice using a lookup code, and return a handle to it, or 0 if it is not found. User defined slice lookup codes are defined in the slice collection editor. You will find them as constants in your .hsi file with sli: prefixes. There are also some special slice lookup codes with names that start with sl: prefixes. You can optionally specify a slice for the <p>lookup slice</p> command to start searching from, but if you do not, the whole slice tree will be searched.
-				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.</note>
+			<description>Search for an important slice using a <ref>lookupcode</ref>, and return a handle to it, or 0 if it is not found. You can optionally specify a slice for the <p>lookup slice</p> command to start searching from, but if you do not, the whole slice tree will be searched.
+				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</note>
 				<note>Be aware that when there is more than one slice with the same lookup code, the <p>lookup slice</p> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <ref>getslicelookup</ref>.</note>
 			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
 			</description>
@@ -9695,60 +9691,165 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</command>
 	</section>
 
+	<section title="Types and Handles" topics="yes">
+		<description>
+			This section documents many of the different types of values that are used by various script
+			commands, such as NPC references.
+			Note that in HamsterSpeak everything is a number, so there are no types
+			as in other programming languages; instead identifiers are used for everything.
+			Values of different ID numbers and handles overlap: there's no way to tell if
+			a number refers to an NPC or a slice or a map.
+			<ul>
+				<li>
+					An <p>ID number</p> normally refers to something which is defined
+					in an editor, such as an NPC definition or map ID number,
+					or something which is fixed supply, like global and string ID numbers.
+					ID numbers always count upwards from 0 or sometimes 1.
+					Many IDs have constants automatically defined, for example if there's
+					a map named Overworld, there's a constant named <p>map:Overworld</p> with its ID number.
+				</li>
+				<li>
+					A <p>handle</p> or a <p>reference</p> is an identifier for something that can
+					be created during play, like slice handles, menu handles and NPC references.
+					It can change from game to game, and it becomes invalid if the thing
+					it refers to is deleted.
+					After becoming invalid, the value can generally even be reassigned to a new thing of that type,
+					so be careful about handles you've stored in variables when deleting things!
+				</li>
+				<li>
+					A <p>constant</p> (or "enum") is a fixed value, used for things that
+					don't change, like different available NPC movement types, or map numbers.
+					Many constants in HamsterSpeak start with a prefix like <p>key:</p>.
+					There's nothing special about these prefixes or names, and <p>:</p> is treated
+					like any letter which you can use freely.
+				</li>
+			</ul>
+		</description>
+
+		<command id="npcid">
+			<canon>NPC IDs</canon>
+			<shortname>NPC ID</shortname>
+			<description>
+				An NPC ID refers to an NPC definition, as defined in the Edit NPCs menu.
+				NPC IDs count from 0 upwards.
+				A copy of an NPC is referred to using an <ref>npcref</ref>.
+			</description>
+		</command>
+		<command id="npcref">
+			<canon>NPC references</canon>
+			<shortname>NPC reference</shortname>
+			<description>
+				NPC references are handles for NPC instances on the map,
+				that is, a copy of an NPC definition.
+				NPC references are always negative values counting from -1
+				down, while NPC IDs count from 0 up.
+				An <ref>npcid</ref> can always be used with any command that expects
+				an NPC reference, in which case it refers to the first
+				instance/copy of that NPC, not to the NPC definition itself.
+				So <tt>wait for NPC(5)</tt> is equivalent to <tt>wait for NPC(npc reference(5, 0))</tt>.
+			</description>
+		</command>
+
+		<command id="slicehandle">
+			<canon>Slice handles</canon>
+			<shortname>slice handle</shortname>
+			<description>
+				Slices are referred to with <p>slice handles</p>. A slice handle is just a value that you can store in a <p>variable</p>,
+				just like an <ref>npcref</ref> or a textbox ID number.
+				A handle is <p>valid</p> if it currently refers to an existing slice.
+				<ref>false</ref> (zero) is never a valid slice handle, so slice commands return 0 to indicate "no slice found" or similar failures.
+				<note>
+					<ref>lookupcode</ref>s like "sl:map layer 0" or "sli:quit button" are NOT slice handles;
+					they can only be used by the <ref>lookupslice</ref> command.
+				</note>
+			</description>
+		</command>
+		<command id="lookupcode">
+			<canon>Slice lookup codes</canon>
+			<shortname>slice lookup code</shortname>
+			<description>
+				Slice lookup codes are used to search for a particular slice using <ref>lookupslice</ref>.
+				There are two types.
+				User defined slice lookup codes are
+				defined (named) in the slice collection editor.
+				You will find them as constants in your .hsi file with sli: prefixes.
+				You can also use any non-negative value, even if you haven't named it in the editor.
+				There are also many special slice lookup codes with names that start with sl: prefixes.
+				See <ref>lookupslice</ref> for the list. They are always negative.
+			</description>
+		</command>
+
+		<command id="menuhandle">
+			<canon>Menu handles</canon>
+			<shortname>menu handle</shortname>
+			<description>
+				A handle for a currently open menu, for example, the one returned by <ref>openmenu</ref> or
+				<ref>createmenu</ref> or <ref>topmenu</ref>.
+				Menu handle <p>0</p> (<p>false</p>) means none/invalid.
+				Not the same thing as a menu ID (which is a menu defined in the menu editor).
+				There can be multiple open copies of a single menu ID.
+			</description>
+		</command>
+		<command id="menuitemhandle">
+			<canon>Menu item handles</canon>
+			<shortname>menu item handle</shortname>
+			<description>
+				A handle to one of the items in a currently open menu,
+				for example, the one returned by <ref>selectedmenuitem</ref>.
+				Menu items in different menus are always different, so it's possible to lookup
+				which menu its in with <ref>parentmenu</ref>, and menu handles are never reused.
+			</description>
+		</command>
+
+		<command id="colorcode">
+			<canon>Color codes</canon>
+			<shortname>color code</shortname>
+			<description>
+				A number indicating a color in the master palette.
+				A value from 1-255 is specifies the master palette index directly.
+				The meaning of 0 depends on the particular script command:
+				it might mean either 'transparent' or 'the default color'
+				or 'color 0 in the palette'.
+				Negative valeus indicate colors defined in the User-Interface Colors editor.
+			</description>
+		</command>
+		<command id="scancode">
+			<canon>Scancodes</canon>
+			<shortname>scancode</shortname>
+			<description>
+				A scancode is a number referring to a keyboard key or a button on the first joystick.
+				See <ref>keyispressed</ref> for a list of scancodes, or read the <b>scancode.hsi</b>
+				file included with the engine.
+				Constants like <ref>usekey</ref> are NOT scancodes and can't be used in place of one.
+			</description>
+		</command>
+		<command id="keyconstants">
+			<canon>Key constants</canon>
+			<shortname>key constant</shortname>
+			<description>
+				A constant specifying a key (or joystick button, but generally not a mouse button) by its function,
+				used ONLY with the <ref>waitforkey</ref> command.
+				These are NOT <ref>scancode</ref>s and can not be used with commands
+				like <ref>keyispressed</ref>.
+				<lb />
+				Possible values:
+				<lb />
+				<p>any key</p>, <p>up key</p>, <p>down key</p>, <p>left key</p>, <p>right key</p>,
+				<p>use key</p>, <p>menu key</p>, <p>cancel key</p>.
+				<lb />
+				(<p>menu key</p> and <p>cancel key</p> are identical).
+			</description>
+		</command>
+	</section>
+
 	<section title="Predefined Constants" constants="yes">
+		<description>
+			This section isn't complete; there are <b>zillions</b> of other builtin constants!
+		</description>
 		<command id="numericconstants">
 			<canon>Numeric Constants</canon>
 			<shortname>Numeric Constants</shortname>
 			<description>PLOTSCR.HSD defines constants for the numbers from 0 to 10. You can use these constants to make your scripts look friendly :)<lb />zero, one, two, three, four, five, six, seven, eight, nine, ten</description>
-		</command>
-		<command id="zero">
-			<alias>numericconstants</alias>
-			<shortname>zero</shortname>
-		</command>
-		<command id="one">
-			<alias>numericconstants</alias>
-			<shortname>one</shortname>
-		</command>
-		<command id="two">
-			<alias>numericconstants</alias>
-			<shortname>two</shortname>
-		</command>
-		<command id="three">
-			<alias>numericconstants</alias>
-			<shortname>three</shortname>
-		</command>
-		<command id="four">
-			<alias>numericconstants</alias>
-			<shortname>four</shortname>
-		</command>
-		<command id="five">
-			<alias>numericconstants</alias>
-			<shortname>five</shortname>
-		</command>
-		<command id="six">
-			<alias>numericconstants</alias>
-			<shortname>six</shortname>
-		</command>
-		<command id="seven">
-			<alias>numericconstants</alias>
-			<shortname>seven</shortname>
-		</command>
-		<command id="eight">
-			<alias>numericconstants</alias>
-			<shortname>eight</shortname>
-		</command>
-		<command id="nine">
-			<alias>numericconstants</alias>
-			<shortname>nine</shortname>
-		</command>
-		<command id="ten">
-			<alias>numericconstants</alias>
-			<shortname>ten</shortname>
-		</command>
-		<command id="keyconstants">
-			<canon>Key Constants</canon>
-			<shortname>Key Constants</shortname>
-			<description>PLOTSCR.HSD defines constants that correspond to each of the usable keys (or joystick buttons) that the player can press while playing. These are useful with the <ref>waitforkey</ref> command.<lb />any key, up key, down key, left key, right key, use key, menu key, cancel key</description>
 		</command>
 		<command id="anykey">
 			<alias>keyconstants</alias>

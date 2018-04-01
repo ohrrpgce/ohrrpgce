@@ -196,7 +196,8 @@
 				</xsl:apply-templates>
 
 				<xsl:variable name="numconstants" select='count(//section[@constants="yes"]/command)'/>
-				<p>Stats: There are <xsl:value-of select='count(//command) - $numconstants'/> commands and <xsl:value-of select='$numconstants'/> constants in this file, of which <xsl:value-of select='count(//alias)'/> are only references to other entries.</p>
+				<xsl:variable name="numtopics" select='count(//section[@topics="yes"]/command)'/>
+				<p>Stats: There are <xsl:value-of select='count(//command) - $numconstants - $numtopics'/> commands (of which <xsl:value-of select='count(//command[not(@constants) and not(@topics)]/alias)'/> are aliases), <xsl:value-of select='$numconstants'/> constants and <xsl:value-of select='$numtopics'/> definitions of types and other terms in this file.</p>
 				<p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 			</body>
 		</html>
