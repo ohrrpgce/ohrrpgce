@@ -3849,12 +3849,60 @@ END SUB
 
 
 '==========================================================================================
-'                                   New Spriteset Browser
+'                                   Spriteset Browser
 '==========================================================================================
+
+'=====================================================================
+'                      Add New Spriteset prompt
+
+TYPE AddNewSpritesetMenu EXTENDS ModularMenu
+  framesize as XYPair
+  confirmed as bool   'Confirmed instead of cancelled
+
+  DECLARE SUB update ()
+  DECLARE FUNCTION each_tick () as bool
+END TYPE
+
+SUB AddNewSpritesetMenu.update ()
+  REDIM menu(3)
+  state.last = UBOUND(menu)
+
+  menu(0) = "[Done]"
+  menu(1) = "Width: " & framesize.w
+  menu(2) = "Height: " & framesize.h
+  menu(3) = "[Cancel]"
+END SUB
+
+FUNCTION AddNewSpritesetMenu.each_tick () as bool
+  IF enter_space_click(state) THEN
+    IF state.pt <> 3 THEN confirmed = YES
+    RETURN YES
+  END IF
+
+  IF state.pt = 1 THEN
+    state.need_update OR= intgrabber(framesize.w, 4, 512)
+  ELSEIF state.pt = 2 THEN
+    state.need_update OR= intgrabber(framesize.h, 4, 512)
+  END IF
+END FUNCTION
+
+'framesize should be passed in with its default size
+'Returns true if didn't cancel
+FUNCTION input_new_spriteset_info (byref framesize as XYPair) as bool
+ DIM menu as AddNewSpritesetMenu
+ menu.floating = YES
+ menu.menuopts.edged = YES
+ menu.helpkey = "add_new_spriteset"
+ menu.title = "Select desired size of each frame in the spriteset and press ENTER."
+ menu.framesize = framesize
+ menu.run()
+ framesize = menu.framesize
+ RETURN menu.confirmed
+END FUNCTION
 
 
 '==========================================================================================
-'                                   New Spriteset Editor
+'                                   Spriteset Browser
 '==========================================================================================
 
 
@@ -4167,6 +4215,9 @@ END SUB
 
 'Append and save a new spriteset, using the FrameGroupInfo as a template
 SUB SpriteSetBrowser.add_spriteset()
+  DIM framesize as XYPair = sprite_sizes(sprtype).size  'Default size
+  IF input_new_spriteset_info(framesize) = NO THEN EXIT SUB
+
   DIM info() as FrameGroupInfo
   default_frame_group_info sprtype, info()
 
@@ -4176,9 +4227,7 @@ SUB SpriteSetBrowser.add_spriteset()
   NEXT
 
   DIM newfr as Frame ptr
-  WITH sprite_sizes(sprtype)
-    newfr = frame_new(.size.w, .size.h, numframes, YES)
-  END WITH
+  newfr = frame_new(framesize.w, framesize.h, numframes, YES)
 
   DIM fridx as integer = 0
   FOR groupidx as integer = 0 TO UBOUND(info)
@@ -4320,6 +4369,7 @@ SUB SpriteSetBrowser.import_any()
 
   'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets
   spriteedit_import16 edstate
+  showmousecursor
 
   'Saves the sprite and palette
   '(SpriteSetBrowser_save_callback_fullset will cut the spritesheet up again)
