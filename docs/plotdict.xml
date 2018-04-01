@@ -149,7 +149,7 @@ level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2018-04-01">
+<plotscript version="wip" datecode="2018-04-02">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4850,6 +4850,55 @@ end</example>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), and an <p>extra</p> data number which can be 0, 1, or 2, change the number stored in the extra data space to <p>num</p>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.</description>
 		</command>
 
+		<command id="getmenuitemcolor">
+			<canon>get menu item color(menu item handle)</canon>
+			<shortname>get menu item color</shortname>
+			<description>
+				Given a <ref>menuitemhandle</ref>, get its normal color (when it isn't disabled). This will be a <ref>colorcode</ref>.
+				0 means the default for the menu is used.
+			</description>
+			<seealso>
+				<ref>getmenutextcolor</ref>
+				<ref>menuitemdisabled</ref>
+			</seealso>
+		</command>
+		<command id="setmenuitemcolor">
+			<canon>set menu item color(menu item handle, colorcode)</canon>
+			<shortname>set menu item color</shortname>
+			<description>
+				Given a <ref>menuitemhandle</ref>, set its normal color (when it isn't disabled). This should be a <ref>colorcode</ref>.
+				0 means to use the default for the menu.
+			</description>
+			<seealso>
+				<ref>setmenutextcolor</ref>
+				<ref>menuitemdisabled</ref>
+			</seealso>
+		</command>
+		<command id="getmenuitemdisabledcolor">
+			<canon>get menu item disabled color(menu item handle)</canon>
+			<shortname>get menu item disabled color</shortname>
+			<description>
+				Given a <ref>menuitemhandle</ref>, get the color it uses when disabled. This will be a <ref>colorcode</ref>.
+				0 means the default for the menu is used.
+			</description>
+			<seealso>
+				<ref>setmenudisabledtextcolor</ref>
+				<ref>menuitemdisabled</ref>
+			</seealso>
+		</command>
+		<command id="setmenuitemdisabledcolor">
+			<canon>set menu item disabled color(menu item handle, colorcode)</canon>
+			<shortname>set menu item disabled color</shortname>
+			<description>
+				Given a <ref>menuitemhandle</ref>, set its color it uses when disabled. This should be a <ref>colorcode</ref>.
+				0 means to use the default for the menu.
+			</description>
+			<seealso>
+				<ref>setmenudisabledtextcolor</ref>
+				<ref>menuitemdisabled</ref>
+			</seealso>
+		</command>
+
 		</section>  	<!--Menu Item Data-->
 		</section>	<!--Menu Items-->
 
@@ -4897,6 +4946,7 @@ end</example>
 			<shortname>set menu boxstyle</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the boxstyle of the menu. <p>new box style</p> will be a number from 0 to 15.</description>
 		</command>
+
 		<command id="getmenutextcolor">
 			<canon>get menu textcolor(menu handle)</canon>
 			<shortname>get menu textcolor</shortname>
@@ -4907,6 +4957,17 @@ end</example>
 			<shortname>set menu textcolor</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), change the default text color of its menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.</description>
 		</command>
+		<command id="getmenudisabledtextcolor">
+			<canon>get menu disabled textcolor(menu handle)</canon>
+			<shortname>get menu disabled textcolor</shortname>
+			<description>Given a <ref>menuhandle</ref>, return the default text color of disabled menu items. This will be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.</description>
+		</command>
+		<command id="setmenudisabledtextcolor">
+			<canon>set menu disabled textcolor(menu handle, new textcolor)</canon>
+			<shortname>set menu disabled textcolor</shortname>
+			<description>Given a <ref>menuhandle</ref>, change the default text color of disabled menu items. <p>new textcolor</p> should be a <ref>colorcode</ref>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.</description>
+		</command>
+
 		<command id="getmenumaxrows">
 			<canon>get menu max rows(menu handle)</canon>
 			<shortname>get menu max rows</shortname>

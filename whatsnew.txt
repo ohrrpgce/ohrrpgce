@@ -51,6 +51,8 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
       and missing constant "menubit:remember selection" [Ralph]
     * "get/set menu cancel button menu" and "get/set menu item spacing" [Ralph]
     * "menu item disabled", "menu item visible", "menu item selectable" [Ralph]
+    * "get/set menu disabled textcolor", "get/set menu item color",
+      "get/set menu item disabled color" [Ralph]
     * "pathfind hero to", "hero chases npc" and "cancel hero walk" [James]
     * "read preference bitset", "write preference bitset" [Ralph]
 

@@ -146,7 +146,7 @@
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the current OHRRPGCE work-in-progress version (2018-04-01)</h2>
+<h2>For the current OHRRPGCE work-in-progress version (2018-04-02)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1249,6 +1249,9 @@
 		<a href="#about-getmenucancelbuttonmenu">get menu cancel button menu(menu handle)</a><br>
 		
 	
+		<a href="#about-getmenudisabledtextcolor">get menu disabled textcolor(menu handle)</a><br>
+		
+	
 		<a href="#about-getmenuid">get menu ID(menu handle)</a><br>
 		
 	
@@ -1256,6 +1259,12 @@
 		
 	
 		<a href="#about-getmenuitemcaption">get menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-getmenuitemcolor">get menu item color(menu item handle)</a><br>
+		
+	
+		<a href="#about-getmenuitemdisabledcolor">get menu item disabled color(menu item handle)</a><br>
 		
 	
 		<a href="#about-getmenuitemextra">get menu item extra(menu item handle, extra)</a><br>
@@ -1750,6 +1759,9 @@
 		<a href="#about-me">me</a><br>
 		
 	
+		<a href="#about-menuhandle">Menu handles</a><br>
+		
+	
 		<a href="#about-menuisopen">menu is open(menu handle)</a><br>
 		
 	
@@ -1763,6 +1775,9 @@
 		
 	
 		<a href="#about-menuitemdisabled">menu item disabled(menu item handle)</a><br>
+		
+	
+		<a href="#about-menuitemhandle">Menu item handles</a><br>
 		
 	
 		<a href="#about-menuitemselectable">menu item selectable(menu item handle)</a><br>
@@ -2503,10 +2518,19 @@
 		<a href="#about-setmenucancelbuttonmenu">set menu cancel button menu(menu handle, menu)</a><br>
 		
 	
+		<a href="#about-setmenudisabledtextcolor">set menu disabled textcolor(menu handle, new textcolor)</a><br>
+		
+	
 		<a href="#about-setmenuitembit">set menu item bit(menu item handle, bit, value)</a><br>
 		
 	
 		<a href="#about-setmenuitemcaption">set menu item caption(menu item handle, string ID)</a><br>
+		
+	
+		<a href="#about-setmenuitemcolor">set menu item color(menu item handle, colorcode)</a><br>
+		
+	
+		<a href="#about-setmenuitemdisabledcolor">set menu item disabled color(menu item handle, colorcode)</a><br>
 		
 	
 		<a href="#about-setmenuitemextra">set menu item extra(menu item handle, extra, num)</a><br>
@@ -10879,6 +10903,78 @@ end</pre>
 			
 		</p>
 </div>
+		<div class="command">
+<a name="about-getmenuitemcolor"></a>
+		<h4>get menu item color(menu item handle)</h4>
+<p>
+			
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, get its normal color (when it isn't disabled). This will be a <a href="#about-colorcode" class="ref">color code</a>.
+				0 means the default for the menu is used.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getmenutextcolor" class="ref">get menu textcolor</a>, </li>
+<li><a href="#about-menuitemdisabled" class="ref">menu item disabled</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuitemcolor"></a>
+		<h4>set menu item color(menu item handle, colorcode)</h4>
+<p>
+			
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, set its normal color (when it isn't disabled). This should be a <a href="#about-colorcode" class="ref">color code</a>.
+				0 means to use the default for the menu.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setmenutextcolor" class="ref">set menu textcolor</a>, </li>
+<li><a href="#about-menuitemdisabled" class="ref">menu item disabled</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenuitemdisabledcolor"></a>
+		<h4>get menu item disabled color(menu item handle)</h4>
+<p>
+			
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, get the color it uses when disabled. This will be a <a href="#about-colorcode" class="ref">color code</a>.
+				0 means the default for the menu is used.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setmenudisabledtextcolor" class="ref">set menu disabled textcolor</a>, </li>
+<li><a href="#about-menuitemdisabled" class="ref">menu item disabled</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenuitemdisabledcolor"></a>
+		<h4>set menu item disabled color(menu item handle, colorcode)</h4>
+<p>
+			
+				Given a <a href="#about-menuitemhandle" class="ref">menu item handle</a>, set its color it uses when disabled. This should be a <a href="#about-colorcode" class="ref">color code</a>.
+				0 means to use the default for the menu.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setmenudisabledtextcolor" class="ref">set menu disabled textcolor</a>, </li>
+<li><a href="#about-menuitemdisabled" class="ref">menu item disabled</a></li>
+</ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -10967,6 +11063,26 @@ end</pre>
 		<h4>set menu textcolor(menu handle, new textcolor)</h4>
 <p>
 			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), change the default text color of its menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Menu item" color in the User Interface Colors menu.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-getmenudisabledtextcolor"></a>
+		<h4>get menu disabled textcolor(menu handle)</h4>
+<p>
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, return the default text color of disabled menu items. This will be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-setmenudisabledtextcolor"></a>
+		<h4>set menu disabled textcolor(menu handle, new textcolor)</h4>
+<p>
+			Given a <a href="#about-menuhandle" class="ref">menu handle</a>, change the default text color of disabled menu items. <span class="param">new textcolor</span> should be a <a href="#about-colorcode" class="ref">color code</a>. 0 means the default is used, which is the "Disabled menu item" color in the User Interface Colors menu.
 			
 			
 			
@@ -18601,6 +18717,37 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</p>
 </div>
 		<div class="command">
+<a name="about-menuhandle"></a>
+		<h4>Menu handles</h4>
+<p>
+			
+				A handle for a currently open menu, for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a> or
+				<a href="#about-createmenu" class="ref">create menu</a> or <a href="#about-topmenu" class="ref">top menu</a>.
+				Menu handle <span class="param">0</span> (<span class="param">false</span>) means none/invalid.
+				Not the same thing as a menu ID (which is a menu defined in the menu editor).
+				There can be multiple open copies of a single menu ID.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+<a name="about-menuitemhandle"></a>
+		<h4>Menu item handles</h4>
+<p>
+			
+				A handle to one of the items in a currently open menu,
+				for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>.
+				Menu items in different menus are always different, so it's possible to lookup
+				which menu its in with <a href="#about-parentmenu" class="ref">parent menu</a>, and menu handles are never reused.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 <a name="about-colorcode"></a>
 		<h4>Color codes</h4>
 <p>
@@ -19165,7 +19312,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</div>
 		<hr>
 		</div>
-<p>Stats: There are 845 commands (of which 47 are aliases), 63 constants and 7 definitions of types and other terms in this file.</p>
+<p>Stats: There are 851 commands (of which 47 are aliases), 63 constants and 9 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

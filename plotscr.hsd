@@ -1313,6 +1313,14 @@ script, set menu textcolor, hsd:menuhandle, hsd:n=0, begin
   write menu int(hsd:menuhandle, 13, hsd:n)
 end
 
+script, get menu disabled textcolor, hsd:menuhandle, begin
+  exit returning(read menu int(hsd:menuhandle, 28))
+end
+
+script, set menu disabled textcolor, hsd:menuhandle, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 28, hsd:n)
+end
+
 script, get menu max rows, hsd:menuhandle, begin
   exit returning(read menu int(hsd:menuhandle, 14))
 end
@@ -1503,6 +1511,22 @@ script, get menu item extra, hsd:handle, hsd:extra=0, begin
   if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
     exit returning(read menu item int(hsd:handle, 29+hsd:extra))
   end
+end
+
+script, set menu item color, hsd:handle, hsd:n=0, begin
+  write menu item int(hsd:handle, 32, hsd:n)
+end
+
+script, get menu item color, hsd:handle, begin
+  exit returning(read menu item int(hsd:handle, 32))
+end
+
+script, set menu item disabled color, hsd:handle, hsd:n=0, begin
+  write menu item int(hsd:handle, 33, hsd:n)
+end
+
+script, get menu item disabled color, hsd:handle, begin
+  exit returning(read menu item int(hsd:handle, 33))
 end
 
 #--------------------------------------------------------------------------
