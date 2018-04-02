@@ -4215,8 +4215,14 @@ END SUB
 
 'Append and save a new spriteset, using the FrameGroupInfo as a template
 SUB SpriteSetBrowser.add_spriteset()
-  DIM framesize as XYPair = sprite_sizes(sprtype).size  'Default size
-  IF input_new_spriteset_info(framesize) = NO THEN EXIT SUB
+  DIM framesize as XYPair
+
+  WITH sprite_sizes(sprtype)
+   framesize = .size   'Default size
+   IF .fixed_size = NO THEN
+    IF input_new_spriteset_info(framesize) = NO THEN EXIT SUB
+   END IF
+  END WITH
 
   DIM info() as FrameGroupInfo
   default_frame_group_info sprtype, info()

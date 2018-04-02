@@ -5696,6 +5696,7 @@ SUB setup_sprite_sizes ()
   .name = "Box Border"
   .size.x = 16
   .size.y = 16
+  .fixed_size = YES
   .frames = 16
   .directions = 1
   .genmax = genMaxBoxBorder
@@ -5729,6 +5730,7 @@ SUB setup_sprite_sizes ()
   .name = "Tileset"
   .size.x = 20
   .size.y = 160 * 20
+  .fixed_size = YES
   .frames = 1
   .directions = 1
   .genmax = genMaxTile

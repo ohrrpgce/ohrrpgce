@@ -964,7 +964,8 @@ END TYPE
 
 TYPE SpriteSize
  name as string
- size as XYPair
+ size as XYPair            'Default size
+ fixed_size as bool        'Sizes other than the default not allowed
  frames as integer
  directions as integer
  genmax as integer         'Offset in gen() where max record index is stored
