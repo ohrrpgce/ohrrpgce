@@ -1075,7 +1075,7 @@ SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMa
  camera.y = bound(dest.y * zoom - minisize.y \ 2, 0, mapsize.y * zoom - minisize.y)
 END SUB
 
-FUNCTION onwho (caption as string, byval alone as bool) as integer
+FUNCTION onwho (caption as string, byval alone as bool=NO) as integer
 
 '-- pre-select the first hero
 DIM w as integer = rank_to_party_slot(0)
@@ -1104,11 +1104,9 @@ DO
  playtimer
  control
  loopvar wtg, 0, 3
- IF carray(ccMenu) > 1 THEN
-  onwho = -1
-  menusound gen(genCancelSFX)
-  EXIT DO
- END IF
+ DIM do_exit as bool = NO
+ DIM do_pick as bool = NO
+ IF carray(ccMenu) > 1 THEN do_exit = YES
  IF carray(ccLeft) > 1 THEN
   DO: loopvar(w, 0, 3, -1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
@@ -1117,7 +1115,55 @@ DO
   DO: loopvar(w, 0, 3, 1): LOOP UNTIL gam.hero(w).id >= 0
   menusound gen(genCursorSFX)
  END IF
- IF carray(ccUse) > 1 THEN onwho = w: EXIT DO
+ IF carray(ccUse) > 1 THEN do_pick = YES
+
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM old_w as integer = w
+  DIM hover as integer = -1
+  FOR i as integer = 0 TO 3
+   IF rect_collide_point(Type(100 + i * 30 - 5, 100 - 5, 30, 30), readmouse.pos) THEN
+    hover = i
+   END IF
+  NEXT i
+  IF (readmouse.release AND mouseRight) THEN do_exit = YES
+  IF (readmouse.buttons AND mouseLeft) THEN
+   IF hover >= 0 ANDALSO gam.hero(hover).id >= 0 THEN
+    w = hover
+   END IF
+  END IF
+  IF (readmouse.release AND mouseLeft) THEN
+   IF hover >= 0 THEN
+    IF gam.hero(hover).id >= 0 THEN
+     IF w = hover THEN
+      'Already selected, confirm
+      do_pick = YES
+     ELSE
+      w = hover
+     END IF
+    ELSE
+     'Can't pick an empty slot
+     menusound gen(genCancelSFX)
+    END IF
+   ELSE
+    IF NOT rect_collide_point(Type(90, 74, 140, 52), readmouse.pos) THEN
+     'left clicked outside the rectangle
+     do_exit = YES
+    END IF
+   END IF
+  END IF
+  IF w <> old_w THEN menusound gen(genCursorSFX)
+ END IF
+
+ IF do_exit THEN
+  onwho = -1
+  menusound gen(genCancelSFX)
+  EXIT DO
+ END IF
+ IF do_pick THEN
+  onwho = w
+  EXIT DO
+ END IF
+
  centerbox 160, 100, 140, 52, 1, page
  DIM cater_slot as integer = 0
  FOR party_slot as integer = 0 TO 3

@@ -30,7 +30,7 @@ DECLARE FUNCTION istag OVERLOAD (num as integer, zero as bool=NO) as bool
 DECLARE FUNCTION istag OVERLOAD (tagbits() as integer, num as integer, zero as bool=NO) as bool
 DECLARE SUB minimap (byval x as integer, byval y as integer)
 DECLARE FUNCTION teleporttool () as bool
-DECLARE FUNCTION onwho (caption as string, alone as bool) as integer
+DECLARE FUNCTION onwho (caption as string, alone as bool=NO) as integer
 DECLARE SUB readjoysettings
 DECLARE FUNCTION renamehero (who as integer, escapable as bool) as bool
 DECLARE SUB resetgame ()
