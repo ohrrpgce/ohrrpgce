@@ -3839,10 +3839,10 @@ SUB spells_menu_paint (byref sp as SpellsMenuState)
    END IF
    printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, sp.page 'spells
   NEXT o
-  textcolor uilook(uiMenuItem), 0
-  IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
-  printstr sp.cancel_menu_caption, 9, 171, sp.page 'cancel
   IF sp.mset = 1 THEN
+   textcolor uilook(uiMenuItem), 0
+   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
+   printstr sp.cancel_menu_caption, 9, 171, sp.page 'cancel
    IF sp.spell(sp.cursor).desc <> "" THEN
     rectangle 6, 155, 308, 1, boxlook(2).edgecol, sp.page  'description divider
    END IF
