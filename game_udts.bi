@@ -220,6 +220,9 @@ END TYPE
 
 TYPE EquipMenuState
   mode                as integer '0=picking slot 1=picking equipment to put in slot
+  quit                as bool
+  allow_switch        as bool
+  menu(6)             as string
   who                 as integer
   slot                as integer
   eq_cursor           as MenuState
@@ -229,6 +232,7 @@ TYPE EquipMenuState
   stat_bonus(11)      as integer 'Cache stat bonuses for currently selected equippable
   stat_total_bonus(11) as integer 'Total stat bonuses for all hero equip after equipping selected equippable
   hero                as HeroDef
+  item_info           as string
 END TYPE
 
 TYPE SpellsMenuSlot

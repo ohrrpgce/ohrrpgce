@@ -35,9 +35,9 @@ DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState)
 DECLARE FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
 DECLARE SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as integer = 18)
 
-DECLARE SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
-DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
-DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
+DECLARE SUB equip_menu_setup (byref st as EquipMenuState)
+DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState)
+DECLARE SUB equip_menu_back_to_menu(byref st as EquipMenuState)
 DECLARE SUB equip_menu_stat_bonus(byref st as EquipMenuState)
 DECLARE FUNCTION equip_menu_available_item_id(st as EquipMenuState) as integer
 DECLARE FUNCTION equip_menu_available_item_caption(st as EquipMenuState, byval menuslot as integer) as string
@@ -2777,29 +2777,113 @@ FUNCTION outside_battle_cure (byval atk as integer, byref target as integer, byv
  RETURN didcure
 END FUNCTION
 
-'Equip menu.
+'===Equip menu===
+
+SUB equip_menu_controls_slot_picker (st as EquipMenuState)
+ '--primary menu
+ IF carray(ccMenu) > 1 THEN
+  carray(ccUse) = 0
+  carray(ccMenu) = 0
+  st.quit = YES
+  EXIT SUB
+ END IF
+ IF st.allow_switch THEN
+  IF carray(ccLeft) > 1 THEN 'Left: previous hero
+   st.who = loop_active_party_slot(st.who, -1)
+   equip_menu_setup st
+   MenuSound gen(genCursorSFX)
+   st.item_info = equip_menu_equipped_item_info(st)
+  END IF
+  IF carray(ccRight) > 1 THEN 'Right: next hero
+   st.who = loop_active_party_slot(st.who, 1)
+   equip_menu_setup st
+   MenuSound gen(genCursorSFX)
+   st.item_info = equip_menu_equipped_item_info(st)
+  END IF
+ END IF
+ usemenusounds
+ IF usemenu(st.slot, 0, 0, 6, 6) THEN
+  st.item_info = equip_menu_equipped_item_info(st)
+ END IF
+
+ IF carray(ccUse) > 1 THEN
+  IF st.slot < 5 THEN
+   '--change equipment
+   IF st.eq(st.slot).count > 0 OR gam.hero(st.who).equip(st.slot).id >= 0 THEN
+    '--switch to change equipment mode
+    st.mode = 1
+    st.eq_cursor.pt = 0
+    st.eq_cursor.top = 0
+    'Number of options = num equippable things + nothing/unequip option
+    st.eq_cursor.last = (st.eq(st.slot).count + 1) - 1
+    equip_menu_stat_bonus st
+    MenuSound gen(genAcceptSFX)
+    st.item_info = equip_menu_available_item_info(st)
+   END IF
+   'UPDATE ITEM POSSESSION BITSETS
+   evalitemtags
+  END IF
+  IF st.slot = 5 THEN
+   MenuSound gen(genCancelSFX)
+   '--unequip all
+   FOR i as integer = 0 TO 4
+    unequip st.who, i
+   NEXT i
+   equip_menu_setup st
+   'UPDATE ITEM POSSESSION BITSETS
+   evalitemtags
+  END IF
+  IF st.slot = 6 THEN carray(ccUse) = 0: st.quit = YES
+ END IF
+END SUB
+
+SUB equip_menu_controls_equip_change (st as EquipMenuState)
+ '--change equip menu
+ IF carray(ccMenu) > 1 THEN
+  st.mode = 0
+  MenuSound gen(genCancelSFX)
+  st.item_info = equip_menu_equipped_item_info(st)
+ END IF
+ usemenusounds
+ IF usemenu(st.eq_cursor) THEN
+  equip_menu_stat_bonus st
+  st.item_info = equip_menu_available_item_info(st)
+ END IF
+ IF carray(ccUse) > 1 THEN
+  IF st.eq_cursor.pt = st.eq(st.slot).count THEN
+   '--unequip
+   unequip st.who, st.slot
+   equip_menu_back_to_menu st
+   MenuSound gen(genCancelSFX)
+  ELSE
+   '--normal equip
+   DIM item_id as integer = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
+   equip_menu_do_equip item_id, st
+   MenuSound gen(genAcceptSFX)
+  END IF
+ END IF
+END SUB
+
+SUB equip_menu (who as integer, allow_switch as bool = YES)
 'who is party slot.
 'allow_switch is whether to allow switching left/right to other heroes
-SUB equip_menu (who as integer, allow_switch as bool = YES)
 
 DIM m(4) as string
-DIM menu(6) as string
 DIM page as integer = compatpage
 DIM holdscreen as integer = allocatepage
 DIM st as EquipMenuState
+st.allow_switch = allow_switch
 
 DIM i as integer
 DIM tog as integer = 0
-DIM item_id as integer
-DIM item_info as string
 
 '--get names
 m(0) = readglobalstring(38, "Weapon", 10)
 FOR i = 0 TO 3
  m(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
-menu(5) = rpad(readglobalstring(39, "-REMOVE-", 8), " ", 8)
-menu(6) = rpad(readglobalstring(40, "-EXIT-", 8), " ", 8)
+st.menu(5) = rpad(readglobalstring(39, "-REMOVE-", 8), " ", 8)
+st.menu(6) = rpad(readglobalstring(40, "-EXIT-", 8), " ", 8)
 
 '--initialize
 WITH st
@@ -2809,9 +2893,9 @@ WITH st
  .default_weapon_name = ""
  .unequip_caption = rpad(readglobalstring(110, "Nothing", 10), " ", 11)
 END WITH
-equip_menu_setup st, menu()
+equip_menu_setup st
 
-item_info = equip_menu_equipped_item_info(st)
+st.item_info = equip_menu_equipped_item_info(st)
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
@@ -2829,86 +2913,11 @@ DO
  playtimer
  control
  IF st.mode = 0 THEN
-  '--primary menu
-  IF carray(ccMenu) > 1 THEN
-   carray(ccUse) = 0
-   carray(ccMenu) = 0
-   EXIT DO
-  END IF
-  IF allow_switch THEN
-   IF carray(ccLeft) > 1 THEN 'Left: previous hero
-    st.who = loop_active_party_slot(st.who, -1)
-    equip_menu_setup st, menu()
-    MenuSound gen(genCursorSFX)
-    item_info = equip_menu_equipped_item_info(st)
-   END IF
-   IF carray(ccRight) > 1 THEN 'Right: next hero
-    st.who = loop_active_party_slot(st.who, 1)
-    equip_menu_setup st, menu()
-    MenuSound gen(genCursorSFX)
-    item_info = equip_menu_equipped_item_info(st)
-   END IF
-  END IF
-  usemenusounds
-  IF usemenu(st.slot, 0, 0, 6, 6) THEN
-   item_info = equip_menu_equipped_item_info(st)
-  END IF
-
-  IF carray(ccUse) > 1 THEN
-   IF st.slot < 5 THEN
-    '--change equipment
-    IF st.eq(st.slot).count > 0 OR gam.hero(st.who).equip(st.slot).id >= 0 THEN
-     '--switch to change equipment mode
-     st.mode = 1
-     st.eq_cursor.pt = 0
-     st.eq_cursor.top = 0
-     'Number of options = num equippable things + nothing/unequip option
-     st.eq_cursor.last = (st.eq(st.slot).count + 1) - 1
-     equip_menu_stat_bonus st
-     MenuSound gen(genAcceptSFX)
-     item_info = equip_menu_available_item_info(st)
-    END IF
-    'UPDATE ITEM POSSESSION BITSETS
-    evalitemtags
-   END IF
-   IF st.slot = 5 THEN
-    MenuSound gen(genCancelSFX)
-    '--unequip all
-    FOR i as integer = 0 TO 4
-     unequip st.who, i
-    NEXT i
-    equip_menu_setup st, menu()
-    'UPDATE ITEM POSSESSION BITSETS
-    evalitemtags
-   END IF
-   IF st.slot = 6 THEN carray(ccUse) = 0: EXIT DO
-  END IF
+  equip_menu_controls_slot_picker st
  ELSE
-  '--change equip menu
-  IF carray(ccMenu) > 1 THEN
-   st.mode = 0
-   MenuSound gen(genCancelSFX)
-   item_info = equip_menu_equipped_item_info(st)
-  END IF
-  usemenusounds
-  IF usemenu(st.eq_cursor) THEN
-   equip_menu_stat_bonus st
-   item_info = equip_menu_available_item_info(st)
-  END IF
-  IF carray(ccUse) > 1 THEN
-   IF st.eq_cursor.pt = st.eq(st.slot).count THEN
-    '--unequip
-    unequip st.who, st.slot
-    equip_menu_back_to_menu st, menu()
-    MenuSound gen(genCancelSFX)
-   ELSE
-    '--normal equip
-    item_id = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
-    equip_menu_do_equip item_id, st, menu()
-    MenuSound gen(genAcceptSFX)
-   END IF
-  END IF
+  equip_menu_controls_equip_change st
  END IF
+ IF st.quit THEN EXIT DO
 
  '--display
  copypage holdscreen, page
@@ -2971,7 +2980,7 @@ DO
       IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
     END IF
    END IF
-   printstr menu(i), 204, 45 + i * 9, page
+   printstr st.menu(i), 204, 45 + i * 9, page
   NEXT i
   IF st.slot < 5 THEN
    centerbox 236, 22, (LEN(m(st.slot)) + 2) * 8, 16, 4, page
@@ -2992,7 +3001,7 @@ DO
   NEXT i
  END IF
  centerbox 160, 192, 312, 16, 4, page
- edgeprint item_info, pCenteredLeft, 187, uilook(uiText), page
+ edgeprint st.item_info, pCenteredLeft, 187, uilook(uiText), page
  setvispage vpage
  dowait
 LOOP
@@ -3052,7 +3061,7 @@ FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
  RETURN ""
 END FUNCTION
 
-SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
+SUB equip_menu_setup (byref st as EquipMenuState)
  DIM byref herost as HeroState = gam.hero(st.who)
  loadherodata st.hero, herost.id
  st.default_weapon_name = rpad(readitemname(herost.def_wep - 1), " ", 11)
@@ -3061,9 +3070,9 @@ SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
  END IF
 
  FOR i as integer = 0 TO 4
-  menu(i) = "        "
+  st.menu(i) = "        "
   IF herost.equip(i).id >= 0 THEN
-   menu(i) = rpad(readitemname(herost.equip(i).id), " ", 8)
+   st.menu(i) = rpad(readitemname(herost.equip(i).id), " ", 8)
   END IF
  NEXT i
  
@@ -3097,14 +3106,14 @@ SUB equip_menu_setup (byref st as EquipMenuState, menu() as string)
 
 END SUB
 
-SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState, menu() as string)
+SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState)
  doequip item, st.who, st.slot
- equip_menu_back_to_menu st, menu()
+ equip_menu_back_to_menu st
 END SUB
 
-SUB equip_menu_back_to_menu(byref st as EquipMenuState, menu() as string)
+SUB equip_menu_back_to_menu(byref st as EquipMenuState)
  st.mode = 0
- equip_menu_setup st, menu()
+ equip_menu_setup st
 END SUB
 
 SUB equip_menu_stat_bonus(byref st as EquipMenuState)
