@@ -3552,6 +3552,17 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
  spells_menu_refresh_list sp
 END SUB
 
+FUNCTION spells_menu_control_hover() as integer
+ 'Returns which spell slot the mouse is over or 24 for "cancel" or -1 for none
+ FOR i as integer = 0 to 23
+  DIM x as integer = (i MOD 3)
+  DIM y as integer = (i \ 3)
+  IF rect_collide_point(Type(12 + x * 104, 90 + y * 8, 96, 8), readmouse.pos) THEN RETURN i
+ NEXT i
+ IF rect_collide_point(Type(9, 171, 96, 8), readmouse.pos) THEN RETURN 24 'The cancel button
+ RETURN -1
+END FUNCTION
+
 SUB spells_menu_control_which_list(sp as SpellsMenuState)
  IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
  IF carray(ccLeft) > 1 THEN
@@ -3568,12 +3579,54 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
   menusound gen(genCursorSFX)
   spells_menu_refresh_hero sp
  END IF
-
  usemenusounds
  IF usemenu (sp.listnum, 0, 0, sp.last, 5) THEN
   spells_menu_refresh_list sp
  END IF
- IF carray(ccUse) > 1 THEN
+ DIM do_pick as bool = NO
+ IF carray(ccUse) > 1 THEN do_pick = YES
+
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM hover as integer = -1
+  DIM old_listnum as integer = sp.listnum
+  IF rect_collide_point(Type(6, 86, 308, 96), readmouse.pos) THEN
+   'Mouse click over the spell area switches to that mode
+   IF (readmouse.release AND mouseLeft) THEN
+    sp.mset = 1
+    sp.cursor = spells_menu_control_hover()
+    IF sp.cursor = -1 THEN sp.cursor = 0
+    EXIT SUB
+   END IF
+  ELSEIF rect_collide_point(Type(14, 20, 84, 60), readmouse.pos) THEN
+   'Mouse over list of spell lists
+   FOR i as integer = 0 TO sp.last
+    IF rect_collide_point(Type(16, 25 + i * 10, 16 * 8, 10), readmouse.pos) THEN hover = i
+   NEXT i
+   IF (readmouse.release AND mouseLeft) ANDALSO hover >= 0 THEN
+    IF sp.listnum = hover ORELSE hover = sp.last THEN do_pick = YES
+   END IF
+   IF (readmouse.buttons AND mouseLeft) ANDALSO hover >= 0 THEN
+    sp.listnum = hover
+   END IF
+  ELSE
+   'Mouse anywhere else
+   IF (readmouse.release AND mouseLeft) THEN
+    sp.quit = YES
+    EXIT SUB
+   END IF
+  END IF
+  IF hover >= 0 ANDALSO (readmouse.buttons AND mouseRight) THEN
+   'right-click select
+   sp.listnum = hover
+  ELSEIF (readmouse.release AND mouseRight) THEN
+   'Right-click anywhere exits
+   sp.quit = YES
+   EXIT SUB
+  END IF
+  IF old_listnum <> sp.listnum THEN menusound gen(genCursorSFX)
+ END IF
+
+ IF do_pick THEN
   IF sp.lists(sp.listnum).menu_index = -1 THEN sp.quit = YES : EXIT SUB
   menusound gen(genAcceptSFX)
   sp.mset = 1
@@ -3582,6 +3635,9 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
 END SUB
 
 SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
+ DIM do_pick as bool = NO
+
+ 'Keyboard controls
  IF sp.re_use = NO THEN
   IF carray(ccMenu) > 1 THEN
    sp.mset = 0
@@ -3624,6 +3680,44 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
   END IF
  END IF
  IF carray(ccUse) > 1 OR sp.re_use THEN
+  do_pick = YES
+ END IF
+
+ IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT sp.re_use THEN
+  DIM hover as integer = -1
+  DIM old_cursor as integer = sp.cursor
+  IF rect_collide_point(Type(6, 86, 308, 96), readmouse.pos) THEN
+   ' Mouse is over the spell area
+   DIM hover as integer = spells_menu_control_hover()
+   IF hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO (sp.cursor = hover ORELSE hover = 24) THEN do_pick = YES
+    IF (readmouse.release AND mouseLeft) THEN sp.cursor = hover
+   END IF
+  ELSEIF rect_collide_point(Type(14, 20, 84, 60), readmouse.pos) THEN
+   'Mouse over list of spell lists
+   IF (readmouse.release AND mouseLeft) THEN
+    'Click back into the spell list picker
+    sp.mset = 0
+    EXIT SUB
+   END IF
+  ELSE
+   'Mouse anywhere else
+   IF (readmouse.release AND mouseLeft) THEN
+    sp.quit = YES
+    EXIT SUB
+   END IF
+  END IF
+  IF hover >= 0 ANDALSO (readmouse.buttons AND mouseRight) THEN
+   'Right click select
+   sp.cursor = hover
+  ELSEIF (readmouse.release AND mouseRight) THEN
+   'Right outside goes back
+   sp.mset = 0
+  END IF
+  IF old_cursor <> sp.cursor THEN menusound gen(genCursorSFX)
+ END IF
+ 
+ IF do_pick THEN
   sp.re_use = NO
   IF sp.cursor = 24 THEN sp.mset = 0
   IF sp.spell(sp.cursor).can_use THEN
