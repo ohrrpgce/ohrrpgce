@@ -542,13 +542,16 @@ End Function
 Function ShopStuffBrowser.thing_text_for_id(byval id as integer) as string
  dim digits as integer = len(str(highest_id()))
  if id = -1 then
-  return lpad("", " ", digits) & " " & rpad("NOTHING", " ", 16) & "      "
+  return lpad("", " ", digits) & " " & rpad("NOTHING", " ", 16) & STRING(11, " ")
  end if
  dim stufbuf(curbinsize(binSTF) \ 2 - 1) as integer
  loadrecord stufbuf(), game & ".stf", getbinsize(binSTF) \ 2, shop_id * 50 + id
  dim kind as string = iif(stufbuf(17) = 1, "(HERO)", "(ITEM)")
  dim thing_name as string = readbadbinstring(stufbuf(), 0, 16, 0)
- return lpad(str(id), " ", digits) & " " & rpad(thing_name, " ", 16) & kind
+ dim stock_info as string = rpad(STR(stufbuf(19)), " ", 3)
+ IF stufbuf(19) = 0 THEN stock_info = "-  "
+ IF stufbuf(19) = -1 THEN stock_info = "*  "
+ return lpad(str(id), " ", digits) & " " & rpad(thing_name, " ", 16) & " " & stock_info & " " & kind
 End Function
 
 '-----------------------------------------------------------------------
