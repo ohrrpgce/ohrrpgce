@@ -3552,110 +3552,118 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
  spells_menu_refresh_list sp
 END SUB
 
-SUB spells_menu_control(sp as SpellsMenuState)
- IF sp.mset = 0 THEN '--picking which spell list
-  IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
-  IF carray(ccLeft) > 1 THEN
-   DO
-    loopvar sp.hero, 0, 3, -1
-   LOOP UNTIL gam.hero(sp.hero).id >= 0
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_hero sp
-  END IF
-  IF carray(ccRight) > 1 THEN
-   DO
-    loopvar sp.hero, 0, 3
-   LOOP UNTIL gam.hero(sp.hero).id >= 0
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_hero sp
-  END IF
+SUB spells_menu_control_which_list(sp as SpellsMenuState)
+ IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
+ IF carray(ccLeft) > 1 THEN
+  DO
+   loopvar sp.hero, 0, 3, -1
+  LOOP UNTIL gam.hero(sp.hero).id >= 0
+  menusound gen(genCursorSFX)
+  spells_menu_refresh_hero sp
+ END IF
+ IF carray(ccRight) > 1 THEN
+  DO
+   loopvar sp.hero, 0, 3
+  LOOP UNTIL gam.hero(sp.hero).id >= 0
+  menusound gen(genCursorSFX)
+  spells_menu_refresh_hero sp
+ END IF
 
-  usemenusounds
-  IF usemenu (sp.listnum, 0, 0, sp.last, 5) THEN
-   spells_menu_refresh_list sp
+ usemenusounds
+ IF usemenu (sp.listnum, 0, 0, sp.last, 5) THEN
+  spells_menu_refresh_list sp
+ END IF
+ IF carray(ccUse) > 1 THEN
+  IF sp.lists(sp.listnum).menu_index = -1 THEN sp.quit = YES : EXIT SUB
+  menusound gen(genAcceptSFX)
+  sp.mset = 1
+  sp.cursor = 0
+ END IF
+END SUB
+
+SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
+ IF sp.re_use = NO THEN
+  IF carray(ccMenu) > 1 THEN
+   sp.mset = 0
+   menusound gen(genCancelSFX)
   END IF
-  IF carray(ccUse) > 1 THEN
-   IF sp.lists(sp.listnum).menu_index = -1 THEN sp.quit = YES : EXIT SUB
-   menusound gen(genAcceptSFX)
-   sp.mset = 1
-   sp.cursor = 0
+  IF carray(ccUp) > 1 THEN
+   sp.cursor = sp.cursor - 3
+   menusound gen(genCursorSFX)
+   IF sp.cursor < 0 THEN sp.cursor = 24
   END IF
- ELSE '--picking a specific spell from a list
-  IF sp.re_use = NO THEN
-   IF carray(ccMenu) > 1 THEN
-    sp.mset = 0
-    menusound gen(genCancelSFX)
+  IF carray(ccDown) > 1 THEN
+   IF sp.cursor < 24 THEN
+    sp.cursor = small(sp.cursor + 3, 24)
+   ELSE
+    sp.cursor = 0
    END IF
-   IF carray(ccUp) > 1 THEN
-    sp.cursor = sp.cursor - 3
-    menusound gen(genCursorSFX)
-    IF sp.cursor < 0 THEN sp.cursor = 24
-   END IF
-   IF carray(ccDown) > 1 THEN
-    IF sp.cursor < 24 THEN
-     sp.cursor = small(sp.cursor + 3, 24)
+   menusound gen(genCursorSFX)
+  END IF
+  IF sp.cursor < 24 THEN   'EXIT not selected
+   IF carray(ccLeft) > 1 THEN
+    IF sp.cursor MOD 3 THEN
+     sp.cursor = sp.cursor - 1
     ELSE
-     sp.cursor = 0
+     sp.cursor = sp.cursor + 2
     END IF
     menusound gen(genCursorSFX)
    END IF
-   IF sp.cursor < 24 THEN   'EXIT not selected
-    IF carray(ccLeft) > 1 THEN
-     IF sp.cursor MOD 3 THEN
-      sp.cursor = sp.cursor - 1
-     ELSE
-      sp.cursor = sp.cursor + 2
-     END IF
-     menusound gen(genCursorSFX)
-    END IF
-    IF carray(ccRight) > 1 THEN
-     IF sp.cursor MOD 3 = 2 THEN sp.cursor = sp.cursor - 2 ELSE sp.cursor += 1
-     menusound gen(genCursorSFX)
-    END IF
-    IF keyval(scPageUp) > 1 THEN
-     sp.cursor = sp.cursor MOD 3
-     menusound gen(genCursorSFX)
-    END IF
-    IF keyval(scPageDown) > 1 THEN
-     sp.cursor = (sp.cursor MOD 3) + 21
-     menusound gen(genCursorSFX)
-    END IF
+   IF carray(ccRight) > 1 THEN
+    IF sp.cursor MOD 3 = 2 THEN sp.cursor = sp.cursor - 2 ELSE sp.cursor += 1
+    menusound gen(genCursorSFX)
+   END IF
+   IF keyval(scPageUp) > 1 THEN
+    sp.cursor = sp.cursor MOD 3
+    menusound gen(genCursorSFX)
+   END IF
+   IF keyval(scPageDown) > 1 THEN
+    sp.cursor = (sp.cursor MOD 3) + 21
+    menusound gen(genCursorSFX)
    END IF
   END IF
-  IF carray(ccUse) > 1 OR sp.re_use THEN
-   sp.re_use = NO
-   IF sp.cursor = 24 THEN sp.mset = 0
-   IF sp.spell(sp.cursor).can_use THEN
-    '--spell that can be used oob
-    
-    DIM atk as AttackData
-    loadattackdata atk, sp.spell(sp.cursor).id
-    '--NOTE: atkallowed isn't needed here because the check is done elswehere...
-    '--still, it would be nice if we could use it anyway...
-    'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(sp.cursor / 3), )
-    
-    '--repaint the screen so it will show up under the menu attack targ picker
-    spells_menu_paint sp
-    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, sp.hero, TRIM(sp.spell(sp.cursor).name), 36) THEN
-     '--attack was actually used
-     'FIXME: outside-battle and inside-battle attack cost consumption should be unified
-     '--deduct MP
-     DIM cost as integer
-     cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
-     gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
-     IF sp.lists(sp.listnum).magic_type = 1 THEN
-      '--deduct LMP
-      lmp(sp.hero, INT(sp.cursor / 3)) = lmp(sp.hero, INT(sp.cursor / 3)) - 1
-     END IF
-     spells_menu_refresh_hero sp
-     sp.re_use = YES
-    ELSE
-     menusound gen(genCancelSFX)
+ END IF
+ IF carray(ccUse) > 1 OR sp.re_use THEN
+  sp.re_use = NO
+  IF sp.cursor = 24 THEN sp.mset = 0
+  IF sp.spell(sp.cursor).can_use THEN
+   '--spell that can be used oob
+   
+   DIM atk as AttackData
+   loadattackdata atk, sp.spell(sp.cursor).id
+   '--NOTE: atkallowed isn't needed here because the check is done elswehere...
+   '--still, it would be nice if we could use it anyway...
+   'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(sp.cursor / 3), )
+   
+   '--repaint the screen so it will show up under the menu attack targ picker
+   spells_menu_paint sp
+   IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, sp.hero, TRIM(sp.spell(sp.cursor).name), 36) THEN
+    '--attack was actually used
+    'FIXME: outside-battle and inside-battle attack cost consumption should be unified
+    '--deduct MP
+    DIM cost as integer
+    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.focus)
+    gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
+    IF sp.lists(sp.listnum).magic_type = 1 THEN
+     '--deduct LMP
+     lmp(sp.hero, INT(sp.cursor / 3)) = lmp(sp.hero, INT(sp.cursor / 3)) - 1
     END IF
+    spells_menu_refresh_hero sp
+    sp.re_use = YES
    ELSE
     menusound gen(genCancelSFX)
    END IF
+  ELSE
+   menusound gen(genCancelSFX)
   END IF
+ END IF
+END SUB
+
+SUB spells_menu_control(sp as SpellsMenuState)
+ IF sp.mset = 0 THEN '--picking which spell list
+  spells_menu_control_which_list sp
+ ELSE '--picking a specific spell from a list
+  spells_menu_control_pick_spell sp
  END IF
 END SUB
 
