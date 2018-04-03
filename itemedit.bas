@@ -170,6 +170,12 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     itembuf(49) = b.browse(itembuf(49))
     state.need_update = YES
    END IF
+   IF state.pt = 10 THEN
+    DIM captions(2) as string = {"Unlimited Use", "Consumed By Use", "Cannot be Sold/Dropped"}
+    DIM b as ArrayBrowser = ArrayBrowser(captions(), "Consumability")
+    itembuf(73) = b.browse(itembuf(73))
+    state.need_update = YES
+   END IF
   END IF
   SELECT CASE state.pt
    CASE 1
