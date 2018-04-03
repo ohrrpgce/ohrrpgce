@@ -1998,7 +1998,16 @@ SUB status_screen (byval slot as integer)
   playtimer
   control
   IF carray(ccMenu) > 1 THEN EXIT DO
-  IF carray(ccUse) > 1 THEN
+  DIM do_next as bool = NO
+  IF carray(ccUse) > 1 THEN do_next = YES
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   IF (readmouse.release AND mouseLeft) THEN
+    do_next = YES
+   ELSEIF (readmouse.release AND mouseRight) THEN
+    EXIT DO
+   END IF
+  END IF
+  IF do_next THEN
    DIM try_rename as bool = NO
    DIM sel as Slice Ptr = LookupSlice(SL_STATUS_PAGE_SELECT, st.sl)
    IF sel THEN
