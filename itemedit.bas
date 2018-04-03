@@ -165,6 +165,11 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     itembuf(53) = pal16browse(itembuf(53), sprTypeWeapon, itembuf(52), YES)
     state.need_update = YES
    END IF
+   IF state.pt = 5 THEN
+    DIM b as ArrayBrowser = ArrayBrowser(eqst(), "Equipability Types")
+    itembuf(49) = b.browse(itembuf(49))
+    state.need_update = YES
+   END IF
   END IF
   SELECT CASE state.pt
    CASE 1
