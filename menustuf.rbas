@@ -2781,6 +2781,7 @@ END FUNCTION
 
 SUB equip_menu_controls_slot_picker (st as EquipMenuState)
  '--primary menu
+ DIM do_pick as integer = NO
  IF carray(ccMenu) > 1 THEN
   carray(ccUse) = 0
   carray(ccMenu) = 0
@@ -2805,8 +2806,43 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
  IF usemenu(st.slot, 0, 0, 6, 6) THEN
   st.item_info = equip_menu_equipped_item_info(st)
  END IF
-
  IF carray(ccUse) > 1 THEN
+  do_pick = YES
+ END IF
+ 
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM hover as integer = -1
+  DIM old_slot as integer = st.slot
+  IF rect_collide_point(Type(14, 10, 140, 16), readmouse.pos) THEN
+   'hero name box
+   IF st.allow_switch ANDALSO (readmouse.release AND mouseLeft) THEN
+    st.who = loop_active_party_slot(st.who, 1)
+    equip_menu_setup st
+    MenuSound gen(genCursorSFX)
+    st.item_info = equip_menu_equipped_item_info(st)
+   END IF
+  ELSEIF rect_collide_point(Type(196, 36, 80, 78), readmouse.pos) THEN
+   'equipment box
+   FOR i as integer = 0 TO 6
+    IF rect_collide_point(Type(204, 45 + i * 9, 8 * 8, 9), readmouse.pos) THEN hover = i
+   NEXT i
+   IF (readmouse.release AND mouseLeft) ANDALSO (hover = st.slot ORELSE hover = 6) THEN do_pick = YES
+   IF (readmouse.release AND mouseLeft) THEN st.slot = hover
+  ELSE
+   'Anywhere else
+   IF (readmouse.release AND mouseLeft) THEN
+    st.quit = YES
+    EXIT SUB
+   END IF
+  END IF
+  IF (readmouse.release AND mouseRight) THEN
+   st.quit = YES
+   EXIT SUB
+  END IF
+  IF st.slot <> old_slot THEN MenuSound gen(genCursorSFX)
+ END IF
+
+ IF do_pick THEN
   IF st.slot < 5 THEN
    '--change equipment
    IF st.eq(st.slot).count > 0 OR gam.hero(st.who).equip(st.slot).id >= 0 THEN
@@ -2839,17 +2875,47 @@ END SUB
 
 SUB equip_menu_controls_equip_change (st as EquipMenuState)
  '--change equip menu
- IF carray(ccMenu) > 1 THEN
-  st.mode = 0
-  MenuSound gen(genCancelSFX)
-  st.item_info = equip_menu_equipped_item_info(st)
- END IF
+ DIM do_pick as bool = NO
+ DIM do_cancel as bool = NO
+ IF carray(ccMenu) > 1 THEN do_cancel = YES
  usemenusounds
  IF usemenu(st.eq_cursor) THEN
   equip_menu_stat_bonus st
   st.item_info = equip_menu_available_item_info(st)
  END IF
- IF carray(ccUse) > 1 THEN
+ IF carray(ccUse) > 1 THEN do_pick = YES
+
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM hover as integer = -1
+  DIM old_cursor as integer = st.eq_cursor.pt
+  IF rect_collide_point(Type(188, 24, 96, 152), readmouse.pos) THEN
+   'equipment box
+   FOR i as integer = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
+    IF rect_collide_point(Type(192, 28 + (i - st.eq_cursor.top) * 8, 8 * 8, 8), readmouse.pos) THEN hover = i
+    IF i > st.eq(st.slot).count THEN EXIT FOR '--all done!
+   NEXT i
+   IF (readmouse.release AND mouseLeft) ANDALSO hover = st.eq_cursor.pt THEN do_pick = YES
+   IF (readmouse.release AND mouseLeft) THEN st.eq_cursor.pt = hover
+  ELSE
+   'Anywhere else
+   IF (readmouse.release AND mouseLeft) THEN
+    do_cancel = YES
+   END IF
+  END IF
+  IF (readmouse.release AND mouseRight) THEN
+   do_cancel = YES
+  END IF
+  IF st.eq_cursor.pt <> old_cursor THEN MenuSound gen(genCursorSFX)
+ END IF
+
+ IF do_cancel THEN
+  st.mode = 0
+  MenuSound gen(genCancelSFX)
+  st.item_info = equip_menu_equipped_item_info(st)
+  EXIT SUB
+ END IF
+
+ IF do_pick THEN
   IF st.eq_cursor.pt = st.eq(st.slot).count THEN
    '--unequip
    unequip st.who, st.slot
