@@ -3608,6 +3608,15 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
    IF (readmouse.buttons AND mouseLeft) ANDALSO hover >= 0 THEN
     sp.listnum = hover
    END IF
+  ELSEIF rect_collide_point(Type(106, 28, 200, 17), readmouse.pos) THEN
+   IF (readmouse.release AND mouseLeft) THEN
+    'Clicked on hero name box
+    DO
+     loopvar sp.hero, 0, 3
+    LOOP UNTIL gam.hero(sp.hero).id >= 0
+    menusound gen(genCursorSFX)
+    spells_menu_refresh_hero sp
+   END IF
   ELSE
    'Mouse anywhere else
    IF (readmouse.release AND mouseLeft) THEN
@@ -3699,6 +3708,16 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
     'Click back into the spell list picker
     sp.mset = 0
     EXIT SUB
+   END IF
+  ELSEIF rect_collide_point(Type(106, 28, 200, 17), readmouse.pos) THEN
+   IF (readmouse.release AND mouseLeft) THEN
+    'Clicked on hero name box
+    sp.mset = 0
+    DO
+     loopvar sp.hero, 0, 3
+    LOOP UNTIL gam.hero(sp.hero).id >= 0
+    menusound gen(genCursorSFX)
+    spells_menu_refresh_hero sp
    END IF
   ELSE
    'Mouse anywhere else
