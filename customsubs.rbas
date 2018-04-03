@@ -820,12 +820,46 @@ FUNCTION charpicker() as string
    setkeys
    RETURN CHR(f(pt))
   END IF
+  
+  DIM hover as integer = -1
+  FOR i = 0 TO last
+   IF rect_collide_point(Type(offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, 9, 9), readmouse.pos) THEN hover = i
+  NEXT i
+  IF hover >= 0 THEN
+   IF (readmouse.buttons AND mouseLeft) ORELSE (readmouse.buttons AND mouseRight) THEN
+    pt = hover
+   END IF
+   IF (readmouse.release AND mouseLeft) THEN
+    setkeys
+    RETURN CHR(f(pt))
+   END IF
+  ELSE
+   'outside of menu area
+   IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight) THEN
+    setkeys
+    RETURN ""
+   END IF
+  END IF
 
   clearpage dpage
+  DIM col as integer
+  DIM bg as integer
   FOR i = 0 TO last
-   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
-   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
-   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
+   col = uilook(uiMenuItem)
+   bg = uilook(uiDisabledItem)
+   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN
+    col = uilook(uiMenuItem)
+    bg = uilook(uiHighlight)
+   END IF
+   IF pt = i THEN
+    col = uilook(uiSelectedItem + tog)
+    bg = 0
+   END IF
+   IF hover = i THEN
+    col = mouse_hover_tinted_color(col)
+    bg = mouse_hover_tinted_color(bg)
+   END IF
+   textcolor col, bg
    printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
   NEXT i
 
