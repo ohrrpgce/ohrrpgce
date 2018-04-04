@@ -2910,7 +2910,11 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
   IF (readmouse.release AND mouseRight) THEN
    do_cancel = YES
   END IF
-  IF st.eq_cursor.pt <> old_cursor THEN MenuSound gen(genCursorSFX)
+  IF st.eq_cursor.pt <> old_cursor THEN
+   MenuSound gen(genCursorSFX)
+   equip_menu_stat_bonus st
+   st.item_info = equip_menu_available_item_info(st)
+  END IF
  END IF
 
  IF do_cancel THEN
