@@ -464,7 +464,7 @@ plotscript, menu click handler, begin
   )
   if (mitem) then (
     select menu item(mitem)
-    if (mouse click(leftbutton)) then (
+    if (mouse release(leftbutton)) then (
       if (menu == top menu) then (
         # Clicked on the current menu
         use menu item(mitem)
