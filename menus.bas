@@ -220,6 +220,23 @@ SUB mouse_scroll_menu(byref state as MenuState)
  END WITH
 END SUB
 
+SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseRight, byval threshold as integer=10, byval magnify as double=1.0)
+ WITH state
+  IF .spacing = 0 THEN
+   debug "mouse_drag_menu called on a MenuState where .spacing was not set up"
+  END IF
+  DIM lasttop as integer = large(.first, .last - .size)
+  IF .hover >= .first THEN  'Mouse over the menu
+   IF (readmouse.dragging AND button) ANDALSO readmouse.drag_dist > threshold THEN
+    DIM dist as integer = INT((readmouse.clickstart.y - readmouse.pos.y) / .spacing * magnify)
+    .top = bound(.top + dist, .first, lasttop)
+    ' Make sure .pt is visible
+    .pt = bound(.pt, .top, .top + .size)
+   END IF
+  END IF
+ END WITH
+END SUB
+
 FUNCTION usemenu (byref state as MenuState, byval deckey as integer = scUp, byval inckey as integer = scDown) as bool
  WITH state
   IF .autosize THEN
