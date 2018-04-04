@@ -2826,8 +2826,10 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
    FOR i as integer = 0 TO 6
     IF rect_collide_point(Type(204, 45 + i * 9, 8 * 8, 9), readmouse.pos) THEN hover = i
    NEXT i
-   IF (readmouse.release AND mouseLeft) ANDALSO (hover = st.slot ORELSE hover = 6) THEN do_pick = YES
-   IF (readmouse.release AND mouseLeft) THEN st.slot = hover
+   IF hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO (hover = st.slot ORELSE hover = 6) THEN do_pick = YES
+    IF (readmouse.release AND mouseLeft) THEN st.slot = hover
+   END IF
   ELSE
    'Anywhere else
    IF (readmouse.release AND mouseLeft) THEN
