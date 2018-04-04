@@ -2910,6 +2910,10 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
   IF (readmouse.release AND mouseRight) THEN
    do_cancel = YES
   END IF
+  'Scrolling support
+  st.eq_cursor.hover = hover
+  mouse_scroll_menu(st.eq_cursor)
+  
   IF st.eq_cursor.pt <> old_cursor THEN
    MenuSound gen(genCursorSFX)
    equip_menu_stat_bonus st
