@@ -664,11 +664,14 @@ END SUB
 SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as BattleSprite, targ as TargettingState, byval allow_spread as integer=0)
  DIM newptr as integer = targ.pointer
 
- 'first, special case for target at same position at current
+ 'First, special case for target at same position as current:
+ 'Right and Down keys loop over them from lowest to highest index, and Left and Up keys
+ 'from highest to lowest. Only after looping past the last one do we do normal target selection.
  DIM idx as integer = targ.pointer
  FOR i as integer = 1 TO 11
   idx += d  'search through slots according to direction, but don't loop
-  IF idx < 0 OR idx > UBOUND(bslot) THEN EXIT FOR
+  IF idx < 0 OR idx > UBOUND(targ.mask) THEN EXIT FOR
+  IF targ.mask(idx) = NO THEN CONTINUE FOR
   IF bslot(idx).x = bslot(targ.pointer).x AND bslot(idx).y = bslot(targ.pointer).y THEN
    targ.pointer = idx
    EXIT SUB

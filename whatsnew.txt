@@ -87,6 +87,8 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
       commands on a non-ellipse slice [sotrain515, James]
     * F4 to access the tag debugger in battles no longer worked [Ralph]
     * "rename hero" didn't return false if the player cancelled [Ralph]
+    * If an Untargetable enemy was at exactly the same position as a
+      targetable one it was possible to target it [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced
