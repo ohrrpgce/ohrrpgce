@@ -6,6 +6,7 @@
 'FIXME: move this crud elsewhere
 
 #include "config.bi"
+#include "util.bi"
 #include "ver.txt"
 #include "misc.bi"
 #include "allmodex.bi"
@@ -82,6 +83,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                    available on all platforms. See c_debug.txt for error messages" & LINE_END
 		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
 #ENDIF
+		help = help & "-rawexx             Don't catch -exx fatal errors, let gdbgame/gdbcustom.sh/bat catch them" & LINE_END
 		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-replayinput file   Replay keyboard input from a previously recorded file" & LINE_END
 		help = help & "-runfast            Run as quickly as possible (no FPS throttling)" & LINE_END
@@ -119,6 +121,12 @@ function global_setoption(opt as string, arg as string) as integer
 			display_help_string help
 			return 1
 		end if
+	elseif opt = "rawexx" then
+		' The purpose of this flag is that ON ERROR GOTO causes the topmost stack frame
+		' (where the error actually occurred) to be lost.
+		remove_exx_handler  'setup_exx_handler already called
+		' Could also uninstall the Windows exception handler, if that's useful?
+		return 1
 	end if
 	return 0
 end function

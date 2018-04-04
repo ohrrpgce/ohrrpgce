@@ -3106,6 +3106,8 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
   DIM gdbargs as string
   IF LEN(cmdfile) > 0 THEN
    gdbargs = "-x=""" & cmdfile & """ "
+   ' gdbcmds1.txt adds breakpoints to catch -exx fatal errors, so disable the -exx handler
+   arguments &= " --rawexx"
   ELSE
    gdbargs = "-ex ""break HOOK_AFTER_ATTACH_TO_MASTER"" -ex ""run"" "
   END IF

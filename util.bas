@@ -87,6 +87,10 @@ SUB setup_exx_handler()
   fatalerror message
 END SUB
 
+SUB remove_exx_handler()
+  ON ERROR GOTO 0
+END SUB
+
 'Gets called at the top of the main module for each executable just by including util.bi.
 'This is the place to put initialisation code common to everything.
 SUB lowlevel_init()

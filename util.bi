@@ -22,6 +22,8 @@
 
 
 declare sub lowlevel_init()
+declare sub remove_exx_handler()
+
 
 'Ensure that all executables call lowlevel_init at the top of main().  Want this
 'in main() so COMMAND is initialised and the module constructor ordering doesn't
