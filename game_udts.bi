@@ -303,6 +303,8 @@ TYPE OrderTeamState
   swname(40) as string
   show_reserve as bool
   page as integer
+  do_pick as bool
+  do_quit as bool
 END TYPE
 
 TYPE LumpReloadState

@@ -32,6 +32,7 @@ DECLARE SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() a
 DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
 DECLARE SUB hero_swap_menu_init(st as OrderTeamState)
 DECLARE SUB hero_swap_menu_display (st as OrderTeamState)
+DECLARE SUB hero_swap_menu_mouse_control (st as OrderTeamState)
 
 
 
@@ -626,13 +627,18 @@ DO
  setkeys
  st.party.tog XOR= 1
  playtimer
+ 
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  hero_swap_menu_mouse_control st
+ END IF
+ 
  control
  IF carray(ccMenu) > 1 THEN
   IF st.swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
    st.swapme = -1
   ELSE
-   EXIT DO
+   st.do_quit = YES
   END IF
  END IF
  IF st.show_reserve THEN
@@ -675,7 +681,13 @@ DO
   loopvar st.party.pt, 0, 3, 1
   st.party.need_update = YES
  END IF
- IF carray(ccUse) > 1 THEN
+ 
+ IF carray(ccUse) > 1 THEN st.do_pick = YES
+ 
+ IF st.do_quit THEN EXIT DO
+ 
+ IF st.do_pick THEN
+  st.do_pick = NO
   DO
   IF readbit(gen(), genBits2, 4) THEN
    '--If this bit is set, we refuse to reorder locked heroes
@@ -742,6 +754,77 @@ party_change_updates
 
 END SUB
 
+SUB hero_swap_menu_mouse_control (st as OrderTeamState)
+ DIM old_party_pt as integer = st.party.pt
+ DIM old_reserve_pt as integer = st.reserve.pt
+ DIM old_swapme as integer = st.swapme
+ DIM centerx as integer = vpages(st.page)->w \ 2
+ DIM centery as integer = vpages(st.page)->h \ 2
+ DIM order_box as RectType = Type(centerx - 130\2, centery - 38\2 - 34, 130, 38)
+ DIM reserve_w as integer = st.size.y * 8 + 16 'FIXME: yes I know x and y are reversed
+ DIM reserve_h as integer = small(st.size.x, 8) * 10 + 10
+ DIM reserve_box as RectType = Type(centerx - reserve_w\2, centery - reserve_h\2 + small(st.size.x, 8) * 5, reserve_w, reserve_h)
+ IF rect_collide_point(order_box, readmouse.pos) THEN
+  'In the order box
+  DIM hover as integer = -1
+  FOR i as integer = 0 TO 3
+   DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 40
+   IF rect_collide_point(Type(xpos, ypos, 30, 30), readmouse.pos) THEN hover = i
+  NEXT i
+  IF hover >= 0 THEN
+   IF (readmouse.release AND mouseLeft) THEN
+    'Clicked on a slot in the active party
+    IF st.party.pt = hover THEN
+     'Pick selected
+     st.do_pick = YES
+     st.reserve.pt = -1
+    ELSE
+     'Select hovered
+     st.party.pt = hover
+     st.reserve.pt = -1
+     IF st.swapme >= 0 THEN st.do_pick = YES
+    END IF
+   END IF
+  END IF
+ ELSEIF st.show_reserve ANDALSO rect_collide_point(reserve_box, readmouse.pos) THEN
+  'In the reserve box
+  DIM r_hover as integer = -1
+  FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
+   IF rect_collide_point(Type(centerx - reserve_w\2, centery + (i - st.reserve.top) * 10, reserve_w, 10), readmouse.pos) THEN r_hover = i
+  NEXT i
+  IF r_hover >= 0 THEN
+   IF (readmouse.release AND mouseLeft) THEN
+    IF st.reserve.pt = r_hover THEN
+     'Pick selected
+     st.do_pick = YES
+    ELSE
+     'Select hovered
+     st.reserve.pt = r_hover
+     IF st.swapme >= 0 THEN st.do_pick = YES
+    END IF
+   END IF
+  END IF
+ ELSE
+  'Anywhere outside the boxes
+  IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+   st.do_quit = YES
+  END IF
+ END IF
+ IF (readmouse.release AND mouseRight) THEN
+  IF st.swapme >= 0 THEN
+   MenuSound gen(genCancelSFX)
+   st.swapme = -1
+  ELSE
+   st.do_quit = YES
+  END IF
+ END IF
+ IF old_party_pt <> st.party.pt ORELSE old_reserve_pt <> st.reserve.pt ORELSE old_swapme <> st.swapme THEN
+  MenuSound gen(genCursorSFX)
+  st.party.need_update = YES
+  st.reserve.need_update = YES
+ END IF
+END SUB
+
 SUB hero_swap_menu_display (st as OrderTeamState)
  '--DRAWS SWAP MENU AND CURRENT SELECTION
  DIM centerx as integer = vpages(st.page)->w \ 2
@@ -785,6 +868,7 @@ END SUB
 
 SUB hero_swap_menu_init(st as OrderTeamState)
  '--MAPS OUT ONLY VALID SWAPABLE HEROS PLUS A BLANK
+ 'FIXME size.x and size.y are inverted :P
  st.reserve.last = -1
  st.size.y = 0
  FOR i as integer = 4 TO 40
