@@ -761,9 +761,9 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
  DIM centerx as integer = vpages(st.page)->w \ 2
  DIM centery as integer = vpages(st.page)->h \ 2
  DIM order_box as RectType = Type(centerx - 130\2, centery - 38\2 - 34, 130, 38)
- DIM reserve_w as integer = st.size.y * 8 + 16 'FIXME: yes I know x and y are reversed
- DIM reserve_h as integer = small(st.size.x, 8) * 10 + 10
- DIM reserve_box as RectType = Type(centerx - reserve_w\2, centery - reserve_h\2 + small(st.size.x, 8) * 5, reserve_w, reserve_h)
+ DIM reserve_w as integer = st.charsize.x * 8 + 16
+ DIM reserve_h as integer = small(st.charsize.y, 8) * 10 + 10
+ DIM reserve_box as RectType = Type(centerx - reserve_w\2, centery - reserve_h\2 + small(st.charsize.y, 8) * 5, reserve_w, reserve_h)
  IF rect_collide_point(order_box, readmouse.pos) THEN
   'In the order box
   DIM hover as integer = -1
@@ -843,7 +843,7 @@ SUB hero_swap_menu_display (st as OrderTeamState)
  NEXT i
  IF st.reserve.pt < 0 THEN edgeprint CHR(24), centerx - 49 + 30 * st.party.pt, centery - 48, uilook(uiSelectedItem + st.party.tog), st.page
  IF st.show_reserve THEN
-  centerbox centerx, centery + small(st.size.x, 8) * 5, st.size.y * 8 + 16, small(st.size.x, 8) * 10 + 10, 1, st.page
+  centerbox centerx, centery + small(st.charsize.y, 8) * 5, st.charsize.x * 8 + 16, small(st.charsize.y, 8) * 10 + 10, 1, st.page
   FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
    'Some of the colours are a bit bizarre, here, especially the time bar stuff below
    DIM menu_color as integer = uilook(uiMenuItem)
@@ -868,15 +868,14 @@ END SUB
 
 SUB hero_swap_menu_init(st as OrderTeamState)
  '--MAPS OUT ONLY VALID SWAPABLE HEROS PLUS A BLANK
- 'FIXME size.x and size.y are inverted :P
  st.reserve.last = -1
- st.size.y = 0
+ st.charsize.x = 0
  FOR i as integer = 4 TO 40
   IF gam.hero(i).locked = NO ANDALSO gam.hero(i).id >= 0 THEN
    st.reserve.last = st.reserve.last + 1
    st.swindex(st.reserve.last) = i
    st.swname(st.reserve.last) = gam.hero(i).name
-   st.size.y = large(st.size.y, LEN(st.swname(st.reserve.last)))
+   st.charsize.x = large(st.charsize.x, LEN(st.swname(st.reserve.last)))
   END IF
  NEXT i
  st.reserve.last += 1
@@ -884,10 +883,10 @@ SUB hero_swap_menu_init(st as OrderTeamState)
   IF gam.hero(i).id = -1 THEN
    st.swindex(st.reserve.last) = i
    st.swname(st.reserve.last) = readglobalstring(48, "REMOVE", 10)
-   st.size.y = large(st.size.y, 7)
+   st.charsize.x = large(st.charsize.x, 7)
   END IF
  NEXT i
- st.size.x = small(8, st.reserve.last + 1)
+ st.charsize.y = small(8, st.reserve.last + 1)
  st.party.need_update = YES
 END SUB
 

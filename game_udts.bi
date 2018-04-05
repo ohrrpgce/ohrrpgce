@@ -298,7 +298,7 @@ TYPE OrderTeamState
   reserve as MenuState
   info as string
   swapme as integer
-  size as XYPair 'not in pixels
+  charsize as XYPair 'not in pixels
   swindex(40) as integer
   swname(40) as string
   show_reserve as bool
