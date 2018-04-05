@@ -2794,6 +2794,9 @@ SUB player_menu_keys ()
   IF game_usemenu(mstates(topmenu), menus(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   mouse_drag_menu mstates(topmenu)
+  END IF
   IF mstates(topmenu).pt_valid() = NO THEN EXIT SUB
   DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]

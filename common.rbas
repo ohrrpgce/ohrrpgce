@@ -5334,7 +5334,7 @@ FUNCTION menu_click (state as MenuState) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
-  IF readmouse().release AND mouseleft THEN
+  IF (readmouse.release AND mouseleft) THEN
    IF overlay_message_visible() THEN
     'If an allmodex overlay message is visible, dismiss it instead.
     'NOTE: because code tends to keep a copy of MouseInfo returned from readmouse,
@@ -5359,7 +5359,7 @@ FUNCTION menu_click_outside(m as MenuDef) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
-  IF readmouse().release AND mouseLeft THEN
+  IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
    IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
   END IF
  END IF
@@ -5372,7 +5372,7 @@ FUNCTION menu_right_click_close(m as MenuDef) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
-  IF readmouse().release AND mouseRight THEN
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
    RETURN YES
   END IF
  END IF
