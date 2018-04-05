@@ -804,13 +804,15 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
     END IF
    END IF
   END IF
+  mouse_scroll_menu(st.reserve)
+  mouse_drag_menu(st.reserve)
  ELSE
   'Anywhere outside the boxes
   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
    st.do_quit = YES
   END IF
  END IF
- IF (readmouse.release AND mouseRight) THEN
+ IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
   IF st.swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
    st.swapme = -1
@@ -818,6 +820,7 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
    st.do_quit = YES
   END IF
  END IF
+ 
  IF old_party_pt <> st.party.pt ORELSE old_reserve_pt <> st.reserve.pt ORELSE old_swapme <> st.swapme THEN
   MenuSound gen(genCursorSFX)
   st.party.need_update = YES
@@ -895,6 +898,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
   END IF
  NEXT i
  st.reserve.size = small(7, st.reserve.last)
+ st.reserve.spacing = 10
  st.charsize.y = small(8, st.reserve.last + 1)
  st.party.need_update = YES
 END SUB
