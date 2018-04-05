@@ -843,7 +843,15 @@ SUB hero_swap_menu_display (st as OrderTeamState)
  NEXT i
  IF st.reserve.pt < 0 THEN edgeprint CHR(24), centerx - 49 + 30 * st.party.pt, centery - 48, uilook(uiSelectedItem + st.party.tog), st.page
  IF st.show_reserve THEN
-  centerbox centerx, centery + small(st.charsize.y, 8) * 5, st.charsize.x * 8 + 16, small(st.charsize.y, 8) * 10 + 10, 1, st.page
+  DIM reserve_box as RectType
+  WITH reserve_box
+   .wide = st.charsize.x * 8 + 16
+   .high = small(st.charsize.y, 8) * 10 + 10
+   .x = centerx - .wide \ 2
+   .y = centery + small(st.charsize.y, 8) * 5 - .high \ 2
+  END WITH
+  edgeboxstyle reserve_box, 0, st.page
+  draw_scrollbar st.reserve, reserve_box, , st.page
   FOR i as integer = st.reserve.top TO small(st.reserve.top + 7, st.reserve.last)
    'Some of the colours are a bit bizarre, here, especially the time bar stuff below
    DIM menu_color as integer = uilook(uiMenuItem)
@@ -886,6 +894,7 @@ SUB hero_swap_menu_init(st as OrderTeamState)
    st.charsize.x = large(st.charsize.x, 7)
   END IF
  NEXT i
+ st.reserve.size = small(7, st.reserve.last)
  st.charsize.y = small(8, st.reserve.last + 1)
  st.party.need_update = YES
 END SUB
