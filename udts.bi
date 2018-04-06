@@ -148,6 +148,7 @@ TYPE MenuState
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
   select_by_mouse_release as bool ' This is important for menus where you need to be able to
                                   ' focus an item and pick an item with separate clicks
+  drag_start_top as integer 'used internally bu mouse_drag_menu()
 
   DECLARE FUNCTION empty() as bool
   DECLARE FUNCTION pt_valid() as bool
