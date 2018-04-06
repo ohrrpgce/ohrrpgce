@@ -2779,10 +2779,10 @@ SUB spriteedit_import16_loadimage(srcfile as string, byref impsprite as Frame pt
  v_free vpal16
 END SUB
 
-'Returns a new Frame, after deleting the input one. Returns NULL if cancelled
+'Returns a new Frame (NULL if cancelled). Delete the input one if didn't cancel.
 'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets.
-FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr, bgcol as integer) as Frame ptr
- DIM image_pos as XYPair = (1, 1)  'Position at which to draw impsprite
+FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as Frame ptr
+ DIM image_pos as XYPair = (1, 1)  'Screen position at which to draw impsprite
 
  'This staticness is a bit hacky
  STATIC last_fileset as integer = -1
@@ -2832,10 +2832,7 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
    ' Choose maximum zoom that will fit
    zoom = small(large(1, vpages(dpage)->w \ impsprite->w), large(1, texty \ impsprite->h))
 
-   IF keyval(scESC) > 1 THEN
-    frame_unload @impsprite
-    RETURN NULL
-   END IF
+   IF keyval(scESC) > 1 THEN RETURN NULL
    IF keyval(scF1) > 1 THEN show_help "sprite_import16_cut_frames"
    IF enter_or_space() THEN EXIT DO
 
@@ -2893,7 +2890,7 @@ FUNCTION spriteedit_import16_cut_frames(byref ss as SpriteEditState, impsprite a
 
   ' Cut out the frames and place in a new one
   flattened_set = frame_new(ss.wide, ss.high)
-  frame_clear flattened_set, bgcol
+  frame_clear flattened_set, 0
 
   DIM framenum as integer = 0
   FOR direction as integer = 0 TO .directions - 1
@@ -3141,6 +3138,47 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
  RETURN ret
 END FUNCTION
 
+'Input is an imported image (single Frame array) and output is a spriteset as a basic spritesheet
+'(ie all frames concatenated into one).
+'Frees (decrements refcount of) impsprite and passes back ownership of a Frame (which might be the same Frame),
+'or returns NULL if cancelled.
+FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as Frame ptr, pal as Palette16 ptr) as Frame ptr
+ 'Note that XY(ss.wide, ss.high) == ss.sprite->size
+ IF impsprite->size <> ss.sprite->size THEN
+  DIM numframes as integer = sprite_sizes(ss.fileset).frames
+  DIM size0 as XYPair = XY(large(1, impsprite->w \ numframes), impsprite->h)
+  DIM choices(...) as string = { _
+    strprintf("Import as %d frames of %dx%d", numframes, size0.w, size0.h), _
+    strprintf("Import as %d frames of %dx%d (expand or trim)", numframes, ss.sprite->w \ numframes, ss.sprite->h), _
+    strprintf("Import from custom layout of %d frames", numframes) _
+  }
+  DIM choice as integer
+  DO
+   choice = multichoice(strprintf("This image is %dx%d pixels, different from the %dx%d export image " _
+                        "size of the current spriteset.", impsprite->w, impsprite->h, ss.sprite->w, ss.sprite->h), choices())
+   IF choice = -1 THEN
+    frame_unload @impsprite
+    RETURN NULL
+   ELSEIF choice = 0 THEN
+    DIM resized as Frame ptr
+    resized = spriteset_from_basic_spritesheet(impsprite, ss.fileset, numframes)
+    frame_assign @impsprite, spriteset_to_basic_spritesheet(resized)
+    frame_unload @resized
+   ELSEIF choice = 1 THEN
+    'Simply expand or trim the image
+    frame_assign @impsprite, frame_resized(impsprite, ss.sprite->w, ss.sprite->h)
+   ELSEIF choice = 2 THEN
+    DIM adjusted as Frame ptr
+    adjusted = spriteedit_import16_cut_custom_frames(ss, impsprite, pal)
+    IF adjusted = NULL THEN CONTINUE DO  'Cancelled, go back to the menu
+    frame_assign @impsprite, adjusted
+   END IF
+   EXIT DO
+  LOOP
+ END IF
+ RETURN impsprite
+END FUNCTION
+
 'state.pt is the current palette number
 FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
  DIM srcfile as string
@@ -3165,23 +3203,20 @@ FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
   RETURN NULL
  END IF
 
- IF ss.fullset THEN
-  impsprite = spriteedit_import16_cut_frames(ss, impsprite, pal16, bgcol)
-  IF impsprite = NULL THEN
-   palette16_unload @pal16
-   RETURN NULL
-  END IF
- END IF
-
  'Swap the transparent pixels to 0
  swapcolors impsprite, 0, bgcol
  SWAP pal16->col(0), pal16->col(bgcol)
 
- 'Trim or expand the image to final dimensions (only for spritedit_import16_remap_menu)
- impsprite2 = frame_resized(impsprite, ss.wide, ss.high)
- SWAP impsprite, impsprite2
- frame_unload @impsprite2
- 'frame_export_bmp4 "debug1.bmp", impsprite, master(), pal16
+ IF ss.fullset THEN
+  impsprite = spriteedit_import16_split_spriteset(ss, impsprite, pal16)
+  IF impsprite = NULL THEN  'Cancelled
+   palette16_unload @pal16
+   RETURN NULL
+  END IF
+ ELSE
+  'Trim or expand the image to final dimensions
+  frame_assign @impsprite, frame_resized(impsprite, ss.wide, ss.high)
+ END IF
 
  'Check whether pal16 can be mapped directly onto the existing palette
  '(ignoring background colours), and whether it's actually the same
@@ -4371,7 +4406,7 @@ SUB SpriteSetBrowser.import_any()
   'need to initialise private members of edstate
   sprite_editor_initialise edstate, editing_frame
 
-  'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets
+  'TODO: This function needs a major update/rewrite to handle variable-framecount spritesets
   DIM imported as Frame ptr = spriteedit_import16(edstate)
   showmousecursor
 
