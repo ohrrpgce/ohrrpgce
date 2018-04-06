@@ -4268,7 +4268,7 @@ END SUB
 'Callback for sprite_editor, while editing a spriteset in fullset mode
 SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
- DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype)
+ DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, sprite_sizes(this.sprtype).frames)
 
  this.defpalettes(this.editing_setnum) = defpal
  rgfx_save_spriteset split_ss, this.sprtype, this.editing_setnum, this.defpalettes(this.editing_setnum)

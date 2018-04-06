@@ -3317,11 +3317,9 @@ FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
 END FUNCTION
 
 'Split up a spriteset in the original import/export format.
-FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType) as Frame ptr
+FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
   DIM ss as Frame ptr
-  WITH sprite_sizes(sprtype)
-    ss = frame_new(.size.w, .size.h, .frames, YES)
-  END WITH
+  ss = frame_new(large(1, sheet->w \ numframes), sheet->h, numframes, YES)
 
   FOR fridx as integer = 0 TO ss->arraylen - 1
     frame_draw sheet, , -fridx * ss->w, 0, 1, NO, @ss[fridx]
