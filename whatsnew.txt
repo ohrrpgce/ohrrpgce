@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March 1st-ish-oops-guess-not 2018 [Fufluns]
+April (mumble) 2018 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -32,6 +32,9 @@ March 1st-ish-oops-guess-not 2018 [Fufluns]
       subtype is renamed "Disabled") [Ralph]
     * In user-defined menus each menu item can now have its own color and
       'disabled' color [Ralph]
+    * Mouse Options menu allows you to enable built-in mouse support for
+      walking around on maps, activating NPCs, using menus and special
+      screens (but not battles just yet) [James] 
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
