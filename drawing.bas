@@ -66,7 +66,7 @@ DECLARE SUB edit_animation(sprset as SpriteSet ptr, anim_name as string, pal as 
 ' Sprite editor
 DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
-DECLARE SUB sprite_editor_save_and_cleanup(byref ss as SpriteEditState)
+DECLARE SUB sprite_editor_cleanup(byref ss as SpriteEditState)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
 DECLARE SUB textcolor_icon(selected as bool, hover as bool)
 DECLARE SUB spriteedit_draw_icon(ss as SpriteEditState, icon as string, byval areanum as integer, byval highlight as integer = NO)
@@ -92,7 +92,7 @@ DECLARE SUB readundospr (ss as SpriteEditState)
 DECLARE SUB readredospr (ss as SpriteEditState)
 
 ' Sprite import/export
-DECLARE SUB spriteedit_import16(byref ss as SpriteEditState)
+DECLARE FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
 DECLARE SUB spriteedit_export (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
 DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
 
@@ -3142,18 +3142,18 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
 END FUNCTION
 
 'state.pt is the current palette number
-SUB spriteedit_import16(byref ss as SpriteEditState)
+FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
  DIM srcfile as string
  STATIC default as string
 
  'Any image, any size
  srcfile = browse(browseImage, default, , "browse_import_sprite")
- IF srcfile = "" THEN EXIT SUB
+ IF srcfile = "" THEN RETURN NULL
 
  DIM as Frame ptr impsprite, impsprite2
  DIM pal16 as Palette16 ptr
  spriteedit_import16_loadimage srcfile, impsprite, pal16, ss.palette
- IF impsprite = NULL THEN EXIT SUB
+ IF impsprite = NULL THEN RETURN NULL
  'frame_export_bmp4 "debug0.bmp", impsprite, master(), pal16
 
  'Pick background color
@@ -3162,14 +3162,14 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
  IF bgcol = -1 THEN  'cancelled
   frame_unload @impsprite
   palette16_unload @pal16
-  EXIT SUB
+  RETURN NULL
  END IF
 
  IF ss.fullset THEN
   impsprite = spriteedit_import16_cut_frames(ss, impsprite, pal16, bgcol)
   IF impsprite = NULL THEN
    palette16_unload @pal16
-   EXIT SUB
+   RETURN NULL
   END IF
  END IF
 
@@ -3218,19 +3218,16 @@ SUB spriteedit_import16(byref ss as SpriteEditState)
   'Cancel Import
   frame_unload @impsprite
   palette16_unload @pal16
-  EXIT SUB
+  RETURN NULL
  END IF
 
- 'Set as sprite
- frame_assign @ss.sprite, frame_resized(impsprite, ss.wide, ss.high)
-
- frame_unload @impsprite
  palette16_unload @pal16
-END SUB
+ RETURN impsprite
+END FUNCTION
 
 ' Once the public members of ss have already been filled with arguments
 ' to sprite_editor, this function initialises the private members.
-' Should be matched with call to sprite_editor_save_and_cleanup.
+' Should be matched with call to sprite_editor_cleanup.
 SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
  WITH ss
   .wide = sprite->w
@@ -3381,12 +3378,16 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
  LOOP
  showmousecursor
 
- sprite_editor_save_and_cleanup ss
+ 'Save the sprite before leaving
+ spriteedit_clip ss
+ ss.save_callback(ss.sprite, ss.save_callback_context, ss.pal_num)
+ palette16_save ss.palette, ss.pal_num
+
+ sprite_editor_cleanup ss
 END SUB
 
-'Saves sprite and palette and undoes sprite_editor_initialise()
-SUB sprite_editor_save_and_cleanup(byref ss as SpriteEditState)
- palette16_save ss.palette, ss.pal_num
+'Undoes sprite_editor_initialise()
+SUB sprite_editor_cleanup(byref ss as SpriteEditState)
  palette16_unload @ss.palette
  v_free ss.undo_history
 
@@ -3398,10 +3399,6 @@ SUB sprite_editor_save_and_cleanup(byref ss as SpriteEditState)
   .palindex = ss.palindex
   .hidemouse = ss.hidemouse
  END WITH
-
- 'Save the sprite before leaving
- spriteedit_clip ss
- ss.save_callback(ss.sprite, ss.save_callback_context, ss.pal_num)
 END SUB
 
 SUB spriteedit_sprctrl(byref ss as SpriteEditState)
@@ -3772,7 +3769,8 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   spriteedit_scroll ss, scrolloff.x, scrolloff.y
  END IF
  IF keyval(scI) > 1 OR (ss.zonenum = 13 AND (ss.mouse.release AND mouseLeft)) THEN
-  spriteedit_import16 ss
+  DIM imported as Frame ptr = spriteedit_import16(ss)
+  IF imported THEN frame_assign @ss.sprite, imported
  END IF
  IF keyval(scE) > 1 OR (ss.zonenum = 26 AND (ss.mouse.release AND mouseLeft)) THEN
   palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
@@ -4374,14 +4372,19 @@ SUB SpriteSetBrowser.import_any()
   sprite_editor_initialise edstate, editing_frame
 
   'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets
-  spriteedit_import16 edstate
+  DIM imported as Frame ptr = spriteedit_import16(edstate)
   showmousecursor
 
-  'Saves the sprite and palette
-  '(SpriteSetBrowser_save_callback_fullset will cut the spritesheet up again)
-  sprite_editor_save_and_cleanup edstate
-  'Need to save the default palette ourselves
-  savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+  IF imported THEN
+   'If fullset, SpriteSetBrowser_save_callback_fullset will cut the spritesheet up again
+   edstate.save_callback(imported, edstate.save_callback_context, edstate.pal_num)
+   palette16_save edstate.palette, edstate.pal_num
+
+   'Need to save the default palette ourselves (changed by SpriteSetBrowser_save_callback*)
+   savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
+  END IF
+
+  sprite_editor_cleanup edstate
 
   frame_unload @editing_spriteset
 
