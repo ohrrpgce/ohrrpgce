@@ -69,6 +69,7 @@ SUB purchases_menu ()
  DIM prod_i as integer
  REDIM prod_nodes(0) as NodePtr
  REDIM prod_allowed(0) as bool
+ REDIM prod_slice(0) as Slice Ptr
 
  show_virtual_gamepad()
 
@@ -76,6 +77,9 @@ SUB purchases_menu ()
  DO
   setwait 55
   setkeys YES
+  
+  DIM do_pick as bool = NO
+  DIM do_quit as bool = NO
   
   IF st.need_update THEN
    st.need_update = NO
@@ -86,10 +90,12 @@ SUB purchases_menu ()
    READNODE products
     WITHNODE products."prod" as prod
      IF product_enabled_for_current_store(prod) THEN
-      REDIM PRESERVE prod_nodes(prod_i) as NodePtr
       REDIM PRESERVE prod_allowed(prod_i) as bool
       prod_allowed(prod_i) = purchase_menu_create_product_slice(prod, scroller)
+      REDIM PRESERVE prod_nodes(prod_i) as NodePtr
       prod_nodes(prod_i) = prod
+      REDIM PRESERVE prod_slice(prod_i) as Slice Ptr
+      prod_slice(prod_i) = scroller->LastChild
       prod_i += 1
      END IF
     END WITHNODE
@@ -114,16 +120,32 @@ SUB purchases_menu ()
   END IF '--done updating menu
 
   control
-  IF carray(ccMenu) > 1 THEN
+  IF usemenu(st, csetup(ccUp), csetup(ccDown)) THEN
+   menusound gen(genCursorSFX)
+  END IF
+  IF carray(ccUse) > 1 THEN do_pick = YES
+  IF carray(ccMenu) > 1 THEN do_quit = YES
+  
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   DIM hover as integer = -1
+   FOR i as integer = 0 to prod_i - 1
+    IF SliceCollidePoint(prod_slice(i), readmouse.pos) THEN hover = i
+   NEXT i
+   IF hover >= 0 THEN
+    IF (readmouse.buttons AND mouseLeft) THEN st.pt = hover
+    IF (readmouse.release AND mouseLeft) THEN do_pick = YES
+   ELSE
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+   END IF
+   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+  END IF
+
+  IF do_quit THEN
    menusound gen(genCancelSFX)
    EXIT DO
   END IF
 
-  IF usemenu(st, csetup(ccUp), csetup(ccDown)) THEN
-   menusound gen(genCursorSFX)
-  END IF
-
-  IF carray(ccUse) > 1 THEN
+  IF do_pick THEN
    IF prod_allowed(st.pt) THEN
     cur_node = prod_nodes(st.pt)
     attempt_purchase cur_node
@@ -345,6 +367,15 @@ SUB attempt_purchase_paypal(byval prod as NodePtr)
  url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id="
  url &= paypal_node."button_id".string
  IF NOT open_url(url) THEN EXIT SUB ' browser open failed
+
+ 'Wait a few ticks
+ setkeys YES
+ FOR i as integer = 0 to 10
+  setwait 55
+  setkeys YES
+  setvispage vpage
+  dowait
+ NEXT i
  
  DIM choices(1) as string = {"Yes, payment complete", "No, payment cancelled"}
  DIM num as integer
