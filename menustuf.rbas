@@ -1511,10 +1511,18 @@ DIM tog as integer
 DIM alert as integer = 0
 DIM alert_str as string = ""
 DIM info as string = ""
-DIM quit as bool = NO
+DIM drag_top as integer = -1
 
+DIM box as RectType = (8, 4, 304, 180)
 menusound gen(genAcceptSFX)
 sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
+
+DIM scroll_state as MenuState 'Only used for the scrollbar
+WITH scroll_state
+ .first = 0
+ .last = last_inv_slot() / 3
+ .size = 11
+END WITH
 
 sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
 
@@ -1527,9 +1535,99 @@ DO
  tog = tog XOR 1
  playtimer
  control
+ 
+ DIM do_quit as bool = NO
+ DIM do_pick as bool = NO
 
- IF carray(ccMenu) > 1 THEN quit = YES
- IF carray(ccUse) > 1  AND inventory(ic).used THEN
+ DIM old_ic as integer = ic
+ 'Keyboard controls
+ IF carray(ccUp) > 1 AND ic >= 3 THEN
+  ic = ic - 3
+  IF ic < top THEN top = top - 3
+ END IF
+ IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
+  ic = ic + 3
+  IF ic > top + 62 THEN top = top + 3
+ END IF
+ IF carray(ccLeft) > 1 THEN
+  IF ic MOD 3 > 0 THEN
+   ic = ic - 1
+  ELSE
+   ic = ic + 2
+  END IF
+ END IF
+ IF carray(ccRight) > 1 THEN
+  IF ic MOD 3 < 2 THEN
+   ic = ic + 1
+  ELSE
+   ic = ic - 2
+  END IF
+ END IF
+ IF keyval(scPageUp) > 1 THEN
+  ic -= 60
+  top -= 60
+ END IF
+ IF keyval(scPageDown) > 1 THEN
+  ic += 60
+  top += 60
+ END IF
+ IF keyval(scHome) > 1 THEN
+  ic = 0
+  top = 0
+ END IF
+ IF keyval(scEnd) > 1 THEN
+  ic = last_inv_slot()
+  top = ic - 62
+ END IF
+ IF carray(ccMenu) > 1 THEN do_quit = YES
+ IF carray(ccUse) > 1  THEN do_pick = YES
+
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  IF rect_collide_point(box, readmouse.pos) THEN
+   'Inside the inventory box
+   DIM hover as integer = -1
+   FOR i as integer = top TO top + 62
+    IF rect_collide_point(Type(20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), 96, 8), readmouse.pos) THEN hover = i
+   NEXT i
+   IF hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) THEN
+     IF ic = hover THEN
+      do_pick = YES
+     ELSE
+      ic = hover
+     END IF
+    END IF
+   END IF
+   IF (readmouse.dragging AND mouseRight) THEN
+    IF drag_top = -1 THEN drag_top = top
+    IF readmouse.drag_dist > 10 THEN
+     DIM dist as integer = (readmouse.clickstart.y - readmouse.pos.y) / 8
+     top = drag_top + dist * 9
+    END IF
+   END IF
+   top += readmouse.wheel_clicks * 9
+  ELSE
+   'Outside the box
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+  IF (readmouse.dragging AND mouseRight) = 0 THEN drag_top = -1
+ END IF
+
+ 'Clamp the top of the scrollable area into the safe range
+ top = bound(top, 0, last_inv_slot() - 62)
+ 'Make sure the cursor stays onscreen
+ DO WHILE ic < top : ic += 3: LOOP
+ DO WHILE ic > top + 62 : ic -= 3: LOOP
+ 'Update scrollbar
+ scroll_state.top = top \ 3
+
+ IF old_ic <> ic THEN
+  menusound gen(genCursorSFX)
+  sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
+ END IF
+
+ IF do_pick ANDALSO inventory(ic).used THEN
   IF readbit(permask(), 0, ic) = 0 THEN
    menusound gen(genSellSFX)
    alert = 10
@@ -1564,46 +1662,13 @@ DO
    menusound gen(genCantSellSFX)
   END IF
  END IF
- IF carray(ccUp) > 1 AND ic >= 3 THEN
-  menusound gen(genCursorSFX)
-  ic = ic - 3
-  sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  IF ic < top THEN top = top - 3
- END IF
- IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
-  menusound gen(genCursorSFX)
-  ic = ic + 3
-  sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  IF ic > top + 62 THEN top = top + 3
- END IF
- IF carray(ccLeft) > 1 THEN
-  menusound gen(genCursorSFX)
-  IF ic MOD 3 > 0 THEN
-   ic = ic - 1
-   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  ELSE
-   ic = ic + 2
-   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  END IF
- END IF
- IF carray(ccRight) > 1 THEN
-  menusound gen(genCursorSFX)
-  IF ic MOD 3 < 2 THEN
-   ic = ic + 1
-   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  ELSE
-   ic = ic - 2
-   sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
-  END IF
- END IF
 
- IF quit THEN EXIT DO
+ IF do_quit THEN EXIT DO
  
  '--Draw the sell screen
- 'FIXME: Some of this is redundant to the inventory display code.
- '       figure out how much can reasonably be re-used
  copypage holdscreen, page
- centerbox 160, 92, 304, 176, 1, page
+ edgeboxstyle box, 0, page
+ draw_scrollbar scroll_state, box, , page
  FOR i as integer = top TO top + 62
   textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, i) THEN textcolor uilook(uiDisabledItem), 0
@@ -1611,10 +1676,16 @@ DO
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
    IF readbit(permask(), 0, i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
-  printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
+  DIM item_name as string
+  IF i > last_inv_slot() THEN
+   item_name = "OUTOFRANGE!"
+  ELSE
+   item_name = inventory(i).text
+  END IF
+  printstr item_name, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
  NEXT i
- centerfuz 160, 180, 312, 20, 4, page
- edgeprint info, pCenteredLeft, 175, uilook(uiText), page
+ centerfuz 160, 192, 312, 14, 4, page
+ edgeprint info, pCenteredLeft, 187, uilook(uiText), page
  edgeprint gold & " " & readglobalstring(32, "$"), 310 - LEN(gold & " " & readglobalstring(32, "$")) * 8, 1, uilook(uiGold), page
  IF alert THEN
   alert = alert - 1
@@ -1631,7 +1702,7 @@ menusound gen(genCancelSFX)
 evalitemtags
 tag_updates
 
-EXIT SUB
+EXIT SUB 'quit
 
 END SUB
 
