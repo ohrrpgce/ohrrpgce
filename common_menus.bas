@@ -263,11 +263,11 @@ SUB edit_mouse_options ()
    menu.last->t = 10
    append_menu_item menu, "Click to advance text boxes: " & yesorno(get_gen_bool("/mouse/click_textboxes"))
    menu.last->t = 20
+   append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
+   menu.last->t = 11
    append_menu_item menu, "Experimental/Unfinished Mouse Features"
    menu.last->disabled = YES
    menu.last->unselectable = YES
-   append_menu_item menu, "Mouse support on menus: " & yesorno(get_gen_bool("/mouse/mouse_menus"))
-   menu.last->t = 11
    append_menu_item menu, "Mouse support in battles: " & yesorno(get_gen_bool("/mouse/mouse_battles"))
    menu.last->t = 12
    init_menu_state st, menu
