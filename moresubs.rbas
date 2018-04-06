@@ -1719,7 +1719,6 @@ DIM temp as integer
 DIM tog as integer
 DIM inn as integer
 DIM rsr as integer
-DIM h as integer
 DIM c as integer
 DIM t as integer
 DIM o as integer
@@ -1763,6 +1762,14 @@ st.last += 1
 menu(st.last) = readglobalstring(74, "Exit", 10)
 menuid(st.last) = 8
 
+DIM box as RectType
+WITH box
+ .wide = 96
+ .high = (st.last + 2) * 10
+ .x = 160 - .wide \ 2
+ .y = 104
+END WITH
+
 menusound gen(genAcceptSFX)
 
 '--Preserve background for display beneath top-level shop menu
@@ -1781,8 +1788,39 @@ DO
  control
  usemenu st
  usemenusounds
- IF carray(ccMenu) > 1 THEN menusound gen(genCancelSFX) : EXIT DO
- IF carray(ccUse) > 1 OR autopick THEN
+ 
+ DIM do_quit as bool = NO
+ DIM do_pick as bool = NO
+
+ IF carray(ccMenu) > 1 THEN do_quit = YES
+ IF carray(ccUse) > 1 THEN do_pick = YES
+ 
+ IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT autopick THEN
+  IF rect_collide_point(box, readmouse.pos) THEN
+   DIM hover as integer = -1
+   FOR i as integer = 0 TO st.last
+    IF rect_collide_point(Type(box.x, box.y + 5 + i * 10, box.wide, 10), readmouse.pos) THEN hover = i
+   NEXT i
+   IF hover >= 0 THEN
+    IF (readmouse.buttons AND mouseLeft) THEN
+     st.pt = hover
+    END IF
+    IF (readmouse.release AND mouseLeft) THEN
+     do_pick = YES
+    END IF
+   END IF
+  ELSE
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+    do_quit = YES
+   END IF
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   do_quit = YES
+  END IF
+ END IF
+ 
+ IF do_quit THEN menusound gen(genCancelSFX) : EXIT DO
+ IF do_pick ORELSE autopick THEN
   IF menuid(st.pt) = 8 THEN '--EXIT
    menusound gen(genCancelSFX)
    EXIT DO
@@ -1832,8 +1870,7 @@ DO
   show_virtual_gamepad()
  END IF
  copypage holdscreen, vpage
- h = (st.last + 2) * 10
- centerbox 160, 104 + (h * .5), 96, h, 1, page
+ edgeboxstyle box, 0, page
  centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, page
  edgeprint sn, pCentered, 85, uilook(uiText), page
  FOR i as integer = 0 TO st.last
