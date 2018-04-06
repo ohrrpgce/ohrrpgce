@@ -1918,10 +1918,9 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(ccMenu) > 1 THEN
-  menusound gen(genCancelSFX)
-  EXIT DO
- END IF
+ DIM do_pick as bool = NO
+ DIM do_quit as bool = NO
+ IF carray(ccMenu) > 1 THEN do_quit = YES
  usemenusounds
  usemenu state
  'alternatively
@@ -1929,7 +1928,30 @@ DO
   menusound gen(genCursorSFX)
   state.pt = state.pt XOR 1
  END IF
- IF carray(ccUse) > 1 THEN
+ IF carray(ccUse) > 1 THEN do_pick = YES
+ 
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  IF rect_collide_point(Type(60, 60, 200, 60), readmouse.pos) THEN
+   DIM hover as integer = -1
+   FOR i as integer = 0 TO 1
+    IF rect_collide_point(Type(160 - 60\2, 94 + i * 8, 60, 8), readmouse.pos) THEN hover = i
+   NEXT i
+   IF hover >= 0 THEN
+    IF (readmouse.buttons AND mouseLeft) THEN state.pt = hover
+    IF (readmouse.release AND mouseLeft) THEN do_pick = YES
+   END IF
+  ELSE
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+ END IF
+ 
+ IF do_quit THEN
+  menusound gen(genCancelSFX)
+  EXIT DO
+ END IF
+ 
+ IF do_pick THEN
   IF state.pt = 0 AND gold >= price THEN
    gold = gold - price
    useinn = -1
