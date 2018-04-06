@@ -1480,8 +1480,8 @@ END SUB
 
 SUB sellstuff (byval id as integer, storebuf() as integer)
  DIM b((getbinsize(binSTF) \ 2) * 50 - 1) as integer
- DIM permask(15) as integer
- DIM price((inventoryMax + 1) \ 3) as integer
+ DIM permask((inventoryMax + 1) \ 16 ) as integer
+ DIM price(inventoryMax + 1) as integer
  DIM recordsize as integer = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--preserve background for display under sell menu
