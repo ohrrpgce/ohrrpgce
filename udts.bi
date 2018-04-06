@@ -146,6 +146,8 @@ TYPE MenuState
   has_been_drawn as bool
   rect as RectType
   spacing as integer    'Height of each line, in pixels. Set MenuOptions.itemspacing to adjust.
+  select_by_mouse_release as bool ' This is important for menus where you need to be able to
+                                  ' focus an item and pick an item with separate clicks
 
   DECLARE FUNCTION empty() as bool
   DECLARE FUNCTION pt_valid() as bool

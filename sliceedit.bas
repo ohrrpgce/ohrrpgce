@@ -2127,6 +2127,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, slicelookup() as s
   append_simplemenu_item menu, "virtual_keyboard_entrytext", , , -102024
   append_simplemenu_item menu, "virtual_keyboard_del", , , -102025
   append_simplemenu_item menu, "virtual_keyboard_enter", , , -102026
+  append_simplemenu_item menu, "shop_buy_info_panel", , , -102027
   append_simplemenu_item menu, "pathfind_dest_display", , , -102100
 '</SLICE LOOKUP NAMES>
 

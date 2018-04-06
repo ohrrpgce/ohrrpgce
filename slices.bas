@@ -289,6 +289,7 @@ FUNCTION SliceLookupCodename (byval code as integer) as string
   CASE SL_VIRTUAL_KEYBOARD_ENTRYTEXT: RETURN "virtual_keyboard_entrytext"
   CASE SL_VIRTUAL_KEYBOARD_DEL: RETURN "virtual_keyboard_del"
   CASE SL_VIRTUAL_KEYBOARD_ENTER: RETURN "virtual_keyboard_enter"
+  CASE SL_SHOP_BUY_INFO_PANEL: RETURN "shop_buy_info_panel"
   CASE SL_PATHFIND_DEST_DISPLAY: RETURN "pathfind_dest_display"
 '</SLICE LOOKUP NAMES>
   CASE ELSE

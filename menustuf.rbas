@@ -92,6 +92,8 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  walks(14) = 3
 
  buystuff_make_slices buyst
+ DIM panel as Slice Ptr = LookupSlice(SL_SHOP_BUY_INFO_PANEL, buyst.root_sl)
+ IF panel = 0 THEN debug "Shop Buy Slice Collection is missing its Info Panel"
 
  '--Create the menu
  DIM menu as MenuDef
@@ -100,6 +102,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  DIM st as MenuState
  st.active = YES
  st.need_update = YES
+ st.select_by_mouse_release = YES
 
  show_virtual_gamepad()
  
@@ -110,6 +113,8 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   setkeys
   buyst.tog = buyst.tog XOR 1
   IF buyst.tog THEN loopvar buyst.walk, 0, 15
+  DIM do_quit as bool = NO
+  DIM do_pick as bool = NO
   
   IF st.need_update THEN
    buystuff_refresh_menu buyst, menu, st
@@ -118,12 +123,32 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   
   playtimer
   control
+
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   IF panel ANDALSO SliceCollidePoint(panel, readmouse.pos) THEN
+    'Ignore most clicks on the info panel
+     IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+   ELSEIF rect_collide_point(st.rect, readmouse.pos) THEN
+    'In the list of stuff
+    IF st.hover >= 0 THEN
+     IF (readmouse.release AND mouseLeft) ANDALSO st.pt = st.hover THEN do_pick = YES
+    END IF
+    mouse_drag_menu st
+   ELSE
+    'Anywhere else
+     IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+     IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_quit = YES
+   END IF
+  END IF
+
   usemenusounds
   IF usemenu(st) THEN
    IF menu.numitems > 0 THEN
     buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
    END IF
   END IF
+  IF carray(ccMenu) > 1 THEN do_quit = YES
+  IF carray(ccUse) > 1 THEN do_pick = YES
   
   WITH *(buyst.alert_box)
    IF .extra(0) > 0 THEN
@@ -144,14 +169,12 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
    st.need_update = YES
   END IF
   
-  IF carray(ccMenu) > 1 THEN EXIT DO
+  IF do_quit THEN EXIT DO
 
-  IF menu.numitems > 0 THEN
-   IF carray(ccUse) > 1 THEN
-    IF buystuff_can_buy(buyst.selected, buyst, YES) THEN
-     buystuff_do_purchase(buyst, buyst.selected, buyst.curslot)
-     st.need_update = YES
-    END IF
+  IF do_pick ANDALSO menu.numitems > 0 THEN
+   IF buystuff_can_buy(buyst.selected, buyst, YES) THEN
+    buystuff_do_purchase(buyst, buyst.selected, buyst.curslot)
+    st.need_update = YES
    END IF
   END IF
   
@@ -627,6 +650,7 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .Width = 168
   .Height = 176
   .PaddingTop = 25
+  .Lookup = SL_SHOP_BUY_INFO_PANEL
  END WITH
  
  DIM your_money_box as Slice Ptr

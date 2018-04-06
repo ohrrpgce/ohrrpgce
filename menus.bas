@@ -177,9 +177,11 @@ END FUNCTION
 ' Updates state.pt. This should be called only after mouse_update_hover has
 ' updated state.hover and returned YES, if state.hover is a selectable item.
 SUB mouse_update_selection (state as MenuState)
- IF (readmouse.buttons OR readmouse.release) AND mouseleft THEN
+ DIM buttons as integer = (readmouse.buttons OR readmouse.release)
+ IF state.select_by_mouse_release THEN buttons = readmouse.release
+ IF buttons AND mouseleft THEN
   state.pt = state.hover
- ELSEIF ((readmouse.buttons OR readmouse.release) AND mouseright) ANDALSO readmouse.drag_dist < 10 THEN
+ ELSEIF (buttons AND mouseright) ANDALSO readmouse.drag_dist < 10 THEN
   'Right button only selects if this is NOT a drag
   state.pt = state.hover
  END IF
