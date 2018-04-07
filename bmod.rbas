@@ -28,6 +28,8 @@
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
 DECLARE FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
 DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
+DECLARE SUB enemy_death_sfx(battler as BattleSprite)
+
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
@@ -1187,21 +1189,25 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  NEXT i
  '--Then death animations
  FOR i = 0 TO 11
-  IF bslot(i).dissolve > 0 THEN
-   'ENEMIES DEATH THROES
-   IF is_enemy(i) THEN
-    IF bslot(i).flee THEN
-     'running away
-     bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
+  WITH bslot(i)
+   IF .dissolve > 0 THEN
+    'ENEMIES DEATH THROES
+    IF is_enemy(i) THEN
+     IF .flee THEN  'running away
+      .x = .x - 10
+      .d = 1
+     END IF
+     .dissolve -= 1
+     IF .dissolve = 0 THEN
+      'Make dead enemy invisible (this should have already happened in check_death)
+      'The check_death code will actually do most removal/cleanup, which will
+      'happen when the enemy starts fleeing/dissolving
+      .vis = NO
+     END IF
     END IF
-    bslot(i).dissolve -= 1
-    IF bslot(i).dissolve = 0 THEN
-     'make dead enemy invisible (the check_death code will actually do the final removal, which might happen before the enemy has finished dissolving)
-     bslot(i).vis = NO
-    END IF
+    IF is_hero(i) THEN .frame = frameDEAD
    END IF
-   IF is_hero(i) THEN bslot(i).frame = frameDEAD
-  END IF
+  END WITH
  NEXT i
  '--also appear animations for enemies
  FOR i = 0 TO 11
@@ -1347,6 +1353,8 @@ SUB draw_battle_sprites(bslot() as BattleSprite, page as integer)
  NEXT i
 END SUB
 
+'==============================================================================
+
 SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
  DIM i as integer
 
@@ -1478,6 +1486,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  fulldeathcheck -1, bat, bslot(), formdata
 END SUB
 
+'==============================================================================
+
 SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
  DIM hero_node as NodePtr
  hero_node = hero.reld
@@ -1577,6 +1587,9 @@ SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
  END WITH
 END SUB
 
+'==============================================================================
+'                                Victory & Defeat
+
 SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
@@ -1604,7 +1617,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
  '--Now check the heroes
  dead_heroes = 0
  FOR deadguy = 0 TO 3
-  IF bslot(deadguy).stat.cur.hp = 0 THEN dead_heroes += 1
+  IF bslot(deadguy).stat.cur.hp <= 0 THEN dead_heroes += 1
  NEXT deadguy
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
  export_battle_hero_stats bslot()
@@ -1796,6 +1809,8 @@ SELECT CASE bat.vic.state
   END IF
 END SELECT
 END SUB
+
+'==============================================================================
 
 SUB reset_battle_state (byref bat as BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
@@ -2032,6 +2047,9 @@ SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as Battl
  END WITH
 END SUB
 
+'==============================================================================
+'                               Animation ops
+
 SUB anim_end()
  pushdw 0
 END SUB
@@ -2162,6 +2180,9 @@ SUB anim_checkpoint()
  pushdw 25
 END SUB
 
+'==============================================================================
+'                                 Enemy death
+
 FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
  'Counts enemies that are in the process of dying, but have not finished dying yet
  'This includes both dissolve animations and on-death bequest attacks
@@ -2274,11 +2295,10 @@ END FUNCTION
 SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 'killing_attack contains attack id or -1 when no attack is relevant.
 
- IF is_enemy(deadguy) THEN
-  '--Ignore empty enemy slots.
-  IF formdata.slots(deadguy - 4).id = -1 THEN EXIT SUB
- END IF
- 
+ '--Ignore empty hero/enemy slots.
+ IF is_hero(deadguy) ANDALSO gam.hero(deadguy).id = -1 THEN EXIT SUB
+ IF is_enemy(deadguy) ANDALSO formdata.slots(deadguy - 4).id = -1 THEN EXIT SUB
+
  '--Check to see if this is an already-dead enemy doing a bequest attack
  DIM already_bequested as bool = NO
  IF bslot(deadguy).bequesting = YES THEN
@@ -2331,35 +2351,30 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  END IF
  '-- if it is a dead enemy's turn, cancel ai
  IF bat.enemy_turn = deadguy THEN bat.enemy_turn = -1
- 
- IF is_enemy(deadguy) ANDALSO bslot(deadguy).enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
-  'Trigger an on-death bequest attack, and defer dying until later.
-  DIM beq_t(11) as integer
-  IF autotarget(deadguy, bslot(deadguy).enemy.bequest_attack - 1, bslot(), beq_t()) THEN
-   '--Bequest attack only happens if it has a valid target
-   WITH bslot(deadguy)
-    .bequesting = YES
-    .self_bequesting = is_among_targets(deadguy, beq_t())
-    .vis = YES
-    .dissolve = 0
-    .flee = 0
-   END WITH
-  END IF
-  EXIT SUB
- END IF
- 
- '------PLUNDER AND EXPERIENCE AND ITEMS------
- IF is_enemy(deadguy) THEN 
-  IF bslot(deadguy).death_sfx = 0 THEN
-   IF gen(genDefaultDeathSFX) > 0 THEN
-    playsfx gen(genDefaultDeathSFX) - 1
+
+ IF is_enemy(deadguy) THEN
+  WITH bslot(deadguy)
+
+   IF .enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
+    'Trigger an on-death bequest attack, and defer dying until later.
+    DIM beq_t(11) as integer
+    IF autotarget(deadguy, .enemy.bequest_attack - 1, bslot(), beq_t()) THEN
+     '--Bequest attack only happens if it has a valid target
+     .bequesting = YES
+     .self_bequesting = is_among_targets(deadguy, beq_t())
+     .vis = YES
+     .dissolve = 0
+     .flee = 0
+    END IF
+    EXIT SUB
    END IF
-  ELSEIF bslot(deadguy).death_sfx > 0 THEN
-   playsfx bslot(deadguy).death_sfx - 1
-  END IF
+  END WITH
+
+  enemy_death_sfx bslot(deadguy)
+  'Plunder and on-death spawning, and mark formation slot empty
   dead_enemy deadguy, killing_attack, bat, bslot(), formdata
  END IF
- '------------END PLUNDER-------------------
+
  battle_reevaluate_dead_targets deadguy, bat, bslot()
 END SUB
 
@@ -2395,6 +2410,19 @@ SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref 
  ' remove dead enemy from formation
  formdata.slots(enemynum).id = -1
 END SUB
+
+SUB enemy_death_sfx(battler as BattleSprite)
+ IF battler.death_sfx = 0 THEN
+  IF gen(genDefaultDeathSFX) > 0 THEN
+   playsfx gen(genDefaultDeathSFX) - 1
+  END IF
+ ELSEIF battler.death_sfx > 0 THEN
+  playsfx battler.death_sfx - 1
+ END IF
+END SUB
+
+'==============================================================================
+'                                   Enemy AI
 
 FUNCTION enemy_is_weak(byval who as integer, bslot() as BattleSprite) as bool
  DIM weakhp as integer = gen(genEnemyWeakHP)
@@ -2501,6 +2529,10 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  bat.enemy_turn = -1
 
 END SUB
+
+'==============================================================================
+'                                    Menus
+
 
 SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
 
@@ -2755,6 +2787,9 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   END IF
  END IF
 END SUB
+
+'==============================================================================
+'                               Animation system
 
 'Calculate the absolute position at which an attack should be drawn at on top of
 'a certain target. This position might instead be used as a waypoint for projectiles.
@@ -3401,6 +3436,8 @@ SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref ba
  END IF
 END SUB
 
+'==============================================================================
+
 SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  'setuptarg (heroes only)
  DIM i as integer
@@ -3963,12 +4000,12 @@ END FUNCTION
 SUB battle_animate_running_away (bslot() as BattleSprite)
  FOR i as integer = 0 TO 3
   '--if alive, animate running away
-  IF bslot(i).stat.cur.hp > 0 THEN
+  IF gam.hero(i).id >= 0 ANDALSO bslot(i).stat.cur.hp > 0 THEN
    WITH bslot(i)
     IF .vis THEN
      .xmov = 10
      .xspeed = 6
-     bslot(i).walk = 1
+     .walk = 1
      .d = 1
     END IF
    END WITH

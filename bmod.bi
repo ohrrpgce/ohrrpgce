@@ -16,6 +16,7 @@ DECLARE SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagCond
 DECLARE SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
 declare sub invertstack
 declare sub quickinflict (byval harm as integer, byval targ as integer, bslot() as battlesprite)
+
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(byval ticks as integer)
 DECLARE SUB anim_waitforall()
