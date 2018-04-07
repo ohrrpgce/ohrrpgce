@@ -31,6 +31,7 @@ DECLARE FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, b
 DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
 DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
 DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
+DECLARE SUB reset_enemy_state(byref bspr as BattleSprite)
 DECLARE SUB setup_enemy_sprite(byref bspr as BattleSprite)
 DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
 
@@ -1600,6 +1601,8 @@ FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=
  RETURN count
 END FUNCTION
 
+'Called to load an enemy from a Formation slot. Can be called even if the
+'slot is empty, but can not be called to cleanup a loaded enemy.
 SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
  '--slot is the enemy formation slot
  DIM byref bspr as BattleSprite = bslot(4 + slot)
@@ -1608,12 +1611,10 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
 
   WITH bspr
 
-   '--load enemy data
    loadenemydata .enemy, formdata.slots(slot).id, -1
 
-   .name = .enemy.name
-   transfer_enemy_bits bspr
-   transfer_enemy_counterattacks bspr
+   setup_non_volatile_enemy_state bspr
+   reset_enemy_state bspr
 
    '--Special handling for spawning already-dead enemies
 
@@ -1646,21 +1647,11 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     .stored_targs(i) = NO
     .thankvengemask(i) = NO
    NEXT i
-   .bequesting = NO
-   .self_bequesting = NO
    .active_turn_num = 0
-  END WITH
-  setup_non_volatile_enemy_state bspr
 
- END IF 'this slot is occupied
+   setup_enemy_sprite bspr
 
- '--if the enemy in this slot is visible
- IF bspr.vis = 1 THEN
-
-  setup_enemy_sprite bspr
-
-  '--update stats
-  WITH bspr
+   '--update stats
    FOR i as integer = 0 TO 11
     .stat.cur.sta(i) = .enemy.stat.sta(i)
     .stat.max.sta(i) = .enemy.stat.sta(i)
@@ -1671,7 +1662,6 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
   '--if the enemy in this slot is not visible, mark its sprite count as 0
   bspr.sprites = 0
  END IF
-
 END SUB
 
 SUB transfer_enemy_bits(byref bspr as BattleSprite)
@@ -1708,13 +1698,25 @@ SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
  END WITH
 END SUB
 
-SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
+' Called when loading or reloading (transmogrification) an enemy,
+' sets up anything that should be reset when transmogrifying
+SUB reset_enemy_state(byref bspr as BattleSprite)
  WITH bspr
   .vis = 1
   .d = 0
   .dissolve = 0
   .dissolve_appear = 0
   .flee = 0
+  .bequesting = NO
+  .self_bequesting = NO
+ END WITH
+END SUB
+
+' Called when loading or reloading (transmogrification) an enemy,
+' sets everything that doesn't change
+SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
+ WITH bspr
+  .name = .enemy.name
   .deathtype = .enemy.dissolve - 1
   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
   .deathtime = .enemy.dissolve_length
@@ -1725,8 +1727,9 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
   .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound
-  .bequesting = NO
-  .self_bequesting = NO
+
+  transfer_enemy_bits bspr
+  transfer_enemy_counterattacks bspr
  END WITH
 END SUB
 
@@ -1743,7 +1746,7 @@ END SUB
 
 SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
  IF formdata.slots(slot).id = -1 THEN
-  debug "changefoe doesn't work on empty slot " & slot & " " & new_id
+  showerror "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
  END IF
 
@@ -1753,12 +1756,10 @@ SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Format
 
  WITH bspr
 
-  '--load enemy data
   loadenemydata .enemy, formdata.slots(slot).id, -1
 
-  .name = .enemy.name
-  transfer_enemy_bits bspr
-  transfer_enemy_counterattacks bspr
+  setup_non_volatile_enemy_state bspr
+  reset_enemy_state bspr
 
   '--update battle state
   DIM old_w as integer = .w
@@ -1769,8 +1770,6 @@ SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Format
   .basey = .basey + old_h - .h
   .x = .x + old_w / 2 - .w / 2
   .y = .y + old_h - .h
-
-  setup_non_volatile_enemy_state bspr
 
   setup_enemy_sprite bspr
 
