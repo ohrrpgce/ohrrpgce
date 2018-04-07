@@ -1524,13 +1524,13 @@ DO
   updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
   flexmenu_update_selectable workmenu(), menutype(), selectable()
   '--update the picture and palette preview
-  ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
+  ChangeSpriteSlice preview, sprTypeAttack, recbuf(AtkDatPic), recbuf(AtkDatPal)
   '--update the weapon picture and palette preview
   IF recbuf(AtkDatWepPic) = 0 THEN
    weppreview->visible = NO
   ELSE
    weppreview->visible = YES
-   ChangeSpriteSlice weppreview, 5, recbuf(AtkDatWepPic) - 1, recbuf(AtkDatWepPal)
+   ChangeSpriteSlice weppreview, sprTypeWeapon, recbuf(AtkDatWepPic) - 1, recbuf(AtkDatWepPal)
   END IF
   '--done updating
   state.need_update = NO
@@ -1619,7 +1619,7 @@ FUNCTION atk_edit_add_new (recbuf() as integer, preview_box as Slice Ptr) as boo
       state.need_update = NO
       loadattackdata recbuf(), attacktocopy
       convertattackdata recbuf(), attack
-      ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
+      ChangeSpriteSlice preview, sprTypeAttack, recbuf(AtkDatPic), recbuf(AtkDatPal)
       menu(0) = "Cancel"
       menu(1) = "New Blank Attack"
       menu(2) = "Copy of Attack " & attacktocopy

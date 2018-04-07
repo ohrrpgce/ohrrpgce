@@ -108,7 +108,7 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
   IF sprsl = 0 THEN
    debug "null sprite slice in set_walkabout_sprite"
   ELSE
-   ChangeSpriteSlice sprsl, 4, pic, pal
+   ChangeSpriteSlice sprsl, sprTypeWalkabout, pic, pal
   END IF
  END IF
 END SUB

@@ -990,7 +990,7 @@ Function SpriteBrowser.thing_kind_name() as string
  return sprite_sizes(sprite_kind()).name & " Sprites"
 End Function
 
-Function SpriteBrowser.sprite_kind() as integer
+Function SpriteBrowser.sprite_kind() as SpriteType
  'This should be overridden by a child class
  return sprTypeInvalid
 End Function
@@ -1027,7 +1027,7 @@ Function HeroSpriteBrowser.highest_id() as integer
  return gen(genMaxHeroPic)
 End Function
 
-Function HeroSpriteBrowser.sprite_kind() as integer
+Function HeroSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeHero
 End Function
 
@@ -1040,7 +1040,7 @@ Function WalkaboutSpriteBrowser.highest_id() as integer
  return gen(genMaxNPCPic)
 End Function
 
-Function WalkaboutSpriteBrowser.sprite_kind() as integer
+Function WalkaboutSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeWalkabout
 End Function
 
@@ -1057,7 +1057,7 @@ Function PortraitSpriteBrowser.highest_id() as integer
  return gen(genMaxPortrait)
 End Function
 
-Function PortraitSpriteBrowser.sprite_kind() as integer
+Function PortraitSpriteBrowser.sprite_kind() as SpriteType
  return sprTypePortrait
 End Function
 
@@ -1072,7 +1072,7 @@ Function EnemySpriteBrowser.highest_id() as integer
  return 0
 End Function
 
-Function EnemySpriteBrowser.sprite_kind() as integer
+Function EnemySpriteBrowser.sprite_kind() as SpriteType
  select case size_group
   case 0: return sprTypeSmallEnemy
   case 1: return sprTypeMediumEnemy
@@ -1087,7 +1087,7 @@ Function AttackSpriteBrowser.highest_id() as integer
  return gen(genMaxAttackPic)
 End Function
 
-Function AttackSpriteBrowser.sprite_kind() as integer
+Function AttackSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeAttack
 End Function
 
@@ -1100,7 +1100,7 @@ Function WeaponSpriteBrowser.highest_id() as integer
  return gen(genMaxWeaponPic)
 End Function
 
-Function WeaponSpriteBrowser.sprite_kind() as integer
+Function WeaponSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeWeapon
 End Function
 
@@ -1121,7 +1121,7 @@ Function BackdropSpriteBrowser.highest_id() as integer
  return gen(genNumBackdrops) - 1
 End Function
 
-Function BackdropSpriteBrowser.sprite_kind() as integer
+Function BackdropSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeBackdrop
 End Function
 
@@ -1150,7 +1150,7 @@ Function BoxborderSpriteBrowser.highest_id() as integer
  return gen(genMaxBoxBorder)
 End Function
 
-Function BoxborderSpriteBrowser.sprite_kind() as integer
+Function BoxborderSpriteBrowser.sprite_kind() as SpriteType
  return sprTypeBoxBorder
 End Function
 

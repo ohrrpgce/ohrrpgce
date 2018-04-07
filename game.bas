@@ -3735,7 +3735,7 @@ SUB init_text_box_slices(txt as TextBoxState)
   '--Then load the portrait
   DIM img_sl as Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
-  ChangeSpriteSlice img_sl, 8, img_id, pal_id
+  ChangeSpriteSlice img_sl, sprTypePortrait, img_id, pal_id
  END IF
 
  '--set up the choice-box (if any)
