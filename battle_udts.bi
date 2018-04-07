@@ -55,7 +55,7 @@ TYPE BattleSprite
   xspeed as integer
   yspeed as integer
   zspeed as integer
-  vis as integer
+  vis as bool
   '--stats
   stat as BattleStats
   elementaldmg(maxElements - 1) as single

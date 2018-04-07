@@ -21,9 +21,9 @@
 #include "yetmore2.bi"
 #include "bcommon.bi"
 
-DECLARE SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
-DECLARE SUB confirm_auto_focus (byval who as integer, tmask() as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer)
-DECLARE SUB confirm_auto_first (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
+DECLARE SUB confirm_auto_spread (byval who as integer, tmask() as bool, bslot() as BattleSprite, t() as integer)
+DECLARE SUB confirm_auto_focus (byval who as integer, tmask() as bool, byref atk as AttackData, bslot() as BattleSprite, t() as integer)
+DECLARE SUB confirm_auto_first (byval who as integer, tmask() as bool, bslot() as BattleSprite, t() as integer)
 
 DECLARE FUNCTION quick_battle_distance(byval who1 as integer, byval who2 as integer, bslot() as BattleSprite) as integer
 DECLARE FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, bslot() as BattleSprite) as integer
@@ -720,7 +720,7 @@ SUB battle_target_arrows (byval d as integer, byval axis as integer, bslot() as 
  targ.pointer = newptr
 END SUB
 
-FUNCTION targetmaskcount (tmask() as integer) as integer
+FUNCTION targetmaskcount (tmask() as bool) as integer
  DIM n as integer = 0
  FOR i as integer = 0 TO 11
   IF tmask(i) THEN n += 1
@@ -982,7 +982,7 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
 END SUB
 
 FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as integer
- RETURN (bslot(who).vis = 1 AND bslot(who).stat.cur.hp > 0)
+ RETURN (bslot(who).vis AND bslot(who).stat.cur.hp > 0)
 END FUNCTION
 
 SUB export_battle_hero_stats (bslot() as BattleSprite)
@@ -1011,11 +1011,11 @@ SUB import_battle_hero_stats (bslot() as BattleSprite)
  NEXT i
 END SUB
 
-SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
+SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
  DIM i as integer
 
  FOR i = 0 TO 11
-  tmask(i) = 0 ' clear list of available targets
+  tmask(i) = NO ' clear list of available targets
  NEXT i
 
  SELECT CASE atk.targ_class
@@ -1035,7 +1035,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
   END IF
 
  CASE 2 'self
-  tmask(who) = 1
+  tmask(who) = YES
 
  CASE 3 'all
   FOR i = 0 TO 11: tmask(i) = bslot(i).vis: NEXT i
@@ -1043,7 +1043,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
  CASE 4 'ally-including-dead
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 THEN tmask(i) = 1
+    IF gam.hero(i).id >= 0 THEN tmask(i) = YES
    NEXT i
   ELSEIF is_enemy(who) THEN
    'enemies don't actually support targetting of dead allies
@@ -1056,7 +1056,7 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
   ELSEIF is_enemy(who) THEN
    FOR i = 4 TO 11: tmask(i) = bslot(i).vis: NEXT i
   END IF
-  tmask(who) = 0
+  tmask(who) = NO
 
  CASE 6 'revenge-one
   IF bslot(who).revenge >= 0 THEN
@@ -1065,29 +1065,29 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
 
  CASE 7 'revenge-all
   FOR i = 0 TO 11
-   IF bslot(who).revengemask(i) = YES AND bslot(i).vis <> 0 THEN
-    tmask(i) = 1
+   IF bslot(who).revengemask(i) = YES AND bslot(i).vis THEN
+    tmask(i) = YES
    END IF
   NEXT i
 
  CASE 8 'previous
   FOR i = 0 TO 11
-   IF bslot(who).last_targs(i) = YES AND bslot(i).vis <> 0 THEN
-    tmask(i) = 1
+   IF bslot(who).last_targs(i) = YES AND bslot(i).vis THEN
+    tmask(i) = YES
    END IF
   NEXT i
 
  CASE 9 'stored
   FOR i = 0 TO 11
-   IF bslot(who).stored_targs(i) = YES AND (bslot(i).vis <> 0 OR bslot(who).stored_targs_can_be_dead) THEN
-    tmask(i) = 1
+   IF bslot(who).stored_targs(i) = YES AND (bslot(i).vis OR bslot(who).stored_targs_can_be_dead) THEN
+    tmask(i) = YES
    END IF
   NEXT i
 
  CASE 10 'dead-ally (hero only)
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = 1
+    IF gam.hero(i).id >= 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = YES
    NEXT i
   END IF
 
@@ -1098,8 +1098,8 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
 
  CASE 12 'thankvenge-all
   FOR i = 0 TO 11
-   IF bslot(who).thankvengemask(i) = YES AND bslot(i).vis <> 0 THEN
-    tmask(i) = 1
+   IF bslot(who).thankvengemask(i) = YES AND bslot(i).vis THEN
+    tmask(i) = YES
    END IF
   NEXT i
 
@@ -1113,19 +1113,19 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
 
  'enforce attack's disabled enemy target slots
  FOR i = 0 TO 7
-  IF atk.cannot_target_enemy_slot(i) THEN tmask(4 + i) = 0
+  IF atk.cannot_target_enemy_slot(i) THEN tmask(4 + i) = NO
  NEXT i
 
  'enforce attack's disabled hero target slots
  FOR i = 0 TO 3
-  IF atk.cannot_target_hero_slot(i) THEN tmask(i) = 0
+  IF atk.cannot_target_hero_slot(i) THEN tmask(i) = NO
  NEXT i
 
  FOR i = 0 TO 11
   'If a target is doing an on-death bequest attack,
   ' it cannot be targeted by anyone but itself
   IF bslot(i).bequesting AND i <> who THEN
-   tmask(i) = 0
+   tmask(i) = NO
   END IF
  NEXT i
 
@@ -1134,9 +1134,9 @@ SUB get_valid_targs(tmask() as integer, byval who as integer, byref atk as Attac
   FOR i = 0 TO 11
    'enforce untargetability
    IF is_hero(who) THEN
-    IF bslot(i).hero_untargetable = YES THEN tmask(i) = 0
+    IF bslot(i).hero_untargetable = YES THEN tmask(i) = NO
    ELSEIF is_enemy(who) THEN
-    IF bslot(i).enemy_untargetable = YES THEN tmask(i) = 0
+    IF bslot(i).enemy_untargetable = YES THEN tmask(i) = NO
    END IF
   NEXT i
  END IF
@@ -1356,9 +1356,7 @@ FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as B
  '--Returns true if the targetting was successful, or false if it failed for some reason
  ' such as no valid targets being available.
 
- DIM tmask(11) as integer ' A list of true/false values indicating
-                          ' which targets are valid for the currently targetting attack
- DIM i as integer
+ DIM tmask(11) as bool ' Which targets are valid for the currently targetting attack
 
  get_valid_targs tmask(), who, atk, bslot()
 
@@ -1399,32 +1397,32 @@ FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as B
 
 END FUNCTION
 
-SUB confirm_auto_spread (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
+SUB confirm_auto_spread (byval who as integer, tmask() as bool, bslot() as BattleSprite, t() as integer)
  DIM i as integer
  DIM targetptr as integer = 0
  FOR i = 0 TO 11
-  IF tmask(i) <> 0 THEN
+  IF tmask(i) THEN
    t(targetptr) = i
    targetptr = targetptr + 1
   END IF
  NEXT i
 END SUB
 
-SUB confirm_auto_focus (byval who as integer, tmask() as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer)
+SUB confirm_auto_focus (byval who as integer, tmask() as bool, byref atk as AttackData, bslot() as BattleSprite, t() as integer)
  t(0) = find_preferred_target(tmask(), who, atk, bslot())
 END SUB
 
-SUB confirm_auto_first (byval who as integer, tmask() as integer, bslot() as BattleSprite, t() as integer)
+SUB confirm_auto_first (byval who as integer, tmask() as bool, bslot() as BattleSprite, t() as integer)
  DIM i as integer
  FOR i = 0 TO 11
-  IF tmask(i) <> 0 THEN
+  IF tmask(i) THEN
    t(0) = i
    EXIT SUB
   END IF
  NEXT i
 END SUB
 
-FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as AttackData, bslot() as BattleSprite) as integer
+FUNCTION find_preferred_target(tmask() as bool, byval who as integer, atk as AttackData, bslot() as BattleSprite) as integer
 
  DIM i as integer
  DIM best as integer
@@ -1459,11 +1457,11 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   'special handling for heroes using attacks that target all
   IF is_hero(who) AND atk.targ_class = 3 THEN
    FOR i = 4 to 11
-    IF tmask(i) <> 0 THEN RETURN i
+    IF tmask(i) THEN RETURN i
    NEXT i
   ELSE ' normal first-target handling
    FOR i = 0 to 11
-    IF tmask(i) <> 0 THEN RETURN i
+    IF tmask(i) THEN RETURN i
    NEXT i
   END IF
 
@@ -1471,7 +1469,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = 200000
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = quick_battle_distance(who, i, bslot())
     IF search < found THEN
      best = i
@@ -1485,7 +1483,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = -1
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = quick_battle_distance(who, i, bslot())
     IF search > found THEN
      best = i
@@ -1499,7 +1497,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   search = 0
   DO
    found = randint(12)
-   IF tmask(found) <> 0 THEN RETURN found
+   IF tmask(found) THEN RETURN found
    search = search + 1
   LOOP UNTIL search > 999 ' safety
 
@@ -1507,7 +1505,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = 32767
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = bslot(i).stat.cur.sta(prefstat)
     IF search < found THEN
      best = i
@@ -1521,7 +1519,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = -1
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = bslot(i).stat.cur.sta(prefstat)
     IF search > found THEN
      best = i
@@ -1535,7 +1533,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = 10001 'use ten-thousands rather than hundreds to simulate two fixed-precision decmal places
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = INT(10000 / bslot(i).stat.max.sta(prefstat) * bslot(i).stat.cur.sta(prefstat))
     IF search < found THEN
      best = i
@@ -1549,7 +1547,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
   best = -1
   found = -1
   FOR i = 0 TO 11
-   IF tmask(i) <> 0 THEN
+   IF tmask(i) THEN
     search = INT(10000 / bslot(i).stat.max.sta(prefstat) * bslot(i).stat.cur.sta(prefstat))
     IF search > found THEN
      best = i
@@ -1563,7 +1561,7 @@ FUNCTION find_preferred_target(tmask() as integer, byval who as integer, atk as 
 
  '-- If all else fails, make sure the default target is valid
  FOR i = 0 TO 11
-  IF tmask(i) <> 0 THEN RETURN i
+  IF tmask(i) THEN RETURN i
  NEXT i
 
  ' If no valid targets were found, fail with -1
@@ -1594,7 +1592,7 @@ FUNCTION targenemycount (bslot() as BattleSprite, byval for_alone_ai as integer=
   IF for_alone_ai THEN
    ignore = bslot(i).ignore_for_alone
   END IF
-  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = 1 AND ignore = NO THEN
+  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis AND ignore = NO THEN
    count = count + 1
   END IF
  NEXT i
@@ -1702,7 +1700,7 @@ END SUB
 ' sets up anything that should be reset when transmogrifying
 SUB reset_enemy_state(byref bspr as BattleSprite)
  WITH bspr
-  .vis = 1
+  .vis = YES
   .d = 0
   .dissolve = 0
   .dissolve_appear = 0

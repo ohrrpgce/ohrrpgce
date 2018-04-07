@@ -426,10 +426,10 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     '--undefined
    CASE 5 'appear(who)
     ww = popdw
-    bslot(ww).vis = 1
+    bslot(ww).vis = YES
    CASE 6 'disappear(who)
     ww = popdw
-    bslot(ww).vis = 0
+    bslot(ww).vis = NO
    CASE 7 'setframe(who,frame)
     ww = popdw
     DIM fr as integer = popdw
@@ -620,7 +620,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  triggerfade targ, bslot()
  IF bslot(targ).stat.cur.hp > 0 THEN
   '---REVIVE---
-  bslot(targ).vis = 1
+  bslot(targ).vis = YES
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
@@ -1172,7 +1172,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
  NEXT i
  '--then, stuff that only attacks can do
  FOR i = 12 TO 23 '--for each attack sprite
-  IF bslot(i).vis = 1 THEN
+  IF bslot(i).vis THEN
    WITH bslot(i)
     .anim_index += 1
     '--each pattern ends with a -1. If we have found it, loop around
@@ -1197,7 +1197,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
     bslot(i).dissolve -= 1
     IF bslot(i).dissolve = 0 THEN
      'make dead enemy invisible (the check_death code will actually do the final removal, which might happen before the enemy has finished dissolving)
-     bslot(i).vis = 0
+     bslot(i).vis = NO
     END IF
    END IF
    IF is_hero(i) THEN bslot(i).frame = frameDEAD
@@ -1294,7 +1294,7 @@ SUB draw_battle_sprites(bslot() as BattleSprite, page as integer)
  NEXT i
  sort_integers_indices(zbuf(), @basey(0))
  FOR i as integer = 0 TO 24
- IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
+ IF bslot(zbuf(i)).vis OR bslot(zbuf(i)).dissolve > 0 THEN
    dim w as BattleSprite ptr
    w = @bslot(zbuf(i))
    with bslot(zbuf(i))
@@ -1381,7 +1381,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .y =  .basey
     .w = 32
     .h = 40
-    .vis = 1
+    .vis = YES
     'load hero sprites
     .sprite_num = 8
     .sprites = frame_load(sprTypeHero, gam.hero(i).battle_pic)
@@ -1931,7 +1931,7 @@ END SUB
 FUNCTION checkNoRunBit (bslot() as BattleSprite) as integer
  DIM i as integer
  FOR i = 4 TO 11
-  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
+  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = YES AND bslot(i).unescapable = YES THEN RETURN 1
  NEXT i
  RETURN 0
 END FUNCTION
@@ -2250,7 +2250,7 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
   END IF
   IF is_enemy(who) THEN
    'Don't restart the dissolve animation when hitting an enemy multiple times
-   IF bslot(who).dissolve > 0 OR bslot(who).vis = 0 THEN EXIT SUB
+   IF bslot(who).dissolve > 0 OR bslot(who).vis = NO THEN EXIT SUB
    bslot(who).dissolve = bslot(who).deathtime
    '--flee as alternative to death
    IF bslot(who).flee_instead_of_die = YES THEN
@@ -2299,7 +2299,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  '--deadguy is really dead (includes already dead and empty hero slots??)
  'Death animation is not done yet here, so be cautious about what gets cleaned up here.
  'Full cleanup of bslot() records belongs in loadfoe
- bslot(deadguy).vis = 0
+ bslot(deadguy).vis = NO
  bslot(deadguy).ready = NO
  bslot(deadguy).attack = 0
  bslot(deadguy).d = 0
@@ -2335,7 +2335,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
    WITH bslot(deadguy)
     .bequesting = YES
     .self_bequesting = is_among_targets(deadguy, beq_t())
-    .vis = 1
+    .vis = YES
     .dissolve = 0
     .flee = 0
    END WITH
@@ -2797,8 +2797,9 @@ FUNCTION projectile_start_position(attack as AttackData, attacker as integer, ba
  RETURN ret
 END FUNCTION
 
+'Return true if target 't(index)' is unhittable and invisible
 FUNCTION check_for_unhittable_invisible_foe(byval index as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer) as bool
- IF bslot(t(index)).vis <> 0 THEN RETURN NO 'Is visible, so yes, we can hit it
+ IF bslot(t(index)).vis THEN RETURN NO
  IF attack_can_hit_dead(t(index), attack, bslot(bat.acting).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
  IF bslot(bat.acting).self_bequesting THEN
   'This is a self-bequest attack
