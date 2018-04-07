@@ -2092,7 +2092,7 @@ SUB anim_setmove(who as integer, xmove_ticks as integer, ymove_ticks as integer,
  pushdw 2: pushdw who: pushdw xmove_ticks: pushdw ymove_ticks: pushdw xstep: pushdw ystep
 END SUB
 
-' Move to an X position in ABS(xticks) ticks, ditto for Z.
+' Move to an X position in ABS(xticks) ticks, ditto for Y.
 SUB anim_absmove(byval who as integer, byval tox as integer, byval toy as integer, byval xticks as integer, byval yticks as integer)
  pushdw 8: pushdw who: pushdw tox: pushdw toy: pushdw xticks: pushdw yticks
 END SUB

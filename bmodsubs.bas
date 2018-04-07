@@ -105,27 +105,27 @@ FUNCTION BattleSprite.appeartime() as integer
  RETURN _appeartime
 END FUNCTION
 
-FUNCTION is_hero(byval who as integer) as integer
- IF who >= 0 AND who <= 3 THEN RETURN -1
- RETURN 0
+FUNCTION is_hero(byval who as integer) as bool
+ IF who >= 0 AND who <= 3 THEN RETURN YES
+ RETURN NO
 END FUNCTION
 
-FUNCTION is_enemy(byval who as integer) as integer
- IF who >= 4 AND who <= 11 THEN RETURN -1
- RETURN 0
+FUNCTION is_enemy(byval who as integer) as bool
+ IF who >= 4 AND who <= 11 THEN RETURN YES
+ RETURN NO
 END FUNCTION
 
-FUNCTION is_attack(byval who as integer) as integer
- IF who >= 12 AND who <= 23 THEN RETURN -1
- RETURN 0
+FUNCTION is_attack(byval who as integer) as bool
+ IF who >= 12 AND who <= 23 THEN RETURN YES
+ RETURN NO
 END FUNCTION
 
-FUNCTION is_weapon(byval who as integer) as integer
- IF who = 24 THEN RETURN -1
- RETURN 0
+FUNCTION is_weapon(byval who as integer) as bool
+ IF who = 24 THEN RETURN YES
+ RETURN NO
 END FUNCTION
 
-FUNCTION atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as integer
+FUNCTION atkallowed (atk as AttackData, byval attacker as integer, byval spclass as integer, byval lmplev as integer, bslot() as BattleSprite) as bool
 '--atk   = attack data
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
@@ -172,7 +172,7 @@ NEXT i
 '--succeed
 RETURN YES
 
-END FUNCTION 'stat
+END FUNCTION
 
 FUNCTION checktheftchance (byval item as integer, byval itemP as integer, byval rareitem as integer, byval rareitemP as integer) as integer
 IF randint(100) < itemP THEN
@@ -1252,6 +1252,7 @@ END SUB
 SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 
  SELECT CASE attack.attacker_anim
+  ' Animations using the cast animation
   CASE atkrAnimCast, atkrAnimStandingCast
    anim_setframe who, frameSTAND
    anim_wait 3
@@ -1259,6 +1260,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_wait 3
 
   CASE atkrAnimStrike, atkrAnimDashIn, atkrAnimTeleport, atkrAnimStandingStrike
+   ' Animations which show the weapon graphic
    anim_setframe who, frameSTAND
    anim_wait 3 'wait 3 ticks
    anim_setframe who, frameATTACKA
@@ -1273,7 +1275,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_align2 24, who, 0, 0, dx, 16
    anim_setz 24, 16 - dy
   
-   anim_setframe 24, frameSTAND
+   anim_setframe 24, 0
    anim_appear 24
    anim_wait 3
    anim_setframe who, frameATTACKB
@@ -1287,7 +1289,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
   
    anim_align2 24, who, 0, 0, dx, 16
    anim_setz 24, 16 - dy
-   anim_setframe 24, frameSTEP
+   anim_setframe 24, 1
 
   CASE atkrAnimSpinStrike
    FOR ii as integer = 0 TO 2
@@ -1380,6 +1382,8 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_setframe who, frameSTAND
   CASE atkrAnimStandingCast, atkrAnimStandingStrike
    anim_setframe who, frameSTAND
+  CASE atkrAnimNull, atkrAnimSpinStrike, atkrAnimJump, atkrAnimTeleport
+  ' Do nothing
   END SELECT
  END IF
 END SUB
