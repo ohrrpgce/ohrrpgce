@@ -517,6 +517,9 @@ DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
 DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
 
+DECLARE Sub RealignSlice(sl as Slice ptr, halign as AlignType = -1, valign as AlignType = -1, hanchor as AlignType = -1, vanchor as AlignType = -1)
+DECLARE Sub CenterSlice(sl as Slice ptr)
+
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool

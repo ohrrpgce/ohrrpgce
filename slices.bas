@@ -3196,6 +3196,20 @@ Function SliceYAnchor(byval sl as Slice Ptr) as integer
  END SELECT
 End Function
 
+'Like the "realign slice" script command
+Sub RealignSlice(sl as Slice ptr, halign as AlignType = -1, valign as AlignType = -1, hanchor as AlignType = -1, vanchor as AlignType = -1)
+ if sl = 0 then debug "SliceRealign null ptr" : exit sub
+ if halign <> -1  then sl->AlignHoriz  = halign
+ if valign <> -1  then sl->AlignVert   = valign
+ if hanchor <> -1 then sl->AnchorHoriz = hanchor
+ if vanchor <> -1 then sl->AnchorVert  = vanchor
+End Sub
+
+'Like "center slice" command
+Sub CenterSlice(sl as Slice ptr)
+ RealignSlice sl, alignCenter, alignCenter, alignCenter, alignCenter
+End Sub
+
 Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
  if sl = 0 then debug "SliceEdgeX null ptr": Return 0
  SELECT CASE edge
