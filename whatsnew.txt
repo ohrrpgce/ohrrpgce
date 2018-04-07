@@ -64,6 +64,7 @@ April (mumble) 2018 [Fufluns]
     * "Caption" menu item type renamed to "Label", the "Unselectable" subtype
       of Labels renamed to "Disabled", and the "Close menu if selected" bit
       renamed to "Close menu when activated"
+    * In-battle instant-run debug key moved from Ctrl-F4 to Ctrl-F5
 
   * Bugfixes
     * Fix a major memory leak while recording .gifs [Ralph]

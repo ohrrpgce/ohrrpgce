@@ -27,7 +27,7 @@ declare function inflict (byref h as integer = 0, byref targstat as integer = 0,
 declare function liveherocount overload (bslot() as BattleSprite) as integer
 declare function liveherocount () as integer
 declare sub loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
-declare sub changefoe(byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
+declare sub changefoe(bat as BattleState, byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
 declare sub anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleSprite)
 declare function safesubtract (byval number as integer, byval minus as integer) as integer
 declare function safemultiply (byval number as integer, byval by as single) as integer

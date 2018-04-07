@@ -23,6 +23,7 @@
 #include "allmodex.bi"
 #include "scriptcommands.bi"
 #include "menustuf.bi"
+#include "sliceedit.bi"
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
@@ -45,7 +46,8 @@ DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
-DECLARE SUB draw_battle_sprites(bslot() as BattleSprite, page as integer)
+DECLARE SUB update_battle_slices(bslot() as BattleSprite)
+DECLARE SUB draw_damage_text(bslot() as BattleSprite, page as integer)
 DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
 DECLARE FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
@@ -215,11 +217,17 @@ FUNCTION battle (byval form as integer) as bool
 
   '-------------------- Draw the screen --------------------
 
-  '--display the backdrop, centered
+  'compatpage is a view onto vpage, but vpage might change, so recreate every tick
+  freepage page
+  page = compatpage()
+
   clearpage vpage
-  frame_draw bat.backdrop, , pCentered, pCentered, , NO, vpage
-  '--display the sprites
-  draw_battle_sprites bslot(), page
+  '--display the backdrop and BattleSprites
+  update_battle_slices bslot()
+  DrawSlice bat.root_sl, page
+  'Not converted to slices yet
+  draw_damage_text bslot(), page
+
   '--display menus and meters
   battle_display bat, bslot(), st(), page
   
@@ -270,7 +278,7 @@ FUNCTION battle (byval form as integer) as bool
   bat.ticks += 1
   dowait
  LOOP
- 
+
  battle_cleanup bat, bslot()
  freepage page
  evalherotags
@@ -351,12 +359,7 @@ SUB battle_cleanup(byref bat as BattleState, bslot() as BattleSprite)
  END IF
 
  fadeout 0, 0, 0
- frame_unload(@bat.backdrop)
- FOR i as integer = LBOUND(bslot) TO UBOUND(bslot)
-  frame_unload(@bslot(i).sprites)
-  palette16_unload(@bslot(i).pal)
- NEXT i
-
+ DeleteSlice @bat.root_sl
 END SUB
 
 SUB battle_pause ()
@@ -377,11 +380,9 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
  
  '--special handling when we are waiting for all motion to stop
  IF bat.wait_frames = -1 THEN
-  bat.wait_frames = 0
   FOR i = 0 TO 23
-   IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN bat.wait_frames = -1
+   IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN EXIT SUB
   NEXT i
-  IF bat.wait_frames = -1 THEN EXIT SUB
  END IF
  bat.wait_frames = 0
 
@@ -581,7 +582,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount) THEN
   '--attack succeeded
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-   changefoe targ - 4, attack.transmog_enemy, formdata, bslot(), attack.transmog_hp, attack.transmog_stats
+   changefoe bat, targ - 4, attack.transmog_enemy, formdata, bslot(), attack.transmog_hp, attack.transmog_stats
   END IF
   battle_attack_cancel_target_attack targ, bat, bslot(), attack
   WITH bslot(targ).enemy.reward
@@ -1292,56 +1293,75 @@ SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  END IF
 END SUB
 
-SUB draw_battle_sprites(bslot() as BattleSprite, page as integer)
- DIM zbuf(24) as integer
- DIM basey(24) as integer
- DIM harm_text_offset as integer = 0
- 
- FOR i as integer = 0 TO 24
-  basey(i) = bslot(i).y + bslot(i).h
- NEXT i
- sort_integers_indices(zbuf(), @basey(0))
- FOR i as integer = 0 TO 24
- IF bslot(zbuf(i)).vis OR bslot(zbuf(i)).dissolve > 0 THEN
-   dim w as BattleSprite ptr
-   w = @bslot(zbuf(i))
-   with bslot(zbuf(i))
-    dim spr as frame ptr = .sprites
-    
-    if .sprites = 0 then continue for
-    
-    'debug(str(zbuf(i)))
-    
-    if .frame < .sprite_num then spr += .frame
-    
-    if .d then
-     spr = frame_duplicate(spr)
-     frame_flip_horiz(spr)
-    else
-     spr = frame_reference(spr)
-    end if
 
-    if is_enemy(zbuf(i)) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
-     dim spr2 as frame ptr = spr
-     spr = frame_dissolved(spr2, .appeartime, .appeartime - .dissolve_appear, .appeartype)
-     frame_unload(@spr2)
-    end if
-    
-    if is_enemy(zbuf(i)) andalso .dissolve > 0 andalso .flee = 0 then
-     dim spr2 as frame ptr = spr
-     spr = frame_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
-     frame_unload(@spr2)
-    end if
-    
-    frame_draw(spr, .pal, .x, .y - .z, 1, -1, page)
-    
-    frame_unload(@spr)
-   end with
+'==============================================================================
+'                                    Slices
+
+SUB setup_battle_slices(byref bat as BattleState)
+ WITH bat
+  .root_sl = NewSliceOfType(slContainer)
+  .root_sl->Fill = YES
+
+  .backdrop_sl = NewSliceOfType(slSprite, .root_sl)
+  CenterSlice .backdrop_sl
+  .battlefield_sl = NewSliceOfType(slContainer, .root_sl)
+  .battlefield_sl->Fill = YES
+  .battlefield_sl->AutoSort = slAutoSortBottomY
+ END WITH
+END SUB
+
+'keep_existing: if true, don't recreate slices
+SUB setup_battlesprite_slice(byref bspr as BattleSprite, bat as BattleState, sprtype as SpriteType, sprset as integer, pal as integer, keep_existing as bool = NO)
+ WITH bspr
+  IF (keep_existing AND .sl <> NULL) = NO THEN
+   DeleteSlice @.sl
+   .sl = NewSliceOfType(slContainer, bat.battlefield_sl)
+   .sprite = NewSliceOfType(slSprite, .sl)
   END IF
+  ChangeSpriteSlice .sprite, sprtype, sprset, pal
+  .sl->Size = .sprite->Size
+ END WITH
+END SUB
+
+' Create/update slice. If called on transmogrification, then a slice will already exist.
+SUB setup_enemy_slice(byref bspr as BattleSprite, bat as BattleState, keep_existing as bool = NO)
+ WITH bspr
+  setup_battlesprite_slice bspr, bat, sprTypeSmallEnemy + .enemy.size, .enemy.pic, .enemy.pal, keep_existing
+ END WITH
+END SUB
+
+SUB update_battle_slices(bslot() as BattleSprite)
+ FOR i as integer = 0 TO 24
+  WITH bslot(i)
+   IF .sl = NULL THEN CONTINUE FOR  'Empty slot
+
+   IF .vis OR .dissolve > 0 THEN
+    .sl->Visible = YES
+
+    DIM fliph as bool = .d <> 0
+    ChangeSpriteSlice .sprite, , , , , fliph
+
+    IF is_enemy(i) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
+     'TODO: switch to auto-animating dissolve instead of manually setting the current tick
+     DissolveSpriteSlice .sprite, .appeartype, .appeartime, .appeartime - .dissolve_appear, , NO
+    ELSEIF is_enemy(i) andalso .dissolve > 0 andalso .flee = 0 then
+     DissolveSpriteSlice .sprite, .deathtype, .deathtime, .deathtime - .dissolve, , NO
+    ELSE
+     CancelSpriteSliceDissolve .sprite
+    END IF
+
+   ELSE
+    .sl->Visible = NO
+   END IF
+  END WITH
  NEXT i
+END SUB
+
+SUB draw_damage_text(bslot() as BattleSprite, page as integer)
  FOR i as integer = 0 TO 11
   WITH bslot(i).harm
    IF .ticks > 0 THEN
+    DIM harm_text_offset as integer
     IF gen(genDamageDisplayTicks) <> 0 THEN
      harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
     ELSE
@@ -1364,8 +1384,6 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
 
  for i = 0 to 24
   bslot(i).frame = frameSTAND
-  bslot(i).sprites = 0
-  bslot(i).pal = 0
   bslot(i).attack = 0
  next i
 
@@ -1384,19 +1402,14 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
 
    '--init bslot() for each hero
    WITH bslot(i)
+    setup_battlesprite_slice bslot(i), bat, sprTypeHero, hero.battle_pic, hero.battle_pal
+
     'hero_form specifies bottom center relative to the hero zone
     .basex = (240 + hero_form.slots(i).pos.x - 16)
     .basey = (82 + hero_form.slots(i).pos.y - 40)
-    .x =  .basex
-    .y =  .basey
-    .w = 32
-    .h = 40
+    .x = .basex
+    .y = .basey
     .vis = YES
-    'load hero sprites
-    .sprite_num = 8
-    .sprites = frame_load(sprTypeHero, gam.hero(i).battle_pic)
-    .pal = palette16_load(gam.hero(i).battle_pal, sprTypeHero, gam.hero(i).battle_pic)
-    .frame = frameSTAND
 
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
@@ -1425,9 +1438,6 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    calc_hero_elementals bslot(i).elementaldmg(), i
 
    bslot(i).name = hero.name
-  ELSE
-   '--blank empty hero slots
-   bslot(i).sprites = 0
   END IF
  NEXT i
 
@@ -1438,28 +1448,21 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   NEXT
   gam.hero(i).lev_gain = 0
  NEXT
- 
+
  '--load monsters
  FOR i = 0 TO 7
   loadfoe i, formdata, bat, bslot(), YES
  NEXT i
- 
+
  FOR i = 0 TO 11
   IF readbit(gen(), genBits2, 6) = 0 THEN  '"Don't randomize battle ready meters" off
    bslot(i).ready_meter = randint(500)
   END IF
  NEXT i
- 
- '--size attack sprites
- FOR i = 12 TO 23
-  bslot(i).w = 50
-  bslot(i).h = 50
- NEXT i
- 
+
  bat.curbg = formdata.background
- frame_unload @bat.backdrop
- bat.backdrop = frame_load(sprTypeBackdrop, bat.curbg)
- 
+ ChangeSpriteSlice bat.backdrop_sl, sprTypeBackdrop, bat.curbg
+
  '--This checks weak/dead status for heroes
  '-- who are already weak/dead at the beginning of battle
  FOR i = 0 TO 3
@@ -1472,10 +1475,6 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
   bslot(i).lifemeter = (88 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp
  NEXT i
 
- '--size the weapon sprite 
- bslot(24).w = 24
- bslot(24).h = 24
- 
  'trigger fades for dead enemies
  'fulldeathcheck fades out only enemies set to die without a boss
  'so additionally call triggerfade on 0 hp enemies here
@@ -1828,6 +1827,8 @@ SUB reset_battle_state (byref bat as BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
 
  WITH bat
+
+  setup_battle_slices bat
 
   .ticks = 0
 
@@ -2896,17 +2897,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  '--setup attack sprite slots
  FOR i = 12 TO 23
-  bslot(i).frame = frameSTAND
-  bslot(i).z = 0
   'load battle sprites
-  with bslot(i)
-   .sprite_num = 3
-   .frame = frameSTAND
-   frame_unload(@.sprites)
-   palette16_unload(@.pal)
-   .sprites = frame_load(sprTypeAttack, attack.picture)
-   .pal = palette16_load(attack.pal, sprTypeAttack, attack.picture)
-  end with
+  setup_battlesprite_slice bslot(i), bat, sprTypeAttack, attack.picture, attack.pal
  NEXT i
  
  DIM tcount as integer = 0
@@ -2964,12 +2956,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  IF is_hero(bat.acting) THEN
   'load weapon sprites
-  with bslot(24)
-   .sprite_num = 2
+  WITH bslot(24)
    DIM wpic as integer
    DIM wpal as integer
-   frame_unload @.sprites
-   palette16_unload @.pal
    IF attack.override_wep_pic THEN
     wpic = attack.wep_picture
     wpal = attack.wep_pal
@@ -2984,10 +2973,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     .hand(0) = get_weapon_handle_point(weapon, 0)
     .hand(1) = get_weapon_handle_point(weapon, 1)
    END IF
-   .sprites = frame_load(sprTypeWeapon, wpic)
-   .pal = palette16_load(wpal, sprTypeWeapon, wpic)
-   .frame = 0
-  end with
+   setup_battlesprite_slice bslot(24), bat, sprTypeWeapon, wpic, wpal
+  END WITH
  END IF
  
  DIM numhits as integer
@@ -3979,8 +3966,7 @@ SUB battle_background_anim(byref bat as BattleState, formdata as Formation)
   loopvar bat.bg_tick, 0, formdata.background_ticks
   IF bat.bg_tick = 0 THEN
    loopvar bat.curbg, formdata.background, formdata.background + formdata.background_frames - 1
-   frame_unload @bat.backdrop
-   bat.backdrop = frame_load(sprTypeBackdrop, bat.curbg MOD gen(genNumBackdrops))
+   ChangeSpriteSlice bat.backdrop_sl, , bat.curbg MOD gen(genNumBackdrops)
   END IF
  END IF
 END SUB
@@ -4599,8 +4585,10 @@ END FUNCTION
 SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN gam.debug_showtags = (gam.debug_showtags + 1) MOD 3
- IF dbg.def(scCtrl, scF4, "Run instantly (Ctrl+F4)") THEN bat.away = 11
+ IF dbg.def(scCtrl, scF4, "View/edit slice tree (Ctrl-F4)") THEN slice_editor bat.root_sl
  IF dbg.def(      , scF5, "Give million experience (F5)") THEN bat.rew.exper = 1000000
+ IF dbg.def(scCtrl, scF5, "Run instantly (Ctrl-F5)") THEN bat.away = 11
+
  DIM temp as string
  IF bat.turn.mode = 0 THEN temp = "Switch to turn-based battles" ELSE temp = "Switch to active-time battles"
  IF dbg.def(      , scF6, temp & " (F6)") THEN

@@ -1572,9 +1572,10 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  ' Root is backdrop
  *rootslice = NewSliceOfType(slSprite)
  sl = *rootslice
- ChangeSpriteSlice sl, sprTypeBackdrop, form.background 
+ ChangeSpriteSlice sl, sprTypeBackdrop, form.background
  sl->Lookup = SL_FORMEDITOR_BACKDROP
- 
+ sl->AutoSort = slAutoSortBottomY
+
  'Hero Area
  DIM h_area as Slice Ptr
  h_area = NewSliceOfType(slContainer, *rootslice)
@@ -1672,11 +1673,6 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
   END IF
  NEXT i
 
- ' We don't want path-dependence of the sort order, because
- ' the real battle system display breaks ties in a certain way.
- ' This ensures ties broken in the same way (I hope)
- CustomSortChildSlices rootslice, NO  'wipevals=NO
- EdgeYSortChildSlices rootslice, 2  'edge=2 is bottom edge
  clearpage page
  DrawSlice rootslice, page
 END SUB

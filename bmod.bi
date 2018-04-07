@@ -37,6 +37,9 @@ DECLARE SUB anim_setcenter(byval who as integer, byval target as integer, byval 
 DECLARE SUB anim_align2(byval who as integer, byval target as integer, byval edgex as integer, byval edgey as integer, byval offx as integer, byval offy as integer)
 DECLARE SUB anim_relmove(byval who as integer, byval tox as integer, byval toy as integer, byval xspeed as integer, byval yspeed as integer)
 DECLARE SUB anim_setdir(byval who as integer, byval d as integer)
+
+DECLARE SUB setup_enemy_slice(byref bspr as BattleSprite, bat as BattleState, keep_existing as bool = NO)
+
 DECLARE FUNCTION dieWOboss(byval who as integer, bslot() as BattleSprite) as integer
 DECLARE SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)

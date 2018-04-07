@@ -4,6 +4,8 @@
 'This file contains UDTs that only get used in battle mode,
 'so as to prevent them from cluttering up the global udts.bi file
 
+#include "slices.bi"
+
 UNION BattleStatsSingle
   'See also Stats '-- the two of these can probably be unified eventually
   TYPE
@@ -41,13 +43,28 @@ END TYPE
 
 TYPE BattleSprite
   name as string
+
+  '--Sprites/slices
+  sl as Slice ptr
+  sprite as Slice ptr  'The sprite component of the slice
+
+  DECLARE PROPERTY x() as integer
+  DECLARE PROPERTY x(val as integer)
+  DECLARE PROPERTY y() as integer
+  DECLARE PROPERTY y(val as integer)
+  DECLARE PROPERTY z() as integer
+  DECLARE PROPERTY z(val as integer)
+  DECLARE PROPERTY pos() byref as XYPair
+  DECLARE PROPERTY w() as integer
+  DECLARE PROPERTY w(val as integer)
+  DECLARE PROPERTY h() as integer
+  DECLARE PROPERTY h(val as integer)
+  DECLARE PROPERTY size() byref as XYPair
+  DECLARE PROPERTY frame() as integer
+  DECLARE PROPERTY frame(fr as integer)
+
   basex as integer
   basey as integer
-  x as integer
-  y as integer
-  z as integer
-  w as integer
-  h as integer
   d as integer
   xmov as integer
   ymov as integer
@@ -56,6 +73,7 @@ TYPE BattleSprite
   yspeed as integer
   zspeed as integer
   vis as bool
+
   '--stats
   stat as BattleStats
   elementaldmg(maxElements - 1) as single
@@ -73,13 +91,9 @@ TYPE BattleSprite
   dissolve_appear as integer
   flee as integer ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
   attack_succeeded as bool
-  sprites as Frame ptr 'the graphic set
-  sprite_num as integer 'how many frames
-  frame as integer 'the current frame (if a hero, one of the frame* constants)
   walk as integer 'used by heroes when animating walking
   anim_pattern as integer 'used by attack sprites
   anim_index as integer 'used by attack sprites
-  pal as palette16 ptr 'yeah
   deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
   deathtime as integer '0 = default, otherwise is time + 1
   appeartype as integer '-1 means appear instantly
@@ -90,7 +104,7 @@ TYPE BattleSprite
   repeatharm as integer 'The last damage dealt BY this hero or enemy
   cursorpos as XYPair
   harm as HarmText
-  hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet
+  hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet (it's read directly from HeroState)
   '--used only for turnTURN mode
   initiative_order as integer
   no_attack_this_turn as integer
@@ -279,6 +293,9 @@ END TYPE
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
+ root_sl as Slice ptr
+ battlefield_sl as Slice ptr  'BattleSprite slices are parented to this
+
  turn as TurnManager
  ticks as integer      'number of ticks since the battle was initialized
  acting as integer     'Hero or enemy who is currently taking their turn to act
@@ -306,7 +323,7 @@ TYPE BattleState
           ({2,2,1,1,0,0,-1}), _
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
- backdrop as Frame ptr 'Current background
+ backdrop_sl as Slice ptr
  curbg as integer      'Current background
  bg_tick as integer    'Number of ticks since last background frame change
  wait_frames as integer 'used by the attack animation

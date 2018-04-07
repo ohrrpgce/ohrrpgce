@@ -32,8 +32,68 @@ DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
 DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
 DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
 DECLARE SUB reset_enemy_state(byref bspr as BattleSprite)
-DECLARE SUB setup_enemy_sprite(byref bspr as BattleSprite)
 DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
+
+DIM SHARED XY00 as XYpair
+
+PROPERTY BattleSprite.pos() byref as XYPair
+ IF sl THEN RETURN sl->Pos ELSE RETURN XY00
+END PROPERTY
+
+PROPERTY BattleSprite.x() as integer
+ IF sl THEN RETURN sl->X
+END PROPERTY
+
+PROPERTY BattleSprite.x(val as integer)
+ IF sl THEN sl->X = val
+END PROPERTY
+
+PROPERTY BattleSprite.y() as integer
+ IF sl THEN RETURN sl->Y
+END PROPERTY
+
+PROPERTY BattleSprite.y(val as integer)
+ IF sl THEN sl->Y = val
+END PROPERTY
+
+PROPERTY BattleSprite.z() as integer
+ IF sprite THEN RETURN -sprite->Y
+END PROPERTY
+
+PROPERTY BattleSprite.z(val as integer)
+ IF sprite THEN sprite->Y = -val
+END PROPERTY
+
+PROPERTY BattleSprite.size() byref as XYPair
+ IF sl THEN RETURN sl->Size ELSE RETURN XY00
+END PROPERTY
+
+PROPERTY BattleSprite.w() as integer
+ IF sl THEN RETURN sl->Width
+END PROPERTY
+
+PROPERTY BattleSprite.w(val as integer)
+ IF sl THEN sl->Width = val
+END PROPERTY
+
+PROPERTY BattleSprite.h() as integer
+ IF sl THEN RETURN sl->Height
+END PROPERTY
+
+PROPERTY BattleSprite.h(val as integer)
+ IF sl THEN sl->Height = val
+END PROPERTY
+
+PROPERTY BattleSprite.frame() as integer
+ IF sprite ANDALSO sprite->SliceType = slSprite THEN
+  DIM sldata as SpriteSliceData ptr = sprite->SliceData
+  RETURN sldata->frame
+ END IF
+END PROPERTY
+
+PROPERTY BattleSprite.frame(fr as integer)
+ IF sprite THEN ChangeSpriteSlice sprite, , , , fr
+END PROPERTY
 
 FUNCTION is_hero(byval who as integer) as integer
  IF who >= 0 AND who <= 3 THEN RETURN -1
@@ -1611,11 +1671,13 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
 
    loadenemydata .enemy, formdata.slots(slot).id, -1
 
+   'Need to load the slice to know the sprite size, to set default dissolve time!
+   setup_enemy_slice bspr, bat
+
    setup_non_volatile_enemy_state bspr
    reset_enemy_state bspr
 
    '--Special handling for spawning already-dead enemies
-
    IF allow_dead = NO THEN
     'enemies which spawn already-dead should be killed off immediately
     'die without boss or 0 hp?
@@ -1627,10 +1689,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
     END IF
    END IF
 
-   '--set up battle state
-   '--Size and position
-   .w = sprite_sizes(1 + .enemy.size).size.x
-   .h = sprite_sizes(1 + .enemy.size).size.y
+   '--Position
    .basex = formdata.slots(slot).pos.x
    .basey = formdata.slots(slot).pos.y
    .x = .basex
@@ -1647,18 +1706,12 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    NEXT i
    .active_turn_num = 0
 
-   setup_enemy_sprite bspr
-
    '--update stats
    FOR i as integer = 0 TO 11
     .stat.cur.sta(i) = .enemy.stat.sta(i)
     .stat.max.sta(i) = .enemy.stat.sta(i)
    NEXT i
   END WITH
-
- ELSE
-  '--if the enemy in this slot is not visible, mark its sprite count as 0
-  bspr.sprites = 0
  END IF
 END SUB
 
@@ -1731,18 +1784,7 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
  END WITH
 END SUB
 
-SUB setup_enemy_sprite(byref bspr as BattleSprite)
- '--Update sprite. If this BattleSprite was previously used by a now-dead enemy, then a sprite and pal will already be loaded.
- with bspr
-  .sprite_num = 1
-  frame_unload @.sprites
-  palette16_unload @.pal
-  .sprites = frame_load(sprTypeSmallEnemy + .enemy.size, .enemy.pic)
-  .pal = palette16_load(.enemy.pal, cast(SpriteType, sprTypeSmallEnemy + .enemy.size), .enemy.pic)
- end with
-END SUB
-
-SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
+SUB changefoe(bat as BattleState, byval slot as integer, byval new_id as integer, formdata as Formation, bslot() as BattleSprite, byval hp_rule as integer, byval other_stats_rule as integer)
  IF formdata.slots(slot).id = -1 THEN
   showerror "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
@@ -1753,23 +1795,23 @@ SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Format
  DIM byref bspr as BattleSprite = bslot(4 + slot)
 
  WITH bspr
+  IF .sl = NULL THEN showerror "changefoe: foe not loaded" : EXIT SUB
 
   loadenemydata .enemy, formdata.slots(slot).id, -1
 
   setup_non_volatile_enemy_state bspr
   reset_enemy_state bspr
 
-  '--update battle state
   DIM old_w as integer = .w
   DIM old_h as integer = .h
-  .w = sprite_sizes(1 + .enemy.size).size.x
-  .h = sprite_sizes(1 + .enemy.size).size.y
+
+  setup_enemy_slice bspr, bat, YES
+
+  '--adjust position
   .basex = .basex + old_w / 2 - .w / 2
   .basey = .basey + old_h - .h
   .x = .x + old_w / 2 - .w / 2
   .y = .y + old_h - .h
-
-  setup_enemy_sprite bspr
 
   '--update stats
   change_foe_stat bspr, 0, .enemy.stat.hp, hp_rule
