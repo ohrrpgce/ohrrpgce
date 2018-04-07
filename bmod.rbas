@@ -549,6 +549,8 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
    DIM moveticks as integer = popdw
    bslot(ww).zspeed = (destz - bslot(ww).z) / moveticks
    bslot(ww).zmov = moveticks
+  CASE 25 'anim_checkpoint
+    IF autotestmode THEN write_checkpoint
 
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
@@ -847,6 +849,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  
  'confirm
  IF carray(ccUse) > 1 THEN
+  IF autotestmode THEN write_checkpoint
   menusound gen(genAcceptSFX)
   battle_confirm_target bat, bslot()
  END IF
@@ -2152,6 +2155,10 @@ SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack 
  END IF
 END SUB
 
+SUB anim_checkpoint()
+ pushdw 25
+END SUB
+
 FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
  'Counts enemies that are in the process of dying, but have not finished dying yet
  'This includes both dissolve animations and on-death bequest attacks
@@ -2953,6 +2960,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR i = 0 TO tcount - 1
     anim_inflict t(i), tcount
    NEXT i
+   anim_checkpoint
    anim_disappear 24
    anim_skip_ahead_if_targetless
   NEXT j
@@ -2998,6 +3006,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF attack.attack_anim = atkAnimDrop THEN
     anim_wait 3
    END IF
+   anim_checkpoint
    anim_setframe bat.acting, frameSTAND
    anim_disappear 24
    IF attack.attack_anim = atkAnimRing THEN
@@ -3085,6 +3094,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_absmove 12, 320, 100, 5, 5
    END IF
    anim_waitforall
+   anim_checkpoint
    'hide projectile
    anim_disappear 12
    anim_skip_ahead_if_targetless
@@ -3144,7 +3154,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     END IF
    NEXT i
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
+   anim_checkpoint
    anim_wait 8
+   anim_checkpoint
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
    FOR i = 0 TO tcount - 1
@@ -3195,6 +3207,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_absmove 12 + i, targetpos.x, targetpos.y, 8, 8
     ' Z values are constant
    NEXT i
+   anim_checkpoint
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 4
    anim_disappear 24
@@ -3260,6 +3273,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT aslot
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    anim_wait 8
+   anim_checkpoint
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
    FOR i = 0 TO tcount - 1  ' Note tcount = 1
@@ -3313,6 +3327,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_setmove 12 + i, pushback_x, 0, 16, 0
     anim_wait 1
    NEXT i
+   anim_checkpoint
    anim_wait 15
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND

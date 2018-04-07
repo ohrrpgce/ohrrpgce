@@ -3837,21 +3837,13 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 573'--cancel dissolve
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat THEN
-    dat->dissolving = NO
-    dat->d_auto = NO
-   END IF
+   CancelSpriteSliceDissolve plotslices(retvals(0))
   END IF
  CASE 574'--sprite is dissolving
   scriptret = 0
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat as SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   IF dat THEN
-    IF dat->dissolving THEN scriptret = 1
-   END IF
+   'Note that unlike "wait for dissolve", this isn't restricted to auto-dissolve
+   IF SpriteSliceIsDissolving(plotslices(retvals(0)), NO) THEN scriptret = 1
   END IF
  CASE 575'--wait for dissolve
   IF valid_plotsprite(retvals(0)) THEN

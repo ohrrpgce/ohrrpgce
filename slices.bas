@@ -1873,6 +1873,16 @@ Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, b
  end with
 end sub
 
+Sub CancelSpriteSliceDissolve(sl as Slice ptr)
+ if sl = 0 then debug "CancelSpriteSliceDissolve null ptr" : exit sub
+ if sl->SliceType <> slSprite then reporterr "CancelSpriteSliceDissolve: bad slice type" : exit sub
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  .dissolving = NO
+  .d_auto = NO
+ end with
+end sub
+
 Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=YES) as bool
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
  if sl->SliceType <> slSprite then return NO
