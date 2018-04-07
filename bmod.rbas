@@ -808,9 +808,10 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 
  'random target
  IF bat.targ.roulette THEN
+  'Advance cursor by 1 or 2 targets (this happens every tick)
   FOR i = 0 TO randint(2)
    loopvar bat.targ.pointer, 0, 11
-   WHILE bat.targ.mask(bat.targ.pointer) = 0
+   WHILE bat.targ.mask(bat.targ.pointer) = NO
     loopvar bat.targ.pointer, 0, 11
    WEND
   NEXT i
@@ -828,7 +829,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
   menusound gen(genCursorSFX)
   FOR i = 0 TO 11
-   bat.targ.selected(i) = 0
+   bat.targ.selected(i) = NO
   NEXT i
   bat.targ.opt_spread = 1
   flusharray carray(), 7, 0
@@ -869,18 +870,18 @@ SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
   update_turn_delays_in_attack_queue bat.hero_turn
  END IF
 
- bat.targ.selected(bat.targ.pointer) = 1
+ bat.targ.selected(bat.targ.pointer) = YES
 
- DIM t(11) as integer
- flusharray t(), 11, -1
- DIM o as integer = 0
- FOR i as integer = 0 TO 11
-  IF bat.targ.selected(i) = 1 THEN
-   t(o) = i
-   o = o + 1
+ DIM targs(11) as bool
+ flusharray targs(), , YES
+ DIM targnum as integer = 0
+ FOR slot as integer = 0 TO 11
+  IF bat.targ.selected(slot) THEN
+   targs(targnum) = slot
+   targnum += 1
   END IF
- NEXT i
- queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, t()
+ NEXT slot
+ queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, targs()
  bslot(bat.hero_turn).attack = 0
 
  IF bat.turn.mode = turnACTIVE THEN
@@ -1030,7 +1031,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    END IF
    IF bat.targ.mode > targNONE THEN
     FOR i = 0 TO 11
-     IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
+     IF bat.targ.selected(i) = YES OR bat.targ.pointer = i THEN
       WITH bslot(i)
        DIM as integer cursx, cursy
        cursx = bound(.x + .cursorpos.x + .w \ 2, 10, gen(genResolutionX) - 10)
@@ -3444,7 +3445,7 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  bat.targ.force_first = NO
  bat.targ.pointer = 0
  FOR i = 0 TO 11
-  bat.targ.selected(i) = 0 ' clear list of selected targets
+  bat.targ.selected(i) = NO ' clear list of selected targets
  NEXT i
 
  bat.targ.hit_dead = NO
@@ -4210,13 +4211,13 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
  
  '--cancel current interactive targetting that points to the dead target (unless the attack is allowed to target dead)
  IF bat.targ.hit_dead = NO THEN
-  IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
-  IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
+  IF bat.targ.mask(deadguy) = YES THEN bat.targ.mask(deadguy) = NO
+  IF bat.targ.selected(deadguy) = YES THEN bat.targ.selected(deadguy) = NO
   '--if current interactive targeting points to the dead target, find a new target
   WITH bat.targ
    IF .pointer = deadguy THEN
     .pointer = 0
-    WHILE .mask(.pointer) = 0
+    WHILE .mask(.pointer) = NO
      .pointer += 1
      IF .pointer > 11 THEN
       .mode = targNONE

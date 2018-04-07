@@ -792,7 +792,7 @@ END SUB
 
 FUNCTION targetmaskcount (tmask() as bool) as integer
  DIM n as integer = 0
- FOR i as integer = 0 TO 11
+ FOR i as integer = 0 TO UBOUND(tmask)
   IF tmask(i) THEN n += 1
  NEXT i
  RETURN n
@@ -1434,7 +1434,7 @@ FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as B
 
  get_valid_targs tmask(), who, atk, bslot()
 
- flusharray t(), 11, -1
+ flusharray t(), 11, YES
 
  SELECT CASE atk.targ_set
 

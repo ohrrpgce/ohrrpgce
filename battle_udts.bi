@@ -165,9 +165,9 @@ TYPE AttackState
                           ' cleared when animation finishes
  was_id as integer        'Attack ID of the animating attack. Cleared after fulldeathcheck is finished
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
- non_elemental as integer 'YES or NO
- elemental(maxElements - 1) as integer  'YES or NO for each element
- has_consumed_costs as integer 'YES or NO, prevents multi-hit attacks from consuming MP more than once
+ non_elemental as bool
+ elemental(maxElements - 1) as bool
+ has_consumed_costs as bool  'Prevents multi-hit attacks from consuming MP more than once
 END TYPE
 
 'For TargettingState.mode
@@ -182,15 +182,15 @@ END ENUM
 TYPE TargettingState
   mode as TargetMode      '<> targNONE means hero picking a target
   pointer as integer      'Slot number of the currently selected (but not yet chosen) target slot
-  hit_dead as integer     'YES if this is a "Life" spell, or NO for all other attacks
-  mask(11) as integer     'For the currently targetting hero, a list of 1/0 values indicating
+  hit_dead as bool        'YES if this is a "Life" spell, or NO for all other attacks
+  mask(11) as bool        'For the currently targetting hero, indicates
                           'which targets are valid for the currently targetting attack
-  selected(11) as integer 'For the currently targetting hero, a list of 1/0 values indicating
+  selected(11) as bool    'For the currently targetting hero, indicates
                           ' which targets from .mask() are currently selected.
   opt_spread as integer   '0 no, 1 allowed, 2 spread
-  interactive as integer  'YES or NO for current attack
-  roulette as integer     'YES or NO for current attack
-  force_first as integer  'YES or NO for current attack
+  interactive as bool     'for current attack
+  roulette as bool        'for current attack
+  force_first as bool     'for current attack
   atk as AttackData        'Loaded in setup_targeting()
                            'and should only be trusted while mode=targMANUAL
 END TYPE
