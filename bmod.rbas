@@ -282,6 +282,7 @@ FUNCTION battle (byval form as integer) as bool
  RETURN result
 END FUNCTION
 
+'Note: most initialisation code is actually in battle_loadall.
 SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
 
  '--prepare stack
@@ -290,9 +291,10 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
  'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
  gam.remembermusic = presentsong
 
+ '--Init BattleState
  reset_battle_state bat
 
- '--Init BattleState
+ '--Init BattleSprites
  FOR i as integer = 0 TO 11
   bslot(i).consume_item = -1
   bslot(i).revenge = -1
@@ -1366,8 +1368,9 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
  
  DIM attack as AttackData
  FOR i = 0 TO 3
-  IF gam.hero(i).id >= 0 THEN
-   loadherodata st(i), gam.hero(i).id
+  DIM byref hero as HeroState = gam.hero(i)
+  IF hero.id >= 0 THEN
+   loadherodata st(i), hero.id
 
    '--init bslot() for each hero
    WITH bslot(i)
@@ -1384,6 +1387,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .sprites = frame_load(sprTypeHero, gam.hero(i).battle_pic)
     .pal = palette16_load(gam.hero(i).battle_pal, sprTypeHero, gam.hero(i).battle_pic)
     .frame = frameSTAND
+
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
     .cursorpos.y = 0
@@ -1402,16 +1406,15 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    
    '--copy hero's outside-battle stats to their inside-battle stats
    FOR o as integer = 0 TO statLast
-    bslot(i).stat.cur.sta(o) = gam.hero(i).stat.cur.sta(o)
-    bslot(i).stat.max.sta(o) = gam.hero(i).stat.max.sta(o)
+    bslot(i).stat.cur.sta(o) = hero.stat.cur.sta(o)
+    bslot(i).stat.max.sta(o) = hero.stat.max.sta(o)
     'BattleSprites don't have base stats, though we might want them to have them in future
     'if we allow changing equipment during battle
    NEXT o
 
    calc_hero_elementals bslot(i).elementaldmg(), i
 
-   bslot(i).name = gam.hero(i).name
-   
+   bslot(i).name = hero.name
   ELSE
    '--blank empty hero slots
    bslot(i).sprites = 0
@@ -2826,7 +2829,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   loadattackdata attack, bat.atk.id
   safety += 1
   IF safety > 100 THEN
-   debuginfo "Endless instead-chain loop detected for " & attack.name
+   debug "Endless instead-chain loop detected for " & attack.name
    bat.atk.id = -1 '--cancel attack
    EXIT SUB
   END IF

@@ -28,10 +28,10 @@ DECLARE SUB confirm_auto_first (byval who as integer, tmask() as integer, bslot(
 DECLARE FUNCTION quick_battle_distance(byval who1 as integer, byval who2 as integer, bslot() as BattleSprite) as integer
 DECLARE FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, bslot() as BattleSprite) as integer
 
-DECLARE SUB transfer_enemy_bits(byval slot as integer, bslot() as BattleSprite)
-DECLARE SUB transfer_enemy_counterattacks (byval slot as integer, bslot() as BattleSprite)
-DECLARE SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprite)
-DECLARE SUB setup_enemy_sprite_and_name(byval slot as integer, bslot() as BattleSprite)
+DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
+DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
+DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
+DECLARE SUB setup_enemy_sprite(byref bspr as BattleSprite)
 DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
 
 FUNCTION is_hero(byval who as integer) as integer
@@ -1602,33 +1602,33 @@ END FUNCTION
 
 SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleState, bslot() as BattleSprite, byval allow_dead as integer = NO)
  '--slot is the enemy formation slot
+ DIM byref bspr as BattleSprite = bslot(4 + slot)
 
- DIM i as integer
- 
  IF formdata.slots(slot).id >= 0 THEN '-- if this slot is occupied
- 
-  '--load enemy data
-  loadenemydata bslot(4 + slot).enemy, formdata.slots(slot).id, -1
 
-  transfer_enemy_bits slot, bslot()
-  transfer_enemy_counterattacks slot, bslot()
+  WITH bspr
 
-  '--Special handling for spawning already-dead enemies
- 
-  IF allow_dead = NO THEN
-   'enemies which spawn already-dead should be killed off immediately
-   'die without boss or 0 hp?
-   IF dieWOboss(4 + slot, bslot()) OR bslot(4 + slot).enemy.stat.hp <= 0 THEN
-    'rewards and spawn enemies on death
-    'enemy is only partially constructed, but already have everything needed.
-    DIM atktype(8) as integer 'regular "spawn on death"
-    dead_enemy 4 + slot, -1, bat, bslot(), formdata
-    EXIT SUB
+   '--load enemy data
+   loadenemydata .enemy, formdata.slots(slot).id, -1
+
+   .name = .enemy.name
+   transfer_enemy_bits bspr
+   transfer_enemy_counterattacks bspr
+
+   '--Special handling for spawning already-dead enemies
+
+   IF allow_dead = NO THEN
+    'enemies which spawn already-dead should be killed off immediately
+    'die without boss or 0 hp?
+    IF dieWOboss(4 + slot, bslot()) OR .enemy.stat.hp <= 0 THEN
+     'rewards and spawn enemies on death
+     'enemy is only partially constructed, but already have everything needed.
+     dead_enemy 4 + slot, -1, bat, bslot(), formdata
+     EXIT SUB
+    END IF
    END IF
-  END IF
 
-  '--set up battle state
-  WITH bslot(4 + slot)
+   '--set up battle state
    '--Size and position
    .w = sprite_sizes(1 + .enemy.size).size.x
    .h = sprite_sizes(1 + .enemy.size).size.y
@@ -1640,7 +1640,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    .revenge = -1
    .thankvenge = -1
    .counter_target = -1
-   FOR i = 0 TO 11
+   FOR i as integer = 0 TO 11
     .revengemask(i) = NO
     .last_targs(i) = NO
     .stored_targs(i) = NO
@@ -1650,34 +1650,34 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
    .self_bequesting = NO
    .active_turn_num = 0
   END WITH
-  setup_non_volitile_enemy_state slot, bslot()
-  
- END IF 'this slot is occupied
- 
- '--if the enemy in this slot is visible
- IF bslot(4 + slot).vis = 1 THEN
+  setup_non_volatile_enemy_state bspr
 
-  setup_enemy_sprite_and_name slot, bslot()
+ END IF 'this slot is occupied
+
+ '--if the enemy in this slot is visible
+ IF bspr.vis = 1 THEN
+
+  setup_enemy_sprite bspr
 
   '--update stats
-  WITH bslot(4 + slot)
-   FOR i = 0 TO 11
+  WITH bspr
+   FOR i as integer = 0 TO 11
     .stat.cur.sta(i) = .enemy.stat.sta(i)
     .stat.max.sta(i) = .enemy.stat.sta(i)
    NEXT i
   END WITH
-    
+
  ELSE
   '--if the enemy in this slot is not visible, mark its sprite count as 0
-  bslot(4 + slot).sprites = 0
+  bspr.sprites = 0
  END IF
 
 END SUB
 
-SUB transfer_enemy_bits(byval slot as integer, bslot() as BattleSprite)
+SUB transfer_enemy_bits(byref bspr as BattleSprite)
   '--Copy elemental bits and other bits from bslot().enemy to bslot()
-  
-  WITH bslot(4 + slot)
+
+  WITH bspr
    .harmed_by_cure = .enemy.harmed_by_cure
    .mp_idiot = .enemy.mp_idiot
    .is_boss = .enemy.is_boss
@@ -1693,12 +1693,11 @@ SUB transfer_enemy_bits(byval slot as integer, bslot() as BattleSprite)
     .elementaldmg(i) = .enemy.elementals(i)
    NEXT
   END WITH
-
 END SUB
 
-SUB transfer_enemy_counterattacks (byval slot as integer, bslot() as BattleSprite)
+SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
  '--transfer counterattacks
- WITH bslot(4 + slot)
+ WITH bspr
   FOR j as integer = 0 TO gen(genNumElements) - 1
    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
   NEXT j
@@ -1709,8 +1708,8 @@ SUB transfer_enemy_counterattacks (byval slot as integer, bslot() as BattleSprit
  END WITH
 END SUB
 
-SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprite)
- WITH bslot(slot + 4)
+SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
+ WITH bspr
   .vis = 1
   .d = 0
   .dissolve = 0
@@ -1731,15 +1730,14 @@ SUB setup_non_volitile_enemy_state(byval slot as integer, bslot() as BattleSprit
  END WITH
 END SUB
 
-SUB setup_enemy_sprite_and_name(byval slot as integer, bslot() as BattleSprite)
+SUB setup_enemy_sprite(byref bspr as BattleSprite)
  '--Update sprite. If this BattleSprite was previously used by a now-dead enemy, then a sprite and pal will already be loaded.
- with bslot(4 + slot)
+ with bspr
   .sprite_num = 1
   frame_unload @.sprites
   palette16_unload @.pal
   .sprites = frame_load(sprTypeSmallEnemy + .enemy.size, .enemy.pic)
   .pal = palette16_load(.enemy.pal, cast(SpriteType, sprTypeSmallEnemy + .enemy.size), .enemy.pic)
-  .name = .enemy.name
  end with
 END SUB
 
@@ -1748,17 +1746,21 @@ SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Format
   debug "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
  END IF
- 
+
  formdata.slots(slot).id = new_id - 1
 
- '--load enemy data
- loadenemydata bslot(4 + slot).enemy, formdata.slots(slot).id, -1
+ DIM byref bspr as BattleSprite = bslot(4 + slot)
 
- transfer_enemy_bits slot, bslot()
- transfer_enemy_counterattacks slot, bslot()
+ WITH bspr
 
- '--update battle state
- WITH bslot(4 + slot)
+  '--load enemy data
+  loadenemydata .enemy, formdata.slots(slot).id, -1
+
+  .name = .enemy.name
+  transfer_enemy_bits bspr
+  transfer_enemy_counterattacks bspr
+
+  '--update battle state
   DIM old_w as integer = .w
   DIM old_h as integer = .h
   .w = sprite_sizes(1 + .enemy.size).size.x
@@ -1767,19 +1769,17 @@ SUB changefoe(byval slot as integer, byval new_id as integer, formdata as Format
   .basey = .basey + old_h - .h
   .x = .x + old_w / 2 - .w / 2
   .y = .y + old_h - .h
- END WITH
- setup_non_volitile_enemy_state slot, bslot()
 
- setup_enemy_sprite_and_name slot, bslot()
+  setup_non_volatile_enemy_state bspr
 
- '--update stats
- WITH bslot(4 + slot)
-  change_foe_stat bslot(4 + slot), 0, .enemy.stat.hp, hp_rule
+  setup_enemy_sprite bspr
+
+  '--update stats
+  change_foe_stat bspr, 0, .enemy.stat.hp, hp_rule
   FOR i as integer = 1 TO 11
-   change_foe_stat bslot(4 + slot), i, .enemy.stat.sta(i), other_stats_rule
+   change_foe_stat bspr, i, .enemy.stat.sta(i), other_stats_rule
   NEXT i
  END WITH
- 
 END SUB
 
 SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as integer)
