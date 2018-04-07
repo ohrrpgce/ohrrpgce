@@ -243,6 +243,8 @@ TYPE RewardsState
  plunder as integer
  exper as integer
  found(16) as RewardsStateItem
+
+ DECLARE SUB add_item(itemid as integer, count as integer = 1)
 END TYPE
 
 'These handle the state of the currently displaying spell menu

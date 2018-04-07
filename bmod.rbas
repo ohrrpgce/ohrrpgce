@@ -27,11 +27,13 @@
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
 DECLARE FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
+
 DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
 DECLARE SUB enemy_death_sfx(battler as BattleSprite)
-
+DECLARE SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
 DECLARE SUB triggerfade(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+
 DECLARE SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
 DECLARE SUB reset_battle_state (byref bat as BattleState)
 DECLARE SUB reset_targetting (byref bat as BattleState)
@@ -1679,6 +1681,19 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
  RETURN exper
 END FUNCTION
 
+'Found an item, add to list of rewards
+SUB RewardsState.add_item(itemid as integer, count as integer = 1)
+ FOR j as integer = 0 TO UBOUND(found)
+  WITH found(j)
+   IF .num = 0 THEN .id = itemid
+   IF .id = itemid THEN
+    .num += count
+    EXIT SUB
+   END IF
+  END WITH
+ NEXT j
+END SUB
+
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
  IF carray(ccUse) > 1 ORELSE carray(ccMenu) > 1 THEN RETURN YES
  IF gen(genSkipBattleRewardsTicks) > 0 THEN
@@ -1775,37 +1790,34 @@ SELECT CASE bat.vic.state
   END IF
  CASE vicITEMS
   '--print found items, one at a time
+  DIM byref pickedup as RewardsStateItem = bat.rew.found(bat.vic.found_index)
   '--check to see if we are currently displaying a gotten item
   IF bat.vic.item_name = "" THEN
    '--if not, check to see if there are any more gotten items to display
-   IF bat.rew.found(bat.vic.found_index).num = 0 THEN
+   IF pickedup.num = 0 THEN
     bat.vic.state = vicEXITDELAY
     bat.vic.display_ticks = 0
     EXIT SUB
    END IF
    '--get the item name
-   bat.vic.item_name = readitemname(bat.rew.found(bat.vic.found_index).id)
+   bat.vic.item_name = readitemname(pickedup.id)
    '--actually acquire the item
-   getitem bat.rew.found(bat.vic.found_index).id, bat.rew.found(bat.vic.found_index).num
+   getitem pickedup.id, pickedup.num
   END IF
   '--if the present item is gotten, show the caption
-  IF bat.rew.found(bat.vic.found_index).num = 1 THEN
+  IF pickedup.num = 1 THEN
    tempstr = bat.vic.item_caption & " " & bat.vic.item_name
   ELSE
-   tempstr = bat.vic.plural_item_caption & " " & bat.rew.found(bat.vic.found_index).num & " " & bat.vic.item_name
+   tempstr = bat.vic.plural_item_caption & " " & pickedup.num & " " & bat.vic.item_name
   END IF
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
   edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
   '--check for a keypress
   IF should_victory_advance(bat) THEN
-   IF bat.rew.found(bat.vic.found_index).num = 0 THEN
-    '--if there are no further items, exit
-    bat.vic.state = vicEXITDELAY
-   ELSE
-    '--otherwize, increment the findpointer and reset the caption
-    bat.vic.found_index = bat.vic.found_index + 1
-    bat.vic.item_name = ""
-   END IF
+   bat.vic.found_index += 1
+   bat.vic.item_name = ""  'Load the next item
+   '--if there are no further items, exit
+   IF bat.vic.found_index > UBOUND(bat.rew.found) THEN bat.vic.state = vicEXITDELAY
   END IF
 END SELECT
 END SUB
@@ -2379,36 +2391,32 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
 END SUB
 
 SUB dead_enemy(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
- 'Do on-death effects: give rewards, spawn enemies, and mark a formation slot as empty but NO other cleanup!
+ 'Do on-death effects which happen both on normal death and on instant-death-on-spawn:
+ 'give rewards, spawn enemies, and mark a formation slot as empty but NO other cleanup!
  'On-death bequest attacks are processed in check_death (they delay death)
  'NOTE: dissolve/flee animation will be ongoing.
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
- DIM as integer j
  DIM enemynum as integer = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
  spawn_on_death deadguy, killing_attack, bat, formdata, bslot()
- IF formdata.slots(enemynum).id > -1 THEN
-  WITH bslot(deadguy)
-   bat.rew.plunder += .enemy.reward.gold
-   bat.rew.exper += .enemy.reward.exper
-   IF bat.rew.exper > 1000000 THEN bat.rew.exper = 1000000 '--this one million limit is totally arbitrary
-   IF randint(100) < .enemy.reward.item_rate THEN '---GET ITEMS FROM FOES-----
-    FOR j = 0 TO 16
-     IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.item: bat.rew.found(j).num = 1: EXIT FOR
-     IF bat.rew.found(j).id = .enemy.reward.item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
-    NEXT j
-   ELSE '------END NORMAL ITEM---------------
-    IF randint(100) < .enemy.reward.rare_item_rate THEN
-     FOR j = 0 TO 16
-      IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.rare_item: bat.rew.found(j).num = 1: EXIT FOR
-      IF bat.rew.found(j).id = .enemy.reward.rare_item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
-     NEXT j
-    END IF '---END RARE ITEM-------------
-   END IF '----END GET ITEMS----------------
-  END WITH
- END IF
+
+ enemy_death_rewards bat, bslot(deadguy)
+
  ' remove dead enemy from formation
  formdata.slots(enemynum).id = -1
+END SUB
+
+SUB enemy_death_rewards(byref bat as BattleState, battler as BattleSprite)
+ WITH battler
+  bat.rew.plunder += .enemy.reward.gold
+  bat.rew.exper += .enemy.reward.exper
+  IF bat.rew.exper > 1000000 THEN bat.rew.exper = 1000000 '--this one million limit is totally arbitrary
+  IF randint(100) < .enemy.reward.item_rate THEN
+   bat.rew.add_item(.enemy.reward.item)
+  ELSEIF randint(100) < .enemy.reward.rare_item_rate THEN
+   bat.rew.add_item(.enemy.reward.rare_item)
+  END IF
+ END WITH
 END SUB
 
 SUB enemy_death_sfx(battler as BattleSprite)
