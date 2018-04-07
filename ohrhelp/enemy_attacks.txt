@@ -18,6 +18,8 @@ On-death Bequest:
 If this is set on an enemy it will happen when the enemy dies, after they've reached 0 HP but before they fade out.
 It's possible for the enemy to heal itself with this attack, which will cause its death to be cancelled!
 
-You can specify counterattacks that will be triggered when this enemy is hit by attacks of certain elemental types. An attack can only trigger one counterattack, so if multiple elementals apply, only the first one will be counterattacked.
+You can specify counterattacks that will be triggered when this enemy is hit by attacks of certain elemental types. An attack can only trigger one counterattack, so if multiple elementals apply, only the first one (going down the list) will be counterattacked. If that one fails for any reason, no other counterattacks will be tried.
 
-You can specify counterattacks that will be triggered when this enemy is hit by attacks that damage certain stats. Stat counterattacks only happen when no elemental counterattacks have happened.
+You can mark certain elements as "non-elemental", in General Game Settings->Battle System Options. An attack is non-elemental if it doesn't do damage of any element, except for non-elemental ones. Each non-elemental can have its own counterattack, and you can also set a general counterattack against non-elemental attacks.
+
+You can specify counterattacks that will be triggered when this enemy is hit by attacks that damage certain stats. Stat counterattacks can only happen when no elemental counterattacks have happened.

@@ -38,7 +38,7 @@ Although the damage will still be dealt to the target, this bitset will prevent 
 Allows the attack to be used by heroes outside of battle, from the Spells menu. This is normally only used for curing attacks, but note that it also works for damaging attacks. (Some attack features like chaining do not work outside of battle)
 
 * Cause heroes to run away
-If this bitset is turned on, the attack will cause the heroes to run away. This can be used in combination with the general bitset "Disable ESC to run from battle" if you are implementing your own alternate running-away system.
+If this bitset is turned on, the attack will cause the heroes to run away (regardless of attacker or target) in addition to normal effects. This can be used in combination with the general bitset "Disable ESC to run from battle" if you are implementing your own alternate running-away system.
 
 * Mutable
 If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.
@@ -96,3 +96,13 @@ Normally the target of an attack flinches. For heroes this is their "Hurt" frame
 
 * Delay doesn't block further actions
 This bitset means the attacker will start their next turn immediately without waiting for the attack delay to run out. These non-blocking attacks don't interfere with the attacker's ready-meter. (non-blocking is a automatically inherited by attacks that chain from a non-blocking attack)
+
+* Force Victory
+In addition to the attack's normal effects, the battle will immediately stop, with the victory animations playing and rewards listed. Happens regardless of attacker or target. Any surviving enemies do not die/flee, and rewards are NOT given for them.
+
+* Force Battle Exit
+In addition to the attack's normal effects, the battle immediately ends with the screen fading out. Happens regardless of attacker or target. The player does NOT receive any rewards, such as experience, for enemies they've already defeated!
+This counts as running from (losing) the battle for the "fight formation" command.
+
+* Never Trigger Elemental Counterattacks
+This prevents any of the target's Elemental Counterattacks (including against non-elementals!) from occurring, but does NOT prevent the Non-elemental Counterattack or Stat-damage Counterattacks.

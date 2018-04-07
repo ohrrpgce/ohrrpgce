@@ -8,4 +8,5 @@ Turning on any of these bits causes the attack to do elemental damage, which may
 
 Multiple elemental bitsets can be combined: the damages are multiplied. For example if an attack is set to do 'Fire', 'Light', and 'Holy' damage, from which the target takes, respectively, 200%, -150% and -100% damage, then the attack will do 200% * 150% * 100% * -1 = -300% damage. That is, the target will be healed by triple the amount of damage which the attack would otherwise do.
 
-Elemental damage is also very useful for special effects: enemies may spawn or counter-attack in response to being hit by an elemental attack. If all the elemental bitsets are off, the attack counts as a "Physical" attack for spawning purposes.
+Elemental damage is also very useful for special effects: enemies may spawn or counter-attack in response to being hit by an elemental attack.
+You can mark certain elements as "non-elemental", in General Game Settings->Battle System Options. An attack is non-elemental if it doesn't do damage of any element, except for non-elemental ones. Each non-elemental can have its own counterattack, and you can also set a general counterattack against non-elemental attacks.

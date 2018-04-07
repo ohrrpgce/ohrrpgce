@@ -1,3 +1,5 @@
-Your hero can have a number of intrinsic counter-attacks to specific elementals, to non-elemental attacks, and to stat damage.
+Your hero can have a number of intrinsic counter-attacks to specific elementals, to non-elemental attacks, and to stat damage. These are triggered when this hero is hit by an attack with certain properties, such as damaging certain stats.
 
-Here you can select attacks for each elemental. There can only be one counterattack of each type.
+There can only be one counterattack of each type. An attack can only trigger one counterattack, so if multiple counterattacks could apply, only the first one (going down the list) will occur. If that one fails for any reason, no other counterattacks will be tried.
+
+You can mark certain elements as "non-elemental", in General Game Settings->Battle System Options. An attack is non-elemental if it doesn't do damage of any element, except for non-elemental ones. Each non-elemental can have its own counterattack, and you can also set a general counterattack against non-elemental attacks.
