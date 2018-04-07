@@ -94,15 +94,17 @@ TYPE BattleSprite
   walk as integer 'used by heroes when animating walking
   anim_pattern as integer 'used by attack sprites
   anim_index as integer 'used by attack sprites
-  deathtype as integer 'for enemies (0 = default, otherwise is type + 1)
-  deathtime as integer '0 = default, otherwise is time + 1
-  appeartype as integer '-1 means appear instantly
-  appeartime as integer '0 = default, otherwise is time + 1
+  deathtype as integer 'for enemies: dissolve animation type
+  _deathtime as integer '0 = default, otherwise is time
+  DECLARE FUNCTION deathtime() as integer  '_deathtime with default
+  appeartype as integer '-1 means appear instantly, >= 0 is dissolve animation type
+  _appeartime as integer '0 = default, otherwise is time
+  DECLARE FUNCTION appeartime() as integer  '_appeartime with default
   death_sfx as integer '0 = default, -1 = none, >0 = sfx ID + 1
   revengeharm as integer 'The last damage dealt TO this hero or enemy
   thankvengecure as integer 'The cure damage undealt TO this hero or enemy (as a positive number!)
   repeatharm as integer 'The last damage dealt BY this hero or enemy
-  cursorpos as XYPair
+  cursorpos as XYPair  'Cursor position measured relative to center of top edge
   harm as HarmText
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet (it's read directly from HeroState)
   '--used only for turnTURN mode

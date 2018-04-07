@@ -95,6 +95,16 @@ PROPERTY BattleSprite.frame(fr as integer)
  IF sprite THEN ChangeSpriteSlice sprite, , , , fr
 END PROPERTY
 
+FUNCTION BattleSprite.deathtime() as integer
+ IF _deathtime <= 0 THEN RETURN default_dissolve_time(deathtype, w, h)
+ RETURN _deathtime
+END FUNCTION
+
+FUNCTION BattleSprite.appeartime() as integer
+ IF _appeartime <= 0 THEN RETURN default_dissolve_time(appeartype, w, h)
+ RETURN _appeartime
+END FUNCTION
+
 FUNCTION is_hero(byval who as integer) as integer
  IF who >= 0 AND who <= 3 THEN RETURN -1
  RETURN 0
@@ -1668,11 +1678,7 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
  IF formdata.slots(slot).id >= 0 THEN '-- if this slot is occupied
 
   WITH bspr
-
    loadenemydata .enemy, formdata.slots(slot).id, -1
-
-   'Need to load the slice to know the sprite size, to set default dissolve time!
-   setup_enemy_slice bspr, bat
 
    setup_non_volatile_enemy_state bspr
    reset_enemy_state bspr
@@ -1688,6 +1694,8 @@ SUB loadfoe (byval slot as integer, formdata as Formation, byref bat as BattleSt
      EXIT SUB
     END IF
    END IF
+
+   setup_enemy_slice bspr, bat
 
    '--Position
    .basex = formdata.slots(slot).pos.x
@@ -1770,13 +1778,11 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
   .name = .enemy.name
   .deathtype = .enemy.dissolve - 1
   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
-  .deathtime = .enemy.dissolve_length
-  IF .deathtime = 0 THEN .deathtime = default_dissolve_time(.deathtype, .w, .h)
+  ._deathtime = .enemy.dissolve_length
   .appeartype = .enemy.dissolve_in - 1
-  .appeartime = .enemy.dissolve_in_length
-  IF .appeartime = 0 ANDALSO .appeartype >= 0 THEN .appeartime = default_dissolve_time(.appeartype, .w, .h)
-  .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
-  .cursorpos.y = .enemy.cursor_offset.y
+  ._appeartime = .enemy.dissolve_in_length
+  .cursorpos.x = -.enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
+  .cursorpos.y = -6 + .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound
 
   transfer_enemy_bits bspr

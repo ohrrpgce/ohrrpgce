@@ -1033,8 +1033,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
       WITH bslot(i)
        DIM as integer cursx, cursy
-       cursx = bound(.x + .cursorpos.x, 10, gen(genResolutionX) - 10)
-       cursy = bound(.y + .cursorpos.y - 6, 10, gen(genResolutionY) - 10)
+       cursx = bound(.x + .cursorpos.x + .w \ 2, 10, gen(genResolutionX) - 10)
+       cursy = bound(.y + .cursorpos.y, 10, gen(genResolutionY) - 10)
        edgeprint CHR(24), cursx - 4, cursy, uilook(uiSelectedItem + bat.tog), page
        edgeprint .name, cursx + ancCenter + showLeft, cursy - 10, uilook(uiSelectedItem + bat.tog), page
       END WITH
@@ -1412,8 +1412,8 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .vis = YES
 
     .death_sfx = -1 'No death sounds for heroes (for now)
-    .cursorpos.x = .w / 2
-    .cursorpos.y = 0
+    .cursorpos.x = 0
+    .cursorpos.y = -6
     .bequesting = NO
     .self_bequesting = NO
     populate_battle_menu_menudef i, .batmenu, st(i)
