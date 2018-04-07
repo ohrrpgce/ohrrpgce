@@ -8698,6 +8698,8 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 	return cpy
 end function
 
+'Warning: this is used ONLY for battle appear/death animations, it is NOT used by
+'dissolving slices set to default dissolve length!
 function default_dissolve_time(style as integer, w as integer, h as integer) as integer
 	'squash, vapourise, phase out, squeeze
 	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 then
