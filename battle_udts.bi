@@ -193,6 +193,8 @@ TYPE TargettingState
   force_first as bool     'for current attack
   atk as AttackData        'Loaded in setup_targeting()
                            'and should only be trusted while mode=targMANUAL
+  hover as integer         'target that the mouse is hovering over or -1 if none
+  mouse_optional_spread as bool 'Internal state for toggling optional spread with a drag
 END TYPE
 
 'For VictoryState.state

@@ -765,17 +765,8 @@ END SUB
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'Just for heroes
 
- DIM i as integer
-
- 'cancel
- IF carray(ccMenu) > 1 THEN
-  menusound gen(genCancelSFX)
-  bslot(bat.hero_turn).attack = 0
-  bslot(bat.hero_turn).consume_lmp = 0
-  bat.targ.mode = targNONE
-  flusharray carray(), 7, 0
-  EXIT SUB
- END IF
+ DIM do_cancel as bool = NO
+ DIM do_pick as bool = NO
 
  IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
@@ -809,7 +800,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'random target
  IF bat.targ.roulette THEN
   'Advance cursor by 1 or 2 targets (this happens every tick)
-  FOR i = 0 TO randint(2)
+  FOR i as integer = 0 TO randint(2)
    loopvar bat.targ.pointer, 0, 11
    WHILE bat.targ.mask(bat.targ.pointer) = NO
     loopvar bat.targ.pointer, 0, 11
@@ -828,7 +819,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'optional spread targetting
  IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
   menusound gen(genCursorSFX)
-  FOR i = 0 TO 11
+  FOR i as integer = 0 TO 11
    bat.targ.selected(i) = NO
   NEXT i
   bat.targ.opt_spread = 1
@@ -854,9 +845,80 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
    battle_target_arrows 1, 0, bslot(), bat.targ, YES
   END IF
  END IF
+
+ IF get_gen_bool("/mouse/mouse_battles") ANDALSO bat.targ.mode = targMANUAL THEN
+  bat.targ.hover = -1
+  FOR i as integer = 0 TO 11
+   WITH bslot(i)
+    IF rect_collide_point(Type(.x, .y - .z, .w, .h), readmouse.pos) ANDALSO bslot(i).vis = YES THEN
+     bat.targ.hover = i
+    END IF
+   END WITH
+  NEXT i
+  WITH bat.targ
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+    IF .hover >= 0 THEN
+     'Clicked on a battle slot
+     IF .mask(.hover) = NO THEN
+      'Not a valid target for this attack
+      menusound gen(genCancelSFX)
+     ELSEIF .hover = .pointer ORELSE .selected(.hover) = YES THEN
+      'Clicked on an already-selected target
+      do_pick = YES
+     ELSEIF .opt_spread = 0 ORELSE .opt_spread = 1 THEN
+      'Focus a specific target
+      menusound gen(genCursorSFX)
+      .pointer = .hover
+      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i
+     END IF
+    ELSE
+     'Clicked outside of any valid target
+     do_cancel = YES
+    END IF
+   END IF
+   IF (readmouse.dragging AND mouseLeft) ANDALSO readmouse.drag_dist > 20 THEN
+    'A left-drag is happening
+    IF .opt_spread = 1 ANDALSO .mouse_optional_spread = NO THEN
+     'Toggling optional spread
+     .mouse_optional_spread = YES
+     DIM is_spread as bool = NO
+     FOR i as integer = 0 to 11
+      IF .selected(i) THEN is_spread = YES
+     NEXT i
+     IF is_spread THEN
+      'unspread
+      FOR i as integer = 0 to 11 : .selected(i) = NO : NEXT i
+     ELSE
+      'spread
+      FOR i as integer = 0 to 11
+       IF .mask(i) THEN .selected(i) = YES
+      NEXT i
+     END IF 
+    END IF
+   END IF
+   IF (readmouse.dragging AND mouseLeft) = 0 THEN
+    'No drag is happening
+    .mouse_optional_spread = NO
+   END IF
+  END WITH
+    
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+ END IF
+
+ 'cancel
+ IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF do_cancel THEN
+  menusound gen(genCancelSFX)
+  bslot(bat.hero_turn).attack = 0
+  bslot(bat.hero_turn).consume_lmp = 0
+  bat.targ.mode = targNONE
+  flusharray carray(), 7, 0
+  EXIT SUB
+ END IF
  
  'confirm
- IF carray(ccUse) > 1 THEN
+ IF carray(ccUse) > 1 THEN do_pick = YES
+ IF do_pick THEN
   IF autotestmode THEN write_checkpoint
   menusound gen(genAcceptSFX)
   battle_confirm_target bat, bslot()
@@ -1031,15 +1093,18 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    END IF
    IF bat.targ.mode > targNONE THEN
     FOR i = 0 TO 11
-     IF bat.targ.selected(i) = YES OR bat.targ.pointer = i THEN
-      WITH bslot(i)
-       DIM as integer cursx, cursy
-       cursx = bound(.x + .cursorpos.x + .w \ 2, 10, gen(genResolutionX) - 10)
-       cursy = bound(.y + .cursorpos.y, 10, gen(genResolutionY) - 10)
+     WITH bslot(i)
+      DIM as integer cursx, cursy
+      cursx = bound(.x + .cursorpos.x + .w \ 2, 10, gen(genResolutionX) - 10)
+      cursy = bound(.y + .cursorpos.y, 10, gen(genResolutionY) - 10)
+      IF bat.targ.hover = i THEN
+       edgeprint IIF(bat.targ.mask(i),CHR(24),"X"), cursx - 4, cursy, uilook(uiSelectedDisabled + bat.tog), page
+      END IF
+      IF bat.targ.selected(i) = YES ORELSE bat.targ.pointer = i THEN
        edgeprint CHR(24), cursx - 4, cursy, uilook(uiSelectedItem + bat.tog), page
        edgeprint .name, cursx + ancCenter + showLeft, cursy - 10, uilook(uiSelectedItem + bat.tog), page
-      END WITH
-     END IF
+      END IF
+     END WITH
     NEXT i
    END IF
   END IF
@@ -2566,7 +2631,11 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
   
   IF get_gen_bool("/mouse/mouse_battles") THEN
    IF .menust.hover >= 0 THEN
-    IF (readmouse.release AND mouseLeft) ANDALSO .menust.hover = .menust.pt THEN do_pick = YES
+    IF (readmouse.release AND mouseLeft) ANDALSO .menust.hover = .menust.pt THEN
+     do_pick = YES
+     'Clear the mouse release because targetting starts on this same tick
+     readmouse.clearclick(mouseLeft)
+    END IF
    END IF
    IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_close = YES
   END IF
