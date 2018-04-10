@@ -1776,6 +1776,7 @@ END SUB
 
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
  IF carray(ccUse) > 1 ORELSE carray(ccMenu) > 1 THEN RETURN YES
+ IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseLeft) THEN RETURN YES
  IF gen(genSkipBattleRewardsTicks) > 0 THEN
   IF bat.vic.display_ticks > gen(genSkipBattleRewardsTicks) THEN
    bat.vic.display_ticks = 0
