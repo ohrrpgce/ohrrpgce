@@ -2546,6 +2546,9 @@ END SUB
 
 SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef)
 
+ DIM do_pick as bool = NO
+ DIM do_close as bool = NO
+ 
  WITH bslot(bat.hero_turn)
   IF .stat.cur.stun < .stat.max.stun THEN
    'Normally a hero cannot get a turn when stunned, but this extra check is needed
@@ -2554,8 +2557,21 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
    bat.hero_turn = -1
    EXIT SUB
   END IF
+
+  IF carray(ccMenu) > 1 THEN do_close = YES
  
-  IF carray(ccMenu) > 1 THEN
+  usemenusounds
+  usemenu .menust
+  IF carray(ccUse) > 1 THEN do_pick = YES
+  
+  IF get_gen_bool("/mouse/mouse_battles") THEN
+   IF .menust.hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO .menust.hover = .menust.pt THEN do_pick = YES
+   END IF
+   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_close = YES
+  END IF
+
+  IF do_close THEN
    '--skip turn
    'debug "Requested to cancel picking attacks"
    bat.next_hero = bat.hero_turn
@@ -2568,9 +2584,8 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
    IF carray(ccMenu) AND 4 THEN menusound gen(genCancelSFX)
    EXIT SUB
   END IF
-  usemenusounds
-  usemenu .menust
-  IF carray(ccUse) > 1 THEN
+  
+  IF do_pick THEN
    '--use menu item
    menusound gen(genAcceptSFX)
    WITH *.batmenu.items[.menust.pt]
