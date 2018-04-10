@@ -964,6 +964,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
  '--user interface slices
  DIM i as integer
  DIM col as integer
+ DIM bgcol as integer
  IF bat.vic.state = vicNONE THEN 'only display interface till you win
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
@@ -1047,20 +1048,31 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     END IF
    END WITH
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
-    centerbox 160, 53, 310, 95, 1, page
+    edgeboxstyle 5, 6, 310, 95, 0, page
     IF bat.sptr < 24 THEN
      IF bat.spell.slot(bat.sptr).desc <> "" THEN rectangle 5, 74, 310, 1, boxlook(0).edgecol, page
     END IF
     rectangle 5, 87, 310, 1, boxlook(0).edgecol, page
     FOR i = 0 TO 23
-     textcolor uilook(uiDisabledItem + bat.spell.slot(i).enable), 0
+     col = uilook(uiDisabledItem + bat.spell.slot(i).enable)
+     bgcol = 0
      IF bat.sptr = i THEN
-      textcolor uilook(uiSelectedDisabled - (2 * ABS(bat.spell.slot(i).enable)) + bat.tog), uilook(uiHighlight)
+      col = uilook(uiSelectedDisabled - (2 * ABS(bat.spell.slot(i).enable)) + bat.tog)
+      bgcol = uilook(uiHighlight)
      END IF
+     IF bat.sptr_hover = i THEN
+      col = mouse_hover_tinted_color(col)
+     END IF
+     textcolor col, bgcol
      printstr bat.spell.slot(i).name, 16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, page
     NEXT i
-    textcolor uilook(uiMenuItem), 0
-    IF bat.sptr = 24 THEN textcolor uilook(uiSelectedItem + bat.tog), uilook(uiHighlight)
+    col = uilook(uiMenuItem)
+    bgcol = 0
+    IF bat.sptr = 24 THEN col = uilook(uiSelectedItem + bat.tog) : bgcol = uilook(uiHighlight)
+    IF bat.sptr_hover = 24 THEN
+     col = mouse_hover_tinted_color(col)
+    END IF
+    textcolor col, bgcol
     printstr bat.cancel_spell_caption, 9, 90, page
     textcolor uilook(uiDescription), 0
     IF bat.sptr < 24 THEN
@@ -2742,12 +2754,9 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
 END SUB
 
 SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
- IF carray(ccMenu) > 1 THEN '--cancel
-  bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
-  menusound gen(genCancelSFX)
-  EXIT SUB
- END IF
+ 
+ DIM do_pick as bool = NO
+ DIM do_cancel as bool = NO
  
  WITH bat
   usemenusounds
@@ -2780,8 +2789,49 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    END IF
   END IF
  END WITH
+
+ IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccUse) > 1 THEN do_pick = YES
+
+ IF get_gen_bool("/mouse/mouse_battles") THEN
+  bat.sptr_hover = -1
+  IF rect_collide_point(Type(5, 6, 310, 95), readmouse.pos) THEN
+   'In spell menu box
+   FOR i as integer = 0 to 23
+    IF rect_collide_point(Type(16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, 104, 8), readmouse.pos) THEN bat.sptr_hover = i
+   NEXT i
+   IF rect_collide_point(Type(9, 90, 104, 8), readmouse.pos) THEN bat.sptr_hover = 24
+   IF bat.sptr_hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+     IF bat.sptr = bat.sptr_hover ORELSE bat.sptr_hover = 24 THEN
+      do_pick = YES
+     END IF
+     menusound gen(genCursorSFX)
+     bat.sptr = bat.sptr_hover
+    END IF
+   END IF
+  ELSE
+   'Outside the spells box
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+
+  IF do_cancel ORELSE do_pick THEN
+   'Cancel the mouse click because further input such as targetting could happen on this tick
+   readmouse.clearclick(mouseLeft)
+   readmouse.clearclick(mouseRight)
+  END IF
+
+ END IF
+
+ IF do_cancel THEN
+  bat.menu_mode = batMENUHERO
+  flusharray carray(), 7, 0
+  menusound gen(genCancelSFX)
+  EXIT SUB
+ END IF
  
- IF carray(ccUse) > 1 THEN
+ IF do_pick THEN
   '--use selected spell
   IF bat.sptr = 24 THEN
    '--used cancel
