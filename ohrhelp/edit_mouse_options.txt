@@ -1,5 +1,3 @@
 These options allow you to enable built-in mouse support features.
 
 If you are doing your own mouse control with plotscripts, you may want to disable some of these.
-
-Note that "Mouse Support in Battles" is not implemented at all yet, but if you turn it on, your game will be able to use it when the feature is added in a future version.
