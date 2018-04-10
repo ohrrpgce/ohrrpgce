@@ -338,6 +338,7 @@ TYPE BattleState
  cancel_spell_caption as string
  flee as integer            'Used by the crappy running system, not to be confused with BattleSprite.flee
  away as integer            'Used by the crappy running system.
+ mouse_running as integer   'Counts the number of ticks the right mouse button has been held for the crappy running system
  alert_ticks as integer     'Number of ticks remaining to display .alert
  alert as string            'Separate message from caption, used only for 'CANNOT RUN'
  tog as integer             'Alternates 0,1,0,1 tick by tick

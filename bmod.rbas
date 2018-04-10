@@ -1323,12 +1323,16 @@ END SUB
 
 SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
- IF carray(ccRun) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN '"Disable ESC to run from battle" off
+ DIM try_run as bool = NO
+ IF carray(ccRun) > 1 THEN try_run = YES
+ 'The delay of 10 ticks on bat.mouse_running similates the typematic repeat delay of holding ESC
+ IF bat.mouse_running > 10 THEN try_run = YES
+ IF try_run ANDALSO readbit(gen(), genBits2, 1) = 0 THEN '"Disable ESC to run from battle" off
   bat.flee = bat.flee + 1
  END IF
  DIM i as integer
  IF bat.flee > 0 AND bat.flee < 4 THEN
-  IF carray(ccRun) = 0 THEN
+  IF try_run = NO THEN
    bat.flee = 0
    FOR i = 0 TO 3
     bslot(i).d = 0
@@ -1352,7 +1356,7 @@ SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
    bslot(i).ready = NO
    bslot(i).ready_meter = large(0, bslot(i).ready_meter - bslot(i).stat.cur.spd * 2)
   NEXT i
-  IF carray(ccRun) = 0 THEN
+  IF try_run = NO THEN
    bat.flee = 0
    FOR i = 0 TO 3
     bslot(i).d = 0
@@ -2629,7 +2633,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
 
  DIM do_pick as bool = NO
  DIM do_close as bool = NO
- 
+  
  WITH bslot(bat.hero_turn)
   IF .stat.cur.stun < .stat.max.stun THEN
    'Normally a hero cannot get a turn when stunned, but this extra check is needed
@@ -2654,6 +2658,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
     END IF
    END IF
    IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_close = YES
+   IF bat.mouse_running >= 10 THEN do_close = YES ' Always close the menu while mouse running
   END IF
 
   IF do_close THEN
@@ -4170,6 +4175,14 @@ END SUB
 FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as bool
  '--this function is called every tick of battle. It returns YES if
  '-- a successful run has completed, thus ending battle.
+
+ IF get_gen_bool("/mouse/mouse_battles") THEN
+  IF (readmouse.buttons AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   bat.mouse_running += 1
+  ELSE
+   bat.mouse_running = 0
+  END IF
+ END IF
  
  IF bat.turn.mode = turnACTIVE THEN
   battle_crappy_run_handler bat, bslot()
