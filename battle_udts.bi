@@ -316,6 +316,7 @@ TYPE BattleState
  sptr as integer       'menu cursor for hero spell list menu
  sptr_hover as integer 'menu cursor mouse hover for the spell list
  item as MenuState     'menu cursor for items menu
+ item_drag_top as integer 'used for right-drag scrolling the item menu
  item_desc as string   'description of currently selected item in item menu
  caption as string          'Currently displaying caption
  caption_time as integer    'Remaining ticks before the caption is removed (0 if no caption)

@@ -1095,8 +1095,11 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     draw_scrollbar bat.inv_scroll, bat.inv_scroll_rect, , page
     FOR i = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
      if i < lbound(inventory) or i > ubound(inventory) then continue for
-     textcolor uilook(uiDisabledItem - readbit(bat.iuse(), 0, i)), 0
-     IF bat.item.pt = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(bat.iuse(), 0, i)) + bat.tog), uilook(uiHighlight)
+     col = uilook(uiDisabledItem - readbit(bat.iuse(), 0, i))
+     bgcol = 0
+     IF bat.item.pt = i THEN col = uilook(uiSelectedDisabled - (2 * readbit(bat.iuse(), 0, i)) + bat.tog) : bgcol = uilook(uiHighlight)
+     IF bat.item.hover = i THEN col = mouse_hover_tinted_color(col)
+     textcolor col, bgcol
      printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), page
     NEXT i
     edgeboxstyle 8, 4 + inv_height, 304, 16, 0, page
@@ -2868,24 +2871,20 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
 END SUB
 
 SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
- IF carray(ccMenu) > 1 THEN
-  bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
-  bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
-  menusound gen(genCancelSFX)
-  EXIT SUB
- END IF
+
+ DIM do_pick as bool = NO
+ DIM do_cancel as bool = NO
 
  DIM remember_pt as integer = bat.item.pt
  usemenusounds
  IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
  IF carray(ccDown) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
  IF keyval(scPageUp) > 1 THEN
-  bat.item.pt -= (bat.inv_scroll.size+1) * 3
+  bat.item.pt -= (bat.inv_scroll.size) * 3
   WHILE bat.item.pt < 0: bat.item.pt += 3: WEND
  END IF
  IF keyval(scPageDown) > 1 THEN
-  bat.item.pt += (bat.inv_scroll.size+1) * 3
+  bat.item.pt += (bat.inv_scroll.size) * 3
   WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
  END IF
  IF keyval(scHome) > 1 THEN
@@ -2896,19 +2895,71 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  END IF
  IF carray(ccLeft) > 1 AND bat.item.pt > 0 THEN
   bat.item.pt = bat.item.pt - 1
-  menusound gen(genCursorSFX)
  END IF
  IF carray(ccRight) > 1 AND bat.item.pt < last_inv_slot() THEN
   bat.item.pt = bat.item.pt + 1
-  menusound gen(genCursorSFX)
  END IF
+
+ IF carray(ccMenu) > 1 THEN do_cancel = YES
+ IF carray(ccUse) > 1 THEN do_pick = YES
+ 
+ IF get_gen_bool("/mouse/mouse_battles") THEN
+  bat.item.hover = -1
+  DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
+  IF rect_collide_point(Type(8, 4, 304, inv_height), readmouse.pos) THEN
+   FOR i as integer = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
+    if i < lbound(inventory) or i > ubound(inventory) then continue for
+    IF rect_collide_point(Type(20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), 96, 8), readmouse.pos) THEN bat.item.hover = i
+   NEXT i
+   IF bat.item.hover >= 0 THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+     IF bat.item.hover = bat.item.pt THEN do_pick = YES
+     bat.item.pt = bat.item.hover
+    END IF
+   END IF
+  ELSE
+   'outside the item box
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+  'Scrolling
+  DIM old_top as integer = bat.item.top
+  IF (readmouse.dragging AND mouseRight) THEN
+   IF bat.item_drag_top = -1 THEN bat.item_drag_top = bat.item.top
+   IF readmouse.drag_dist > 10 THEN
+    DIM dist as integer = (readmouse.clickstart.y - readmouse.pos.y) / 8
+    bat.item.top = bat.item_drag_top + dist * 9
+   END IF
+  ELSE
+   bat.item_drag_top = -1
+  END IF
+  bat.item.top += readmouse.wheel_clicks * 9
+  IF old_top <> bat.item.top THEN
+   'Scrolling moved top, bound top and fix pt
+   bat.item.top = bound(bat.item.top, 0, last_inv_slot() - ((bat.inv_scroll.size + 1) * 3 - 1))
+   WHILE bat.item.pt < bat.item.top : bat.item.pt += 3: WEND
+   WHILE bat.item.pt > bat.item.top + (bat.inv_scroll.size) * 3: bat.item.pt -= 3: WEND
+  END IF
+  
+  IF do_cancel ORELSE do_pick THEN
+   'Cancel the mouse click because further input such as targetting could happen on this tick
+   readmouse.clearclick(mouseLeft)
+   readmouse.clearclick(mouseRight)
+  END IF
+
+ END IF '--done with mouse
+
  '--scroll when past top or bottom
  WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
  WHILE bat.item.pt >= bat.item.top + (bat.inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
 
- DIM itembuf(dimbinsize(binITM)) as integer
- 
+ IF bat.item.pt > UBOUND(inventory) THEN
+  debuginfo "battle item cursor out of range " & bat.item.pt & " > " & UBOUND(inventory)
+  bat.item.pt = UBOUND(inventory)
+ END IF
+
  IF remember_pt <> bat.item.pt THEN
+  menusound gen(genCursorSFX)
   IF inventory(bat.item.pt).used THEN
    bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
   ELSE
@@ -2916,10 +2967,19 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   END IF
  END IF
 
- IF carray(ccUse) > 1 THEN
+ IF do_cancel THEN
+  bat.menu_mode = batMENUHERO
+  flusharray carray(), 7, 0
+  bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
+  menusound gen(genCancelSFX)
+  EXIT SUB
+ END IF
+
+ IF do_pick THEN
   IF readbit(bat.iuse(), 0, bat.item.pt) = 1 THEN
    menusound gen(genAcceptSFX)
 
+   DIM itembuf(dimbinsize(binITM)) as integer
    loaditemdata itembuf(), inventory(bat.item.pt).id
    bslot(bat.hero_turn).consume_item = -1
    IF itembuf(73) = 1 THEN bslot(bat.hero_turn).consume_item = bat.item.pt
