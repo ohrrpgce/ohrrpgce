@@ -34,7 +34,7 @@ April (mumble) 2018 [Fufluns]
       'disabled' color [Ralph]
     * Mouse Options menu allows you to enable built-in mouse support for
       walking around on maps, activating NPCs, using menus and special
-      screens (but not battles just yet) [James] 
+      screens and in battles. [James] 
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]
