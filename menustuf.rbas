@@ -2932,11 +2932,18 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
     EXIT SUB
    END IF
   END IF
-  IF (readmouse.release AND mouseRight) THEN
-   st.quit = YES
-   EXIT SUB
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   IF hover >= 0 THEN
+    st.slot = hover
+   ELSE
+    st.quit = YES
+    EXIT SUB
+   END IF
   END IF
-  IF st.slot <> old_slot THEN MenuSound gen(genCursorSFX)
+  IF st.slot <> old_slot THEN
+   MenuSound gen(genCursorSFX)
+   st.item_info = equip_menu_equipped_item_info(st)
+  END IF
  END IF
 
  IF do_pick THEN
@@ -3001,7 +3008,11 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
    IF (readmouse.release AND mouseLeft) THEN
     do_cancel = YES
    END IF
-   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+  END IF
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   IF hover >= 0 THEN
+    st.eq_cursor.pt = hover
+   ELSE
     do_cancel = YES
    END IF
   END IF
