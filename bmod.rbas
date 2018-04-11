@@ -4184,7 +4184,7 @@ FUNCTION battle_run_away(byref bat as BattleState, bslot() as BattleSprite) as b
   END IF
  END IF
  
- IF bat.turn.mode = turnACTIVE THEN
+ IF bat.turn.mode = turnACTIVE ANDALSO bat.menu_mode = batMENUHERO THEN
   battle_crappy_run_handler bat, bslot()
  END IF
  
