@@ -1041,13 +1041,14 @@ SUB reset_game_final_cleanup()
  cleanup_other_temp_files
  'We bypass exit_gracefully() because we already called save_game_config
  IF gam.return_to_browser = NO AND LEN(gam.want.rungame) = 0 THEN exitprogram YES
+ game = ""
+ sourcerpg = ""
  debuginfo "Recreating " & tmpdir
  killdir tmpdir, YES  'recursively deletes playing.tmp if it exists
  makedir tmpdir
  'killdir and thus makedir would fail if some in-use file can't be deleted
  IF NOT isdir(tmpdir) THEN fatalerror "Can't recreate temp directory " & tmpdir
  fadeout 0, 0, 0
- sourcerpg = ""
 END SUB
 
 ' Call this instead of exitprogram when not quitting due to an error.

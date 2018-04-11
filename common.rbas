@@ -193,8 +193,8 @@ SUB ensure_normal_palette ()
  FOR i as integer = 0 TO 255
   remember_master(i) = master(i)
  NEXT
- 'Skip we haven't started a game yet
- IF LEN(game) > 0 THEN loadpalette master(), gam.current_master_palette
+ 'Skip if we haven't started a game yet
+ IF gam.ingame THEN loadpalette master(), gam.current_master_palette
  setpal master()
 #ENDIF
 END SUB
@@ -245,7 +245,7 @@ SUB pop_gfxio_state ()
   setkeys
   #IFDEF IS_GAME
    IF .resolution_was_unlocked = NO THEN
-    set_resolution(gen(genResolutionX), gen(genResolutionY))
+    IF gam.ingame THEN set_resolution(gen(genResolutionX), gen(genResolutionY))
     lock_resolution
    END IF
   #ENDIF
