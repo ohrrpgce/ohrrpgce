@@ -2823,7 +2823,14 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    'Outside the spells box
    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
   END IF
-  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   IF bat.sptr_hover >= 0 THEN
+    bat.sptr = bat.sptr_hover
+    menusound gen(genCursorSFX)
+   ELSE
+    do_cancel = YES
+   END IF
+  END IF
 
   IF do_cancel ORELSE do_pick THEN
    'Cancel the mouse click because further input such as targetting could happen on this tick
@@ -2927,7 +2934,13 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    'outside the item box
    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
   END IF
-  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
+  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
+   IF bat.item.hover >= 0 THEN
+    bat.item.pt = bat.item.hover
+   ELSE
+    do_cancel = YES
+   END IF
+  END IF
   'Scrolling
   DIM old_top as integer = bat.item.top
   IF (readmouse.dragging AND mouseRight) THEN
