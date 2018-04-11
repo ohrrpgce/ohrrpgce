@@ -5373,7 +5373,7 @@ FUNCTION menu_right_click_close(m as MenuDef) as bool
 #ENDIF
  IF use_mouse THEN
   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
-   RETURN YES
+   IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
   END IF
  END IF
  RETURN NO
