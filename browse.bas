@@ -153,10 +153,8 @@ END IF
 
 '--Preserve pages 2 and 3 because the tilemap editor still uses them
 '  and they are going to be clobbered by bitdepth changing.
-DIM holdpage2 as Frame Ptr = frame_new(320, 200)
-frame_draw vpages(2), , 0, 0, , NO, holdpage2
-DIM holdpage3 as Frame Ptr = frame_new(320, 200)
-frame_draw vpages(3), , 0, 0, , NO, holdpage3
+DIM holdpage2 as Frame Ptr = frame_duplicate(vpages(2))
+DIM holdpage3 as Frame Ptr = frame_duplicate(vpages(3))
 
 switch_to_32bit_vpages
 
@@ -168,6 +166,7 @@ setfont browser_font()
 
 DIM prev_mouse_vis as CursorVisibility = getcursorvisibility()
 showmousecursor
+force_use_mouse += 1
 
 'remember/default may be either empty or a file (if one was selected last call), or directory (if not)
 DIM startfile as string
@@ -360,6 +359,7 @@ DO
 LOOP
 
 setcursorvisibility(prev_mouse_vis)
+force_use_mouse -= 1
 setfont current_font()
 switch_to_8bit_vpages
 

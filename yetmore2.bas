@@ -1219,6 +1219,8 @@ SUB apply_game_window_settings (reloading as bool = NO)
  'This can happen while live-previewing, or maybe messing around with writegeneral
  IF gen(genResolutionX) < 10 OR gen(genResolutionY) < 10 THEN EXIT SUB
 
+ lock_resolution
+
  IF XY(gen(genResolutionX), gen(genResolutionY)) <> get_resolution() THEN
   'get_resolution() will be 320x200 if the backend doesn't support anything else
   IF gfx_supports_variable_resolution() = NO THEN

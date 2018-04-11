@@ -1059,6 +1059,10 @@ SUB gfx_sdl_process_events()
           'resizing (it isn't reported); usually they do hold it down until after they've
           'finished moving their mouse.  One possibility would be to hook into X11, or to do
           'some delayed SDL_SetVideoMode calls.
+
+          'Similarly, there's an SDL bug (I've only seen it on X11+KDE), where sometimes a
+          'split second after changing the window size it will revert to its original size
+          'if the window is resizable.
         END IF
 
       CASE SDL_SYSWMEVENT
