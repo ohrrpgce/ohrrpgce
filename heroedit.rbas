@@ -1282,6 +1282,10 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
  st.need_update = YES
  st.autosize = YES
 
+ 'Pre-init selectable() because usemenu needs it
+ update_hero_tags_menu hero, menu(), st
+ REDIM selectable(UBOUND(menu)) as bool
+
  setkeys
  DO
   setwait 55
