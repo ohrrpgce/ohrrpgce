@@ -93,6 +93,7 @@ April (mumble) 2018 [Fufluns]
     * "rename hero" didn't return false if the player cancelled [Ralph]
     * If an Untargetable enemy was at exactly the same position as a
       targetable one it was possible to target it [Ralph]
+    * "swap menu items" swapped the wrong items [Ralph]
 
   * Stuff Only Developers Will Notice
     * The .pt# 4-bit graphics lumps and .mxs backdrops lump have been replaced

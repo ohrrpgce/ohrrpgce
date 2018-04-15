@@ -1022,7 +1022,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 299'--swap menu items
   DIM as integer menuslot2, mislot2
   IF valid_menu_item_handle(retvals(0), menuslot, mislot) THEN
-   IF valid_menu_item_handle(retvals(1), menuslot2, mislot) THEN
+   IF valid_menu_item_handle(retvals(1), menuslot2, mislot2) THEN
     swap_menu_items menus(menuslot), mislot, menus(menuslot2), mislot2
     mstates(menuslot).need_update = YES
     mstates(menuslot2).need_update = YES
