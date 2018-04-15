@@ -238,8 +238,6 @@ use_32bit_integer()
    ' We DON'T use unicode (UTF16) versions of winapi functions. We're not ready to switch.
    ' But some files (such as SDL_windowsclipboard.c) do use the unicode api.
 '#  define UNICODE
-'#  define WIN32_LEAN_AND_MEAN
-'#  define STRICT
 #  include once "windows.bi"
 ' Almost everywhere, the following two headers are enough
 ' #  include once "win/windef.bi"
