@@ -3908,8 +3908,12 @@ END SUB
 
 FUNCTION AddNewSpritesetMenu.each_tick () as bool
   IF enter_space_click(state) THEN
-    IF state.pt <> 3 THEN confirmed = YES
-    RETURN YES
+   IF state.pt = 0 THEN
+    confirmed = YES
+    RETURN YES 'Confirmed
+   ELSEIF state.pt = 3 THEN
+    RETURN YES 'Cancel
+   END IF
   END IF
 
   IF state.pt = 1 THEN
