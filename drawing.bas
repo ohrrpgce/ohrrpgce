@@ -3907,6 +3907,19 @@ SUB AddNewSpritesetMenu.update ()
 END SUB
 
 FUNCTION AddNewSpritesetMenu.each_tick () as bool
+  IF state.pt <> 1 THEN
+   IF framesize.w < 4 THEN
+    framesize.w = 4
+    state.need_update = YES
+   END IF
+  END IF
+  IF state.pt <> 2 THEN
+   IF framesize.h < 4 THEN
+    framesize.h = 4
+    state.need_update = YES
+   END IF
+  END IF
+
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     confirmed = YES
@@ -3917,10 +3930,11 @@ FUNCTION AddNewSpritesetMenu.each_tick () as bool
   END IF
 
   IF state.pt = 1 THEN
-    state.need_update OR= intgrabber(framesize.w, 4, 512)
+    state.need_update OR= intgrabber(framesize.w, 0, 512)
   ELSEIF state.pt = 2 THEN
-    state.need_update OR= intgrabber(framesize.h, 4, 512)
+    state.need_update OR= intgrabber(framesize.h, 0, 512)
   END IF
+  
 END FUNCTION
 
 'framesize should be passed in with its default size
