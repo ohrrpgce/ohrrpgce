@@ -856,6 +856,14 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
    END WITH
   NEXT i
   WITH bat.targ
+   IF .must_hover_valid_target THEN
+    .must_hover_valid_target = NO
+    IF .hover >= 0 ANDALSO .mask(.hover) = YES THEN
+     'This target is okay
+    ELSE
+     do_cancel = YES
+    END IF
+   END IF
    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
     IF .hover >= 0 THEN
      'Clicked on a battle slot
@@ -2655,6 +2663,14 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as herodef
      do_pick = YES
      'Clear the mouse release because targetting starts on this same tick
      readmouse.clearclick(mouseLeft)
+    END IF
+   END IF
+   IF .batmenu.items[.menust.pt]->t = batmenu_ATTACK THEN
+    'The currently focused menu item is an attack
+    IF (readmouse.clicks AND mouseLeft) ANDALSO .menust.hover = -1 THEN
+     'Left mouse button down outside the menu, try to go to targetting mode
+     do_pick = YES
+     bat.targ.must_hover_valid_target = YES
     END IF
    END IF
    IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN do_close = YES

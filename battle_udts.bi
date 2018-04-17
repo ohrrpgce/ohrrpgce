@@ -195,6 +195,7 @@ TYPE TargettingState
                            'and should only be trusted while mode=targMANUAL
   hover as integer         'target that the mouse is hovering over or -1 if none
   mouse_optional_spread as bool 'Internal state for toggling optional spread with a drag
+  must_hover_valid_target as bool 'Quit back to the menu if not currently hovering a valid target (for quick-targetting attacks directly from the menu)
 END TYPE
 
 'For VictoryState.state
