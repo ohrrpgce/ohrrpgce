@@ -860,6 +860,10 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
     .must_hover_valid_target = NO
     IF .hover >= 0 ANDALSO .mask(.hover) = YES THEN
      'This target is okay
+     IF .opt_spread = 0 ORELSE .opt_spread = 1 THEN
+      .pointer = .hover
+      FOR i as integer = 0 to 11: .selected(.hover) = NO : NEXT i
+     END IF
     ELSE
      do_cancel = YES
     END IF
