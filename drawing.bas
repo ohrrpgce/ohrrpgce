@@ -3927,6 +3927,11 @@ FUNCTION AddNewSpritesetMenu.each_tick () as bool
    ELSEIF state.pt = 3 THEN
     RETURN YES 'Cancel
    END IF
+   IF state.pt < 3 ANDALSO enter_or_space() THEN
+    'Enter or space should confirm on the numbers, even though click should not
+    confirmed = YES
+    RETURN YES 'Confirmed
+   END IF
   END IF
 
   IF state.pt = 1 THEN
