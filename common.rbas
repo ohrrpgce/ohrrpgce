@@ -5360,6 +5360,7 @@ FUNCTION menu_click_outside(m as MenuDef) as bool
 #ENDIF
  IF use_mouse THEN
   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+   IF readmouse.left_click_age > m.age THEN RETURN NO
    IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
   END IF
  END IF

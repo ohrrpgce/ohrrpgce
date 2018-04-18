@@ -2159,6 +2159,12 @@ sub update_mouse_state ()
 	for button as integer = 0 to 15
 		check_for_released_mouse_button(1 shl button)
 	next
+	
+	if (mouse_state.buttons and mouseLeft) orelse (mouse_state.release and mouseLeft) then
+		mouse_state.left_click_age += 1
+	else
+		mouse_state.left_click_age = 0
+	end if
 
 	mouse_state.wheel *= -1
 	mouse_state.wheel_delta = mouse_state.wheel - last_mouse_wheel

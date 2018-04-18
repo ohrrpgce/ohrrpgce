@@ -122,6 +122,7 @@ TYPE MenuDef
                           'alters the vertical size of the whole menu!
   on_close  as integer   'Script trigger
   esc_menu  as integer   'Cancel button close action: 0=just close, >0 is menu ID + 1 to open in-place
+  age as integer         'This is incremented in draw_menu and should normally be the age of the menu in ticks
   Declare Destructor () 'defined in menus.bas
 END TYPE
 

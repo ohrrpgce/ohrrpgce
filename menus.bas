@@ -872,6 +872,7 @@ SUB ClearMenuData(dat as MenuDef)
  WITH dat
   .record = -1
   .handle = 0
+  .age = 0
   .name = ""
   .boxstyle = 0
   .textcolor = 0
@@ -1114,6 +1115,7 @@ SUB LoadMenuData(menu_set as MenuSet, dat as MenuDef, byval record as integer, b
  WITH dat
   .record = record
   .name = ReadByteStr(f, 20)
+  .age = 0
   .boxstyle = ReadShort(f)
   .textcolor = ReadShort(f)
   .maxrows = ReadShort(f)
@@ -1481,6 +1483,8 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
  DIM elem as integer
  DIM where as XYPair
+ 
+ menu.age += 1
 
  'Update the caption of each menu item
  FOR i = 0 TO menu.numitems - 1

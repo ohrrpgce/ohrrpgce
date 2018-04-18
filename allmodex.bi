@@ -448,6 +448,8 @@ Type MouseInfo
 	                      'actually dragging rather than holding
 	clickstart as XYPair  'Mouse position at start of click/drag (Note: no backend currently
 	                      'supports reporting the position of click, so currently equal to .x/.y)
+	left_click_age as integer 'Keeps track of how many ticks the left button has been held down.
+	                      'includes both when the .buttons bit is set and when the .release bit is set
 
 	DECLARE SUB clearclick(button as MouseButton)
 End Type
