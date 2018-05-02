@@ -66,6 +66,7 @@ DECLARE SUB mapedit_edit_npcdef (st as MapEditState, npcdata as NPCType)
 DECLARE SUB npcdef_editor (st as MapEditState)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer) as integer
 DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4)
+DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
 'Undo
 DECLARE SUB add_change_step(byref changelist as MapEditUndoTile vector, byval x as integer, byval y as integer, byval value as integer, byval mapid as integer)
@@ -1875,6 +1876,8 @@ DO
     END IF
    END WITH
   NEXT
+  
+  edgeprint count_npc_slots_used(st.map.npc()) & "/" & (UBOUND(st.map.npc) + 1) & " Used", pRight, pBottom, uilook(uiText), dpage
  END IF
 
  '--show foemap--
@@ -3523,6 +3526,17 @@ SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector
  IF layerpreview THEN fuzzyrect layerpreview, 0, 0, , , uilook(uiBackground)
 END SUB
 
+'==========================================================================================
+'                                 NPC Instance functions
+'==========================================================================================
+
+FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
+ DIM count as integer = 0
+ FOR i as integer = 0 to UBOUND(npcs)
+  IF npcs(i).id > 0 THEN count += 1
+ NEXT i
+ RETURN count
+END FUNCTION
 
 '==========================================================================================
 '                                      Door functions
