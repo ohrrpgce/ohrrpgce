@@ -50,20 +50,20 @@ DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, 
 DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
 DECLARE SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
-DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as integer
-DECLARE FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as integer
-DECLARE FUNCTION valid_statnum(byval statnum as integer, context as string) as integer
-DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as integer
+DECLARE FUNCTION spawn_chained_attack(byref ch as AttackDataChain, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+DECLARE FUNCTION check_attack_chain(byref ch as AttackDataChain, byref bat as BattleState, bslot() as BattleSprite) as bool
+DECLARE FUNCTION valid_statnum(byval statnum as integer, context as string) as bool
+DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as bool
 DECLARE FUNCTION distribute_party_experience (byval exper as integer) as integer
 
-DECLARE SUB queue_attack OVERLOAD (byval attack as integer, byval who as integer, targs() as integer, byval override_blocking as integer=-2, byval dont_retarget as integer = NO)
-DECLARE SUB queue_attack OVERLOAD (byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
-DECLARE SUB set_attack_queue_slot(byval slot as integer, byval attack as integer, byval who as integer, byval delay as integer, byval turn_delay as integer, targs() as integer, byval blocking as integer=YES, byval dont_retarget as integer = NO)
+DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as bool = NO)
+DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, delay as integer, turn_delay as integer, targs() as integer, blocking as bool=YES, dont_retarget as bool = NO)
+DECLARE SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, turn_delay as integer, targs() as integer, blocking as bool=YES, dont_retarget as bool = NO)
 DECLARE SUB clear_attack_queue()
 DECLARE SUB clear_attack_queue_slot(byval slot as integer)
 DECLARE SUB display_attack_queue (bslot() as BattleSprite)
-DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as integer
-DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as integer
+DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as bool
+DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as bool
 
 DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string
 DECLARE FUNCTION bslot_attack_cost_info(bslot() as BattleSprite, byref atk as AttackData, byval slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=0) as string

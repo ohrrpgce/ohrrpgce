@@ -358,14 +358,14 @@ END TYPE
 
 
 TYPE AttackQueue
- used     as integer 'YES when used, NO when recycleable
+ used     as bool    'YES when used, NO when recycleable (TODO: use a vector instead)
  attack   as integer 'attack ID number
  attacker as integer 'slot number of attacker
  t(11)    as integer 'Targeted slots, -1 for empty, or slot number.
- blocking as integer 'YES to block attacker from acting, NO for nonblocking
+ blocking as bool    'Whether blocks attacker from acting
  delay    as integer 'Number of ticks that should pass before this attack happens
  turn_delay as integer 'Number of turns to wait before the tick delay begins.
- dont_retarget as integer
+ dont_retarget as bool
 END TYPE
 
 #ENDIF

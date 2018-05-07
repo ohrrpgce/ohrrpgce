@@ -1388,13 +1388,13 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  END IF
 END SUB
 
-FUNCTION attack_can_hit_dead(byval attacker as integer, byval atk_id as integer, byval stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(attacker as integer, atk_id as integer, stored_targs_can_be_dead as bool=NO) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
  RETURN attack_can_hit_dead(attacker, attack, stored_targs_can_be_dead)
 END FUNCTION
 
-FUNCTION attack_can_hit_dead(byval attacker as integer, attack as AttackData, byval stored_targs_can_be_dead as integer=NO) as integer
+FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)
@@ -1410,23 +1410,23 @@ FUNCTION attack_can_hit_dead(byval attacker as integer, attack as AttackData, by
  RETURN NO
 END FUNCTION
 
-FUNCTION autotarget (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO) as bool
  DIM t(11) as integer
  RETURN autotarget(who, atk_id, bslot(), t(), queue, override_blocking, dont_retarget)
 END FUNCTION
 
-FUNCTION autotarget (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
  RETURN autotarget(who, attack, bslot(), t(), queue, override_blocking, dont_retarget)
 END FUNCTION
 
-FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO) as bool
  DIM t(11) as integer
  RETURN autotarget(who, atk, bslot(), t(), queue, override_blocking, dont_retarget)
 END FUNCTION
 
-FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, byval queue as integer=YES, byval override_blocking as integer=-2, byval dont_retarget as integer=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO) as bool
  '--Returns true if the targetting was successful, or false if it failed for some reason
  ' such as no valid targets being available.
 
@@ -1468,7 +1468,6 @@ FUNCTION autotarget (byval who as integer, byref atk as AttackData, bslot() as B
  END IF
 
  RETURN result
-
 END FUNCTION
 
 SUB confirm_auto_spread (byval who as integer, tmask() as bool, bslot() as BattleSprite, t() as integer)
