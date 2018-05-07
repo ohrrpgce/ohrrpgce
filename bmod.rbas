@@ -4072,7 +4072,7 @@ SUB queue_attack(attack as integer, who as integer, delay as integer, turn_delay
  FOR i as integer = oldbound + 2 TO UBOUND(atkq)
   clear_attack_queue_slot i
  NEXT i
- set_attack_queue_slot oldbound + 1, attack, who, delay, turn_delay, targs(), blocking
+ set_attack_queue_slot oldbound + 1, attack, who, delay, turn_delay, targs(), blocking, dont_retarget
 END SUB
 
 SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, turn_delay as integer, targs() as integer, blocking as bool=YES, dont_retarget as bool = NO)
