@@ -846,8 +846,8 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   END IF
  END IF
 
+ bat.targ.hover = -1
  IF get_gen_bool("/mouse/mouse_battles") ANDALSO bat.targ.mode = targMANUAL THEN
-  bat.targ.hover = -1
   FOR i as integer = 0 TO 11
    WITH bslot(i)
     IF rect_collide_point(Type(.x, .y - .z, .w, .h), readmouse.pos) ANDALSO bslot(i).vis = YES THEN
@@ -2935,9 +2935,9 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  IF carray(ccMenu) > 1 THEN do_cancel = YES
  IF carray(ccUse) > 1 THEN do_pick = YES
- 
+
+ bat.item.hover = -1
  IF get_gen_bool("/mouse/mouse_battles") THEN
-  bat.item.hover = -1
   DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
   IF rect_collide_point(Type(8, 4, 304, inv_height), readmouse.pos) THEN
    FOR i as integer = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
