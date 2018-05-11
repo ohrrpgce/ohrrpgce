@@ -124,7 +124,7 @@ SUB loadgame (byval slot as integer, prefix as string="")
  IF keyval(scShift) = 0 THEN
   'bypass new loading if shift is held down when you load
   DIM filename as string
-  filename = savedir & SLASH & slot & ".rsav"
+  filename = savedir & SLASH & prefix & slot & ".rsav"
   IF isfile(filename) THEN
    'debuginfo "loading awesome new loadgame from " & filename
    new_loadgame slot, prefix
