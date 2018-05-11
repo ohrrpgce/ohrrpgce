@@ -35,6 +35,7 @@ April (mumble) 2018 [Fufluns]
     * Mouse Options menu allows you to enable built-in mouse support for
       walking around on maps, activating NPCs, using menus and special
       screens and in battles. [James] 
+    * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

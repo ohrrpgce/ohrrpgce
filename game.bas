@@ -4411,7 +4411,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap herox(0), heroy(0)
 
   IF dbg.def(scCtrl, scF1, "Teleport tool (Ctrl-F1)") THEN
-   IF teleporttool() THEN 'CTRL + F1
+   IF teleporttool() THEN
     prepare_map
    END IF
   END IF
@@ -4420,6 +4420,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    savegame 0, "quick"
    gam.showtext = "Quick-saved. Press F3 to quick-load"
    gam.showtext_ticks = 20
+  END IF
+
+  IF dbg.def(scCtrl, scF2, "Save menu (Ctrl-F2)") THEN
+   clearkey scCtrl
+   DIM slot as integer = picksave()
+   IF slot >= 0 THEN savegame slot
   END IF
 
   IF dbg.def(      , scF3, "Quick-load (F3)") THEN
@@ -4434,8 +4440,13 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    END IF
   END IF
 
+  IF dbg.def(scCtrl, scF3, "Load menu (Ctrl-F3)") THEN
+   clearkey scCtrl
+   gam.want.loadgame = pickload(NO, YES) + 1  'No New Game option, beep if the menu doesn't display
+  END IF
+
  ELSE
-  IF dbg.def(      , scF1, "See textbox info (F1)") THEN gam.debug_textbox_info XOR=YES
+  IF dbg.def(      , scF1, "See textbox info (F1)") THEN gam.debug_textbox_info XOR= YES
  END IF
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
