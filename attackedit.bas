@@ -125,8 +125,9 @@ CONST AtkWepHand0 = 145
 CONST AtkWepHand1 = 146
 CONST AtkTurnDelay = 147
 CONST AtkDramaticPause = 148
+CONST AtkDamageColor = 149
 
-'Next menu item is 148 (remember to update MnuItems)
+'Next menu item is 150 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -198,6 +199,7 @@ CONST AtkDatWepHand1X = 317
 CONST AtkDatWepHand1Y = 318
 CONST AtkDatTurnDelay = 319
 CONST AtkDatDramaticPause = 320
+CONST AtkDatDamageColor = 338
 
 'anything past this requires expanding the data
 
@@ -327,7 +329,7 @@ atk_chain_bitset_names(4) = "Invert condition"
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
-CONST MnuItems = 148
+CONST MnuItems = 149
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -338,8 +340,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(42) as integer
-DIM min(42) as integer
+DIM max(43) as integer
+DIM min(43) as integer
 
 'Limit(0) is not used
 
@@ -662,7 +664,10 @@ min(AtkLimTurnDelay) = 0
 CONST AtkLimDramaticPause = 42
 max(AtkLimDramaticPause) = 1000
 
-'next limit is 43 (remember to update the dim)
+CONST AtkLimColorIndex = 43
+max(AtkLimColorIndex) = 256
+
+'next limit is 44 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
@@ -1054,6 +1059,11 @@ menu(AtkDramaticPause) = "Dramatic Pause Ticks:"
 menutype(AtkDramaticPause) = 19'ticks
 menuoff(AtkDramaticPause) = AtkDatDramaticPause
 menulimits(AtkDramaticPause) = AtkLimDramaticPause
+
+menu(AtkDamageColor) = "Damage Color Override:"
+menutype(AtkDamageColor) = 23'color
+menuoff(AtkDamageColor) = AtkDatDamageColor
+menulimits(AtkDamageColor) = AtkLimColorIndex
 
 '----------------------------------------------------------
 '--menu structure
@@ -1484,6 +1494,12 @@ DO
    CASE AtkBaseAtk
     recbuf(AtkDatBaseAtk) = browse_base_attack_stat(recbuf(AtkDatBaseAtk))
     state.need_update = YES
+   CASE AtkDamageColor
+    SELECT CASE twochoice("Damage Color Override", "Use Default", "Pick a specific color")
+     CASE 0: recbuf(AtkDatDamageColor) = 0
+     CASE 1: recbuf(AtkDatDamageColor) = color_browser_256(large(0, recbuf(AtkDatDamageColor) - 1)) + 1
+    END SELECT
+    state.need_update = YES
   END SELECT
  END IF
 
@@ -1707,7 +1723,8 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   workmenu(11) = AtkCaptDelay
   workmenu(12) = AtkSoundEffect
   workmenu(13) = AtkLearnSoundEffect
-  state.last = 13
+  workmenu(14) = AtkDamageColor
+  state.last = 14
   
   DIM anim as integer = recbuf(AtkDatAnimAttacker)
   IF     anim = atkrAnimStrike _
@@ -1716,13 +1733,13 @@ SUB attack_editor_build_appearance_menu(recbuf() as integer, workmenu() as integ
   ORELSE anim = atkrAnimTeleport _
   ORELSE anim = atkrAnimStandingStrike _
   THEN
-   workmenu(14) = AtkWepPic
-   state.last = 14
+   workmenu(15) = AtkWepPic
+   state.last = 15
    IF recbuf(AtkDatWepPic) > 0 THEN
-    workmenu(15) = AtkWepPal
-    workmenu(16) = AtkWepHand0
-    workmenu(17) = AtkWepHand1
-    state.last = 17
+    workmenu(16) = AtkWepPal
+    workmenu(17) = AtkWepHand0
+    workmenu(18) = AtkWepHand1
+    state.last = 18
    END IF
   END IF
    
@@ -2162,6 +2179,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           21=set tag, excluding special tags
 '           22=(int+100) with a % sign after it
+'           23=color 0=default or master palette index + 1
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -2197,7 +2215,7 @@ SELECT CASE menutype(nowindex)
    datablock(menuoff(nowindex)) = flexb.browse(datablock(menuoff(nowindex)))
    changed = (old_dat <> datablock(menuoff(nowindex)))
   END IF
- CASE 7, 9 TO 11 'offset integers
+ CASE 7, 9 TO 11, 23 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 22 '(int+100)%
   DIM temp as integer = datablock(menuoff(nowindex)) + 100
@@ -2254,7 +2272,7 @@ SUB enforceflexbounds (menuoff() as integer, menutype() as integer, menulimits()
 
 FOR i as integer = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 8, 12 TO 17, 19, 20, 22, 1000 TO 3999
+  CASE 0, 8, 12 TO 17, 19, 20, 22, 23, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
@@ -2424,6 +2442,8 @@ FOR i = 0 TO size
    datatext = tag_set_caption(dat, "")
   CASE 22 '--(int+100)%
    datatext = (dat + 100) & "%"
+  CASE 23 '--color 0=default or master palette index + 1
+   datatext = zero_default(dat)
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
