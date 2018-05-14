@@ -5,7 +5,7 @@
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
-CONST uiColorLast = 37
+CONST uiColorLast = 42
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -50,6 +50,11 @@ CONST uiItemScreenSwapHighlight = 35
 CONST uiItemScreenSwapHighlight2 = 36    'flashes when used as slice color
 '-------------------------
 CONST uiMouseHoverItem = 37	'A menu item over which the mouse is hovering
+CONST uiBattleDamage = 38
+CONST uiBattleHeal = 39
+CONST uiBattleAbsorb = 40
+CONST uiBattlePoison = 41
+CONST uiBattleRegen = 42
 
 'When you add more constants you will need to update GuessDefaultUIColors
 'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.

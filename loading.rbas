@@ -2354,6 +2354,12 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer, boxarr
  fixeddefaults(uiItemScreenSwapHighlight)  = &h003B95
  fixeddefaults(uiItemScreenSwapHighlight2) = &h228B22
  fixeddefaults(uiMouseHoverItem)    = &h8C8C8C
+ fixeddefaults(uiBattleDamage)      = &hFFFFFF
+ fixeddefaults(uiBattleHeal)        = &hFFFFFF
+ fixeddefaults(uiBattleAbsorb)      = &hFF5757
+ fixeddefaults(uiBattlePoison)      = &hFFFFFF
+ fixeddefaults(uiBattleRegen)       = &hFFFFFF
+ 
  FOR i as integer = 0 TO uiColorLast
   c.col = fixeddefaults(i)
   DIM firstindex as integer = IIF(i = uiShadow, 1, 0)   'Shadow color can't be 0
@@ -2411,6 +2417,10 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer) as in
   CASE uiItemScreenHighlight2: RETURN colarray(uiHighlight2)
   CASE uiItemScreenSwapHighlight: RETURN colarray(uiHighlight)
   CASE uiItemScreenSwapHighlight2: RETURN colarray(uiHighlight2)
+  CASE uiBattleDamage: RETURN colarray(uiText)
+  CASE uiBattleHeal: RETURN colarray(uiText)
+  CASE uiBattlePoison: RETURN colarray(uiText)
+  CASE uiBattleRegen: RETURN colarray(uiText)
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
@@ -2460,6 +2470,11 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiItemScreenSwapHighlight: RETURN "Items: highlight swapping"
   CASE uiItemScreenSwapHighlight2: RETURN "Items: highlight swapping (Flash)"
   CASE uiMouseHoverItem: RETURN "Mouse hover over menu item"
+  CASE uiBattleDamage: RETURN "Battle damage"
+  CASE uiBattleHeal: RETURN "Battle healing"
+  CASE uiBattleAbsorb: RETURN "Battle absorb (drain)"
+  CASE uiBattlePoison: RETURN "Battle poison damage"
+  CASE uiBattleRegen: RETURN "Battle regen healing"
  END SELECT
  'Invalid values still print, but !?
  RETURN n & "(!?)"
