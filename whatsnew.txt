@@ -37,7 +37,8 @@ June (mumble) 2018 [Fufluns]
       screens and in battles. [James] 
     * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
     * You can now pick the color used to display damage, healing, absorb
-      poison and regen in battle. [James]
+      poison and regen in battle. You can also override the color
+      in the attack editor. [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

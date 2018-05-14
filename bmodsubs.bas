@@ -639,6 +639,9 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
     target.harm.text = "+" + target.harm.text
     target.harm.col = uilook(uiBattleHeal)
    END IF
+   IF attack.damage_color > 0 THEN
+    target.harm.col = attack.damage_color - 1
+   END IF
   END IF
  
  END IF 'skips to here if no damage

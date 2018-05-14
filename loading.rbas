@@ -3130,6 +3130,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .aim_extra = DeSerSingle(buf(), 333)
   .absorb_rate = DeSerSingle(buf(), 335)
   .randomization = buf(337)
+  .damage_color = buf(338) '0 for default ot master palette index+1
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110
