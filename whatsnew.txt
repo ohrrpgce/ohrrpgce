@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-April (mumble) 2018 [Fufluns]
+June (mumble) 2018 [Fufluns]
 
   Highlights:
     * ~~Fill this in later~~
@@ -36,6 +36,8 @@ April (mumble) 2018 [Fufluns]
       walking around on maps, activating NPCs, using menus and special
       screens and in battles. [James] 
     * Ctrl-F2 and Ctrl-F3 debug keys to access save/load menus [Ralph]
+    * You can now pick the color used to display damage, healing, absorb
+      poison and regen in battle. [James]
 
   * New Plotscripting Features
     * "save screenshot" [Ralph]

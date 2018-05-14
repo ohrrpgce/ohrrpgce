@@ -312,7 +312,7 @@ SUB battle_init(byref bat as BattleState, bslot() as BattleSprite)
   bslot(i).revenge = -1
   bslot(i).thankvenge = -1
   bslot(i).counter_target = -1
-  bslot(i).harm.col = uilook(uiText)
+  bslot(i).harm.col = uilook(uiBattleDamage)
   '--init affliction registers
   '--it should be clear by the fact that BattleStats is a separate type that
   '--that bslot().stat inside battle is not the same as gam.hero().stat outside battle
@@ -1213,7 +1213,7 @@ SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite,
  DIM harm as integer
  harm = bslot(who).stat.max.poison - bslot(who).stat.cur.poison
  harm = range(harm, 20)
- quickinflict harm, who, bslot()
+ quickinflict harm, who, bslot(), uilook(uiBattlePoison)
  triggerfade who, bslot()
  fulldeathcheck -1, bat, bslot(), formdata
 END SUB
@@ -1223,7 +1223,7 @@ SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, 
  heal = bslot(who).stat.max.regen - bslot(who).stat.cur.regen
  heal = heal * -1
  heal = range(heal, 20)
- quickinflict heal, who, bslot()
+ quickinflict heal, who, bslot(), uilook(uiBattleRegen)
  triggerfade who, bslot()
  fulldeathcheck -1, bat, bslot(), formdata
 END SUB
@@ -1466,7 +1466,7 @@ SUB draw_damage_text(bslot() as BattleSprite, page as integer)
     END IF
     edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, page
     .ticks -= 1
-    IF .ticks = 0 THEN .col = uilook(uiText)
+    IF .ticks = 0 THEN .col = uilook(uiBattleDamage) 'reset color when the timer finishes
    END IF
   END WITH
  NEXT i
@@ -2137,7 +2137,7 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as BattleSprite)
+SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as BattleSprite, byval col as integer=-1)
  '--quick damage infliction to hp. no bells and whistles
  DIM max_bound as integer
  WITH bslot(targ)
@@ -2149,8 +2149,12 @@ SUB quickinflict (byval harm as integer, byval targ as integer, bslot() as Battl
   .harm.pos.y = .y + (.h * .5)
   IF harm < 0 THEN
    .harm.text = "+" & ABS(harm)
+   .harm.col = uilook(uiBattleHeal)
   ELSE
    .harm.text = STR(harm)
+  END IF
+  IF col >= 0 THEN
+   .harm.col = col
   END IF
 
   max_bound = large(.stat.cur.hp, .stat.max.hp)

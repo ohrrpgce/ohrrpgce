@@ -282,6 +282,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   WITH target
    .harm.text = ""
    .harm.ticks = gen(genDamageDisplayTicks)
+   .harm.col = uilook(uiBattleDamage)
    .harm.pos.x = .x + (.w * .5)
    .harm.pos.y = .y + (.h * .5)
   
@@ -574,7 +575,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
       IF h > 0 THEN .harm.text = "+" + .harm.text
      END IF
      .harm.ticks = gen(genDamageDisplayTicks)
-     .harm.col = 12 'FIXME: pink
+     .harm.col = uilook(uiBattleAbsorb)
      .harm.pos.x = .x + (.w * .5)
      .harm.pos.y = .y + (.h * .5)
      .stat.cur.sta(targstat) += absorb_amount
@@ -633,8 +634,11 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   'set damage display
   IF attack.do_not_display_damage = NO THEN
    target.harm.text = STR(ABS(h))
-   '--if cure, show + sign
-   IF h < 0 THEN target.harm.text = "+" + target.harm.text
+   IF h < 0 THEN
+    '--if cure, show + sign and change color
+    target.harm.text = "+" + target.harm.text
+    target.harm.col = uilook(uiBattleHeal)
+   END IF
   END IF
  
  END IF 'skips to here if no damage
