@@ -1716,12 +1716,14 @@ END SUB
 FUNCTION pick_recovered_rpg_filename(old_sourcerpg as string) as string
  DIM destdir as string
  DIM destfile_basename as string
- destfile_basename = "crash-recovered"
  IF LEN(old_sourcerpg) THEN
   ' Put next to original file
-  destdir = trimfilename(old_sourcerpg) & SLASH
+  destdir = trimfilename(old_sourcerpg)
+  IF LEN(destdir) THEN destdir &= SLASH
   IF NOT diriswriteable(destdir) THEN destdir = ""
   destfile_basename = trimpath(trimextension(old_sourcerpg)) & " crash-recovered "
+ ELSE
+  destfile_basename = "crash-recovered"
  END IF
  IF NOT diriswriteable(destdir) THEN destdir = documents_dir & SLASH
 
@@ -1735,14 +1737,16 @@ END FUNCTION
 
 'Returns true if we can continue, false to cleanup_and_terminate
 FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
- DIM origname as string
- IF LEN(sessinfo.sourcerpg) THEN
-  origname = trimpath(sessinfo.sourcerpg)
- ELSE
-  origname = "gamename.rpg"
+ DIM origname as string = trimpath(sessinfo.sourcerpg)  'Might be ""
+ 'Trim "crash-recovered"
+ DIM where as integer
+ where = INSTR(origname, " crash-recovered ")
+ IF where THEN
+  origname = LEFT(origname, where - 1) & ".rpg"
  END IF
+
  DIM destfile as string
- destfile = pick_recovered_rpg_filename(sessinfo.sourcerpg)
+ destfile = pick_recovered_rpg_filename(origname)
 
  printstr "Saving as " + decode_filename(destfile), 0, 180, vpage
  printstr "LUMPING DATA: please wait...", 0, 190, vpage
@@ -1754,7 +1758,9 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  clearpage vpage
 
  DIM msg as string
- msg = "The recovered game has been saved as " & decode_filename(destfile) & !"\n" _
+ IF LEN(origname) = 0 THEN origname = "gamename.rpg"
+ msg = !"The recovered game has been saved as\n" & _
+       fgtag(uilook(uiSelectedItem), decode_filename(destfile)) & !"\n" _
        "You can rename it to " & origname & ", but ALWAYS keep the previous copy " _
        !"as a backup because some data in the recovered file might be corrupt!\n" _
        "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com"
