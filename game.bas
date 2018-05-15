@@ -905,7 +905,7 @@ DO
  END IF' end gam.paused = NO
 
  IF gam.want.loadgame > 0 THEN
-  'DEBUG debug "loading game slot " & gam.want.loadgame_prefix & (gam.want.loadgame - 1)
+  debuginfo "  Loadgame requested; resetgame"
   load_slot = gam.want.loadgame - 1
   load_slot_prefix = gam.want.loadgame_prefix
   gam.want.loadgame = 0

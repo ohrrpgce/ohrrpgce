@@ -117,8 +117,8 @@ TYPE ScriptWantSignals
   teleport as bool    'Map num has changed, call preparemap()
   usenpc as integer   'NPC instance +1
   rungame as string   'Path to game to load, or ""
-  loadgame as integer 'Save slot +1
-  loadgame_prefix as string 'uset to distringuish quickload
+  loadgame as integer 'Save slot +1. Must be a used (valid) save slot.
+  loadgame_prefix as string 'Used to distinguish quickload slot. Normally ""
   resetgame as bool   'Called "reset game"
   dont_quit_to_loadmenu as bool 'If no title screen, don't quit to the load menu.
 

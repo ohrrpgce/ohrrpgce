@@ -42,7 +42,7 @@ DECLARE SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_vehicle_to_reload(byval parent as Reload.NodePtr)
 DECLARE SUB gamestate_slices_to_reload(byval parent as Reload.NodePtr)
 
-DECLARE SUB new_loadgame(byval slot as integer, prefix as string="")
+DECLARE FUNCTION new_loadgame(byval slot as integer, prefix as string="") as string
 DECLARE SUB gamestate_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(byval node as Reload.NodePtr)
@@ -64,17 +64,17 @@ DECLARE SUB rsav_warn (s as string)
 
 DECLARE SUB new_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 
-DECLARE FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as integer
+DECLARE FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as bool
 DECLARE FUNCTION new_count_used_save_slots() as integer
 DECLARE SUB new_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
 '--old save/load support
-DECLARE SUB old_loadgame (byval slot as integer)
+DECLARE FUNCTION old_loadgame (byval slot as integer) as string
 DECLARE SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 DECLARE SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 DECLARE SUB show_load_index(byval z as integer, caption as string, byval slot as integer=0)
 DECLARE SUB rebuild_inventory_captions (invent() as InventSlot)
-DECLARE FUNCTION old_save_slot_used (byval slot as integer) as integer
+DECLARE FUNCTION old_save_slot_used (byval slot as integer) as bool
 DECLARE FUNCTION old_count_used_save_slots() as integer
 DECLARE SUB old_erase_save_slot (byval slot as integer)
 
@@ -115,28 +115,27 @@ END SUB
 'Note: resetgame (only if a game was previously started) + initgamedefaults MUST be called before loadgame
 'to initialise anything missing from the save file
 SUB loadgame (byval slot as integer, prefix as string="")
+ debuginfo "Loading save slot " & prefix & slot
  IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount THEN
   'only update lastsaveslot for normal prefixless slots
   lastsaveslot = slot + 1
  END IF
- '--Works under the assumption that resetgame has already been called.
- '--Note that resetgame reloads all of gen()
- IF keyval(scShift) = 0 THEN
+
+ DIM errmsg as string = "Save slot empty"
+ DIM filename as string
+ filename = savedir & SLASH & prefix & slot & ".rsav"
+ IF keyval(scShift) = 0 ANDALSO isfile(filename) THEN
   'bypass new loading if shift is held down when you load
-  DIM filename as string
-  filename = savedir & SLASH & prefix & slot & ".rsav"
-  IF isfile(filename) THEN
-   'debuginfo "loading awesome new loadgame from " & filename
-   new_loadgame slot, prefix
-   EXIT SUB
+  errmsg = new_loadgame(slot, prefix)
+ ELSE
+  'Fall back to old save format
+  IF prefix = "" THEN
+   errmsg = old_loadgame(slot)
   END IF
  END IF
- 'Fall back to old save format
- IF prefix <> "" THEN
-  debug "Slot " & prefix & slot & " does not exist in the old .sav format"
- ELSE
-  old_loadgame slot
- END IF
+
+ 'The game state has already been reset, so any error in loading is unrecoverable
+ IF LEN(errmsg) THEN fatalerror "Couldn't load save slot " & prefix & slot & ": " & errmsg
 END SUB
 
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
@@ -217,29 +216,24 @@ SUB savegame (byval slot as integer, prefix as string="")
  current_save_prefix = ""
 END SUB
 
-SUB new_loadgame(byval slot as integer, prefix as string="")
+'Returns an error message on failure
+FUNCTION new_loadgame(byval slot as integer, prefix as string="") as string
 
  IF prefix <> trimpath(prefix) THEN
-  visible_debug "loadgame: save slot prefix is not allowed to include path"
-  EXIT SUB
+  RETURN "loadgame: save slot prefix is not allowed to include path"
  END IF
-
- current_save_slot = slot
- current_save_prefix = prefix
  
  DIM filename as string
  filename = savedir & SLASH & prefix & slot & ".rsav"
 
- IF NOT isfile(filename) THEN
-  debug "Save file missing: " & filename
-  current_save_slot = -1
-  current_save_prefix = ""
-  EXIT SUB
- END IF
-
  DIM doc as DocPtr
  doc = LoadDocument(filename, optNoDelay)
- 
+
+ IF doc = NULL THEN RETURN "Save file couldn't be opened or is corrupt: " & filename
+
+ current_save_slot = slot
+ current_save_prefix = prefix
+
  DIM node as NodePtr
  node = DocumentRoot(doc)
  
@@ -248,7 +242,7 @@ SUB new_loadgame(byval slot as integer, prefix as string="")
  FreeDocument doc
  current_save_slot = -1
  current_save_prefix = ""
-END SUB
+END FUNCTION
 
 SUB rsav_warn (s as string)
  debug "Save slot " & current_save_prefix & current_save_slot & ": " & s
@@ -256,9 +250,11 @@ END SUB
 
 '-----------------------------------------------------------------------
 
+'These are RELOADBasic directives, see reloadbasic/RELOADbasic.txt and reloadtest.bas
 #warn_func = rsav_warn
 #error_func = rsav_warn
 
+'Works under the assumption that resetgame has already been called.
 SUB gamestate_from_reload(byval node as Reload.NodePtr)
  IF NodeName(node) <> "rsav" THEN rsav_warn "root node is not rsav"
 
@@ -427,6 +423,7 @@ SUB gamestate_strings_from_reload(byval stringsnode as Reload.NodePtr)
  END READNODE
 END SUB
 
+'Note: node may be NULL
 SUB gamestate_slices_from_reload(byval node as Reload.NodePtr)
  DIM gen_root as NodePtr = get_general_reld()
 
@@ -1367,8 +1364,8 @@ SUB erase_save_slot (byval slot as integer)
  old_erase_save_slot slot
 END SUB
 
-FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as integer
- DIM result as integer = NO
+FUNCTION new_save_slot_used (byval slot as integer, prefix as string="") as bool
+ DIM result as bool = NO
 
  IF prefix <> trimpath(prefix) THEN
   visible_debug "save_slot_used: save slot prefix may not include path"
@@ -1484,7 +1481,8 @@ END SUB
 '=======================================================================
 '-----------------------------------------------------------------------
 
-SUB old_loadgame (byval slot as integer)
+'Returns error message on an error
+FUNCTION old_loadgame (byval slot as integer) as string
 DIM gmaptmp(dimbinsize(binMAP)) as integer
 
 DIM as integer i, j, o, z
@@ -1492,9 +1490,10 @@ DIM as integer i, j, o, z
 loadrecord buffer(), old_savefile, 15000, slot * 2
 
 DIM savver as integer = buffer(0)
-IF savver < 2 OR savver > 3 THEN
- 'savver 0 occurs if this is an empty slot
- EXIT SUB
+IF savver = 0 THEN
+ RETURN "Save slot is empty"
+ELSEIF savver < 2 OR savver > 3 THEN
+ RETURN "Unsupported or corrupt (SAV version " & savver & ")"
 END IF
 debuginfo "loading from slot " & slot & " of old " & old_savefile
 
@@ -1801,7 +1800,7 @@ FOR i = 0 TO 40
 NEXT i
 
 'See http://rpg.hamsterrepublic.com/ohrrpgce/SAV for docs
-END SUB
+END FUNCTION
 
 SUB old_loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
 DIM i as integer
@@ -1935,7 +1934,7 @@ SUB old_get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
 
 END SUB
 
-FUNCTION old_save_slot_used (byval slot as integer) as integer
+FUNCTION old_save_slot_used (byval slot as integer) as bool
  IF isfile(old_savefile) = 0 THEN RETURN NO
  DIM as short saveversion
  DIM savh as integer = FREEFILE
