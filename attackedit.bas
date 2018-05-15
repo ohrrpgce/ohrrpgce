@@ -665,7 +665,7 @@ CONST AtkLimDramaticPause = 42
 max(AtkLimDramaticPause) = 1000
 
 CONST AtkLimColorIndex = 43
-max(AtkLimColorIndex) = 256
+max(AtkLimColorIndex) = 255
 
 'next limit is 44 (remember to update the dim)
 
@@ -1497,7 +1497,7 @@ DO
    CASE AtkDamageColor
     SELECT CASE twochoice("Damage Color Override", "Use Default", "Pick a specific color")
      CASE 0: recbuf(AtkDatDamageColor) = 0
-     CASE 1: recbuf(AtkDatDamageColor) = color_browser_256(large(0, recbuf(AtkDatDamageColor) - 1)) + 1
+     CASE 1: recbuf(AtkDatDamageColor) = color_browser_256(recbuf(AtkDatDamageColor))
     END SELECT
     state.need_update = YES
   END SELECT
@@ -2204,7 +2204,7 @@ DIM changed as bool = NO
 DIM s as string
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 20, 3000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 23, 3000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 1000 TO 2999' captioned integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
@@ -2215,7 +2215,7 @@ SELECT CASE menutype(nowindex)
    datablock(menuoff(nowindex)) = flexb.browse(datablock(menuoff(nowindex)))
    changed = (old_dat <> datablock(menuoff(nowindex)))
   END IF
- CASE 7, 9 TO 11, 23 'offset integers
+ CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 22 '(int+100)%
   DIM temp as integer = datablock(menuoff(nowindex)) + 100
@@ -2442,7 +2442,7 @@ FOR i = 0 TO size
    datatext = tag_set_caption(dat, "")
   CASE 22 '--(int+100)%
    datatext = (dat + 100) & "%"
-  CASE 23 '--color 0=default or master palette index + 1
+  CASE 23 '--color 0=default >=1 is palette index (color 0 not available)
    datatext = zero_default(dat)
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000

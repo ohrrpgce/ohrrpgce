@@ -663,7 +663,7 @@ Type AttackData
 	aim_extra as single
 	randomization as integer
 	absorb_rate as single
-	damage_color as integer '0 is default, or master palette index+1
+	damage_color as integer '0 is default, >=1 is palette index (color zero not available)
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool
