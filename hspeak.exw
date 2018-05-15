@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Tl 2018-05-14 Delete (possibly-bad) .hs output file on error
 --3Tk 2018-03-18 Optimise binary_compile; puts nodes in opposite order
 --3Tj 2018-03-18 Fix some number and - lexing bugs
 --3Ti 2018-03-17 More compiler global_scope optimisations
@@ -160,6 +161,7 @@ include hsspiffy.e --various routines, sequence manipulation - James Paige
 include machine.e  --needed for int_to_bytes
 include std/math.e --needed for mod
 include std/graphics.e --needed for color output
+include std/filesys.e
 include std/map.e
 include euphoria/unicode.e
 include euphoria/ucstypes.e
@@ -175,7 +177,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Tk"
+constant COMPILER_SUB_VERSION="Tl"
 constant COPYRIGHT_DATE="2018"
 
 --Known single-character commandline options
@@ -321,6 +323,8 @@ string compiler_dir       compiler_dir=""
 string include_dir        include_dir=""
 string source_file        source_file=""
 string dest_file          dest_file=""
+integer dest_file_fh      dest_file_fh=0          --For use by error handlers only!
+integer cleanup_dest      cleanup_dest=false      --Whether to delete dest_file on error
 sequence optlist          optlist={}
 sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
 sequence additional_includes
@@ -860,6 +864,14 @@ procedure simple_error(string s)
     error_file_print("</a>\n<hr>\n")
   end if
   opt_wait_for_key(true)
+  --Custom doesn't check hspeak's error code (due to difficulty retrieving it after spawning),
+  --it only checks whether the output .hs file was created.
+  if cleanup_dest then
+    if dest_file_fh then
+      close(dest_file_fh)
+    end if
+    delete_file(dest_file)
+  end if
   abort(1)
 end procedure
 
@@ -1027,7 +1039,6 @@ procedure init()
     end if
     if find('y',optlist) then
       --found the -y command line arg, overwrite automatically
-      key='y'
     else
       while true do
         --prompt the user to overwrite
@@ -1045,6 +1056,8 @@ procedure init()
       end while
     end if
   end if
+  --From now on, delete dest_file on error
+  cleanup_dest=true
 
   --Init global data tables
   global_scope=map:new_from_kvpairs({
@@ -4990,6 +5003,7 @@ procedure write_output_file()
   header=sprintf("HamsterSpeak\n%s\n%d\n%s\n%d\n%d\n",{COMPILER_VERSION & COMPILER_SUB_VERSION,HSP_FORMAT_VERSION,plotscr_version,HSZ_FORMAT_VERSION,max_used_function})
   if length(all_scripts) then
     fh=open(dest_file,"wb")
+    dest_file_fh=fh
     if fh!=-1 then
       wrap_print("writing output file "&COLBWHI&"%s"&COLWHI&"\n",{dest_file})
       --write header and version

@@ -214,6 +214,9 @@ global function find_rev(object it, sequence s)
 end function
 
 --normalize a pathname to use forward slashes--
+--NOTE: on Unix this breaks the ability for \ to appear in a filename
+--appearing on the commandline, but we do definitely want to allow using
+--\ as a path separator in include paths.
 global function filenamix(sequence s)
   return substitute(s,'\\','/')
 end function
@@ -306,20 +309,6 @@ global function decapitate(sequence s)
   else
     return s
   end if
-end function
-
---verify that a file exists--
-global function file_exists(sequence f)
-  integer fh
-  integer result
-  fh=open(f,"rb")
-  if fh=-1 then
-    result=false
-  else
-    close(fh)
-    result=true
-  end if
-  return(result)
 end function
 
 --insert an object into a sequence--
